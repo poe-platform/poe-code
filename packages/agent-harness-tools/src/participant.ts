@@ -1,4 +1,4 @@
-import { normalizeAgentId } from "@poe-code/agent-defs";
+import { normalizeAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 
 export interface WorkflowParticipant {
   id: string;
@@ -16,6 +16,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeParticipantAgent(id: string, value: unknown): string | string[] {
   if (typeof value === "string") {
+    if (parseAgentSpecifier(value).agent.length === 0) {
+      throw new Error(`Participant "${id}" must define a non-empty agent.`);
+    }
     const normalized = normalizeAgentId(value);
     if (normalized.length === 0) {
       throw new Error(`Participant "${id}" must define a non-empty agent.`);
@@ -40,6 +43,9 @@ function normalizeParticipantAgent(id: string, value: unknown): string | string[
       );
     }
 
+    if (parseAgentSpecifier(entry).agent.length === 0) {
+      throw new Error(`Participant "${id}" must define a non-empty agent.`);
+    }
     const normalized = normalizeAgentId(entry);
     if (normalized.length === 0) {
       throw new Error(`Participant "${id}" must define a non-empty agent.`);
@@ -86,6 +92,9 @@ export function normalizeParticipantConfig(
     if (typeof participantInput.model !== "string") {
       throw new Error(`Participant "${id}" has invalid model. Expected a string.`);
     }
+    if (participantInput.model.length === 0) {
+      throw new Error(`Participant "${id}" must define a non-empty model.`);
+    }
     participant.model = participantInput.model;
   }
 
@@ -103,6 +112,10 @@ export function selectParticipantAgent(
   participant: WorkflowParticipant,
   iteration: number
 ): string {
+  if (!Number.isInteger(iteration) || iteration < 0) {
+    throw new Error("Participant iteration must be a non-negative integer.");
+  }
+
   if (typeof participant.agent === "string") {
     return participant.agent;
   }

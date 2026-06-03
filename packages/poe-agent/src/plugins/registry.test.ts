@@ -3,6 +3,18 @@ import { builtinPluginRegistry } from "./registry.js";
 import { resolvePluginsFromConfig } from "./resolve-plugins.js";
 
 describe("builtinPluginRegistry", () => {
+  it("prevents consumers from replacing built-in factories", () => {
+    const spec = builtinPluginRegistry.get("web");
+    expect(spec).toBeDefined();
+
+    expect(() => {
+      spec!.factory = () => ({ name: "replaced-web-plugin" });
+    }).toThrow();
+    expect(resolvePluginsFromConfig([{ name: "web" }])[0]?.name).toBe(
+      "poe-agent-plugin-web"
+    );
+  });
+
   it("resolves the openai responses spec from agent.plugins config", () => {
     const plugins = resolvePluginsFromConfig([{ name: "openai-responses" }]);
 
@@ -75,5 +87,16 @@ describe("builtinPluginRegistry", () => {
       timeout: 12_000,
       maxRetries: 3
     });
+  });
+
+  it("preserves special-key default headers for openai providers", () => {
+    for (const pluginName of ["openai-responses", "openai-chat-completions"]) {
+      const options = builtinPluginRegistry.get(pluginName)?.parseOptions({
+        defaultHeaders: JSON.parse('{"__proto__":"visible"}')
+      }) as { defaultHeaders?: Record<string, string> };
+
+      expect(Object.hasOwn(options.defaultHeaders ?? {}, "__proto__")).toBe(true);
+      expect(options.defaultHeaders?.["__proto__"]).toBe("visible");
+    }
   });
 });

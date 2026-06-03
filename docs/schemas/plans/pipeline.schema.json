@@ -45,6 +45,9 @@
         "additionalProperties": false
       }
     },
+    "name": {
+      "type": "string"
+    },
     "setup": {
       "anyOf": [
         {
@@ -120,6 +123,9 @@
           "const": false
         }
       ]
+    },
+    "state": {
+      "type": "string"
     },
     "steps": {
       "type": "object",

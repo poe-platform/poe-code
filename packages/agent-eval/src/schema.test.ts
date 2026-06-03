@@ -1,7 +1,7 @@
 import { parse as parseYaml } from "yaml";
 import { describe, expect, it } from "vitest";
 
-import { validateEvalYaml } from "./schema.js";
+import { evalYamlSchema, validateEvalYaml } from "./schema.js";
 
 const validEvalYaml = [
   "id: smoke",
@@ -60,6 +60,18 @@ function deletePath(value: Record<string, unknown>, path: readonly string[]): vo
 }
 
 describe("eval yaml schema", () => {
+  it("prevents mutation of the exported validation schema", () => {
+    expect(() => {
+      delete (evalYamlSchema as unknown as { shape: Record<string, unknown> }).shape.judge;
+    }).toThrow();
+
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    delete parsed.judge;
+    expect(() => validateEvalYaml(parsed, "schema/eval.yaml")).toThrow(
+      "schema/eval.yaml (judge):"
+    );
+  });
+
   it("accepts a valid eval.yaml and applies defaults", () => {
     const result = validateEvalYaml(parseEvalYaml(validEvalYaml), "smoke/eval.yaml");
 
@@ -182,6 +194,15 @@ describe("eval yaml schema", () => {
     const result = validateEvalYaml(parsed, "smoke/eval.yaml");
 
     expect(result.scorer).toBeUndefined();
+  });
+
+  it("rejects plan destinations that escape the clone root", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    (parsed.target as Record<string, unknown>).plan_dest = "../outside.md";
+
+    expect(() => validateEvalYaml(parsed, "escape/eval.yaml")).toThrow(
+      "escape/eval.yaml (target.plan_dest): target.plan_dest must stay within the clone directory."
+    );
   });
 
   it("accepts eval.yaml with scorer", () => {

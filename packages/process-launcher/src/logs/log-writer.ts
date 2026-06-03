@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, LogWriter } from "../types.js";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
@@ -111,11 +112,30 @@ export function createLogWriter(
   retainCount: number,
   fs: LauncherFileSystem = nodeFs as unknown as LauncherFileSystem
 ): LogWriter {
-  const maxRetainedRuns = Math.max(0, Math.trunc(retainCount));
+  if (!Number.isFinite(retainCount) || !Number.isInteger(retainCount) || retainCount < 0) {
+    throw new Error("retainCount must be a finite non-negative integer");
+  }
+  const maxRetainedRuns = retainCount;
+  let operationQueue = Promise.resolve();
 
-  async function write(line: string, stream: "stdout" | "stderr"): Promise<void> {
+  function enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = operationQueue.then(operation, operation);
+    operationQueue = result.then(
+      () => undefined,
+      () => undefined
+    );
+    return result;
+  }
+
+  async function writeNow(line: string, stream: "stdout" | "stderr"): Promise<void> {
+    await assertPathHasNoSymbolicLinks(fs, logDir);
     await fs.mkdir(logDir, { recursive: true });
+    await assertPathHasNoSymbolicLinks(fs, logDir);
     await fs.appendFile(getCurrentLogPath(logDir, stream), `${line}\n`);
+  }
+
+  function write(line: string, stream: "stdout" | "stderr"): Promise<void> {
+    return enqueue(() => writeNow(line, stream));
   }
 
   async function rotateStream(stream: "stdout" | "stderr"): Promise<void> {
@@ -139,22 +159,35 @@ export function createLogWriter(
     await moveIfExists(fs, currentPath, getRotatedLogPath(logDir, stream, 1));
   }
 
-  async function rotate(): Promise<void> {
-    await rotateStream("stdout");
-    await rotateStream("stderr");
+  async function rotateNow(): Promise<void> {
+    await assertPathHasNoSymbolicLinks(fs, logDir);
+    const priorLogs = await captureLogs(fs, logDir);
+    try {
+      await rotateStream("stdout");
+      await rotateStream("stderr");
+    } catch (error) {
+      await restoreLogs(fs, logDir, priorLogs);
+      throw error;
+    }
   }
 
-  async function tail(stream: "stdout" | "stderr", lines = 50): Promise<string[]> {
+  function rotate(): Promise<void> {
+    return enqueue(() => rotateNow());
+  }
+
+  async function tailNow(stream: "stdout" | "stderr", lines = 50): Promise<string[]> {
+    if (!Number.isFinite(lines) || !Number.isInteger(lines) || lines < 0) {
+      throw new Error("lines must be a finite non-negative integer");
+    }
     try {
+      await assertPathHasNoSymbolicLinks(fs, logDir);
       const content = await fs.readFile(getCurrentLogPath(logDir, stream), "utf8");
       const allLines = getLines(content);
-      const lineCount = Math.max(0, Math.trunc(lines));
-
-      if (lineCount === 0) {
+      if (lines === 0) {
         return [];
       }
 
-      return allLines.slice(-lineCount);
+      return allLines.slice(-lines);
     } catch (error) {
       if (isNotFoundError(error)) {
         return [];
@@ -164,7 +197,70 @@ export function createLogWriter(
     }
   }
 
+  function tail(stream: "stdout" | "stderr", lines = 50): Promise<string[]> {
+    return enqueue(() => tailNow(stream, lines));
+  }
+
   function close(): void {}
 
   return { write, rotate, tail, close };
+}
+
+async function captureLogs(fs: LauncherFileSystem, logDir: string): Promise<Map<string, string>> {
+  const snapshot = new Map<string, string>();
+  let fileNames: string[];
+  try {
+    fileNames = await fs.readdir(logDir);
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return snapshot;
+    }
+    throw error;
+  }
+
+  for (const fileName of fileNames) {
+    if (
+      fileName !== "stdout.log" &&
+      fileName !== "stderr.log" &&
+      getRotatedLogIndex(fileName, "stdout") === null &&
+      getRotatedLogIndex(fileName, "stderr") === null
+    ) {
+      continue;
+    }
+    const filePath = path.join(logDir, fileName);
+    snapshot.set(filePath, await fs.readFile(filePath, "utf8"));
+  }
+
+  return snapshot;
+}
+
+async function restoreLogs(
+  fs: LauncherFileSystem,
+  logDir: string,
+  snapshot: Map<string, string>
+): Promise<void> {
+  let fileNames: string[] = [];
+  try {
+    fileNames = await fs.readdir(logDir);
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
+
+  for (const fileName of fileNames) {
+    const filePath = path.join(logDir, fileName);
+    const managed =
+      fileName === "stdout.log" ||
+      fileName === "stderr.log" ||
+      getRotatedLogIndex(fileName, "stdout") !== null ||
+      getRotatedLogIndex(fileName, "stderr") !== null;
+    if (managed && !snapshot.has(filePath)) {
+      await fs.rm(filePath, { force: true });
+    }
+  }
+
+  for (const [filePath, content] of snapshot) {
+    await fs.writeFile(filePath, content);
+  }
 }

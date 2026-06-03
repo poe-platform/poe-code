@@ -1,4 +1,4 @@
-import type { Task } from "@poe-code/task-list";
+import { TaskNotFoundError, type Task } from "@poe-code/task-list";
 import { S } from "toolcraft-schema";
 import type { CommandNode, Group, RenderPrimitives } from "../index.js";
 import { UserError, defineCommand, defineGroup } from "../index.js";
@@ -21,6 +21,13 @@ const listParams = S.Object({
 const showParams = S.Object({
   approvalId: S.String()
 });
+const runParams = S.Object({
+  approvalId: S.String(),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the approval without prompting or executing it",
+    scope: ["cli"]
+  }))
+});
 
 export const approvalsGroup = markApprovalsBuiltIn(
   defineGroup<ApprovalBuiltInServices>({
@@ -40,8 +47,15 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: listParams,
         handler: async ({ params, runtimeOptions }) => {
-          const { tasks } = await ensureApprovalList(runtimeOptions);
-          return loadApprovals(tasks, params.state);
+          try {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return loadApprovals(tasks, params.state);
+          } catch (error) {
+            if (isMissingStateError(error)) {
+              return [];
+            }
+            throw error;
+          }
         },
         render: {
           rich: (result, primitives) => renderApprovalList(result, primitives),
@@ -62,8 +76,15 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: showParams,
         handler: async ({ params, runtimeOptions }) => {
-          const { tasks } = await ensureApprovalList(runtimeOptions);
-          return tasks.get(params.approvalId);
+          try {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return tasks.get(params.approvalId);
+          } catch (error) {
+            if (isMissingStateError(error)) {
+              throw new TaskNotFoundError(`Task "approvals/${params.approvalId}" not found.`);
+            }
+            throw error;
+          }
         },
         render: {
           rich: (result, primitives) => renderApprovalDetails(result, primitives),
@@ -74,17 +95,29 @@ export const approvalsGroup = markApprovalsBuiltIn(
       defineCommand<
         ApprovalBuiltInServices,
         "run",
-        typeof showParams,
+        typeof runParams,
         undefined,
-        void,
+        Task | void,
         typeof runScope
       >({
         name: "run",
         description: "Run one queued approval.",
         scope: runScope as unknown as ["cli"],
-        params: showParams,
-        handler: async ({ params, runtimeOptions, root }) =>
-          runApproval(params.approvalId, runtimeOptions, root)
+        params: runParams,
+        handler: async ({ params, runtimeOptions, root }) => {
+          if (params.dryRun === true) {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return tasks.get(params.approvalId);
+          }
+          return runApproval(params.approvalId, runtimeOptions, root);
+        },
+        render: {
+          rich: (result, primitives) => {
+            if (result) renderApprovalDetails(result, primitives);
+          },
+          markdown: (result) => result ? renderApprovalDetailsMarkdown(result) : "",
+          json: (result) => result
+        }
       })
     ]
   })
@@ -103,8 +136,10 @@ export function mergeApprovalsGroup<TServices extends object>(
     throw new UserError("'approvals' is reserved for human-in-loop built-ins");
   }
 
-  root.children = [...root.children, approvalsGroup as unknown as CommandNode<TServices>];
-  return root;
+  return {
+    ...root,
+    children: [...root.children, approvalsGroup as unknown as CommandNode<TServices>]
+  };
 }
 
 function markApprovalsBuiltIn<TGroup extends Group<any>>(group: TGroup): TGroup {
@@ -275,4 +310,8 @@ function stringifyValue(value: unknown): string {
 
 function escapeMarkdownCell(value: string): string {
   return value.replaceAll("|", "\\|");
+}
+
+function isMissingStateError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

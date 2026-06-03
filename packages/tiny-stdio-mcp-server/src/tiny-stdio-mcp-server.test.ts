@@ -9,7 +9,7 @@ import {
 } from "./jsonrpc.js";
 import { ToolError } from "./index.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
-import type { JSONRPCNotification } from "./types.js";
+import type { JSONRPCMessage, JSONRPCNotification, SDKTransport } from "./types.js";
 import { defineSchema } from "./schema.js";
 import { createServer } from "./server.js";
 import { createTestPair, type TestPair } from "./testing.js";
@@ -31,6 +31,22 @@ describe("tiny-stdio-mcp-server public entry point", () => {
 
   it("keeps HandleResult out of the runtime namespace", () => {
     expect(api).not.toHaveProperty("HandleResult");
+  });
+
+  it("does not permit mutation of exported error codes", () => {
+    const errorCodes = JSON_RPC_ERROR_CODES as unknown as { INVALID_REQUEST: number };
+    const originalCode = errorCodes.INVALID_REQUEST;
+
+    try {
+      expect(() => {
+        errorCodes.INVALID_REQUEST = 7;
+      }).toThrow();
+      expect(JSON_RPC_ERROR_CODES.INVALID_REQUEST).toBe(-32600);
+    } finally {
+      if (errorCodes.INVALID_REQUEST !== originalCode) {
+        errorCodes.INVALID_REQUEST = originalCode;
+      }
+    }
   });
 });
 
@@ -128,6 +144,15 @@ describe("parseMessage", () => {
       expect(result.success).toBe(true);
       if (result.success && !result.isNotification) {
         expect(result.request.id).toBe("");
+      }
+    });
+
+    it("parses a request with an explicit null id", () => {
+      const result = parseMessage('{"jsonrpc":"2.0","id":null,"method":"ping"}');
+
+      expect(result.success).toBe(true);
+      if (result.success && !result.isNotification) {
+        expect(result.request.id).toBeNull();
       }
     });
 
@@ -290,6 +315,22 @@ describe("parseMessage", () => {
   });
 
   describe("invalid request errors", () => {
+    it("returns invalid request for primitive params", () => {
+      expect(parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":"bad"}')).toEqual({
+        success: false,
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+        id: 1,
+      });
+    });
+
+    it("returns invalid request for non-finite numeric ids", () => {
+      expect(parseMessage('{"jsonrpc":"2.0","id":1e999,"method":"test"}')).toEqual({
+        success: false,
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+        id: null,
+      });
+    });
+
     it("returns invalid request for missing jsonrpc field", () => {
       const result = parseMessage('{"id":1,"method":"test"}');
 
@@ -926,6 +967,15 @@ describe("defineSchema", () => {
         required: [],
       });
     });
+
+    it("preserves a declared __proto__ property", () => {
+      const schema = defineSchema(
+        Object.fromEntries([["__proto__", { type: "string" as const }]])
+      );
+
+      expect(Object.hasOwn(schema.properties, "__proto__")).toBe(true);
+      expect(schema.properties.__proto__).toEqual({ type: "string" });
+    });
   });
 
   describe("property types", () => {
@@ -1288,6 +1338,21 @@ function createTestTransport() {
 
 function getResponsesWithId(responses: Array<Record<string, unknown>>) {
   return responses.filter((response) => "id" in response);
+}
+
+function createSdkTransport() {
+  const sent: JSONRPCMessage[] = [];
+  const transport = {
+    onmessage: undefined,
+    onclose: undefined,
+    start: vi.fn(async () => undefined),
+    close: vi.fn(async () => undefined),
+    send: vi.fn(async (message: JSONRPCMessage) => {
+      sent.push(message);
+    }),
+  } as unknown as SDKTransport;
+
+  return { sent, transport };
 }
 
 describe("createServer", () => {
@@ -1803,10 +1868,42 @@ describe("server protocol handlers", () => {
     it('R9: handleMessage("notifications/initialized") returns { result: undefined }', async () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
+      await server.handleMessage("initialize", {});
+
       await expect(
         server.handleMessage("notifications/initialized")
       ).resolves.toEqual({
         result: undefined,
+      });
+    });
+
+    it('rejects handleMessage("notifications/initialized") before initialize', async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await expect(server.handleMessage("notifications/initialized")).resolves.toEqual({
+        error: {
+          code: -32600,
+          message: "Server not initialized",
+        },
+      });
+    });
+
+    it("accepts an idempotent re-initialize on the same connection", async () => {
+      // Real MCP clients (e.g. kimi-cli via fastmcp) re-enter the client and
+      // re-send `initialize` on a persistent connection per tool call. The
+      // official MCP SDK server re-responds with InitializeResult rather than
+      // erroring, so this server must do the same.
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
+
+      const response = await server.handleMessage("initialize", {});
+      expect(response.error).toBeUndefined();
+      expect(response.result).toEqual({
+        protocolVersion: expect.any(String),
+        capabilities: { tools: { listChanged: true } },
+        serverInfo: { name: "test", version: "1.0.0" },
       });
     });
 
@@ -1863,6 +1960,112 @@ describe("server protocol handlers", () => {
           message: "Missing required parameter",
         },
       });
+    });
+
+    it("does not invoke tools with invalid schema arguments", async () => {
+      const handler = vi.fn(async () => "unexpected");
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "validated",
+        "Validated",
+        defineSchema({ name: { type: "string" }, count: { type: "number" } }),
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: "many" },
+        })
+      ).resolves.toEqual({ error: { code: -32602, message: "Invalid tool arguments" } });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it("allows handlers to provide detailed validation errors when schema prevalidation is disabled", async () => {
+      const server = createServer({
+        name: "test",
+        version: "1.0.0",
+        validateToolArguments: false
+      }).tool(
+        "validated",
+        "Validated",
+        defineSchema({ name: { type: "string" } }),
+        async () => {
+          throw new ToolError(JSON_RPC_ERROR_CODES.INVALID_PARAMS, 'Missing required parameter "name".');
+        }
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: {}
+        })
+      ).resolves.toEqual({
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_PARAMS, message: 'Missing required parameter "name".' }
+      });
+    });
+
+    it("accepts integer and nullable values declared by MCP JSON schemas", async () => {
+      const handler = vi.fn(async () => "validated");
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "validated",
+        "Validated",
+        {
+          type: "object",
+          properties: {
+            count: { type: "integer" },
+            optionalCount: { type: "integer", nullable: true }
+          },
+          required: ["count"]
+        },
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: 2, optionalCount: null }
+        })
+      ).resolves.toEqual({ result: { content: [{ type: "text", text: "validated" }] } });
+      expect(handler).toHaveBeenCalledWith({ count: 2, optionalCount: null });
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: 2.5 }
+        })
+      ).resolves.toEqual({ error: { code: -32602, message: "Invalid tool arguments" } });
+    });
+
+    it("rejects malformed direct CallToolResult values", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "malformed",
+        "Malformed",
+        defineSchema({}),
+        async () => ({ content: [{ type: "text" }] } as never)
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", { name: "malformed", arguments: {} })
+      ).resolves.toEqual({
+        result: {
+          content: [{ type: "text", text: "Error: Invalid tool result" }],
+          isError: true,
+        },
+      });
+    });
+
+    it("rejects non-finite ToolError codes", () => {
+      expect(() => new ToolError(Number.POSITIVE_INFINITY, "overflow")).toThrow(
+        "ToolError code must be a finite number"
+      );
     });
   });
 
@@ -2008,7 +2211,7 @@ describe("server protocol handlers", () => {
       expect(response.result.serverInfo).toBeDefined();
     });
 
-    it("echoes requested protocol version when provided", async () => {
+    it("echoes a supported requested protocol version", async () => {
       const transport = createTestTransport();
       const server = createServer({ name: "test", version: "1.0.0" });
 
@@ -2022,6 +2225,22 @@ describe("server protocol handlers", () => {
 
       const response = transport.getLastResponse();
       expect(response.result.protocolVersion).toBe("2025-06-18");
+    });
+
+    it("returns its latest supported protocol version for an unsupported request", async () => {
+      const transport = createTestTransport();
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      const connectPromise = server.connect(transport);
+      transport.send(
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"not-a-supported-version"}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const response = transport.getLastResponse();
+      expect(response.result.protocolVersion).toBe("2025-11-25");
     });
   });
 
@@ -2803,6 +3022,143 @@ describe("transport connection", () => {
 
     const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses).toHaveLength(3);
+  });
+
+  it("waits for accepted tool responses before resolving connect", async () => {
+    const transport = createTestTransport();
+    let finishTool: ((value: string) => void) | undefined;
+    let markToolStarted: (() => void) | undefined;
+    const toolStarted = new Promise<void>((resolve) => {
+      markToolStarted = resolve;
+    });
+    const server = createServer({ name: "test", version: "1.0.0" }).tool(
+      "slow",
+      "Slow",
+      defineSchema({}),
+      () => new Promise<string>((resolve) => {
+        markToolStarted?.();
+        finishTool = resolve;
+      })
+    );
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+    await vi.waitFor(() => {
+      expect(getResponsesWithId(transport.getAllResponses()).some((response) => response.id === 1)).toBe(true);
+    });
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"slow","arguments":{}}}');
+    await toolStarted;
+    transport.close();
+
+    await Promise.resolve();
+    let resolved = false;
+    void connectPromise.then(() => {
+      resolved = true;
+    });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    finishTool?.("finished");
+    await connectPromise;
+    expect(getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      result: { content: [{ type: "text", text: "finished" }] },
+    });
+  });
+
+  it("does not unlock tools from notification-form initialize", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","method":"initialize","params":{}}');
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"tools/list"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(getResponsesWithId(transport.getAllResponses())).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        error: { code: -32600, message: "Server not initialized" },
+      },
+    ]);
+  });
+
+  it("responds with an error to request-form notifications/initialized", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"notifications/initialized"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(
+      getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)
+    ).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      error: { code: -32600, message: "Invalid Request" },
+    });
+  });
+});
+
+describe("SDK connection lifecycle", () => {
+  it("keeps initialization state isolated per connection", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const first = createSdkTransport();
+    const second = createSdkTransport();
+
+    void server.connectSDK(first.transport);
+    void server.connectSDK(second.transport);
+
+    await first.transport.onmessage?.({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} });
+    await first.transport.onmessage?.({ jsonrpc: "2.0", method: "notifications/initialized" });
+    await second.transport.onmessage?.({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+
+    expect(second.sent).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        error: { code: -32600, message: "Server not initialized" },
+      },
+    ]);
+
+    first.transport.onclose?.();
+    second.transport.onclose?.();
+  });
+
+  it("rejects when SDK transport startup fails", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const transport = createSdkTransport().transport;
+    transport.start = vi.fn(async () => {
+      throw new Error("start failed");
+    });
+
+    await expect(server.connectSDK(transport)).rejects.toThrow("start failed");
+  });
+
+  it("rejects notifyToolsChanged when SDK notification delivery fails", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const sdk = createSdkTransport();
+    sdk.transport.send = vi.fn(async (message: JSONRPCMessage) => {
+      if ("method" in message && message.method === "notifications/tools/list_changed") {
+        throw new Error("transport closed");
+      }
+      sdk.sent.push(message);
+    });
+
+    void server.connectSDK(sdk.transport);
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} });
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", method: "notifications/initialized" });
+
+    await expect(server.notifyToolsChanged()).rejects.toThrow("transport closed");
+    sdk.transport.onclose?.();
   });
 });
 

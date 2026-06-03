@@ -271,6 +271,47 @@ describe("pipeline run command", () => {
     expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(true);
   });
 
+  it("does not recover malformed config while dry-running a pipeline", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Do task 1",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n"),
+      [`${homeDir}/.poe-code/config.json`]: "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "run",
+        "--plan",
+        "docs/plans/plan.md",
+        "--dry-run"
+      ])
+    ).rejects.toThrow();
+
+    expect(await fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).toBe("{ invalid json\n");
+    expect(await fs.readdir(`${homeDir}/.poe-code`)).toEqual(["config.json"]);
+  });
+
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
     braintrustLoadIntegrationsMock.mockResolvedValue({
@@ -1579,6 +1620,42 @@ describe("pipeline init command", () => {
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 
+  it("dry-runs pipeline init without invoking the SDK", async () => {
+    const logs: string[] = [];
+    const fs = createMemFs({
+      "/repo/docs/plans/alpha.md": "# Alpha\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "pipeline",
+      "init",
+      "--agent",
+      "codex",
+      "--source",
+      "docs/plans/alpha.md"
+    ]);
+
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Would initialize: docs/plans/alpha.md"))).toBe(
+      true
+    );
+    expect(logs.some((message) => message.includes("Would generate pipeline plans with codex"))).toBe(
+      true
+    );
+  });
+
   it("uses core.defaultAgent for init without prompting and preserves the model", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/alpha.md": "# Alpha\n"
@@ -1969,6 +2046,25 @@ describe("pipeline plan-path command", () => {
 
     expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
+
+  it("does not recover malformed project config while printing the path", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "pipeline", "plan-path"])).rejects.toThrow();
+
+    expect(await fs.readFile("/repo/.poe-code/config.json", "utf8")).toBe("{ invalid json\n");
+    expect(await fs.readdir("/repo/.poe-code")).toEqual(["config.json"]);
+  });
 });
 
 describe("pipeline install command", () => {
@@ -2137,5 +2233,62 @@ describe("pipeline install command", () => {
     await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
+  });
+
+  it("does not install the skill or plans directory when steps creation fails", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    const originalWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath) === "/repo/.poe-code/pipeline/steps.yaml") {
+        throw new Error("injected steps.yaml write failure");
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toThrow("injected steps.yaml write failure");
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
+  });
+
+  it("does not recover malformed config while dry-running install defaults", async () => {
+    const fs = createMemFs({
+      [`${homeDir}/.poe-code/config.json`]: "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "pipeline", "install", "--local"])
+    ).rejects.toThrow();
+
+    expect(await fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).toBe("{ invalid json\n");
+    expect(await fs.readdir(`${homeDir}/.poe-code`)).toEqual(["config.json"]);
   });
 });

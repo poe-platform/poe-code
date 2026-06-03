@@ -60,6 +60,7 @@ describe("acpToTrace", () => {
         input: { path: "README.md" },
         output: "contents",
         metadata: {
+          toolCallId: "tc-1",
           startTs: 100,
           toolName: "Read",
           endTs: 250,
@@ -150,6 +151,41 @@ describe("acpToTrace", () => {
     });
   });
 
+  it("accepts contexts without optional usage metrics", () => {
+    const trace = acpToTrace(createContext({ usage: undefined }));
+
+    expect(trace.root.metrics).toEqual({});
+  });
+
+  it("converts internal tool lifecycle events into a tool span", () => {
+    const events = [
+      {
+        event: "tool_start",
+        id: "tc-1",
+        kind: "exec",
+        title: "pwd",
+        input: { command: "pwd" },
+      },
+      {
+        event: "tool_complete",
+        id: "tc-1",
+        kind: "exec",
+        path: "/repo",
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({ events }));
+
+    expect(trace.root.children).toMatchObject([
+      {
+        name: "tool_call:exec",
+        input: { command: "pwd" },
+        output: "/repo",
+        metadata: { toolCallId: "tc-1" },
+      },
+    ]);
+  });
+
   it("carries ctx.metadata.aborted into root metadata", () => {
     const trace = acpToTrace(createContext({
       metadata: {
@@ -160,6 +196,20 @@ describe("acpToTrace", () => {
     expect(trace.root.metadata).toMatchObject({
       sessionId: "session-1",
       aborted: true,
+    });
+  });
+
+  it("keeps authoritative session identifiers over supplemental metadata", () => {
+    const trace = acpToTrace(createContext({
+      metadata: {
+        sessionId: "spoofed-session",
+        threadId: "spoofed-thread",
+      },
+    }));
+
+    expect(trace.root.metadata).toMatchObject({
+      sessionId: "session-1",
+      threadId: "thread-1",
     });
   });
 
@@ -192,6 +242,7 @@ describe("acpToTrace", () => {
         input: { query: "status" },
         output: { ok: true },
         metadata: {
+          toolCallId: "tc-1",
           startTs: "not-a-number",
           phase: "end",
           endTs: "also-not-a-number",
@@ -232,6 +283,78 @@ describe("acpToTrace", () => {
     expect(trace.root.output).toBe("[truncated:65537]");
     expect(trace.root.children[0]?.input).toBe("[truncated:65537]");
     expect(trace.root.children[0]?.output).toBe("[truncated:65537]");
+  });
+
+  it("redacts tool metadata and preserves own __proto__ metadata entries", () => {
+    const metadata: Record<string, unknown> = { raw: "a".repeat(65_537) };
+    Object.defineProperty(metadata, "__proto__", {
+      value: "safe-value",
+      enumerable: true,
+    });
+    const events = [
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-1",
+        kind: "read",
+        _meta: metadata,
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({ events }));
+    const spanMetadata = trace.root.children[0]?.metadata;
+
+    expect(spanMetadata?.raw).toBe("[truncated:65537]");
+    expect(Object.hasOwn(spanMetadata ?? {}, "__proto__")).toBe(true);
+    expect(spanMetadata?.["__proto__"]).toBe("safe-value");
+    expect(Object.getPrototypeOf(spanMetadata)).toBe(Object.prototype);
+  });
+
+  it("does not emit a non-finite derived total token count", () => {
+    const trace = acpToTrace(createContext({
+      usage: {
+        prompt_tokens: Number.MAX_VALUE,
+        completion_tokens: Number.MAX_VALUE,
+      },
+    }));
+
+    expect(trace.root.metrics).toEqual({
+      prompt_tokens: Number.MAX_VALUE,
+      completion_tokens: Number.MAX_VALUE,
+    });
+  });
+
+  it("does not correlate identified tool updates to an idless tool call", () => {
+    const events = [
+      {
+        sessionUpdate: "tool_call",
+        kind: "read",
+      },
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-2",
+        kind: "execute",
+      },
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tc-2",
+        rawOutput: "workspace",
+        _meta: { ts: 25 },
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({ events }));
+
+    expect(trace.root.children).toMatchObject([
+      {
+        name: "tool_call:read",
+        output: "",
+      },
+      {
+        name: "tool_call:execute",
+        output: "workspace",
+        metadata: { toolCallId: "tc-2", endTs: 25 },
+      },
+    ]);
   });
 });
 

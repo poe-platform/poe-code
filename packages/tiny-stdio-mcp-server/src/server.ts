@@ -25,6 +25,11 @@ import type { TypedSchema } from "./schema.js";
 import { toContentBlocks } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
+const SUPPORTED_PROTOCOL_VERSIONS = new Set([
+  "2025-03-26",
+  "2025-06-18",
+  PROTOCOL_VERSION,
+]);
 
 export interface Server {
   tool<T>(
@@ -38,6 +43,7 @@ export interface Server {
   ): () => void;
   removeTool(name: string): boolean;
   notifyToolsChanged(): Promise<void>;
+  createMessageSession(): MessageSession;
   handleMessage(
     method: string,
     params?: Record<string, unknown>
@@ -47,15 +53,39 @@ export interface Server {
   connectSDK(transport: SDKTransport): Promise<void>;
 }
 
+export type MessageHandler = (
+  method: string,
+  params?: Record<string, unknown>
+) => Promise<HandleResult>;
+
+export interface MessageSession {
+  handleMessage: MessageHandler;
+  close(): void;
+}
+
+interface LifecycleState {
+  initialized: boolean;
+  initializeAccepted: boolean;
+}
+
 export function createServer(options: ServerOptions): Server {
   const tools = new Map<string, ToolDefinition>();
   const notificationListeners = new Set<
     (notification: JSONRPCNotification) => void
   >();
-  let initialized = false;
+  const connectionNotificationListeners = new Map<
+    (notification: JSONRPCNotification) => void | Promise<void>,
+    LifecycleState
+  >();
+  const defaultLifecycle: LifecycleState = {
+    initialized: false,
+    initializeAccepted: false,
+  };
+  const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
-  const handleMessage = async (
+  const handleMessageWithLifecycle = async (
     method: string,
+    lifecycle: LifecycleState,
     params?: Record<string, unknown>
   ): Promise<HandleResult> => {
     // Allow ping and initialize before initialization
@@ -64,13 +94,22 @@ export function createServer(options: ServerOptions): Server {
     }
 
     if (method === "initialize") {
-      initialized = true;
+      // Re-initialize on the same connection is idempotent: real MCP clients
+      // (e.g. kimi-cli via fastmcp) re-send `initialize` on a persistent
+      // connection per tool call, and the official MCP SDK server re-responds
+      // with InitializeResult instead of erroring. Per-connection isolation is
+      // still enforced by the separate lifecycle object given to each connection.
+      lifecycle.initializeAccepted = true;
+      lifecycle.initialized = true;
       const requestedProtocol =
         typeof params?.protocolVersion === "string"
           ? params.protocolVersion
-          : null;
+          : undefined;
       const result: InitializeResult = {
-        protocolVersion: requestedProtocol ?? PROTOCOL_VERSION,
+        protocolVersion:
+          requestedProtocol !== undefined && SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
+            ? requestedProtocol
+            : PROTOCOL_VERSION,
         capabilities: {
           tools: {
             listChanged: true,
@@ -85,11 +124,20 @@ export function createServer(options: ServerOptions): Server {
     }
 
     if (method === "notifications/initialized") {
+      if (!lifecycle.initializeAccepted) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+            message: "Server not initialized",
+          },
+        };
+      }
+
       return { result: undefined };
     }
 
     // All other methods require initialization
-    if (!initialized) {
+    if (!lifecycle.initialized) {
       return {
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
@@ -112,7 +160,6 @@ export function createServer(options: ServerOptions): Server {
 
     if (method === "tools/call") {
       const toolName = params?.name as string | undefined;
-      const toolArgs = (params?.arguments as Record<string, unknown>) || {};
 
       if (!toolName) {
         return {
@@ -133,8 +180,21 @@ export function createServer(options: ServerOptions): Server {
         };
       }
 
+      const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
+      if (options.validateToolArguments !== false && !areValidToolArguments(tool.inputSchema, toolArgs)) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+            message: "Invalid tool arguments",
+          },
+        };
+      }
+
       try {
         const handlerResult = await tool.handler(toolArgs);
+        if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
+          throw new Error("Invalid tool result");
+        }
         const result: CallToolResult = isCallToolResult(handlerResult)
           ? handlerResult
           : { content: toContentBlocks(handlerResult) };
@@ -167,9 +227,28 @@ export function createServer(options: ServerOptions): Server {
     };
   };
 
+  const createMessageSession = (): MessageSession => {
+    const lifecycle: LifecycleState = {
+      initialized: false,
+      initializeAccepted: false,
+    };
+    messageLifecycles.add(lifecycle);
+
+    return {
+      handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
+      close: () => {
+        messageLifecycles.delete(lifecycle);
+      },
+    };
+  };
+
+  const handleMessage: MessageHandler = (method, params) =>
+    handleMessageWithLifecycle(method, defaultLifecycle, params);
+
   const processLine = async (
     line: string,
-    write: (data: string) => void
+    write: (data: string) => void,
+    messageHandler: MessageHandler
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
@@ -179,10 +258,21 @@ export function createServer(options: ServerOptions): Server {
     }
 
     const { request, isNotification } = parsed;
-    const { result, error } = await server.handleMessage(
-      request.method,
-      request.params
-    );
+
+    if (isNotification && request.method === "initialize") {
+      return;
+    }
+
+    if (!isNotification && request.method === "notifications/initialized") {
+      const requestWithId = request as JSONRPCRequest;
+      write(formatErrorResponse(requestWithId.id, {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request",
+      }) + "\n");
+      return;
+    }
+
+    const { result, error } = await messageHandler(request.method, request.params);
 
     if (isNotification) {
       return;
@@ -197,7 +287,7 @@ export function createServer(options: ServerOptions): Server {
     }
   };
 
-  const broadcastNotification = (method: string): void => {
+  const broadcastNotification = async (method: string): Promise<void> => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
       method,
@@ -206,6 +296,14 @@ export function createServer(options: ServerOptions): Server {
     for (const listener of notificationListeners) {
       listener(notification);
     }
+
+    await Promise.all(
+      [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
+        if (lifecycle.initialized) {
+          await listener(notification);
+        }
+      })
+    );
   };
 
   const server: Server = {
@@ -238,11 +336,12 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async notifyToolsChanged(): Promise<void> {
-      if (initialized) {
-        broadcastNotification("notifications/tools/list_changed");
+      if ([...messageLifecycles].some((lifecycle) => lifecycle.initialized)) {
+        await broadcastNotification("notifications/tools/list_changed");
       }
     },
 
+    createMessageSession,
     handleMessage,
 
     async listen(): Promise<void> {
@@ -254,30 +353,45 @@ export function createServer(options: ServerOptions): Server {
 
     async connect(transport: Transport): Promise<void> {
       return new Promise((resolve) => {
-        const unsubscribe = server.onNotification((notification) => {
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const messageHandler: MessageHandler = (method, params) =>
+          handleMessageWithLifecycle(method, lifecycle, params);
+        messageLifecycles.add(lifecycle);
+        const listener = (notification: JSONRPCNotification) => {
           transport.writable.write(`${JSON.stringify(notification)}\n`);
-        });
+        };
+        connectionNotificationListeners.set(listener, lifecycle);
         const rl = readline.createInterface({
           input: transport.readable,
           crlfDelay: Infinity,
         });
+        const pendingMessages = new Set<Promise<void>>();
 
         rl.on("line", (line) => {
-          processLine(line, (data) => transport.writable.write(data));
+          const message = processLine(line, (data) => transport.writable.write(data), messageHandler);
+          pendingMessages.add(message);
+          void message.finally(() => {
+            pendingMessages.delete(message);
+          });
         });
 
-        rl.on("close", () => {
-          unsubscribe();
+        rl.on("close", async () => {
+          await Promise.all([...pendingMessages]);
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
           resolve();
         });
       });
     },
 
     async connectSDK(transport: SDKTransport): Promise<void> {
-      return new Promise<void>((resolve) => {
-        const unsubscribe = server.onNotification((notification) => {
-          void transport.send(notification);
-        });
+      return new Promise<void>((resolve, reject) => {
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const messageHandler: MessageHandler = (method, params) =>
+          handleMessageWithLifecycle(method, lifecycle, params);
+        messageLifecycles.add(lifecycle);
+        const listener = (notification: JSONRPCNotification) => transport.send(notification);
+        connectionNotificationListeners.set(listener, lifecycle);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
           // Ignore responses (we only handle requests/notifications)
@@ -287,15 +401,28 @@ export function createServer(options: ServerOptions): Server {
 
           // Handle notifications (no id) - don't respond
           if (!("id" in message) || message.id === undefined) {
-            await server.handleMessage(message.method, message.params);
+            if (message.method === "initialize") {
+              return;
+            }
+
+            await messageHandler(message.method, message.params);
+            return;
+          }
+
+          if (message.method === "notifications/initialized") {
+            await transport.send({
+              jsonrpc: "2.0",
+              id: message.id,
+              error: {
+                code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+                message: "Invalid Request",
+              },
+            });
             return;
           }
 
           const request = message as JSONRPCRequest;
-          const { result, error } = await server.handleMessage(
-            request.method,
-            request.params
-          );
+          const { result, error } = await messageHandler(request.method, request.params);
 
           if (error) {
             const response: JSONRPCResponse = {
@@ -315,11 +442,16 @@ export function createServer(options: ServerOptions): Server {
         };
 
         transport.onclose = () => {
-          unsubscribe();
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
           resolve();
         };
 
-        transport.start();
+        void transport.start().catch((error: unknown) => {
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
+          reject(error);
+        });
       });
     },
   };
@@ -328,9 +460,69 @@ export function createServer(options: ServerOptions): Server {
 }
 
 function isCallToolResult(value: unknown): value is CallToolResult {
-  if (typeof value !== "object" || value === null || !("content" in value)) {
+  return hasContentArray(value) && value.content.every(isContentItem);
+}
+
+function hasContentArray(value: unknown): value is { content: unknown[] } {
+  return typeof value === "object" && value !== null && "content" in value
+    && Array.isArray((value as { content: unknown }).content);
+}
+
+function areValidToolArguments(schema: JSONSchema, value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
 
-  return Array.isArray((value as { content: unknown }).content);
+  const argumentsObject = value as Record<string, unknown>;
+  for (const key of schema.required ?? []) {
+    if (!Object.hasOwn(argumentsObject, key)) {
+      return false;
+    }
+  }
+
+  for (const [key, property] of Object.entries(schema.properties)) {
+    if (!Object.hasOwn(argumentsObject, key)) {
+      continue;
+    }
+
+    const argument = argumentsObject[key];
+    if (argument === null && property.nullable === true) {
+      continue;
+    }
+
+    if (
+      (property.type === "array" && !Array.isArray(argument))
+      || (property.type === "object" && (typeof argument !== "object" || argument === null || Array.isArray(argument)))
+      || (property.type === "integer" && (!Number.isInteger(argument)))
+      || (property.type !== "array" && property.type !== "object" && property.type !== "integer" && typeof argument !== property.type)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isContentItem(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || !("type" in value)) {
+    return false;
+  }
+
+  const block = value as Record<string, unknown>;
+  if (block.type === "text") {
+    return typeof block.text === "string";
+  }
+
+  if (block.type === "image" || block.type === "audio") {
+    return typeof block.data === "string" && typeof block.mimeType === "string";
+  }
+
+  if (block.type !== "resource" || typeof block.resource !== "object" || block.resource === null) {
+    return false;
+  }
+
+  const resource = block.resource as Record<string, unknown>;
+  return typeof resource.uri === "string"
+    && typeof resource.mimeType === "string"
+    && (typeof resource.text === "string" || typeof resource.blob === "string");
 }

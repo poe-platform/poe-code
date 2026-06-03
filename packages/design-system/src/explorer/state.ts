@@ -16,6 +16,7 @@ export interface DetailItem {
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
   render: (ctx: DetailCtx) => string | Promise<string>;
+  renderedContent?: string;
 }
 
 export interface Detail<R> {
@@ -178,22 +179,19 @@ function createInitialActionState<R>(
 ): Map<string, ActionStateEntry> {
   const state = new Map<string, ActionStateEntry>();
 
-  for (const action of config.actions) {
-    state.set(action.id, {
-      available: true,
-      label: typeof action.label === "function" ? action.id : action.label,
-      action: action as Action<unknown>,
-      source: "row"
-    });
-  }
+  for (const [source, actions] of [["row", config.actions], ["detail", config.detail.actions ?? []]] as const) {
+    for (const action of actions) {
+      if (state.has(action.id)) {
+        throw new Error(`Duplicate explorer action id: ${action.id}`);
+      }
 
-  for (const action of config.detail.actions ?? []) {
-    state.set(action.id, {
-      available: true,
-      label: typeof action.label === "function" ? action.id : action.label,
-      action: action as Action<unknown>,
-      source: "detail"
-    });
+      state.set(action.id, {
+        available: true,
+        label: typeof action.label === "function" ? action.id : action.label,
+        action: action as Action<unknown>,
+        source
+      });
+    }
   }
 
   return state;

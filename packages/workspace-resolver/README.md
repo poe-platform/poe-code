@@ -44,41 +44,6 @@ Subdir can be specified via path (`owner/repo/sub`) or fragment (`owner/repo#ref
 
 Cached clones live in `~/.poe-code/workspaces/github/owner-repo`. Writable (`edit`) mode creates a git-worktree under `~/.poe-code/workspaces/checkouts/`.
 
-### `ssh` — remote host
-
-```
-ssh://host/remote-path
-ssh://user@host/remote-path
-ssh://user@host:2222/remote-path
-```
-
-| Part | Required | Description |
-|------|----------|-------------|
-| `user` | no | SSH username |
-| `host` | yes | Hostname or IP |
-| `port` | no | SSH port (default 22) |
-| `remote-path` | yes | Absolute path on the remote |
-
-Parsed via standard URL rules. The agent process runs on the remote host.
-
-The local `cwd` (or a specified local path) is bidirectionally synced with `remote-path` before and after the spawn — similar to Unison. The resolver manages the sync lifecycle so the agent sees a consistent workspace on the remote.
-
-### `docker` — container path
-
-```
-docker://container/container-path
-docker://myimage:latest/workspace
-```
-
-| Part | Required | Description |
-|------|----------|-------------|
-| `container` | yes | Container name or image reference |
-| `container-path` | yes | Absolute path inside the container |
-
-Everything before the first `/` is the container identifier; everything from the `/` onward is the workspace path inside the container.
-
-The local `cwd` is bidirectionally synced with `container-path` before and after the spawn — the agent works inside the container while changes propagate back to the host.
-
 ### `modal` — Modal sandbox (planned)
 
 ```

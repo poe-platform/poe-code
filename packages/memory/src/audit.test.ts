@@ -133,4 +133,28 @@ describe("auditClaims", () => {
       ])
     );
   });
+
+  it("flags claim sources reached through repository symlinks", async () => {
+    vol.fromJSON({
+      "/outside/private.md": "external secret material\n",
+      "/repo/docs/.keep": "",
+      "/repo/.poe-code/memory/pages/note.md": [
+        "---",
+        "sources:",
+        "  - docs/linked.md#L1",
+        "---",
+        "<!-- memory:extracted source=docs/linked.md#L1 -->",
+        "The note cites an apparently local source.",
+        ""
+      ].join("\n")
+    });
+    await vol.promises.symlink("/outside/private.md", "/repo/docs/linked.md");
+
+    await expect(auditClaims("/repo/.poe-code/memory", "/repo")).resolves.toEqual([
+      {
+        page: "pages/note.md",
+        issues: [expect.stringContaining("symbolic link")]
+      }
+    ]);
+  });
 });

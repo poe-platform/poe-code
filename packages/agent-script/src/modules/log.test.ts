@@ -143,4 +143,17 @@ describe("makeLogModule", () => {
       }
     });
   });
+  it("serializes own __proto__ event payload fields to JSONL", () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const log = makeLogModule();
+
+    log.event("task.special", Object.fromEntries([["__proto__", "preserved"]]));
+
+    const eventEntry = JSON.parse(String(stdoutWrite.mock.calls[0]?.[0])) as {
+      payload: Record<string, unknown>;
+    };
+
+    expect(Object.hasOwn(eventEntry.payload, "__proto__")).toBe(true);
+    expect(eventEntry.payload.__proto__).toBe("preserved");
+  });
 });

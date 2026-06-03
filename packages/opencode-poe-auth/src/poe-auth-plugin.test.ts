@@ -58,6 +58,14 @@ describe("PoeAuthPlugin", () => {
     });
   });
 
+  it("loader rejects whitespace-only manual api keys", async () => {
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(loader(async () => ({ type: "api", key: "   " }), {} as never)).rejects.toThrow(
+      "Poe API key is missing"
+    );
+  });
+
   it("loader returns apiKey for valid oauth auth", async () => {
     const hooks = await PoeAuthPlugin({} as never);
     const loader = getAuthHook(hooks).loader;
@@ -78,6 +86,17 @@ describe("PoeAuthPlugin", () => {
     });
   });
 
+  it("loader rejects whitespace-only stored oauth access keys", async () => {
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(loader(async () => ({
+      type: "oauth",
+      access: "   ",
+      refresh: "   ",
+      expires: Date.now() + 60_000
+    }), {} as never)).rejects.toThrow("Poe API key is missing");
+  });
+
   it("loader throws for expired oauth auth", async () => {
     const hooks = await PoeAuthPlugin({} as never);
     const loader = getAuthHook(hooks).loader;
@@ -90,6 +109,39 @@ describe("PoeAuthPlugin", () => {
           access: "sk-expired",
           refresh: "sk-expired",
           expires: Date.now() - 1
+        }),
+        {} as never
+      )
+    ).rejects.toThrow("Poe API key expired");
+  });
+
+  it("loader rejects oauth auth at its expiration instant", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(
+      loader(
+        async () => ({
+          type: "oauth",
+          access: "sk-expired-now",
+          refresh: "sk-expired-now",
+          expires: 1_700_000_000_000
+        }),
+        {} as never
+      )
+    ).rejects.toThrow("Poe API key expired");
+  });
+
+  it("loader rejects oauth auth with nonnumeric expiry metadata", async () => {
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(
+      loader(
+        async () => ({
+          type: "oauth",
+          access: "sk-invalid-expiry",
+          refresh: "sk-invalid-expiry",
+          expires: "not-a-timestamp" as unknown as number
         }),
         {} as never
       )
@@ -188,6 +240,22 @@ describe("PoeAuthPlugin", () => {
       refresh: "sk-poe",
       expires: Number.MAX_SAFE_INTEGER
     });
+  });
+
+  it.each([-60, Infinity])("rejects invalid oauth expiry duration %s", async (expiresIn) => {
+    vi.mocked(createOAuthClient).mockReturnValue({
+      authorize: vi.fn(async () => ({
+        authorizationUrl: "https://poe.com/oauth/authorize?client_id=test",
+        waitForResult: vi.fn(async () => ({ apiKey: "sk-poe", expiresIn }))
+      }))
+    });
+
+    const grant = await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+    if (grant.method !== "auto") {
+      throw new Error("Expected auto oauth grant");
+    }
+
+    await expect(grant.callback()).rejects.toThrow("invalid expiration");
   });
 
   it("creates the oauth client with the OpenCode landing page", async () => {

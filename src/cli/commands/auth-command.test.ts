@@ -5,6 +5,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
 import { ApiError } from "../errors.js";
 import { createCliContainer } from "../container.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const spinnerStopMessages: string[] = [];
 const spinnerMock = vi.hoisted(() => vi.fn());
@@ -108,6 +109,31 @@ describe("auth command", () => {
     expect(spinnerStopMessages.some((m) => m.includes("Logged in as Kamil Jopek (@kamil)"))).toBe(true);
   });
 
+  it("shows logged-in identity from POE_API_KEY without stored credentials", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Environment User", handle: "environment" })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-key" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer environment-key" }) })
+    );
+    expect(spinnerStopMessages.some((message) => message.includes("Environment User (@environment)"))).toBe(true);
+  });
+
   it("shows not logged in when no API key exists", async () => {
     const program = createProgram({
       fs,
@@ -141,6 +167,23 @@ describe("auth command", () => {
 
     expect(httpClient).not.toHaveBeenCalled();
     expect(logs.some((m) => m.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not migrate legacy credentials while previewing auth status", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "status"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 
   it("throws ApiError when whoami request fails", async () => {
@@ -250,6 +293,24 @@ describe("auth command", () => {
     stdoutSpy.mockRestore();
   });
 
+  it("does not migrate legacy credentials while previewing auth api-key", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "api-key"]);
+
+    expect(stdoutSpy).toHaveBeenCalledWith("legacy-key");
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+    stdoutSpy.mockRestore();
+  });
+
   it("keeps auth api_key working as a compatibility alias", async () => {
     await storeApiKey(fs, "stored-key");
 
@@ -328,6 +389,23 @@ describe("auth command", () => {
       name: "Kamil Jopek",
       profile_picture: "https://example.com/k.jpg"
     });
+    stdoutSpy.mockRestore();
+  });
+
+  it("does not request identity while previewing auth whoami", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "env-key" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "whoami"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining("Dry run"));
     stdoutSpy.mockRestore();
   });
 

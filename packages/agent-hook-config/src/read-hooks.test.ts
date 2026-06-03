@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -46,6 +47,14 @@ describe("readClaudeHooks", () => {
     });
   });
 
+  it("rejects a symlinked project settings file", () => {
+    writeSettings("/outside/settings.json", { hooks: {} });
+    vol.mkdirSync(path.dirname(projectPath), { recursive: true });
+    fs.symlinkSync("/outside/settings.json", projectPath);
+
+    expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(/symbolic link/);
+  });
+
   it("reads only a user settings file in user scope", () => {
     writeSettings(userPath, {
       hooks: {
@@ -57,6 +66,14 @@ describe("readClaudeHooks", () => {
       entries: [{ event: "Stop", matcher: "", handler: { type: "command", command: "notify" } }],
       readPaths: [userPath]
     });
+  });
+
+  it("rejects a symlinked user settings file", () => {
+    writeSettings("/outside/settings.json", { hooks: {} });
+    vol.mkdirSync(path.dirname(userPath), { recursive: true });
+    fs.symlinkSync("/outside/settings.json", userPath);
+
+    expect(() => readClaudeHooks(cwd, homeDir, { scope: "user" })).toThrow(/symbolic link/);
   });
 
   it("reads user entries before project entries in merged scope", () => {
@@ -178,6 +195,14 @@ describe("readClaudeHooks", () => {
 
     expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrowError(
       `Malformed JSON in ${projectPath}`
+    );
+  });
+
+  it("rejects null event groups as malformed configuration", () => {
+    vol.fromJSON({ [projectPath]: JSON.stringify({ hooks: { Stop: null } }) }, "/");
+
+    expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(
+      `Malformed hooks in ${projectPath}`
     );
   });
 });

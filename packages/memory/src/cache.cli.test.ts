@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const cacheStatus = vi.fn();
 const clearCache = vi.fn();
 const parseDuration = vi.fn();
 
 vi.mock("./cache.js", () => ({
+  cacheStatus,
   clearCache
 }));
 
@@ -16,15 +18,18 @@ const { runMemoryCacheStatus, runMemoryCacheClear } = await import("./cache.cli.
 describe("runMemoryCacheStatus", () => {
   beforeEach(() => {
     clearCache.mockReset();
+    cacheStatus.mockReset();
     parseDuration.mockReset();
   });
 
-  it("prints a placeholder until cache status is implemented", async () => {
+  it("prints actual cache entry and byte totals", async () => {
+    cacheStatus.mockResolvedValue({ entries: 2, bytes: 42 });
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
-    await runMemoryCacheStatus();
+    await runMemoryCacheStatus({ root: "/repo/.poe-code/memory" });
 
-    expect(log).toHaveBeenCalledWith("cache status not implemented yet");
+    expect(cacheStatus).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(log).toHaveBeenCalledWith("2 cache entries (42 bytes)");
   });
 });
 

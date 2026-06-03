@@ -26,6 +26,17 @@ async function readSortedDirectory(rawFs: ReturnType<typeof createFs>["rawFs"], 
   return (await rawFs.readdir(directory)).sort();
 }
 
+function ownProtoMetadata(): Record<string, unknown> {
+  const metadata: Record<string, unknown> = {};
+  Object.defineProperty(metadata, "__proto__", {
+    value: { reviewer: "security" },
+    enumerable: true,
+    writable: true,
+    configurable: true
+  });
+  return metadata;
+}
+
 describe("markdownDirBackend", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -149,6 +160,131 @@ Body`
     expect(task.sourcePath).toBe("/repo/tasks/planning/01-source-path.md");
     expect(path.isAbsolute(task.sourcePath ?? "")).toBe(true);
     expect(listedTask?.sourcePath).toBe(task.sourcePath);
+  });
+
+  it("preserves proto-named frontmatter as own task metadata", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/proto.md": `---
+name: Prototype task
+state: draft
+__proto__:
+  owner: attacker
+---
+
+Body`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    const task = await taskList.list("planning").get("proto");
+
+    expect(Object.hasOwn(task.metadata, "__proto__")).toBe(true);
+    expect(task.metadata.__proto__).toEqual({ owner: "attacker" });
+    expect((task.metadata as { owner?: string }).owner).toBeUndefined();
+  });
+
+  it("preserves proto-named metadata through create, update, and fire", async () => {
+    const { fs } = createFs();
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      create: true,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await tasks.create({ id: "create", name: "Create", metadata: ownProtoMetadata() });
+    await tasks.create({ id: "update", name: "Update" });
+    await tasks.update("update", { metadata: ownProtoMetadata() });
+    await tasks.create({ id: "fire", name: "Fire" });
+    await tasks.fire("fire", "plan", { metadataPatch: ownProtoMetadata() });
+
+    for (const id of ["create", "update", "fire"]) {
+      const task = await tasks.get(id);
+      expect(Object.hasOwn(task.metadata, "__proto__")).toBe(true);
+      expect(task.metadata.__proto__).toEqual({ reviewer: "security" });
+    }
+  });
+
+  it("rejects task operations through a symlinked list directory", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/outside/01-external.md": `---
+name: External
+state: draft
+---
+
+Outside`
+    });
+    volume.mkdirSync("/repo/tasks", { recursive: true });
+    volume.symlinkSync("/outside", "/repo/tasks/planning");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("external")).rejects.toThrow("symbolic link");
+    await expect(tasks.create({ id: "local", name: "Local" })).rejects.toThrow("symbolic link");
+    await expect(tasks.delete("external")).rejects.toThrow("symbolic link");
+    await expect(rawFs.readdir("/outside")).resolves.toEqual(["01-external.md"]);
+  });
+
+  it("rejects archived task operations through a symlinked archive directory", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/repo/tasks/planning/01-active.md": `---
+name: Active
+state: draft
+---
+
+Active`,
+      "/outside/external.md": `---
+name: External
+state: archived
+---
+
+Outside`
+    });
+    volume.symlinkSync("/outside", "/repo/tasks/planning/archive");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("external")).rejects.toThrow("symbolic link");
+    await expect(tasks.fire("active", "archive")).rejects.toThrow("symbolic link");
+    await expect(tasks.delete("external")).rejects.toThrow("symbolic link");
+    await expect(rawFs.readdir("/outside")).resolves.toEqual(["external.md"]);
+  });
+
+  it("rejects reading a symlinked markdown task file", async () => {
+    const { fs, volume } = createFs({
+      "/outside/external.md": `---
+name: External
+state: draft
+---
+
+Outside`
+    });
+    volume.mkdirSync("/repo/tasks/planning", { recursive: true });
+    volume.symlinkSync("/outside/external.md", "/repo/tasks/planning/01-linked.md");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").get("linked")).rejects.toThrow("symbolic link");
+    await expect(taskList.list("planning").all()).rejects.toThrow("symbolic link");
   });
 
   it("throws MalformedTaskError with the file path and field name", async () => {
@@ -845,6 +981,74 @@ version: 1
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["only.md"]);
   });
 
+  it("does not commit archived state when archive relocation fails", async () => {
+    const storage = createFs({ "/repo/tasks/.keep": "" });
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (toPath === "/repo/tasks/planning/archive/ship.md") {
+          throw new Error("archive relocation failed");
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+    await tasks.create({ id: "ship", name: "Ship" });
+
+    await expect(tasks.fire("ship", "archive")).rejects.toThrow("archive relocation failed");
+    await expect(tasks.get("ship")).resolves.toMatchObject({ state: "draft" });
+    await expect(storage.rawFs.readFile("/repo/tasks/planning/01-ship.md", "utf8")).resolves.toContain(
+      "state: draft"
+    );
+  });
+
+  it("restores active task files when a reorder final rename fails", async () => {
+    const storage = createFs({
+      "/repo/tasks/planning/01-alpha.md": `---\nname: Alpha\nstate: draft\n---\n`,
+      "/repo/tasks/planning/02-bravo.md": `---\nname: Bravo\nstate: draft\n---\n`,
+      "/repo/tasks/planning/03-charlie.md": `---\nname: Charlie\nstate: draft\n---\n`
+    });
+    let finalized = 0;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (fromPath.includes(".staging-") && !toPath.includes(".staging-")) {
+          finalized += 1;
+          if (finalized === 2) {
+            throw new Error("simulated rename failure");
+          }
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").reorder(["charlie", "bravo", "alpha"])).rejects.toThrow(
+      "simulated rename failure"
+    );
+    await expect(taskList.list("planning").all()).resolves.toMatchObject([
+      { id: "alpha" },
+      { id: "bravo" },
+      { id: "charlie" }
+    ]);
+    await expect(readSortedDirectory(storage.rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-alpha.md",
+      "02-bravo.md",
+      "03-charlie.md"
+    ]);
+  });
+
   it("does not contend for updates to different task paths", async () => {
     const baseFs = createFs({
       "/repo/tasks/.keep": ""
@@ -906,5 +1110,94 @@ version: 1
     blockedPaths.get("/repo/tasks/beta/01-two.md")?.resolve();
 
     await Promise.all([alphaUpdate, betaUpdate]);
+  });
+
+  it("does not reject a committed cross-list move due to a target read failure", async () => {
+    const storage = createFs({
+      "/repo/tasks/planning/01-shared.md": `---
+name: Shared
+state: draft
+---
+
+Valid body`,
+      "/repo/tasks/doing/01-existing.md": `---
+name: Existing
+state: draft
+---
+`
+    });
+    let moved = false;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        await storage.fs.rename(fromPath, toPath);
+        if (fromPath === "/repo/tasks/planning/01-shared.md") {
+          moved = true;
+        }
+      },
+      readFile: async (filePath, encoding) => {
+        if (moved && filePath === "/repo/tasks/doing/02-shared.md") {
+          throw new Error("simulated target read failure");
+        }
+        return storage.fs.readFile(filePath, encoding);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.moveBetweenLists("planning/shared", "doing")).resolves.toMatchObject({
+      list: "doing",
+      id: "shared",
+      description: "Valid body"
+    });
+  });
+
+  it("rejects a same-id create that races a committed cross-list move", async () => {
+    const storage = createFs({ "/repo/tasks/.keep": "" });
+    const moveAtRename = createDeferred();
+    const releaseMove = createDeferred();
+    let createOutcome = "pending";
+    let holdMove = false;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (holdMove && fromPath === "/repo/tasks/planning/01-shared.md") {
+          moveAtRename.resolve();
+          await releaseMove.promise;
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    await taskList.list("planning").create({ id: "shared", name: "Moved source" });
+
+    holdMove = true;
+    const moved = taskList.moveBetweenLists("planning/shared", "doing");
+    await moveAtRename.promise;
+    const created = taskList.list("doing").create({ id: "shared", name: "Concurrent target" }).then(
+      () => {
+        createOutcome = "resolved";
+      },
+      () => {
+        createOutcome = "rejected";
+      }
+    );
+    await waitForCondition(() => createOutcome !== "pending").catch(() => undefined);
+
+    releaseMove.resolve();
+    await moved;
+    await created;
+
+    expect(createOutcome).toBe("rejected");
+    await expect(taskList.list("doing").get("shared")).resolves.toMatchObject({ name: "Moved source" });
   });
 });

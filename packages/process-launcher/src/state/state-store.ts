@@ -1,12 +1,34 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
+function resolveProcessDir(stateDir: string, id: string): string {
+  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
+    throw new Error(`Invalid managed process id: ${id}`);
+  }
+
+  return path.join(stateDir, id);
+}
+
 async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): Promise<void> {
+  try {
+    if ((await fs.lstat(directoryPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to remove managed process through symbolic link: ${directoryPath}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
+
   let entries: string[];
 
   try {
@@ -43,16 +65,46 @@ async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): P
   await fs.rm(directoryPath, { force: true });
 }
 
+async function assertRemovalTreeHasNoSymbolicLinks(
+  fs: LauncherFileSystem,
+  targetPath: string
+): Promise<void> {
+  try {
+    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to remove managed process through symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
+
+  if ((await fs.stat(targetPath)).isFile()) {
+    return;
+  }
+
+  for (const entry of await fs.readdir(targetPath)) {
+    await assertRemovalTreeHasNoSymbolicLinks(fs, path.join(targetPath, entry));
+  }
+}
+
 export function createStateStore(
   stateDir: string,
   fs: LauncherFileSystem = nodeFs as unknown as LauncherFileSystem
 ): StateStore {
   async function read(id: string): Promise<ProcessState | null> {
-    const statePath = path.join(stateDir, id, "state.json");
+    const statePath = path.join(resolveProcessDir(stateDir, id), "state.json");
 
     try {
+      await assertPathHasNoSymbolicLinks(fs, statePath);
       const content = await fs.readFile(statePath, "utf8");
-      return JSON.parse(content) as ProcessState;
+      const parsed: unknown = JSON.parse(content);
+      if (!isProcessState(parsed, id)) {
+        throw new Error(`Invalid process state document: ${id}`);
+      }
+      return parsed;
     } catch (error) {
       if (isNotFoundError(error)) {
         return null;
@@ -63,9 +115,20 @@ export function createStateStore(
   }
 
   async function write(id: string, state: ProcessState): Promise<void> {
-    const processDir = path.join(stateDir, id);
+    const processDir = resolveProcessDir(stateDir, id);
+    const statePath = path.join(processDir, "state.json");
+    const temporaryPath = `${statePath}.tmp`;
+    await assertPathHasNoSymbolicLinks(fs, statePath);
     await fs.mkdir(processDir, { recursive: true });
-    await fs.writeFile(path.join(processDir, "state.json"), `${JSON.stringify(state, null, 2)}\n`);
+    await assertPathHasNoSymbolicLinks(fs, statePath);
+
+    try {
+      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
+      await fs.rename(temporaryPath, statePath);
+    } catch (error) {
+      await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
   }
 
   async function list(): Promise<ProcessState[]> {
@@ -84,6 +147,9 @@ export function createStateStore(
     const states: ProcessState[] = [];
 
     for (const entry of [...entries].sort()) {
+      if (entry.startsWith(".state-removed-")) {
+        continue;
+      }
       const entryPath = path.join(stateDir, entry);
 
       try {
@@ -111,8 +177,47 @@ export function createStateStore(
   }
 
   async function remove(id: string): Promise<void> {
-    await removeDirectory(fs, path.join(stateDir, id));
+    const processDir = resolveProcessDir(stateDir, id);
+    const removedDir = path.join(stateDir, `.state-removed-${id}-${randomUUID()}`);
+    await assertPathHasNoSymbolicLinks(fs, processDir);
+    await assertRemovalTreeHasNoSymbolicLinks(fs, processDir);
+
+    try {
+      await fs.rename(processDir, removedDir);
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return;
+      }
+
+      throw error;
+    }
+
+    await removeDirectory(fs, removedDir).catch(() => undefined);
   }
 
   return { read, write, list, remove };
+}
+
+function isProcessState(value: unknown, id: string): value is ProcessState {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const state = value as Partial<ProcessState>;
+  return (
+    state.id === id &&
+    (state.pid === null || typeof state.pid === "number") &&
+    (state.status === "running" ||
+      state.status === "stopped" ||
+      state.status === "crashed" ||
+      state.status === "restarting") &&
+    (state.runtime === "host" || state.runtime === "docker") &&
+    typeof state.restartCount === "number" &&
+    (state.lastExitCode === null || typeof state.lastExitCode === "number") &&
+    (state.lastStartedAt === null || typeof state.lastStartedAt === "string") &&
+    (state.lastStoppedAt === null || typeof state.lastStoppedAt === "string") &&
+    typeof state.command === "string" &&
+    Array.isArray(state.args) &&
+    state.args.every((argument) => typeof argument === "string")
+  );
 }

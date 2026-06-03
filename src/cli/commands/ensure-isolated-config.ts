@@ -45,7 +45,8 @@ export async function ensureIsolatedConfigForService(input: {
   }
   const activeProvider = await resolveActiveProviderForService(
     container,
-    canonicalService
+    canonicalService,
+    { readOnly: flags.dryRun }
   );
   const details = await resolveIsolatedEnvDetails(
     container.env,
@@ -61,15 +62,30 @@ export async function ensureIsolatedConfigForService(input: {
     return;
   }
 
-  const providerId = await resolveIsolatedServiceProvider(container, canonicalService);
+  const providerId = await resolveIsolatedServiceProvider(container, canonicalService, {
+    readOnly: flags.dryRun
+  });
   if (!providerId) {
     return;
   }
 
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: flags.dryRun
+  });
+  const metadata = configuredServices[canonicalService];
   const payload = await createConfigurePayload({
     container,
     flags: { ...flags, assumeYes: true },
-    options: input.options ?? {},
+    options: {
+      model: metadata?.model,
+      reasoningEffort: metadata?.reasoningEffort,
+      baseUrl: metadata?.baseUrl,
+      shapeBaseUrl: metadata?.shapeBaseUrl,
+      ...input.options
+    },
     context: providerContext,
     adapter,
     logger: resources.logger,
@@ -106,12 +122,14 @@ export async function ensureIsolatedConfigForService(input: {
 
 async function resolveIsolatedServiceProvider(
   container: CliContainer,
-  serviceName: string
+  serviceName: string,
+  options: { readOnly?: boolean } = {}
 ): Promise<string | undefined> {
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: options.readOnly
   });
   const metadata = configuredServices[serviceName];
   if (metadata?.provider) {
@@ -124,7 +142,7 @@ async function resolveIsolatedServiceProvider(
   const providers = container.providerRegistry.forAgent(agent);
   const loggedIn: string[] = [];
   for (const provider of providers) {
-    if (await isProviderAvailable(container, provider.id)) {
+    if (await isProviderAvailable(container, provider.id, options)) {
       loggedIn.push(provider.id);
     }
   }
@@ -139,10 +157,11 @@ async function resolveIsolatedServiceProvider(
 
 async function isProviderAvailable(
   container: CliContainer,
-  providerId: string
+  providerId: string,
+  options: { readOnly?: boolean }
 ): Promise<boolean> {
   try {
-    return await container.providerRegistry.isLoggedIn(providerId);
+    return await container.providerRegistry.isLoggedIn(providerId, options);
   } catch {
     return false;
   }

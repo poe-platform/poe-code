@@ -83,6 +83,35 @@ describe("createMockRunner", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
   });
 
+  it("does not resolve a default completion before configured output ends", async () => {
+    vi.useFakeTimers();
+    const runner = createMockRunner([
+      { exitCode: 0, stdout: ["output\n"], stdoutInterval: 10 }
+    ]);
+
+    const handle = runner.exec({ command: "echo", stdout: "pipe" });
+    let settled = false;
+    void handle.result.then(() => {
+      settled = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(9);
+    expect(settled).toBe(false);
+
+    const stdoutPromise = readStream(handle.stdout);
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(stdoutPromise).resolves.toEqual(["output\n"]);
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("rejects non-finite exit delays", () => {
+    const runner = createMockRunner([{ exitCode: 0, exitAfterMs: Number.POSITIVE_INFINITY }]);
+
+    expect(() => runner.exec({ command: "never" })).toThrow(
+      "Mock run exitAfterMs must be a finite non-negative number."
+    );
+  });
+
   it("throws when behaviors are exhausted", () => {
     const runner = createMockRunner([{ exitCode: 0 }]);
 
@@ -168,6 +197,14 @@ describe("createMockRunnerByCommand", () => {
 
     expect(() => runner.exec({ command: "missing" })).toThrow(
       'No mock run behavior found for command "missing"'
+    );
+  });
+
+  it("does not resolve inherited command behavior entries", () => {
+    const runner = createMockRunnerByCommand({});
+
+    expect(() => runner.exec({ command: "constructor" })).toThrow(
+      'No mock run behavior found for command "constructor"'
     );
   });
 });

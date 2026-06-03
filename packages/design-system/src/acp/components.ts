@@ -19,7 +19,9 @@ const KIND_COLORS: Record<string, (text: string) => string> = {
 };
 
 function colorForKind(kind: string): (text: string) => string {
-  return KIND_COLORS[kind] ?? ((text) => color.dim(text));
+  return Object.prototype.hasOwnProperty.call(KIND_COLORS, kind)
+    ? KIND_COLORS[kind]!
+    : (text) => color.dim(text);
 }
 
 function writeLine(line: string): void {

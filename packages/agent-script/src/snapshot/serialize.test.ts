@@ -140,6 +140,28 @@ describe("serialize", () => {
     });
   });
 
+  it("serializes own __proto__ object properties as snapshot data", () => {
+    const snapshot = serialize({
+      source: "return payload",
+      currentAstNodeId: 1,
+      scopeChain: [
+        {
+          id: 1,
+          bindings: {
+            payload: Object.fromEntries([["__proto__", "preserved"]])
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+    const payload = snapshot.scopeChain[0]?.bindings.payload as Record<string, unknown>;
+
+    expect(Object.hasOwn(payload, "__proto__")).toBe(true);
+    expect(payload.__proto__).toBe("preserved");
+  });
+
   it("rejects host references captured in serialized values", () => {
     expect(() =>
       serialize({

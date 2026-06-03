@@ -40,6 +40,7 @@ import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
 import { registerMemoryCommand } from "./commands/memory.js";
+import { registerMemoryMcpCommand } from "./commands/memory-mcp.js";
 import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
@@ -265,6 +266,11 @@ function formatHelpText(input: {
   helper: Help;
 }): string {
   const commandRows = buildRootHelpRows(input.command);
+  const optionRows = input.helper.visibleOptions(input.command);
+  const optionWidth = Math.max(
+    0,
+    ...optionRows.map((option) => input.helper.displayWidth(input.helper.optionTerm(option)))
+  );
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const termWidth = nameWidth + 1 + argsWidth;
@@ -279,6 +285,13 @@ function formatHelpText(input: {
       helper: input.helper
     });
   };
+  const option = (value: (typeof optionRows)[number]) =>
+    formatHelpItem({
+      term: text.option(input.helper.optionTerm(value)),
+      termWidth: optionWidth,
+      description: input.helper.optionDescription(value),
+      helper: input.helper
+    });
 
   return [
     text.heading(input.heading),
@@ -286,6 +299,9 @@ function formatHelpText(input: {
     "Configure coding agents to use the Poe API.",
     "",
     `${text.section("Usage:")} ${text.usageCommand(input.usageCommand)} ${text.argument("<command> [...args]")}`,
+    "",
+    text.section("Options:"),
+    ...optionRows.map(option),
     "",
     text.section("Commands:"),
     ...commandRows.map(cmd),
@@ -378,7 +394,7 @@ function resolveRootHelpHeading(argv: string[]): string {
   return "Poe - poe-code";
 }
 
-const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
+const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--dry-run", "--verbose"]);
 
 const maestroCommandSchema = S.Object({
   path: S.String({
@@ -425,6 +441,7 @@ interface MaestroTickCommandArgs {
   list?: string;
   config?: string;
   name?: string;
+  dryRun?: boolean;
 }
 
 interface MaestroRunCommandArgs {
@@ -654,6 +671,7 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         list: options.list ?? readCommandTreeOption<string>(command, "list"),
         configPath: options.config,
         name: options.name,
+        dryRun: options.dryRun ?? readCommandTreeOption<boolean>(command, "dryRun"),
         onEvent: writeMaestroEventNdjson
       });
     });
@@ -696,10 +714,10 @@ function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): st
   const commandArgs = argv.slice(commandIndex);
 
   if (commandArgs.length === 1) {
-    return [entry, script, ...forwardedFlags, commandArgs[0]!, "--help"];
+    return [entry, script, commandArgs[0]!, "--help", ...forwardedFlags];
   }
 
-  return [entry, script, ...forwardedFlags, ...commandArgs];
+  return [entry, script, ...commandArgs, ...forwardedFlags];
 }
 
 function createToolcraftHumanInLoopOptions(container: CliContainer) {
@@ -778,6 +796,8 @@ export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
   const program = bootstrapProgram(container);
 
+  interceptUnknownHelpPaths(program, container);
+
   if (dependencies.exitOverride ?? true) {
     applyExitOverride(program);
   }
@@ -787,6 +807,47 @@ export function createProgram(dependencies: CliDependencies): Command {
   }
 
   return program;
+}
+
+function interceptUnknownHelpPaths(program: Command, container: CliContainer): void {
+  const parseAsync = program.parseAsync.bind(program);
+  program.parseAsync = async (argv, options) => {
+    const commandArgs = (argv ?? process.argv).slice(2);
+    if (commandArgs.includes("--help") || commandArgs.includes("-h")) {
+      const rootToken = commandArgs.find((arg) => !arg.startsWith("-"));
+      if (rootToken !== undefined && !findCommand(program, rootToken)) {
+        throwCommandNotFound({
+          container,
+          scope: "cli",
+          unknownCommand: rootToken,
+          helpArgs: ["--help"],
+          moduleUrl: import.meta.url
+        });
+      }
+
+      if (rootToken === "mcp" || rootToken === "skill") {
+        const group = findCommand(program, rootToken)!;
+        const tokenIndex = commandArgs.indexOf(rootToken);
+        const subcommandToken = commandArgs
+          .slice(tokenIndex + 1)
+          .find((arg) => !arg.startsWith("-"));
+        if (subcommandToken !== undefined && !findCommand(group, subcommandToken)) {
+          throwCommandNotFound({
+            container,
+            scope: rootToken,
+            unknownCommand: subcommandToken,
+            helpArgs: [rootToken, "--help"],
+            moduleUrl: import.meta.url
+          });
+        }
+      }
+    }
+    return parseAsync(argv, options);
+  };
+}
+
+function findCommand(parent: Command, name: string): Command | undefined {
+  return parent.commands.find((command) => command.name() === name || command.aliases().includes(name));
 }
 
 function bootstrapProgram(container: CliContainer): Command {
@@ -849,6 +910,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);
   registerMemoryCommand(program, container);
+  registerMemoryMcpCommand(program, container);
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);

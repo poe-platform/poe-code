@@ -170,7 +170,6 @@ class TestOAuthClientProvider implements OAuthClientProvider {
     this.authorizationRedirects += 1;
 
     const approvalUrl = new URL(authorizationUrl);
-    approvalUrl.searchParams.set("auto_approve", "1");
     this.lastAuthorizationUrl = approvalUrl;
 
     const authorizationResponse = await loggedFetch(this.requests, approvalUrl);
@@ -267,6 +266,7 @@ describe("official SDK OAuth interop", () => {
 
     const provider = new TestOAuthClientProvider(redirectHandle, requests);
     const fixture = createMcpOAuthTestServer({
+      autoApprove: true,
       scopes: ["mcp.read"],
     });
     const handle = await fixture.listen({ port: 0, hostname: "127.0.0.1" });
@@ -285,7 +285,7 @@ describe("official SDK OAuth interop", () => {
     await expect(authClient.connect(authTransport)).rejects.toBeInstanceOf(UnauthorizedError);
 
     expect(provider.authorizationRedirects).toBe(1);
-    expect(provider.lastAuthorizationUrl?.searchParams.get("auto_approve")).toBe("1");
+    expect(provider.lastAuthorizationUrl?.pathname.endsWith("/authorize")).toBe(true);
     expect(redirectHandle.callbackUrls).toHaveLength(1);
 
     await authTransport.finishAuth(provider.consumeAuthorizationCode());

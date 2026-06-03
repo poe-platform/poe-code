@@ -68,7 +68,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(writeFileSpy).toHaveBeenCalledWith(
-      "/state.json.tmp",
+      expect.stringMatching(/^\/state\.json\..+\.tmp$/),
       JSON.stringify(
         {
           version: 1,
@@ -78,8 +78,13 @@ describe("snapshot scheduler", () => {
         2
       )
     );
-    expect(renameSpy).toHaveBeenCalledWith("/state.json.tmp", "/state.json");
-    expect(vol.existsSync("/state.json.tmp")).toBe(false);
+    expect(renameSpy).toHaveBeenCalledWith(
+      expect.stringMatching(/^\/state\.json\..+\.tmp$/),
+      "/state.json"
+    );
+    expect(Object.keys(vol.toJSON()).some((filePath) => /^\/state\.json\..+\.tmp$/.test(filePath))).toBe(
+      false
+    );
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
       version: 1,
       step: "checkpointed"

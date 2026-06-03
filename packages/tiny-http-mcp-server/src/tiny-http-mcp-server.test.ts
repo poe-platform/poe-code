@@ -769,6 +769,7 @@ describe("StreamableHttpTransport", () => {
 
       if (requestOptions.sessionId !== undefined) {
         headers["Mcp-Session-Id"] = requestOptions.sessionId;
+        headers["MCP-Protocol-Version"] = "2025-03-26";
       }
 
       let payload: string | undefined;
@@ -877,9 +878,17 @@ describe("StreamableHttpTransport", () => {
           params: { protocolVersion: "2025-03-26" },
         });
 
+        const sessionId = response.headers.get("mcp-session-id");
+        if (sessionId !== null) {
+          await this.post(
+            { jsonrpc: "2.0", method: "notifications/initialized" },
+            { sessionId }
+          );
+        }
+
         return {
           response,
-          sessionId: response.headers.get("mcp-session-id"),
+          sessionId,
         };
       },
     };
@@ -974,13 +983,37 @@ describe("StreamableHttpTransport", () => {
     });
   });
 
+  it("negotiates the supported protocol version for unsupported requests", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "not-a-supported-version" },
+    });
+
+    expect(await readJsonRpcBody(response)).toMatchObject({
+      result: { protocolVersion: "2025-11-25" },
+    });
+  });
+
   it("T2 POST initialized notification returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
       sessionIdGenerator: () => "session-1",
     });
 
-    const { sessionId } = await fixture.initialize();
+    const initialized = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+    const sessionId = initialized.headers.get("mcp-session-id");
     const response = await fixture.post(
       { jsonrpc: "2.0", method: "notifications/initialized" },
       { sessionId: sessionId ?? undefined }
@@ -988,6 +1021,116 @@ describe("StreamableHttpTransport", () => {
 
     expect(response.status).toBe(202);
     expect(await response.text()).toBe("");
+  });
+
+  it("does not create sessions from notification-form initialize messages", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-notify",
+    });
+
+    const response = await fixture.post({
+      jsonrpc: "2.0",
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.headers.get("mcp-session-id")).toBeNull();
+  });
+
+  it("does not process ordinary session requests before initialized acknowledgement", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-1",
+    });
+
+    const initializeResponse = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id");
+    const response = await fixture.post(
+      { jsonrpc: "2.0", id: 2, method: "tools/list" },
+      { sessionId: sessionId ?? undefined }
+    );
+
+    expect(await readJsonRpcBody(response)).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      error: { code: -32600, message: "Session not initialized" },
+    });
+  });
+
+  it("does not emit notifications before initialized acknowledgement", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-1",
+    });
+
+    const initializeResponse = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
+    const response = await fixture.get({ sessionId });
+    const reader = response.body!.getReader();
+
+    await fixture.server.notifyToolsChanged();
+
+    await expectReaderToStayOpen(reader);
+    await reader.cancel();
+  });
+
+  it("rejects follow-up requests without the negotiated protocol version", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-1",
+    });
+
+    const initializeResponse = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "2025-03-26" },
+    });
+    const sessionId = initializeResponse.headers.get("mcp-session-id") ?? undefined;
+    const missing = await fixture.request(
+      "POST",
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      { headers: { Accept: "application/json", "Content-Type": "application/json", "Mcp-Session-Id": sessionId ?? "" } }
+    );
+    const conflicting = await fixture.request(
+      "POST",
+      { jsonrpc: "2.0", method: "notifications/initialized" },
+      { headers: { Accept: "application/json", "Content-Type": "application/json", "Mcp-Session-Id": sessionId ?? "", "MCP-Protocol-Version": "2099-99-99" } }
+    );
+
+    expect(missing.status).toBe(400);
+    expect(conflicting.status).toBe(400);
+  });
+
+  it("does not process ordinary methods before initialize in a new session batch", async () => {
+    let nextId = 0;
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => `session-${++nextId}`,
+    });
+
+    await fixture.initialize();
+    const response = await fixture.post([
+      { jsonrpc: "2.0", id: 2, method: "tools/list" },
+      { jsonrpc: "2.0", id: 3, method: "initialize", params: { protocolVersion: "2025-03-26" } },
+    ]);
+
+    expect(await readJsonRpcBody(response)).toMatchObject([
+      { id: 2, error: { code: -32600, message: "Session not initialized" } },
+      { id: 3, result: { protocolVersion: "2025-03-26" } },
+    ]);
   });
 
   it("T3 POST tools/list returns the tool list", async () => {
@@ -1086,6 +1229,25 @@ describe("StreamableHttpTransport", () => {
     expect(response.headers.get("content-type")).toBe("text/event-stream");
   });
 
+  it("rejects SSE POST responses when the client accepts only JSON", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: false,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-03-26" },
+      },
+      { headers: { Accept: "application/json" } }
+    );
+
+    expect(response.status).toBe(406);
+  });
+
   it("T8 SSE POST body contains data lines", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
@@ -1149,6 +1311,27 @@ describe("StreamableHttpTransport", () => {
 
     expect(response.status).toBe(200);
     expect(body.map((entry) => entry.id)).toEqual([2, 3, 4]);
+  });
+
+  it("returns valid batch results alongside invalid member errors", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post([
+      { jsonrpc: "2.0", id: 1, method: "ping" },
+      17,
+      { jsonrpc: "2.0", id: 2, method: "ping" },
+    ]);
+    const body = await readJsonRpcBody(response);
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual([
+      { jsonrpc: "2.0", id: 1, result: {} },
+      { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } },
+      { jsonrpc: "2.0", id: 2, result: {} },
+    ]);
   });
 
   it("T11 batch of notifications returns 202", async () => {
@@ -1306,6 +1489,26 @@ describe("StreamableHttpTransport", () => {
     expect(response.status).toBe(400);
   });
 
+  it("rejects POST requests without a JSON content type", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.request(
+      "POST",
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-03-26" },
+      },
+      { headers: { Accept: "application/json" } }
+    );
+
+    expect(response.status).toBe(400);
+  });
+
   it("T21 unknown method returns JSON-RPC METHOD_NOT_FOUND", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
@@ -1411,6 +1614,32 @@ describe("StreamableHttpTransport", () => {
     expect(response.headers.get("mcp-session-id")).toBe("session-1");
   });
 
+  it("rejects generated session identifiers that cannot be emitted in headers", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "bad\nheader",
+    });
+
+    const { response, sessionId } = await fixture.initialize();
+
+    expect(response.status).toBe(500);
+    expect(sessionId).toBeNull();
+  });
+
+  it("rejects generated session identifier collisions", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "shared-session",
+    });
+
+    const first = await fixture.initialize();
+    const second = await fixture.initialize();
+
+    expect(first.response.status).toBe(200);
+    expect(second.response.status).toBe(500);
+    expect(second.sessionId).toBeNull();
+  });
+
   it("T26 subsequent responses include the same Mcp-Session-Id", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
@@ -1490,6 +1719,7 @@ describe("StreamableHttpTransport", () => {
 
     const event = await readSseEvent(reader);
 
+    expect(event).toContain("id: ");
     expect(event).toContain("data: ");
     expect(event).toContain("notifications/tools/list_changed");
   });
@@ -1696,6 +1926,7 @@ describe("createExpressMiddleware", () => {
 
     if (options.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", options.sessionId);
+      headers.set("MCP-Protocol-Version", TEST_PROTOCOL_VERSION);
     }
 
     return nodeFetch(url, {
@@ -1713,6 +1944,7 @@ describe("createExpressMiddleware", () => {
 
     if (options.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", options.sessionId);
+      headers.set("MCP-Protocol-Version", TEST_PROTOCOL_VERSION);
     }
 
     return nodeFetch(url, {
@@ -1735,10 +1967,18 @@ describe("createExpressMiddleware", () => {
       },
       { headers }
     );
+    const sessionId = response.headers.get("mcp-session-id");
+    if (sessionId !== null) {
+      await postJsonRpc(
+        url,
+        { jsonrpc: "2.0", method: "notifications/initialized" },
+        { sessionId, headers }
+      );
+    }
 
     return {
       response,
-      sessionId: response.headers.get("mcp-session-id"),
+      sessionId,
     };
   }
 
@@ -1849,6 +2089,7 @@ describe("createExpressMiddleware", () => {
       headers: {
         Accept: "text/event-stream",
         "Mcp-Session-Id": sessionId ?? "",
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
       },
     });
     const reader = response.body?.getReader();
@@ -2201,6 +2442,7 @@ describe("HttpServer integration", () => {
 
     if (options.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", options.sessionId);
+      headers.set("MCP-Protocol-Version", TEST_PROTOCOL_VERSION);
     }
 
     return nodeFetch(url, {
@@ -2332,7 +2574,10 @@ describe("HttpServer integration", () => {
 
       const deleteResponse = await nodeFetch(pair.url, {
         method: "DELETE",
-        headers: { "Mcp-Session-Id": expiredSessionId },
+        headers: {
+          "Mcp-Session-Id": expiredSessionId,
+          "MCP-Protocol-Version": pair.transport.protocolVersion ?? TEST_PROTOCOL_VERSION,
+        },
       });
       expect(deleteResponse.status).toBe(204);
 
@@ -3485,6 +3730,7 @@ describe("Spec conformance", () => {
     url: string;
     requests: RequestLogEntry[];
     currentSessionId(): string | undefined;
+    currentProtocolVersion(): string;
     terminateSession(): Promise<void>;
     nextToolChange(): Promise<void>;
     connectSibling(): Promise<ConformancePair>;
@@ -3584,6 +3830,7 @@ describe("Spec conformance", () => {
 
     if (options.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", options.sessionId);
+      headers.set("MCP-Protocol-Version", TEST_PROTOCOL_VERSION);
     }
 
     return nodeFetch(url, {
@@ -3599,15 +3846,21 @@ describe("Spec conformance", () => {
       headers: {
         Accept: "text/event-stream",
         "Mcp-Session-Id": sessionId,
+        "MCP-Protocol-Version": TEST_PROTOCOL_VERSION,
       },
     });
   }
 
-  async function deleteSession(url: string, sessionId?: string): Promise<Response> {
+  async function deleteSession(
+    url: string,
+    sessionId?: string,
+    protocolVersion = TEST_PROTOCOL_VERSION
+  ): Promise<Response> {
     const headers = new Headers();
 
     if (sessionId !== undefined) {
       headers.set("Mcp-Session-Id", sessionId);
+      headers.set("MCP-Protocol-Version", protocolVersion);
     }
 
     return nodeFetch(url, {
@@ -3626,10 +3879,18 @@ describe("Spec conformance", () => {
       method: "initialize",
       params: { protocolVersion: TEST_PROTOCOL_VERSION },
     });
+    const sessionId = response.headers.get("mcp-session-id");
+    if (sessionId !== null) {
+      await postJsonRpc(
+        url,
+        { jsonrpc: "2.0", method: "notifications/initialized" },
+        { sessionId }
+      );
+    }
 
     return {
       response,
-      sessionId: response.headers.get("mcp-session-id"),
+      sessionId,
     };
   }
 
@@ -3721,6 +3982,7 @@ describe("Spec conformance", () => {
       url,
       requests,
       currentSessionId: () => transport.sessionId,
+      currentProtocolVersion: () => transport.protocolVersion ?? TEST_PROTOCOL_VERSION,
       terminateSession: () => transport.terminateSession(),
       nextToolChange: () => tracker.next(),
       connectSibling: () => createSdkConnection(url),
@@ -3776,6 +4038,7 @@ describe("Spec conformance", () => {
       url,
       requests,
       currentSessionId: () => currentSessionId,
+      currentProtocolVersion: () => TEST_PROTOCOL_VERSION,
       terminateSession: async () => {
         await client.close();
       },
@@ -4177,7 +4440,13 @@ describe("Spec conformance", () => {
 
           expect(expiredSessionId).toBeDefined();
 
-          await deleteSession(pair.url, expiredSessionId);
+          const deleteResponse = await deleteSession(
+            pair.url,
+            expiredSessionId,
+            pair.currentProtocolVersion()
+          );
+
+          expect(deleteResponse.status).toBe(204);
           await expect(pair.client.listTools()).rejects.toThrow();
 
           const sibling = await pair.connectSibling();

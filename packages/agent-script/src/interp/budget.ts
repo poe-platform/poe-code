@@ -59,10 +59,10 @@ export class Budget {
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
     this.limits = Object.freeze({
-      maxSteps: options.maxSteps,
-      maxCallDepth: options.maxCallDepth,
-      stringLength: options.stringLength,
-      arrayLength: options.arrayLength
+      maxSteps: normalizeLimit("maxSteps", options.maxSteps),
+      maxCallDepth: normalizeLimit("maxCallDepth", options.maxCallDepth),
+      stringLength: normalizeLimit("stringLength", options.stringLength),
+      arrayLength: normalizeLimit("arrayLength", options.arrayLength)
     });
   }
 
@@ -216,4 +216,16 @@ function normalizeDeadline(deadline: BudgetOptions["deadline"]): number | undefi
   }
 
   return deadline instanceof Date ? deadline.getTime() : deadline;
+}
+
+function normalizeLimit(name: keyof BudgetLimits, value: number | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer.`);
+  }
+
+  return value;
 }

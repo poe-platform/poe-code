@@ -377,7 +377,7 @@ export function createJwksTokenVerifier(
 
         if (
           input.requiredScopes.length > 0
-          && !accessToken.scopes.some((scope) => input.requiredScopes.includes(scope))
+          && !input.requiredScopes.every((scope) => accessToken.scopes.includes(scope))
         ) {
           throw createTokenVerificationError({
             error: "insufficient_scope",

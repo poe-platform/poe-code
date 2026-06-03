@@ -72,6 +72,7 @@ export function createTerminalPilotRuntime(
   const launchPilot = options.launchPilot ?? TerminalPilot.launch;
   const nameToId = new Map<string, string>();
   const idToName = new Map<string, string>();
+  const pendingNames = new Set<string>();
   let pilotPromise: Promise<ClosablePilotLike> | undefined;
 
   function getRequestedName(name: string | undefined, env?: HandlerEnv): string | undefined {
@@ -86,7 +87,7 @@ export function createTerminalPilotRuntime(
   function nextSessionName(): string {
     let index = 1;
 
-    while (nameToId.has(`s${index}`)) {
+    while (nameToId.has(`s${index}`) || pendingNames.has(`s${index}`)) {
       index += 1;
     }
 
@@ -100,8 +101,12 @@ export function createTerminalPilotRuntime(
   }
 
   function forgetSession(name: string, sessionId: string): void {
-    nameToId.delete(name);
-    idToName.delete(sessionId);
+    if (nameToId.get(name) === sessionId) {
+      nameToId.delete(name);
+    }
+    if (idToName.get(sessionId) === name) {
+      idToName.delete(sessionId);
+    }
   }
 
   function formatAvailableSessions(names: string[]): string {
@@ -145,25 +150,51 @@ export function createTerminalPilotRuntime(
     });
   }
 
+  async function discardExitedSessionName(name: string): Promise<void> {
+    const sessionId = nameToId.get(name);
+    if (sessionId === undefined) {
+      return;
+    }
+
+    const pilot = await getPilot();
+    try {
+      const session = pilot.getSession(sessionId);
+      if (session.exitCode === null) {
+        return;
+      }
+      pilot.deleteSession(sessionId);
+    } catch {
+      // Missing sessions no longer reserve public names.
+    }
+    forgetSession(name, sessionId);
+  }
+
   return {
     async createSession(params: CreateSessionParams, env?: HandlerEnv): Promise<NamedSession> {
       const requestedName = getRequestedName(params.session, env) ?? nextSessionName();
 
-      if (nameToId.has(requestedName)) {
+      await discardExitedSessionName(requestedName);
+
+      if (nameToId.has(requestedName) || pendingNames.has(requestedName)) {
         throw new UserError(`Session "${requestedName}" already exists.`);
       }
 
-      const pilot = await getPilot();
-      const session = await pilot.newSession({
-        command: params.command,
-        args: params.args,
-        cwd: params.cwd,
-        cols: params.cols,
-        rows: params.rows,
-        observe: params.observe
-      });
+      pendingNames.add(requestedName);
+      try {
+        const pilot = await getPilot();
+        const session = await pilot.newSession({
+          command: params.command,
+          args: params.args,
+          cwd: params.cwd,
+          cols: params.cols,
+          rows: params.rows,
+          observe: params.observe
+        });
 
-      return rememberSession(requestedName, session);
+        return rememberSession(requestedName, session);
+      } finally {
+        pendingNames.delete(requestedName);
+      }
     },
 
     async resolveSession(name: string | undefined, env?: HandlerEnv): Promise<NamedSession> {
@@ -213,6 +244,7 @@ export function createTerminalPilotRuntime(
       pilotPromise = undefined;
       nameToId.clear();
       idToName.clear();
+      pendingNames.clear();
     }
   };
 }

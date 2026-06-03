@@ -218,7 +218,7 @@ function total(values: readonly number[]): number {
 function groupRuns(runs: readonly EvalRunResult[]): Map<string, EvalRunResult[]> {
   const grouped = new Map<string, EvalRunResult[]>();
   for (const run of runs) {
-    const key = cellKeys.map((cellKey) => run[cellKey]).join("\u0000");
+    const key = JSON.stringify(cellKeys.map((cellKey) => run[cellKey]));
     const cellRuns = grouped.get(key) ?? [];
     cellRuns.push(run);
     grouped.set(key, cellRuns);

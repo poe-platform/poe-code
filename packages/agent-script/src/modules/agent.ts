@@ -253,6 +253,7 @@ async function runSpawnRetry(
   retryOptions: Required<AgentModuleRetryOptions>
 ): Promise<SpawnAgentResult> {
   for (let attempt = 1; attempt <= retryOptions.maxAttempts; attempt += 1) {
+    throwIfAborted(input.signal);
     const result = validateSpawnResult(await spawnAgent(input));
     recordActiveSpawnUsage(result.usage);
     const isLastAttempt = attempt >= retryOptions.maxAttempts;
@@ -261,7 +262,7 @@ async function runSpawnRetry(
       return result;
     }
 
-    await sleep(calculateBackoffMs(retryOptions.backoffMs, attempt));
+    await sleep(calculateBackoffMs(retryOptions.backoffMs, attempt), input.signal);
   }
 
   throw new Error("agent.spawn.retry reached an unreachable retry state.");
@@ -312,10 +313,33 @@ function calculateBackoffMs(baseBackoffMs: number, completedAttempt: number): nu
   return Math.min(baseBackoffMs * 2 ** (completedAttempt - 1), 30_000);
 }
 
-function sleep(delayMs: number): Promise<void> {
-  return new Promise((resolve) => {
-    setTimeout(resolve, delayMs);
+function sleep(delayMs: number, signal: AbortSignal | undefined): Promise<void> {
+  throwIfAborted(signal);
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, delayMs);
+    const onAbort = () => {
+      clearTimeout(timeout);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener("abort", onAbort, { once: true });
   });
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
+function createAbortError(): Error {
+  const error = new Error("Agent spawn retry aborted");
+  error.name = "AbortError";
+  return error;
 }
 
 function resolveSpawnInput(

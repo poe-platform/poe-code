@@ -10,7 +10,8 @@ import {
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
   configMutation,
-  fileMutation
+  fileMutation,
+  type ConfigObject
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
@@ -75,14 +76,25 @@ export const openCodeService = createProvider({
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.config/opencode" }),
-      configMutation.merge({
+      configMutation.transform({
         target: "~/.config/opencode/config.json",
-        value: (ctx) => {
+        transform: (document, ctx) => {
           const { model } = (ctx ?? {}) as { model?: string };
-          return {
+          const enabledProviders = Array.isArray(document.enabled_providers)
+            ? document.enabled_providers.filter((value): value is string => typeof value === "string")
+            : [];
+          const nextEnabledProviders = enabledProviders.includes(PROVIDER_NAME)
+            ? enabledProviders
+            : [...enabledProviders, PROVIDER_NAME];
+          const content: ConfigObject = {
+            ...document,
             $schema: "https://opencode.ai/config.json",
             model: providerModel(model),
-            enabled_providers: [PROVIDER_NAME]
+            enabled_providers: nextEnabledProviders
+          };
+          return {
+            content,
+            changed: JSON.stringify(document) !== JSON.stringify(content)
           };
         }
       }),
@@ -101,9 +113,29 @@ export const openCodeService = createProvider({
       })
     ],
     unconfigure: [
-      configMutation.prune({
+      configMutation.transform({
         target: "~/.config/opencode/config.json",
-        shape: { enabled_providers: true }
+        transform: (document) => {
+          const content: ConfigObject = { ...document };
+          const providers = Array.isArray(document.enabled_providers)
+            ? document.enabled_providers.filter((value): value is string => typeof value === "string")
+            : [];
+          const enabledProviders = providers.filter((value) => value !== PROVIDER_NAME);
+          let changed = enabledProviders.length !== providers.length;
+          if (enabledProviders.length === 0) {
+            if ("enabled_providers" in content) {
+              delete content.enabled_providers;
+              changed = true;
+            }
+          } else if (changed) {
+            content.enabled_providers = enabledProviders;
+          }
+          if (typeof content.model === "string" && content.model.startsWith(`${PROVIDER_NAME}/`)) {
+            delete content.model;
+            changed = true;
+          }
+          return { content, changed };
+        }
       }),
       configMutation.prune({
         target: "~/.local/share/opencode/auth.json",

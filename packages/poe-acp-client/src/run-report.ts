@@ -1,6 +1,7 @@
 import * as fsPromises from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative, sep } from "node:path";
 import {
   extractToolCallSummariesFromSessionUpdateStream,
   extractUsageFromSessionUpdateStream,
@@ -44,12 +45,14 @@ export interface GenerateRunReportOptions {
 }
 
 export type RunReportFileSystem = {
-  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
   writeFile(
     path: string,
     data: string,
     options?: { encoding?: BufferEncoding },
   ): Promise<void>;
+  rm(path: string): Promise<void>;
+  realpath?(path: string): Promise<string>;
 };
 
 export interface SaveRunReportOptions {
@@ -115,7 +118,7 @@ export async function generateRunReportFromSessionUpdateStream(
 
 export function formatRunReportSummary(report: RunReport): string {
   const lines = [
-    `Run ID: ${report.runId}`,
+    `Run ID: ${escapeSummaryValue(report.runId)}`,
     `Start time: ${report.startTime}`,
     `End time: ${report.endTime}`,
     `Duration: ${toDuration(report.startTime, report.endTime)}`,
@@ -141,6 +144,7 @@ export async function saveRunReport(
 
   const reportsDir = join(options.homeDir ?? homedir(), ".poe-code", "reports");
   await fs.mkdir(reportsDir, { recursive: true });
+  await assertReportsDirectoryContained(reportsDir, options.homeDir ?? homedir(), fs);
 
   const timestamp = toTimestampForFileName(now());
   const safeRunId = toSafeFileSegment(report.runId);
@@ -150,7 +154,12 @@ export async function saveRunReport(
   const summaryPath = join(reportsDir, `${baseFileName}.txt`);
 
   await fs.writeFile(jsonPath, JSON.stringify(report, null, 2), { encoding: "utf8" });
-  await fs.writeFile(summaryPath, formatRunReportSummary(report), { encoding: "utf8" });
+  try {
+    await fs.writeFile(summaryPath, formatRunReportSummary(report), { encoding: "utf8" });
+  } catch (error) {
+    await fs.rm(jsonPath);
+    throw error;
+  }
 
   return {
     reportsDir,
@@ -293,7 +302,40 @@ function toSafeFileSegment(value: string): string {
     output += "-";
   }
 
-  return output.length > 0 ? output : "run";
+  const safeOutput = output.length > 0 ? output : "run";
+  if (safeOutput === value) {
+    return safeOutput;
+  }
+
+  const fingerprint = createHash("sha256").update(value).digest("hex").slice(0, 10);
+  return `${safeOutput}-${fingerprint}`;
+}
+
+async function assertReportsDirectoryContained(
+  reportsDir: string,
+  homeDir: string,
+  fs: RunReportFileSystem,
+): Promise<void> {
+  if (fs.realpath === undefined) {
+    return;
+  }
+
+  const [canonicalHome, canonicalReports] = await Promise.all([
+    fs.realpath(homeDir),
+    fs.realpath(reportsDir),
+  ]);
+  const relativeReportsPath = relative(canonicalHome, canonicalReports);
+  if (
+    relativeReportsPath === ".." ||
+    relativeReportsPath.startsWith(`..${sep}`) ||
+    isAbsolute(relativeReportsPath)
+  ) {
+    throw new Error("The reports directory must remain inside home state.");
+  }
+}
+
+function escapeSummaryValue(value: string): string {
+  return value.replaceAll("\r", "\\r").replaceAll("\n", "\\n");
 }
 
 function isAsciiLetterOrDigit(value: string): boolean {

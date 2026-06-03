@@ -38,6 +38,7 @@ describe("emitToOtel", () => {
         method: "startSpan",
         name: "tool_call:read",
         options: { startTime: 100 },
+        parent: "agent:codex:gpt-5",
       },
       {
         span: "tool_call:read",
@@ -58,6 +59,7 @@ describe("emitToOtel", () => {
         span: "tracer",
         method: "startSpan",
         name: "tool_call:execute",
+        parent: "agent:codex:gpt-5",
       },
       {
         span: "tool_call:execute",
@@ -175,6 +177,7 @@ describe("emitToOtel", () => {
         method: "startSpan",
         name: "tool_call:",
         options: { startTime: 0 },
+        parent: "agent:",
       },
       {
         span: "tool_call:",
@@ -189,6 +192,7 @@ describe("emitToOtel", () => {
         span: "tracer",
         method: "startSpan",
         name: "tool_call:child",
+        parent: "tool_call:",
       },
       {
         span: "tool_call:child",
@@ -236,6 +240,85 @@ describe("emitToOtel", () => {
       },
     ]);
   });
+
+  it("omits unsafe output values and inherited identity metadata", () => {
+    const cyclicOutput: Record<string, unknown> = {};
+    cyclicOutput.self = cyclicOutput;
+    const metadata = Object.create({ sessionId: "inherited-session" }) as Record<string, unknown>;
+    const trace: AcpTrace = {
+      root: {
+        name: "agent:codex:gpt-5",
+        kind: "agent",
+        output: Number.POSITIVE_INFINITY,
+        metadata,
+        children: [
+          {
+            name: "tool_call:read",
+            kind: "tool",
+            output: cyclicOutput,
+            children: [],
+          },
+        ],
+      },
+    };
+    const tracer = new FakeOtelTracer();
+
+    expect(() => emitToOtel(trace, tracer)).not.toThrow();
+    expect(tracer.calls.filter((call) => call.method === "setAttributes")).toEqual([
+      {
+        span: "agent:codex:gpt-5",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.system": "poe-code",
+          "gen_ai.request.model": "gpt-5",
+          "gen_ai.agent.name": "codex",
+        },
+      },
+      {
+        span: "tool_call:read",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.tool.name": "read",
+        },
+      },
+    ]);
+  });
+
+  it("does not forward non-finite span timestamps", () => {
+    const trace: AcpTrace = {
+      root: {
+        name: "agent:codex:gpt-5",
+        kind: "agent",
+        startTs: Number.POSITIVE_INFINITY,
+        endTs: Number.NEGATIVE_INFINITY,
+        children: [],
+      },
+    };
+    const tracer = new FakeOtelTracer();
+
+    emitToOtel(trace, tracer);
+
+    expect(tracer.calls).toEqual([
+      {
+        span: "tracer",
+        method: "startSpan",
+        name: "agent:codex:gpt-5",
+      },
+      {
+        span: "agent:codex:gpt-5",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.system": "poe-code",
+          "gen_ai.request.model": "gpt-5",
+          "gen_ai.agent.name": "codex",
+        },
+      },
+      {
+        span: "agent:codex:gpt-5",
+        method: "end",
+      },
+    ]);
+  });
 });
 
 type FakeCall =
@@ -244,6 +327,7 @@ type FakeCall =
       method: "startSpan";
       name: string;
       options?: { startTime?: number };
+      parent?: string;
     }
   | {
       span: string;
@@ -271,12 +355,17 @@ class FakeOtelTracer implements OtelTracerLike {
 
   constructor(private readonly options: FakeOptions = {}) {}
 
-  startSpan(name: string, options?: { startTime?: number }): OtelSpanLike {
+  startSpan(
+    name: string,
+    options?: { startTime?: number },
+    parent?: OtelSpanLike,
+  ): OtelSpanLike {
     this.calls.push({
       span: "tracer",
       method: "startSpan",
       name,
       ...(options ? { options } : {}),
+      ...(parent instanceof FakeOtelSpan ? { parent: parent.name } : {}),
     });
     return new FakeOtelSpan(name, this.calls, this.options);
   }
@@ -284,7 +373,7 @@ class FakeOtelTracer implements OtelTracerLike {
 
 class FakeOtelSpan implements OtelSpanLike {
   constructor(
-    private readonly name: string,
+    readonly name: string,
     private readonly calls: FakeCall[],
     private readonly options: FakeOptions,
   ) {}

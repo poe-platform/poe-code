@@ -54,8 +54,12 @@ export function buildPlanExplorerConfig(
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
         await archivePlan(entry, options.fs as ActionFs);
-        await ctx.refresh();
-        ctx.toast(`Archived ${path.basename(entry.path)}`, "warning");
+        try {
+          await ctx.refresh();
+          ctx.toast(`Archived ${path.basename(entry.path)}`, "warning");
+        } catch {
+          ctx.toast(`Archived ${path.basename(entry.path)}; refresh failed`, "warning");
+        }
       }
     },
     {
@@ -66,8 +70,12 @@ export function buildPlanExplorerConfig(
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
         await deletePlan(entry, options.fs as ActionFs);
-        await ctx.refresh();
-        ctx.toast(`Deleted ${path.basename(entry.path)}`, "error");
+        try {
+          await ctx.refresh();
+          ctx.toast(`Deleted ${path.basename(entry.path)}`, "error");
+        } catch {
+          ctx.toast(`Deleted ${path.basename(entry.path)}; refresh failed`, "error");
+        }
       }
     }
   ];
@@ -116,8 +124,9 @@ export function buildPlanExplorerConfig(
 }
 
 function toRows(plans: PlanEntry[]): Row[] {
-  return plans.map((entry) => ({
-    id: entry.absolutePath,
+  const rowIds = createRowIds(plans);
+  return plans.map((entry, index) => ({
+    id: rowIds[index]!,
     title: path.basename(entry.path),
     subtitle: entry.detail,
     badge: { text: entry.typeLabel },
@@ -126,7 +135,19 @@ function toRows(plans: PlanEntry[]): Row[] {
 }
 
 function toEntryMap(plans: PlanEntry[]): Map<string, PlanEntry> {
-  return new Map(plans.map((entry) => [entry.absolutePath, entry]));
+  const rowIds = createRowIds(plans);
+  return new Map(plans.map((entry, index) => [rowIds[index]!, entry]));
+}
+
+function createRowIds(plans: PlanEntry[]): string[] {
+  const counts = new Map<string, number>();
+  for (const entry of plans) {
+    counts.set(entry.absolutePath, (counts.get(entry.absolutePath) ?? 0) + 1);
+  }
+
+  return plans.map((entry, index) =>
+    counts.get(entry.absolutePath) === 1 ? entry.absolutePath : `${entry.absolutePath}\u0000${index}`
+  );
 }
 
 function getEntry(entryByRowId: Map<string, PlanEntry>, rowId: string): PlanEntry {

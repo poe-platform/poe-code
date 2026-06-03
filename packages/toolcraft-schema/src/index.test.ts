@@ -565,6 +565,19 @@ describe("toolcraft-schema", () => {
     );
   });
 
+  it("rejects invalid constraint metadata and non-finite schema values", () => {
+    expect(() => S.String({ minLength: -1 })).toThrow("minLength");
+    expect(() => S.String({ pattern: "[" })).toThrow("pattern");
+    expect(() => S.Array(S.String(), { maxItems: -1 })).toThrow("maxItems");
+    expect(() => S.Number({ minimum: Number.POSITIVE_INFINITY })).toThrow("minimum");
+    expect(() => S.Number({ default: Number.NaN })).toThrow("default");
+  });
+
+  it("rejects invalid integer enum members and non-finite enum values", () => {
+    expect(() => S.Enum([Number.POSITIVE_INFINITY] as const)).toThrow("finite");
+    expect(() => S.Enum([1.5, 2] as const, { jsonType: "integer" })).toThrow("integer");
+  });
+
   it("rejects oneOf schemas without branches at runtime", () => {
     expect(() =>
       S.OneOf({
@@ -572,6 +585,20 @@ describe("toolcraft-schema", () => {
         branches: {},
       })
     ).toThrow("OneOf schema requires at least one branch");
+  });
+
+  it("rejects oneOf branches that declare the discriminator field", () => {
+    expect(() =>
+      S.OneOf({
+        discriminator: "kind",
+        branches: {
+          text: S.Object({
+            kind: S.Enum(["custom"] as const),
+            value: S.String(),
+          }),
+        },
+      })
+    ).toThrow('OneOf branch "text" must not declare discriminator field "kind".');
   });
 
   it("rejects union schemas without branches at runtime", () => {

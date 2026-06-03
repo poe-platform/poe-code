@@ -323,4 +323,60 @@ describe("runGenerateCli", () => {
     );
     expect(harness.stderr()).toBe("");
   });
+
+  it("restores the previous generated client when a later output write fails", async () => {
+    const originalSpec = createEmptySpec();
+    const updatedSpec = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": originalSpec });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    const before = await readRepoFiles(harness.fs, "/repo");
+    await harness.fs.writeFile("/repo/openapi.json", updatedSpec, "utf8");
+
+    const writeFile = harness.services.fs.writeFile.bind(harness.services.fs);
+    let indexWriteFailed = false;
+    vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
+      async (filePath, contents, encoding) => {
+        if (filePath === "/repo/src/generated/index.ts" && !indexWriteFailed) {
+          indexWriteFailed = true;
+          throw new Error("disk full during index write");
+        }
+
+        return writeFile(filePath, contents, encoding);
+      }
+    );
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      new Error("disk full during index write")
+    );
+
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual({
+      ...before,
+      "openapi.json": updatedSpec
+    });
+  });
+
+  it("rejects a symlinked generated output directory", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText, "/outside/marker": "keep" });
+    await harness.fs.mkdir("/repo/src", { recursive: true });
+    await harness.fs.symlink("/outside", "/repo/src/generated");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects a symlinked generated child directory", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText, "/outside/marker": "keep" });
+    await harness.fs.mkdir("/repo/src/generated", { recursive: true });
+    await harness.fs.symlink("/outside", "/repo/src/generated/bots");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+    await expect(harness.fs.readFile("/outside/list.ts", "utf8")).rejects.toThrow();
+  });
 });

@@ -1,4 +1,4 @@
-import { defineCommand, type Scope } from "toolcraft";
+import { defineCommand, type Scope, UserError } from "toolcraft";
 import { S, toJsonSchema } from "toolcraft-schema";
 
 import { resolveCommandEntries, type CommandEntry, type CommandEntryList } from "./tree.js";
@@ -147,11 +147,11 @@ function bm25Score(
 }
 
 function normalizeLimit(limit: number): number {
-  if (!Number.isFinite(limit) || limit <= 0) {
-    return 0;
+  if (!Number.isInteger(limit) || limit < 0) {
+    throw new UserError(`limit must be a non-negative integer, received ${limit}`);
   }
 
-  return Math.trunc(limit);
+  return limit;
 }
 
 function toSearchResult(entry: CommandEntry, detail: SearchDetail): SearchResult {

@@ -218,6 +218,21 @@ describe("runWorkflowHook", () => {
     ).rejects.toThrow("Unknown participant: unknown");
   });
 
+  it("throws when the hook references an inherited participant name", async () => {
+    const context = createContext({ participants: {} });
+
+    await expect(
+      runWorkflowHook(
+        {
+          participant: "toString",
+          prompt: "Prepare the workspace",
+          mode: "edit"
+        },
+        context
+      )
+    ).rejects.toThrow("Unknown participant: toString");
+  });
+
   it("throws when the hook omits a participant without a default", async () => {
     const context = createContext({
       participants: {

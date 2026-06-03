@@ -7,6 +7,7 @@ import {
   formatSuperintendentDetail,
   getLastExperimentState,
   loadPlanPreviewMarkdown,
+  readExperimentState,
   readPlanMetadata
 } from "./format.js";
 import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
@@ -92,9 +93,27 @@ describe("format helpers", () => {
     ).toBe("keep");
   });
 
+  it("returns the last experiment journal status with CR line endings", () => {
+    expect(
+      getLastExperimentState(
+        [JSON.stringify({ status: "discard" }), JSON.stringify({ status: "keep" })].join("\r")
+      )
+    ).toBe("keep");
+  });
+
+  it("surfaces experiment journal read failures other than missing journals", async () => {
+    await expect(
+      readExperimentState(
+        { readFile: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); } },
+        "/repo/docs/plans/tune.md"
+      )
+    ).rejects.toThrow("permission denied");
+  });
+
   it("falls back to open when experiment journal content is empty or invalid", () => {
     expect(getLastExperimentState("")).toBe("open");
     expect(getLastExperimentState("{not-json")).toBe("open");
+    expect(getLastExperimentState(JSON.stringify({ status: "completed" }))).toBe("open");
   });
 
   it("converts pipeline YAML plans into preview markdown", () => {
@@ -126,6 +145,35 @@ describe("format helpers", () => {
   it("derives a markdown title from the first heading when present", () => {
     expect(deriveMarkdownTitle("# My Plan\n\nBody", "fallback.md")).toBe("My Plan");
     expect(deriveMarkdownTitle("Body only", "fallback.md")).toBe("fallback.md");
+  });
+
+  it("ignores headings in fenced code and supports CR-only documents", () => {
+    expect(
+      deriveMarkdownTitle("```md\n# Example\n```\n\n# Actual Title", "fallback.md")
+    ).toBe("Actual Title");
+    expect(deriveMarkdownTitle("# Actual Title\r\rBody", "fallback.md")).toBe("Actual Title");
+  });
+
+  it("reads pipeline metadata from CR-only markdown frontmatter", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "pipeline",
+      absolutePath: "/repo/docs/plans/plan-feature.md",
+      path: "docs/plans/plan-feature.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: pipeline",
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: done",
+          "---"
+        ].join("\r")
+      }
+    });
+
+    expect(metadata.detail).toBe("1/1 done");
   });
 
   it("reads generic kind metadata with a heading-based detail summary", async () => {
@@ -195,6 +243,21 @@ describe("format helpers", () => {
     });
   });
 
+  it("rejects pipeline tasks without any step statuses", () => {
+    expect(
+      () => formatPipelinePlanMarkdown({
+        title: "Empty steps",
+        content: [
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: {}"
+        ].join("\n")
+      })
+    ).toThrow('Invalid status for task "feature": expected at least one step status.');
+  });
+
   it("reads superintendent metadata from status blocks", async () => {
     const metadata = await readPlanMetadata({
       kind: "superintendent",
@@ -204,6 +267,16 @@ describe("format helpers", () => {
         readFile: async () => [
           "---",
           "kind: superintendent",
+          "version: 1",
+          "builder:",
+          "  agent: codex",
+          "  prompt: Build.",
+          "superintendent:",
+          "  agent: codex",
+          "  prompt: Review.",
+          "owner:",
+          "  agent: codex",
+          "  prompt: Approve.",
           "status:",
           "  state: review",
           "  round: 4",
@@ -219,6 +292,29 @@ describe("format helpers", () => {
       detail: "review 12",
       format: "markdown"
     });
+  });
+
+  it("rejects superintendent metadata missing runnable roles", async () => {
+    await expect(
+      readPlanMetadata({
+        kind: "superintendent",
+        absolutePath: "/repo/docs/plans/broken.md",
+        path: "docs/plans/broken.md",
+        fs: {
+          readFile: async () => [
+            "---",
+            "kind: superintendent",
+            "version: 1",
+            "status:",
+            "  state: in_progress",
+            "  round: 0",
+            "  review_turn: 0",
+            "---",
+            "# Broken plan"
+          ].join("\n")
+        }
+      })
+    ).rejects.toThrow("missing required role `builder`");
   });
 
   it("reads superintendent base metadata as a non-runnable base doc", async () => {

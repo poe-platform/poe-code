@@ -116,4 +116,15 @@ describe("resolveConfiguredMemoryRoot", () => {
     });
     expect(root).toBe("/project/mem");
   });
+
+  it("rejects malformed project configuration without rewriting it", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, "{ malformed", "utf8");
+
+    await expect(
+      resolveConfiguredMemoryRoot({ cwd, env: {}, fs, configPath, projectConfigPath })
+    ).rejects.toThrow();
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe("{ malformed");
+  });
 });

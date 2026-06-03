@@ -5,8 +5,7 @@ import { registerDriver } from "./registry.js";
 registerDriver(pipelineDriver);
 registerDriver(ralphDriver);
 
-// Experiment, superintendent, and harness drivers are available but not registered by default; opt in with registerDriver(experimentDriver).
-export { experimentDriver } from "./experiment.js";
+// Superintendent and harness drivers are available but not registered by default.
 export { harnessDriver } from "./harness.js";
 export { pipelineDriver } from "./pipeline.js";
 export { ralphDriver } from "./ralph.js";

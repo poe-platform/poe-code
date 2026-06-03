@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { appendFileSync } = require("node:fs");
+const fs = require("node:fs");
 const { execSync, spawnSync } = require("node:child_process");
 
 function run(command, stdio = "pipe") {
@@ -159,18 +159,31 @@ function main() {
 
   const metadata = parseMetadata((result.stdout || "").trim());
 
-  appendFileSync(
-    GITHUB_OUTPUT,
-    `title<<EOF\n${metadata.title}\nEOF\n`
-  );
-  appendFileSync(
-    GITHUB_OUTPUT,
-    `body<<EOF\n${metadata.body}\nEOF\n`
-  );
+  writeMetadataOutput(GITHUB_OUTPUT, metadata);
+}
+
+function writeMetadataOutput(outputPath, metadata, fileSystem = fs) {
+  assertNotSymbolicLink(outputPath, fileSystem);
+  fileSystem.appendFileSync(outputPath, `title<<EOF\n${metadata.title}\nEOF\n`);
+  fileSystem.appendFileSync(outputPath, `body<<EOF\n${metadata.body}\nEOF\n`);
+}
+
+function assertNotSymbolicLink(outputPath, fileSystem) {
+  try {
+    if (fileSystem.lstatSync(outputPath).isSymbolicLink()) {
+      throw new Error(`Refusing to use symbolic link path: ${outputPath}`);
+    }
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }
 
 module.exports = {
-  parseMetadata
+  parseMetadata,
+  writeMetadataOutput
 };
 
 if (require.main === module) {

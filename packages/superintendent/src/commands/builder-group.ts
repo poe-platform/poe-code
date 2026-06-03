@@ -8,7 +8,12 @@ export type BuilderGroupRunners = {
 };
 
 const builderRunParams = S.Object({
-  path: S.String({ description: "Path to the superintendent markdown document" })
+  path: S.String({ description: "Path to the superintendent markdown document" }),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the builder run without launching an agent",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
@@ -23,6 +28,14 @@ export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
     handler: async ({ params, fs }) => {
       const content = await readDocument(params.path, fs);
       const document = parseSuperintendentDoc(params.path, content);
+
+      if (params.dryRun === true) {
+        return {
+          summary: `Would run builder agent ${document.frontmatter.builder.agent}.`,
+          log: document.frontmatter.builder.prompt,
+          log_path: ""
+        };
+      }
 
       return runBuilderImpl(document, {}, { defaultCwd: process.cwd() });
     },

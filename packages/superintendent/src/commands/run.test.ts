@@ -87,6 +87,10 @@ function createFs(files: Record<string, string>): TestFs {
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await rawFs.mkdir(filePath, options);
     },
@@ -214,7 +218,6 @@ describe("superintendent run command", () => {
   it("prompts for a builder agent when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -313,6 +316,28 @@ describe("superintendent run command", () => {
     );
   });
 
+  it("previews a dry-run loop without invoking runtime agents", async () => {
+    const fs = createFs({ "/repo/docs/plans/plan.md": createDoc("codex") });
+    const runLoopMock = vi.fn();
+    const { runSuperintendentCommand } = await import("./run.js");
+
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      dryRun: true,
+      fs,
+      runLoop: runLoopMock,
+      env: {}
+    });
+
+    expect(runLoopMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ builderAgent: "codex", stopReason: "dry_run" });
+  });
+
   it("prompts for a builder agent when frontmatter omits builder.agent", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
@@ -356,7 +381,6 @@ describe("superintendent run command", () => {
   it("cancels cleanly when builder agent selection is cancelled", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -404,7 +428,6 @@ describe("superintendent run command", () => {
   it("uses the configured default builder agent when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -442,7 +465,6 @@ describe("superintendent run command", () => {
   it("falls back to claude-code with --yes when no builder agent is configured", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -516,7 +538,6 @@ describe("superintendent run command", () => {
     const volume = Volume.fromJSON(
       {
         "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-          '  agent: ""',
           "  prompt: |",
           "    Build {{plan.path}}"
         ]),
@@ -589,7 +610,6 @@ describe("superintendent run command", () => {
     const volume = Volume.fromJSON(
       {
         "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-          '  agent: ""',
           "  prompt: |",
           "    Build {{plan.path}}"
         ]),
@@ -643,6 +663,114 @@ describe("superintendent run command", () => {
       } else {
         process.env.HOME = originalHome;
       }
+    }
+  });
+
+  it("preserves a completed CLI run when integration shutdown fails", async () => {
+    const volume = Volume.fromJSON(
+      { "/repo/docs/plans/plan.md": createDoc("codex") },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalHome = process.env.HOME;
+    const loadIntegrationsMock = vi.fn(async () => ({
+      traceRun: async (_surface: string, _name: string, run: () => Promise<unknown>) => run(),
+      shutdown: vi.fn(async () => {
+        throw new Error("shutdown failed");
+      })
+    }));
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    process.env.HOME = "/home/test";
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+    vi.doMock("@poe-code/braintrust", () => ({ loadIntegrations: loadIntegrationsMock }));
+    vi.doMock("../runtime/loop.js", async () => {
+      const actual = await vi.importActual<typeof import("../runtime/loop.js")>(
+        "../runtime/loop.js"
+      );
+      return { ...actual, runLoop: runLoopMock };
+    });
+
+    try {
+      const { runCommand } = await import("./run.js");
+      await expect(
+        runCommand.handler({
+          params: { doc: "/repo/docs/plans/plan.md" },
+          secrets: {},
+          fetch: globalThis.fetch,
+          fs: rawFs as never,
+          env: { get: vi.fn(() => undefined) },
+          progress: vi.fn()
+        })
+      ).resolves.toMatchObject({ state: "completed", stopReason: "completed" });
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.doUnmock("@poe-code/braintrust");
+      vi.doUnmock("../runtime/loop.js");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
+    }
+  });
+
+  it("preserves a completed MCP run when integration shutdown fails", async () => {
+    const volume = Volume.fromJSON(
+      { "/repo/docs/plans/plan.md": createDoc("codex") },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalHome = process.env.HOME;
+    const loadIntegrationsMock = vi.fn(async () => ({
+      traceRun: async (_surface: string, _name: string, run: () => Promise<unknown>) => run(),
+      shutdown: vi.fn(async () => {
+        throw new Error("shutdown failed");
+      })
+    }));
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    process.env.HOME = "/home/test";
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+    vi.doMock("@poe-code/braintrust", () => ({ loadIntegrations: loadIntegrationsMock }));
+
+    try {
+      const { createRunMcpCommand } = await import("./run.js");
+      const command = createRunMcpCommand({ runLoop: runLoopMock });
+      await expect(
+        command.handler({
+          params: { doc: "/repo/docs/plans/plan.md" },
+          secrets: {},
+          fetch: globalThis.fetch,
+          fs: rawFs as never,
+          env: { get: vi.fn(() => undefined) },
+          progress: vi.fn()
+        })
+      ).resolves.toMatchObject({ state: "completed", stopReason: "completed" });
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.doUnmock("@poe-code/braintrust");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
     }
   });
 

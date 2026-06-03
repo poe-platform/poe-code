@@ -13,11 +13,14 @@ export interface LogStreamFs {
   promises: {
     readFile(path: string): Promise<Buffer | string>;
     stat?(path: string): Promise<{ mtimeMs: number }>;
+    lstat?(path: string): Promise<{ isSymbolicLink(): boolean }>;
   };
   watch?: (path: string, listener: () => void) => FSWatcher;
 }
 
 export function wrapForLogTee(argv: string[], jobId: string): string[] {
+  assertSafeJobId(jobId);
+
   if (argv.length === 0) {
     throw new Error("wrapForLogTee requires argv to contain at least one argument");
   }
@@ -28,6 +31,7 @@ export function wrapForLogTee(argv: string[], jobId: string): string[] {
   const exitTmpFile = shellQuote(`${jobExitPath(jobId)}.tmp`);
   const script = [
     `mkdir -p ${shellQuote(JOB_DIR)}`,
+    `test ! -L ${logFile} && test ! -L ${exitFile} && test ! -L ${exitTmpFile}`,
     `({ (${command}); echo $? > ${exitTmpFile}; } 2>&1 | tee ${logFile}; mv ${exitTmpFile} ${exitFile})`
   ].join(" && ");
 
@@ -37,11 +41,15 @@ export function wrapForLogTee(argv: string[], jobId: string): string[] {
 export async function* streamLogFile(
   env: LogStreamEnv,
   jobId: string,
-  opts: { sinceByte?: number; since?: Date }
+  opts: { sinceByte?: number; since?: Date; follow?: boolean }
 ): AsyncIterable<LogChunk> {
+  assertSafeJobId(jobId);
+
   const fs = env.fs ?? nodeFs;
   const file = jobLogPath(jobId);
-  let byteOffset = opts.sinceByte ?? 0;
+  let byteOffset = opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
+  let pendingBytes: Buffer = Buffer.alloc(0);
+  let pendingByteOffset = byteOffset;
 
   while (true) {
     if (opts.since !== undefined && !(await wasModifiedSince(fs, file, opts.since))) {
@@ -51,13 +59,35 @@ export async function* streamLogFile(
 
     const result = await readLogChunk(fs, file, byteOffset);
     if (result !== null) {
+      const combined = pendingBytes.length === 0
+        ? result.bytes
+        : Buffer.concat([pendingBytes, result.bytes]);
+      const completeLength = completeUtf8PrefixLength(combined);
       byteOffset = result.nextByteOffset;
-      yield result.chunk;
+      pendingBytes = combined.subarray(completeLength);
+      const data = combined.subarray(0, completeLength).toString("utf8");
+      if (data.length > 0) {
+        yield { byteOffset: pendingByteOffset, data };
+        pendingByteOffset += completeLength;
+      }
       continue;
+    }
+
+    if ((await readTextFileIfExists(fs, jobExitPath(jobId))) !== null) {
+      return;
+    }
+
+    if (opts.follow === false) {
+      return;
     }
 
     await waitForLogChange(fs, file);
   }
+}
+
+async function readCurrentByteLength(fs: LogStreamFs, file: string): Promise<number> {
+  const contents = await readFileIfExists(fs, file);
+  return contents?.byteLength ?? 0;
 }
 
 async function wasModifiedSince(fs: LogStreamFs, file: string, since: Date): Promise<boolean> {
@@ -81,6 +111,8 @@ export async function waitForExit(
   jobId: string,
   opts: { signal?: AbortSignal } = {}
 ): Promise<{ exitCode: number }> {
+  assertSafeJobId(jobId);
+
   const fs = env.fs ?? nodeFs;
   const file = jobExitPath(jobId);
 
@@ -108,21 +140,24 @@ function jobExitPath(jobId: string): string {
   return `${JOB_DIR}/${jobId}.exit`;
 }
 
+function assertSafeJobId(jobId: string): void {
+  if (jobId.length === 0 || jobId === "." || jobId === ".." || jobId.includes("/") || jobId.includes("\\")) {
+    throw new Error(`Invalid job id "${jobId}". Job ids must be single filename components.`);
+  }
+}
+
 async function readLogChunk(
   fs: LogStreamFs,
   file: string,
   byteOffset: number
-): Promise<{ chunk: LogChunk; nextByteOffset: number } | null> {
+): Promise<{ bytes: Buffer; nextByteOffset: number } | null> {
   const contents = await readFileIfExists(fs, file);
   if (contents === null || byteOffset >= contents.byteLength) {
     return null;
   }
 
   return {
-    chunk: {
-      byteOffset,
-      data: contents.subarray(byteOffset).toString("utf8")
-    },
+    bytes: contents.subarray(byteOffset),
     nextByteOffset: contents.byteLength
   };
 }
@@ -134,6 +169,7 @@ async function readTextFileIfExists(fs: LogStreamFs, file: string): Promise<stri
 
 async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Buffer | null> {
   try {
+    await assertRegularManagedFile(fs, file);
     const contents = await fs.promises.readFile(file);
     return Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
   } catch (error) {
@@ -142,6 +178,64 @@ async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Buffer |
     }
     throw error;
   }
+}
+
+async function assertRegularManagedFile(fs: LogStreamFs, file: string): Promise<void> {
+  if (fs.promises.lstat === undefined) {
+    return;
+  }
+
+  try {
+    if ((await fs.promises.lstat(file)).isSymbolicLink()) {
+      throw new Error("Managed job file must not be a symbolic link.");
+    }
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return;
+    }
+
+    throw error;
+  }
+}
+
+function completeUtf8PrefixLength(contents: Buffer): number {
+  if (contents.length === 0) {
+    return 0;
+  }
+
+  let leadIndex = contents.length - 1;
+  while (leadIndex >= 0 && isUtf8ContinuationByte(contents[leadIndex]!)) {
+    leadIndex -= 1;
+  }
+
+  if (leadIndex < 0) {
+    return contents.length;
+  }
+
+  const expectedLength = utf8SequenceLength(contents[leadIndex]!);
+  if (expectedLength === 0) {
+    return contents.length;
+  }
+
+  const availableLength = contents.length - leadIndex;
+  return availableLength < expectedLength ? leadIndex : contents.length;
+}
+
+function isUtf8ContinuationByte(byte: number): boolean {
+  return byte >= 0x80 && byte <= 0xbf;
+}
+
+function utf8SequenceLength(byte: number): number {
+  if (byte >= 0xc2 && byte <= 0xdf) {
+    return 2;
+  }
+  if (byte >= 0xe0 && byte <= 0xef) {
+    return 3;
+  }
+  if (byte >= 0xf0 && byte <= 0xf4) {
+    return 4;
+  }
+  return 0;
 }
 
 async function waitForLogChange(fs: LogStreamFs, file: string): Promise<void> {

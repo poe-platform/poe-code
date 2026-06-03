@@ -390,6 +390,87 @@ describe("snapshot store", () => {
     expect(await fileExists(fs, `${snapshotDir}/${key2}.json`)).toBe(true);
   });
 
+  it("rejects snapshot deletion keys outside the snapshot directory", async () => {
+    const fs = createMemfs();
+    await fs.mkdir("/.snapshots", { recursive: true });
+    await fs.writeFile("/outside.json", "keep");
+
+    await expect(deleteSnapshots(fs, "/.snapshots", { key: "../outside" })).rejects.toThrow(
+      "Invalid snapshot key"
+    );
+    await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("keep");
+  });
+
+  it("rejects fixture entries whose embedded key is not their canonical filename", async () => {
+    const fs = createMemfs();
+    const snapshotDir = "/.snapshots";
+    await fs.mkdir(snapshotDir, { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/target.json", "keep");
+    await fs.writeFile(
+      `${snapshotDir}/poison.json`,
+      JSON.stringify({
+        key: "../outside/target",
+        request: { model: "Model", messages: [{ role: "user", content: "prompt" }] },
+        response: { content: "old" }
+      })
+    );
+
+    await expect(deleteSnapshots(fs, snapshotDir, { model: "Model" })).rejects.toThrow(
+      "Invalid snapshot key"
+    );
+    await expect(
+      refreshSnapshots(fs, snapshotDir, {
+        client: { text: vi.fn(), media: vi.fn() },
+        model: "Model"
+      })
+    ).rejects.toThrow("Invalid snapshot key");
+    await expect(fs.readFile("/outside/target.json", "utf8")).resolves.toBe("keep");
+  });
+
+  it("rejects symlinked snapshot fixture files", async () => {
+    const fs = createMemfs();
+    await fs.mkdir("/.snapshots", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile(
+      "/outside/probe.json",
+      JSON.stringify({
+        key: "probe",
+        request: { model: "Model", messages: [{ role: "user", content: "prompt" }] },
+        response: { content: "old" }
+      })
+    );
+    await fs.symlink("/outside/probe.json", "/.snapshots/probe.json");
+
+    await expect(listSnapshots(fs, "/.snapshots")).rejects.toThrow("symbolic link");
+    await expect(
+      refreshSnapshots(fs, "/.snapshots", {
+        client: { text: vi.fn(), media: vi.fn() },
+        model: "Model"
+      })
+    ).rejects.toThrow("symbolic link");
+  });
+
+  it("rejects symlinked snapshot directories", async () => {
+    const fs = createMemfs();
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile(
+      "/outside/probe.json",
+      JSON.stringify({
+        key: "probe",
+        request: { model: "Model", messages: [{ role: "user", content: "prompt" }] },
+        response: { content: "old" }
+      })
+    );
+    await fs.symlink("/outside", "/.snapshots");
+
+    await expect(listSnapshots(fs, "/.snapshots")).rejects.toThrow("symbolic link");
+    await expect(deleteSnapshots(fs, "/.snapshots", { model: "Model" })).rejects.toThrow(
+      "symbolic link"
+    );
+    await expect(fs.readFile("/outside/probe.json", "utf8")).resolves.toContain("old");
+  });
+
   it("refreshes snapshots using the provided client", async () => {
     const fs = createMemfs();
     const snapshotDir = "/.snapshots";

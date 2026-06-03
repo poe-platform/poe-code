@@ -24,6 +24,10 @@ const { readMarkdownMock, readSectionMock, runMarkdownReaderMcpMock } = vi.hoist
   runMarkdownReaderMcpMock: vi.fn().mockResolvedValue(undefined)
 }));
 
+const { editPlanMock } = vi.hoisted(() => ({
+  editPlanMock: vi.fn()
+}));
+
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
@@ -40,6 +44,14 @@ vi.mock("@poe-code/markdown-reader", () => ({
   readSection: readSectionMock,
   runMarkdownReaderMcp: runMarkdownReaderMcpMock
 }));
+
+vi.mock("@poe-code/plan-browser", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/plan-browser")>();
+  return {
+    ...actual,
+    editPlan: editPlanMock
+  };
+});
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -187,6 +199,16 @@ describe("plan command", () => {
           "---",
           "kind: superintendent",
           "version: 1",
+          "builder:",
+          "  prompt: Build.",
+          "superintendent:",
+          "  prompt: Review.",
+          "owner:",
+          "  prompt: Approve.",
+          "status:",
+          "  state: in_progress",
+          "  round: 0",
+          "  review_turn: 0",
           "---",
           "# Pi mono integration"
         ].join("\n")
@@ -350,6 +372,86 @@ describe("plan command", () => {
     expect(output).toContain("Archived");
     await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).resolves.toBe("# Plan");
     expect(confirmOrCancelMock).not.toHaveBeenCalled();
+  });
+
+  it("previews editing a plan without launching an editor", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": "# Plan"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "plan",
+      "edit",
+      "docs/plans/plan-a.md"
+    ]);
+
+    expect(editPlanMock).not.toHaveBeenCalled();
+    expect(writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Would edit");
+  });
+
+  it("previews archiving a plan without moving its file", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "plan",
+      "archive",
+      "docs/plans/plan-a.md"
+    ]);
+
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+  });
+
+  it("previews deleting a plan without removing its file", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "plan",
+      "delete",
+      "docs/plans/plan-a.md"
+    ]);
+
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
   });
 
   it("does not archive a plan when confirmation is declined", async () => {

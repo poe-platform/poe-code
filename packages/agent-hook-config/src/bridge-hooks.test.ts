@@ -54,6 +54,7 @@ describe("bridgeHooks", () => {
   let restoreRunner: (() => void) | undefined;
 
   beforeEach(() => {
+    vi.restoreAllMocks();
     restoreRunner?.();
     vol.reset();
     vol.mkdirSync(cwd, { recursive: true });
@@ -86,7 +87,7 @@ describe("bridgeHooks", () => {
       {
         type: "command",
         command: "npm test",
-        statusMessage: "[generated:bridge-run] "
+        statusMessage: "[generated:poe-code:bridge-run] "
       }
     ]);
   });
@@ -161,11 +162,11 @@ describe("bridgeHooks", () => {
     expect(manifest).toMatchObject({
       strategy: "symlink",
       symlinkPath: identityPath,
-      symlinkTarget: identityPath,
+      symlinkTarget: userSourcePath,
       symlinkReplaced: "none"
     });
     expect(fs.lstatSync(identityPath).isSymbolicLink()).toBe(true);
-    expect(fs.readlinkSync(identityPath)).toBe(identityPath);
+    expect(fs.readlinkSync(identityPath)).toBe(userSourcePath);
     expect(vol.readFileSync(excludePath, "utf8") as string).toContain(".claude/settings.json");
   });
 
@@ -216,7 +217,7 @@ describe("bridgeHooks", () => {
     fileWithConcurrentRun.hooks.PreToolUse[0]?.hooks.push({
       type: "command",
       command: "other-generated",
-      statusMessage: "[generated:other-run] "
+      statusMessage: "[generated:poe-code:other-run] "
     });
     vol.writeFileSync(targetPath, JSON.stringify(fileWithConcurrentRun));
 
@@ -232,13 +233,91 @@ describe("bridgeHooks", () => {
               {
                 type: "command",
                 command: "other-generated",
-                statusMessage: "[generated:other-run] "
+                statusMessage: "[generated:poe-code:other-run] "
               }
             ]
           }
         ]
       }
     });
+  });
+
+  it("rolls back generated hooks when exclude bookkeeping fails", () => {
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const renameSync = fs.renameSync.bind(fs);
+    vi.spyOn(fs, "renameSync").mockImplementation((fromPath, toPath) => {
+      if (String(toPath) === excludePath) {
+        throw new Error("exclude write failed");
+      }
+      return renameSync(fromPath, toPath);
+    });
+
+    expect(() => bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" })).toThrow(
+      "exclude write failed"
+    );
+    expect(vol.existsSync(targetPath)).toBe(false);
+  });
+
+  it("keeps live transformed hooks when a duplicate caller run id is cleaned", () => {
+    sourceHooks({ SessionEnd: [{ hooks: [{ type: "command", command: "dropped" }] }] });
+    const first = bridgeHooks("claude-code", "codex", cwd, homeDir, "same-run", {
+      scope: "project"
+    });
+    sourceHooks({ PreToolUse: [{ hooks: [{ type: "command", command: "still-live" }] }] });
+    const second = bridgeHooks("claude-code", "codex", cwd, homeDir, "same-run", {
+      scope: "project"
+    });
+
+    cleanupBridgedHooks(first);
+
+    expect(readTarget().hooks.PreToolUse[0]?.hooks).toMatchObject([{ command: "still-live" }]);
+    cleanupBridgedHooks(second);
+  });
+
+  it("does not remove hooks required by a later active transformed run", () => {
+    sourceHooks({ PreToolUse: [{ hooks: [{ type: "command", command: "first" }] }] });
+    const first = bridgeHooks("claude-code", "codex", cwd, homeDir, "first", {
+      scope: "project"
+    });
+    sourceHooks({ PreToolUse: [{ hooks: [{ type: "command", command: "second" }] }] });
+    const second = bridgeHooks("claude-code", "codex", cwd, homeDir, "second", {
+      scope: "project"
+    });
+
+    cleanupBridgedHooks(first);
+
+    expect(readTarget().hooks.PreToolUse[0]?.hooks).toMatchObject([{ command: "second" }]);
+    cleanupBridgedHooks(second);
+  });
+
+  it("rejects a symlinked transformed target parent directory", () => {
+    sourceHooks({ PreToolUse: [{ hooks: [{ type: "command", command: "outside" }] }] });
+    vol.mkdirSync(path.join(cwd, ".codex"), { recursive: true });
+    vol.rmSync(path.join(cwd, ".codex"), { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    fs.symlinkSync("/outside", path.join(cwd, ".codex"));
+
+    expect(() => bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" }))
+      .toThrow(/symbolic link/);
+    expect(vol.existsSync("/outside/hooks.json")).toBe(false);
+  });
+
+  it("preserves the hook file when cleanup rewrite fails", () => {
+    vol.mkdirSync(path.dirname(targetPath), { recursive: true });
+    vol.writeFileSync(targetPath, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user" }] }] } }));
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });
+    const original = vol.readFileSync(targetPath, "utf8") as string;
+    const renameSync = fs.renameSync.bind(fs);
+    vi.spyOn(fs, "renameSync").mockImplementation((from, to) => {
+      if (String(to) === targetPath) {
+        throw new Error("cleanup rename failed");
+      }
+      renameSync(from, to);
+    });
+
+    expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup rename failed");
+    expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
   });
 
   it("removes a bridge symlink only while it still targets its source", () => {

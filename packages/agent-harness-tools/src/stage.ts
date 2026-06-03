@@ -23,12 +23,11 @@ function resolveStageParticipant(
   stage: WorkflowStage,
   participants: Record<string, WorkflowParticipant>
 ): WorkflowParticipant {
-  const participant = participants[stage.participant];
-  if (participant === undefined) {
+  if (!Object.hasOwn(participants, stage.participant)) {
     throw new Error(`Unknown participant: ${stage.participant}`);
   }
 
-  return participant;
+  return participants[stage.participant]!;
 }
 
 function resolveStageMode(stage: WorkflowStage, participant: WorkflowParticipant): WorkflowMode {

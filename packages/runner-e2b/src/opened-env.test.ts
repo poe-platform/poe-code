@@ -1,32 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createOpenedE2bEnv } from "./opened-env.js";
 
-const fsMocks = vi.hoisted(() => ({
-  mkdtempSync: vi.fn(),
-  rmSync: vi.fn(),
-  readFile: vi.fn(),
-  writeFile: vi.fn()
+const workspaceTransferMocks = vi.hoisted(() => ({
+  uploadWorkspace: vi.fn(),
+  downloadWorkspace: vi.fn()
 }));
 
-vi.mock("node:fs", async (importActual) => ({
-  ...(await importActual<typeof import("node:fs")>()),
-  mkdtempSync: fsMocks.mkdtempSync,
-  rmSync: fsMocks.rmSync
-}));
-
-vi.mock("node:fs/promises", async (importActual) => ({
-  ...(await importActual<typeof import("node:fs/promises")>()),
-  readFile: fsMocks.readFile,
-  writeFile: fsMocks.writeFile
+vi.mock("@poe-code/agent-harness-tools", async (importActual) => ({
+  ...(await importActual<typeof import("@poe-code/agent-harness-tools")>()),
+  uploadWorkspace: workspaceTransferMocks.uploadWorkspace,
+  downloadWorkspace: workspaceTransferMocks.downloadWorkspace
 }));
 
 describe("createOpenedE2bEnv", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    fsMocks.mkdtempSync.mockImplementation((prefix: string) => `${prefix}test`);
-    fsMocks.rmSync.mockImplementation(() => undefined);
-    fsMocks.readFile.mockResolvedValue(Buffer.from("tar"));
-    fsMocks.writeFile.mockResolvedValue(undefined);
+    workspaceTransferMocks.uploadWorkspace.mockResolvedValue({ files: 0, bytes: 0, skipped: [] });
+    workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
   });
 
   it("executes commands in the sandbox workspace when cwd is the host workspace", async () => {
@@ -37,6 +27,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
@@ -62,6 +53,45 @@ describe("createOpenedE2bEnv", () => {
       onStdout: expect.any(Function),
       onStderr: expect.any(Function)
     });
+  });
+
+  it("does not launch a command when the signal is already aborted", async () => {
+    const sandbox = createSandboxMock();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = env.exec({ command: "node", signal: controller.signal });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+    expect(sandbox.commands.run).not.toHaveBeenCalled();
+  });
+
+  it("kills an in-flight command when the signal aborts", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const controller = new AbortController();
+
+    env.exec({ command: "node", signal: controller.signal });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    controller.abort();
+
+    expect(commandHandle.kill).toHaveBeenCalledOnce();
   });
 
   it("queues stdin writes until the E2B command handle is ready", async () => {
@@ -107,6 +137,80 @@ describe("createOpenedE2bEnv", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
     expect(sandbox.commands.sendStdin).toHaveBeenCalledWith(321, Buffer.from("hello"));
     expect(sandbox.commands.closeStdin).toHaveBeenCalledWith(321);
+  });
+
+  it("forwards inherited stdin to a running E2B command and cleans up listeners", async () => {
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      ),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const listenersBefore = process.stdin.listenerCount("data");
+
+    const handle = env.exec({ command: "cat", stdin: "inherit", stdout: "pipe", stderr: "pipe" });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore + 1);
+    process.stdin.emit("data", Buffer.from("hello"));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.commands.run).toHaveBeenCalledWith(
+      "'cat'",
+      expect.objectContaining({ stdin: true })
+    );
+    await vi.waitFor(() => {
+      expect(sandbox.commands.sendStdin).toHaveBeenCalledWith(321, Buffer.from("hello"));
+    });
+    resolveWait({ exitCode: 0 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore);
+  });
+
+  it("rejects when the remote command API fails before running a command", async () => {
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockRejectedValue(new Error("sandbox transport offline"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    await expect(env.exec({ command: "node" }).result).rejects.toThrow("sandbox transport offline");
+  });
+
+  it("contains command termination failures from synchronous kill requests", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn().mockRejectedValue(new Error("command kill failed"))
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({ command: "node" });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    handle.kill();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(commandHandle.kill).toHaveBeenCalledOnce();
   });
 
   it("leaves non-workspace command cwd values unchanged", async () => {
@@ -232,42 +336,31 @@ describe("createOpenedE2bEnv", () => {
   });
 
   it("uploads the host workspace into the sandbox workspace", async () => {
-    const hostRunner = createHostRunnerMock();
     const sandbox = createSandboxMock();
-    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
-      spec: { ...createSpec(), hostRunner, uploadIgnoreFiles: ["node_modules"] }
+      spec: { ...createSpec(), uploadIgnoreFiles: ["node_modules"] }
     });
 
     await expect(env.uploadWorkspace()).resolves.toEqual({ files: 0, bytes: 0, skipped: [] });
 
-    expect(hostRunner.exec).toHaveBeenCalledWith({
-      command: "tar",
-      args: [
-        "--exclude",
-        "node_modules",
-        "-cf",
-        expect.stringContaining("poe-e2b-upload-test/workspace.tar"),
-        "-C",
-        "/repo",
-        "."
-      ],
-      stdout: "pipe",
-      stderr: "pipe"
-    });
-    expect(sandbox.files.write).toHaveBeenCalledWith(
-      "/tmp/poe-workspace-upload.tar",
-      expect.any(ArrayBuffer)
-    );
-    expect(sandbox.commands.run).toHaveBeenCalledWith(
-      "mkdir -p '/sandbox/workspace' || { command -v sudo >/dev/null 2>&1 && sudo mkdir -p '/sandbox/workspace' && sudo chown \"$(id -u):$(id -g)\" '/sandbox/workspace'; }\n" +
-        "test -w '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'",
+    expect(workspaceTransferMocks.uploadWorkspace).toHaveBeenCalledWith(
       {
-        onStdout: expect.any(Function),
-        onStderr: expect.any(Function)
-      }
+        cwd: "/repo",
+        uploadDir: "/tmp/poe-workspace-transfer",
+        workspaceDir: "/sandbox/workspace",
+        remoteFs: expect.objectContaining({
+          mkdir: expect.any(Function),
+          readdir: expect.any(Function),
+          readFile: expect.any(Function),
+          writeFile: expect.any(Function),
+          stat: expect.any(Function),
+          rename: expect.any(Function),
+          rm: expect.any(Function)
+        })
+      },
+      { runner: undefined, workspaceExclude: ["node_modules"] }
     );
   });
 
@@ -294,112 +387,28 @@ describe("createOpenedE2bEnv", () => {
     expect(hostRunner.exec).not.toHaveBeenCalled();
     expect(sandbox.files.write).not.toHaveBeenCalled();
     expect(sandbox.commands.run).not.toHaveBeenCalled();
-    expect(fsMocks.mkdtempSync).not.toHaveBeenCalled();
-  });
-
-  it("decorates remote command exit errors with the command and stderr tail", async () => {
-    const hostRunner = createHostRunnerMock();
-    const sandbox = createSandboxMock();
-    sandbox.commands.run.mockImplementation(
-      async (_command: string, opts?: { onStderr?: (data: string) => void }) => {
-        for (let index = 1; index <= 35; index += 1) {
-          opts?.onStderr?.(`stderr line ${index}\n`);
-        }
-        throw Object.assign(new Error("exit status 1"), {
-          name: "CommandExitError",
-          exitCode: 1
-        });
-      }
-    );
-    const env = createOpenedE2bEnv({
-      sandbox,
-      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
-      spec: { ...createSpec(), hostRunner }
-    });
-
-    let thrown: unknown;
-    try {
-      await env.uploadWorkspace();
-    } catch (error) {
-      thrown = error;
-    }
-
-    expect(thrown).toBeInstanceOf(Error);
-    const message = (thrown as Error).message;
-    expect(message).toContain(
-      "E2B command failed: mkdir -p '/sandbox/workspace' || { command -v sudo >/dev/null 2>&1 && sudo mkdir -p '/sandbox/workspace'"
-    );
-    expect(message).toContain("Last stderr output:");
-    expect(message).toContain("stderr line 6");
-    expect(message).toContain("stderr line 35");
-    expect(message).not.toContain("stderr line 5");
-  });
-
-  it("uses stderr carried by remote command exit errors when callbacks do not receive output", async () => {
-    const hostRunner = createHostRunnerMock();
-    const sandbox = createSandboxMock();
-    sandbox.commands.run.mockRejectedValue(
-      Object.assign(new Error("exit status 1"), {
-        name: "CommandExitError",
-        exitCode: 1,
-        stderr: Array.from({ length: 35 }, (_value, index) => `error stderr ${index + 1}`).join(
-          "\n"
-        )
-      })
-    );
-    const env = createOpenedE2bEnv({
-      sandbox,
-      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
-      spec: { ...createSpec(), hostRunner }
-    });
-
-    let thrown: unknown;
-    try {
-      await env.uploadWorkspace();
-    } catch (error) {
-      thrown = error;
-    }
-
-    expect(thrown).toBeInstanceOf(Error);
-    const message = (thrown as Error).message;
-    expect(message).toContain(
-      "E2B command failed: mkdir -p '/sandbox/workspace' || { command -v sudo"
-    );
-    expect(message).toContain("error stderr 6");
-    expect(message).toContain("error stderr 35");
-    expect(message).not.toContain("error stderr 5");
+    expect(workspaceTransferMocks.uploadWorkspace).not.toHaveBeenCalled();
   });
 
   it("downloads the sandbox workspace back into the host workspace", async () => {
-    const hostRunner = createHostRunnerMock();
     const sandbox = createSandboxMock();
-    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
-    sandbox.files.read.mockResolvedValue(new Uint8Array(Buffer.from("tar")));
+    workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 1, bytes: 3, conflicts: [] });
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
-      spec: { ...createSpec(), hostRunner }
+      spec: createSpec()
     });
 
     await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
-      files: 0,
+      files: 1,
       bytes: 3,
       conflicts: []
     });
 
-    expect(sandbox.commands.run).toHaveBeenCalledWith(
-      "tar -cf /tmp/poe-workspace-download.tar -C '/sandbox/workspace' .",
-      {
-        onStdout: expect.any(Function),
-        onStderr: expect.any(Function)
-      }
+    expect(workspaceTransferMocks.downloadWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: "/repo", workspaceDir: "/sandbox/workspace" }),
+      { conflictPolicy: "overwrite" }
     );
-    expect(hostRunner.exec).toHaveBeenCalledWith({
-      command: "tar",
-      args: ["-xf", expect.stringContaining("poe-e2b-download-test/workspace.tar"), "-C", "/repo"],
-      stdout: "pipe",
-      stderr: "pipe"
-    });
   });
 
   it("skips workspace download when runner sync is upload-only", async () => {
@@ -429,7 +438,7 @@ describe("createOpenedE2bEnv", () => {
     expect(hostRunner.exec).not.toHaveBeenCalled();
     expect(sandbox.files.read).not.toHaveBeenCalled();
     expect(sandbox.commands.run).not.toHaveBeenCalled();
-    expect(fsMocks.mkdtempSync).not.toHaveBeenCalled();
+    expect(workspaceTransferMocks.downloadWorkspace).not.toHaveBeenCalled();
   });
 
   it("creates a job handle for the last running command and preserves sandbox timeout on wait", async () => {
@@ -477,6 +486,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
@@ -493,6 +503,94 @@ describe("createOpenedE2bEnv", () => {
       envs: { HOME: "/home/user" },
       onData: expect.any(Function)
     });
+  });
+
+  it("launches an explicitly configured interactive command inside the PTY", async () => {
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: {
+        ...createSpec(),
+        shellSpec: { command: "node", args: ["interactive-agent.js", "--chat"] }
+      }
+    });
+
+    await expect(env.shell().result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.pty.sendInput).toHaveBeenCalledWith(
+      12,
+      Buffer.from("exec 'node' 'interactive-agent.js' '--chat'\r")
+    );
+  });
+
+  it("forwards inherited stdin to an E2B PTY and cleans up listeners", async () => {
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      ),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({ sandbox, runtime: createRuntime(), spec: createSpec() });
+    const listenersBefore = process.stdin.listenerCount("data");
+
+    const handle = env.shell();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    process.stdin.emit("data", Buffer.from("hello"));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.pty.sendInput).toHaveBeenCalledWith(12, Buffer.from("hello"));
+    resolveWait({ exitCode: 0 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore);
+  });
+
+  it("rejects when the remote PTY API cannot create a shell", async () => {
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockRejectedValue(new Error("pty service offline"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    await expect(env.shell().result).rejects.toThrow("pty service offline");
+  });
+
+  it("contains PTY termination failures from synchronous kill requests", async () => {
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.kill.mockRejectedValue(new Error("pty kill failed"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.shell();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    handle.kill();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.pty.kill).toHaveBeenCalledWith(12);
   });
 
   it("exposes remote job log files for wrapped sync execution", async () => {
@@ -560,6 +658,11 @@ function createSandboxMock() {
     files: {
       read: vi.fn(),
       write: vi.fn(),
+      list: vi.fn(),
+      makeDir: vi.fn(),
+      rename: vi.fn(),
+      remove: vi.fn(),
+      getInfo: vi.fn(),
       watchDir: vi.fn().mockResolvedValue({ stop: vi.fn() })
     },
     pty: {

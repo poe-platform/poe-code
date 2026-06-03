@@ -8,17 +8,24 @@ export function parseDocument(content: string, filePath: string): ParsedDocument
   const format = detectFormat(normalizedContent, filePath);
   const data =
     format === "markdown"
-      ? parseMarkdown(normalizedContent)
-      : toData(format === "json" ? JSON.parse(normalizedContent) : parseYaml(normalizedContent));
+      ? parseMarkdown(normalizedContent, filePath)
+      : toData(
+          format === "json" ? JSON.parse(normalizedContent) : (parseYaml(normalizedContent) ?? {}),
+          filePath
+        );
   const hasExtendsField = Object.hasOwn(data, "extends");
-  const extendsValue = data.extends === true;
+  const extendsValue = data.extends;
+
+  if (hasExtendsField && typeof extendsValue !== "boolean") {
+    throw new Error(`Invalid extends value in ${filePath}: expected a boolean.`);
+  }
 
   delete data.extends;
 
   return {
     data,
     format,
-    extends: extendsValue,
+    extends: extendsValue === true,
     hasExtendsField
   };
 }
@@ -45,24 +52,41 @@ function detectFormat(
     return "json";
   }
 
-  if (content.startsWith("---\n") || content.startsWith("---\r\n")) {
+  if (content.startsWith("---\n") || content.startsWith("---\r\n") || content.startsWith("---\r")) {
     return "markdown";
   }
 
   return "yaml";
 }
 
-function parseMarkdown(content: string): Record<string, unknown> {
-  const document = matter(content);
+function parseMarkdown(content: string, filePath: string): Record<string, unknown> {
+  const document = matter(normalizeMarkdownLineEndings(content));
   return {
-    ...toData(document.data),
+    ...toData(document.data, filePath),
     prompt: document.content
   };
 }
 
-function toData(value: unknown): Record<string, unknown> {
+function normalizeMarkdownLineEndings(content: string): string {
+  let normalized = "";
+
+  for (let index = 0; index < content.length; index += 1) {
+    const character = content[index];
+
+    if (character === "\r" && content[index + 1] !== "\n") {
+      normalized += "\n";
+      continue;
+    }
+
+    normalized += character;
+  }
+
+  return normalized;
+}
+
+function toData(value: unknown, filePath: string): Record<string, unknown> {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
+    throw new Error(`Invalid configuration in ${filePath}: expected an object root.`);
   }
 
   return { ...(value as Record<string, unknown>) };

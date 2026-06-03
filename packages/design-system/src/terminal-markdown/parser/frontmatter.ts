@@ -69,7 +69,12 @@ class YamlSubsetParser {
       }
 
       this.position += 1;
-      result[entry.key] = this.readEntryValue(entry, expectedIndent);
+      Object.defineProperty(result, entry.key, {
+        configurable: true,
+        enumerable: true,
+        value: this.readEntryValue(entry, expectedIndent),
+        writable: true
+      });
     }
 
     return result;
@@ -498,8 +503,10 @@ function startsWithFrontmatterFence(value: string): boolean {
   return (
     value.startsWith("---\n") ||
     value.startsWith("---\r\n") ||
+    value.startsWith("---\r") ||
     value.startsWith("\uFEFF---\n") ||
-    value.startsWith("\uFEFF---\r\n")
+    value.startsWith("\uFEFF---\r\n") ||
+    value.startsWith("\uFEFF---\r")
   );
 }
 

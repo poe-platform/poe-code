@@ -35,6 +35,22 @@ class ParseJsonlLineTest(unittest.TestCase):
             ),
         )
 
+    def test_skips_events_with_incompatible_runtime_field_types(self) -> None:
+        event, result = parse_jsonl_line(
+            '{"event":"usage","inputTokens":"three","outputTokens":5}\n'
+        )
+
+        self.assertIsNone(event)
+        self.assertIsNone(result)
+
+        event, result = parse_jsonl_line(
+            '{"event":"spawn_result","exitCode":0,"threadId":7,'
+            '"usage":{"inputTokens":3,"outputTokens":null}}\n'
+        )
+
+        self.assertIsNone(event)
+        self.assertIsNone(result)
+
 
 if __name__ == "__main__":
     unittest.main()

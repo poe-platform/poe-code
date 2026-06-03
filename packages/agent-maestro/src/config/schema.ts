@@ -28,7 +28,6 @@ export interface WorkflowConfig {
     service: string;
     list?: string;
     maxConcurrentAgents: number;
-    maxTurns: number;
     maxRetryBackoffMs: number;
   };
 }
@@ -53,7 +52,6 @@ const maestroConfigScope = {
     default: {
       service: "codex",
       max_concurrent_agents: 1,
-      max_turns: 20,
       max_retry_backoff_ms: 300_000
     },
     parse: parseRecord,
@@ -69,6 +67,10 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
   const workspace = scoped.workspace;
   const agent = scoped.agent as JsonRecord;
 
+  if (hasOwn(agent, "max_turns")) {
+    throw new Error("agent.max_turns is not supported by agent spawning.");
+  }
+
   return {
     tasks: resolveTasks(rawConfig.tasks, cwd),
     states,
@@ -76,7 +78,7 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     terminalStateNames: stateOrder.filter((name) => states[name]?.terminal === true),
     stateOrder,
     polling: {
-      intervalMs: readNumber(polling.interval_ms, 30_000)
+      intervalMs: readPositiveInteger(polling.interval_ms, 30_000, "polling.interval_ms")
     },
     workspace: {
       root: resolvePathValue(
@@ -87,9 +89,8 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     agent: {
       service: readString(agent.service) ?? "codex",
       list: readString(resolveStringValue(agent.list)),
-      maxConcurrentAgents: readNumber(agent.max_concurrent_agents, 1),
-      maxTurns: readNumber(agent.max_turns, 20),
-      maxRetryBackoffMs: readNumber(agent.max_retry_backoff_ms, 300_000)
+      maxConcurrentAgents: readPositiveInteger(agent.max_concurrent_agents, 1, "agent.max_concurrent_agents"),
+      maxRetryBackoffMs: readNonNegativeInteger(agent.max_retry_backoff_ms, 300_000, "agent.max_retry_backoff_ms")
     }
   };
 }
@@ -100,14 +101,19 @@ function parseStates(value: unknown): {
 } {
   validateStateDefinitions(value);
 
-  const states: Record<string, StateDefinition> = {};
+  const states = Object.create(null) as Record<string, StateDefinition>;
   const stateOrder: string[] = [];
   const entries = value instanceof Map ? value.entries() : Object.entries(value);
 
   for (const [name, rawDefinition] of entries) {
     const stateName = String(name);
     const definition = rawDefinition as JsonRecord;
-    states[stateName] = parseStateDefinition(definition);
+    Object.defineProperty(states, stateName, {
+      configurable: true,
+      enumerable: true,
+      value: parseStateDefinition(definition),
+      writable: true
+    });
     stateOrder.push(stateName);
   }
 
@@ -202,7 +208,7 @@ function resolvePathValue(value: string, cwd: string): string {
   const expanded = expandHome(resolveStringValue(value));
 
   if (typeof expanded !== "string" || expanded.length === 0) {
-    return "";
+    throw new Error("workspace.root must not resolve to an empty path");
   }
 
   return path.isAbsolute(expanded) ? expanded : path.resolve(cwd, expanded);
@@ -235,6 +241,22 @@ function readString(value: unknown): string | undefined {
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function readPositiveInteger(value: unknown, fallback: number, field: string): number {
+  const numberValue = readNumber(value, fallback);
+  if (!Number.isInteger(numberValue) || numberValue <= 0) {
+    throw new Error(`Expected "${field}" to be a positive integer.`);
+  }
+  return numberValue;
+}
+
+function readNonNegativeInteger(value: unknown, fallback: number, field: string): number {
+  const numberValue = readNumber(value, fallback);
+  if (!Number.isInteger(numberValue) || numberValue < 0) {
+    throw new Error(`Expected "${field}" to be a non-negative integer.`);
+  }
+  return numberValue;
 }
 
 function readOptionalString(value: unknown, field: string): string | undefined {

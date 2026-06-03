@@ -1,7 +1,12 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
-import { ToolcraftBugError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import {
+  ToolcraftBugError,
+  UserError,
+  assertCommandRequirements,
+  resolveCommandSecrets
+} from "./index.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
@@ -303,7 +308,10 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    }
+    },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path)
   };
 }
 
@@ -466,7 +474,12 @@ function validateObjectSchema(
 
     if (!hasValue) {
       if (childSchema.default !== undefined) {
-        result[outputKey] = childSchema.default;
+        Object.defineProperty(result, outputKey, {
+          value: childSchema.default,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
         continue;
       }
 
@@ -478,10 +491,37 @@ function validateObjectSchema(
       continue;
     }
 
-    result[outputKey] = validateSchemaValue(rawChildSchema, value[inputKey], fieldLabel, errors);
+    Object.defineProperty(result, outputKey, {
+      value: validateSchemaValue(rawChildSchema, value[inputKey], fieldLabel, errors),
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return result;
+}
+
+function validateUniqueSDKParameterMembers(schema: ObjectSchema<any>): void {
+  const sourceKeysByMember = new Map<string, string>();
+
+  for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
+    const member = formatSegment(key);
+    const existingKey = sourceKeysByMember.get(member);
+
+    if (existingKey !== undefined) {
+      throw new UserError(
+        `Parameters "${existingKey}" and "${key}" use conflicting SDK member "${member}".`
+      );
+    }
+
+    sourceKeysByMember.set(member, key);
+
+    const childSchema = unwrapOptional(rawChildSchema);
+    if (childSchema.kind === "object") {
+      validateUniqueSDKParameterMembers(childSchema);
+    }
+  }
 }
 
 function validateSDKArguments(
@@ -544,6 +584,11 @@ function createResolvedSDK(
 
   function build(node: Group<any> | Command<any, any, any, any>, path: string[]): unknown {
     if (node.kind === "command") {
+      const sdkParamsSchema = filterSchemaForScope(node.params, "sdk");
+      if (sdkParamsSchema?.kind === "object") {
+        validateUniqueSDKParameterMembers(sdkParamsSchema);
+      }
+
       return async (params: Record<string, unknown> | undefined) => {
         const commandPath = [...path, node.name].join(".");
         let secrets: Record<string, string | undefined> | undefined;
@@ -603,22 +648,38 @@ function createResolvedSDK(
     }
 
     const output: Record<string, unknown> = {};
+    const sourceNamesByMember = new Map<string, string>();
     const nextPath = node === root ? path : [...path, node.name];
 
     for (const child of node.children) {
+      let childValue: unknown;
+
       if (child.kind === "command") {
         if (!child.scope.includes("sdk")) {
           continue;
         }
-
-        defineMember(output, formatSegment(child.name), build(child, nextPath));
-        continue;
+        childValue = build(child, nextPath);
+      } else {
+        childValue = build(child, nextPath);
+        if (!isPlainObject(childValue) || Object.keys(childValue).length === 0) {
+          continue;
+        }
       }
 
-      const childValue = build(child, nextPath);
-      if (isPlainObject(childValue) && Object.keys(childValue).length > 0) {
-        defineMember(output, formatSegment(child.name), childValue);
+      const member = formatSegment(child.name);
+      if (member === "then") {
+        throw new UserError(`SDK member "${child.name}" uses reserved member "then".`);
       }
+
+      const existingName = sourceNamesByMember.get(member);
+      if (existingName !== undefined) {
+        throw new UserError(
+          `SDK members "${existingName}" and "${child.name}" use conflicting member "${member}".`
+        );
+      }
+
+      sourceNamesByMember.set(member, child.name);
+      defineMember(output, member, childValue);
     }
 
     return output;

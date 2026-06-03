@@ -43,10 +43,15 @@ export function defineSchema<T extends SchemaDefinition>(
   const required: string[] = [];
 
   for (const [key, prop] of Object.entries(definition)) {
-    properties[key] = {
+    Object.defineProperty(properties, key, {
+      enumerable: true,
+      configurable: true,
+      writable: true,
+      value: {
       type: prop.type,
       ...(prop.description !== undefined && { description: prop.description }),
-    };
+      },
+    });
     if (!prop.optional) {
       required.push(key);
     }

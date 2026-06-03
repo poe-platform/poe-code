@@ -54,12 +54,6 @@ describe("maestro-tui public API", () => {
     expect(config.title).toBe("Maestro tasks");
     expect(config.actions).toEqual([
       expect.objectContaining({
-        id: "move-state",
-        key: "f",
-        label: "Move to state…",
-        primary: true
-      }),
-      expect.objectContaining({
         id: "open-source",
         key: "o",
         label: "Open in $EDITOR"

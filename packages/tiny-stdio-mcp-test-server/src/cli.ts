@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import packageJson from "../package.json" with { type: "json" };
 import {
   createEncryptServer,
   createWordOfTheDayServer,
@@ -10,17 +11,18 @@ const program = new Command();
 program
   .name("tiny-stdio-mcp-test-server")
   .description("Test MCP server with example tools for integration testing")
-  .version("0.0.1");
+  .version(packageJson.version);
 
 program
   .command("serve")
   .description("Start an MCP server on stdin/stdout")
   .argument("<tool>", "Tool to serve (encrypt, word-of-the-day)")
   .action(async (tool: string) => {
-    const servers: Record<string, () => Promise<void>> = {
+    const servers: Record<string, () => Promise<void>> = Object.create(null) as Record<string, () => Promise<void>>;
+    Object.assign(servers, {
       encrypt: () => createEncryptServer().listen(),
       "word-of-the-day": () => createWordOfTheDayServer().listen(),
-    };
+    });
 
     const start = servers[tool];
     if (!start) {

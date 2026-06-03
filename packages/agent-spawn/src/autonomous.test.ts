@@ -204,4 +204,23 @@ describe("spawnAutonomous()", () => {
     expect(sdkSpawn).toHaveBeenCalledTimes(2);
     expect(renderAcpStreamMock).toHaveBeenCalledTimes(2);
   });
+
+  it.each([-1, 0, 1.5, Number.NaN])(
+    "rejects invalid maxTimeoutRetries values before spawning: %s",
+    async (maxTimeoutRetries) => {
+      const sdkSpawn = vi.fn();
+
+      await expect(
+        spawnAutonomous(sdkSpawn, {
+          service: "codex",
+          prompt: "Do not run",
+          maxTimeoutRetries
+        })
+      ).rejects.toThrow(
+        "spawnAutonomous maxTimeoutRetries must be an integer greater than or equal to 1."
+      );
+
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    }
+  );
 });

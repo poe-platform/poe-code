@@ -21,6 +21,7 @@ export type AutonomousInput = {
   cwd?: string;
   mcpServers?: McpSpawnConfig;
   logPath?: string;
+  signal?: AbortSignal;
   runtime?: RuntimeOverrideOptions["runtime"];
   runtimeImage?: string;
   runtimeTemplate?: string;
@@ -70,6 +71,7 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       mode: input.mode,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.logPath ? { logPath: input.logPath } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
       ...(input.runtime ? { runtime: input.runtime } : {}),
       ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
       ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
@@ -123,7 +125,8 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       factory: execution.factory,
       openSpec: execution.openSpec,
       detach: execution.detach,
-      state: execution.state
+      state: execution.state,
+      ...(input.signal ? { signal: input.signal } : {})
     });
 
     if (result.kind === "detached") {

@@ -175,11 +175,27 @@ const expectedTimestamp = (() => {
 })();
 
 function ralphPlanDoc(name: string): string {
-  return ["---", "kind: ralph", `name: ${name}`, "---", `# ${name}`].join("\n");
+  return [
+    "---",
+    "kind: ralph",
+    "version: 1",
+    "status:",
+    "  state: open",
+    "  iteration: 0",
+    "---",
+    `# ${name}`
+  ].join("\n");
 }
 
 function experimentPlanDoc(name: string): string {
-  return ["---", "kind: experiment", `name: ${name}`, "---", `# ${name}`].join("\n");
+  return [
+    "---",
+    "kind: experiment",
+    "version: 1",
+    "baseline: null",
+    "---",
+    `# ${name}`
+  ].join("\n");
 }
 
 describe("experiment run command", () => {
@@ -320,6 +336,27 @@ describe("experiment run command", () => {
     ).rejects.toBeInstanceOf(ValidationError);
 
     expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+  });
+
+  it("previews experiment runs without executing the loop", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "--dry-run", "experiment", "run", "docs/loop.md", "--agent", "claude", "--max-experiments", "0"
+    ]);
+
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run experiment doc docs/loop.md with claude-code for up to 0 experiments.");
   });
 
   it("discovers the first doc and default agent with --yes", async () => {
@@ -1294,6 +1331,62 @@ describe("experiment journal command", () => {
     expect(loggerOutput).toContain("discard");
   });
 
+  it("does not repair invalid project config while displaying a journal", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop",
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "experiment", "journal", "docs/loop.md"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
+  it("does not repair invalid project config while previewing a journal entry", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop",
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "experiment",
+        "journal",
+        "log",
+        "docs/loop.md",
+        "--status",
+        "keep",
+        "--commit",
+        "abc123"
+      ])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
   it("discovers the first doc with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -1358,6 +1451,37 @@ describe("experiment validate command", () => {
     expect(loggerOutput).toContain("claude-code");
     expect(loggerOutput).toContain("tests: npm test (maximize)");
     expect(loggerOutput).toContain("valid");
+  });
+
+  it("does not repair invalid project config while previewing validation", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "---",
+        "# Loop"
+      ].join("\n"),
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "experiment", "validate", "docs/loop.md"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
   it("reports errors for missing required fields", async () => {
@@ -1513,6 +1637,27 @@ describe("experiment plan-path command", () => {
 
     expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
+
+  it("does not repair invalid project config while printing the plan path", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "experiment", "plan-path"])).rejects.toThrow();
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
 });
 
 describe("experiment install command", () => {
@@ -1559,6 +1704,42 @@ describe("experiment install command", () => {
     );
   });
 
+  it("does not install the skill when run.yaml scaffolding fails", async () => {
+    const fs = createMemFs();
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === "/repo/.poe-code/experiments/run.yaml") {
+        throw new Error("run.yaml write failed");
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toThrow("run.yaml write failed");
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
+  });
+
   it("defaults to claude-code and local scope with --yes", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
@@ -1579,6 +1760,27 @@ describe("experiment install command", () => {
     await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
       experimentRunYaml
     );
+  });
+
+  it("does not repair invalid global config while previewing experiment installation", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "experiment", "install", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
   it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
@@ -1742,6 +1944,23 @@ describe("ralph run command", () => {
         runtimeConfigCwd: cwd
       })
     );
+  });
+
+  it("does not execute Ralph loops during dry-run previews", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/loop.md": "# Loop" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "run", "docs/loop.md"]);
+
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run Ralph");
   });
 
   it("passes runtime flags to the Ralph SDK", async () => {
@@ -2903,5 +3122,24 @@ describe("ralph init command", () => {
     });
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("previews initialization without rewriting the document", async () => {
+    const original = "# A\n";
+    const logs: string[] = [];
+    const fs = createMemFs({ "/repo/docs/loop.md": original });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "init", "docs/loop.md"]);
+
+    await expect(fs.readFile("/repo/docs/loop.md", "utf8")).resolves.toBe(original);
+    expect(logs.join("\n")).toContain("Dry run: would save Ralph config.");
   });
 });

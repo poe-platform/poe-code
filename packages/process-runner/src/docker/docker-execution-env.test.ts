@@ -1,12 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
+import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
 
+const workspaceTransferMocks = vi.hoisted(() => ({
+  uploadWorkspace: vi.fn(),
+  downloadWorkspace: vi.fn()
+}));
+
 vi.mock("node:fs/promises", () => ({
-  readFile: vi.fn()
+  readFile: vi.fn(),
+  readdir: vi.fn()
 }));
 
 vi.mock("./engine.js", () => ({
@@ -26,10 +33,20 @@ vi.mock("../host/host-runner.js", () => ({
   createHostRunner: vi.fn()
 }));
 
+vi.mock("../workspace-transfer.js", async (importActual) => ({
+  ...(await importActual<typeof import("../workspace-transfer.js")>()),
+  uploadWorkspace: workspaceTransferMocks.uploadWorkspace,
+  downloadWorkspace: workspaceTransferMocks.downloadWorkspace
+}));
+
 describe("dockerExecutionEnvFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(detectEngine).mockReturnValue("docker");
+    vi.mocked(detectContext).mockReturnValue(null);
+    vi.mocked(readdir).mockResolvedValue([]);
+    workspaceTransferMocks.uploadWorkspace.mockResolvedValue({ files: 0, bytes: 0, skipped: [] });
+    workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
   });
 
   it("opens a persistent container from a configured image with runtime mounts", async () => {
@@ -101,7 +118,10 @@ describe("dockerExecutionEnvFactory", () => {
   });
 
   it("uses a cached dockerfile image when the template hash exists", async () => {
-    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["cached-container\n"] }]);
+    const runner = createCapturingRunner([
+      { exitCode: 0 },
+      { exitCode: 0, stdout: ["cached-container\n"] }
+    ]);
     vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
     const state = createState({
       image: "poe-code/local:cached",
@@ -129,8 +149,103 @@ describe("dockerExecutionEnvFactory", () => {
     expect(env.id).toBe("cached-container");
     expect(state.getCalls).toEqual([{ backend: "docker", hash: expect.any(String) }]);
     expect(state.putCalls).toEqual([]);
-    expect(runner.specs).toHaveLength(1);
-    expect(runner.specs[0]?.args).toContain("poe-code/local:cached");
+    expect(runner.specs).toHaveLength(2);
+    expect(runner.specs[0]?.args).toEqual(["image", "inspect", "poe-code/local:cached"]);
+    expect(runner.specs[1]?.args).toContain("poe-code/local:cached");
+  });
+
+  it("rebuilds a cached dockerfile image that no longer exists", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 1, stderr: ["missing image\n"] },
+      { exitCode: 0 },
+      { exitCode: 0, stdout: ["rebuilt-container\n"] }
+    ]);
+    vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
+    const state = createState({
+      image: "poe-code/local:missing",
+      hash: "unused",
+      runtime_type: "docker",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    });
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: ".",
+          build_args: {},
+          mounts: []
+        },
+        state,
+        hostRunner: runner
+      })
+    );
+
+    expect(env.id).toBe("rebuilt-container");
+    expect(runner.specs.map((spec) => spec.args?.[0])).toEqual(["image", "build", "run"]);
+    expect(state.putCalls).toHaveLength(1);
+  });
+
+  it("separates dockerfile template cache keys by engine", async () => {
+    vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
+    const entries = new Map<string, unknown>();
+    const state = {
+      templates: {
+        async get(_backend: string, hash: string) {
+          return entries.get(hash) ?? null;
+        },
+        async put(_backend: string, entry: { hash: string }) {
+          entries.set(entry.hash, entry);
+        }
+      }
+    };
+    const dockerRunner = createCapturingRunner([{ exitCode: 0 }]);
+    const podmanRunner = createCapturingRunner([{ exitCode: 0 }]);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+
+    const docker = await buildDockerRuntimeTemplate({
+      cwd: "/repo",
+      runtime: { type: "docker", dockerfile: "Dockerfile", build_args: {}, engine: "docker" },
+      state,
+      runner: dockerRunner
+    });
+    const podman = await buildDockerRuntimeTemplate({
+      cwd: "/repo",
+      runtime: { type: "docker", dockerfile: "Dockerfile", build_args: {}, engine: "podman" },
+      state,
+      runner: podmanRunner
+    });
+
+    expect(docker.hash).not.toBe(podman.hash);
+    expect(podman.cached).toBe(false);
+    expect(podmanRunner.specs[0]?.command).toBe("podman");
+  });
+
+  it("changes the dockerfile template cache hash when build context contents change", async () => {
+    const files = new Map([
+      ["/repo/Dockerfile", "FROM scratch\nCOPY app.txt /app.txt\n"],
+      ["/repo/context/app.txt", "one\n"]
+    ]);
+    vi.mocked(readFile).mockImplementation(async (filePath) => Buffer.from(files.get(String(filePath)) ?? ""));
+    vi.mocked(readdir).mockResolvedValue([{ name: "app.txt", isDirectory: () => false, isFile: () => true }] as never);
+    const runner = createCapturingRunner([{ exitCode: 0 }, { exitCode: 0 }]);
+    const state = createState(null);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+    const input = {
+      cwd: "/repo",
+      runtime: { type: "docker" as const, dockerfile: "Dockerfile", build_context: "context", build_args: {} },
+      state,
+      runner
+    };
+
+    await buildDockerRuntimeTemplate(input);
+    files.set("/repo/context/app.txt", "two\n");
+    await buildDockerRuntimeTemplate(input);
+
+    expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
   it("builds and caches a dockerfile image on template cache miss with sorted build args", async () => {
@@ -265,15 +380,75 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
   });
 
-  it("uploads and downloads the workspace through docker cp tarballs", async () => {
+  it("forwards command cancellation signals to docker exec", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
+      { exitCode: 1 }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = env.exec({ command: "node", signal: controller.signal });
+
+    expect(runner.specs[1]).toMatchObject({ signal: controller.signal });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
+  it("uses the interactive shell working directory", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
       { exitCode: 0 }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        hostRunner: runner,
+        shellSpec: { command: "bash", cwd: "/interactive" }
+      })
+    );
+
+    env.shell();
+
+    expect(runner.specs[1]?.args).toContain("/interactive");
+    expect(runner.specs[1]?.args).not.toContain("/repo");
+  });
+
+  it("forwards interactive shell cancellation signals to docker exec", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 1 }
+    ]);
+    const controller = new AbortController();
+    controller.abort();
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        hostRunner: runner,
+        shellSpec: { command: "bash", signal: controller.signal }
+      })
+    );
+
+    const handle = env.shell();
+
+    expect(runner.specs[1]).toMatchObject({ signal: controller.signal });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
+  it("delegates workspace synchronization to the shared transfer policy", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -291,23 +466,59 @@ describe("dockerExecutionEnvFactory", () => {
     await env.uploadWorkspace();
     await env.downloadWorkspace({ conflictPolicy: "overwrite" });
 
-    expect(runner.specs.map((spec) => [spec.command, spec.args?.[0], spec.args?.[1]])).toEqual([
-      ["docker", "run", "-d"],
-      ["tar", "-cf", expect.any(String)],
-      ["docker", "cp", expect.stringContaining(".tar")],
-      ["docker", "exec", "container-id"],
-      ["docker", "exec", "container-id"],
-      ["docker", "cp", expect.stringContaining("container-id:")],
-      ["tar", "-xf", expect.any(String)]
-    ]);
+    expect(workspaceTransferMocks.uploadWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
+      { runner: undefined, workspaceExclude: [] }
+    );
+    expect(workspaceTransferMocks.downloadWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
+      { conflictPolicy: "overwrite" }
+    );
   });
 
-  it("passes upload ignore files to the host tar command in configured order", async () => {
+  it("skips workspace transfers when synchronization is disabled", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["container-id\n"] }]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runner: { sync: "none" },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.uploadWorkspace()).resolves.toEqual({ files: 0, bytes: 0, skipped: [] });
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs).toHaveLength(1);
+    expect(workspaceTransferMocks.uploadWorkspace).not.toHaveBeenCalled();
+    expect(workspaceTransferMocks.downloadWorkspace).not.toHaveBeenCalled();
+  });
+
+  it("does not download workspace changes in upload-only mode", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["container-id\n"] }]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runner: { sync: "upload" },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs).toHaveLength(1);
+    expect(workspaceTransferMocks.downloadWorkspace).not.toHaveBeenCalled();
+  });
+
+  it("passes upload exclusions to the shared workspace transfer policy", async () => {
     const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 }
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -325,28 +536,15 @@ describe("dockerExecutionEnvFactory", () => {
 
     await env.uploadWorkspace();
 
-    expect(runner.specs[1]).toMatchObject({
-      command: "tar",
-      args: [
-        "--exclude",
-        "node_modules",
-        "--exclude",
-        "dist",
-        "-cf",
-        expect.any(String),
-        "-C",
-        "/repo",
-        "."
-      ]
-    });
+    expect(workspaceTransferMocks.uploadWorkspace).toHaveBeenCalledWith(
+      expect.any(Object),
+      { runner: undefined, workspaceExclude: ["node_modules", "dist"] }
+    );
   });
 
-  it("refuses local overwrites on download when conflict policy is refuse", async () => {
+  it("passes refusal conflict policy to shared workspace transfer", async () => {
     const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 }
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -363,10 +561,10 @@ describe("dockerExecutionEnvFactory", () => {
 
     await env.downloadWorkspace({ conflictPolicy: "refuse" });
 
-    expect(runner.specs[3]).toMatchObject({
-      command: "tar",
-      args: ["-xkf", expect.any(String), "-C", "/repo"]
-    });
+    expect(workspaceTransferMocks.downloadWorkspace).toHaveBeenCalledWith(
+      expect.any(Object),
+      { conflictPolicy: "refuse" }
+    );
   });
 
   it("attaches to an existing container id", async () => {
@@ -391,6 +589,244 @@ describe("dockerExecutionEnvFactory", () => {
       tty: undefined
     });
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("reattaches through the persisted container engine and context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "podman", context: "colima-profile" }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(detectEngine).not.toHaveBeenCalled();
+    expect(runner.specs[0]?.command).toBe("podman");
+    expect(runner.specs[0]?.args).not.toContain("--context");
+  });
+
+  it("reattaches through the persisted docker context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "docker", context: "colima-profile" }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(runner.specs[0]?.command).toBe("docker");
+    expect(runner.specs[0]?.args).toEqual([
+      "--context",
+      "colima-profile",
+      "exec",
+      "container-id",
+      "printf",
+      "attached"
+    ]);
+  });
+
+  it("preserves a persisted absence of docker context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    vi.mocked(detectContext).mockReturnValue("colima-later");
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "docker", context: null }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(runner.specs[0]?.args).toEqual(["exec", "container-id", "printf", "attached"]);
+  });
+
+  it("reports paused retained containers as still running", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["paused\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+
+    await expect(job.status()).resolves.toBe("running");
+  });
+
+  it("preserves a successful docker wait exit code of zero", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 7, stdout: ["0\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+
+    await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("tracks an attached detached command using its completion marker", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node", "app.js"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(job.status()).resolves.toBe("exited");
+    await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
+    expect(runner.specs[0]?.args).toEqual(
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-1.exit")
+      ])
+    );
+    expect(runner.specs[1]?.args).toEqual(
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-1.exit")
+      ])
+    );
+  });
+
+  it("tracks a newly detached command using its supplied job context", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["9\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = (await dockerExecutionEnvFactory.open(
+      createOpenSpec({ hostRunner: runner })
+    )) as Awaited<ReturnType<typeof dockerExecutionEnvFactory.open>> & {
+      setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
+    };
+    env.setDetachedJobContext({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
+    const job = await env.detach();
+
+    await expect(job.wait()).resolves.toEqual({ exitCode: 9 });
+    expect(job).toMatchObject({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
+    expect(runner.specs[1]?.args).toEqual(
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-new.exit")
+      ])
+    );
+  });
+
+  it("rejects detached log streaming when docker cannot read the log file", async () => {
+    const runner = createCapturingRunner([{ exitCode: 75, stderr: ["container disappeared\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(async () => {
+      for await (const chunk of job.stream()) {
+        throw new Error(`Unexpected log chunk: ${chunk.data}`);
+      }
+    }).rejects.toThrow("container disappeared");
+  });
+
+  it("filters detached log streaming by modification timestamp", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: [] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    const chunks = [];
+    for await (const chunk of job.stream({ since: new Date("2099-01-01T00:00:00.000Z") })) {
+      chunks.push(chunk);
+    }
+
+    expect(chunks).toEqual([]);
+    expect(runner.specs[0]?.args?.at(-1)).toContain("stat -c %Y");
+    expect(runner.specs[0]?.args?.at(-1)).toContain("4070908800");
+  });
+
+  it("follows appended detached log output until the command exits", async () => {
+    vi.useFakeTimers();
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["first\n"] },
+      { exitCode: 0, stdout: [] },
+      { exitCode: 0, stdout: ["second\n"] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    try {
+      const chunks: string[] = [];
+      const reading = (async () => {
+        for await (const chunk of job.stream({ follow: true })) {
+          chunks.push(chunk.data);
+        }
+      })();
+      await vi.advanceTimersByTimeAsync(250);
+      await reading;
+
+      expect(chunks).toEqual(["first\n", "second\n"]);
+      expect(runner.specs[2]?.args?.at(-1)).toContain("tail -c +7");
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

@@ -8,6 +8,9 @@ import { extractSchema } from "../loader/extract-schema.js";
 
 interface HarnessSchemaFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
+  realpath(path: string): Promise<string>;
+  rename(oldPath: string, newPath: string): Promise<unknown>;
+  unlink(path: string): Promise<unknown>;
   writeFile(
     filePath: string,
     data: string,
@@ -39,6 +42,7 @@ export async function runHarnessCodegen(
   const outputDirectory = path.join(repoRoot, "docs", "schemas", "harnesses");
 
   await fs.mkdir(outputDirectory, { recursive: true });
+  const documents: Array<{ outputPath: string; stagedPath: string; serialized: string }> = [];
 
   for (const template of await listBuiltinTemplateSchemaSources()) {
     const ajsSource = await nodeFs.readFile(template.ajsPath, "utf8");
@@ -54,13 +58,82 @@ export async function runHarnessCodegen(
       $id: `${publicHarnessSchemaBaseUrl}/${fileName}`,
       ...toJsonSchema(schema)
     };
+    const outputPath = path.join(outputDirectory, fileName);
+    const stagedPath = path.join(outputDirectory, `.${fileName}.tmp`);
 
-    await fs.writeFile(
-      path.join(outputDirectory, fileName),
-      serializeJsonDocument(document),
-      "utf8"
-    );
+    await assertSafeSchemaOutput(repoRoot, outputPath, fs);
+    await assertSafeSchemaOutput(repoRoot, stagedPath, fs);
+
+    documents.push({
+      outputPath,
+      stagedPath,
+      serialized: serializeJsonDocument(document)
+    });
   }
+
+  try {
+    for (const document of documents) {
+      await fs.writeFile(document.stagedPath, document.serialized, "utf8");
+    }
+  } catch (error) {
+    await Promise.all(documents.map((document) => unlinkIfExists(document.stagedPath, fs)));
+    throw error;
+  }
+
+  for (const document of documents) {
+    await fs.rename(document.stagedPath, document.outputPath);
+  }
+}
+
+async function unlinkIfExists(pathToRemove: string, fs: HarnessSchemaFileSystem): Promise<void> {
+  try {
+    await fs.unlink(pathToRemove);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+  }
+}
+
+async function assertSafeSchemaOutput(
+  repoRoot: string,
+  outputPath: string,
+  fs: Pick<HarnessSchemaFileSystem, "realpath">
+): Promise<void> {
+  let existingPath = outputPath;
+  let canonicalOutputPath: string;
+
+  while (true) {
+    try {
+      canonicalOutputPath = await fs.realpath(existingPath);
+      break;
+    } catch (error) {
+      if (!isMissingPathError(error)) {
+        throw error;
+      }
+
+      const parentPath = path.dirname(existingPath);
+      if (parentPath === existingPath) {
+        throw error;
+      }
+      existingPath = parentPath;
+    }
+  }
+
+  const canonicalRepoRoot = await fs.realpath(repoRoot);
+  const relativeOutputPath = path.relative(canonicalRepoRoot, canonicalOutputPath);
+
+  if (
+    relativeOutputPath === ".." ||
+    relativeOutputPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeOutputPath)
+  ) {
+    throw new Error("Generated schema output must remain inside the repository.");
+  }
+}
+
+function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 function resolveRepoRoot(): string {

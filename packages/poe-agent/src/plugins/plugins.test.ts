@@ -23,7 +23,8 @@ import webPlugin from "./poe-agent-plugin-web.js";
 
 const appendFileMock = vi.hoisted(() => vi.fn());
 
-vi.mock("node:fs/promises", () => ({
+vi.mock("node:fs/promises", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("node:fs/promises")>()),
   appendFile: appendFileMock
 }));
 
@@ -45,7 +46,7 @@ describe("poe-agent-plugin-audit-log", () => {
     const fs = createFsFromVolume(volume).promises;
     appendFileMock.mockImplementation(fs.appendFile.bind(fs));
 
-    const plugin = auditLog("/audit.jsonl");
+    const plugin = auditLog("/audit.jsonl", fs);
     const postToolUse = plugin.hooks?.postToolUse;
     const signal = new AbortController().signal;
 
@@ -81,7 +82,7 @@ describe("poe-agent-plugin-audit-log", () => {
     const fs = createFsFromVolume(volume).promises;
     appendFileMock.mockImplementation(fs.appendFile.bind(fs));
 
-    const plugin = auditLog("/audit.jsonl");
+    const plugin = auditLog("/audit.jsonl", fs);
     await plugin.hooks?.postToolUse?.({
       tool: "search_web",
       args: { query: "docs" },
@@ -105,7 +106,7 @@ describe("poe-agent-plugin-audit-log", () => {
     const fs = createFsFromVolume(volume).promises;
     appendFileMock.mockImplementation(fs.appendFile.bind(fs));
 
-    const plugin = auditLog("/audit.jsonl");
+    const plugin = auditLog("/audit.jsonl", fs);
     await plugin.hooks?.postCompaction?.({
       tokenCount: 42,
       summary: "Kept the open bug and latest file edits.",
@@ -126,6 +127,51 @@ describe("poe-agent-plugin-audit-log", () => {
       droppedMessageCount: 2
     });
     expect(Number.isNaN(Date.parse(String(record.ts)))).toBe(false);
+  });
+
+  it("does not append audit events through a symlinked log file", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/audit.jsonl": "original\n"
+    }, "/");
+    volume.mkdirSync("/project/logs", { recursive: true });
+    volume.symlinkSync("/outside/audit.jsonl", "/project/logs/audit.jsonl");
+    const fs = createFsFromVolume(volume).promises;
+    const plugin = auditLog("/project/logs/audit.jsonl", fs);
+
+    await expect(
+      plugin.hooks?.postToolUse?.({
+        tool: "read_file",
+        args: { path: "README.md" },
+        intentId: "intent-1",
+        messages: [],
+        signal: new AbortController().signal
+      })
+    ).rejects.toThrow("Path may not contain symbolic links");
+
+    expect(volume.readFileSync("/outside/audit.jsonl", "utf8")).toBe("original\n");
+  });
+
+  it("does not fail completed tool work when audit append persistence fails", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    const appendFailureFs = {
+      ...fs,
+      appendFile: vi.fn(async () => {
+        throw new Error("audit disk full");
+      })
+    };
+    const plugin = auditLog("/audit.jsonl", appendFailureFs as never);
+
+    await expect(
+      plugin.hooks?.postToolUse?.({
+        tool: "edit_file",
+        args: { path: "src/app.ts" },
+        intentId: "intent-1",
+        messages: [],
+        result: "changed workspace",
+        signal: new AbortController().signal
+      })
+    ).resolves.toBeUndefined();
   });
 });
 

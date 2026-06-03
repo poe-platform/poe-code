@@ -180,7 +180,7 @@ status:
 Body
 `;
 
-    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/builder\.cwd must be a string/i);
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/builder\.cwd must be a non-empty string/i);
   });
 
   it("parses inline mcp on a role in addition to global mcp", () => {
@@ -673,5 +673,89 @@ Body
     expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
       /mcp\.delegate\.timeout must be a positive number/i
     );
+  });
+
+  it.each([
+    ["version", "0", "version must be a positive integer"],
+    ["max_rounds", "0", "max_rounds must be a positive integer"],
+    ["round", "-1", "status.round must be a non-negative integer"],
+    ["review_turn", "-1", "status.review_turn must be a non-negative integer"]
+  ])("rejects invalid bounded integer field %s", (field, value, message) => {
+    let content = `---
+kind: superintendent
+version: 1
+max_rounds: 1
+builder:
+  prompt: build
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const originalValue = field === "version" || field === "max_rounds" ? "1" : "0";
+    content = content.replace(`${field}: ${originalValue}`, `${field}: ${value}`);
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(message);
+  });
+
+  it.each([
+    ["max_round: 1\n", "frontmatter.max_round"],
+    ["", "builder.agnet", "  agnet: codex\n"],
+    ["", "builder.cwwd", "  cwwd: packages/core\n"],
+    ["", "builder.mcp.helper.argz", "  mcp:\n    helper:\n      command: node\n      argz: [server.mjs]\n"]
+  ])("rejects unknown execution configuration key %s", (topLevel, fieldName, builderExtra = "") => {
+    const content = `---
+kind: superintendent
+version: 1
+${topLevel}builder:
+${builderExtra}  prompt: build
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+      `plan.md: unknown field ${fieldName}`
+    );
+  });
+
+  it.each([
+    ["agent: ''\n", "builder.agent must be a non-empty string"],
+    ["cwd: ''\n", "builder.cwd must be a non-empty string"],
+    ["prompt: ''\n", "builder.prompt must be a non-empty string"],
+    ["mcp:\n    helper:\n      command: ''\n", "builder.mcp.helper.command must be a non-empty string"]
+  ])("rejects empty role execution configuration", (builderField, message) => {
+    const prompt = builderField.startsWith("prompt:") ? "" : "  prompt: build\n";
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  ${builderField}${prompt}superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(message);
   });
 });

@@ -1,7 +1,7 @@
 // JSON-RPC 2.0 types
 export interface JSONRPCRequest {
   jsonrpc: "2.0";
-  id: string | number;
+  id: string | number | null;
   method: string;
   params?: Record<string, unknown>;
 }
@@ -20,19 +20,23 @@ export interface JSONRPCError {
 }
 
 // JSON-RPC error codes
-export const JSON_RPC_ERROR_CODES = {
+export const JSON_RPC_ERROR_CODES = Object.freeze({
   PARSE_ERROR: -32700,
   INVALID_REQUEST: -32600,
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
   INTERNAL_ERROR: -32603
-} as const;
+} as const);
 
 export class ToolError extends Error {
   constructor(
     public readonly code: number,
     message: string
   ) {
+    if (!Number.isFinite(code)) {
+      throw new Error("ToolError code must be a finite number");
+    }
+
     super(message);
     this.name = "ToolError";
   }
@@ -89,14 +93,16 @@ export interface JSONSchema {
 }
 
 export interface JSONSchemaProperty {
-  type: "string" | "number" | "boolean" | "object" | "array";
+  type: "string" | "number" | "integer" | "boolean" | "object" | "array";
   description?: string;
+  nullable?: boolean;
 }
 
 // Server types
 export interface ServerOptions {
   name: string;
   version: string;
+  validateToolArguments?: boolean;
 }
 
 import type { ToolReturn } from "./content/index.js";

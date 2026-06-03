@@ -5,10 +5,11 @@ export interface FileSystem {
   readFile(path: string): Promise<Buffer>;
   symlink(target: string, path: string): Promise<void>;
   readlink(path: string): Promise<string>;
+  realpath(path: string): Promise<string>;
   writeFile(
     path: string,
     data: string | NodeJS.ArrayBufferView,
-    options?: { encoding?: BufferEncoding }
+    options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   stat(path: string): Promise<Stats>;

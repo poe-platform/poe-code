@@ -1,10 +1,11 @@
+import { randomUUID } from "node:crypto";
 import { defineCommand, S } from "toolcraft";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
   DEFAULT_INSTALL_AGENT,
+  assertNoSymbolicLinkPath,
   getSkillFolderWithHome,
   installableAgents,
-  removeSkillFolder,
   resolveInstallableAgent,
   resolveInstallerServices
 } from "./installer.js";
@@ -47,19 +48,53 @@ export const uninstall = defineCommand<
       services.cwd,
       services.homeDir
     );
-    const removedSkillPaths: string[] = [];
+    const skills = [localSkill, globalSkill];
+    const staged: Array<{ fullPath: string; stagingPath: string; displayPath: string }> = [];
 
-    if (await removeSkillFolder(services.fs, localSkill.fullPath)) {
-      removedSkillPaths.push(localSkill.displayPath);
+    try {
+      for (const skill of skills) {
+        await assertNoSymbolicLinkPath(services.fs, skill.fullPath);
+
+        if (!(await folderExists(services.fs, skill.fullPath))) {
+          continue;
+        }
+
+        const stagingPath = `${skill.fullPath}.removing-${randomUUID()}`;
+        await services.fs.rename(skill.fullPath, stagingPath);
+        staged.push({ ...skill, stagingPath });
+      }
+    } catch (error) {
+      for (const skill of staged.reverse()) {
+        await services.fs.rename(skill.stagingPath, skill.fullPath);
+      }
+      throw error;
     }
 
-    if (await removeSkillFolder(services.fs, globalSkill.fullPath)) {
-      removedSkillPaths.push(globalSkill.displayPath);
+    if (typeof services.fs.rm === "function") {
+      await Promise.allSettled(
+        staged.map((skill) => services.fs.rm!(skill.stagingPath, { recursive: true, force: true }))
+      );
     }
 
     return {
       agent,
-      removedSkillPaths
+      removedSkillPaths: staged.map((skill) => skill.displayPath)
     };
   }
 });
+
+async function folderExists(
+  fs: ReturnType<typeof resolveInstallerServices>["fs"],
+  folderPath: string
+): Promise<boolean> {
+  try {
+    await fs.stat(folderPath);
+    return true;
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return false;
+    }
+
+    throw error;
+  }
+}

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -1174,6 +1175,27 @@ describe("runCLI", () => {
     expect(output).toContain("--preset <path>");
     expect(output).toContain("--version");
     expect(output).not.toContain("-h, --help");
+  });
+
+  it("rejects a version parameter when program version output reserves --version", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        version: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--version", "release", "--yes"];
+
+    await expect(runCLI(root, { version: "1.2.3" })).rejects.toThrow(
+      'Parameter "version" uses reserved CLI flag "--version". Add a short flag or rename the parameter.'
+    );
   });
 
   it("never renders commander help in generated global option tables", async () => {
@@ -3475,6 +3497,9 @@ describe("runCLI", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: createHash("sha256")
+            .update(JSON.stringify({ transport: "stdio", command: "mock-server" }))
+            .digest("hex"),
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [
             {
@@ -3566,6 +3591,53 @@ describe("runCLI", () => {
           literal: true
         }
       })
+    );
+  });
+
+  it("passes a declared __proto__ option to the command handler", async () => {
+    const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
+
+    const inspect = defineCommand({
+      name: "inspect",
+      params: S.Object({
+        ["__proto__"]: S.Optional(S.String())
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [inspect]
+    });
+
+    process.argv = ["node", "toolcraft", "inspect", "--proto", "visible", "--yes"];
+
+    await runCLI(root);
+
+    const params = handler.mock.calls[0]?.[0].params as Record<string, unknown>;
+    expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
+    expect(params["__proto__"]).toBe("visible");
+  });
+
+  it("rejects params that normalize to the same option flag", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        fooBar: S.String(),
+        foo_bar: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--foo-bar", "value", "--yes"];
+
+    await expect(runCLI(root)).rejects.toThrow(
+      'Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".'
     );
   });
 

@@ -196,7 +196,9 @@ export function registerSpawnCommand(
       const cwdOverride = workspace.cwd;
 
       try {
-        integrations = await loadIntegrations(await resolveMergedDocument(container));
+        integrations = await loadIntegrations(
+          await resolveMergedDocument(container, { readOnly: flags.dryRun })
+        );
         if (commandOptions.interactive) {
           const adapter = resolveServiceAdapter(container, service);
           const canonicalService = adapter.name;
@@ -213,7 +215,8 @@ export function registerSpawnCommand(
           const model = await resolveConfiguredModel(
             container,
             canonicalService,
-            commandOptions.model
+            commandOptions.model,
+            { readOnly: flags.dryRun }
           );
           const result = await spawnInteractive(canonicalService, {
             prompt,
@@ -272,7 +275,8 @@ export function registerSpawnCommand(
         const model = await resolveConfiguredModel(
           container,
           canonicalService,
-          commandOptions.model
+          commandOptions.model,
+          { readOnly: flags.dryRun }
         );
         const spawnOptions: SpawnCommandOptions = {
           ...directSpawnOptions,
@@ -557,7 +561,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   const source =
     "mcpServers" in parsed && isObjectRecord(parsed.mcpServers) ? parsed.mcpServers : parsed;
 
-  const servers: McpSpawnConfig = {};
+  const servers = Object.create(null) as McpSpawnConfig;
   for (const [name, value] of Object.entries(source)) {
     if (!isObjectRecord(value)) {
       throw new ValidationError(
@@ -596,7 +600,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
           `--mcp-servers entry "${name}".env must be an object of string values`
         );
       }
-      env = {};
+      env = Object.create(null) as Record<string, string>;
       for (const [envKey, envValue] of Object.entries(value.env)) {
         if (typeof envValue !== "string") {
           throw new ValidationError(
@@ -609,7 +613,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
 
     let timeout: number | undefined;
     if ("timeout" in value && value.timeout !== undefined) {
-      if (typeof value.timeout !== "number" || value.timeout <= 0) {
+      if (typeof value.timeout !== "number" || !Number.isFinite(value.timeout) || value.timeout <= 0) {
         throw new ValidationError(
           `--mcp-servers entry "${name}".timeout must be a positive number (seconds)`
         );

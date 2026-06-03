@@ -194,6 +194,54 @@ describe("harness command", () => {
     );
   });
 
+  it("previews harness runs without executing scripts or applying fixes", async () => {
+    const logs: string[] = [];
+
+    await runHarnessCommand(["--dry-run", "--yes", "harness", "run", "harness.md", "--fix"], logs);
+
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run harness.md without executing its script or applying fixes.");
+  });
+
+  it("forwards --agent/--model/--mode as frontmatterOverrides on the agent block", async () => {
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--agent",
+      "codex",
+      "--model",
+      "iris-alpha",
+      "--mode",
+      "edit"
+    ]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({
+        frontmatterOverrides: { agent: { agent: "codex", model: "iris-alpha", mode: "edit" } }
+      })
+    );
+  });
+
+  it("omits frontmatterOverrides when no override flags are supplied", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md"]);
+
+    const call = harnessMocks.runHarnessPairMock.mock.calls.at(-1);
+    expect(call?.[1].frontmatterOverrides).toBeUndefined();
+  });
+
+  it("forwards only the supplied override flag, leaving the others off the merge object", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md", "--model", "iris-alpha"]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({
+        frontmatterOverrides: { agent: { model: "iris-alpha" } }
+      })
+    );
+  });
+
   it("prints non-error lint diagnostics reported by the harness runner", async () => {
     const logs: string[] = [];
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
@@ -453,6 +501,47 @@ describe("harness command", () => {
       memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.ajs", "utf8")
     ).resolves.toContain("export default");
     expect(logs.join("\n")).toContain("Created harness pair");
+  });
+
+  it("removes a partial scaffold when writing the script fails", async () => {
+    const fs = {
+      ...(memfs.promises as unknown as FileSystem),
+      async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView, options?: { encoding?: BufferEncoding; flag?: string }) {
+        if (filePath.endsWith("example.ajs")) {
+          throw new Error("script write failed");
+        }
+        await memfs.promises.writeFile(filePath, data, options);
+      }
+    } as FileSystem;
+    const program = createBaseProgram();
+    registerHarnessCommand(program, createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => undefined,
+      commandRunner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+    }));
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "harness", "new", "demo", "example"])
+    ).rejects.toThrow("script write failed");
+
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.ajs", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("rejects a basename that escapes the harness directory", async () => {
+    await expect(runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])).rejects.toThrow(
+      /invalid harness basename/i
+    );
+
+    await expect(memfs.promises.readFile("/repo/.poe-code/victim.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("scaffolds into an explicit directory without prompting", async () => {

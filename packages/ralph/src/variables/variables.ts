@@ -5,6 +5,6 @@ export function interpolateVariables(
   variables: VariableMap
 ): string {
   return template.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, name: string) => {
-    return name in variables ? variables[name]! : match;
+    return Object.hasOwn(variables, name) ? variables[name]! : match;
   });
 }

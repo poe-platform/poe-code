@@ -9,6 +9,7 @@ export interface ExecResult {
 export interface ResolverFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   stat(path: string): Promise<{ isDirectory(): boolean }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   rm?(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
 }
 

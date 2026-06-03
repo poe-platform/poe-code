@@ -22,6 +22,7 @@ import {
   getCurrentExecutionContext,
   toMcpServerCommand
 } from "../../utils/execution-context.js";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
@@ -83,7 +84,8 @@ export function registerMcpCommand(
     )
     .addHelpText("after", `${buildHelpText()}\n\n${formatMcpToolsDocs()}`)
     .action(async (options: { outputFormat?: string }) => {
-      await runMcpServer(container, { outputFormat: options.outputFormat });
+      const flags = resolveCommandFlags(program);
+      await runMcpServer(container, { outputFormat: options.outputFormat, dryRun: flags.dryRun });
     });
 
   mcp
@@ -95,20 +97,12 @@ export function registerMcpCommand(
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      const existingKey = await container.readApiKey();
-
-      if (!existingKey) {
-        resources.logger.intro("login");
-        await container.options.resolveApiKey({ dryRun: flags.dryRun });
-        resources.logger.success("Logged in.");
-      }
-
       let agent = agentArg;
       if (!agent) {
         const fromConfig = await resolveDefaultAgent(container);
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (options.yes) {
+        } else if (flags.assumeYes || options.yes) {
           agent = DEFAULT_MCP_AGENT;
         } else {
           const selected = await select({
@@ -127,12 +121,22 @@ export function registerMcpCommand(
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new Error(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`MCP not supported for ${support.id}.`);
-        return;
+        throw new Error(`MCP not supported for ${support.id}.`);
+      }
+
+      const existingKey = await resolvePoeCredential(container, { readOnly: flags.dryRun });
+
+      if (!existingKey) {
+        if (flags.dryRun) {
+          resources.logger.dryRun("Dry run: would log in to Poe.");
+        } else {
+          resources.logger.intro("login");
+          await container.options.resolveApiKey({ dryRun: false });
+          resources.logger.success("Logged in.");
+        }
       }
 
       const resolvedAgent = support.id ?? agent;
@@ -174,16 +178,15 @@ export function registerMcpCommand(
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new Error(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`MCP not supported for ${support.id}.`);
-        return;
+        throw new Error(`MCP not supported for ${support.id}.`);
       }
 
       const resolvedAgent = support.id ?? agent;
-      await unconfigure(resolvedAgent, "poe-code", {
+      let removed = false;
+      await unconfigure(resolvedAgent, createMcpServerEntry(support.config?.mcpOutputFormat), {
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",
@@ -195,6 +198,7 @@ export function registerMcpCommand(
             }
           },
           onComplete: (details: { label: string }, outcome: { changed: boolean }) => {
+            removed ||= outcome.changed;
             if (!flags.dryRun && outcome.changed) {
               resources.logger.verbose(details.label);
             }
@@ -203,7 +207,9 @@ export function registerMcpCommand(
       });
 
       resources.context.complete({
-        success: `Removed MCP configuration from ${resolvedAgent}.`,
+        success: removed
+          ? `Removed MCP configuration from ${resolvedAgent}.`
+          : `No MCP configuration found for ${resolvedAgent}.`,
         dry: `Would remove MCP configuration from ${resolvedAgent}.`
       });
       resources.context.finalize();
@@ -212,13 +218,18 @@ export function registerMcpCommand(
 
 async function runMcpServer(
   container: CliContainer,
-  options: { outputFormat?: string }
+  options: { outputFormat?: string; dryRun?: boolean }
 ): Promise<void> {
   const outputFormatPreferences = parseMcpOutputFormatPreferences(
     options.outputFormat
   );
 
-  const apiKey = await container.readApiKey();
+  if (options.dryRun) {
+    process.stderr.write("Dry run: would start MCP server.\n");
+    return;
+  }
+
+  const apiKey = await resolvePoeCredential(container);
   if (!apiKey) {
     process.stderr.write("No API key found. Run 'poe-code login' first.\n");
     process.exit(1);
@@ -231,4 +242,18 @@ async function runMcpServer(
   });
 
   await runMcpServerWithTransport(outputFormatPreferences);
+}
+
+async function resolvePoeCredential(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string | null> {
+  try {
+    return await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
+      envVars: container.env.variables,
+      readOnly: options.readOnly
+    });
+  } catch {
+    return null;
+  }
 }

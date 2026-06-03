@@ -1,6 +1,6 @@
-import type { AuthProvider } from "../types.js";
+import { defineProvider } from "../types.js";
 
-export const cloudflareProvider: AuthProvider = {
+export const cloudflareProvider = defineProvider({
   id: "cloudflare",
   label: "Cloudflare AI Gateway",
   summary: "Route coding agents through Cloudflare AI Gateway.",
@@ -37,4 +37,4 @@ export const cloudflareProvider: AuthProvider = {
       baseUrlPath: "google-ai-studio"
     }
   ]
-};
+});

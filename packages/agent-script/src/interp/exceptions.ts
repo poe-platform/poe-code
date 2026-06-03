@@ -715,7 +715,7 @@ function copyObjectRest(
   value: Exclude<SandboxValue, null | undefined>,
   excludedKeys: ReadonlySet<string>
 ): SandboxObject {
-  const rest: SandboxObject = {};
+  const rest = Object.create(null) as SandboxObject;
 
   for (const [key, entryValue] of Object.entries(value)) {
     if (excludedKeys.has(key)) {

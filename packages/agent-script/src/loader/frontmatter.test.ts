@@ -54,6 +54,15 @@ describe("splitFrontmatter", () => {
     });
   });
 
+  it("parses frontmatter with CR-only line endings", () => {
+    const markdown = "---\rtitle: Example\r---\r```js\rreturn true;\r```";
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: { title: "Example" },
+      body: "```js\rreturn true;\r```"
+    });
+  });
+
   it("strips a UTF-8 BOM before reading frontmatter", () => {
     const markdown = `\uFEFF---\ntitle: Example\n---\nBody`;
 

@@ -669,13 +669,16 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           },
           doc.body
         );
-        await container.fs.writeFile(doc.absolutePath, updated, { encoding: "utf8" });
+        await resources.context.fs.writeFile(doc.absolutePath, updated, { encoding: "utf8" });
 
         resources.logger.resolved(
           "Initialized Ralph config",
           `Doc: ${docPath}\n   Agent: ${agent}\n   Iterations: ${iterations}`
         );
-        resources.logger.success("Ralph config saved.");
+        resources.context.complete({
+          success: "Ralph config saved.",
+          dry: "Dry run: would save Ralph config."
+        });
       } finally {
         resources.context.finalize();
       }
@@ -749,6 +752,12 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         runtimeConfigCwd: container.env.cwd,
         ...runtimeOptions
       };
+      if (flags.dryRun) {
+        resources.logger.dryRun(
+          `Dry run: would run Ralph with ${formatRalphConfigSummary({ agent, docPath, cwd: runCwd, maxIterations })}.`
+        );
+        return;
+      }
       const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
       const result = useDashboard
         ? await runRalphWithDashboard({

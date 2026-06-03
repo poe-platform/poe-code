@@ -36,18 +36,18 @@ export type PendingHostCallPolicyRegistration = {
 
 const DEFAULT_PENDING_HOST_CALL_POLICY: PendingHostCallPolicyMode = "re-issue";
 
-const MODULE_PENDING_HOST_CALL_POLICIES: ModulePolicyRegistry = {
-  agent: {
+const MODULE_PENDING_HOST_CALL_POLICIES = Object.assign(Object.create(null) as ModulePolicyRegistry, {
+  agent: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
     spawn: "read-side-effect"
-  },
-  git: {
+  }),
+  git: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
     checkpoint: "read-side-effect",
     commit: "read-side-effect",
     revert: "read-side-effect",
     worktreeCreate: "read-side-effect",
     worktreeRemove: "read-side-effect"
-  }
-};
+  })
+});
 
 export function registerPendingHostCallPolicy(
   registration: PendingHostCallPolicyRegistration
@@ -56,7 +56,10 @@ export function registerPendingHostCallPolicy(
   const operation = readRequiredString(registration.operation, "operation");
   const policy = readPendingHostCallPolicyModeValue(registration.policy);
 
-  MODULE_PENDING_HOST_CALL_POLICIES[moduleId] ??= {};
+  MODULE_PENDING_HOST_CALL_POLICIES[moduleId] ??= Object.create(null) as Record<
+    string,
+    PendingHostCallPolicyMode
+  >;
   MODULE_PENDING_HOST_CALL_POLICIES[moduleId][operation] = policy;
 }
 

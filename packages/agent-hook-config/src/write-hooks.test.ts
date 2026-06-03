@@ -23,7 +23,7 @@ function generatedEntry(
     handler: {
       type: "command" as const,
       command,
-      statusMessage: `[generated:${runId}] ${command}`
+      statusMessage: `[generated:poe-code:${runId}] ${command}`
     },
     generatedId: `generated-${command}`
   };
@@ -57,7 +57,7 @@ describe("writeCodexHooks", () => {
           {
             matcher: "",
             hooks: [
-              { type: "command", command: "notify", statusMessage: "[generated:current] notify" }
+              { type: "command", command: "notify", statusMessage: "[generated:poe-code:current] notify" }
             ]
           }
         ]
@@ -96,13 +96,13 @@ describe("writeCodexHooks", () => {
             matcher: "",
             hooks: [
               userHandler,
-              { type: "command", command: "same", statusMessage: "[generated:current] same" }
+              { type: "command", command: "same", statusMessage: "[generated:poe-code:current] same" }
             ]
           },
           {
             matcher: "Bash",
             hooks: [
-              { type: "command", command: "other", statusMessage: "[generated:current] other" }
+              { type: "command", command: "other", statusMessage: "[generated:poe-code:current] other" }
             ]
           }
         ]
@@ -121,7 +121,7 @@ describe("writeCodexHooks", () => {
       hooks: {
         Stop: [
           {
-            hooks: [{ type: "command", command: "new", statusMessage: "[generated:current] new" }]
+            hooks: [{ type: "command", command: "new", statusMessage: "[generated:poe-code:current] new" }]
           }
         ]
       }
@@ -135,8 +135,8 @@ describe("writeCodexHooks", () => {
           {
             matcher: "",
             hooks: [
-              { type: "command", command: "old-one", statusMessage: "[generated:old] first" },
-              { type: "command", command: "old-two", statusMessage: "[generated:crashed] second" }
+              { type: "command", command: "old-one", statusMessage: "[generated:poe-code:old] first" },
+              { type: "command", command: "old-two", statusMessage: "[generated:poe-code:crashed] second" }
             ]
           }
         ]
@@ -151,7 +151,7 @@ describe("writeCodexHooks", () => {
         Stop: [
           {
             matcher: "",
-            hooks: [{ type: "command", command: "new", statusMessage: "[generated:current] new" }]
+            hooks: [{ type: "command", command: "new", statusMessage: "[generated:poe-code:current] new" }]
           }
         ]
       }
@@ -166,7 +166,7 @@ describe("writeCodexHooks", () => {
             matcher: "",
             hooks: [
               { type: "command", command: "first-user" },
-              { type: "command", command: "stale", statusMessage: "[generated:old] remove" },
+              { type: "command", command: "stale", statusMessage: "[generated:poe-code:old] remove" },
               { type: "command", command: "second-user" }
             ]
           }
@@ -193,12 +193,12 @@ describe("writeCodexHooks", () => {
     expect((readHooks() as any).hooks.Stop).toEqual([
       {
         hooks: [
-          { type: "command", command: "missing", statusMessage: "[generated:current] missing" }
+          { type: "command", command: "missing", statusMessage: "[generated:poe-code:current] missing" }
         ]
       },
       {
         matcher: "",
-        hooks: [{ type: "command", command: "empty", statusMessage: "[generated:current] empty" }]
+        hooks: [{ type: "command", command: "empty", statusMessage: "[generated:poe-code:current] empty" }]
       }
     ]);
   });
@@ -208,7 +208,7 @@ describe("writeCodexHooks", () => {
     entry.handler.statusMessage = "unsafe";
 
     expect(() => writeCodexHooks(targetPath, [entry], "current")).toThrow(
-      /generated-unsafe.*statusMessage.*\[generated:/
+      /generated-unsafe.*statusMessage.*\[generated:poe-code:/
     );
     expect(vol.existsSync(targetPath)).toBe(false);
   });
@@ -220,6 +220,12 @@ describe("writeCodexHooks", () => {
       `Malformed JSON in ${targetPath}`
     );
     expect(vol.readFileSync(targetPath, "utf8")).toBe("{ broken");
+  });
+
+  it("reports null event groups as malformed configuration", () => {
+    writeHooks({ hooks: { Stop: null } });
+
+    expect(() => writeCodexHooks(targetPath, [], "current")).toThrow(`Malformed hooks in ${targetPath}`);
   });
 
   it("reports malformed JSON before rejecting an unmarked incoming entry", () => {
@@ -247,11 +253,42 @@ describe("writeCodexHooks", () => {
     });
   });
 
+  it("preserves user handlers whose message resembles a generated marker", () => {
+    writeHooks({
+      hooks: {
+        Stop: [{ hooks: [{ type: "command", command: "user", statusMessage: "[generated:note] personal" }] }]
+      }
+    });
+
+    writeCodexHooks(targetPath, [generatedEntry("Stop", "new")], "current");
+
+    expect((readHooks() as any).hooks.Stop[0].hooks.map((hook: any) => hook.command)).toEqual([
+      "user",
+      "new"
+    ]);
+  });
+
+  it("rejects non-finite hook timeouts", () => {
+    const entry = generatedEntry("Stop", "notify") as any;
+    entry.handler.timeout = Number.POSITIVE_INFINITY;
+
+    expect(() => writeCodexHooks(targetPath, [entry], "current")).toThrow("finite timeout");
+  });
+
+  it("does not follow a pre-existing temporary symlink", () => {
+    vol.fromJSON({ "/outside/hooks.json": "outside" }, "/");
+    vol.mkdirSync("/repo/.codex", { recursive: true });
+    vol.symlinkSync("/outside/hooks.json", `${targetPath}.tmp-current-0`);
+
+    expect(() => writeCodexHooks(targetPath, [generatedEntry("Stop", "notify")], "current")).not.toThrow();
+    expect(vol.readFileSync("/outside/hooks.json", "utf8")).toBe("outside");
+  });
+
   it("cleans stale handlers with empty input while preserving existing empty event arrays", () => {
     writeHooks({
       hooks: {
         Stop: [
-          { hooks: [{ type: "command", command: "old", statusMessage: "[generated:old] old" }] }
+          { hooks: [{ type: "command", command: "old", statusMessage: "[generated:poe-code:old] old" }] }
         ],
         SessionStart: []
       }

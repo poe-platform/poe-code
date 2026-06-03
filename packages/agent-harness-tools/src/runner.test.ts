@@ -294,7 +294,7 @@ describe("runDocumentWorkflow", () => {
     expect(runAgent).not.toHaveBeenCalled();
   });
 
-  it("runs teardown even when execution is aborted", async () => {
+  it("runs teardown while propagating execution cancellation", async () => {
     const controller = new AbortController();
     const prompts: string[] = [];
     const options = createOptions({
@@ -332,9 +332,84 @@ describe("runDocumentWorkflow", () => {
       })
     });
 
-    await expect(runDocumentWorkflow(options)).resolves.toBeUndefined();
+    await expect(runDocumentWorkflow(options)).rejects.toThrow("cancelled");
 
     expect(prompts).toEqual(["Setup workspace", "Abort during stage", "Clean up"]);
+  });
+
+  it("does not pass an already aborted execution signal to teardown", async () => {
+    const controller = new AbortController();
+    const cancelled = new Error("cancelled");
+    const prompts: string[] = [];
+    const options = createOptions({
+      signal: controller.signal,
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [
+          {
+            id: "draft",
+            participant: "default",
+            prompt: "Abort during stage"
+          }
+        ],
+        teardown: {
+          prompt: "Clean up"
+        },
+        max_iterations: 1
+      },
+      runAgent: vi.fn(async (input: RunAgentInput) => {
+        if (input.signal?.aborted) {
+          throw input.signal.reason;
+        }
+
+        prompts.push(input.prompt);
+        if (input.prompt === "Abort during stage") {
+          controller.abort(cancelled);
+          throw cancelled;
+        }
+
+        return { exitCode: 0 };
+      })
+    });
+
+    await expect(runDocumentWorkflow(options)).rejects.toBe(cancelled);
+
+    expect(prompts).toEqual(["Abort during stage", "Clean up"]);
+  });
+
+  it("rejects when the final stage aborts during otherwise successful execution", async () => {
+    const controller = new AbortController();
+    const cancelled = new Error("cancelled");
+    const iterationEnds: Array<[number, IterationResult]> = [];
+    const options = createOptions({
+      signal: controller.signal,
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [{ id: "draft", participant: "default", prompt: "Draft changes" }],
+        max_iterations: 1
+      },
+      runAgent: vi.fn(async () => {
+        controller.abort(cancelled);
+        return { exitCode: 0 };
+      }),
+      onIterationEnd: (iteration, result) => {
+        iterationEnds.push([iteration, result]);
+      }
+    });
+
+    await expect(runDocumentWorkflow(options)).rejects.toBe(cancelled);
+
+    expect(iterationEnds).toEqual([]);
   });
 
   it("calls onIterationStart and onIterationEnd for each iteration", async () => {
@@ -372,6 +447,74 @@ describe("runDocumentWorkflow", () => {
       [0, "completed"],
       [1, "completed"]
     ]);
+  });
+
+  it("reports reloaded iterations without stages as nothing to run", async () => {
+    let reads = 0;
+    const iterationEnds: Array<[number, IterationResult]> = [];
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      readConfig: async () => {
+        reads += 1;
+        return {
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages:
+              reads === 1
+                ? [{ id: "draft", participant: "default", prompt: "Draft changes" }]
+                : [],
+            max_iterations: 2
+          },
+          body: "Body"
+        };
+      },
+      runAgent,
+      onIterationEnd: (iteration, result) => {
+        iterationEnds.push([iteration, result]);
+      }
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(runAgent).toHaveBeenCalledTimes(1);
+    expect(iterationEnds).toEqual([
+      [0, "completed"],
+      [1, "nothing_to_run"]
+    ]);
+  });
+
+  it("honors a lower iteration limit from a reloaded workflow", async () => {
+    let reads = 0;
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      readConfig: async () => {
+        reads += 1;
+        return {
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [{ id: "draft", participant: "default", prompt: "Draft changes" }],
+            max_iterations: reads === 1 ? 3 : 1
+          },
+          body: "Body"
+        };
+      },
+      runAgent
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(reads).toBe(2);
+    expect(runAgent).toHaveBeenCalledTimes(1);
   });
 
   it("awaits async iteration callbacks before continuing", async () => {
@@ -492,6 +635,67 @@ describe("runDocumentWorkflow", () => {
 
     expect(runAgent.mock.calls[0]![0]).toMatchObject({ hooks: { from: "claude" } });
     expect(Object.hasOwn(runAgent.mock.calls[1]![0], "hooks")).toBe(false);
+  });
+
+  it("rejects an empty setup participant instead of using the default", async () => {
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            setup: {
+              participant: "",
+              prompt: "Prepare workspace"
+            }
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow "setup" participant must define a non-empty string.');
+  });
+
+  it("rejects an empty teardown participant instead of using the default", async () => {
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            teardown: {
+              participant: "",
+              prompt: "Clean workspace"
+            }
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow "teardown" participant must define a non-empty string.');
+  });
+
+  it("preserves a prototype-named participant for implicit setup selection", async () => {
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await runDocumentWorkflow(
+      createOptions({
+        frontmatter: JSON.parse(
+          '{"participants":{"__proto__":{"agent":"codex","mode":"read"}},"setup":{"prompt":"Prepare workspace"}}'
+        ) as Frontmatter,
+        runAgent
+      })
+    );
+
+    expect(runAgent.mock.calls[0]![0]).toMatchObject({
+      agent: "codex",
+      mode: "read",
+      prompt: "Prepare workspace"
+    });
   });
 
   it("rejects malformed stage skills", async () => {

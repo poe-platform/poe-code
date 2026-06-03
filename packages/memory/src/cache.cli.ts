@@ -1,9 +1,10 @@
 import parseDuration from "parse-duration";
-import { clearCache } from "./cache.js";
+import { cacheStatus, clearCache } from "./cache.js";
 import type { MemoryRoot } from "./types.js";
 
-export async function runMemoryCacheStatus(): Promise<void> {
-  console.log("cache status not implemented yet");
+export async function runMemoryCacheStatus(input: { root: MemoryRoot }): Promise<void> {
+  const status = await cacheStatus(input.root);
+  console.log(`${status.entries} cache ${status.entries === 1 ? "entry" : "entries"} (${status.bytes} bytes)`);
 }
 
 export async function runMemoryCacheClear(input: {

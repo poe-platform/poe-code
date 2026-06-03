@@ -7,6 +7,7 @@ import {
 } from "@poe-code/process-runner";
 import { loadEval } from "../source/registry.js";
 import type { EvalSource } from "../types.js";
+import { assertCanonicalContainedPath } from "../path-boundary.js";
 
 export async function verifyOracle(
   source: EvalSource,
@@ -21,7 +22,9 @@ export async function verifyOracle(
     };
   }
 
-  const oracleDir = path.resolve(source.rootDir, id, "oracle");
+  const evalDir = path.resolve(source.rootDir, id);
+  const oracleDir = path.join(evalDir, "oracle");
+  await assertCanonicalContainedPath(evalDir, oracleDir, "oracle.path");
   const result = await runVerifyCommand(createHostRunner(), {
     command: evalDef.verify.command,
     cwd: oracleDir,
@@ -97,13 +100,9 @@ function createShellRunSpec(input: {
 }
 
 function createOracleEnv(oracleDir: string): Record<string, string> {
-  const env: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
 
   env.ORACLE_DIR = oracleDir;
   return env;

@@ -37,7 +37,7 @@ export async function resolveE2bApiKey(input: ResolveE2bApiKeyInput): Promise<st
   const resolved = resolveScope(e2bAuthScope.schema, document.e2b, env);
   if (resolved.api_key.length === 0) {
     throw new Error(
-      "No E2B API key. Set E2B_API_KEY or e2b.api_key in ~/.poe-code/config.json."
+      `No E2B API key. Set E2B_API_KEY or e2b.api_key in ${resolveProjectConfigPath(input.cwd)} or ~/.poe-code/config.json.`
     );
   }
   return resolved.api_key;

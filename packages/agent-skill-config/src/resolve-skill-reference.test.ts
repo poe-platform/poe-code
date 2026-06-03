@@ -204,6 +204,14 @@ describe("resolveSkillReference", () => {
     });
   });
 
+  it.each([".", "..", "foo\nsecret.env"])("returns malformed for unsafe bare ref %j", (ref) => {
+    expect(resolveSkillReference(ref, cwd, homeDir)).toEqual({ kind: "malformed", ref });
+  });
+
+  it.each(["claude/.", "claude/.."])("returns malformed for unsafe prefixed ref %j", (ref) => {
+    expect(resolveSkillReference(ref, cwd, homeDir)).toEqual({ kind: "malformed", ref });
+  });
+
   it("returns the post-prefix basename as name for bare and prefixed refs", () => {
     mkdir(nativeProjectSkill);
     mkdir(claudeProjectSkill);

@@ -76,6 +76,7 @@ export interface TranscriptWriter {
 export interface TranscriptFsApi {
   mkdir(dir: string, options: { recursive: true }): Promise<void>;
   appendFile(path: string, contents: string): Promise<void>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
 }
 
 export interface CreateTranscriptWriterOptions {
@@ -92,7 +93,6 @@ export function createTranscriptWriter(
   const join = options.pathJoin ?? path.join;
   const filePath = resolveTranscriptFilePath(options, join);
   let dirEnsured: Promise<void> | undefined;
-  let disabled = false;
   const logDir = path.dirname(filePath);
 
   const ensureDir = (): Promise<void> => {
@@ -105,23 +105,39 @@ export function createTranscriptWriter(
   return {
     filePath,
     async write(event: AcpEvent): Promise<void> {
-      if (disabled) return;
-
       const updates = mapAcpEventToSessionUpdates(event);
       if (updates.length === 0) return;
 
-      try {
-        await ensureDir();
-        const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
-        await options.fs.appendFile(filePath, payload);
-      } catch {
-        disabled = true;
-      }
+      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      await ensureDir();
+      await ensureNoSymbolicLinkPath(options.fs, filePath);
+      const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
+      await options.fs.appendFile(filePath, payload);
     },
     async close(): Promise<void> {
       // No persistent handle: appendFile opens/closes each write. Nothing to do.
     },
   };
+}
+
+async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string): Promise<void> {
+  const absolutePath = path.resolve(filePath);
+  const root = path.parse(absolutePath).root;
+  let inspectedPath = root;
+
+  for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {
+    inspectedPath = path.join(inspectedPath, segment);
+    try {
+      if ((await fs.lstat(inspectedPath)).isSymbolicLink()) {
+        throw new Error(`Transcript log path may not contain symbolic links: ${filePath}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
 }
 
 function resolveTranscriptFilePath(

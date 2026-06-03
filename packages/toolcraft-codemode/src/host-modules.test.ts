@@ -178,4 +178,33 @@ describe("buildHostModules", () => {
       })
     });
   });
+
+  it("executes canonical exports for dotted and prototype-like names", async () => {
+    const root = defineGroup({
+      name: "constructor",
+      children: [
+        defineCommand({ name: "__proto__", scope: ["sdk"], params: S.Object({}), handler: async () => "proto" }),
+        defineCommand({ name: "constructor", scope: ["sdk"], params: S.Object({}), handler: async () => "constructor" }),
+        defineGroup({
+          name: "a.b",
+          children: [
+            defineCommand({ name: "read.secret", scope: ["sdk"], params: S.Object({}), handler: async () => "dotted" })
+          ]
+        })
+      ]
+    });
+    const { lintModules, modules } = await buildHostModules(root, createSDK(root));
+    const source = [
+      'import { proto } from "constructor";',
+      'import { constructor } from "constructor";',
+      'import { read_secret } from "a_b";',
+      "return JSON.stringify([await proto({}), await constructor({}), await read_secret({})]);"
+    ].join("\n");
+
+    expect(lint(source, { modules: lintModules })).toEqual([]);
+    await expect(run(source, { modules })).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["proto", "constructor", "dotted"])
+    });
+  });
 });

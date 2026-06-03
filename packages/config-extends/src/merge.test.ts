@@ -321,6 +321,48 @@ describe("mergeLayers", () => {
     });
   });
 
+  it("distinguishes literal dotted keys from nested provenance paths", () => {
+    expect(
+      mergeLayers([
+        {
+          source: "literal",
+          data: {
+            "service.url": "literal-value"
+          }
+        },
+        {
+          source: "nested",
+          data: {
+            service: {
+              url: "nested-value"
+            }
+          }
+        }
+      ])
+    ).toEqual({
+      data: {
+        "service.url": "literal-value",
+        service: {
+          url: "nested-value"
+        }
+      },
+      sources: {
+        "service\\.url": "literal",
+        service: "nested",
+        "service.url": "nested"
+      }
+    });
+  });
+
+  it("rejects cyclic object layers with a controlled error", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+
+    expect(() => mergeLayers([{ source: "runtime", data: { config: cyclic } }])).toThrow(
+      "Cyclic config data is not supported."
+    );
+  });
+
   it("keeps the first nested value when both layers define the same nested key", () => {
     expect(
       mergeLayers([
@@ -485,5 +527,16 @@ describe("mergeLayers", () => {
         "a.prompt": "second"
       }
     });
+  });
+
+  it("preserves __proto__ as data without changing result prototypes", () => {
+    const malicious = JSON.parse('{"__proto__":{"polluted":"yes"}}') as Record<string, unknown>;
+    const result = mergeLayers([{ source: "document", data: malicious }]);
+
+    expect(Object.hasOwn(result.data, "__proto__")).toBe(true);
+    expect(result.data.__proto__).toEqual({ polluted: "yes" });
+    expect((result.data as { polluted?: string }).polluted).toBeUndefined();
+    expect(result.sources.__proto__).toBe("document");
+    expect(Object.getPrototypeOf(result.sources)).toBe(Object.prototype);
   });
 });

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { assertContainedPath } from "./path-boundary.js";
 
 export interface ResolveRunLogDirOptions {
   planPath: string;
@@ -8,7 +9,10 @@ export interface ResolveRunLogDirOptions {
 
 export function resolveRunLogDir(options: ResolveRunLogDirOptions): string {
   const slug = slugifyPlanPath(options.planPath);
-  return path.join(options.homeDir, ".poe-code", "logs", options.runner, slug);
+  const logRoot = path.join(options.homeDir, ".poe-code", "logs");
+  const runLogDir = path.join(logRoot, options.runner, slug);
+  assertContainedPath(logRoot, runLogDir, "Runner must remain within the log root");
+  return runLogDir;
 }
 
 export function slugifyPlanPath(planPath: string): string {

@@ -12,6 +12,17 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
   return {
     name: "docker",
     exec(spec: RunSpec): RunHandle {
+      if (spec.signal?.aborted === true) {
+        return {
+          pid: null,
+          stdin: null,
+          stdout: null,
+          stderr: null,
+          result: Promise.resolve({ exitCode: 1 }),
+          kill() {}
+        };
+      }
+
       const stdinMode = spec.stdin ?? "ignore";
       const stdoutMode = spec.stdout ?? "pipe";
       const stderrMode = spec.stderr ?? "pipe";
@@ -48,9 +59,6 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
       const result = new Promise<RunResult>((resolve) => {
         resolveResult = resolve;
       });
-      const cleanupAbort = bindAbortSignal(spec.signal, () => {
-        spawnControlCommand(engine, context, ["stop", containerName]);
-      });
       const settleResult = (exitCode: number) => {
         if (isResultSettled) {
           return;
@@ -60,6 +68,10 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
         cleanupAbort();
         resolveResult?.({ exitCode });
       };
+      const cleanupAbort = bindAbortSignal(spec.signal, () => {
+        settleResult(1);
+        spawnControlCommand(engine, context, ["stop", containerName]);
+      });
 
       child.once("error", () => {
         settleResult(1);
@@ -138,9 +150,10 @@ function spawnControlCommand(
   context: string | null,
   args: string[]
 ): void {
-  childProcess.spawn(engine, [...buildContextArgs(engine, context), ...args], {
+  const child = childProcess.spawn(engine, [...buildContextArgs(engine, context), ...args], {
     stdio: "ignore"
   });
+  child.once("error", () => undefined);
 }
 
 function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): () => void {

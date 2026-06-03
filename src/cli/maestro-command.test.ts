@@ -253,6 +253,26 @@ describe("maestro command", () => {
     expect(runMaestroTuiMock).not.toHaveBeenCalled();
   });
 
+  it("forwards root dry-run to maestro tick", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "maestro",
+      "tick",
+      "--task",
+      "maestro/one",
+      "--transition",
+      "*:queued"
+    ]);
+
+    expect(runMaestroTickMock).toHaveBeenCalledWith(
+      expect.objectContaining({ dryRun: true })
+    );
+  });
+
   it("requires task and transition for maestro tick", async () => {
     const program = createTestProgram();
 

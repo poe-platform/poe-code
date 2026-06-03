@@ -37,6 +37,7 @@ const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 export type RunSuperintendentOptions = {
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runSuperintendent(
@@ -59,7 +60,8 @@ export async function runSuperintendent(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
   const transition = extractTransition(result);
   const logPath = extractLogPath(result);
@@ -85,14 +87,14 @@ function buildTemplateContext(
 }
 
 function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
-  const servers: McpSpawnConfig = {
-    [SUPERINTENDENT_TOOLS_SERVER_NAME]: createSuperintendentToolsServer(doc)
-  };
+  const servers = Object.create(null) as McpSpawnConfig;
+  servers[SUPERINTENDENT_TOOLS_SERVER_NAME] = createSuperintendentToolsServer(doc);
 
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(doc.frontmatter.superintendent.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    doc.frontmatter.superintendent.mcp
+  );
 
   for (const [name, config] of Object.entries(merged)) {
     servers[name] = toSpawnMcpServer(config);

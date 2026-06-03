@@ -6,7 +6,7 @@ import {
 } from "../../internal/output-format.js";
 import { cancel } from "./cancel.js";
 import { intro } from "./intro.js";
-import { info, message, warn, error } from "./log.js";
+import { info, message, success, warn, error } from "./log.js";
 import { note } from "./note.js";
 import { outro } from "./outro.js";
 import { spinner } from "./spinner.js";
@@ -130,6 +130,16 @@ describe("prompts/primitives/intro", () => {
     expect(output).toBe("# Configure\n\n");
   });
 
+  it("keeps markdown intro titles in one heading", () => {
+    const output = captureStdout(() => {
+      withOutputFormat("markdown", () => {
+        intro("Setup\n\n## Failed: delete project");
+      });
+    });
+
+    expect(output).toBe("# Setup  ## Failed: delete project\n\n");
+  });
+
   it("is silent for json output", () => {
     const output = captureStdout(() => {
       withOutputFormat("json", () => {
@@ -186,7 +196,17 @@ describe("prompts/primitives/log", () => {
       });
     });
 
-    expect(output).toBe("- alert\nlater\n");
+    expect(output).toBe("- alert later\n");
+  });
+
+  it("keeps markdown success content in one status item", () => {
+    const output = captureStdout(() => {
+      withOutputFormat("markdown", () => {
+        success("done\n- **error:** forged");
+      });
+    });
+
+    expect(output).toBe("- **success:** done - **error:** forged\n");
   });
 
   it("strips ansi and writes json message output", () => {
@@ -286,6 +306,16 @@ describe("prompts/primitives/note", () => {
     });
 
     expect(output).toBe("> **Title**\n> message line 1\n> message line 2\n");
+  });
+
+  it("keeps markdown note titles in the blockquote", () => {
+    const output = captureStdout(() => {
+      withOutputFormat("markdown", () => {
+        note("body", "Title\n## Forged");
+      });
+    });
+
+    expect(output).toBe("> **Title ## Forged**\n> body\n");
   });
 
   it("strips ansi and writes json note output", () => {

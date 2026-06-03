@@ -591,7 +591,7 @@ describe("mcp proxy integration", () => {
     expect(await readNumberFile(harness.countFile)).toBe(1);
   });
 
-  it("deletes and refetches the cache when TOOLCRAFT_MCP_REFRESH matches the group name", async () => {
+  it("retains and replaces the cache when TOOLCRAFT_MCP_REFRESH matches the group name", async () => {
     const harness = await createHarness();
     harnesses.push(harness);
     setProjectRoot(harness);
@@ -611,7 +611,9 @@ describe("mcp proxy integration", () => {
 
     const pendingRefresh = resolveMcpProxies(root);
 
-    await waitFor(async () => !(await pathExists(harness.cachePath)));
+    await waitFor(async () => (await readNumberFile(harness.countFile)) === 2);
+    expect(await pathExists(harness.cachePath)).toBe(true);
+    expect((await stat(harness.cachePath)).mtimeMs).toBe(beforeRefresh.mtimeMs);
     await pendingRefresh;
 
     const afterRefresh = await stat(harness.cachePath);

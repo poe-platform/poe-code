@@ -232,8 +232,11 @@ describe("makeGitModule", () => {
         return { stdout: "" };
       },
       (call) => {
-        expect(call.args).toEqual(["stash", "drop", "stash@{0}"]);
-        return { stdout: "Dropped stash@{0}\n" };
+        expect(call.args).toEqual(["stash", "apply", "--index", "stash@{0}"]);
+        return {
+          error: createGitFailure("git failed", "", "conflict while restoring original stash"),
+          stderr: "conflict while restoring original stash"
+        };
       }
     ]);
 
@@ -242,6 +245,38 @@ describe("makeGitModule", () => {
     await expect(git.checkpoint()).rejects.toThrow(
       `git stash apply --index ${ref} failed: conflict while applying checkpoint`
     );
+    expect(execFile).toHaveBeenCalledTimes(8);
+  });
+
+  it("restores dirty work before dropping its stash when savepoint ref creation fails", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(123456789);
+    vi.spyOn(Math, "random").mockReturnValue(0.123456789);
+
+    const ref = "refs/poe-code/checkpoints/21i3v9-4fzzzxjy";
+
+    mockExecFileSequence([
+      () => ({ stdout: "base-head\n" }),
+      () => ({ stdout: " M tracked.ts\n" }),
+      () => ({ stdout: "Saved working directory and index state\n" }),
+      () => ({ stdout: "stash-oid\n" }),
+      () => ({ error: createGitFailure("git failed", "", "cannot write ref"), stderr: "cannot write ref" }),
+      (call) => {
+        expect(call.args).toEqual(["update-ref", "--delete", ref]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["stash", "apply", "--index", "stash@{0}"]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["stash", "drop", "stash@{0}"]);
+        return { stdout: "Dropped stash@{0}\n" };
+      }
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.checkpoint()).rejects.toThrow(`git update-ref ${ref} stash-oid failed: cannot write ref`);
   });
 
   it("reverts to the savepoint HEAD and reapplies the captured stash when present", async () => {
@@ -301,6 +336,15 @@ describe("makeGitModule", () => {
     await expect(git.revert(savepoint)).rejects.toThrow(
       `git stash apply --index ${savepoint.stashRef} failed: stash apply failed`
     );
+  });
+
+  it("rejects a forged savepoint ref before deleting caller-selected refs", async () => {
+    const git = makeGitModule("/repo");
+
+    await expect(git.revert({ head: "base-head", stashRef: "refs/heads/main" })).rejects.toThrow(
+      "Git savepoint stashRef must be a Poe checkpoint ref."
+    );
+    expect(execFile).not.toHaveBeenCalled();
   });
 
   it("returns the current diff against HEAD", async () => {

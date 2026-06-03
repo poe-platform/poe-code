@@ -154,6 +154,22 @@ describe("runSuperintendent", () => {
     });
   });
 
+  it("preserves MCP servers with special property names", async () => {
+    const specialMcp = JSON.parse('{"__proto__":{"command":"custom-server"}}') as SuperintendentDoc["frontmatter"]["mcp"];
+    autonomousMock.mockImplementation(async (_, { mcpServers }) => {
+      expect(Object.hasOwn(mcpServers ?? {}, "__proto__")).toBe(true);
+      expect(mcpServers?.["__proto__"]).toEqual({ command: "custom-server" });
+      return "Still planning";
+    });
+    const { runSuperintendent } = await import("./run-superintendent.js");
+
+    await runSuperintendent(
+      { ...document, frontmatter: { ...document.frontmatter, mcp: specialMcp } },
+      {},
+      { defaultCwd: "/repo/docs/plans" }
+    );
+  });
+
   it("uses an absolute cwd from the superintendent config unchanged", async () => {
     autonomousMock.mockImplementation(async (_, { cwd }) => {
       expect(cwd).toBe("/other/workspace");

@@ -79,6 +79,7 @@ export type RunCommandOptions = {
   assumeYes?: boolean;
   interactive?: boolean;
   useDashboard?: boolean;
+  dryRun?: boolean;
   env?: Record<string, string | undefined>;
   fs?: SuperintendentFileSystem;
   now?: () => number;
@@ -150,7 +151,12 @@ const runParams = S.Object({
   runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
     description: "Override runner workspace sync: both, upload, or none"
   })),
-  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
+  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the loop without launching agents or writing changes",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const runCommand = defineCommand({
@@ -182,6 +188,7 @@ export const runCommand = defineCommand({
         assumeYes: process.argv.includes("--yes"),
         interactive: Boolean(process.stdin.isTTY),
         useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+        dryRun: params.dryRun === true,
         env: process.env,
         integrations,
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
@@ -192,7 +199,7 @@ export const runCommand = defineCommand({
           )
         : await runSuperintendentCommand(runOptions);
     } finally {
-      await integrations?.shutdown();
+      await integrations?.shutdown().catch(() => undefined);
     }
   },
   render: {
@@ -268,7 +275,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
             )
           : await runSuperintendentCommand(runOptions);
       } finally {
-        await integrations?.shutdown();
+        await integrations?.shutdown().catch(() => undefined);
       }
     },
     render: runCommand.render
@@ -343,9 +350,14 @@ const configFs = {
     await fsPromises.mkdir(filePath, options);
   },
   unlink: (filePath: string) => fsPromises.unlink(filePath),
+  rename: (oldPath: string, newPath: string) => fsPromises.rename(oldPath, newPath),
   stat: async (filePath: string) => {
     const stat = await fsPromises.stat(filePath);
     return { mode: stat.mode };
+  },
+  lstat: async (filePath: string) => {
+    const stat = await fsPromises.lstat(filePath);
+    return { isSymbolicLink: () => stat.isSymbolicLink() };
   },
   readdir: (filePath: string) => fsPromises.readdir(filePath) as Promise<string[]>
 };
@@ -367,6 +379,10 @@ function createConfigResolutionFs(fs?: SuperintendentFileSystem): typeof configF
     },
     mkdir: async (filePath: string, options?: { recursive: boolean }): Promise<void> => {
       await fs.mkdir(filePath, options);
+    },
+    rename: (oldPath: string, newPath: string) => fs.rename(oldPath, newPath),
+    lstat: async (filePath: string) => {
+      return fs.lstat(filePath);
     }
   };
 }
@@ -435,6 +451,15 @@ export async function runSuperintendentCommand(
   }
 
   const selectedBuilderAgent = selectedBuilder.agent;
+
+  if (options.dryRun === true) {
+    return {
+      ...createLoopState(document),
+      stopReason: "dry_run",
+      docPath: selectedDocPath,
+      builderAgent: selectedBuilderAgent
+    };
+  }
 
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;
@@ -1274,6 +1299,10 @@ function createDefaultFs(): SuperintendentFileSystem {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
+    },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     mkdir: async (filePath: string, mkdirOptions?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, mkdirOptions);

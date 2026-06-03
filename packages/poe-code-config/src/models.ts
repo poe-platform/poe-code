@@ -1,5 +1,5 @@
 import type { FileSystem } from "@poe-code/config-mutations";
-import { readDocument, writeScope } from "./store.js";
+import { readDocument, readDocumentReadonly, writeScope } from "./store.js";
 
 const SCOPE = "models";
 const DEFAULT_KEY = "default";
@@ -7,6 +7,7 @@ const DEFAULT_KEY = "default";
 export interface ModelsConfigOptions {
   fs: FileSystem;
   filePath: string;
+  readOnly?: boolean;
 }
 
 export async function loadAgentModel(
@@ -59,6 +60,7 @@ export async function saveDefaultModel(
 async function readModelsScope(
   options: ModelsConfigOptions
 ): Promise<Record<string, unknown>> {
-  const document = await readDocument(options.fs, options.filePath);
+  const readConfigDocument = options.readOnly ? readDocumentReadonly : readDocument;
+  const document = await readConfigDocument(options.fs, options.filePath);
   return document[SCOPE] ?? {};
 }

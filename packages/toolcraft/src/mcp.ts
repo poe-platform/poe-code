@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import {
   createServer,
   JSON_RPC_ERROR_CODES,
@@ -200,7 +200,10 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    }
+    },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path)
   };
 }
 
@@ -310,6 +313,28 @@ function formatToolName(path: string[]): string {
   return path.map((segment) => formatSegment(segment, "snake")).join("__");
 }
 
+function validateUniqueMCPParameterFields(schema: ObjectSchema<any>, casing: Casing): void {
+  const sourceKeysByField = new Map<string, string>();
+
+  for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
+    const field = formatSegment(key, casing);
+    const existingKey = sourceKeysByField.get(field);
+
+    if (existingKey !== undefined) {
+      throw new UserError(
+        `Parameters "${existingKey}" and "${key}" use conflicting MCP field "${field}".`
+      );
+    }
+
+    sourceKeysByField.set(field, key);
+
+    const childSchema = unwrapOptional(rawChildSchema);
+    if (childSchema.kind === "object") {
+      validateUniqueMCPParameterFields(childSchema, casing);
+    }
+  }
+}
+
 function enumerateTools<TServices extends object>(
   root: Group<TServices>,
   casing: Casing,
@@ -317,6 +342,7 @@ function enumerateTools<TServices extends object>(
   omitRootToolNamePrefix: boolean
 ): ToolDefinition<TServices>[] {
   const tools: ToolDefinition<TServices>[] = [];
+  const commandPathsByToolName = new Map<string, string>();
 
   function visit(
     node: Command<TServices, any, any, any> | Group<TServices>,
@@ -340,9 +366,21 @@ function enumerateTools<TServices extends object>(
         );
       }
 
+      validateUniqueMCPParameterFields(params, casing);
+
+      const resolvedCommandPath = [...commandPath, node.name].join(".");
+      const existingPath = commandPathsByToolName.get(name);
+      if (existingPath !== undefined) {
+        throw new UserError(
+          `MCP commands "${existingPath}" and "${resolvedCommandPath}" use conflicting tool name "${name}".`
+        );
+      }
+
+      commandPathsByToolName.set(name, resolvedCommandPath);
+
       tools.push({
         command: node,
-        commandPath: [...commandPath, node.name].join("."),
+        commandPath: resolvedCommandPath,
         name,
         description: buildToolDescription(node.description, params, casing),
         inputSchema: applySchemaCasing(toJsonSchema(params), casing)
@@ -559,7 +597,12 @@ function validateObjectSchema(
 
     if (!hasValue) {
       if (childSchema.default !== undefined) {
-        result[outputKey] = childSchema.default;
+        Object.defineProperty(result, outputKey, {
+          value: childSchema.default,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
         continue;
       }
 
@@ -571,13 +614,12 @@ function validateObjectSchema(
       continue;
     }
 
-    result[outputKey] = validateSchemaValue(
-      rawChildSchema,
-      value[inputKey],
-      casing,
-      fieldLabel,
-      errors
-    );
+    Object.defineProperty(result, outputKey, {
+      value: validateSchemaValue(rawChildSchema, value[inputKey], casing, fieldLabel, errors),
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return result;
@@ -668,7 +710,11 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     options.omitRootToolNamePrefix ?? false
   );
   const version = resolveMCPVersion(options.version);
-  const server = createServer({ name: options.name, version });
+  const server = createServer({
+    name: options.name,
+    version,
+    validateToolArguments: false
+  });
 
   for (const tool of tools) {
     server.tool(

@@ -26,6 +26,12 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("overwrites visible text after a carriage return", () => {
+    expect(parseAnsi("\u001b[32mloading 0%\rloading 100%\u001b[0m")).toEqual([
+      { segments: [{ text: "loading 100%", style: { fg: "green" } }] }
+    ]);
+  });
+
   it("applies basic 16-color SGR codes", () => {
     const result = parseAnsi("\u001b[31mred\u001b[0m plain");
     expect(result).toEqual([
@@ -63,6 +69,25 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("conceals text until SGR conceal is reset", () => {
+    const result = parseAnsi("\u001b[8mtoken=secret\u001b[28m shown");
+    expect(result).toEqual([
+      { segments: [{ text: "             shown", style: {} }] }
+    ]);
+  });
+
+  it("preserves reverse video until SGR inverse is reset", () => {
+    const result = parseAnsi("\u001b[7mSELECTED\u001b[27m plain");
+    expect(result).toEqual([
+      {
+        segments: [
+          { text: "SELECTED", style: { inverse: true } },
+          { text: " plain", style: {} }
+        ]
+      }
+    ]);
+  });
+
   it("handles bright foreground colors via 90-97", () => {
     const result = parseAnsi("\u001b[93mbright");
     expect(result).toEqual([
@@ -74,6 +99,13 @@ describe("parseAnsi", () => {
     const result = parseAnsi("\u001b[38;2;255;128;0morange");
     expect(result).toEqual([
       { segments: [{ text: "orange", style: { fg: "#ff8000" } }] }
+    ]);
+  });
+
+  it("handles 24-bit truecolor via colon-separated SGR parameters", () => {
+    const result = parseAnsi("\u001b[38:2::255:0:0mred");
+    expect(result).toEqual([
+      { segments: [{ text: "red", style: { fg: "#ff0000" } }] }
     ]);
   });
 
@@ -127,10 +159,16 @@ describe("parseAnsi", () => {
     ]);
   });
 
-  it("discards non-SGR CSI sequences", () => {
+  it("erases the current line for CSI 2 K", () => {
     const result = parseAnsi("before\u001b[2Kafter");
     expect(result).toEqual([
-      { segments: [{ text: "beforeafter", style: {} }] }
+      { segments: [{ text: "      after", style: {} }] }
+    ]);
+  });
+
+  it("applies backspace overstrikes to visible text", () => {
+    expect(parseAnsi("ok\bX")).toEqual([
+      { segments: [{ text: "oX", style: {} }] }
     ]);
   });
 
@@ -141,10 +179,10 @@ describe("parseAnsi", () => {
     ]);
   });
 
-  it("discards control characters other than newline and tab", () => {
+  it("discards non-rendering controls while applying backspace", () => {
     const result = parseAnsi("a\u0000b\u0008c\td");
     expect(result).toEqual([
-      { segments: [{ text: "abc\td", style: {} }] }
+      { segments: [{ text: "ac\td", style: {} }] }
     ]);
   });
 

@@ -18,7 +18,7 @@ function parseScore(stdout: string): number | null {
 
   const score = Number(scoreLine);
 
-  return Number.isNaN(score) ? null : score;
+  return Number.isFinite(score) ? score : null;
 }
 
 const DEFAULT_METRIC_TIMEOUT_MS = 180_000;
@@ -35,7 +35,7 @@ async function runMetric(
     timeout
   });
   const score = parseScore(stdout);
-  const timedOut = exitCode !== 0 && score === null && stdout.length === 0;
+  const timedOut = exitCode !== 0 && score === null && stdout.length === 0 && stderr.length === 0;
   const timeoutHint = timedOut
     ? `\nMetric timed out after ${timeout / 1000}s. Increase timeout via metric_timeout in experiment frontmatter.`
     : "";

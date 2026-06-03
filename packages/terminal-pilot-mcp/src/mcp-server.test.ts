@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { runMCPMock, terminalPilotGroupMock } = vi.hoisted(() => ({
+const { createTerminalPilotGroupMock, runMCPMock, terminalPilotGroupMock } = vi.hoisted(() => ({
+  createTerminalPilotGroupMock: vi.fn(),
   runMCPMock: vi.fn<() => Promise<void>>(),
-  terminalPilotGroupMock: { name: "terminal-pilot" }
+  terminalPilotGroupMock: { name: "terminal-pilot", children: [] }
 }));
 
 vi.mock("toolcraft/mcp", () => ({
@@ -10,11 +11,12 @@ vi.mock("toolcraft/mcp", () => ({
 }));
 
 vi.mock("terminal-pilot/commands", () => ({
-  terminalPilotGroup: terminalPilotGroupMock
+  createTerminalPilotGroup: createTerminalPilotGroupMock
 }));
 
 describe("terminal-pilot-mcp entry point", () => {
   beforeEach(() => {
+    createTerminalPilotGroupMock.mockReset().mockReturnValue(terminalPilotGroupMock);
     runMCPMock.mockReset();
     runMCPMock.mockResolvedValue(undefined);
     vi.resetModules();
@@ -25,8 +27,9 @@ describe("terminal-pilot-mcp entry point", () => {
 
     await main();
 
+    expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runMCPMock).toHaveBeenCalledTimes(1);
-    expect(runMCPMock).toHaveBeenCalledWith(terminalPilotGroupMock, {
+    expect(runMCPMock).toHaveBeenCalledWith(expect.objectContaining({ name: "" }), {
       name: "terminal-pilot",
       version: "0.0.1",
       omitRootToolNamePrefix: true

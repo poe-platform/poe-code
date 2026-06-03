@@ -104,10 +104,9 @@ describe("createSecretStore", () => {
       "my-app",
       "-a",
       "secret",
-      "-w",
-      "keychain-secret",
-      "-U"
-    ]);
+      "-U",
+      "-w"
+    ], { stdin: "keychain-secret" });
   });
 
   it("throws when keychain backend is requested on non-macOS", () => {
@@ -140,6 +139,14 @@ describe("createSecretStore", () => {
     });
 
     expect(result.backend).toBe("keychain");
+  });
+
+  it("rejects unsupported backend environment values", () => {
+    expect(() => createSecretStore({
+      backendEnvVar: "MY_AUTH_BACKEND",
+      env: { MY_AUTH_BACKEND: "keychian" },
+      fileStore: { salt: "unused" }
+    })).toThrow("Unsupported auth store backend: keychian");
   });
 });
 
@@ -245,6 +252,158 @@ describe("EncryptedFileStore", () => {
     expect(stats.mode & 0o777).toBe(0o600);
   });
 
+  it("rejects a symlinked credential file before overwriting its target", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    await fs.mkdir("/home/test/.app", { recursive: true });
+    await fs.writeFile("/outside.enc", "sentinel", { encoding: "utf8" });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside.enc",
+      filePath
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside.enc", "utf8")).resolves.toBe("sentinel");
+  });
+
+  it("rejects reads, writes, and deletes through a symlinked state directory", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/home/test", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/home/test/.app"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(store.get()).rejects.toThrow(/symbolic link/i);
+    await expect(store.delete()).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("allows credentials beneath a symlinked operating-system path ancestor", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/private/var/tmp/home/.app", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/private/var",
+      "/var"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/var/tmp/home/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("secret-value");
+
+    await expect(store.get()).resolves.toBe("secret-value");
+  });
+
+  it("removes a new credential when permission hardening fails", async () => {
+    let storedContent: string | undefined;
+    const fs: EncryptedFileStoreFileSystem = {
+      readFile: vi.fn(async () => {
+        if (storedContent === undefined) {
+          throw Object.assign(new Error("missing"), { code: "ENOENT" });
+        }
+        return storedContent;
+      }),
+      mkdir: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
+      lstat: vi.fn(async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); }),
+      writeFile: vi.fn(async (_filePath, data) => { storedContent = String(data); }),
+      chmod: vi.fn(async () => { throw new Error("chmod denied"); }),
+      unlink: vi.fn(async () => { storedContent = undefined; })
+    };
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host", username: "user" })
+    });
+
+    await expect(store.set("secret")).rejects.toThrow("chmod denied");
+    await expect(store.get()).resolves.toBeNull();
+    expect(fs.unlink).toHaveBeenCalledWith(expect.stringMatching(/^\/credentials\.enc\..+\.tmp$/));
+  });
+
+  it("preserves the previous credential when a rotation write fails", async () => {
+    const baseFs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const common = {
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host", username: "user" }),
+      getRandomBytes: () => Buffer.alloc(12, 1)
+    };
+    const original = new EncryptedFileStore({ ...common, fs: baseFs });
+
+    await original.set("old-secret");
+
+    const fs: EncryptedFileStoreFileSystem = {
+      ...baseFs,
+      async writeFile(targetPath, _data, options) {
+        await baseFs.writeFile(targetPath, "{", options);
+        throw new Error("credential disk full");
+      }
+    };
+    const rotating = new EncryptedFileStore({ ...common, fs });
+
+    await expect(rotating.set("new-secret")).rejects.toThrow("credential disk full");
+    await expect(original.get()).resolves.toBe("old-secret");
+  });
+
+  it("does not share cached keys between ambiguous identity tuples", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/collision.enc";
+    const writer = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: "d",
+      getMachineIdentity: () => ({ hostname: "a", username: "b:c" })
+    });
+    const reader = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: "c:d",
+      getMachineIdentity: () => ({ hostname: "a", username: "b" })
+    });
+
+    await writer.set("credential");
+
+    await expect(reader.get()).resolves.toBeNull();
+  });
+
+  it("retries encryption-key derivation after a transient failure", async () => {
+    const fs = createStatMemFs();
+    const getMachineIdentity = vi.fn()
+      .mockRejectedValueOnce(new Error("identity unavailable"))
+      .mockResolvedValue({ hostname: "host", username: "user" });
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/retry.enc",
+      salt: "retry-salt",
+      getMachineIdentity
+    });
+
+    await expect(store.set("credential")).rejects.toThrow("identity unavailable");
+    await expect(store.set("credential")).resolves.toBeUndefined();
+    expect(getMachineIdentity).toHaveBeenCalledTimes(2);
+  });
+
   it("returns null instead of throwing when decryption fails", async () => {
     const fs = createStatMemFs();
     const filePath = "/home/test/.app/credentials.enc";
@@ -305,10 +464,10 @@ describe("KeychainStore", () => {
       "my-app",
       "-a",
       "secret",
-      "-w",
-      "my-secret-value",
-      "-U"
-    ]);
+      "-U",
+      "-w"
+    ], { stdin: "my-secret-value" });
+    expect(runCommand.mock.calls[0]?.[1]).not.toContain("my-secret-value");
   });
 
   it("reads secret with security find-generic-password", async () => {
@@ -328,6 +487,16 @@ describe("KeychainStore", () => {
       "secret",
       "-w"
     ]);
+  });
+
+  it("rejects secrets with trailing line breaks before writing", async () => {
+    const runCommand = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.set("my-secret-value\n")).rejects.toThrow(
+      "Keychain secrets cannot contain line breaks"
+    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("returns null when keychain entry is not found", async () => {
@@ -369,6 +538,17 @@ describe("KeychainStore", () => {
     const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
 
     await expect(store.delete()).resolves.toBeUndefined();
+  });
+
+  it("does not suppress unrelated delete failures mentioning missing items", async () => {
+    const runCommand = vi.fn(async () => ({
+      stdout: "",
+      stderr: "authorization denied while resolving item not found in audit context",
+      exitCode: 1
+    }));
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.delete()).rejects.toThrow("Failed to delete secret from macOS Keychain");
   });
 
   it("throws helpful error for security CLI failures", async () => {

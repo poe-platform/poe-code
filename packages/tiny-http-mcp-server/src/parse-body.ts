@@ -8,6 +8,7 @@ import type {
 } from "tiny-stdio-mcp-server";
 
 export interface ClassifiedBody {
+  entries: Array<JSONRPCMessage | null>;
   messages: JSONRPCMessage[];
   hasRequests: boolean;
   hasNotifications: boolean;
@@ -130,6 +131,8 @@ export async function readAndClassifyBody(
 ): Promise<ClassifiedBody> {
   const body = await readRawBody(req, preParsed);
   const inputMessages = toMessageList(body);
+  const isBatch = Array.isArray(body);
+  const entries: Array<JSONRPCMessage | null> = [];
   const requests: JSONRPCRequest[] = [];
   const notifications: JSONRPCNotification[] = [];
   const responses: JSONRPCResponse[] = [];
@@ -139,32 +142,46 @@ export async function readAndClassifyBody(
     if (isValidResponse(message)) {
       responses.push(message);
       messages.push(message);
+      entries.push(message);
       continue;
     }
 
     if (hasResponseFields(message)) {
-      throw new Error("Invalid Request");
+      if (!isBatch) {
+        throw new Error("Invalid Request");
+      }
+
+      entries.push(null);
+      continue;
     }
 
     const parsed = parseMessage(JSON.stringify(message));
 
     if (!parsed.success) {
-      throw new Error(parsed.error.message);
+      if (!isBatch) {
+        throw new Error(parsed.error.message);
+      }
+
+      entries.push(null);
+      continue;
     }
 
     if (parsed.isNotification) {
       const notification = parsed.request as JSONRPCNotification;
       notifications.push(notification);
       messages.push(notification);
+      entries.push(notification);
       continue;
     }
 
     const request = parsed.request as JSONRPCRequest;
     requests.push(request);
     messages.push(request);
+    entries.push(request);
   }
 
   return {
+    entries,
     messages,
     hasRequests: requests.length > 0,
     hasNotifications: notifications.length > 0,

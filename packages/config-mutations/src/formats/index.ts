@@ -23,7 +23,7 @@ const extensionMap: Record<string, FormatName> = {
  */
 export function getConfigFormat(pathOrFormat: string): ConfigFormat {
   // Check if it's an explicit format name
-  if (pathOrFormat in formatRegistry) {
+  if (Object.prototype.hasOwnProperty.call(formatRegistry, pathOrFormat)) {
     return formatRegistry[pathOrFormat as FormatName];
   }
 

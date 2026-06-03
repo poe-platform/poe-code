@@ -1,6 +1,7 @@
+import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, test } from "vitest";
 
-import { parseMetadata } from "./generate-pr-metadata.cjs";
+import { parseMetadata, writeMetadataOutput } from "./generate-pr-metadata.cjs";
 
 describe("parseMetadata", () => {
   test("extracts metadata when payload only contains JSON", () => {
@@ -33,5 +34,19 @@ describe("parseMetadata", () => {
       title: "feat: add Kimi CLI provider support",
       body: "## Summary\n- Supports multiple models"
     });
+  });
+});
+
+describe("writeMetadataOutput", () => {
+  test("refuses to append metadata through a symbolic link", () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+
+    expect(() =>
+      writeMetadataOutput("/github/output", { title: "Fix probe", body: "## Summary" }, memoryFs)
+    ).toThrow("symbolic link");
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
   });
 });

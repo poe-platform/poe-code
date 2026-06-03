@@ -6,7 +6,7 @@ import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "../index.js";
 import { enqueueApproval } from "./approval-tasks.js";
 import { approvalStateMachine } from "./state-machine.js";
-import { approvalsGroup } from "./approvals-commands.js";
+import { approvalsGroup, mergeApprovalsGroup } from "./approvals-commands.js";
 
 const loggerState = {
   error: [] as string[]
@@ -132,6 +132,21 @@ describe("approvals built-in commands", () => {
     }
   });
 
+  it("composes approval commands without mutating a frozen root group", () => {
+    const root = Object.freeze(
+      defineGroup({
+        name: "root",
+        children: []
+      })
+    );
+
+    const merged = mergeApprovalsGroup(root);
+
+    expect(merged).not.toBe(root);
+    expect(merged.children.map((child) => child.name)).toContain("approvals");
+    expect(root.children).toEqual([]);
+  });
+
   it("lists approvals and applies single and multiple state filters", async () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const tasks = taskList.list("approvals");
@@ -146,11 +161,13 @@ describe("approvals built-in commands", () => {
       message: "declined"
     });
 
-    await tasks.fire(runningId, "start", {
+    await tasks.fire(runningId, "claim", {
       metadataPatch: {
         pid: 123
       }
     });
+    await tasks.fire(runningId, "start");
+    await tasks.fire(declinedId, "claim");
     await tasks.fire(declinedId, "decline", {
       metadataPatch: {
         error: {
@@ -352,6 +369,37 @@ describe("approvals built-in commands", () => {
       show: expect.any(Function)
     });
     expect("run" in (sdk.approvals as Record<string, unknown>)).toBe(false);
+  });
+
+  it("previews approvals.run without prompting or transitioning state during dry run", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const provider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" as const }))
+    };
+    const handler = vi.fn(async () => ({ ok: true }));
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [defineCommand({ name: "deploy", params: S.Object({}), handler })]
+    });
+    const approvalId = await enqueueDemoApproval(taskList, { commandPath: "deploy" });
+    const runCommand = getApprovalCommand("run");
+
+    const result = await runCommand.handler({
+      runtimeOptions: { taskList, provider },
+      root,
+      params: { approvalId, dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: { readFile: vi.fn(), writeFile: vi.fn(), exists: vi.fn() },
+      env: { get: vi.fn() },
+      progress: vi.fn()
+    } as unknown as Parameters<typeof runCommand.handler>[0]);
+
+    expect(provider.requestApproval).not.toHaveBeenCalled();
+    expect(handler).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ id: approvalId, state: "pending" });
+    await expect(taskList.list("approvals").get(approvalId)).resolves.toMatchObject({ state: "pending" });
   });
 
   it("throws from approvals.run when the runtime task list is unset", async () => {

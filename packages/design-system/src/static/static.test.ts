@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { renderMenu } from "./menu.js";
-import { renderSpinnerFrame, renderSpinnerStopped } from "./spinner.js";
+import { SPINNER_FRAMES, renderSpinnerFrame, renderSpinnerStopped } from "./spinner.js";
 
 function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR", value: string | undefined): void {
   if (value === undefined) {
@@ -57,6 +57,18 @@ describe("static/menu", () => {
     expect(output).toBe(["**Pick an agent:**", "- [x] Claude Code", "- [ ] Codex CLI"].join("\n"));
   });
 
+  it("keeps markdown menu options on their own rows", () => {
+    const output = withOutputFormat("markdown", () =>
+      renderMenu({
+        message: "Pick an agent:",
+        options: [{ value: "safe", label: "Safe\n- [x] Forged" }],
+        selectedIndex: 0
+      })
+    );
+
+    expect(output).toBe(["**Pick an agent:**", "- [x] Safe - [x] Forged"].join("\n"));
+  });
+
   it("renders json menu output", () => {
     const output = withOutputFormat("json", () =>
       renderMenu({
@@ -74,6 +86,14 @@ describe("static/menu", () => {
         selected: 1
       })
     );
+  });
+
+  it("rejects a non-finite menu selection index", () => {
+    expect(() =>
+      withOutputFormat("json", () =>
+        renderMenu({ message: "Pick an agent:", options, selectedIndex: Number.NaN })
+      )
+    ).toThrow("selectedIndex must be a finite integer");
   });
 });
 
@@ -111,6 +131,32 @@ describe("static/spinner", () => {
     );
   });
 
+  it("cycles negative terminal spinner frame indexes", () => {
+    const frame = withOutputFormat("terminal", () =>
+      renderSpinnerFrame({ frame: -1, message: "Loading" })
+    );
+
+    expect(frame).toContain("◑");
+    expect(frame).not.toContain("undefined");
+  });
+
+  it("prevents exported spinner frames from changing terminal renders", () => {
+    const originalFrame = SPINNER_FRAMES[0];
+
+    try {
+      expect(Reflect.set(SPINNER_FRAMES, "0", "UNTRUSTED")).toBe(false);
+
+      const frame = withOutputFormat("terminal", () =>
+        renderSpinnerFrame({ frame: 0, message: "Loading" })
+      );
+
+      expect(frame).toContain(originalFrame);
+      expect(frame).not.toContain("UNTRUSTED");
+    } finally {
+      Reflect.set(SPINNER_FRAMES, "0", originalFrame);
+    }
+  });
+
   it("renders markdown spinner output", () => {
     const frame = withOutputFormat("markdown", () =>
       renderSpinnerFrame({ message: "Loading", timer: "1s" })
@@ -121,6 +167,14 @@ describe("static/spinner", () => {
 
     expect(frame).toBe("- Loading [1s]...\n");
     expect(stopped).toBe("- Done [2s]\n");
+  });
+
+  it("keeps stopped markdown spinner messages in one item", () => {
+    const stopped = withOutputFormat("markdown", () =>
+      renderSpinnerStopped({ message: "Done\n- **error:** deploy failed", code: 0 })
+    );
+
+    expect(stopped).toBe("- Done - **error:** deploy failed\n");
   });
 
   it("renders json spinner output", () => {
@@ -144,8 +198,23 @@ describe("static/spinner", () => {
         type: "spinner",
         state: "stopped",
         message: "Done",
+        code: 0,
         timer: "2s"
       })}\n`
     );
+  });
+
+  it("preserves stopped spinner failures in json output", () => {
+    const stopped = withOutputFormat("json", () =>
+      renderSpinnerStopped({ message: "Failed", code: 17, subtext: "command failed" })
+    );
+
+    expect(JSON.parse(stopped)).toEqual({
+      type: "spinner",
+      state: "stopped",
+      message: "Failed",
+      code: 17,
+      subtext: "command failed"
+    });
   });
 });

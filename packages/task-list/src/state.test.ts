@@ -38,6 +38,20 @@ function transition(from: TaskState, to: TaskState): TaskState {
 }
 
 describe("assertTransition", () => {
+  it("does not allow mutation through the exported default state machine", () => {
+    expect(() => {
+      (defaultStateMachine.events.plan as { to: string }).to = "archived";
+    }).toThrow();
+    expect(() => {
+      (defaultStateMachine.events.plan.from as string[]).push("archived");
+    }).toThrow();
+
+    expect(defaultStateMachine.events.plan).toEqual({
+      from: ["draft"],
+      to: "planned"
+    });
+  });
+
   it("preserves the legacy legal transition matrix", () => {
     expect([...allowedTargets("draft")]).toEqual(["planned", "archived"]);
     expect([...allowedTargets("planned")]).toEqual(["in-progress", "archived", "draft"]);

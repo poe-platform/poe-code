@@ -22,6 +22,15 @@ function createMemFs(): FileSystem {
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
+async function configureService(fs: FileSystem, service: string, provider: string): Promise<void> {
+  const apiShape = service === "gemini-cli" ? "google-generations" : "anthropic-messages";
+  await fs.mkdir("/home/test/.poe-code", { recursive: true });
+  await fs.writeFile(
+    "/home/test/.poe-code/config.json",
+    JSON.stringify({ configured_services: { [service]: { provider, apiShape, files: [] } } })
+  );
+}
+
 describe("wrap command", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -42,7 +51,7 @@ describe("wrap command", () => {
     ).rejects.toThrow("STOP_WRAP");
 
     expect(ensure.ensureIsolatedConfigForService).toHaveBeenCalledWith(
-      expect.objectContaining({ service: "codex", refresh: true })
+      expect.objectContaining({ service: "codex", refresh: false })
     );
 
     expect(runner.isolatedEnvRunner).toHaveBeenCalledWith(
@@ -74,4 +83,51 @@ describe("wrap command", () => {
       })
     );
   });
+
+  it("does not execute the wrapped binary during dry-run previews", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: (message) => logs.push(message),
+      commandRunner: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "wrap", "opencode", "--", "run", "hello"]);
+
+    expect(runner.isolatedEnvRunner).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run opencode run hello.");
+  });
+
+  it.each([
+    ["claude-code", "poe", { POE_API_KEY: "sk-wrap" }],
+    [
+      "gemini-cli",
+      "cloudflare",
+      { CF_AIG_TOKEN: "sk-wrap", CF_AIG_BASE_URL: "https://gateway.example.test/poe" }
+    ]
+  ])("passes provider context to the %s isolated runner", async (service, provider, variables) => {
+      const fs = createMemFs();
+      await configureService(fs, service, provider);
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd: "/repo", homeDir: "/home/test", variables },
+        logger: () => {},
+        commandRunner: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+      });
+
+      await expect(program.parseAsync(["node", "cli", "wrap", service])).rejects.toThrow(
+        "STOP_WRAP"
+      );
+
+      expect(runner.isolatedEnvRunner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          providerName: service,
+          activeProvider: expect.objectContaining({ credential: "sk-wrap" })
+        })
+      );
+    });
 });

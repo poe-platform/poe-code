@@ -93,6 +93,22 @@ describe("makeExecuteCommand", () => {
     });
   });
 
+  it("returns lint diagnostics instead of rejecting malformed source", async () => {
+    const result = await runExecute("return (");
+
+    expect(result).toMatchObject({
+      ok: false,
+      kind: "lint",
+      diagnostics: [
+        expect.objectContaining({
+          code: "AS001",
+          severity: "error",
+          filename: "<execute>"
+        })
+      ]
+    });
+  });
+
   it("returns runtime errors from host call failures", async () => {
     const fail = vi.fn(async () => {
       throw new Error("host exploded");

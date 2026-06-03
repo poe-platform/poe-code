@@ -27,9 +27,11 @@ function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
       fs.readFile(p, encoding) as Promise<string>,
     writeFile: (p: string, data: string) =>
       fs.writeFile(p, data) as Promise<void>,
+    rename: (from: string, to: string) => fs.rename(from, to) as Promise<void>,
     mkdir: (p: string, options?: { recursive?: boolean }) =>
       fs.mkdir(p, options) as Promise<void>,
     unlink: (p: string) => fs.unlink(p) as Promise<void>,
+    realpath: (p: string) => fs.realpath(p) as Promise<string>,
   };
 }
 
@@ -160,6 +162,23 @@ describe("fetchFromApi", () => {
     ).rejects.toThrow("Request timed out after 1000ms");
   });
 
+  it("normalizes Error-shaped AbortError timeout failures", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(Object.assign(new Error("aborted by signal"), { name: "AbortError" }));
+        });
+      })
+    );
+
+    await expect(
+      fetchFromApi(
+        { apiEndpoint: "https://api.example.com/data", fetchTimeout: 1 },
+        { fetch: mockFetch },
+      ),
+    ).rejects.toThrow("Request timed out after 1ms");
+  });
+
   it("rethrows non-abort errors as-is", async () => {
     const networkError = new Error("Network failure");
     const mockFetch = vi
@@ -172,6 +191,13 @@ describe("fetchFromApi", () => {
         { fetch: mockFetch },
       ),
     ).rejects.toThrow("Network failure");
+  });
+
+  it("rejects non-finite timeout values", async () => {
+    await expect(fetchFromApi(
+      { apiEndpoint: "https://api.example.com/data", fetchTimeout: Infinity },
+      { fetch: createMockFetch([]) },
+    )).rejects.toThrow("fetchTimeout");
   });
 });
 
@@ -205,6 +231,18 @@ describe("createRevalidator", () => {
 
     expect(firstCallback).toHaveBeenCalledOnce();
     expect(secondCallback).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates a synchronous reentrant trigger for the same key", async () => {
+    const revalidator = createRevalidator();
+    const nested = vi.fn().mockResolvedValue(undefined);
+    const first = vi.fn(async () => revalidator.trigger("key", nested));
+
+    revalidator.trigger("key", first);
+    await revalidator.waitForRevalidation();
+
+    expect(first).toHaveBeenCalledOnce();
+    expect(nested).not.toHaveBeenCalled();
   });
 
   it("allows new revalidation after previous one completes", async () => {
@@ -243,6 +281,24 @@ describe("createRevalidator", () => {
 
     expect(callbackA).toHaveBeenCalledOnce();
     expect(callbackB).toHaveBeenCalledOnce();
+  });
+
+  it("waits for nested revalidation work", async () => {
+    const revalidator = createRevalidator();
+    let releaseNested!: () => void;
+    revalidator.trigger("first", async () => {
+      revalidator.trigger("nested", () => new Promise<void>((resolve) => { releaseNested = resolve; }));
+    });
+
+    const waiting = revalidator.waitForRevalidation();
+    await Promise.resolve();
+    await Promise.resolve();
+    let resolved = false;
+    waiting.then(() => { resolved = true; });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+    releaseNested();
+    await waiting;
   });
 
   it("waitForRevalidation resolves immediately when no inflight requests", async () => {
@@ -388,9 +444,9 @@ describe("resolveData", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("preferOffline option returns bundled data instead of fetching when no cache exists", async () => {
+  it("preferOffline fetches data when no cache exists", async () => {
     const memoryCache = createMockMemoryCache<string[]>();
-    const mockFetch = createMockFetch(["should-not-reach"]);
+    const mockFetch = createMockFetch(["net-a"]);
 
     const result = await resolveData(
       bundledData,
@@ -399,9 +455,8 @@ describe("resolveData", () => {
       { preferOffline: true },
     );
 
-    expect(result.data).toEqual(bundledData);
-    expect(result.timestamp).toBe(0);
-    expect(mockFetch).not.toHaveBeenCalled();
+    expect(result.data).toEqual(["net-a"]);
+    expect(mockFetch).toHaveBeenCalledOnce();
   });
 
   it("preferOffline returns memory-cached data if available", async () => {
@@ -532,6 +587,13 @@ describe("resolveData", () => {
       await revalidator.waitForRevalidation();
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-finite fresh ttl values", async () => {
+      await expect(resolveData(bundledData, { ...defaultConfig, freshTtl: Number.NaN }, {
+        memoryCache: createMockMemoryCache<string[]>(),
+        fs: createMemFs(),
+      })).rejects.toThrow("freshTtl");
     });
 
     it("concurrent revalidation requests are deduplicated", async () => {
@@ -757,7 +819,26 @@ describe("createCachedResource", () => {
     ).rejects.toThrow();
   });
 
-  it("clear silently ignores filesystem delete errors", async () => {
+  it("clear waits for inflight revalidation before clearing both cache tiers", async () => {
+    const staleCached: CachedData<string[]> = {
+      data: ["stale-a"],
+      timestamp: Date.now() - defaultConfig.freshTtl - 1,
+    };
+    const memFs = createMemFs({ "/cache/test.json": JSON.stringify(staleCached) });
+    let resolveFetch!: (response: Response) => void;
+    const fetch = vi.fn(() => new Promise<Response>((resolve) => { resolveFetch = resolve; }));
+    const resource = createCachedResource(bundledData, defaultConfig, { fs: memFs, fetch });
+
+    await resource.get();
+    const clearing = resource.clear();
+    resolveFetch({ ok: true, json: async () => ["fresh-a"] } as Response);
+    await clearing;
+
+    expect(resource.stats().memoryCacheSize).toBe(0);
+    await expect(memFs.readFile("/cache/test.json", "utf8")).rejects.toThrow();
+  });
+
+  it("clear reports filesystem delete errors", async () => {
     const memFs = createMemFs();
     memFs.unlink = () => Promise.reject(new Error("permission denied"));
     const mockFetch = createMockFetch(["net-a"]);
@@ -768,8 +849,21 @@ describe("createCachedResource", () => {
 
     await resource.get();
 
-    await expect(resource.clear()).resolves.not.toThrow();
+    await expect(resource.clear()).rejects.toThrow("permission denied");
     expect(resource.stats().memoryCacheSize).toBe(0);
+  });
+
+  it("isolates returned values from the memory cache", async () => {
+    const resource = createCachedResource({ items: ["fresh"] }, defaultConfig, {
+      fs: createMemFs(),
+      fetch: createMockFetch({ items: ["fresh"] }),
+    });
+
+    const first = await resource.get();
+    first.data.items.push("mutated");
+    const second = await resource.get();
+
+    expect(second.data.items).toEqual(["fresh"]);
   });
 
   it("stats returns memory cache size, max, and cache directory", async () => {
@@ -839,6 +933,42 @@ describe("loadFromDisk", () => {
     expect(result).toBeNull();
   });
 
+  it("rejects non-finite stale ttl values", async () => {
+    await expect(loadFromDisk<string[]>(
+      { cacheDir: "/cache", cacheName: "test", staleTtl: Number.NaN },
+      { fs: createMemFs() },
+    )).rejects.toThrow("staleTtl");
+  });
+
+  it("returns null when the timestamp is in the future", async () => {
+    const fs = createMemFs({
+      "/cache/test.json": JSON.stringify({ data: ["a"], timestamp: Date.now() + 60_000 }),
+    });
+
+    await expect(
+      loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "test", staleTtl: 60_000 }, { fs }),
+    ).resolves.toBeNull();
+  });
+
+  it("returns null when required cache fields are missing", async () => {
+    for (const content of ['{"timestamp":1}', '{"data":["a"]}']) {
+      const fs = createMemFs({ "/cache/test.json": content });
+      await expect(
+        loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "test", staleTtl: 60_000 }, { fs }),
+      ).resolves.toBeNull();
+    }
+  });
+
+  it("does not read cache names outside the cache directory", async () => {
+    const fs = createMemFs({
+      "/victim/secret.json": JSON.stringify({ data: ["secret"], timestamp: Date.now() }),
+    });
+
+    await expect(
+      loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "../victim/secret", staleTtl: 60_000 }, { fs }),
+    ).resolves.toBeNull();
+  });
+
   it("returns null when file contains invalid JSON", async () => {
     const fs = createMemFs({
       "/cache/test.json": "not json",
@@ -894,13 +1024,42 @@ describe("persist", () => {
     });
   });
 
-  it("silently fails on write errors", async () => {
-    const fs = createMemFs();
-    fs.writeFile = () => Promise.reject(new Error("disk full"));
+  it("preserves prior contents when replacement writing fails", async () => {
+    const fs = createMemFs({
+      "/cache/test.json": JSON.stringify({ data: "prior", timestamp: 1 }),
+    });
+    fs.writeFile = async (path, data) => {
+      if (path === "/cache/test.json") {
+        await Promise.reject(new Error("unexpected direct overwrite"));
+      }
+      if (path.includes(".tmp")) {
+        throw new Error(`disk full: ${data}`);
+      }
+    };
 
     await expect(
       persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs }),
     ).resolves.not.toThrow();
+    await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("prior");
+  });
+
+  it("does not write through a symlinked cache subdirectory", async () => {
+    const volume = Volume.fromJSON({ "/outside/marker": "original" }, "/");
+    const fsPromises = createFsFromVolume(volume).promises;
+    volume.mkdirSync("/cache", { recursive: true });
+    volume.symlinkSync("/outside", "/cache/link");
+    const fs: DiskCacheFs = {
+      readFile: (p, encoding) => fsPromises.readFile(p, encoding) as Promise<string>,
+      writeFile: (p, data) => fsPromises.writeFile(p, data) as Promise<void>,
+      rename: (from, to) => fsPromises.rename(from, to) as Promise<void>,
+      mkdir: (p, options) => fsPromises.mkdir(p, options) as Promise<void>,
+      unlink: (p) => fsPromises.unlink(p) as Promise<void>,
+      realpath: (p) => fsPromises.realpath(p) as Promise<string>,
+    };
+
+    await persist("data", { cacheDir: "/cache/link", cacheName: "test" }, { fs });
+
+    await expect(fs.readFile("/outside/test.json", "utf8")).rejects.toThrow();
   });
 });
 
@@ -922,13 +1081,21 @@ describe("removeFromDisk", () => {
     ).resolves.not.toThrow();
   });
 
-  it("silently ignores unlink errors", async () => {
-    const fs = createMemFs();
+  it("reports unlink errors other than missing files", async () => {
+    const fs = createMemFs({ "/cache/test.json": "cached" });
     fs.unlink = () => Promise.reject(new Error("permission denied"));
 
     await expect(
       removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
-    ).resolves.not.toThrow();
+    ).rejects.toThrow("permission denied");
+  });
+
+  it("does not delete cache names outside the cache directory", async () => {
+    const fs = createMemFs({ "/victim/secret.json": "keep" });
+
+    await removeFromDisk({ cacheDir: "/cache", cacheName: "../victim/secret" }, { fs });
+
+    await expect(fs.readFile("/victim/secret.json", "utf8")).resolves.toBe("keep");
   });
 });
 
@@ -949,6 +1116,12 @@ describe("resolveCacheDir", () => {
     });
 
     expect(result).toBe("/home/user/.cache/myapp");
+  });
+
+  it("rejects application names that leave the cache root", () => {
+    expect(() => resolveCacheDir("../escaped", { env: {}, homedir: () => "/home/user" })).toThrow(
+      "Cache path must remain inside its configured directory.",
+    );
   });
 });
 
@@ -986,15 +1159,14 @@ describe("createMemoryCache", () => {
     expect(cache.get("c")).toBeDefined();
   });
 
-  it("returns stale entries when allowStale is enabled", () => {
+  it("does not return entries after stale ttl expiration", () => {
     const cache = createMemoryCache<string>({ max: 10, ttl: 1 });
     cache.set("key", { data: "value", timestamp: Date.now() });
 
     return new Promise<void>((resolve) => {
       setTimeout(() => {
         const result = cache.get("key");
-        expect(result).toBeDefined();
-        expect(result?.data).toBe("value");
+        expect(result).toBeUndefined();
         resolve();
       }, 50);
     });

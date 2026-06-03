@@ -107,6 +107,26 @@ describe("superintendent builder run", () => {
     ).rejects.toThrow("Superintendent document not found: docs/plans/missing.md");
   });
 
+  it("previews a dry-run builder without launching the agent", async () => {
+    const { builderRunCommand } = await import("./builder-group.js");
+
+    const result = await builderRunCommand.handler({
+      params: { path: "docs/plans/feature.md", dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        writeFile: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    });
+
+    expect(runBuilderMock).not.toHaveBeenCalled();
+    expect(result.summary).toContain("Would run builder agent claude-code");
+  });
+
   it("renders markdown output with summary and log sections", async () => {
     const { builderRunCommand } = await import("./builder-group.js");
 

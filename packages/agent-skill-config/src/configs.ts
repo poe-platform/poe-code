@@ -32,7 +32,7 @@ const agentSkillConfigs: Record<string, AgentSkillConfig> = {
   }
 };
 
-export const supportedAgents = Object.keys(agentSkillConfigs) as readonly string[];
+export const supportedAgents = Object.freeze(Object.keys(agentSkillConfigs)) as readonly string[];
 
 export type AgentSupportStatus = "supported" | "unsupported" | "unknown";
 
@@ -57,7 +57,7 @@ export function resolveAgentSupport(
     return { status: "unsupported", input, id: resolvedId };
   }
 
-  return { status: "supported", input, id: resolvedId, config };
+  return { status: "supported", input, id: resolvedId, config: { ...config } };
 }
 
 export function getAgentConfig(agentId: string): AgentSkillConfig | undefined {

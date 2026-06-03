@@ -6,6 +6,12 @@ import { buildE2bRuntimeTemplate } from "./template-build.js";
 import { createOpenedE2bEnv } from "./opened-env.js";
 import { resolveE2bApiKey } from "./auth-scope.js";
 
+interface E2bReattachContext extends Record<string, unknown> {
+  runtimeCwd?: string;
+  workspaceDir?: string;
+  preserveAfterExitHours?: number;
+}
+
 export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
   type: "e2b",
   supportsDetach: true,
@@ -34,38 +40,73 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
       timeoutMinutes: runtime.timeout_minutes
     });
 
-    return createOpenedE2bEnv({ sandbox, spec, runtime });
+    const reattachContext = createE2bReattachContext(spec, runtime);
+    return createOpenedE2bEnv({
+      sandbox,
+      spec,
+      runtime,
+      ...(reattachContext === undefined ? {} : { reattachContext })
+    });
   },
   async attach(envId, context): Promise<OpenedEnv> {
+    const reattachContext = parseE2bReattachContext(context?.reattachContext);
     const cwd = context?.cwd ?? process.cwd();
-    const apiKey = await resolveE2bApiKey({ cwd });
+    const apiKey = await resolveE2bApiKey({ cwd: reattachContext.runtimeCwd ?? cwd });
     const sandbox = await connectSandbox(envId, apiKey);
+    const runtime: E2bRuntime = {
+      type: "e2b",
+      build_args: {},
+      mounts: [],
+      ...(reattachContext.workspaceDir === undefined
+        ? {}
+        : { workspace_dir: reattachContext.workspaceDir }),
+      ...(reattachContext.preserveAfterExitHours === undefined
+        ? {}
+        : { preserve_after_exit_hours: reattachContext.preserveAfterExitHours })
+    };
     return createOpenedE2bEnv({
       sandbox,
       spec: {
         cwd: context?.cwd ?? "/workspace",
-        runtime: {
-          type: "e2b",
-          build_args: {},
-          mounts: [],
-          workspace_dir: "/workspace",
-          preserve_after_exit_hours: 24
-        },
+        runtime,
         env: {},
         uploadIgnoreFiles: [],
         jobLabel: { tool: context?.tool ?? "e2b", argv: context?.argv ?? [] },
         ...(context?.jobId ? { detachedJobId: context.jobId } : {})
       } as OpenSpec & { detachedJobId?: string },
-      runtime: {
-        type: "e2b",
-        build_args: {},
-        mounts: [],
-        workspace_dir: "/workspace",
-        preserve_after_exit_hours: 24
-      }
+      runtime,
+      reattachContext
     });
   }
 };
+
+function createE2bReattachContext(
+  spec: OpenSpec,
+  runtime: E2bRuntime
+): E2bReattachContext | undefined {
+  const reattachContext = {
+    ...(spec.runtimeCwd === undefined ? {} : { runtimeCwd: spec.runtimeCwd }),
+    ...(runtime.workspace_dir === undefined ? {} : { workspaceDir: runtime.workspace_dir }),
+    ...(runtime.preserve_after_exit_hours === undefined
+      ? {}
+      : { preserveAfterExitHours: runtime.preserve_after_exit_hours })
+  };
+  return Object.keys(reattachContext).length === 0 ? undefined : reattachContext;
+}
+
+function parseE2bReattachContext(value: Record<string, unknown> | undefined): E2bReattachContext {
+  if (value === undefined) {
+    return {};
+  }
+
+  return {
+    ...(typeof value.runtimeCwd === "string" ? { runtimeCwd: value.runtimeCwd } : {}),
+    ...(typeof value.workspaceDir === "string" ? { workspaceDir: value.workspaceDir } : {}),
+    ...(typeof value.preserveAfterExitHours === "number"
+      ? { preserveAfterExitHours: value.preserveAfterExitHours }
+      : {})
+  };
+}
 
 function parseE2bRuntime(runtime: unknown): E2bRuntime {
   if (!runtime || typeof runtime !== "object" || Array.isArray(runtime)) {

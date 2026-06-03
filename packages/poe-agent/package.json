@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\""
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node -e \"require('node:fs').copyFileSync('src/SYSTEM_PROMPT.md', 'dist/SYSTEM_PROMPT.md')\""
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",

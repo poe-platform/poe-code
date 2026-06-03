@@ -32,13 +32,9 @@ function cloneUnknown(value: unknown): unknown {
   }
 
   if (typeof value === "object" && value !== null) {
-    const cloned: Record<string, unknown> = {};
-
-    for (const [key, entry] of Object.entries(value)) {
-      cloned[key] = cloneUnknown(entry);
-    }
-
-    return cloned;
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, cloneUnknown(entry)])
+    );
   }
 
   return value;

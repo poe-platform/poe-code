@@ -151,6 +151,27 @@ describe("installMemory", () => {
     });
   });
 
+  it("removes a newly installed skill when MCP configuration fails", async () => {
+    const rm = vi.fn().mockResolvedValue(undefined);
+    configure.mockRejectedValueOnce(new Error("injected MCP config failure"));
+
+    await expect(
+      installMemory({
+        agent: "claude-code",
+        skillContent: "# skill",
+        fs: { rm } as unknown as FileSystem,
+        cwd: "/repo",
+        homeDir: "/home/test",
+        platform: "darwin"
+      })
+    ).rejects.toThrow("injected MCP config failure");
+
+    expect(rm).toHaveBeenCalledWith("/repo/.claude/skills/poe-code-memory", {
+      recursive: true,
+      force: true
+    });
+  });
+
   it("passes scope through to skill installs", async () => {
     await installMemory({
       agent: "claude-code",

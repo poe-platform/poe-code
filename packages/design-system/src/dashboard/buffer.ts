@@ -1,4 +1,5 @@
 import { color, type Color } from "../components/color.js";
+import { expandTabs, graphemes, graphemeWidth } from "./terminal-width.js";
 import type { Cell, CellStyle, Rect } from "./types.js";
 
 const EMPTY_CELL: Cell = { ch: " ", style: {} };
@@ -30,15 +31,21 @@ export class ScreenBuffer {
     const normalizedStyle = normalizeStyle(style);
     let offset = 0;
 
-    for (const ch of text) {
+    for (const ch of graphemes(expandTabs(text, Math.max(0, x)))) {
       const targetX = x + offset;
-      offset += 1;
+      const width = graphemeWidth(ch);
+      offset += width;
 
       if (!this.isInBoundsX(targetX)) {
         continue;
       }
 
       this._cells[this.index(targetX, y)] = { ch, style: normalizedStyle };
+      for (let continuation = 1; continuation < width; continuation += 1) {
+        if (this.isInBoundsX(targetX + continuation)) {
+          this._cells[this.index(targetX + continuation, y)] = { ch: "", style: normalizedStyle };
+        }
+      }
     }
   }
 
@@ -100,11 +107,12 @@ export class ScreenBuffer {
     const rectEndX = rect.x + rect.width;
     let offset = 0;
 
-    for (const ch of text) {
+    for (const ch of graphemes(expandTabs(text))) {
       const targetX = rect.x + offset;
-      offset += 1;
+      const width = graphemeWidth(ch);
+      offset += width;
 
-      if (targetX >= rectEndX) {
+      if (targetX + width > rectEndX) {
         break;
       }
 
@@ -113,6 +121,11 @@ export class ScreenBuffer {
       }
 
       this._cells[this.index(targetX, y)] = { ch, style: normalizedStyle };
+      for (let continuation = 1; continuation < width; continuation += 1) {
+        if (this.isInBoundsX(targetX + continuation)) {
+          this._cells[this.index(targetX + continuation, y)] = { ch: "", style: normalizedStyle };
+        }
+      }
     }
   }
 
@@ -156,6 +169,10 @@ export function diff(
 }
 
 export function cellToAnsi(cell: Cell): string {
+  if (cell.ch.length === 0) {
+    return "";
+  }
+
   const style = cell.style ?? {};
   let painter = color;
 
@@ -165,6 +182,10 @@ export function cellToAnsi(cell: Cell): string {
 
   if (style.dim) {
     painter = painter.dim;
+  }
+
+  if (style.inverse) {
+    painter = painter.inverse;
   }
 
   if (style.underline) {
@@ -212,6 +233,9 @@ function normalizeStyle(style?: CellStyle): CellStyle {
   if (style?.dim !== undefined) {
     next.dim = style.dim;
   }
+  if (style?.inverse !== undefined) {
+    next.inverse = style.inverse;
+  }
   if (style?.underline !== undefined) {
     next.underline = style.underline;
   }
@@ -229,6 +253,7 @@ function cellsEqual(left: Cell, right: Cell): boolean {
     && left.style.bg === right.style.bg
     && left.style.bold === right.style.bold
     && left.style.dim === right.style.dim
+    && left.style.inverse === right.style.inverse
     && left.style.underline === right.style.underline;
 }
 

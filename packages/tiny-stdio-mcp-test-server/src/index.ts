@@ -1,4 +1,8 @@
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+import packageJson from "../package.json" with { type: "json" };
+
+const SERVER_NAME = "tiny-stdio-mcp-test-server";
+const SERVER_VERSION = packageJson.version;
 
 const caesarCipherSchema = defineSchema({
   text: { type: "string", description: "The text to encrypt" },
@@ -10,17 +14,22 @@ const caesarCipherSchema = defineSchema({
 });
 
 export function caesarEncrypt(text: string, shift: number): string {
+  if (!Number.isInteger(shift)) {
+    throw new Error("Caesar cipher shift must be a finite integer");
+  }
+
+  const normalizedShift = ((shift % 26) + 26) % 26;
   return text
     .split("")
     .map((char) => {
       if (char >= "a" && char <= "z") {
         return String.fromCharCode(
-          ((char.charCodeAt(0) - 97 + shift) % 26) + 97
+          ((char.charCodeAt(0) - 97 + normalizedShift) % 26) + 97
         );
       }
       if (char >= "A" && char <= "Z") {
         return String.fromCharCode(
-          ((char.charCodeAt(0) - 65 + shift) % 26) + 65
+          ((char.charCodeAt(0) - 65 + normalizedShift) % 26) + 65
         );
       }
       return char;
@@ -32,8 +41,8 @@ const wordOfTheDaySchema = defineSchema({});
 
 export function createEncryptServer() {
   return createServer({
-    name: "tiny-stdio-mcp-test-server",
-    version: "0.0.1",
+    name: SERVER_NAME,
+    version: SERVER_VERSION,
   }).tool(
     "caesar_cipher_encrypt",
     "Encrypts text using the Caesar cipher",
@@ -47,8 +56,8 @@ export function createEncryptServer() {
 
 export function createWordOfTheDayServer() {
   return createServer({
-    name: "tiny-stdio-mcp-test-server",
-    version: "0.0.1",
+    name: SERVER_NAME,
+    version: SERVER_VERSION,
   }).tool(
     "word_of_the_day",
     "Returns the word of the day",
@@ -61,8 +70,8 @@ export function createWordOfTheDayServer() {
 
 export function createTestServer() {
   const server = createServer({
-    name: "tiny-stdio-mcp-test-server",
-    version: "0.0.1",
+    name: SERVER_NAME,
+    version: SERVER_VERSION,
   });
 
   server.tool(

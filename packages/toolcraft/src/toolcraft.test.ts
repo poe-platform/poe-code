@@ -640,6 +640,19 @@ describe("toolcraft", () => {
     expect(resolveCommandSecrets(cmd, {})).toEqual({ token: undefined });
   });
 
+  it("preserves a declared __proto__ secret in resolved command secrets", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: JSON.parse('{"__proto__":{"env":"TOKEN"}}'),
+      handler: async () => null
+    });
+
+    const secrets = resolveCommandSecrets(cmd, { TOKEN: "visible" });
+    expect(Object.prototype.hasOwnProperty.call(secrets, "__proto__")).toBe(true);
+    expect(secrets["__proto__"]).toBe("visible");
+  });
+
   it("throws when a required inherited secret is missing", () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -905,6 +918,34 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("rejects MCP commands that normalize to the same tool name", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "runTask",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: async () => "camel"
+        }),
+        defineCommand({
+          name: "run_task",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: async () => "snake"
+        })
+      ]
+    });
+
+    expect(() =>
+      createMCPServer(root, {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true
+      })
+    ).toThrow('MCP commands "runTask" and "run_task" use conflicting tool name "run_task".');
+  });
+
   it("lists only mcp-scoped commands that match the allowlist and applies schema casing", async () => {
     const usage = defineCommand({
       name: "usage",
@@ -1055,6 +1096,65 @@ describe("createMCPServer", () => {
     } finally {
       await cleanup();
     }
+  });
+
+  it("preserves declared __proto__ parameters through MCP dispatch", async () => {
+    const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
+    const paramsShape = Object.fromEntries([["__proto__", S.String()]]) as Record<
+      string,
+      ReturnType<typeof S.String>
+    >;
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "probe",
+          scope: ["mcp"],
+          params: S.Object(paramsShape),
+          handler
+        })
+      ]
+    });
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await client.callTool({ name: "probe", arguments: { proto: "visible" } });
+      const params = handler.mock.calls[0]?.[0].params;
+      expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
+      expect(params?.["__proto__"]).toBe("visible");
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("rejects MCP parameters that normalize to the same input field", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "submit",
+          scope: ["mcp"],
+          params: S.Object({
+            fooBar: S.String(),
+            foo_bar: S.String()
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    expect(() =>
+      createMCPServer(root, {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true
+      })
+    ).toThrow('Parameters "fooBar" and "foo_bar" use conflicting MCP field "foo_bar".');
   });
 
   it("filters params whose schema scope excludes MCP", async () => {
@@ -1982,6 +2082,18 @@ describe("renderResult", () => {
     );
   });
 
+  it("leaves inherited constructor values out of sparse markdown table cells", () => {
+    const command = defineCommand({
+      name: "demo",
+      params: S.Object({}),
+      handler: async () => undefined
+    });
+
+    expect(runRender(command, [JSON.parse('{"constructor":"provided"}'), {}], "md")).toBe(
+      "| constructor |\n| :--- |\n| provided |\n|  |\n"
+    );
+  });
+
   it("passes design-system primitives to format overrides", () => {
     const rich = vi.fn();
     const markdown = vi.fn(() => "override-md");
@@ -2160,6 +2272,116 @@ describe("createSDK", () => {
         api_key: "secret"
       }
     });
+  });
+
+  it("preserves declared __proto__ parameters through SDK dispatch", async () => {
+    const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
+    const paramsShape = Object.fromEntries([["__proto__", S.String()]]) as Record<
+      string,
+      ReturnType<typeof S.String>
+    >;
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "probe",
+          scope: ["sdk"],
+          params: S.Object(paramsShape),
+          handler
+        })
+      ]
+    });
+
+    const sdk = createSDK(root) as { probe(params: { proto: string }): Promise<unknown> };
+    await sdk.probe({ proto: "visible" });
+
+    const params = handler.mock.calls[0]?.[0].params;
+    expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
+    expect(params?.["__proto__"]).toBe("visible");
+  });
+
+  it("rejects SDK parameters that normalize to the same member name", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "submit",
+          scope: ["sdk"],
+          params: S.Object({
+            fooBar: S.String(),
+            foo_bar: S.String()
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'Parameters "fooBar" and "foo_bar" use conflicting SDK member "fooBar".'
+    );
+  });
+
+  it("rejects commands that normalize to the same SDK member name", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "runTask",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "camel"
+        }),
+        defineCommand({
+          name: "run_task",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "snake"
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'SDK members "runTask" and "run_task" use conflicting member "runTask".'
+    );
+  });
+
+  it("rejects an SDK command named then", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "then",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "reachable"
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'SDK member "then" uses reserved member "then".'
+    );
+  });
+
+  it("rejects a nested SDK command named then consistently with deferred SDKs", () => {
+    const local = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "ops",
+          children: [
+            defineCommand({
+              name: "then",
+              scope: ["sdk"],
+              params: S.Object({}),
+              handler: async () => "reachable"
+            })
+          ]
+        })
+      ]
+    });
+
+    expect(() => createSDK(local)).toThrow('SDK member "then" uses reserved member "then".');
   });
 
   it("treats required array params as required in the SDK even when CLI-only helper flags make the direct param optional", async () => {

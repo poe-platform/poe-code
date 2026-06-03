@@ -234,6 +234,27 @@ describe("judgeRun", () => {
     });
   });
 
+  it("preserves a rubric score named __proto__", async () => {
+    vol.fromJSON({ "/repo/file.ts": "abc" });
+    mockedAgentSpawn.spawnMock!.autonomous.mockResolvedValueOnce({
+      text: '{"__proto__":5}'
+    });
+
+    const result = await judgeRun({
+      evalDef: createEval(),
+      cloneDir: "/repo",
+      traceJsonPath: "/runs/trace.json",
+      trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
+      testsResult: { passed: 1, total: 1 },
+      spec: createJudgeSpec({ rubric: ["__proto__"] }),
+      agentUnderTest: "claude-code"
+    });
+
+    expect(Object.hasOwn(result, "__proto__")).toBe(true);
+    expect(result["__proto__"]).toBe(5);
+    expect(result.mean).toBe(5);
+  });
+
   it("uses the resolved judge spec rubric", async () => {
     vol.fromJSON({ "/repo/file.ts": "abc" });
     mockedAgentSpawn.spawnMock!.autonomous.mockResolvedValueOnce({

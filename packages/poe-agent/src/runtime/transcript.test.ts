@@ -20,6 +20,9 @@ function createMemfs(): {
       },
       async appendFile(filePath: string, contents: string) {
         await memfs.appendFile(filePath, contents, "utf8");
+      },
+      async lstat(filePath: string) {
+        return memfs.lstat(filePath);
       }
     }
   };
@@ -271,24 +274,60 @@ describe("createTranscriptWriter", () => {
     );
   });
 
-  it("silently disables itself on fs write failures instead of throwing", async () => {
+  it("surfaces fs write failures and permits a later retry", async () => {
     const { memfs, transcriptFs } = createMemfs();
-    await memfs.mkdir("/logs", { recursive: true });
-    await memfs.mkdir("/logs/round.jsonl", { recursive: true });
-    const appendFileSpy = vi.spyOn(transcriptFs, "appendFile");
+    const appendFileSpy = vi.spyOn(transcriptFs, "appendFile")
+      .mockRejectedValueOnce(new Error("write failed"));
     const writer = createTranscriptWriter({
       logDir: "/logs",
       logFileName: "round.jsonl",
       fs: transcriptFs
     });
 
-    await expect(writer.write({ type: "message.delta", content: "hi" })).resolves.toBeUndefined();
+    await expect(writer.write({ type: "message.delta", content: "hi" })).rejects.toThrow("write failed");
     await expect(writer.write({ type: "message.delta", content: "more" })).resolves.toBeUndefined();
 
-    expect(appendFileSpy).toHaveBeenCalledTimes(1);
+    expect(appendFileSpy).toHaveBeenCalledTimes(2);
+    await expect(memfs.readFile("/logs/round.jsonl", "utf8")).resolves.toContain("more");
   });
 
-  it("silently disables itself when an event cannot be serialized", async () => {
+  it("does not append through a symlinked transcript file", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    await memfs.mkdir("/logs", { recursive: true });
+    await memfs.mkdir("/outside", { recursive: true });
+    await memfs.writeFile("/outside/transcript.jsonl", "original\n", "utf8");
+    await memfs.symlink("/outside/transcript.jsonl", "/logs/round.jsonl");
+    const writer = createTranscriptWriter({
+      logPath: "/logs/round.jsonl",
+      fs: transcriptFs
+    });
+
+    await expect(writer.write({ type: "message.delta", content: "external transcript" })).rejects.toThrow(
+      "Transcript log path may not contain symbolic links"
+    );
+
+    await expect(memfs.readFile("/outside/transcript.jsonl", "utf8")).resolves.toBe("original\n");
+  });
+
+  it("does not append through a symlinked transcript directory", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    await memfs.mkdir("/logs", { recursive: true });
+    await memfs.mkdir("/outside", { recursive: true });
+    await memfs.symlink("/outside", "/logs/linked");
+    const writer = createTranscriptWriter({
+      logDir: "/logs/linked",
+      logFileName: "round.jsonl",
+      fs: transcriptFs
+    });
+
+    await expect(writer.write({ type: "message.delta", content: "external transcript" })).rejects.toThrow(
+      "Transcript log path may not contain symbolic links"
+    );
+
+    await expect(memfs.readdir("/outside")).resolves.toEqual([]);
+  });
+
+  it("surfaces an event that cannot be serialized without disabling later writes", async () => {
     const { transcriptFs } = createMemfs();
     const appendFileSpy = vi.spyOn(transcriptFs, "appendFile");
     const writer = createTranscriptWriter({
@@ -306,11 +345,11 @@ describe("createTranscriptWriter", () => {
         tool: "shell",
         args: circular
       })
-    ).resolves.toBeUndefined();
+    ).rejects.toThrow();
     await expect(
       writer.write({ type: "message.delta", content: "after" })
     ).resolves.toBeUndefined();
 
-    expect(appendFileSpy).not.toHaveBeenCalled();
+    expect(appendFileSpy).toHaveBeenCalledTimes(1);
   });
 });

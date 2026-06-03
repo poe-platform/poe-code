@@ -48,6 +48,15 @@ interface CodexHooksFile {
 
 const hookExcludeMarkerPrefix = "poe-code-spawn-hooks";
 
+interface BridgeState {
+  cleaned?: boolean;
+  excludeBlockId?: string;
+  ownershipId: string;
+}
+
+const bridgeStates = new WeakMap<BridgeHookManifest, BridgeState>();
+const liveTransformOwners = new Map<string, Set<string>>();
+
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
 }
@@ -78,6 +87,27 @@ function collectMissingParents(targetPath: string): string[] {
   }
 
   return parents.reverse();
+}
+
+function assertNoSymbolicLink(targetPath: string): void {
+  const parsed = path.parse(path.resolve(targetPath));
+  let current = parsed.root;
+  for (const segment of path.resolve(targetPath).slice(parsed.root.length).split(path.sep)) {
+    if (segment.length === 0) {
+      continue;
+    }
+    current = path.join(current, segment);
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) {
+        throw new Error(`Hook bridge path must not traverse a symbolic link: ${current}`);
+      }
+    } catch (error) {
+      if (isNodeError(error) && error.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
 }
 
 function removeDirectoryIfEmpty(targetPath: string): void {
@@ -137,7 +167,18 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 }
 
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
-  fs.writeFileSync(targetPath, `${JSON.stringify(file, null, 2)}\n`, "utf8");
+  const temporaryPath = `${targetPath}.cleanup-tmp`;
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, { flag: "wx" });
+  try {
+    fs.renameSync(temporaryPath, targetPath);
+  } catch (error) {
+    try {
+      fs.unlinkSync(temporaryPath);
+    } catch (cleanupError) {
+      void cleanupError;
+    }
+    throw error;
+  }
 }
 
 function hasOnlyEmptyHooks(file: CodexHooksFile): boolean {
@@ -153,6 +194,28 @@ function relativeToCwd(cwd: string, targetPath: string): string {
 
 function matcherKey(event: string, matcher: string | undefined): string {
   return `${event}\u0000${matcher === undefined ? "<undefined>" : matcher}`;
+}
+
+function acquireOwnershipId(targetPath: string, runId: string): { id: string; overlaps: boolean } {
+  const owners = liveTransformOwners.get(targetPath) ?? new Set<string>();
+  const overlaps = owners.size > 0;
+  let id = runId;
+  let suffix = 1;
+  while (owners.has(id)) {
+    id = `${runId}:${suffix}`;
+    suffix += 1;
+  }
+  owners.add(id);
+  liveTransformOwners.set(targetPath, owners);
+  return { id, overlaps };
+}
+
+function releaseOwnership(targetPath: string, ownershipId: string): void {
+  const owners = liveTransformOwners.get(targetPath);
+  owners?.delete(ownershipId);
+  if (owners?.size === 0) {
+    liveTransformOwners.delete(targetPath);
+  }
 }
 
 export function bridgeHooks(
@@ -183,9 +246,17 @@ export function bridgeHooks(
     manifest.symlinkPath = result.symlinkPath;
     manifest.symlinkTarget = result.targetPath;
     manifest.symlinkReplaced = result.replaced;
-    appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
-      markerPrefix: hookExcludeMarkerPrefix
-    });
+    try {
+      const excludeBlockId = appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
+        markerPrefix: hookExcludeMarkerPrefix
+      });
+      bridgeStates.set(manifest, { ownershipId: runId, excludeBlockId });
+    } catch (error) {
+      if (fs.lstatSync(result.symlinkPath).isSymbolicLink()) {
+        fs.unlinkSync(result.symlinkPath);
+      }
+      throw error;
+    }
     return manifest;
   }
 
@@ -200,11 +271,21 @@ export function bridgeHooks(
   }
 
   const targetPath = requireTargetPath(target.id, target.config, cwd, homeDir);
+  assertNoSymbolicLink(path.dirname(targetPath));
   const priorFile = readCodexFile(targetPath);
   const sourceHooks = readClaudeHooks(cwd, homeDir, { scope: opts?.scope ?? "merged" });
-  const transformed = transformHooks(sourceHooks.entries, source.id, target.id, { runId });
+  const ownership = acquireOwnershipId(targetPath, runId);
+  const transformed = transformHooks(sourceHooks.entries, source.id, target.id, { runId: ownership.id });
   const createdParents = collectMissingParents(targetPath);
-  const writeResult = writeCodexHooks(targetPath, transformed.entries, runId);
+  let writeResult;
+  try {
+    writeResult = writeCodexHooks(targetPath, transformed.entries, ownership.id, {
+      preserveGenerated: ownership.overlaps
+    });
+  } catch (error) {
+    releaseOwnership(targetPath, ownership.id);
+    throw error;
+  }
 
   manifest.writtenPath = targetPath;
   manifest.generatedEntryIds = transformed.entries.map((entry) => entry.generatedId);
@@ -218,14 +299,32 @@ export function bridgeHooks(
       ...(group.matcher === undefined ? {} : { matcher: group.matcher })
     }))
   );
-  appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], {
-    markerPrefix: hookExcludeMarkerPrefix
-  });
+  try {
+    const excludeBlockId = appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], {
+      markerPrefix: hookExcludeMarkerPrefix
+    });
+    bridgeStates.set(manifest, { ownershipId: ownership.id, excludeBlockId });
+  } catch (error) {
+    releaseOwnership(targetPath, ownership.id);
+    if (priorFile) {
+      writeCodexFile(targetPath, priorFile);
+    } else {
+      fs.unlinkSync(targetPath);
+    }
+    for (const parent of [...createdParents].reverse()) {
+      removeDirectoryIfEmpty(parent);
+    }
+    throw error;
+  }
 
   return manifest;
 }
 
 export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
+  const state = bridgeStates.get(manifest);
+  if (state?.cleaned) {
+    return;
+  }
   if (manifest.strategy === "symlink" && manifest.symlinkPath && manifest.symlinkTarget) {
     try {
       if (
@@ -248,7 +347,7 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
   if (manifest.strategy === "transform" && manifest.writtenPath) {
     const file = readCodexFile(manifest.writtenPath);
     if (file) {
-      const generatedPrefix = `[generated:${manifest.runId}]`;
+      const generatedPrefix = `[generated:poe-code:${state?.ownershipId ?? manifest.runId}]`;
       const preExistingEvents = new Set(manifest.preExistingEvents ?? []);
       const preExistingMatchers = new Set(
         (manifest.preExistingMatchers ?? []).map((group) => matcherKey(group.event, group.matcher))
@@ -284,7 +383,11 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
     for (const parent of [...(manifest.createdParents ?? [])].reverse()) {
       removeDirectoryIfEmpty(parent);
     }
+    releaseOwnership(manifest.writtenPath, state?.ownershipId ?? manifest.runId);
   }
 
-  removeExcludeBlock(manifest.cwd, manifest.runId, { markerPrefix: hookExcludeMarkerPrefix });
+  removeExcludeBlock(manifest.cwd, state?.excludeBlockId ?? manifest.runId, { markerPrefix: hookExcludeMarkerPrefix });
+  if (state) {
+    state.cleaned = true;
+  }
 }

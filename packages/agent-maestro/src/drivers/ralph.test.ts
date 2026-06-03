@@ -325,7 +325,7 @@ describe("ralphDriver", () => {
     });
     const realWriteFile = fs.writeFile.bind(fs);
     vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
-      if (filePath === `/repo/docs/plans/.ralph-plan.md.${process.pid}.tmp`) {
+      if (String(filePath).startsWith(`/repo/docs/plans/.ralph-plan.md.${process.pid}.`)) {
         throw new Error("disk full");
       }
 
@@ -431,6 +431,9 @@ describe("ralphDriver", () => {
               model: "openai/gpt-5.4",
               mode: "yolo",
               cwd: "/repo/workspaces/task-1",
+              skills: ["audit"],
+              logDir: "/repo/logs",
+              logFileName: "task.jsonl",
               hooks: { from: "claude" },
               signal: controller.signal
             });
@@ -446,6 +449,9 @@ describe("ralphDriver", () => {
             model: "openai/gpt-5.4",
             mode: "yolo",
             prompt: "Forward this prompt",
+            skills: ["audit"],
+            logDir: "/repo/logs",
+            logFileName: "task.jsonl",
             hooks: { from: "claude" }
           }
         ]
@@ -460,6 +466,32 @@ describe("ralphDriver", () => {
     await driver.run(ctx);
 
     expect(mockSpawn.calls).toHaveLength(1);
+  });
+
+  it("uses unique temp paths for concurrent plan publication", async () => {
+    const updated = planDoc("Updated", { status: "completed", iteration: 1 });
+    vol.fromJSON({ "/repo/docs/plans/ralph-plan.md": planDoc("Original") });
+    const writes: string[] = [];
+    const realWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      if (String(filePath).startsWith("/repo/docs/plans/.ralph-plan.md.")) {
+        writes.push(String(filePath));
+      }
+      return realWriteFile(filePath, content, options);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await realWriteFile(options.docPath, updated, "utf8");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    await Promise.all([
+      driver.run(createDriverContext(ralphContextDefaults)),
+      driver.run(createDriverContext(ralphContextDefaults))
+    ]);
+
+    expect(new Set(writes).size).toBe(2);
   });
 
   it("runs three Ralph iterations, emits three agent events, and succeeds once", async () => {
@@ -513,6 +545,10 @@ type ScriptedIteration = {
   model?: string;
   mode?: SpawnMode;
   prompt?: string;
+  skills?: string[];
+  logDir?: string;
+  logFileName?: string;
+  hooks?: AgentRunInput["hooks"];
   success?: boolean;
   afterRun?: (options: RalphRunOptions) => Promise<void>;
 };
@@ -534,6 +570,10 @@ function scriptedRalph(options: {
         cwd: runOptions.cwd,
         model: iteration.model,
         mode: iteration.mode,
+        skills: iteration.skills,
+        logDir: iteration.logDir,
+        logFileName: iteration.logFileName,
+        hooks: iteration.hooks,
         signal: runOptions.signal
       } as AgentRunInput & { mode?: SpawnMode });
 

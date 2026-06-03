@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { BudgetEnforcer } from "./budget.js";
-import type { Budget } from "../types.js";
+import type { Budget, SpawnEvent } from "../types.js";
+import { normalizeTrace } from "./trace/normalize.js";
 import type { TraceToolEvent, TraceUsageEvent } from "./trace/types.js";
 
 const relaxedBudget: Budget = {
@@ -81,6 +82,22 @@ describe("BudgetEnforcer", () => {
 
     enforcer.onEvent(toolCall());
     enforcer.onEvent(completedToolCall());
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(enforcer.snapshot().iterations).toBe(1);
+  });
+
+  it("counts one idless legacy lifecycle once", () => {
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, maxIterations: 2 }, controller);
+    const trace = normalizeTrace([
+      { event: "tool_start", kind: "read", title: "Read" } as SpawnEvent,
+      { event: "tool_complete", kind: "read", title: "Read" } as SpawnEvent
+    ]);
+
+    for (const event of trace.events) {
+      enforcer.onEvent(event);
+    }
 
     expect(controller.signal.aborted).toBe(false);
     expect(enforcer.snapshot().iterations).toBe(1);

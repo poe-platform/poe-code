@@ -16,9 +16,15 @@ export function editFile(
     spawnSync?: typeof nodeSpawnSync;
   } = {}
 ): void {
-  const editor = resolveEditor(options.env);
+  const [editor, ...editorArgs] = parseEditorCommand(resolveEditor(options.env));
   const spawnSync = options.spawnSync ?? nodeSpawnSync;
-  spawnSync(editor, [absolutePath], { stdio: "inherit" });
+  const result = spawnSync(editor!, [...editorArgs, absolutePath], { stdio: "inherit" });
+  if (result?.error !== undefined) {
+    throw result.error;
+  }
+  if (result?.status !== undefined && result.status !== null && result.status !== 0) {
+    throw new Error(`Editor exited with status ${result.status}.`);
+  }
 }
 
 export function editPlan(
@@ -37,9 +43,47 @@ async function archiveSelectedPlan(
 ): Promise<string> {
   const archiveDir = path.join(path.dirname(entry.absolutePath), "archive");
   const archivedPath = path.join(archiveDir, path.basename(entry.absolutePath));
-  await fs.mkdir(archiveDir, { recursive: true });
-  await fs.rename(entry.absolutePath, archivedPath);
+  try {
+    await fs.readFile(archivedPath, "utf8");
+    throw new Error(`Archive destination already exists: ${archivedPath}`);
+  } catch (error) {
+    if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) {
+      throw error;
+    }
+  }
+  await rejectSymbolicLink(archiveDir, fs);
+  const createdDirectory = await fs.mkdir(archiveDir, { recursive: true });
+  try {
+    await rejectSymbolicLink(archiveDir, fs);
+    await fs.rename(entry.absolutePath, archivedPath);
+  } catch (error) {
+    if (createdDirectory !== undefined) {
+      await fs.rmdir(archiveDir).catch(() => undefined);
+    }
+    throw error;
+  }
   return archivedPath;
+}
+
+async function rejectSymbolicLink(targetPath: string, fs: Pick<ActionFs, "lstat">): Promise<void> {
+  try {
+    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to archive plan through symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
+}
+
+function parseEditorCommand(command: string): string[] {
+  const parts = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
+  return parts.map((part) => {
+    const quote = part[0];
+    return (quote === '"' || quote === "'") && part.at(-1) === quote ? part.slice(1, -1) : part;
+  });
 }
 
 export { archiveSelectedPlan as archivePlan };

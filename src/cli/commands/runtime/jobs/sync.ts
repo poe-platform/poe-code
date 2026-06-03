@@ -34,10 +34,17 @@ async function executeRuntimeJobsSync(
   const resources = createExecutionResources(container, flags, "runtime:jobs:sync");
   const state = createRuntimeState(container);
   const entry = await resolveJob(state, jobId, "pullable");
+  if (flags.dryRun) {
+    resources.logger.dryRun(`Dry run: would sync workspace from runtime job ${entry.id}.`);
+    return;
+  }
 
   await syncJob(entry, {
     forceSync: options.forceSync === true,
     close: options.close === true
   });
+  if (options.close === true) {
+    await state.jobs.remove(entry.id);
+  }
   resources.logger.success(`Synced runtime job ${entry.id}.`);
 }

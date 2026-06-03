@@ -11,6 +11,7 @@ import {
 } from "@poe-code/agent-skill-config";
 import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
 import { throwCommandNotFound } from "../command-not-found.js";
+import { ValidationError } from "../errors.js";
 
 const DEFAULT_SKILL_AGENT = "claude-code";
 
@@ -44,13 +45,12 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       const resources = createExecutionResources(container, flags, "skill");
 
       if (options.local && options.global) {
-        resources.logger.error("Use either --local or --global, not both.");
-        return;
+        throw new ValidationError("Use either --local or --global, not both.");
       }
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
+        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
         } else if (flags.assumeYes) {
@@ -70,12 +70,10 @@ export function registerSkillCommand(program: Command, container: CliContainer):
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new ValidationError(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`Skills not supported for ${support.id}.`);
-        return;
+        throw new ValidationError(`Skills not supported for ${support.id}.`);
       }
 
       const resolvedAgent = support.id ?? agent;
@@ -151,15 +149,16 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       const resources = createExecutionResources(container, flags, "skill");
 
       if (options.local && options.global) {
-        resources.logger.error("Use either --local or --global, not both.");
-        return;
+        throw new ValidationError("Use either --local or --global, not both.");
       }
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
+        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
+        } else if (flags.assumeYes) {
+          agent = DEFAULT_SKILL_AGENT;
         } else {
           const selected = await select({
             message: "Select agent to unconfigure:",
@@ -175,12 +174,10 @@ export function registerSkillCommand(program: Command, container: CliContainer):
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new ValidationError(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`Skills not supported for ${support.id}.`);
-        return;
+        throw new ValidationError(`Skills not supported for ${support.id}.`);
       }
 
       const resolvedAgent = support.id ?? agent;

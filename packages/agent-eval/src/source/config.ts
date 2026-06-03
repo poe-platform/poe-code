@@ -2,19 +2,20 @@ import nodeFs from "node:fs/promises";
 import { join } from "node:path";
 
 import type { EvalFs, EvalSource, SourceConfig } from "../types.js";
+import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 
-export const defaultSourceConfig: SourceConfig = {
-  judge: {
+export const defaultSourceConfig: SourceConfig = Object.freeze({
+  judge: Object.freeze({
     agent: "claude-code",
     model: "opus-4.7"
-  },
+  }),
   out: "runs",
-  weights: {
+  weights: Object.freeze({
     tests: 0.7,
     judge: 0.3
-  },
+  }),
   clone_cache_dir: null
-};
+});
 
 export async function loadSourceConfig(source: EvalSource): Promise<SourceConfig>;
 export async function loadSourceConfig(source: EvalSource, fs: EvalFs): Promise<SourceConfig>;
@@ -23,6 +24,10 @@ export async function loadSourceConfig(
   fs: EvalFs = nodeFs as unknown as EvalFs
 ): Promise<SourceConfig> {
   const configPath = join(source.rootDir, ".poe-code-eval.json");
+
+  if (!(await assertFsCanonicalContainedPathIfPresent(fs, source.rootDir, configPath, "source.config"))) {
+    return cloneDefaultConfig();
+  }
 
   let raw: string;
   try {
@@ -64,20 +69,30 @@ function deepMerge(
   base: Record<string, unknown>,
   patch: Record<string, unknown>
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...base };
+  const result = Object.fromEntries(Object.entries(base)) as Record<string, unknown>;
 
   for (const [key, value] of Object.entries(patch)) {
     if (value === undefined) {
       continue;
     }
 
-    const existing = result[key];
+    const existing = Object.hasOwn(result, key) ? result[key] : undefined;
     if (isRecord(existing) && isRecord(value)) {
-      result[key] = deepMerge(existing, value);
+      Object.defineProperty(result, key, {
+        value: deepMerge(existing, value),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
       continue;
     }
 
-    result[key] = value;
+    Object.defineProperty(result, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return result;

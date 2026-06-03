@@ -99,12 +99,7 @@ describe("bootstrap", () => {
       onExperimentComplete: expect.any(Function)
     });
     expect(integrations?.superintendentCallbacks).toMatchObject({
-      onBuilderComplete: expect.any(Function),
-      onBuilderFailed: expect.any(Function),
-      onInspectorComplete: expect.any(Function),
-      onInspectorFailed: expect.any(Function),
-      onSuperintendentComplete: expect.any(Function),
-      onOwnerComplete: expect.any(Function)
+      runRole: expect.any(Function)
     });
     expect(integrations?.traceRun).toEqual(expect.any(Function));
     expect(integrations?.shutdown).toEqual(expect.any(Function));

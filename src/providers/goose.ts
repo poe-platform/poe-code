@@ -278,6 +278,9 @@ export const gooseService = createProvider<
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.config/goose/custom_providers" }),
+      fileMutation.backup({ target: CUSTOM_PROVIDER_FILE, once: true }),
+      fileMutation.backup({ target: GOOSE_CONFIG_FILE, once: true }),
+      fileMutation.backup({ target: GOOSE_SECRETS_FILE, once: true }),
       configMutation.merge({
         target: CUSTOM_PROVIDER_FILE,
         value: (ctx) => {
@@ -326,7 +329,10 @@ export const gooseService = createProvider<
         shape: {
           [CUSTOM_PROVIDER_API_KEY_ENV]: true
         }
-      })
+      }),
+      fileMutation.restoreBackup({ target: CUSTOM_PROVIDER_FILE }),
+      fileMutation.restoreBackup({ target: GOOSE_CONFIG_FILE }),
+      fileMutation.restoreBackup({ target: GOOSE_SECRETS_FILE })
     ]
   },
   install: GOOSE_INSTALL_DEFINITION,

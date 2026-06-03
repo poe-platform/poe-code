@@ -1,8 +1,15 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { writeFileAtomically } from "./atomic-write.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
-import { assertSafeRelPath, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import {
+  assertMemoryRootIsNotSymlink,
+  assertNoSymlinkSegments,
+  assertSafeRelPath,
+  MEMORY_PAGES_DIR_RELPATH
+} from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import type { MemoryDiff, MemoryRoot, PageFrontmatter } from "./types.js";
 
@@ -13,15 +20,20 @@ export async function writePage(
   opts: { frontmatter?: PageFrontmatter; reason: string }
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
+  await assertNoSymlinkSegments(root, pageRelPath);
+  const pagePath = path.join(root, pageRelPath);
+  const originalPage = await readMarkdownIfPresent(pagePath);
 
   const before = await snapshot(root);
-  await fs.mkdir(path.dirname(path.join(root, pageRelPath)), { recursive: true });
-  await fs.writeFile(
-    path.join(root, pageRelPath),
-    serializeFrontmatter(opts.frontmatter ?? {}, body),
-    "utf8"
-  );
-  return reconcile(root, before, "update", opts.reason);
+  await fs.mkdir(path.dirname(pagePath), { recursive: true });
+
+  try {
+    await writeFileAtomically(pagePath, serializeFrontmatter(opts.frontmatter ?? {}, body));
+    return await reconcile(root, before, "update", opts.reason);
+  } catch (error) {
+    await restorePage(pagePath, originalPage);
+    throw error;
+  }
 }
 
 export async function appendToPage(
@@ -31,48 +43,48 @@ export async function appendToPage(
   opts: { reason: string }
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
+  await assertNoSymlinkSegments(root, pageRelPath);
 
-  const before = await snapshot(root);
   const pagePath = path.join(root, pageRelPath);
+  const originalPage = await readMarkdownIfPresent(pagePath);
+  const before = await snapshot(root);
   await fs.mkdir(path.dirname(pagePath), { recursive: true });
 
-  const existing = await readMarkdownIfPresent(pagePath);
   const parsed =
-    existing === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(existing);
+    originalPage === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(originalPage);
 
-  await fs.writeFile(
-    pagePath,
-    serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`),
-    "utf8"
-  );
-
-  return reconcile(root, before, "update", opts.reason);
-}
-
-export async function clearMemory(root: MemoryRoot): Promise<void> {
-  await removeChildren(root);
-  await initMemory(root);
-}
-
-async function removeChildren(directoryPath: string): Promise<void> {
-  for (const entryName of await fs.readdir(directoryPath)) {
-    const entryPath = path.join(directoryPath, entryName);
-    const stat = await fs.stat(entryPath);
-
-    if (stat.isDirectory()) {
-      await removeDirectory(entryPath);
-      continue;
-    }
-
-    if (stat.isFile()) {
-      await fs.unlink(entryPath);
-    }
+  try {
+    await writeFileAtomically(
+      pagePath,
+      serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`)
+    );
+    return await reconcile(root, before, "update", opts.reason);
+  } catch (error) {
+    await restorePage(pagePath, originalPage);
+    throw error;
   }
 }
 
-async function removeDirectory(directoryPath: string): Promise<void> {
-  await removeChildren(directoryPath);
-  await fs.rmdir(directoryPath);
+export async function clearMemory(root: MemoryRoot): Promise<void> {
+  await assertMemoryRootIsNotSymlink(root);
+  const stagedRoot = `${root}.clear-${randomUUID()}`;
+  const backupRoot = `${root}.backup-${randomUUID()}`;
+  let originalMoved = false;
+
+  try {
+    await initMemory(stagedRoot);
+    await fs.rename(root, backupRoot);
+    originalMoved = true;
+    await fs.rename(stagedRoot, root);
+  } catch (error) {
+    if (originalMoved) {
+      await fs.rename(backupRoot, root).catch(() => undefined);
+    }
+    await fs.rm(stagedRoot, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
+  }
+
+  await fs.rm(backupRoot, { recursive: true, force: true }).catch(() => undefined);
 }
 
 function assertPageRelPath(relPath: string): string {
@@ -97,4 +109,13 @@ async function readMarkdownIfPresent(filePath: string): Promise<string | undefin
 
     throw error;
   }
+}
+
+async function restorePage(filePath: string, originalPage: string | undefined): Promise<void> {
+  if (originalPage === undefined) {
+    await fs.unlink(filePath).catch(() => undefined);
+    return;
+  }
+
+  await writeFileAtomically(filePath, originalPage).catch(() => undefined);
 }

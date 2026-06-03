@@ -1,8 +1,9 @@
 import * as fsPromises from "node:fs/promises";
-import path from "node:path";
 import { parse as parseYaml } from "yaml";
 import {
+  resolveAbsolutePlanPath,
   runPipeline as runWorkspacePipeline,
+  type PipelineFileSystem,
   type PipelineRunOptions,
   type PipelineRunResult
 } from "@poe-code/pipeline";
@@ -75,8 +76,23 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
-async function planNeedsInit(absolutePath: string): Promise<boolean> {
-  const content = await fsPromises.readFile(absolutePath, "utf8");
+function createAbortError(): Error {
+  const error = new Error("Pipeline run cancelled");
+  error.name = "AbortError";
+  return error;
+}
+
+function assertNotAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
+async function planNeedsInit(
+  absolutePath: string,
+  fs: Pick<PipelineFileSystem, "readFile">
+): Promise<boolean> {
+  const content = await fs.readFile(absolutePath, "utf8");
   if (!content.startsWith("---\n") && !content.startsWith("---\r\n")) {
     return true;
   }
@@ -89,13 +105,19 @@ async function planNeedsInit(absolutePath: string): Promise<boolean> {
   return !Array.isArray(tasks) || tasks.length === 0;
 }
 
-async function runWithRetry<T>(fn: () => Promise<T>, maxAttempts: number): Promise<T> {
+async function runWithRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number,
+  signal?: AbortSignal
+): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    assertNotAborted(signal);
     try {
       return await fn();
     } catch (error) {
       if (!isActivityTimeoutError(error)) throw error;
+      assertNotAborted(signal);
       lastError = error;
     }
   }
@@ -103,6 +125,7 @@ async function runWithRetry<T>(fn: () => Promise<T>, maxAttempts: number): Promi
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  assertNotAborted(options.signal);
   const userRunAgent =
     options.runAgent ??
     (async (input: PipelineAgentRunnerInput) => {
@@ -110,6 +133,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         prompt: input.prompt,
         cwd: input.cwd,
         logDir: input.logDir,
+        ...(input.logFileName ? { logFileName: input.logFileName } : {}),
         model: input.model,
         mode: input.mode,
         ...(input.skills ? { skills: input.skills } : {}),
@@ -120,15 +144,16 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     });
 
   if (options.plan) {
-    const planAbsolutePath = path.resolve(options.cwd, options.plan);
-    if (await planNeedsInit(planAbsolutePath)) {
-      const sourceDocContent = await fsPromises.readFile(planAbsolutePath, "utf8");
+    const planFs = options.fs ?? fsPromises;
+    const planAbsolutePath = resolveAbsolutePlanPath(options.plan, options.cwd, options.homeDir);
+    if (await planNeedsInit(planAbsolutePath, planFs)) {
+      const sourceDocContent = await planFs.readFile(planAbsolutePath, "utf8");
       const prompt = buildPipelineInitPrompt({
         sourceDocPath: options.plan,
         sourceDocContent,
         skillContent: pipelineSkillPlan
       });
-      await runWithRetry(
+      const initResult = await runWithRetry(
         () =>
           userRunAgent({
             agent: options.agent,
@@ -138,13 +163,18 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
             ...(options.model ? { model: options.model } : {}),
             ...(options.signal ? { signal: options.signal } : {})
           }),
-        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
+        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT,
+        options.signal
       );
+      assertNotAborted(options.signal);
+      if (initResult.exitCode !== 0) {
+        throw new Error(`Pipeline initialization failed with exit code ${initResult.exitCode}.`);
+      }
     }
   }
 
   const retryRunAgent: PipelineAgentRunner = (input) =>
-    runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT);
+    runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT, input.signal);
 
   return runWorkspacePipeline({
     ...options,
@@ -212,6 +242,13 @@ export async function runPipelineInit(
         ...(options.model ? { model: options.model } : {}),
         ...(options.signal ? { signal: options.signal } : {})
       });
+
+      if (options.signal?.aborted) {
+        return {
+          stopReason: "cancelled",
+          sourcesProcessed
+        };
+      }
 
       options.onSourceComplete?.(source, displayIndex, totalSources, result);
 

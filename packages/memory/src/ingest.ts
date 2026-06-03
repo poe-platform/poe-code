@@ -50,7 +50,8 @@ export async function ingest(
   const indexMdBytes = await fs.readFile(path.join(root, MEMORY_INDEX_RELPATH));
   const configOptions = {
     fs: fs as MemoryConfigOptions["fs"],
-    filePath: path.join(inferRepoRoot(root), "poe-code.json")
+    filePath: path.join(inferRepoRoot(root), "poe-code.json"),
+    projectFilePath: path.join(inferRepoRoot(root), ".poe-code", "config.json")
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, opts.agent ?? null)) ?? opts.agent ?? "claude-code";
@@ -93,9 +94,11 @@ export async function ingest(
   let timeoutError: Error | undefined;
 
   try {
+    const controller = new AbortController();
     const result = await runWithTimeout(
-      spawn(agentId, { prompt }),
-      opts.timeoutMs ?? (await configuredTimeout(configOptions))
+      spawn(agentId, { prompt, signal: controller.signal }),
+      opts.timeoutMs ?? (await configuredTimeout(configOptions)),
+      () => controller.abort()
     );
     exitCode = result.exitCode;
     durationMs = result.durationMs ?? 0;
@@ -154,7 +157,17 @@ async function materializeSource(source: IngestOptions["source"]): Promise<{
     };
   }
 
-  throw new Error("URL ingest not implemented yet.");
+  const response = await fetch(source.url);
+  if (!response.ok) {
+    throw new Error(`Unable to fetch memory ingest source (${response.status}): ${source.url}`);
+  }
+
+  const bytes = Buffer.from(await response.arrayBuffer());
+  return {
+    label: source.url,
+    bytes,
+    text: bytes.toString("utf8")
+  };
 }
 
 function inferRepoRoot(root: string): string {
@@ -163,10 +176,12 @@ function inferRepoRoot(root: string): string {
 
 async function runWithTimeout<T extends { exitCode: number; durationMs?: number }>(
   promise: Promise<T>,
-  timeoutMs: number
+  timeoutMs: number,
+  onTimeout: () => void
 ): Promise<T> {
   return await new Promise<T>((resolve, reject) => {
     const timer = setTimeout(() => {
+      onTimeout();
       reject(new Error(`ingest timed out after ${timeoutMs}ms`));
     }, timeoutMs);
 

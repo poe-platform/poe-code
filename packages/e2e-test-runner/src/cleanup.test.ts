@@ -29,7 +29,7 @@ describe('cleanupDisk', () => {
     const { execSync } = await import('node:child_process');
 
     vi.mocked(detectEngine).mockReturnValue('podman');
-    vi.mocked(cleanupOrphans).mockResolvedValue(2);
+    vi.mocked(cleanupOrphans).mockResolvedValue({ found: 2, removed: 2 });
     vi.mocked(execSync).mockImplementation((command: string) => {
       if (command.includes(' images --format ')) {
         return 'poe-code-e2e:one\npoe-code-e2e:two\n';

@@ -58,12 +58,11 @@ function resolveHookParticipant(
     return resolveDefaultParticipant(participants);
   }
 
-  const participant = participants[hook.participant];
-  if (participant === undefined) {
+  if (!Object.hasOwn(participants, hook.participant)) {
     throw new Error(`Unknown participant: ${hook.participant}`);
   }
 
-  return participant;
+  return participants[hook.participant]!;
 }
 
 export async function runWorkflowHook(hook: WorkflowHook, context: HookContext): Promise<void> {

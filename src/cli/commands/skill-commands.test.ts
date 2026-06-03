@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
+import { ValidationError } from "../errors.js";
 
 const { selectMock, cancelMock } = vi.hoisted(() => {
   return {
@@ -43,7 +44,7 @@ describe("skill unconfigure command", () => {
     cancelMock.mockReset();
   });
 
-  it("errors for unknown agent", async () => {
+  it("rejects an unknown agent", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -57,9 +58,25 @@ describe("skill unconfigure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync(["node", "cli", "skill", "unconfigure", "unknown"]);
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "unconfigure", "unknown"])
+    ).rejects.toEqual(new ValidationError("Unknown agent: unknown"));
+    expect(logs).not.toContain("Unknown agent: unknown");
+  });
 
-    expect(logs).toContain("Unknown agent: unknown");
+  it("rejects conflicting unconfigure scopes", async () => {
+    const { fs } = createMemFs();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "unconfigure", "claude-code", "--local", "--global"])
+    ).rejects.toEqual(new ValidationError("Use either --local or --global, not both."));
   });
 
   it("uses core.defaultAgent for unconfigure without prompting and drops the model portion", async () => {
@@ -90,6 +107,45 @@ describe("skill unconfigure command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Removed skill directory for codex at ~/.codex/skills");
     await expect(fs.stat(`${homeDir}/.codex/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("does not recover malformed config while previewing skill unconfigure", async () => {
+    const { fs } = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/config.json`, malformedConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "skill", "unconfigure", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("uses the default agent for root --yes unconfigure", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message),
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure", "--local"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Would remove skill directory for claude-code at .claude/skills");
   });
 
   it("warns when directory has files and --force is not set", async () => {
@@ -185,7 +241,37 @@ describe("skill configure command", () => {
     cancelMock.mockReset();
   });
 
-  it("errors for unknown agent", async () => {
+  it("rejects an unknown agent", async () => {
+    const { fs } = createMemFs();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "configure", "unknown", "--yes"])
+    ).rejects.toEqual(new ValidationError("Unknown agent: unknown"));
+  });
+
+  it("rejects conflicting configure scopes", async () => {
+    const { fs } = createMemFs();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "configure", "claude-code", "--local", "--global"])
+    ).rejects.toEqual(new ValidationError("Use either --local or --global, not both."));
+  });
+
+  it("rejects another unknown configured agent value", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -199,9 +285,10 @@ describe("skill configure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync(["node", "cli", "skill", "configure", "invalid-provider"]);
-
-    expect(logs).toContain("Unknown agent: invalid-provider");
+    await expect(
+      program.parseAsync(["node", "cli", "skill", "configure", "invalid-provider"])
+    ).rejects.toEqual(new ValidationError("Unknown agent: invalid-provider"));
+    expect(logs).not.toContain("Unknown agent: invalid-provider");
   });
 
   it("configures skills for an agent and reports the target path", async () => {
@@ -274,6 +361,27 @@ describe("skill configure command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Configured skills for codex at ./.codex/skills");
     await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("does not recover malformed config while previewing skill configure", async () => {
+    const { fs } = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/config.json`, malformedConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "skill", "configure", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
   it("uses defaults with --yes and does not prompt", async () => {

@@ -137,7 +137,7 @@ function toJsonValue(value: unknown, seen: WeakSet<object>): unknown {
     }
 
     seen.add(value);
-    const normalized: Record<string, unknown> = {};
+    const normalized = Object.create(null) as Record<string, unknown>;
 
     for (const [key, entry] of Object.entries(value)) {
       normalized[key] = toJsonValue(entry, seen);

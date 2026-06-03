@@ -11,6 +11,7 @@ import {
   type OAuthSessionStore,
   type StoredOAuthSession,
 } from "./index.js";
+import { createAuthStoreClientStore } from "./client/auth-store-session-store.js";
 
 const RESOURCE_URL = "https://resource.example.com/mcp";
 const NON_CANONICAL_RESOURCE_URL = "HTTPS://RESOURCE.EXAMPLE.COM:443/mcp#ignored";
@@ -634,6 +635,31 @@ describe("createAuthStoreSessionStore", () => {
 });
 
 describe("createDefaultOAuthClientProvider", () => {
+  it("does not emit malformed persisted access tokens as bearer credentials", async () => {
+    const malformedSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      tokens: { accessToken: 42, tokenType: "Bearer", expiresAt: null },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+    } as unknown as StoredOAuthSession;
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return malformedSession; },
+        async save() {},
+        async clear() {},
+      },
+    });
+
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+  });
+
   it("fails before authorization when the server metadata does not advertise S256", async () => {
     const pair = createOAuthPair();
     const provider = createDefaultOAuthClientProvider({
@@ -1105,6 +1131,202 @@ describe("createDefaultOAuthClientProvider", () => {
     ).toHaveLength(1);
   });
 
+  it("does not attach a known-expired access token without a refresh credential", async () => {
+    const sessionStore = createMemorySessionStore();
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "expired-access",
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+      now: () => 10_000,
+    });
+
+    const authorizationHeader = await createAuthorizedHeaders(provider, vi.fn() as typeof fetch);
+
+    expect(authorizationHeader).toBeNull();
+  });
+
+  it("does not submit malformed persisted refresh credentials", async () => {
+    const malformedSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "expired-access",
+        refreshToken: { secret: true },
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    } as unknown as StoredOAuthSession;
+    const fetchMock = vi.fn();
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return malformedSession; },
+        async save() {},
+        async clear() {},
+      },
+      now: () => 10_000,
+    });
+
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("reauthorizes after an invalid token challenge when no refresh credential exists", async () => {
+    const pair = createOAuthPair();
+    const sessionStore = createMemorySessionStore();
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "revoked-access",
+        tokenType: "Bearer",
+        expiresAt: null,
+      },
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore,
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: { scheme: "Bearer", raw: "", params: { error: "invalid_token" } },
+      discovery: createDiscoveryResult(),
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(result).toEqual({ action: "retry" });
+    expect(await createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch)).toBe("Bearer access-1");
+  });
+
+  it("honors external session-store clears after an access token was previously loaded", async () => {
+    const sessionStore = createMemorySessionStore();
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "stored-access",
+        tokenType: "Bearer",
+        expiresAt: null,
+      },
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+    });
+
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBe("Bearer stored-access");
+    sessionStore.sessions.delete(RESOURCE_URL);
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+  });
+
+  it.each([
+    {
+      name: "whitespace-only access tokens",
+      response: { access_token: "   ", refresh_token: "refresh-next", token_type: "Bearer" },
+      error: "OAuth token response missing access_token",
+    },
+    {
+      name: "negative access token expiration",
+      response: {
+        access_token: "access-next",
+        refresh_token: "refresh-next",
+        token_type: "Bearer",
+        expires_in: -1,
+      },
+      error: "OAuth token response has invalid expires_in",
+    },
+  ])("rejects refresh responses containing $name", async ({ response, error }) => {
+    const sessionStore = createMemorySessionStore();
+    const originalSession: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        authorizationServer: AUTHORIZATION_SERVER,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "access-current",
+        refreshToken: "refresh-current",
+        tokenType: "Bearer",
+        expiresAt: 3_700_000,
+      },
+    };
+    sessionStore.sessions.set(RESOURCE_URL, originalSession);
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: vi.fn(),
+      },
+      sessionStore,
+      now: () => 10_000,
+    });
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: {
+        scheme: "Bearer",
+        raw: "",
+        params: { error: "invalid_token" },
+      },
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toBe(error);
+    }
+    expect(await sessionStore.load(RESOURCE_URL)).toEqual(originalSession);
+  });
+
   it("clears invalid refresh tokens, avoids echoing them, and falls back to one fresh authorization flow", async () => {
     const pair = createOAuthPair();
     const sessionStore = createMemorySessionStore();
@@ -1189,6 +1411,103 @@ describe("createDefaultOAuthClientProvider", () => {
 
     const authorizationHeader = await createAuthorizedHeaders(provider, fetchMock as typeof fetch);
     expect(authorizationHeader).toBe("Bearer access-2");
+  });
+
+  it("retains the previous refresh token when a refresh response does not rotate it", async () => {
+    const sessionStore = createMemorySessionStore();
+    let currentTime = 10_000;
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "expired-access",
+        refreshToken: "refresh-reusable",
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    });
+    let refreshCalls = 0;
+    const fetchMock = vi.fn(async () => {
+      refreshCalls += 1;
+      return new Response(JSON.stringify({
+        access_token: `access-${refreshCalls}`,
+        token_type: "Bearer",
+        expires_in: 1,
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+      now: () => currentTime,
+    });
+
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe("Bearer access-1");
+    expect((await sessionStore.load(RESOURCE_URL))?.tokens?.refreshToken).toBe("refresh-reusable");
+    currentTime = 12_000;
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe("Bearer access-2");
+    expect(refreshCalls).toBe(2);
+  });
+
+  it("does not activate refreshed tokens when persistence fails", async () => {
+    const storedSession: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "expired-access",
+        refreshToken: "refresh-old",
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    };
+    const sessionStore: OAuthSessionStore = {
+      load: vi.fn(async () => storedSession),
+      save: vi.fn(async () => {
+        throw new Error("session disk full");
+      }),
+      clear: vi.fn(async () => undefined),
+    };
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+      now: () => 10_000,
+    });
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      access_token: "uncommitted-access",
+      refresh_token: "refresh-new",
+      token_type: "Bearer",
+      expires_in: 3600,
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: { scheme: "Bearer", raw: "", params: { error: "invalid_token" } },
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    const headers = new Headers();
+    await expect(provider.authorizeRequest?.({
+      requestUrl: new URL(RESOURCE_URL),
+      headers,
+      fetch: fetchMock as typeof fetch,
+    })).rejects.toThrow("session disk full");
+    expect(headers.get("Authorization")).toBeNull();
   });
 
   it("persists a dynamically registered client after a failed token exchange and reuses it on the next attempt", async () => {
@@ -1397,6 +1716,68 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.authorizationRequests).toHaveLength(2);
     expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("client-1");
     expect(pair.authorizationRequests[1]?.searchParams.get("client_id")).toBe("client-1");
+  });
+
+  it("rejects whitespace-only dynamic client registration identifiers", async () => {
+    const pair = createOAuthPair();
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        return new Response(JSON.stringify({ client_id: "   " }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return pair.fetchMock(input, init);
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: { clientName: "poe-code test" },
+      },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toBe("OAuth client registration response missing client_id");
+    }
+    expect(pair.authorizationRequests).toHaveLength(0);
+  });
+
+  it.each([
+    { clientId: "", clientSecret: undefined },
+    { clientId: "stored-client", clientSecret: 42 },
+  ])("discards unusable persisted dynamic client registrations", async (storedClient) => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const clientStore = createAuthStoreClientStore(authStore);
+    await clientStore.save(
+      AUTHORIZATION_SERVER,
+      storedClient as unknown as { clientId: string; clientSecret?: string }
+    );
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "dynamic", metadata: { clientName: "poe-code test" } },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    expect(pair.registrationBodies).toHaveLength(1);
   });
 
   it("falls back to a configured static client_id when registration_endpoint is missing", async () => {

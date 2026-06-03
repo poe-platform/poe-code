@@ -37,9 +37,9 @@ export function acpToTrace(ctx: AcpSpawnContext): AcpTrace {
       }),
       output: redact(accumulateAgentOutput(ctx.events)),
       metadata: {
+        ...spawnCtx.metadata,
         sessionId: ctx.sessionId,
         threadId: ctx.threadId,
-        ...spawnCtx.metadata,
       },
       metrics: buildMetrics(ctx),
       children: logToolSpans(ctx.events),
@@ -56,12 +56,13 @@ function logToolSpans(events: AcpEvent[]): AcpTraceSpan[] {
       continue;
     }
 
-    const metadata = collectToolMeta(events, index, readString(toolCall.toolCallId));
+    const toolCallId = readToolCallId(toolCall);
+    const metadata = collectToolMeta(events, index, toolCallId);
     spans.push({
       name: `tool_call:${readString(toolCall.kind) ?? "unknown"}`,
       kind: "tool",
       input: redact(readToolInput(toolCall)),
-      output: redact(assembleToolOutput(events, index, readString(toolCall.toolCallId))),
+      output: redact(assembleToolOutput(events, index, toolCallId)),
       ...(metadata ? { metadata } : {}),
       ...readSpanTimestamps(metadata),
       children: [],
@@ -76,27 +77,34 @@ function collectToolMeta(
   toolCallIndex: number,
   toolCallId: string | undefined,
 ): Record<string, unknown> | undefined {
-  const merged: Record<string, unknown> = {};
+  const merged: Record<string, unknown> = {
+    ...(toolCallId !== undefined ? { toolCallId } : {}),
+  };
 
   const startMeta = asRecord(asRecord(events[toolCallIndex])?._meta);
   if (startMeta) {
     for (const [key, value] of Object.entries(startMeta)) {
-      merged[key === "ts" ? "startTs" : key] = value;
+      setOwnProperty(merged, key === "ts" ? "startTs" : key, value);
     }
   }
 
   for (const event of events.slice(toolCallIndex + 1)) {
     const update = asToolCallUpdate(event);
     if (update === undefined) continue;
-    if (toolCallId !== undefined && update.toolCallId !== toolCallId) continue;
+    if (readToolCallId(update) !== toolCallId) continue;
     const updateMeta = asRecord(update._meta);
     if (!updateMeta) continue;
     for (const [key, value] of Object.entries(updateMeta)) {
-      merged[key === "ts" ? "endTs" : key] = value;
+      setOwnProperty(merged, key === "ts" ? "endTs" : key, value);
     }
   }
 
-  return Object.keys(merged).length > 0 ? merged : undefined;
+  if (Object.keys(merged).length === 0) {
+    return undefined;
+  }
+
+  const redactedMetadata = redact(merged);
+  return asRecord(redactedMetadata) ?? { redacted: redactedMetadata };
 }
 
 function accumulateAgentOutput(events: AcpEvent[]): string {
@@ -135,7 +143,7 @@ function assembleToolOutput(
       continue;
     }
 
-    if (toolCallId !== undefined && update.toolCallId !== toolCallId) {
+    if (readToolCallId(update) !== toolCallId) {
       continue;
     }
 
@@ -146,6 +154,10 @@ function assembleToolOutput(
     const contentText = readContentText(update.content);
     if (contentText.length > 0) {
       text += contentText;
+    }
+
+    if (update.event === "tool_complete" && Object.hasOwn(update, "path")) {
+      outputs.push(update.path);
     }
   }
 
@@ -161,7 +173,7 @@ function assembleToolOutput(
 }
 
 function buildMetrics(ctx: AcpSpawnContext): Record<string, number> {
-  const usage = ctx.usage as unknown as Record<string, unknown>;
+  const usage = asRecord(ctx.usage) ?? {};
   const metrics: Record<string, number> = {};
   const promptTokens = readNumber(usage.prompt_tokens) ?? readNumber(usage.inputTokens);
   const completionTokens = readNumber(usage.completion_tokens) ?? readNumber(usage.outputTokens);
@@ -190,12 +202,20 @@ function buildMetrics(ctx: AcpSpawnContext): Record<string, number> {
 
 function asToolCall(event: AcpEvent): EventRecord | undefined {
   const record = asRecord(event);
-  return record?.sessionUpdate === "tool_call" ? record : undefined;
+  return record?.sessionUpdate === "tool_call" || record?.event === "tool_start"
+    ? record
+    : undefined;
 }
 
 function asToolCallUpdate(event: AcpEvent): EventRecord | undefined {
   const record = asRecord(event);
-  return record?.sessionUpdate === "tool_call_update" ? record : undefined;
+  return record?.sessionUpdate === "tool_call_update" || record?.event === "tool_complete"
+    ? record
+    : undefined;
+}
+
+function readToolCallId(toolEvent: EventRecord): string | undefined {
+  return readString(toolEvent.toolCallId) ?? readString(toolEvent.id);
 }
 
 function readToolInput(toolCall: EventRecord): unknown {
@@ -265,5 +285,22 @@ function sumIfPresent(
   left: number | undefined,
   right: number | undefined,
 ): number | undefined {
-  return left !== undefined && right !== undefined ? left + right : undefined;
+  if (left === undefined || right === undefined) {
+    return undefined;
+  }
+
+  return readNumber(left + right);
+}
+
+function setOwnProperty(
+  target: Record<string, unknown>,
+  key: string,
+  value: unknown,
+): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
 }

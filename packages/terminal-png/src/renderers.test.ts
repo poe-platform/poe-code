@@ -23,6 +23,8 @@ describe("parseAnsi", () => {
       underline: false,
       strikethrough: false,
       dim: false,
+      inverse: false,
+      conceal: false,
       ...overrides
     };
   }
@@ -92,6 +94,67 @@ describe("parseAnsi", () => {
       createRun("c")
     ]);
   });
+
+  it("parses inverse and conceal style toggles", () => {
+    expect(parseAnsi("\u001b[7mselected\u001b[27m \u001b[8msecret\u001b[28mshown")).toEqual([
+      createRun("selected", { inverse: true }),
+      createRun(" "),
+      createRun("secret", { conceal: true }),
+      createRun("shown")
+    ]);
+  });
+
+  it("parses colon-delimited rgb colors", () => {
+    expect(parseAnsi("\u001b[38:2::12:34:56mhello")).toEqual([
+      createRun("hello", { fg: { type: "rgb", r: 12, g: 34, b: 56 } })
+    ]);
+  });
+
+  it("treats empty sgr parameters as reset", () => {
+    expect(parseAnsi("\u001b[31mred\u001b[;m plain")).toEqual([
+      createRun("red", { fg: { type: "ansi4", index: 1 } }),
+      createRun(" plain")
+    ]);
+  });
+
+  it("ignores incomplete rgb parameters instead of applying channel styles", () => {
+    expect(parseAnsi("\u001b[38;2;1;2mX")).toEqual([createRun("X")]);
+  });
+
+  it("applies horizontal cursor repositioning before later output", () => {
+    expect(parseAnsi("ready\u001b[1GFAIL")).toEqual([createRun("FAILy")]);
+  });
+
+  it("overwrites a previous cell after backspace", () => {
+    expect(parseAnsi("PASS\bF")).toEqual([createRun("PASF")]);
+  });
+
+  it("recognizes C1 CSI styling controls", () => {
+    expect(parseAnsi("\u009b31mRED\u009b0m")).toEqual([
+      createRun("RED", { fg: { type: "ansi4", index: 1 } })
+    ]);
+  });
+
+  it("renders carriage return updates as overwritten terminal cells", () => {
+    expect(parseAnsi("loading 0%\rloading 100%\n")).toEqual([
+      createRun("loading 100%"),
+      createRun("\n")
+    ]);
+  });
+
+  it("consumes OSC hyperlink metadata while retaining the label", () => {
+    expect(parseAnsi("\u001b]8;;https://secret.example/token\u0007click\u001b]8;;\u0007")).toEqual([
+      createRun("click")
+    ]);
+  });
+
+  it("moves vertically for a vertical tab without rendering its control byte", () => {
+    expect(parseAnsi("A\vB")).toEqual([
+      createRun("A"),
+      createRun("\n"),
+      createRun(" B")
+    ]);
+  });
 });
 
 describe("font", () => {
@@ -140,6 +203,8 @@ describe("renderSvg", () => {
       underline: false,
       strikethrough: false,
       dim: false,
+      inverse: false,
+      conceal: false,
       ...overrides
     };
   }
@@ -167,6 +232,21 @@ describe("renderSvg", () => {
     const svg = renderSvg([createRun({ fg: { type: "ansi4", index: 1 } })], { window: false });
 
     expect(svg).toContain('fill="#D74E6F"');
+  });
+
+  it("renders background colors behind text runs", () => {
+    const svg = renderSvg([createRun({ text: "ERROR", bg: { type: "ansi4", index: 1 } })], { window: false });
+
+    expect(svg).toContain('fill="#D74E6F"');
+    expect(svg).toContain("<rect");
+  });
+
+  it("renders inverse text with swapped default colors and conceals hidden text", () => {
+    const svg = renderSvg([createRun({ text: "selected", inverse: true }), createRun({ text: "secret", conceal: true })], { window: false });
+
+    expect(svg).toContain('fill="#c4c4c4"');
+    expect(svg).toContain('fill="#171717"');
+    expect(svg).not.toContain("secret");
   });
 
   it("maps ansi8 low palette indexes to the standard 8-color palette", () => {
@@ -239,6 +319,24 @@ describe("renderSvg", () => {
 
     expect(svg).toContain('width="76.83"');
   });
+
+  it("advances horizontal tabs to eight-column tab stops", () => {
+    const svg = renderSvg([createRun({ text: "A\tB" })], { window: false, padding: 0 });
+
+    expect(svg).toContain('width="75.71"');
+  });
+
+  it("does not allocate cells to standalone combining marks", () => {
+    const svg = renderSvg([createRun({ text: "\u0301" })], { window: false, padding: 0 });
+
+    expect(svg).toContain('width="0.00"');
+  });
+
+  it("measures regional indicator flags as two terminal cells", () => {
+    const svg = renderSvg([createRun({ text: "🇺🇸" })], { window: false, padding: 0 });
+
+    expect(svg).toContain('width="16.83"');
+  });
 });
 
 describe("renderPng", () => {
@@ -252,6 +350,8 @@ describe("renderPng", () => {
       underline: false,
       strikethrough: false,
       dim: false,
+      inverse: false,
+      conceal: false,
       ...overrides
     };
   }

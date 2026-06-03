@@ -72,6 +72,35 @@ describe("backup utilities", () => {
     const restored = await restoreLatestBackup(fs, filePath);
     expect(restored).toBe(false);
   });
+
+  it("ignores prefixed sibling files that are not timestamped backups", async () => {
+    await createBackup(fs, filePath, () => "20240101T010101");
+    await fs.writeFile(`${filePath}.backup.zzz-not-a-backup`, "unrelated", { encoding: "utf8" });
+    await fs.writeFile(filePath, "changed", { encoding: "utf8" });
+
+    await expect(restoreLatestBackup(fs, filePath)).resolves.toBe(true);
+    await expect(fs.readFile(filePath, "utf8")).resolves.toBe("export FOO=bar");
+  });
+
+  it("preserves live content when restoring backup bytes fails", async () => {
+    await createBackup(fs, filePath, () => "20240101T010101");
+    await fs.writeFile(filePath, "current valid content", { encoding: "utf8" });
+    const baseFs = fs;
+    fs = {
+      ...baseFs,
+      copyFile: undefined,
+      writeFile: async (target, data, options) => {
+        if (target.includes(".restore-")) {
+          await baseFs.writeFile(target, "partial restored bytes", options);
+          throw new Error("replacement write failed");
+        }
+        await baseFs.writeFile(target, data, options);
+      }
+    };
+
+    await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow("replacement write failed");
+    await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
+  });
 });
 
 // ── cli-settings-merge ────────────────────────────────────────────────────────
@@ -333,7 +362,7 @@ describe("createBinaryExistsCheck", () => {
     const runCommand = createRunner({
       "which demo": { stdout: "", exitCode: 1 },
       "where demo": { stdout: "", exitCode: 0 },
-      'sh -c test -f "/usr/local/bin/demo" || test -f "/usr/bin/demo" || test -f "$HOME/.local/bin/demo" || test -f "$HOME/.claude/local/bin/demo"':
+      'sh -c for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1 sh demo':
         {
           stdout: "",
           exitCode: 1

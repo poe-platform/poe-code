@@ -57,7 +57,7 @@ export async function spawnCore(
     throw new Error(`Unknown service "${service}".`);
   }
 
-  const model = await resolveConfiguredModel(container, service, options.model);
+  const model = await resolveConfiguredModel(container, service, options.model, { readOnly: flags.dryRun });
   const workspace = await resolveSpawnWorkspace(options.cwd, {
     baseDir: container.env.cwd,
     homeDir: container.env.homeDir,
@@ -130,14 +130,15 @@ export async function spawnCore(
       exitCode: result.exitCode
     };
   } finally {
-    await workspace.cleanup?.();
+    await workspace.cleanup?.().catch(() => undefined);
   }
 }
 
 export async function resolveConfiguredModel(
   container: Pick<CliContainer, "env" | "fs" | "registry">,
   service: string,
-  model?: string
+  model?: string,
+  options: { readOnly?: boolean } = {}
 ): Promise<string | undefined> {
   if (model != null) {
     return model;
@@ -148,7 +149,8 @@ export async function resolveConfiguredModel(
   const configuredModel = await resolveConfigModel(
     {
       fs: container.fs,
-      filePath: container.env.configPath
+      filePath: container.env.configPath,
+      readOnly: options.readOnly
     },
     agentId
   );

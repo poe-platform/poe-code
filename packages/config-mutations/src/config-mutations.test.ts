@@ -80,6 +80,10 @@ describe("getConfigFormat", () => {
       const format = getConfigFormat("yaml");
       expect(format).toBe(yamlFormat);
     });
+
+    it("rejects inherited registry property names", () => {
+      expect(() => getConfigFormat("constructor")).toThrow("Unsupported config format");
+    });
   });
 });
 
@@ -99,6 +103,31 @@ describe("detectFormat", () => {
 
   it("returns undefined for unknown extensions", () => {
     expect(detectFormat("file")).toBeUndefined();
+  });
+});
+
+describe.each([
+  ["json", jsonFormat],
+  ["toml", tomlFormat],
+  ["yaml", yamlFormat]
+])("%s format safety", (_name, format) => {
+  it("preserves proto-named merged entries as data", () => {
+    const patch = JSON.parse('{"__proto__":{"polluted":true}}') as any;
+    const result = format.merge({}, patch);
+
+    expect(Object.prototype.hasOwnProperty.call(result, "__proto__")).toBe(true);
+    expect((result as any).polluted).toBeUndefined();
+  });
+
+  it("ignores inherited and incompatible nested prune targets", () => {
+    expect(format.prune({ keep: true }, { constructor: {} } as any)).toEqual({
+      changed: false,
+      result: { keep: true }
+    });
+    expect(format.prune({ nested: "keep" }, { nested: { child: {} } })).toEqual({
+      changed: false,
+      result: { nested: "keep" }
+    });
   });
 });
 
@@ -252,6 +281,14 @@ describe("jsonFormat", () => {
       expect(base).toEqual({ a: 1 });
       expect(patch).toEqual({ b: 2 });
     });
+
+    it("preserves proto-named keys as data", () => {
+      const patch = JSON.parse('{"__proto__":{"polluted":true}}') as any;
+      const result = jsonFormat.merge({}, patch);
+
+      expect(Object.prototype.hasOwnProperty.call(result, "__proto__")).toBe(true);
+      expect((result as any).polluted).toBeUndefined();
+    });
   });
 
   describe("prune", () => {
@@ -301,6 +338,18 @@ describe("jsonFormat", () => {
       const original = { a: 1, b: 2 };
       jsonFormat.prune(original, { a: {} });
       expect(original).toEqual({ a: 1, b: 2 });
+    });
+
+    it("does not match inherited constructor properties", () => {
+      const { changed, result } = jsonFormat.prune({ keep: true }, { constructor: {} } as any);
+      expect(changed).toBe(false);
+      expect(result).toEqual({ keep: true });
+    });
+
+    it("does not delete a primitive parent for a nested shape", () => {
+      const { changed, result } = jsonFormat.prune({ nested: "keep" }, { nested: { child: {} } });
+      expect(changed).toBe(false);
+      expect(result).toEqual({ nested: "keep" });
     });
   });
 });
@@ -729,6 +778,104 @@ describe("runMutations", () => {
 
       expect(fs.files[`${homeDir}/.config/settings.yaml`]).toBe("key: value\n");
     });
+
+    it("does not corrupt an existing document when replacement write fails", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"existing":true}\n' })).promises as unknown as FileSystem;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "{", options);
+            throw new Error("config disk full");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("config disk full");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+    });
+
+    it("refuses a symlinked config target", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const outsidePath = "/outside/config.json";
+      const volume = Volume.fromJSON({ [outsidePath]: '{"outside":true}\n' });
+      volume.mkdirSync(homeDir, { recursive: true });
+      volume.symlinkSync(outsidePath, targetPath);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("symbolic link");
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe('{"outside":true}\n');
+    });
+
+    it("refuses configuration writes through a symlinked parent directory", async () => {
+      const outsidePath = "/outside/config.toml";
+      const volume = Volume.fromJSON({ [outsidePath]: 'user_setting = "keep"\n' });
+      volume.mkdirSync(homeDir, { recursive: true });
+      volume.symlinkSync("/outside", `${homeDir}/.codex`);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.codex/config.toml", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("symbolic link");
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe('user_setting = "keep"\n');
+      await expect(fs.readdir("/outside")).resolves.toEqual(["config.toml"]);
+    });
+
+    it("allows writes when a system ancestor of the home directory is a symlink", async () => {
+      // Mirrors macOS, where /tmp -> /private/tmp: ancestors above the managed
+      // home are legitimate system symlinks and must not block config writes.
+      const volume = new Volume();
+      volume.mkdirSync("/private/scratch/home", { recursive: true });
+      volume.symlinkSync("/private/scratch", "/scratch");
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { added: true } })],
+        { fs, homeDir: "/scratch/home" }
+      );
+
+      const written = await fs.readFile("/private/scratch/home/.config.json", "utf8");
+      expect(JSON.parse(written)).toEqual({ added: true });
+    });
+
+    it("refuses a symlinked invalid-document backup destination", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-26T12:34:56.789Z"));
+      const targetPath = `${homeDir}/.config.json`;
+      const backupPath = `${targetPath}.invalid-2026-05-26T12-34-56-789Z.json`;
+      const outsidePath = "/outside/config.json";
+      const volume = Volume.fromJSON({ [targetPath]: "{ broken", [outsidePath]: "external" });
+      volume.symlinkSync(outsidePath, backupPath);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow();
+      vi.useRealTimers();
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("external");
+    });
+
+    it("does not overwrite invalid-document backups created in the same millisecond", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-26T12:34:56.789Z"));
+      const targetPath = `${homeDir}/.config.json`;
+      const fs = createMockFs({ "~/.config.json": "{ first" }, homeDir);
+
+      await runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir });
+      await fs.writeFile(targetPath, "{ second", { encoding: "utf8" });
+      await runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir });
+      vi.useRealTimers();
+
+      const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".invalid-"));
+      expect(backups).toHaveLength(2);
+      expect(backups.map((filePath) => fs.files[filePath])).toEqual(["{ first", "{ second"]);
+    });
   });
 
   describe("configMutation.prune", () => {
@@ -800,6 +947,40 @@ describe("runMutations", () => {
       expect(content).toEqual({ owner: "me" });
     });
 
+    it("does not trust inherited proto values in onlyIf", async () => {
+      const fs = createMockFs({
+        "~/.config.json": '{"__proto__":{"owner":"me"},"remove":true}\n'
+      }, homeDir);
+
+      const result = await runMutations(
+        [configMutation.prune({ target: "~/.config.json", shape: { remove: {} }, onlyIf: (doc) => (doc as any).owner === "me" })],
+        { fs, homeDir }
+      );
+
+      expect(result.changed).toBe(false);
+      expect(fs.exists("~/.config.json")).toBe(true);
+    });
+
+    it("does not corrupt an existing document when replacement write fails", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"keep":true,"remove":true}\n' })).promises as unknown as FileSystem;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "{", options);
+            throw new Error("prune interrupted");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        runMutations([configMutation.prune({ target: "~/.config.json", shape: { remove: {} } })], { fs, homeDir })
+      ).rejects.toThrow("prune interrupted");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"keep":true,"remove":true}\n');
+    });
+
     it("prunes YAML files", async () => {
       const fs = createMockFs({
         "~/.config.yaml": "owner: me\nkey: value\n"
@@ -822,6 +1003,26 @@ describe("runMutations", () => {
   });
 
   describe("fileMutation.ensureDirectory", () => {
+    it("does not corrupt transformed config when replacement write fails", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"keep":true}\n' })).promises as unknown as FileSystem;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "{", options);
+            throw new Error("transform interrupted");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        runMutations([configMutation.transform({ target: "~/.config.json", transform: () => ({ content: { changed: true }, changed: true }) })], { fs, homeDir })
+      ).rejects.toThrow("transform interrupted");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"keep":true}\n');
+    });
+
     it("creates directory if not exists", async () => {
       const fs = createMockFs({}, homeDir);
 
@@ -875,6 +1076,91 @@ describe("runMutations", () => {
       // File should still exist because it's not empty
       expect(fs.exists("~/.config.json")).toBe(true);
     });
+
+    it("reuses global match guards without leaking regex state", async () => {
+      const fs = createMockFs({
+        "~/.one": "generated",
+        "~/.two": "generated"
+      }, homeDir);
+      const generated = /generated/g;
+
+      await runMutations(
+        [
+          fileMutation.remove({ target: "~/.one", whenContentMatches: generated }),
+          fileMutation.remove({ target: "~/.two", whenContentMatches: generated })
+        ],
+        { fs, homeDir }
+      );
+
+      expect(fs.exists("~/.one")).toBe(false);
+      expect(fs.exists("~/.two")).toBe(false);
+    });
+  });
+
+  describe("fileMutation.backup", () => {
+    it("does not overwrite backups created in the same millisecond", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-25T12:34:56.789Z"));
+      const fs = createMockFs({ "~/.settings.json": "first" }, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "second", { encoding: "utf8" });
+      await runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir });
+      vi.useRealTimers();
+
+      const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".backup-"));
+      expect(backups).toHaveLength(2);
+      expect(backups.map((filePath) => fs.files[filePath])).toEqual(["first", "second"]);
+    });
+
+    it("restores and consumes the latest generated backup atomically", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-25T12:34:56.789Z"));
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed", { encoding: "utf8" });
+      const result = await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+      vi.useRealTimers();
+
+      expect(result.changed).toBe(true);
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("original");
+      expect(Object.keys(fs.files).filter((filePath) => filePath.includes(".backup-"))).toEqual([]);
+      await expect(runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir })).resolves.toMatchObject({ changed: false });
+    });
+
+    it("ignores unrelated backup-prefix siblings during restoration", async () => {
+      const fs = createMockFs({
+        "~/.settings.json": "managed",
+        "~/.settings.json.backup-not-generated": "poison"
+      }, homeDir);
+
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("managed");
+    });
+
+    it("keeps the first backup baseline across repeated managed writes", async () => {
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed one", { encoding: "utf8" });
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed two", { encoding: "utf8" });
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("original");
+    });
+
+    it("restores an originally absent target by removing the generated file", async () => {
+      const fs = createMockFs({}, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed", { encoding: "utf8" });
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      await expect(fs.readFile(`${homeDir}/.settings.json`, "utf8")).rejects.toThrow();
+    });
   });
 
   describe("templateMutation.write", () => {
@@ -909,6 +1195,59 @@ describe("runMutations", () => {
           { fs, homeDir }
         )
       ).rejects.toThrow("Template mutations require a templates loader");
+    });
+
+    it("does not rewrite identical rendered output", async () => {
+      const fs = createMockFs({ "~/.config/app.sh": "same" }, homeDir);
+      const writeFile = vi.spyOn(fs, "writeFile");
+
+      const result = await runMutations(
+        [templateMutation.write({ target: "~/.config/app.sh", templateId: "app.sh" })],
+        { fs, homeDir, templates: async () => "same" }
+      );
+
+      expect(result.changed).toBe(false);
+      expect(writeFile).not.toHaveBeenCalled();
+    });
+
+    it("does not corrupt existing output when replacement write fails", async () => {
+      const targetPath = `${homeDir}/app.sh`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: "existing" })).promises as unknown as FileSystem;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "partial", options);
+            throw new Error("template write interrupted");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        runMutations([templateMutation.write({ target: "~/app.sh", templateId: "app.sh" })], { fs, homeDir, templates: async () => "changed" })
+      ).rejects.toThrow("template write interrupted");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe("existing");
+    });
+
+    it("does not corrupt template-merged output when replacement write fails", async () => {
+      const targetPath = `${homeDir}/settings.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"keep":true}\n' })).promises as unknown as FileSystem;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "{", options);
+            throw new Error("template merge interrupted");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        runMutations([templateMutation.mergeJson({ target: "~/settings.json", templateId: "patch" })], { fs, homeDir, templates: async () => '{"added":true}\n' })
+      ).rejects.toThrow("template merge interrupted");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"keep":true}\n');
     });
   });
 
@@ -975,6 +1314,39 @@ describe("runMutations", () => {
       const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
       expect(content).toEqual({ old: true });
     });
+
+    it("does not back up invalid documents during merge previews", async () => {
+      const fs = createMockFs({ "~/.config.json": "{ broken" }, homeDir);
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { repaired: true } })],
+        { fs, homeDir, dryRun: true }
+      );
+
+      expect(Object.keys(fs.files)).toEqual([`${homeDir}/.config.json`]);
+    });
+
+    it("does not back up invalid documents during transform previews", async () => {
+      const fs = createMockFs({ "~/.config.json": "{ broken" }, homeDir);
+
+      await runMutations(
+        [configMutation.transform({ target: "~/.config.json", transform: () => ({ content: {}, changed: true }) })],
+        { fs, homeDir, dryRun: true }
+      );
+
+      expect(Object.keys(fs.files)).toEqual([`${homeDir}/.config.json`]);
+    });
+
+    it("does not back up invalid documents during template merge previews", async () => {
+      const fs = createMockFs({ "~/.config.json": "{ broken" }, homeDir);
+
+      await runMutations(
+        [templateMutation.mergeJson({ target: "~/.config.json", templateId: "patch" })],
+        { fs, homeDir, dryRun: true, templates: async () => '{"fixed":true}' }
+      );
+
+      expect(Object.keys(fs.files)).toEqual([`${homeDir}/.config.json`]);
+    });
   });
 
   describe("path validation", () => {
@@ -987,6 +1359,14 @@ describe("runMutations", () => {
           { fs, homeDir }
         )
       ).rejects.toThrow("home-relative");
+    });
+
+    it("throws for home-relative traversal outside home", async () => {
+      const fs = createMockFs({}, homeDir);
+
+      await expect(
+        runMutations([fileMutation.ensureDirectory({ path: "~/../../outside" })], { fs, homeDir })
+      ).rejects.toThrow("outside home");
     });
   });
 });

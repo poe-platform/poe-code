@@ -8,9 +8,11 @@ export interface RalphFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   writeFile(path: string, content: string): Promise<void>;
   readdir(path: string): Promise<string[]>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   stat(path: string): Promise<RalphFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
+  unlink(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
 }
 

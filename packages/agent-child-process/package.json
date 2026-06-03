@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "cd ../.. && vitest run --config vitest.config.ts packages/agent-child-process/src",
     "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/agent-child-process/src",
     "lint": "cd ../.. && eslint packages/agent-child-process/src --ext ts && tsc -p packages/agent-child-process/tsconfig.json --noEmit"

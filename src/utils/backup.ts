@@ -1,4 +1,5 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "./file-system.js";
 
@@ -39,7 +40,7 @@ export async function restoreLatestBackup(
   }
 
   const backups = entries
-    .filter((name) => name.startsWith(`${base}.backup.`))
+    .filter((name) => isGeneratedBackupName(name, base))
     .sort()
     .reverse();
 
@@ -48,8 +49,25 @@ export async function restoreLatestBackup(
   }
 
   const latest = path.join(dir, backups[0]);
-  await copy(fs, latest, targetPath);
+  const temporaryPath = `${targetPath}.restore-${randomUUID()}`;
+  try {
+    await copy(fs, latest, temporaryPath);
+    await fs.rename(temporaryPath, targetPath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
   return true;
+}
+
+function isGeneratedBackupName(name: string, base: string): boolean {
+  const prefix = `${base}.backup.`;
+  if (!name.startsWith(prefix)) {
+    return false;
+  }
+
+  const timestamp = name.slice(prefix.length);
+  return timestamp.length > 0 && timestamp[0] >= "0" && timestamp[0] <= "9";
 }
 
 async function exists(fs: FileSystem, targetPath: string): Promise<boolean> {
@@ -76,4 +94,3 @@ async function copy(
   const content = await fs.readFile(from);
   await fs.writeFile(to, content);
 }
-

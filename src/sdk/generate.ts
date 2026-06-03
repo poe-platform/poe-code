@@ -5,7 +5,7 @@ import {
   DEFAULT_AUDIO_BOT
 } from "../cli/constants.js";
 import { getPoeApiKey } from "./credentials.js";
-import { getGlobalClient, setGlobalClient } from "../services/client-instance.js";
+import { getGlobalClient } from "../services/client-instance.js";
 import { createPoeClient } from "../services/llm-client.js";
 import type { LlmClient } from "../services/llm-client.js";
 import type {
@@ -100,13 +100,11 @@ async function resolveClient(): Promise<LlmClient> {
     return getGlobalClient();
   } catch {
     const apiKey = await getPoeApiKey();
-    const baseUrl = normalizeBaseUrl(process.env.POE_API_BASE_URL);
-    const client = createPoeClient({
+    const baseUrl = normalizeBaseUrl(process.env.POE_BASE_URL ?? process.env.POE_API_BASE_URL);
+    return createPoeClient({
       apiKey,
       baseUrl
     });
-    setGlobalClient(client);
-    return client;
   }
 }
 

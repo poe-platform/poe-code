@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolve } from "./resolve.js";
 import type { FileSystem } from "./types.js";
@@ -416,6 +417,42 @@ describe("resolve", () => {
     });
   });
 
+  it("does not merge an absolute on-disk self match for a relative document path", async () => {
+    const relativePath = "workspace/review.yaml";
+    const absolutePath = path.resolve(relativePath);
+    const fs = createMemFs({
+      [absolutePath]: "title: Stale\nstale: true"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: relativePath,
+            content: "title: Edited"
+          },
+          {
+            source: "base",
+            path: path.dirname(absolutePath)
+          }
+        ],
+        {
+          fs,
+          autoExtend: true
+        }
+      )
+    ).resolves.toEqual({
+      data: {
+        title: "Edited"
+      },
+      sources: {
+        title: "document"
+      },
+      chain: [relativePath]
+    });
+  });
+
   it("does not auto-resolve when the document explicitly disables extends", async () => {
     const fs = createMemFs({
       "/bases/review.yaml": "prompt: Base prompt"
@@ -638,6 +675,29 @@ describe("resolve", () => {
       description: "From markdown",
       prompt: "Markdown prompt"
     });
+  });
+
+  it("resolves a base directory with a trailing separator", async () => {
+    const fs = createMemFs({
+      "/bases/review.yaml": "tone: base"
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/project/review.yaml",
+          content: "extends: true\ntitle: Document"
+        },
+        {
+          source: "base",
+          path: "/bases/"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data).toEqual({ title: "Document", tone: "base" });
   });
 
   it("supports a JSON document extending a YAML base", async () => {

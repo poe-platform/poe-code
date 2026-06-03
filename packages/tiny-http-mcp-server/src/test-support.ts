@@ -44,7 +44,9 @@ export async function nodeFetch(input: string | URL, init: RequestInit = {}): Pr
           }
 
           if (Array.isArray(value)) {
-            responseHeaders.set(key, value.join(", "));
+            for (const entry of value) {
+              responseHeaders.append(key, entry);
+            }
           }
         }
 
@@ -85,6 +87,8 @@ export async function nodeFetch(input: string | URL, init: RequestInit = {}): Pr
 
     if (typeof init.body === "string" || init.body instanceof Uint8Array) {
       request.write(init.body);
+    } else if (init.body instanceof URLSearchParams) {
+      request.write(init.body.toString());
     }
 
     request.end();

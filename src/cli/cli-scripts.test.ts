@@ -328,6 +328,22 @@ describe("check eligible user workflow script", () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("refuses to append eligibility output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    fetchMock.mockResolvedValueOnce(
+      createResponse({ ok: false, status: 404, statusText: "Not Found" }) satisfies MockResponse
+    );
+    const { appendWorkflowOutput } = await import(scriptPath);
+
+    expect(() => appendWorkflowOutput("/github/output", "allowed=true\n", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -430,6 +446,17 @@ describe("discover models workflow script", () => {
       throw new Error(`Unhandled request in discover-models test: ${method} ${url}`);
     });
   }
+
+  it("refuses to append model output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { writeWorkflowOutputs } = await import(scriptUrl);
+
+    expect(() => writeWorkflowOutputs("/github/output", [42], memoryFs)).toThrow("symbolic link");
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
+  });
 
   it("calls poe-code models in json output mode for parse-safe YAML", async () => {
     const { runDiscovery } = await import(scriptUrl);
@@ -779,6 +806,9 @@ describe("ErrorLogger (read-only environments)", () => {
     const syncFs = createSyncFs({});
 
     vi.spyOn(syncFs, "existsSync").mockImplementation((target: string) => {
+      if (target === "/") {
+        return true;
+      }
       if (target === logDir) {
         return false;
       }
@@ -807,6 +837,66 @@ describe("ErrorLogger (read-only environments)", () => {
     expect(appendSpy).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("ERROR: run command");
+  });
+
+  it("does not write logs through a symlinked log directory", () => {
+    const syncFs = createSyncFs({ "/outside/.keep": "" });
+    syncFs.mkdirSync("/root/.poe-code", { recursive: true });
+    syncFs.symlinkSync("/outside", logDir);
+
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+
+    logger.logWarning("outside write blocked");
+
+    expect(syncFs.existsSync("/outside/errors.log")).toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy.mock.calls[0][0]).toContain("outside write blocked");
+  });
+
+  it("keeps retained backups when a later rotation rename fails", () => {
+    const backup1 = `${logFile}.1`;
+    const backup2 = `${logFile}.2`;
+    const syncFs = createSyncFs({
+      [logFile]: "current log at limit",
+      [backup1]: "newer history",
+      [backup2]: "oldest retained history"
+    });
+    const renameSync = syncFs.renameSync.bind(syncFs);
+    let failed = false;
+
+    vi.spyOn(syncFs, "renameSync").mockImplementation(
+      (source: string, target: string) => {
+        if (!failed && target === backup2 && source !== backup1) {
+          failed = true;
+          throw new Error("rotation rename denied");
+        }
+        renameSync(source, target);
+      }
+    );
+
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      maxSize: 1,
+      maxBackups: 2,
+      now
+    });
+
+    logger.logWarning("new warning");
+
+    expect(syncFs.readFileSync(backup2, "utf8")).toBe("oldest retained history");
+    expect(syncFs.readFileSync(backup1, "utf8")).toBe("newer history");
+    expect(syncFs.readFileSync(logFile, "utf8")).toContain("new warning");
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error during log rotation:",
+      expect.any(Error)
+    );
   });
 });
 
@@ -1877,6 +1967,19 @@ describe("select service workflow script", () => {
     const output = writes.join("");
     expect(output).toContain("service=codex");
     expect(output).toContain("menu_label=true");
+  });
+
+  it("refuses to append service output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { appendWorkflowOutput } = await import(scriptPath);
+
+    expect(() => appendWorkflowOutput("/github/output", "service=codex\n", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
   });
 });
 

@@ -2,7 +2,7 @@ import type { EncryptedFileStoreInput } from "./encrypted-file-store.js";
 import type { KeychainStoreInput } from "./keychain-store.js";
 
 export interface SecretStore {
-  get(): Promise<string | null>;
+  get(options?: { readOnly?: boolean }): Promise<string | null>;
   set(value: string): Promise<void>;
   delete(): Promise<void>;
 }

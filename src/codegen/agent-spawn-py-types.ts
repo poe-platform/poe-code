@@ -30,6 +30,7 @@ interface RunAgentSpawnPythonTypeCodegenOptions {
   repoRoot?: string;
   project?: Project;
   spawnConfigs?: readonly SpawnConfigLike[];
+  fileSystem?: Pick<typeof fs, "mkdir" | "readFile" | "realpath" | "writeFile">;
 }
 
 interface PythonField {
@@ -110,7 +111,8 @@ export async function runAgentSpawnPythonTypeCodegen(
     spawnConfigs
   })}\n`;
   const outputPath = path.join(repoRoot, ...GENERATED_TYPES_OUTPUT_PATH);
-  const existing = await readFileIfExists(outputPath);
+  const fileSystem = options.fileSystem ?? fs;
+  const existing = await readFileIfExists(outputPath, fileSystem);
 
   if (options.check) {
     if (existing !== generated) {
@@ -121,17 +123,45 @@ export async function runAgentSpawnPythonTypeCodegen(
     return;
   }
 
-  await fs.mkdir(path.dirname(outputPath), { recursive: true });
-  await fs.writeFile(outputPath, generated, "utf8");
+  await fileSystem.mkdir(path.dirname(outputPath), { recursive: true });
+  await assertOutputInsideRepo(outputPath, repoRoot, fileSystem);
+  await fileSystem.writeFile(outputPath, generated, "utf8");
+}
+
+async function assertOutputInsideRepo(
+  outputPath: string,
+  repoRoot: string,
+  fileSystem: Pick<typeof fs, "realpath">
+): Promise<void> {
+  const [canonicalRepoRoot, canonicalOutputPath] = await Promise.all([
+    fileSystem.realpath(repoRoot),
+    fileSystem.realpath(outputPath).catch(async (error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+      return path.join(await fileSystem.realpath(path.dirname(outputPath)), path.basename(outputPath));
+    })
+  ]);
+  const relativeOutputPath = path.relative(canonicalRepoRoot, canonicalOutputPath);
+  if (
+    relativeOutputPath === ".." ||
+    relativeOutputPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeOutputPath)
+  ) {
+    throw new Error("Generated Python types output resolves outside the repository.");
+  }
 }
 
 function resolveRepoRoot(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 }
 
-async function readFileIfExists(filePath: string): Promise<string | undefined> {
+async function readFileIfExists(
+  filePath: string,
+  fileSystem: Pick<typeof fs, "readFile">
+): Promise<string | undefined> {
   try {
-    return await fs.readFile(filePath, "utf8");
+    return await fileSystem.readFile(filePath, "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       return undefined;

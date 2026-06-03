@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, stat, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, readdir, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import {
   type ConfigStoreOptions,
@@ -52,6 +52,8 @@ const nativeConfigFs: ConfigStoreOptions["fs"] = {
   writeFile: (filePath, content, options) => writeFile(filePath, content, options),
   mkdir: (filePath, options) => mkdir(filePath, options).then(() => undefined),
   unlink,
+  rename: (oldPath, newPath) => rename(oldPath, newPath),
+  lstat: (filePath) => lstat(filePath),
   stat: (filePath) => stat(filePath),
   readdir
 };

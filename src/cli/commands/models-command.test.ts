@@ -103,11 +103,12 @@ async function runModels(options: {
   httpClient: HttpClient;
   logs: string[];
   args?: string[];
+  variables?: Record<string, string | undefined>;
 }) {
   const program = createProgram({
     fs: options.fs,
     prompts: vi.fn(),
-    env: { cwd, homeDir },
+    env: { cwd, homeDir, variables: options.variables },
     httpClient: options.httpClient,
     logger: (message) => options.logs.push(message)
   });
@@ -153,6 +154,23 @@ describe("models command", () => {
     );
     expect(output).toContain("anthropic/claude-sonnet");
     expect(output).toContain("openai/gpt-5");
+  });
+
+  it("renders prototype-named feature columns as supported", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [createModelEntry({ supported_features: ["__proto__"] })]
+      })
+    });
+
+    const output = await runModels({ fs, httpClient, logs });
+
+    expect(output).toContain("__proto__");
+    expect(output).toContain("✓");
+    expect(output).not.toContain("[object Object]");
   });
 
   it("sorts models by created date descending (newest first)", async () => {
@@ -725,6 +743,25 @@ describe("models command", () => {
     );
   });
 
+  it("includes Authorization header when POE_API_KEY is set", async () => {
+    const models = [createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await runModels({ fs, httpClient, logs, variables: { POE_API_KEY: "environment-key" } });
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/v1/models"),
+      expect.objectContaining({
+        method: "GET",
+        headers: { Authorization: "Bearer environment-key" }
+      })
+    );
+  });
+
   it("logs dry run message when --dry-run flag is set", async () => {
     fs = await createConfigVolume("test-key");
     const program = createProgram({
@@ -741,6 +778,23 @@ describe("models command", () => {
 
     expect(httpClient).not.toHaveBeenCalled();
     expect(logs.some((m) => m.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not migrate legacy credentials while previewing models", async () => {
+    fs = createMemfs(homeDir);
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "models"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 
   it("throws ApiError on non-ok response", async () => {

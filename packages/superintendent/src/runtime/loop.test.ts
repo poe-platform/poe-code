@@ -389,6 +389,43 @@ describe("runLoop", () => {
     });
   }, 15_000);
 
+  it("wraps each role execution through callbacks", async () => {
+    const docPath = "/repo/docs/plans/plan.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({ withInspectors: true })
+    });
+    const roles: string[] = [];
+    runBuilderMock.mockResolvedValue({ output: "built" });
+    runInspectorMock.mockImplementation(async (name) => ({ name, summary: "ok" }));
+    runSuperintendentMock.mockResolvedValue({
+      summary: "ready",
+      transition: { action: "request_review" }
+    });
+    runOwnerReviewMock.mockResolvedValue({ transition: { action: "approve_completion" } });
+
+    await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners,
+      callbacks: {
+        runRole: async (role, name, run) => {
+          roles.push(name === undefined ? role : `${role}:${name}`);
+          return run();
+        }
+      }
+    });
+
+    expect(roles).toEqual([
+      "builder",
+      "inspector:code-quality",
+      "inspector:manual-qa",
+      "superintendent",
+      "owner"
+    ]);
+  });
+
   it("stores owner feedback and passes it to the next builder round", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs, rawFs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
@@ -840,5 +877,34 @@ describe("runLoop", () => {
     await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs, runners });
 
     expect(runInspectorMock).not.toHaveBeenCalled();
+  });
+
+  it("reports abort instead of completion when approval aborts in flight", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs, rawFs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
+    const controller = new AbortController();
+
+    runBuilderMock.mockResolvedValue({ summary: "Done", log: "log" });
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Done",
+      transition: { action: "request_review", summary: "Done" }
+    });
+    runOwnerReviewMock.mockImplementation(async () => {
+      controller.abort();
+      return { transition: { action: "approve_completion" } };
+    });
+
+    const result = await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners,
+      signal: controller.signal
+    });
+
+    expect(result).toMatchObject({ state: "review", stopReason: "aborted" });
+    const finalDoc = await readDoc(rawFs, docPath);
+    expect(finalDoc.frontmatter.status.state).toBe("review");
   });
 });

@@ -297,4 +297,39 @@ describe("SDK pipeline init", () => {
     });
     expect(runAgent).toHaveBeenCalledTimes(1);
   });
+
+  it("returns cancelled when the final source aborts while resolving", async () => {
+    seedFs({
+      "/repo/.poe-code/.keep": "",
+      "/repo/docs/plans/alpha.md": "# Alpha\nFirst source.\n"
+    });
+
+    const controller = new AbortController();
+    const runAgent = vi.fn(async () => {
+      controller.abort();
+      return { stdout: "alpha", stderr: "", exitCode: 0 };
+    });
+
+    const result = await runPipelineInit({
+      agent: "codex",
+      cwd,
+      homeDir,
+      sources: [
+        {
+          absolutePath: "/repo/docs/plans/alpha.md",
+          relativePath: "alpha.md",
+          title: "Alpha"
+        }
+      ],
+      assumeYes: true,
+      runAgent,
+      signal: controller.signal
+    });
+
+    expect(result).toEqual({
+      stopReason: "cancelled",
+      sourcesProcessed: 0
+    });
+    expect(runAgent).toHaveBeenCalledTimes(1);
+  });
 });

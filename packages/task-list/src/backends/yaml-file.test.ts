@@ -128,6 +128,69 @@ describe("yamlFileBackend", () => {
     });
   });
 
+  it("does not resolve inherited task IDs from list records", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning: {}",
+        ""
+      ].join("\n")
+    });
+    const taskList = await yamlFileBackend({
+      path: "/repo/tasks.yaml",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("__proto__")).rejects.toThrow('Task "planning/__proto__" not found.');
+    await expect(tasks.create({ id: "__proto__", name: "Proto" })).resolves.toMatchObject({
+      id: "__proto__"
+    });
+  });
+
+  it("preserves proto-named metadata as own task metadata values", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    stored:",
+        "      name: Stored",
+        "      state: draft",
+        "      __proto__:",
+        "        reviewer: security",
+        ""
+      ].join("\n")
+    });
+    const taskList = await yamlFileBackend({
+      path: "/repo/tasks.yaml",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+    const protoMetadata = Object.fromEntries([["__proto__", { reviewer: "security" }]]);
+
+    const stored = await tasks.get("stored");
+    const created = await tasks.create({ id: "created", name: "Created", metadata: protoMetadata });
+    const updated = await tasks.update("created", { metadata: protoMetadata });
+    const fired = await tasks.fire("created", "plan", { metadataPatch: protoMetadata });
+
+    for (const task of [stored, created, updated, fired]) {
+      expect(Object.hasOwn(task.metadata, "__proto__")).toBe(true);
+      expect(task.metadata.__proto__).toEqual({ reviewer: "security" });
+      expect(Object.getPrototypeOf(task.metadata)).toBeNull();
+    }
+    await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toContain("__proto__:");
+  });
+
   it("sets an absolute sourcePath when reading tasks", async () => {
     const { fs } = createFs({
       "/repo/tasks.yaml": [
@@ -158,6 +221,35 @@ describe("yamlFileBackend", () => {
     expect(task.sourcePath).toBe("/repo/tasks.yaml");
     expect(path.isAbsolute(task.sourcePath ?? "")).toBe(true);
     expect(listedTask?.sourcePath).toBe(task.sourcePath);
+  });
+
+  it("rejects reads and writes through a symlinked yaml store path", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/outside/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    external:",
+        "      name: External",
+        "      state: draft",
+        ""
+      ].join("\n")
+    });
+    volume.mkdirSync("/repo", { recursive: true });
+    volume.symlinkSync("/outside/tasks.yaml", "/repo/tasks.yaml");
+    await expect(
+      yamlFileBackend({
+        path: "/repo/tasks.yaml",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      })
+    ).rejects.toThrow(
+      "symbolic link"
+    );
+    await expect(rawFs.readFile("/outside/tasks.yaml", "utf8")).resolves.not.toContain("local:");
   });
 
   it("throws MalformedTaskError naming the invalid list and id", async () => {

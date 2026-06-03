@@ -493,17 +493,25 @@ function validateAgainstSchema(
   }
 
   if (types.includes("object") && typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const objectValue = value as Record<string, unknown>;
+
     for (const required of resolved.required ?? []) {
-      if (!(required in (value as Record<string, unknown>))) {
+      if (!Object.prototype.hasOwnProperty.call(objectValue, required)) {
         errors.push(`${pointer}/${required}: required`);
       }
     }
     if (resolved.properties !== undefined) {
-      for (const [key, propValue] of Object.entries(value as Record<string, unknown>)) {
+      for (const [key, propValue] of Object.entries(objectValue)) {
         const propSchema = resolved.properties[key];
         if (propSchema !== undefined) {
           errors.push(...validateAgainstSchema(propValue, propSchema, document, `${pointer}/${key}`));
+        } else if (resolved.additionalProperties === false) {
+          errors.push(`${pointer}/${key}: additional property not allowed`);
         }
+      }
+    } else if (resolved.additionalProperties === false && Object.keys(objectValue).length > 0) {
+      for (const key of Object.keys(objectValue)) {
+        errors.push(`${pointer}/${key}: additional property not allowed`);
       }
     }
   }
@@ -596,21 +604,30 @@ function appendHeaders(target: Record<string, string>, source: HeadersInit | und
 
   if (source instanceof Headers) {
     source.forEach((value, key) => {
-      target[key.toLowerCase()] = value;
+      setHeader(target, key, value);
     });
     return;
   }
 
   if (Array.isArray(source)) {
     for (const [key, value] of source) {
-      target[key.toLowerCase()] = value;
+      setHeader(target, key, value);
     }
     return;
   }
 
   for (const [key, value] of Object.entries(source)) {
-    target[key.toLowerCase()] = String(value);
+    setHeader(target, key, String(value));
   }
+}
+
+function setHeader(target: Record<string, string>, key: string, value: string): void {
+  Object.defineProperty(target, key.toLowerCase(), {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  });
 }
 
 async function readRequestBody(

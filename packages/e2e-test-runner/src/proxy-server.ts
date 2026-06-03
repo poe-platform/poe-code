@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { appendFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import {
   createServer,
   type IncomingHttpHeaders,
@@ -130,7 +130,14 @@ async function writeSnapshot(
       recordedAt: new Date().toISOString(),
     },
   };
-  await writeFile(snapshotPath, JSON.stringify(snapshot, null, 2));
+  const temporaryPath = `${snapshotPath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await writeFile(temporaryPath, JSON.stringify(snapshot, null, 2));
+    await rename(temporaryPath, snapshotPath);
+  } catch (error) {
+    await rm(temporaryPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
 }
 
 function isMissingFileError(error: unknown): boolean {
@@ -249,7 +256,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         };
       }
 
-      function captureAndRespond(status: number, body: unknown): void {
+        async function captureAndRespond(status: number, body: unknown): Promise<void> {
         const exchange: CapturedExchange = {
           timestamp: new Date().toISOString(),
           route: route.path,
@@ -261,7 +268,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
           },
           response: { status, body },
         };
-        void appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
+        await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
         writeJson(response, status, body);
       }
 
@@ -271,7 +278,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         if (route.snapshotDir) {
           try {
             const responseBody = await readSnapshotResponse(route, key);
-            captureAndRespond(200, responseBody);
+            await captureAndRespond(200, responseBody);
             return;
           } catch (error) {
             if (!isMissingFileError(error)) {
@@ -281,7 +288,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         }
 
         if (config.onMiss === 'error') {
-          captureAndRespond(404, { error: `Snapshot not found for key ${key}` });
+          await captureAndRespond(404, { error: `Snapshot not found for key ${key}` });
           return;
         }
 
@@ -310,7 +317,6 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
       if (route.mode === 'record') {
         const upstream = await forwardUpstream();
         const key = getSnapshotKeyFromRequestBody(requestBody);
-        await writeSnapshot(route, key, requestBody, upstream.body);
 
         const exchange: CapturedExchange = {
           timestamp: new Date().toISOString(),
@@ -319,6 +325,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
           response: { status: upstream.status, body: upstream.body },
         };
         await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
+        await writeSnapshot(route, key, requestBody, upstream.body);
 
         writeUpstreamResponse(response, upstream);
         return;

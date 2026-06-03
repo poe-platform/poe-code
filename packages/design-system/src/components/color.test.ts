@@ -158,6 +158,11 @@ describe("color", () => {
     );
   });
 
+  it("rejects malformed hexadecimal color values", () => {
+    expect(() => color.hex("#zzzzzz")).toThrow("Invalid hexadecimal color");
+    expect(() => color.bgHex("#12xz89")).toThrow("Invalid hexadecimal color");
+  });
+
   it("nests already-colored strings without stripping the inner reset", () => {
     process.env.FORCE_COLOR = "1";
     delete process.env.NO_COLOR;

@@ -5,6 +5,7 @@ import {
   deepMergeDocuments,
   loadProviderShapeBaseUrls,
   readMergedDocument,
+  readMergedDocumentReadonly,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
@@ -69,12 +70,15 @@ export async function buildActiveProvider(input: {
     );
   }
 
+  const providerBaseUrlEnv = resolveProviderBaseUrlEnv(input.container, input.provider);
+  const environmentBaseUrl = resolveBaseUrlRoot(providerBaseUrlEnv, input.provider.baseUrlEnvPath);
+
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
     resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
     resolveShapeBaseUrl(
-      resolveProviderBaseUrlEnv(input.container, input.provider),
-      shape.baseUrlPath
+      environmentBaseUrl,
+      shape.envBaseUrlPath ?? shape.baseUrlPath
     ) ??
     (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
 
@@ -97,7 +101,10 @@ export async function buildActiveProvider(input: {
     );
   }
   assertHttpBaseUrl(input.provider.id, baseUrl);
-  const agentBaseUrl = input.provider.agentBaseUrl ?? baseUrl;
+  const agentBaseUrl =
+    resolveShapeBaseUrl(environmentBaseUrl, input.provider.agentBaseUrlPath) ??
+    input.provider.agentBaseUrl ??
+    baseUrl;
 
   return {
     id: input.provider.id,
@@ -222,6 +229,15 @@ export function resolveShapeBaseUrl(
   return `${normalizedBaseUrl}/${trimLeadingSlash(suffix)}`;
 }
 
+function resolveBaseUrlRoot(baseUrl: string | undefined, pathSuffix: string | undefined): string | undefined {
+  const normalizedBaseUrl = resolveNonEmpty(baseUrl);
+  const normalizedSuffix = resolveNonEmpty(pathSuffix);
+  if (normalizedBaseUrl === undefined || normalizedSuffix === undefined) {
+    return normalizedBaseUrl;
+  }
+  return stripTrailingPathSegment(trimTrailingSlash(normalizedBaseUrl), trimLeadingSlash(normalizedSuffix));
+}
+
 function trimTrailingSlash(value: string): string {
   return value.endsWith("/") ? value.slice(0, -1) : value;
 }
@@ -237,18 +253,21 @@ function stripTrailingPathSegment(value: string, segment: string): string {
 
 export async function resolveActiveProviderForService(
   container: CliContainer,
-  serviceName: string
+  serviceName: string,
+  options: { readOnly?: boolean } = {}
 ): Promise<ActiveProvider | undefined> {
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: options.readOnly
   });
   const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
-  const configuredProviderId = configuredServices[serviceName]?.provider;
+  const metadata = configuredServices[serviceName];
+  const configuredProviderId = metadata?.provider;
   const provider = configuredProviderId
     ? container.providerRegistry.get(configuredProviderId)
-    : await resolveSingleProviderCandidate(container, agent);
+    : await resolveSingleProviderCandidate(container, agent, options);
   if (!provider || provider.auth.kind !== "api-key") {
     return undefined;
   }
@@ -256,7 +275,8 @@ export async function resolveActiveProviderForService(
   let credential: string;
   try {
     credential = await container.providerRegistry.resolveCredential(provider.id, undefined, {
-      envVars: container.env.variables
+      envVars: container.env.variables,
+      readOnly: options.readOnly
     });
   } catch {
     return undefined;
@@ -266,13 +286,16 @@ export async function resolveActiveProviderForService(
     container,
     provider,
     agent,
-    credential
+    credential,
+    explicitBaseUrl: metadata?.baseUrl,
+    explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata?.shapeBaseUrl ?? [])
   });
 }
 
 async function resolveSingleProviderCandidate(
   container: CliContainer,
-  agent: Pick<AgentDefinition, "id" | "apiShapes">
+  agent: Pick<AgentDefinition, "id" | "apiShapes">,
+  options: { readOnly?: boolean }
 ): Promise<AuthProvider | undefined> {
   const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 1) {
@@ -280,7 +303,7 @@ async function resolveSingleProviderCandidate(
   }
   const loggedIn: AuthProvider[] = [];
   for (const candidate of candidates) {
-    if (await container.providerRegistry.isLoggedIn(candidate.id)) {
+    if (await container.providerRegistry.isLoggedIn(candidate.id, options)) {
       loggedIn.push(candidate);
     }
   }
@@ -488,8 +511,11 @@ export async function applyIsolatedConfiguration(input: {
   );
 }
 
-export async function resolveMergedDocument(container: CliContainer): Promise<ConfigDocument> {
-  const mergedDocument = await readMergedDocument(
+export async function resolveMergedDocument(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<ConfigDocument> {
+  const mergedDocument = await (options.readOnly ? readMergedDocumentReadonly : readMergedDocument)(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -498,8 +524,11 @@ export async function resolveMergedDocument(container: CliContainer): Promise<Co
   return deepMergeDocuments(mergedDocument, envOverrides.document);
 }
 
-export async function resolveDefaultAgent(container: CliContainer): Promise<string | null> {
-  const document = await resolveMergedDocument(container);
+export async function resolveDefaultAgent(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string | null> {
+  const document = await resolveMergedDocument(container, options);
   const value = typeof document.core?.defaultAgent === "string" ? document.core.defaultAgent : "";
   const trimmed = value.trim();
 

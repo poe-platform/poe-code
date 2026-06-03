@@ -5,6 +5,7 @@ import type { RalphFileStat } from "../types.js";
 type DiscoveryFs = {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   readdir(path: string): Promise<string[]>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   stat(path: string): Promise<RalphFileStat>;
 };
 
@@ -14,6 +15,10 @@ function createDefaultFs(): DiscoveryFs {
   return {
     readFile: fsPromises.readFile as DiscoveryFs["readFile"],
     readdir: fsPromises.readdir,
+    lstat: async (filePath) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath) => {
       const stat = await fsPromises.stat(filePath);
       return {

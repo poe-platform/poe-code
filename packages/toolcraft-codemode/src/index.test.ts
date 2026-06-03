@@ -165,4 +165,22 @@ describe("codeMode", () => {
       returnValue: 21
     });
   });
+
+  it("does not advertise MCP-only commands through executable codemode tools", async () => {
+    const root = defineGroup({
+      name: "ops",
+      children: [
+        defineCommand({ name: "ping", scope: ["mcp"], params: S.Object({}), handler: async () => "pong" })
+      ]
+    });
+    const sdk = createSDK(codeMode(root)) as {
+      search(params: { query: string }): Promise<Array<{ path: string }>>;
+      getSchemas(params: { names: string[] }): Promise<Record<string, unknown>>;
+    };
+
+    await expect(sdk.search({ query: "ping" })).resolves.toEqual([]);
+    await expect(sdk.getSchemas({ names: ["ping"] })).rejects.toThrow(
+      "Unknown command path(s): ping"
+    );
+  });
 });

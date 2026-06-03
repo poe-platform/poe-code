@@ -79,6 +79,7 @@ interface StoredClient {
   clientId: string;
   redirectUris: string[];
   scopes?: string[];
+  grantTypes: string[];
   metadata: ObjectRecord;
 }
 
@@ -88,6 +89,7 @@ interface AuthorizationCodeRecord {
   resource: string;
   scopes: string[];
   codeChallenge: string;
+  issueRefreshToken: boolean;
   expiresAt: number;
   used: boolean;
 }
@@ -195,8 +197,9 @@ function isLoopbackRedirectUri(value: string): boolean {
     return false;
   }
 
-  const firstOctet = Number(octets[0]);
-  return Number.isInteger(firstOctet) && firstOctet === 127;
+  const numericOctets = octets.map((octet) => Number(octet));
+  return numericOctets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255)
+    && numericOctets[0] === 127;
 }
 
 function stripUrlPort(value: string): string {
@@ -229,6 +232,10 @@ function isValidPkceVerifier(value: string): boolean {
   );
 }
 
+function isValidPkceChallenge(value: string): boolean {
+  return value.length === 43 && [...value].every(isPkceVerifierCharacter);
+}
+
 function parseScope(value: string | null): string[] {
   if (value === null || value.trim().length === 0) {
     return [];
@@ -242,6 +249,18 @@ function parseScope(value: string | null): string[] {
 
 function formatScope(scope: readonly string[]): string | undefined {
   return scope.length === 0 ? undefined : scope.join(" ");
+}
+
+function validateConfiguredScopes(scopes: readonly string[] | undefined): void {
+  if (scopes === undefined) {
+    return;
+  }
+
+  for (const scope of scopes) {
+    if (scope.length === 0 || parseScope(scope).length !== 1 || parseScope(scope)[0] !== scope) {
+      throw new Error("scope entries must not contain spaces");
+    }
+  }
 }
 
 function createRandomToken(): string {
@@ -395,13 +414,7 @@ function getEndpointPaths(issuer: string): {
       ? "/.well-known/oauth-authorization-server"
       : `/.well-known/oauth-authorization-server${basePath}`;
 
-  const rootAliases = {
-    authorize: "/authorize",
-    token: "/token",
-    register: "/register",
-    jwks: "/.well-known/jwks.json",
-    issueToken: "/testing/issue-token",
-  };
+  const rootIssueTokenPath = "/testing/issue-token";
   const issueTokenPath = joinBasePath(basePath, "/testing/issue-token");
 
   return {
@@ -409,21 +422,14 @@ function getEndpointPaths(issuer: string): {
       metadataPath === "/.well-known/oauth-authorization-server"
         ? [metadataPath]
         : [metadataPath],
-    authorizePaths:
-      authorizePath === rootAliases.authorize
-        ? [authorizePath]
-        : [authorizePath, rootAliases.authorize],
-    tokenPaths:
-      tokenPath === rootAliases.token ? [tokenPath] : [tokenPath, rootAliases.token],
-    registerPaths:
-      registerPath === rootAliases.register
-        ? [registerPath]
-        : [registerPath, rootAliases.register],
-    jwksPaths: jwksPath === rootAliases.jwks ? [jwksPath] : [jwksPath, rootAliases.jwks],
+    authorizePaths: [authorizePath],
+    tokenPaths: [tokenPath],
+    registerPaths: [registerPath],
+    jwksPaths: [jwksPath],
     issueTokenPaths:
-      issueTokenPath === rootAliases.issueToken
+      issueTokenPath === rootIssueTokenPath
         ? [issueTokenPath]
-        : [issueTokenPath, rootAliases.issueToken],
+        : [issueTokenPath, rootIssueTokenPath],
     authorizeUrl: new URL(authorizePath, issuer).toString(),
     tokenUrl: new URL(tokenPath, issuer).toString(),
     registerUrl: new URL(registerPath, issuer).toString(),
@@ -518,11 +524,12 @@ function sanitizeLoggedBody(
   }
 
   const params = new URLSearchParams(body);
-  if (!params.has("code_verifier")) {
-    return body;
+  if (params.has("code_verifier")) {
+    params.set("code_verifier", "[redacted]");
   }
-
-  params.set("code_verifier", "[redacted]");
+  if (params.has("refresh_token")) {
+    params.set("refresh_token", "[redacted]");
+  }
   return params.toString();
 }
 
@@ -622,7 +629,7 @@ function withUpdatedSearchParam(url: URL, name: string, value: string): string {
 }
 
 function assertAllowedScopes(requestedScopes: readonly string[], client: StoredClient): void {
-  if (client.scopes === undefined || client.scopes.length === 0) {
+  if (client.scopes === undefined) {
     return;
   }
 
@@ -639,12 +646,19 @@ function normalizeStaticClient(input: OAuthTestStaticClient): StoredClient {
     throw new Error("staticClients[].clientId must be non-empty");
   }
 
+  if (input.redirectUris.length === 0) {
+    throw new Error("staticClients[].redirectUris must be a non-empty array");
+  }
+
+  validateConfiguredScopes(input.scopes);
+
   return {
     clientId: input.clientId,
     redirectUris: input.redirectUris.map((redirectUri) =>
       parseAbsoluteUrl(redirectUri, "staticClients[].redirectUris[]")
     ),
     scopes: input.scopes === undefined ? undefined : [...input.scopes],
+    grantTypes: ["authorization_code", "refresh_token"],
     metadata: {},
   };
 }
@@ -654,14 +668,23 @@ export function createOAuthTestServer(
 ): OAuthTestServer {
   const clockSkewSeconds = options.clockSkewSeconds ?? 0;
   const defaultTokenTtlSeconds = options.defaultTokenTtlSeconds ?? 60;
+  if (!Number.isFinite(clockSkewSeconds) || clockSkewSeconds < 0) {
+    throw new Error("clockSkewSeconds must be a non-negative finite number");
+  }
+  if (!Number.isInteger(defaultTokenTtlSeconds) || defaultTokenTtlSeconds <= 0) {
+    throw new Error("defaultTokenTtlSeconds must be a positive integer");
+  }
+  validateConfiguredScopes(options.defaultAuthorization?.scopes);
   const requireDcr = options.requireDcr ?? true;
   const signing = createSigningState(options);
-  const staticClients = new Map(
-    (options.staticClients ?? []).map((client) => {
-      const normalized = normalizeStaticClient(client);
-      return [normalized.clientId, normalized] as const;
-    })
-  );
+  const staticClients = new Map<string, StoredClient>();
+  for (const client of options.staticClients ?? []) {
+    const normalized = normalizeStaticClient(client);
+    if (staticClients.has(normalized.clientId)) {
+      throw new Error("staticClients[].clientId must be unique");
+    }
+    staticClients.set(normalized.clientId, normalized);
+  }
   const registeredClients = new Map<string, StoredClient>();
   const authorizationCodes = new Map<string, AuthorizationCodeRecord>();
   const refreshTokens = new Map<string, RefreshTokenRecord>();
@@ -669,10 +692,12 @@ export function createOAuthTestServer(
   const usedCodeVerifiers = new Set<string>();
   const revokedTokens = new Set<string>();
   const requestLog: OAuthTestServerRequest[] = [];
+  const consentApprovals = new Set<string>();
 
   let nextClientId = 1;
   let server: http.Server | null = null;
   let currentHandle: OAuthTestServerListeningHandle | null = null;
+  let listenPending = false;
   let runtimeIssuer = options.issuer ? normalizeIssuer(options.issuer) : null;
   let nextAuthorization: AuthorizationDecision | null = null;
 
@@ -695,9 +720,11 @@ export function createOAuthTestServer(
     },
 
     async listen(listenOptions: OAuthTestServerListenOptions = {}) {
-      if (server !== null || currentHandle !== null) {
+      if (server !== null || currentHandle !== null || listenPending) {
         throw new Error("OAuth test server is already listening");
       }
+
+      listenPending = true;
 
       const hostname = listenOptions.hostname ?? "127.0.0.1";
       const requestedPort = listenOptions.port ?? 0;
@@ -713,10 +740,15 @@ export function createOAuthTestServer(
         });
       });
 
-      await new Promise<void>((resolve, reject) => {
-        httpServer.once("error", reject);
-        httpServer.listen(requestedPort, hostname, () => resolve());
-      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          httpServer.once("error", reject);
+          httpServer.listen(requestedPort, hostname, () => resolve());
+        });
+      } catch (error) {
+        listenPending = false;
+        throw error;
+      }
 
       const address = httpServer.address();
       if (address === null || typeof address === "string") {
@@ -726,6 +758,7 @@ export function createOAuthTestServer(
       const port = (address as AddressInfo).port;
       const url = `http://${formatAuthorityHostname(hostname)}:${port}`;
       server = httpServer;
+      listenPending = false;
       if (options.issuer === undefined) {
         runtimeIssuer = normalizeIssuer(url);
       }
@@ -739,12 +772,6 @@ export function createOAuthTestServer(
           }
 
           const activeServer = server;
-          server = null;
-          currentHandle = null;
-          if (options.issuer === undefined) {
-            runtimeIssuer = null;
-          }
-
           await new Promise<void>((resolve, reject) => {
             activeServer.close((error) => {
               if (error !== undefined) {
@@ -762,6 +789,12 @@ export function createOAuthTestServer(
             activeServer.closeIdleConnections?.();
             activeServer.closeAllConnections?.();
           });
+
+          server = null;
+          currentHandle = null;
+          if (options.issuer === undefined) {
+            runtimeIssuer = null;
+          }
         },
       };
 
@@ -772,6 +805,9 @@ export function createOAuthTestServer(
       const issuer = getIssuer();
       const resource = parseAbsoluteUrl(input.resource, "resource");
       const ttlSeconds = input.ttlSeconds ?? defaultTokenTtlSeconds;
+      if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0) {
+        throw new Error("ttlSeconds must be a positive integer");
+      }
       const token = await issueAccessToken({
         issuer,
         clientId: input.clientId,
@@ -811,12 +847,14 @@ export function createOAuthTestServer(
   function normalizeIssuer(issuer: string): string {
     const normalized = parseAbsoluteUrl(issuer, "issuer");
     const url = new URL(normalized);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("issuer must use http or https");
+    }
     if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
       url.pathname = url.pathname.slice(0, -1);
     }
     url.hash = "";
-    const serialized = url.toString();
-    return url.pathname === "/" ? serialized.slice(0, -1) : serialized;
+    return url.pathname === "/" && url.search.length === 0 ? url.origin : url.toString();
   }
 
   function getIssuer(): string {
@@ -932,6 +970,13 @@ export function createOAuthTestServer(
     const normalizedRedirectUris = redirectUris.map((redirectUri) =>
       parseAbsoluteUrl(redirectUri, "redirect_uris[]")
     );
+    if (normalizedRedirectUris.some((redirectUri) => !isLoopbackRedirectUri(redirectUri))) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_redirect_uri",
+        "redirect_uris must use loopback HTTP origins"
+      );
+    }
     const grantTypes = normalizeRegistrationStringArray(
       payload.grant_types,
       "grant_types",
@@ -942,10 +987,17 @@ export function createOAuthTestServer(
       "response_types",
       ["code"]
     );
-    const tokenEndpointAuthMethod =
-      typeof payload.token_endpoint_auth_method === "string"
-        ? payload.token_endpoint_auth_method
-        : "none";
+    if (
+      payload.token_endpoint_auth_method !== undefined
+      && typeof payload.token_endpoint_auth_method !== "string"
+    ) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_client_metadata",
+        "token_endpoint_auth_method must be a string"
+      );
+    }
+    const tokenEndpointAuthMethod = payload.token_endpoint_auth_method ?? "none";
     if (tokenEndpointAuthMethod !== "none") {
       throw new OAuthRequestError(
         400,
@@ -974,7 +1026,10 @@ export function createOAuthTestServer(
       }
     }
 
-    const scope = typeof payload.scope === "string" ? parseScope(payload.scope) : undefined;
+    if (payload.scope !== undefined && typeof payload.scope !== "string") {
+      throw new OAuthRequestError(400, "invalid_client_metadata", "scope must be a string");
+    }
+    const scope = payload.scope === undefined ? undefined : parseScope(payload.scope);
     const clientName =
       typeof payload.client_name === "string" && payload.client_name.length > 0
         ? payload.client_name
@@ -995,6 +1050,7 @@ export function createOAuthTestServer(
       clientId,
       redirectUris: normalizedRedirectUris,
       scopes: scope,
+      grantTypes,
       metadata: {
         ...(clientName === undefined ? {} : { client_name: clientName }),
         ...(scope === undefined ? {} : { scope: formatScope(scope) }),
@@ -1058,11 +1114,20 @@ export function createOAuthTestServer(
       );
     }
 
+    if (!isValidPkceChallenge(codeChallenge)) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_request",
+        "code_challenge must be a valid S256 value"
+      );
+    }
+
     assertAllowedScopes(requestedScopes, client);
 
     const decision = nextAuthorization ?? defaultAuthorization;
+    const approvalToken = readSingleParam(url.searchParams, "approval_token");
     const autoApprove =
-      readSingleParam(url.searchParams, "auto_approve") === "1" || decision.autoApprove;
+      decision.autoApprove || (approvalToken !== null && consentApprovals.delete(approvalToken));
     const grantedScopes = decision.scopes === undefined ? requestedScopes : [...decision.scopes];
     assertAllowedScopes(grantedScopes, client);
 
@@ -1080,6 +1145,7 @@ export function createOAuthTestServer(
       resource,
       scopes: grantedScopes,
       codeChallenge,
+      issueRefreshToken: client.grantTypes.includes("refresh_token"),
       expiresAt: nowInSeconds() + 300,
       used: false,
     });
@@ -1100,7 +1166,9 @@ export function createOAuthTestServer(
     resource: string,
     scopes: readonly string[]
   ): string {
-    const approvalUrl = withUpdatedSearchParam(url, "auto_approve", "1");
+    const approvalToken = createRandomToken();
+    consentApprovals.add(approvalToken);
+    const approvalUrl = withUpdatedSearchParam(url, "approval_token", approvalToken);
     const scopeSummary = formatScope(scopes) ?? "(no scopes requested)";
 
     return [
@@ -1151,6 +1219,7 @@ export function createOAuthTestServer(
     return {
       clientId,
       redirectUris: [redirectUri],
+      grantTypes: ["authorization_code", "refresh_token"],
       metadata: {},
     };
   }
@@ -1192,24 +1261,21 @@ export function createOAuthTestServer(
       throw new OAuthRequestError(400, "invalid_request", "resource is required");
     }
 
-    const parsedScopes =
-      typeof scopes === "string"
-        ? parseScope(scopes)
-        : isStringArray(scopes)
-          ? scopes
-          : [];
-    const parsedTtlSeconds =
-      typeof ttlSeconds === "number" && Number.isFinite(ttlSeconds)
-        ? Math.floor(ttlSeconds)
-        : defaultTokenTtlSeconds;
-
-    if (parsedTtlSeconds <= 0) {
+    if (scopes !== undefined && typeof scopes !== "string" && !isStringArray(scopes)) {
+      throw new OAuthRequestError(400, "invalid_request", "scopes must be a string or array");
+    }
+    const parsedScopes = typeof scopes === "string" ? parseScope(scopes) : scopes ?? [];
+    if (
+      ttlSeconds !== undefined
+      && (typeof ttlSeconds !== "number" || !Number.isInteger(ttlSeconds) || ttlSeconds <= 0)
+    ) {
       throw new OAuthRequestError(
         400,
         "invalid_request",
         "ttl_seconds must be a positive integer"
       );
     }
+    const parsedTtlSeconds = typeof ttlSeconds === "number" ? ttlSeconds : defaultTokenTtlSeconds;
 
     const accessToken = await issueAccessToken({
       issuer: getIssuer(),
@@ -1291,6 +1357,7 @@ export function createOAuthTestServer(
       resource,
       scopes: record.scopes,
       ttlSeconds: defaultTokenTtlSeconds,
+      issueRefreshToken: record.issueRefreshToken,
     });
   }
 
@@ -1325,11 +1392,12 @@ export function createOAuthTestServer(
       resource,
       scopes: record.scopes,
       ttlSeconds: defaultTokenTtlSeconds,
+      issueRefreshToken: true,
     });
   }
 
   function isExpired(expiresAt: number): boolean {
-    return nowInSeconds() > expiresAt + clockSkewSeconds;
+    return nowInSeconds() >= expiresAt + clockSkewSeconds;
   }
 
   async function createTokenResponse(input: {
@@ -1337,6 +1405,7 @@ export function createOAuthTestServer(
     resource: string;
     scopes: string[];
     ttlSeconds: number;
+    issueRefreshToken: boolean;
   }): Promise<ObjectRecord> {
     const accessToken = await issueAccessToken({
       issuer: getIssuer(),
@@ -1345,21 +1414,23 @@ export function createOAuthTestServer(
       scopes: input.scopes,
       ttlSeconds: input.ttlSeconds,
     });
-    const refreshToken = createRandomToken();
-    refreshTokens.set(refreshToken, {
-      clientId: input.clientId,
-      resource: input.resource,
-      scopes: [...input.scopes],
-      expiresAt: nowInSeconds() + 3_600,
-      used: false,
-      revoked: false,
-    });
+    const refreshToken = input.issueRefreshToken ? createRandomToken() : undefined;
+    if (refreshToken !== undefined) {
+      refreshTokens.set(refreshToken, {
+        clientId: input.clientId,
+        resource: input.resource,
+        scopes: [...input.scopes],
+        expiresAt: nowInSeconds() + 3_600,
+        used: false,
+        revoked: false,
+      });
+    }
 
     return {
       access_token: accessToken,
       token_type: "Bearer",
       expires_in: input.ttlSeconds,
-      refresh_token: refreshToken,
+      ...(refreshToken === undefined ? {} : { refresh_token: refreshToken }),
       ...(input.scopes.length === 0 ? {} : { scope: input.scopes.join(" ") }),
     };
   }

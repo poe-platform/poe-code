@@ -30,6 +30,8 @@ const clientState = {
   instances: [] as MockMcpClient[],
 };
 
+const mockConfigFingerprint = "99d35d6c3b38b60d122e851df954e925a19ec49804367e9c20ed492009d8878b";
+
 class MockMcpClient {
   state: "disconnected" | "ready" | "closed" = "disconnected";
   serverInfo: { name: string; version: string } | null = null;
@@ -242,6 +244,12 @@ describe("resolveCachePath", () => {
       "/cli-package/.toolcraft/mcp/github.json"
     );
   });
+
+  it("rejects cache group names containing path components", () => {
+    expect(() => resolveCachePath("../../../outside/escaped", "/repo")).toThrow(
+      /MCP proxy group name must be a file-safe name/
+    );
+  });
 });
 
 describe("resolveMcpProxies", () => {
@@ -285,6 +293,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -324,6 +333,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -387,6 +397,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("issues.create")],
         }),
@@ -427,6 +438,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -496,6 +508,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -530,6 +543,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("get_issue")],
         }),
@@ -582,6 +596,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -621,6 +636,7 @@ describe("resolveMcpProxies", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [tool("create_issue")],
         }),
@@ -656,6 +672,131 @@ describe("resolveMcpProxies", () => {
         name: "create_issue",
       }),
     ]);
+  });
+
+  it("does not cache invalid discovered tool schemas and retries upstream later", async () => {
+    const first = createProxyGroup({});
+    const firstRoot = defineGroup({ name: "root", children: [first] });
+    setClientPlans({ pages: [{ tools: [tool("bad_tool", { type: "string" })] }] });
+
+    await expect(resolveMcpProxies(firstRoot)).rejects.toThrow(/bad_tool/);
+    await expect(mockFsPromises.readFile(getCachePath(), "utf8")).rejects.toThrow();
+
+    const second = createProxyGroup({});
+    const secondRoot = defineGroup({ name: "root", children: [second] });
+    const secondGroup = secondRoot.children[0];
+    if (secondGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    setClientPlans({ pages: [{ tools: [tool("good_tool")] }] });
+    await resolveMcpProxies(secondRoot);
+
+    expect(secondGroup.children.map((child) => child.name)).toEqual(["good_tool"]);
+    expect(clientState.instances).toHaveLength(2);
+  });
+
+  it("keeps working proxy children when a cached replacement is invalid", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    const proxyGroup = root.children[0];
+    if (proxyGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    vol.fromJSON({
+      [getCachePath()]: JSON.stringify({
+        version: 1,
+        upstream: { name: "cached", version: "1" },
+        configFingerprint: mockConfigFingerprint,
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        tools: [tool("old_tool")]
+      })
+    }, "/");
+    await resolveMcpProxies(root);
+    expect(proxyGroup.children.map((child) => child.name)).toEqual(["old_tool"]);
+
+    await mockFsPromises.writeFile(getCachePath(), JSON.stringify({
+      version: 1,
+      upstream: { name: "cached", version: "1" },
+      configFingerprint: mockConfigFingerprint,
+      fetchedAt: "2026-01-01T00:00:00.000Z",
+      tools: [tool("new_tool"), tool("bad_tool", { type: "string" })]
+    }));
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/bad_tool/);
+    expect(proxyGroup.children.map((child) => child.name)).toEqual(["old_tool"]);
+  });
+
+  it("retains last known good cache when a forced refresh fails", async () => {
+    const cached = createProxyGroup({});
+    const cachedRoot = defineGroup({ name: "root", children: [cached] });
+    setClientPlans({ pages: [{ tools: [tool("stable_tool")] }] });
+    await resolveMcpProxies(cachedRoot);
+    const before = await mockFsPromises.readFile(getCachePath(), "utf8");
+
+    process.env.TOOLCRAFT_MCP_REFRESH = "github";
+    const refreshing = createProxyGroup({});
+    const refreshRoot = defineGroup({ name: "root", children: [refreshing] });
+    setClientPlans({ pages: [{ tools: [tool("bad_tool", { type: "string" })] }] });
+    await expect(resolveMcpProxies(refreshRoot)).rejects.toThrow(/bad_tool/);
+    await expect(mockFsPromises.readFile(getCachePath(), "utf8")).resolves.toBe(before);
+
+    delete process.env.TOOLCRAFT_MCP_REFRESH;
+    const reused = createProxyGroup({});
+    const reusedRoot = defineGroup({ name: "root", children: [reused] });
+    const reusedGroup = reusedRoot.children[0];
+    if (reusedGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    await resolveMcpProxies(reusedRoot);
+    expect(reusedGroup.children.map((child) => child.name)).toEqual(["stable_tool"]);
+  });
+
+  it("refetches proxy tools after upstream configuration changes", async () => {
+    const first = createProxyGroup({});
+    const firstRoot = defineGroup({ name: "root", children: [first] });
+    setClientPlans({ pages: [{ tools: [tool("first_tool")] }] });
+    await resolveMcpProxies(firstRoot);
+
+    const second = defineGroup({
+      name: "github",
+      mcp: { transport: "stdio", command: "different-server" },
+      children: []
+    });
+    const secondRoot = defineGroup({ name: "root", children: [second] });
+    const secondGroup = secondRoot.children[0];
+    if (secondGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    setClientPlans({ pages: [{ tools: [tool("second_tool")] }] });
+    await resolveMcpProxies(secondRoot);
+
+    expect(secondGroup.children.map((child) => child.name)).toEqual(["second_tool"]);
+    expect(clientState.instances).toHaveLength(2);
+  });
+
+  it("refetches legacy caches that cannot identify their upstream configuration", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    const proxyGroup = root.children[0];
+    if (proxyGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    vol.fromJSON({
+      [getCachePath()]: JSON.stringify({
+        version: 1,
+        upstream: { name: "legacy", version: "1" },
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        tools: [tool("legacy_tool")]
+      })
+    }, "/");
+    setClientPlans({ pages: [{ tools: [tool("fresh_tool")] }] });
+
+    await resolveMcpProxies(root);
+
+    expect(proxyGroup.children.map((child) => child.name)).toEqual(["fresh_tool"]);
+    expect(clientState.instances).toHaveLength(1);
+    const cache = JSON.parse(await mockFsPromises.readFile(getCachePath(), "utf8"));
+    expect(cache.configFingerprint).toBe(mockConfigFingerprint);
   });
 
   it("emits fetch progress to stderr", async () => {
@@ -713,10 +854,63 @@ describe("resolveMcpProxies", () => {
 
     await resolveMcpProxies(root);
 
-    expect(calls).toEqual([
-      `write:${getCachePath()}.tmp`,
-      `rename:${getCachePath()}.tmp->${getCachePath()}`,
+    expect(calls).toHaveLength(2);
+    expect(calls[0]).toMatch(new RegExp(`^write:${getCachePath().replaceAll(".", "\\.")}\\.tmp-`));
+    expect(calls[1]).toMatch(new RegExp(`^rename:${getCachePath().replaceAll(".", "\\.")}\\.tmp-.*->${getCachePath().replaceAll(".", "\\.")}$`));
+  });
+
+  it("uses distinct staging files for concurrent cache writers", async () => {
+    const first = createProxyGroup({});
+    const second = createProxyGroup({});
+    const paths: string[] = [];
+    const originalWriteFile = mockFsPromises.writeFile.bind(mockFsPromises);
+    vi.spyOn(mockFsPromises, "writeFile").mockImplementation(async (...args) => {
+      paths.push(String(args[0]));
+      return originalWriteFile(...args);
+    });
+    setClientPlans(
+      { pages: [{ tools: [tool("first_tool")] }] },
+      { pages: [{ tools: [tool("second_tool")] }] }
+    );
+
+    await Promise.all([
+      resolveMcpProxies(defineGroup({ name: "root", children: [first] })),
+      resolveMcpProxies(defineGroup({ name: "root", children: [second] }))
     ]);
+
+    expect(new Set(paths).size).toBe(2);
+  });
+
+  it("rejects symlinked cache directories before writing proxy discovery", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    vol.mkdirSync("/repo/.toolcraft", { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/.toolcraft/mcp");
+    setClientPlans({ pages: [{ tools: [tool("create_issue")] }] });
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    expect(vol.existsSync("/outside/github.json")).toBe(false);
+  });
+
+  it("rejects symlinked cache files before loading external proxy tools", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    vol.mkdirSync("/repo/.toolcraft/mcp", { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync(
+      "/outside/github.json",
+      JSON.stringify({
+        version: 1,
+        upstream: { name: "external", version: "1" },
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        tools: [tool("external_tool")]
+      })
+    );
+    vol.symlinkSync("/outside/github.json", getCachePath());
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    expect(group.children).toHaveLength(0);
   });
 
   it("re-fetches when the cache JSON is corrupt", async () => {

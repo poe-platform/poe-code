@@ -293,12 +293,17 @@ export function renderArrayTable(result: Array<Record<string, unknown>>, primiti
       alignment: "left",
       maxLen: Math.max(
         name.length,
-        ...result.map((row) => (name in row ? stringifyValue(row[name]).length : 0))
+        ...result.map((row) =>
+          Object.prototype.hasOwnProperty.call(row, name) ? stringifyValue(row[name]).length : 0
+        )
       ),
     })),
     rows: result.map((row) =>
       Object.fromEntries(
-        columnNames.map((name) => [name, name in row ? stringifyValue(row[name]) : ""])
+        columnNames.map((name) => [
+          name,
+          Object.prototype.hasOwnProperty.call(row, name) ? stringifyValue(row[name]) : ""
+        ])
       )
     ),
   });
@@ -315,7 +320,11 @@ function renderArrayMarkdown(result: Array<Record<string, unknown>>): string {
   const rows = result.map(
     (row) =>
       `| ${columnNames
-        .map((name) => (name in row ? stringifyValue(row[name]).replaceAll("|", "\\|") : ""))
+        .map((name) =>
+          Object.prototype.hasOwnProperty.call(row, name)
+            ? stringifyValue(row[name]).replaceAll("|", "\\|")
+            : ""
+        )
         .join(" | ")} |`
   );
 

@@ -560,6 +560,19 @@ function describeBackendConformance(
         );
       });
 
+      it("reorder rejects duplicate ids without corrupting state", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+
+        await tasks.create({ id: "alpha", name: "Alpha" });
+        await tasks.create({ id: "bravo", name: "Bravo" });
+
+        await expect(tasks.reorder(["alpha", "bravo", "bravo"])).rejects.toBeInstanceOf(
+          OrderMismatchError
+        );
+        await expect(tasks.all()).resolves.toHaveLength(2);
+      });
+
       it("archive removes the task from priority order", async () => {
         const { taskList } = await openBackend(factory, { path: rootPath });
         const tasks = taskList.list("planning");

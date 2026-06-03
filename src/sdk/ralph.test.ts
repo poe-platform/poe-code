@@ -6,6 +6,7 @@ const spawnAutonomousMock = vi.hoisted(() => vi.fn());
 const buildSpawnArgsMock = vi.hoisted(() => vi.fn());
 const createPoeCommandSessionMock = vi.hoisted(() => vi.fn());
 const resolvePoeCommandExecutionMock = vi.hoisted(() => vi.fn());
+const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/ralph", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/ralph")>();
@@ -30,6 +31,10 @@ vi.mock("@poe-code/agent-harness-tools", () => ({
   resolvePoeCommandExecution: resolvePoeCommandExecutionMock
 }));
 
+vi.mock("./credentials.js", () => ({
+  getPoeApiKey: getPoeApiKeyMock
+}));
+
 import { runRalph } from "./ralph.js";
 
 describe("SDK ralph", () => {
@@ -39,6 +44,8 @@ describe("SDK ralph", () => {
     buildSpawnArgsMock.mockReset();
     createPoeCommandSessionMock.mockReset();
     resolvePoeCommandExecutionMock.mockReset();
+    getPoeApiKeyMock.mockReset();
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
   });
 
   it("preserves a caller-provided runAgent", async () => {
@@ -114,7 +121,10 @@ describe("SDK ralph", () => {
       prompt: "Improve the doc",
       cwd: "/repo",
       model: "gpt-5.2",
-      hooks: { from: "claude" }
+      hooks: { from: "claude" },
+      skills: ["foo", "claude/bar"],
+      logDir: "/home/test/.poe-code/logs/ralph/loop",
+      logFileName: "run-codex.jsonl"
     });
 
     expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
@@ -123,6 +133,9 @@ describe("SDK ralph", () => {
       model: "gpt-5.2",
       mode: "yolo",
       hooks: { from: "claude" },
+      skills: ["foo", "claude/bar"],
+      logDir: "/home/test/.poe-code/logs/ralph/loop",
+      logFileName: "run-codex.jsonl",
       runtime: "docker",
       runtimeImage: "poe-code:test",
       detach: true
@@ -193,6 +206,36 @@ describe("SDK ralph", () => {
       runtime: "e2b",
       runtimeTemplate: "tmpl_test"
     });
+    expect(createPoeCommandSessionMock).not.toHaveBeenCalled();
+    expect(buildSpawnArgsMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      label: "skills",
+      input: { skills: ["foo"] },
+      expected: { skills: ["foo"] }
+    },
+    {
+      label: "log routing",
+      input: { logDir: "/home/test/.poe-code/logs/ralph/plan", logFileName: "iteration.jsonl" },
+      expected: { logDir: "/home/test/.poe-code/logs/ralph/plan", logFileName: "iteration.jsonl" }
+    }
+  ])("uses autonomous spawn for e2b Ralph iterations with $label", async ({ input, expected }) => {
+    spawnAutonomousMock.mockResolvedValue({ stdout: "done", stderr: "", exitCode: 0 });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Bridge metadata",
+        cwd: "/tmp/ralph",
+        ...input
+      });
+      return { stopReason: "max_iterations", docPath: "/tmp/ralph/plan.md", iterationsCompleted: 1, totalDurationMs: 1 };
+    });
+
+    await runRalph({ cwd: "/tmp/ralph", homeDir: "/home/test", docPath: "/tmp/ralph/plan.md", runtime: "e2b" });
+
+    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", expect.objectContaining(expected));
     expect(createPoeCommandSessionMock).not.toHaveBeenCalled();
     expect(buildSpawnArgsMock).not.toHaveBeenCalled();
   });
@@ -290,5 +333,48 @@ describe("SDK ralph", () => {
     );
     expect(resolvePoeCommandExecutionMock).toHaveBeenCalledTimes(2);
     expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reject a completed reusable e2b run when session close fails", async () => {
+    const priorKey = process.env.POE_API_KEY;
+    process.env.POE_API_KEY = "sk-test";
+    buildSpawnArgsMock.mockReturnValue({ binaryName: "codex", args: ["exec"] });
+    resolvePoeCommandExecutionMock.mockReturnValue({ factory: {}, state: {}, openSpec: {} });
+    createPoeCommandSessionMock.mockReturnValue({
+      run: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 })),
+      close: vi.fn(async () => { throw new Error("session close denied"); })
+    });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      await options.runAgent?.({ agent: "codex", prompt: "go", cwd: "/repo" });
+      return { stopReason: "max_iterations", docPath: "/repo/plan.md", iterationsCompleted: 1, totalDurationMs: 1 };
+    });
+
+    try {
+      await expect(runRalph({ cwd: "/repo", homeDir: "/home/test", docPath: "/repo/plan.md", runtime: "e2b" }))
+        .resolves.toMatchObject({ stopReason: "max_iterations" });
+    } finally {
+      if (priorKey === undefined) delete process.env.POE_API_KEY;
+      else process.env.POE_API_KEY = priorKey;
+    }
+  });
+
+  it("does not export a stored Poe key when reusable e2b agent validation fails", async () => {
+    const priorKey = process.env.POE_API_KEY;
+    delete process.env.POE_API_KEY;
+    buildSpawnArgsMock.mockImplementation(() => { throw new Error('Unknown agent "invalid".'); });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      await options.runAgent?.({ agent: "invalid", prompt: "go", cwd: "/repo" });
+      return { stopReason: "max_iterations", docPath: "/repo/plan.md", iterationsCompleted: 1, totalDurationMs: 1 };
+    });
+
+    try {
+      await expect(runRalph({ cwd: "/repo", homeDir: "/home/test", docPath: "/repo/plan.md", runtime: "e2b" }))
+        .rejects.toThrow("Unknown agent");
+      expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+      expect(process.env.POE_API_KEY).toBeUndefined();
+    } finally {
+      if (priorKey === undefined) delete process.env.POE_API_KEY;
+      else process.env.POE_API_KEY = priorKey;
+    }
   });
 });

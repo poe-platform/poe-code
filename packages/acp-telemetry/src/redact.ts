@@ -3,7 +3,7 @@ const MAX_JSON_BYTES = 262_144;
 const BINARY_SCAN_BYTES = 1_024;
 
 export function redact(value: unknown): unknown {
-  const serialized = JSON.stringify(value);
+  const serialized = safelySerialize(value);
   if (serialized !== undefined) {
     const originalBytes = Buffer.byteLength(serialized, "utf8");
     if (originalBytes > MAX_JSON_BYTES) {
@@ -11,10 +11,10 @@ export function redact(value: unknown): unknown {
     }
   }
 
-  return redactLeaf(value);
+  return redactLeaf(value, new WeakSet());
 }
 
-function redactLeaf(value: unknown): unknown {
+function redactLeaf(value: unknown, ancestors: WeakSet<object>): unknown {
   if (typeof value === "string") {
     const bytes = Buffer.byteLength(value, "utf8");
     return bytes > MAX_STRING_BYTES ? `[truncated:${bytes}]` : value;
@@ -32,14 +32,42 @@ function redactLeaf(value: unknown): unknown {
   }
 
   if (Array.isArray(value)) {
-    return value.map((item) => redactLeaf(item));
+    if (ancestors.has(value)) {
+      return "[circular]";
+    }
+
+    ancestors.add(value);
+    const redacted = value.map((item) => redactLeaf(item, ancestors));
+    ancestors.delete(value);
+    return redacted;
   }
 
   if (value !== null && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value).map(([key, item]) => [key, redactLeaf(item)]),
-    );
+    if (ancestors.has(value)) {
+      return "[circular]";
+    }
+
+    ancestors.add(value);
+    const redacted: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      Object.defineProperty(redacted, key, {
+        configurable: true,
+        enumerable: true,
+        value: redactLeaf(item, ancestors),
+        writable: true,
+      });
+    }
+    ancestors.delete(value);
+    return redacted;
   }
 
   return value;
+}
+
+function safelySerialize(value: unknown): string | undefined {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
 }

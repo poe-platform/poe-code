@@ -26,6 +26,16 @@ describe("report loaders", () => {
     });
   });
 
+  it("rejects a result whose embedded run id disagrees with its directory", async () => {
+    vol.fromJSON({
+      "/runs/run-direct/result.json": JSON.stringify(runResult({ runId: "other-run" }))
+    });
+
+    await expect(loadRunResult("run-direct", "/runs")).rejects.toThrow(
+      'Run result "run-direct" embeds mismatched runId "other-run"'
+    );
+  });
+
   it("enriches loaded results with normalized trace availability", async () => {
     const result = runResult({ runId: "run-traced" });
     vol.fromJSON({
@@ -71,6 +81,34 @@ describe("report loaders", () => {
 
     await expect(loadRunResult("../outside", "/runs")).rejects.toThrow(
       'Invalid run id "../outside"'
+    );
+  });
+
+  it("rejects a run directory symlinked outside the output root", async () => {
+    vol.fromJSON({
+      "/runs/.keep": "",
+      "/outside/result.json": JSON.stringify(runResult({ runId: "run-safe" }))
+    });
+    const { fs } = await import("memfs");
+    await fs.promises.symlink("/outside", "/runs/run-safe");
+
+    await expect(loadRunResult("run-safe", "/runs")).rejects.toThrow(
+      "run result must stay within the canonical output directory."
+    );
+  });
+
+  it("rejects result and trace files symlinked outside the output root", async () => {
+    vol.fromJSON({
+      "/runs/run-safe/.keep": "",
+      "/outside/result.json": JSON.stringify(runResult({ runId: "run-safe" })),
+      "/outside/trace.json": JSON.stringify({ events: [], usage: {} })
+    });
+    const { fs } = await import("memfs");
+    await fs.promises.symlink("/outside/result.json", "/runs/run-safe/result.json");
+    await fs.promises.symlink("/outside/trace.json", "/runs/run-safe/trace.json");
+
+    await expect(loadRunResult("run-safe", "/runs")).rejects.toThrow(
+      "run result must stay within the canonical output directory."
     );
   });
 
@@ -137,6 +175,23 @@ describe("report loaders", () => {
       metrics: { task_completion: { score: { mean: 0.5 }, passed: 1, failed: 1 } },
       integrity: { tracesAvailable: 1, executionErrors: 1 }
     });
+  });
+
+  it("rejects aggregate run references that belong to another cell", async () => {
+    const cell = aggregateCell({ eval: "expected-task" });
+    vol.fromJSON({
+      "/runs/2026-05-19T10-00-00Z/aggregate-expected-task-codex-gpt-5.json": JSON.stringify({
+        ...cell,
+        runIds: ["other-run"]
+      }),
+      "/runs/2026-05-19T10-00-00Z/other-run/result.json": JSON.stringify(
+        runResult({ runId: "other-run", eval: "other-task" })
+      )
+    });
+
+    await expect(loadLatestMatrix("/runs")).rejects.toThrow(
+      'Aggregate cell references run "other-run" from a different cell'
+    );
   });
 
   it("ignores aggregate files outside timestamp-prefixed matrix directories", async () => {

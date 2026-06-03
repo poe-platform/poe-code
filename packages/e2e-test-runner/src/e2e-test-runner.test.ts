@@ -1456,6 +1456,14 @@ describe('CapturedRequests', () => {
     expect(requests.toolNamesAt(0)).toEqual(['read_file', 'mcp__test-server__word_of_the_day']);
   });
 
+  it('rejects malformed request tool collections via toolNamesAt()', () => {
+    const requests = new CapturedRequests([
+      createExchange({ request: { body: { tools: 'not-an-array' } } }),
+    ]);
+
+    expect(() => requests.toolNamesAt(0)).toThrow('Captured request tools must be an array');
+  });
+
   it('extracts response tool calls via toolCallsAt()', () => {
     const requests = new CapturedRequests([
       createExchange({
@@ -1489,6 +1497,20 @@ describe('CapturedRequests', () => {
       { name: 'read_file', arguments: { path: 'README.md' } },
       { name: 'list_files', arguments: { path: 'src' } },
     ]);
+  });
+
+  it('rejects primitive decoded tool call arguments via toolCallsAt()', () => {
+    const requests = new CapturedRequests([
+      createExchange({
+        response: {
+          body: {
+            choices: [{ message: { tool_calls: [{ function: { name: 'read_file', arguments: '7' } }] } }],
+          },
+        },
+      }),
+    ]);
+
+    expect(() => requests.toolCallsAt(0)).toThrow('Tool call arguments must decode to an object');
   });
 
   it('extracts request messages via messagesAt()', () => {

@@ -1,6 +1,7 @@
 import type { Group } from "toolcraft";
 
 import {
+  formatModuleSegment,
   resolveCommandEntries,
   resolveCommandTree,
   type CommandEntry,
@@ -16,78 +17,12 @@ export interface BuildHostModulesResult {
   lintModules: HostLintModules;
 }
 
-type Separator = "-" | "_" | " " | ".";
-
-function isSeparator(char: string): char is Separator {
-  return char === "-" || char === "_" || char === " " || char === ".";
-}
-
-function splitWords(value: string): string[] {
-  const words: string[] = [];
-  let current = "";
-
-  for (let index = 0; index < value.length; index += 1) {
-    const char = value[index] ?? "";
-    const lower = char.toLowerCase();
-    const upper = char.toUpperCase();
-
-    if (isSeparator(char)) {
-      if (current.length > 0) {
-        words.push(current.toLowerCase());
-        current = "";
-      }
-      continue;
-    }
-
-    const isUppercase = char !== lower && char === upper;
-    const previous = value[index - 1];
-    const next = value[index + 1];
-    const previousIsLowercase =
-      previous !== undefined &&
-      previous === previous.toLowerCase() &&
-      previous !== previous.toUpperCase();
-    const nextIsLowercase =
-      next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
-
-    if (isUppercase && current.length > 0 && (previousIsLowercase || nextIsLowercase)) {
-      words.push(current.toLowerCase());
-      current = char;
-      continue;
-    }
-
-    current += char;
-  }
-
-  if (current.length > 0) {
-    words.push(current.toLowerCase());
-  }
-
-  return words;
-}
-
-function formatSdkSegment(segment: string): string {
-  return splitWords(segment)
-    .map((word, index) => (index === 0 ? word : `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`))
-    .join("");
-}
-
-function formatModuleSegment(segment: string): string {
-  return splitWords(segment).join("_");
-}
-
-function formatModulePath(path: string): string {
-  return path
-    .split(".")
-    .map((segment) => formatModuleSegment(segment))
-    .join(".");
-}
-
 function getModuleName(root: Group<any>, groupPath: string): string {
-  return formatModulePath(groupPath.length === 0 ? root.name : groupPath);
+  return groupPath.length === 0 ? formatModuleSegment(root.name) : groupPath;
 }
 
 function getOrCreateModule(modules: HostModules, moduleName: string): Record<string, HostModuleFunction> {
-  modules[moduleName] ??= {};
+  modules[moduleName] ??= Object.create(null) as Record<string, HostModuleFunction>;
   return modules[moduleName];
 }
 
@@ -96,26 +31,26 @@ function getOrCreateLintModule(lintModules: HostLintModules, moduleName: string)
   return lintModules[moduleName];
 }
 
-function resolveSdkMember(sdk: Record<string, unknown>, path: string): unknown {
+function resolveSdkMember(sdk: Record<string, unknown>, path: string[]): unknown {
   let current: unknown = sdk;
 
-  for (const segment of path.split(".")) {
+  for (const segment of path) {
     if (typeof current !== "object" && typeof current !== "function") {
       return undefined;
     }
 
-    current = (current as Record<string, unknown>)[formatSdkSegment(segment)];
+    current = (current as Record<string, unknown>)[segment];
   }
 
   return current;
 }
 
-function createHostFunction(sdk: Record<string, unknown>, path: string): HostModuleFunction {
+function createHostFunction(sdk: Record<string, unknown>, entry: CommandEntry): HostModuleFunction {
   return async (params: unknown) => {
-    const sdkMember = resolveSdkMember(sdk, path);
+    const sdkMember = resolveSdkMember(sdk, entry.sdkPath);
 
     if (typeof sdkMember !== "function") {
-      throw new TypeError(`SDK member "${path}" is not callable.`);
+      throw new TypeError(`SDK member "${entry.path}" is not callable.`);
     }
 
     return sdkMember(params);
@@ -131,15 +66,20 @@ export async function buildHostModules(
     entries === undefined
       ? (await resolveCommandTree(root)).entries
       : await resolveCommandEntries(entries);
-  const modules: HostModules = {};
-  const lintModules: HostLintModules = {};
+  const modules = Object.create(null) as HostModules;
+  const lintModules = Object.create(null) as HostLintModules;
 
   for (const entry of resolvedEntries) {
     const moduleName = getModuleName(root, entry.groupPath);
     const module = getOrCreateModule(modules, moduleName);
     const lintModule = getOrCreateLintModule(lintModules, moduleName);
 
-    module[entry.name] = createHostFunction(sdk, entry.path);
+    Object.defineProperty(module, entry.name, {
+      configurable: true,
+      enumerable: true,
+      value: createHostFunction(sdk, entry),
+      writable: true
+    });
     lintModule.push(entry.name);
   }
 

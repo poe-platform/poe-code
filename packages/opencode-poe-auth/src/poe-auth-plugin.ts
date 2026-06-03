@@ -13,7 +13,19 @@ function getExpiry(expiresIn: number | null): number {
     return Number.MAX_SAFE_INTEGER;
   }
 
+  if (!Number.isFinite(expiresIn) || expiresIn < 0) {
+    throw new Error("Poe API key has invalid expiration metadata. Run `opencode providers login` again.");
+  }
+
   return Date.now() + expiresIn * 1000;
+}
+
+function requireApiKey(value: string): string {
+  const apiKey = value.trim();
+  if (apiKey.length === 0) {
+    throw new Error("Poe API key is missing. Run `opencode providers login` again.");
+  }
+  return apiKey;
 }
 
 async function authorize(): Promise<AuthOauthResult> {
@@ -36,11 +48,12 @@ async function authorize(): Promise<AuthOauthResult> {
     method: "auto",
     callback: async () => {
       const result = await authorization.waitForResult();
+      const apiKey = requireApiKey(result.apiKey);
 
       return {
         type: "success",
-        access: result.apiKey,
-        refresh: result.apiKey,
+        access: apiKey,
+        refresh: apiKey,
         expires: getExpiry(result.expiresIn)
       };
     }
@@ -55,18 +68,18 @@ export async function PoeAuthPlugin(_input: PluginInput): Promise<Hooks> {
         const auth = await getAuth();
 
         if (auth.type === "api") {
-          return { apiKey: auth.key };
+          return { apiKey: requireApiKey(auth.key) };
         }
 
         if (auth.type !== "oauth") {
           return {};
         }
 
-        if (auth.expires < Date.now()) {
+        if (!Number.isFinite(auth.expires) || auth.expires <= Date.now()) {
           throw new Error("Poe API key expired. Run `opencode providers login` again.");
         }
 
-        return { apiKey: auth.access };
+        return { apiKey: requireApiKey(auth.access) };
       },
       methods: [
         {

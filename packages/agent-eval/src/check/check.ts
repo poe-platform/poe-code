@@ -6,6 +6,7 @@ import { loadEval } from "../source/registry.js";
 import type { CaseResult } from "../run/vitest-runner.js";
 import { cloneTarget } from "../run/clone.js";
 import { runScorer } from "../run/scorer.js";
+import { assertCanonicalDestinationPath, resolveContainedPath } from "../path-boundary.js";
 
 export interface CheckOptions {
   sourceDir: string;
@@ -28,6 +29,7 @@ export async function evalCheck(opts: CheckOptions): Promise<CheckResult> {
   const outDir = resolveOutputDirectory(source.rootDir, config.out);
   const cloneDir = path.join(outDir, ".check", opts.evalId, isoUtcSafe(new Date()), "clone");
 
+  opts.signal?.throwIfAborted();
   await mkdir(path.dirname(cloneDir), { recursive: true });
   await cloneTarget({
     repo: evalDef.target.repo,
@@ -35,14 +37,18 @@ export async function evalCheck(opts: CheckOptions): Promise<CheckResult> {
     dest: cloneDir,
     signal: opts.signal
   });
+  opts.signal?.throwIfAborted();
 
   const evalDir = path.join(source.rootDir, opts.evalId);
+  const oracleDir = resolveContainedPath(evalDir, evalDef.oracle.path, "oracle.path");
   await copyDirectoryIfPresent(path.join(evalDir, "starter"), cloneDir);
+  opts.signal?.throwIfAborted();
   await copyOracleSolution({
-    solutionDir: path.join(evalDir, evalDef.oracle.path, "solution"),
+    solutionDir: path.join(oracleDir, "solution"),
     cloneDir,
     solutionDest: evalDef.oracle.solutionDest
   });
+  opts.signal?.throwIfAborted();
 
   const tests = await runScorer({
     evalDef,
@@ -92,6 +98,7 @@ async function copyOracleSolution(input: {
   solutionDest: string;
 }): Promise<void> {
   const destDir = resolveCloneRelativePath(input.cloneDir, input.solutionDest);
+  await assertCanonicalDestinationPath(input.cloneDir, destDir, "oracle.solution_dest");
   await mkdir(destDir, { recursive: true });
   await cp(input.solutionDir, destDir, {
     recursive: true,

@@ -1,6 +1,7 @@
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, parse, resolve, sep } from "node:path";
 
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
@@ -52,6 +53,7 @@ export type RunHarnessPairOptions = {
     now: () => number;
   };
   fix?: boolean;
+  frontmatterOverrides?: Record<string, unknown>;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
   onEvent?: (event: HarnessRunEvent) => void;
@@ -86,9 +88,13 @@ export async function runHarnessPair(
       readTextFile(pair.mdPath)
     ]);
     const { frontmatter, body } = splitFrontmatter(mdSource);
+    const merged =
+      options.frontmatterOverrides === undefined
+        ? frontmatter
+        : deepMergeFrontmatter(frontmatter, options.frontmatterOverrides);
     const schema = await extractSchema(ajsSource, pair.ajsPath);
     const validated = (
-      schema === undefined ? frontmatter : validateFrontmatter(schema, frontmatter, pair.mdPath)
+      schema === undefined ? merged : validateFrontmatter(schema, merged, pair.mdPath)
     ) as Record<string, unknown>;
     const meta: HarnessImportMeta = {
       kind: readString(validated.kind),
@@ -98,6 +104,9 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
+    if (options.snapshotPath === undefined) {
+      await assertDefaultSnapshotPathIsRegular(snapshotPath);
+    }
     const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
     const shouldResume = options.resume ?? true;
     if (!shouldResume) {
@@ -406,6 +415,7 @@ async function createHostCallReplay(
   const storePath = hostCallStorePath(snapshotPath);
   const records = await readHostCallRecords(storePath);
   const pendingWrites = new Set<Promise<void>>();
+  let writeQueue = Promise.resolve();
   let cursor = 0;
 
   return {
@@ -492,7 +502,8 @@ async function createHostCallReplay(
       state: statefulBindings[key]?.snapshot()
     });
     cursor = records.length;
-    const write = writeHostCallRecords(storePath, records);
+    const write = writeQueue.then(() => writeHostCallRecords(storePath, records));
+    writeQueue = write.catch(() => undefined);
     pendingWrites.add(write);
     try {
       await write;
@@ -527,7 +538,14 @@ async function writeHostCallRecords(
   }
 
   await mkdir(dirname(storePath), { recursive: true });
-  await writeFile(storePath, serialized);
+  const temporaryPath = `${storePath}.tmp`;
+  try {
+    await writeFile(temporaryPath, serialized);
+    await rename(temporaryPath, storePath);
+  } catch (error) {
+    await unlinkIfExists(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }
 
 async function cleanupCompletedSnapshot(
@@ -582,6 +600,7 @@ function listModuleExports(moduleExports: ModuleExports): string[] {
 }
 
 function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): string {
+  const documentKey = createHash("sha256").update(resolve(mdPath)).digest("hex").slice(0, 12);
   return (
     snapshotPath ??
     join(
@@ -590,9 +609,31 @@ function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): 
         runner: "harness",
         homeDir: os.homedir()
       }),
-      "snapshot.json"
+      `snapshot-${documentKey}.json`
     )
   );
+}
+
+async function assertDefaultSnapshotPathIsRegular(snapshotPath: string): Promise<void> {
+  const absolutePath = resolve(snapshotPath);
+  const rootPath = parse(absolutePath).root;
+  let currentPath = rootPath;
+
+  for (const segment of absolutePath.slice(rootPath.length).split(sep).filter(Boolean)) {
+    currentPath = join(currentPath, segment);
+
+    try {
+      if ((await lstat(currentPath)).isSymbolicLink()) {
+        throw new Error("Default harness snapshot path must not contain symbolic links.");
+      }
+    } catch (error) {
+      if (hasErrorCode(error, "ENOENT")) {
+        return;
+      }
+
+      throw error;
+    }
+  }
 }
 
 async function readTextFile(path: string): Promise<string> {
@@ -624,4 +665,27 @@ function hasErrorCode(error: unknown, code: string): boolean {
     "code" in error &&
     (error as { code?: unknown }).code === code
   );
+}
+
+function deepMergeFrontmatter(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target };
+  for (const [key, value] of Object.entries(source)) {
+    if (value === undefined) {
+      continue;
+    }
+    const existing = result[key];
+    if (isPlainObject(existing) && isPlainObject(value)) {
+      result[key] = deepMergeFrontmatter(existing, value);
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -71,6 +71,9 @@ export interface TaskDefaults {
 }
 
 export interface TaskListFs {
+  lstat(path: string): Promise<{
+    isSymbolicLink(): boolean;
+  }>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   readdir(path: string): Promise<string[]>;

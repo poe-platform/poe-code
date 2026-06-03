@@ -1,4 +1,5 @@
 import { UserError } from "toolcraft";
+import { redactSensitiveQueryValues } from "./redaction.js";
 
 interface NetworkErrorLike {
   code?: unknown;
@@ -13,6 +14,7 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
   const networkError = findNetworkError(error);
   const urlParts = new URL(url);
   const host = getHost(networkError, urlParts);
+  const redactedUrl = redactSensitiveQueryValues(url);
 
   switch (networkError?.code) {
     case "ECONNREFUSED":
@@ -21,7 +23,7 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
         { cause: error }
       );
     case "ETIMEDOUT":
-      return new UserError(`Request timed out after ${getTimeoutMs(networkError)}ms: ${url}.`, {
+      return new UserError(`Request timed out after ${getTimeoutMs(networkError)}ms: ${redactedUrl}.`, {
         cause: error
       });
     case "ENOTFOUND":
@@ -39,11 +41,11 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
   }
 
   if (findAbortError(error) !== null) {
-    return new UserError(`Request aborted: ${url}.`, { cause: error });
+    return new UserError(`Request aborted: ${redactedUrl}.`, { cause: error });
   }
 
   if (error instanceof TypeError && error.message === "fetch failed" && !hasCause(error)) {
-    return new UserError(`Network request failed: ${url}.`, { cause: error });
+    return new UserError(`Network request failed: ${redactedUrl}.`, { cause: error });
   }
 
   return null;

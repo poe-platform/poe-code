@@ -1,4 +1,5 @@
 import path from "node:path";
+import { assertContainedPath } from "./path-boundary.js";
 
 export function resolveWorkflowPath(inputPath: string, cwd: string, homeDir: string): string {
   if (inputPath.startsWith("~/")) {
@@ -17,7 +18,10 @@ export interface DiscoverDocsOptions {
   homeDir: string;
   subDirectory: string;
   glob?: string;
-  fs: { readdir: (path: string) => Promise<string[]> };
+  fs: {
+    lstat: (path: string) => Promise<{ isSymbolicLink(): boolean }>;
+    readdir: (path: string) => Promise<string[]>;
+  };
 }
 
 function isMissingDirectory(error: unknown): boolean {
@@ -52,6 +56,9 @@ async function readDirectory(
   directoryPath: string
 ): Promise<string[]> {
   try {
+    if ((await fs.lstat(directoryPath)).isSymbolicLink()) {
+      return [];
+    }
     return await fs.readdir(directoryPath);
   } catch (error) {
     if (isMissingDirectory(error)) {
@@ -79,8 +86,21 @@ async function discoverFromDirectory(options: {
 
 export async function discoverWorkflowDocs(options: DiscoverDocsOptions): Promise<string[]> {
   const glob = options.glob ?? defaultGlobForSubDirectory(options.subDirectory);
-  const projectDirectory = path.join(options.cwd, ".poe-code", options.subDirectory);
-  const globalDirectory = path.join(options.homeDir, ".poe-code", options.subDirectory);
+  const projectRoot = path.join(options.cwd, ".poe-code");
+  const globalRoot = path.join(options.homeDir, ".poe-code");
+  const projectDirectory = path.join(projectRoot, options.subDirectory);
+  const globalDirectory = path.join(globalRoot, options.subDirectory);
+
+  assertContainedPath(
+    projectRoot,
+    projectDirectory,
+    "Workflow subdirectory must remain within the state root"
+  );
+  assertContainedPath(
+    globalRoot,
+    globalDirectory,
+    "Workflow subdirectory must remain within the state root"
+  );
 
   const [projectDocs, globalDocs] = await Promise.all([
     discoverFromDirectory({

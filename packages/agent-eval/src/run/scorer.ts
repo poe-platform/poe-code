@@ -7,6 +7,7 @@ import {
   type RunSpec
 } from "@poe-code/process-runner";
 import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
+import { assertCanonicalContainedPath, resolveContainedPath } from "../path-boundary.js";
 import { runVitest, type CaseResult } from "./vitest-runner.js";
 
 const defaultVitestTimeoutMs = 180_000;
@@ -34,9 +35,10 @@ export async function runScorer(input: {
   const scorer = resolveScorer(input.evalDef);
   const absoluteEvalDir = path.resolve(input.evalDir);
   const absoluteCloneDir = path.resolve(input.cloneDir);
+  const oracleDir = resolveContainedPath(absoluteEvalDir, input.evalDef.oracle.path, "oracle.path");
+  await assertCanonicalContainedPath(absoluteEvalDir, oracleDir, "oracle.path");
 
   if (scorer.kind === "vitest") {
-    const oracleDir = path.join(absoluteEvalDir, input.evalDef.oracle.path);
     return runVitest({
       testsDir: path.join(oracleDir, "tests"),
       cloneDir: absoluteCloneDir,
@@ -48,7 +50,7 @@ export async function runScorer(input: {
 
   return runCustomScorer({
     cloneDir: absoluteCloneDir,
-    oracleDir: path.join(absoluteEvalDir, input.evalDef.oracle.path),
+    oracleDir,
     spec: scorer.spec,
     signal: input.signal
   });
@@ -60,9 +62,17 @@ async function runCustomScorer(input: {
   spec: ScorerSpec;
   signal?: AbortSignal;
 }): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
+  assertValidTimeout(input.spec.timeoutMs);
+  const cwd = resolveContainedPath(input.cloneDir, input.spec.cwd, "scorer.cwd");
+  const resultPath = resolveContainedPath(
+    input.cloneDir,
+    input.spec.resultPath,
+    "scorer.result_path"
+  );
+  await assertCanonicalContainedPath(input.cloneDir, cwd, "scorer.cwd");
   const result = await runScorerCommand(createHostRunner(), {
     command: input.spec.command,
-    cwd: path.join(input.cloneDir, input.spec.cwd),
+    cwd,
     env: createScorerEnv(input.cloneDir, input.oracleDir),
     timeoutMs: input.spec.timeoutMs,
     signal: input.signal
@@ -72,7 +82,7 @@ async function runCustomScorer(input: {
     throw new ScorerTimeoutError(`Scorer timed out after ${input.spec.timeoutMs}ms`);
   }
 
-  const resultPath = path.join(input.cloneDir, input.spec.resultPath);
+  await assertCanonicalContainedPath(input.cloneDir, resultPath, "scorer.result_path");
   const rawResult = await readScorerResult(resultPath, result);
   return parseScorerResult(resultPath, rawResult);
 }
@@ -142,13 +152,9 @@ function createShellRunSpec(input: {
 }
 
 function createScorerEnv(cloneDir: string, oracleDir: string): Record<string, string> {
-  const env: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
 
   env.CLONE_DIR = cloneDir;
   env.ORACLE_DIR = oracleDir;
@@ -201,7 +207,9 @@ function parseScorerResult(
     parsed === null ||
     Array.isArray(parsed) ||
     typeof (parsed as { passed?: unknown }).passed !== "number" ||
-    typeof (parsed as { total?: unknown }).total !== "number"
+    !Number.isFinite((parsed as { passed: number }).passed) ||
+    typeof (parsed as { total?: unknown }).total !== "number" ||
+    !Number.isFinite((parsed as { total: number }).total)
   ) {
     throw new ScorerError(
       `Malformed scorer result ${resultPath}: expected { passed: number, total: number }`
@@ -232,10 +240,17 @@ function isCaseResults(value: unknown): value is CaseResult[] {
         typeof (item as CaseResult).name === "string" &&
         typeof (item as CaseResult).passed === "boolean" &&
         typeof (item as CaseResult).durationMs === "number" &&
+        Number.isFinite((item as CaseResult).durationMs) &&
         ((item as CaseResult).message === undefined ||
           typeof (item as CaseResult).message === "string")
     )
   );
+}
+
+function assertValidTimeout(timeoutMs: number): void {
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    throw new ScorerError("Scorer timeout must be a finite non-negative number.");
+  }
 }
 
 async function waitForResult(

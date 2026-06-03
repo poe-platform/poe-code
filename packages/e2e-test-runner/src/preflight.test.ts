@@ -274,6 +274,31 @@ describe('runPreflight', () => {
     expect(rm).not.toHaveBeenCalled();
   });
 
+  it('fails when orphan container removal fails', async () => {
+    const { detectEngine, execSync, resolveBackend, runPreflight } = await setup();
+    resolveBackend.mockReturnValue('podman');
+    detectEngine.mockReturnValue('podman');
+    execSync.mockImplementation((command: string) => {
+      if (command === 'podman info') {
+        return 'ok';
+      }
+      if (command === 'podman ps -aq --filter label=poe-e2e-test-runner=true') {
+        return 'orphan\n';
+      }
+      if (command === 'podman rm -f orphan') {
+        throw new Error('remove failed');
+      }
+      return '';
+    });
+
+    const result = await runPreflight();
+
+    expect(result.passed).toBe(false);
+    expect(result.results).toContainEqual(
+      expect.objectContaining({ name: 'Cleanup', passed: false }),
+    );
+  });
+
   it('fails when the isolated home already has agent config', async () => {
     const { access, execSync, resolveBackend, runPreflight } = await setup();
     resolveBackend.mockReturnValue('env');

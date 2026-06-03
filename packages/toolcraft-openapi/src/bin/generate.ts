@@ -13,6 +13,7 @@ interface GenerateCliFileSystem {
   readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
   readdir(directoryPath: string): Promise<string[]>;
   rm(targetPath: string, options?: { force?: boolean }): Promise<void>;
+  realpath(targetPath: string): Promise<string>;
   stat(targetPath: string): Promise<{ isDirectory(): boolean }>;
   writeFile(filePath: string, contents: string, encoding: BufferEncoding): Promise<void>;
 }
@@ -139,8 +140,13 @@ export async function syncGeneratedClient(
   const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
 
   if (!options.check && drifted) {
-    await writeGeneratedFiles(services.fs, updatedFiles);
-    await deleteGeneratedFiles(services.fs, deletedFiles);
+    try {
+      await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
+      await deleteGeneratedFiles(services.fs, deletedFiles);
+    } catch (error) {
+      await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
+      throw error;
+    }
   }
 
   return {
@@ -313,12 +319,33 @@ function collectDeletedFiles(
 }
 
 async function writeGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "mkdir" | "writeFile">,
+  fs: Pick<GenerateCliFileSystem, "mkdir" | "realpath" | "writeFile">,
+  outputDir: string,
   filesToWrite: ReadonlyArray<GeneratedFile>
 ): Promise<void> {
   for (const file of filesToWrite) {
     await fs.mkdir(path.dirname(file.path), { recursive: true });
+    await assertSafeOutputPath(fs, outputDir, file.path);
     await fs.writeFile(file.path, file.contents, "utf8");
+  }
+}
+
+async function assertSafeOutputPath(
+  fs: Pick<GenerateCliFileSystem, "realpath">,
+  outputDir: string,
+  filePath: string
+): Promise<void> {
+  const canonicalOutputDir = await fs.realpath(outputDir);
+  const canonicalFileParent = await fs.realpath(path.dirname(filePath));
+  const relativeParentPath = path.relative(canonicalOutputDir, canonicalFileParent);
+
+  if (
+    relativeParentPath === ".." ||
+    relativeParentPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeParentPath) ||
+    canonicalOutputDir !== path.resolve(outputDir)
+  ) {
+    throw new Error("Generated output must remain inside the output directory.");
   }
 }
 
@@ -328,6 +355,39 @@ async function deleteGeneratedFiles(
 ): Promise<void> {
   for (const filePath of filePaths) {
     await fs.rm(filePath, { force: true });
+  }
+}
+
+async function restoreGeneratedFiles(
+  fs: Pick<GenerateCliFileSystem, "mkdir" | "realpath" | "rm" | "writeFile">,
+  outputDir: string,
+  currentFiles: ReadonlyMap<string, string>,
+  updatedFiles: ReadonlyArray<GeneratedFile>,
+  deletedFiles: ReadonlyArray<string>
+): Promise<void> {
+  for (const file of updatedFiles) {
+    const previousContents = currentFiles.get(file.path);
+
+    if (previousContents === undefined) {
+      await fs.rm(file.path, { force: true });
+      continue;
+    }
+
+    await fs.mkdir(path.dirname(file.path), { recursive: true });
+    await assertSafeOutputPath(fs, outputDir, file.path);
+    await fs.writeFile(file.path, previousContents, "utf8");
+  }
+
+  for (const filePath of deletedFiles) {
+    const previousContents = currentFiles.get(filePath);
+
+    if (previousContents === undefined) {
+      continue;
+    }
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await assertSafeOutputPath(fs, outputDir, filePath);
+    await fs.writeFile(filePath, previousContents, "utf8");
   }
 }
 

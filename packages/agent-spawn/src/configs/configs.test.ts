@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  allSpawnConfigs,
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
@@ -11,11 +12,30 @@ import { openCodeSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
-import { serializeGooseMcpArgs } from "./mcp.js";
+import { serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
     expect(getSpawnConfig("claude-desktop")).toBeUndefined();
+  });
+
+  it("does not allow returned config mutations to affect future spawns", () => {
+    const config = getSpawnConfig("codex");
+
+    expect(config?.kind).toBe("cli");
+    if (!config || config.kind !== "cli") {
+      throw new Error("Expected Codex CLI config");
+    }
+
+    expect(() => config.defaultArgs.push("--unexpected-mutated-flag")).toThrow();
+    expect(() => config.modes.yolo.push("--unexpected-mode-flag")).toThrow();
+    expect(config.defaultArgs).not.toContain("--unexpected-mutated-flag");
+    expect(config.modes.yolo).not.toContain("--unexpected-mode-flag");
+  });
+
+  it("publishes immutable registry configuration", () => {
+    expect(Object.isFrozen(allSpawnConfigs)).toBe(true);
+    expect(Object.isFrozen(allSpawnConfigs[0])).toBe(true);
   });
 });
 
@@ -148,5 +168,27 @@ describe("serializeGooseMcpArgs", () => {
       "--with-extension",
       "node"
     ]);
+  });
+});
+
+describe("configs/MCP serialization", () => {
+  it("preserves special MCP server names in Kimi JSON arguments", () => {
+    const args = kimiSpawnConfig.mcpArgs!(
+      JSON.parse('{"__proto__":{"command":"custom-server"}}')
+    );
+    const serialized = JSON.parse(args[1]!) as { mcpServers: Record<string, unknown> };
+
+    expect(Object.hasOwn(serialized.mcpServers, "__proto__")).toBe(true);
+  });
+
+  it("preserves special MCP server names in OpenCode environment config", () => {
+    const env = serializeOpenCodeMcpEnv(
+      JSON.parse('{"__proto__":{"command":"custom-server"}}')
+    );
+    const serialized = JSON.parse(env.OPENCODE_CONFIG_CONTENT) as {
+      mcp: Record<string, unknown>;
+    };
+
+    expect(Object.hasOwn(serialized.mcp, "__proto__")).toBe(true);
   });
 });

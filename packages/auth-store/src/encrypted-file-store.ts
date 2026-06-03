@@ -13,6 +13,8 @@ const ENCRYPTION_IV_BYTES = 12;
 const ENCRYPTION_AUTH_TAG_BYTES = 16;
 const ENCRYPTION_FILE_MODE = 0o600;
 
+let temporaryFileSequence = 0;
+
 interface EncryptedDocument {
   version: number;
   iv: string;
@@ -30,9 +32,11 @@ export interface EncryptedFileStoreFileSystem {
   writeFile(
     path: string,
     data: string | NodeJS.ArrayBufferView,
-    options?: { encoding?: BufferEncoding }
+    options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   unlink(path: string): Promise<void>;
   chmod(path: string, mode: number): Promise<void>;
 }
@@ -69,6 +73,7 @@ export class EncryptedFileStore implements SecretStore {
   }
 
   async get(): Promise<string | null> {
+    await this.assertRegularCredentialPath();
     let rawDocument: string;
     try {
       rawDocument = await this.fs.readFile(this.filePath, "utf8");
@@ -108,6 +113,7 @@ export class EncryptedFileStore implements SecretStore {
   }
 
   async set(value: string): Promise<void> {
+    await this.assertRegularCredentialPath();
     const key = await this.getEncryptionKey();
     const iv = this.getRandomBytes(ENCRYPTION_IV_BYTES);
     const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
@@ -125,13 +131,27 @@ export class EncryptedFileStore implements SecretStore {
     };
 
     await this.fs.mkdir(path.dirname(this.filePath), { recursive: true });
-    await this.fs.writeFile(this.filePath, JSON.stringify(document), {
-      encoding: "utf8"
-    });
-    await this.fs.chmod(this.filePath, ENCRYPTION_FILE_MODE);
+    await this.assertRegularCredentialPath();
+    const temporaryPath = `${this.filePath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+
+    try {
+      await this.fs.writeFile(temporaryPath, JSON.stringify(document), {
+        encoding: "utf8",
+        flag: "wx",
+        mode: ENCRYPTION_FILE_MODE
+      });
+      await this.fs.chmod(temporaryPath, ENCRYPTION_FILE_MODE);
+      await this.fs.rename(temporaryPath, this.filePath);
+    } catch (error) {
+      if (!isAlreadyExistsError(error)) {
+        await removeIfPresent(this.fs, temporaryPath).catch(() => undefined);
+      }
+      throw error;
+    }
   }
 
   async delete(): Promise<void> {
+    await this.assertRegularCredentialPath();
     try {
       await this.fs.unlink(this.filePath);
     } catch (error) {
@@ -141,12 +161,56 @@ export class EncryptedFileStore implements SecretStore {
     }
   }
 
+  private async assertRegularCredentialPath(): Promise<void> {
+    const resolvedPath = path.resolve(this.filePath);
+    const protectedPaths = [path.dirname(resolvedPath), resolvedPath];
+
+    for (const currentPath of protectedPaths) {
+      try {
+        const stats = await this.fs.lstat(currentPath);
+        if (stats.isSymbolicLink()) {
+          throw new Error(`Refusing to use encrypted credential path through symbolic link: ${currentPath}`);
+        }
+      } catch (error) {
+        if (isNotFoundError(error)) {
+          return;
+        }
+        throw error;
+      }
+    }
+  }
+
   private getEncryptionKey(): Promise<Buffer> {
     if (!this.keyPromise) {
-      this.keyPromise = deriveEncryptionKey(this.getMachineIdentity, this.salt);
+      const retryableKeyPromise = deriveEncryptionKey(this.getMachineIdentity, this.salt).catch((error) => {
+        if (this.keyPromise === retryableKeyPromise) {
+          this.keyPromise = null;
+        }
+        throw error;
+      });
+      this.keyPromise = retryableKeyPromise;
     }
     return this.keyPromise;
   }
+}
+
+async function removeIfPresent(fileSystem: EncryptedFileStoreFileSystem, filePath: string): Promise<void> {
+  try {
+    await fileSystem.unlink(filePath);
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 function defaultMachineIdentity(): MachineIdentity {
@@ -162,7 +226,7 @@ async function deriveEncryptionKey(
 ): Promise<Buffer> {
   const machineIdentity = await getMachineIdentity();
   const secret = `${machineIdentity.hostname}:${machineIdentity.username}`;
-  const cacheKey = `${secret}:${salt}`;
+  const cacheKey = JSON.stringify([machineIdentity.hostname, machineIdentity.username, salt]);
 
   const cached = derivedKeyCache.get(cacheKey);
   if (cached) {
@@ -180,7 +244,12 @@ async function deriveEncryptionKey(
   });
 
   derivedKeyCache.set(cacheKey, keyPromise);
-  return keyPromise;
+  return keyPromise.catch((error) => {
+    if (derivedKeyCache.get(cacheKey) === keyPromise) {
+      derivedKeyCache.delete(cacheKey);
+    }
+    throw error;
+  });
 }
 
 function parseEncryptedDocument(raw: string): EncryptedDocument | null {

@@ -168,6 +168,26 @@ describe("agent-script CLI", () => {
     expect(stderr.output()).toContain("Budget exceeded: steps");
   });
 
+  it("preserves injected __proto__ modules for raw scripts", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.ajs",
+      'import { value } from "__proto__";\nreturn value;\n'
+    );
+
+    const exitCode = await runCli(["script.ajs"], {
+      cwd: "/repo",
+      modulesFor: () => Object.fromEntries([["__proto__", { value: "preserved" }]]) as never,
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: "preserved" })}\n`);
+    expect(stderr.output()).toBe("");
+  });
+
   it("handles SIGINT with graceful shutdown, finally blocks, and a non-zero exit", async () => {
     const stdout = createSink();
     const stderr = createSink();

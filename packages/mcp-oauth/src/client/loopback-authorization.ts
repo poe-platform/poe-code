@@ -41,8 +41,15 @@ export async function createLoopbackAuthorizationSession(
 }
 
 async function startServer(server: http.Server): Promise<number> {
-  return new Promise<number>((resolve) => {
+  return new Promise<number>((resolve, reject) => {
+    const handleError = (error: Error) => {
+      server.off("error", handleError);
+      reject(error);
+    };
+
+    server.once("error", handleError);
     server.listen(0, "127.0.0.1", () => {
+      server.off("error", handleError);
       const address = server.address() as { port: number };
       resolve(address.port);
     });
@@ -75,21 +82,36 @@ function waitForAuthorizationCode(
         return;
       }
 
-      const error = url.searchParams.get("error");
-      if (error !== null) {
-        const description = url.searchParams.get("error_description") ?? error;
+      const callbackParameters = {
+        code: url.searchParams.get("code"),
+        error: url.searchParams.get("error"),
+        errorDescription: url.searchParams.get("error_description"),
+        state: url.searchParams.get("state"),
+        iss: url.searchParams.get("iss"),
+      };
+
+      try {
+        validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
+      } catch (error) {
+        res.writeHead(400);
+        res.end(error instanceof Error ? error.message : "Invalid OAuth callback");
+        if (callbackParameters.error === null) {
+          settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+        }
+        return;
+      }
+
+      const authorizationError = callbackParameters.error;
+      if (authorizationError !== null) {
+        const description = callbackParameters.errorDescription ?? authorizationError;
         res.writeHead(400);
         res.end(`Authorization failed: ${description}`);
-        settle(() => reject(new Error(`OAuth authorization failed: ${error} — ${description}`)));
+        settle(() => reject(createAuthorizationError(authorizationError, description)));
         return;
       }
 
       try {
-        const code = validateAuthorizationCallbackParameters({
-          code: url.searchParams.get("code"),
-          state: url.searchParams.get("state"),
-          iss: url.searchParams.get("iss"),
-        }, expectedAuthorization);
+        const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
 
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(buildSuccessPage(options.landingPage));
@@ -110,15 +132,20 @@ function waitForAuthorizationCode(
         }
 
         try {
-          const code = validateAuthorizationCallbackParameters(
-            callbackParameters,
-            expectedAuthorization
-          );
+          validateAuthorizationCallbackBinding(callbackParameters, expectedAuthorization);
+          if (callbackParameters.error !== null) {
+            const description = callbackParameters.errorDescription ?? callbackParameters.error;
+            throw createAuthorizationError(callbackParameters.error, description);
+          }
+
+          const code = validateAuthorizationCallbackParameters(callbackParameters, expectedAuthorization);
           settle(() => resolve(code));
         } catch (error) {
           settle(() => reject(error instanceof Error ? error : new Error(String(error))));
         }
-      }).catch(() => undefined);
+      }).catch((error) => {
+        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+      });
     }
 
     if (options.openBrowser !== undefined) {
@@ -134,7 +161,7 @@ export function extractCodeFromInput(input: string): string | null {
 }
 
 function extractCallbackParametersFromInput(input: string):
-  | { code: string | null; state: string | null; iss: string | null }
+  | AuthorizationCallbackParameters
   | null {
   const trimmed = input.replaceAll("\r", "").replaceAll("\n", "").trim();
   if (trimmed.length === 0) {
@@ -145,16 +172,28 @@ function extractCallbackParametersFromInput(input: string):
     const url = new URL(trimmed);
     return {
       code: url.searchParams.get("code"),
+      error: url.searchParams.get("error"),
+      errorDescription: url.searchParams.get("error_description"),
       state: url.searchParams.get("state"),
       iss: url.searchParams.get("iss"),
     };
   } catch {
     return {
       code: trimmed,
+      error: null,
+      errorDescription: null,
       state: null,
       iss: null,
     };
   }
+}
+
+interface AuthorizationCallbackParameters {
+  code: string | null;
+  error: string | null;
+  errorDescription: string | null;
+  state: string | null;
+  iss: string | null;
 }
 
 function readExpectedAuthorizationCallback(authorizationUrl: string): {
@@ -174,20 +213,30 @@ function readExpectedAuthorizationCallback(authorizationUrl: string): {
 }
 
 function validateAuthorizationCallbackParameters(
-  callback: {
-    code: string | null;
-    state: string | null;
-    iss: string | null;
-  },
+  callback: AuthorizationCallbackParameters,
   expected: {
     state: string | null;
     issuer: string | null;
     requireIssuer: boolean;
   }
 ): string {
+  validateAuthorizationCallbackBinding(callback, expected);
+
   if (callback.code === null || callback.code.length === 0) {
     throw new Error("OAuth callback missing authorization code");
   }
+
+  return callback.code;
+}
+
+function validateAuthorizationCallbackBinding(
+  callback: AuthorizationCallbackParameters,
+  expected: {
+    state: string | null;
+    issuer: string | null;
+    requireIssuer: boolean;
+  }
+): void {
 
   if (expected.state !== null) {
     if (callback.state === null || callback.state.length === 0) {
@@ -214,7 +263,10 @@ function validateAuthorizationCallbackParameters(
     throw new Error("OAuth callback issuer mismatch");
   }
 
-  return callback.code;
+}
+
+function createAuthorizationError(error: string, description: string): Error {
+  return new Error(`OAuth authorization failed: ${error} — ${description}`);
 }
 
 function escapeHtml(text: string): string {

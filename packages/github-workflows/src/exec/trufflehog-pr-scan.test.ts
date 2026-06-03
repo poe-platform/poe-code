@@ -1,10 +1,43 @@
-import { describe, expect, it } from "vitest";
+import { createFsFromVolume, Volume } from "memfs";
+import { describe, expect, it, vi } from "vitest";
 import {
   parseTruffleHogFindings,
   renderTruffleHogComment,
   renderTruffleHogFindingsTable,
+  runTruffleHogPrScanCommand,
   uniqueTruffleHogFindings
 } from "./trufflehog-pr-scan.js";
+
+function env(values: Record<string, string>): { get(key: string): string | undefined } {
+  return { get: (key) => values[key] };
+}
+
+function createTestFileSystem(files: Record<string, string> = {}) {
+  const volume = Volume.fromJSON(files, "/");
+  volume.mkdirSync("/tmp", { recursive: true });
+  volume.mkdirSync("/github", { recursive: true });
+  return { volume, fs: createFsFromVolume(volume).promises };
+}
+
+const finding = JSON.stringify({
+  DetectorName: "OpenAI",
+  SourceMetadata: { Data: { Git: { file: "src/config.ts", line: 12 } } }
+});
+
+const scanEnv = {
+  BASE_SHA: "base",
+  HEAD_SHA: "head",
+  RESULTS: "verified,unknown,unverified",
+  TRUFFLEHOG_IMAGE: "trufflehog:test"
+};
+
+const advisoryEnv = {
+  GH_TOKEN: "token",
+  HEAD_SHA: "head",
+  MAX_FINDINGS: "10",
+  PR_NUMBER: "1",
+  REPOSITORY: "org/repo"
+};
 
 describe("parseTruffleHogFindings", () => {
   it("parses git metadata and verification status from TruffleHog JSONL", () => {
@@ -88,5 +121,153 @@ describe("renderTruffleHogComment", () => {
         { repository: "poe-platform/poe-code", headSha: "abc123", maxFindings: 10 }
       )
     ).toContain("### TruffleHog found 2 possible secrets");
+  });
+});
+
+describe("runTruffleHogPrScanCommand", () => {
+  it.each(["scan-for-secrets", "report-advisory-result", "clear-stale-advisory-result"] as const)(
+    "previews %s without executing any runner command",
+    async (command) => {
+      const runner = vi.fn();
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+      await runTruffleHogPrScanCommand(command, { get: () => undefined }, { dryRun: true, runner });
+
+      expect(runner).not.toHaveBeenCalled();
+      expect(stdout).toHaveBeenCalledWith(`Dry run: would run TruffleHog operation ${command}.\n`);
+      stdout.mockRestore();
+    }
+  );
+
+  it("rejects symlinked scan artifacts without overwriting their targets", async () => {
+    const { volume, fs } = createTestFileSystem({
+      "/outside-results.jsonl": "original results",
+      "/outside-stderr.log": "original stderr"
+    });
+    volume.symlinkSync("/outside-results.jsonl", "/tmp/trufflehog-results.jsonl");
+    volume.symlinkSync("/outside-stderr.log", "/tmp/trufflehog-stderr.log");
+
+    await expect(
+      runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+        fs,
+        runner: vi.fn().mockResolvedValue({ exitCode: 1, stdout: finding, stderr: "scanner stderr" })
+      })
+    ).rejects.toThrow("symbolic link");
+
+    await expect(fs.readFile("/outside-results.jsonl", "utf8")).resolves.toBe("original results");
+    await expect(fs.readFile("/outside-stderr.log", "utf8")).resolves.toBe("original stderr");
+  });
+
+  it("rejects symlinked advisory results without publishing external findings", async () => {
+    const { volume, fs } = createTestFileSystem({ "/outside-results.jsonl": `${finding}\n` });
+    volume.symlinkSync("/outside-results.jsonl", "/tmp/trufflehog-results.jsonl");
+    const runner = vi.fn();
+
+    await expect(
+      runTruffleHogPrScanCommand("report-advisory-result", env(advisoryEnv), { fs, runner })
+    ).rejects.toThrow("symbolic link");
+
+    expect(runner).not.toHaveBeenCalled();
+  });
+
+  it("rejects a symlinked GitHub output without appending outside workflow state", async () => {
+    const { volume, fs } = createTestFileSystem({ "/outside-output": "original output" });
+    volume.symlinkSync("/outside-output", "/github/output");
+
+    await expect(
+      runTruffleHogPrScanCommand("scan-for-secrets", env({ ...scanEnv, GITHUB_OUTPUT: "/github/output" }), {
+        fs,
+        runner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+      })
+    ).rejects.toThrow("symbolic link");
+
+    await expect(fs.readFile("/outside-output", "utf8")).resolves.toBe("original output");
+  });
+
+  it("validates the step summary before posting an advisory comment", async () => {
+    const { volume, fs } = createTestFileSystem({
+      "/tmp/trufflehog-results.jsonl": `${finding}\n`,
+      "/outside-summary.md": "original summary"
+    });
+    volume.symlinkSync("/outside-summary.md", "/github/summary.md");
+    const runner = vi.fn();
+
+    await expect(
+      runTruffleHogPrScanCommand(
+        "report-advisory-result",
+        env({ ...advisoryEnv, GITHUB_STEP_SUMMARY: "/github/summary.md" }),
+        { fs, runner }
+      )
+    ).rejects.toThrow("symbolic link");
+
+    expect(runner).not.toHaveBeenCalled();
+    await expect(fs.readFile("/outside-summary.md", "utf8")).resolves.toBe("original summary");
+  });
+
+  it("does not post an advisory comment when writing its summary fails", async () => {
+    const { fs } = createTestFileSystem({
+      "/tmp/trufflehog-results.jsonl": `${finding}\n`,
+      "/github/summary.md": ""
+    });
+    const failingFs = {
+      ...fs,
+      appendFile: vi.fn(async () => {
+        throw new Error("injected summary failure");
+      })
+    };
+    const runner = vi.fn();
+
+    await expect(
+      runTruffleHogPrScanCommand(
+        "report-advisory-result",
+        env({ ...advisoryEnv, GITHUB_STEP_SUMMARY: "/github/summary.md" }),
+        { fs: failingFs, runner }
+      )
+    ).rejects.toThrow("injected summary failure");
+
+    expect(runner).not.toHaveBeenCalled();
+  });
+
+  it("does not publish one scan artifact when staging the other fails", async () => {
+    const { fs } = createTestFileSystem();
+    const failingFs = {
+      ...fs,
+      writeFile: vi.fn(async (path: string, content: string, encoding: BufferEncoding) => {
+        if (path.startsWith("/tmp/trufflehog-stderr.log.")) {
+          throw new Error("injected stderr write failure");
+        }
+        await fs.writeFile(path, content, encoding);
+      })
+    };
+
+    await expect(
+      runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+        fs: failingFs,
+        runner: vi.fn().mockResolvedValue({ exitCode: 1, stdout: finding, stderr: "scanner stderr" })
+      })
+    ).rejects.toThrow("injected stderr write failure");
+
+    await expect(fs.readFile("/tmp/trufflehog-results.jsonl", "utf8")).rejects.toThrow();
+    await expect(fs.readFile("/tmp/trufflehog-stderr.log", "utf8")).rejects.toThrow();
+  });
+
+  it("publishes scan outputs in one append operation", async () => {
+    const { fs } = createTestFileSystem({ "/github/output": "" });
+    const failingFs = {
+      ...fs,
+      appendFile: vi.fn(async () => {
+        throw new Error("injected output failure");
+      })
+    };
+
+    await expect(
+      runTruffleHogPrScanCommand("scan-for-secrets", env({ ...scanEnv, GITHUB_OUTPUT: "/github/output" }), {
+        fs: failingFs,
+        runner: vi.fn().mockResolvedValue({ exitCode: 1, stdout: finding, stderr: "" })
+      })
+    ).rejects.toThrow("injected output failure");
+
+    expect(failingFs.appendFile).toHaveBeenCalledTimes(1);
+    await expect(fs.readFile("/github/output", "utf8")).resolves.toBe("");
   });
 });

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import { MEMORY_INDEX_RELPATH, MEMORY_LOG_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
 import { collectMarkdownRelPaths } from "./pages.js";
 import type { MemoryRoot } from "./types.js";
 
@@ -10,7 +10,12 @@ export async function statusOf(root: MemoryRoot): Promise<{
   lastWriteAt: string | null;
   initialized: boolean;
 }> {
-  if (!(await pathExists(root))) {
+  if (
+    !(await pathExists(root)) ||
+    !(await pathExists(path.join(root, MEMORY_INDEX_RELPATH))) ||
+    !(await pathExists(path.join(root, MEMORY_LOG_RELPATH))) ||
+    !(await pathExists(path.join(root, MEMORY_PAGES_DIR_RELPATH)))
+  ) {
     return {
       pageCount: 0,
       totalBytes: 0,

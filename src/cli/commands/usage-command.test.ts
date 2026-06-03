@@ -70,13 +70,18 @@ function formatLocalDate(microseconds: number): string {
 function createMemfs(homeDir: string): FileSystem {
   const volume = new Volume();
   volume.mkdirSync(homeDir, { recursive: true });
-  return createFsFromVolume(volume).promises as unknown as FileSystem;
+  const fs = createFsFromVolume(volume).promises;
+  return {
+    ...(fs as unknown as FileSystem),
+    rename: async (oldPath, newPath) => {
+      await fs.rename(oldPath, newPath);
+    }
+  };
 }
 
 async function createConfigVolume(apiKey: string): Promise<FileSystem> {
-  const volume = new Volume();
-  volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
-  const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+  const fs = createMemfs(homeDir);
+  await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
   await storeTestApiKey(fs, homeDir, apiKey);
   return fs;
 }
@@ -232,6 +237,31 @@ describe("usage balance command", () => {
     );
   });
 
+  it("uses POE_API_KEY for balance without interactive authentication", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createBalanceResponse({ current_point_balance: 1500 })
+    });
+    const prompts = vi.fn();
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-balance-key", POE_CODE_OAUTH_LOGIN: "0" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "balance"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/usage/current_balance"),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer environment-balance-key" }) })
+    );
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
   it("logs dry run message when --dry-run flag is set", async () => {
     fs = await createConfigVolume("test-key");
 
@@ -259,6 +289,22 @@ describe("usage balance command", () => {
     expect(
       logs.some((message) => message.includes("Dry run"))
     ).toBe(true);
+  });
+
+  it("does not migrate legacy credentials while previewing balance", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "usage"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 });
 
@@ -535,6 +581,47 @@ describe("usage list command", () => {
     expect(tableOutput).toContain("100");
   });
 
+  it("uses POE_API_KEY for usage history without interactive authentication", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ has_more: false, data: [] })
+    });
+    const prompts = vi.fn();
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-list-key", POE_CODE_OAUTH_LOGIN: "0" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/usage/points_history?limit=20"),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer environment-list-key" }) })
+    );
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
+  it("does not migrate legacy credentials while previewing usage history", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+  });
+
   it("prompts 'Load more?' when API returns has_more=true", async () => {
     fs = await createConfigVolume("test-key");
     const page1Entries = [
@@ -584,6 +671,40 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Sonnet-4.5");
     expect(output).toContain("gpt-5.2");
     expect(output).toContain("Claude-Opus");
+  });
+
+  it("loads all available usage pages without prompting when --yes is set", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          has_more: true,
+          data: [{ query_id: "entry-1", creation_time: 0, bot_name: "one", cost_usd: "0", cost_points: 0 }]
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          has_more: false,
+          data: [{ query_id: "entry-2", creation_time: 0, bot_name: "two", cost_usd: "0", cost_points: 0 }]
+        })
+      });
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: true, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "--yes", "usage", "list"]);
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(httpClient).toHaveBeenCalledTimes(2);
   });
 
   it("stops pagination when user declines", async () => {

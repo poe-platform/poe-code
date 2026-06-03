@@ -12,7 +12,49 @@ import type {
   StepHooks,
   StepMode
 } from "../types.js";
-import { isNotFound, isRecord, readOptionalFile } from "../utils.js";
+import { defineRecordEntry, isNotFound, isRecord, readOptionalFile } from "../utils.js";
+
+async function assertManagedPathSafe(
+  fs: Pick<PipelineFileSystem, "lstat">,
+  rootPath: string,
+  targetPath: string
+): Promise<void> {
+  const relativePath = path.relative(rootPath, targetPath);
+  if (relativePath === ".." || relativePath.startsWith(`..${path.sep}`) || path.isAbsolute(relativePath)) {
+    throw new Error(`Refusing pipeline configuration outside managed root: ${targetPath}`);
+  }
+
+  let currentPath = rootPath;
+  for (const segment of relativePath.split(path.sep)) {
+    if (segment.length === 0) {
+      continue;
+    }
+    currentPath = path.join(currentPath, segment);
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Refusing pipeline configuration through symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+    }
+  }
+}
+
+function resolveNamedStepConfigName(name: string | undefined): string {
+  const trimmed = name?.trim() || "default";
+  if (
+    trimmed === "." ||
+    trimmed === ".." ||
+    trimmed.includes("/") ||
+    trimmed.includes("\\") ||
+    path.isAbsolute(trimmed)
+  ) {
+    throw new Error(`Invalid pipeline step config name "${trimmed}".`);
+  }
+  return trimmed;
+}
 
 function asStepMode(value: unknown): StepMode {
   if (value === undefined || value === null) {
@@ -134,7 +176,7 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
       throw new Error(`Invalid pipeline step config in "${filePath}": "steps" must be an object.`);
     }
     for (const [stepName, value] of Object.entries(stepsValue)) {
-      steps[stepName] = parseDef(value, `step "${stepName}"`);
+      defineRecordEntry(steps, stepName, parseDef(value, `step "${stepName}"`));
     }
   }
 
@@ -185,7 +227,11 @@ function applyStepOverrides(
   const steps: ResolvedStepDefinitions = { ...config.steps };
 
   for (const [stepName, override] of Object.entries(stepOverrides)) {
-    steps[stepName] = mergeStepDefinition(steps[stepName], override, `plan step "${stepName}"`);
+    defineRecordEntry(
+      steps,
+      stepName,
+      mergeStepDefinition(steps[stepName], override, `plan step "${stepName}"`)
+    );
   }
 
   return {
@@ -225,14 +271,16 @@ async function directoryExists(
 async function resolveStepsFile(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<PipelineFileSystem, "stat">;
+  fs: Pick<PipelineFileSystem, "stat" | "lstat">;
 }): Promise<string | null> {
   const projectFile = path.join(options.cwd, ".poe-code", "pipeline", "steps.yaml");
+  await assertManagedPathSafe(options.fs, options.cwd, projectFile);
   if (await fileExists(options.fs, projectFile)) {
     return projectFile;
   }
 
   const globalFile = path.join(options.homeDir, ".poe-code", "pipeline", "steps.yaml");
+  await assertManagedPathSafe(options.fs, options.homeDir, globalFile);
   if (await fileExists(options.fs, globalFile)) {
     return globalFile;
   }
@@ -243,14 +291,16 @@ async function resolveStepsFile(options: {
 async function resolveStepsDirectory(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<PipelineFileSystem, "stat">;
+  fs: Pick<PipelineFileSystem, "stat" | "lstat">;
 }): Promise<string | null> {
   const projectDir = path.join(options.cwd, ".poe-code", "pipeline", "steps");
+  await assertManagedPathSafe(options.fs, options.cwd, projectDir);
   if (await directoryExists(options.fs, projectDir)) {
     return projectDir;
   }
 
   const globalDir = path.join(options.homeDir, ".poe-code", "pipeline", "steps");
+  await assertManagedPathSafe(options.fs, options.homeDir, globalDir);
   if (await directoryExists(options.fs, globalDir)) {
     return globalDir;
   }
@@ -283,11 +333,15 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
 export async function loadPipelineConfig(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<PipelineFileSystem, "readFile">;
+  fs: Pick<PipelineFileSystem, "readFile" | "lstat">;
 }): Promise<PipelineConfig> {
   const globalDir = path.join(options.homeDir, ".poe-code", "pipeline");
   const globalPath = path.join(globalDir, "config.yaml");
   const projectPath = path.join(options.cwd, ".poe-code", "pipeline", "config.yaml");
+  await Promise.all([
+    assertManagedPathSafe(options.fs, options.homeDir, globalPath),
+    assertManagedPathSafe(options.fs, options.cwd, projectPath)
+  ]);
   const [globalContent, projectContent] = await Promise.all([
     readOptionalFile(options.fs, globalPath),
     readOptionalFile(options.fs, projectPath)
@@ -314,11 +368,11 @@ export async function loadPipelineConfig(options: {
 export async function loadResolvedSteps(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<PipelineFileSystem, "readFile" | "stat">;
+  fs: Pick<PipelineFileSystem, "readFile" | "stat" | "lstat">;
   name?: string;
   stepOverrides?: StepDefinitionOverrides;
 }): Promise<ResolvedStepsConfig> {
-  const name = options.name?.trim() || "default";
+  const name = resolveNamedStepConfigName(options.name);
 
   const stepsFile = await resolveStepsFile(options);
   if (stepsFile) {

@@ -183,6 +183,39 @@ const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
     }
   ).getMessageLayerOrThrow();
 
+async function startClientHandshake(
+  result: unknown,
+  options: ConstructorParameters<typeof McpClient>[0] = {
+    clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+  }
+): Promise<{
+  client: McpClient;
+  readable: PassThrough;
+  writable: PassThrough;
+  iterator: AsyncIterator<string>;
+  connectPromise: Promise<unknown>;
+}> {
+  const readable = new PassThrough();
+  const writable = new PassThrough();
+  const transport: McpTransport = {
+    readable,
+    writable,
+    closed: new Promise(() => {}),
+    dispose: vi.fn(),
+  };
+  const client = new McpClient(options);
+  const connectPromise = client.connect(transport);
+  const iterator = readLines(writable)[Symbol.asyncIterator]();
+  const initializeLine = await iterator.next();
+  if (initializeLine.done) {
+    throw new Error("Expected initialize request line to be written");
+  }
+  const initializeRequest = JSON.parse(initializeLine.value) as { id: number };
+  readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: initializeRequest.id, result })}\n`);
+
+  return { client, readable, writable, iterator, connectPromise };
+}
+
 describe("HttpTransport constructor", () => {
   it("accepts url, headers, and injected fetch", () => {
     const mockFetch = async (): Promise<Response> => new Response(null, { status: 202 });
@@ -627,6 +660,40 @@ describe("HttpTransport constructor", () => {
     transport.dispose();
   });
 
+  it("closes when the GET event stream reports an expired session", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 404 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "expired-session" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("session expired") }),
+    });
+  });
+
+  it("closes when the GET event stream returns a server error", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response("event stream failed", { status: 500 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "broken-events" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("GET failed") }),
+    });
+  });
+
   it("sends DELETE with session ID when disposed after initialization", async () => {
     const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
       if (init?.method === "GET") {
@@ -706,6 +773,103 @@ describe("HttpTransport constructor", () => {
     await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
+  });
+
+  it("reports failure when DELETE session termination is rejected", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+      if (init?.method === "DELETE") {
+        return new Response("cleanup refused", { status: 500 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "failed-delete" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    transport.dispose();
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("DELETE failed") }),
+    });
+  });
+
+  it("rejects a changed session id returned mid-session", async () => {
+    let postCount = 0;
+    const requestSessions: Array<string | null> = [];
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 204 });
+      }
+      requestSessions.push(new Headers(init?.headers).get("mcp-session-id"));
+      postCount += 1;
+      return new Response(null, {
+        status: 202,
+        headers: { "Mcp-Session-Id": postCount === 1 ? "session-original" : "session-replacement" },
+      });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    await vi.waitFor(() => expect(postCount).toBe(1));
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("session ID") }),
+    });
+    expect(requestSessions).toEqual([null, "session-original"]);
+  });
+
+  it("closes on a successful unsupported HTTP representation", async () => {
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: vi.fn(async () => new Response("not-json", { status: 200, headers: { "Content-Type": "text/plain" } })),
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("unsupported response content type") }),
+    });
+  });
+
+  it("does not block a subsequent POST behind an open SSE response", async () => {
+    const encoder = new TextEncoder();
+    let firstController: ReadableStreamDefaultController<Uint8Array> | undefined;
+    let postCount = 0;
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: vi.fn(async (_input: string | URL, init?: RequestInit) => {
+        if (init?.method !== "POST") {
+          return new Response(null, { status: 405 });
+        }
+        postCount += 1;
+        if (postCount === 1) {
+          return new Response(new ReadableStream({
+            start(controller) {
+              firstController = controller;
+              controller.enqueue(encoder.encode('data: {"jsonrpc":"2.0","id":1,"result":"first"}\n\n'));
+            },
+          }), { status: 200, headers: { "Content-Type": "text/event-stream" } });
+        }
+        return new Response('{"jsonrpc":"2.0","id":2,"result":"second"}', { status: 200, headers: { "Content-Type": "application/json" } });
+      }),
+    });
+    const layer = new JsonRpcMessageLayer(transport.readable, transport.writable, 100, transport.closed.then((event) => event.reason));
+
+    await expect(layer.sendRequest("first")).resolves.toBe("first");
+    await expect(layer.sendRequest("second")).resolves.toBe("second");
+    expect(postCount).toBe(2);
+
+    firstController?.close();
+    layer.dispose();
+    transport.dispose();
   });
 
   it("aborts in-flight POST fetch when disposed", async () => {
@@ -1306,6 +1470,37 @@ describe("JsonRpcMessageLayer sendRequest", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+describe("JsonRpcMessageLayer UTF-8 input", () => {
+  it("preserves parameters split across UTF-8 chunks", async () => {
+    const output = new PassThrough();
+    const message = Buffer.from(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "echo", params: { text: "🧪" } })}\n`,
+      "utf8"
+    );
+    const markerStart = message.indexOf(Buffer.from("🧪", "utf8"));
+    const input = Readable.from(
+      (async function* () {
+        yield message.subarray(0, markerStart + 2);
+        await Promise.resolve();
+        yield message.subarray(markerStart + 2);
+      })()
+    );
+    trackForCleanup(output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const handler = vi.fn((params: unknown) => ({ params }));
+    layer.onRequest("echo", handler);
+
+    const responseLine = await outputIterator.next();
+    if (responseLine.done) {
+      throw new Error("Expected JSON-RPC response line to be written");
+    }
+
+    expect(handler).toHaveBeenCalledWith({ text: "🧪" }, expect.anything());
+    expect(JSON.parse(responseLine.value)).toMatchObject({ result: { params: { text: "🧪" } } });
   });
 });
 
@@ -2614,7 +2809,7 @@ describe("StdioTransport real process smoke test", () => {
       expect(response.result.protocolVersion).toBe("2025-03-26");
       expect(response.result.serverInfo).toEqual({
         name: "tiny-stdio-mcp-test-server",
-        version: "0.0.1",
+        version: "0.1.0",
       });
       expect(response.result.capabilities.tools.listChanged).toBe(true);
     } finally {
@@ -2827,6 +3022,51 @@ describe("McpClient state guards", () => {
 });
 
 describe("McpClient connect", () => {
+  it("releases a transport after a rejected initialize response", async () => {
+    const firstReadable = new PassThrough();
+    const firstWritable = new PassThrough();
+    const firstTransport: McpTransport = {
+      readable: firstReadable,
+      writable: firstWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    };
+    const client = new McpClient({
+      clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+    });
+
+    const firstConnect = client.connect(firstTransport);
+    const firstIterator = readLines(firstWritable)[Symbol.asyncIterator]();
+    const firstInitializeLine = await firstIterator.next();
+    if (firstInitializeLine.done) {
+      throw new Error("Expected initialize request line to be written");
+    }
+    const firstInitialize = JSON.parse(firstInitializeLine.value) as { id: number };
+    firstReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: firstInitialize.id, result: { protocolVersion: "2024-11-05", capabilities: {}, serverInfo: { name: "bad", version: "1" } } })}\n`);
+
+    await expect(firstConnect).rejects.toThrow("Unsupported protocol version: 2024-11-05");
+    expect(firstTransport.dispose).toHaveBeenCalledTimes(1);
+    expect(client.state).toBe("disconnected");
+
+    const secondReadable = new PassThrough();
+    const secondWritable = new PassThrough();
+    const secondConnect = client.connect({
+      readable: secondReadable,
+      writable: secondWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const secondIterator = readLines(secondWritable)[Symbol.asyncIterator]();
+    const secondInitializeLine = await secondIterator.next();
+    if (secondInitializeLine.done) {
+      throw new Error("Expected replacement initialize request line to be written");
+    }
+    const secondInitialize = JSON.parse(secondInitializeLine.value) as { id: number };
+    secondReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: secondInitialize.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "good", version: "1" } } })}\n`);
+    await expect(secondConnect).resolves.toBeDefined();
+    await client.close();
+  });
+
   it("registers notification handlers for all supported server notifications", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();
@@ -3336,6 +3576,44 @@ describe("McpClient connect", () => {
     await client.close();
   });
 
+  it("does not disclose roots before initialization completes", async () => {
+    const readable = new PassThrough();
+    const writable = new PassThrough();
+    const transport: McpTransport = {
+      readable,
+      writable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    };
+    const onRootsList = vi.fn(async () => [{ uri: "file:///secret", name: "secret" }]);
+    const client = new McpClient({
+      clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+      onRootsList,
+    });
+
+    const connectPromise = client.connect(transport);
+    const iterator = readLines(writable)[Symbol.asyncIterator]();
+    await iterator.next();
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: 779, method: "roots/list" })}\n`);
+
+    const responseLine = await iterator.next();
+    if (responseLine.done) {
+      throw new Error("Expected roots/list rejection line to be written");
+    }
+    expect(JSON.parse(responseLine.value)).toEqual({
+      jsonrpc: "2.0",
+      id: 779,
+      error: {
+        code: ERROR_METHOD_NOT_FOUND,
+        message: "Method not found: roots/list",
+      },
+    });
+    expect(onRootsList).not.toHaveBeenCalled();
+
+    await client.close();
+    await expect(connectPromise).rejects.toThrow("MCP client closed");
+  });
+
   it("returns method-not-found when server sends roots/list and no roots handler is set", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();
@@ -3408,6 +3686,26 @@ describe("McpClient connect", () => {
     await client.close();
   });
 
+  it("ignores tools/list_changed when the server did not advertise changes", async () => {
+    const onToolsChanged = vi.fn();
+    const { client, readable, iterator, connectPromise } = await startClientHandshake(
+      {
+        protocolVersion: "2025-03-26",
+        capabilities: { tools: {} },
+        serverInfo: { name: "server", version: "1.0.0" },
+      },
+      { clientInfo: { name: "tiny-mcp-client", version: "0.1.0" }, onToolsChanged }
+    );
+    await connectPromise;
+    await iterator.next();
+
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/tools/list_changed" })}\n`);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(onToolsChanged).not.toHaveBeenCalled();
+    await client.close();
+  });
+
   it("calls onToolsChanged when server sends tools/list_changed notification", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();
@@ -3450,7 +3748,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { tools: { listChanged: true } },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3666,7 +3964,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { resources: { subscribe: true } },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3683,6 +3981,15 @@ describe("McpClient connect", () => {
     }
 
     const updatedUri = "file:///workspace/notes.txt";
+    const subscribePromise = client.subscribe(updatedUri);
+    const subscribeLine = await iterator.next();
+    if (subscribeLine.done) {
+      throw new Error("Expected resources/subscribe request line to be written");
+    }
+    const subscribeRequest = JSON.parse(subscribeLine.value) as { id: number };
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: subscribeRequest.id, result: {} })}\n`);
+    await subscribePromise;
+
     readable.write(
       `${JSON.stringify({
         jsonrpc: "2.0",
@@ -3698,6 +4005,26 @@ describe("McpClient connect", () => {
     expect(onResourceUpdated).toHaveBeenCalledTimes(1);
     expect(onResourceUpdated).toHaveBeenCalledWith(updatedUri);
 
+    await client.close();
+  });
+
+  it("ignores resource updates for unsubscribed uris", async () => {
+    const onResourceUpdated = vi.fn();
+    const { client, readable, iterator, connectPromise } = await startClientHandshake(
+      {
+        protocolVersion: "2025-03-26",
+        capabilities: { resources: { subscribe: true } },
+        serverInfo: { name: "server", version: "1.0.0" },
+      },
+      { clientInfo: { name: "tiny-mcp-client", version: "0.1.0" }, onResourceUpdated }
+    );
+    await connectPromise;
+    await iterator.next();
+
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/resources/updated", params: { uri: "file:///unsubscribed.txt" } })}\n`);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(onResourceUpdated).not.toHaveBeenCalled();
     await client.close();
   });
 
@@ -3743,7 +4070,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { tools: {} },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3765,6 +4092,12 @@ describe("McpClient connect", () => {
       total: 100,
       message: "Halfway there",
     };
+    const callToolPromise = client.callTool({ name: "work" }, { progressToken: expectedProgress.progressToken });
+    const callToolLine = await iterator.next();
+    if (callToolLine.done) {
+      throw new Error("Expected tools/call request line to be written");
+    }
+    const callToolRequest = JSON.parse(callToolLine.value) as { id: number };
     readable.write(
       `${JSON.stringify({
         jsonrpc: "2.0",
@@ -3776,6 +4109,9 @@ describe("McpClient connect", () => {
     await expect(progressNotificationPromise).resolves.toEqual(expectedProgress);
     expect(onProgress).toHaveBeenCalledTimes(1);
     expect(onProgress).toHaveBeenCalledWith(expectedProgress);
+
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: callToolRequest.id, result: { content: [] } })}\n`);
+    await callToolPromise;
 
     await client.close();
   });
@@ -3822,7 +4158,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { tools: {} },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3843,6 +4179,12 @@ describe("McpClient connect", () => {
       progress: 25,
       message: "Started processing",
     };
+    const callToolPromise = client.callTool({ name: "work" }, { progressToken: expectedProgress.progressToken });
+    const callToolLine = await iterator.next();
+    if (callToolLine.done) {
+      throw new Error("Expected tools/call request line to be written");
+    }
+    const callToolRequest = JSON.parse(callToolLine.value) as { id: number };
     readable.write(
       `${JSON.stringify({
         jsonrpc: "2.0",
@@ -3854,6 +4196,9 @@ describe("McpClient connect", () => {
     await expect(progressNotificationPromise).resolves.toEqual(expectedProgress);
     expect(onProgress).toHaveBeenCalledTimes(1);
     expect(onProgress).toHaveBeenCalledWith(expectedProgress);
+
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: callToolRequest.id, result: { content: [] } })}\n`);
+    await callToolPromise;
 
     await client.close();
   });
@@ -3925,7 +4270,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { tools: {} },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3940,6 +4285,13 @@ describe("McpClient connect", () => {
     if (initializedLineResult.done) {
       throw new Error("Expected initialized notification line to be written");
     }
+
+    const callToolPromise = client.callTool({ name: "work" }, { progressToken: "call-3" });
+    const callToolLine = await iterator.next();
+    if (callToolLine.done) {
+      throw new Error("Expected tools/call request line to be written");
+    }
+    const callToolRequest = JSON.parse(callToolLine.value) as { id: number };
 
     for (const progressUpdate of expectedProgressUpdates) {
       readable.write(
@@ -3957,6 +4309,29 @@ describe("McpClient connect", () => {
     expect(onProgress).toHaveBeenNthCalledWith(2, expectedProgressUpdates[1]);
     expect(onProgress).toHaveBeenNthCalledWith(3, expectedProgressUpdates[2]);
 
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: callToolRequest.id, result: { content: [] } })}\n`);
+    await callToolPromise;
+
+    await client.close();
+  });
+
+  it("ignores progress notifications for an unknown token", async () => {
+    const onProgress = vi.fn();
+    const { client, readable, iterator, connectPromise } = await startClientHandshake(
+      {
+        protocolVersion: "2025-03-26",
+        capabilities: {},
+        serverInfo: { name: "server", version: "1.0.0" },
+      },
+      { clientInfo: { name: "tiny-mcp-client", version: "0.1.0" }, onProgress }
+    );
+    await connectPromise;
+    await iterator.next();
+
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/progress", params: { progressToken: "unknown", progress: 50 } })}\n`);
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(onProgress).not.toHaveBeenCalled();
     await client.close();
   });
 
@@ -4836,6 +5211,29 @@ describe("McpClient connect", () => {
     expect(client.serverInfo).toBeNull();
     expect(client.instructions).toBeUndefined();
   });
+
+  it("rejects malformed initialize server identity", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      serverInfo: { name: "server", version: 7 },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+    expect(client.state).not.toBe("ready");
+    expect(client.serverInfo).toBeNull();
+  });
+
+  it("rejects null initialize capabilities", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: null,
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+    expect(client.state).not.toBe("ready");
+  });
 });
 
 describe("McpClient listTools", () => {
@@ -5022,6 +5420,27 @@ describe("McpClient listTools", () => {
       tools: expectedTools,
       nextCursor: "10",
     });
+  });
+
+  it("rejects a numeric nextCursor returned from tools/list", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.listTools();
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected tools/list request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { tools: [], nextCursor: 7 } })}\n`);
+
+    await expect(requestPromise).rejects.toThrow("Invalid tools/list result");
+    await client.close();
   });
 });
 
@@ -6844,6 +7263,46 @@ describe("McpClient callTool", () => {
 
     await client.close();
   });
+
+  it("rejects malformed successful tool results", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.callTool({ name: "bad", arguments: {} });
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected tools/call request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { content: [{ type: "text" }] } })}\n`);
+
+    await expect(requestPromise).rejects.toThrow("Invalid tool result");
+    await client.close();
+  });
+
+  it("does not dispatch a pre-aborted tool call", async () => {
+    const { client, writable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+    const controller = new AbortController();
+    controller.abort("already cancelled");
+
+    await expect(client.callTool({ name: "echo" }, { signal: controller.signal })).rejects.toBe(
+      "already cancelled"
+    );
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(writable.readableLength).toBe(0);
+    await client.close();
+  });
 });
 
 describe("McpClient setLogLevel", () => {
@@ -6941,6 +7400,11 @@ describe("McpClient sendRootsChanged", () => {
         name: "tiny-mcp-client",
         version: "0.1.0",
       },
+      capabilities: {
+        roots: {
+          listChanged: true,
+        },
+      },
     });
 
     const connectPromise = client.connect(transport);
@@ -6984,6 +7448,20 @@ describe("McpClient sendRootsChanged", () => {
       jsonrpc: "2.0",
       method: "notifications/roots/list_changed",
     });
+  });
+
+  it("rejects when roots list changes were not advertised", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+
+    await expect(client.sendRootsChanged()).rejects.toThrow(
+      "Client did not advertise roots list changes"
+    );
+    await client.close();
   });
 });
 
@@ -7728,6 +8206,47 @@ describe("McpClient close", () => {
     expect(secondTransport.dispose).toHaveBeenCalledTimes(1);
   });
 
+  it("does not use previous capabilities while reconnecting", async () => {
+    const client = new McpClient({
+      clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+    });
+    const firstReadable = new PassThrough();
+    const firstWritable = new PassThrough();
+    const firstConnect = client.connect({
+      readable: firstReadable,
+      writable: firstWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const firstIterator = readLines(firstWritable)[Symbol.asyncIterator]();
+    const firstInitializeLine = await firstIterator.next();
+    if (firstInitializeLine.done) {
+      throw new Error("Expected first initialize request line to be written");
+    }
+    const firstInitialize = JSON.parse(firstInitializeLine.value) as { id: number };
+    firstReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: firstInitialize.id, result: { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "first", version: "1" } } })}\n`);
+    await firstConnect;
+    await client.close();
+
+    const secondReadable = new PassThrough();
+    const secondWritable = new PassThrough();
+    const secondConnect = client.connect({
+      readable: secondReadable,
+      writable: secondWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const secondIterator = readLines(secondWritable)[Symbol.asyncIterator]();
+    await secondIterator.next();
+
+    expect(client.serverCapabilities).toBeNull();
+    await expect(client.listTools()).rejects.toThrow("MCP client has not completed initialization");
+    expect(secondWritable.readableLength).toBe(0);
+
+    await client.close();
+    await expect(secondConnect).rejects.toThrow("MCP client closed");
+  });
+
   it("rejects connect when closed immediately before initialize handshake completes", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();
@@ -8093,6 +8612,29 @@ describe("McpClient capability gating", () => {
 
     try {
       await expect(client.listTools()).rejects.toThrow("Server does not support tools");
+    } finally {
+      await closeClient();
+    }
+  });
+
+  it("listTools throws when server advertises null tools capability", async () => {
+    const { connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: null },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+  });
+
+  it("does not authorize subscriptions after exposed capabilities are mutated", async () => {
+    const { client, closeClient } = await createConnectedClient({ resources: {} });
+
+    try {
+      (client.serverCapabilities as { resources: { subscribe?: boolean } }).resources.subscribe = true;
+      await expect(client.subscribe("file:///readme.txt")).rejects.toThrow(
+        "Server does not support resource subscriptions"
+      );
     } finally {
       await closeClient();
     }

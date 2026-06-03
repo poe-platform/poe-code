@@ -53,13 +53,22 @@ function parseGithubLocator(input: string): Extract<ParsedLocator, { scheme: "gi
     throw new Error(`Invalid github workspace locator "${input}".`);
   }
 
+  const subdir = pathSubdir || fragmentSubdir;
+  if (subdir !== undefined && hasUnsafeSubdirectorySegment(subdir)) {
+    throw new Error(`Invalid github workspace subdirectory "${subdir}".`);
+  }
+
   return {
     scheme: "github",
     owner,
     repo,
     ...(ref ? { ref } : {}),
-    ...(pathSubdir || fragmentSubdir ? { subdir: pathSubdir || fragmentSubdir } : {})
+    ...(subdir ? { subdir } : {})
   };
+}
+
+function hasUnsafeSubdirectorySegment(subdir: string): boolean {
+  return subdir.split("/").some((segment) => segment === "." || segment === "..");
 }
 
 function parseSshLocator(input: string): Extract<ParsedLocator, { scheme: "ssh" }> {

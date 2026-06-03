@@ -35,10 +35,27 @@ export async function computeTokenStats(root: MemoryRoot): Promise<TokenStats> {
   const missingSources: string[] = [];
 
   for (const sourcePath of sourcePaths) {
-    const absPath = path.isAbsolute(sourcePath)
-      ? sourcePath
-      : path.resolve(repoRoot, sourcePath);
+    if (isUrlLike(sourcePath)) {
+      continue;
+    }
+
+    if (path.isAbsolute(sourcePath)) {
+      missingSources.push(sourcePath);
+      continue;
+    }
+
+    const absPath = path.resolve(repoRoot, sourcePath);
+    if (!isWithinRoot(repoRoot, absPath)) {
+      missingSources.push(sourcePath);
+      continue;
+    }
+
     try {
+      const realPath = await fs.realpath(absPath);
+      if (!isWithinRoot(repoRoot, realPath)) {
+        missingSources.push(sourcePath);
+        continue;
+      }
       const content = await fs.readFile(absPath, "utf8");
       sourceTokens += countTokens(content);
     } catch (error) {
@@ -82,4 +99,18 @@ function isMissing(error: unknown): boolean {
     "code" in error &&
     error.code === "ENOENT"
   );
+}
+
+function isUrlLike(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol.length > 1 && value.includes("://");
+  } catch {
+    return false;
+  }
+}
+
+function isWithinRoot(root: string, absPath: string): boolean {
+  const relative = path.relative(root, absPath);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }

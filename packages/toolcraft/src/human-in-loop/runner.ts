@@ -1,5 +1,5 @@
-import { access, readFile, writeFile } from "node:fs/promises";
-import type { Task } from "@poe-code/task-list";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { InvalidTransitionError, type Task } from "@poe-code/task-list";
 import type { Command, CommandNode, HandlerEnv, HandlerFs, HandlerContext } from "../index.js";
 import { UserError, resolveCommandSecrets } from "../index.js";
 import { ensureApprovalList } from "./approval-tasks.js";
@@ -34,6 +34,20 @@ export async function runApproval(
   const provider = resolveProvider(runtimeOptions);
 
   try {
+    await tasks.fire(approvalId, "claim", {
+      metadataPatch: {
+        pid: process.pid,
+      },
+    });
+  } catch (error) {
+    if (error instanceof InvalidTransitionError) {
+      return;
+    }
+
+    throw error;
+  }
+
+  try {
     const approvalResult = await provider.requestApproval({
       message: approval.message,
       declineInputPrompt: approval.declineInputPrompt ?? undefined,
@@ -50,15 +64,15 @@ export async function runApproval(
       return;
     }
   } catch (error) {
-    await failPendingApproval(tasks, approvalId, error);
+    await tasks.fire(approvalId, "fail", {
+      metadataPatch: {
+        error: errorMetadataFromUnknown(error),
+      },
+    });
     return;
   }
 
-  await tasks.fire(approvalId, "start", {
-    metadataPatch: {
-      pid: process.pid,
-    },
-  });
+  await tasks.fire(approvalId, "start");
 
   try {
     const command = findCommand(root, approval.commandPath);
@@ -245,6 +259,9 @@ function createFs(): HandlerFs {
         return false;
       }
     },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path),
   };
 }
 
@@ -294,17 +311,4 @@ function errorMetadataFromUnknown(error: unknown): {
     name: "Error",
     message: String(error),
   };
-}
-
-async function failPendingApproval(tasks: Awaited<ReturnType<typeof ensureApprovalList>>["tasks"], approvalId: string, error: unknown): Promise<void> {
-  await tasks.fire(approvalId, "start", {
-    metadataPatch: {
-      pid: process.pid,
-    },
-  });
-  await tasks.fire(approvalId, "fail", {
-    metadataPatch: {
-      error: errorMetadataFromUnknown(error),
-    },
-  });
 }

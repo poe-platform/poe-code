@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { access, lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { McpSpawnConfig, SpawnResult } from "@poe-code/agent-spawn";
@@ -39,6 +39,14 @@ interface RunAutomationResult {
   items: RunItemResult[];
 }
 
+interface PreviewRunAutomationResult {
+  agent: string;
+  automation: string;
+  dryRun: true;
+  prompts: string[];
+  source?: string;
+}
+
 interface InstalledAutomationResult {
   name: string;
   workflowPath: string;
@@ -51,6 +59,12 @@ interface InstallCommandResult {
   installations: InstalledAutomationResult[];
   readmePath: string;
   variablesPath: string;
+  dryRun?: true;
+}
+
+interface WrittenFileSnapshot {
+  filePath: string;
+  previousContent?: string;
 }
 
 const installableAutomations = [
@@ -82,7 +96,12 @@ const runCommandDef = defineCommand({
     agent: S.Optional(S.String({ description: "Agent to run the automation with" })),
     model: S.Optional(S.String({ description: "Model override for the agent" })),
     mode: S.Optional(S.Enum(["yolo", "edit", "read"] as const, { description: "Permission mode (yolo | edit | read)" })),
-    cwd: S.Optional(S.String({ description: "Working directory for the automation" }))
+    cwd: S.Optional(S.String({ description: "Working directory for the automation" })),
+    dryRun: S.Optional(S.Boolean({
+      description: "Preview the automation without executing source commands or agents",
+      scope: ["cli", "sdk"],
+      global: true
+    }))
   }),
   secrets: {
     poeApiKey: { env: "POE_API_KEY" },
@@ -104,6 +123,14 @@ const runCommandDef = defineCommand({
 
     if (automation.source === undefined) {
       const prompt = renderPrompt(automation.prompt, sharedTemplateContext);
+      if (params.dryRun === true) {
+        return {
+          automation: automation.name,
+          agent,
+          dryRun: true,
+          prompts: [prompt]
+        } satisfies PreviewRunAutomationResult;
+      }
       const items = [
         {
           prompt,
@@ -124,6 +151,16 @@ const runCommandDef = defineCommand({
         agent,
         items
       } satisfies RunAutomationResult;
+    }
+
+    if (params.dryRun === true) {
+      return {
+        automation: automation.name,
+        agent,
+        dryRun: true,
+        prompts: [],
+        source: resolveSourceCommand(automation.source, env)
+      } satisfies PreviewRunAutomationResult;
     }
 
     const sourceResult = await runCommand("sh", ["-c", resolveSourceCommand(automation.source, env)], {
@@ -165,7 +202,17 @@ const runCommandDef = defineCommand({
     } satisfies RunAutomationResult;
   },
   render: {
-    rich: (result: RunAutomationResult, { logger }) => {
+    rich: (result: RunAutomationResult | PreviewRunAutomationResult, { logger }) => {
+      if ("dryRun" in result) {
+        logger.success(`Dry run: would run automation "${result.automation}" with agent "${result.agent}".`);
+        if (result.source !== undefined) {
+          logger.message(`Source command: ${result.source}`);
+        }
+        for (const prompt of result.prompts) {
+          logger.message(prompt);
+        }
+        return;
+      }
       const total = result.items.length;
       const succeeded = result.items.filter((item) => item.result.exitCode === 0).length;
       logger.success(
@@ -173,7 +220,7 @@ const runCommandDef = defineCommand({
       );
       logger.message(`${succeeded}/${total} run${total === 1 ? "" : "s"} exited successfully.`);
     },
-    json: (result: RunAutomationResult) => result
+    json: (result: RunAutomationResult | PreviewRunAutomationResult) => result
   }
 });
 
@@ -219,33 +266,47 @@ const installCommand = defineCommand({
         }
       })
     ),
-    eject: S.Optional(S.Boolean())
+    eject: S.Optional(S.Boolean()),
+    dryRun: S.Optional(S.Boolean({
+      description: "Preview workflow installation without writing files",
+      scope: ["cli"],
+      global: true
+    }))
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
     const cwd = resolveCwd();
     const names = params.name === undefined ? [...installableAutomations] : [params.name];
     const installations: InstalledAutomationResult[] = [];
+    const writtenFiles: WrittenFileSnapshot[] = [];
 
-    for (const name of names) {
-      installations.push(await installAutomation(name, cwd, params.eject === true));
+    try {
+      for (const name of names) {
+        installations.push(
+          await installAutomation(name, cwd, params.eject === true, params.dryRun === true, writtenFiles)
+        );
+      }
+
+      const supportFiles = params.dryRun === true
+        ? resolveProjectSupportFilePaths(cwd)
+        : await ensureProjectSupportFiles(cwd, await loadVariables(await resolveBuiltInAssetsDir()), writtenFiles);
+
+      return {
+        installations,
+        ...supportFiles,
+        ...(params.dryRun === true ? { dryRun: true as const } : {})
+      } satisfies InstallCommandResult;
+    } catch (error) {
+      await rollbackWrittenFiles(writtenFiles);
+      throw error;
     }
-
-    const supportFiles = await ensureProjectSupportFiles(
-      cwd,
-      await loadVariables(await resolveBuiltInAssetsDir())
-    );
-
-    return {
-      installations,
-      ...supportFiles
-    } satisfies InstallCommandResult;
   },
   render: {
     rich: (result: InstallCommandResult, { logger, note }) => {
+      const action = result.dryRun === true ? "Would install" : "Installed";
       if (result.installations.length === 1) {
         const [installation] = result.installations;
-        logger.success(`Installed workflow at ${installation.workflowPath}`);
+        logger.success(`${action} workflow at ${installation.workflowPath}`);
         if (installation.promptPath !== undefined) {
           logger.message(`Prompt copied to ${installation.promptPath}`);
         }
@@ -261,8 +322,8 @@ const installCommand = defineCommand({
           logger.message(installation.workflowPath);
         }
       }
-      logger.message(`Shared variables written to ${result.variablesPath}`);
-      logger.message(`Command reference written to ${result.readmePath}`);
+      logger.message(`Shared variables ${result.dryRun === true ? "would be written" : "written"} to ${result.variablesPath}`);
+      logger.message(`Command reference ${result.dryRun === true ? "would be written" : "written"} to ${result.readmePath}`);
     },
     json: (result: InstallCommandResult) => result
   }
@@ -279,30 +340,38 @@ const uninstallCommand = defineCommand({
         const automations = await discoverAutomations(await resolveBuiltInPromptsDir());
         return automations.map((a) => ({ label: a.label ?? formatLabel(a.name), value: a.name }));
       }
-    })
+    }),
+    dryRun: S.Optional(S.Boolean({
+      description: "Preview workflow removal without deleting files",
+      scope: ["cli"],
+      global: true
+    }))
   }),
   scope: ["cli"],
   handler: async ({ params }) => {
     const name = params.name;
     const workflowPath = path.join(resolveCwd(), ".github", "workflows", `poe-code-${name}.yml`);
 
-    try {
-      await unlink(workflowPath);
-    } catch (error) {
-      if (!isMissingPathError(error)) {
-        throw error;
+    if (params.dryRun !== true) {
+      try {
+        await unlink(workflowPath);
+      } catch (error) {
+        if (!isMissingPathError(error)) {
+          throw error;
+        }
       }
     }
 
     return {
-      workflowPath
+      workflowPath,
+      ...(params.dryRun === true ? { dryRun: true as const } : {})
     };
   },
   render: {
-    rich: (result: { workflowPath: string }, { logger }) => {
-      logger.success(`Removed workflow ${result.workflowPath}`);
+    rich: (result: { workflowPath: string; dryRun?: true }, { logger }) => {
+      logger.success(`${result.dryRun === true ? "Would remove" : "Removed"} workflow ${result.workflowPath}`);
     },
-    json: (result: { workflowPath: string }) => result
+    json: (result: { workflowPath: string; dryRun?: true }) => result
   }
 });
 
@@ -341,10 +410,15 @@ const truffleHogPrScanCommand = defineCommand({
   description: "Run the TruffleHog PR scan workflow helper.",
   positional: ["command"],
   params: S.Object({
-    command: S.Enum(["scan-for-secrets", "report-advisory-result", "clear-stale-advisory-result"] as const)
+    command: S.Enum(["scan-for-secrets", "report-advisory-result", "clear-stale-advisory-result"] as const),
+    dryRun: S.Optional(S.Boolean({
+      description: "Preview TruffleHog workflow operations without running or writing them",
+      scope: ["cli"],
+      global: true
+    }))
   }),
   scope: ["cli"],
-  handler: async ({ params, env }) => runTruffleHogPrScanCommand(params.command, env)
+  handler: async ({ params, env }) => runTruffleHogPrScanCommand(params.command, env, { dryRun: params.dryRun === true })
 });
 
 const prepareCommand = defineCommand({
@@ -352,21 +426,29 @@ const prepareCommand = defineCommand({
   description: "Install and configure the agent required by a workflow automation.",
   positional: ["name"],
   params: S.Object({
-    name: S.String()
+    name: S.String(),
+    dryRun: S.Optional(S.Boolean({
+      description: "Preview agent setup without installing or configuring it",
+      scope: ["cli"],
+      global: true
+    }))
   }),
   scope: ["cli"],
   handler: async ({ params, env }) => {
-    runPreflightChecks({ env, nodeVersion: process.version });
     const cwd = resolveCwd();
     const automation = await loadNamedAutomation(params.name, cwd);
+    if (params.dryRun === true) {
+      return { agent: automation.agent ?? "codex", automation: automation.name, dryRun: true as const };
+    }
+    runPreflightChecks({ env, nodeVersion: process.version });
     const agent = await setupWorkflowAgent(automation, cwd);
     return { agent, automation: automation.name };
   },
   render: {
-    rich: (result: { agent: string; automation: string }, { logger }) => {
-      logger.success(`Prepared agent "${result.agent}" for automation "${result.automation}".`);
+    rich: (result: { agent: string; automation: string; dryRun?: true }, { logger }) => {
+      logger.success(`${result.dryRun === true ? "Dry run: would prepare" : "Prepared"} agent "${result.agent}" for automation "${result.automation}".`);
     },
-    json: (result: { agent: string; automation: string }) => result
+    json: (result: { agent: string; automation: string; dryRun?: true }) => result
   }
 });
 
@@ -771,7 +853,9 @@ function addPromptHeader(content: string, name: string): string {
 async function installAutomation(
   name: string,
   cwd: string,
-  isEject: boolean
+  isEject: boolean,
+  dryRun: boolean = false,
+  writtenFiles: WrittenFileSnapshot[] = []
 ): Promise<InstalledAutomationResult> {
   const variant = isEject ? "ejected" : "caller";
   const localAutomationName = isEject ? `poe-code-${name}` : name;
@@ -782,12 +866,16 @@ async function installAutomation(
   ]);
   const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
 
-  await mkdir(path.dirname(workflowPath), { recursive: true });
-  await writeFile(workflowPath, workflowTemplate, "utf8");
+  if (!dryRun) {
+    await mkdir(path.dirname(workflowPath), { recursive: true });
+    await assertWritableWorkflowDestination(workflowPath);
+    await writeTrackedFile(workflowPath, workflowTemplate, writtenFiles);
+  }
 
-  if (promptPath !== undefined) {
+  if (promptPath !== undefined && !dryRun) {
     await mkdir(path.dirname(promptPath), { recursive: true });
-    await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
+    await assertWritableWorkflowDestination(promptPath);
+    await writeTrackedFile(promptPath, addPromptHeader(rawPrompt, name), writtenFiles);
   }
 
   return {
@@ -799,23 +887,74 @@ async function installAutomation(
   };
 }
 
+function resolveProjectSupportFilePaths(cwd: string): { readmePath: string; variablesPath: string } {
+  const projectDir = projectGitHubWorkflowsDir(cwd);
+  return {
+    variablesPath: path.join(projectDir, "variables.yaml"),
+    readmePath: path.join(projectDir, "README.md")
+  };
+}
+
 async function ensureProjectSupportFiles(
   cwd: string,
-  builtInVariables: Record<string, string>
+  builtInVariables: Record<string, string>,
+  writtenFiles: WrittenFileSnapshot[] = []
 ): Promise<{ readmePath: string; variablesPath: string }> {
   const projectDir = projectGitHubWorkflowsDir(cwd);
   const variablesPath = path.join(projectDir, "variables.yaml");
   const readmePath = path.join(projectDir, "README.md");
 
   await mkdir(projectDir, { recursive: true });
-  await writeFile(
+  await assertWritableWorkflowDestination(variablesPath);
+  await assertWritableWorkflowDestination(readmePath);
+  await writeTrackedFile(
     variablesPath,
     generateProjectVariablesFile(builtInVariables, await readOptionalFile(variablesPath)),
-    "utf8"
+    writtenFiles
   );
-  await writeFile(readmePath, renderProjectReadme(), "utf8");
+  await writeTrackedFile(readmePath, renderProjectReadme(), writtenFiles);
 
   return { readmePath, variablesPath };
+}
+
+async function writeTrackedFile(
+  filePath: string,
+  content: string,
+  writtenFiles: WrittenFileSnapshot[]
+): Promise<void> {
+  writtenFiles.push({ filePath, previousContent: await readOptionalFile(filePath) });
+  await writeFile(filePath, content, "utf8");
+}
+
+async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promise<void> {
+  for (const file of writtenFiles.reverse()) {
+    if (file.previousContent === undefined) {
+      try {
+        await unlink(file.filePath);
+      } catch (error) {
+        if (!isMissingPathError(error)) {
+          throw error;
+        }
+      }
+      continue;
+    }
+
+    await writeFile(file.filePath, file.previousContent, "utf8");
+  }
+}
+
+async function assertWritableWorkflowDestination(filePath: string): Promise<void> {
+  try {
+    const destination = await lstat(filePath);
+    if (destination.isSymbolicLink()) {
+      throw new UserError(`Refusing to write GitHub workflow file through symbolic link: ${filePath}`);
+    }
+  } catch (error) {
+    if (isMissingPathError(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 async function readOptionalFile(filePath: string): Promise<string | undefined> {

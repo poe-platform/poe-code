@@ -1,4 +1,4 @@
-import { fileTypeFromBuffer } from "./mime.js";
+import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
 
 export interface TextResourceContents {
   uri: string;
@@ -18,12 +18,15 @@ export interface EmbeddedResource {
 }
 
 function isTextMimeType(mimeType: string): boolean {
+  const normalizedMimeType = mimeType.toLowerCase();
   return (
-    mimeType.startsWith("text/") ||
-    mimeType === "application/json" ||
-    mimeType === "application/xml" ||
-    mimeType === "application/javascript" ||
-    mimeType === "application/typescript"
+    normalizedMimeType.startsWith("text/") ||
+    normalizedMimeType === "application/json" ||
+    normalizedMimeType.endsWith("+json") ||
+    normalizedMimeType === "application/xml" ||
+    normalizedMimeType.endsWith("+xml") ||
+    normalizedMimeType === "application/javascript" ||
+    normalizedMimeType === "application/typescript"
   );
 }
 
@@ -32,13 +35,14 @@ export class File {
     private readonly data: Uint8Array | string,
     private readonly mimeType: string,
     private readonly isText: boolean,
-    private readonly name?: string
+    private readonly name?: string,
+    private readonly charset = "utf-8"
   ) {}
 
   static async fromUrl(url: string): Promise<File> {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch file from ${url}: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch file from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -50,18 +54,27 @@ export class File {
     if (detected) {
       mimeType = detected.mime;
     } else {
-      const contentType = response.headers.get("content-type")?.split(";")[0];
-      if (contentType) {
-        mimeType = contentType;
+      const contentType = parseContentType(response.headers.get("content-type"));
+      if (contentType.mimeType) {
+        mimeType = contentType.mimeType;
       } else {
-        throw new Error(`Unable to detect MIME type from ${url}`);
+        throw new Error(`Unable to detect MIME type from ${safeRemoteLabel(url)}`);
       }
     }
 
-    const isText = isTextMimeType(mimeType);
-    const name = url.split("/").pop() || "file";
+    const contentType = parseContentType(response.headers.get("content-type"));
+    const charset = contentType.charset ?? "utf-8";
+    let isText = isTextMimeType(mimeType);
+    if (isText) {
+      try {
+        new TextDecoder(charset);
+      } catch {
+        isText = false;
+      }
+    }
+    const name = new URL(url).pathname.split("/").pop() || "file";
 
-    return new File(data, mimeType, isText, name);
+    return new File(data, mimeType, isText, name, charset);
   }
 
   static fromBytes(data: Uint8Array, mimeType: string): File {
@@ -70,10 +83,11 @@ export class File {
   }
 
   static fromText(text: string, mimeType = "text/plain"): File {
-    return new File(text, mimeType, true);
+    return new File(text, mimeType, isTextMimeType(mimeType));
   }
 
   static fromBase64(base64: string, mimeType: string): File {
+    assertBase64(base64);
     const data = Buffer.from(base64, "base64");
     const isText = isTextMimeType(mimeType);
     return new File(new Uint8Array(data), mimeType, isText);
@@ -87,7 +101,7 @@ export class File {
       if (typeof this.data === "string") {
         text = this.data;
       } else {
-        text = new TextDecoder("utf-8").decode(this.data);
+        text = new TextDecoder(this.charset).decode(this.data);
       }
 
       return {

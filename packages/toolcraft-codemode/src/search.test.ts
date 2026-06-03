@@ -133,10 +133,16 @@ describe("makeSearchCommand", () => {
     expect(results[0]?.path).toBe("billing.refund");
   });
 
-  it("returns no results for empty-token queries and non-positive limits", async () => {
+  it("returns no results for empty-token queries and zero limits", async () => {
     await expect(runSearch({ query: "---...---" })).resolves.toEqual([]);
     await expect(runSearch({ query: "task", limit: 0 })).resolves.toEqual([]);
-    await expect(runSearch({ query: "task", limit: -1 })).resolves.toEqual([]);
+    await expect(runSearch({ query: "task", limit: 0 })).resolves.toEqual([]);
+  });
+
+  it("rejects negative search limits", async () => {
+    await expect(runSearch({ query: "task", limit: -1 })).rejects.toThrow(
+      "limit must be a non-negative integer, received -1"
+    );
   });
 
   it("emits schemas only for detailed and full results", async () => {

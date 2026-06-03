@@ -12,6 +12,8 @@ export type StyledRun = {
   underline: boolean;
   strikethrough: boolean;
   dim: boolean;
+  inverse: boolean;
+  conceal: boolean;
 };
 
 type StyleState = Omit<StyledRun, "text">;
@@ -26,7 +28,9 @@ function createDefaultStyle(): StyleState {
     italic: false,
     underline: false,
     strikethrough: false,
-    dim: false
+    dim: false,
+    inverse: false,
+    conceal: false
   };
 }
 
@@ -41,6 +45,8 @@ function stylesEqual(left: StyleState, right: StyleState): boolean {
     left.underline === right.underline &&
     left.strikethrough === right.strikethrough &&
     left.dim === right.dim &&
+    left.inverse === right.inverse &&
+    left.conceal === right.conceal &&
     colorsEqual(left.fg, right.fg) &&
     colorsEqual(left.bg, right.bg)
   );
@@ -85,12 +91,18 @@ function pushRun(runs: StyledRun[], style: StyleState, text: string): void {
     italic: style.italic,
     underline: style.underline,
     strikethrough: style.strikethrough,
-    dim: style.dim
+    dim: style.dim,
+    inverse: style.inverse,
+    conceal: style.conceal
   });
 }
 
-function parseCsi(input: string, start: number): { end: number; final: string | null; params: string } {
-  let index = start + 2;
+function parseCsi(
+  input: string,
+  start: number,
+  prefixLength: number
+): { end: number; final: string | null; params: string } {
+  let index = start + prefixLength;
 
   while (index < input.length) {
     const code = input.charCodeAt(index);
@@ -98,7 +110,7 @@ function parseCsi(input: string, start: number): { end: number; final: string | 
       return {
         end: index + 1,
         final: input[index],
-        params: input.slice(start + 2, index)
+        params: input.slice(start + prefixLength, index)
       };
     }
 
@@ -108,7 +120,7 @@ function parseCsi(input: string, start: number): { end: number; final: string | 
   return {
     end: input.length,
     final: null,
-    params: input.slice(start + 2)
+    params: input.slice(start + prefixLength)
   };
 }
 
@@ -175,19 +187,25 @@ function applyExtendedColor(
 function applySgr(style: StyleState, paramsText: string): StyleState {
   const nextStyle = cloneStyle(style);
   const rawParams = paramsText.length === 0 ? ["0"] : paramsText.split(";");
-  const params: number[] = [];
 
-  for (const rawParam of rawParams) {
-    const value = toInteger(rawParam);
+  for (let index = 0; index < rawParams.length; index += 1) {
+    const rawParam = rawParams[index] ?? "";
+    const colonColor = applyColonExtendedColor(rawParam);
+    if (colonColor !== undefined) {
+      if (colonColor !== null) {
+        if (colonColor.target === 38) {
+          nextStyle.fg = colonColor.color;
+        } else {
+          nextStyle.bg = colonColor.color;
+        }
+      }
+      continue;
+    }
+
+    const value = rawParam.length === 0 ? 0 : toInteger(rawParam);
     if (value === null) {
       return nextStyle;
     }
-
-    params.push(value);
-  }
-
-  for (let index = 0; index < params.length; index += 1) {
-    const value = params[index];
 
     if (value === 0) {
       Object.assign(nextStyle, createDefaultStyle());
@@ -240,6 +258,26 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
       continue;
     }
 
+    if (value === 7) {
+      nextStyle.inverse = true;
+      continue;
+    }
+
+    if (value === 27) {
+      nextStyle.inverse = false;
+      continue;
+    }
+
+    if (value === 8) {
+      nextStyle.conceal = true;
+      continue;
+    }
+
+    if (value === 28) {
+      nextStyle.conceal = false;
+      continue;
+    }
+
     if (value === 39) {
       nextStyle.fg = null;
       continue;
@@ -271,8 +309,14 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
     }
 
     if (value === 38 || value === 48) {
-      const extended = applyExtendedColor(params, index + 1);
+      const params = rawParams.map((param) => toInteger(param));
+      const extended = params.every((param) => param !== null)
+        ? applyExtendedColor(params as number[], index + 1)
+        : null;
       if (!extended) {
+        if (rawParams[index + 1] === "2" || rawParams[index + 1] === "5") {
+          break;
+        }
         continue;
       }
 
@@ -289,40 +333,165 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
   return nextStyle;
 }
 
-export function parseAnsi(input: string): StyledRun[] {
+function applyColonExtendedColor(
+  rawParam: string
+): { target: 38 | 48; color: Color } | null | undefined {
+  if (!rawParam.includes(":")) {
+    return undefined;
+  }
+
+  const segments = rawParam.split(":");
+  const target = toInteger(segments[0]);
+  if (target !== 38 && target !== 48) {
+    return null;
+  }
+
+  const mode = toInteger(segments[1]);
+  if (mode === 5) {
+    const index = toInteger(segments[2]);
+    return index === null ? null : { target, color: { type: "ansi8", index: clampByte(index) } };
+  }
+
+  if (mode !== 2) {
+    return null;
+  }
+
+  const offset = segments[2] === "" ? 3 : 2;
+  const r = toInteger(segments[offset]);
+  const g = toInteger(segments[offset + 1]);
+  const b = toInteger(segments[offset + 2]);
+  if (r === null || g === null || b === null) {
+    return null;
+  }
+
+  return { target, color: { type: "rgb", r: clampByte(r), g: clampByte(g), b: clampByte(b) } };
+}
+
+type DisplayCell = { text: string; style: StyleState };
+
+function parseOscEnd(input: string, start: number): number {
+  let index = start + 2;
+  while (index < input.length) {
+    if (input[index] === "\u0007") {
+      return index + 1;
+    }
+    if (input[index] === ESC && input[index + 1] === "\\") {
+      return index + 2;
+    }
+    index += 1;
+  }
+  return input.length;
+}
+
+function positionParameter(params: string, index: number, fallback: number): number {
+  const value = toInteger(params.split(";")[index]);
+  return value === null || value < 1 ? fallback : value;
+}
+
+function buildRuns(lines: DisplayCell[][], lineBreakStyles: Array<StyleState | undefined>): StyledRun[] {
   const runs: StyledRun[] = [];
+  const defaultStyle = createDefaultStyle();
+
+  for (let row = 0; row < lines.length; row += 1) {
+    const line = lines[row] ?? [];
+    let lastCell = line.length - 1;
+    while (lastCell >= 0 && line[lastCell] === undefined) {
+      lastCell -= 1;
+    }
+    for (let column = 0; column <= lastCell; column += 1) {
+      const cell = line[column] ?? { text: " ", style: defaultStyle };
+      pushRun(runs, cell.style, cell.text);
+    }
+    if (row < lines.length - 1) {
+      pushRun(runs, lineBreakStyles[row] ?? defaultStyle, "\n");
+    }
+  }
+
+  return runs;
+}
+
+export function parseAnsi(input: string): StyledRun[] {
+  const lines: DisplayCell[][] = [[]];
+  const lineBreakStyles: Array<StyleState | undefined> = [];
   let style = createDefaultStyle();
-  let textStart = 0;
+  let row = 0;
+  let column = 0;
   let index = 0;
+
+  const ensureLine = (): void => {
+    while (lines.length <= row) {
+      lines.push([]);
+    }
+  };
+
+  const moveDown = (keepColumn: boolean): void => {
+    lineBreakStyles[row] = cloneStyle(style);
+    row += 1;
+    if (!keepColumn) {
+      column = 0;
+    }
+    ensureLine();
+  };
 
   while (index < input.length) {
     const char = input[index];
 
     if (char === "\n") {
-      pushRun(runs, style, input.slice(textStart, index));
-      pushRun(runs, style, "\n");
+      moveDown(false);
       index += 1;
-      textStart = index;
+      continue;
+    }
+    if (char === "\v") {
+      moveDown(true);
+      index += 1;
+      continue;
+    }
+    if (char === "\r") {
+      column = 0;
+      index += 1;
+      continue;
+    }
+    if (char === "\b") {
+      column = Math.max(0, column - 1);
+      index += 1;
+      continue;
+    }
+    if (char === ESC && input[index + 1] === "]") {
+      index = parseOscEnd(input, index);
       continue;
     }
 
-    if (char === ESC && input[index + 1] === "[") {
-      pushRun(runs, style, input.slice(textStart, index));
-      const sequence = parseCsi(input, index);
-
+    const csiPrefixLength = char === "\u009b" ? 1 : char === ESC && input[index + 1] === "[" ? 2 : null;
+    if (csiPrefixLength !== null) {
+      const sequence = parseCsi(input, index, csiPrefixLength);
       if (sequence.final === "m") {
         style = applySgr(style, sequence.params);
+      } else if (sequence.final === "G") {
+        column = positionParameter(sequence.params, 0, 1) - 1;
+      } else if (sequence.final === "C") {
+        column += positionParameter(sequence.params, 0, 1);
+      } else if (sequence.final === "D") {
+        column = Math.max(0, column - positionParameter(sequence.params, 0, 1));
+      } else if (sequence.final === "A") {
+        row = Math.max(0, row - positionParameter(sequence.params, 0, 1));
+      } else if (sequence.final === "B") {
+        row += positionParameter(sequence.params, 0, 1);
+        ensureLine();
+      } else if (sequence.final === "H" || sequence.final === "f") {
+        row = positionParameter(sequence.params, 0, 1) - 1;
+        column = positionParameter(sequence.params, 1, 1) - 1;
+        ensureLine();
       }
-
       index = sequence.end;
-      textStart = index;
       continue;
     }
 
-    index += 1;
+    const codePoint = input.codePointAt(index);
+    const text = codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+    lines[row]![column] = { text, style: cloneStyle(style) };
+    column += 1;
+    index += text.length;
   }
 
-  pushRun(runs, style, input.slice(textStart));
-
-  return runs;
+  return buildRuns(lines, lineBreakStyles);
 }

@@ -29,19 +29,50 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
 
   const configOptions = {
     fs: fs as MemoryConfigOptions["fs"],
-    filePath: path.join(inferRepoRoot(root), "poe-code.json")
+    filePath: path.join(inferRepoRoot(root), "poe-code.json"),
+    projectFilePath: path.join(inferRepoRoot(root), ".poe-code", "config.json")
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const context = await selectQueryContext(root, options.question, options.budget);
-  const result = (await spawn(agentId, { prompt: context.prompt })) as unknown as QueryResult;
+  const spawned = await spawn(agentId, { prompt: context.prompt });
+  const result = parseQueryResponse(spawned.stdout);
 
   return {
     answer: result.answer,
     citations: result.citations,
     tokensUsed: result.tokensUsed,
     budget: options.budget,
-    exitCode: result.exitCode
+    exitCode: spawned.exitCode
+  };
+}
+
+function parseQueryResponse(stdout: string): Pick<QueryResult, "answer" | "citations" | "tokensUsed"> {
+  let value: unknown;
+  try {
+    value = JSON.parse(stdout);
+  } catch {
+    throw new Error("Memory agent returned invalid JSON output.");
+  }
+
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Memory agent returned an invalid result payload.");
+  }
+
+  const result = value as Record<string, unknown>;
+  if (
+    typeof result.answer !== "string" ||
+    !Array.isArray(result.citations) ||
+    typeof result.tokensUsed !== "number" ||
+    !Number.isFinite(result.tokensUsed)
+  ) {
+    throw new Error("Memory agent returned an invalid result payload.");
+  }
+
+  return {
+    answer: result.answer,
+    citations: result.citations as QueryResult["citations"],
+    tokensUsed: result.tokensUsed
   };
 }
 
@@ -50,6 +81,10 @@ export async function selectQueryContext(
   question: string,
   budget: number
 ): Promise<QueryContext> {
+  if (!Number.isFinite(budget) || budget < 0) {
+    throw new Error("budget must be a finite non-negative number");
+  }
+
   const [indexText, pages] = await Promise.all([
     fs.readFile(path.join(root, MEMORY_INDEX_RELPATH), "utf8"),
     listPages(root)

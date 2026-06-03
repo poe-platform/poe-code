@@ -43,18 +43,18 @@ export const apiKeyAuthStrategy: AuthStrategy<ApiKeyLoginOptions> = {
   },
 
   async isLoggedIn(_provider, context) {
-    const value = await context.secretStore.get();
+    const value = await context.secretStore.get({ readOnly: context.readOnly });
     return typeof value === "string" && value.trim().length > 0;
   },
 
   async resolveCredential(provider, context) {
     requireApiKeyAuth(provider);
-    const value = await context.secretStore.get();
+    const value = await context.secretStore.get({ readOnly: context.readOnly });
     if (!value || value.trim().length === 0) {
       throw new Error(
         `No stored credential for provider "${provider.id}". Run \`poe-code provider login ${provider.id}\`.`
       );
     }
-    return value;
+    return value.trim();
   }
 };

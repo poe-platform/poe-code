@@ -55,8 +55,12 @@ const children = [
   listSessions
 ] as const;
 
-export const terminalPilotGroup = defineGroup<TerminalPilotCommandServices, "terminal-pilot", typeof children, readonly ["cli", "mcp", "sdk"]>({
-  name: "terminal-pilot",
-  scope: ["cli", "mcp", "sdk"],
-  children
-});
+export function createTerminalPilotGroup() {
+  return defineGroup<TerminalPilotCommandServices, "terminal-pilot", typeof children, readonly ["cli", "mcp", "sdk"]>({
+    name: "terminal-pilot",
+    scope: ["cli", "mcp", "sdk"],
+    children: [...children] as unknown as typeof children
+  });
+}
+
+export const terminalPilotGroup = Object.freeze(createTerminalPilotGroup());

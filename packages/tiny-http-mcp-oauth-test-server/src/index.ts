@@ -55,6 +55,10 @@ function normalizePath(path: string | undefined): string {
     return "/mcp";
   }
 
+  if (path.includes("?") || path.includes("#")) {
+    throw new Error("mcpPath must not include a query or fragment");
+  }
+
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return normalizedPath.length > 1 && normalizedPath.endsWith("/")
     ? normalizedPath.slice(0, -1)
@@ -80,7 +84,27 @@ function parseHttpUrl(value: string, label: string): URL {
     );
   }
 
+  if (url.search.length > 0 || url.hash.length > 0) {
+    throw new Error(`${label} must not include a query or fragment`);
+  }
+
   return url;
+}
+
+function parseResourceUrl(value: string): string {
+  let url: URL;
+
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("resource must be an absolute URL");
+  }
+
+  if (url.hash.length > 0) {
+    throw new Error("resource must not include a fragment");
+  }
+
+  return url.toString();
 }
 
 function normalizeHostForListen(hostname: string): string {
@@ -118,7 +142,23 @@ function isRevokedToken(oauth: OAuthTestServer, token: string): boolean {
 }
 
 function normalizeScopes(scopes: string[] | undefined): string[] {
-  return scopes === undefined ? ["mcp.read"] : [...scopes];
+  const normalizedScopes = scopes === undefined ? ["mcp.read"] : [...scopes];
+  if (normalizedScopes.some((scope) => scope.trim().length === 0)) {
+    throw new Error("scopes must contain non-empty values");
+  }
+
+  return normalizedScopes;
+}
+
+function normalizeTtlSeconds(ttlSeconds: number | undefined): number {
+  const normalizedTtlSeconds = ttlSeconds ?? 60;
+  if (!Number.isInteger(normalizedTtlSeconds) || normalizedTtlSeconds <= 0) {
+    throw new TypeError(
+      `ttlSeconds must be a positive integer, received ${normalizedTtlSeconds}`
+    );
+  }
+
+  return normalizedTtlSeconds;
 }
 
 function closeServer(server: http.Server): Promise<void> {
@@ -161,17 +201,23 @@ export function createMcpOAuthTestServer(
 ): McpOAuthTestServer {
   const mcpPath = normalizePath(options.mcpPath);
   const scopes = normalizeScopes(options.scopes);
+  const ttlSeconds = normalizeTtlSeconds(options.ttlSeconds);
   const configuredIssuer =
     options.issuer === undefined ? undefined : parseHttpUrl(options.issuer, "issuer");
+  const configuredResource =
+    options.resource === undefined ? undefined : parseResourceUrl(options.resource);
   let currentHandle: McpOAuthTestServerHandle | null = null;
+  let listenPending = false;
 
   return {
     async listen(
       listenOptions: McpOAuthTestServerListenOptions = {}
     ): Promise<McpOAuthTestServerHandle> {
-      if (currentHandle !== null) {
+      if (currentHandle !== null || listenPending) {
         throw new Error("MCP OAuth test server is already listening");
       }
+
+      listenPending = true;
 
       const hostname = listenOptions.hostname ?? "127.0.0.1";
       const requestedPort = listenOptions.port ?? 0;
@@ -179,15 +225,19 @@ export function createMcpOAuthTestServer(
 
       for (let attempt = 0; attempt < 10; attempt += 1) {
         try {
-          return await listenOnce(hostname, requestedPort);
+          const handle = await listenOnce(hostname, requestedPort);
+          listenPending = false;
+          return handle;
         } catch (error) {
           lastError = error;
           if (requestedPort !== 0 || !isAddressInUseError(error)) {
+            listenPending = false;
             throw error;
           }
         }
       }
 
+      listenPending = false;
       throw lastError;
     },
   };
@@ -218,7 +268,7 @@ export function createMcpOAuthTestServer(
         );
       }
 
-      if (fixedPort === 0 && options.resource === undefined) {
+      if (fixedPort === 0 && configuredResource === undefined) {
         do {
           fixedPort = await reservePort(hostname);
         } while (
@@ -229,7 +279,7 @@ export function createMcpOAuthTestServer(
 
       const oauth = createOAuthTestServer({
         issuer,
-        defaultTokenTtlSeconds: options.ttlSeconds ?? 60,
+          defaultTokenTtlSeconds: ttlSeconds,
         staticClients: options.staticClients,
         defaultAuthorization: {
           autoApprove: options.autoApprove ?? false,
@@ -246,7 +296,7 @@ export function createMcpOAuthTestServer(
           port: oauthPort,
           hostname: oauthHostname,
         });
-        const resource = options.resource ?? buildUrl(hostname, fixedPort, mcpPath);
+        const resource = configuredResource ?? buildUrl(hostname, fixedPort, mcpPath);
         const jwksVerifier = createJwksTokenVerifier({
           jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
           fetch: (input, init) =>
@@ -283,18 +333,16 @@ export function createMcpOAuthTestServer(
 
         const prmUrl = getProtectedResourceMetadataUrl(mcpHandle.url);
 
-        currentHandle = {
+        const handle: McpOAuthTestServerHandle = {
           url: mcpHandle.url,
           mcpUrl: mcpHandle.url,
           prmUrl,
           resource,
           oauth,
           close: async () => {
-            if (currentHandle === null) {
+            if (currentHandle !== handle) {
               return;
             }
-
-            currentHandle = null;
 
             const results = await Promise.allSettled([
               mcpHandle?.close(),
@@ -307,10 +355,13 @@ export function createMcpOAuthTestServer(
             if (rejected !== undefined) {
               throw rejected.reason;
             }
+
+            currentHandle = null;
           },
         };
 
-        return currentHandle;
+        currentHandle = handle;
+        return handle;
       } catch (error) {
         const closeOperations = oauthHandle === undefined ? [] : [oauthHandle.close()];
 
@@ -318,7 +369,14 @@ export function createMcpOAuthTestServer(
           closeOperations.unshift(mcpHandle.close());
         }
 
-        await Promise.allSettled(closeOperations);
+        const closeResults = await Promise.allSettled(closeOperations);
+        const failedClose = closeResults.find(
+          (result): result is PromiseRejectedResult => result.status === "rejected"
+        );
+        if (failedClose !== undefined) {
+          throw failedClose.reason;
+        }
+
         throw error;
       }
   }

@@ -33,7 +33,10 @@ import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 
 type HarnessRunOptions = {
+  agent?: string;
   fix?: boolean;
+  mode?: string;
+  model?: string;
   resume?: boolean;
   snapshotPath?: string;
   yes?: boolean;
@@ -62,6 +65,18 @@ export function registerHarnessCommand(program: Command, container: CliContainer
     .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
     .option("--snapshot-path <path>", "File to write/read harness snapshots.")
     .option("--resume", "Resume from the snapshot file when it exists.")
+    .option(
+      "--agent <name>",
+      "Override the agent id from the harness frontmatter agent block."
+    )
+    .option(
+      "--model <name>",
+      "Override the model from the harness frontmatter agent block."
+    )
+    .option(
+      "--mode <mode>",
+      "Override the mode from the harness frontmatter agent block (read|edit|yolo)."
+    )
     .option("-y, --yes", "Accept defaults without prompting.")
     .action(async (mdPath: string | undefined, options: HarnessRunOptions) => {
       await executeHarnessRun(program, container, mdPath, options);
@@ -97,6 +112,12 @@ async function executeHarnessRun(
   const selectedPath = mdPath
     ? path.resolve(container.env.cwd, mdPath)
     : (await resolveDiscoveredHarness(container, flags.assumeYes)).mdPath;
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      `Dry run: would run ${formatDisplayPath(container, selectedPath)} without executing its script or applying fixes.`
+    );
+    return;
+  }
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
   await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
 
@@ -105,6 +126,7 @@ async function executeHarnessRun(
   const baseMessage = `Running ${formatDisplayPath(container, selectedPath)}`;
   const progress = createSnapshotProgressReader(container, snapshotPath);
   const lintDiagnostics: Diagnostic[] = [];
+  const frontmatterOverrides = buildAgentFrontmatterOverrides(options);
   const result = await withSpinner({
     message: () => formatRunMessage(baseMessage, progress.current()),
     fn: () =>
@@ -115,7 +137,8 @@ async function executeHarnessRun(
         },
         fix: Boolean(options.fix),
         resume: Boolean(options.resume),
-        snapshotPath
+        snapshotPath,
+        ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
       }),
     stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
   });
@@ -147,6 +170,25 @@ function formatDiagnostics(diagnostics: readonly Diagnostic[]): string {
         `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.severity} ${diagnostic.code} ${diagnostic.message}`
     )
     .join("\n");
+}
+
+function buildAgentFrontmatterOverrides(
+  options: HarnessRunOptions
+): { agent: Record<string, string> } | undefined {
+  const agentOverride: Record<string, string> = {};
+  if (options.agent !== undefined) {
+    agentOverride.agent = options.agent;
+  }
+  if (options.model !== undefined) {
+    agentOverride.model = options.model;
+  }
+  if (options.mode !== undefined) {
+    agentOverride.mode = options.mode;
+  }
+  if (Object.keys(agentOverride).length === 0) {
+    return undefined;
+  }
+  return { agent: agentOverride };
 }
 
 function resolveRunSnapshotPath(
@@ -300,6 +342,10 @@ async function executeHarnessNew(
     throw new ValidationError(`Unknown harness template "${kind}".`);
   }
 
+  if (basename.length === 0 || basename === "." || basename === ".." || path.basename(basename) !== basename) {
+    throw new ValidationError(`Invalid harness basename "${basename}". Use a single directory name.`);
+  }
+
   const defaultDir = path.join(".poe-code", "harnesses", basename);
   const outputDir = options.dir ?? (await resolveOutputDir(defaultDir, flags.assumeYes));
   const resolvedDir = path.resolve(container.env.cwd, outputDir);
@@ -320,10 +366,26 @@ async function executeHarnessNew(
   ]);
 
   await container.fs.mkdir(resolvedDir, { recursive: true });
-  await Promise.all([
-    container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
-    container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
-  ]);
+  try {
+    await Promise.all([
+      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
+      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
+    ]);
+  } catch (error) {
+    await Promise.all([
+      container.fs.unlink(mdPath).catch((cleanupError) => {
+        if (!hasErrorCode(cleanupError, "ENOENT")) {
+          throw cleanupError;
+        }
+      }),
+      container.fs.unlink(ajsPath).catch((cleanupError) => {
+        if (!hasErrorCode(cleanupError, "ENOENT")) {
+          throw cleanupError;
+        }
+      })
+    ]).catch(() => undefined);
+    throw error;
+  }
 
   resources.context.complete({
     success: `Created harness pair at ${formatDisplayPath(container, resolvedDir)}`,

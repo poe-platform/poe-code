@@ -84,7 +84,9 @@ export async function executeTest(
 
   const resolveRuntimeEnv = adapter.runtimeEnv
     ? () => {
-        runtimeEnvPromise ??= resolveActiveProviderForService(container, canonicalService).then(
+        runtimeEnvPromise ??= resolveActiveProviderForService(container, canonicalService, {
+          readOnly: flags.dryRun
+        }).then(
           (activeProvider) =>
             resolveProviderRuntimeEnv(
               container.env,

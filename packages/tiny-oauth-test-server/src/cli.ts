@@ -241,12 +241,14 @@ export async function runCli(
   });
 
   const handle = await server.listen(listenOptions);
-  const metadataUrl = `${server.issuer}/.well-known/oauth-authorization-server`;
+  const issuerUrl = new URL(server.issuer);
+  const metadataSuffix = issuerUrl.pathname === "/" ? "" : issuerUrl.pathname.replace(/\/$/, "");
+  const metadataUrl = `${issuerUrl.origin}/.well-known/oauth-authorization-server${metadataSuffix}`;
 
   stdout.write(`${packageInfo.name} ${packageInfo.version}\n`);
   stdout.write(`Bound URL: ${handle.url}\n`);
   stdout.write(`Issuer: ${server.issuer}\n`);
-  stdout.write(`PRM metadata URL: ${metadataUrl}\n`);
+  stdout.write(`Authorization server metadata URL: ${metadataUrl}\n`);
   stdout.write(`Issue token curl: ${formatCurlInvocation(handle.url)}\n`);
 
   await (dependencies.waitForShutdown ?? waitForShutdown)(handle.close);

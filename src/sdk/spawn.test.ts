@@ -672,6 +672,17 @@ describe("SDK spawn()", () => {
   });
 
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
+      registry: {
+        get: vi.fn(() => ({ name: "codex" }))
+      }
+    } as any);
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
@@ -762,6 +773,17 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates usage from spawnCore non-streaming result when unsupported", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
+      registry: {
+        get: vi.fn(() => ({ name: "codex" }))
+      }
+    } as any);
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
@@ -951,6 +973,32 @@ describe("SDK spawn()", () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves successful streaming output when workspace cleanup fails", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      cleanup: vi.fn(async () => {
+        throw new Error("workspace cleanup denied");
+      }),
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "done", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "inspect the repo", {
+      cwd: "github://poe-platform/poe-code",
+      mode: "edit"
+    });
+
+    await expect(result).resolves.toMatchObject({ stdout: "done", stderr: "", exitCode: 0 });
+  });
+
   it("uses normal spawn flow when interactive is false", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -1039,6 +1087,42 @@ describe("SDK spawn()", () => {
     expect(spawnStreaming).not.toHaveBeenCalled();
     expect(agentSpawn).not.toHaveBeenCalled();
     expect(spawnCore).not.toHaveBeenCalled();
+  });
+
+  it("uses CLI streaming for ACP agents that do not support MCP over ACP", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "kimi",
+      acpArgs: ["acp"],
+      supportsMcpServers: false
+    } as any);
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "kimi",
+      adapter: "kimi"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("kimi", "test prompt", {
+      mcpServers: {
+        test: { command: "tiny-stdio-mcp-test-server" }
+      }
+    });
+
+    await result;
+
+    expect(spawnAcp).not.toHaveBeenCalled();
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "kimi",
+        mcpServers: {
+          test: { command: "tiny-stdio-mcp-test-server" }
+        }
+      })
+    );
   });
 
   it("uses runtime-aware streaming flow when ACP agents receive runtime overrides", async () => {
@@ -1285,6 +1369,28 @@ describe("SDK spawn()", () => {
 
     await expect(result).rejects.toThrow("boom");
     expect(shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves successful streaming output when integration shutdown fails", async () => {
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: vi.fn(),
+      shutdown: vi.fn(async () => {
+        throw new Error("integration shutdown denied");
+      })
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "done", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).resolves.toMatchObject({ stdout: "done", stderr: "", exitCode: 0 });
   });
 
   it("does not modify middleware chain when loadIntegrations returns null", async () => {
@@ -1772,5 +1878,30 @@ describe("spawn.autonomous()", () => {
     await result;
 
     expect(process.env.POE_API_KEY).toBe("exported-key");
+  });
+
+  it("does not export stored credentials when the service is unknown", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+
+    const { result } = spawn("unknown", "test prompt");
+
+    await expect(result).rejects.toThrow('Unknown service "unknown".');
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
+  });
+
+  it("does not export stored credentials when interactive service validation fails", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+    vi.mocked(spawnInteractive).mockRejectedValue(new Error('Agent "unknown" has no spawn config.'));
+
+    const { result } = spawn("unknown", "test prompt", { interactive: true });
+
+    await expect(result).rejects.toThrow('Agent "unknown" has no spawn config.');
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
   });
 });

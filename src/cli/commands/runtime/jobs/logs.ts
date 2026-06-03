@@ -28,6 +28,10 @@ async function executeRuntimeJobsLogs(
   const resources = createExecutionResources(container, flags, "runtime:jobs:logs");
   const state = createRuntimeState(container);
   const entry = await resolveJob(state, jobId, "pullable");
+  if (flags.dryRun) {
+    resources.logger.dryRun(`Dry run: would read logs for runtime job ${entry.id}.`);
+    return;
+  }
   const { handle } = await attachJob(entry);
 
   await streamJobLog(handle, {

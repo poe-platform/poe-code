@@ -20,7 +20,7 @@ export function createMemoryCache<T>(
   const lru = new LRUCache<string, CachedData<T>>({
     max: options.max,
     ttl: options.ttl,
-    allowStale: true,
+    allowStale: false,
   });
 
   return {

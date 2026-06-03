@@ -11,7 +11,7 @@ const CLAUDE_DEFAULT_MODEL = DEFAULT_CLAUDE_CODE_MODEL;
 /**
  * Available model identifiers
  */
-export const AVAILABLE_MODELS = [
+export const AVAILABLE_MODELS = Object.freeze([
   CLAUDE_DEFAULT_MODEL,
   "gpt-5.5",
   "gpt-5.4",
@@ -20,7 +20,7 @@ export const AVAILABLE_MODELS = [
   "gpt-4o",
   "Claude-3.5-Sonnet",
   DEFAULT_CODEX_MODEL,
-] as const;
+] as const);
 
 export type ModelIdentifier = (typeof AVAILABLE_MODELS)[number];
 
@@ -165,7 +165,10 @@ export class RoundRobinStrategy implements ModelStrategy {
   private models: ModelIdentifier[];
 
   constructor(models?: ModelIdentifier[]) {
-    this.models = models || [...AVAILABLE_MODELS];
+    if (models?.length === 0) {
+      throw new Error("Round-robin custom order must include at least one model");
+    }
+    this.models = models ? [...models] : [...AVAILABLE_MODELS];
   }
 
   getNextModel(): ModelIdentifier {
@@ -233,17 +236,33 @@ export class StrategyConfigManager {
   );
 
   static saveConfig(config: StrategyConfig): void {
+    if (!isStrategyConfig(config)) {
+      throw new Error("Invalid model strategy configuration");
+    }
+    this.assertSafeStatePath();
     if (!fs.existsSync(this.CONFIG_DIR)) {
       fs.mkdirSync(this.CONFIG_DIR, { recursive: true });
     }
-    fs.writeFileSync(this.CONFIG_FILE, JSON.stringify(config, null, 2));
+    this.assertSafeStatePath();
+    const temporaryFile = `${this.CONFIG_FILE}.tmp`;
+    try {
+      fs.writeFileSync(temporaryFile, JSON.stringify(config, null, 2));
+      fs.renameSync(temporaryFile, this.CONFIG_FILE);
+    } catch (error) {
+      if (fs.existsSync(temporaryFile)) {
+        fs.unlinkSync(temporaryFile);
+      }
+      throw error;
+    }
   }
 
   static loadConfig(): StrategyConfig | null {
     try {
+      this.assertSafeStatePath();
       if (fs.existsSync(this.CONFIG_FILE)) {
         const data = fs.readFileSync(this.CONFIG_FILE, "utf-8");
-        return JSON.parse(data) as StrategyConfig;
+        const config: unknown = JSON.parse(data);
+        return isStrategyConfig(config) ? config : null;
       }
     } catch (error) {
       console.error("Failed to load strategy config:", error);
@@ -257,4 +276,47 @@ export class StrategyConfigManager {
       fixedModel: CLAUDE_DEFAULT_MODEL,
     };
   }
+
+  private static assertSafeStatePath(): void {
+    for (const candidate of [this.CONFIG_DIR, this.CONFIG_FILE]) {
+      if (fs.existsSync(candidate) && fs.lstatSync(candidate).isSymbolicLink()) {
+        throw new Error(`Strategy config path cannot be a symbolic link: ${candidate}`);
+      }
+    }
+  }
+}
+
+function isStrategyConfig(value: unknown): value is StrategyConfig {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const config = value as Record<string, unknown>;
+  if (!isStrategyType(config.type)) {
+    return false;
+  }
+
+  if (config.fixedModel !== undefined && !isModelIdentifier(config.fixedModel)) {
+    return false;
+  }
+
+  if (config.customOrder !== undefined) {
+    if (
+      !Array.isArray(config.customOrder) ||
+      config.customOrder.length === 0 ||
+      !config.customOrder.every(isModelIdentifier)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isStrategyType(value: unknown): value is StrategyType {
+  return value === "mixed" || value === "smart" || value === "fixed" || value === "round-robin";
+}
+
+function isModelIdentifier(value: unknown): value is ModelIdentifier {
+  return typeof value === "string" && (AVAILABLE_MODELS as readonly string[]).includes(value);
 }

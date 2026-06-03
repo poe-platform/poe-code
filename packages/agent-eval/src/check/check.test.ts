@@ -18,10 +18,12 @@ vi.mock("node:fs/promises", () => ({
     readdir: (...args: unknown[]) =>
       mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
     stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+    ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
   },
   cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
   stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+  ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
 }));
 
 vi.mock("../run/clone.js", () => ({
@@ -126,6 +128,41 @@ describe("evalCheck", () => {
     expect(result.cloneDir).toMatch(/^\/repo\/evals\/runs\/\.check\/smoke\/[^/]+\/clone$/);
   });
 
+  it("does not create output for an already aborted check", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("check cancelled"));
+
+    await expect(
+      evalCheck({ sourceDir: "/repo/evals", evalId: "smoke", signal: controller.signal })
+    ).rejects.toThrow("check cancelled");
+
+    await expect(mocks.fs.stat("/repo/evals/artifacts/.check")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    expect(mocks.cloneTarget).not.toHaveBeenCalled();
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("stops after cloning when the check is cancelled during clone", async () => {
+    const controller = new AbortController();
+    let clonedDir: string | undefined;
+    mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
+      clonedDir = dest;
+      await mocks.fs.mkdir(dest, { recursive: true });
+      controller.abort(new Error("check cancelled"));
+    });
+
+    await expect(
+      evalCheck({ sourceDir: "/repo/evals", evalId: "smoke", signal: controller.signal })
+    ).rejects.toThrow("check cancelled");
+
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+    expect(clonedDir).toBeDefined();
+    await expect(mocks.fs.readFile(path.join(clonedDir!, "starter.txt"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("rejects oracle.solution_dest values that escape the clone root", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(createSourceFiles({ solutionDest: "../outside" }), "/")
@@ -133,6 +170,41 @@ describe("evalCheck", () => {
 
     await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
       "oracle.solution_dest must stay within the clone root."
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("rejects oracle paths that escape the eval directory", async () => {
+    mocks.fs = createFsFromVolume(
+      Volume.fromJSON(
+        {
+          ...createSourceFiles(),
+          "/repo/evals/outside/solution/answer.txt": "external\n"
+        },
+        "/"
+      )
+    ).promises;
+    await mocks.fs.writeFile(
+      "/repo/evals/smoke/eval.yaml",
+      createEvalYaml("patched").replace("oracle:\n", "oracle:\n  path: ../outside\n"),
+      "utf8"
+    );
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.path must stay within the eval directory."
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked solution destinations that escape the clone root", async () => {
+    mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
+      await mocks.fs.mkdir(dest, { recursive: true });
+      await mocks.fs.mkdir("/outside", { recursive: true });
+      await mocks.fs.symlink("/outside", path.join(dest, "patched"));
+    });
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.solution_dest must stay within the canonical clone directory."
     );
     expect(mocks.runScorer).not.toHaveBeenCalled();
   });

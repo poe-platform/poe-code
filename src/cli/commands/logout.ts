@@ -22,8 +22,22 @@ export async function executeLogout(program: Command, container: CliContainer): 
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: flags.dryRun
   });
+
+  let authenticatedProviders: Array<{ id: string; authenticated: boolean }> = [];
+  if (!flags.dryRun) {
+    authenticatedProviders = await Promise.all(
+      container.providerRegistry.list().map(async (provider) => ({
+        id: provider.id,
+        authenticated: await container.providerRegistry.isLoggedIn(provider.id)
+      }))
+    );
+    for (const provider of authenticatedProviders) {
+      await container.providerRegistry.logout(provider.id);
+    }
+  }
 
   for (const serviceName of Object.keys(configuredServices)) {
     const adapter = container.registry.get(serviceName);
@@ -42,15 +56,25 @@ export async function executeLogout(program: Command, container: CliContainer): 
     return;
   }
 
-  await container.deleteApiKey();
-
   const deleted = await deleteConfig({
     fs: container.fs,
     filePath: container.env.configPath
   });
+  const deletedServicesConfig = await deleteConfig({
+    fs: container.fs,
+    filePath: container.env.servicesConfigPath
+  });
+
+  const environmentCredential = container.env.getVariable("POE_API_KEY");
+  const hasEnvironmentCredential = typeof environmentCredential === "string"
+    && environmentCredential.trim().length > 0;
 
   resources.context.complete({
-    success: deleted ? "Logged out." : "Already logged out.",
+    success: hasEnvironmentCredential
+      ? "Stored credentials removed, but POE_API_KEY remains set; unset it to log out fully."
+      : deleted || deletedServicesConfig || authenticatedProviders.some((provider) => provider.authenticated)
+        ? "Logged out."
+        : "Already logged out.",
     dry: `Dry run: would delete config at ${container.env.configPath}.`
   });
 

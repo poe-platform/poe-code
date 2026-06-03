@@ -1,6 +1,7 @@
 import path from "node:path";
-import { homedir } from "node:os";
+import { randomUUID } from "node:crypto";
 import { mkdir, open, type FileHandle } from "node:fs/promises";
+import { ensureSafeDefaultSpawnLogDir, getDefaultSpawnLogDir } from "../spawn-log-path.js";
 import type { AcpEvent } from "../types.js";
 import type { AcpMiddleware, SpawnContext } from "../middleware.js";
 
@@ -41,17 +42,34 @@ function resolveStartedAt(value: Date | undefined): Date {
   return value;
 }
 
-function resolveLogFilePath(ctx: SpawnContext): string {
+function isSafeLogFileName(fileName: string): boolean {
+  return (
+    fileName.length > 0 &&
+    !path.isAbsolute(fileName) &&
+    !path.win32.isAbsolute(fileName) &&
+    path.basename(fileName) === fileName &&
+    path.win32.basename(fileName) === fileName
+  );
+}
+
+function resolveLogFilePath(ctx: SpawnContext): string | undefined {
   if (ctx.logPath) {
     return ctx.logPath;
   }
-  const baseDir = ctx.logDir ?? path.join(homedir(), ".poe-code", "spawn-logs");
+  const baseDir = ctx.logDir ?? getDefaultSpawnLogDir();
   if (ctx.logFileName) {
+    if (!isSafeLogFileName(ctx.logFileName)) {
+      return undefined;
+    }
     return path.join(baseDir, ctx.logFileName);
   }
   const startedAt = resolveStartedAt(ctx.startedAt);
   const { day, time, milliseconds } = formatTimestamp(startedAt);
-  const fileName = `${day}-${time}-${milliseconds}-${normalizeAgent(ctx.agent)}.jsonl`;
+  const sessionSuffix =
+    ctx.sessionId.length > 0 && ctx.sessionId !== "unknown"
+      ? `-${normalizeAgent(ctx.sessionId)}`
+      : `-${randomUUID()}`;
+  const fileName = `${day}-${time}-${milliseconds}-${normalizeAgent(ctx.agent)}${sessionSuffix}.jsonl`;
   return path.join(baseDir, fileName);
 }
 
@@ -60,13 +78,16 @@ class SpawnLogWriter {
 
   private isDisabled = false;
 
-  readonly filePath: string;
+  readonly filePath: string | undefined;
 
   private readonly logDirPath: string;
 
+  private readonly usesDefaultLogDir: boolean;
+
   constructor(ctx: SpawnContext) {
     this.filePath = resolveLogFilePath(ctx);
-    this.logDirPath = path.dirname(this.filePath);
+    this.logDirPath = this.filePath ? path.dirname(this.filePath) : "";
+    this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
   }
 
   async writeEvent(event: AcpEvent): Promise<void> {
@@ -74,6 +95,11 @@ class SpawnLogWriter {
       return;
     }
 
+    if (!this.filePath) {
+      return;
+    }
+
+    let previousSize: number | undefined;
     try {
       await this.ensureOpen();
       if (!this.fileHandle) {
@@ -82,9 +108,18 @@ class SpawnLogWriter {
 
       const meta = (event as { _meta?: Record<string, unknown> })._meta;
       const toLog = meta?.raw ?? event;
+      previousSize = (await this.fileHandle.stat()).size;
       await this.fileHandle.appendFile(`${JSON.stringify(toLog)}\n`, "utf8");
     } catch {
       this.isDisabled = true;
+      if (this.fileHandle && previousSize !== undefined) {
+        try {
+          await this.fileHandle.truncate(previousSize);
+        } catch (error) {
+          await this.close();
+          throw new Error("failed to restore ACP spawn log after append failure", { cause: error });
+        }
+      }
       await this.close();
     }
   }
@@ -104,13 +139,18 @@ class SpawnLogWriter {
   }
 
   private async ensureOpen(): Promise<void> {
-    if (this.fileHandle || this.isDisabled) {
+    const filePath = this.filePath;
+    if (this.fileHandle || this.isDisabled || !filePath) {
       return;
     }
 
     try {
-      await mkdir(this.logDirPath, { recursive: true });
-      this.fileHandle = await open(this.filePath, "a");
+      if (this.usesDefaultLogDir) {
+        await ensureSafeDefaultSpawnLogDir(true);
+      } else {
+        await mkdir(this.logDirPath, { recursive: true });
+      }
+      this.fileHandle = await open(filePath, "a");
     } catch {
       this.isDisabled = true;
     }
@@ -128,7 +168,9 @@ export const spawnLog: AcpMiddleware = async (ctx, next) => {
 
   const source = ctx.eventStream;
   const writer = new SpawnLogWriter(ctx);
-  ctx.logFile = writer.filePath;
+  if (writer.filePath) {
+    ctx.logFile = writer.filePath;
+  }
 
   await writePreloadedEvents(writer, ctx.events);
 

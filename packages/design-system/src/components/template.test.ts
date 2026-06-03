@@ -129,6 +129,14 @@ describe("unit", () => {
     expect(() => renderTemplate("{{/items}}", {})).toThrow('Closing unopened section "items"');
     expect(() => renderTemplate("{{#a}}{{/b}}", {})).toThrow('Unclosed section "a" before closing "b"');
   });
+
+  it("does not render inherited view properties", () => {
+    const inherited = Object.assign(Object.create({ secret: { value: "leaked" } }), {
+      nested: {}
+    }) as View;
+
+    expect(renderTemplate("{{constructor}}/{{toString}}/{{nested.toString}}/{{secret.value}}", inherited)).toBe("///");
+  });
 });
 
 describe.skipIf(Mustache === undefined)("parity", () => {

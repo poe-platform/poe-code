@@ -101,7 +101,12 @@ export class CheatFilter {
 }
 
 function canContainNewEvidence(event: TraceToolEvent): boolean {
-  return event.id !== undefined || event.phase === "start";
+  return (
+    event.id !== undefined ||
+    event.phase === "start" ||
+    event.paths.length > 0 ||
+    event.inspection !== undefined
+  );
 }
 
 function defaultAllowedPaths(): string[] {

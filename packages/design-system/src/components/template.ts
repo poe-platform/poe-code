@@ -307,17 +307,15 @@ function lookupName(view: unknown, name: string): { hit: boolean; value: unknown
 function lookupDotted(view: unknown, name: string): { hit: boolean; value: unknown } {
   const parts = name.split(".");
   let value = view;
-  let hit = false;
 
-  for (let index = 0; value != null && index < parts.length; index += 1) {
-    const part = parts[index] ?? "";
-    if (index === parts.length - 1) {
-      hit = hasProperty(Object(value), part);
+  for (const part of parts) {
+    if (!isPropertyContainer(value) || !hasProperty(value, part)) {
+      return { hit: false, value: undefined };
     }
     value = Object(value)[part as keyof typeof value];
   }
 
-  return { hit, value };
+  return { hit: true, value };
 }
 
 function callLambda(value: unknown, view: unknown): unknown {
@@ -368,5 +366,5 @@ function isPropertyContainer(value: unknown): value is Record<string, unknown> {
 }
 
 function hasProperty(value: object, key: string): boolean {
-  return key in value;
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

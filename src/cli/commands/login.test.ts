@@ -5,6 +5,7 @@ import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js"
 import { saveConfiguredService } from "../../services/config.js";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../../utils/file-system.js";
+import { parseToml } from "@poe-code/config-mutations/testing";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -26,15 +27,14 @@ describe("executeLogin", () => {
     fs = createHomeFs(homeDir);
   });
 
-  it("calls ProviderRegistry.login('poe', { apiKey }) with the resolved key", async () => {
+  it("stores the resolved key", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
     const program = createTestProgram();
 
     await executeLogin(program, container, { apiKey: "sk-test" });
 
-    expect(loginSpy).toHaveBeenCalledWith("poe", { apiKey: "sk-test" });
+    await expect(container.readApiKey()).resolves.toBe("sk-test");
   });
 
   it("does not call ProviderRegistry.login in dry-run mode", async () => {
@@ -80,5 +80,92 @@ describe("executeLogin", () => {
     const invokedNames = invokeSpy.mock.calls.map((c) => c[0]);
     expect(invokedNames).toContain("claude-code");
     expect(invokedNames).toContain("codex");
+  });
+
+  it("preserves stored codex model preferences while rotating Poe credentials", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-new");
+    vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "codex",
+      metadata: {
+        files: [],
+        provider: "poe",
+        model: "configured-codex",
+        reasoningEffort: "high"
+      }
+    });
+
+    await executeLogin(createTestProgram(), container, { apiKey: "sk-new" });
+
+    const globalConfig = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    const isolatedConfig = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
+    expect(globalConfig.model).toBe("configured-codex");
+    expect(globalConfig.model_reasoning_effort).toBe("high");
+    expect(isolatedConfig.model).toBe("configured-codex");
+    expect(isolatedConfig.model_reasoning_effort).toBe("high");
+  });
+
+  it("does not persist credential rotation when a configured rewrite fails", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-new");
+    await container.writeApiKey("sk-old");
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "codex",
+      metadata: { files: [], provider: "poe", model: "configured-codex", reasoningEffort: "high" }
+    });
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "opencode",
+      metadata: { files: [], provider: "poe", model: "configured-open" }
+    });
+    await fs.mkdir(`${homeDir}/.poe-code/opencode`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/opencode/.config`, "blocked", { encoding: "utf8" });
+
+    await expect(executeLogin(createTestProgram(), container, { apiKey: "sk-new" })).rejects.toThrow();
+
+    await expect(container.readApiKey()).resolves.toBe("sk-old");
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).rejects.toThrow();
+  });
+
+  it("rolls back earlier writes when committing a later rewrite fails", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-new");
+    await container.writeApiKey("sk-old");
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "codex",
+      metadata: { files: [], provider: "poe", model: "configured-codex", reasoningEffort: "high" }
+    });
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "opencode",
+      metadata: { files: [], provider: "poe", model: "configured-open" }
+    });
+    await fs.mkdir(`${homeDir}/.codex`, { recursive: true });
+    await fs.mkdir(`${homeDir}/.poe-code/codex`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.codex/config.toml`, "before-global", { encoding: "utf8" });
+    await fs.writeFile(`${homeDir}/.poe-code/codex/config.toml`, "before-isolated", { encoding: "utf8" });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath.includes("/.config/opencode/config.json") && !filePath.includes(".mutation-tmp-")) {
+        throw new Error("write failed");
+      }
+      return writeFile(filePath, data, options);
+    });
+
+    await expect(executeLogin(createTestProgram(), container, { apiKey: "sk-new" })).rejects.toThrow("write failed");
+
+    await expect(container.readApiKey()).resolves.toBe("sk-old");
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).resolves.toBe("before-global");
+    await expect(fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8")).resolves.toBe("before-isolated");
   });
 });

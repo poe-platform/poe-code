@@ -2,7 +2,7 @@ import http from "node:http";
 import https from "node:https";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, jwtVerify } from "jose";
 import { createOAuthTestServer } from "./index.js";
 
@@ -255,12 +255,14 @@ describe("tiny-oauth-test-server", () => {
     }
 
     cleanups.clear();
+    vi.restoreAllMocks();
   });
 
   async function listenServer() {
     const server = createOAuthTestServer({
       defaultTokenTtlSeconds: 60,
       signingKeySeed: "tiny-oauth-test-server:test-seed",
+      defaultAuthorization: { autoApprove: true },
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -288,6 +290,87 @@ describe("tiny-oauth-test-server", () => {
       code_challenge_methods_supported: ["S256"],
       authorization_response_iss_parameter_supported: true,
     });
+  });
+
+  it("rejects invalid configured issuers and numeric lifetime options", () => {
+    expect(() => createOAuthTestServer({ issuer: "mailto:oauth@example.test" })).toThrow(
+      "issuer must use http or https"
+    );
+    expect(() => createOAuthTestServer({ clockSkewSeconds: Infinity })).toThrow(
+      "clockSkewSeconds must be a non-negative finite number"
+    );
+    expect(() => createOAuthTestServer({ clockSkewSeconds: -1 })).toThrow(
+      "clockSkewSeconds must be a non-negative finite number"
+    );
+    expect(() => createOAuthTestServer({ defaultTokenTtlSeconds: Infinity })).toThrow(
+      "defaultTokenTtlSeconds must be a positive integer"
+    );
+    expect(() => createOAuthTestServer({ defaultTokenTtlSeconds: -1 })).toThrow(
+      "defaultTokenTtlSeconds must be a positive integer"
+    );
+  });
+
+  it("rejects malformed static client configuration", () => {
+    const redirectUri = "http://127.0.0.1:43123/callback";
+
+    expect(() =>
+      createOAuthTestServer({ staticClients: [{ clientId: "client", redirectUris: [] }] })
+    ).toThrow("staticClients[].redirectUris must be a non-empty array");
+    expect(() =>
+      createOAuthTestServer({
+        staticClients: [
+          { clientId: "client", redirectUris: [redirectUri] },
+          { clientId: "client", redirectUris: [redirectUri] }
+        ]
+      })
+    ).toThrow("staticClients[].clientId must be unique");
+    expect(() =>
+      createOAuthTestServer({
+        staticClients: [{ clientId: "client", redirectUris: [redirectUri], scopes: ["mcp.read mcp.admin"] }]
+      })
+    ).toThrow("scope entries must not contain spaces");
+    expect(() =>
+      createOAuthTestServer({ defaultAuthorization: { scopes: ["mcp.read mcp.admin"] } })
+    ).toThrow("scope entries must not contain spaces");
+  });
+
+  it("enforces an explicitly empty static-client scope allowlist", async () => {
+    const redirectUri = "http://127.0.0.1:43123/callback";
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:empty-scopes",
+      staticClients: [{ clientId: "client", redirectUris: [redirectUri], scopes: [] }],
+      defaultAuthorization: { autoApprove: true }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("empty-scope-verifier")))}`
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&scope=mcp.admin",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_scope" });
+  });
+
+  it("rejects a concurrent second listener instead of orphaning a bound server", async () => {
+    const server = createOAuthTestServer({ signingKeySeed: "tiny-oauth-test-server:concurrent" });
+    const results = await Promise.allSettled([
+      server.listen({ port: 0, hostname: "127.0.0.1" }),
+      server.listen({ port: 0, hostname: "127.0.0.1" })
+    ]);
+    const fulfilled = results.filter(
+      (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof server.listen>>> =>
+        result.status === "fulfilled"
+    );
+
+    expect(fulfilled).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    if (fulfilled[0]) {
+      cleanups.add(fulfilled[0].value.close);
+    }
   });
 
   it("serves RFC 8414 metadata only from the path-based well-known location for pathful issuers", async () => {
@@ -319,6 +402,32 @@ describe("tiny-oauth-test-server", () => {
         }
       }
     }
+  });
+
+  it("does not expose root authorization aliases for a pathful issuer", async () => {
+    const issuerPort = await reservePort("127.0.0.1");
+    const server = createOAuthTestServer({
+      issuer: `http://127.0.0.1:${issuerPort}/oauth`,
+      signingKeySeed: "tiny-oauth-test-server:pathful-routes",
+      defaultAuthorization: { autoApprove: true },
+      requireDcr: false
+    });
+    const handle = await server.listen({ hostname: "127.0.0.1", port: issuerPort });
+    cleanups.add(handle.close);
+
+    const response = await nodeFetch(
+      `http://127.0.0.1:${issuerPort}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.0.0.1:43123/callback")}`
+        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("preserves query parameters in configured issuer identifiers", () => {
+    const server = createOAuthTestServer({ issuer: "http://127.0.0.1?tenant=demo" });
+
+    expect(server.issuer).toBe("http://127.0.0.1/?tenant=demo");
   });
 
   it("round-trips register, authorize, and token into a verifiable JWT", async () => {
@@ -439,6 +548,70 @@ describe("tiny-oauth-test-server", () => {
       error: "invalid_client_metadata",
       error_description: "token_endpoint_auth_method client_secret_basic is not supported",
     });
+  });
+
+  it("does not allow refresh grants omitted during registration", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43145/callback";
+    const resource = "https://resource.example.com/no-refresh";
+    const registration = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        redirect_uris: [redirectUri],
+        grant_types: ["authorization_code"],
+        response_types: ["code"]
+      })
+    });
+    const clientId = ((await registration.json()) as { client_id: string }).client_id;
+    const codeVerifier = createValidVerifier("no-refresh-verifier");
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+    const payload = (await tokenResponse.json()) as Record<string, unknown>;
+
+    expect(payload.refresh_token).toBeUndefined();
+  });
+
+  it("rejects malformed registration metadata instead of silently defaulting it", async () => {
+    const { server } = await listenServer();
+    for (const body of [
+      { redirect_uris: ["http://127.0.0.1:43141/callback"], scope: ["mcp.read"] },
+      { redirect_uris: ["http://127.0.0.1:43141/callback"], token_endpoint_auth_method: {} }
+    ]) {
+      const response = await nodeFetch(`${server.issuer}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_client_metadata" });
+    }
+  });
+
+  it("rejects dynamic registrations with non-loopback redirects", async () => {
+    const { server } = await listenServer();
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: ["https://attacker.example/callback"] })
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_redirect_uri" });
   });
 
   it("accepts a valid PKCE verifier that uses the full RFC 7636 unreserved alphabet", async () => {
@@ -663,6 +836,61 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects malformed S256 challenges before issuing an authorization code", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43146/callback";
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`
+        + "&code_challenge=not-a-sha256-code-challenge&code_challenge_method=S256"
+        + "&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_request" });
+  });
+
+  it("does not let authorization query parameters bypass disabled consent", async () => {
+    const redirectUri = "http://127.0.0.1:43147/callback";
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:consent",
+      staticClients: [{ clientId: "client", redirectUris: [redirectUri] }],
+      defaultAuthorization: { autoApprove: false }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("consent-verifier")))}`
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("Authorize test client");
+  });
+
+  it("allows retrying shutdown after a transient close failure", async () => {
+    const originalClose = http.Server.prototype.close;
+    const close = vi.spyOn(http.Server.prototype, "close");
+    close.mockImplementationOnce(function (callback?: (error?: Error) => void) {
+      callback?.(new Error("close temporarily failed"));
+      return this;
+    });
+    close.mockImplementation(function (callback?: (error?: Error) => void) {
+      return originalClose.call(this, callback as never);
+    });
+    const server = createOAuthTestServer({ signingKeySeed: "tiny-oauth-test-server:close-retry" });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+
+    await expect(handle.close()).rejects.toThrow("close temporarily failed");
+    await expect(handle.close()).resolves.toBeUndefined();
+    expect(close).toHaveBeenCalledTimes(2);
+  });
+
+
   it("rotates refresh tokens and issues a new access token", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43126/callback";
@@ -707,6 +935,43 @@ describe("tiny-oauth-test-server", () => {
 
     expect(refreshPayload.access_token).not.toBe(firstPayload.access_token);
     expect(refreshPayload.refresh_token).not.toBe(firstPayload.refresh_token);
+  });
+
+  it("rejects a refresh token at its exact expiration instant", async () => {
+    let now = 1_700_000_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43142/callback";
+    const resource = "https://resource.example.com/refresh-expired";
+    const codeVerifier = createValidVerifier("refresh-expired-verifier");
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+    const payload = (await tokenResponse.json()) as { refresh_token: string };
+
+    now += 3_600_000;
+    const refreshResponse = await refreshAccessToken({
+      baseUrl: server.issuer,
+      clientId,
+      refreshToken: payload.refresh_token,
+      resource
+    });
+
+    expect(refreshResponse.status).toBe(400);
+    await expect(refreshResponse.json()).resolves.toMatchObject({ error: "invalid_grant" });
   });
 
   it("rejects refresh-token reuse after rotation invalidates the old token", async () => {
@@ -857,6 +1122,11 @@ describe("tiny-oauth-test-server", () => {
         return new URLSearchParams(request.body ?? "").get("grant_type") === "refresh_token";
       })
     ).toHaveLength(1);
+    const refreshRequest = requestLog.find((request) =>
+      request.body?.includes("grant_type=refresh_token")
+    );
+    expect(refreshRequest?.body).not.toContain(tokenPayload.refresh_token);
+    expect(refreshRequest?.body).toContain("refresh_token=%5Bredacted%5D");
   });
 
   it("rejects authorization codes after the first successful exchange", async () => {
@@ -900,6 +1170,36 @@ describe("tiny-oauth-test-server", () => {
     await expect(secondResponse.json()).resolves.toMatchObject({
       error: "invalid_grant",
     });
+  });
+
+  it("rejects authorization codes at their exact expiration instant", async () => {
+    let now = 1_700_000_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43143/callback";
+    const resource = "https://resource.example.com/code-expired";
+    const codeVerifier = createValidVerifier("code-expired-verifier");
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+
+    now += 300_000;
+    const response = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_grant" });
   });
 
   it("rejects re-used PKCE verifiers across two token requests", async () => {
@@ -957,61 +1257,49 @@ describe("tiny-oauth-test-server", () => {
   it("rejects localhost redirect URIs during authorization", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://localhost:43136/callback";
-    const resource = "https://resource.example.com/localhost";
-    const clientId = await registerClient({
-      baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: [redirectUri] })
     });
-    const response = await nodeFetch(
-      new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge("localhost-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent(resource)}`
-        + "&auto_approve=1",
-        server.issuer
-      ),
-      {
-        redirect: "manual",
-      }
-    );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_redirect_uri",
     });
   });
 
   it("rejects https redirect URIs in the public-client loopback flow", async () => {
     const { server } = await listenServer();
     const redirectUri = "https://127.0.0.1/callback";
-    const resource = "https://resource.example.com/https-redirect";
-    const clientId = await registerClient({
-      baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: [redirectUri] })
     });
-    const response = await nodeFetch(
-      new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge("https-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent(resource)}`
-        + "&auto_approve=1",
-        server.issuer
-      ),
-      {
-        redirect: "manual",
-      }
-    );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_redirect_uri",
     });
+  });
+
+  it("rejects hostname values merely prefixed with the loopback octet", async () => {
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:hostname-prefix",
+      requireDcr: false,
+      defaultAuthorization: { autoApprove: true }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.attacker.example.test/callback")}`
+        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12"
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
   });
 
   it("allows port-only variance against a registered loopback redirect URI", async () => {
@@ -1147,6 +1435,36 @@ describe("tiny-oauth-test-server", () => {
     expect(verified.payload.client_id).toBe("direct-client");
     expect(verified.payload.scope).toBe("mcp.read");
     expect(verified.payload.exp).toBe(verified.payload.iat! + 120);
+  });
+
+  it("rejects direct tokens with a non-positive ttl", async () => {
+    const { server } = await listenServer();
+
+    await expect(
+      server.issueTokenFor({
+        clientId: "direct-client",
+        resource: "https://resource.example.com/direct",
+        scopes: [],
+        ttlSeconds: -60
+      })
+    ).rejects.toThrow("ttlSeconds must be a positive integer");
+  });
+
+  it("rejects malformed HTTP direct-token fields", async () => {
+    const { server } = await listenServer();
+    for (const body of [
+      { client_id: "client", resource: "https://resource.example.com/direct", scopes: {} },
+      { client_id: "client", resource: "https://resource.example.com/direct", ttl_seconds: "never" }
+    ]) {
+      const response = await nodeFetch(`${server.issuer}/testing/issue-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_request" });
+    }
   });
 
   it("accepts IPv6 loopback redirect URIs", async () => {

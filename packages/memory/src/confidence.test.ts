@@ -17,6 +17,38 @@ describe("TAG_RE", () => {
   });
 });
 
+describe("parseClaims unsupported attributes", () => {
+  it("reports constructor as unsupported rather than duplicated", () => {
+    expect(() =>
+      parseClaims("<!-- memory:ambiguous reason=uncertain constructor=visible -->\nClaim body")
+    ).toThrow('ambiguous confidence tags do not support: "constructor"');
+  });
+});
+
+describe("parseClaims fenced examples", () => {
+  it("ignores confidence tag examples inside fenced code blocks", () => {
+    expect(
+      parseClaims(
+        [
+          "```md",
+          "<!-- memory:extracted source=outside/secret.ts#L1 -->",
+          "This is documentation syntax only.",
+          "```",
+          "",
+          "<!-- memory:extracted source=docs/real.md -->",
+          "This is a real claim.",
+        ].join("\n")
+      )
+    ).toEqual([
+      {
+        tag: { verb: "extracted", source: { path: "docs/real.md" } },
+        body: "This is a real claim.",
+        lineNumber: 6,
+      },
+    ]);
+  });
+});
+
 describe("parseClaims", () => {
   it("returns an empty list when there are no confidence tags", () => {
     expect(parseClaims("# Memory\n\nNo tagged claims here.")).toEqual([]);

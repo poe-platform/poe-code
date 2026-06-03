@@ -112,6 +112,48 @@ function toResultError(error: {
   };
 }
 
+function toLintResult(error: unknown): ExecuteResult | undefined {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("kind" in error) ||
+    error.kind !== "ParseError" ||
+    !("message" in error) ||
+    typeof error.message !== "string" ||
+    !("filename" in error) ||
+    typeof error.filename !== "string" ||
+    !("line" in error) ||
+    typeof error.line !== "number" ||
+    !("column" in error) ||
+    typeof error.column !== "number" ||
+    !("span" in error)
+  ) {
+    return undefined;
+  }
+
+  const parseError = error as {
+    message: string;
+    filename: string;
+    line: number;
+    column: number;
+    span: Diagnostic["span"];
+  };
+
+  return {
+    ok: false,
+    kind: "lint",
+    diagnostics: [{
+      code: "AS001",
+      severity: "error",
+      message: parseError.message,
+      filename: parseError.filename,
+      line: parseError.line,
+      column: parseError.column,
+      span: parseError.span
+    }]
+  };
+}
+
 export function makeExecuteCommand({
   root,
   sdk,
@@ -127,10 +169,21 @@ export function makeExecuteCommand({
     params: executeParams,
     handler: async ({ params }): Promise<ExecuteResult> => {
       const { lintModules, modules } = await buildHostModules(root, sdk, entries);
-      const diagnostics = lint(params.source, {
-        modules: lintModules,
-        filename: "<execute>"
-      }).filter((diagnostic) => diagnostic.severity === "error");
+      let diagnostics: Diagnostic[];
+
+      try {
+        diagnostics = lint(params.source, {
+          modules: lintModules,
+          filename: "<execute>"
+        }).filter((diagnostic) => diagnostic.severity === "error");
+      } catch (error) {
+        const lintResult = toLintResult(error);
+        if (lintResult !== undefined) {
+          return lintResult;
+        }
+
+        throw error;
+      }
 
       if (diagnostics.length > 0) {
         return {

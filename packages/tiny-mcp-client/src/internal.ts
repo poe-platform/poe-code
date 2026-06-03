@@ -116,8 +116,11 @@ const MCP_PROTOCOL_VERSION = "2025-03-26";
 export class McpClient {
   private currentState: "disconnected" | "initializing" | "ready" | "closed" = "disconnected";
   private currentServerCapabilities: ServerCapabilities | null = null;
+  private currentClientCapabilities: ClientCapabilities | null = null;
   private currentServerInfo: Implementation | null = null;
   private currentInstructions: string | undefined;
+  private readonly subscribedResourceUris = new Set<string>();
+  private readonly activeProgressTokens = new Map<ProgressToken, number>();
   private readonly options: McpClientOptions;
   private transport: McpTransport | null = null;
   private messageLayer: JsonRpcMessageLayer | null = null;
@@ -131,7 +134,9 @@ export class McpClient {
   }
 
   get serverCapabilities(): ServerCapabilities | null {
-    return this.currentServerCapabilities;
+    return this.currentServerCapabilities === null
+      ? null
+      : structuredClone(this.currentServerCapabilities);
   }
 
   get serverInfo(): Implementation | null {
@@ -163,6 +168,13 @@ export class McpClient {
       throw new Error("MCP client is already connected");
     }
 
+    this.currentServerCapabilities = null;
+    this.currentClientCapabilities = null;
+    this.currentServerInfo = null;
+    this.currentInstructions = undefined;
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
+
     const transportClosedReason = transport.closed
       .then((closedEvent) => closedEvent.reason)
       .catch((error: unknown) =>
@@ -193,14 +205,8 @@ export class McpClient {
       );
     }
 
-    if (onRootsList !== undefined) {
-      messageLayer.onRequest("roots/list", async () => ({
-        roots: await onRootsList(),
-      }));
-    }
-
     messageLayer.onNotification("notifications/tools/list_changed", async () => {
-      if (onToolsChanged === undefined) {
+      if (onToolsChanged === undefined || this.currentServerCapabilities?.tools?.listChanged !== true) {
         return;
       }
 
@@ -223,7 +229,7 @@ export class McpClient {
       }
 
       const { uri } = params as { uri?: unknown };
-      if (typeof uri !== "string") {
+      if (typeof uri !== "string" || !this.subscribedResourceUris.has(uri)) {
         return;
       }
 
@@ -266,7 +272,11 @@ export class McpClient {
       }
 
       const { progressToken, progress } = params;
-      if (!isRequestId(progressToken) || typeof progress !== "number") {
+      if (
+        !isRequestId(progressToken) ||
+        typeof progress !== "number" ||
+        !this.activeProgressTokens.has(progressToken)
+      ) {
         return;
       }
 
@@ -298,6 +308,8 @@ export class McpClient {
     this.transport = transport;
     this.messageLayer = messageLayer;
     this.currentState = "initializing";
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
     transport.closed
       .then((closedEvent) => {
         if (this.transport !== transport) {
@@ -335,26 +347,52 @@ export class McpClient {
       };
     }
 
-    const initializeResult = (await messageLayer.sendRequest("initialize", {
-      protocolVersion: MCP_PROTOCOL_VERSION,
-      clientInfo: this.options.clientInfo,
-      capabilities,
-    })) as InitializeResult;
+    this.currentClientCapabilities = structuredClone(capabilities);
 
-    if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
-      throw new McpError(
-        ERROR_INVALID_REQUEST,
-        `Unsupported protocol version: ${initializeResult.protocolVersion}`
-      );
+    try {
+      const initializeResultValue = await messageLayer.sendRequest("initialize", {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        clientInfo: this.options.clientInfo,
+        capabilities,
+      });
+
+      if (!isInitializeResult(initializeResultValue)) {
+        throw new McpError(ERROR_INVALID_REQUEST, "Invalid initialize result");
+      }
+
+      const initializeResult = initializeResultValue;
+
+      if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
+        throw new McpError(
+          ERROR_INVALID_REQUEST,
+          `Unsupported protocol version: ${initializeResult.protocolVersion}`
+        );
+      }
+
+      this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
+      this.currentServerInfo = { ...initializeResult.serverInfo };
+      this.currentInstructions = initializeResult.instructions;
+      if (onRootsList !== undefined) {
+        messageLayer.onRequest("roots/list", async () => ({
+          roots: await onRootsList(),
+        }));
+      }
+      messageLayer.sendNotification("notifications/initialized");
+      this.currentState = "ready";
+
+      return initializeResult;
+    } catch (error) {
+      if (this.transport === transport) {
+        const reason = error instanceof Error ? error : new Error(String(error));
+        messageLayer.dispose(reason);
+        transport.dispose(reason);
+        this.messageLayer = null;
+        this.transport = null;
+        this.currentState = "disconnected";
+      }
+
+      throw error;
     }
-
-    this.currentServerCapabilities = initializeResult.capabilities;
-    this.currentServerInfo = initializeResult.serverInfo;
-    this.currentInstructions = initializeResult.instructions;
-    messageLayer.sendNotification("notifications/initialized");
-    this.currentState = "ready";
-
-    return initializeResult;
   }
 
   private getServerCapabilitiesOrThrow(): ServerCapabilities {
@@ -373,10 +411,12 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    return (await messageLayer.sendRequest("tools/list", requestParams)) as {
-      tools: Tool[];
-      nextCursor?: string;
-    };
+    const result = await messageLayer.sendRequest("tools/list", requestParams);
+    if (!isToolsListResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid tools/list result");
+    }
+
+    return result;
   }
 
   async callTool(params: CallToolParams, options: CallToolOptions = {}): Promise<CallToolResult> {
@@ -384,6 +424,10 @@ export class McpClient {
     const serverCapabilities = this.getServerCapabilitiesOrThrow();
     if (serverCapabilities.tools === undefined) {
       throw new Error("Server does not support tools");
+    }
+
+    if (options.signal?.aborted) {
+      throw options.signal.reason;
     }
 
     const requestParams =
@@ -396,39 +440,63 @@ export class McpClient {
             },
           };
 
-    let requestId: RequestId | undefined;
-    const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
-      onRequestId: (nextRequestId) => {
-        requestId = nextRequestId;
-      },
-    }) as Promise<CallToolResult>;
-    if (options.signal === undefined) {
-      return await requestPromise;
+    if (options.progressToken !== undefined) {
+      this.activeProgressTokens.set(
+        options.progressToken,
+        (this.activeProgressTokens.get(options.progressToken) ?? 0) + 1
+      );
     }
-    const signal = options.signal;
-
-    let abortListener: (() => void) | undefined;
-    const abortPromise = new Promise<CallToolResult>((_, reject) => {
-      const rejectWithAbortReason = () => {
-        if (requestId !== undefined) {
-          messageLayer.sendNotification("notifications/cancelled", { requestId });
-        }
-        reject(signal.reason);
-      };
-
-      abortListener = rejectWithAbortReason;
-      signal.addEventListener("abort", abortListener, { once: true });
-      if (signal.aborted) {
-        signal.removeEventListener("abort", abortListener);
-        rejectWithAbortReason();
-      }
-    });
 
     try {
-      return (await Promise.race([requestPromise, abortPromise])) as CallToolResult;
+      let requestId: RequestId | undefined;
+      const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
+        onRequestId: (nextRequestId) => {
+          requestId = nextRequestId;
+        },
+      }).then((result) => {
+        if (!isCallToolResult(result)) {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
+        }
+
+        return result;
+      });
+      if (options.signal === undefined) {
+        return await requestPromise;
+      }
+      const signal = options.signal;
+
+      let abortListener: (() => void) | undefined;
+      const abortPromise = new Promise<CallToolResult>((_, reject) => {
+        const rejectWithAbortReason = () => {
+          if (requestId !== undefined) {
+            messageLayer.sendNotification("notifications/cancelled", { requestId });
+          }
+          reject(signal.reason);
+        };
+
+        abortListener = rejectWithAbortReason;
+        signal.addEventListener("abort", abortListener, { once: true });
+        if (signal.aborted) {
+          signal.removeEventListener("abort", abortListener);
+          rejectWithAbortReason();
+        }
+      });
+
+      try {
+        return (await Promise.race([requestPromise, abortPromise])) as CallToolResult;
+      } finally {
+        if (abortListener !== undefined) {
+          signal.removeEventListener("abort", abortListener);
+        }
+      }
     } finally {
-      if (abortListener !== undefined) {
-        signal.removeEventListener("abort", abortListener);
+      if (options.progressToken !== undefined) {
+        const activeCount = this.activeProgressTokens.get(options.progressToken);
+        if (activeCount === 1) {
+          this.activeProgressTokens.delete(options.progressToken);
+        } else if (activeCount !== undefined) {
+          this.activeProgressTokens.set(options.progressToken, activeCount - 1);
+        }
       }
     }
   }
@@ -485,6 +553,7 @@ export class McpClient {
     }
 
     await messageLayer.sendRequest("resources/subscribe", { uri });
+    this.subscribedResourceUris.add(uri);
   }
 
   async unsubscribe(uri: string): Promise<void> {
@@ -495,6 +564,7 @@ export class McpClient {
     }
 
     await messageLayer.sendRequest("resources/unsubscribe", { uri });
+    this.subscribedResourceUris.delete(uri);
   }
 
   async listPrompts(params: PaginatedParams = {}): Promise<{ prompts: Prompt[]; nextCursor?: string }> {
@@ -554,6 +624,10 @@ export class McpClient {
 
   async sendRootsChanged(): Promise<void> {
     const messageLayer = this.getMessageLayerOrThrow();
+    if (this.currentClientCapabilities?.roots?.listChanged !== true) {
+      throw new Error("Client did not advertise roots list changes");
+    }
+
     messageLayer.sendNotification("notifications/roots/list_changed");
   }
 
@@ -572,6 +646,12 @@ export class McpClient {
     this.transport?.dispose(closeError);
     this.messageLayer = null;
     this.transport = null;
+    this.currentServerCapabilities = null;
+    this.currentClientCapabilities = null;
+    this.currentServerInfo = null;
+    this.currentInstructions = undefined;
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
     this.currentState = "closed";
   }
 }
@@ -2403,7 +2483,6 @@ export class HttpTransport implements McpTransport {
     this.disposed = true;
     this.abortInFlightFetches();
     this.cancelOpenSseReaders();
-    this.terminateSession();
 
     if (!this.writeStream.destroyed && !this.writeStream.writableEnded) {
       this.writeStream.end();
@@ -2413,9 +2492,24 @@ export class HttpTransport implements McpTransport {
       this.readStream.end();
     }
 
+    void this.closeWithSessionTermination(reason);
+  }
+
+  private async closeWithSessionTermination(reason: Error): Promise<void> {
+    let closeReason = reason;
+    if (this.sessionId !== undefined) {
+      const sessionId = this.sessionId;
+      this.sessionId = undefined;
+      try {
+        await this.sendSessionTerminationRequest(sessionId);
+      } catch (error) {
+        closeReason = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
     const resolveClosed = this.resolveClosed;
     this.resolveClosed = undefined;
-    resolveClosed?.({ reason });
+    resolveClosed?.({ reason: closeReason });
   }
 
   private abortInFlightFetches(): void {
@@ -2470,7 +2564,9 @@ export class HttpTransport implements McpTransport {
       await this.throwForPostHttpError(response);
       this.captureSessionId(response);
       this.maybeOpenGetSseStream();
-      await this.forwardResponseMessages(response);
+      void this.forwardResponseMessages(response).catch((error) => {
+        this.dispose(error instanceof Error ? error : new Error(String(error)));
+      });
     }
   }
 
@@ -2480,6 +2576,7 @@ export class HttpTransport implements McpTransport {
     headers.set("Content-Type", "application/json");
     if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
+      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
     return this.authorizeRequestHeaders(headers);
   }
@@ -2489,6 +2586,7 @@ export class HttpTransport implements McpTransport {
     headers.set("Accept", "text/event-stream");
     if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
+      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
     if (this.lastEventId !== undefined) {
       headers.set("Last-Event-ID", this.lastEventId);
@@ -2499,6 +2597,7 @@ export class HttpTransport implements McpTransport {
   private async createDeleteHeaders(sessionId: string): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Mcp-Session-Id", sessionId);
+    headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     return this.authorizeRequestHeaders(headers);
   }
 
@@ -2515,6 +2614,10 @@ export class HttpTransport implements McpTransport {
     const sessionId = response.headers.get("Mcp-Session-Id");
     if (sessionId === null || sessionId.length === 0) {
       return;
+    }
+
+    if (this.sessionId !== undefined && this.sessionId !== sessionId) {
+      throw new Error("HTTP transport response changed active session ID");
     }
 
     this.sessionId = sessionId;
@@ -2535,26 +2638,22 @@ export class HttpTransport implements McpTransport {
     });
   }
 
-  private terminateSession(): void {
-    if (this.sessionId === undefined) {
-      return;
-    }
-
-    const sessionId = this.sessionId;
-    this.sessionId = undefined;
-
-    this.sendSessionTerminationRequest(sessionId).catch(() => undefined);
-  }
-
   private async sendSessionTerminationRequest(sessionId: string): Promise<void> {
     const response = await this.fetchImpl(this.url, {
       method: "DELETE",
       headers: await this.createDeleteHeaders(sessionId),
     });
 
-    if (response.status === 405) {
+    if (response.status === 405 || response.ok) {
       return;
     }
+
+    const responseBody = (await response.text()).trim();
+    const statusDescriptor = `${response.status} ${response.statusText}`.trim();
+    const message = responseBody.length === 0
+      ? `HTTP transport DELETE failed (${statusDescriptor})`
+      : `HTTP transport DELETE failed (${statusDescriptor}): ${responseBody}`;
+    throw new Error(message);
   }
 
   private async consumeGetSseStream(): Promise<void> {
@@ -2565,6 +2664,20 @@ export class HttpTransport implements McpTransport {
 
     if (response.status === 405) {
       throw new HttpTransportGetSseNotSupportedError();
+    }
+
+    if (response.status === 404) {
+      this.sessionId = undefined;
+      throw new Error("HTTP transport session expired (GET 404 response)");
+    }
+
+    if (!response.ok) {
+      const responseBody = (await response.text()).trim();
+      const statusDescriptor = `${response.status} ${response.statusText}`.trim();
+      const message = responseBody.length === 0
+        ? `HTTP transport GET failed (${statusDescriptor})`
+        : `HTTP transport GET failed (${statusDescriptor}): ${responseBody}`;
+      throw new Error(message);
     }
 
     const contentType = response.headers.get("Content-Type");
@@ -2578,7 +2691,10 @@ export class HttpTransport implements McpTransport {
       if (!this.disposed && this.sessionId !== undefined && this.lastEventId !== undefined) {
         this.maybeOpenGetSseStream();
       }
+      return;
     }
+
+    return;
   }
 
   private async throwForPostHttpError(response: Response): Promise<void> {
@@ -2646,7 +2762,10 @@ export class HttpTransport implements McpTransport {
 
     if (normalizedContentType.includes("application/json")) {
       await this.forwardJsonResponseMessage(response);
+      return;
     }
+
+    throw new Error("HTTP transport POST returned an unsupported response content type");
   }
 
   private async forwardSseResponseMessages(response: Response): Promise<void> {
@@ -2857,9 +2976,13 @@ function normalizeLine(line: string): string {
 
 export async function* readLines(stream: Readable): AsyncGenerator<string> {
   let buffer = "";
+  const decoder = new TextDecoder();
 
   for await (const chunk of stream as AsyncIterable<unknown>) {
-    buffer += chunkToString(chunk);
+    buffer +=
+      chunk instanceof Uint8Array
+        ? decoder.decode(chunk, { stream: true })
+        : decoder.decode() + String(chunk);
 
     while (true) {
       const newlineIndex = buffer.indexOf("\n");
@@ -2872,6 +2995,8 @@ export async function* readLines(stream: Readable): AsyncGenerator<string> {
       yield normalizeLine(line);
     }
   }
+
+  buffer += decoder.decode();
 
   if (buffer.length > 0) {
     yield normalizeLine(buffer);
@@ -3382,6 +3507,82 @@ export class JsonRpcMessageLayer {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isInitializeResult(value: unknown): value is InitializeResult {
+  if (!isObjectRecord(value) || typeof value.protocolVersion !== "string") {
+    return false;
+  }
+
+  if (!isServerCapabilities(value.capabilities)) {
+    return false;
+  }
+
+  if (
+    !isObjectRecord(value.serverInfo)
+    || typeof value.serverInfo.name !== "string"
+    || value.serverInfo.name.length === 0
+    || typeof value.serverInfo.version !== "string"
+    || value.serverInfo.version.length === 0
+  ) {
+    return false;
+  }
+
+  return value.instructions === undefined || typeof value.instructions === "string";
+}
+
+function isServerCapabilities(value: unknown): value is ServerCapabilities {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  for (const capability of ["prompts", "resources", "tools", "logging", "completions", "experimental"] as const) {
+    if (value[capability] !== undefined && !isObjectRecord(value[capability])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isCallToolResult(value: unknown): value is CallToolResult {
+  if (!isObjectRecord(value) || !Array.isArray(value.content)) {
+    return false;
+  }
+
+  if (value.isError !== undefined && typeof value.isError !== "boolean") {
+    return false;
+  }
+
+  return value.content.every(isContentItem);
+}
+
+function isToolsListResult(value: unknown): value is { tools: Tool[]; nextCursor?: string } {
+  return isObjectRecord(value)
+    && Array.isArray(value.tools)
+    && (value.nextCursor === undefined || typeof value.nextCursor === "string");
+}
+
+function isContentItem(value: unknown): value is ContentItem {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (value.type === "text") {
+    return typeof value.text === "string";
+  }
+
+  if (value.type === "image" || value.type === "audio") {
+    return typeof value.data === "string" && typeof value.mimeType === "string";
+  }
+
+  if (value.type !== "resource" || !isObjectRecord(value.resource)) {
+    return false;
+  }
+
+  return typeof value.resource.uri === "string"
+    && (value.resource.mimeType === undefined || typeof value.resource.mimeType === "string")
+    && (typeof value.resource.text === "string" || typeof value.resource.blob === "string");
 }
 
 function hasOwn(

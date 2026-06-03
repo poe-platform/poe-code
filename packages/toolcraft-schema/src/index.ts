@@ -261,6 +261,33 @@ function assertValidEnumValues(values: ReadonlyArray<EnumValue>): void {
   if (uniqueValues.size !== values.length) {
     throw new Error("Enum schema values must be unique");
   }
+
+  if (values.some((value) => typeof value === "number" && !Number.isFinite(value))) {
+    throw new Error("Enum schema numeric values must be finite");
+  }
+}
+
+function assertNonNegativeInteger(value: number | undefined, name: string): void {
+  if (value !== undefined && (!Number.isInteger(value) || value < 0)) {
+    throw new Error(`${name} must be a non-negative integer`);
+  }
+}
+
+function assertFiniteNumber(value: number | undefined, name: string): void {
+  if (value !== undefined && !Number.isFinite(value)) {
+    throw new Error(`${name} must be finite`);
+  }
+}
+
+function assertPattern(pattern: string | undefined): void {
+  if (pattern === undefined) {
+    return;
+  }
+  try {
+    new RegExp(pattern);
+  } catch {
+    throw new Error("pattern must be a valid regular expression");
+  }
 }
 
 function unwrapOptional(schema: AnySchema): Exclude<AnySchema, OptionalSchema<AnySchema>> {
@@ -296,6 +323,9 @@ function withInjectedDiscriminator(
 
 export const S = {
   String(options: SchemaOptions<string> & StringMetadata = {}): StringSchema {
+    assertNonNegativeInteger(options.minLength, "minLength");
+    assertNonNegativeInteger(options.maxLength, "maxLength");
+    assertPattern(options.pattern);
     return {
       kind: "string",
       ...options,
@@ -305,6 +335,12 @@ export const S = {
   Number(
     options: SchemaOptions<number> & NumberMetadata & { jsonType?: NumberJsonType } = {}
   ): NumberSchema {
+    assertFiniteNumber(options.minimum, "minimum");
+    assertFiniteNumber(options.maximum, "maximum");
+    assertFiniteNumber(options.default, "default");
+    if (options.jsonType === "integer" && options.default !== undefined && !Number.isInteger(options.default)) {
+      throw new Error("default must be an integer");
+    }
     return {
       kind: "number",
       ...options,
@@ -329,6 +365,9 @@ export const S = {
     } = {}
   ): EnumSchema<TValues> {
     assertValidEnumValues(values);
+    if (options.jsonType === "integer" && values.some((value) => typeof value !== "number" || !Number.isInteger(value))) {
+      throw new Error("Integer enum values must be integers");
+    }
 
     return {
       kind: "enum",
@@ -341,6 +380,8 @@ export const S = {
     item: TItem,
     options: SchemaOptions<Array<Static<TItem>>> & ArrayMetadata = {}
   ): ArraySchema<TItem> {
+    assertNonNegativeInteger(options.minItems, "minItems");
+    assertNonNegativeInteger(options.maxItems, "maxItems");
     return {
       kind: "array",
       item,
@@ -415,7 +456,12 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
       const required: string[] = [];
 
       for (const [key, propertySchema] of Object.entries(unwrappedSchema.shape)) {
-        properties[key] = toJsonSchema(propertySchema);
+        Object.defineProperty(properties, key, {
+          enumerable: true,
+          configurable: true,
+          writable: true,
+          value: toJsonSchema(propertySchema)
+        });
 
         if (!isOptionalSchema(propertySchema)) {
           required.push(key);

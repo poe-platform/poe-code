@@ -88,4 +88,63 @@ describe("computeTokenStats", () => {
       missingSources: []
     });
   });
+
+  it("does not read absolute source paths outside the repository", async () => {
+    vol.fromJSON({
+      "/outside/private.txt": "hidden external token material",
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/LOG.md": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - /outside/private.txt",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: ["/outside/private.txt"]
+    });
+  });
+
+  it("does not report URL sources as missing local files", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/LOG.md": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - https://example.test/spec.md",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: []
+    });
+  });
+
+  it("does not count source files reached through repository symlinks", async () => {
+    vol.fromJSON({
+      "/outside/private.md": "external secret material\n",
+      "/repo/docs/.keep": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - docs/linked.md",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+    await vol.promises.symlink("/outside/private.md", "/repo/docs/linked.md");
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: ["docs/linked.md"]
+    });
+  });
 });

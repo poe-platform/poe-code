@@ -14,6 +14,7 @@ import { collectReferencedInspectors } from "./templates.js";
 
 export type SuperintendentStopReason =
   | "completed"
+  | "dry_run"
   | "max_rounds"
   | "paused"
   | "stopped"
@@ -34,6 +35,7 @@ export interface SuperintendentFileSystem {
   writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<SuperintendentFileStat>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
@@ -72,6 +74,11 @@ export interface AgentRunResult {
 }
 
 export type LoopCallbacks = {
+  runRole?: <T>(
+    role: "builder" | "inspector" | "superintendent" | "owner",
+    name: string | undefined,
+    run: () => Promise<T>
+  ) => Promise<T>;
   onBuilderStart?: () => void;
   onBuilderComplete?: (result: BuilderResult) => void;
   onBuilderFailed?: (error: Error) => void;
@@ -175,18 +182,20 @@ export async function runLoop(
         let builderResult: BuilderResult;
         try {
           const builderDoc = await readDocument(options.fs, options.docPath);
-          builderResult = await options.runners.builder(
-            options.builderAgent
-              ? {
-                  ...builderDoc,
-                  frontmatter: {
-                    ...builderDoc.frontmatter,
-                    builder: { ...builderDoc.frontmatter.builder, agent: options.builderAgent }
+          builderResult = await runRole(options, "builder", undefined, () =>
+            options.runners.builder(
+              options.builderAgent
+                ? {
+                    ...builderDoc,
+                    frontmatter: {
+                      ...builderDoc.frontmatter,
+                      builder: { ...builderDoc.frontmatter.builder, agent: options.builderAgent }
+                    }
                   }
-                }
-              : builderDoc,
-            createTemplateContext(context),
-            buildRoleOptions(options, "builder")
+                : builderDoc,
+              createTemplateContext(context),
+              buildRoleOptions(options, "builder")
+            )
           );
         } catch (error) {
           await restoreDocument(options.fs, options.docPath, roundSnapshot);
@@ -222,12 +231,14 @@ export async function runLoop(
 
           let inspectorResult: InspectorResult;
           try {
-            inspectorResult = await options.runners.inspector(
-              name,
-              config,
-              await readDocument(options.fs, options.docPath),
-              createTemplateContext(context),
-              buildRoleOptions(options, `inspector-${name}`)
+            inspectorResult = await runRole(options, "inspector", name, async () =>
+              options.runners.inspector(
+                name,
+                config,
+                await readDocument(options.fs, options.docPath),
+                createTemplateContext(context),
+                buildRoleOptions(options, `inspector-${name}`)
+              )
             );
           } catch (error) {
             await restoreDocument(options.fs, options.docPath, inspectorSnapshot);
@@ -339,16 +350,26 @@ export async function runLoop(
       const ownerSnapshot = await readDocumentContent(options.fs, options.docPath);
       let ownerResult: OwnerResult;
       try {
-        ownerResult = await options.runners.ownerReview(
-          await readDocument(options.fs, options.docPath),
-          createTemplateContext(context),
-          buildRoleOptions(options, "owner")
+        ownerResult = await runRole(options, "owner", undefined, async () =>
+          options.runners.ownerReview(
+            await readDocument(options.fs, options.docPath),
+            createTemplateContext(context),
+            buildRoleOptions(options, "owner")
+          )
         );
       } catch (error) {
         await restoreDocument(options.fs, options.docPath, ownerSnapshot);
         throw toError(error);
       }
       options.callbacks.onOwnerComplete?.(ownerResult);
+
+      {
+        const stopReason = readInterruptionReason(options, state);
+
+        if (stopReason) {
+          return finishLoop(options.callbacks, state, stopReason);
+        }
+      }
 
       if (ownerResult.transition.action === "approve_completion") {
         context = {
@@ -439,6 +460,10 @@ function createDefaultFs(): SuperintendentFileSystem {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
+    },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
@@ -562,10 +587,12 @@ async function executeSuperintendent(
   const snapshot = await readDocumentContent(options.fs, options.docPath);
   try {
     const doc = await readDocument(options.fs, options.docPath);
-    const result = await options.runners.superintendent(
-      doc,
-      createTemplateContext(context),
-      buildRoleOptions(options, "superintendent")
+    const result = await runRole(options, "superintendent", undefined, () =>
+      options.runners.superintendent(
+        doc,
+        createTemplateContext(context),
+        buildRoleOptions(options, "superintendent")
+      )
     );
     options.callbacks.onSuperintendentComplete?.(result);
     return result;
@@ -575,13 +602,23 @@ async function executeSuperintendent(
   }
 }
 
+function runRole<T>(
+  options: LoopRuntime,
+  role: "builder" | "inspector" | "superintendent" | "owner",
+  name: string | undefined,
+  run: () => Promise<T>
+): Promise<T> {
+  return options.callbacks.runRole?.(role, name, run) ?? run();
+}
+
 function buildRoleOptions(
   options: LoopRuntime,
   role: string
-): { defaultCwd: string; logPath?: string } {
+): { defaultCwd: string; logPath?: string; signal?: AbortSignal } {
   return {
     defaultCwd: options.cwd,
-    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {})
+    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   };
 }
 

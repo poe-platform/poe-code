@@ -208,7 +208,6 @@ function createDryRunFs(
         };
       }
     },
-    open: unexpectedWrite,
     rename: unexpectedWrite,
     unlink: unexpectedWrite,
     writeFile: unexpectedWrite

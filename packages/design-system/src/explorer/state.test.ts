@@ -97,4 +97,14 @@ describe("createInitialState", () => {
   ] as const)("uses %s columns for %s layout", (cols, layout) => {
     expect(createInitialState(config(), { cols, rows: 24 }).layout).toBe(layout);
   });
+
+  it("rejects duplicate row and detail action identifiers", () => {
+    const rowAction = { id: "open", label: "Open row", handler: () => undefined };
+    const detailAction = { id: "open", label: "Open detail", handler: () => undefined };
+
+    expect(() => createInitialState(config({
+      actions: [rowAction],
+      detail: { items: async () => [], actions: [detailAction] }
+    }), { cols: 120, rows: 24 })).toThrow("Duplicate explorer action id: open");
+  });
 });

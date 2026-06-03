@@ -477,6 +477,19 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain(prompt);
   });
 
+  it("does not silently switch buildSpawnArgs callers to stdin for large prompts", () => {
+    const prompt = "x".repeat(128 * 1024);
+    const result = buildSpawnArgs("codex", { prompt });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      prompt,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(result.args).toContain(prompt);
+  });
+
   it("ignores useStdin for agents without stdinMode", () => {
     const result = buildSpawnArgs("opencode", { prompt: "hello", useStdin: true });
 

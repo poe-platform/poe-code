@@ -1,12 +1,18 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildDockerRunArgs } from "./args.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
+import {
+  downloadWorkspace as downloadTransferredWorkspace,
+  uploadWorkspace as uploadTransferredWorkspace,
+  type WorkspaceTransferFileSystem,
+  type WorkspaceTransferRunnerOptions
+} from "../workspace-transfer.js";
 import type {
   DockerMount,
   Engine,
@@ -28,6 +34,21 @@ interface DockerRuntime {
   engine?: Engine;
   network?: string;
   extra_args?: string[];
+}
+
+interface DetachedJobContext {
+  id: string;
+  tool: string;
+  argv: string[];
+}
+
+interface DockerOpenedEnv extends OpenedEnv {
+  setDetachedJobContext(context: DetachedJobContext): void;
+}
+
+interface DockerReattachContext {
+  engine: Engine;
+  context: string | null;
 }
 
 export interface BuildDockerRuntimeTemplateInput {
@@ -93,13 +114,14 @@ export const dockerExecutionEnvFactory: ExecutionEnvFactory = {
     });
   },
   async attach(envId, context): Promise<OpenedEnv> {
-    const engine = detectEngine();
+    const reattachContext = parseDockerReattachContext(context?.reattachContext);
+    const engine = reattachContext?.engine ?? detectEngine();
     return createDockerEnv({
       id: envId,
       spec: createAttachedSpec(context?.cwd),
       runner: createHostRunner(),
       engine,
-      context: detectContext(),
+      context: reattachContext === undefined ? detectContext() : reattachContext.context,
       attachedJobId: context?.jobId
     });
   }
@@ -112,100 +134,50 @@ function createDockerEnv(input: {
   engine: Engine;
   context: string | null;
   attachedJobId?: string;
-}): OpenedEnv {
+}): DockerOpenedEnv {
   const containerRef = input.id;
+  const workspaceTransferEnv = {
+    cwd: input.spec.cwd,
+    uploadDir: "/tmp/poe-workspace-transfer",
+    workspaceDir: input.spec.cwd,
+    remoteFs: createContainerWorkspaceFileSystem(input)
+  };
+  let detachedJobContext: DetachedJobContext | null =
+    input.attachedJobId === undefined
+      ? null
+      : { id: input.attachedJobId, tool: input.spec.jobLabel.tool, argv: input.spec.jobLabel.argv };
 
   return {
     id: containerRef,
+    reattachContext: { engine: input.engine, context: input.context },
     job:
       input.attachedJobId === undefined
         ? null
-        : createContainerJob(containerRef, input.runner, input.engine, input.context, input.attachedJobId),
-    async uploadWorkspace() {
-      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-upload-"));
-      const archivePath = path.join(tempDir, "workspace.tar");
-      try {
-        const excludeArgs = input.spec.uploadIgnoreFiles.flatMap((ignored) => [
-          "--exclude",
-          ignored
-        ]);
-        const tarArgs = [...excludeArgs, "-cf", archivePath, "-C", input.spec.cwd, "."];
-        await runOrThrow(input.runner, {
-          command: "tar",
-          args: tarArgs,
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "cp",
-            archivePath,
-            `${containerRef}:/tmp/poe-workspace-upload.tar`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "exec",
+        : createContainerJob(
             containerRef,
-            "sh",
-            "-c",
-            `mkdir -p ${shellQuote(input.spec.cwd)} && tar -xf /tmp/poe-workspace-upload.tar -C ${shellQuote(input.spec.cwd)}`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-
+            input.runner,
+            input.engine,
+            input.context,
+            detachedJobContext
+          ),
+    setDetachedJobContext(context) {
+      detachedJobContext = context;
+    },
+    async uploadWorkspace() {
+      if (readRunnerSync(input.spec.runner) === "none") {
         return { files: 0, bytes: 0, skipped: [] };
-      } finally {
-        rmSync(tempDir, { recursive: true, force: true });
       }
+      return uploadTransferredWorkspace(workspaceTransferEnv, {
+        runner: readWorkspaceTransferRunner(input.spec.runner),
+        workspaceExclude: input.spec.uploadIgnoreFiles
+      });
     },
     async downloadWorkspace(opts) {
-      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-download-"));
-      const archivePath = path.join(tempDir, "workspace.tar");
-      try {
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "exec",
-            containerRef,
-            "sh",
-            "-c",
-            `tar -cf /tmp/poe-workspace-download.tar -C ${shellQuote(input.spec.cwd)} .`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "cp",
-            `${containerRef}:/tmp/poe-workspace-download.tar`,
-            archivePath
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        const extractMode = opts.conflictPolicy === "refuse" ? "-xkf" : "-xf";
-        await runOrThrow(input.runner, {
-          command: "tar",
-          args: [extractMode, archivePath, "-C", input.spec.cwd],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-
+      const sync = readRunnerSync(input.spec.runner);
+      if (sync === "upload" || sync === "none") {
         return { files: 0, bytes: 0, conflicts: [] };
-      } finally {
-        rmSync(tempDir, { recursive: true, force: true });
       }
+      return downloadTransferredWorkspace(workspaceTransferEnv, opts);
     },
     exec(spec) {
       return input.runner.exec({
@@ -224,18 +196,25 @@ function createDockerEnv(input: {
         stdin: spec.stdin,
         stdout: spec.stdout,
         stderr: spec.stderr,
-        tty: spec.tty
+        tty: spec.tty,
+        signal: spec.signal
       });
     },
     async detach() {
-      return createContainerJob(containerRef, input.runner, input.engine, input.context);
+      return createContainerJob(
+        containerRef,
+        input.runner,
+        input.engine,
+        input.context,
+        detachedJobContext
+      );
     },
     shell() {
       const shellSpec = input.spec.shellSpec;
       return this.exec({
         command: shellSpec?.command ?? input.spec.env.SHELL ?? "sh",
         ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-        cwd: input.spec.cwd,
+        cwd: shellSpec?.cwd ?? input.spec.cwd,
         env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
         stdin: "inherit",
         stdout: "inherit",
@@ -252,6 +231,20 @@ function createDockerEnv(input: {
       });
     }
   };
+}
+
+function parseDockerReattachContext(
+  value: Record<string, unknown> | undefined
+): DockerReattachContext | undefined {
+  if (
+    value !== undefined &&
+    (value.engine === "docker" || value.engine === "podman") &&
+    (value.context === null || typeof value.context === "string")
+  ) {
+    return { engine: value.engine, context: value.context };
+  }
+
+  return undefined;
 }
 
 async function resolveImage(input: {
@@ -286,10 +279,16 @@ export async function buildDockerRuntimeTemplate(
   );
   const buildContext = path.resolve(input.cwd, input.runtime.build_context ?? ".");
   const dockerfileBytes = await readFile(dockerfilePath);
-  const hash = hashDockerTemplate(dockerfileBytes, input.runtime.build_args ?? {});
+  const buildContextFiles = await readBuildContextFiles(buildContext);
+  const hash = hashDockerTemplate(
+    dockerfileBytes,
+    buildContextFiles,
+    input.runtime.build_args ?? {},
+    engine
+  );
   const cached = input.force ? null : await input.state?.templates.get("docker", hash);
 
-  if (cached?.image !== undefined) {
+  if (cached?.image !== undefined && (await imageExists(runner, engine, context, cached.image))) {
     return {
       backend: "docker",
       hash,
@@ -324,10 +323,23 @@ export async function buildDockerRuntimeTemplate(
   };
 }
 
-function hashDockerTemplate(dockerfileBytes: Buffer, buildArgs: Record<string, string>): string {
+function hashDockerTemplate(
+  dockerfileBytes: Buffer,
+  buildContextFiles: BuildContextFile[],
+  buildArgs: Record<string, string>,
+  engine: Engine
+): string {
   const hash = createHash("sha256");
   hash.update(dockerfileBytes);
   hash.update("\0");
+  hash.update(engine);
+  hash.update("\0");
+  for (const file of buildContextFiles) {
+    hash.update(file.relativePath);
+    hash.update("\0");
+    hash.update(file.bytes);
+    hash.update("\0");
+  }
   for (const [key, value] of sortedBuildArgs(buildArgs)) {
     hash.update(key);
     hash.update("=");
@@ -335,6 +347,57 @@ function hashDockerTemplate(dockerfileBytes: Buffer, buildArgs: Record<string, s
     hash.update("\0");
   }
   return hash.digest("hex");
+}
+
+interface BuildContextFile {
+  relativePath: string;
+  bytes: Buffer;
+}
+
+async function readBuildContextFiles(buildContext: string): Promise<BuildContextFile[]> {
+  const files: BuildContextFile[] = [];
+  await collectBuildContextFiles(buildContext, "", files);
+  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+async function collectBuildContextFiles(
+  buildContext: string,
+  relativeDir: string,
+  files: BuildContextFile[]
+): Promise<void> {
+  const absoluteDir = path.join(buildContext, relativeDir);
+  const entries = await readdir(absoluteDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const relativePath = path.join(relativeDir, entry.name);
+    if (entry.isDirectory()) {
+      await collectBuildContextFiles(buildContext, relativePath, files);
+      continue;
+    }
+    if (!entry.isFile()) {
+      continue;
+    }
+    files.push({
+      relativePath: relativePath.split(path.sep).join("/"),
+      bytes: await readFile(path.join(buildContext, relativePath))
+    });
+  }
+}
+
+async function imageExists(
+  runner: Runner,
+  engine: Engine,
+  context: string | null,
+  image: string
+): Promise<boolean> {
+  const handle = runner.exec({
+    command: engine,
+    args: [...buildContextArgs(engine, context), "image", "inspect", image],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  const result = await handle.result;
+  return result.exitCode === 0;
 }
 
 async function buildImage(input: {
@@ -425,19 +488,125 @@ function createContainerName(): string {
   return `poe-env-${randomBytes(6).toString("hex")}`;
 }
 
+function readRunnerSync(runner: unknown): "both" | "upload" | "none" | undefined {
+  if (typeof runner !== "object" || runner === null || !("sync" in runner)) {
+    return undefined;
+  }
+  const sync = runner.sync;
+  return sync === "both" || sync === "upload" || sync === "none" ? sync : undefined;
+}
+
+function readWorkspaceTransferRunner(runner: unknown): WorkspaceTransferRunnerOptions | undefined {
+  if (typeof runner !== "object" || runner === null) {
+    return undefined;
+  }
+  const record = runner as { upload_max_file_mb?: unknown; workspace?: unknown };
+  const uploadMaxFileMb =
+    typeof record.upload_max_file_mb === "number" ? record.upload_max_file_mb : undefined;
+  const workspace =
+    typeof record.workspace === "object" && record.workspace !== null
+      && Array.isArray((record.workspace as { exclude?: unknown }).exclude)
+      ? { exclude: (record.workspace as { exclude: unknown[] }).exclude.filter((value): value is string => typeof value === "string") }
+      : undefined;
+  return { ...(uploadMaxFileMb === undefined ? {} : { upload_max_file_mb: uploadMaxFileMb }), ...(workspace === undefined ? {} : { workspace }) };
+}
+
+function createContainerWorkspaceFileSystem(input: {
+  id: string;
+  runner: Runner;
+  engine: Engine;
+  context: string | null;
+}): WorkspaceTransferFileSystem {
+  const execShell = (command: string): Promise<string> => runAndRead(input.runner, {
+    command: input.engine,
+    args: [...buildContextArgs(input.engine, input.context), "exec", input.id, "sh", "-c", command],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  async function readRemoteFile(targetPath: string): Promise<Buffer> {
+    const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-read-"));
+    const destinationPath = path.join(tempDir, "content");
+    try {
+      await runOrThrow(input.runner, {
+        command: input.engine,
+        args: [...buildContextArgs(input.engine, input.context), "cp", `${input.id}:${targetPath}`, destinationPath],
+        stdout: "pipe",
+        stderr: "pipe"
+      });
+      return await readFile(destinationPath);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  }
+  async function readFileFromContainer(targetPath: string): Promise<Buffer>;
+  async function readFileFromContainer(targetPath: string, encoding: BufferEncoding): Promise<string>;
+  async function readFileFromContainer(targetPath: string, encoding?: BufferEncoding): Promise<Buffer | string> {
+    const contents = await readRemoteFile(targetPath);
+    return encoding === undefined ? contents : contents.toString(encoding);
+  }
+  return {
+    async mkdir(targetPath) {
+      await execShell(`mkdir -p ${shellQuote(targetPath)}`);
+    },
+    async readdir(targetPath) {
+      const output = await execShell(`for item in ${shellQuote(targetPath)}/* ${shellQuote(targetPath)}/.[!.]* ${shellQuote(targetPath)}/..?*; do [ -e "$item" ] || continue; if [ -d "$item" ]; then kind=d; size=0; else kind=f; size=$(wc -c < "$item"); fi; printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size"; done`);
+      return output.split("\n").filter(Boolean).map((line) => {
+        const [name = "", kind = "f"] = line.split("\t");
+        return { name, isFile: () => kind === "f", isDirectory: () => kind === "d" };
+      });
+    },
+    readFile: readFileFromContainer,
+    async writeFile(targetPath, data) {
+      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-write-"));
+      const sourcePath = path.join(tempDir, "content");
+      try {
+        await writeFile(sourcePath, data);
+        await runOrThrow(input.runner, {
+          command: input.engine,
+          args: [...buildContextArgs(input.engine, input.context), "cp", sourcePath, `${input.id}:${targetPath}`],
+          stdout: "pipe",
+          stderr: "pipe"
+        });
+      } finally {
+        rmSync(tempDir, { recursive: true, force: true });
+      }
+    },
+    async stat(targetPath) {
+      const output = await execShell(`if [ -d ${shellQuote(targetPath)} ]; then printf 'd\\t0'; elif [ -f ${shellQuote(targetPath)} ]; then printf 'f\\t'; wc -c < ${shellQuote(targetPath)}; else printf 'missing'; fi`);
+      if (output.trim() === "missing") {
+        throw Object.assign(new Error(`ENOENT: ${targetPath}`), { code: "ENOENT" });
+      }
+      const [kind = "f", rawSize = "0"] = output.trim().split("\t");
+      return { size: Number(rawSize.trim()), isFile: () => kind === "f", isDirectory: () => kind === "d" };
+    },
+    async rename(oldPath, newPath) {
+      await execShell(`mv ${shellQuote(oldPath)} ${shellQuote(newPath)}`);
+    },
+    async rm(targetPath) {
+      await execShell(`rm -rf ${shellQuote(targetPath)}`);
+    }
+  };
+}
+
 function createContainerJob(
   containerId: string,
   runner: Runner,
   engine: Engine,
   context: string | null,
-  jobId = containerId
+  detachedJobContext: DetachedJobContext | null = null
 ) {
+  const jobId = detachedJobContext?.id ?? containerId;
   return {
     id: jobId,
     envId: containerId,
-    tool: "docker",
-    argv: ["attach", containerId],
+    tool: detachedJobContext?.tool ?? "docker",
+    argv: detachedJobContext?.argv ?? ["attach", containerId],
     async status() {
+      if (detachedJobContext !== null) {
+        const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
+        return exitCode === null ? ("running" as const) : ("exited" as const);
+      }
+
       const handle = runner.exec({
         command: engine,
         args: [
@@ -455,29 +624,52 @@ function createContainerJob(
       if (result.exitCode !== 0) {
         return "lost" as const;
       }
-      return stdout.trim() === "running" ? ("running" as const) : ("exited" as const);
+      return stdout.trim() === "exited" ? ("exited" as const) : ("running" as const);
     },
-    async *stream(opts?: { sinceByte?: number }) {
-      const handle = runner.exec({
-        command: engine,
-        args: [
-          ...buildContextArgs(engine, context),
-          "exec",
-          containerId,
-          "sh",
-          "-c",
-          `test -f ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} && tail -c +${(opts?.sinceByte ?? 0) + 1} ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} || true`
-        ],
-        stdout: "pipe",
-        stderr: "pipe"
-      });
-      const stdout = await readStream(handle.stdout);
-      await handle.result;
-      if (stdout.length > 0) {
-        yield { byteOffset: opts?.sinceByte ?? 0, data: stdout };
+    async *stream(opts?: { sinceByte?: number; since?: Date; follow?: boolean }) {
+      const logFile = shellQuote(`/tmp/poe-jobs/${jobId}.log`);
+      const sinceCondition =
+        opts?.since === undefined
+          ? ""
+          : ` && test $(stat -c %Y ${logFile} 2>/dev/null || stat -f %m ${logFile}) -ge ${Math.ceil(
+              opts.since.getTime() / 1000
+            )}`;
+      let byteOffset = opts?.sinceByte ?? 0;
+      while (true) {
+        const stdout = await runAndRead(runner, {
+          command: engine,
+          args: [
+            ...buildContextArgs(engine, context),
+            "exec",
+            containerId,
+            "sh",
+            "-c",
+            `test -f ${logFile}${sinceCondition} && tail -c +${byteOffset + 1} ${logFile} || true`
+          ],
+          stdout: "pipe",
+          stderr: "pipe"
+        });
+        if (stdout.length > 0) {
+          yield { byteOffset, data: stdout };
+          byteOffset += Buffer.byteLength(stdout);
+        }
+        if (opts?.follow !== true || (await this.status()) !== "running") {
+          return;
+        }
+        await new Promise<void>((resolve) => setTimeout(resolve, 250));
       }
     },
     async wait() {
+      if (detachedJobContext !== null) {
+        while (true) {
+          const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
+          if (exitCode !== null) {
+            return { exitCode };
+          }
+          await new Promise<void>((resolve) => setTimeout(resolve, 25));
+        }
+      }
+
       const handle = runner.exec({
         command: engine,
         args: [...buildContextArgs(engine, context), "wait", containerId],
@@ -486,7 +678,8 @@ function createContainerJob(
       });
       const stdout = await readStream(handle.stdout);
       const result = await handle.result;
-      return { exitCode: Number.parseInt(stdout.trim(), 10) || result.exitCode };
+      const exitCode = Number.parseInt(stdout.trim(), 10);
+      return { exitCode: Number.isNaN(exitCode) ? result.exitCode : exitCode };
     },
     async kill(signal?: NodeJS.Signals) {
       const args =
@@ -501,6 +694,36 @@ function createContainerJob(
       });
     }
   };
+}
+
+async function readDetachedExitCode(
+  containerId: string,
+  jobId: string,
+  runner: Runner,
+  engine: Engine,
+  context: string | null
+): Promise<number | null> {
+  const exitFile = shellQuote(`/tmp/poe-jobs/${jobId}.exit`);
+  const handle = runner.exec({
+    command: engine,
+    args: [
+      ...buildContextArgs(engine, context),
+      "exec",
+      containerId,
+      "sh",
+      "-c",
+      `test -f ${exitFile} && cat ${exitFile} || true`
+    ],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  const stdout = await readStream(handle.stdout);
+  const result = await handle.result;
+  if (result.exitCode !== 0) {
+    return null;
+  }
+  const exitCode = Number.parseInt(stdout.trim(), 10);
+  return Number.isNaN(exitCode) ? null : exitCode;
 }
 
 function createAttachedSpec(cwd = "/workspace"): OpenSpec {

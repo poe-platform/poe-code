@@ -19,6 +19,7 @@ import { evaluateChain } from "../evaluator/evaluator.js";
 import { loadInstructions, loadRunConfig } from "../config/loader.js";
 import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import type {
+  AgentRunResult,
   EvalResult,
   ExecFn,
   ExperimentFileSystem,
@@ -43,6 +44,10 @@ function createDefaultFs(): ExperimentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
@@ -51,6 +56,12 @@ function createDefaultFs(): ExperimentFileSystem {
     },
     appendFile: async (filePath: string, content: string) => {
       await fsPromises.appendFile(filePath, content, "utf8");
+    },
+    rename: async (oldPath: string, newPath: string) => {
+      await fsPromises.rename(oldPath, newPath);
+    },
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
     }
   };
 
@@ -123,7 +134,36 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
     throw new Error("Experiment doc is missing metric frontmatter.");
   }
 
-  return Array.isArray(metric) ? metric : [metric];
+  const metrics = Array.isArray(metric) ? metric : [metric];
+  if (metrics.length === 0) {
+    throw new Error("Experiment doc must contain at least one metric.");
+  }
+  const names = new Set<string>();
+
+  for (const currentMetric of metrics) {
+    if (names.has(currentMetric.name)) {
+      throw new Error(`Metric names must be unique: "${currentMetric.name}".`);
+    }
+    names.add(currentMetric.name);
+  }
+
+  return metrics;
+}
+
+function metricsEqual(left: MetricDef[], right: MetricDef[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((metric, index) => {
+      const other = right[index];
+      return (
+        other !== undefined &&
+        metric.name === other.name &&
+        metric.script === other.script &&
+        metric.direction === other.direction &&
+        metric.delta === other.delta
+      );
+    })
+  );
 }
 
 function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[] {
@@ -137,7 +177,13 @@ function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[]
     throw new Error("agent must contain at least one entry.");
   }
 
-  return raw.map(parseAgentSpecifier);
+  return raw.map((value) => {
+    const specifier = parseAgentSpecifier(value);
+    if (specifier.agent.length === 0) {
+      throw new Error("Agent specifier must include an agent id.");
+    }
+    return specifier;
+  });
 }
 
 function validateMaxExperiments(maxExperiments: number | undefined): number {
@@ -202,7 +248,7 @@ function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | 
         parts.push(`±${m.delta}`);
       }
       parts.push(`script: \`${m.script}\``);
-      const score = baseline?.[m.name];
+      const score = baseline !== null && Object.hasOwn(baseline, m.name) ? baseline[m.name] : undefined;
       if (score !== undefined) {
         parts.push(`(baseline: ${score})`);
       }
@@ -264,13 +310,40 @@ function deriveStateFromJournal(entries: JournalEntry[]): {
 } {
   const keepEntries = entries.filter((e) => e.status === "keep");
   const lastKeep = keepEntries[keepEntries.length - 1];
+  const baseline = readFiniteScores(lastKeep?.scores);
+  const baselineHash = readNonEmptyString(lastKeep?.commit);
 
   return {
     experimentsCompleted: entries.length,
     experimentsKept: keepEntries.length,
-    baseline: lastKeep ? baselineFromEntry(lastKeep) : null,
-    baselineHash: lastKeep?.commit
+    baseline,
+    baselineHash
   };
+}
+
+function readFiniteScores(scores: unknown): Record<string, number> | null {
+  if (scores === undefined || scores === null || typeof scores !== "object") {
+    return null;
+  }
+
+  const entries = Object.entries(scores);
+  if (entries.length === 0 || entries.some(([, score]) => typeof score !== "number" || !Number.isFinite(score))) {
+    return null;
+  }
+
+  return Object.fromEntries(entries) as Record<string, number>;
+}
+
+function readNonEmptyString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function notifyCompletedState(callback: ((value: string) => void) | undefined, value: string): void {
+  try {
+    callback?.(value);
+  } catch {
+    return;
+  }
 }
 
 export async function runExperimentLoop(
@@ -317,6 +390,7 @@ export async function runExperimentLoop(
   let experimentsKept = 0;
   let baselineHash: string | undefined;
   let baseline: Record<string, number> | null = null;
+  let baselineMetrics: MetricDef[] = [];
 
   async function finalize(
     stopReason: ExperimentRunResult["stopReason"]
@@ -349,9 +423,17 @@ export async function runExperimentLoop(
     baselineHash = journalState.baselineHash;
     // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
     baseline = journalState.baseline ?? initialFrontmatter.baseline;
+    baselineMetrics = initialMetrics;
+
+    const initialMaxExperiments = validateMaxExperiments(
+      options.maxExperiments ?? initialFrontmatter.max_experiments
+    );
+    if (experimentsCompleted >= initialMaxExperiments) {
+      return finalize("max_experiments");
+    }
 
     if (baseline === null) {
-      const metricTimeoutMs = initialFrontmatter.metric_timeout
+      const metricTimeoutMs = initialFrontmatter.metric_timeout !== undefined
         ? initialFrontmatter.metric_timeout * 1000
         : undefined;
       const baselineResults = await evaluateChain(
@@ -364,6 +446,8 @@ export async function runExperimentLoop(
       if (allMetricsPassed(initialMetrics, baselineResults)) {
         baseline = baselineFromResults(initialMetrics, baselineResults);
         options.onBaselineCollected?.(baseline);
+      } else {
+        throw new Error("Unable to collect a passing experiment baseline.");
       }
     }
 
@@ -386,8 +470,32 @@ export async function runExperimentLoop(
       const metrics = normalizeMetrics(frontmatter.metric);
       const agents = normalizeAgents(options.agent ?? frontmatter.agent);
 
+      if (!metricsEqual(metrics, baselineMetrics)) {
+        if (frontmatter.baseline === null) {
+          const metricTimeoutMs = frontmatter.metric_timeout !== undefined
+            ? frontmatter.metric_timeout * 1000
+            : undefined;
+          const baselineResults = await evaluateChain(
+            metrics,
+            options.cwd,
+            exec,
+            options.onMetricResult,
+            metricTimeoutMs
+          );
+          if (!allMetricsPassed(metrics, baselineResults)) {
+            throw new Error("Unable to collect a passing experiment baseline.");
+          }
+          baseline = baselineFromResults(metrics, baselineResults);
+          options.onBaselineCollected?.(baseline);
+        } else {
+          baseline = frontmatter.baseline;
+        }
+        baselineMetrics = metrics;
+      }
+
       const experimentIndex = experimentsCompleted + 1;
-      baselineHash ??= await git.currentHash(options.cwd);
+      const currentHash = await git.currentHash(options.cwd);
+      baselineHash ??= currentHash;
       const preExperimentHash = baselineHash;
 
       const journalLengthBefore = (await journal.readAll()).length;
@@ -408,8 +516,11 @@ export async function runExperimentLoop(
       const model = currentSpecifier.model;
       options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
+      let newEntry: JournalEntry | null;
+      let agentResult: AgentRunResult;
+
       try {
-        await runAgent({
+        agentResult = await runAgent({
           agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,
@@ -426,7 +537,12 @@ export async function runExperimentLoop(
           ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
+
+        newEntry = await journal.retainLatestNewEntry(journalLengthBefore);
       } catch (error) {
+        await git.reset(preExperimentHash, options.cwd);
+        notifyCompletedState(options.onReset, preExperimentHash);
+
         if (isAbortError(error)) {
           return finalize("cancelled");
         }
@@ -434,46 +550,70 @@ export async function runExperimentLoop(
         throw error;
       }
 
-      const journalAfter = await journal.readAll();
-      let newEntry =
-        journalAfter.length > journalLengthBefore ? journalAfter[journalAfter.length - 1]! : null;
-
       experimentsCompleted += 1;
 
-      if (newEntry && !newEntry.scores && metrics.length > 0) {
-        const metricTimeoutMs = frontmatter.metric_timeout
-          ? frontmatter.metric_timeout * 1000
-          : undefined;
-        const results = await evaluateChain(
-          metrics,
-          options.cwd,
-          exec,
-          options.onMetricResult,
-          metricTimeoutMs
-        );
-        if (allMetricsPassed(metrics, results)) {
+      if (newEntry === null) {
+        await git.reset(preExperimentHash, options.cwd);
+        notifyCompletedState(options.onReset, preExperimentHash);
+        continue;
+      }
+
+      if (agentResult.exitCode !== 0 || newEntry.status === "discard") {
+        try {
+          await git.reset(preExperimentHash, options.cwd);
+        } catch (error) {
+          await journal.removeNewEntries(journalLengthBefore);
+          throw error;
+        }
+        notifyCompletedState(options.onReset, preExperimentHash);
+        if (newEntry.status === "keep") {
+          newEntry = (await journal.updateLast({ status: "discard" })) ?? {
+            ...newEntry,
+            status: "discard"
+          };
+        }
+        options.onExperimentComplete?.(experimentIndex, newEntry);
+        continue;
+      }
+
+      if (!newEntry.scores) {
+        try {
+          const metricTimeoutMs = frontmatter.metric_timeout !== undefined
+            ? frontmatter.metric_timeout * 1000
+            : undefined;
+          const results = await evaluateChain(
+            metrics,
+            options.cwd,
+            exec,
+            options.onMetricResult,
+            metricTimeoutMs
+          );
+          if (!allMetricsPassed(metrics, results)) {
+            await git.reset(preExperimentHash, options.cwd);
+            notifyCompletedState(options.onReset, preExperimentHash);
+            newEntry = (await journal.updateLast({ status: "discard" })) ?? {
+              ...newEntry,
+              status: "discard"
+            };
+            options.onExperimentComplete?.(experimentIndex, newEntry);
+            continue;
+          }
+
           const scores = baselineFromResults(metrics, results);
           newEntry = (await journal.updateLast({ scores })) ?? newEntry;
-        }
-      }
-
-      if (newEntry) {
-        if (newEntry.status === "keep") {
-          experimentsKept += 1;
-          baselineHash = newEntry.commit;
-          baseline = baselineFromEntry(newEntry) ?? baseline;
-          options.onCommit?.(newEntry.commit);
-        } else {
+        } catch (error) {
           await git.reset(preExperimentHash, options.cwd);
-          options.onReset?.(preExperimentHash);
+          notifyCompletedState(options.onReset, preExperimentHash);
+          throw error;
         }
-
-        options.onExperimentComplete?.(experimentIndex, newEntry);
-      } else {
-        // Agent exited without writing a journal entry — reset silently.
-        await git.reset(preExperimentHash, options.cwd);
-        options.onReset?.(preExperimentHash);
       }
+
+      experimentsKept += 1;
+      baselineHash = newEntry.commit;
+      baseline = baselineFromEntry(newEntry) ?? baseline;
+      baselineMetrics = metrics;
+      notifyCompletedState(options.onCommit, newEntry.commit);
+      options.onExperimentComplete?.(experimentIndex, newEntry);
     }
   } catch (error) {
     if (isAbortError(error)) {

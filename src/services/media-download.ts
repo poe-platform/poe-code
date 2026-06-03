@@ -1,5 +1,7 @@
 import type { FileSystem } from "../utils/file-system.js";
 
+let temporaryFileSequence = 0;
+
 export class MediaDownloadError extends Error {
   readonly kind: "fetch" | "write";
   readonly url: string;
@@ -29,8 +31,21 @@ export async function downloadToFile(options: {
     });
   }
 
-  const response = await fetcher(options.url);
-  if (!response.ok) {
+  let buffer: Buffer;
+  try {
+    const response = await fetcher(options.url);
+    if (!response.ok) {
+      throw new MediaDownloadError("Failed to download media", {
+        kind: "fetch",
+        url: options.url,
+        outputPath: options.outputPath
+      });
+    }
+    buffer = Buffer.from(await response.arrayBuffer());
+  } catch (error) {
+    if (error instanceof MediaDownloadError) {
+      throw error;
+    }
     throw new MediaDownloadError("Failed to download media", {
       kind: "fetch",
       url: options.url,
@@ -38,11 +53,13 @@ export async function downloadToFile(options: {
     });
   }
 
-  const buffer = Buffer.from(await response.arrayBuffer());
+  const temporaryPath = `${options.outputPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
 
   try {
-    await options.fs.writeFile(options.outputPath, buffer);
+    await options.fs.writeFile(temporaryPath, buffer, { flag: "wx" });
+    await options.fs.rename(temporaryPath, options.outputPath);
   } catch {
+    await options.fs.unlink(temporaryPath).catch(() => undefined);
     throw new MediaDownloadError("Failed to write media", {
       kind: "write",
       url: options.url,

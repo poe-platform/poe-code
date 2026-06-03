@@ -21,7 +21,7 @@ export type PageAudit = {
 };
 
 type SourceFileMeta =
-  | { exists: false; absPath: string }
+  | { exists: false; absPath: string; symbolicLinkEscape?: true }
   | { exists: true; absPath: string; lineCount: number };
 
 export async function auditClaims(
@@ -109,7 +109,11 @@ async function auditSourceRef(
     return `Claim on line ${claimLineNumber} cites "${serializeSourceRef(source)}", which resolves outside the repo root.`;
   }
 
-  const meta = await readSourceFile(absPath, sourceCache);
+  const meta = await readSourceFile(absPath, repoRoot, sourceCache);
+  if (!meta.exists && meta.symbolicLinkEscape === true) {
+    return `Claim on line ${claimLineNumber} cites "${serializeSourceRef(source)}", but the source traverses a symbolic link outside the repo root.`;
+  }
+
   if (!meta.exists) {
     return `Claim on line ${claimLineNumber} cites "${serializeSourceRef(source)}", resolved to "${meta.absPath}", but the file does not exist.`;
   }
@@ -141,6 +145,7 @@ function auditFrontmatterSources(frontmatterSources: SourceRef[], inlineSources:
 
 function readSourceFile(
   absPath: string,
+  repoRoot: string,
   sourceCache: Map<string, Promise<SourceFileMeta>>
 ): Promise<SourceFileMeta> {
   const cached = sourceCache.get(absPath);
@@ -148,14 +153,24 @@ function readSourceFile(
     return cached;
   }
 
-  const pending = fs
-    .readFile(absPath, "utf8")
-    .then((content) => ({
-      exists: true as const,
-      absPath,
-      lineCount: countLines(content)
-    }))
-    .catch((error: unknown) => {
+  const pending = (async (): Promise<SourceFileMeta> => {
+    try {
+      const realPath = await fs.realpath(absPath);
+      if (!isWithinRoot(repoRoot, realPath)) {
+        return {
+          exists: false as const,
+          absPath,
+          symbolicLinkEscape: true as const
+        };
+      }
+
+      const content = await fs.readFile(absPath, "utf8");
+      return {
+        exists: true as const,
+        absPath,
+        lineCount: countLines(content)
+      };
+    } catch (error) {
       if (isMissing(error)) {
         return {
           exists: false as const,
@@ -164,7 +179,8 @@ function readSourceFile(
       }
 
       throw error;
-    });
+    }
+  })();
 
   sourceCache.set(absPath, pending);
   return pending;

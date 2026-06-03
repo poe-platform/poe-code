@@ -36,11 +36,13 @@ vi.mock("@poe-code/design-system", async () => {
 describe("createCliMain", () => {
   let exitSpy: ReturnType<typeof vi.spyOn>;
   let originalEnvValue: string | undefined;
+  let originalArgv: string[];
 
   beforeEach(() => {
     capturedOptions = undefined;
     logErrorWithStackTrace.mockReset();
     originalEnvValue = process.env.POE_CODE_STDERR_LOGS;
+    originalArgv = process.argv;
     process.env.POE_CODE_STDERR_LOGS = "1";
     exitSpy = vi
       .spyOn(process, "exit")
@@ -56,6 +58,7 @@ describe("createCliMain", () => {
       process.env.POE_CODE_STDERR_LOGS = originalEnvValue;
     }
     exitSpy.mockRestore();
+    process.argv = originalArgv;
     vi.clearAllMocks();
   });
 
@@ -65,7 +68,8 @@ describe("createCliMain", () => {
     });
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
     };
 
     const { createCliMain } = await import("./bootstrap.js");
@@ -82,13 +86,50 @@ describe("createCliMain", () => {
     expect(capturedOptions).toMatchObject({ logToStderr: true });
   });
 
+  it("does not persist diagnostics for dry-run command failures", async () => {
+    process.argv = ["node", "poe-code", "--dry-run", "runtime", "build", "--runtime", "host"];
+    const parseAsync = vi.fn(async () => {
+      throw new Error("Host runtime has no template to build.");
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: true })
+    };
+    const { log } = await import("@poe-code/design-system");
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).not.toHaveBeenCalled();
+    expect(vi.mocked(log.message)).not.toHaveBeenCalled();
+  });
+
+  it("still persists diagnostics when dry-run is only a forwarded argument", async () => {
+    process.argv = ["node", "poe-code", "wrap", "opencode", "--", "--dry-run"];
+    const parseAsync = vi.fn(async () => {
+      throw new Error("wrapped command failed");
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).toHaveBeenCalled();
+  });
+
   it("does not treat commander version exit as an error", async () => {
     const parseAsync = vi.fn(async () => {
       throw new VersionExit();
     });
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
     };
 
     const { createCliMain } = await import("./bootstrap.js");
@@ -107,7 +148,8 @@ describe("createCliMain", () => {
     });
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
     };
 
     const { createCliMain } = await import("./bootstrap.js");

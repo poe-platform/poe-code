@@ -231,7 +231,9 @@ describe("@poe-code/process-runner public exports", () => {
       "hostExecutionEnvFactory",
       "createHostRunner",
       "createMockRunner",
-      "createMockRunnerByCommand"
+      "createMockRunnerByCommand",
+      "downloadWorkspace",
+      "uploadWorkspace"
     ]);
   });
 });

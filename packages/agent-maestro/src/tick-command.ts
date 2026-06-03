@@ -17,6 +17,7 @@ export interface RunMaestroTickOptions {
   list?: string;
   onEvent?: (event: MaestroEvent) => void;
   now?: () => Date;
+  dryRun?: boolean;
   openTaskList?: (options: OpenTaskListOptions) => Promise<TaskList>;
 }
 
@@ -40,6 +41,10 @@ export async function runMaestroTick(options: RunMaestroTickOptions): Promise<vo
     type: "tick_started",
     at: (options.now?.() ?? new Date()).toISOString()
   });
+
+  if (options.dryRun === true) {
+    return;
+  }
 
   if (isQueuedTriggerTransition(transition)) {
     const openTaskListFn = options.openTaskList ?? openTaskList;

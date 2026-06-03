@@ -228,7 +228,7 @@ function isMissingProcessGroupError(error: unknown): error is NodeJS.ErrnoExcept
 function objectToEnv(
   variables: Record<string, string | undefined>
 ): Record<string, string> {
-  const env: Record<string, string> = {};
+  const env: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(variables)) {
     if (value !== undefined) {
       env[key] = value;

@@ -15,7 +15,7 @@ export async function resolveSpawnWorkspace(
     homeDir: string;
     mode?: SpawnMode;
     resolveRemoteLocators?: boolean;
-    fs: Pick<FileSystem, "mkdir" | "stat" | "rm">;
+    fs: Pick<FileSystem, "mkdir" | "stat" | "lstat" | "rm">;
     exec: CommandRunner;
   }
 ): Promise<SpawnWorkspaceResolution> {
@@ -37,6 +37,7 @@ export async function resolveSpawnWorkspace(
     fs: {
       mkdir: options.fs.mkdir,
       stat: options.fs.stat,
+      lstat: options.fs.lstat,
       ...(options.fs.rm ? { rm: options.fs.rm } : {})
     },
     exec: async (

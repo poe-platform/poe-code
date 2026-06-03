@@ -170,6 +170,28 @@ describe("buildE2bRuntimeTemplate", () => {
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
+  it("changes the template cache hash when the base template changes", async () => {
+    const state = createState(null);
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", from_template: "base-alpha", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state
+    });
+    await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", from_template: "base-beta", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state
+    });
+
+    expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
+  });
+
   it("appends the captured build log tail when buildTemplate throws", async () => {
     vi.mocked(buildTemplate).mockImplementation(async (opts) => {
       opts.onLog?.({ level: "info", message: "Step 1/3 : FROM node:22", timestamp: new Date() });

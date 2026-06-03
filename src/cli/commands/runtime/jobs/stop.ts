@@ -39,7 +39,11 @@ async function executeRuntimeJobsStop(
   const flags = resolveCommandFlags(root);
   const resources = createExecutionResources(container, flags, "runtime:jobs:stop");
   const state = createRuntimeState(container);
-  const entry = await resolveJob(state, jobId, "pullable");
+  const entry = await resolveJob(state, jobId, "running");
+  if (flags.dryRun) {
+    resources.logger.dryRun(`Dry run: would stop runtime job ${entry.id} and sync its workspace.`);
+    return;
+  }
   const { handle } = await attachJob(entry);
 
   await waitForGracefulStop(handle);
@@ -49,9 +53,7 @@ async function executeRuntimeJobsStop(
     exited_at: new Date().toISOString()
   });
 
-  if (options.sync === true || options.forceSync === true) {
-    await syncJob(entry, { forceSync: options.forceSync === true, close: false });
-  }
+  await syncJob(entry, { forceSync: options.forceSync === true, close: false });
 
   resources.logger.success(`Stopped runtime job ${entry.id}.`);
 }

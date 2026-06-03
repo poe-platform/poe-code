@@ -101,6 +101,10 @@ function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: numb
 }
 
 function renderItem(item: DetailItem, rect: Rect, row: Row | null): string {
+  if (item.renderedContent !== undefined) {
+    return item.renderedContent;
+  }
+
   try {
     const rendered = item.render({
       width: rect.width,

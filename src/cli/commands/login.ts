@@ -4,6 +4,7 @@ import {
   buildProviderContext,
   buildActiveProvider,
   createExecutionResources,
+  parseProviderShapeBaseUrls,
   resolveAgentDefinition,
   resolveCommandFlags,
   applyIsolatedConfiguration
@@ -11,6 +12,8 @@ import {
 import { POE_PROVIDER_ID } from "@poe-code/providers";
 import { AuthenticationError } from "../errors.js";
 import { loadConfiguredServices, type ConfiguredServiceMetadata } from "../../services/config.js";
+import { createOverlayFileSystem } from "./configure.js";
+import type { FileSystem } from "../../utils/file-system.js";
 import {
   combineMutationObservers,
   createMutationReporter
@@ -19,6 +22,8 @@ import {
 export interface LoginCommandOptions {
   apiKey?: string;
 }
+
+const PREVIEW_API_KEY = "<redacted>";
 
 export function registerLoginCommand(program: Command, container: CliContainer): void {
   program
@@ -41,30 +46,60 @@ export async function executeLogin(
   resources.logger.intro("login");
 
   try {
-    const apiKey = await container.options.resolveApiKey({
-      value: options.apiKey,
-      envValue: container.env.getVariable("POE_API_KEY"),
-      dryRun: true,
-      assumeYes: flags.assumeYes,
-      allowStored: false
-    });
-
-    if (!flags.dryRun) {
-      await container.providerRegistry.login(POE_PROVIDER_ID, { apiKey });
-    }
+    const apiKey = flags.dryRun
+      ? PREVIEW_API_KEY
+      : await container.options.resolveApiKey({
+          value: options.apiKey,
+          envValue: container.env.getVariable("POE_API_KEY"),
+          dryRun: true,
+          assumeYes: flags.assumeYes,
+          allowStored: false
+        });
 
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
       filePath: container.env.configPath,
-      projectFilePath: container.env.projectConfigPath
+      projectFilePath: container.env.projectConfigPath,
+      readOnly: flags.dryRun
     });
 
-    await reconfigureServices({
-      program,
-      container,
-      apiKey,
-      configuredServices
-    });
+    if (flags.dryRun) {
+      await reconfigureServices({ program, container, apiKey, configuredServices });
+    } else {
+      const transaction = createOverlayFileSystem(container.fs);
+      const stagedStore = container.createPreviewProviderStore(POE_PROVIDER_ID, transaction.fs);
+      if (stagedStore) {
+        await stagedStore.set(apiKey);
+        await reconfigureServices({
+          program,
+          container,
+          apiKey,
+          configuredServices,
+          fs: transaction.fs
+        });
+        await transaction.commit();
+      } else {
+        const previousApiKey = await container.readApiKey({ readOnly: true });
+        await reconfigureServices({
+          program,
+          container,
+          apiKey,
+          configuredServices,
+          fs: transaction.fs
+        });
+        await container.providerRegistry.login(POE_PROVIDER_ID, { apiKey });
+        try {
+          await transaction.commit();
+        } catch (error) {
+          if (previousApiKey === null) {
+            await container.deleteApiKey();
+          } else {
+            await container.writeApiKey(previousApiKey);
+          }
+          throw error;
+        }
+      }
+    }
 
     resources.context.complete({
       success: "Logged in.",
@@ -85,6 +120,7 @@ interface ReconfigureServicesInput {
   container: CliContainer;
   apiKey: string;
   configuredServices: Record<string, ConfiguredServiceMetadata>;
+  fs?: FileSystem;
 }
 
 async function reconfigureServices(input: ReconfigureServicesInput): Promise<void> {
@@ -106,20 +142,34 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
       `login:reconfigure:${serviceName}`
     );
     const providerContext = buildProviderContext(container, adapter, resources);
+    const executionProviderContext = input.fs
+      ? {
+          ...providerContext,
+          command: {
+            ...providerContext.command,
+            fs: input.fs
+          }
+        }
+      : providerContext;
 
     const provider = container.providerRegistry.get(POE_PROVIDER_ID);
     if (!provider) {
       continue;
     }
 
+    const metadata = configuredServices[serviceName]!;
     const payload = {
       env: container.env,
       provider: await buildActiveProvider({
         container,
         provider,
         agent: resolveAgentDefinition(serviceName) ?? { id: serviceName },
-        credential: apiKey
-      })
+        credential: apiKey,
+        explicitBaseUrl: metadata.baseUrl,
+        explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata.shapeBaseUrl ?? [])
+      }),
+      ...(metadata.model ? { model: metadata.model } : {}),
+      ...(metadata.reasoningEffort ? { reasoningEffort: metadata.reasoningEffort } : {})
     };
 
     const mutationLogger = createMutationReporter(resources.logger);
@@ -132,9 +182,9 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
 
       await entry.configure(
         {
-          fs: providerContext.command.fs,
-          env: providerContext.env,
-          command: providerContext.command,
+          fs: executionProviderContext.command.fs,
+          env: executionProviderContext.env,
+          command: executionProviderContext.command,
           options: payload
         },
         observers ? { observers } : undefined
@@ -144,7 +194,7 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
       if (isolated && isolated.requiresConfig !== false) {
         await applyIsolatedConfiguration({
           adapter: entry,
-          providerContext,
+          providerContext: executionProviderContext,
           payload,
           isolated,
           providerName: adapter.name,

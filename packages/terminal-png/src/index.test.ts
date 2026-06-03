@@ -4,7 +4,8 @@ import { renderTerminalPng } from "./index.js";
 import { parseAnsi } from "./ansi-parser.js";
 import { renderSvg } from "./svg-renderer.js";
 import { renderPng } from "./png-renderer.js";
-import { writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { rename, rm, writeFile } from "node:fs/promises";
 
 vi.mock("./ansi-parser.js", () => ({
   parseAnsi: vi.fn()
@@ -19,12 +20,21 @@ vi.mock("./png-renderer.js", () => ({
 }));
 
 vi.mock("node:fs/promises", () => ({
+  rename: vi.fn(),
+  rm: vi.fn(),
   writeFile: vi.fn()
+}));
+
+vi.mock("node:crypto", () => ({
+  randomUUID: vi.fn(() => "temp-id")
 }));
 
 const parseAnsiMock = vi.mocked(parseAnsi);
 const renderSvgMock = vi.mocked(renderSvg);
 const renderPngMock = vi.mocked(renderPng);
+const randomUUIDMock = vi.mocked(randomUUID);
+const renameMock = vi.mocked(rename);
+const rmMock = vi.mocked(rm);
 const writeFileMock = vi.mocked(writeFile);
 
 describe("renderTerminalPng", () => {
@@ -32,6 +42,9 @@ describe("renderTerminalPng", () => {
     parseAnsiMock.mockReset();
     renderSvgMock.mockReset();
     renderPngMock.mockReset();
+    randomUUIDMock.mockClear();
+    renameMock.mockReset();
+    rmMock.mockReset();
     writeFileMock.mockReset();
 
     parseAnsiMock.mockReturnValue([
@@ -48,6 +61,9 @@ describe("renderTerminalPng", () => {
     ]);
     renderSvgMock.mockReturnValue("<svg />");
     renderPngMock.mockReturnValue(Buffer.from("png"));
+    renameMock.mockResolvedValue(undefined);
+    rmMock.mockResolvedValue(undefined);
+    writeFileMock.mockResolvedValue(undefined);
   });
 
   it("renders ANSI text to PNG using the three layers", async () => {
@@ -71,8 +87,41 @@ describe("renderTerminalPng", () => {
       output: "/tmp/example.png"
     });
 
-    expect(writeFileMock).toHaveBeenCalledWith("/tmp/example.png", Buffer.from("png"));
+    expect(writeFileMock).toHaveBeenCalledWith(
+      "/tmp/example.png.temp-id.tmp",
+      Buffer.from("png"),
+      { flag: "wx" }
+    );
+    expect(renameMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", "/tmp/example.png");
     expect(png).toEqual(Buffer.from("png"));
+  });
+
+  it("does not replace an existing output when temporary publication fails", async () => {
+    writeFileMock.mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
+      "disk full"
+    );
+
+    expect(renameMock).not.toHaveBeenCalled();
+    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
+  });
+
+  it("does not hide publication failure when temporary cleanup also fails", async () => {
+    renameMock.mockRejectedValueOnce(new Error("publish failed"));
+    rmMock.mockRejectedValueOnce(new Error("cleanup failed"));
+
+    await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
+      "publish failed"
+    );
+  });
+
+  it("rejects negative SDK padding before rendering", async () => {
+    await expect(renderTerminalPng("hello", { padding: -1 })).rejects.toThrow(
+      "Padding must be a non-negative integer."
+    );
+
+    expect(parseAnsiMock).not.toHaveBeenCalled();
   });
 
   it("keeps the lower-level helpers available from the public barrel", () => {

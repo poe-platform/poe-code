@@ -56,6 +56,50 @@ describe("poe-agent-plugin-memory", () => {
     );
   });
 
+  it("rejects project imports that escape the containing AGENTS directory", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/workspace/project/AGENTS.md": "@../outside.md",
+        "/workspace/outside.md": "External instructions",
+      },
+      "/",
+    );
+    const fs = createFsFromVolume(volume).promises;
+    const plugin = memoryPlugin({
+      cwd: "/workspace/project",
+      homeDir: "/home/test",
+      fs,
+    });
+
+    await expect(
+      plugin.prompt?.({ userPrompt: "Fix the tests", system: "base-system" }),
+    ).rejects.toThrow("AGENTS.md import escapes its trusted directory");
+  });
+
+  it("rejects symlinked project and user AGENTS files", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/outside/project.md": "External project instructions",
+        "/outside/user.md": "External user instructions",
+      },
+      "/",
+    );
+    await volume.promises.mkdir("/workspace/project", { recursive: true });
+    await volume.promises.mkdir("/home/test/.config/poe-code", { recursive: true });
+    await volume.promises.symlink("/outside/project.md", "/workspace/project/AGENTS.md");
+    await volume.promises.symlink("/outside/user.md", "/home/test/.config/poe-code/AGENTS.md");
+    const fs = createFsFromVolume(volume).promises;
+    const plugin = memoryPlugin({
+      cwd: "/workspace/project",
+      homeDir: "/home/test",
+      fs,
+    });
+
+    await expect(
+      plugin.prompt?.({ userPrompt: "Fix the tests", system: "base-system" }),
+    ).rejects.toThrow("AGENTS.md file escapes its trusted directory");
+  });
+
   it("prefers the nearest AGENTS.md when walking up from cwd", async () => {
     const volume = Volume.fromJSON(
       {

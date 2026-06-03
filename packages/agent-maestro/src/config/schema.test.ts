@@ -13,6 +13,28 @@ vi.mock("node:fs/promises", async () => {
 });
 
 describe("resolveConfig", () => {
+  it("rejects an unresolved environment variable used as workspace root", () => {
+    delete process.env.MAESTRO_MISSING_WORKSPACE;
+
+    expect(() =>
+      resolveConfig({
+        states: { planned: { prompt: "Plan" } },
+        workspace: { root: "$MAESTRO_MISSING_WORKSPACE" }
+      }, "/repo")
+    ).toThrow("workspace.root must not resolve to an empty path");
+  });
+
+  it("preserves __proto__ as an own configured state", () => {
+    const states = Object.create(null) as Record<string, unknown>;
+    states.__proto__ = { prompt: "Plan safely" };
+
+    const config = resolveConfig({ states }, "/repo");
+
+    expect(Object.hasOwn(config.states, "__proto__")).toBe(true);
+    expect(config.states.__proto__).toEqual({ prompt: "Plan safely" });
+    expect(config.activeStateNames).toContain("__proto__");
+  });
+
   const originalEnv = { ...process.env };
 
   beforeEach(() => {
@@ -51,7 +73,6 @@ describe("resolveConfig", () => {
         service: "codex",
         list: "backlog",
         maxConcurrentAgents: 1,
-        maxTurns: 20,
         maxRetryBackoffMs: 300_000
       }
     });
@@ -75,9 +96,37 @@ describe("resolveConfig", () => {
       service: "codex",
       list: undefined,
       maxConcurrentAgents: 1,
-      maxTurns: 20,
       maxRetryBackoffMs: 300_000
     });
+  });
+
+  it("rejects unsupported agent turn limits instead of silently ignoring them", () => {
+    expect(() =>
+      resolveConfig(
+        {
+          states: {
+            planned: { prompt: "Plan" },
+            done: { terminal: true }
+          },
+          agent: { max_turns: 1 }
+        },
+        "/repo"
+      )
+    ).toThrow("agent.max_turns is not supported");
+  });
+
+  it.each([
+    ["polling.interval_ms", { polling: { interval_ms: -1 } }, "positive integer"],
+    ["agent.max_retry_backoff_ms", { agent: { max_retry_backoff_ms: -1 } }, "non-negative integer"],
+    ["agent.max_concurrent_agents", { agent: { max_concurrent_agents: 0 } }, "positive integer"],
+  ])("rejects invalid %s", (_field, override, message) => {
+    expect(() => resolveConfig({
+      states: {
+        planned: { prompt: "Plan" },
+        done: { terminal: true }
+      },
+      ...override
+    }, "/repo")).toThrow(message);
   });
 
   it("resolves $VAR values and expands ~ paths", () => {

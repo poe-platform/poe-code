@@ -15,6 +15,7 @@ const WAIT_FOR_POLL_MS = 10;
 const TYPE_DELAY_MS = 15;
 const CLOSE_AFTER_SIGNAL_GRACE_MS = 250;
 const CLOSE_AFTER_SIGTERM_MS = 1000;
+const CLOSE_AFTER_SIGKILL_MS = 1000;
 
 type TerminalSessionOptions = {
   id: string;
@@ -58,8 +59,7 @@ export class TerminalSession {
   private lastDataAt = Date.now();
   private currentCols: number;
   private currentRows: number;
-  private closeRequested = false;
-  private signalRequested = false;
+  private closePromise: Promise<number> | null = null;
 
   constructor({
     id,
@@ -71,6 +71,7 @@ export class TerminalSession {
     rows = DEFAULT_ROWS,
     observe = false
   }: TerminalSessionOptions) {
+    assertTerminalGeometry(cols, rows);
     this.id = id;
     this.command = command;
     this.currentCols = cols;
@@ -124,7 +125,7 @@ export class TerminalSession {
 
   async send(raw: string): Promise<void> {
     if (this.exitCode !== null) {
-      return;
+      throw new Error(`Terminal session "${this.id}" has already exited.`);
     }
 
     this.pty.write(raw);
@@ -135,18 +136,22 @@ export class TerminalSession {
       return;
     }
 
-    this.signalRequested = true;
     this.pty.kill(sig);
   }
 
   async waitFor(pattern: string | RegExp, opts?: WaitForOptions): Promise<string> {
     const timeout = opts?.timeout ?? DEFAULT_TIMEOUT_MS;
+    assertTimeout(timeout);
     const startedAt = Date.now();
 
     while (Date.now() - startedAt <= timeout) {
       const matched = matchPattern(this.rawBuffer, pattern);
       if (matched !== null) {
         return matched;
+      }
+
+      if (this.exitCode !== null) {
+        throw new Error(`Terminal session "${this.id}" exited before matching pattern: ${String(pattern)}`);
       }
 
       await sleep(WAIT_FOR_POLL_MS);
@@ -156,6 +161,7 @@ export class TerminalSession {
   }
 
   async waitForQuiet(ms: number): Promise<void> {
+    assertQuietPeriod(ms);
     while (true) {
       const remaining = ms - (Date.now() - this.lastDataAt);
       if (remaining <= 0) {
@@ -195,11 +201,16 @@ export class TerminalSession {
       return lines;
     }
 
+    if (!Number.isInteger(opts.last) || opts.last < 0) {
+      throw new Error("History last must be a non-negative integer.");
+    }
+
     const start = Math.max(0, lines.length - opts.last);
     return lines.slice(start);
   }
 
   async resize(cols: number, rows: number): Promise<void> {
+    assertTerminalGeometry(cols, rows);
     this.currentCols = cols;
     this.currentRows = rows;
     if (this.exitCode === null) {
@@ -209,6 +220,10 @@ export class TerminalSession {
   }
 
   async waitForExit(opts?: { timeout?: number }): Promise<number> {
+    if (opts?.timeout !== undefined) {
+      assertTimeout(opts.timeout);
+    }
+
     if (this.exitCode !== null) {
       return this.exitCode;
     }
@@ -229,36 +244,58 @@ export class TerminalSession {
       return this.exitCode;
     }
 
-    if (!this.closeRequested) {
-      this.closeRequested = true;
+    this.closePromise ??= this.closeProcess().catch((error: unknown) => {
+      this.closePromise = null;
+      throw error;
+    });
+    return this.closePromise;
+  }
 
-      const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
-      if (gracefulExitCode !== null) {
-        return gracefulExitCode;
-      }
+  private async closeProcess(): Promise<number> {
+    const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
+    if (gracefulExitCode !== null) {
+      return gracefulExitCode;
+    }
 
-      if (this.signalRequested) {
-        return this.exitPromise;
-      }
-
-      if (this.exitCode === null) {
-        this.pty.kill("SIGTERM");
-        const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
-        if (afterSigterm !== null) {
-          return afterSigterm;
-        }
-      }
-
-      if (this.exitCode === null) {
-        this.pty.kill("SIGKILL");
+    if (this.exitCode === null) {
+      this.pty.kill("SIGTERM");
+      const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
+      if (afterSigterm !== null) {
+        return afterSigterm;
       }
     }
 
-    return this.exitPromise;
+    if (this.exitCode === null) {
+      this.pty.kill("SIGKILL");
+      const afterSigkill = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGKILL_MS);
+      if (afterSigkill !== null) {
+        return afterSigkill;
+      }
+    }
+
+    throw new Error("Timed out waiting for process to exit after SIGKILL.");
   }
 
   on(event: "exit", cb: (code: number) => void): void {
     this.emitter.on(event, cb);
+  }
+}
+
+function assertTerminalGeometry(cols: number, rows: number): void {
+  if (!Number.isInteger(cols) || cols <= 0 || !Number.isInteger(rows) || rows <= 0) {
+    throw new Error("Terminal columns and rows must be positive integers.");
+  }
+}
+
+function assertTimeout(timeout: number): void {
+  if (!Number.isFinite(timeout) || timeout < 0) {
+    throw new Error("Timeout must be a finite non-negative number.");
+  }
+}
+
+function assertQuietPeriod(duration: number): void {
+  if (!Number.isFinite(duration) || duration < 0) {
+    throw new Error("Quiet period must be a finite non-negative number.");
   }
 }
 
@@ -364,16 +401,32 @@ function splitHistoryLines(input: string): string[] {
 
 function normalizeHistoryBuffer(input: string): string {
   let output = "";
+  let line = "";
+  let cursor = 0;
 
   for (const character of input) {
-    if (character === "\r" || character === "\b") {
+    if (character === "\r") {
+      cursor = 0;
       continue;
     }
 
-    output += character;
+    if (character === "\b") {
+      cursor = Math.max(0, cursor - 1);
+      continue;
+    }
+
+    if (character === "\n") {
+      output += `${line}\n`;
+      line = "";
+      cursor = 0;
+      continue;
+    }
+
+    line = `${line.slice(0, cursor)}${character}${line.slice(cursor + 1)}`;
+    cursor += 1;
   }
 
-  return output;
+  return output + line;
 }
 
 function sleep(ms: number): Promise<void> {

@@ -10,9 +10,14 @@ export interface KeychainCommandResult {
   exitCode: number;
 }
 
+export interface KeychainCommandOptions {
+  stdin?: string;
+}
+
 export type KeychainCommandRunner = (
   command: string,
-  args: string[]
+  args: string[],
+  options?: KeychainCommandOptions
 ) => Promise<KeychainCommandResult>;
 
 export interface KeychainStoreInput {
@@ -50,6 +55,10 @@ export class KeychainStore implements SecretStore {
   }
 
   async set(value: string): Promise<void> {
+    if (value.includes("\n") || value.includes("\r")) {
+      throw new Error("Keychain secrets cannot contain line breaks");
+    }
+
     const result = await this.executeSecurityCommand(
       [
         "add-generic-password",
@@ -57,11 +66,11 @@ export class KeychainStore implements SecretStore {
         this.service,
         "-a",
         this.account,
-        "-w",
-        value,
-        "-U"
+        "-U",
+        "-w"
       ],
-      "store secret in macOS Keychain"
+      "store secret in macOS Keychain",
+      { stdin: value }
     );
 
     if (result.exitCode !== 0) {
@@ -84,10 +93,14 @@ export class KeychainStore implements SecretStore {
 
   private async executeSecurityCommand(
     args: string[],
-    operation: string
+    operation: string,
+    options?: KeychainCommandOptions
   ): Promise<KeychainCommandResult> {
     try {
-      return await this.runCommand(SECURITY_CLI, args);
+      if (options === undefined) {
+        return await this.runCommand(SECURITY_CLI, args);
+      }
+      return await this.runCommand(SECURITY_CLI, args, options);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to ${operation}: ${message}`);
@@ -97,11 +110,12 @@ export class KeychainStore implements SecretStore {
 
 function runSecurityCommand(
   command: string,
-  args: string[]
+  args: string[],
+  options?: KeychainCommandOptions
 ): Promise<KeychainCommandResult> {
   return new Promise((resolve) => {
     const child = spawn(command, args, {
-      stdio: ["ignore", "pipe", "pipe"]
+      stdio: [options?.stdin === undefined ? "ignore" : "pipe", "pipe", "pipe"]
     });
 
     let stdout = "";
@@ -117,6 +131,10 @@ function runSecurityCommand(
       stderr += chunk.toString();
     });
 
+    if (options?.stdin !== undefined) {
+      child.stdin?.end(options.stdin);
+    }
+
     child.on("error", (error: NodeJS.ErrnoException) => {
       const message =
         error instanceof Error ? error.message : String(error ?? "Unknown error");
@@ -131,7 +149,7 @@ function runSecurityCommand(
       resolve({
         stdout,
         stderr,
-        exitCode: code ?? 0
+        exitCode: code ?? 1
       });
     });
   });
@@ -150,17 +168,7 @@ function stripTrailingLineBreak(value: string): string {
 }
 
 function isKeychainEntryNotFound(result: KeychainCommandResult): boolean {
-  if (result.exitCode === KEYCHAIN_ITEM_NOT_FOUND_EXIT_CODE) {
-    return true;
-  }
-
-  const output = `${result.stderr}\n${result.stdout}`.toLowerCase();
-
-  return (
-    output.includes("could not be found") ||
-    output.includes("item not found") ||
-    output.includes("errsecitemnotfound")
-  );
+  return result.exitCode === KEYCHAIN_ITEM_NOT_FOUND_EXIT_CODE;
 }
 
 function createSecurityCliFailure(

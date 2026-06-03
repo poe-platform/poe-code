@@ -19,6 +19,7 @@ export type RunInspectorOptions = {
   promptOverride?: string;
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runInspector(
@@ -49,7 +50,8 @@ export async function runInspector(
     prompt,
     cwd: resolveRoleCwd(config, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc, config),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
 
   const logPath = extractLogPath(output);
@@ -64,16 +66,17 @@ function buildMcpServers(
   doc: SuperintendentDoc,
   config: AgentRoleConfig
 ): McpSpawnConfig | undefined {
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(config.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    config.mcp
+  );
 
   if (Object.keys(merged).length === 0) {
     return undefined;
   }
 
-  const servers: McpSpawnConfig = {};
+  const servers = Object.create(null) as McpSpawnConfig;
 
   for (const [name, mcpConfig] of Object.entries(merged)) {
     servers[name] = {

@@ -89,6 +89,32 @@ describe("e2bExecutionEnvFactory", () => {
     );
   });
 
+  it("exposes configured values needed to reattach a detached sandbox", async () => {
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    const env = await e2bExecutionEnvFactory.open({
+      cwd: "/repo",
+      runtimeCwd: "/runtime-config",
+      runtime: {
+        type: "e2b",
+        template_id: "tmpl_configured",
+        build_args: {},
+        mounts: [],
+        workspace_dir: "/sandbox/project",
+        preserve_after_exit_hours: 2
+      },
+      env: {},
+      uploadIgnoreFiles: [],
+      jobLabel: { tool: "node", argv: ["node"] }
+    });
+
+    expect(env.reattachContext).toEqual({
+      runtimeCwd: "/runtime-config",
+      workspaceDir: "/sandbox/project",
+      preserveAfterExitHours: 2
+    });
+  });
+
   it("attaches to an existing sandbox id", async () => {
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 
@@ -102,6 +128,50 @@ describe("e2bExecutionEnvFactory", () => {
     expect(env.id).toBe("sb_attached");
     expect(resolveE2bApiKey).toHaveBeenCalledWith({ cwd: "/repo" });
     expect(connectSandbox).toHaveBeenCalledWith("sb_existing", "resolved_key");
+  });
+
+  it("restores persisted runtime context when attaching", async () => {
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    const env = await e2bExecutionEnvFactory.attach("sb_existing", {
+      cwd: "/repo",
+      jobId: "job_1",
+      tool: "node",
+      argv: ["node"],
+      reattachContext: {
+        runtimeCwd: "/runtime-config",
+        workspaceDir: "/sandbox/project",
+        preserveAfterExitHours: 2
+      }
+    });
+
+    expect(resolveE2bApiKey).toHaveBeenCalledWith({ cwd: "/runtime-config" });
+    expect(env.reattachContext).toEqual({
+      runtimeCwd: "/runtime-config",
+      workspaceDir: "/sandbox/project",
+      preserveAfterExitHours: 2
+    });
+    const sandbox = await vi.mocked(connectSandbox).mock.results[0]?.value;
+    sandbox.commands.run.mockResolvedValue({
+      pid: 123,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    });
+    env.exec({ command: "pwd", cwd: "/repo" });
+
+    expect(sandbox.commands.run).toHaveBeenCalledWith(
+      "'pwd'",
+      expect.objectContaining({ cwd: "/sandbox/project" })
+    );
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached E2B job.");
+    }
+    sandbox.files.read.mockResolvedValue(Buffer.from("0\n"));
+
+    await job.wait();
+
+    expect(sandbox.setTimeout).toHaveBeenCalledWith(2 * 60 * 60 * 1000);
   });
 });
 
@@ -119,6 +189,11 @@ function createSandboxMock(id: string) {
     files: {
       read: vi.fn(),
       write: vi.fn(),
+      list: vi.fn(),
+      makeDir: vi.fn(),
+      rename: vi.fn(),
+      remove: vi.fn(),
+      getInfo: vi.fn(),
       watchDir: vi.fn()
     },
     pty: {

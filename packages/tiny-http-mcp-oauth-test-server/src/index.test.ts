@@ -45,6 +45,13 @@ function createEchoRequestBody(text: string): string {
   });
 }
 
+function createInitializedNotificationBody(): string {
+  return JSON.stringify({
+    jsonrpc: "2.0",
+    method: "notifications/initialized",
+  });
+}
+
 async function initializeSession(input: {
   url: string;
   token?: string;
@@ -124,6 +131,18 @@ describe("createMcpOAuthTestServer", () => {
     cleanups.clear();
   });
 
+  it("rejects invalid configured default token TTLs before listening", () => {
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: 0 })).toThrow(
+      "ttlSeconds must be a positive integer, received 0"
+    );
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: -1 })).toThrow(
+      "ttlSeconds must be a positive integer, received -1"
+    );
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: Number.POSITIVE_INFINITY })).toThrow(
+      "ttlSeconds must be a positive integer, received Infinity"
+    );
+  });
+
   it("boots, serves PRM pointing at the embedded authorization server, and rejects unauthenticated MCP traffic", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,
@@ -161,6 +180,36 @@ describe("createMcpOAuthTestServer", () => {
         issuer: "http://127.0.0.1:43191",
       })
     ).toThrow("issuer must include a non-root path");
+
+    expect(() =>
+      createMcpOAuthTestServer({
+        issuer: "http://127.0.0.1:43191/oauth?tenant=demo",
+      })
+    ).toThrow("issuer must not include a query or fragment");
+
+    expect(() =>
+      createMcpOAuthTestServer({
+        issuer: "http://127.0.0.1:43191/oauth#fragment",
+      })
+    ).toThrow("issuer must not include a query or fragment");
+  });
+
+  it("rejects unsupported protected-resource and route configuration", () => {
+    expect(() => createMcpOAuthTestServer({ resource: "/mcp" })).toThrow(
+      "resource must be an absolute URL"
+    );
+    expect(() => createMcpOAuthTestServer({ resource: "https://resource.example/mcp#fragment" })).toThrow(
+      "resource must not include a fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ mcpPath: "/mcp?tenant=demo" })).toThrow(
+      "mcpPath must not include a query or fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ mcpPath: "/mcp#fragment" })).toThrow(
+      "mcpPath must not include a query or fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ scopes: ["mcp.read", "   "] })).toThrow(
+      "scopes must contain non-empty values"
+    );
   });
 
   it("accepts direct tokens from the embedded OAuth server and exposes the test MCP tools", async () => {
@@ -184,14 +233,24 @@ describe("createMcpOAuthTestServer", () => {
     expect(initialize.response.status).toBe(200);
     expect(initialize.sessionId).toBeTruthy();
 
+    const sessionHeaders = {
+      Accept: "application/json, text/event-stream",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Mcp-Session-Id": initialize.sessionId ?? "",
+      "MCP-Protocol-Version": "2025-03-26",
+    };
+    const initialized = await nodeFetch(handle.mcpUrl, {
+      method: "POST",
+      headers: sessionHeaders,
+      body: createInitializedNotificationBody(),
+    });
+
+    expect(initialized.status).toBe(202);
+
     const response = await nodeFetch(handle.mcpUrl, {
       method: "POST",
-      headers: {
-        Accept: "application/json, text/event-stream",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Mcp-Session-Id": initialize.sessionId ?? "",
-      },
+      headers: sessionHeaders,
       body: createEchoRequestBody("hello"),
     });
 
@@ -201,6 +260,36 @@ describe("createMcpOAuthTestServer", () => {
         content: [{ type: "text", text: "hello" }],
       },
     });
+  });
+
+  it("rejects concurrent listener startup on one server instance", async () => {
+    const server = createMcpOAuthTestServer({ autoApprove: true, scopes: ["mcp.read"] });
+    const results = await Promise.allSettled([
+      server.listen({ port: 0, hostname: "127.0.0.1" }),
+      server.listen({ port: 0, hostname: "127.0.0.1" })
+    ]);
+    const fulfilled = results.filter(
+      (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof server.listen>>> =>
+        result.status === "fulfilled"
+    );
+
+    expect(fulfilled).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    if (fulfilled[0]) {
+      await fulfilled[0].value.close();
+    }
+  });
+
+  it("does not let a stale handle orphan a replacement listener", async () => {
+    const server = createMcpOAuthTestServer({ autoApprove: true, scopes: ["mcp.read"] });
+    const first = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    await first.close();
+    const second = await server.listen({ port: 0, hostname: "127.0.0.1" });
+
+    await first.close();
+    await second.close();
+
+    await expect(nodeFetch(second.mcpUrl)).rejects.toThrow();
   });
 
   it("rejects a direct token whose audience is bound to a different resource", async () => {

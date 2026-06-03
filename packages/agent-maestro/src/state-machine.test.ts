@@ -84,6 +84,11 @@ const transitionCases: Array<{
 const allEvents = Object.keys(maestroTaskStateMachine.events) as MaestroTaskEvent[];
 
 describe("maestroTaskStateMachine", () => {
+  it("does not allow callers to mutate exported event transitions", () => {
+    expect(() => (maestroTaskStateMachine.events.complete.from as MaestroTaskState[]).push("queued")).toThrow();
+    expect(maestroTaskStateMachine.events.complete.from).toEqual(["agent-running"]);
+  });
+
   it("passes state-machine validation", () => {
     expect(() => validateMachine(maestroTaskStateMachine)).not.toThrow();
   });

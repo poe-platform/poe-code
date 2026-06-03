@@ -64,6 +64,23 @@ describe("plan actions", () => {
     });
   });
 
+  it("passes editor flags before the file path", () => {
+    const spawnSync = vi.fn(() => ({ status: 0 }));
+
+    editFile("/repo/docs/plans/plan.md", { env: { EDITOR: "code --wait" }, spawnSync });
+
+    expect(spawnSync).toHaveBeenCalledWith("code", ["--wait", "/repo/docs/plans/plan.md"], {
+      stdio: "inherit"
+    });
+  });
+
+  it("throws when an editor cannot be launched", () => {
+    const spawnSync = vi.fn(() => ({ error: new Error("spawn failed") }));
+
+    expect(() => editFile("/repo/docs/plans/plan.md", { env: { EDITOR: "code" }, spawnSync }))
+      .toThrow("spawn failed");
+  });
+
   it("keeps editPlan as a compatibility wrapper", () => {
     const spawnSync = vi.fn();
 
@@ -79,5 +96,45 @@ describe("plan actions", () => {
 
   it("falls back to vi when no editor env is set", () => {
     expect(resolveEditor({})).toBe("vi");
+  });
+
+  it("does not overwrite an existing archived plan", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": "# Current",
+      "/repo/docs/plans/archive/plan.md": "# Historic"
+    });
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow("Archive destination already exists");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan.md", "utf8")).resolves.toBe("# Historic");
+  });
+
+  it("rejects a symlinked archive directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/docs/plans/plan.md": "# Current",
+      "/outside/.keep": ""
+    }, "/");
+    volume.symlinkSync("/outside", "/repo/docs/plans/archive");
+    const fs = createFsFromVolume(volume).promises as unknown as ActionFs;
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toBe("# Current");
+    await expect(fs.readFile("/outside/plan.md", "utf8")).rejects.toThrow();
+  });
+
+  it("removes a newly created archive directory when moving fails", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Current" });
+    const fs: ActionFs = {
+      ...raw,
+      rename: async () => { throw new Error("move failed"); }
+    };
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow("move failed");
+    await expect(raw.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toBe("# Current");
+    await expect(raw.readFile("/repo/docs/plans/archive/plan.md", "utf8")).rejects.toThrow();
+    await expect((raw as unknown as { readdir(path: string): Promise<string[]> }).readdir("/repo/docs/plans/archive"))
+      .rejects.toThrow();
   });
 });

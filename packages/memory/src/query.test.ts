@@ -89,6 +89,17 @@ describe("selectQueryContext", () => {
       /budget too small/i
     );
   });
+
+  it("rejects non-finite token budgets", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/a.md": "# Alpha\n\nhello\n"
+    });
+
+    await expect(selectQueryContext("/repo/.poe-code/memory", "alpha", Number.NaN)).rejects.toThrow(
+      "budget must be a finite non-negative number"
+    );
+  });
 });
 
 describe("queryMemory", () => {
@@ -121,15 +132,18 @@ describe("queryMemory", () => {
 
   it("spawns the configured agent with memory-only context and parses citations", async () => {
     mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
-      answer: "Retries happen during cleanup races.",
-      citations: [
-        {
-          relPath: "pages/packages/superintendent.md",
-          section: "checkpoints",
-          confidence: "extracted"
-        }
-      ],
-      tokensUsed: 321,
+      stdout: JSON.stringify({
+        answer: "Retries happen during cleanup races.",
+        citations: [
+          {
+            relPath: "pages/packages/superintendent.md",
+            section: "checkpoints",
+            confidence: "extracted"
+          }
+        ],
+        tokensUsed: 321
+      }),
+      stderr: "",
       exitCode: 0
     });
 
@@ -164,6 +178,7 @@ describe("queryMemory", () => {
     expect(mockedAgentSpawn.spawnMock!.spawn.mock.calls[0]?.[1]?.prompt).toContain(
       "pages/packages/superintendent.md"
     );
+    expect(resolveAgent.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
     expect(result).toEqual({
       answer: "Retries happen during cleanup races.",
       citations: [

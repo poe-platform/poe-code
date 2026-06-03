@@ -34,4 +34,5 @@ export const kimiAcpSpawnConfig: AcpSpawnConfig = {
   kind: "acp",
   agentId: "kimi",
   acpArgs: ["acp"],
+  supportsMcpServers: false,
 };

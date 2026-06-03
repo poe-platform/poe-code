@@ -23,6 +23,8 @@ type RalphAgentRunInput = AgentRunInput & {
   mode?: import("@poe-code/agent-spawn").SpawnMode;
 };
 
+let planPublicationSequence = 0;
+
 export function createRalphDriver(options: { runRalph?: RalphRunner } = {}): WorkflowDriver {
   const runner = options.runRalph ?? runRalph;
 
@@ -117,7 +119,10 @@ async function runAgent(
     prompt: input.prompt,
     model: input.model,
     mode: input.mode,
+    ...(input.skills ? { skills: input.skills } : {}),
     ...(input.hooks ? { hooks: input.hooks } : {}),
+    ...(input.logDir ? { logDir: input.logDir } : {}),
+    ...(input.logFileName ? { logFileName: input.logFileName } : {}),
     signal: input.signal
   });
 
@@ -133,7 +138,7 @@ async function persistPlan(workspaceDocPath: string, planPath: string): Promise<
   const content = await fs.readFile(updatedDocPath, "utf8");
   const tempPath = path.join(
     path.dirname(planPath),
-    `.${path.basename(planPath)}.${process.pid}.tmp`
+    `.${path.basename(planPath)}.${process.pid}.${planPublicationSequence += 1}.tmp`
   );
 
   if (updatedDocPath !== workspaceDocPath) {

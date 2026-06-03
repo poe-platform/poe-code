@@ -63,22 +63,22 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
           `--mcp-servers entry "${name}".env must be an object of string values`
         );
       }
-      env = {};
-      for (const [envKey, envValue] of Object.entries(entry.env as Record<string, unknown>)) {
+      const entries = Object.entries(entry.env as Record<string, unknown>);
+      for (const [, envValue] of entries) {
         if (typeof envValue !== "string") {
           throw new ValidationError(
             `--mcp-servers entry "${name}".env must be an object of string values`
           );
         }
-        env[envKey] = envValue;
       }
+      env = Object.fromEntries(entries) as Record<string, string>;
     }
 
-    servers[name] = {
+    Object.defineProperty(servers, name, { value: {
       command,
       ...(args ? { args } : {}),
       ...(env ? { env } : {})
-    };
+    }, enumerable: true, configurable: true, writable: true });
   }
 
   return Object.keys(servers).length > 0 ? servers : undefined;

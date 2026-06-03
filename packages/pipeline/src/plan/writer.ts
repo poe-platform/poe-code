@@ -2,7 +2,7 @@ import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
 
-type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile">;
+type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile" | "lstat" | "rename" | "unlink">;
 type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
 
 type MarkdownPlanDocument = {
@@ -202,6 +202,9 @@ export async function writeTaskStatus(options: {
   status: PipelineStatus;
   stepName?: string;
 }): Promise<void> {
+  if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
+    throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
+  }
   const content = await readPlanFile(options.fs, options.planPath);
   const parts = splitWritableDocument(content);
   const document = parseDocument(parts.kind === "markdown" ? parts.frontmatterText : content);
@@ -220,7 +223,15 @@ export async function writeTaskStatus(options: {
 
   canonicalizeDocument(document);
 
-  await options.fs.writeFile(options.planPath, serializeDocument(parts, document), {
-    encoding: "utf8"
-  });
+  const tempPath = `${options.planPath}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await options.fs.writeFile(tempPath, serializeDocument(parts, document), { encoding: "utf8" });
+    if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
+    }
+    await options.fs.rename(tempPath, options.planPath);
+  } catch (error) {
+    await options.fs.unlink(tempPath).catch(() => undefined);
+    throw error;
+  }
 }

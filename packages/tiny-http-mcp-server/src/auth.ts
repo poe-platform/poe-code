@@ -92,34 +92,13 @@ function readSingleHeaderValue(
   return Array.isArray(value) ? value[0] : value;
 }
 
-function readForwardedHeaderValue(
-  value: string | string[] | undefined
-): string | undefined {
-  const headerValue = readSingleHeaderValue(value);
-  if (headerValue === undefined || headerValue.length === 0) {
-    return undefined;
-  }
-
-  return headerValue.split(",")[0]?.trim() || undefined;
-}
-
 function getRequestProtocol(
   req: Pick<IncomingMessage, "headers" | "socket">
 ): string {
-  const forwardedProto = readForwardedHeaderValue(req.headers["x-forwarded-proto"]);
-  if (forwardedProto !== undefined) {
-    return forwardedProto;
-  }
-
   return "encrypted" in req.socket && req.socket.encrypted ? "https" : "http";
 }
 
 function getRequestHost(req: Pick<IncomingMessage, "headers">): string {
-  const forwardedHost = readForwardedHeaderValue(req.headers["x-forwarded-host"]);
-  if (forwardedHost !== undefined) {
-    return forwardedHost;
-  }
-
   return readSingleHeaderValue(req.headers.host) ?? "127.0.0.1";
 }
 
@@ -228,7 +207,7 @@ function normalizeTokenVerificationError(
   if (error instanceof Error) {
     return {
       error: "invalid_token",
-      errorDescription: error.message,
+      errorDescription: "token verification failed",
     };
   }
 

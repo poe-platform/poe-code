@@ -14,6 +14,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
 import { PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
+import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
 
 const cwd = "/repo";
@@ -392,6 +393,77 @@ describe("configure provider resolution", () => {
     });
   });
 
+  it("does not persist global codex configuration when isolated setup fails", async () => {
+    const container = createContainer(fs);
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/codex`, "block isolated directory", {
+      encoding: "utf8"
+    });
+
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+        provider: "cloudflare",
+        apiKey: "partial-secret",
+        model: "partial-model",
+        baseUrl: "https://gateway.example.test"
+      })
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).rejects.toThrow();
+    expect(await loadConfiguredServices({ fs, filePath: configPath })).not.toHaveProperty("codex");
+    await expect(container.providerRegistry.resolveCredential("cloudflare")).rejects.toThrow();
+  });
+
+  it("stores explicit credentials when isolated configuration needs future repair", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    await expect(container.providerRegistry.resolveCredential("cloudflare")).resolves.toBe("sk-cloudflare-test");
+  });
+
+  it("stores isolated explicit credentials when no transactional credential store is available", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container, "createPreviewProviderStore").mockReturnValue(undefined);
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    expect(loginSpy).toHaveBeenCalledWith("cloudflare", { apiKey: "sk-cloudflare-test" });
+  });
+
+  it("repairs isolated configuration configured with an explicit provider credential", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+    await fs.unlink(`${homeDir}/.poe-code/codex/config.toml`);
+
+    await ensureIsolatedConfigForService({
+      container,
+      adapter: container.registry.require("codex"),
+      service: "codex",
+      flags: { dryRun: false, assumeYes: true, verbose: false }
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
+    expect(document.model).toBe("@cf/meta/llama-3.1-8b-instruct");
+  });
+
   it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {
     const container = createContainer(fs);
 
@@ -621,6 +693,50 @@ describe("configure provider resolution", () => {
     ).resolves.not.toThrow();
   });
 
+  it("does not acquire or validate Poe credentials in an explicit dry-run preview", async () => {
+    const container = createContainer(fs);
+    useOnlyPoeCandidate(container);
+    const resolveApiKey = vi.spyOn(container.options, "resolveApiKey");
+    stubInvoke(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--dry-run", "--yes"]),
+      container,
+      "claude-code",
+      { provider: "poe", apiKey: "secret-key" }
+    );
+
+    expect(resolveApiKey).not.toHaveBeenCalled();
+  });
+
+  it("does not recover malformed config while selecting a default agent in dry-run mode", async () => {
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "--yes",
+        "configure",
+        "--provider",
+        "poe",
+        "--api-key",
+        "probe-key",
+        "--model",
+        "test-model"
+      ])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(path.dirname(configPath))).resolves.toEqual(["config.json"]);
+  });
+
   it("honors the --provider flag", async () => {
     const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs);
@@ -834,10 +950,10 @@ describe("configure provider resolution", () => {
     expect(capture.provider()?.baseUrl).toBe("https://shape.example/anth");
   });
 
-  it("does not read base URLs from environment variables", async () => {
+  it("derives Poe provider URLs from POE_BASE_URL", async () => {
     const container = createContainer(fs, {
       POE_API_KEY: "sk-env",
-      POE_BASE_URL: "https://env.example"
+      POE_BASE_URL: "https://env.example/v1"
     });
     mockOptions(container);
     const capture = stubInvokeAndCaptureProvider(container);
@@ -846,7 +962,28 @@ describe("configure provider resolution", () => {
       provider: "poe"
     });
 
-    expect(capture.provider()?.baseUrl).toBe("https://api.poe.com/anthropic");
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://env.example/anthropic",
+      agentBaseUrl: "https://env.example"
+    });
+  });
+
+  it("derives Poe OpenAI URLs from POE_BASE_URL", async () => {
+    const container = createContainer(fs, {
+      POE_API_KEY: "sk-env",
+      POE_BASE_URL: "https://env.example/v1"
+    });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://env.example/v1",
+      agentBaseUrl: "https://env.example"
+    });
   });
 
   it("rejects unknown configure --shape-base-url shape ids before writing", async () => {

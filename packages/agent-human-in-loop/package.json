@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "cd ../.. && vitest run --passWithNoTests packages/agent-human-in-loop",
     "typecheck": "tsc --noEmit",
     "dev": "tsx example.ts"

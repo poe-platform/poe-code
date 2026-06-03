@@ -42,7 +42,6 @@ export function createDefaultOAuthClientProvider(
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
   const clientStore = options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
   const now = options.now ?? Date.now;
-  const sessions = new Map<string, StoredOAuthSession | null>();
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
   const authorizationPromises = new Map<string, Promise<StoredOAuthSession>>();
@@ -53,7 +52,12 @@ export function createDefaultOAuthClientProvider(
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false);
       const accessToken = session?.tokens?.accessToken;
-      if (session === null || accessToken === undefined) {
+      if (
+        session === null
+        || accessToken === undefined
+        || session.tokens === undefined
+        || isExpired(session.tokens, now)
+      ) {
         return;
       }
 
@@ -122,11 +126,12 @@ export function createDefaultOAuthClientProvider(
       }
     }
 
-    if (!allowInteractive || sessionDiscovery === undefined) {
-      return session;
+    if (forceRefresh && session?.tokens !== undefined) {
+      session = clearSessionTokens(session);
+      await saveSession(canonicalResource, session);
     }
 
-    if (forceRefresh && session?.tokens !== undefined) {
+    if (!allowInteractive || sessionDiscovery === undefined) {
       return session;
     }
 
@@ -197,7 +202,10 @@ export function createDefaultOAuthClientProvider(
 
         const updatedSession: StoredOAuthSession = {
           ...session,
-          tokens: refreshedTokens,
+          tokens: {
+            ...refreshedTokens,
+            refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken,
+          },
           discovery: toStoredDiscovery(discovery),
         };
         await saveSession(resource, updatedSession);
@@ -391,7 +399,7 @@ export function createDefaultOAuthClientProvider(
 
     if (
       typeof payload.client_id !== "string" ||
-      payload.client_id.length === 0
+      payload.client_id.trim().length === 0
     ) {
       throw new Error("OAuth client registration response missing client_id");
     }
@@ -413,22 +421,14 @@ export function createDefaultOAuthClientProvider(
   }
 
   async function loadSession(resource: string): Promise<StoredOAuthSession | null> {
-    if (sessions.has(resource)) {
-      return sessions.get(resource) ?? null;
-    }
-
-    const session = await sessionStore.load(resource);
-    sessions.set(resource, session);
-    return session;
+    return normalizeLoadedSession(await sessionStore.load(resource));
   }
 
   async function saveSession(resource: string, session: StoredOAuthSession): Promise<void> {
-    sessions.set(resource, session);
     await sessionStore.save(resource, session);
   }
 
   async function clearSession(resource: string): Promise<void> {
-    sessions.delete(resource);
     await sessionStore.clear(resource);
   }
 
@@ -444,6 +444,11 @@ export function createDefaultOAuthClientProvider(
     }
 
     const client = await clientStore.load(issuer);
+    if (client !== null && !isUsableClient(client)) {
+      await clientStore.clear(issuer);
+      return null;
+    }
+
     registeredClients.set(issuer, client);
     return client;
   }
@@ -522,6 +527,48 @@ function hasCachedAccessToken(
   session: StoredOAuthSession | null
 ): session is StoredOAuthSession & { tokens: StoredOAuthTokens } {
   return session?.tokens?.accessToken !== undefined;
+}
+
+function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuthSession | null {
+  if (session === null) {
+    return null;
+  }
+
+  if (!isUsableClient(session.client)) {
+    return { ...session, client: { clientId: "" }, tokens: undefined };
+  }
+
+  return isUsableTokens(session.tokens)
+    ? session
+    : { ...session, tokens: undefined };
+}
+
+function isUsableClient(client: StoredOAuthSession["client"]): boolean {
+  return (
+    typeof client.clientId === "string"
+    && client.clientId.trim().length > 0
+    && (
+      client.clientSecret === undefined
+      || (typeof client.clientSecret === "string" && client.clientSecret.trim().length > 0)
+    )
+  );
+}
+
+function isUsableTokens(tokens: StoredOAuthTokens | undefined): tokens is StoredOAuthTokens {
+  if (tokens === undefined) {
+    return true;
+  }
+
+  return (
+    typeof tokens.accessToken === "string"
+    && tokens.accessToken.trim().length > 0
+    && tokens.tokenType === "Bearer"
+    && (tokens.expiresAt === null || (typeof tokens.expiresAt === "number" && Number.isFinite(tokens.expiresAt)))
+    && (
+      tokens.refreshToken === undefined
+      || (typeof tokens.refreshToken === "string" && tokens.refreshToken.trim().length > 0)
+    )
+  );
 }
 
 function getClientMetadata(

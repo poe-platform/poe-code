@@ -139,6 +139,19 @@ describe("osascriptProvider", () => {
     });
   });
 
+  it("does not treat unrelated -128 diagnostics as a declined result", async () => {
+    execFileAsyncMock.mockRejectedValue(
+      Object.assign(new Error("execution failed"), {
+        stderr: "bad argument (-128) was passed to helper"
+      })
+    );
+    const provider = osascriptProvider({ binary: "/fake/osascript" });
+
+    await expect(provider.requestApproval({ message: "continue?" })).rejects.toThrowError(
+      "osascript failed: bad argument (-128) was passed to helper"
+    );
+  });
+
   it("throws a wrapped failure when osascript exits with an error", async () => {
     execFileAsyncMock.mockRejectedValue(
       Object.assign(new Error("Command failed"), {

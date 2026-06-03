@@ -72,4 +72,53 @@ describe("harness schema codegen", () => {
       "enum": [
         "https://poe-platform.github.io/poe-code/schemas/harnesses/ralph-demo.schema.json"`);
   });
+
+  it("rejects a generated schema symlink outside the repository", async () => {
+    const volume = Volume.fromJSON({
+      "/outside.json": "{\"external\":true}\n"
+    });
+    const fs = createFsFromVolume(volume).promises;
+    volume.mkdirSync("/repo/docs/schemas/harnesses", { recursive: true });
+    volume.symlinkSync(
+      "/outside.json",
+      "/repo/docs/schemas/harnesses/pipeline-demo.schema.json"
+    );
+
+    await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+      "Generated schema output must remain inside the repository."
+    );
+    await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("{\"external\":true}\n");
+  });
+
+  it("restores previously published schemas when a later write fails", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/docs/schemas/harnesses/coverage-demo.schema.json": "old coverage schema\n",
+      "/repo/docs/schemas/harnesses/experiment-demo.schema.json": "old experiment schema\n"
+    });
+    const rawFs = createFsFromVolume(volume).promises;
+    let writeCount = 0;
+    const fs = {
+      ...rawFs,
+      async writeFile(
+        filePath: Parameters<typeof rawFs.writeFile>[0],
+        data: Parameters<typeof rawFs.writeFile>[1],
+        options?: Parameters<typeof rawFs.writeFile>[2]
+      ) {
+        writeCount += 1;
+        if (writeCount === 2) {
+          throw new Error("simulated later schema failure");
+        }
+
+        return rawFs.writeFile(filePath, data, options);
+      }
+    };
+
+    await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+      "simulated later schema failure"
+    );
+    await expect(fs.readFile("/repo/docs/schemas/harnesses/coverage-demo.schema.json", "utf8"))
+      .resolves.toBe("old coverage schema\n");
+    await expect(fs.readFile("/repo/docs/schemas/harnesses/experiment-demo.schema.json", "utf8"))
+      .resolves.toBe("old experiment schema\n");
+  });
 });

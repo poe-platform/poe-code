@@ -10,7 +10,7 @@
     "terminal-png": "./bin/terminal-png"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json",
     "compare": "tsx scripts/compare.ts"
   },
   "files": [

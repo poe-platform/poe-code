@@ -106,6 +106,60 @@ describe("runApproval", () => {
     expect(provider.requestApproval).not.toHaveBeenCalled();
   });
 
+  it("prompts only once when concurrent runners contend for one pending approval", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    let releasePrompt: (() => void) | undefined;
+    let reportDuplicatePrompt: (() => void) | undefined;
+    const promptRelease = new Promise<void>((resolve) => {
+      releasePrompt = resolve;
+    });
+    const duplicatePrompt = new Promise<void>((resolve) => {
+      reportDuplicatePrompt = resolve;
+    });
+    const requestApproval = vi.fn(async () => {
+      if (requestApproval.mock.calls.length === 2) {
+        reportDuplicatePrompt?.();
+      }
+      await promptRelease;
+      return { outcome: "approved" as const };
+    });
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval,
+    };
+    const handler = vi.fn(async () => "done");
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          params: S.Object({}),
+          handler,
+        }),
+      ],
+    });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "deploy",
+      params: {},
+      message: "Deploy?",
+    });
+
+    const first = runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+    const second = runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+    const secondExitedWithoutPrompting = await Promise.race([
+      second.then(() => true),
+      duplicatePrompt.then(() => false),
+    ]);
+
+    releasePrompt?.();
+    await Promise.allSettled([first, second]);
+
+    expect(secondExitedWithoutPrompting).toBe(true);
+    expect(provider.requestApproval).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
   it("fires start, runs the handler, and stores the result after approval", async () => {
     process.env.DEPLOY_TOKEN = "secret-token";
 

@@ -19,6 +19,7 @@ export interface StartManagedProcessOptions {
   startupTimeoutMs?: number;
   spawnDaemon: (id: string) => Promise<number | null>;
   isPidRunning?: (pid: number) => boolean;
+  signalProcess?: (pid: number, signal: NodeJS.Signals) => void;
 }
 
 export interface StopManagedProcessOptions {
@@ -82,6 +83,7 @@ const DEFAULT_STARTUP_TIMEOUT_MS = 30_000;
 const DEFAULT_STOP_TIMEOUT_MS = 5_000;
 
 export async function startManagedProcess(options: StartManagedProcessOptions): Promise<ManagedProcessRecord> {
+  assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
   const fs = options.fs ?? defaultFs();
   const spec = normalizeSpec(options.spec);
   const existing = await readManagedProcess({
@@ -100,20 +102,31 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
   await writeState(fs, options.baseDir, createBootstrapState(spec));
   await writeMeta(fs, options.baseDir, spec.id, { daemonPid: null });
 
-  const daemonPid = await options.spawnDaemon(spec.id);
-  await writeMeta(fs, options.baseDir, spec.id, { daemonPid });
+  let daemonPid: number | null = null;
 
-  const started = await waitForRecord({
-    baseDir: options.baseDir,
-    fs,
-    id: spec.id,
-    isPidRunning: options.isPidRunning,
-    pollIntervalMs: options.pollIntervalMs,
-    timeoutMs: options.startupTimeoutMs,
-    ready: (record) => record.state !== null && record.state.status !== "restarting"
-  });
+  try {
+    daemonPid = await options.spawnDaemon(spec.id);
+    await writeMeta(fs, options.baseDir, spec.id, { daemonPid });
 
-  return started;
+    const started = await waitForRecord({
+      baseDir: options.baseDir,
+      fs,
+      id: spec.id,
+      isPidRunning: options.isPidRunning,
+      pollIntervalMs: options.pollIntervalMs,
+      timeoutMs: options.startupTimeoutMs,
+      ready: (record) => record.state !== null && record.state.status !== "restarting"
+    });
+
+    if (started.state?.status !== "running") {
+      throw new Error(`Managed process "${spec.id}" failed to start.`);
+    }
+
+    return started;
+  } catch (error) {
+    await cleanupFailedStart({ ...options, daemonPid, fs, id: spec.id });
+    throw error;
+  }
 }
 
 export async function stopManagedProcess(options: StopManagedProcessOptions): Promise<ManagedProcessRecord | null> {
@@ -135,7 +148,7 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
 
   if (daemonPid !== null && isProcessRunning(daemonPid, options.isPidRunning)) {
     signalProcess(daemonPid, signal);
-  } else if (record.state?.runtime === "host" && record.state.pid !== null) {
+  } else if (record.state !== null && isActiveStatus(record.state.status) && record.state.runtime === "host" && record.state.pid !== null) {
     if (isProcessRunning(record.state.pid, options.isPidRunning)) {
       signalProcess(record.state.pid, signal);
     }
@@ -155,14 +168,7 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
   });
 
   if (isActiveRecord(stopped)) {
-    const persisted = createStoppedState(stopped);
-    await writeState(fs, options.baseDir, persisted);
-    await writeMeta(fs, options.baseDir, options.id, { daemonPid: null });
-    return {
-      ...stopped,
-      daemonPid: null,
-      state: persisted
-    };
+    throw new Error(`Timed out waiting for managed process "${options.id}" to stop.`);
   }
 
   if (
@@ -210,10 +216,30 @@ export async function restartManagedProcess(
     fs,
     isPidRunning: options.isPidRunning,
     pollIntervalMs: options.pollIntervalMs,
+    signalProcess: options.signalProcess,
     spawnDaemon: options.spawnDaemon,
     spec: record.spec,
     startupTimeoutMs: options.startupTimeoutMs
   });
+}
+
+async function cleanupFailedStart(options: {
+  baseDir: string;
+  daemonPid: number | null;
+  fs: LauncherFileSystem;
+  id: string;
+  isPidRunning?: (pid: number) => boolean;
+  signalProcess?: (pid: number, signal: NodeJS.Signals) => void;
+}): Promise<void> {
+  if (options.daemonPid !== null && (options.isPidRunning === undefined || isProcessRunning(options.daemonPid, options.isPidRunning))) {
+    (options.signalProcess ?? defaultSignalProcess)(options.daemonPid, "SIGTERM");
+  }
+
+  const record = await readManagedProcess(options);
+  if (record.state !== null && !isActiveRecord(record)) {
+    await writeState(options.fs, options.baseDir, record.state);
+    await writeMeta(options.fs, options.baseDir, options.id, { daemonPid: record.daemonPid });
+  }
 }
 
 export async function listManagedProcesses(
@@ -243,6 +269,8 @@ export async function listManagedProcesses(
 
 export async function readManagedLogs(options: ReadManagedLogsOptions): Promise<string[]> {
   const fs = options.fs ?? defaultFs();
+  await assertProcessDirectorySafe(fs, options.baseDir, options.id);
+  await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));
   const logWriter = createLogWriter(
     resolveLogDir(options.baseDir, options.id),
     5,
@@ -255,8 +283,11 @@ export async function* followManagedLogs(
   options: FollowManagedLogsOptions
 ): AsyncIterable<string> {
   const stream = options.stream ?? "stdout";
-  let previous: string[] = await readManagedLogs(options);
   const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+  if (!Number.isFinite(pollIntervalMs) || pollIntervalMs < 0) {
+    throw new Error(`Invalid managed log poll interval: ${pollIntervalMs}`);
+  }
+  let previous = await readFollowedLogs(options, stream);
 
   while (!options.signal?.aborted) {
     await sleep(pollIntervalMs);
@@ -264,21 +295,36 @@ export async function* followManagedLogs(
       return;
     }
 
-    const next = await readManagedLogs({
-      baseDir: options.baseDir,
-      fs: options.fs,
-      id: options.id,
-      lines: options.lines,
-      stream
-    });
+    const next = await readFollowedLogs(options, stream);
 
-    const delta = next.slice(previous.length);
+    const delta = hasSamePrefix(previous, next) ? next.slice(previous.length) : next;
     previous = next;
 
     for (const line of delta) {
       yield line;
     }
   }
+}
+
+async function readFollowedLogs(
+  options: FollowManagedLogsOptions,
+  stream: "stdout" | "stderr"
+): Promise<string[]> {
+  return await readManagedLogs({
+    baseDir: options.baseDir,
+    fs: options.fs,
+    id: options.id,
+    lines: Number.MAX_SAFE_INTEGER,
+    stream
+  });
+}
+
+function hasSamePrefix(previous: string[], next: string[]): boolean {
+  if (next.length < previous.length) {
+    return false;
+  }
+
+  return previous.every((line, index) => next[index] === line);
 }
 
 export async function removeManagedProcess(options: RemoveManagedProcessOptions): Promise<void> {
@@ -294,16 +340,22 @@ export async function removeManagedProcess(options: RemoveManagedProcessOptions)
     throw new Error(`Managed process "${options.id}" must be stopped before removal.`);
   }
 
+  const stateStore = createStateStore(options.baseDir, fs);
+  await stateStore.remove(options.id);
+
   if (record.spec !== null && options.removeRuntimeArtifacts) {
     await options.removeRuntimeArtifacts({ record });
   }
-
-  const stateStore = createStateStore(options.baseDir, fs);
-  await stateStore.remove(options.id);
 }
 
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {
+  if (options.signal?.aborted) {
+    return;
+  }
+
   const fs = options.fs ?? defaultFs();
+  await assertProcessDirectorySafe(fs, options.baseDir, options.id);
+  await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));
   const spec = await readSpec(fs, options.baseDir, options.id);
   if (spec === null) {
     throw new Error(`Managed process "${options.id}" was not found.`);
@@ -399,6 +451,7 @@ async function readManagedProcess(options: {
   id: string;
   isPidRunning?: (pid: number) => boolean;
 }): Promise<ManagedProcessRecord> {
+  await assertProcessDirectorySafe(options.fs, options.baseDir, options.id);
   const spec = await readSpec(options.fs, options.baseDir, options.id);
   const state = await readState(options.fs, options.baseDir, options.id);
   const meta = await readMeta(options.fs, options.baseDir, options.id);
@@ -557,7 +610,16 @@ async function readSpec(
   baseDir: string,
   id: string
 ): Promise<ProcessSpec | null> {
-  return await readJsonFile<ProcessSpec>(fs, resolveSpecPath(baseDir, id));
+  const spec = await readJsonFile<unknown>(fs, resolveSpecPath(baseDir, id));
+  if (spec === null) {
+    return null;
+  }
+
+  if (!isRecord(spec) || typeof spec.id !== "string" || spec.id !== id) {
+    throw new Error(`Invalid managed process specification for "${id}".`);
+  }
+
+  return spec as unknown as ProcessSpec;
 }
 
 async function writeSpec(fs: LauncherFileSystem, baseDir: string, spec: ProcessSpec): Promise<void> {
@@ -581,7 +643,23 @@ async function readMeta(
   baseDir: string,
   id: string
 ): Promise<ManagedProcessMeta | null> {
-  return await readJsonFile<ManagedProcessMeta>(fs, resolveMetaPath(baseDir, id));
+  const meta = await readJsonFile<unknown>(fs, resolveMetaPath(baseDir, id));
+  if (meta === null) {
+    return null;
+  }
+
+  if (
+    !isRecord(meta) ||
+    !(meta.daemonPid === null || (
+      typeof meta.daemonPid === "number" &&
+      Number.isSafeInteger(meta.daemonPid) &&
+      meta.daemonPid > 0
+    ))
+  ) {
+    throw new Error(`Invalid managed process metadata for "${id}".`);
+  }
+
+  return meta as unknown as ManagedProcessMeta;
 }
 
 async function writeMeta(
@@ -594,6 +672,8 @@ async function writeMeta(
 }
 
 async function readJsonFile<T>(fs: LauncherFileSystem, filePath: string): Promise<T | null> {
+  await assertPathNotSymbolicLink(fs, filePath);
+
   try {
     const content = await fs.readFile(filePath, "utf8");
     return JSON.parse(content) as T;
@@ -610,11 +690,48 @@ async function writeJsonFile(
   filePath: string,
   value: object
 ): Promise<void> {
+  await assertPathNotSymbolicLink(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+async function assertProcessDirectorySafe(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string
+): Promise<void> {
+  await assertPathNotSymbolicLink(fs, resolveProcessDir(baseDir, id));
+}
+
+async function assertPathNotSymbolicLink(fs: LauncherFileSystem, filePath: string): Promise<void> {
+
+  try {
+    if ((await fs.lstat(filePath)).isSymbolicLink()) {
+      throw new Error(`Refusing to access managed process through symbolic link: ${filePath}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
+function assertOptionalFiniteDuration(value: number | undefined, description: string): void {
+  if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+    throw new Error(`Invalid managed process ${description}: ${value}`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
 function resolveProcessDir(baseDir: string, id: string): string {
+  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
+    throw new Error(`Invalid managed process id: ${id}`);
+  }
   return path.join(baseDir, id);
 }
 

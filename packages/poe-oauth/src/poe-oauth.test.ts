@@ -25,6 +25,7 @@ function createMockServer(): {
   boundPort: number;
 } {
   let requestHandler: ((req: http.IncomingMessage, res: http.ServerResponse) => void) | null = null;
+  let errorHandler: ((error: Error) => void) | null = null;
   const boundPort = 54321;
   let lastResponseBody = "";
 
@@ -34,6 +35,24 @@ function createMockServer(): {
         requestHandler = handler;
       }
       return server;
+    }),
+    once: vi.fn((event: string, handler: any) => {
+      if (event === "error") {
+        errorHandler = handler;
+      }
+      return server;
+    }),
+    off: vi.fn((event: string, handler: any) => {
+      if (event === "error" && errorHandler === handler) {
+        errorHandler = null;
+      }
+      return server;
+    }),
+    emit: vi.fn((event: string, error: Error) => {
+      if (event === "error" && errorHandler !== null) {
+        errorHandler(error);
+      }
+      return true;
     }),
     listen: vi.fn((_port: number, _host: string, callback: () => void) => {
       queueMicrotask(() => callback());
@@ -74,6 +93,16 @@ function createTokenResponse(apiKey: string, expiresIn?: number): Response {
     status: 200,
     headers: { "content-type": "application/json" }
   });
+}
+
+function createCallbackPath(authorizationUrl: string, code: string): string {
+  const callback = new URL("http://127.0.0.1/callback");
+  const state = new URL(authorizationUrl).searchParams.get("state");
+  callback.searchParams.set("code", code);
+  if (state !== null) {
+    callback.searchParams.set("state", state);
+  }
+  return `${callback.pathname}${callback.search}`;
 }
 
 describe("checkAuth", () => {
@@ -137,6 +166,24 @@ describe("checkAuth", () => {
     );
   });
 
+  it("preserves a base URL query while targeting the balance endpoint", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      email: "custom@example.com",
+      current_point_balance: 5
+    }), { status: 200 }));
+
+    await checkAuth({
+      apiKey: "provided-key",
+      baseUrl: "https://example.test?tenant=demo",
+      fetch: fetchMock as typeof fetch
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://example.test/usage/current_balance?tenant=demo",
+      expect.any(Object)
+    );
+  });
+
   it("returns null balance when the response balance is null", async () => {
     const fetchMock = vi.fn(
       async () =>
@@ -186,6 +233,25 @@ describe("checkAuth", () => {
       email: null,
       balance: 21082621
     });
+  });
+
+  it("returns null when a successful response is not an identity object", async () => {
+    const fetchMock = vi.fn(async () => new Response("[]", { status: 200 }));
+
+    await expect(
+      checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
+    ).resolves.toBeNull();
+  });
+
+  it("returns null when a successful response contains a non-finite balance", async () => {
+    const fetchMock = vi.fn(async () => new Response(
+      '{"email":"user@example.com","current_point_balance":1e309}',
+      { status: 200 }
+    ));
+
+    await expect(
+      checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
+    ).resolves.toBeNull();
   });
 
   it.each([401, 403])("returns null when Poe rejects the key with HTTP %i", async (status) => {
@@ -238,6 +304,7 @@ describe("OAuthClient", () => {
     expect(url.searchParams.get("scope")).toBe("apikey:create");
     expect(url.searchParams.get("code_challenge_method")).toBe("S256");
     expect(url.searchParams.get("code_challenge")).toBeTruthy();
+    expect(url.searchParams.get("state")).toBeTruthy();
     expect(url.searchParams.get("redirect_uri")).toBe(
       `http://127.0.0.1:${boundPort}/callback`
     );
@@ -248,8 +315,8 @@ describe("OAuthClient", () => {
     const fetchMock = vi.fn(async () => createTokenResponse("sk-api-key-123", 7200));
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=auth-code-abc");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "auth-code-abc"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -280,8 +347,8 @@ describe("OAuthClient", () => {
     const fetchMock = vi.fn(async () => createTokenResponse("sk-no-expiry"));
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=some-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "some-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -300,8 +367,8 @@ describe("OAuthClient", () => {
     const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -343,8 +410,8 @@ describe("OAuthClient", () => {
     );
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=bad-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "bad-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -367,8 +434,8 @@ describe("OAuthClient", () => {
     );
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=bad-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "bad-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -389,8 +456,8 @@ describe("OAuthClient", () => {
     );
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -401,10 +468,49 @@ describe("OAuthClient", () => {
     await expect(authorization.waitForResult()).rejects.toThrow("api_key");
   });
 
+  it("throws when token response api_key contains only whitespace", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("   "));
+    const client = createOAuthClient(createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
+      createServer: () => server,
+      fetch: fetchMock as any
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("api_key");
+  });
+
+  it.each([-60, Infinity])("throws for invalid token expiration duration %s", async (expiresIn) => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key", expiresIn));
+    const client = createOAuthClient(createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
+      createServer: () => server,
+      fetch: fetchMock as any
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("api_key_expires_in");
+  });
+
+  it("reports malformed successful token JSON as token exchange failure", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => new Response("{", { status: 200 }));
+    const client = createOAuthClient(createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
+      createServer: () => server,
+      fetch: fetchMock as any
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("Token exchange failed");
+  });
+
   it("uses PKCE S256 challenge method", async () => {
     const { server, simulateCallback } = createMockServer();
-    const openBrowser = vi.fn(async (_url: string) => {
-      simulateCallback("/callback?code=test-code");
+    const openBrowser = vi.fn(async (authorizationUrl: string) => {
+      simulateCallback(createCallbackPath(authorizationUrl, "test-code"));
     });
     const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
 
@@ -436,8 +542,8 @@ describe("OAuthClient", () => {
 
     const client = createOAuthClient({
       clientId: "test-client-id",
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=default-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "default-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -490,21 +596,52 @@ describe("OAuthClient", () => {
     );
   });
 
+  it("rejects authorization when the loopback listener cannot start", async () => {
+    const { server } = createMockServer();
+    server.listen = vi.fn(() => {
+      queueMicrotask(() => server.emit("error", new Error("bind failed")));
+      return server;
+    }) as typeof server.listen;
+
+    await expect(createOAuthClient(createTestConfig({
+      createServer: () => server
+    })).authorize()).rejects.toThrow("bind failed");
+  });
+
+  it("rejects callbacks without the authorization state", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+    const client = createOAuthClient(createTestConfig({
+      openBrowser: vi.fn(async () => simulateCallback("/callback?code=unsolicited")),
+      createServer: () => server,
+      fetch: fetchMock as any
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("state");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("accepts authorization code pasted as redirect URL", async () => {
     const { server } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-pasted-key"));
+    let authorizationUrl = "";
 
     const config = createTestConfig({
       openBrowser: vi.fn(async () => {
         // Browser does NOT redirect — user pastes URL instead
       }),
-      readLine: vi.fn(async () => "http://127.0.0.1:54321/callback?code=pasted-code"),
+      readLine: vi.fn(async () => {
+        await Promise.resolve();
+        return `http://127.0.0.1:54321${createCallbackPath(authorizationUrl, "pasted-code")}`;
+      }),
       createServer: () => server,
       fetch: fetchMock as any
     });
 
     const client = createOAuthClient(config);
     const authorization = await client.authorize();
+    authorizationUrl = authorization.authorizationUrl;
     const result = await authorization.waitForResult();
 
     expect(result.apiKey).toBe("sk-pasted-key");
@@ -512,14 +649,25 @@ describe("OAuthClient", () => {
     expect(body.get("code")).toBe("pasted-code");
   });
 
+  it("rejects when reading the pasted callback fails", async () => {
+    const { server } = createMockServer();
+    const client = createOAuthClient(createTestConfig({
+      readLine: vi.fn(async () => { throw new Error("stdin closed"); }),
+      createServer: () => server
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).rejects.toThrow("stdin closed");
+  }, 100);
+
   it("uses default landing page text", async () => {
     const { server, simulateCallback, captureResponseBody } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
 
     const client = createOAuthClient({
       clientId: "test-client-id",
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=test-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "test-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -543,8 +691,8 @@ describe("OAuthClient", () => {
         title: "All set!",
         body: "Return to your IDE."
       },
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=test-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "test-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -569,8 +717,8 @@ describe("OAuthClient", () => {
         title: "<script>alert('xss')</script>",
         body: 'Some "quoted" & <special> text'
       },
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=test-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "test-code"));
       }),
       createServer: () => server,
       fetch: fetchMock as any
@@ -591,8 +739,8 @@ describe("OAuthClient", () => {
     const fetchMock = vi.fn(async () => createTokenResponse("sk-callback-key"));
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?code=callback-code");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "callback-code"));
       }),
       readLine: vi.fn(() => new Promise(() => {})),
       createServer: () => server,
@@ -607,4 +755,21 @@ describe("OAuthClient", () => {
     const body = new URLSearchParams(fetchMock.mock.calls[0]![1].body);
     expect(body.get("code")).toBe("callback-code");
   });
+
+  it("returns the settled authorization result for repeated waits", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+    const client = createOAuthClient(createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "code"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    }));
+
+    const authorization = await client.authorize();
+    await expect(authorization.waitForResult()).resolves.toEqual({ apiKey: "sk-key", expiresIn: null });
+    await expect(authorization.waitForResult()).resolves.toEqual({ apiKey: "sk-key", expiresIn: null });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  }, 100);
 });

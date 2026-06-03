@@ -18,9 +18,17 @@ async function executeRuntimeJobsLs(root: Command, container: CliContainer): Pro
   const flags = resolveCommandFlags(root);
   const resources = createExecutionResources(container, flags, "runtime:jobs:ls");
   const state = createRuntimeState(container);
-  const entries = await reconcileRunningJobs(await state.jobs.list(), state);
+  const recordedEntries = await state.jobs.list();
+  const entries = flags.dryRun
+    ? recordedEntries
+    : await reconcileRunningJobs(recordedEntries, state);
   const theme = getTheme();
 
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      "Dry run: would inspect active sandboxes and persist reconciled runtime job statuses."
+    );
+  }
   resources.logger.intro("runtime jobs ls");
   resources.logger.info(
     renderTable({
@@ -55,8 +63,7 @@ async function reconcileRunningJobs(
       const updated = status === entry.status ? entry : await state.jobs.update(entry.id, { status });
       reconciled.push(updated ?? { ...entry, status });
     } catch {
-      const updated = await state.jobs.update(entry.id, { status: "lost" });
-      reconciled.push(updated ?? { ...entry, status: "lost" });
+      reconciled.push(entry);
     }
   }
   return reconciled;

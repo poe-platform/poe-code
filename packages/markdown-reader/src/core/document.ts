@@ -102,11 +102,13 @@ function getInvalidRawFrontmatter(
 }
 
 function getLeadingFrontmatterBlock(source: string): string | undefined {
-  if (!source.startsWith("---")) {
+  const start = source.startsWith("\uFEFF") ? 1 : 0;
+
+  if (!source.startsWith("---", start)) {
     return undefined;
   }
 
-  const openingFenceEnd = readLineEnd(source, 0);
+  const openingFenceEnd = readLineEnd(source, start);
 
   if (openingFenceEnd.content !== "---") {
     return undefined;

@@ -91,6 +91,28 @@ describe("TemplateRegistry", () => {
     await expect(registry.get("docker", "alpha")).resolves.toBeNull();
   });
 
+  it("preserves stored templates when an interrupted write rejects", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const original = createTemplate("alpha");
+    const base = createMemFs({
+      [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`
+    });
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (targetPath === templatesPath || targetPath.includes(".tmp")) {
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("templates disk full");
+        }
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.put("docker", createTemplate("bravo"))).rejects.toThrow("templates disk full");
+    await expect(createTemplateRegistry("/home/tester", base).get("docker", "alpha")).resolves.toEqual(original);
+  });
+
   it("ignores persisted templates stored under a mismatched hash key", async () => {
     const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
     const fs = createMemFs({
@@ -110,9 +132,53 @@ describe("TemplateRegistry", () => {
     await expect(registry.get("docker", "alpha")).resolves.toBeNull();
     await expect(registry.list("docker")).resolves.toEqual([]);
   });
+
+  it("stores template hashes that match object prototype property names", async () => {
+    const fs = createMemFs();
+    const registry = createTemplateRegistry("/home/tester", fs);
+    const proto = createTemplate("__proto__");
+
+    await expect(registry.get("docker", "toString")).resolves.toBeNull();
+    await registry.put("docker", proto);
+
+    await expect(registry.get("docker", "__proto__")).resolves.toEqual(proto);
+    await expect(registry.list("docker")).resolves.toEqual([proto]);
+  });
+
+  it("rejects reads and writes through a symlinked template state file", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const outsidePath = "/outside/templates.json";
+    const volume = Volume.fromJSON({
+      [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+    }, "/");
+    volume.mkdirSync(path.dirname(templatesPath), { recursive: true });
+    volume.symlinkSync(outsidePath, templatesPath);
+    const fs = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.list("docker")).rejects.toThrow("Refusing template state access through symbolic link");
+    await expect(registry.put("docker", createTemplate("alpha"))).rejects.toThrow(
+      "Refusing template state access through symbolic link"
+    );
+  });
 });
 
 describe("JobRegistry", () => {
+  it("persists runtime reattach context with a job", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await registry.put(
+      createJob("job-1", {
+        reattach_context: { engine: "docker", context: "colima-profile" }
+      })
+    );
+
+    await expect(registry.get("job-1")).resolves.toMatchObject({
+      reattach_context: { engine: "docker", context: "colima-profile" }
+    });
+  });
+
   it("preserves concurrent updates", async () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);
@@ -145,6 +211,45 @@ describe("JobRegistry", () => {
 
     await expect(registry.get("job-1")).resolves.toEqual(job);
     await expect(registry.list()).resolves.toEqual([job]);
+  });
+
+  it("preserves rename failures when temporary cleanup also rejects", async () => {
+    const base = createMemFs();
+    const fs: StateFileSystem = {
+      ...base,
+      async rename() {
+        throw new Error("rename offline");
+      },
+      async unlink(filePath) {
+        if (filePath.includes(".tmp")) {
+          throw new Error("temp cleanup denied");
+        }
+        await base.unlink(filePath);
+      }
+    };
+
+    await expect(createJobRegistry("/home/tester", fs).put(createJob("job-1"))).rejects.toThrow("rename offline");
+  });
+
+  it("ignores job records whose id does not match their filename", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const fs = createMemFs({
+      [path.join(jobsDir, "requested-job.json")]: `${JSON.stringify(createJob("other-job"), null, 2)}\n`
+    });
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.get("requested-job")).resolves.toBeNull();
+    await expect(registry.list()).resolves.toEqual([]);
+  });
+
+  it("rejects non-finite job exit codes before persisting them", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.put(createJob("job-1", { exit_code: Number.POSITIVE_INFINITY }))).rejects.toThrow(
+      "Invalid job entry."
+    );
+    await expect(registry.get("job-1")).resolves.toBeNull();
   });
 
   it("filters listed jobs by status, tool, env kind, and env id", async () => {
@@ -200,6 +305,32 @@ describe("JobRegistry", () => {
       "Invalid job id."
     );
     await expect(registry.remove("../outside")).rejects.toThrow("Invalid job id.");
+  });
+
+  it("rejects reads, writes, and removals through a symlinked jobs directory", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const outsideDir = "/outside/jobs";
+    const vol = Volume.fromJSON(
+      { [path.join(outsideDir, "external.json")]: `${JSON.stringify(createJob("external"), null, 2)}\n` },
+      "/"
+    );
+    const fs = createFsFromVolume(vol).promises as unknown as StateFileSystem;
+    vol.mkdirSync(path.dirname(jobsDir), { recursive: true });
+    vol.symlinkSync(outsideDir, jobsDir);
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.put(createJob("job-1"))).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.list()).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.remove("external")).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(fs.readFile(path.join(outsideDir, "external.json"), "utf8")).resolves.toContain(
+      '"id": "external"'
+    );
   });
 
   it("rejects invalid job updates without corrupting the stored job", async () => {

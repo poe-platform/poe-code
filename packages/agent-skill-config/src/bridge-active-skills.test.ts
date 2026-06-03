@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -50,6 +51,7 @@ describe("bridgeActiveSkills", () => {
   let restoreRunner: () => void;
 
   beforeEach(() => {
+    vi.restoreAllMocks();
     restoreRunner?.();
     vol.reset();
     mkdir(cwd);
@@ -58,6 +60,7 @@ describe("bridgeActiveSkills", () => {
   });
 
   afterEach(() => {
+    vi.restoreAllMocks();
     restoreRunner?.();
   });
 
@@ -288,6 +291,96 @@ describe("bridgeActiveSkills", () => {
     ).toEqual(Buffer.from(binary));
   });
 
+  it("rejects a symlinked project skill source directory", () => {
+    mkdir(path.join(cwd, ".poe-code/skills"));
+    createSkill("/outside/foo", { "SKILL.md": "# outside\n" });
+    fs.symlinkSync("/outside/foo", path.join(cwd, ".poe-code/skills/foo"));
+
+    expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+      /symbolic link/
+    );
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo"))).toBe(false);
+  });
+
+  it("rejects symbolic links contained inside a source skill", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"), { "SKILL.md": "# foo\n" });
+    writeFile("/outside/PROMPT.md", "external prompt\n");
+    fs.symlinkSync("/outside/PROMPT.md", path.join(cwd, ".poe-code/skills/foo/PROMPT.md"));
+
+    expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+      /symbolic link/
+    );
+  });
+
+  it("rejects a symlinked spawn-agent local skill directory", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    mkdir(path.join(cwd, ".opencode"));
+    mkdir("/outside/skills");
+    fs.symlinkSync("/outside/skills", path.join(cwd, ".opencode/skills"));
+
+    expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+      /symbolic link/
+    );
+    expect(vol.existsSync("/outside/skills/foo")).toBe(false);
+  });
+
+  it("rolls back earlier copies when a later copy fails", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    createSkill(path.join(cwd, ".poe-code/skills/bar"));
+    const copy = vi.spyOn(fs, "copyFileSync").mockImplementation((source, target) => {
+      if (String(source).includes("/bar/")) {
+        throw new Error("copy failed");
+      }
+      vol.writeFileSync(String(target), vol.readFileSync(String(source)));
+    });
+
+    expect(() => bridgeActiveSkills("opencode", cwd, ["foo", "bar"], homeDir, runId)).toThrow(
+      "copy failed"
+    );
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo"))).toBe(false);
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/bar"))).toBe(false);
+    copy.mockRestore();
+  });
+
+  it("rolls back copied targets when exclude bookkeeping fails", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    const rename = vi.spyOn(fs, "renameSync").mockImplementation(() => {
+      throw new Error("exclude failed");
+    });
+
+    expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+      "exclude failed"
+    );
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo"))).toBe(false);
+    rename.mockRestore();
+  });
+
+  it("shares an already active bridged target until the last run cleans up", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+
+    const first = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "first");
+    const second = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "second");
+
+    expect(second.entries).toHaveLength(1);
+    expect(second.warnings).toEqual([]);
+    cleanupBridgedSkills(first);
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe(true);
+    cleanupBridgedSkills(second);
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe(false);
+  });
+
+  it("uses independent exclude blocks for overlapping identical run ids", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    createSkill(path.join(cwd, ".poe-code/skills/bar"));
+
+    const first = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "same");
+    const second = bridgeActiveSkills("opencode", cwd, ["bar"], homeDir, "same");
+    cleanupBridgedSkills(first);
+
+    expect(readText(excludePath)).toContain(".opencode/skills/bar");
+    expect(vol.existsSync(second.entries[0]!.targetPath)).toBe(true);
+  });
+
   it("cleanup removes targets and empty created parents", () => {
     createSkill(path.join(cwd, ".poe-code/skills/foo"));
     const manifest = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId);
@@ -312,6 +405,31 @@ describe("bridgeActiveSkills", () => {
     expect(vol.existsSync(path.join(cwd, ".opencode/skills"))).toBe(true);
   });
 
+  it("cleanup preserves a user replacement at a prior bridge target", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"), { "SKILL.md": "# bridge\n" });
+    const manifest = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId);
+    const target = path.join(cwd, ".opencode/skills/foo");
+    vol.rmSync(target, { recursive: true });
+    createSkill(target, { "SKILL.md": "# replacement\n" });
+
+    cleanupBridgedSkills(manifest);
+
+    expect(readText(path.join(target, "SKILL.md"))).toBe("# replacement\n");
+  });
+
+  it("leaves bridged targets intact when exclude cleanup cannot be saved", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    const manifest = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId);
+    const rename = vi.spyOn(fs, "renameSync").mockImplementation(() => {
+      throw new Error("exclude cleanup failed");
+    });
+
+    expect(() => cleanupBridgedSkills(manifest)).toThrow("exclude cleanup failed");
+    expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe(true);
+    expect(readText(excludePath)).toContain(".opencode/skills/foo");
+    rename.mockRestore();
+  });
+
   it("cleanup is idempotent", () => {
     createSkill(path.join(cwd, ".poe-code/skills/foo"));
     const manifest = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId);
@@ -321,5 +439,18 @@ describe("bridgeActiveSkills", () => {
 
     expect(vol.existsSync(path.join(cwd, ".opencode"))).toBe(false);
     expect(readText(excludePath)).toBe("");
+  });
+
+  it("duplicate-id cleanup remains idempotent while another block is live", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    createSkill(path.join(cwd, ".poe-code/skills/bar"));
+    const first = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "same");
+    const second = bridgeActiveSkills("opencode", cwd, ["bar"], homeDir, "same");
+
+    cleanupBridgedSkills(second);
+    cleanupBridgedSkills(second);
+
+    expect(readText(excludePath)).toContain(".opencode/skills/foo");
+    cleanupBridgedSkills(first);
   });
 });

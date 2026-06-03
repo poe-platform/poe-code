@@ -54,6 +54,7 @@ describe("ingest", () => {
   beforeEach(() => {
     vol.reset();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     resolveAgent.mockReset();
     configuredTimeout.mockReset();
     cacheEnabled.mockReset();
@@ -102,6 +103,19 @@ describe("ingest", () => {
     expect(result).toMatchObject({ cacheHit: true, exitCode: 0, durationMs: 0 });
   });
 
+  it("loads ingest settings from project configuration", async () => {
+    await ingest(
+      "/repo/.poe-code/memory",
+      { source: { kind: "file", absPath: "/repo/docs/source.md" } },
+      runners
+    );
+
+    expect(resolveAgent.mock.calls[0]?.[0].filePath).toBe("/repo/poe-code.json");
+    expect(resolveAgent.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+    expect(cacheEnabled.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+    expect(configuredTimeout.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+  });
+
   it("prints the prompt and skips spawning in dry-run mode", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -118,6 +132,47 @@ describe("ingest", () => {
     expect(snapshotMock).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Source: /repo/docs/source.md"));
     expect(result).toMatchObject({ cacheHit: false, exitCode: 0, durationMs: 0 });
+  });
+
+  it("materializes URL sources for dry-run ingest", async () => {
+    const fetchMock = vi.fn(async () => new Response("remote notes", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    const result = await ingest(
+      "/repo/.poe-code/memory",
+      {
+        source: { kind: "url", url: "https://example.test/notes.md" },
+        dryRun: true
+      },
+      runners
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith("https://example.test/notes.md");
+    expect(computeIngestKeyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceBytes: Buffer.from("remote notes") })
+    );
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("Source: https://example.test/notes.md"));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("remote notes"));
+    expect(result).toMatchObject({ cacheHit: false, exitCode: 0, durationMs: 0 });
+  });
+
+  it("rejects failed URL source responses", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("missing", { status: 404 })));
+
+    await expect(
+      ingest(
+        "/repo/.poe-code/memory",
+        {
+          source: { kind: "url", url: "https://example.test/missing.md" },
+          dryRun: true
+        },
+        runners
+      )
+    ).rejects.toThrow("Unable to fetch memory ingest source (404)");
+
+    expect(computeIngestKeyMock).not.toHaveBeenCalled();
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
   });
 
   it("spawns, reconciles, and writes cache entries on success", async () => {
@@ -214,11 +269,13 @@ describe("ingest", () => {
     expect(writeCacheEntryMock).not.toHaveBeenCalled();
   });
 
-  it("fails on timeout after reconciling", async () => {
+  it("aborts the running agent on timeout before reconciling", async () => {
     configuredTimeout.mockReturnValue(10);
-    mockedAgentSpawn.spawnMock!.spawn.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve({ exitCode: 0, durationMs: 50 }), 50))
-    );
+    let signal: AbortSignal | undefined;
+    mockedAgentSpawn.spawnMock!.spawn.mockImplementationOnce((_agentId, options) => {
+      signal = options.signal;
+      return new Promise((resolve) => setTimeout(() => resolve({ exitCode: 0, durationMs: 50 }), 50));
+    });
 
     await expect(
       ingest(
@@ -228,6 +285,7 @@ describe("ingest", () => {
       )
     ).rejects.toThrow("ingest timed out after 10ms");
 
+    expect(signal?.aborted).toBe(true);
     expect(reconcileMock).toHaveBeenCalled();
     expect(writeCacheEntryMock).not.toHaveBeenCalled();
   });

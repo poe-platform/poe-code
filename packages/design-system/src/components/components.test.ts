@@ -84,6 +84,15 @@ describe("formatCommandNotFoundPanel", () => {
     expect(panel.title).toBe("mcp command not found");
     expect(stripAnsi(panel.footer)).toContain("poe-code mcp --help");
   });
+
+  it("keeps unknown commands on one diagnostic line", () => {
+    const panel = formatCommandNotFoundPanel({
+      unknownCommand: "bad\nRun rm -rf to repair",
+      helpCommand: "poe-code --help"
+    });
+
+    expect(stripAnsi(panel.label)).not.toContain("\nRun");
+  });
 });
 
 describe("components/logger", () => {
@@ -477,6 +486,41 @@ describe("renderTable", () => {
       const lines = result.split("\n");
       expect(lines[2]).toBe("| a \\| b |");
     });
+
+    it("escapes pipe characters in column titles", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Name", title: "Name | Forged", alignment: "left", maxLen: 20 },
+          { name: "Value", title: "Value", alignment: "left", maxLen: 20 },
+        ],
+        rows: [{ Name: "alpha", Value: "1" }],
+      });
+
+      expect(result.split("\n")[0]).toBe("| Name \\| Forged | Value |");
+    });
+
+    it("renders missing special-name cells as empty", () => {
+      const result = renderTable({
+        theme,
+        columns: [{ name: "constructor", title: "Value", alignment: "left", maxLen: 20 }],
+        rows: [{ constructor: "present" }, {}],
+      });
+
+      expect(result).toBe(["| Value |", "| :--- |", "| present |", "|  |"].join("\n"));
+    });
+  });
+
+  it("rejects a non-finite terminal column maximum length", () => {
+    setFormat("terminal");
+
+    expect(() =>
+      renderTable({
+        theme,
+        columns: [{ name: "Name", title: "Name", alignment: "left", maxLen: Number.NaN }],
+        rows: [{ Name: "visible" }]
+      })
+    ).toThrow("maxLen must be a positive finite number");
   });
 
   describe("json format", () => {
@@ -511,6 +555,18 @@ describe("renderTable", () => {
 
       const parsed = JSON.parse(result);
       expect(parsed[0].Name).toBe("colored");
+    });
+
+    it("preserves special column names as json properties", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "__proto__", title: "Special", alignment: "left", maxLen: 20 },
+        ],
+        rows: [JSON.parse('{"__proto__":"visible"}')],
+      });
+
+      expect(JSON.parse(result)[0]["__proto__"]).toBe("visible");
     });
 
     it("returns empty array for no rows", () => {
@@ -557,6 +613,8 @@ describe("text", () => {
       expect(text.link("https://example.com")).toBe(
         "[https://example.com](https://example.com)"
       );
+      expect(text.command("safe`\n\n## FORGED")).not.toContain("\n");
+      expect(text.link("safe](https://forged.test)\n## forged")).not.toContain("\n");
       expect(text.muted("Muted")).toBe("*Muted*");
       expect(text.error("Error")).toBe("**Error**");
       expect(text.badge("beta")).toBe("[beta]");

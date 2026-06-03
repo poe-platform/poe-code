@@ -31,8 +31,10 @@ function createDefaultFs(): DiskCacheFs {
   return {
     readFile: (path, encoding) => fs.readFile(path, encoding),
     writeFile: (path, data) => fs.writeFile(path, data),
+    rename: (from, to) => fs.rename(from, to),
     mkdir: (path, options) => fs.mkdir(path, options).then(() => {}),
     unlink: (path) => fs.unlink(path),
+    realpath: (path) => fs.realpath(path),
   };
 }
 
@@ -57,7 +59,7 @@ export function createCachedResource<T>(
         fs: diskFs,
         fetch: deps?.fetch,
         revalidator,
-      }, options);
+      }, options).then(cloneCachedData);
     },
 
     refresh(): Promise<CachedData<T>> {
@@ -65,6 +67,7 @@ export function createCachedResource<T>(
     },
 
     async clear(): Promise<void> {
+      await revalidator.waitForRevalidation(config.cacheName);
       memoryCache.clear();
       await removeFromDisk(config, { fs: diskFs });
     },
@@ -77,4 +80,8 @@ export function createCachedResource<T>(
       };
     },
   };
+}
+
+function cloneCachedData<T>(cached: CachedData<T>): CachedData<T> {
+  return structuredClone(cached);
 }

@@ -114,12 +114,19 @@ function createMemFs(): LauncherFileSystem {
     rm: async (filePath, options) => {
       await rawFs.rm(filePath, options);
     },
+    rename: async (sourcePath, destinationPath) => {
+      await rawFs.rename(sourcePath, destinationPath);
+    },
     stat: async filePath => {
       const stat = await rawFs.stat(filePath);
       return {
         isFile: () => stat.isFile(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    },
+    lstat: async filePath => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     writeFile: async (filePath, content) => {
       await rawFs.writeFile(filePath, content, { encoding: "utf8" });

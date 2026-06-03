@@ -5,6 +5,7 @@ export type CommandEntry = {
   path: string;
   groupPath: string;
   name: string;
+  sdkPath: string[];
   command: Command;
 };
 
@@ -21,8 +22,65 @@ export async function resolveCommandEntries(entries: CommandEntryList): Promise<
   return entries;
 }
 
-function commandIsProgrammatic(command: Command): boolean {
-  return command.scope.includes("mcp") || command.scope.includes("sdk");
+type Separator = "-" | "_" | " " | ".";
+
+function isSeparator(character: string): character is Separator {
+  return character === "-" || character === "_" || character === " " || character === ".";
+}
+
+function splitWords(value: string): string[] {
+  const words: string[] = [];
+  let current = "";
+
+  for (let index = 0; index < value.length; index += 1) {
+    const character = value[index] ?? "";
+    const lower = character.toLowerCase();
+    const upper = character.toUpperCase();
+
+    if (isSeparator(character)) {
+      if (current.length > 0) {
+        words.push(current.toLowerCase());
+        current = "";
+      }
+      continue;
+    }
+
+    const isUppercase = character !== lower && character === upper;
+    const previous = value[index - 1];
+    const next = value[index + 1];
+    const previousIsLowercase =
+      previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
+    const nextIsLowercase =
+      next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
+
+    if (isUppercase && current.length > 0 && (previousIsLowercase || nextIsLowercase)) {
+      words.push(current.toLowerCase());
+      current = character;
+      continue;
+    }
+
+    current += character;
+  }
+
+  if (current.length > 0) {
+    words.push(current.toLowerCase());
+  }
+
+  return words;
+}
+
+export function formatSdkSegment(segment: string): string {
+  return splitWords(segment)
+    .map((word, index) => (index === 0 ? word : `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`))
+    .join("");
+}
+
+export function formatModuleSegment(segment: string): string {
+  return splitWords(segment).join("_");
+}
+
+function commandIsExecutable(command: Command): boolean {
+  return command.scope.includes("sdk");
 }
 
 function addExport(
@@ -48,9 +106,10 @@ export async function resolveCommandTree(
 
   const entries: CommandEntry[] = [];
   const exportsByGroupPath = new Map<string, string[]>();
+  const paths = new Set<string>();
 
   function visit(group: Group, groupSegments: string[]): void {
-    const groupPath = groupSegments.join(".");
+    const groupPath = groupSegments.map(formatModuleSegment).join(".");
 
     for (const child of group.children) {
       if (child.kind === "group") {
@@ -58,17 +117,26 @@ export async function resolveCommandTree(
         continue;
       }
 
-      if (!commandIsProgrammatic(child)) {
+      if (!commandIsExecutable(child)) {
         continue;
       }
 
+      const name = formatModuleSegment(child.name);
+      const path = groupPath.length === 0 ? name : `${groupPath}.${name}`;
+      if (paths.has(path)) {
+        throw new Error(`Duplicate codemode command path "${path}".`);
+      }
+
+      paths.add(path);
+
       entries.push({
-        path: [...groupSegments, child.name].join("."),
+        path,
         groupPath,
-        name: child.name,
+        name,
+        sdkPath: [...groupSegments, child.name].map(formatSdkSegment),
         command: child
       });
-      addExport(exportsByGroupPath, groupPath, child.name);
+      addExport(exportsByGroupPath, groupPath, name);
     }
   }
 

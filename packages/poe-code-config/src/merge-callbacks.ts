@@ -18,6 +18,11 @@ export type ExperimentCallbackFields = {
 };
 
 export type LoopCallbacks = {
+  runRole?: <T>(
+    role: "builder" | "inspector" | "superintendent" | "owner",
+    name: string | undefined,
+    run: () => Promise<T>
+  ) => Promise<T>;
   onBuilderStart?: () => void;
   onBuilderComplete?: BivariantCallback<[result: unknown]>;
   onBuilderFailed?: BivariantCallback<[error: Error]>;
@@ -56,7 +61,12 @@ export function mergeLoopCallbacks(
   user: LoopCallbacks | undefined,
   added: LoopCallbacks | undefined
 ): LoopCallbacks | undefined {
-  return mergeCallbacks(user, added);
+  const merged = mergeCallbacks(user, added);
+  if (user?.runRole && added?.runRole && merged) {
+    merged.runRole = (role, name, run) =>
+      added.runRole!(role, name, () => user.runRole!(role, name, run));
+  }
+  return merged;
 }
 
 function mergeCallbacks<T extends object>(
@@ -85,7 +95,12 @@ function mergeCallbacks<T extends object>(
         const userResult = userCallback.apply(this, args);
 
         try {
-          addedCallback.apply(this, args);
+          const addedResult = addedCallback.apply(this, args);
+          if (isPromiseLike(addedResult)) {
+            void addedResult.catch((error) => {
+              console.warn(`Added callback ${key} failed`, error);
+            });
+          }
         } catch (error) {
           console.warn(`Added callback ${key} failed`, error);
         }
@@ -99,4 +114,8 @@ function mergeCallbacks<T extends object>(
   }
 
   return result as unknown as T;
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> & { catch(callback: (error: unknown) => void): unknown } {
+  return Boolean(value && typeof value === "object" && "catch" in value && typeof value.catch === "function");
 }

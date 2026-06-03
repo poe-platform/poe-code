@@ -51,7 +51,7 @@ describe("resolveSection", () => {
     expect(byTitle).toBe(sections[1]);
   });
 
-  it("prefers an exact numeric path before checking titles", () => {
+  it("prefers a numbered path over a numbered title", () => {
     const section = resolveSection(
       [
         {
@@ -79,12 +79,8 @@ describe("resolveSection", () => {
     expect(section.title).toBe("Numeric winner");
   });
 
-  it("does not trim numeric paths or do fuzzy title matching", () => {
-    expect(() => resolveSection(sections, " 1 ")).toThrowError(
-      new UserError(
-        "no section matching \" 1 \" (try 'read-markdown' to see the table of contents)"
-      )
-    );
+  it("trims numeric paths without doing fuzzy title matching", () => {
+    expect(resolveSection(sections, " 1 ")).toBe(sections[1]);
 
     expect(() => resolveSection(sections, "overview")).toThrowError(
       new UserError(

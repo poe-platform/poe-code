@@ -1,4 +1,6 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import type { FileSystem } from "@poe-code/config-mutations";
+import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createConfigStore } from "./config.js";
@@ -109,6 +111,46 @@ describe("createConfigStore", () => {
       ui: {
         darkMode: true
       }
+    });
+  });
+
+  it("does not resolve an inherited scope through a stored __proto__ key", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"__proto__":{"feature":{"mode":"attacker"}}}\n'
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      }
+    });
+
+    await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
+      mode: "safe"
+    });
+  });
+
+  it("does not resolve inherited field values through a nested __proto__ key", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"feature":{"__proto__":{"mode":"attacker"}}}\n'
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      }
+    });
+
+    await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
+      mode: "safe"
     });
   });
 
@@ -528,6 +570,28 @@ describe("collectEnvOverrides", () => {
     expect(result.document).toEqual({});
     expect(result.entries).toEqual([]);
   });
+
+  it("skips non-finite number strings", () => {
+    const result = collectEnvOverrides([extraScope], {
+      POE_TIMEOUT: "Infinity"
+    });
+
+    expect(result.document).toEqual({});
+    expect(result.entries).toEqual([]);
+  });
+
+  it("collects an environment override for a __proto__ schema field", () => {
+    const schema = Object.fromEntries([
+      ["__proto__", { type: "string", default: "", env: "PROTO_VALUE", doc: "Proto field" }]
+    ]);
+    const result = collectEnvOverrides([defineScope("custom", schema as never)], {
+      PROTO_VALUE: "visible"
+    });
+
+    expect(Object.hasOwn(result.document.custom, "__proto__")).toBe(true);
+    expect(result.document.custom.__proto__).toBe("visible");
+    expect(result.entries).toEqual(["  PROTO_VALUE = visible"]);
+  });
 });
 
 describe("resolveEditTarget", () => {
@@ -611,6 +675,38 @@ describe("initProjectConfig", () => {
 
     expect(result).toBe("already-exists");
     expect(fs.getContent(projectConfigPath)).toBe('{ "core": {} }\n');
+  });
+
+  it("does not write through a symlinked project state directory", async () => {
+    const volume = Volume.fromJSON({ "/outside/.keep": "" });
+    volume.mkdirSync("/repo", { recursive: true });
+    volume.symlinkSync("/outside", "/repo/.poe-code");
+    const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+    await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow("symbolic link");
+    await expect(fs.stat("/outside/config.json")).rejects.toBeTruthy();
+  });
+
+  it("does not overwrite a config created during initialization", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    const originalStat = fs.stat.bind(fs);
+    let created = false;
+
+    fs.stat = async (filePath) => {
+      try {
+        return await originalStat(filePath);
+      } catch (error) {
+        if (!created && filePath === projectConfigPath) {
+          created = true;
+          fs.files[projectConfigPath] = '{"core":{"apiKey":"concurrent-value"}}\n';
+        }
+        throw error;
+      }
+    };
+
+    await expect(initProjectConfig(fs, projectConfigPath)).resolves.toBe("already-exists");
+    expect(fs.getContent(projectConfigPath)).toBe('{"core":{"apiKey":"concurrent-value"}}\n');
   });
 });
 
@@ -958,6 +1054,19 @@ describe("resolveScope", () => {
     });
   });
 
+  it("ignores non-finite number env values", () => {
+    const schema = {
+      timeout: {
+        type: "number" as const,
+        default: 30,
+        env: "POE_TIMEOUT",
+        doc: "Timeout"
+      }
+    };
+
+    expect(resolveScope(schema, undefined, { POE_TIMEOUT: "Infinity" })).toEqual({ timeout: 30 });
+  });
+
   it("falls back to file values when env coercion fails", () => {
     expect(
       resolveScope(
@@ -1092,6 +1201,22 @@ describe("store", () => {
     expect(fs.getContent("~/.poe-code/config.json")).toBe("{}\n");
   });
 
+  it("keeps separate invalid backups created in the same millisecond", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-23T12:34:56.789Z"));
+    const fs = createMockFs({ "~/.poe-code/config.json": "first invalid\n" }, homeDir);
+
+    await readDocument(fs, configPath);
+    await fs.writeFile(configPath, "second invalid\n", { encoding: "utf8" });
+    await readDocument(fs, configPath);
+
+    const backups = (await fs.readdir(path.dirname(configPath))).filter((entry) => entry.includes(".invalid-")).sort();
+    expect(backups).toHaveLength(2);
+    expect(backups.map((entry) => fs.getContent(`~/.poe-code/${entry}`))).toEqual(
+      expect.arrayContaining(["first invalid\n", "second invalid\n"])
+    );
+  });
+
   it("writes a scope while preserving unrelated scopes", async () => {
     const fs = createMockFs(
       {
@@ -1123,6 +1248,59 @@ describe("store", () => {
         codex: { files: ["/tmp/config.toml"] }
       }
     });
+  });
+
+  it("preserves the existing document when a scope write fails", async () => {
+    const original = '{"core":{"apiKey":"old"}}\n';
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath === configPath || targetPath.includes(".tmp")) {
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("config scope disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow("config scope disk full");
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("preserves a stored __proto__ key inside a normal scope", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"core":{"__proto__":"stored-value"}}\n'
+      },
+      homeDir
+    );
+
+    const document = await readDocument(fs, configPath);
+
+    expect(Object.hasOwn(document.core, "__proto__")).toBe(true);
+    expect(document.core.__proto__).toBe("stored-value");
+  });
+
+  it("writes a __proto__ key inside a normal scope", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const values = JSON.parse('{"__proto__":"written-value"}') as Record<string, unknown>;
+
+    await writeScope(fs, configPath, "core", values);
+
+    const persisted = JSON.parse(fs.getContent("~/.poe-code/config.json") as string) as Record<string, Record<string, unknown>>;
+    expect(Object.hasOwn(persisted.core, "__proto__")).toBe(true);
+    expect(persisted.core.__proto__).toBe("written-value");
+  });
+
+  it("writes a scope named __proto__ as configuration data", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await writeScope(fs, configPath, "__proto__", { enabled: true });
+
+    const persisted = JSON.parse(fs.getContent("~/.poe-code/config.json") as string) as Record<string, Record<string, unknown>>;
+    expect(Object.hasOwn(persisted, "__proto__")).toBe(true);
+    expect(persisted.__proto__).toEqual({ enabled: true });
   });
 
   it("removes a scope when writing an empty object", async () => {

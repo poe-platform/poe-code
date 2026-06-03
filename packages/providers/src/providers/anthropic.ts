@@ -1,6 +1,6 @@
-import type { AuthProvider } from "../types.js";
+import { defineProvider } from "../types.js";
 
-export const anthropicProvider: AuthProvider = {
+export const anthropicProvider = defineProvider({
   id: "anthropic",
   label: "Anthropic",
   summary: "Route AI coding agents through Anthropic's API.",
@@ -20,4 +20,4 @@ export const anthropicProvider: AuthProvider = {
       defaultBaseUrl: "https://api.anthropic.com"
     }
   ]
-};
+});

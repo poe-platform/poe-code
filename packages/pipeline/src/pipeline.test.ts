@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
@@ -11,6 +12,7 @@ import {
   type ExecutionSelection
 } from "./run/runner.js";
 import { interpolatePipelineVars } from "./vars/interpolate.js";
+import { resolvePipelineVars } from "./vars/resolve.js";
 import { runPipeline } from "./run/pipeline.js";
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
@@ -234,6 +236,74 @@ describe("loadResolvedSteps", () => {
         model: "o3"
       }
     });
+  });
+
+  it("resolves an inline step override named __proto__", async () => {
+    const plan = parsePlan(
+      ["steps:", "  __proto__:", "    prompt: Override prompt", "tasks: []", ""].join("\n")
+    );
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs(),
+      stepOverrides: plan.stepOverrides
+    });
+
+    expect(Object.hasOwn(plan.stepOverrides ?? {}, "__proto__")).toBe(true);
+    expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
+    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Override prompt" });
+  });
+
+  it("loads a named step definition named __proto__", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  __proto__:",
+          "    prompt: Execute custom step",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
+    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
+    expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
+  });
+
+  it("rejects traversal in named step configuration names", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/placeholder.yaml": "steps: {}\n",
+          "/repo/.poe-code/pipeline/outside.yaml": "steps:\n  implement:\n    prompt: Escaped instructions\n"
+        }),
+        name: "../outside"
+      })
+    ).rejects.toThrow(/invalid pipeline step config name/i);
+  });
+
+  it.each([
+    ["project steps file", "/repo/.poe-code/pipeline/steps.yaml", "/outside/steps.yaml"],
+    ["global pipeline directory", "/home/test/.poe-code/pipeline", "/outside"],
+    ["global steps directory", "/home/test/.poe-code/pipeline/steps", "/outside/steps"],
+    ["project steps directory", "/repo/.poe-code/pipeline/steps", "/outside/steps"]
+  ])("rejects a symlinked %s", async (_label, linkPath, targetPath) => {
+    const volume = Volume.fromJSON({
+      "/outside/steps.yaml": "steps:\n  review:\n    prompt: External step\n",
+      "/outside/steps/default.yaml": "steps:\n  review:\n    prompt: External step\n"
+    });
+    volume.mkdirSync(path.dirname(linkPath), { recursive: true });
+    volume.symlinkSync(targetPath, linkPath);
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      loadResolvedSteps({ cwd: "/repo", homeDir: "/home/test", fs, name: "default" })
+    ).rejects.toThrow(/symbolic link/i);
   });
 
   it("throws a clear error when plan extends an unknown named config", async () => {
@@ -750,6 +820,23 @@ describe("loadPipelineConfig", () => {
     });
   });
 
+  it("rejects a symlinked global pipeline configuration directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/.poe-code/pipeline/config.yaml": "extends: true\n",
+      "/outside/config.yaml": "plan_directory: external/plans\n"
+    });
+    volume.mkdirSync("/home/test/.poe-code", { recursive: true });
+    volume.symlinkSync("/outside", "/home/test/.poe-code/pipeline");
+
+    await expect(
+      loadPipelineConfig({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFsFromVolume(volume).promises
+      })
+    ).rejects.toThrow(/symbolic link/i);
+  });
+
   it("does not auto-extend when the project config sets extends to false", async () => {
     const config = await loadPipelineConfig({
       cwd: "/repo",
@@ -1064,6 +1151,27 @@ describe("resolvePlanPaths", () => {
     );
     expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
   });
+
+  it("rejects a discovered plan with an empty step status map", async () => {
+    await expect(resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/docs/plans/plan.md": [
+          "---",
+          "kind: pipeline",
+          "version: 1",
+          "tasks:",
+          "  - id: implement",
+          "    title: Implement feature",
+          "    prompt: Ship it",
+          "    status: {}",
+          "---",
+          ""
+        ].join("\n")
+      }),
+    })).rejects.toThrow(/status.*at least one step/i);
+  });
 });
 
 describe("resolvePlanDirectory", () => {
@@ -1160,6 +1268,13 @@ describe("parsePlan", () => {
         ].join("\n")
       )
     ).toThrow(/closing frontmatter delimiter/i);
+  });
+
+  it.each([
+    ["kind", "kind: ralph", /kind.*pipeline/i],
+    ["version", "version: 2", /version.*1/i]
+  ])("rejects an explicit incompatible %s", (_field, declaration, expected) => {
+    expect(() => parsePlan([declaration, "tasks: []", ""].join("\n"))).toThrow(expected);
   });
 
   it("parses a stepless task plan", () => {
@@ -1308,6 +1423,36 @@ describe("parsePlan", () => {
     ).toThrow(/must be an array of strings/i);
   });
 
+  it.each([
+    ["setup field", ["setup:", "  prompt: Prepare", "  agnet: codex", "tasks: []", ""], "setup.agnet"],
+    ["setup model", ["setup:", "  prompt: Prepare", "  modle: o3", "tasks: []", ""], "setup.modle"],
+    ["setup skills", ["setup:", "  prompt: Prepare", "  skils: [audit]", "tasks: []", ""], "setup.skils"],
+    [
+      "hook scope",
+      ["setup:", "  prompt: Prepare", "  hooks:", "    from: pack", "    scoep: user", "tasks: []", ""],
+      "setup.hooks.scoep"
+    ],
+    [
+      "hook strategy",
+      [
+        "setup:",
+        "  prompt: Prepare",
+        "  hooks:",
+        "    from: pack",
+        "    stratgey: transform",
+        "tasks: []",
+        ""
+      ],
+      "setup.hooks.stratgey"
+    ],
+    ["teardown field", ["teardown:", "  prompt: Clean", "  agnet: codex", "tasks: []", ""], "teardown.agnet"],
+    ["mcp field", ["mcp:", "  server:", "    command: node", "    argz: [server.mjs]", "tasks: []", ""], "mcp.server.argz"],
+    ["top-level setup", ["seutp:", "  prompt: Prepare", "tasks: []", ""], "seutp"],
+    ["top-level teardown", ["taerdown:", "  prompt: Clean", "tasks: []", ""], "taerdown"]
+  ])("rejects unknown %s keys", (_name, lines, field) => {
+    expect(() => parsePlan(lines.join("\n"))).toThrow(new RegExp(String(field)));
+  });
+
   it("allows mixed scalar and stepped tasks", () => {
     const plan = parsePlan(
       [
@@ -1388,6 +1533,38 @@ describe("parsePlan", () => {
     ).toThrow(/unknown step "unknown_step"/i);
   });
 
+  it("rejects empty task step status maps", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: task-1",
+          "    title: Harden auth",
+          "    prompt: Improve auth validation",
+          "    status: {}",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(/status.*at least one step/i);
+  });
+
+  it("rejects inherited step names absent from available steps", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: task-1",
+          "    title: Harden auth",
+          "    prompt: Improve auth validation",
+          "    status:",
+          "      constructor: open",
+          ""
+        ].join("\n"),
+        { availableSteps: {} }
+      )
+    ).toThrow(/unknown step "constructor"/i);
+  });
+
   it("accepts an empty tasks array", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.tasks).toEqual([]);
@@ -1419,6 +1596,16 @@ describe("parsePlan", () => {
     );
 
     expect(plan.mcp).toEqual({ minimal: { command: "my-tool" } });
+  });
+
+  it("preserves an mcp server named __proto__", () => {
+    const plan = parsePlan(
+      ["mcp:", "  __proto__:", "    command: custom-server", "tasks: []", ""].join("\n")
+    );
+
+    expect(Object.hasOwn(plan.mcp ?? {}, "__proto__")).toBe(true);
+    expect(plan.mcp?.__proto__).toEqual({ command: "custom-server" });
+    expect(Object.getPrototypeOf(plan.mcp ?? {})).toBe(Object.prototype);
   });
 
   it("omits mcp when not present", () => {
@@ -1496,6 +1683,15 @@ describe("parsePlan", () => {
     });
   });
 
+  it("preserves and resolves a variable named __proto__", async () => {
+    const plan = parsePlan(["vars:", "  __proto__: production", "tasks: []", ""].join("\n"));
+    const vars = await resolvePipelineVars(plan.vars ?? {}, "/repo", async () => "");
+
+    expect(Object.hasOwn(plan.vars ?? {}, "__proto__")).toBe(true);
+    expect(Object.hasOwn(vars, "__proto__")).toBe(true);
+    expect(interpolatePipelineVars("{{__proto__}}", vars)).toBe("production");
+  });
+
   it("omits vars when not defined", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.vars).toBeUndefined();
@@ -1515,6 +1711,63 @@ describe("parsePlan", () => {
 });
 
 describe("writeTaskStatus", () => {
+  it("rejects a symlinked plan file", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/plan.md": [
+        "---",
+        "tasks:",
+        "  - id: first",
+        "    title: First",
+        "    prompt: Do first",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    volume.mkdirSync("/repo/docs/plans", { recursive: true });
+    volume.symlinkSync("/outside/plan.md", "/repo/docs/plans/linked.md");
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      writeTaskStatus({
+        fs,
+        planPath: "/repo/docs/plans/linked.md",
+        taskId: "first",
+        status: "done"
+      })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/plan.md", "utf8")).resolves.toContain("status: open");
+  });
+
+  it("preserves the prior plan when a staged status write fails", async () => {
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const fs = createFs({ "/repo/plan.yaml": initial });
+    const writeFile = vi.fn(fs.writeFile.bind(fs)).mockImplementation(async (filePath, data, options) => {
+      if (filePath !== "/repo/plan.yaml") {
+        throw new Error("status write failed");
+      }
+      return fs.writeFile(filePath, data, options);
+    });
+
+    await expect(
+      writeTaskStatus({
+        fs: { ...fs, writeFile },
+        planPath: "/repo/plan.yaml",
+        taskId: "task-1",
+        status: "done"
+      })
+    ).rejects.toThrow("status write failed");
+
+    await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [
@@ -2026,6 +2279,12 @@ describe("resolveFileIncludes", () => {
     expect(result).toBe("# Context\nSome context here.");
   });
 
+  it("rejects includes that escape the project root", async () => {
+    await expect(resolveFileIncludes("{{file '../secret.txt'}}", "/repo", readFile)).rejects.toThrow(
+      /outside the project root/i
+    );
+  });
+
   it("throws when the referenced file does not exist", async () => {
     await expect(resolveFileIncludes("{{file 'missing.md'}}", "/repo", readFile)).rejects.toThrow(
       "File not found: /repo/missing.md"
@@ -2034,6 +2293,40 @@ describe("resolveFileIncludes", () => {
 });
 
 describe("createPipelineSimulation", () => {
+  it("rejects an empty stepped task before reporting completion", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: implement",
+        "    title: Implement feature",
+        "    prompt: Ship it",
+        "    status: {}",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const onPlanResolved = vi.fn();
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: "docs/plans/plan.md",
+        fs,
+        onPlanResolved,
+        runAgent
+      })
+    ).rejects.toThrow(/status.*at least one step/i);
+
+    expect(onPlanResolved).not.toHaveBeenCalled();
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("completes a stepless task in one run", async () => {
     const sim = createPipelineSimulation({
       plan: {
@@ -2839,6 +3132,22 @@ describe("createPipelineSimulation", () => {
     expect(entries).toContain("plan.md");
   });
 
+  it("does not run setup when every task is already complete", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        setup: { mode: "yolo", prompt: "Prepare workspace" },
+        tasks: [{ id: "done", title: "Done", prompt: "Nothing", status: "done" }]
+      },
+      turns: []
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("nothing_to_run");
+    expect(prompts).toEqual([]);
+    expect(result.metrics.stepsCompleted).toBe(0);
+  });
+
   it("uses per-step agent and model overrides", async () => {
     const sim = createPipelineSimulation({
       projectSteps: {
@@ -3121,6 +3430,115 @@ describe("createPipelineSimulation", () => {
     expect(result.metrics.tasksCompleted).toBe(1);
   });
 
+  it("does not run setup when the request is already aborted", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "setup:",
+        "  prompt: Prepare workspace",
+        "tasks:",
+        "  - id: work",
+        "    title: Work",
+        "    prompt: Do work",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    controller.abort();
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: "docs/plans/plan.md",
+        fs,
+        signal: controller.signal,
+        runAgent
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("reports cancelled task completion after an in-flight abort", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Do task 1",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    const onTaskComplete = vi.fn();
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      onTaskComplete,
+      runAgent: async () => {
+        controller.abort();
+        const error = new Error("cancelled");
+        error.name = "AbortError";
+        throw error;
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+    expect(onTaskComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ taskId: "task-1", success: false })
+    );
+  });
+
+  it("returns cancelled without persisting a final task that aborts while succeeding", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: final",
+        "    title: Final",
+        "    prompt: Finish",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent: async () => {
+        controller.abort();
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+    expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toContain("status: open");
+  });
+
   it("stops before tasks when setup fails", async () => {
     const sim = createPipelineSimulation({
       plan: {
@@ -3183,6 +3601,82 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("failed");
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
+  });
+
+  it("does not archive a completed plan when teardown fails", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "teardown:",
+        "  prompt: Clean up",
+        "tasks:",
+        "  - id: work",
+        "    title: Work",
+        "    prompt: Do work",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "", stderr: "failed", exitCode: 1 });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      planDirectory: "docs/plans",
+      fs,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("failed");
+    await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toContain("status: done");
+    await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("returns cancelled when teardown aborts while resolving successfully", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "teardown:",
+        "  prompt: Clean up",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Do task 1",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    const runAgent = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
+      .mockImplementationOnce(async () => {
+        controller.abort();
+        return { stdout: "", stderr: "", exitCode: 0 };
+      });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("cancelled");
   });
 
   it("expands {{file '...'}} in task prompts", async () => {

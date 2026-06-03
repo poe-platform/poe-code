@@ -34,16 +34,20 @@ describe('getApiKey', () => {
     expect(createSecretStoreMock).not.toHaveBeenCalled();
   });
 
-  it('caches a stored API key for later lookups in the same process', async () => {
-    createSecretStoreMock.mockReturnValueOnce({
+  it('re-reads a stored API key so credential removal takes effect', async () => {
+    const get = vi.fn()
+      .mockResolvedValueOnce('sk-stored')
+      .mockResolvedValueOnce(null);
+    createSecretStoreMock.mockReturnValue({
       store: {
-        get: async () => 'sk-stored',
+        get,
       },
     });
     const credentials = await import('./credentials.js');
 
     await expect(credentials.getApiKey()).resolves.toBe('sk-stored');
-    await expect(credentials.getApiKey()).resolves.toBe('sk-stored');
-    expect(createSecretStoreMock).toHaveBeenCalledOnce();
+    await expect(credentials.getApiKey()).resolves.toBeNull();
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(2);
+    expect(get).toHaveBeenCalledTimes(2);
   });
 });

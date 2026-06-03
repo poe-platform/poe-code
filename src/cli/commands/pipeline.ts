@@ -19,10 +19,16 @@ import {
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import { installSkill, resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
+import {
+  installSkill,
+  resolveAgentSupport,
+  resolveSkillDir,
+  type SkillScope
+} from "@poe-code/agent-skill-config";
 import {
   mergePipelineCallbacks,
   readMergedDocument,
+  readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -65,13 +71,20 @@ import {
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 
-async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
+async function resolvePipelineCommandConfig(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<{
   configDoc: ConfigDocument;
   planDirectory: string;
   tui: boolean;
 }> {
   const [configDoc, pipelineYamlConfig] = await Promise.all([
-    readMergedDocument(container.fs, container.env.configPath, container.env.projectConfigPath),
+    (options.readOnly ? readMergedDocumentReadonly : readMergedDocument)(
+      container.fs,
+      container.env.configPath,
+      container.env.projectConfigPath
+    ),
     loadPipelineConfig({
       cwd: container.env.cwd,
       homeDir: container.env.homeDir,
@@ -793,7 +806,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         }
 
         if (flags.dryRun) {
-          const commandConfig = await resolvePipelineCommandConfig(container);
+          const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
           const planPaths = await resolvePlanPaths({
             cwd: container.env.cwd,
             homeDir: container.env.homeDir,
@@ -836,7 +849,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to run pipeline steps with:",
@@ -1029,7 +1042,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to generate pipeline plans with:",
@@ -1086,6 +1099,15 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           if (sources.length === 0) {
             return;
           }
+        }
+
+        if (flags.dryRun) {
+          resources.logger.dryRun(`Would generate pipeline plans with ${agent}.`);
+          for (const source of sources) {
+            resources.logger.dryRun(`Would initialize: ${source.relativePath}`);
+          }
+          resources.logger.dryRun("Would not spawn agents or write plan changes.");
+          return;
         }
 
         const result = await sdkRunPipelineInit({
@@ -1240,7 +1262,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .command("plan-path")
     .description("Print the directory where pipeline plan files should be placed.")
     .action(async function () {
-      const commandConfig = await resolvePipelineCommandConfig(container);
+      const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
 
       const resolvedPath = resolvePlanDirectory({
         cwd: container.env.cwd,
@@ -1270,7 +1292,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       try {
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to install the Pipeline skill for:",
@@ -1284,7 +1306,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         const agent = resolvePipelineAgent(selectedAgent.agent);
 
         const support = resolveAgentSupport(parseAgentSpecifier(agent).agent);
-        if (support.status !== "supported" || !support.id) {
+        if (support.status !== "supported" || !support.id || !support.config) {
           throw new ValidationError(`Unsupported agent: ${agent}`);
         }
 
@@ -1313,77 +1335,122 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         resources.logger.intro(`pipeline install (${support.id}, ${scope})`);
 
         const templates = await loadPipelineTemplates();
-        const skillResult = await installSkill(
-          support.id,
-          {
-            name: "poe-code-pipeline-plan",
-            content: templates.skillPlan + "\n\n" + skillPlanConfigSection("pipeline")
-          },
-          {
-            fs: container.fs,
-            cwd: container.env.cwd,
-            homeDir: container.env.homeDir,
-            scope,
-            dryRun: flags.dryRun
-          }
-        );
-
-        if (flags.dryRun) {
-          resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
-        } else {
-          resources.logger.info(`Create: ${skillResult.displayPath}`);
-        }
-
         const pipelinePaths = resolvePipelinePaths(scope, container.env.cwd, container.env.homeDir);
-
-        if (!(await pathExists(container.fs, pipelinePaths.plansPath))) {
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${pipelinePaths.displayPlansPath}`);
-          } else {
-            await container.fs.mkdir(pipelinePaths.plansPath, { recursive: true });
-            resources.logger.info(`Create: ${pipelinePaths.displayPlansPath}`);
-          }
-        }
-
+        const skillDisplayPath = `${
+          scope === "global" ? support.config.globalSkillDir : support.config.localSkillDir
+        }/poe-code-pipeline-plan/SKILL.md`;
+        const skillPath = path.join(
+          resolveSkillDir(support.config, scope, container.env.cwd, container.env.homeDir),
+          "poe-code-pipeline-plan",
+          "SKILL.md"
+        );
+        const skillExists = await pathExists(container.fs, skillPath);
+        const plansExists = await pathExists(container.fs, pipelinePaths.plansPath);
         const legacyDefaultStepsExists = await pathExists(
           container.fs,
           pipelinePaths.legacyDefaultStepsPath
         );
-        let stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
+        const stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
+        const previousSteps = stepsExists && options.force
+          ? await container.fs.readFile(pipelinePaths.stepsPath, "utf8")
+          : undefined;
+        let createdPlans = false;
+        let createdSteps = false;
+        let migratedSteps = false;
 
-        if (legacyDefaultStepsExists && !stepsExists) {
-          if (flags.dryRun) {
+        try {
+          let finalStepsExists = stepsExists;
+
+          if (legacyDefaultStepsExists && !finalStepsExists) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(
+                `Would rename: ${pipelinePaths.displayStepsPath} (migrate from steps/default.yaml)`
+              );
+            } else {
+              await container.fs.rename(
+                pipelinePaths.legacyDefaultStepsPath,
+                pipelinePaths.stepsPath
+              );
+              migratedSteps = true;
+              resources.logger.info(
+                `Rename: steps/default.yaml -> ${pipelinePaths.displayStepsPath}`
+              );
+            }
+            finalStepsExists = true;
+          }
+
+          if (finalStepsExists && !options.force) {
+            resources.logger.info(`Skip: ${pipelinePaths.displayStepsPath} (already exists)`);
+          } else if (flags.dryRun) {
             resources.logger.dryRun(
-              `Would rename: ${pipelinePaths.displayStepsPath} (migrate from steps/default.yaml)`
+              `Would ${finalStepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayStepsPath}`
             );
           } else {
-            await container.fs.rename(
-              pipelinePaths.legacyDefaultStepsPath,
-              pipelinePaths.stepsPath
-            );
+            await container.fs.mkdir(path.dirname(pipelinePaths.stepsPath), {
+              recursive: true
+            });
+            await container.fs.writeFile(pipelinePaths.stepsPath, templates.steps, {
+              encoding: "utf8"
+            });
+            createdSteps = !finalStepsExists;
             resources.logger.info(
-              `Rename: steps/default.yaml -> ${pipelinePaths.displayStepsPath}`
+              `${finalStepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayStepsPath}`
             );
           }
-          stepsExists = true;
-        }
 
-        if (stepsExists && !options.force) {
-          resources.logger.info(`Skip: ${pipelinePaths.displayStepsPath} (already exists)`);
-        } else if (flags.dryRun) {
-          resources.logger.dryRun(
-            `Would ${stepsExists ? "overwrite" : "create"}: ${pipelinePaths.displayStepsPath}`
-          );
-        } else {
-          await container.fs.mkdir(path.dirname(pipelinePaths.stepsPath), {
-            recursive: true
-          });
-          await container.fs.writeFile(pipelinePaths.stepsPath, templates.steps, {
-            encoding: "utf8"
-          });
-          resources.logger.info(
-            `${stepsExists ? "Overwrite" : "Create"}: ${pipelinePaths.displayStepsPath}`
-          );
+          if (!plansExists) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${pipelinePaths.displayPlansPath}`);
+            } else {
+              await container.fs.mkdir(pipelinePaths.plansPath, { recursive: true });
+              createdPlans = true;
+              resources.logger.info(`Create: ${pipelinePaths.displayPlansPath}`);
+            }
+          }
+
+          if (skillExists) {
+            resources.logger.info(`Skip: ${skillDisplayPath} (already exists)`);
+          } else {
+            const skillResult = await installSkill(
+              support.id,
+              {
+                name: "poe-code-pipeline-plan",
+                content: templates.skillPlan + "\n\n" + skillPlanConfigSection("pipeline")
+              },
+              {
+                fs: container.fs,
+                cwd: container.env.cwd,
+                homeDir: container.env.homeDir,
+                scope,
+                dryRun: flags.dryRun
+              }
+            );
+
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
+            } else {
+              resources.logger.info(`Create: ${skillResult.displayPath}`);
+            }
+          }
+        } catch (error) {
+          if (!flags.dryRun) {
+            if (previousSteps !== undefined) {
+              await container.fs.writeFile(pipelinePaths.stepsPath, previousSteps, {
+                encoding: "utf8"
+              });
+            } else if (migratedSteps) {
+              await container.fs.rename(
+                pipelinePaths.stepsPath,
+                pipelinePaths.legacyDefaultStepsPath
+              );
+            } else if (createdSteps) {
+              await container.fs.unlink(pipelinePaths.stepsPath);
+            }
+            if (createdPlans && container.fs.rm) {
+              await container.fs.rm(pipelinePaths.plansPath, { recursive: true, force: true });
+            }
+          }
+          throw error;
         }
 
         resources.context.complete({

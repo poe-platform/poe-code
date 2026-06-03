@@ -56,15 +56,19 @@ async function runVitestWithRunner(
 ): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
   const outputFile = path.join(tmpdir(), `poe-code-vitest-${process.pid}-${randomUUID()}.json`);
   const timeoutMs = input.timeoutMs ?? defaultTimeoutMs;
+  assertValidTimeout(timeoutMs);
   const handle = runner.exec(createVitestRunSpec(input, outputFile));
   const stdout = drainStream(handle.stdout).catch(() => undefined);
   const stderr = drainStream(handle.stderr).catch(() => undefined);
 
   try {
-    await waitForVitest(handle, timeoutMs, input.signal);
+    const runResult = await waitForVitest(handle, timeoutMs, input.signal);
     await Promise.all([stdout, stderr]);
     const raw = await readFile(outputFile, "utf8");
     const cases = mapVitestCases(JSON.parse(raw), path.resolve(input.testsDir));
+    if (runResult.exitCode !== 0 && cases.every((result) => result.passed)) {
+      throw new VitestError(`Vitest exited with code ${runResult.exitCode}.`);
+    }
 
     return {
       passed: cases.filter((result) => result.passed).length,
@@ -78,11 +82,7 @@ async function runVitestWithRunner(
     throw error;
   } finally {
     killQuietly(handle);
-    await unlink(outputFile).catch((error: unknown) => {
-      if (!isMissingFileError(error)) {
-        throw error;
-      }
-    });
+    await unlink(outputFile).catch(() => undefined);
   }
 }
 
@@ -120,13 +120,9 @@ function resolveVitestBin(): string {
 }
 
 function createVitestEnv(cloneDir: string, oracleDir: string): Record<string, string> {
-  const env: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
 
   env.CLONE_DIR = cloneDir;
   env.ORACLE_DIR = oracleDir;
@@ -137,7 +133,7 @@ async function waitForVitest(
   handle: RunHandle,
   timeoutMs: number,
   signal: AbortSignal | undefined
-): Promise<void> {
+): Promise<{ exitCode: number }> {
   if (signal?.aborted) {
     killQuietly(handle);
     throw abortReason(signal);
@@ -166,8 +162,8 @@ async function waitForVitest(
         });
 
   try {
-    await Promise.race([
-      handle.result.then(() => undefined),
+    return await Promise.race([
+      handle.result.then((result) => ({ exitCode: result.exitCode })),
       timeoutPromise,
       ...(abortPromise === undefined ? [] : [abortPromise])
     ]);
@@ -201,6 +197,9 @@ function mapVitestCases(parsed: unknown, testsDir: string): CaseResult[] {
 function mapAssertion(fileName: string, assertion: VitestAssertion): CaseResult {
   const passed = assertion.state === "pass" || assertion.status === "passed";
   const message = failureMessage(assertion);
+  if (typeof assertion.duration === "number" && !Number.isFinite(assertion.duration)) {
+    throw new VitestError("Malformed vitest JSON output: case duration must be finite");
+  }
 
   return {
     name: formatCaseName(fileName, assertion),
@@ -208,6 +207,12 @@ function mapAssertion(fileName: string, assertion: VitestAssertion): CaseResult 
     durationMs: typeof assertion.duration === "number" ? assertion.duration : 0,
     ...(passed || message === undefined ? {} : { message })
   };
+}
+
+function assertValidTimeout(timeoutMs: number): void {
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    throw new VitestError("Vitest timeout must be a finite non-negative number.");
+  }
 }
 
 function formatFileName(fileName: unknown, testsDir: string): string {
@@ -267,15 +272,6 @@ function drainStream(stream: NodeJS.ReadableStream | null): Promise<void> {
 
 function abortReason(signal: AbortSignal): Error {
   return signal.reason instanceof Error ? signal.reason : new Error("Vitest run aborted");
-}
-
-function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
 }
 
 function killQuietly(handle: RunHandle): void {

@@ -360,13 +360,13 @@ async function tryToBase64ContentBlock(
   }
 
   if (typeof response.data === "string") {
-    try {
-      if (typeof response.mimeType === "string") {
-        return mediaType === "image"
-          ? Image.fromBase64(response.data, response.mimeType).toContentBlock()
-          : Audio.fromBase64(response.data, response.mimeType).toContentBlock();
-      }
+    if (typeof response.mimeType === "string") {
+      return mediaType === "image"
+        ? { type: "image", data: response.data, mimeType: response.mimeType }
+        : { type: "audio", data: response.data, mimeType: response.mimeType };
+    }
 
+    try {
       const decoded = Buffer.from(response.data, "base64");
       const bytes = new Uint8Array(decoded);
       return mediaType === "image"
@@ -394,7 +394,7 @@ function normalizeParams(
   params: Record<string, unknown> | undefined
 ): Record<string, string> | undefined {
   if (!params) return undefined;
-  const result: Record<string, string> = {};
+  const result = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(params)) {
     if (typeof value === "string") {
       result[key] = value;

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import path from "node:path";
 import fs from "node:fs";
+import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
@@ -348,6 +349,25 @@ describe("claude-code service", () => {
     });
   });
 
+  it("restores overwritten Claude Code settings after unconfigure", async () => {
+    const originalSettings = {
+      theme: "dark",
+      env: {
+        ANTHROPIC_API_KEY: "user-key",
+        ANTHROPIC_BASE_URL: "https://user.example.test",
+        CUSTOM: "keep"
+      },
+      model: "user-model"
+    };
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+
+    await configureClaude();
+    await expect(unconfigureClaude()).resolves.toBe(true);
+
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toEqual(originalSettings);
+  });
+
   it("runs the Claude CLI health check via runCommand when invoking the provider test", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"CLAUDE_CODE_OK"}\n',
@@ -551,6 +571,29 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
+  it("restores overwritten Codex selection after unconfigure", async () => {
+    const original = 'model_provider = "user-provider"\nmodel = "user-model"\n';
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, original, { encoding: "utf8" });
+
+    await configureCodex();
+    await expect(unconfigureCodex()).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("restores the original Codex selection after repeated configure", async () => {
+    const original = 'model_provider = "user-provider"\nmodel = "user-model"\n';
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, original, { encoding: "utf8" });
+
+    await configureCodex();
+    await configureCodex({ model: "anthropic/claude-opus-4.7" });
+    await expect(unconfigureCodex()).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
   it("writes freeform provider model as the active codex default", async () => {
     await configureCodex({
       provider: {
@@ -623,7 +666,7 @@ describe("codex service", () => {
     expect(poe.base_url).toBe("https://proxy.example.com/v1");
   });
 
-  it("removes generated config without restoring backup", async () => {
+  it("restores the generated backup and ignores legacy backup naming", async () => {
     await mockFsObj.mkdir(configDir, { recursive: true });
     await mockFsObj.writeFile(configPath, "original", { encoding: "utf8" });
 
@@ -637,7 +680,7 @@ describe("codex service", () => {
     const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
-    await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe("original");
   });
 
   it("deletes config when content matches template", async () => {
@@ -662,6 +705,26 @@ describe("codex service", () => {
 
     const content = await mockFsObj.readFile(configPath, "utf8");
     expect(content).toBe('model = "custom"');
+  });
+
+  it("does not remove an absent prototype-named provider", async () => {
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, "[model_providers]\n", {
+      encoding: "utf8"
+    });
+
+    const removed = await codexService.codexService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {
+        env,
+        provider: { id: "constructor" }
+      }
+    });
+
+    expect(removed).toBe(false);
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe("[model_providers]\n");
   });
 
   it("removes codex block with different formatting", async () => {
@@ -1128,6 +1191,34 @@ describe("kimi service", () => {
     }
   });
 
+  it("preserves user-created Poe-prefixed models while reconfiguring", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      serializeToml({
+        models: {
+          "poe/user-custom": {
+            provider: "custom-poe",
+            model: "user-custom",
+            max_context_size: 12345
+          },
+          "external/keep": {
+            provider: "external",
+            model: "keep",
+            max_context_size: 67890
+          }
+        }
+      })
+    );
+
+    await configureKimi();
+
+    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
+    const models = config.models as Record<string, unknown>;
+    expect(models["poe/user-custom"]).toBeDefined();
+    expect(models["external/keep"]).toBeDefined();
+  });
+
   it("replaces the Poe provider entry while keeping other providers", async () => {
     await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
     await mockFsObj.writeFile(
@@ -1256,6 +1347,12 @@ describe("kimi service", () => {
     const after = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const afterProviders = after.providers as Record<string, unknown> | undefined;
     expect(afterProviders?.[PROVIDER_NAME]).toBeUndefined();
+    expect(after.default_model).toBeUndefined();
+    expect(after.default_thinking).toBeUndefined();
+    expect(after.models).toBeUndefined();
+    await expect(
+      mockFsObj.readFile(path.join(homeDir, ".kimi", "credentials", "kimi-code.json"), "utf8")
+    ).rejects.toThrow();
   });
 });
 
@@ -1333,6 +1430,15 @@ describe("opencode service", () => {
     });
   }
 
+  async function unconfigureOpenCode(): Promise<boolean> {
+    return opencodeService.openCodeService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: { env }
+    });
+  }
+
   it("creates the opencode config and auth files", async () => {
     await configureOpenCode();
 
@@ -1391,6 +1497,19 @@ describe("opencode service", () => {
     expect(config.$schema).toBe("https://opencode.ai/config.json");
   });
 
+  it("preserves existing enabled providers while enabling Poe", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      JSON.stringify({ enabled_providers: ["local", "anthropic"] }, null, 2)
+    );
+
+    await configureOpenCode();
+
+    const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
+    expect(config.enabled_providers).toEqual(["local", "anthropic", PROVIDER_NAME]);
+  });
+
   it("replaces the Poe auth entry while keeping other providers", async () => {
     await mockFsObj.mkdir(path.dirname(authPath), { recursive: true });
     await mockFsObj.writeFile(
@@ -1424,6 +1543,25 @@ describe("opencode service", () => {
         key: "openai-key"
       }
     });
+  });
+
+  it("removes Poe model and auth configuration on remove", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      JSON.stringify({ theme: "dark", enabled_providers: ["local"] }, null, 2),
+      { encoding: "utf8" }
+    );
+    await configureOpenCode();
+
+    const removed = await unconfigureOpenCode();
+    expect(removed).toBe(true);
+
+    const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
+    expect(config.theme).toBe("dark");
+    expect(config.model).toBeUndefined();
+    expect(config.enabled_providers).toEqual(["local"]);
+    await expect(mockFsObj.readFile(authPath, "utf8")).rejects.toThrow();
   });
 
   it("spawns the opencode CLI with the provided prompt and args", async () => {
@@ -1918,6 +2056,23 @@ describe("gemini-cli service", () => {
     await expect(unconfigureGemini()).resolves.toBe(false);
   });
 
+  it("restores backed-up Gemini settings after unconfigure", async () => {
+    const originalSettings = {
+      theme: "dark",
+      security: { auth: { selectedType: "oauth-personal" } },
+      model: { name: "user-model" },
+      mcpServers: { local: { command: "node", args: ["server.js"] } }
+    };
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+
+    await configureGemini();
+    await expect(unconfigureGemini()).resolves.toBe(true);
+
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toEqual(originalSettings);
+    await expect(unconfigureGemini()).resolves.toBe(false);
+  });
+
   it("leaves unrelated Gemini user settings untouched when unconfiguring", async () => {
     const userSettings = {
       theme: "dark",
@@ -2219,6 +2374,29 @@ describe("goose service", () => {
     await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
     await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
     await expect(mockFsObj.readFile(secretsPath, "utf8")).rejects.toThrow();
+  });
+
+  it("restores overwritten Goose settings after unconfigure", async () => {
+    const originalConfig = ["GOOSE_PROVIDER: user_provider", "GOOSE_MODEL: user_model", "theme: dark"].join("\n");
+    const originalProvider = '{"name":"user provider"}\n';
+    const originalSecrets = ["CUSTOM_POE_API_KEY: user-key", "USER_SECRET: keep"].join("\n");
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
+    await mockFsObj.writeFile(configPath, originalConfig, { encoding: "utf8" });
+    await mockFsObj.writeFile(providerPath, originalProvider, { encoding: "utf8" });
+    await mockFsObj.writeFile(secretsPath, originalSecrets, { encoding: "utf8" });
+
+    await configureGoose();
+    await expect(gooseService.gooseService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {}
+    })).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(originalConfig);
+    await expect(mockFsObj.readFile(providerPath, "utf8")).resolves.toBe(originalProvider);
+    await expect(mockFsObj.readFile(secretsPath, "utf8")).resolves.toBe(originalSecrets);
   });
 
   it("only prunes Goose YAML settings when the active provider is Poe-managed", async () => {
@@ -2679,6 +2857,21 @@ describe("poe-agent provider", () => {
       baseUrl: "http://proxy.example.com/v1"
     });
   });
+
+  it("preserves prototype-named MCP servers for poe-agent sessions", async () => {
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "Explain this function",
+      mcpServers: JSON.parse('{"__proto__":{"command":"custom-server"}}'),
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
+      fs: createMockFs(undefined, homeDir)
+    });
+    await done;
+
+    const options = createAgentSessionMock.mock.calls[0]?.[0] as { mcpServers?: Record<string, unknown> };
+    expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
+  });
 });
 
 describe("determine provider workflow script", () => {
@@ -2718,5 +2911,18 @@ describe("determine provider workflow script", () => {
     expect(output).toContain("service=claude-code");
     expect(output).toContain("branch=agent/claude-code/issue-42");
     expect(output).toContain("pr_label=agent:claude-code");
+  });
+
+  it("refuses to append provider output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { emitOutputs } = await import(scriptPath);
+
+    expect(() => emitOutputs({ service: "codex" }, "/github/output", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
   });
 });

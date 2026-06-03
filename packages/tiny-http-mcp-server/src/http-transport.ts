@@ -1,5 +1,5 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
-import type { JSONRPCMessage, JSONRPCRequest, Server } from "tiny-stdio-mcp-server";
+import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "node:http";
+import type { JSONRPCMessage, JSONRPCRequest, MessageSession, Server } from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
 import {
   formatErrorResponse,
@@ -26,7 +26,9 @@ export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;
   private readonly enableJsonResponse: boolean;
   private readonly sessionStore = createSessionStore();
+  private readonly sessionMessages = new Map<string, MessageSession>();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
+  private nextNotificationEventId = 1;
   private notificationUnsubscribe: (() => void) | undefined;
 
   constructor(
@@ -43,9 +45,16 @@ export class StreamableHttpTransport {
         : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;
     this.notificationUnsubscribe = this.server.onNotification((notification) => {
-      const event = formatSseEvent({ data: JSON.stringify(notification) });
+      const event = formatSseEvent({
+        id: String(this.nextNotificationEventId++),
+        data: JSON.stringify(notification),
+      });
 
-      for (const streams of this.sseStreams.values()) {
+      for (const [sessionId, streams] of this.sseStreams) {
+        if (!this.sessionStore.get(sessionId)?.initialized) {
+          continue;
+        }
+
         for (const response of streams) {
           if (!response.writableEnded) {
             response.write(event);
@@ -85,6 +94,11 @@ export class StreamableHttpTransport {
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
     }
+
+    for (const session of this.sessionMessages.values()) {
+      session.close();
+    }
+    this.sessionMessages.clear();
   }
 
   private async handlePost(
@@ -98,6 +112,11 @@ export class StreamableHttpTransport {
         JSON_RPC_ERROR_CODES.INVALID_REQUEST,
         "Invalid Request"
       );
+      return;
+    }
+
+    if (!this.acceptsConfiguredResponse(req)) {
+      this.respondWithStatus(res, 406);
       return;
     }
 
@@ -116,7 +135,7 @@ export class StreamableHttpTransport {
     }
 
     const initMessage = classified.messages.find(
-      (message) => "method" in message && message.method === "initialize"
+      (message) => this.isRequest(message) && message.method === "initialize"
     );
     let sessionId: string | undefined;
 
@@ -130,32 +149,78 @@ export class StreamableHttpTransport {
         }
 
         sessionId = this.sessionIdGenerator();
+        if (!this.isValidNewSessionId(sessionId)) {
+          this.respondWithStatus(res, 500);
+          return;
+        }
+
         this.sessionStore.create(sessionId);
+        this.sessionMessages.set(sessionId, this.server.createMessageSession());
       } else if (!this.sessionStore.has(headerSessionId)) {
         this.respondWithStatus(res, 404);
         return;
       } else {
         sessionId = headerSessionId;
+        const session = this.sessionStore.get(sessionId);
+        if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+          this.respondWithStatus(res, 400);
+          return;
+        }
       }
     }
 
     const formattedResponses = await this.runWithRequestContext(req, async () => {
       const responses: string[] = [];
 
-      for (const message of classified.messages) {
+      for (const message of classified.entries) {
+        if (message === null) {
+          responses.push(formatErrorResponse(null, {
+            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+            message: "Invalid Request",
+          }));
+          continue;
+        }
+
         if (!("method" in message)) {
           continue;
         }
 
-        const { error, result } = await this.server.handleMessage(
+        const session = sessionId === undefined ? undefined : this.sessionStore.get(sessionId);
+        if (
+          session !== undefined
+          && message.method !== "initialize"
+          && message.method !== "notifications/initialized"
+          && message.method !== "ping"
+          && !session.initialized
+        ) {
+          if (this.isRequest(message)) {
+            responses.push(formatErrorResponse(message.id, {
+              code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+              message: "Session not initialized",
+            }));
+          }
+          continue;
+        }
+
+        const messageHandler = sessionId === undefined
+          ? this.server.handleMessage
+          : this.sessionMessages.get(sessionId)?.handleMessage ?? this.server.handleMessage;
+        const { error, result } = await messageHandler(
           message.method,
           message.params
         );
 
-        if (message.method === "initialize" && sessionId !== undefined) {
-          const session = this.sessionStore.get(sessionId);
-          if (session !== undefined) {
-            session.initialized = error === undefined;
+        if (session !== undefined && error === undefined) {
+          if (message.method === "initialize" && this.isRequest(message)) {
+            const initializeResult = result as { protocolVersion?: unknown } | undefined;
+            if (typeof initializeResult?.protocolVersion === "string") {
+              session.protocolVersion = initializeResult.protocolVersion;
+            }
+          } else if (
+            message.method === "notifications/initialized"
+            && session.protocolVersion !== undefined
+          ) {
+            session.initialized = true;
           }
         }
 
@@ -225,6 +290,19 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const session = this.sessionStore.get(sessionId);
+    if (
+      session === undefined
+      || (
+        session.initialized
+        && session.protocolVersion !== undefined
+        && !this.hasProtocolVersion(req, session.protocolVersion)
+      )
+    ) {
+      this.respondWithStatus(res, 400);
+      return;
+    }
+
     let streams = this.sseStreams.get(sessionId);
     if (streams === undefined) {
       streams = new Set();
@@ -265,11 +343,19 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const session = this.sessionStore.get(sessionId);
+    if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+      this.respondWithStatus(res, 400);
+      return;
+    }
+
     if (!this.sessionStore.delete(sessionId)) {
       this.respondWithStatus(res, 404);
       return;
     }
 
+    this.sessionMessages.get(sessionId)?.close();
+    this.sessionMessages.delete(sessionId);
     this.closeStreamsForSession(sessionId);
     this.respondWithStatus(res, 204);
   }
@@ -278,6 +364,12 @@ export class StreamableHttpTransport {
     const value = req.headers["mcp-session-id"];
     const id = Array.isArray(value) ? value[0] : value;
     return id !== undefined && id.length > 0 ? id : undefined;
+  }
+
+  private hasProtocolVersion(req: IncomingMessage, protocolVersion: string): boolean {
+    const value = req.headers["mcp-protocol-version"];
+    const header = Array.isArray(value) ? value[0] : value;
+    return header === protocolVersion;
   }
 
   private closeStreamsForSession(sessionId: string): void {
@@ -299,13 +391,40 @@ export class StreamableHttpTransport {
     const contentType = req.headers["content-type"];
 
     if (contentType === undefined) {
-      return true;
+      return false;
     }
 
     const value = Array.isArray(contentType) ? contentType[0] : contentType;
     const type = value.split(";")[0]?.trim().toLowerCase();
 
     return type === "application/json";
+  }
+
+  private acceptsConfiguredResponse(req: IncomingMessage): boolean {
+    const accept = req.headers.accept;
+    if (accept === undefined) {
+      return true;
+    }
+
+    const expectedType = this.enableJsonResponse ? "application/json" : "text/event-stream";
+    const value = Array.isArray(accept) ? accept.join(",") : accept;
+    return value
+      .split(",")
+      .map((type) => type.split(";")[0]?.trim().toLowerCase())
+      .some((type) => type === "*/*" || type === expectedType);
+  }
+
+  private isValidNewSessionId(sessionId: string): boolean {
+    if (sessionId.length === 0 || this.sessionStore.has(sessionId)) {
+      return false;
+    }
+
+    try {
+      validateHeaderValue(MCP_SESSION_ID_HEADER, sessionId);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private isRequest(message: JSONRPCMessage): message is JSONRPCRequest {

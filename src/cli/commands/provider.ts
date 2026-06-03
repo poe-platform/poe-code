@@ -5,13 +5,22 @@ import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
 import {
   createExecutionResources,
   createSecretPrompter,
+  applyIsolatedConfiguration,
+  buildProviderContext,
   parseProviderShapeBaseUrls,
   resolveCommandFlags,
   resolveNonEmpty,
+  resolveServiceAdapter,
   resolveShapeBaseUrl
 } from "./shared.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
 import type { AuthProvider } from "@poe-code/providers";
+import { createConfigurePayload } from "./configure-payload.js";
+import { createOverlayFileSystem, type ConfigureCommandOptions } from "./configure.js";
+import { loadConfiguredServices, unconfigureService } from "../../services/config.js";
+import { createMutationReporter } from "../../services/mutation-events.js";
+import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
+import type { ProviderContext } from "../service-registry.js";
 
 const apiShapeLabels: Record<ApiShapeId, string> = {
   "openai-chat-completions": "chat-completions",
@@ -73,7 +82,9 @@ async function executeProviderList(program: Command, container: CliContainer): P
 
   const rows = await Promise.all(
     providers.map(async (provider) => {
-      const loggedIn = await container.providerRegistry.isLoggedIn(provider.id);
+      const loggedIn = await container.providerRegistry.isLoggedIn(provider.id, {
+        readOnly: flags.dryRun
+      });
       const apiShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
       return {
         Provider: theme.accent(provider.id),
@@ -123,47 +134,91 @@ async function executeProviderLogin(
     parsedShapeBaseUrls
   });
 
-  if (!flags.dryRun) {
-    await container.providerRegistry.login(
-      id,
-      { apiKey: options.apiKey },
-      {
-        envVars: flags.assumeYes ? container.env.variables : {},
-        promptForSecret: createSecretPrompter(container),
-        resolvePreferredLogin: async (input) =>
-          container.options.resolveApiKey({
-            value: input.apiKey,
-            envValue: input.envValue,
-            dryRun: flags.dryRun,
-            assumeYes: flags.assumeYes,
-            allowStored: false
-          })
-      }
-    );
+  const shapeBaseUrls = await resolveProviderLoginShapeBaseUrls({
+    provider,
+    options,
+    container,
+    flags,
+    logger: resources.logger,
+    parsedShapeBaseUrls
+  });
 
-    const shapeBaseUrls = await resolveProviderLoginShapeBaseUrls({
-      provider,
-      options,
-      container,
-      flags,
-      logger: resources.logger,
-      parsedShapeBaseUrls
-    });
+  let rollbackCredential: (() => Promise<void>) | undefined;
+  const transaction = flags.dryRun ? undefined : createOverlayFileSystem(resources.context.fs);
+  const executionFs = transaction?.fs ?? resources.context.fs;
+  let credential: string | undefined;
+  try {
+    if (flags.dryRun) {
+      validateDryRunCredentialAvailability({ provider, options, container, flags });
+    } else {
+      const staged = await stageProviderLogin({
+        id,
+        options,
+        container,
+        flags,
+        fs: executionFs
+      });
+      credential = staged.credential;
+      rollbackCredential = staged.rollback;
+    }
 
     await saveProviderShapeBaseUrls({
-      fs: container.fs,
+      fs: executionFs,
       filePath: container.env.servicesConfigPath,
       providerId: id,
       shapeBaseUrls
     });
+
+    await refreshConfiguredServicesForProvider({
+      container,
+      providerId: id,
+      credential,
+      flags,
+      resources,
+      fs: executionFs
+    });
+
+    await transaction?.commit();
+  } catch (error) {
+    await rollbackCredential?.().catch(() => undefined);
+    throw error;
   }
+
+  const dryMessage =
+    flags.dryRun && provider.auth.kind === "api-key" && provider.auth.preferredLogin === "oauth" &&
+    resolveNonEmpty(options.apiKey) === undefined &&
+    resolveNonEmpty(container.env.getVariable(provider.auth.envVar)) === undefined
+      ? `Dry run: would authenticate with ${provider.label}.`
+      : `Dry run: would save credential for ${id}.`;
 
   resources.context.complete({
     success: `Saved credential for ${id}.`,
-    dry: `Dry run: would save credential for ${id}.`
+    dry: dryMessage
   });
 
   resources.context.finalize();
+}
+
+function validateDryRunCredentialAvailability(input: {
+  provider: AuthProvider;
+  options: ProviderLoginOptions;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+}): void {
+  if (!input.flags.assumeYes || input.provider.auth.kind !== "api-key") {
+    return;
+  }
+  if (input.provider.auth.preferredLogin === "oauth") {
+    return;
+  }
+  if (
+    resolveNonEmpty(input.options.apiKey) === undefined &&
+    resolveNonEmpty(input.container.env.getVariable(input.provider.auth.envVar)) === undefined
+  ) {
+    throw new Error(
+      `No API key available for provider "${input.provider.id}". Pass --api-key or run interactively.`
+    );
+  }
 }
 
 function validateProviderLoginBaseUrlOptions(input: {
@@ -204,8 +259,8 @@ async function resolveProviderLoginShapeBaseUrls(input: {
   if (explicitBaseUrl !== undefined) {
     assertHttpBaseUrl(input.provider.id, explicitBaseUrl);
     return {
-      ...shapeBaseUrls,
-      ...deriveShapeBaseUrls(input.provider, explicitBaseUrl)
+      ...deriveShapeBaseUrls(input.provider, explicitBaseUrl),
+      ...shapeBaseUrls
     };
   }
 
@@ -313,14 +368,247 @@ async function executeProviderLogout(
     );
   }
 
-  if (!flags.dryRun) {
-    await container.providerRegistry.logout(id);
+  let rollbackCredential: (() => Promise<void>) | undefined;
+  const transaction = flags.dryRun ? undefined : createOverlayFileSystem(resources.context.fs);
+  const executionFs = transaction?.fs ?? resources.context.fs;
+  try {
+    if (flags.dryRun) {
+      const previewStore = container.createPreviewProviderStore(id, executionFs);
+      if (previewStore) {
+        await container.providerRegistry.logout(id, { store: previewStore });
+      }
+    } else {
+      rollbackCredential = await stageProviderLogout({ id, container, fs: executionFs });
+    }
+
+    await unconfigureServicesForProvider({
+      container,
+      providerId: id,
+      flags,
+      resources,
+      fs: executionFs
+    });
+    await transaction?.commit();
+  } catch (error) {
+    await rollbackCredential?.().catch(() => undefined);
+    throw error;
   }
 
+  const credentialEnvVar = provider.auth.kind === "api-key" ? provider.auth.envVar : undefined;
+  const environmentCredential = credentialEnvVar
+    ? container.env.getVariable(credentialEnvVar)
+    : undefined;
+  const hasEnvironmentCredential = typeof environmentCredential === "string"
+    && environmentCredential.trim().length > 0;
+
   resources.context.complete({
-    success: `Logged out from ${id}.`,
+    success: hasEnvironmentCredential
+      ? `Stored credential removed, but ${credentialEnvVar} remains set; unset it to log out from ${id}.`
+      : `Logged out from ${id}.`,
     dry: `Dry run: would log out from ${id}.`
   });
 
   resources.context.finalize();
+}
+
+async function stageProviderLogin(input: {
+  id: string;
+  options: ProviderLoginOptions;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  fs: CliContainer["fs"];
+}): Promise<{ credential: string; rollback?: () => Promise<void> }> {
+  const loginContext = {
+    envVars: input.flags.assumeYes ? input.container.env.variables : {},
+    promptForSecret: input.flags.assumeYes ? undefined : createSecretPrompter(input.container),
+    resolvePreferredLogin: async (preferred: {
+      provider: AuthProvider;
+      apiKey?: string;
+      envValue?: string;
+    }) =>
+      input.container.options.resolveApiKey({
+        value: preferred.apiKey,
+        envValue: preferred.envValue,
+        dryRun: false,
+        assumeYes: input.flags.assumeYes,
+        allowStored: false
+      })
+  };
+  const previewStore = input.container.createPreviewProviderStore(input.id, input.fs);
+  if (previewStore) {
+    await input.container.providerRegistry.login(input.id, { apiKey: input.options.apiKey }, {
+      ...loginContext,
+      store: previewStore
+    });
+    const credential = await previewStore.get() ?? resolveNonEmpty(input.options.apiKey);
+    if (typeof credential !== "string" || credential.trim().length === 0) {
+      throw new Error(`No API key available for provider "${input.id}".`);
+    }
+    return { credential: credential.trim() };
+  }
+
+  const previousCredential = await input.container.providerRegistry
+    .resolveCredential(input.id, {}, { envVars: {} })
+    .catch(() => undefined);
+  await input.container.providerRegistry.login(input.id, { apiKey: input.options.apiKey }, loginContext);
+  const credential = await input.container.providerRegistry.resolveCredential(input.id, {}, { envVars: {} });
+  return {
+    credential,
+    rollback: () => restoreProviderCredential(input.container, input.id, previousCredential)
+  };
+}
+
+async function stageProviderLogout(input: {
+  id: string;
+  container: CliContainer;
+  fs: CliContainer["fs"];
+}): Promise<(() => Promise<void>) | undefined> {
+  const previewStore = input.container.createPreviewProviderStore(input.id, input.fs);
+  if (previewStore) {
+    await input.container.providerRegistry.logout(input.id, { store: previewStore });
+    return undefined;
+  }
+  const previousCredential = await input.container.providerRegistry
+    .resolveCredential(input.id, {}, { envVars: {} })
+    .catch(() => undefined);
+  await input.container.providerRegistry.logout(input.id);
+  return () => restoreProviderCredential(input.container, input.id, previousCredential);
+}
+
+async function restoreProviderCredential(
+  container: CliContainer,
+  providerId: string,
+  credential: string | undefined
+): Promise<void> {
+  if (credential === undefined) {
+    await container.providerRegistry.logout(providerId);
+    return;
+  }
+  await container.providerRegistry.login(providerId, { apiKey: credential });
+}
+
+async function refreshConfiguredServicesForProvider(input: {
+  container: CliContainer;
+  providerId: string;
+  credential?: string;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  resources: ReturnType<typeof createExecutionResources>;
+  fs: CliContainer["fs"];
+}): Promise<void> {
+  const configuredServices = await loadConfiguredServices({
+    fs: input.fs,
+    filePath: input.container.env.configPath,
+    projectFilePath: input.container.env.projectConfigPath,
+    readOnly: input.flags.dryRun
+  });
+  const stagedContainer = { ...input.container, fs: input.fs };
+  for (const [service, metadata] of Object.entries(configuredServices)) {
+    if (metadata.provider !== input.providerId) {
+      continue;
+    }
+    const adapter = resolveServiceAdapter(input.container, service);
+    const providerContext = createProviderContextWithFileSystem(input.container, adapter, input.resources, input.fs);
+    const options: ConfigureCommandOptions = {
+      model: metadata.model,
+      reasoningEffort: metadata.reasoningEffort,
+      baseUrl: metadata.baseUrl,
+      shapeBaseUrl: metadata.shapeBaseUrl,
+      apiKey: input.credential
+    };
+    const payload = await createConfigurePayload({
+      container: stagedContainer,
+      flags: { ...input.flags, assumeYes: true },
+      options,
+      context: providerContext,
+      adapter,
+      logger: input.resources.logger,
+      providerId: input.providerId
+    });
+    await input.container.registry.invoke(service, "configure", async (entry) => {
+      await entry.configure(
+        { fs: input.fs, env: providerContext.env, command: providerContext.command, options: payload },
+        { observers: createMutationReporter(input.resources.logger) }
+      );
+      if (adapter.isolatedEnv && adapter.isolatedEnv.requiresConfig !== false) {
+        await applyIsolatedConfiguration({
+          adapter: entry,
+          providerContext,
+          payload,
+          isolated: adapter.isolatedEnv,
+          providerName: adapter.name,
+          observers: createMutationReporter(input.resources.logger)
+        });
+      }
+    });
+  }
+}
+
+async function unconfigureServicesForProvider(input: {
+  container: CliContainer;
+  providerId: string;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  resources: ReturnType<typeof createExecutionResources>;
+  fs: CliContainer["fs"];
+}): Promise<void> {
+  const configuredServices = await loadConfiguredServices({
+    fs: input.fs,
+    filePath: input.container.env.configPath,
+    projectFilePath: input.container.env.projectConfigPath,
+    readOnly: input.flags.dryRun
+  });
+  for (const [service, metadata] of Object.entries(configuredServices)) {
+    if (metadata.provider !== input.providerId) {
+      continue;
+    }
+    const adapter = resolveServiceAdapter(input.container, service);
+    const providerContext = createProviderContextWithFileSystem(input.container, adapter, input.resources, input.fs);
+    const payload = { env: providerContext.env, provider: { id: input.providerId } };
+    await input.container.registry.invoke(service, "unconfigure", async (entry) => {
+      const observers = createMutationReporter(input.resources.logger);
+      await entry.unconfigure(
+        { fs: input.fs, env: providerContext.env, command: providerContext.command, options: payload },
+        { observers }
+      );
+      if (adapter.isolatedEnv && adapter.isolatedEnv.requiresConfig !== false) {
+        await entry.unconfigure(
+          {
+            fs: input.fs,
+            env: providerContext.env,
+            command: providerContext.command,
+            options: payload,
+            pathMapper: {
+              mapTargetDirectory: ({ targetDirectory }) => resolveIsolatedTargetDirectory({
+                targetDirectory,
+                isolated: adapter.isolatedEnv!,
+                env: providerContext.env,
+                providerName: adapter.name
+              })
+            }
+          },
+          { observers }
+        );
+      }
+      if (!input.flags.dryRun) {
+        await unconfigureService({
+          fs: input.fs,
+          filePath: input.container.env.configPath,
+          projectFilePath: input.container.env.projectConfigPath,
+          service
+        });
+      }
+    });
+  }
+}
+
+function createProviderContextWithFileSystem(
+  container: CliContainer,
+  adapter: ReturnType<typeof resolveServiceAdapter>,
+  resources: ReturnType<typeof createExecutionResources>,
+  fs: CliContainer["fs"]
+): ProviderContext {
+  const providerContext = buildProviderContext(container, adapter, resources);
+  return {
+    ...providerContext,
+    command: { ...providerContext.command, fs }
+  };
 }

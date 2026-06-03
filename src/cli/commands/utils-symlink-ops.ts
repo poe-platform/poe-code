@@ -42,42 +42,64 @@ export async function applySymlinkOps(
   opts: { dryRun: boolean; log: (msg: string) => void }
 ): Promise<{ conflicts: number }> {
   let conflicts = 0;
+  const appliedOps: Array<Extract<SymlinkOp, { kind: "rename" | "symlink" }>> = [];
 
-  for (const op of ops) {
-    switch (op.kind) {
-      case "rename": {
-        opts.log(`rename ${op.from} -> ${op.to}`);
-        if (!opts.dryRun) {
-          await fs.mkdir(dirname(op.to), { recursive: true });
-          await fs.rename(op.from, op.to);
+  try {
+    for (const op of ops) {
+      switch (op.kind) {
+        case "rename": {
+          opts.log(`rename ${op.from} -> ${op.to}`);
+          if (!opts.dryRun) {
+            await fs.mkdir(dirname(op.to), { recursive: true });
+            await fs.rename(op.from, op.to);
+            appliedOps.push(op);
+          }
+          break;
         }
-        break;
-      }
-      case "symlink": {
-        opts.log(`symlink ${op.path} -> ${op.target}`);
-        if (!opts.dryRun) {
-          await fs.mkdir(dirname(op.path), { recursive: true });
-          await fs.symlink(op.target, op.path);
+        case "symlink": {
+          opts.log(`symlink ${op.path} -> ${op.target}`);
+          if (!opts.dryRun) {
+            await fs.mkdir(dirname(op.path), { recursive: true });
+            await fs.symlink(op.target, op.path);
+            appliedOps.push(op);
+          }
+          break;
         }
-        break;
-      }
-      case "noop": {
-        opts.log(op.reason);
-        break;
-      }
-      case "conflict": {
-        conflicts += 1;
-        opts.log(op.message);
-        break;
-      }
-      default: {
-        const neverOp: never = op;
-        throw new Error(`Unsupported symlink op: ${(neverOp as { kind: string }).kind}`);
+        case "noop": {
+          opts.log(op.reason);
+          break;
+        }
+        case "conflict": {
+          conflicts += 1;
+          opts.log(op.message);
+          break;
+        }
+        default: {
+          const neverOp: never = op;
+          throw new Error(`Unsupported symlink op: ${(neverOp as { kind: string }).kind}`);
+        }
       }
     }
+  } catch (error) {
+    await rollbackSymlinkOps(fs, appliedOps);
+    throw error;
   }
 
   return { conflicts };
+}
+
+async function rollbackSymlinkOps(
+  fs: FileSystem,
+  appliedOps: Array<Extract<SymlinkOp, { kind: "rename" | "symlink" }>>
+): Promise<void> {
+  for (const op of appliedOps.reverse()) {
+    if (op.kind === "symlink") {
+      await fs.unlink(op.path);
+      continue;
+    }
+
+    await fs.rename(op.to, op.from);
+  }
 }
 
 export async function isSymlinkPointingTo(

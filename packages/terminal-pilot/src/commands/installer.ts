@@ -17,12 +17,14 @@ export type TerminalPilotInstallerFileSystem = {
     options?: { encoding: "utf8" }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   rm?(
     path: string,
     options?: { recursive?: boolean; force?: boolean }
   ): Promise<void>;
   stat(path: string): Promise<{ mode?: number }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   readdir(path: string): Promise<string[]>;
   chmod?(path: string, mode: number): Promise<void>;
 };
@@ -170,6 +172,8 @@ export async function removeSkillFolder(
   fs: TerminalPilotInstallerFileSystem,
   folderPath: string
 ): Promise<boolean> {
+  await assertNoSymbolicLinkPath(fs, folderPath);
+
   try {
     await fs.stat(folderPath);
   } catch (error) {
@@ -185,4 +189,26 @@ export async function removeSkillFolder(
 
   await fs.rm(folderPath, { recursive: true, force: true });
   return true;
+}
+
+export async function assertNoSymbolicLinkPath(
+  fs: Pick<TerminalPilotInstallerFileSystem, "lstat">,
+  targetPath: string
+): Promise<void> {
+  const rootPath = path.parse(targetPath).root;
+  let currentPath = targetPath;
+
+  while (currentPath !== rootPath) {
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new UserError(`Refusing terminal-pilot skill operation through symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+
+    currentPath = path.dirname(currentPath);
+  }
 }

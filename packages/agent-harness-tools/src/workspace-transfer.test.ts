@@ -91,6 +91,58 @@ describe("workspace transfer", () => {
     await expect(readRemote(env, "nested/root-only.txt")).resolves.toBe("keep");
   });
 
+  it("honors escaped leading comment markers in gitignore patterns", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": "\\#credentials\n",
+      "/repo/#credentials": "secret",
+      "/repo/app.ts": "app"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "#credentials");
+    await expect(readRemote(env, "app.ts")).resolves.toBe("app");
+  });
+
+  it("preserves meaningful leading spaces in gitignore patterns", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": " secret.txt\n",
+      "/repo/ secret.txt": "drop",
+      "/repo/secret.txt": "keep"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, " secret.txt");
+    await expect(readRemote(env, "secret.txt")).resolves.toBe("keep");
+  });
+
+  it("matches globstar gitignore rules across nested directories", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": "**/.env\n",
+      "/repo/packages/app/config/.env": "secret",
+      "/repo/packages/app/config/app.ts": "app"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "packages/app/config/.env");
+    await expect(readRemote(env, "packages/app/config/app.ts")).resolves.toBe("app");
+  });
+
+  it("applies nested gitignore rules within their containing directory", async () => {
+    const env = createEnv({
+      "/repo/packages/app/.gitignore": ".env\n",
+      "/repo/packages/app/.env": "secret",
+      "/repo/packages/other/.env": "keep"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "packages/app/.env");
+    await expect(readRemote(env, "packages/other/.env")).resolves.toBe("keep");
+  });
+
   it("skips oversize files and prints one warning per skip", async () => {
     const warn = vi.fn();
     const env = createEnv({
@@ -111,6 +163,67 @@ describe("workspace transfer", () => {
     expect(warn).toHaveBeenCalledTimes(1);
     expect(warn).toHaveBeenCalledWith("Skipping large.bin: 20 bytes exceeds upload_max_file_mb.");
     await expectNoRemote(env, "large.bin");
+  });
+
+  it("checks the bytes read for upload against the size limit", async () => {
+    const baseFs = createFs({ "/repo/growing.bin": "small" });
+    const originalReadFile = baseFs.readFile.bind(baseFs);
+    let didGrow = false;
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...baseFs,
+        async readFile(filePath: string, encoding?: BufferEncoding) {
+          if (filePath === "/repo/growing.bin" && !didGrow) {
+            didGrow = true;
+            await baseFs.writeFile(filePath, Buffer.alloc(20));
+          }
+
+          return encoding === undefined
+            ? originalReadFile(filePath)
+            : originalReadFile(filePath, encoding);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs: createFs({})
+    };
+
+    const result = await uploadWorkspace(env, { uploadMaxFileMb: 0.00001, warn: vi.fn() });
+
+    expect(result.skipped).toEqual([{ path: "growing.bin", bytes: 20, reason: "max_size" }]);
+    await expectNoRemote(env, "growing.bin");
+  });
+
+  it("does not read gitignored file content during upload", async () => {
+    const baseFs = createFs({
+      "/repo/.gitignore": "secret.txt\n",
+      "/repo/secret.txt": "secret",
+      "/repo/app.ts": "app"
+    });
+    const originalReadFile = baseFs.readFile.bind(baseFs);
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...baseFs,
+        async readFile(filePath: string, encoding?: BufferEncoding) {
+          if (filePath === "/repo/secret.txt") {
+            throw new Error("ignored content should not be read");
+          }
+
+          return encoding === undefined
+            ? originalReadFile(filePath)
+            : originalReadFile(filePath, encoding);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs: createFs({})
+    };
+
+    await expect(uploadWorkspace(env, {})).resolves.toMatchObject({ files: 2 });
+    await expect(readRemote(env, "app.ts")).resolves.toBe("app");
+    await expectNoRemote(env, "secret.txt");
   });
 
   it("applies runner workspace excludes", async () => {
@@ -143,6 +256,18 @@ describe("workspace transfer", () => {
     const tar = await env.remoteFs.readFile("/upload/workspace.tar");
     expect(tar.subarray(0, "src/app.ts".length).toString("utf8")).toBe("src/app.ts");
     expect(tar.subarray(512, 515).toString("utf8")).toBe("app");
+  });
+
+  it("stores long tar paths using the USTAR prefix field", async () => {
+    const longPath = `${"segment/".repeat(13)}file.txt`;
+    const env = createEnv({ [`/repo/${longPath}`]: "content" });
+
+    await uploadWorkspace(env, {});
+
+    const tar = await env.remoteFs.readFile("/upload/workspace.tar");
+    const name = tar.subarray(0, 100).toString("utf8").replaceAll("\0", "");
+    const prefix = tar.subarray(345, 500).toString("utf8").replaceAll("\0", "");
+    expect(`${prefix}/${name}`).toBe(longPath);
   });
 
   it("downloads remote changes over unchanged local files", async () => {
@@ -224,6 +349,77 @@ describe("workspace transfer", () => {
     await expect(env.fs.readFile("/repo/clean.ts", "utf8")).resolves.toBe("remote-clean");
   });
 
+  it("refuses downloads over local files excluded from upload", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": ".env\n",
+      "/repo/.env": "LOCAL_SECRET=keep\n"
+    });
+    await uploadWorkspace(env, {});
+    await env.remoteFs.writeFile("/workspace/.env", "LOCAL_SECRET=remote\n");
+
+    const result = await downloadWorkspace(env, { conflictPolicy: "refuse" });
+
+    expect(result.conflicts).toEqual([{ path: ".env", reason: "local_modified" }]);
+    await expect(env.fs.readFile("/repo/.env", "utf8")).resolves.toBe("LOCAL_SECRET=keep\n");
+  });
+
+  it("preserves an existing local file when a replacement download write fails", async () => {
+    const backingLocal = createFs({ "/repo/app.ts": "base content" });
+    const remoteFs = createFs({ "/workspace/app.ts": "remote content" });
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...backingLocal,
+        async writeFile(filePath: string, data: string | Buffer) {
+          if (filePath.endsWith(".download-tmp")) {
+            await backingLocal.writeFile(filePath, Buffer.from(data).subarray(0, 3));
+            throw new Error("disk full");
+          }
+
+          await backingLocal.writeFile(filePath, data);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs
+    };
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "disk full"
+    );
+    await expect(backingLocal.readFile("/repo/app.ts", "utf8")).resolves.toBe("base content");
+  });
+
+  it("preserves the prior remote workspace when replacement upload fails", async () => {
+    const backingRemote = createFs({
+      "/workspace/app.ts": "stable remote",
+      "/workspace/keep.ts": "keep"
+    });
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: createFs({ "/repo/app.ts": "fresh remote" }),
+      remoteFs: {
+        ...backingRemote,
+        async writeFile(filePath: string, data: string | Buffer) {
+          if (filePath.includes(".upload-tmp") && filePath.endsWith("/app.ts")) {
+            await backingRemote.writeFile(filePath, Buffer.from(data).subarray(0, 5));
+            throw new Error("remote disk full");
+          }
+
+          await backingRemote.writeFile(filePath, data);
+        }
+      } as WorkspaceTransferFileSystem
+    };
+
+    await expect(uploadWorkspace(env, {})).rejects.toThrow("remote disk full");
+    await expect(backingRemote.readFile("/workspace/app.ts", "utf8")).resolves.toBe(
+      "stable remote"
+    );
+    await expect(backingRemote.readFile("/workspace/keep.ts", "utf8")).resolves.toBe("keep");
+  });
+
   it("refuses to delete locally modified files removed remotely", async () => {
     const env = createEnv({
       "/repo/app.ts": "base"
@@ -292,5 +488,44 @@ describe("workspace transfer", () => {
       conflicts: []
     });
     await expect(env.fs.readFile("/repo/app.ts", "utf8")).resolves.toBe("remote");
+  });
+
+  it("rejects downloads through a symlinked local parent before writing externally", async () => {
+    const env = createEnv({
+      "/repo/linked/old.txt": "base",
+      "/outside/keep.txt": "keep"
+    });
+    await uploadWorkspace(env, {});
+    await env.fs.rm?.("/repo/linked", { recursive: true, force: true });
+    await (env.fs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/repo/linked"
+    );
+    await env.remoteFs.writeFile("/workspace/linked/new.txt", "remote");
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "Workspace download must remain inside the local workspace."
+    );
+    await expect(env.fs.readFile("/outside/new.txt", "utf8")).rejects.toThrow();
+    await expect(env.fs.readFile("/outside/keep.txt", "utf8")).resolves.toBe("keep");
+  });
+
+  it("rejects downloads through a symlinked local parent before deleting externally", async () => {
+    const env = createEnv({
+      "/repo/linked/old.txt": "base",
+      "/outside/old.txt": "external"
+    });
+    await uploadWorkspace(env, {});
+    await env.remoteFs.rm?.("/workspace/linked/old.txt", { force: true });
+    await env.fs.rm?.("/repo/linked", { recursive: true, force: true });
+    await (env.fs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/repo/linked"
+    );
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "Workspace download must remain inside the local workspace."
+    );
+    await expect(env.fs.readFile("/outside/old.txt", "utf8")).resolves.toBe("external");
   });
 });

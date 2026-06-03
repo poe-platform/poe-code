@@ -193,6 +193,45 @@ describe("agent builder MCP spawn handoff", () => {
     });
   });
 
+  it("preserves a map-based MCP server named __proto__ during spawn handoff", async () => {
+    await agent()
+      .model("test-model")
+      .mcp(JSON.parse('{"__proto__":{"command":"custom-server"}}'))
+      .use(spawnPlugin())
+      .run("Spawn a child", {
+        cwd: "/workspace",
+        acpModel: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [
+                {
+                  id: "spawn-1",
+                  tool: "spawn",
+                  args: { task: "Inspect MCP child config" }
+                }
+              ]
+            }
+          },
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ])
+      });
+
+    const options = createInMemorySpawnSessionMock.mock.calls[0]?.[0] as {
+      mcpServers?: Record<string, unknown>;
+    };
+    expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
+    expect(options.mcpServers?.["__proto__"]).toEqual({
+      transport: "stdio",
+      command: "custom-server"
+    });
+  });
+
   it("treats an empty map-based MCP config as no MCP servers during spawn handoff", async () => {
     await agent()
       .model("test-model")

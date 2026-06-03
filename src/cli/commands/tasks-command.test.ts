@@ -222,6 +222,36 @@ maestro:
     expect(process.exitCode).toBe(1);
   });
 
+  it("verify forwards the workflow's tasks.auth.token after env expansion", async () => {
+    const restoreEnv = process.env.VERIFY_TOKEN_TEST;
+    process.env.VERIFY_TOKEN_TEST = "ghp_verify_token";
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+tasks:
+  auth:
+    token: $VERIFY_TOKEN_TEST
+`);
+    taskListMocks.verifyGhProject.mockResolvedValue(createVerifyReport());
+
+    try {
+      await runTasks(["verify", "acme/12"]);
+    } finally {
+      if (restoreEnv === undefined) {
+        delete process.env.VERIFY_TOKEN_TEST;
+      } else {
+        process.env.VERIFY_TOKEN_TEST = restoreEnv;
+      }
+    }
+
+    expect(taskListMocks.verifyGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: { token: "ghp_verify_token" } })
+    );
+  });
+
   it("sync passes merged frontmatter and flags to the SDK call", async () => {
     seedWorkflow(`
 maestro:
@@ -876,6 +906,17 @@ states:
     expect(logs).toEqual(["[error] --metadata-json must be valid JSON."]);
   });
 
+  it("set previews updates without mutating markdown tasks", async () => {
+    seedTaskWorkspace();
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["--dry-run", "set", "plans/foo", "--name", "Renamed"], logs);
+
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+    expect(logs).toEqual(["[dry-run] Would update task plans/foo."]);
+  });
+
   it("set-state moves directly to a declared state", async () => {
     seedTaskWorkspace({ state: "queued" });
 
@@ -884,6 +925,17 @@ states:
     const content = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
     expect(content).toContain("state: done");
     expect(process.exitCode).toBeUndefined();
+  });
+
+  it("set-state previews transitions without mutating markdown tasks", async () => {
+    seedTaskWorkspace({ state: "queued" });
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["--dry-run", "set-state", "plans/foo", "done"], logs);
+
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+    expect(logs).toEqual(["[dry-run] Would set task plans/foo state to done."]);
   });
 
   it("set-state to an undeclared state exits 2 with declared states", async () => {
@@ -905,6 +957,17 @@ states:
 
     const content = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
     expect(content).toContain("state: agent-running");
+  });
+
+  it("next previews transitions without mutating markdown tasks", async () => {
+    seedTaskWorkspace({ state: "queued" });
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["--dry-run", "next", "plans/foo"], logs);
+
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+    expect(logs).toEqual(["[dry-run] Would set task plans/foo state to agent-running."]);
   });
 
   it("next at the last state exits 2 with the documented message", async () => {
@@ -994,6 +1057,7 @@ states:
         graphqlResponse({
           repository: {
             issue: {
+              id: "issue-node-42",
               number: 42,
               title: "Issue task",
               body: "Body",
@@ -1019,7 +1083,24 @@ states:
         graphqlResponse({
           repository: {
             issue: {
-              id: "issue-node-42"
+              id: "issue-node-42",
+              number: 42,
+              title: "Issue task",
+              body: "Body",
+              url: "https://github.test/octo/repo/issues/42",
+              createdAt: "2026-01-01T00:00:00Z",
+              labels: { nodes: [] },
+              assignees: { nodes: [] },
+              milestone: null,
+              projectItems: {
+                nodes: [
+                  {
+                    id: "item-42",
+                    project: { id: "project-id" },
+                    fieldValueByName: { name: "Todo" }
+                  }
+                ]
+              }
             }
           }
         })
@@ -1039,7 +1120,12 @@ states:
     try {
       await runTasks(["comment", "octo-org/7#42", "--message", "Ship it"]);
 
-      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)).query)).toEqual([
+        expect.stringContaining("query Project"),
+        expect.stringContaining("query Issue"),
+        expect.stringContaining("query Issue"),
+        expect.stringContaining("mutation AddComment")
+      ]);
       const body = JSON.parse(String(fetchMock.mock.calls[3]?.[1]?.body)) as {
         query: string;
         variables: { input: { subjectId: string; body: string } };
@@ -1049,6 +1135,54 @@ states:
         subjectId: "issue-node-42",
         body: "Ship it"
       });
+    } finally {
+      fetchMock.mockRestore();
+    }
+  });
+
+  it("comment previews GitHub issue comments without posting mutations", async () => {
+    seedWorkflow(`
+tasks:
+  type: gh-issues
+  repo: octo/repo
+  project:
+    owner: octo-org
+    number: 7
+  auth:
+    token: test-token
+states:
+  Todo:
+    prompt: Run it
+  Done:
+    terminal: true
+`);
+    const logs: string[] = [];
+    const fetchMock = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(graphqlResponse(projectData()))
+      .mockResolvedValueOnce(
+        graphqlResponse({
+          repository: {
+            issue: {
+              number: 42,
+              title: "Issue task",
+              body: "Body",
+              url: "https://github.test/octo/repo/issues/42",
+              createdAt: "2026-01-01T00:00:00Z",
+              labels: { nodes: [] },
+              assignees: { nodes: [] },
+              milestone: null,
+              projectItems: { nodes: [{ id: "item-42", project: { id: "project-id" }, fieldValueByName: { name: "Todo" } }] }
+            }
+          }
+        })
+      );
+
+    try {
+      await runTasks(["--dry-run", "comment", "octo-org/7#42", "--message", "Ship it"], logs);
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(logs).toEqual(["[dry-run] Would comment on task octo-org/7#42."]);
     } finally {
       fetchMock.mockRestore();
     }

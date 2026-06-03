@@ -7,7 +7,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { reconcile, snapshot } = await import("./reconcile.js");
+const { appendLogEntries, reconcile, snapshot } = await import("./reconcile.js");
 
 describe("snapshot", () => {
   beforeEach(() => {
@@ -204,6 +204,111 @@ describe("reconcile", () => {
         "\n"
       )
     );
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
+  });
+
+  it("rejects a symlinked generated index before overwriting external content", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/pages/page.md`]: "# Page\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/index.md": "external index\n"
+    });
+    await vol.promises.symlink("/outside/index.md", `${root}/INDEX.md`);
+
+    await expect(reconcile(root, { pages: {} }, "update", "probe")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/index.md", "utf8")).resolves.toBe("external index\n");
+  });
+
+  it("rejects a symlinked log before appending external history", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      "/outside/log.md": "external log\n"
+    });
+    await vol.promises.symlink("/outside/log.md", `${root}/LOG.md`);
+
+    await expect(
+      appendLogEntries(root, { created: ["pages/new.md"], updated: [], deleted: [] }, "probe")
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/log.md", "utf8")).resolves.toBe("external log\n");
+  });
+
+  it("preserves a valid index when generated index persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const indexPath = `${root}/INDEX.md`;
+    const originalIndex = "# Memory index\n\n- [old](pages/old.md) — Existing entry\n";
+    vol.fromJSON({
+      [indexPath]: originalIndex,
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/architecture.md`]: "# Old memory\n"
+    });
+    const before = await snapshot(root);
+    await vol.promises.writeFile(`${root}/pages/architecture.md`, "# New memory\n", "utf8");
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      const isCreateIfMissing =
+        typeof options === "object" && options !== null && "flag" in options && options.flag === "wx";
+      if (String(filePath).startsWith(`${indexPath}.`) || (String(filePath) === indexPath && !isCreateIfMissing)) {
+        vol.writeFileSync(String(filePath), "# Memory");
+        throw new Error("index disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(reconcile(root, before, "update", "probe")).rejects.toThrow("index disk full");
+    await expect(vol.promises.readFile(indexPath, "utf8")).resolves.toBe(originalIndex);
+  });
+
+  it("preserves audit history when log persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const logPath = `${root}/LOG.md`;
+    const originalLog = "- prior audit record\n";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [logPath]: originalLog
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(logPath)) {
+        vol.writeFileSync(String(filePath), "- truncated");
+        throw new Error("log disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      appendLogEntries(root, { created: ["pages/new.md"], updated: [], deleted: [] }, "probe")
+    ).rejects.toThrow("log disk full");
+    await expect(vol.promises.readFile(logPath, "utf8")).resolves.toBe(originalLog);
+  });
+
+  it("restores generated index when audit publication fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const originalIndex = "# Memory index\n\n- [page](pages/page.md) — Before\n";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: originalIndex,
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/page.md`]: ["---", "description: Before", "---", "# Page", "", "old", ""].join("\n")
+    });
+    const before = await snapshot(root);
+    await vol.promises.writeFile(
+      `${root}/pages/page.md`,
+      ["---", "description: After", "---", "# Page", "", "new", ""].join("\n"),
+      "utf8"
+    );
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(`${root}/LOG.md.`)) {
+        throw new Error("injected log publication failure");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(reconcile(root, before, "edit", "updated page")).rejects.toThrow(
+      "injected log publication failure"
+    );
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe(originalIndex);
     await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
   });
 });

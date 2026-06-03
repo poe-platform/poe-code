@@ -42,7 +42,8 @@ export async function deleteSnapshots(
   const filtered = filterByModel(entries, options?.model);
   let deleted = 0;
   for (const entry of filtered) {
-    const path = join(snapshotDir, `${entry.key}.json`);
+    const path = snapshotPath(snapshotDir, entry.key);
+    await assertRegularSnapshotFile(fs, path);
     try {
       await fs.unlink(path);
       deleted += 1;
@@ -96,7 +97,8 @@ export async function refreshSnapshots(
       }
     };
 
-    const path = join(snapshotDir, `${entry.key}.json`);
+    const path = snapshotPath(snapshotDir, entry.key);
+    await assertRegularSnapshotFile(fs, path);
     await fs.writeFile(path, JSON.stringify(updated, null, 2));
     refreshed += 1;
   }
@@ -108,14 +110,19 @@ async function readSnapshotEntries(
   fs: FileSystem,
   snapshotDir: string
 ): Promise<SnapshotEntry[]> {
+  await assertSnapshotDirectorySafe(fs, snapshotDir);
   const files = await readSnapshotFiles(fs, snapshotDir);
   const entries: SnapshotEntry[] = [];
   for (const file of files) {
     const path = join(snapshotDir, file);
     try {
+      await assertRegularSnapshotFile(fs, path);
       const raw = await fs.readFile(path, "utf8");
       const parsed = JSON.parse(raw) as SnapshotEntry;
       if (parsed && typeof parsed.key === "string" && parsed.request) {
+        if (file !== snapshotFileName(parsed.key)) {
+          throw new Error(`Invalid snapshot key: ${parsed.key}`);
+        }
         entries.push(parsed);
       }
     } catch (error) {
@@ -166,8 +173,10 @@ async function deleteSnapshotByKey(
   snapshotDir: string,
   key: string
 ): Promise<boolean> {
-  const path = join(snapshotDir, `${key}.json`);
+  await assertSnapshotDirectorySafe(fs, snapshotDir);
+  const path = snapshotPath(snapshotDir, key);
   try {
+    await assertRegularSnapshotFile(fs, path);
     await fs.unlink(path);
     return true;
   } catch (error) {
@@ -200,7 +209,8 @@ export async function pruneSnapshots(
 ): Promise<string[]> {
   const stale = await findStaleSnapshots(fs, snapshotDir, accessedKeys);
   for (const key of stale) {
-    const path = join(snapshotDir, `${key}.json`);
+    const path = snapshotPath(snapshotDir, key);
+    await assertRegularSnapshotFile(fs, path);
     try {
       await fs.unlink(path);
     } catch (error) {
@@ -212,3 +222,39 @@ export async function pruneSnapshots(
   return stale;
 }
 
+function snapshotPath(snapshotDir: string, key: string): string {
+  return join(snapshotDir, snapshotFileName(key));
+}
+
+function snapshotFileName(key: string): string {
+  if (key.length === 0 || key === "." || key === ".." || key.includes("/") || key.includes("\\")) {
+    throw new Error(`Invalid snapshot key: ${key}`);
+  }
+  return `${key}.json`;
+}
+
+async function assertSnapshotDirectorySafe(fs: FileSystem, snapshotDir: string): Promise<void> {
+  try {
+    const stats = await fs.lstat(snapshotDir);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`Snapshot directory must not be a symbolic link: ${snapshotDir}`);
+    }
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
+    }
+  }
+}
+
+async function assertRegularSnapshotFile(fs: FileSystem, path: string): Promise<void> {
+  try {
+    const stats = await fs.lstat(path);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`Snapshot file must not be a symbolic link: ${path}`);
+    }
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
+    }
+  }
+}

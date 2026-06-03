@@ -19,6 +19,10 @@ export interface SpawnCall {
   mode?: SpawnMode;
   cwd?: string;
   signal?: AbortSignal;
+  skills?: string[];
+  logDir?: string;
+  logFileName?: string;
+  hooks?: SpawnOptions["hooks"];
 }
 
 export type MockSpawnStep =
@@ -200,7 +204,11 @@ function captureCall(agent: string, options: SpawnOptions): SpawnCall {
     model: options.model,
     mode: options.mode,
     cwd: options.cwd,
-    signal: options.signal
+    signal: options.signal,
+    ...(options.skills === undefined ? {} : { skills: options.skills }),
+    ...(options.logDir === undefined ? {} : { logDir: options.logDir }),
+    ...(options.logFileName === undefined ? {} : { logFileName: options.logFileName }),
+    ...(options.hooks === undefined ? {} : { hooks: options.hooks })
   };
 }
 

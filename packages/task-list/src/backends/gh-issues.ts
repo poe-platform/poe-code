@@ -119,9 +119,10 @@ const REPOSITORY_ISSUES_QUERY = `query Issues($owner: String!, $repo: String!, $
   }
 }`;
 
-const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!) {
+const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -130,7 +131,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
       labels(first: 50) { nodes { name } }
       assignees(first: 20) { nodes { login } }
       milestone { title }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
@@ -140,6 +141,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
             }
           }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -148,6 +150,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
 const REPOSITORY_ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -160,16 +163,17 @@ const REPOSITORY_ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $nu
   }
 }`;
 
-const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!) {
+const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       id
       labels(first: 50) { nodes { id name } }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -211,6 +215,13 @@ const CREATE_ISSUE_MUTATION = `mutation CreateIssue($input: CreateIssueInput!) {
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }`;
@@ -395,6 +406,7 @@ interface IssueStateLabelsResponse {
       labels?: IssueNode["labels"];
       projectItems?: {
         nodes?: ProjectItemMembership[];
+        pageInfo?: PageInfo;
       } | null;
     } | null;
   } | null;
@@ -402,10 +414,7 @@ interface IssueStateLabelsResponse {
 
 interface CreateIssueResponse {
   createIssue?: {
-    issue?: {
-      id?: string | null;
-      number?: number | null;
-    } | null;
+    issue?: IssueNode | null;
   } | null;
 }
 
@@ -439,7 +448,13 @@ interface IssueNode {
 interface IssueNodeWithProjectItems extends IssueNode {
   projectItems?: {
     nodes?: ProjectItemMembership[];
+    pageInfo?: PageInfo;
   } | null;
+}
+
+interface PageInfo {
+  hasNextPage?: boolean;
+  endCursor?: string | null;
 }
 
 interface ProjectItemMembership {
@@ -627,44 +642,80 @@ function createTasksView(
       const issue = created.createIssue?.issue;
       const issueId = issue?.id ?? null;
       const issueNumber = issue?.number ?? null;
-      if (issueId === null || issueNumber === null) {
+      if (issue === undefined || issue === null || issueId === null || issueNumber === null) {
         throw new Error("GitHub createIssue response did not include issue id and number.");
       }
 
       context.issueIds.set(issueNumber, issueId);
       let projectItemId: string | undefined;
-      if (session.projectId !== undefined) {
-        const added = await context.client.graphql<AddProjectItemResponse>(
-          ADD_PROJECT_ITEM_MUTATION,
-          {
-            input: {
-              projectId: session.projectId,
-              contentId: issueId
+      try {
+        if (session.projectId !== undefined) {
+          const added = await context.client.graphql<AddProjectItemResponse>(
+            ADD_PROJECT_ITEM_MUTATION,
+            {
+              input: {
+                projectId: session.projectId,
+                contentId: issueId
+              }
             }
+          );
+          projectItemId = added.addProjectV2ItemById?.item?.id ?? undefined;
+          if (projectItemId === undefined) {
+            throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
           }
-        );
-        projectItemId = added.addProjectV2ItemById?.item?.id ?? undefined;
-        if (projectItemId === undefined) {
-          throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
         }
+
+        if (session.labelPrefix === undefined) {
+          if (projectItemId === undefined) {
+            throw new Error("gh-issues project-backed state requires a project item id.");
+          }
+          await updateProjectItemStatus(
+            projectItemId,
+            session.stateMachine.initial,
+            session,
+            context
+          );
+        } else {
+          await addStateLabel(issueId, session.stateMachine.initial, session, context);
+        }
+      } catch (error) {
+        if (projectItemId !== undefined && session.projectId !== undefined) {
+          await context.client.graphql(DELETE_PROJECT_ITEM_MUTATION, {
+            input: { projectId: session.projectId, itemId: projectItemId }
+          });
+        }
+        await context.client.graphql(UPDATE_ISSUE_MUTATION, {
+          input: { id: issueId, state: "CLOSED" }
+        });
+        throw error;
       }
 
-      if (session.labelPrefix === undefined) {
-        if (projectItemId === undefined) {
-          throw new Error("gh-issues project-backed state requires a project item id.");
-        }
-        await updateProjectItemStatus(
-          projectItemId,
-          session.stateMachine.initial,
-          session,
-          context
-        );
-      } else {
-        await addStateLabel(issueId, session.stateMachine.initial, session, context);
-      }
-      return fetchIssueTask(String(issueNumber), name, session, context);
+      const task = mapIssueToTask({
+        issue: {
+          ...issue,
+          number: issueNumber,
+          title: input.name,
+          body: input.description ?? "",
+          url: issue.url,
+          createdAt: issue.createdAt,
+          labels: {
+            nodes: [
+              ...(context.labels ?? []).map((label) => ({ name: label })),
+              ...(session.labelPrefix === undefined
+                ? []
+                : [{ name: `${session.labelPrefix}${session.stateMachine.initial}` }])
+            ]
+          }
+        },
+        projectItemId,
+        statusName: session.stateMachine.initial,
+        listName: name,
+        session
+      });
+      return session.labelPrefix === undefined ? task : { ...task, state: session.stateMachine.initial };
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
+      const task = await fetchIssueTask(id, name, session, context);
       const input: Record<string, unknown> = {};
 
       if (patch.name !== undefined) {
@@ -683,7 +734,11 @@ function createTasksView(
         });
       }
 
-      return fetchIssueTask(id, name, session, context);
+      return {
+        ...task,
+        name: patch.name ?? task.name,
+        description: patch.description ?? task.description
+      };
     },
     async fire(id: string, event: string, _opts?: TaskFireOptions): Promise<Task> {
       if (!session.statusOptions.has(event)) {
@@ -694,16 +749,28 @@ function createTasksView(
         });
       }
 
+      const task = await fetchIssueTask(id, name, session, context);
+      const transition = findEvent(session.stateMachine, task.state, event);
+      if (transition === undefined) {
+        throw new InvalidTransitionError({
+          task,
+          event,
+          to: event,
+          reason: `Cannot fire event "${event}" from task state "${task.state}".`
+        });
+      }
+
       // opts.metadataPatch writes are out of scope for v1 on gh-issues.
       if (session.labelPrefix === undefined) {
-        const projectItemId = await resolveProjectItemId(id, name, session, context);
+        const projectItemId = projectItemIdFromTask(task);
         await updateProjectItemStatus(projectItemId, event, session, context);
       } else {
         await updateIssueStateLabel(id, name, event, session, context);
       }
-      return fetchIssueTask(id, name, session, context);
+      return { ...task, state: event };
     },
     async comment(id: string, body: string): Promise<void> {
+      await fetchIssueTask(id, name, session, context);
       await context.client.graphql(ADD_COMMENT_MUTATION, {
         input: {
           subjectId: await resolveIssueId(id, name, context),
@@ -712,10 +779,12 @@ function createTasksView(
       });
     },
     async canFire(id: string, event: string): Promise<boolean> {
-      return findEvent(session.stateMachine, id, event) !== undefined;
+      const task = await fetchIssueTask(id, name, session, context);
+      return findEvent(session.stateMachine, task.state, event) !== undefined;
     },
     async events(id: string): Promise<readonly string[]> {
-      return eventsFromState(session.stateMachine, id);
+      const task = await fetchIssueTask(id, name, session, context);
+      return eventsFromState(session.stateMachine, task.state);
     },
     async delete(id: string): Promise<void> {
       if (session.projectId === undefined) {
@@ -738,12 +807,13 @@ function createTasksView(
     },
     async move(id: string, anchor: MoveAnchor): Promise<Task> {
       assertProjectBacked(session, "move");
-      const projectItemId = await resolveProjectItemId(id, name, session, context);
+      const task = await fetchIssueTask(id, name, session, context);
+      const projectItemId = projectItemIdFromTask(task);
       const afterId = await resolveMoveAfterId(id, anchor, name, session, context);
 
       await updateProjectItemPosition(projectItemId, afterId, session, context);
 
-      return fetchIssueTask(id, name, session, context);
+      return task;
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
       assertProjectBacked(session, "reorder");
@@ -775,19 +845,38 @@ function createTasksView(
       );
       let afterId: string | null = null;
 
-      for (const id of ids) {
-        const projectItemId = itemIdsByTaskId.get(id);
-        if (projectItemId === undefined) {
-          throw new OrderMismatchError({ missing: [id], extra: [] });
-        }
+      try {
+        for (const id of ids) {
+          const projectItemId = itemIdsByTaskId.get(id);
+          if (projectItemId === undefined) {
+            throw new OrderMismatchError({ missing: [id], extra: [] });
+          }
 
-        await updateProjectItemPosition(projectItemId, afterId, session, context);
-        afterId = projectItemId;
+          await updateProjectItemPosition(projectItemId, afterId, session, context);
+          afterId = projectItemId;
+        }
+      } catch (error) {
+        await restoreProjectOrder(currentTasks, session, context);
+        throw error;
       }
 
       return fetchProjectTasks(name, session, context);
     }
   };
+}
+
+async function restoreProjectOrder(
+  tasks: readonly Task[],
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  let afterId: string | null = null;
+
+  for (const task of tasks) {
+    const projectItemId = projectItemIdFromTask(task);
+    await updateProjectItemPosition(projectItemId, afterId, session, context);
+    afterId = projectItemId;
+  }
 }
 
 async function resolveRepositoryId(context: GhIssuesTasksContext): Promise<string> {
@@ -843,27 +932,37 @@ async function resolveProjectItemId(
 ): Promise<string> {
   assertProjectBacked(session, "resolve project item");
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
-    owner: context.repoOwner,
-    repo: context.repoName,
-    number: issueNumber
-  });
-  const issue = result.repository?.issue ?? null;
-  if (issue === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
+  let after: string | null | undefined;
 
-  if (issue.id !== undefined && issue.id !== null) {
-    context.issueIds.set(issueNumber, issue.id);
-  }
+  while (true) {
+    const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
+      owner: context.repoOwner,
+      repo: context.repoName,
+      number: issueNumber,
+      after
+    });
+    const issue = result.repository?.issue ?? null;
+    if (issue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
 
-  const projectItem =
-    issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
-  if (projectItem === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
+    if (issue.id !== undefined && issue.id !== null) {
+      context.issueIds.set(issueNumber, issue.id);
+    }
 
-  return projectItem.id;
+    const projectItem =
+      issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+    if (projectItem !== null) {
+      return projectItem.id;
+    }
+
+    const pageInfo = issue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
+
+    after = pageInfo.endCursor;
+  }
 }
 
 async function updateProjectItemStatus(
@@ -916,17 +1015,44 @@ async function updateIssueStateLabel(
   context: GhIssuesTasksContext
 ): Promise<void> {
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueStateLabelsResponse>(
-    session.projectId === undefined
-      ? REPOSITORY_ISSUE_STATE_LABELS_QUERY
-      : ISSUE_STATE_LABELS_QUERY,
-    {
-      owner: context.repoOwner,
-      repo: context.repoName,
-      number: issueNumber
+  let after: string | null | undefined;
+  let issue: NonNullable<IssueStateLabelsResponse["repository"]>["issue"] = null;
+  let isInProject = session.projectId === undefined;
+
+  while (true) {
+    const result = await context.client.graphql<IssueStateLabelsResponse>(
+      session.projectId === undefined
+        ? REPOSITORY_ISSUE_STATE_LABELS_QUERY
+        : ISSUE_STATE_LABELS_QUERY,
+      {
+        owner: context.repoOwner,
+        repo: context.repoName,
+        number: issueNumber,
+        after
+      }
+    );
+    const currentIssue = result.repository?.issue ?? null;
+    if (currentIssue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
-  );
-  const issue = result.repository?.issue ?? null;
+    if (typeof currentIssue.id === "string") {
+      context.issueIds.set(issueNumber, currentIssue.id);
+    }
+    issue ??= currentIssue;
+    if (session.projectId === undefined) {
+      break;
+    }
+    if (currentIssue.projectItems?.nodes?.some((item) => item.project?.id === session.projectId)) {
+      isInProject = true;
+      break;
+    }
+    const pageInfo = currentIssue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      break;
+    }
+    after = pageInfo.endCursor;
+  }
+
   if (issue === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
@@ -934,10 +1060,7 @@ async function updateIssueStateLabel(
   if (issueId === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
-  if (
-    session.projectId !== undefined &&
-    !issue.projectItems?.nodes?.some((item) => item.project?.id === session.projectId)
-  ) {
+  if (!isInProject) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
 
@@ -1148,26 +1271,41 @@ async function fetchIssueTask(
   context: GhIssuesTasksContext
 ): Promise<Task> {
   const issueNumber = parseIssueNumber(id, listName);
+  let after: string | null | undefined;
+  let issue: IssueNodeWithProjectItems | null = null;
+  let projectItem: ProjectItemMembership | null = null;
 
-  const result = await context.client.graphql<IssueResponse>(
-    session.projectId === undefined ? REPOSITORY_ISSUE_QUERY : ISSUE_QUERY,
-    {
-      owner: context.repoOwner,
-      repo: context.repoName,
-      number: issueNumber
+  while (true) {
+    const result = await context.client.graphql<IssueResponse>(
+      session.projectId === undefined ? REPOSITORY_ISSUE_QUERY : ISSUE_QUERY,
+      {
+        owner: context.repoOwner,
+        repo: context.repoName,
+        number: issueNumber,
+        after
+      }
+    );
+    const currentIssue = result.repository?.issue ?? null;
+    if (currentIssue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
-  );
-  const issue = result.repository?.issue ?? null;
-  if (issue === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
-
-  const projectItem =
-    session.projectId === undefined
-      ? null
-      : (issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null);
-  if (session.projectId !== undefined && projectItem === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    if (currentIssue.id !== undefined) {
+      context.issueIds.set(issueNumber, currentIssue.id);
+    }
+    issue ??= currentIssue;
+    if (session.projectId === undefined) {
+      break;
+    }
+    projectItem =
+      currentIssue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+    if (projectItem !== null) {
+      break;
+    }
+    const pageInfo = currentIssue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
+    after = pageInfo.endCursor;
   }
 
   return mapIssueToTask({

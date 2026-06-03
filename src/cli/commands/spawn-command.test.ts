@@ -613,6 +613,27 @@ describe("spawn command", () => {
     expect(dryRunLog).toContain("Prompt:");
   });
 
+  it("does not recover malformed config during dry run spawn", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const configPath = resolveConfigPath(homeDir);
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "spawn", "codex", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("does not resolve workspace locators during dry run spawn", async () => {
     const logs: string[] = [];
     const { runner, calls } = createCommandRunnerStub();
@@ -1196,6 +1217,56 @@ describe("spawn command", () => {
     });
   });
 
+  it("preserves special MCP environment variable names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      '{"test":{"command":"server","env":{"__proto__":"visible"}}}',
+      "codex",
+      "hello"
+    ]);
+
+    const options = vi.mocked(sdkSpawn).mock.calls.at(-1)?.[1];
+    expect(Object.hasOwn(options?.mcpServers?.test.env ?? {}, "__proto__")).toBe(true);
+    expect(options?.mcpServers?.test.env?.["__proto__"]).toBe("visible");
+  });
+
+  it("preserves explicitly configured special MCP server names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      '{"__proto__":{"command":"server"}}',
+      "codex",
+      "hello"
+    ]);
+
+    const options = vi.mocked(sdkSpawn).mock.calls.at(-1)?.[1];
+    expect(Object.hasOwn(options?.mcpServers ?? {}, "__proto__")).toBe(true);
+    expect(options?.mcpServers?.["__proto__"]?.command).toBe("server");
+  });
+
   it("reads --mcp-servers from an absolute @file path", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -1449,6 +1520,31 @@ describe("spawn command", () => {
     await expect(
       program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "{nope", "codex", "hello"])
     ).rejects.toThrow("--mcp-servers");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects overflowing --mcp-servers timeout values", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-servers",
+        '{"bad":{"command":"srv","timeout":1e400}}',
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow('--mcp-servers entry "bad".timeout must be a positive number');
 
     expect(sdkSpawn).not.toHaveBeenCalled();
   });

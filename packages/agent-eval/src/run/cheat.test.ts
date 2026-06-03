@@ -3,7 +3,9 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { CheatFilter } from "./cheat.js";
+import { normalizeTrace } from "./trace/normalize.js";
 import type { TraceToolEvent } from "./trace/types.js";
+import type { SpawnEvent } from "../types.js";
 
 function toolCall(input: {
   id?: string;
@@ -120,6 +122,35 @@ describe("CheatFilter", () => {
         {
           path: "/private/secret.txt",
           toolCall: "Read secret",
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
+  it("flags external reads reported only at legacy completion", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+    const trace = normalizeTrace([
+      {
+        event: "tool_complete",
+        title: "Read external",
+        kind: "read",
+        path: "/private/secret.txt"
+      } as SpawnEvent
+    ]);
+
+    for (const event of trace.events) {
+      if (event.type === "tool") {
+        filter.onEvent(event);
+      }
+    }
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/secret.txt",
+          toolCall: "Read external",
           reason: "outside-clone"
         }
       ]

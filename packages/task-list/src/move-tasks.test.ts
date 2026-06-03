@@ -146,7 +146,21 @@ describe("moveTasks", () => {
     const fetchMock = createFetchMock([
       projectResponse(),
       graphqlResponse({ repository: { id: "repo-node" } }),
-      graphqlResponse({ createIssue: { issue: { id: "issue-node-573", number: 573 } } }),
+      graphqlResponse({
+        createIssue: {
+          issue: {
+            id: "issue-node-573",
+            number: 573,
+            title: "to-github",
+            body: "to-github description",
+            url: "https://example.test/issues/573",
+            createdAt: "2026-05-26T00:00:00Z",
+            labels: { nodes: [] },
+            assignees: { nodes: [] },
+            milestone: null
+          }
+        }
+      }),
       graphqlResponse({ addProjectV2ItemById: { item: { id: "item-573" } } }),
       graphqlResponse({ repository: { label: { id: "label-todo" } } }),
       graphqlResponse({ addLabelsToLabelable: { clientMutationId: null } }),

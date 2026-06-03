@@ -92,6 +92,7 @@ function createJobEntry(overrides: {
   env_id: string;
   status: "pending" | "running" | "exited" | "killed" | "lost";
   started_at?: string;
+  reattach_context?: Record<string, unknown>;
 }) {
   return {
     id: overrides.id,
@@ -101,7 +102,8 @@ function createJobEntry(overrides: {
     argv: ["codex", "hello"],
     cwd,
     started_at: overrides.started_at ?? "2026-05-03T12:00:00.000Z",
-    status: overrides.status
+    status: overrides.status,
+    ...(overrides.reattach_context === undefined ? {} : { reattach_context: overrides.reattach_context })
   };
 }
 
@@ -139,6 +141,7 @@ function createJobHandle(input: {
 interface RuntimeFactoryEvents {
   attached: Array<{ envId: string; context: unknown }>;
   downloads: Array<{ envId: string; conflictPolicy: "refuse" | "overwrite" }>;
+  downloadConflicts: Map<string, Array<{ path: string; reason: "local_modified" }>>;
   closed: string[];
 }
 
@@ -166,7 +169,11 @@ function createTestRuntimeFactory(
         },
         async downloadWorkspace(options) {
           events.downloads.push({ envId, conflictPolicy: options.conflictPolicy });
-          return { files: 0, bytes: 0, conflicts: [] };
+          return {
+            files: 0,
+            bytes: 0,
+            conflicts: events.downloadConflicts.get(envId) ?? []
+          };
         },
         exec() {
           throw new Error("exec is not used by runtime jobs tests");
@@ -175,7 +182,14 @@ function createTestRuntimeFactory(
           return handle;
         },
         shell() {
-          throw new Error("shell is not used by runtime jobs tests");
+          return {
+            pid: 123,
+            stdin: null,
+            stdout: null,
+            stderr: null,
+            result: Promise.resolve({ exitCode: 0 }),
+            kill() {}
+          };
         },
         async close() {
           events.closed.push(envId);
@@ -190,6 +204,7 @@ describe("runtime command", () => {
   const runtimeEvents: RuntimeFactoryEvents = {
     attached: [],
     downloads: [],
+    downloadConflicts: new Map(),
     closed: []
   };
 
@@ -198,6 +213,7 @@ describe("runtime command", () => {
     jobHandles.clear();
     runtimeEvents.attached = [];
     runtimeEvents.downloads = [];
+    runtimeEvents.downloadConflicts.clear();
     runtimeEvents.closed = [];
     registerExecutionEnvFactory(createTestRuntimeFactory(jobHandles, runtimeEvents));
   });
@@ -345,6 +361,7 @@ describe("runtime command", () => {
       )}\n`
     });
     jobHandles.set("env-running", createJobHandle({ status: "running" }));
+    jobHandles.set("env-missing", createJobHandle({ status: "lost" }));
     const logs: string[] = [];
     const container = createContainer(fs, logs);
     const program = createBaseProgram();
@@ -356,6 +373,47 @@ describe("runtime command", () => {
     await expect(fs.readFile(path.join(jobsDir, "job-missing.json"), "utf8")).resolves.toContain(
       '"status": "lost"'
     );
+  });
+
+  it("keeps a running job when status inspection cannot reach its sandbox", async () => {
+    const jobPath = path.join(jobsDir, "job-unreachable.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-unreachable", env_id: "env-unreachable", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "ls"]);
+
+    expect(stripAnsi(logs.join("\n"))).toContain("running");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
+  });
+
+  it("previews runtime jobs ls without reconciling live sandbox status", async () => {
+    const jobPath = path.join(jobsDir, "job-missing.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-missing", env_id: "env-missing", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "runtime", "jobs", "ls"]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
   });
 
   it("snapshots runtime jobs logs output", async () => {
@@ -381,6 +439,50 @@ describe("runtime command", () => {
     await program.parseAsync(["node", "cli", "runtime", "jobs", "logs"]);
 
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+  });
+
+  it("waits for delayed log chunks from an exited runtime job", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-logs", {
+      ...createJobHandle({ status: "exited" }),
+      async *stream() {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        yield { byteOffset: 0, data: "late line\n" };
+      }
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(stripAnsi(logs.join("\n"))).toContain("late line");
+  });
+
+  it("previews runtime job logs without attaching to the sandbox", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
   });
 
   it("errors with candidate jobs when the omitted job id is ambiguous", async () => {
@@ -419,10 +521,65 @@ describe("runtime command", () => {
     );
   });
 
+  it("rejects attaching to an explicitly selected exited job", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-exited.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-exited", env_id: "env-exited", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-exited", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "attach", "job-exited"])
+    ).rejects.toThrow('Runtime job "job-exited" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+  });
+
+  it("previews attaching and sync-on-exit without attaching to the sandbox", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "attach",
+      "job-attach",
+      "--sync-on-exit",
+      "--force-sync"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+  });
+
   it("syncs with overwrite policy and closes the sandbox when requested", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
-        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        createJobEntry({
+          id: "job-sync",
+          env_id: "env-sync",
+          status: "exited",
+          reattach_context: { engine: "podman", context: null }
+        }),
         null,
         2
       )}\n`
@@ -446,7 +603,89 @@ describe("runtime command", () => {
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-sync", conflictPolicy: "overwrite" }
     ]);
+    expect(runtimeEvents.attached).toEqual([
+      {
+        envId: "env-sync",
+        context: expect.objectContaining({ reattachContext: { engine: "podman", context: null } })
+      }
+    ]);
     expect(runtimeEvents.closed).toEqual(["env-sync"]);
+    await expect(fs.readFile(path.join(jobsDir, "job-sync.json"), "utf8")).rejects.toThrow();
+  });
+
+  it("rejects refused local conflicts instead of reporting sync success", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    runtimeEvents.downloadConflicts.set("env-sync", [
+      { path: "src/index.ts", reason: "local_modified" }
+    ]);
+    jobHandles.set("env-sync", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "sync", "job-sync"])
+    ).rejects.toThrow("src/index.ts");
+
+    expect(stripAnsi(logs.join("\n"))).not.toContain("Synced runtime job");
+  });
+
+  it("previews syncing a runtime job without downloading its workspace", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "sync",
+      "job-sync",
+      "--force-sync",
+      "--close"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(runtimeEvents.closed).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+  });
+
+  it("rejects syncing an explicitly selected pending job before attachment", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-pending.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-pending", env_id: "", status: "pending" }),
+        null,
+        2
+      )}\n`
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "sync", "job-pending", "--force-sync"])
+    ).rejects.toThrow('Runtime job "job-pending" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
   });
 
   it("stops a job, marks it killed, and syncs through the shared primitive", async () => {
@@ -492,6 +731,138 @@ describe("runtime command", () => {
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-stop", conflictPolicy: "overwrite" }
     ]);
+  });
+
+  it("previews stopping a runtime job without killing or rewriting it", async () => {
+    const jobPath = path.join(jobsDir, "job-stop.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "stop",
+      "job-stop",
+      "--force-sync"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
+  });
+
+  it("previews opening a runtime sandbox shell without attaching", async () => {
+    const logs: string[] = [];
+    const container = createContainer(createMemFs(), logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "sandbox",
+      "env-sandbox"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+  });
+
+  it("opens a runtime sandbox shell in its saved job working directory", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sandbox.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sandbox", env_id: "env-sandbox", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-sandbox", createJobHandle({ status: "running" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "sandbox", "env-sandbox"]);
+
+    expect(runtimeEvents.attached).toEqual([
+      { envId: "env-sandbox", context: expect.objectContaining({ cwd }) }
+    ]);
+  });
+
+  it("syncs a stopped job by default using conflict protection", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-stop", createJobHandle({ status: "running" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
+
+    expect(runtimeEvents.downloads).toEqual([{ envId: "env-stop", conflictPolicy: "refuse" }]);
+  });
+
+  it("rejects stopping an explicitly selected exited job without replacing its result", async () => {
+    const jobPath = path.join(jobsDir, "job-exited.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        { ...createJobEntry({ id: "job-exited", env_id: "env-exited", status: "exited" }), exit_code: 7 },
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-exited", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-exited"])
+    ).rejects.toThrow('Runtime job "job-exited" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"exit_code": 7');
+  });
+
+  it("rejects stopping an explicitly selected pending job without updating state", async () => {
+    const jobPath = path.join(jobsDir, "job-pending.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-pending", env_id: "", status: "pending" }),
+        null,
+        2
+      )}\n`
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-pending"])
+    ).rejects.toThrow('Runtime job "job-pending" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "pending"');
   });
 
   it("builds docker runtime templates through the exposed helper", async () => {
@@ -554,5 +925,20 @@ describe("runtime command", () => {
     await program.parseAsync(["node", "cli", "runtime", "build"]);
 
     expect(stripAnsi(logs.join("\n"))).toContain("E2B runtime uses pinned template tmpl_pinned.");
+  });
+
+  it("does not recover malformed project config while previewing a runtime build", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const fs = createMemFs({ [projectConfigPath]: malformedConfig });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "runtime", "build", "--runtime", "docker"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(path.dirname(projectConfigPath))).resolves.toEqual(["config.json"]);
   });
 });

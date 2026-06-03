@@ -5,6 +5,7 @@ import type { CliEnvironment } from "./environment.js";
 import { resolveCliSettings, resolveIsolatedEnvDetails } from "./isolated-env.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { buildArgsWithMergedSettings } from "../utils/cli-settings-merge.js";
+import type { ActiveProvider } from "./commands/shared.js";
 
 export async function isolatedEnvRunner(input: {
   env: CliEnvironment;
@@ -13,11 +14,13 @@ export async function isolatedEnvRunner(input: {
   argv: string[];
   fs?: FileSystem;
   readApiKey?: () => Promise<string | null>;
+  activeProvider?: ActiveProvider;
 }): Promise<never> {
   const details = await resolveIsolatedEnvDetails(
     input.env,
     input.isolated,
-    input.providerName
+    input.providerName,
+    input.activeProvider
   );
   let args = input.argv.slice(2);
 
@@ -34,7 +37,8 @@ export async function isolatedEnvRunner(input: {
   if (input.isolated.cliSettings) {
     const resolvedSettings = await resolveCliSettings(
       input.isolated.cliSettings,
-      input.env
+      input.env,
+      input.activeProvider
     );
     args = buildArgsWithMergedSettings(args, resolvedSettings);
   }
@@ -51,8 +55,8 @@ export async function isolatedEnvRunner(input: {
     child.on("error", (error) => {
       reject(error);
     });
-    child.on("close", (code) => {
-      process.exit(code ?? 0);
+    child.on("close", (code, signal) => {
+      process.exit(code ?? (signal === null ? 0 : 1));
     });
   });
 }

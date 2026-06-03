@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
-import { join } from "node:path";
+import { readFileSync, writeFileSync, existsSync, mkdirSync, lstatSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import fg from "fast-glob";
 import matter from "gray-matter";
@@ -33,6 +34,29 @@ function loadSkills(templatePaths: readonly string[]) {
     const { data } = matter(content);
     return data.name ? [{ name: data.name as string, content }] : [];
   });
+}
+
+type PathStatFs = Pick<typeof import("node:fs"), "lstatSync">;
+
+export function assertSafeSkillPath(
+  targetPath: string,
+  boundaryPath: string,
+  fs: PathStatFs = { lstatSync }
+): void {
+  const parentOfBoundary = dirname(boundaryPath);
+  let currentPath = targetPath;
+  while (currentPath !== parentOfBoundary) {
+    try {
+      if (fs.lstatSync(currentPath).isSymbolicLink()) {
+        throw new Error(`Refusing skill sync through symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (!(error && typeof error === "object" && "code" in error && error.code === "ENOENT")) {
+        throw error;
+      }
+    }
+    currentPath = dirname(currentPath);
+  }
 }
 
 async function main() {
@@ -69,6 +93,7 @@ async function main() {
 
       for (const skill of agentSkills) {
         const skillFilePath = join(skillDir, skill.name, "SKILL.md");
+        assertSafeSkillPath(skillFilePath, scope === "global" ? homedir() : process.cwd());
         if (!existsSync(skillFilePath)) {
           if (!shouldInstallMissing) continue;
 

@@ -26,6 +26,9 @@ export type WorktreeFileSystem = {
     options?: { encoding?: BufferEncoding }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  unlink(path: string): Promise<void>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
 };
 
 export type ExecResult = {

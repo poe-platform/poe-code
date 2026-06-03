@@ -1,3 +1,4 @@
+import { UserError } from "toolcraft";
 import type { MarkdownReaderDependencies } from "./document.js";
 import { loadMarkdownDocument } from "./document.js";
 
@@ -20,6 +21,10 @@ export interface ReadMarkdownResult {
 
 export function createReadMarkdown(dependencies: MarkdownReaderDependencies = {}) {
   return async function readMarkdown(params: ReadMarkdownParams): Promise<ReadMarkdownResult> {
+    if (params.depth !== undefined && (!Number.isInteger(params.depth) || params.depth < 0)) {
+      throw new UserError("invalid depth: expected a non-negative integer");
+    }
+
     const { frontmatter, sections } = await loadMarkdownDocument(params.file, dependencies);
 
     return {

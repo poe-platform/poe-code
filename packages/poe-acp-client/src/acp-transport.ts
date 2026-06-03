@@ -309,9 +309,7 @@ export class AcpTransport {
     }
 
     const killed = this.child.kill();
-    if (!killed) {
-      this.close(reason, this.child.exitCode, this.child.signalCode);
-    }
+    this.close(reason, this.child.exitCode, killed ? "SIGTERM" : this.child.signalCode);
   }
 
   private close(reason: Error, code: number | null, signal: NodeJS.Signals | null): void {

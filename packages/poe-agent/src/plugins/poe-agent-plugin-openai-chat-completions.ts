@@ -547,8 +547,9 @@ function resolveClientBaseUrl(baseUrl: string | undefined): string | undefined {
     return explicit;
   }
 
-  if (toNonEmptyString(process.env.OPENAI_BASE_URL) !== undefined) {
-    return undefined;
+  const environmentBaseUrl = toNonEmptyString(process.env.POE_BASE_URL);
+  if (environmentBaseUrl !== undefined) {
+    return environmentBaseUrl;
   }
 
   return DEFAULT_BASE_URL;
@@ -568,17 +569,13 @@ function readOptionalStringRecord(
   }
 
   const entries = Object.entries(value);
-  const record: Record<string, string> = {};
-
-  for (const [entryKey, entryValue] of entries) {
+  for (const [, entryValue] of entries) {
     if (typeof entryValue !== "string") {
       throw new Error(`${key}: expected an object of string values`);
     }
-
-    record[entryKey] = entryValue;
   }
 
-  return record;
+  return Object.fromEntries(entries) as Record<string, string>;
 }
 
 function cloneStringRecord(

@@ -386,4 +386,65 @@ describe("step", () => {
     });
     expect(step(loadedState(), { type: "toastExpired" }).state.dirty).toBe(0);
   });
+
+  it("dismisses confirmations invalidated by refreshed rows", () => {
+    const resolver = vi.fn();
+    const action: Action<unknown> = { id: "delete", label: "Delete", handler: () => undefined };
+    const state = {
+      ...loadedState(),
+      modal: { kind: "confirm" as const, action, rows: [rows[0]], resolver }
+    };
+
+    const next = step(state, { type: "rowsLoaded", rows: [rows[1]!] });
+
+    expect(next.state.modal).toBeNull();
+    expect(resolver).toHaveBeenCalledWith(false);
+  });
+
+  it("does not dispatch detail action keys while list-focused", () => {
+    const action: Action<unknown> = { id: "comment", label: "Comment", key: "c", handler: () => undefined };
+    const state = loadedState({ detail: { items: async () => [], actions: [action] } });
+
+    expect(step(state, { type: "key", key: key("c") }).effects).toEqual([]);
+    expect(step({ ...state, focused: "detail" }, { type: "key", key: key("c") }).effects).toHaveLength(1);
+  });
+
+  it("dispatches the first available primary action", () => {
+    const blocked: Action<unknown> = {
+      id: "blocked", label: "Blocked", primary: true, predicate: () => false, handler: () => undefined
+    };
+    const available: Action<unknown> = { id: "available", label: "Available", primary: true, handler: () => undefined };
+
+    const next = step(loadedState({ actions: [blocked, available] }), { type: "key", key: key("\r") });
+
+    expect(next.state.actionState.get("available")?.running).toBe(true);
+  });
+
+  it("recomputes action state after refreshing away selected rows", () => {
+    const action: Action<unknown> = {
+      id: "open",
+      label: "Open",
+      predicate: (ctx) => ctx.rows.every((row) => row.id !== "removed"),
+      handler: () => undefined
+    };
+    const state = step(createInitialState(config({ actions: [action] }), { cols: 120, rows: 24 }), {
+      type: "rowsLoaded",
+      rows: [{ id: "removed", title: "Removed" }]
+    }).state;
+
+    const next = step({ ...state, selected: new Set(["removed"]) }, {
+      type: "rowsLoaded",
+      rows: [{ id: "replacement", title: "Replacement" }]
+    });
+
+    expect(next.state.selected.size).toBe(0);
+    expect(next.state.actionState.get("open")?.available).toBe(true);
+  });
+
+  it("rejects duplicate row identifiers from refresh data", () => {
+    expect(() => step(loadedState(), {
+      type: "rowsLoaded",
+      rows: [{ id: "same", title: "First" }, { id: "same", title: "Second" }]
+    })).toThrow("Duplicate explorer row id: same");
+  });
 });

@@ -9,6 +9,8 @@ import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace, DEFAULT_IMAGE_BOT, DEFA
 import { createSecretStore } from "auth-store";
 import * as clientInstance from "../../services/client-instance.js";
 import * as mcpServer from "../mcp-server.js";
+import { resolveApiKeyViaOAuth } from "../oauth-login.js";
+import { checkAuth } from "poe-oauth";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 function stripAnsi(value: string): string {
@@ -88,6 +90,7 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
     ) => fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, opts).then(() => undefined),
+    lstat: (filePath: string) => fs.lstat(filePath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
       fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
@@ -118,14 +121,18 @@ function createMcpMemfs(): FileSystem {
 async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;
+  storeApiKey?: boolean;
+  logger?: (message: string) => void;
 }) {
   const fs = options?.fs ?? createMcpMemfs();
-  await storeTestApiKey(fs, "/home/test", "test-api-key");
+  if (options?.storeApiKey !== false) {
+    await storeTestApiKey(fs, "/home/test", "test-api-key");
+  }
   const program = createProgram({
     fs,
     prompts: vi.fn(),
     env: { cwd: "/repo", homeDir: "/home/test", variables: { POE_CODE_OAUTH_LOGIN: "0", ...options?.variables } },
-    logger: () => {},
+    logger: options?.logger ?? (() => {}),
     suppressCommanderOutput: true
   });
   return { program, fs };
@@ -143,6 +150,8 @@ describe("login command", () => {
     fs = createLoginMemfs(homeDir);
     logs = [];
     prompts = vi.fn();
+    vi.mocked(checkAuth).mockClear();
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
   });
 
   it("stores the provided api key flag", async () => {
@@ -387,6 +396,75 @@ describe("login command", () => {
     expect(storedKey).toBeNull();
     expect(logs.some((message) => message.includes("Dry run: would save API key."))).toBe(true);
   });
+
+  it("does not validate an explicit API key while previewing login", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    expect(checkAuth).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not start OAuth while previewing login without credentials", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => logs.push(message)
+    });
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login"]);
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not backfill legacy service metadata while previewing login", async () => {
+    const legacyConfig = JSON.stringify({ configured_services: { opencode: { files: [] } } });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, legacyConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(legacyConfig);
+  });
+
+  it.each(["goose", "kimi"])("does not expose the API key while previewing login reconfiguration for %s", async (service) => {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { [service]: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    expect(logs.join("\n")).not.toContain(DRY_KEY);
+    expect(logs.join("\n")).toContain("<redacted>");
+  });
 });
 
 describe("mcp command", () => {
@@ -399,6 +477,7 @@ describe("mcp command", () => {
     resolveAgentSupportMock.mockReset();
     selectMock.mockReset();
     cancelMock.mockReset();
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
     resolveAgentSupportMock.mockImplementation((input: string) => ({
       status: "supported",
       input,
@@ -524,6 +603,62 @@ describe("mcp command", () => {
     }
   });
 
+  it("serves using POE_API_KEY when no stored credential exists", async () => {
+    const { program } = await createMcpProgram({
+      storeApiKey: false,
+      variables: { POE_API_KEY: ENV_KEY }
+    });
+    const initSpy = vi.spyOn(clientInstance, "initializeClient").mockResolvedValue(undefined);
+    const transportSpy = vi.spyOn(mcpServer, "runMcpServerWithTransport").mockResolvedValue(undefined);
+
+    try {
+      await program.parseAsync(["node", "cli", "mcp", "serve"]);
+      expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ apiKey: ENV_KEY }));
+      expect(transportSpy).toHaveBeenCalledWith(["url"]);
+    } finally {
+      initSpy.mockRestore();
+      transportSpy.mockRestore();
+    }
+  });
+
+  it("does not start or migrate credentials while previewing mcp serve", async () => {
+    const fs = createMcpMemfs();
+    await storeTestApiKey(fs, "/home/test", "legacy-key");
+    const { program } = await createMcpProgram({ fs, storeApiKey: false });
+    const initSpy = vi.spyOn(clientInstance, "initializeClient").mockResolvedValue(undefined);
+    const transportSpy = vi.spyOn(mcpServer, "runMcpServerWithTransport").mockResolvedValue(undefined);
+
+    try {
+      await program.parseAsync(["node", "cli", "--dry-run", "mcp", "serve"]);
+      expect(initSpy).not.toHaveBeenCalled();
+      expect(transportSpy).not.toHaveBeenCalled();
+      await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["credentials.enc"]);
+    } finally {
+      initSpy.mockRestore();
+      transportSpy.mockRestore();
+    }
+  });
+
+  it("does not migrate legacy credentials while previewing mcp configure", async () => {
+    const fs = createMcpMemfs();
+    await storeTestApiKey(fs, "/home/test", "legacy-key");
+    const { program } = await createMcpProgram({ fs, storeApiKey: false });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "mcp", "configure", "codex"]);
+
+    expect(configureMock).toHaveBeenCalled();
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["credentials.enc"]);
+  });
+
+  it("does not start OAuth while previewing mcp configure without credentials", async () => {
+    const { program } = await createMcpProgram({ storeApiKey: false });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "mcp", "configure", "codex"]);
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalled();
+  });
+
   it("parses comma-separated --output-format preferences", async () => {
     const { program } = await createMcpProgram();
     const initSpy = vi
@@ -625,14 +760,49 @@ describe("mcp command", () => {
     expect(configureMock).toHaveBeenCalled();
   });
 
+  it("configures using POE_API_KEY without starting login", async () => {
+    const { program } = await createMcpProgram({
+      storeApiKey: false,
+      variables: { POE_API_KEY: ENV_KEY }
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure", "codex", "--yes"]);
+
+    expect(configureMock).toHaveBeenCalledWith("codex", expect.any(Object), expect.any(Object));
+  });
+
   it("rejects invalid agent names for configure", async () => {
     resolveAgentSupportMock.mockReturnValue({
       status: "unknown",
       input: "unknown"
     });
     const { program } = await createMcpProgram();
-    await program.parseAsync(["node", "cli", "mcp", "configure", "unknown"]);
+    await expect(program.parseAsync(["node", "cli", "mcp", "configure", "unknown"])).rejects.toThrow(
+      "Unknown agent: unknown"
+    );
 
+    expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid configure agents before starting login", async () => {
+    resolveAgentSupportMock.mockReturnValue({ status: "unknown", input: "unknown" });
+    const volume = new Volume();
+    volume.mkdirSync("/home/test", { recursive: true });
+    volume.mkdirSync("/repo", { recursive: true });
+    const prompts = vi.fn();
+    const program = createProgram({
+      fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+      prompts,
+      env: { cwd: "/repo", homeDir: "/home/test", variables: { POE_CODE_OAUTH_LOGIN: "0" } },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(program.parseAsync(["node", "cli", "mcp", "configure", "unknown"])).rejects.toThrow(
+      "Unknown agent: unknown"
+    );
+
+    expect(prompts).not.toHaveBeenCalled();
     expect(configureMock).not.toHaveBeenCalled();
   });
 
@@ -709,6 +879,18 @@ describe("mcp command", () => {
       expect.any(Object),
       expect.any(Object)
     );
+  });
+
+  it("uses the default agent for root --yes configure", async () => {
+    const { program } = await createMcpProgram();
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "mcp", "configure"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledWith("claude-code", expect.any(Object), expect.any(Object));
   });
 
   it("drops the model portion of core.defaultAgent for configure", async () => {
@@ -819,9 +1001,68 @@ describe("mcp command", () => {
     });
     const { program } = await createMcpProgram();
 
-    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"]);
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"])
+    ).rejects.toThrow("MCP not supported for claude-code.");
 
     expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid agent names for unconfigure", async () => {
+    resolveAgentSupportMock.mockReturnValue({ status: "unknown", input: "unknown" });
+    const { program } = await createMcpProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "unconfigure", "unknown"])
+    ).rejects.toThrow("Unknown agent: unknown");
+
+    expect(unconfigureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported agents for unconfigure", async () => {
+    resolveAgentSupportMock.mockReturnValue({
+      status: "unsupported",
+      input: "claude-code",
+      id: "claude-code"
+    });
+    const { program } = await createMcpProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "unconfigure", "claude-code"])
+    ).rejects.toThrow("MCP not supported for claude-code.");
+
+    expect(unconfigureMock).not.toHaveBeenCalled();
+  });
+
+  it("reports no configuration when unconfigure makes no changes", async () => {
+    const logs: string[] = [];
+    unconfigureMock.mockImplementation(async (_agent, _name, options) => {
+      options.observers?.onComplete?.(
+        { label: "Remove poe-code" },
+        { changed: false, effect: "none", detail: "noop" }
+      );
+    });
+    const { program } = await createMcpProgram({ logger: (message) => logs.push(message) });
+
+    await program.parseAsync(["node", "cli", "mcp", "unconfigure", "codex"]);
+
+    expect(logs.some((line) => line.includes("No MCP configuration found for codex."))).toBe(true);
+    expect(logs.some((line) => line.includes("Removed MCP configuration from codex."))).toBe(false);
+  });
+
+  it("unconfigures only the generated Poe Code server definition", async () => {
+    const { program } = await createMcpProgram();
+
+    await program.parseAsync(["node", "cli", "mcp", "unconfigure", "codex"]);
+
+    expect(unconfigureMock).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        name: "poe-code",
+        config: expect.objectContaining({ transport: "stdio" })
+      }),
+      expect.any(Object)
+    );
   });
 });
 
@@ -869,6 +1110,25 @@ describe("mcp server tools", () => {
       prompt: "Test",
       params: { temperature: "0.5" }
     });
+  });
+
+  it("generate_text preserves prototype-named tool parameters", async () => {
+    const { createMcpServer } = await import("../mcp-server.js");
+    const server = createMcpServer();
+    await server.handleMessage("initialize", {});
+
+    await server.handleMessage("tools/call", {
+      name: "generate_text",
+      arguments: {
+        bot_name: "test-bot",
+        message: "Test",
+        params: JSON.parse('{"__proto__":"visible"}')
+      }
+    });
+
+    const request = vi.mocked(mockClient.text).mock.calls[0]?.[0];
+    expect(Object.hasOwn(request?.params ?? {}, "__proto__")).toBe(true);
+    expect(request?.params?.["__proto__"]).toBe("visible");
   });
 
   it("generate_image uses client.media() with default bot", async () => {

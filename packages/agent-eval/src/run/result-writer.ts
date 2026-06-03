@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
 import type { NormalizedTrace } from "./trace/types.js";
@@ -30,28 +30,66 @@ export async function writeRunEvidence(
     evalYaml: string;
   }
 ): Promise<void> {
+  await assertSafeRunDirectory(runDir);
   await mkdir(runDir, { recursive: true });
 
-  await Promise.all([
-    atomicWrite(path.join(runDir, "events.jsonl"), formatEventsJsonl(parts.events)),
-    atomicWrite(path.join(runDir, "trace.json"), `${JSON.stringify(parts.trace, null, 2)}\n`),
-    atomicWrite(
-      path.join(runDir, "cheat-report.json"),
-      `${JSON.stringify(parts.cheatReport, null, 2)}\n`
-    ),
-    atomicWrite(path.join(runDir, "plan.md"), parts.planMd),
-    atomicWrite(path.join(runDir, "eval.yaml"), parts.evalYaml)
-  ]);
+  const filePaths = [
+    path.join(runDir, "events.jsonl"),
+    path.join(runDir, "trace.json"),
+    path.join(runDir, "cheat-report.json"),
+    path.join(runDir, "plan.md"),
+    path.join(runDir, "eval.yaml")
+  ];
+  const priorContents = await Promise.all(filePaths.map((filePath) => readExistingFile(filePath)));
+  const committedPaths: number[] = [];
+
+  try {
+    await atomicWrite(filePaths[0], formatEventsJsonl(parts.events));
+    committedPaths.push(0);
+    await atomicWrite(filePaths[1], `${JSON.stringify(parts.trace, null, 2)}\n`);
+    committedPaths.push(1);
+    await atomicWrite(filePaths[2], `${JSON.stringify(parts.cheatReport, null, 2)}\n`);
+    committedPaths.push(2);
+    await atomicWrite(filePaths[3], parts.planMd);
+    committedPaths.push(3);
+    await atomicWrite(filePaths[4], parts.evalYaml);
+    committedPaths.push(4);
+  } catch (error) {
+    await Promise.all(
+      committedPaths.map((index) => restoreFile(filePaths[index], priorContents[index]).catch(() => undefined))
+    );
+    throw error;
+  }
+}
+
+async function assertSafeRunDirectory(runDir: string): Promise<void> {
+  try {
+    const runStat = await lstat(runDir);
+    if (runStat.isSymbolicLink()) {
+      throw new Error("Run artifact directory must not be a symbolic link.");
+    }
+  } catch (error) {
+    if (!isMissingPath(error)) {
+      throw error;
+    }
+  }
 }
 
 export async function writeRunCompletion(
   runDir: string,
   parts: { result: EvalRunResult; judge?: unknown }
 ): Promise<void> {
-  if (parts.judge !== undefined) {
-    await atomicWrite(path.join(runDir, "judge.json"), `${JSON.stringify(parts.judge, null, 2)}\n`);
-  }
+  const resultPath = path.join(runDir, "result.json");
+  const priorResult = await readExistingFile(resultPath);
   await writeRunResult(runDir, parts.result);
+  try {
+    if (parts.judge !== undefined) {
+      await atomicWrite(path.join(runDir, "judge.json"), `${JSON.stringify(parts.judge, null, 2)}\n`);
+    }
+  } catch (error) {
+    await restoreFile(resultPath, priorResult).catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function writeRunResult(runDir: string, result: EvalRunResult): Promise<void> {
@@ -63,8 +101,13 @@ async function atomicWrite(filePath: string, content: string): Promise<void> {
     path.dirname(filePath),
     `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
   );
-  await writeFile(tempPath, content, "utf8");
-  await rename(tempPath, filePath);
+  try {
+    await writeFile(tempPath, content, "utf8");
+    await rename(tempPath, filePath);
+  } catch (error) {
+    await rm(tempPath, { force: true }).catch(() => undefined);
+    throw error;
+  }
 }
 
 function formatEventsJsonl(events: readonly SpawnEvent[]): string {
@@ -72,4 +115,34 @@ function formatEventsJsonl(events: readonly SpawnEvent[]): string {
     return "";
   }
   return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
+}
+
+function isMissingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    ((error as { code?: unknown }).code === "ENOENT" ||
+      (error as { code?: unknown }).code === "ENOTDIR")
+  );
+}
+
+async function readExistingFile(filePath: string): Promise<string | undefined> {
+  try {
+    return await readFile(filePath, "utf8");
+  } catch (error) {
+    if (isMissingPath(error)) {
+      return undefined;
+    }
+    throw error;
+  }
+}
+
+async function restoreFile(filePath: string, priorContent: string | undefined): Promise<void> {
+  if (priorContent === undefined) {
+    await rm(filePath, { force: true });
+    return;
+  }
+
+  await atomicWrite(filePath, priorContent);
 }

@@ -44,6 +44,12 @@ export async function spawnAutonomous<
     ...rest
   } = options;
 
+  if (!Number.isInteger(maxTimeoutRetries) || maxTimeoutRetries < 1) {
+    throw new Error(
+      "spawnAutonomous maxTimeoutRetries must be an integer greater than or equal to 1."
+    );
+  }
+
   const spawnOptions = { ...rest, activityTimeoutMs } as unknown as TOptions;
 
   for (let attempt = 1; attempt <= maxTimeoutRetries; attempt += 1) {

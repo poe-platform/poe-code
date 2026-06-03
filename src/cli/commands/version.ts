@@ -12,9 +12,9 @@ export function registerVersionOption(
   program.option("-V, --version", "Output the version number.");
 
   program.hook("preAction", async (thisCommand) => {
-    const opts = thisCommand.opts();
+    const opts = thisCommand.optsWithGlobals();
     if (opts.version) {
-      await displayVersion(container, currentVersion);
+      await displayVersion(container, currentVersion, { dryRun: Boolean(opts.dryRun) });
       throw new VersionExit();
     }
   });
@@ -22,11 +22,12 @@ export function registerVersionOption(
 
 async function displayVersion(
   container: CliContainer,
-  currentVersion: string
+  currentVersion: string,
+  options: { dryRun: boolean }
 ): Promise<void> {
   const { loggerFactory, httpClient } = container;
   const logger = loggerFactory.create({
-    dryRun: false,
+    dryRun: options.dryRun,
     verbose: false,
     scope: "version"
   });
@@ -38,6 +39,10 @@ async function displayVersion(
       ? `${currentVersion} ${text.badge("local build")}`
       : currentVersion;
   logger.resolved("poe-code", versionValue);
+
+  if (options.dryRun) {
+    return;
+  }
 
   const result = await checkForUpdate({
     currentVersion,

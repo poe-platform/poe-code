@@ -30,6 +30,7 @@ export type AuthMethod = ApiKeyAuth | OAuthAuth;
 export interface ApiShapeBinding {
   readonly id: ApiShapeId;
   readonly baseUrlPath?: string;
+  readonly envBaseUrlPath?: string;
   readonly defaultBaseUrl?: string;
 }
 
@@ -44,9 +45,31 @@ export interface AuthProvider {
   readonly baseUrl?: string;
   readonly agentBaseUrl?: string;
   readonly baseUrlEnvVar?: string;
+  readonly baseUrlEnvPath?: string;
+  readonly agentBaseUrlPath?: string;
   readonly requiresBaseUrl?: boolean;
   readonly modelInput?: ProviderModelInput;
   readonly auth: AuthMethod;
   readonly apiShapes?: readonly ApiShapeBinding[];
   readonly env?: Readonly<Record<string, EnvValueSource>>;
+}
+
+export function defineProvider(provider: AuthProvider): AuthProvider {
+  if (provider.auth.kind === "api-key") {
+    Object.freeze(provider.auth.prompt);
+  }
+  Object.freeze(provider.auth);
+  for (const shape of provider.apiShapes ?? []) {
+    Object.freeze(shape);
+  }
+  if (provider.apiShapes !== undefined) {
+    Object.freeze(provider.apiShapes);
+  }
+  for (const source of Object.values(provider.env ?? {})) {
+    Object.freeze(source);
+  }
+  if (provider.env !== undefined) {
+    Object.freeze(provider.env);
+  }
+  return Object.freeze(provider);
 }

@@ -29,6 +29,15 @@ describe("parseDocument", () => {
     });
   });
 
+  it("parses comment-only yaml as an empty object", () => {
+    expect(parseDocument("# no project overrides\n", "/tmp/config.yaml")).toEqual({
+      data: {},
+      format: "yaml",
+      extends: false,
+      hasExtendsField: false
+    });
+  });
+
   it("parses json and keeps prompt in data", () => {
     expect(
       parseDocument('{"title":"Hello","prompt":"Write something"}', "/tmp/config.json")
@@ -76,15 +85,10 @@ describe("parseDocument", () => {
     });
   });
 
-  it("ignores non-boolean extends values, strips them, and marks extends as explicitly configured", () => {
-    expect(parseDocument('extends: "something"\ntitle: Hello', "/tmp/config.yaml")).toEqual({
-      data: {
-        title: "Hello"
-      },
-      format: "yaml",
-      extends: false,
-      hasExtendsField: true
-    });
+  it("rejects non-boolean extends values", () => {
+    expect(() => parseDocument('extends: "something"\ntitle: Hello', "/tmp/config.yaml")).toThrow(
+      'Invalid extends value in /tmp/config.yaml: expected a boolean.'
+    );
   });
 
   it("returns extends false when the field is missing", () => {
@@ -118,6 +122,27 @@ describe("parseDocument", () => {
       extends: false,
       hasExtendsField: false
     });
+  });
+
+  it("detects extensionless markdown frontmatter with CR-only line endings", () => {
+    expect(parseDocument("---\rtitle: Hello\r---\rWrite something", "/tmp/config")).toEqual({
+      data: {
+        title: "Hello",
+        prompt: "Write something"
+      },
+      format: "markdown",
+      extends: false,
+      hasExtendsField: false
+    });
+  });
+
+  it.each([
+    ["yaml scalar", "hello", "/tmp/config.yaml"],
+    ["json array", "[1]", "/tmp/config.json"]
+  ])("rejects a non-object %s root", (_format, content, filePath) => {
+    expect(() => parseDocument(content, filePath)).toThrow(
+      `Invalid configuration in ${filePath}: expected an object root.`
+    );
   });
 
   it("supports a BOM for markdown files detected by extension", () => {

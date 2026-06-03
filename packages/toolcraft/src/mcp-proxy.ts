@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { createHash, randomUUID } from "node:crypto";
 import { createLogger } from "@poe-code/design-system";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
@@ -43,6 +44,7 @@ interface McpProxyCache {
     name: string;
     version: string;
   };
+  configFingerprint?: string;
   version: 1;
 }
 
@@ -246,6 +248,7 @@ async function ensureConnected(connection: HotProxyConnection): Promise<McpClien
 
 async function readCache(cachePath: string): Promise<McpProxyCache | undefined> {
   try {
+    await assertCachePathHasNoSymlinks(cachePath);
     const raw = await readFile(cachePath, "utf8");
     const parsed = JSON.parse(raw) as Partial<McpProxyCache>;
 
@@ -265,6 +268,8 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
       fetchedAt: typeof parsed.fetchedAt === "string" ? parsed.fetchedAt : new Date(0).toISOString(),
       tools: parsed.tools,
       upstream: parsed.upstream,
+      configFingerprint:
+        typeof parsed.configFingerprint === "string" ? parsed.configFingerprint : undefined,
       version: parsed.version === 1 ? 1 : 1,
     };
   } catch (error) {
@@ -280,17 +285,21 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
 
 async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void> {
   const directory = path.dirname(cachePath);
-  const tempPath = `${cachePath}.tmp`;
+  const tempPath = `${cachePath}.tmp-${randomUUID()}`;
 
+  await assertCachePathHasNoSymlinks(cachePath);
+  await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
+  await assertCachePathHasNoSymlinks(directory);
   await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`);
+  await assertCachePathHasNoSymlinks(tempPath);
+  await assertCachePathHasNoSymlinks(cachePath);
   await rename(tempPath, cachePath);
 }
 
 async function fetchCache(
   name: string,
-  config: McpServerConfig,
-  cachePath: string
+  config: McpServerConfig
 ): Promise<McpProxyCache> {
   const logger = createLogger((message) => {
     process.stderr.write(`${message}\n`);
@@ -320,26 +329,14 @@ async function fetchCache(
       $schema: MCP_PROXY_SCHEMA_URL,
       version: 1,
       upstream,
+      configFingerprint: fingerprintMcpServerConfig(config),
       fetchedAt: new Date().toISOString(),
       tools,
     };
 
-    await writeCache(cachePath, cache);
-    logger.info(`MCP ${name}: wrote ${cachePath}`);
-
     return cache;
   } finally {
     await client.close();
-  }
-}
-
-async function deleteCacheIfPresent(cachePath: string): Promise<void> {
-  try {
-    await unlink(cachePath);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
   }
 }
 
@@ -390,6 +387,37 @@ function populateGroupFromTools(
   }
 }
 
+function replaceProxyChildrenSafely(
+  group: Group<any>,
+  tools: Tool[],
+  rename: Record<string, string> | undefined,
+  connection: HotProxyConnection
+): void {
+  const previousChildren = snapshotGroupChildren(group);
+  try {
+    populateGroupFromTools(group, tools, rename, connection);
+  } catch (error) {
+    for (const [capturedGroup, children] of previousChildren) {
+      capturedGroup.children = children;
+    }
+    throw error;
+  }
+}
+
+function snapshotGroupChildren(group: Group<any>): Map<Group<any>, GroupChild<any>[]> {
+  const snapshot = new Map<Group<any>, GroupChild<any>[]>();
+  const visit = (current: Group<any>): void => {
+    snapshot.set(current, [...current.children]);
+    for (const child of current.children) {
+      if (child.kind === "group") {
+        visit(child);
+      }
+    }
+  };
+  visit(group);
+  return snapshot;
+}
+
 function isRefreshRequested(name: string, refresh: "all" | Set<string> | undefined): boolean {
   if (refresh === "all") {
     return true;
@@ -415,12 +443,19 @@ async function resolveSingleProxy(
     const cachePath = resolveCachePath(name, options.projectRoot);
     const refresh = parseRefreshEnv(process.env.TOOLCRAFT_MCP_REFRESH);
     let cache: McpProxyCache;
+    let shouldWriteCache = false;
 
     if (isRefreshRequested(name, refresh)) {
-      await deleteCacheIfPresent(cachePath);
-      cache = await fetchCache(name, config, cachePath);
+      cache = await fetchCache(name, config);
+      shouldWriteCache = true;
     } else {
-      cache = (await readCache(cachePath)) ?? (await fetchCache(name, config, cachePath));
+      const storedCache = await readCache(cachePath);
+      if (storedCache && cacheMatchesConfig(storedCache, config)) {
+        cache = storedCache;
+      } else {
+        cache = await fetchCache(name, config);
+        shouldWriteCache = true;
+      }
     }
 
     const tools = filterAllowlistedTools(cache.tools, internal.tools);
@@ -430,7 +465,11 @@ async function resolveSingleProxy(
     const nextConnection = createConnection(name, config);
 
     try {
-      populateGroupFromTools(group, tools, internal.rename, nextConnection);
+      replaceProxyChildrenSafely(group, tools, internal.rename, nextConnection);
+      if (shouldWriteCache) {
+        await writeCache(cachePath, cache);
+        createLogger((message) => process.stderr.write(`${message}\n`)).info(`MCP ${name}: wrote ${cachePath}`);
+      }
       setProxyConnection(group, nextConnection);
     } catch (error) {
       await nextConnection.dispose();
@@ -449,6 +488,14 @@ async function resolveSingleProxy(
       `couldn't discover MCP ${name}: ${error instanceof Error ? error.message : String(error)}`
     );
   }
+}
+
+function cacheMatchesConfig(cache: McpProxyCache, config: McpServerConfig): boolean {
+  return cache.configFingerprint === fingerprintMcpServerConfig(config);
+}
+
+function fingerprintMcpServerConfig(config: McpServerConfig): string {
+  return createHash("sha256").update(JSON.stringify(config)).digest("hex");
 }
 
 function collectProxyGroups(root: Group<any>): Group<any>[] {
@@ -504,7 +551,34 @@ export function resolveCachePath(name: string, projectRoot?: string): string {
     );
   }
 
+  if (name.length === 0 || name === "." || name === ".." || name.includes("/") || name.includes("\\")) {
+    throw new Error(`MCP proxy group name must be a file-safe name: "${name}".`);
+  }
+
   return path.join(resolvedProjectRoot, ".toolcraft", "mcp", `${name}.json`);
+}
+
+async function assertCachePathHasNoSymlinks(filePath: string): Promise<void> {
+  let currentPath = filePath;
+  while (true) {
+    try {
+      if ((await lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`MCP cache path must not contain symbolic links: ${currentPath}.`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    if (path.basename(currentPath) === ".toolcraft") {
+      return;
+    }
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      return;
+    }
+    currentPath = parentPath;
+  }
 }
 
 export function parseRefreshEnv(

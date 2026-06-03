@@ -42,6 +42,7 @@ const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 export type RunOwnerReviewOptions = {
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runOwnerReview(
@@ -60,7 +61,8 @@ export async function runOwnerReview(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
 
   const logPath = extractLogPath(result);
@@ -78,14 +80,14 @@ function buildTemplateContext(
 }
 
 function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
-  const servers: McpSpawnConfig = {
-    [WORKFLOW_SERVER_NAME]: createWorkflowServer()
-  };
+  const servers = Object.create(null) as McpSpawnConfig;
+  servers[WORKFLOW_SERVER_NAME] = createWorkflowServer();
 
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(doc.frontmatter.owner.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    doc.frontmatter.owner.mcp
+  );
 
   for (const [name, config] of Object.entries(merged)) {
     servers[name] = toSpawnMcpServer(config);

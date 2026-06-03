@@ -193,6 +193,12 @@ function createDefaultFrontmatter(): RalphFrontmatter {
 export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const defaults = createDefaultFrontmatter();
   const parsed = isRecord(value) ? value : undefined;
+  if (parsed !== undefined) {
+    rejectUnknownKeys(parsed, ["$schema", "kind", "version", "name", "state", "agent", "extends", "iterations", "skills", "hooks", "status", "iteration", "prompt"], "frontmatter");
+    if (parsed.kind !== undefined && parsed.kind !== "ralph") {
+      throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');
+    }
+  }
   const parsedStatus = isRecord(parsed?.status) ? parsed.status : undefined;
   const state =
     parsePlanStatus(parsedStatus?.state) ??
@@ -289,6 +295,8 @@ function parseHooks(value: unknown): RalphHooks | undefined {
     throw new Error('Invalid Ralph frontmatter: "hooks" must be an object.');
   }
 
+  rejectUnknownKeys(value, ["from", "strategy", "scope"], "hooks");
+
   if (typeof value.from !== "string" || value.from.trim().length === 0) {
     throw new Error('Invalid Ralph frontmatter: "hooks.from" must be a non-empty string.');
   }
@@ -320,6 +328,17 @@ function parseHooks(value: unknown): RalphHooks | undefined {
     ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
     ...(value.scope !== undefined ? { scope: value.scope } : {})
   };
+}
+
+function rejectUnknownKeys(
+  value: Record<string, unknown>,
+  allowedKeys: string[],
+  label: string
+): void {
+  const unknownKey = Object.keys(value).find((key) => !allowedKeys.includes(key));
+  if (unknownKey !== undefined) {
+    throw new Error(`Invalid Ralph frontmatter: unknown ${label} key "${unknownKey}".`);
+  }
 }
 
 function parsePlanStatus(value: unknown): RalphPlanStatus | undefined {

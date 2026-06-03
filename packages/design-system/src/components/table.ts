@@ -31,6 +31,18 @@ const reset = "\x1b[0m";
 const ellipsis = "…";
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" });
 
+function getCell(row: Record<string, string>, name: string): string {
+  return Object.prototype.hasOwnProperty.call(row, name) ? row[name] ?? "" : "";
+}
+
+function renderMarkdownCell(value: string): string {
+  return stripAnsi(value)
+    .replaceAll("\r\n", " ")
+    .replaceAll("\n", " ")
+    .replaceAll("\r", " ")
+    .replaceAll("|", "\\|");
+}
+
 function isAnsiSequence(value: string, index: number): boolean {
   return value[index] === "\u001b" && value[index + 1] === "[";
 }
@@ -209,6 +221,9 @@ function getAlignment(column: TableColumn): TableAlignment {
 }
 
 function getColumnWidth(column: TableColumn): number {
+  if (!Number.isFinite(column.maxLen) || column.maxLen <= 0) {
+    throw new Error("maxLen must be a positive finite number.");
+  }
   const configuredMin = (column as { minLen?: number }).minLen;
   const minWidth = Math.max(1, configuredMin ?? 1);
   return Math.max(minWidth, column.maxLen);
@@ -316,8 +331,8 @@ function renderTableTerminal(options: RenderTableOptions): string {
 
     return rows
       .flatMap((row) => {
-        const label = truncateToWidth(row[labelColumn.name] ?? "", labelWidth);
-        const values = wrapDetailValue(row[valueColumn.name] ?? "", valueWidth);
+        const label = truncateToWidth(getCell(row, labelColumn.name), labelWidth);
+        const values = wrapDetailValue(getCell(row, valueColumn.name), valueWidth);
         if (values.length === 1 && values[0] === "") {
           return [theme.header(label)];
         }
@@ -349,7 +364,7 @@ function renderTableTerminal(options: RenderTableOptions): string {
     }
     renderedRows.push(
       renderTerminalRow(
-        computedColumns.map((column) => row[column.name] ?? ""),
+        computedColumns.map((column) => getCell(row, column.name)),
         computedColumns,
         theme
       )
@@ -362,7 +377,7 @@ function renderTableTerminal(options: RenderTableOptions): string {
 function renderTableMarkdown(options: RenderTableOptions): string {
   const { columns, rows } = options;
 
-  const header = `| ${columns.map((c) => c.title).join(" | ")} |`;
+  const header = `| ${columns.map((c) => renderMarkdownCell(c.title)).join(" | ")} |`;
   const separator = `| ${columns
     .map((c) => {
       const alignment = getAlignment(c);
@@ -378,7 +393,7 @@ function renderTableMarkdown(options: RenderTableOptions): string {
 
   const dataRows = rows.map(
     (row) =>
-      `| ${columns.map((c) => stripAnsi(row[c.name] ?? "").replace(/\|/g, "\\|")).join(" | ")} |`
+      `| ${columns.map((c) => renderMarkdownCell(getCell(row, c.name))).join(" | ")} |`
   );
 
   return [header, separator, ...dataRows].join("\n");
@@ -388,9 +403,9 @@ function renderTableJson(options: RenderTableOptions): string {
   const { columns, rows } = options;
 
   const cleaned = rows.map((row) => {
-    const obj: Record<string, string> = {};
+    const obj = Object.create(null) as Record<string, string>;
     for (const col of columns) {
-      obj[col.name] = stripAnsi(row[col.name] ?? "");
+      obj[col.name] = stripAnsi(getCell(row, col.name));
     }
     return obj;
   });

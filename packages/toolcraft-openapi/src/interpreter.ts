@@ -47,7 +47,7 @@ const VALUE_REFERENCE_OPERATIONS = {
     evaluate: (
       reference: Extract<GeneratedValueReference, { kind: "param" }>,
       context: EvaluationContext
-    ) => context.params[reference.paramName]
+    ) => readOwnParam(context.params, reference.paramName)
   },
   resolved: {
     render: (reference: Extract<GeneratedValueReference, { kind: "resolved" }>) =>
@@ -280,7 +280,7 @@ const REQUEST_SECTION_OPERATIONS = {
         return [
           `      ${section.key}: {`,
           ...sectionFields.map(
-            (field) => `        ${JSON.stringify(field.wireName)}: ${renderValueExpression(field.value)},`
+            (field) => `        ${renderWireName(field.wireName)}: ${renderValueExpression(field.value)},`
           ),
           "      },"
         ];
@@ -292,7 +292,7 @@ const REQUEST_SECTION_OPERATIONS = {
         "        : {",
         `            ${section.key}: {`,
         ...sectionFields.map(
-          (field) => `              ${JSON.stringify(field.wireName)}: ${renderValueExpression(field.value)},`
+          (field) => `              ${renderWireName(field.wireName)}: ${renderValueExpression(field.value)},`
         ),
         "            },",
         "          }),"
@@ -480,5 +480,17 @@ function renderOmitWhenUndefinedExpression(reference: GeneratedValueReference): 
 }
 
 function renderParamAccess(name: string): string {
+  if (Object.prototype.hasOwnProperty.call(Object.prototype, name)) {
+    return `(Object.prototype.hasOwnProperty.call(params, ${JSON.stringify(name)}) ? params[${JSON.stringify(name)}] : undefined)`;
+  }
+
   return isIdentifierName(name) ? `params.${name}` : `params[${JSON.stringify(name)}]`;
+}
+
+function renderWireName(name: string): string {
+  return name === "__proto__" ? `[${JSON.stringify(name)}]` : JSON.stringify(name);
+}
+
+function readOwnParam(params: Readonly<Record<string, unknown>>, name: string): unknown {
+  return Object.prototype.hasOwnProperty.call(params, name) ? params[name] : undefined;
 }

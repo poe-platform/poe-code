@@ -110,6 +110,22 @@ describe("agent-eval cli", () => {
     });
   });
 
+  it("previews eval run without executing the matrix", async () => {
+    await runEvalCli([
+      "run",
+      "--agent",
+      "codex",
+      "--model",
+      "openai/gpt-5",
+      "--eval",
+      "task",
+      "--dry-run"
+    ]);
+
+    expect(mockedRun.runMatrix).not.toHaveBeenCalled();
+    expect(output()).toContain("Dry run: would run eval matrix for task with codex on openai/gpt-5.");
+  });
+
   it("uses -C as the eval source directory", async () => {
     await runEvalCli(["run", "-C", fixtureRoot, "--agent", "codex", "--model", "openai/gpt-5"]);
 
@@ -178,6 +194,13 @@ describe("agent-eval cli", () => {
     });
   });
 
+  it("previews eval init without creating the scaffold", async () => {
+    await runEvalCli(["init", "smoke-task", "--kind", "plan", "--dry-run"]);
+
+    expect(mockedRun.runInitCli).not.toHaveBeenCalled();
+    expect(output()).toContain("Dry run: would create plan eval scaffold smoke-task.");
+  });
+
   it("rejects unsupported init kinds before calling runInitCli", async () => {
     await runEvalCli(["init", "smoke-task", "--kind", "unknown"]);
 
@@ -212,6 +235,13 @@ describe("agent-eval cli", () => {
       evalId: undefined,
       sourceDir: "/repo/evals"
     });
+  });
+
+  it("previews eval check without executing oracle verification", async () => {
+    await runEvalCli(["check", "smoke-task", "--dry-run"]);
+
+    expect(mockedRun.runCheckCli).not.toHaveBeenCalled();
+    expect(output()).toContain("Dry run: would verify eval oracle smoke-task.");
   });
 
   it("parses eval lint arguments before calling runLintCli", async () => {

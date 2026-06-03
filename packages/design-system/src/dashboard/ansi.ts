@@ -20,33 +20,21 @@ export function hasAnsi(text: string): boolean {
  * logical lines split on "\n". Each line is a list of styled segments: contiguous
  * printable runs of characters sharing the same style.
  *
- * Non-SGR CSI sequences and other control characters are discarded. `baseStyle` is
- * used as the initial style and as the restore target for SGR reset / default color.
+ * Common cursor-affecting line controls are rendered into their visible result.
+ * `baseStyle` is used as the initial style and as the restore target for SGR reset / default color.
  */
 export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   const base = normalizeStyle(baseStyle);
   let style: CellStyle = { ...base };
+  let concealed = false;
   const lines: StyledLine[] = [];
-  let segments: StyledSegment[] = [];
-  let pending = "";
-
-  const flushSegment = (): void => {
-    if (pending.length === 0) {
-      return;
-    }
-    const last = segments[segments.length - 1];
-    if (last && stylesEqual(last.style, style)) {
-      last.text += pending;
-    } else {
-      segments.push({ text: pending, style: { ...style } });
-    }
-    pending = "";
-  };
+  let cells: Array<{ ch: string; style: CellStyle } | undefined> = [];
+  let column = 0;
 
   const finishLine = (): void => {
-    flushSegment();
-    lines.push({ segments });
-    segments = [];
+    lines.push({ segments: cellsToSegments(cells) });
+    cells = [];
+    column = 0;
   };
 
   let index = 0;
@@ -55,7 +43,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     const ch = text[index]!;
 
     if (ch === ESC && text[index + 1] === "[") {
-      flushSegment();
       const paramsStart = index + 2;
       let cursor = paramsStart;
 
@@ -72,7 +59,11 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       const finalByte = text[cursor]!;
 
       if (finalByte === "m") {
-        style = applySgr(style, parseParams(params), base);
+        const sgr = applySgr(style, concealed, parseParams(params), base);
+        style = sgr.style;
+        concealed = sgr.concealed;
+      } else if (finalByte === "K" && parseParams(params)[0] === 2) {
+        cells = [];
       }
 
       index = cursor + 1;
@@ -80,7 +71,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     if (ch === ESC) {
-      flushSegment();
       const next = text[index + 1];
       if (next === "]" || next === "P" || next === "X" || next === "^" || next === "_") {
         index = skipStringTerminated(text, index + 2);
@@ -91,6 +81,7 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     if (ch === "\r") {
+      column = 0;
       index += 1;
       continue;
     }
@@ -101,18 +92,42 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
+    if (ch === "\b") {
+      column = Math.max(0, column - 1);
+      index += 1;
+      continue;
+    }
+
     const code = ch.charCodeAt(0);
     if (code < 0x20 && ch !== "\t") {
       index += 1;
       continue;
     }
 
-    pending += ch;
+    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
+    column += 1;
     index += 1;
   }
 
   finishLine();
   return lines;
+}
+
+function cellsToSegments(cells: Array<{ ch: string; style: CellStyle } | undefined>): StyledSegment[] {
+  const segments: StyledSegment[] = [];
+
+  for (const cell of cells) {
+    const nextCell = cell ?? { ch: " ", style: {} };
+    const last = segments[segments.length - 1];
+
+    if (last && stylesEqual(last.style, nextCell.style)) {
+      last.text += nextCell.ch;
+    } else {
+      segments.push({ text: nextCell.ch, style: { ...nextCell.style } });
+    }
+  }
+
+  return segments;
 }
 
 function isCsiFinalByte(ch: string): boolean {
@@ -139,13 +154,24 @@ function parseParams(params: string): number[] {
   if (params.length === 0) {
     return [0];
   }
-  return params.split(";").map((part) => {
+
+  return params.split(";").flatMap((part) => {
+    const colonParams = part.split(":");
+
+    if (colonParams.length > 2 && colonParams[1] === "2") {
+      colonParams.splice(2, 1);
+    }
+
+    return colonParams.map(parseParam);
+  });
+}
+
+function parseParam(part: string): number {
     if (part.length === 0) {
       return 0;
     }
     const parsed = Number.parseInt(part, 10);
     return Number.isFinite(parsed) ? parsed : 0;
-  });
 }
 
 const BASIC_COLORS = [
@@ -170,8 +196,14 @@ const BRIGHT_COLORS = [
   "whiteBright"
 ];
 
-function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyle {
+function applySgr(
+  style: CellStyle,
+  concealed: boolean,
+  params: number[],
+  base: CellStyle
+): { style: CellStyle; concealed: boolean } {
   let next: CellStyle = { ...style };
+  let nextConcealed = concealed;
   let index = 0;
 
   while (index < params.length) {
@@ -179,6 +211,7 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
 
     if (code === 0) {
       next = { ...base };
+      nextConcealed = false;
       index += 1;
       continue;
     }
@@ -195,9 +228,33 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
       continue;
     }
 
+    if (code === 7) {
+      next.inverse = true;
+      index += 1;
+      continue;
+    }
+
     if (code === 22) {
       delete next.bold;
       delete next.dim;
+      index += 1;
+      continue;
+    }
+
+    if (code === 8) {
+      nextConcealed = true;
+      index += 1;
+      continue;
+    }
+
+    if (code === 28) {
+      nextConcealed = false;
+      index += 1;
+      continue;
+    }
+
+    if (code === 27) {
+      delete next.inverse;
       index += 1;
       continue;
     }
@@ -289,7 +346,7 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
     index += 1;
   }
 
-  return next;
+  return { style: next, concealed: nextConcealed };
 }
 
 function convert256(palette: number): string {
@@ -330,7 +387,8 @@ function stylesEqual(left: CellStyle, right: CellStyle): boolean {
   return left.fg === right.fg
     && left.bg === right.bg
     && left.bold === right.bold
-    && left.dim === right.dim;
+    && left.dim === right.dim
+    && left.inverse === right.inverse;
 }
 
 function normalizeStyle(style?: CellStyle): CellStyle {
@@ -346,6 +404,9 @@ function normalizeStyle(style?: CellStyle): CellStyle {
   }
   if (style?.dim !== undefined) {
     next.dim = style.dim;
+  }
+  if (style?.inverse !== undefined) {
+    next.inverse = style.inverse;
   }
   return next;
 }

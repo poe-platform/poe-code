@@ -9,6 +9,14 @@ export interface UseContainerOptions {
   useSnapshots?: boolean;
 }
 
+export async function cleanupContainer(container: Container): Promise<void> {
+  try {
+    await expect(container).toHaveHealthyProxy();
+  } finally {
+    await container.destroy();
+  }
+}
+
 export function useContainer(options: UseContainerOptions): Container {
   let current: Container | null = null;
 
@@ -23,8 +31,7 @@ export function useContainer(options: UseContainerOptions): Container {
 
   afterEach(async () => {
     if (current) {
-      await expect(current).toHaveHealthyProxy();
-      await current.destroy();
+      await cleanupContainer(current);
     }
     current = null;
   });

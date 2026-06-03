@@ -32,6 +32,7 @@ interface MockEnv extends OpenedEnv {
   fs: LogStreamFs;
   setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
   uploads: number;
+  reattachContext?: Record<string, unknown>;
 }
 
 function createRecordingState(): RecordingState {
@@ -112,16 +113,15 @@ function createMockEnv(
     },
     exec(spec): RunHandle {
       env.execSpecs.push(spec);
-      const executionResult =
-        spec.command === "sh" && spec.args?.[0] === "-c"
-          ? writeExitFile(rawFs.promises, spec, commandExitCode).then(() => result)
-          : result;
+      if (spec.command === "sh" && spec.args?.[0] === "-c") {
+        void writeExitFile(rawFs.promises, spec, commandExitCode);
+      }
       return {
         pid: 123,
         stdout: null,
         stderr: null,
         stdin: null,
-        result: executionResult,
+        result,
         kill() {}
       };
     },
@@ -172,8 +172,8 @@ function extractJobId(spec: RunSpec): string {
   const script = spec.args?.[1] ?? "";
   const prefix = "/tmp/poe-jobs/";
   const suffix = ".exit.tmp";
-  const start = script.indexOf(prefix);
-  const end = script.indexOf(suffix, start);
+  const end = script.indexOf(suffix);
+  const start = script.lastIndexOf(prefix, end);
   if (start === -1 || end === -1) {
     throw new Error("Expected wrapped command to include an exit file.");
   }
@@ -216,6 +216,25 @@ function deferred<T>(): {
 }
 
 describe("runPoeCommand", () => {
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid activity timeout %s before opening an environment",
+    async (activityTimeoutMs) => {
+      const { state } = createRecordingState();
+      const open = vi.fn(() => createMockEnv());
+      const factory: ExecutionEnvFactory = { type: "host", open };
+
+      await expect(
+        runPoeCommand({
+          factory,
+          openSpec: createOpenSpec({ execution: { wrapForLogTee: false, activityTimeoutMs } }),
+          detach: false,
+          state
+        })
+      ).rejects.toThrow("activityTimeoutMs must be a finite positive number");
+      expect(open).not.toHaveBeenCalled();
+    }
+  );
+
   it("records pending, running, and exited statuses for a sync run", async () => {
     const { state, statuses } = createRecordingState();
     const env = createMockEnv();
@@ -256,50 +275,98 @@ describe("runPoeCommand", () => {
     });
   });
 
-  it("does not poll for a wrapped command exit file after its process completes", async () => {
-    vi.useFakeTimers();
+  it("records completed status when environment cleanup fails after a sync run", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
+    env.close = async () => {
+      throw new Error("environment close denied");
+    };
 
-    try {
-      await expect(
-        runPoeCommand({
-          factory: createFactory(env),
-          openSpec: createOpenSpec(),
-          detach: false,
-          state
-        })
-      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
-    } finally {
-      vi.useRealTimers();
-    }
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state
+      })
+    ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "exited", exit_code: 0, env_id: "env-1" })
+    ]);
   });
 
-  it("does not poll for a wrapped command exit file when cancellation remains inactive", async () => {
-    vi.useFakeTimers();
+  it("removes a pending job when environment opening fails", async () => {
+    const { state } = createRecordingState();
+    const factory: ExecutionEnvFactory = {
+      type: "host",
+      async open() {
+        throw new Error("open failed");
+      }
+    };
+
+    await expect(
+      runPoeCommand({ factory, openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("open failed");
+    await expect(state.jobs.list()).resolves.toEqual([]);
+  });
+
+  it("removes a pending job when initial workspace upload fails", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
-    const controller = new AbortController();
+    env.uploadWorkspace = async () => {
+      throw new Error("upload failed");
+    };
 
-    try {
-      await expect(
-        runPoeCommand({
-          factory: createFactory(env),
-          openSpec: createOpenSpec(),
-          detach: false,
-          state,
-          signal: controller.signal
-        })
-      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
-    } finally {
-      vi.useRealTimers();
-    }
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("upload failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([]);
+    expect(env.closed).toBe(true);
+  });
+
+  it("marks a detached launch lost when detaching fails", async () => {
+    const { state, statuses } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    env.detach = async () => {
+      throw new Error("detach failed");
+    };
+
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: true, state })
+    ).rejects.toThrow("detach failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "lost", env_id: "env-1" })
+    ]);
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+    expect(env.closed).toBe(true);
+  });
+
+  it("marks a synchronous launch lost when post-launch download fails", async () => {
+    const { state, statuses } = createRecordingState();
+    const env = createMockEnv();
+    env.downloadWorkspace = async () => {
+      throw new Error("download failed");
+    };
+
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("download failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "lost", env_id: "env-1" })
+    ]);
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+    expect(env.closed).toBe(true);
   });
 
   it("leaves the environment open in detach mode", async () => {
     const { state, statuses } = createRecordingState();
     const runResult = deferred<RunResult>();
     const env = createMockEnv({ result: runResult.promise });
+    env.reattachContext = { engine: "podman", context: null };
 
     const result = await runPoeCommand({
       factory: createFactory(env),
@@ -322,6 +389,9 @@ describe("runPoeCommand", () => {
       argv: ["poe-code", "--help"]
     });
     expect(env.downloads).toEqual([]);
+    await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
+      reattach_context: { engine: "podman", context: null }
+    });
   });
 
   it("waits for workspace upload before starting the command", async () => {
@@ -396,6 +466,39 @@ describe("runPoeCommand", () => {
     expect(env.closed).toBe(true);
   });
 
+  it("retries initial workspace upload before reusing a session environment", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    let opens = 0;
+    env.uploadWorkspace = async () => {
+      env.uploads += 1;
+      if (env.uploads === 1) {
+        throw new Error("upload offline");
+      }
+      return { files: 1, bytes: 12, skipped: [] };
+    };
+    const factory: ExecutionEnvFactory = {
+      type: "e2b",
+      async open() {
+        opens += 1;
+        return env;
+      },
+      async attach() {
+        return env;
+      }
+    };
+    const session = createPoeCommandSession({ factory, state });
+
+    await expect(session.run(createOpenSpec())).rejects.toThrow("upload offline");
+    await expect(session.run(createOpenSpec())).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+
+    expect(opens).toBe(1);
+    expect(env.uploads).toBe(2);
+    expect(env.execSpecs).toHaveLength(1);
+
+    await session.close();
+  });
+
   it("syncs a reused session workspace back after each command while keeping remote state for the next command", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
@@ -414,8 +517,9 @@ describe("runPoeCommand", () => {
     };
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
-      const nextIteration =
-        remoteIterations.trim().length === 0 ? 1 : remoteIterations.trim().split("\n").length + 1;
+      const nextIteration = remoteIterations.trim().length === 0
+        ? 1
+        : remoteIterations.trim().split("\n").length + 1;
       remoteIterations += `${nextIteration}\n`;
       return {
         pid: 123,
@@ -535,7 +639,9 @@ describe("runPoeCommand", () => {
       [
         "sh",
         "-c",
-        'test -f "/usr/local/bin/codex" || test -f "/usr/bin/codex" || test -f "$HOME/.local/bin/codex" || test -f "$HOME/.claude/local/bin/codex"'
+        'for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1',
+        "sh",
+        "codex"
       ],
       ["sh", "-c", expect.stringContaining("'codex' 'exec' 'hello'")]
     ]);
@@ -599,7 +705,9 @@ describe("runPoeCommand", () => {
       [
         "sh",
         "-c",
-        'test -f "/usr/local/bin/opencode" || test -f "/usr/bin/opencode" || test -f "$HOME/.local/bin/opencode" || test -f "$HOME/.claude/local/bin/opencode"'
+        'for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1',
+        "sh",
+        "opencode"
       ],
       ["sh", "-c", expect.stringContaining("'opencode' 'run' 'hello'")]
     ]);
@@ -750,8 +858,40 @@ describe("runPoeCommand", () => {
     ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
   });
 
-  it("kills, downloads, and closes when the abort signal fires during sync", async () => {
+  it("rejects when execution input cannot be delivered", async () => {
     const { state } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const stdin = new PassThrough();
+      queueMicrotask(() => {
+        stdin.emit("error", new Error("send stdin offline"));
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin,
+        result: new Promise(() => {}),
+        kill() {}
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({
+          execution: { input: "hello", stdin: "pipe", wrapForLogTee: false }
+        }),
+        detach: false,
+        state
+      })
+    ).rejects.toThrow("send stdin offline");
+  });
+
+  it("rejects a wrapped synchronous run when its abort signal fires", async () => {
+    const { state, statuses } = createRecordingState();
     const controller = new AbortController();
     const runResult = deferred<RunResult>();
     let killed = false;
@@ -772,19 +912,86 @@ describe("runPoeCommand", () => {
       };
     };
 
-    const result = await runPoeCommand({
-      factory: createFactory(env),
-      openSpec: createOpenSpec(),
-      detach: false,
-      state,
-      signal: controller.signal
-    });
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state,
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
 
     const [job] = await state.jobs.list();
     expect(killed).toBe(true);
-    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
+    expect(env.downloads).toEqual([]);
     expect(env.closed).toBe(true);
-    expect(result).toMatchObject({ kind: "sync", exitCode: 130 });
-    expect(job).toMatchObject({ status: "exited", exit_code: 130 });
+    expect(job).toMatchObject({ status: "lost" });
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+  });
+
+  it("rejects a wrapped synchronous run promptly after inactivity timeout", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    let killed = false;
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      return {
+        pid: 123,
+        stdout: new PassThrough(),
+        stderr: null,
+        stdin: null,
+        result: new Promise(() => {}),
+        kill() {
+          killed = true;
+        }
+      };
+    };
+
+    const result = runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({ execution: { activityTimeoutMs: 1 } }),
+      detach: false,
+      state
+    });
+
+    await expect(
+      Promise.race([
+        result,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("run remained pending")), 100))
+      ])
+    ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
+    expect(killed).toBe(true);
+    expect(env.closed).toBe(true);
+  });
+
+  it("rejects a wrapped synchronous timeout when an abort signal is present", async () => {
+    const { state } = createRecordingState();
+    const controller = new AbortController();
+    const runResult = deferred<RunResult>();
+    const env = createMockEnv({ result: runResult.promise });
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      return {
+        pid: 123,
+        stdout: new PassThrough(),
+        stderr: null,
+        stdin: null,
+        result: runResult.promise,
+        kill() {
+          runResult.resolve({ exitCode: 143 });
+        }
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({ execution: { activityTimeoutMs: 1 } }),
+        detach: false,
+        state,
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
   });
 });

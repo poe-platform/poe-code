@@ -92,6 +92,21 @@ describe("normalizeParticipantConfig", () => {
     ).toThrow('Participant "writer" is missing required field: agent.');
   });
 
+  it("throws for a model-only inline agent specifier", () => {
+    expect(() => normalizeParticipantConfig("writer", ":openai/gpt-5.4")).toThrow(
+      'Participant "writer" must define a non-empty agent.'
+    );
+  });
+
+  it("throws for an empty model override", () => {
+    expect(() =>
+      normalizeParticipantConfig("writer", {
+        agent: "claude",
+        model: ""
+      })
+    ).toThrow('Participant "writer" must define a non-empty model.');
+  });
+
   it("throws when the participant config is not a string or object", () => {
     expect(() => normalizeParticipantConfig("writer", 123)).toThrow(
       'Participant "writer" must be a string or object.'
@@ -122,4 +137,18 @@ describe("selectParticipantAgent", () => {
     expect(selectParticipantAgent(participant, 3)).toBe("claude-code");
     expect(selectParticipantAgent(participant, 4)).toBe("codex");
   });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, 1.5])(
+    "rejects invalid iteration %s",
+    (iteration) => {
+      const participant: WorkflowParticipant = {
+        id: "ensemble",
+        agent: ["claude-code", "codex"]
+      };
+
+      expect(() => selectParticipantAgent(participant, iteration)).toThrow(
+        "Participant iteration must be a non-negative integer."
+      );
+    }
+  );
 });

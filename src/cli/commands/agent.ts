@@ -5,6 +5,7 @@ import {
   type SessionUpdate
 } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
+import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import {
   createExecutionResources,
   resolveCommandFlags
@@ -31,7 +32,7 @@ export function registerAgentCommand(
     .command("agent")
     .description("Run a one-shot Poe agent prompt.")
     .argument("<prompt>", "Prompt text to send")
-    .option("--model <model>", "Model identifier")
+    .option("--model <model>", `Model identifier (default: ${DEFAULT_FRONTIER_MODEL})`)
     .option("--api-key <key>", "Poe API key")
     .action(async function (this: Command, prompt: string) {
       const flags = resolveCommandFlags(program);
@@ -54,7 +55,7 @@ export function registerAgentCommand(
       try {
         const { createAgentSession } = await import("@poe-code/poe-agent");
         session = await createAgentSession({
-          model: options.model,
+          model: options.model ?? DEFAULT_FRONTIER_MODEL,
           apiKey: options.apiKey,
           cwd: container.env.cwd
         });

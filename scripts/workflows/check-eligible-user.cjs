@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { appendFileSync } = require("node:fs");
+const fs = require("node:fs");
 
 async function main() {
   const username = readEnv("USERNAME");
@@ -12,7 +12,7 @@ async function main() {
 
   const isMember = await checkOrgMembership(owner, username, token);
   if (!isMember) {
-    appendFileSync(outputPath, "allowed=false\n");
+    appendWorkflowOutput(outputPath, "allowed=false\n");
     return;
   }
 
@@ -22,10 +22,28 @@ async function main() {
     username,
     token
   );
-  appendFileSync(
+  appendWorkflowOutput(
     outputPath,
     `allowed=${hasWritePermission ? "true" : "false"}\n`
   );
+}
+
+function appendWorkflowOutput(outputPath, content, fileSystem = fs) {
+  assertNotSymbolicLink(outputPath, fileSystem);
+  fileSystem.appendFileSync(outputPath, content);
+}
+
+function assertNotSymbolicLink(outputPath, fileSystem) {
+  try {
+    if (fileSystem.lstatSync(outputPath).isSymbolicLink()) {
+      throw new Error(`Refusing to use symbolic link path: ${outputPath}`);
+    }
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }
 
 function readEnv(name) {
@@ -117,6 +135,8 @@ function fail(message) {
   process.stderr.write(`${message}\n`);
   process.exit(1);
 }
+
+module.exports = { appendWorkflowOutput };
 
 main().catch((error) => {
   fail(error instanceof Error ? error.message : String(error));

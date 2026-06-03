@@ -21,12 +21,14 @@ export async function runDocumentWorkflowSequence(
     options.onSequenceProgress?.(index, total, docPath);
 
     let didFail = false;
-    const onIterationEnd = (iteration: number, result: IterationResult): void => {
+    let didReportIteration = false;
+    const onIterationEnd = async (iteration: number, result: IterationResult): Promise<void> => {
+      didReportIteration = true;
       if (result === "failed") {
         didFail = true;
       }
 
-      options.onIterationEnd?.(iteration, result);
+      await options.onIterationEnd?.(iteration, result);
     };
 
     try {
@@ -45,6 +47,10 @@ export async function runDocumentWorkflowSequence(
       });
     } catch (error) {
       if (options.signal?.aborted) {
+        throw error;
+      }
+
+      if (!didReportIteration) {
         throw error;
       }
 

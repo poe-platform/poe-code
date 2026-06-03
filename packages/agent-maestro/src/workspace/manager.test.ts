@@ -310,4 +310,27 @@ describe("workspace manager", () => {
     expect(path.resolve(workspace.path).startsWith(path.resolve(root) + path.sep)).toBe(true);
     expect(vol.existsSync("/repo/etc")).toBe(false);
   });
+
+  it("rejects an existing symlinked workspace directory", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/repo/workspaces", { recursive: true });
+    vol.mkdirSync("/outside/job", { recursive: true });
+    vol.symlinkSync("/outside/job", "/repo/workspaces/job");
+
+    await expect(ensureWorkspace("/repo/workspaces", "job")).rejects.toThrow(
+      "workspace directory must not be a symbolic link"
+    );
+  });
+
+  it("rejects a symlinked workspace root during startup cleanup", async () => {
+    const { startupTerminalCleanup } = await import("./manager.js");
+    vol.mkdirSync("/outside/done", { recursive: true });
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/workspaces");
+
+    await expect(startupTerminalCleanup("/repo/workspaces", ["done"])).rejects.toThrow(
+      "workspace root must not be a symbolic link"
+    );
+    expect(vol.existsSync("/outside/done")).toBe(true);
+  });
 });

@@ -27,6 +27,10 @@ function createFs(files: Record<string, string>) {
     readFile: (filePath: string, encoding: BufferEncoding) =>
       rawFs.readFile(filePath, encoding) as Promise<string>,
     readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
+    lstat: async (filePath: string) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath: string) => {
       const stat = await rawFs.stat(filePath);
       return {
@@ -59,6 +63,10 @@ function createRunFs(files: Record<string, string>) {
       },
       readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
       open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
+      lstat: async (filePath: string) => {
+        const stat = await rawFs.lstat(filePath);
+        return { isSymbolicLink: () => stat.isSymbolicLink() };
+      },
       stat: async (filePath: string) => {
         const stat = await rawFs.stat(filePath);
         return {
@@ -411,6 +419,23 @@ describe("parseFrontmatter", () => {
     const doc = ["---", ...yaml, "---", "Body"].join("\n");
 
     expect(() => parseFrontmatter(doc)).toThrow(message);
+  });
+
+  it.each([
+    ["unknown agent key", ["agnet: codex"], "agnet"],
+    ["unknown iterations key", ["iteratons: 1"], "iteratons"],
+    ["unknown hook strategy key", ["hooks:", "  from: claude", "  stratgey: transform"], "stratgey"],
+    ["unknown hook scope key", ["hooks:", "  from: claude", "  scoep: user"], "scoep"]
+  ])("rejects $0", (_name, yaml, key) => {
+    const doc = ["---", ...yaml, "---", "Body"].join("\n");
+
+    expect(() => parseFrontmatter(doc)).toThrow(String(key));
+  });
+
+  it("rejects a document declaring a different workflow kind", () => {
+    const doc = ["---", "kind: experiment", "---", "Body"].join("\n");
+
+    expect(() => parseFrontmatter(doc)).toThrow(/kind.*ralph/i);
   });
 
   it("leaves plans without hooks unchanged", () => {
@@ -975,8 +1000,78 @@ describe("createRalphSimulation", () => {
     const { data } = parseFrontmatter(content);
     expect(data.status).toEqual({
       state: "open",
-      iteration: 1
+      iteration: 0
     });
+  });
+
+  it("reports cancellation when the executor fails after aborting the run signal", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "---\nagent: claude-code\niterations: 2\n---\nWork"
+    });
+    const controller = new AbortController();
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent: async () => {
+        controller.abort();
+        throw new Error("transport closed after cancel");
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+  });
+
+  it("reports the agent loaded for each live iteration", async () => {
+    const docPath = "/repo/.poe-code/ralph/plans/work.md";
+    const documentFor = (agent: string) => `---\nagent: ${agent}\niterations: 2\n---\nWork`;
+    const { fs } = createRunFs({ [docPath]: documentFor("claude-code") });
+    const announced: string[] = [];
+    const executed: string[] = [];
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath,
+      fs,
+      onIterationStart: (_iteration, _maxIterations, agent) => announced.push(agent),
+      runAgent: async (input) => {
+        executed.push(input.agent);
+        if (executed.length === 1) {
+          await fs!.writeFile(docPath, documentFor("codex"));
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(executed).toEqual(["claude-code", "codex"]);
+    expect(announced).toEqual(executed);
+  });
+
+  it("interpolates the live iteration limit in reloaded prompts", async () => {
+    const docPath = "/repo/.poe-code/ralph/plans/work.md";
+    const documentFor = (iterations: number) => `---\nagent: claude-code\niterations: ${iterations}\n---\nLimit={{ max_iterations }}`;
+    const { fs } = createRunFs({ [docPath]: documentFor(2) });
+    const prompts: string[] = [];
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath,
+      fs,
+      runAgent: async (input) => {
+        prompts.push(input.prompt);
+        if (prompts.length === 1) {
+          await fs!.writeFile(docPath, documentFor(3));
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(prompts.slice(0, 2)).toEqual(["Limit=2", "Limit=3"]);
   });
 
   it("strips nested frontmatter from the prompt sent to the agent", async () => {
@@ -1026,6 +1121,17 @@ describe("createRalphSimulation", () => {
       agent: "claude-code",
       model: "anthropic/claude-opus-4.6"
     });
+  });
+
+  it("rejects a model-only agent specifier", async () => {
+    const sim = createRalphSimulation({
+      agent: ":openai/gpt-5.4",
+      docContent: "# Plan",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    await expect(sim.run()).rejects.toThrow(/agent.*non-empty/i);
   });
 
   it("per-agent inline models work with agent arrays", async () => {
@@ -1123,6 +1229,77 @@ describe("createRalphSimulation", () => {
       state: "open",
       iteration: 1
     });
+  });
+
+  it("rejects an aborted run through a symlinked document", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/outside/external-ralph.md": [
+        "---",
+        "kind: ralph",
+        "agent: claude-code",
+        "iterations: 1",
+        "status:",
+        "  state: in_progress",
+        "  iteration: 4",
+        "---",
+        "# External Ralph"
+      ].join("\n")
+    });
+    await rawFs.mkdir("/repo/docs/plans", { recursive: true });
+    await rawFs.symlink("/outside/external-ralph.md", "/repo/docs/plans/linked.md");
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/plans/linked.md",
+      fs,
+      runAgent: vi.fn(),
+      signal: controller.signal
+    })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/external-ralph.md", "utf8"))
+      .resolves.toContain("iteration: 4");
+  });
+
+  it("rejects workflow configuration from a symlinked base directory", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/docs/plans/linked.md": "---\nkind: ralph\nextends: true\n---\n",
+      "/outside/linked.md": "---\nkind: ralph\nagent: codex\niterations: 1\n---\n"
+    });
+    await rawFs.mkdir("/repo/.poe-code/ralph", { recursive: true });
+    await rawFs.symlink("/outside", "/repo/.poe-code/ralph/bases");
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/plans/linked.md",
+      fs,
+      runAgent: vi.fn()
+    })).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("preserves the document when cancelled status persistence fails", async () => {
+    const targetPath = "/repo/docs/plans/plan.md";
+    const original = "---\nkind: ralph\nagent: codex\niterations: 1\nstatus:\n  state: open\n  iteration: 0\n---\n# Preserve this Ralph plan\n";
+    const { fs, rawFs } = createRunFs({ [targetPath]: original });
+    const baseWriteFile = fs!.writeFile.bind(fs);
+    fs!.writeFile = async (filePath: string, content: string) => {
+      await baseWriteFile(filePath, content.slice(0, 12));
+      throw new Error("ralph disk full");
+    };
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: targetPath,
+      fs,
+      runAgent: vi.fn(),
+      signal: controller.signal
+    })).rejects.toThrow("ralph disk full");
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
   });
 
   it("uses agent-kit path resolution for home-directory docs", async () => {

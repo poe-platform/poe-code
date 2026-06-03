@@ -12,7 +12,7 @@ import type {
   StepHooks,
   StepMode
 } from "../types.js";
-import { isRecord } from "../utils.js";
+import { defineRecordEntry, isRecord } from "../utils.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -172,6 +172,12 @@ export const pipelineDocumentSchema: JsonSchema = {
       type: "integer",
       const: 1
     },
+    name: {
+      type: "string"
+    },
+    state: {
+      type: "string"
+    },
     extends: {
       type: "string",
       minLength: 1,
@@ -275,6 +281,19 @@ function normalizeStatus(value: unknown, field: string): PipelineStatus {
   throw new Error(`Invalid ${field} "${value}". Expected "open", "done", or "failed".`);
 }
 
+function rejectUnknownProperties(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+  label = ""
+): void {
+  const allowedProperties = new Set(allowed);
+  for (const key of Object.keys(value)) {
+    if (!allowedProperties.has(key)) {
+      throw new Error(`Invalid plan YAML: unknown property "${label}${key}".`);
+    }
+  }
+}
+
 function parseTaskStatus(
   value: unknown,
   availableSteps: ResolvedStepDefinitions | undefined,
@@ -288,11 +307,15 @@ function parseTaskStatus(
   }
 
   const statusMap: Record<string, PipelineStatus> = {};
-  for (const [stepName, stepStatus] of Object.entries(value)) {
-    if (availableSteps && !(stepName in availableSteps)) {
+  const stepStatuses = Object.entries(value);
+  if (stepStatuses.length === 0) {
+    throw new Error(`Invalid status for task "${taskId}": expected at least one step status.`);
+  }
+  for (const [stepName, stepStatus] of stepStatuses) {
+    if (availableSteps && !Object.hasOwn(availableSteps, stepName)) {
       throw new Error(`Unknown step "${stepName}" referenced by task "${taskId}".`);
     }
-    statusMap[stepName] = normalizeStatus(stepStatus, `step status for "${stepName}"`);
+    defineRecordEntry(statusMap, stepName, normalizeStatus(stepStatus, `step status for "${stepName}"`));
   }
 
   return statusMap;
@@ -340,6 +363,7 @@ function parseHooks(value: unknown, label: string): StepHooks | undefined {
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}.hooks" must be an object.`);
   }
+  rejectUnknownProperties(value, ["from", "strategy", "scope"], `${label}.hooks.`);
   if (typeof value.from !== "string" || value.from.length === 0) {
     throw new Error(`Invalid plan YAML: "${label}.hooks.from" must be a non-empty string.`);
   }
@@ -407,6 +431,7 @@ function parseStepOverride(value: unknown, label: string): StepDefinitionOverrid
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}" must be an object.`);
   }
+  rejectUnknownProperties(value, ["mode", "prompt", "agent", "model", "skills", "hooks"], `${label}.`);
 
   const result: StepDefinitionOverride = {
     ...parseOptionalStepFields(value, label)
@@ -452,6 +477,7 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
     if (!isRecord(entry)) {
       throw new Error(`Invalid plan YAML: mcp["${name}"] must be an object.`);
     }
+    rejectUnknownProperties(entry, ["command", "args", "env"], `mcp.${name}.`);
     if (typeof entry.command !== "string" || entry.command.length === 0) {
       throw new Error(`Invalid plan YAML: mcp["${name}"].command must be a non-empty string.`);
     }
@@ -468,7 +494,7 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
       }
       server.env = entry.env as Record<string, string>;
     }
-    result[name] = server;
+    defineRecordEntry(result, name, server);
   }
   return result;
 }
@@ -489,6 +515,26 @@ export function parsePlan(
   if (!isRecord(document)) {
     throw new Error("Invalid plan YAML: expected a top-level object.");
   }
+  rejectUnknownProperties(document, [
+    "$schema",
+    "kind",
+    "version",
+    "name",
+    "state",
+    "extends",
+    "steps",
+    "tasks",
+    "vars",
+    "setup",
+    "teardown",
+    "mcp"
+  ]);
+  if (document.kind !== undefined && document.kind !== "pipeline") {
+    throw new Error('Invalid plan YAML: "kind" must be "pipeline".');
+  }
+  if (document.version !== undefined && document.version !== 1) {
+    throw new Error('Invalid plan YAML: "version" must be 1.');
+  }
 
   let extendsName = "default";
   if (document.extends !== undefined) {
@@ -506,7 +552,7 @@ export function parsePlan(
 
     stepOverrides = {};
     for (const [stepName, value] of Object.entries(document.steps)) {
-      stepOverrides[stepName] = parseStepOverride(value, `steps.${stepName}`);
+      defineRecordEntry(stepOverrides, stepName, parseStepOverride(value, `steps.${stepName}`));
     }
   }
 
@@ -561,7 +607,7 @@ export function parsePlan(
       if (typeof val !== "string") {
         throw new Error(`Invalid plan YAML: vars["${key}"] must be a string.`);
       }
-      vars[key] = val;
+      defineRecordEntry(vars, key, val);
     }
   }
 

@@ -26,7 +26,7 @@ import type {
   WaitForTerminalExitRequest,
   WriteTextFileRequest,
 } from "./types.js";
-import { PassThrough } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import {
   JsonRpcMessageLayer,
   createJsonRpcErrorResponse,
@@ -523,6 +523,37 @@ describe("AcpClient", () => {
     expect(response).toEqual({ content: "content-from-fs-handler" });
   });
 
+  it("does not serve capability requests before initialization completes", async () => {
+    const { transport, sendRequestMock, emitRequest } = createTransportMock();
+    const initializeResponse = createDeferred<InitializeResponse>();
+    const readTextFile = vi.fn(async () => "secret");
+    sendRequestMock.mockReturnValueOnce(initializeResponse.promise);
+    const client = new AcpClient({
+      transport,
+      protocolVersion: 1,
+      fsHandler: { readTextFile },
+    });
+
+    const initializing = client.initialize({ fs: { readTextFile: true } });
+
+    await expect(
+      emitRequest("fs/read_text_file", {
+        sessionId: "session-1",
+        path: "/workspace/file.txt",
+      } satisfies ReadTextFileRequest)
+    ).rejects.toMatchObject({ code: -32601 });
+    expect(readTextFile).not.toHaveBeenCalled();
+
+    initializeResponse.resolve({ protocolVersion: 1 });
+    await initializing;
+    await expect(
+      emitRequest("fs/read_text_file", {
+        sessionId: "session-1",
+        path: "/workspace/file.txt",
+      } satisfies ReadTextFileRequest)
+    ).resolves.toEqual({ content: "secret" });
+  });
+
   it("defaults protocolVersion to 1 when omitted", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock.mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse);
@@ -553,6 +584,36 @@ describe("AcpClient", () => {
     await higherVersionClient.initialize();
 
     expect(higherVersionClient.negotiatedProtocolVersion).toBe(4);
+  });
+
+  it.each(["invalid", -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid agent protocol version %s without becoming ready",
+    async (protocolVersion) => {
+      const { transport, sendRequestMock } = createTransportMock();
+      sendRequestMock.mockResolvedValueOnce({ protocolVersion } as unknown as InitializeResponse);
+      const client = new AcpClient({ transport, protocolVersion: 1 });
+
+      await expect(client.initialize()).rejects.toThrow(
+        "Agent returned an invalid protocol version."
+      );
+      expect(client.state).toBe("uninitialized");
+      expect(client.negotiatedProtocolVersion).toBeNull();
+    }
+  );
+
+  it("rejects concurrent initialization before sending a second handshake", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    const initializeResponse = createDeferred<InitializeResponse>();
+    sendRequestMock.mockReturnValueOnce(initializeResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+
+    const pendingInitialize = client.initialize();
+
+    await expect(client.initialize()).rejects.toThrow("initialize() can only be called once.");
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
+
+    initializeResponse.resolve({ protocolVersion: 1 });
+    await expect(pendingInitialize).resolves.toMatchObject({ protocolVersion: 1 });
   });
 
   it("requires authentication before becoming ready when auth methods are returned", async () => {
@@ -587,6 +648,30 @@ describe("AcpClient", () => {
     });
     expect(client.state).toBe("ready");
     expect(() => client.assertReady("session/new")).not.toThrow();
+  });
+
+  it("rejects concurrent authentication before sending duplicate credentials", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    const authenticateResponse = createDeferred<Record<string, never>>();
+    sendRequestMock
+      .mockResolvedValueOnce({
+        protocolVersion: 1,
+        authMethods: [{ id: "oauth", name: "OAuth" }],
+      } satisfies InitializeResponse)
+      .mockReturnValueOnce(authenticateResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    const pendingAuthenticate = client.authenticate("oauth");
+
+    await expect(client.authenticate("oauth")).rejects.toThrow(
+      "Authentication is already in progress."
+    );
+    expect(sendRequestMock).toHaveBeenCalledTimes(2);
+
+    authenticateResponse.resolve({});
+    await expect(pendingAuthenticate).resolves.toEqual({});
+    expect(client.state).toBe("ready");
   });
 
   it("does not require authenticate when the agent returns no auth methods", async () => {
@@ -690,6 +775,19 @@ describe("AcpClient", () => {
         currentModeId: "default",
       },
     });
+  });
+
+  it("rejects session/new responses with non-string session ids", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ sessionId: 17 });
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    await expect(client.newSession("/workspace", [])).rejects.toThrow(
+      'Invalid response from "session/new": "sessionId" must be a string.'
+    );
   });
 
   it("supports creating multiple sessions over one connection", async () => {
@@ -945,6 +1043,19 @@ describe("AcpClient", () => {
     ]);
   });
 
+  it("rejects session/set_config_option responses with non-array config options", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ configOptions: 7 });
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    await expect(client.setConfigOption("session-1", "model", "sonnet")).rejects.toThrow(
+      'Invalid response from "session/set_config_option": "configOptions" must be an array.'
+    );
+  });
+
   it("registers fs/read_text_file only when readTextFile capability is advertised", () => {
     const { transport, onRequestMock } = createTransportMock();
     const readTextFile = vi.fn(async () => "content");
@@ -1127,6 +1238,32 @@ describe("AcpClient", () => {
     expect(readTextFile).not.toHaveBeenCalled();
   });
 
+  it.each([-1, 1.5, Number.NaN])(
+    "returns invalid_params when fs/read_text_file limit is %s",
+    async (limit) => {
+      const { transport, emitRequest } = createTransportMock();
+      const readTextFile = vi.fn(async () => "unused");
+      new AcpClient({
+        transport,
+        protocolVersion: 1,
+        clientCapabilities: { fs: { readTextFile: true } },
+        fsHandler: { readTextFile },
+      });
+
+      await expect(
+        emitRequest("fs/read_text_file", {
+          sessionId: "session-1",
+          path: "/workspace/file.txt",
+          limit,
+        } as ReadTextFileRequest)
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: 'Invalid params: "limit" must be a non-negative integer',
+      });
+      expect(readTextFile).not.toHaveBeenCalled();
+    }
+  );
+
   it("returns method_not_found when fs capability is not advertised", async () => {
     const { transport, emitRequest } = createTransportMock();
     new AcpClient({
@@ -1220,6 +1357,64 @@ describe("AcpClient", () => {
     });
     expect(response).toEqual({ terminalId: "term-1" });
   });
+
+  it("rejects duplicate terminal identifiers without losing the tracked terminal", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    const output = vi.fn(async () => ({ output: "still alive", truncated: false }));
+    new AcpClient({
+      transport,
+      protocolVersion: 1,
+      clientCapabilities: { terminal: true },
+      terminalHandler: {
+        create: async () => "shared-terminal",
+        output,
+        waitForExit: async () => ({ exitCode: 0 }),
+        kill: async () => {},
+        release: async () => {},
+      },
+    });
+
+    await emitRequest("terminal/create", { sessionId: "session-1", command: "first" });
+    await expect(
+      emitRequest("terminal/create", { sessionId: "session-1", command: "second" })
+    ).rejects.toThrow('Terminal identifier "shared-terminal" is already active.');
+    await expect(
+      emitRequest("terminal/output", { sessionId: "session-1", terminalId: "shared-terminal" })
+    ).resolves.toEqual({ output: "still alive", truncated: false });
+    expect(output).toHaveBeenCalledOnce();
+  });
+
+  it.each([-1, 1.5, Number.NaN])(
+    "returns invalid_params when terminal/create outputByteLimit is %s",
+    async (outputByteLimit) => {
+      const { transport, emitRequest } = createTransportMock();
+      const create = vi.fn(async () => "term-1");
+      new AcpClient({
+        transport,
+        protocolVersion: 1,
+        clientCapabilities: { terminal: true },
+        terminalHandler: {
+          create,
+          output: async () => ({ output: "", truncated: false }),
+          waitForExit: async () => ({ exitCode: 0 }),
+          kill: async () => {},
+          release: async () => {},
+        },
+      });
+
+      await expect(
+        emitRequest("terminal/create", {
+          sessionId: "session-1",
+          command: "npm",
+          outputByteLimit,
+        } as CreateTerminalRequest)
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: 'Invalid params: "outputByteLimit" must be a non-negative integer',
+      });
+      expect(create).not.toHaveBeenCalled();
+    }
+  );
 
   it("handles terminal/output requests through terminalHandler", async () => {
     const { transport, emitRequest } = createTransportMock();
@@ -1569,6 +1764,26 @@ describe("AcpClient", () => {
     expect(response).toEqual({ outcome: { outcome: "cancelled" } });
   });
 
+  it("returns invalid_params when autoApprove receives malformed options", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    new AcpClient({ transport, protocolVersion: 1, autoApprove: true });
+
+    await expect(
+      emitRequest("session/request_permission", {
+        sessionId: "session-1",
+        toolCall: {
+          sessionUpdate: "tool_call_update",
+          toolCallId: "tool-1",
+          status: "pending",
+        },
+        options: 7,
+      } as unknown as RequestPermissionRequest)
+    ).rejects.toMatchObject({
+      code: -32602,
+      message: 'Invalid params: "options" must be an array',
+    });
+  });
+
   it("sends session/prompt, streams session/update notifications, and resolves stopReason", async () => {
     const { transport, sendRequestMock, emitNotification, onNotificationMock } =
       createTransportMock();
@@ -1635,6 +1850,23 @@ describe("AcpClient", () => {
         },
       ])
     ).toThrow('Agent does not support prompt content type "resource".');
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not expose mutable agent capabilities used for prompt validation", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock.mockResolvedValueOnce({
+      protocolVersion: 1,
+      agentCapabilities: { promptCapabilities: { image: false } },
+    } satisfies InitializeResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    client.agentCapabilities!.promptCapabilities!.image = true;
+
+    expect(() =>
+      client.prompt("session-1", [{ type: "image", data: "Zm9v", mimeType: "image/png" }])
+    ).toThrow('Agent does not support prompt content type "image".');
     expect(sendRequestMock).toHaveBeenCalledTimes(1);
   });
 
@@ -1918,6 +2150,84 @@ describe("AcpClient", () => {
 
     expect(dispose).toHaveBeenCalledTimes(1);
   });
+
+  it("retries transport disposal after a transient dispose failure", async () => {
+    const dispose = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("dispose temporarily failed");
+      })
+      .mockImplementationOnce(() => undefined);
+    const client = new AcpClient({
+      transport: {
+        sendRequest: vi.fn(),
+        sendNotification: vi.fn(),
+        onRequest: vi.fn(),
+        onNotification: vi.fn(),
+        dispose,
+      },
+    });
+
+    await expect(client.dispose()).rejects.toThrow("dispose temporarily failed");
+    await expect(client.dispose()).resolves.toBeUndefined();
+    expect(dispose).toHaveBeenCalledTimes(2);
+  });
+
+  it("rejects protocol operations after disposal without reaching the transport", async () => {
+    const { transport, sendRequestMock, sendNotificationMock, onRequestMock } =
+      createTransportMock();
+    sendRequestMock.mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+    await client.dispose();
+    sendRequestMock.mockClear();
+    sendNotificationMock.mockClear();
+    onRequestMock.mockClear();
+
+    await expect(client.newSession("/workspace", [])).rejects.toThrow("ACP client disposed.");
+    expect(() => client.prompt("session-1", [{ type: "text", text: "hi" }])).toThrow(
+      "ACP client disposed."
+    );
+    await expect(client.sendExtRequest("_custom/ping")).rejects.toThrow("ACP client disposed.");
+    await expect(client.sendExtNotification("_custom/note")).rejects.toThrow(
+      "ACP client disposed."
+    );
+    expect(() => client.onExtRequest("_custom/request", async () => ({}))).toThrow(
+      "ACP client disposed."
+    );
+    expect(sendRequestMock).not.toHaveBeenCalled();
+    expect(sendNotificationMock).not.toHaveBeenCalled();
+    expect(onRequestMock).not.toHaveBeenCalled();
+  });
+
+  it("ignores malformed native usage notifications during an active prompt", async () => {
+    const { transport, sendRequestMock, emitNotification } = createTransportMock();
+    const promptResponse = createDeferred<PromptResponse>();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockReturnValueOnce(promptResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+    const turn = client.prompt("session-1", [{ type: "text", text: "hello" }]);
+    const updates = turn[Symbol.asyncIterator]();
+
+    await emitNotification("session/update", {
+      sessionId: "session-1",
+      update: { sessionUpdate: "usage_update", used: "many", size: 50 },
+    });
+    await emitNotification("session/update", {
+      sessionId: "session-1",
+      update: { sessionUpdate: "usage_update", used: 10, size: 50 },
+    });
+
+    await expect(updates.next()).resolves.toMatchObject({
+      value: {
+        params: { update: { sessionUpdate: "usage_update", used: 10, size: 50 } },
+      },
+    });
+    promptResponse.resolve({ stopReason: "completed" });
+    await turn.response;
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -2197,6 +2507,16 @@ describe("parseJsonRpcMessage", () => {
     expect(nullId).toMatchObject({ type: "request", message: { id: null } });
   });
 
+  it("rejects non-finite numeric request ids before writing requests", () => {
+    const { written, layer } = createHarness();
+
+    expect(() => layer.sendRequest("ping", undefined, { id: Number.NaN })).toThrow(
+      "Request id must be null, a string, or a finite number"
+    );
+    expect(layer.pendingRequestCount()).toBe(0);
+    expect(written).toEqual([]);
+  });
+
   it("returns parse error metadata for malformed JSON", () => {
     const parsed = parseJsonRpcMessage("{broken");
 
@@ -2253,6 +2573,54 @@ describe("JsonRpcMessageLayer", () => {
       jsonrpc: "2.0",
       id: 1,
       result: { text: "hello" },
+    });
+  });
+
+  it("preserves UTF-8 values split across binary input chunks", async () => {
+    const output = new PassThrough();
+    const written: string[] = [];
+    output.setEncoding("utf8");
+    output.on("data", (chunk) => { written.push(String(chunk)); });
+    const requestHandler = vi.fn((params: unknown) => params);
+    const message = Buffer.from('{"jsonrpc":"2.0","id":1,"method":"echo","params":{"text":"🧪"}}\n', "utf8");
+    const marker = Buffer.from("🧪", "utf8");
+    const splitAt = message.indexOf(marker) + 2;
+    const input = Readable.from([message.subarray(0, splitAt), message.subarray(splitAt)]);
+    const layer = new JsonRpcMessageLayer({ input, output });
+    layer.onRequest("echo", requestHandler);
+
+    await waitForWriteCount(written, 1);
+    expect(requestHandler).toHaveBeenCalledWith({ text: "🧪" }, { id: 1, method: "echo" });
+  });
+
+  it("processes responses while notification handlers are still pending", async () => {
+    const { input, written, layer } = createHarness();
+    let releaseNotification!: () => void;
+    const pendingNotification = new Promise<void>((resolve) => { releaseNotification = resolve; });
+    layer.onNotification("slow", async () => await pendingNotification);
+
+    const request = layer.sendRequest("lookup");
+    await waitForWriteCount(written, 1);
+    input.write('{"jsonrpc":"2.0","method":"slow"}\n');
+    input.write('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}\n');
+
+    await expect(request).resolves.toEqual({ ok: true });
+    releaseNotification();
+  });
+
+  it("allows request handlers to await nested outbound responses", async () => {
+    const { input, written, layer } = createHarness();
+    layer.onRequest("nested", async () => await layer.sendRequest("lookup"));
+
+    input.write('{"jsonrpc":"2.0","id":"agent-1","method":"nested"}\n');
+    await waitForWriteCount(written, 1);
+    input.write('{"jsonrpc":"2.0","id":1,"result":{"found":true}}\n');
+
+    await waitForWriteCount(written, 2);
+    expect(parseWrittenMessages(written)).toContainEqual({
+      jsonrpc: "2.0",
+      id: "agent-1",
+      result: { found: true },
     });
   });
 
@@ -2427,6 +2795,15 @@ describe("formatSessionUpdate", () => {
         _meta: { source: "test" },
       },
     });
+  });
+
+  it("rejects non-finite usage cost amounts before serialization", () => {
+    expect(() => formatSessionUpdate("session-1", {
+      sessionUpdate: "usage_update",
+      used: 1,
+      size: 2,
+      cost: { amount: Number.POSITIVE_INFINITY, currency: "USD" },
+    })).toThrow("usage_update cost amount must be finite");
   });
 });
 
@@ -2733,6 +3110,23 @@ describe("formatRunReportSummary", () => {
     expect(summary).toContain("Token usage: 320/400");
     expect(summary).toContain("Error count: 1");
   });
+
+  it("escapes newline characters in run ids", () => {
+    const summary = formatRunReportSummary({
+      runId: "safe\nExit status: failed",
+      startTime: "2026-05-24T00:00:00.000Z",
+      endTime: "2026-05-24T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    });
+
+    expect(summary).toContain("Run ID: safe\\nExit status: failed");
+    expect(summary.split("\n").filter((line) => line.startsWith("Exit status:"))).toEqual([
+      "Exit status: success",
+    ]);
+  });
 });
 
 describe("saveRunReport", () => {
@@ -2758,10 +3152,10 @@ describe("saveRunReport", () => {
 
     expect(output.reportsDir).toBe("/home/test/.poe-code/reports");
     expect(output.jsonPath).toBe(
-      "/home/test/.poe-code/reports/20260224-070809-456-run-123.json",
+      "/home/test/.poe-code/reports/20260224-070809-456-run-123-69a94e04b2.json",
     );
     expect(output.summaryPath).toBe(
-      "/home/test/.poe-code/reports/20260224-070809-456-run-123.txt",
+      "/home/test/.poe-code/reports/20260224-070809-456-run-123-69a94e04b2.txt",
     );
 
     const jsonOnDisk = await fs.readFile(output.jsonPath, "utf8");
@@ -2770,6 +3164,86 @@ describe("saveRunReport", () => {
     const summaryOnDisk = await fs.readFile(output.summaryPath, "utf8");
     expect(summaryOnDisk).toContain("Run ID: run/123");
     expect(summaryOnDisk).toContain("Error count: 1");
+  });
+
+  it("removes a written report artifact when the companion write fails", async () => {
+    const written = new Set<string>();
+    const remove = vi.fn(async (path: string) => {
+      written.delete(path);
+    });
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+
+    await expect(
+      saveRunReport(report, {
+        fs: {
+          mkdir: async () => {},
+          writeFile: async (path: string) => {
+            if (path.endsWith(".txt")) {
+              throw new Error("summary write failed");
+            }
+            written.add(path);
+          },
+          rm: remove,
+        },
+        homeDir: "/home/test",
+        now: () => new Date("2026-05-25T01:02:03.004Z"),
+      })
+    ).rejects.toThrow("summary write failed");
+
+    expect(written).toEqual(new Set());
+    expect(remove).toHaveBeenCalledWith(
+      "/home/test/.poe-code/reports/20260525-010203-004-run-1.json"
+    );
+  });
+
+  it("uses distinct file paths for run ids that sanitize identically", async () => {
+    const volume = new Volume();
+    const fs = createFsFromVolume(volume).promises;
+    const now = () => new Date("2026-05-24T12:34:56.789Z");
+    const report = (runId: string): RunReport => ({
+      runId,
+      startTime: now().toISOString(),
+      endTime: now().toISOString(),
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    });
+
+    const first = await saveRunReport(report("run/a"), { fs, homeDir: "/home", now });
+    const second = await saveRunReport(report("run?a"), { fs, homeDir: "/home", now });
+
+    expect(second.jsonPath).not.toBe(first.jsonPath);
+    await expect(fs.readFile(first.jsonPath, "utf8")).resolves.toContain('"runId": "run/a"');
+    await expect(fs.readFile(second.jsonPath, "utf8")).resolves.toContain('"runId": "run?a"');
+  });
+
+  it("rejects a symlinked reports output directory", async () => {
+    const volume = Volume.fromJSON({ "/outside/keep.txt": "outside" });
+    await volume.promises.mkdir("/home/.poe-code", { recursive: true });
+    await volume.promises.symlink("/outside", "/home/.poe-code/reports");
+    const fs = createFsFromVolume(volume).promises;
+    const report: RunReport = {
+      runId: "safe",
+      startTime: "2026-05-24T00:00:00.000Z",
+      endTime: "2026-05-24T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    };
+
+    await expect(saveRunReport(report, { fs, homeDir: "/home" })).rejects.toThrow(
+      "reports directory must remain inside home state"
+    );
   });
 });
 
@@ -2809,6 +3283,19 @@ describe("extractMessagesFromSessionUpdateStream", () => {
     const extracted = await extractMessagesFromSessionUpdateStream(toAsync(streamItems));
 
     expect(extracted).toEqual([updates[0], updates[1], updates[2]]);
+  });
+
+  it("treats raw updates with envelope-like extension fields as raw updates", async () => {
+    const rawUpdate = {
+      sessionUpdate: "agent_message_chunk" as const,
+      content: { type: "text" as const, text: "still a raw update" },
+      jsonrpc: "2.0",
+      method: "session/update",
+    } satisfies SessionUpdate;
+
+    await expect(extractMessagesFromSessionUpdateStream([rawUpdate])).resolves.toEqual([
+      rawUpdate,
+    ]);
   });
 });
 
@@ -2896,6 +3383,17 @@ describe("extractToolCallSummariesFromSessionUpdateStream", () => {
     ];
 
     expect(extracted).toEqual(expected);
+  });
+
+  it("rejects duplicate tool_call start identifiers", async () => {
+    const streamItems: SessionUpdate[] = [
+      { sessionUpdate: "tool_call", toolCallId: "shared-id", title: "Read secrets" },
+      { sessionUpdate: "tool_call", toolCallId: "shared-id", title: "Delete workspace" },
+    ];
+
+    await expect(extractToolCallSummariesFromSessionUpdateStream(streamItems)).rejects.toThrow(
+      'Duplicate tool call identifier "shared-id".'
+    );
   });
 });
 
@@ -3038,5 +3536,28 @@ describe("mapLegacyEventToSessionUpdates", () => {
     ]);
 
     expect(mapLegacyEventToSessionUpdates({ event: "unknown" })).toEqual([]);
+  });
+
+  it("drops legacy tool completion events with invalid explicit statuses", () => {
+    expect(
+      mapLegacyEventToSessionUpdates({
+        event: "tool_complete",
+        id: "tool-1",
+        status: "error",
+        output: "command failed",
+      })
+    ).toEqual([]);
+  });
+
+  it("drops legacy usage events containing non-finite metrics", () => {
+    expect(
+      mapLegacyEventToSessionUpdates({
+        event: "usage",
+        inputTokens: Number.NaN,
+        outputTokens: 4,
+        cachedTokens: Number.POSITIVE_INFINITY,
+        costUsd: Number.NaN,
+      })
+    ).toEqual([]);
   });
 });

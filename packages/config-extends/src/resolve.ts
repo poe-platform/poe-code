@@ -38,7 +38,7 @@ export async function resolve(
         baseLayers,
         options,
         optional: !parsedDocument.extends,
-        visited: new Set([documentLayer.filePath]),
+        visited: new Set([path.resolve(documentLayer.filePath)]),
         depth: 1
       })
     : undefined;
@@ -135,18 +135,21 @@ async function resolveBaseChain({
     throw error;
   }
 
-  if (visited.has(discoveredBase.filePath)) {
+  const resolvedBasePath = path.resolve(discoveredBase.filePath);
+
+  if (visited.has(resolvedBasePath)) {
     if (optional) {
       return undefined;
     }
 
     throw new Error(
-      `Circular extends detected.\nVisited files:\n- ${[...visited, discoveredBase.filePath].join("\n- ")}`
+      `Circular extends detected.\nVisited files:\n- ${[...visited, resolvedBasePath].join("\n- ")}`
     );
   }
 
+  const discoveredBaseDirectory = path.resolve(path.dirname(discoveredBase.filePath));
   const matchedBaseIndex = baseLayers.findIndex(
-    (layer) => layer.path === path.dirname(discoveredBase.filePath)
+    (layer) => path.resolve(layer.path) === discoveredBaseDirectory
   );
 
   if (matchedBaseIndex === -1) {
@@ -155,7 +158,7 @@ async function resolveBaseChain({
 
   const parsedBase = parseDocument(discoveredBase.content, discoveredBase.filePath);
   const nextVisited = new Set(visited);
-  nextVisited.add(discoveredBase.filePath);
+  nextVisited.add(resolvedBasePath);
   const nestedBase = parsedBase.extends
     ? await resolveBaseChain({
         name: getBaseName(discoveredBase.filePath),

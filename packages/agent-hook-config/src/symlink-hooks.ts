@@ -3,10 +3,12 @@ import {
   lstatSync,
   mkdirSync,
   openSync,
+  readFileSync,
   readlinkSync,
   readSync,
   symlinkSync,
-  unlinkSync
+  unlinkSync,
+  writeFileSync
 } from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveHookPath, type AgentHookConfig } from "./configs.js";
@@ -118,7 +120,10 @@ function isFullyGeneratedFile(filePath: string): boolean {
 
         handlerFound = true;
         const statusMessage = (handler as HookHandler).statusMessage;
-        if (typeof statusMessage !== "string" || !statusMessage.startsWith("[generated:")) {
+        if (
+          typeof statusMessage !== "string" ||
+          !statusMessage.startsWith("[generated:poe-code:")
+        ) {
           return false;
         }
       }
@@ -144,9 +149,16 @@ export function symlinkHooks(
     );
   }
 
-  const targetPath = resolveScopedPath(source, sourceAgentId, cwd, homeDir, scope);
+  const targetPath = resolveScopedPath(
+    source,
+    sourceAgentId,
+    cwd,
+    homeDir,
+    sourceAgentId === targetAgentId && scope === "project" ? "user" : scope
+  );
   const symlinkPath = resolveScopedPath(target, targetAgentId, cwd, homeDir, scope);
   let replaced: SymlinkResult["replaced"] = "none";
+  let replacedContents: string | undefined;
 
   try {
     const existing = lstatSync(symlinkPath);
@@ -158,6 +170,7 @@ export function symlinkHooks(
       unlinkSync(symlinkPath);
       replaced = "stale-symlink";
     } else if (existing.isFile() && isFullyGeneratedFile(symlinkPath)) {
+      replacedContents = readFileSync(symlinkPath, "utf8");
       unlinkSync(symlinkPath);
       replaced = "generated-file";
     } else {
@@ -170,7 +183,14 @@ export function symlinkHooks(
   }
 
   mkdirSync(path.dirname(symlinkPath), { recursive: true });
-  symlinkSync(targetPath, symlinkPath);
+  try {
+    symlinkSync(targetPath, symlinkPath);
+  } catch (error) {
+    if (replacedContents !== undefined) {
+      writeFileSync(symlinkPath, replacedContents, "utf8");
+    }
+    throw error;
+  }
 
   return { symlinkPath, targetPath, replaced };
 }

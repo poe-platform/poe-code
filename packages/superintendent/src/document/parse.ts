@@ -396,6 +396,18 @@ function parseYamlFrontmatter(filePath: string, frontmatterText: string): unknow
 
 function parseFrontmatter(filePath: string, value: unknown): SuperintendentFrontmatter {
   const frontmatter = expectRecord(value, "frontmatter", filePath);
+  assertOnlyKeys(frontmatter, "frontmatter", [
+    "$schema",
+    "kind",
+    "version",
+    "mcp",
+    "builder",
+    "inspectors",
+    "superintendent",
+    "owner",
+    "max_rounds",
+    "status"
+  ], filePath);
   const kind = frontmatter.kind;
 
   if (kind === undefined) {
@@ -408,7 +420,7 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
 
   return {
     kind,
-    version: expectNumber(frontmatter.version, "version", filePath),
+    version: expectPositiveInteger(frontmatter.version, "version", filePath),
     mcp: parseMcpMap(frontmatter.mcp, filePath),
     builder: parseRequiredRole(frontmatter.builder, "builder", filePath),
     inspectors: parseInspectorMap(frontmatter.inspectors, filePath),
@@ -417,7 +429,7 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
     max_rounds:
       frontmatter.max_rounds === undefined
         ? 100
-        : expectNumber(frontmatter.max_rounds, "max_rounds", filePath),
+        : expectPositiveInteger(frontmatter.max_rounds, "max_rounds", filePath),
     status: parseStatusBlock(frontmatter.status, filePath)
   };
 }
@@ -428,6 +440,7 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
   }
 
   const role = expectRecord(value, roleName, filePath);
+  assertOnlyKeys(role, roleName, ["agent", "mode", "cwd", "mcp", "prompt"], filePath);
   const mcp =
     role.mcp === undefined ? undefined : parseMcpMap(role.mcp, filePath, `${roleName}.mcp`);
 
@@ -435,12 +448,12 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
     agent:
       role.agent === undefined
         ? "claude-code"
-        : expectString(role.agent, `${roleName}.agent`, filePath),
+        : expectNonEmptyString(role.agent, `${roleName}.agent`, filePath),
     mode:
-      role.mode === undefined ? undefined : expectString(role.mode, `${roleName}.mode`, filePath),
-    cwd: role.cwd === undefined ? undefined : expectString(role.cwd, `${roleName}.cwd`, filePath),
+      role.mode === undefined ? undefined : expectNonEmptyString(role.mode, `${roleName}.mode`, filePath),
+    cwd: role.cwd === undefined ? undefined : expectNonEmptyString(role.cwd, `${roleName}.cwd`, filePath),
     mcp,
-    prompt: expectString(role.prompt, `${roleName}.prompt`, filePath)
+    prompt: expectNonEmptyString(role.prompt, `${roleName}.prompt`, filePath)
   };
 }
 
@@ -483,9 +496,10 @@ function parseMcpMap(
 
 function parseMcpConfig(value: unknown, fieldName: string, filePath: string): McpConfig {
   const config = expectRecord(value, fieldName, filePath);
+  assertOnlyKeys(config, fieldName, ["command", "args", "timeout"], filePath);
 
   return {
-    command: expectString(config.command, `${fieldName}.command`, filePath),
+    command: expectNonEmptyString(config.command, `${fieldName}.command`, filePath),
     args:
       config.args === undefined
         ? undefined
@@ -499,6 +513,7 @@ function parseMcpConfig(value: unknown, fieldName: string, filePath: string): Mc
 
 function parseStatusBlock(value: unknown, filePath: string): StatusBlock {
   const status = expectRecord(value, "status", filePath);
+  assertOnlyKeys(status, "status", ["state", "round", "review_turn", "reason"], filePath);
   const state = expectString(status.state, "status.state", filePath);
 
   if (!validStatusStates.has(state as StatusBlock["state"])) {
@@ -509,8 +524,8 @@ function parseStatusBlock(value: unknown, filePath: string): StatusBlock {
 
   return {
     state: parsedState,
-    round: expectNumber(status.round, "status.round", filePath),
-    review_turn: expectNumber(status.review_turn, "status.review_turn", filePath)
+    round: expectNonNegativeInteger(status.round, "status.round", filePath),
+    review_turn: expectNonNegativeInteger(status.review_turn, "status.review_turn", filePath)
   };
 }
 
@@ -526,6 +541,20 @@ function expectRecord(
   return value;
 }
 
+function assertOnlyKeys(
+  value: Record<string, unknown>,
+  fieldName: string,
+  allowedKeys: readonly string[],
+  filePath: string
+): void {
+  const allowed = new Set(allowedKeys);
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) {
+      throw new Error(`${filePath}: unknown field ${fieldName}.${key}`);
+    }
+  }
+}
+
 function expectString(value: unknown, fieldName: string, filePath: string): string {
   if (typeof value !== "string") {
     throw new Error(`${filePath}: ${fieldName} must be a string`);
@@ -534,12 +563,28 @@ function expectString(value: unknown, fieldName: string, filePath: string): stri
   return value;
 }
 
-function expectNumber(value: unknown, fieldName: string, filePath: string): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    throw new Error(`${filePath}: ${fieldName} must be a number`);
+function expectNonEmptyString(value: unknown, fieldName: string, filePath: string): string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a non-empty string`);
   }
 
   return value;
+}
+
+function expectPositiveInteger(value: unknown, fieldName: string, filePath: string): number {
+  if (!Number.isInteger(value) || (value as number) <= 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a positive integer`);
+  }
+
+  return value as number;
+}
+
+function expectNonNegativeInteger(value: unknown, fieldName: string, filePath: string): number {
+  if (!Number.isInteger(value) || (value as number) < 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a non-negative integer`);
+  }
+
+  return value as number;
 }
 
 function expectPositiveNumber(value: unknown, fieldName: string, filePath: string): number {

@@ -2,7 +2,7 @@ import { color } from "../components/color.js";
 import { symbols } from "../components/symbols.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 
-export const SPINNER_FRAMES = ["◒", "◐", "◓", "◑"] as const;
+export const SPINNER_FRAMES = Object.freeze(["◒", "◐", "◓", "◑"] as const);
 
 export interface SpinnerFrameOptions {
   frame?: number;
@@ -27,7 +27,8 @@ export function renderSpinnerFrame(options: SpinnerFrameOptions): string {
   }
 
   const frame = options.frame ?? 0;
-  const spinnerChar = color.magenta(SPINNER_FRAMES[frame % SPINNER_FRAMES.length]);
+  const index = ((frame % SPINNER_FRAMES.length) + SPINNER_FRAMES.length) % SPINNER_FRAMES.length;
+  const spinnerChar = color.magenta(SPINNER_FRAMES[index]);
   const timerSuffix = options.timer ? color.dim(` [${options.timer}]`) : "";
   const bar = color.gray(symbols.bar);
 
@@ -41,11 +42,15 @@ export interface SpinnerStoppedOptions {
   subtext?: string;
 }
 
+function renderMarkdownInline(value: string): string {
+  return value.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+}
+
 export function renderSpinnerStopped(options: SpinnerStoppedOptions): string {
   const format = resolveOutputFormat();
 
   if (format === "markdown") {
-    return `- ${options.message}${options.timer ? ` [${options.timer}]` : ""}\n`;
+    return `- ${renderMarkdownInline(options.message)}${options.timer ? ` [${renderMarkdownInline(options.timer)}]` : ""}\n`;
   }
 
   if (format === "json") {
@@ -53,7 +58,9 @@ export function renderSpinnerStopped(options: SpinnerStoppedOptions): string {
       type: "spinner",
       state: "stopped",
       message: options.message,
-      ...(options.timer ? { timer: options.timer } : {})
+      code: options.code ?? 0,
+      ...(options.timer ? { timer: options.timer } : {}),
+      ...(options.subtext ? { subtext: options.subtext } : {})
     })}\n`;
   }
 

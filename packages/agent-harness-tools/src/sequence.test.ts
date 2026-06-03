@@ -35,6 +35,7 @@ function createOptions(options: {
   runAgent?: DocumentWorkflowSequenceOptions["runAgent"];
   stopOnFailure?: boolean;
   onSequenceProgress?: DocumentWorkflowSequenceOptions["onSequenceProgress"];
+  onIterationEnd?: DocumentWorkflowSequenceOptions["onIterationEnd"];
 }): DocumentWorkflowSequenceOptions {
   return {
     cwd: "/repo",
@@ -53,7 +54,8 @@ function createOptions(options: {
     ...(options.stopOnFailure === undefined
       ? {}
       : { stopOnFailure: options.stopOnFailure }),
-    ...(options.onSequenceProgress ? { onSequenceProgress: options.onSequenceProgress } : {})
+    ...(options.onSequenceProgress ? { onSequenceProgress: options.onSequenceProgress } : {}),
+    ...(options.onIterationEnd ? { onIterationEnd: options.onIterationEnd } : {})
   };
 }
 
@@ -165,6 +167,28 @@ describe("runDocumentWorkflowSequence", () => {
     expect(prompts).toEqual(["Doc 1", "Fail", "Doc 3"]);
   });
 
+  it("rejects parse failures that occur before any iteration result", async () => {
+    const { fs } = createFs({
+      "/repo/invalid.md": "not valid json",
+      "/repo/two.md": createWorkflowDocument({
+        stages: [{ id: "two", participant: "default", prompt: "Doc 2" }]
+      })
+    });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflowSequence(
+        createOptions({
+          fs,
+          docPaths: ["/repo/invalid.md", "/repo/two.md"],
+          runAgent
+        })
+      )
+    ).rejects.toThrow();
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("treats continued stage failures as sequence failures", async () => {
     const prompts: string[] = [];
     const { fs } = createFs({
@@ -257,5 +281,44 @@ describe("runDocumentWorkflowSequence", () => {
       [1, 3, "/repo/two.md"],
       [2, 3, "/repo/three.md"]
     ]);
+  });
+
+  it("awaits asynchronous iteration callbacks before running the next document", async () => {
+    const events: string[] = [];
+    let releaseCallback: (() => void) | undefined;
+    const { fs } = createFs({
+      "/repo/one.md": createWorkflowDocument({
+        stages: [{ id: "one", participant: "default", prompt: "Doc 1" }]
+      }),
+      "/repo/two.md": createWorkflowDocument({
+        stages: [{ id: "two", participant: "default", prompt: "Doc 2" }]
+      })
+    });
+
+    const sequence = runDocumentWorkflowSequence(
+      createOptions({
+        fs,
+        docPaths: ["/repo/one.md", "/repo/two.md"],
+        runAgent: vi.fn(async (input: RunAgentInput) => {
+          events.push(`run:${input.prompt}`);
+          return { exitCode: 0 };
+        }),
+        onIterationEnd: async () => {
+          if (events.includes("run:Doc 1") && !events.includes("run:Doc 2")) {
+            events.push("callback:start");
+            await new Promise<void>((resolve) => {
+              releaseCallback = resolve;
+            });
+            events.push("callback:end");
+          }
+        }
+      })
+    );
+
+    await vi.waitFor(() => expect(events).toContain("callback:start"));
+    expect(events).toEqual(["run:Doc 1", "callback:start"]);
+    releaseCallback?.();
+    await sequence;
+    expect(events).toEqual(["run:Doc 1", "callback:start", "callback:end", "run:Doc 2"]);
   });
 });

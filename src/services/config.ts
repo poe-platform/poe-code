@@ -1,5 +1,5 @@
 import path from "node:path";
-import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
+import { isNotFound, readFileIfExists } from "@poe-code/config-mutations";
 import {
   defineScope,
   loadConfiguredServices,
@@ -8,6 +8,7 @@ import {
   readMergedDocument,
   saveConfiguredService,
   unconfigureService,
+  writeDocument,
   writeScope
 } from "@poe-code/poe-code-config";
 import type {
@@ -146,6 +147,7 @@ export async function loadConfig(options: ConfigStoreOptions): Promise<string | 
 
 export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean> {
   const { fs, filePath } = options;
+  await assertSafeConfigDeletion(fs, filePath);
   try {
     await fs.unlink(filePath);
     return true;
@@ -154,6 +156,20 @@ export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean
       return false;
     }
     throw error;
+  }
+}
+
+async function assertSafeConfigDeletion(fs: FileSystem, filePath: string): Promise<void> {
+  for (const target of [path.dirname(filePath), filePath]) {
+    try {
+      if ((await fs.lstat(target)).isSymbolicLink()) {
+        throw new Error(`Refusing configuration access through symbolic link: ${target}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+    }
   }
 }
 
@@ -176,7 +192,11 @@ function normalizeConfiguredServiceMetadata(
   return {
     provider: metadata.provider,
     ...(metadata.apiShape ? { apiShape: metadata.apiShape } : {}),
-    files
+    files,
+    ...(metadata.model ? { model: metadata.model } : {}),
+    ...(metadata.reasoningEffort ? { reasoningEffort: metadata.reasoningEffort } : {}),
+    ...(metadata.baseUrl ? { baseUrl: metadata.baseUrl } : {}),
+    ...(metadata.shapeBaseUrl ? { shapeBaseUrl: metadata.shapeBaseUrl } : {})
   };
 }
 
@@ -216,6 +236,16 @@ async function migrateLegacyCredentialsIfNeeded(fs: FileSystem, filePath: string
 
 async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string): Promise<void> {
   const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+  try {
+    if ((await fs.lstat(legacyPath)).isSymbolicLink()) {
+      throw new Error(`Refusing legacy credentials access through symbolic link: ${legacyPath}`);
+    }
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
+    }
+  }
+
   const raw = await readFileIfExists(fs, legacyPath);
   if (raw === null) {
     return;
@@ -226,21 +256,20 @@ async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string):
     legacyDocument = normalizeLegacyConfigDocument(JSON.parse(raw));
   } catch (error) {
     if (error instanceof SyntaxError) {
-      await recoverInvalidConfig(fs, legacyPath, raw);
-      await fs.unlink(legacyPath);
       return;
     }
     throw error;
   }
 
+  const document = await readDocument(fs, configPath);
   if (legacyDocument.configured_services) {
-    await writeScope(fs, configPath, configuredServicesScope, legacyDocument.configured_services);
+    defineDataProperty(document, configuredServicesScope, legacyDocument.configured_services);
   }
-
   if (legacyDocument.apiKey) {
-    await writeScope(fs, configPath, CORE_SCOPE, {
-      apiKey: legacyDocument.apiKey
-    });
+    defineDataProperty(document, CORE_SCOPE, { apiKey: legacyDocument.apiKey });
+  }
+  if (legacyDocument.configured_services || legacyDocument.apiKey) {
+    await writeDocument(fs, configPath, document);
   }
 
   await fs.unlink(legacyPath);
@@ -283,33 +312,32 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       continue;
     }
 
-    entries[key] = normalizeConfiguredServiceMetadata({
+    defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
       apiShape:
         typeof entry.apiShape === "string"
           ? (entry.apiShape as ConfiguredServiceMetadata["apiShape"])
           : undefined,
-      files: Array.isArray(entry.files) ? entry.files : []
-    });
+      files: Array.isArray(entry.files) ? entry.files : [],
+      model: typeof entry.model === "string" ? entry.model : undefined,
+      reasoningEffort: typeof entry.reasoningEffort === "string" ? entry.reasoningEffort : undefined,
+      baseUrl: typeof entry.baseUrl === "string" ? entry.baseUrl : undefined,
+      shapeBaseUrl: Array.isArray(entry.shapeBaseUrl)
+        ? entry.shapeBaseUrl.filter((value): value is string => typeof value === "string")
+        : undefined
+    }));
   }
 
   return entries;
 }
 
-async function recoverInvalidConfig(
-  fs: FileSystem,
-  filePath: string,
-  content: string
-): Promise<void> {
-  const backupPath = createInvalidBackupPath(filePath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
-  await fs.writeFile(filePath, EMPTY_DOCUMENT, { encoding: "utf8" });
-}
-
-function createInvalidBackupPath(filePath: string): string {
-  const directory = path.dirname(filePath);
-  const baseName = path.basename(filePath);
-  return path.join(directory, `${baseName}.invalid-${createTimestamp()}.json`);
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, any> {
@@ -317,4 +345,3 @@ function isRecord(value: unknown): value is Record<string, any> {
 }
 
 const configuredServicesScope = "configured_services";
-const EMPTY_DOCUMENT = `${JSON.stringify({}, null, 2)}\n`;

@@ -393,6 +393,14 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     }
   })();
 
+  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
+  let resolveMiddlewaresApplied: (() => void) | undefined;
+  const middlewaresApplied = hasMiddlewares
+    ? new Promise<void>((resolve) => {
+        resolveMiddlewaresApplied = resolve;
+      })
+    : undefined;
+
   const done = (async (): Promise<SpawnResult> => {
     try {
       await applyMiddlewares(
@@ -426,18 +434,34 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
         ],
         ctx
       );
-
       return {
         ...result,
         ...(ctx.logFile && !result.logFile ? { logFile: ctx.logFile } : {})
       };
     } finally {
+      resolveMiddlewaresApplied?.();
       cleanupResourcesForRun(manifest);
     }
   })();
 
+  const events =
+    hasMiddlewares
+      ? {
+          [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
+            let iterator: AsyncIterator<AcpEvent> | undefined;
+            return {
+              async next(): Promise<IteratorResult<AcpEvent>> {
+                await middlewaresApplied;
+                iterator ??= ctx.eventStream![Symbol.asyncIterator]();
+                return iterator.next();
+              }
+            };
+          }
+        }
+      : ctx.eventStream;
+
   return {
-    events: ctx.eventStream,
+    events,
     done: observeAgentSpawn(
       {
         agent: agentId,

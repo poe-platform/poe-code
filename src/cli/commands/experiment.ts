@@ -45,6 +45,7 @@ import { experimentConfigScope, planConfigScope } from "../../services/config.js
 import {
   mergeExperimentCallbacks,
   readMergedDocument,
+  readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -496,12 +497,16 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
-async function resolveExperimentCommandConfig(container: CliContainer): Promise<{
+async function resolveExperimentCommandConfig(
+  container: CliContainer,
+  options: { readonly?: boolean } = {}
+): Promise<{
   configDoc: ConfigDocument;
   planDirectory: string;
   tui: boolean;
 }> {
-  const configDoc = await readMergedDocument(
+  const readConfig = options.readonly ? readMergedDocumentReadonly : readMergedDocument;
+  const configDoc = await readConfig(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -686,8 +691,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
       let integrations: Integrations | null = null;
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
-        integrations = await loadIntegrations(commandConfig.configDoc);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -712,6 +716,14 @@ export function registerExperimentCommand(program: Command, container: CliContai
         }
 
         const maxExperiments = parseNonNegativeInt(options.maxExperiments, "max-experiments");
+        if (flags.dryRun) {
+          resources.logger.dryRun(
+            `Dry run: would run experiment doc ${docPath} with ${formatExperimentAgentSummary(agent)} for up to ${formatMaxExperimentsLabel(maxExperiments)} experiments.`
+          );
+          return;
+        }
+
+        integrations = await loadIntegrations(commandConfig.configDoc);
         const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
           agent,
           cwd: container.env.cwd,
@@ -807,7 +819,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment journal");
 
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: true });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -883,7 +895,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }>();
 
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -949,7 +961,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         resources.logger.intro("experiment validate");
 
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -999,7 +1011,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .command("plan-path")
     .description("Print the directory where experiment plan files should be placed.")
     .action(async function () {
-      const commandConfig = await resolveExperimentCommandConfig(container);
+      const commandConfig = await resolveExperimentCommandConfig(container, { readonly: true });
 
       const resolvedPath = resolvePlanDirectory({
         cwd: container.env.cwd,
@@ -1029,7 +1041,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         let agent = options.agent;
         if (!agent) {
-          const fromConfig = await resolveDefaultAgent(container);
+          const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
           if (fromConfig !== null) {
             agent = parseAgentSpecifier(fromConfig).agent;
           } else if (flags.assumeYes) {
@@ -1080,53 +1092,76 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.logger.intro(`experiment install (${support.id}, ${scope})`);
 
         const templates = await loadExperimentTemplates();
-        const skillResult = await installSkill(
-          support.id,
-          {
-            name: "poe-code-experiment-plan",
-            content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
-          },
-          {
-            fs: container.fs,
-            cwd: container.env.cwd,
-            homeDir: container.env.homeDir,
-            scope,
-            dryRun: flags.dryRun
-          }
-        );
-
-        if (flags.dryRun) {
-          resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
-        } else {
-          resources.logger.info(`Create: ${skillResult.displayPath}`);
-        }
-
         const experimentPaths = resolveExperimentPaths(
           scope,
           container.env.cwd,
           container.env.homeDir
         );
-
-        if (!(await pathExists(container.fs, experimentPaths.experimentsPath))) {
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${experimentPaths.displayExperimentsPath}`);
-          } else {
-            await container.fs.mkdir(experimentPaths.experimentsPath, {
-              recursive: true
-            });
-            resources.logger.info(`Create: ${experimentPaths.displayExperimentsPath}`);
-          }
-        }
-
         const runYamlPath = path.join(experimentPaths.experimentsPath, "run.yaml");
         const runYamlDisplayPath = path.join(experimentPaths.displayExperimentsPath, "run.yaml");
-        if (!(await pathExists(container.fs, runYamlPath))) {
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
-          } else {
-            await container.fs.writeFile(runYamlPath, templates.runYaml);
-            resources.logger.info(`Create: ${runYamlDisplayPath}`);
+        const experimentsPathExisted = await pathExists(
+          container.fs,
+          experimentPaths.experimentsPath
+        );
+        const runYamlExisted = await pathExists(container.fs, runYamlPath);
+        let createdExperimentsPath = false;
+        let createdRunYaml = false;
+
+        try {
+          if (!experimentsPathExisted) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${experimentPaths.displayExperimentsPath}`);
+            } else {
+              await container.fs.mkdir(experimentPaths.experimentsPath, {
+                recursive: true
+              });
+              createdExperimentsPath = true;
+              resources.logger.info(`Create: ${experimentPaths.displayExperimentsPath}`);
+            }
           }
+
+          if (!runYamlExisted) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
+            } else {
+              await container.fs.writeFile(runYamlPath, templates.runYaml);
+              createdRunYaml = true;
+              resources.logger.info(`Create: ${runYamlDisplayPath}`);
+            }
+          }
+
+          const skillResult = await installSkill(
+            support.id,
+            {
+              name: "poe-code-experiment-plan",
+              content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
+            },
+            {
+              fs: container.fs,
+              cwd: container.env.cwd,
+              homeDir: container.env.homeDir,
+              scope,
+              dryRun: flags.dryRun
+            }
+          );
+
+          if (flags.dryRun) {
+            resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
+          } else {
+            resources.logger.info(`Create: ${skillResult.displayPath}`);
+          }
+        } catch (error) {
+          if (!flags.dryRun) {
+            if (createdRunYaml) {
+              await container.fs.unlink(runYamlPath).catch(() => undefined);
+            }
+            if (createdExperimentsPath) {
+              await container.fs
+                .rm?.(experimentPaths.experimentsPath, { recursive: true, force: true })
+                .catch(() => undefined);
+            }
+          }
+          throw error;
         }
 
         resources.context.complete({

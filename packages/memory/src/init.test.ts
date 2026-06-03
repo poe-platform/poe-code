@@ -50,4 +50,29 @@ describe("initMemory", () => {
       vol.promises.readFile("/repo/.poe-code/memory/pages/architecture.md", "utf8")
     ).resolves.toBe("# Architecture\n");
   });
+
+  it("rejects a symlinked memory root before writing scaffold files", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory");
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.stat("/outside/INDEX.md")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(vol.promises.stat("/outside/LOG.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("removes newly created scaffold artifacts when initialization fails", async () => {
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).endsWith("/LOG.md")) {
+        throw new Error("log scaffold failed");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow("log scaffold failed");
+    await expect(vol.promises.stat("/repo/.poe-code/memory")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });

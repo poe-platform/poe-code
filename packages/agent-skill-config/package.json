@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc && node scripts/copy-templates.mjs"
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-templates.mjs"
   },
   "files": [
     "dist"

@@ -71,8 +71,12 @@ export async function resolvePair(inputPath: string, fs: HarnessFs = nodeFs): Pr
     let stat: { isFile(): boolean };
     try {
       stat = await fs.stat(check.path);
-    } catch {
-      throw new MissingPairError(check.side, check.path);
+    } catch (error) {
+      if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+        throw new MissingPairError(check.side, check.path);
+      }
+
+      throw error;
     }
 
     if (!stat.isFile()) {

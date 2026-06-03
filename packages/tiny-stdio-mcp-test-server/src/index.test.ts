@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { createTestPair, type TestPair } from "tiny-stdio-mcp-server/testing";
 import { createTestServer, caesarEncrypt } from "./index.js";
+import packageJson from "../package.json" with { type: "json" };
 
 describe("caesarEncrypt", () => {
   it("encrypts lowercase letters with default shift", () => {
@@ -26,6 +27,14 @@ describe("caesarEncrypt", () => {
     expect(caesarEncrypt("abc", 13)).toBe("nop");
     expect(caesarEncrypt("abc", 26)).toBe("abc");
   });
+
+  it("wraps negative shifts backwards", () => {
+    expect(caesarEncrypt("abc ABC", -1)).toBe("zab ZAB");
+  });
+
+  it.each([1.5, Number.NaN])("rejects invalid shifts %s", (shift) => {
+    expect(() => caesarEncrypt("abc", shift)).toThrow("integer");
+  });
 });
 
 describe("tiny-stdio-mcp-test-server via SDK", () => {
@@ -45,7 +54,7 @@ describe("tiny-stdio-mcp-test-server via SDK", () => {
 
       const serverInfo = testPair.client.getServerVersion();
       expect(serverInfo?.name).toBe("tiny-stdio-mcp-test-server");
-      expect(serverInfo?.version).toBe("0.0.1");
+      expect(serverInfo?.version).toBe(packageJson.version);
     });
   });
 

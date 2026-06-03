@@ -2,13 +2,21 @@ import { UserError } from "toolcraft";
 import type { Section } from "./scan.js";
 
 export function resolveSection(sections: Section[], id: string): Section {
-  const sectionByNumber = sections.find((section) => section.number === id);
+  const trimmedId = id.trim();
+  const unnumberedTitleMatch = sections.find(
+    (section) => section.number === null && section.title === trimmedId
+  );
+
+  if (unnumberedTitleMatch !== undefined) {
+    return unnumberedTitleMatch;
+  }
+
+  const sectionByNumber = sections.find((section) => section.number === trimmedId);
 
   if (sectionByNumber !== undefined) {
     return sectionByNumber;
   }
 
-  const trimmedId = id.trim();
   const titleMatches = sections.filter((section) => section.title === trimmedId);
 
   if (titleMatches.length === 1) {

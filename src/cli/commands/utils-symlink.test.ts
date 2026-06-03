@@ -267,6 +267,32 @@ describe.each([
   });
 });
 
+describe("applySymlinkOps", () => {
+  it("rolls back a completed rename when a following symlink creation fails", async () => {
+    const rawFs = createMemFs({ [`${cwd}/CLAUDE.md`]: "instructions\n" });
+    const fs = {
+      ...rawFs,
+      symlink: async () => {
+        throw new Error("simulated symlink creation failure");
+      }
+    } as FileSystem;
+
+    await expect(
+      applySymlinkOps(
+        fs,
+        [
+          { kind: "rename", from: `${cwd}/CLAUDE.md`, to: `${cwd}/AGENTS.md` },
+          { kind: "symlink", target: "AGENTS.md", path: `${cwd}/CLAUDE.md` }
+        ],
+        { dryRun: false, log: () => undefined }
+      )
+    ).rejects.toThrow("simulated symlink creation failure");
+
+    await expect(rawFs.readFile(`${cwd}/CLAUDE.md`, "utf8")).resolves.toBe("instructions\n");
+    await expect(rawFs.lstat(`${cwd}/AGENTS.md`)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+});
+
 describe("utils symlink subcommand help", () => {
   it.each(["agents", "skills"])("%s --help shows its own flags, not the parent help", (sub) => {
     const fs = createMemFs();

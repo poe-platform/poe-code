@@ -1,6 +1,6 @@
 import { createSecretKey } from "node:crypto";
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { createOAuthTestServer } from "tiny-oauth-test-server";
 import { createJwksTokenVerifier } from "./index.js";
@@ -9,6 +9,8 @@ describe("createJwksTokenVerifier", () => {
   const cleanups = new Set<() => Promise<void>>();
 
   afterEach(async () => {
+    vi.useRealTimers();
+
     for (const cleanup of [...cleanups].reverse()) {
       await cleanup();
     }
@@ -173,6 +175,32 @@ describe("createJwksTokenVerifier", () => {
     });
   });
 
+  it("rejects tokens missing any required scope", async () => {
+    const oauth = await listenOAuthServer();
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
+      fetch: nodeFetch,
+    });
+    const token = await oauth.issueTokenFor({
+      clientId: "demo-client",
+      resource: "https://resource.example.com/mcp",
+      scopes: ["mcp.read"],
+    });
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: [oauth.issuer],
+        requiredScopes: ["mcp.read", "mcp.write"],
+      })
+    ).rejects.toMatchObject({
+      error: "insufficient_scope",
+      errorDescription: "insufficient scope",
+      scope: ["mcp.read", "mcp.write"],
+    });
+  });
+
   it("tries every matching kid in the JWKS until one verifies the signature", async () => {
     const { publicKey: wrongPublicKey } = await generateKeyPair("ES256");
     const { privateKey: correctPrivateKey, publicKey: correctPublicKey } = await generateKeyPair("ES256");
@@ -319,6 +347,8 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("accepts tokens inside the configured expiration clock-skew window", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-28T10:00:00.000Z"));
     const oauth = await listenOAuthServer();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
@@ -329,8 +359,9 @@ describe("createJwksTokenVerifier", () => {
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
       scopes: ["mcp.read"],
-      ttlSeconds: -20,
+      ttlSeconds: 1,
     });
+    vi.setSystemTime(new Date("2026-05-28T10:00:21.000Z"));
 
     await expect(
       verifier.verify({
@@ -346,6 +377,8 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("rejects tokens outside the configured expiration clock-skew window with token expired", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-05-28T10:00:00.000Z"));
     const oauth = await listenOAuthServer();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
@@ -356,8 +389,9 @@ describe("createJwksTokenVerifier", () => {
       clientId: "demo-client",
       resource: "https://resource.example.com/mcp",
       scopes: ["mcp.read"],
-      ttlSeconds: -31,
+      ttlSeconds: 1,
     });
+    vi.setSystemTime(new Date("2026-05-28T10:00:32.000Z"));
 
     await expect(
       verifier.verify({

@@ -22,15 +22,17 @@ export interface FileSystem {
   writeFile(
     path: string,
     content: string,
-    options?: { encoding: "utf8" }
+    options?: { encoding: "utf8"; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   rm?(
     path: string,
     options?: { recursive?: boolean; force?: boolean }
   ): Promise<void>;
   stat(path: string): Promise<{ mode?: number }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   readdir(path: string): Promise<string[]>;
   chmod?(path: string, mode: number): Promise<void>;
 }
@@ -169,6 +171,12 @@ export interface ChmodMutation extends BaseMutation {
 export interface BackupMutation extends BaseMutation {
   kind: "backup";
   target: ValueResolver<string>;
+  once?: boolean;
+}
+
+export interface RestoreBackupMutation extends BaseMutation {
+  kind: "restoreBackup";
+  target: ValueResolver<string>;
 }
 
 // Template mutations
@@ -202,6 +210,7 @@ export type Mutation =
   | RemoveFileMutation
   | ChmodMutation
   | BackupMutation
+  | RestoreBackupMutation
   | TemplateWriteMutation
   | TemplateMergeTomlMutation
   | TemplateMergeJsonMutation;
@@ -223,7 +232,8 @@ export type MutationDetail =
   | "update"
   | "delete"
   | "noop"
-  | "backup";
+  | "backup"
+  | "restore";
 
 export interface MutationOutcome {
   changed: boolean;

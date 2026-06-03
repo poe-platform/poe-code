@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { planConfigScope, readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import { planConfigScope, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
@@ -9,6 +9,7 @@ function createDefaultFs(): DiscoveryFs {
     readFile: fsPromises.readFile as DiscoveryFs["readFile"],
     writeFile: fsPromises.writeFile as DiscoveryFs["writeFile"],
     readdir: fsPromises.readdir,
+    realpath: fsPromises.realpath,
     stat: async (filePath) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -16,6 +17,10 @@ function createDefaultFs(): DiscoveryFs {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
+    },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     mkdir: async (directoryPath, mkdirOptions) => {
       await fsPromises.mkdir(directoryPath, mkdirOptions);
@@ -86,8 +91,8 @@ async function resolveSharedPlanDirectory(options: {
     return envValue;
   }
 
-  const document = await readMergedDocument(
-    options.fs as Parameters<typeof readMergedDocument>[0],
+  const document = await readMergedDocumentReadonly(
+    options.fs as Parameters<typeof readMergedDocumentReadonly>[0],
     options.configPath,
     options.projectConfigPath
   );
@@ -134,6 +139,20 @@ async function discoverSharedPlans(options: {
 }): Promise<PlanEntry[]> {
   const displayDir = await resolveSharedPlanDirectory(options);
   const absoluteDir = resolveAbsoluteDirectory(displayDir, options.cwd, options.homeDir);
+  const canonicalDir = await options.fs.realpath(absoluteDir).catch((error: unknown) => {
+    if (isNotFound(error)) {
+      return undefined;
+    }
+    throw error;
+  });
+
+  if (canonicalDir === undefined) {
+    return [];
+  }
+
+  if (canonicalDir !== path.resolve(absoluteDir)) {
+    throw new Error(`Plan directory must not be a symbolic link: ${displayDir}`);
+  }
 
   let entries: string[];
   try {
@@ -152,6 +171,10 @@ async function discoverSharedPlans(options: {
     }
 
     const absolutePath = path.join(absoluteDir, name);
+    const canonicalPath = await options.fs.realpath(absolutePath);
+    if (canonicalPath !== path.resolve(absolutePath)) {
+      throw new Error(`Plan file must not be a symbolic link: ${path.join(displayDir, name)}`);
+    }
     const stat = await options.fs.stat(absolutePath);
     if (!stat.isFile()) {
       continue;
@@ -169,7 +192,8 @@ async function discoverSharedPlans(options: {
       kind,
       absolutePath,
       path: displayPath,
-      fs: options.fs
+      fs: options.fs,
+      content
     });
 
     plans.push({

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveIsolatedEnvDetails, resolveCliSettings } from "./isolated-env.js";
+import { resolveIsolatedEnvDetails, resolveProviderRuntimeEnv, resolveCliSettings } from "./isolated-env.js";
 import { createCliEnvironment } from "./environment.js";
 import type { ActiveProvider } from "./commands/shared.js";
 
@@ -78,6 +78,16 @@ describe("resolveIsolatedEnvDetails", () => {
       );
       expect(details.env.BASE_URL).toBe("https://agent.example.com");
     });
+  });
+});
+
+describe("resolveProviderRuntimeEnv", () => {
+  it("preserves explicitly configured special environment names", async () => {
+    const variables = JSON.parse('{"__proto__":"visible"}') as Record<string, string>;
+    const result = await resolveProviderRuntimeEnv(makeEnv(), variables, "test-service");
+
+    expect(Object.hasOwn(result, "__proto__")).toBe(true);
+    expect(result["__proto__"]).toBe("visible");
   });
 });
 

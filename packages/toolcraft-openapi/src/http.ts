@@ -2,6 +2,7 @@ import { text as designText } from "@poe-code/design-system";
 import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";
+import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
@@ -73,7 +74,7 @@ export async function requestJson<TResult = unknown>(
   const headers = createHeaders(token, hasBody);
   const writeStdout = options.writeStdout ?? process.stdout.write.bind(process.stdout);
   const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
-  const requestLine = `${method} ${url}`;
+  const requestLine = `${method} ${redactSensitiveQueryValues(url)}`;
 
   if (options.dryRun) {
     writeStdout(formatDryRunOutput(requestLine, headers, options.body));
@@ -102,7 +103,7 @@ export async function requestJson<TResult = unknown>(
   const text = await response.text();
   const contentType = response.headers.get("content-type");
   const request = createHttpErrorRequest(method, url, headers, options.body);
-  const responseHeaders = serializeHeaders(response.headers);
+  const responseHeaders = redactHeaders(serializeHeaders(response.headers));
 
   if (response.ok) {
     if (text.length === 0) {
@@ -136,7 +137,28 @@ export async function requestJson<TResult = unknown>(
       });
     }
 
-    const body = JSON.parse(text) as TResult;
+    let body: TResult;
+
+    try {
+      body = JSON.parse(text) as TResult;
+    } catch {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
+        );
+      }
+
+      throw new HttpError({
+        request,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          body: text
+        },
+        message: "Expected a valid JSON response body but received malformed JSON."
+      });
+    }
 
     if (options.verbose) {
       writeStderr(
@@ -147,8 +169,8 @@ export async function requestJson<TResult = unknown>(
     return body;
   }
 
-  if (response.status === 401) {
-    await options.tokenSource.invalidate?.();
+  if (response.status === 401 && options.auth === "required") {
+    await options.tokenSource.invalidate?.(token).catch(() => undefined);
   }
 
   const body = parseResponseBody(text, contentType);
@@ -192,7 +214,10 @@ function substitutePathParams(
   pathParams?: Record<string, string | number | boolean>
 ): string {
   const resolvedPath = path.replace(/\{([^}]+)\}/g, (_match, key: string) => {
-    const value = pathParams?.[key];
+    const value =
+      pathParams !== undefined && Object.prototype.hasOwnProperty.call(pathParams, key)
+        ? pathParams[key]
+        : undefined;
 
     if (value === undefined) {
       throw new UserError(`Missing path parameter "${key}".`);
@@ -235,7 +260,7 @@ function createHttpErrorRequest(
 ): HttpErrorRequest {
   return {
     method,
-    url,
+    url: redactSensitiveQueryValues(url),
     headers: redactHeaders(headers),
     ...(body === undefined ? {} : { body })
   };
@@ -243,20 +268,6 @@ function createHttpErrorRequest(
 
 function serializeHeaders(headers: Headers): Record<string, string> {
   return Object.fromEntries(headers.entries());
-}
-
-function redactHeaders(headers: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(headers).map(([key, value]) => [key, redactHeaderValue(key, value)])
-  );
-}
-
-function redactHeaderValue(key: string, value: string): string {
-  if (key.toLowerCase() === "authorization" && value.startsWith("Bearer ")) {
-    return "Bearer ****";
-  }
-
-  return value;
 }
 
 function formatDryRunOutput(
@@ -288,7 +299,7 @@ function formatVerboseRequestTranscript(
   body: unknown
 ): string[] {
   const lines = [
-    `→ ${method} ${url}`,
+    `→ ${method} ${redactSensitiveQueryValues(url)}`,
     ...Object.entries(headers).map(([key, value]) => {
       const headerValue = redactHeaderValue(key, value);
 

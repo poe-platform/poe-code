@@ -9,7 +9,7 @@ import {
   resolveApiShape,
   type ApiShapeId
 } from "@poe-code/providers";
-import { readDocument, readMergedDocument, writeScope } from "./store.js";
+import { readDocument, readMergedDocument, readMergedDocumentReadonly, writeScope } from "./store.js";
 
 export interface ConfigStoreOptions {
   fs: FileSystem;
@@ -17,12 +17,17 @@ export interface ConfigStoreOptions {
   projectFilePath?: string;
   providerRegistry?: Pick<ProviderRegistry, "get">;
   warn?: (message: string) => void;
+  readOnly?: boolean;
 }
 
 export interface ConfiguredServiceMetadata {
   provider: string;
   apiShape?: ApiShapeId;
   files: string[];
+  model?: string;
+  reasoningEffort?: string;
+  baseUrl?: string;
+  shapeBaseUrl?: string[];
 }
 
 interface LegacyConfigDocument {
@@ -43,13 +48,16 @@ export async function loadConfiguredServices(
   options: ConfigStoreOptions
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
   const { fs, filePath, projectFilePath } = options;
-  await migrateLegacyCredentialsIfNeeded(fs, filePath);
-  await migrateConfiguredServicesIfNeeded(options, filePath);
-  if (projectFilePath && projectFilePath !== filePath) {
-    await migrateConfiguredServicesIfNeeded(options, projectFilePath);
+  if (!options.readOnly) {
+    await migrateLegacyCredentialsIfNeeded(fs, filePath);
+    await migrateConfiguredServiceLayers(options, [
+      filePath,
+      ...(projectFilePath && projectFilePath !== filePath ? [projectFilePath] : [])
+    ]);
   }
 
-  const document = await readMergedDocument(fs, filePath, projectFilePath);
+  const readConfig = options.readOnly ? readMergedDocumentReadonly : readMergedDocument;
+  const document = await readConfig(fs, filePath, projectFilePath);
   return normalizeConfiguredServices(document[configuredServicesScope]);
 }
 
@@ -61,7 +69,7 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
   const document = await readDocument(fs, filePath);
   const services = normalizeConfiguredServices(document[configuredServicesScope]);
   const registry = options.providerRegistry ?? defaultProviderRegistry;
-  services[service] = normalizeConfiguredServiceMetadata({
+  defineDataProperty(services, service, normalizeConfiguredServiceMetadata({
     ...metadata,
     apiShape:
       metadata.apiShape ??
@@ -71,7 +79,7 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
         registry,
         warn: options.warn ?? console.warn
       })
-  });
+  }));
 
   await writeScope(fs, filePath, configuredServicesScope, services);
 }
@@ -83,7 +91,7 @@ export async function unconfigureService(options: UnconfigureServiceOptions): Pr
   const document = await readDocument(fs, filePath);
   const services = normalizeConfiguredServices(document[configuredServicesScope]);
 
-  if (!(service in services)) {
+  if (!Object.hasOwn(services, service)) {
     return false;
   }
 
@@ -96,10 +104,48 @@ async function migrateConfiguredServicesIfNeeded(
   options: ConfigStoreOptions,
   filePath: string
 ): Promise<void> {
+  const migration = await prepareConfiguredServicesMigration(options, filePath);
+  if (migration) {
+    await writeScope(options.fs, filePath, configuredServicesScope, migration.migrated);
+  }
+}
+
+async function migrateConfiguredServiceLayers(
+  options: ConfigStoreOptions,
+  filePaths: string[]
+): Promise<void> {
+  const migrations = (await Promise.all(
+    filePaths.map((filePath) => prepareConfiguredServicesMigration(options, filePath))
+  )).filter((migration) => migration !== undefined);
+  const committed: ConfiguredServicesMigration[] = [];
+
+  try {
+    for (const migration of migrations) {
+      await writeScope(options.fs, migration.filePath, configuredServicesScope, migration.migrated);
+      committed.push(migration);
+    }
+  } catch (error) {
+    for (const migration of committed.reverse()) {
+      await writeScope(options.fs, migration.filePath, configuredServicesScope, migration.original).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+interface ConfiguredServicesMigration {
+  filePath: string;
+  migrated: Record<string, unknown>;
+  original: Record<string, unknown>;
+}
+
+async function prepareConfiguredServicesMigration(
+  options: ConfigStoreOptions,
+  filePath: string
+): Promise<ConfiguredServicesMigration | undefined> {
   const document = await readDocument(options.fs, filePath);
   const rawServices = document[configuredServicesScope];
   if (!isRecord(rawServices)) {
-    return;
+    return undefined;
   }
 
   let needsMigration = false;
@@ -121,7 +167,7 @@ async function migrateConfiguredServicesIfNeeded(
       needsMigration = true;
     }
 
-    if (typeof entry.apiShape !== "string") {
+    if (!isApiShape(entry.apiShape)) {
       const apiShape = deriveApiShape({
         service,
         provider,
@@ -134,12 +180,18 @@ async function migrateConfiguredServicesIfNeeded(
       }
     }
 
-    migrated[service] = normalizedEntry;
+    defineDataProperty(migrated, service, normalizedEntry);
   }
 
   if (needsMigration) {
-    await writeScope(options.fs, filePath, configuredServicesScope, migrated);
+    return {
+      filePath,
+      migrated,
+      original: rawServices
+    };
   }
+
+  return undefined;
 }
 
 function deriveApiShape(input: {
@@ -175,11 +227,15 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       continue;
     }
 
-    entries[key] = normalizeConfiguredServiceMetadata({
+    defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
-      apiShape: typeof entry.apiShape === "string" ? (entry.apiShape as ApiShapeId) : undefined,
-      files: Array.isArray(entry.files) ? entry.files : []
-    });
+      apiShape: isApiShape(entry.apiShape) ? entry.apiShape : undefined,
+      files: Array.isArray(entry.files) ? entry.files : [],
+      model: typeof entry.model === "string" ? entry.model : undefined,
+      reasoningEffort: typeof entry.reasoningEffort === "string" ? entry.reasoningEffort : undefined,
+      baseUrl: typeof entry.baseUrl === "string" ? entry.baseUrl : undefined,
+      shapeBaseUrl: Array.isArray(entry.shapeBaseUrl) ? entry.shapeBaseUrl : undefined
+    }));
   }
 
   return entries;
@@ -204,8 +260,25 @@ function normalizeConfiguredServiceMetadata(
   return omitUndefined({
     provider: metadata.provider,
     apiShape: metadata.apiShape,
-    files
+    files,
+    model: normalizeOptionalText(metadata.model),
+    reasoningEffort: normalizeOptionalText(metadata.reasoningEffort),
+    baseUrl: normalizeOptionalText(metadata.baseUrl),
+    shapeBaseUrl: normalizeOptionalTextList(metadata.shapeBaseUrl)
   });
+}
+
+function normalizeOptionalText(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized && normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeOptionalTextList(value: string[] | undefined): string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const normalized = value.map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 async function migrateLegacyCredentialsIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
@@ -285,6 +358,24 @@ function createInvalidBackupPath(filePath: string): string {
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as T;
+}
+
+function isApiShape(value: unknown): value is ApiShapeId {
+  return (
+    value === "openai-chat-completions" ||
+    value === "openai-responses" ||
+    value === "anthropic-messages" ||
+    value === "google-generations"
+  );
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

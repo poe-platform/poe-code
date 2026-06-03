@@ -185,6 +185,26 @@ describe("runMaestroTick", () => {
     expect(events).toEqual([{ type: "tick_started", at: "2026-01-01T00:00:00.000Z" }]);
   });
 
+  it("emits queued trigger previews without firing task transitions", async () => {
+    writeGhIssuesWorkflow();
+    const calls: Array<{ method: string; args: unknown[] }> = [];
+    const taskList = createGhIssuesTickTaskList("octo-org/7", calls);
+    const events: MaestroEvent[] = [];
+
+    await runMaestroTick({
+      configPath: "/repo/WORKFLOW.md",
+      task: "octo-org/7#482",
+      transition: "*:queued",
+      dryRun: true,
+      openTaskList: async () => taskList,
+      now: () => new Date("2026-01-01T00:00:00.000Z"),
+      onEvent: (event) => events.push(event)
+    });
+
+    expect(calls).toEqual([]);
+    expect(events).toEqual([{ type: "tick_started", at: "2026-01-01T00:00:00.000Z" }]);
+  });
+
   it("accepts a bare task id when agent.list is configured", async () => {
     writeGhIssuesWorkflow();
     const calls: Array<{ method: string; args: unknown[] }> = [];

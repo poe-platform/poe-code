@@ -127,6 +127,28 @@ describe("buildPlanExplorerConfig", () => {
     ).toBe("# Feature\n\nPreview");
   });
 
+  it("keeps duplicate visible rows bound to their displayed entries", async () => {
+    const first = plan({ path: "docs/plans/first.md", absolutePath: "/repo/docs/plans/shared.md", title: "First", detail: "first" });
+    const second = plan({ path: "docs/plans/second.md", absolutePath: "/repo/docs/plans/shared.md", title: "Second", detail: "second" });
+    const config = buildPlanExplorerConfig({
+      plans: [first, second],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [first, second],
+      loadDetailMarkdown: async (entry) => `# ${entry.title}`
+    });
+    const rows = await config.rows();
+
+    expect(rows[0]?.id).not.toBe(rows[1]?.id);
+    const items = await config.detail.items(rows[0]!, {
+      width: 80,
+      height: 20,
+      signal: new AbortController().signal,
+      row: rows[0]!
+    });
+    expect(items[0]!.render({ width: 80, height: 20, signal: new AbortController().signal, row: rows[0]! })).toBe("# First");
+  });
+
   it("returns no detail items when the detail load is aborted", async () => {
     const entry = plan();
     let resolveLoad: (value: string) => void = () => undefined;
@@ -211,6 +233,24 @@ describe("buildPlanExplorerConfig", () => {
     expect(config.actions.find((action) => action.id === "delete")?.destructive).toBe(true);
     expect(archiveCtx.toast).toHaveBeenCalledWith("Archived archive-me.md", "warning");
     expect(deleteCtx.toast).toHaveBeenCalledWith("Deleted delete-me.md", "error");
+  });
+
+  it("reports completed destructive actions even when refreshing fails", async () => {
+    const archiveEntry = plan({ path: "docs/plans/archive.md", absolutePath: "/repo/docs/plans/archive.md" });
+    const deleteEntry = plan({ path: "docs/plans/delete.md", absolutePath: "/repo/docs/plans/delete.md" });
+    const fs = createMemFs({
+      "/repo/docs/plans/archive.md": "# Archive",
+      "/repo/docs/plans/delete.md": "# Delete"
+    });
+    const config = buildPlanExplorerConfig({ plans: [archiveEntry, deleteEntry], fs, variables: {}, onRefresh: async () => [] });
+    const rows = await config.rows();
+    const archiveCtx = actionContext(rows[0]!, { refresh: vi.fn(async () => { throw new Error("refresh failed"); }) });
+    const deleteCtx = actionContext(rows[1]!, { refresh: vi.fn(async () => { throw new Error("refresh failed"); }) });
+
+    await expect(config.actions.find((action) => action.id === "archive")!.handler(archiveCtx)).resolves.toBeUndefined();
+    await expect(config.actions.find((action) => action.id === "delete")!.handler(deleteCtx)).resolves.toBeUndefined();
+    expect(archiveCtx.toast).toHaveBeenCalledWith("Archived archive.md; refresh failed", "warning");
+    expect(deleteCtx.toast).toHaveBeenCalledWith("Deleted delete.md; refresh failed", "error");
   });
 
   it("rebuilds entry lookups when rows refresh", async () => {

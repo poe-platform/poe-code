@@ -59,6 +59,16 @@ describe("discoverAllPlans", () => {
       "/repo/docs/plans/pi-mono.md": [
         "---",
         "kind: superintendent",
+        "version: 1",
+        "builder:",
+        "  agent: codex",
+        "  prompt: Build.",
+        "superintendent:",
+        "  agent: codex",
+        "  prompt: Review.",
+        "owner:",
+        "  agent: codex",
+        "  prompt: Approve.",
         "status:",
         "  state: review",
         "  round: 4",
@@ -170,6 +180,37 @@ describe("discoverAllPlans", () => {
     ]);
   });
 
+  it("derives a plan entry from one file snapshot", async () => {
+    const baseFs = createMemFs({
+      "/repo/docs/plans/feature.md": [
+        "---",
+        "kind: pipeline",
+        "tasks:",
+        "  - id: feature",
+        "    title: Feature",
+        "    prompt: Ship it",
+        "    status: done",
+        "---"
+      ].join("\n")
+    });
+    let planReads = 0;
+    const fs: DiscoveryFs = {
+      ...baseFs,
+      readFile: async (filePath, encoding) => {
+        if (filePath === "/repo/docs/plans/feature.md") {
+          planReads += 1;
+          return planReads === 1 ? await baseFs.readFile(filePath, encoding) : "# Current plan\n";
+        }
+        return baseFs.readFile(filePath, encoding);
+      }
+    };
+
+    await expect(
+      discoverAllPlans({ cwd, homeDir, fs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) })
+    ).resolves.toEqual([expect.objectContaining({ kind: "pipeline", detail: "1/1 done" })]);
+    expect(planReads).toBe(1);
+  });
+
   it("uses plan.plan_directory config and POE_PLAN_DIRECTORY overrides", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({
@@ -213,6 +254,28 @@ describe("discoverAllPlans", () => {
         kind: "plan"
       })
     ]);
+  });
+
+  it("does not repair invalid project configuration while discovering plans", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/.poe-code/config.json": "{ invalid json\n",
+      "/repo/docs/plans/one.md": "# One\n"
+    }, "/");
+    volume.mkdirSync(homeDir, { recursive: true });
+    const fs = createFsFromVolume(volume).promises as unknown as DiscoveryFs;
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).rejects.toThrow(SyntaxError);
+
+    await expect(fs.readFile("/repo/.poe-code/config.json", "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
   it("does not fall back to legacy per-harness directories", async () => {
@@ -285,5 +348,25 @@ describe("discoverAllPlans", () => {
         projectConfigPath: resolveProjectConfigPath(cwd)
       })
     ).rejects.toThrow("docs/plans/plan-markdown-reader.md: missing required frontmatter kind");
+  });
+
+  it("rejects symlinked plan directories and plan files", async () => {
+    const linkedDirectoryVolume = Volume.fromJSON({ "/outside/plan.md": "# External" }, "/");
+    linkedDirectoryVolume.mkdirSync("/repo/docs", { recursive: true });
+    linkedDirectoryVolume.mkdirSync(homeDir, { recursive: true });
+    linkedDirectoryVolume.symlinkSync("/outside", "/repo/docs/plans");
+    const linkedDirectoryFs = createFsFromVolume(linkedDirectoryVolume).promises as unknown as DiscoveryFs;
+
+    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedDirectoryFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
+      .rejects.toThrow("Plan directory must not be a symbolic link");
+
+    const linkedFileVolume = Volume.fromJSON({ "/outside.md": "# External" }, "/");
+    linkedFileVolume.mkdirSync("/repo/docs/plans", { recursive: true });
+    linkedFileVolume.mkdirSync(homeDir, { recursive: true });
+    linkedFileVolume.symlinkSync("/outside.md", "/repo/docs/plans/local.md");
+    const linkedFileFs = createFsFromVolume(linkedFileVolume).promises as unknown as DiscoveryFs;
+
+    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedFileFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
+      .rejects.toThrow("Plan file must not be a symbolic link");
   });
 });

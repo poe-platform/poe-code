@@ -10,7 +10,7 @@ export function buildCachePath(
     ".poe-code",
     "workspaces",
     "github",
-    `${locator.owner}-${locator.repo}`
+    `${locator.owner.length.toString(36)}-${locator.owner}-${locator.repo}`
   );
 }
 
@@ -31,11 +31,15 @@ export async function cloneOrUpdate(
       await options.exec("git", ["clone", "--depth", "1", buildCloneUrl(locator), cacheDir]),
       "git clone failed"
     );
-    await options.fs.mkdir(cacheDir, { recursive: true });
   } else {
+    await assertNotSymbolicLink(options, cacheDir);
     const statusResult = await options.exec("git", ["status", "--porcelain"], { cwd: cacheDir });
+    assertExecSuccess(statusResult, "git status failed");
     if (statusResult.exitCode === 0 && statusResult.stdout.trim().length === 0) {
-      await options.exec("git", ["pull", "--ff-only"], { cwd: cacheDir });
+      await assertExecSuccess(
+        await options.exec("git", ["pull", "--ff-only"], { cwd: cacheDir }),
+        "git pull failed"
+      );
     }
   }
 
@@ -45,12 +49,19 @@ export async function cloneOrUpdate(
       "git fetch failed"
     );
     await assertExecSuccess(
-      await options.exec("git", ["checkout", locator.ref], { cwd: cacheDir }),
+      await options.exec("git", ["checkout", "--", locator.ref], { cwd: cacheDir }),
       "git checkout failed"
     );
   }
 
   return cacheDir;
+}
+
+async function assertNotSymbolicLink(options: WorkspaceResolverOptions, target: string): Promise<void> {
+  const stats = await options.fs.lstat(target);
+  if (stats.isSymbolicLink()) {
+    throw new Error(`Workspace cache path "${target}" must not be a symbolic link.`);
+  }
 }
 
 async function pathExists(

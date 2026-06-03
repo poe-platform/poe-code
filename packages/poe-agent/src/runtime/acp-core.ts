@@ -213,8 +213,8 @@ async function execute(
       return;
     }
 
-    disposed = true;
     await baseDisposeRun();
+    disposed = true;
   };
 
   const emit = (event: AcpEvent): void => {

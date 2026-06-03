@@ -197,6 +197,26 @@ describe("requestJson", () => {
     );
   });
 
+  it("rejects inherited path parameters as missing", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots/{constructor}",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        pathParams: {}
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof UserError && error.message === 'Missing path parameter "constructor".'
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("URL-encodes path parameters that contain slashes", async () => {
     const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
 
@@ -330,6 +350,30 @@ describe("requestJson", () => {
     ).resolves.toEqual({ bots: ["a"] });
   });
 
+  it("throws an HttpError with context for malformed successful JSON responses", async () => {
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource: createTokenSource("abc"),
+        fetch: vi.fn(async () =>
+          new Response('{"bots":', {
+            status: 200,
+            statusText: "OK",
+            headers: { "content-type": "application/json" }
+          })
+        )
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 200,
+      statusText: "OK",
+      request: { url: "https://api.example.com/bots" },
+      body: '{"bots":'
+    });
+  });
+
   it("returns undefined for successful responses with empty bodies", async () => {
     await expect(
       requestJson({
@@ -355,6 +399,46 @@ describe("requestJson", () => {
       status: 403,
       body: { error: "forbidden" }
     });
+  });
+
+  it("preserves the received 401 when token invalidation fails", async () => {
+    const tokenSource = createTokenSource("expired");
+    tokenSource.invalidate = vi.fn(async () => {
+      throw new Error("credential store unavailable");
+    });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource,
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401, "Unauthorized"))
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 401,
+      statusText: "Unauthorized",
+      body: { error: "unauthorized" }
+    });
+  });
+
+  it("does not invalidate saved credentials for unauthenticated 401 responses", async () => {
+    const invalidate = vi.fn(async () => undefined);
+    const tokenSource = createTokenSource("stored", { invalidate });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/status",
+        method: "GET",
+        auth: "none",
+        tokenSource,
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401))
+      })
+    ).rejects.toBeInstanceOf(HttpError);
+
+    expect(invalidate).not.toHaveBeenCalled();
   });
 
   it("throws an HttpError with raw text bodies for client errors", async () => {
@@ -429,6 +513,31 @@ describe("requestJson", () => {
     });
   });
 
+  it("preserves the 401 HttpError when token invalidation fails", async () => {
+    const invalidate = vi.fn(async () => {
+      throw new Error("credential store unavailable");
+    });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource: createTokenSource("abc", { invalidate }),
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401, "Unauthorized"))
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 401,
+      statusText: "Unauthorized",
+      response: {
+        body: { error: "unauthorized" }
+      }
+    });
+
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
   it("throws an HttpError when a successful response is not JSON", async () => {
     await expect(
       requestJson({
@@ -477,6 +586,57 @@ describe("requestJson", () => {
     expect(JSON.stringify((error as HttpError).request.headers)).not.toContain("raw-token");
   });
 
+  it("redacts sensitive query values in HttpError request URLs and messages", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      query: { access_token: "raw-query-token", page: 2 },
+      fetch: vi.fn(async () => createJsonResponse({ error: "boom" }, 500, "Internal Server Error"))
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      request: { url: "https://api.example.com/bots?access_token=****&page=2" },
+      message: "GET https://api.example.com/bots?access_token=****&page=2 → 500 Internal Server Error"
+    });
+    expect(String((error as Error).message)).not.toContain("raw-query-token");
+  });
+
+  it("redacts credential-bearing response headers in HttpError details", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/session",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "boom" }), {
+            status: 500,
+            headers: {
+              "content-type": "application/json",
+              "set-cookie": "session=raw-cookie; HttpOnly"
+            }
+          })
+      )
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      response: { headers: { "set-cookie": "****" } }
+    });
+    expect(JSON.stringify((error as HttpError).response.headers)).not.toContain("raw-cookie");
+  });
+
   it("redacts the bearer token in dry-run output", async () => {
     const stdout = vi.fn();
 
@@ -495,6 +655,29 @@ describe("requestJson", () => {
 
     expect(stdout).toHaveBeenCalledWith(
       'POST https://api.example.com/bots/my-bot\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{"official":true}\n'
+    );
+  });
+
+  it("redacts sensitive query values in dry-run output", async () => {
+    const stdout = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(),
+      query: {
+        api_key: "dry-secret-token",
+        page: 2
+      },
+      dryRun: true,
+      writeStdout: stdout
+    });
+
+    expect(stdout).toHaveBeenCalledWith(
+      "GET https://api.example.com/bots?api_key=****&page=2\n\n"
     );
   });
 
@@ -560,6 +743,37 @@ describe("requestJson", () => {
         ""
       ].join("\n")
     );
+  });
+
+  it("redacts query credentials and response cookies in verbose transcripts", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/session",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      query: { api_key: "raw-query-token" },
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+              "set-cookie": "session=raw-cookie; HttpOnly"
+            }
+          })
+      ),
+      verbose: true,
+      writeStderr: stderr
+    });
+
+    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    expect(written).toContain("?api_key=****");
+    expect(written).toContain("    set-cookie: ****");
+    expect(written).not.toContain("raw-query-token");
+    expect(written).not.toContain("raw-cookie");
   });
 
   it("writes a verbose response transcript for successful empty 204 responses without a body section", async () => {

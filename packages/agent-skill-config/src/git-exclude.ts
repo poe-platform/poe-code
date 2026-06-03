@@ -19,6 +19,7 @@ function defaultGitDirRunner(cwd: string): string | undefined {
 }
 
 let gitDirRunner: GitDirRunner = defaultGitDirRunner;
+let tempFileCounter = 0;
 
 export function setGitDirRunnerForTest(runner: GitDirRunner): () => void {
   const previous = gitDirRunner;
@@ -44,6 +45,12 @@ function markers(runId: string, markerPrefix: string): { begin: string; end: str
   };
 }
 
+function assertSingleLine(value: string, label: string): void {
+  if (value.includes("\n") || value.includes("\r")) {
+    throw new Error(`${label} must be a single line`);
+  }
+}
+
 function readExcludeFile(excludePath: string): string | undefined {
   try {
     return fs.readFileSync(excludePath, "utf8");
@@ -57,6 +64,46 @@ function readExcludeFile(excludePath: string): string | undefined {
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
+}
+
+function assertNoSymbolicLink(targetPath: string): void {
+  const parsed = path.parse(path.resolve(targetPath));
+  let current = parsed.root;
+
+  for (const segment of path.resolve(targetPath).slice(parsed.root.length).split(path.sep)) {
+    if (segment.length === 0) {
+      continue;
+    }
+    current = path.join(current, segment);
+    try {
+      if (fs.lstatSync(current).isSymbolicLink()) {
+        throw new Error(`Refusing to update Git exclude path through symbolic link: ${current}`);
+      }
+    } catch (error) {
+      if (isNodeError(error) && error.code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
+}
+
+function writeExcludeFile(excludePath: string, content: string): void {
+  assertNoSymbolicLink(excludePath);
+  fs.mkdirSync(path.dirname(excludePath), { recursive: true });
+  assertNoSymbolicLink(excludePath);
+  const tempPath = `${excludePath}.poe-code-${process.pid}-${tempFileCounter++}.tmp`;
+  try {
+    fs.writeFileSync(tempPath, content, "utf8");
+    fs.renameSync(tempPath, excludePath);
+  } catch (error) {
+    try {
+      fs.rmSync(tempPath, { force: true });
+    } catch (cleanupError) {
+      void cleanupError;
+    }
+    throw error;
+  }
 }
 
 function removeBlock(content: string, runId: string, markerPrefix: string): string {
@@ -91,24 +138,40 @@ function appendBlock(
   return `${prefix}${[begin, ...entries, end, ""].join("\n")}`;
 }
 
+function nextBlockId(content: string | undefined, runId: string, markerPrefix: string): string {
+  if (content === undefined || !content.includes(markers(runId, markerPrefix).begin)) {
+    return runId;
+  }
+
+  let suffix = 1;
+  while (content.includes(markers(`${runId}:${suffix}`, markerPrefix).begin)) {
+    suffix += 1;
+  }
+  return `${runId}:${suffix}`;
+}
+
 export function appendExcludeBlock(
   cwd: string,
   runId: string,
   entries: string[],
   opts?: { markerPrefix?: string }
-): void {
+): string | undefined {
+  assertSingleLine(runId, "runId");
+  assertSingleLine(opts?.markerPrefix ?? defaultMarkerPrefix, "markerPrefix");
+  for (const entry of entries) {
+    assertSingleLine(entry, "exclude entry");
+  }
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
-    return;
+    return undefined;
   }
 
-  fs.mkdirSync(path.dirname(excludePath), { recursive: true });
+  assertNoSymbolicLink(excludePath);
   const content = readExcludeFile(excludePath);
-  fs.writeFileSync(
-    excludePath,
-    appendBlock(content, runId, entries, opts?.markerPrefix ?? defaultMarkerPrefix),
-    "utf8"
-  );
+  const markerPrefix = opts?.markerPrefix ?? defaultMarkerPrefix;
+  const blockId = nextBlockId(content, runId, markerPrefix);
+  writeExcludeFile(excludePath, appendBlock(content, blockId, entries, markerPrefix));
+  return blockId;
 }
 
 export function removeExcludeBlock(
@@ -116,6 +179,8 @@ export function removeExcludeBlock(
   runId: string,
   opts?: { markerPrefix?: string }
 ): void {
+  assertSingleLine(runId, "runId");
+  assertSingleLine(opts?.markerPrefix ?? defaultMarkerPrefix, "markerPrefix");
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
     return;
@@ -126,9 +191,5 @@ export function removeExcludeBlock(
     return;
   }
 
-  fs.writeFileSync(
-    excludePath,
-    removeBlock(content, runId, opts?.markerPrefix ?? defaultMarkerPrefix),
-    "utf8"
-  );
+  writeExcludeFile(excludePath, removeBlock(content, runId, opts?.markerPrefix ?? defaultMarkerPrefix));
 }

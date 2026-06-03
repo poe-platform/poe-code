@@ -140,6 +140,29 @@ describe("runExplorer", () => {
     await expect(result).resolves.toBeNull();
   });
 
+  it("renders asynchronous detail content after it resolves", async () => {
+    const driver = currentDriver();
+    let resolveDetail: ((value: string) => void) | undefined;
+    const result = runExplorer(config({
+      detail: {
+        items: async (row) => [{
+          id: row.id,
+          render: () => new Promise<string>((resolve) => {
+            resolveDetail = resolve;
+          })
+        }]
+      }
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    await waitFor(() => resolveDetail !== undefined);
+    resolveDetail!("Resolved async detail");
+    await waitFor(() => currentScreen(driver).join("\n").includes("Resolved async detail"));
+
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
+  });
+
   it("persists reorder and rolls back on rejection", async () => {
     const driver = currentDriver();
     const onReorder = vi.fn(async () => {
@@ -171,6 +194,32 @@ describe("runExplorer", () => {
 
     await expect(result).resolves.toBeNull();
     expect(opened).toEqual(["two"]);
+  });
+
+  it("does not let an older failed reorder roll back a newer order", async () => {
+    const driver = currentDriver();
+    let rejectFirst: ((error: Error) => void) | undefined;
+    const onReorder = vi.fn((orderedIds: string[]) => {
+      if (orderedIds.join(",") === "two,one,three") {
+        return new Promise<void>((_resolve, reject) => {
+          rejectFirst = reject;
+        });
+      }
+      return Promise.resolve();
+    });
+    const result = runExplorer(config({ reorder: { onReorder } }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press({ name: "down", ctrl: false, meta: false, shift: true });
+    driver.press({ name: "down", ctrl: false, meta: false, shift: true });
+    await waitFor(() => onReorder.mock.calls.length === 2);
+    rejectFirst!(new Error("save failed"));
+    await waitFor(() => strippedOutput(driver).includes("save failed"));
+
+    const screen = currentScreen(driver).join("\n");
+    expect(screen.indexOf("Three")).toBeLessThan(screen.indexOf("One"));
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
   });
 
   it("round-trips through suspendAnd", async () => {
@@ -228,6 +277,37 @@ describe("runExplorer", () => {
     await expect(result).resolves.toBeNull();
     expect(refresh).toHaveBeenCalledOnce();
     expect(loadRows).toHaveBeenCalledTimes(2);
+  });
+
+  it("ignores row refresh responses older than the latest request", async () => {
+    const driver = currentDriver();
+    const pending: Array<(nextRows: Row[]) => void> = [];
+    let initial = true;
+    const result = runExplorer(config({
+      rows: async () => initial
+        ? ((initial = false), [{ id: "initial", title: "Initial" }])
+        : new Promise<Row[]>((resolve) => pending.push(resolve)),
+      actions: ["a", "b"].map((binding) => ({
+        id: `reload-${binding}`,
+        label: `reload-${binding}`,
+        key: binding,
+        handler: async (ctx) => ctx.refresh()
+      }))
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("Initial"));
+    driver.press(key("a"));
+    driver.press(key("b"));
+    await waitFor(() => pending.length === 2);
+    pending[1]!([{ id: "fresh", title: "Fresh" }]);
+    await waitFor(() => currentScreen(driver).join("\n").includes("Fresh"));
+    pending[0]!([{ id: "stale", title: "Stale" }]);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(currentScreen(driver).join("\n")).toContain("Fresh");
+    expect(currentScreen(driver).join("\n")).not.toContain("Stale");
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
   });
 
   it("rejects when stdout is not a TTY", async () => {

@@ -94,7 +94,7 @@ const agentHookConfigs: Record<string, AgentHookConfig> = {
   }
 };
 
-export const supportedHookAgents = Object.keys(agentHookConfigs) as readonly string[];
+export const supportedHookAgents = Object.freeze(Object.keys(agentHookConfigs)) as readonly string[];
 
 export type AgentSupportStatus = "supported" | "unsupported" | "unknown";
 
@@ -119,12 +119,21 @@ export function resolveAgentSupport(
     return { status: "unsupported", input, id: resolvedId };
   }
 
-  return { status: "supported", input, id: resolvedId, config };
+  return { status: "supported", input, id: resolvedId, config: cloneAgentHookConfig(config) };
 }
 
 export function getAgentConfig(agentId: string): AgentHookConfig | undefined {
   const support = resolveAgentSupport(agentId);
   return support.status === "supported" ? support.config : undefined;
+}
+
+function cloneAgentHookConfig(config: AgentHookConfig): AgentHookConfig {
+  return {
+    ...config,
+    supportedEvents: [...config.supportedEvents],
+    supportedHandlerTypes: [...config.supportedHandlerTypes],
+    placeholders: { ...config.placeholders }
+  };
 }
 
 function expandHome(targetPath: string, homeDir: string = os.homedir()): string {

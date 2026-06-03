@@ -8,6 +8,17 @@ export {
 export { hostExecutionEnvFactory } from "./host/host-execution-env.js";
 export { createHostRunner } from "./host/host-runner.js";
 export { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
+export {
+  downloadWorkspace,
+  uploadWorkspace,
+  type WorkspaceDownloadOptions,
+  type WorkspaceTransferDirent,
+  type WorkspaceTransferEnv,
+  type WorkspaceTransferFileSystem,
+  type WorkspaceTransferOptions,
+  type WorkspaceTransferRunnerOptions,
+  type WorkspaceTransferStats
+} from "./workspace-transfer.js";
 
 export type {
   DownloadResult,

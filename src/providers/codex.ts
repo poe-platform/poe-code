@@ -125,7 +125,7 @@ function stripCodexConfiguration(
 
   // Clean up model_providers entry for this provider
   const providers = document["model_providers"];
-  if (isConfigObject(providers) && id in providers) {
+  if (isConfigObject(providers) && Object.hasOwn(providers, id)) {
     delete providers[id];
     if (isTableEmpty(providers)) {
       delete document["model_providers"];
@@ -176,7 +176,7 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.codex" }),
-      fileMutation.backup({ target: "~/.codex/config.toml" }),
+      fileMutation.backup({ target: "~/.codex/config.toml", once: true }),
       configMutation.transform({
         target: "~/.codex/config.toml",
         transform: (document, ctx) => {
@@ -216,7 +216,8 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
             content: result.empty ? null : document
           };
         }
-      })
+      }),
+      fileMutation.restoreBackup({ target: "~/.codex/config.toml" })
     ]
   },
   install: CODEX_INSTALL_DEFINITION

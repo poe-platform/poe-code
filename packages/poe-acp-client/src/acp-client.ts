@@ -5,6 +5,7 @@ import {
   type AcpTransportOptions,
 } from "./acp-transport.js";
 import type { JsonRpcRequestOptions } from "./jsonrpc-message-layer.js";
+import { isSessionNotification } from "./jsonrpc.js";
 import {
   ACP_ERROR_CODE_INVALID_PARAMS,
   ACP_ERROR_CODE_RESOURCE_NOT_FOUND,
@@ -187,6 +188,20 @@ function assertOneBasedLineNumber(line: number | null | undefined): void {
   }
 }
 
+function assertNonNegativeInteger(value: number | null | undefined, fieldName: string): void {
+  if (value === null || value === undefined) {
+    return;
+  }
+
+  if (!Number.isInteger(value) || value < 0) {
+    throw invalidParams(`"${fieldName}" must be a non-negative integer`);
+  }
+}
+
+function invalidResponse(method: string, message: string): Error {
+  return new Error(`Invalid response from "${method}": ${message}`);
+}
+
 function assertExtensionMethod(method: string): asserts method is ExtensionMethod {
   if (!method.startsWith("_")) {
     throw new Error('Extension method must start with "_"');
@@ -301,6 +316,9 @@ export class AcpClient {
   private hasRegisteredFsWriteHandler = false;
   private hasRegisteredTerminalHandlers = false;
   private disposed = false;
+  private transportDisposed = false;
+  private initializing = false;
+  private authenticating = false;
 
   private lifecycleState: AcpClientState = "uninitialized";
   private negotiatedVersion: ProtocolVersion | null = null;
@@ -341,6 +359,10 @@ export class AcpClient {
         }
 
         if (autoApprove) {
+          if (!Array.isArray(params.options)) {
+            throw invalidParams('"options" must be an array');
+          }
+
           const allow =
             params.options.find((o: PermissionOption) => o.kind === "allow_always") ??
             params.options.find((o: PermissionOption) => o.kind === "allow_once");
@@ -373,7 +395,9 @@ export class AcpClient {
   }
 
   get agentCapabilities(): AgentCapabilities | undefined {
-    return this.negotiatedAgentCapabilities;
+    return this.negotiatedAgentCapabilities === undefined
+      ? undefined
+      : structuredClone(this.negotiatedAgentCapabilities);
   }
 
   get agentInfo(): Implementation | null | undefined {
@@ -385,45 +409,66 @@ export class AcpClient {
   }
 
   async initialize(clientCapabilities?: ClientCapabilities): Promise<InitializeResponse> {
-    if (this.lifecycleState !== "uninitialized") {
+    this.assertNotDisposed();
+    if (this.lifecycleState !== "uninitialized" || this.initializing) {
       throw new Error("initialize() can only be called once.");
     }
 
-    if (clientCapabilities !== undefined) {
-      this.clientCapabilities = clientCapabilities;
-      this.registerCapabilityHandlers(clientCapabilities);
+    this.initializing = true;
+
+    try {
+      if (clientCapabilities !== undefined) {
+        this.clientCapabilities = clientCapabilities;
+      }
+
+      const response = await this.transport.sendRequest("initialize", {
+        protocolVersion: this.clientProtocolVersion,
+        clientInfo: this.clientInfo,
+        clientCapabilities: this.clientCapabilities,
+      });
+
+      if (
+        typeof response.protocolVersion !== "number" ||
+        !Number.isFinite(response.protocolVersion) ||
+        !Number.isInteger(response.protocolVersion) ||
+        response.protocolVersion < 0
+      ) {
+        throw new Error("Agent returned an invalid protocol version.");
+      }
+
+      const negotiatedProtocolVersion = Math.min(
+        this.clientProtocolVersion,
+        response.protocolVersion
+      );
+
+      this.negotiatedVersion = negotiatedProtocolVersion;
+      this.negotiatedAgentCapabilities = response.agentCapabilities
+        ? structuredClone(response.agentCapabilities)
+        : undefined;
+      this.negotiatedAgentInfo = response.agentInfo;
+      this.availableAuthMethods = response.authMethods ? [...response.authMethods] : [];
+
+      const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
+      this.lifecycleState = requiresAuth ? "initialized" : "ready";
+      if (clientCapabilities !== undefined) {
+        this.registerCapabilityHandlers(clientCapabilities);
+      }
+
+      return {
+        protocolVersion: negotiatedProtocolVersion,
+        ...(this.negotiatedAgentCapabilities !== undefined
+          ? { agentCapabilities: structuredClone(this.negotiatedAgentCapabilities) }
+          : {}),
+        ...(this.negotiatedAgentInfo !== undefined ? { agentInfo: this.negotiatedAgentInfo } : {}),
+        ...(this.availableAuthMethods.length > 0 ? { authMethods: this.authMethods } : {}),
+      };
+    } finally {
+      this.initializing = false;
     }
-
-    const response = await this.transport.sendRequest("initialize", {
-      protocolVersion: this.clientProtocolVersion,
-      clientInfo: this.clientInfo,
-      clientCapabilities: this.clientCapabilities,
-    });
-
-    const negotiatedProtocolVersion = Math.min(
-      this.clientProtocolVersion,
-      response.protocolVersion
-    );
-
-    this.negotiatedVersion = negotiatedProtocolVersion;
-    this.negotiatedAgentCapabilities = response.agentCapabilities;
-    this.negotiatedAgentInfo = response.agentInfo;
-    this.availableAuthMethods = response.authMethods ? [...response.authMethods] : [];
-
-    const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
-    this.lifecycleState = requiresAuth ? "initialized" : "ready";
-
-    return {
-      protocolVersion: negotiatedProtocolVersion,
-      ...(this.negotiatedAgentCapabilities !== undefined
-        ? { agentCapabilities: this.negotiatedAgentCapabilities }
-        : {}),
-      ...(this.negotiatedAgentInfo !== undefined ? { agentInfo: this.negotiatedAgentInfo } : {}),
-      ...(this.availableAuthMethods.length > 0 ? { authMethods: this.authMethods } : {}),
-    };
   }
 
   async authenticate(methodId: string): Promise<AuthenticateResponse> {
+    this.assertNotDisposed();
     if (this.lifecycleState === "uninitialized") {
       throw new Error("Cannot authenticate before initialize().");
     }
@@ -436,22 +481,37 @@ export class AcpClient {
       throw new Error(`Unknown auth method "${methodId}".`);
     }
 
-    const response = await this.transport.sendRequest("authenticate", {
-      methodId,
-    });
+    if (this.authenticating) {
+      throw new Error("Authentication is already in progress.");
+    }
 
-    this.lifecycleState = "ready";
-    return response;
+    this.authenticating = true;
+    try {
+      const response = await this.transport.sendRequest("authenticate", {
+        methodId,
+      });
+
+      this.lifecycleState = "ready";
+      return response;
+    } finally {
+      this.authenticating = false;
+    }
   }
 
   async newSession(cwd: string, mcpServers: McpServer[]): Promise<NewSessionResponse> {
     this.assertReady("session/new");
     this.assertMcpServerCapabilitySupport(mcpServers);
 
-    return this.transport.sendRequest("session/new", {
+    const response = await this.transport.sendRequest("session/new", {
       cwd,
       mcpServers,
     });
+
+    if (typeof response.sessionId !== "string") {
+      throw invalidResponse("session/new", '"sessionId" must be a string.');
+    }
+
+    return response;
   }
 
   async loadSession(
@@ -502,6 +562,13 @@ export class AcpClient {
       configId,
       value,
     });
+
+    if (!Array.isArray(response.configOptions)) {
+      throw invalidResponse(
+        "session/set_config_option",
+        '"configOptions" must be an array.'
+      );
+    }
 
     return response.configOptions;
   }
@@ -563,12 +630,14 @@ export class AcpClient {
     params?: unknown,
     options: JsonRpcRequestOptions = {}
   ): Promise<TResult> {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     return this.transport.sendRequest(method, params, options) as Promise<TResult>;
   }
 
   async sendExtNotification(method: ExtensionMethod, params?: unknown): Promise<void>;
   async sendExtNotification(method: string, params?: unknown): Promise<void> {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.sendNotification(method, params);
   }
@@ -584,6 +653,7 @@ export class AcpClient {
     method: string,
     handler: (params: unknown, context: { id: RequestId; method: string }) => unknown
   ): void {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.onRequest(method, handler);
   }
@@ -596,27 +666,26 @@ export class AcpClient {
     method: string,
     handler: (params: unknown, context: { method: string }) => void | Promise<void>
   ): void {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.onNotification(method, handler);
   }
 
   async dispose(): Promise<void> {
-    if (this.disposed) {
-      if (this.transport.closed) {
-        await this.transport.closed;
+    if (!this.disposed) {
+      this.disposed = true;
+      const disposeReason = new Error("ACP client disposed");
+      for (const updates of this.activePromptUpdates.values()) {
+        updates.fail(disposeReason);
       }
-      return;
+      this.activePromptUpdates.clear();
     }
 
-    this.disposed = true;
-    const disposeReason = new Error("ACP client disposed");
-    for (const updates of this.activePromptUpdates.values()) {
-      updates.fail(disposeReason);
-    }
-    this.activePromptUpdates.clear();
-
-    if (typeof this.transport.dispose === "function") {
-      this.transport.dispose(disposeReason);
+    if (!this.transportDisposed) {
+      if (typeof this.transport.dispose === "function") {
+        this.transport.dispose(new Error("ACP client disposed"));
+      }
+      this.transportDisposed = true;
     }
 
     if (this.transport.closed) {
@@ -625,6 +694,7 @@ export class AcpClient {
   }
 
   assertReady(operation: string): void {
+    this.assertNotDisposed();
     if (this.lifecycleState === "ready") {
       return;
     }
@@ -634,6 +704,12 @@ export class AcpClient {
     }
 
     throw new Error(`Cannot call "${operation}" before authentication completes.`);
+  }
+
+  private assertNotDisposed(): void {
+    if (this.disposed) {
+      throw new Error("ACP client disposed.");
+    }
   }
 
   private registerCapabilityHandlers(capabilities: ClientCapabilities | undefined): void {
@@ -648,6 +724,7 @@ export class AcpClient {
         async (params: ReadTextFileRequest): Promise<ReadTextFileResponse> => {
           assertAbsolutePath(params.path);
           assertOneBasedLineNumber(params.line);
+          assertNonNegativeInteger(params.limit, "limit");
 
           const content = await readTextFile({
             sessionId: params.sessionId,
@@ -693,6 +770,7 @@ export class AcpClient {
       this.transport.onRequest(
         "terminal/create",
         async (params: CreateTerminalRequest): Promise<CreateTerminalResponse> => {
+          assertNonNegativeInteger(params.outputByteLimit, "outputByteLimit");
           const terminalId = await terminalHandler.create({
             sessionId: params.sessionId,
             command: params.command,
@@ -782,6 +860,10 @@ export class AcpClient {
   }
 
   private handleSessionUpdateNotification(notification: SessionNotification): void {
+    if (!isSessionNotification(notification)) {
+      return;
+    }
+
     const activePrompt = this.activePromptUpdates.get(notification.sessionId);
     if (!activePrompt) {
       return;
@@ -797,6 +879,9 @@ export class AcpClient {
   private trackTerminal(sessionId: SessionId, terminalId: string): void {
     const sessionTerminals = this.trackedTerminalIds.get(sessionId);
     if (sessionTerminals) {
+      if (sessionTerminals.has(terminalId)) {
+        throw new Error(`Terminal identifier "${terminalId}" is already active.`);
+      }
       sessionTerminals.add(terminalId);
       return;
     }

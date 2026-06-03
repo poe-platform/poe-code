@@ -6,6 +6,10 @@ export interface MergeLayersResult {
 }
 
 export function mergeLayers(layers: DataLayer[]): MergeLayersResult {
+  for (const layer of layers) {
+    assertAcyclic(layer.data, new Set<object>());
+  }
+
   return mergeObjectLayers(layers, []);
 }
 
@@ -20,8 +24,10 @@ function mergeObjectLayers(layers: DataLayer[], path: string[]): MergeLayersResu
       continue;
     }
 
-    data[key] = resolved.value;
-    Object.assign(sources, resolved.sources);
+    defineDataProperty(data, key, resolved.value);
+    for (const [sourcePath, source] of Object.entries(resolved.sources)) {
+      defineDataProperty(sources, sourcePath, source);
+    }
   }
 
   return { data, sources };
@@ -116,7 +122,11 @@ function isWinningCandidate(key: string, value: unknown): boolean {
 }
 
 function buildPath(path: string[], key: string): string {
-  return [...path, key].join(".");
+  return [...path, key].map(escapePathSegment).join(".");
+}
+
+function escapePathSegment(segment: string): string {
+  return segment.replaceAll("\\", "\\\\").replaceAll(".", "\\.");
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -140,8 +150,34 @@ function cloneValue(value: unknown): unknown {
   const clone = Object.create(Object.getPrototypeOf(value)) as Record<string, unknown>;
 
   for (const [key, entry] of Object.entries(value)) {
-    clone[key] = cloneValue(entry);
+    defineDataProperty(clone, key, cloneValue(entry));
   }
 
   return clone;
+}
+
+function assertAcyclic(value: unknown, ancestors: Set<object>): void {
+  if (!Array.isArray(value) && !isPlainObject(value)) {
+    return;
+  }
+
+  if (ancestors.has(value)) {
+    throw new Error("Cyclic config data is not supported.");
+  }
+
+  const nextAncestors = new Set(ancestors);
+  nextAncestors.add(value);
+
+  for (const entry of Array.isArray(value) ? value : Object.values(value)) {
+    assertAcyclic(entry, nextAncestors);
+  }
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }

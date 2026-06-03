@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { collectProviderEvents } from "../testing/model-response.js";
 
 const storeGetMock = vi.hoisted(() => vi.fn<() => Promise<string | undefined>>());
@@ -45,11 +45,23 @@ function createEventStream(events: unknown[]): AsyncIterable<unknown> {
 }
 
 describe("poe-agent-plugin-openai-responses", () => {
+  const originalPoeBaseUrl = process.env.POE_BASE_URL;
+  const originalOpenaiBaseUrl = process.env.OPENAI_BASE_URL;
+
   beforeEach(() => {
+    delete process.env.POE_BASE_URL;
+    delete process.env.OPENAI_BASE_URL;
     storeGetMock.mockReset();
     createSecretStoreMock.mockClear();
     openAiResponsesStreamMock.mockReset();
     openAiConstructorMock.mockClear();
+  });
+
+  afterEach(() => {
+    if (originalPoeBaseUrl === undefined) delete process.env.POE_BASE_URL;
+    else process.env.POE_BASE_URL = originalPoeBaseUrl;
+    if (originalOpenaiBaseUrl === undefined) delete process.env.OPENAI_BASE_URL;
+    else process.env.OPENAI_BASE_URL = originalOpenaiBaseUrl;
   });
 
   it("validates config options with its plugin spec", () => {
@@ -88,6 +100,24 @@ describe("poe-agent-plugin-openai-responses", () => {
         include: [123]
       })
     ).toThrow();
+  });
+
+  it("uses POE_BASE_URL and ignores OPENAI_BASE_URL for Poe credentials", async () => {
+    storeGetMock.mockResolvedValue("stored-key");
+    process.env.POE_BASE_URL = "https://poe-proxy.example.com/v1";
+    process.env.OPENAI_BASE_URL = "https://foreign.example.com/v1";
+
+    await openaiResponsesPlugin().providers?.[0]?.createModel("gpt-5.4", {
+      fetch: globalThis.fetch,
+      options: {}
+    });
+
+    expect(openAiConstructorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiKey: "stored-key",
+        baseURL: "https://poe-proxy.example.com/v1"
+      })
+    );
   });
 
   it("maps response.output_text.delta events into text events", async () => {

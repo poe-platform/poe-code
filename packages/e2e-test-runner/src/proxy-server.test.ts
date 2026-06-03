@@ -5,9 +5,28 @@ import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { vol } from 'memfs';
 
+const fsHooks = vi.hoisted(() => ({
+  appendFile: undefined as undefined | (() => Promise<void>),
+  writeFile: undefined as undefined | ((targetPath: string) => Promise<void>),
+}));
+
 vi.mock('node:fs/promises', async () => {
   const { fs } = await import('memfs');
-  return fs.promises;
+  return {
+    ...fs.promises,
+    appendFile: async (...args: Parameters<typeof fs.promises.appendFile>) => {
+      if (fsHooks.appendFile) {
+        await fsHooks.appendFile();
+      }
+      return await fs.promises.appendFile(...args);
+    },
+    writeFile: async (...args: Parameters<typeof fs.promises.writeFile>) => {
+      if (fsHooks.writeFile) {
+        await fsHooks.writeFile(String(args[0]));
+      }
+      return await fs.promises.writeFile(...args);
+    },
+  };
 });
 
 import { startProxyServer } from './proxy-server.js';
@@ -275,6 +294,8 @@ describe('startDummyApi', () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    fsHooks.appendFile = undefined;
+    fsHooks.writeFile = undefined;
     vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
   });
 
@@ -336,6 +357,8 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    fsHooks.appendFile = undefined;
+    fsHooks.writeFile = undefined;
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
@@ -875,6 +898,72 @@ describe('startProxyServer record mode', () => {
     expect(snapshot.response).toEqual(secondResponseBody);
     expect(snapshot.response.manuallyOverwritten).toBeUndefined();
   });
+
+  it('does not replace a prior snapshot when capture persistence fails', async () => {
+    const payload = { model: 'dummy-model', messages: [{ role: 'user', content: 'retry' }] };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify({ key, response: { id: 'prior' } }));
+    fsHooks.appendFile = async () => {
+      throw new Error('capture failed');
+    };
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ id: 'fresh' }), { status: 200 }),
+    );
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [{ path: '/v1', target: 'http://unused.test', mode: 'record', snapshotDir }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(502);
+    expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual({
+      id: 'prior',
+    });
+  });
+
+  it('preserves a prior snapshot when atomic replacement fails', async () => {
+    const payload = { model: 'dummy-model', messages: [{ role: 'user', content: 'retry' }] };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify({ key, response: { id: 'prior' } }));
+    fsHooks.writeFile = async (targetPath) => {
+      if (targetPath !== snapshotPath) {
+        throw new Error('snapshot failed');
+      }
+    };
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ id: 'fresh' }), { status: 200 }),
+    );
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [{ path: '/v1', target: 'http://unused.test', mode: 'record', snapshotDir }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(502);
+    expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual({
+      id: 'prior',
+    });
+  });
 });
 
 describe('startProxyServer playback mode', () => {
@@ -883,6 +972,8 @@ describe('startProxyServer playback mode', () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    fsHooks.appendFile = undefined;
+    fsHooks.writeFile = undefined;
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
@@ -1033,6 +1124,43 @@ describe('startProxyServer playback mode', () => {
     expect(captured.response.status).toBe(200);
     expect(captured.response.body).toEqual(responseBody);
     expect(Number.isNaN(Date.parse(captured.timestamp))).toBe(false);
+  });
+
+  it('waits for capture persistence before completing playback responses', async () => {
+    const payload = { model: 'dummy-model', messages: [{ role: 'user', content: 'held' }] };
+    const key = generateSnapshotKey(payload);
+    const responseBody = { id: 'saved' };
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(join(snapshotDir, `${key}.json`), JSON.stringify({ key, response: responseBody }));
+    let releaseCapture: (() => void) | undefined;
+    fsHooks.appendFile = async () => {
+      await new Promise<void>((resolve) => {
+        releaseCapture = resolve;
+      });
+    };
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [{ path: '/v1', target: 'http://unused.test', mode: 'playback', snapshotDir }],
+    });
+    closeHandles.push(proxy.close);
+
+    let settled = false;
+    const pendingResponse = makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then((response) => {
+      settled = true;
+      return response;
+    });
+    await vi.waitFor(() => expect(releaseCapture).toEqual(expect.any(Function)));
+    expect(settled).toBe(false);
+
+    releaseCapture!();
+    const response = await pendingResponse;
+    expect(response.status).toBe(200);
   });
 
   it('uses the same key for same model and messages', async () => {

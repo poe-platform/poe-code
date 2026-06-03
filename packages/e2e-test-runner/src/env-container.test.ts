@@ -136,6 +136,62 @@ describe('createEnvContainer', () => {
     ]);
   });
 
+  it('rejects package bin names that escape the isolated local bin directory', async () => {
+    vol.writeFileSync('/workspace/package.json', JSON.stringify({ bin: { '../created-link': 'bin/tool' } }));
+    vol.mkdirSync('/workspace/bin', { recursive: true });
+    vol.writeFileSync('/workspace/bin/tool', '#!/bin/sh\n');
+    const { spawn, spawnSync } = await import('node:child_process');
+    vi.mocked(spawnSync).mockReturnValue({ status: 0, stdout: 'ok\n', stderr: '', pid: 1, output: [], signal: null });
+    vi.mocked(spawn).mockReturnValue(createMockChildProcess(0, '', ''));
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await expect(container.exec('true')).rejects.toThrow('Invalid package bin name');
+  });
+
+  it('rejects package bin targets outside the workspace', async () => {
+    vol.writeFileSync('/workspace/package.json', JSON.stringify({ bin: { tool: '../outside-tool' } }));
+    vol.writeFileSync('/outside-tool', 'external');
+    const { spawn, spawnSync } = await import('node:child_process');
+    vi.mocked(spawnSync).mockReturnValue({ status: 0, stdout: 'ok\n', stderr: '', pid: 1, output: [], signal: null });
+    vi.mocked(spawn).mockReturnValue(createMockChildProcess(0, '', ''));
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await expect(container.exec('true')).rejects.toThrow('outside the workspace');
+  });
+
+  it('rejects package bin targets that are symbolic links', async () => {
+    vol.writeFileSync('/workspace/package.json', JSON.stringify({ bin: { tool: 'bin/tool' } }));
+    vol.mkdirSync('/workspace/bin', { recursive: true });
+    vol.writeFileSync('/outside-tool', 'external');
+    vol.symlinkSync('/outside-tool', '/workspace/bin/tool');
+    const { spawn, spawnSync } = await import('node:child_process');
+    vi.mocked(spawnSync).mockReturnValue({ status: 0, stdout: 'ok\n', stderr: '', pid: 1, output: [], signal: null });
+    vi.mocked(spawn).mockReturnValue(createMockChildProcess(0, '', ''));
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await expect(container.exec('true')).rejects.toThrow('symbolic link');
+  });
+
+  it('rejects snapshot test names that escape the fixture directory', async () => {
+    const { createEnvContainer } = await import('./env-container.js');
+
+    await expect(createEnvContainer({ testName: '../../outside', useSnapshots: true }))
+      .rejects.toThrow('Invalid snapshot test name');
+  });
+
+  it('rejects symlinked snapshot directories before playback or recording', async () => {
+    vol.mkdirSync('/workspace/.snapshots', { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.symlinkSync('/outside', '/workspace/.snapshots/proxy');
+    const { createEnvContainer } = await import('./env-container.js');
+
+    await expect(createEnvContainer({ testName: 'proxy', useSnapshots: true }))
+      .rejects.toThrow('symbolic link');
+  });
+
   it('reads and writes files inside the sandbox home', async () => {
     const { createEnvContainer } = await import('./env-container.js');
     const container = await createEnvContainer();
@@ -234,5 +290,20 @@ describe('createEnvContainer', () => {
     await container.exec('echo hello');
     await expect(container.destroy()).resolves.toBeUndefined();
     await expect(container.destroy()).resolves.toBeUndefined();
+  });
+
+  it('retries proxy close when the first destroy attempt fails', async () => {
+    const { spawn, spawnSync } = await import('node:child_process');
+    vi.mocked(spawnSync).mockReturnValue({ status: 0, stdout: 'ok\n', stderr: '', pid: 1, output: [], signal: null });
+    vi.mocked(spawn).mockReturnValue(createMockChildProcess(0, '', ''));
+    const close = vi.fn().mockRejectedValueOnce(new Error('close failed')).mockResolvedValue(undefined);
+    vi.mocked(startProxyServer).mockResolvedValue({ url: 'http://127.0.0.1:3456', close });
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer({ testName: 'retry-close', useSnapshots: true });
+    await container.exec('true');
+
+    await expect(container.destroy()).rejects.toThrow('close failed');
+    await expect(container.destroy()).resolves.toBeUndefined();
+    expect(close).toHaveBeenCalledTimes(2);
   });
 });

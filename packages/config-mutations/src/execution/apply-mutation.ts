@@ -1,3 +1,4 @@
+import path from "node:path";
 import { renderTemplate } from "@poe-code/design-system";
 import type {
   Mutation,
@@ -38,12 +39,88 @@ function createInvalidDocumentBackupPath(targetPath: string): string {
 }
 
 async function backupInvalidDocument(
-  fs: FileSystem,
+  context: MutationContext,
   targetPath: string,
   content: string
 ): Promise<void> {
-  const backupPath = createInvalidDocumentBackupPath(targetPath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
+  const baseBackupPath = createInvalidDocumentBackupPath(targetPath);
+  let attempt = 0;
+  while (true) {
+    const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
+    await assertRegularWriteTarget(context, backupPath);
+    try {
+      await context.fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+      return;
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        throw error;
+      }
+      attempt += 1;
+    }
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+}
+
+async function assertRegularWriteTarget(
+  context: MutationContext,
+  targetPath: string
+): Promise<void> {
+  // Symlinks inside the managed home directory are untrusted: an attacker could
+  // plant one to redirect a credential/config write outside it. Symlinks at or
+  // above home are legitimate system links (e.g. /tmp -> /private/tmp on macOS,
+  // /var -> /private/var) and must not block writes, so bound the walk at home.
+  const boundary = path.dirname(path.resolve(context.homeDir));
+  let currentPath = path.resolve(targetPath);
+  while (currentPath !== boundary) {
+    try {
+      if ((await context.fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Refusing mutation write through symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+    }
+
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      return;
+    }
+    currentPath = parentPath;
+  }
+}
+
+async function writeAtomically(
+  context: MutationContext,
+  targetPath: string,
+  content: string
+): Promise<void> {
+  await assertRegularWriteTarget(context, targetPath);
+  let attempt = 0;
+  while (true) {
+    const tempPath = `${targetPath}.mutation-tmp-${attempt}`;
+    try {
+      await context.fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      await context.fs.rename(tempPath, targetPath);
+      return;
+    } catch (error) {
+      if (isAlreadyExists(error)) {
+        attempt += 1;
+        continue;
+      }
+      try {
+        await context.fs.unlink(tempPath);
+      } catch (cleanupError) {
+        if (!isNotFound(cleanupError)) {
+          void cleanupError;
+        }
+      }
+      throw error;
+    }
+  }
 }
 
 function describeMutation(kind: string, targetPath?: string): string {
@@ -55,6 +132,8 @@ function describeMutation(kind: string, targetPath?: string): string {
       return `Remove directory ${displayPath}`;
     case "backup":
       return `Backup ${displayPath}`;
+    case "restoreBackup":
+      return `Restore ${displayPath}`;
     case "templateWrite":
       return `Write ${displayPath}`;
     case "chmod":
@@ -139,6 +218,8 @@ export async function applyMutation(
       return applyChmod(mutation, context, options);
     case "backup":
       return applyBackup(mutation, context, options);
+    case "restoreBackup":
+      return applyRestoreBackup(mutation, context, options);
     case "configMerge":
       return applyConfigMerge(mutation, context, options);
     case "configPrune":
@@ -268,6 +349,9 @@ async function applyRemoveFile(
     const trimmed = content.trim();
 
     // Check whenContentMatches guard
+    if (mutation.whenContentMatches) {
+      mutation.whenContentMatches.lastIndex = 0;
+    }
     if (mutation.whenContentMatches && !mutation.whenContentMatches.test(trimmed)) {
       return {
         outcome: { changed: false, effect: "none", detail: "noop" },
@@ -367,8 +451,15 @@ async function applyBackup(
     targetPath
   };
 
+  if (mutation.once && (await findLatestGeneratedBackup(context.fs, targetPath)) !== null) {
+    return {
+      outcome: { changed: false, effect: "none", detail: "noop" },
+      details
+    };
+  }
+
   const content = await readFileIfExists(context.fs, targetPath);
-  if (content === null) {
+  if (content === null && !mutation.once) {
     return {
       outcome: { changed: false, effect: "none", detail: "noop" },
       details
@@ -376,14 +467,120 @@ async function applyBackup(
   }
 
   if (!context.dryRun) {
-    const backupPath = `${targetPath}.backup-${createTimestamp()}`;
-    await context.fs.writeFile(backupPath, content, { encoding: "utf8" });
+    const baseBackupPath = `${targetPath}.backup-${createTimestamp()}${content === null ? ".missing" : ""}`;
+    let attempt = 0;
+    while (true) {
+      const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
+      try {
+        await assertRegularWriteTarget(context, backupPath);
+        await context.fs.writeFile(backupPath, content ?? "", { encoding: "utf8", flag: "wx" });
+        break;
+      } catch (error) {
+        if (!isAlreadyExists(error)) {
+          throw error;
+        }
+        attempt += 1;
+      }
+    }
   }
 
   return {
     outcome: { changed: true, effect: "copy", detail: "backup" },
     details
   };
+}
+
+async function applyRestoreBackup(
+  mutation: Extract<Mutation, { kind: "restoreBackup" }>,
+  context: MutationContext,
+  options: MutationOptions
+): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
+  const rawPath = resolveValue(mutation.target, options);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const details: MutationDetails = {
+    kind: mutation.kind,
+    label: mutation.label ?? describeMutation(mutation.kind, targetPath),
+    targetPath
+  };
+  const backup = await findLatestGeneratedBackup(context.fs, targetPath);
+
+  if (backup === null) {
+    return { outcome: { changed: false, effect: "none", detail: "noop" }, details };
+  }
+
+  if (!context.dryRun) {
+    await assertRegularWriteTarget(context, backup.path);
+    if (backup.originallyMissing) {
+      try {
+        await context.fs.unlink(targetPath);
+      } catch (error) {
+        if (!isNotFound(error)) {
+          throw error;
+        }
+      }
+    } else {
+      const content = await context.fs.readFile(backup.path, "utf8");
+      await writeAtomically(context, targetPath, content);
+    }
+    await context.fs.unlink(backup.path);
+  }
+
+  return { outcome: { changed: true, effect: "copy", detail: "restore" }, details };
+}
+
+async function findLatestGeneratedBackup(
+  fs: FileSystem,
+  targetPath: string
+): Promise<{ path: string; originallyMissing: boolean } | null> {
+  const separatorIndex = targetPath.lastIndexOf("/");
+  const directoryPath = separatorIndex <= 0 ? "/" : targetPath.slice(0, separatorIndex);
+  const targetName = targetPath.slice(separatorIndex + 1);
+  let entries: string[];
+
+  try {
+    entries = await fs.readdir(directoryPath);
+  } catch (error) {
+    if (isNotFound(error)) {
+      return null;
+    }
+    throw error;
+  }
+
+  const backupName = entries
+    .filter((entry) => isGeneratedBackupName(entry, targetName))
+    .sort()
+    .at(-1);
+  return backupName === undefined
+    ? null
+    : {
+        path: `${directoryPath}/${backupName}`,
+        originallyMissing: backupName.endsWith(".missing")
+      };
+}
+
+function isGeneratedBackupName(entry: string, targetName: string): boolean {
+  const prefix = `${targetName}.backup-`;
+  if (!entry.startsWith(prefix)) {
+    return false;
+  }
+
+  const suffix = entry.slice(prefix.length);
+  const timestamp = suffix.slice(0, 24);
+  if (timestamp.length !== 24 || timestamp[4] !== "-" || timestamp[7] !== "-" || timestamp[10] !== "T" || timestamp[13] !== "-" || timestamp[16] !== "-" || timestamp[19] !== "-" || timestamp[23] !== "Z") {
+    return false;
+  }
+  const parsedTimestamp = `${timestamp.slice(0, 13)}:${timestamp.slice(14, 16)}:${timestamp.slice(17, 19)}.${timestamp.slice(20)}`;
+  if (Number.isNaN(Date.parse(parsedTimestamp))) {
+    return false;
+  }
+  const collisionSuffix = suffix.slice(24);
+  if (collisionSuffix.length === 0) {
+    return true;
+  }
+  if (collisionSuffix === ".missing") {
+    return true;
+  }
+  return collisionSuffix[0] === "-" && collisionSuffix.slice(1).length > 0 && [...collisionSuffix.slice(1)].every((character) => character >= "0" && character <= "9");
 }
 
 // ============================================================================
@@ -418,8 +615,8 @@ async function applyConfigMerge(
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
     // Invalid file - backup and start fresh
-    if (rawContent !== null) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+    if (rawContent !== null && !context.dryRun) {
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -438,7 +635,7 @@ async function applyConfigMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -523,7 +720,7 @@ async function applyConfigPrune(
 
   const serialized = format.serialize(result);
   if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -559,8 +756,8 @@ async function applyConfigTransform(
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
-    if (rawContent !== null) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+    if (rawContent !== null && !context.dryRun) {
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -593,7 +790,7 @@ async function applyConfigTransform(
 
   const serialized = format.serialize(transformed);
   if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -637,17 +834,18 @@ async function applyTemplateWrite(
     : {};
   const rendered = renderTemplate(template, templateContext);
 
-  const existed = await pathExists(context.fs, targetPath);
+  const current = await readFileIfExists(context.fs, targetPath);
+  const changed = current !== rendered;
 
-  if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, rendered, { encoding: "utf8" });
+  if (changed && !context.dryRun) {
+    await writeAtomically(context, targetPath, rendered);
   }
 
   return {
     outcome: {
-      changed: true,
-      effect: "write",
-      detail: existed ? "update" : "create"
+      changed,
+      effect: changed ? "write" : "none",
+      detail: changed ? (current === null ? "create" : "update") : "noop"
     },
     details
   };
@@ -701,8 +899,8 @@ async function applyTemplateMerge(
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
-    if (rawContent !== null) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+    if (rawContent !== null && !context.dryRun) {
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -713,7 +911,7 @@ async function applyTemplateMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {

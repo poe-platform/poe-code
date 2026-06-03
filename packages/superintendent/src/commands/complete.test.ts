@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
 import { parseSuperintendentDoc } from "../document/parse.js";
 
 const document = `---
@@ -76,7 +77,10 @@ async function runComplete(options: { content?: string; reason?: string } = {}):
         expect(inputPath).toBe(targetPath);
         return options.content ?? document;
       }),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
       writeFile,
+      rename: vi.fn(async () => undefined),
+      unlink: vi.fn(async () => undefined),
       exists: vi.fn(async () => true)
     },
     env: {
@@ -132,5 +136,86 @@ describe("superintendent complete command", () => {
     });
 
     expect(updatedContent).not.toContain("reason:");
+  });
+
+  it("previews completion without writing during dry run", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const writeFile = vi.fn(async () => undefined);
+
+    const result = await completeCommand.handler({
+      params: { path: "docs/plans/feature.md", reason: "operator override", dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
+        writeFile,
+        rename: vi.fn(async () => undefined),
+        unlink: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    });
+
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      path: "docs/plans/feature.md",
+      state: "completed",
+      reason: "operator override",
+      dryRun: true
+    });
+  });
+
+  it("rejects a symlinked document path before writing", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const writeFile = vi.fn(async () => undefined);
+
+    await expect(completeCommand.handler({
+      params: { path: "docs/plans/feature.md" },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        lstat: vi.fn(async () => ({ isSymbolicLink: () => true })),
+        writeFile,
+        rename: vi.fn(async () => undefined),
+        unlink: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    })).rejects.toThrow(/symbolic link/i);
+    expect(writeFile).not.toHaveBeenCalled();
+  });
+
+  it("preserves the document when completion persistence fails", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const targetPath = "/repo/docs/plans/feature.md";
+    const volume = Volume.fromJSON({ [targetPath]: document }, "/");
+    const rawFs = createFsFromVolume(volume).promises;
+
+    await expect(completeCommand.handler({
+      params: { path: targetPath },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+        lstat: async (filePath: string) => {
+          const stat = await rawFs.lstat(filePath);
+          return { isSymbolicLink: () => stat.isSymbolicLink() };
+        },
+        writeFile: async (filePath: string, content: string) => {
+          await rawFs.writeFile(filePath, content.slice(0, 12));
+          throw new Error("disk full");
+        },
+        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
+        unlink: (filePath: string) => rawFs.unlink(filePath),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    })).rejects.toThrow("disk full");
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
   });
 });

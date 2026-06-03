@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { createMCPServer } from "toolcraft/mcp";
-import { terminalPilotGroup } from "terminal-pilot/commands";
+import { createTerminalPilotMCPGroup } from "./index.js";
 import type { TerminalPilotRuntime } from "terminal-pilot/commands";
 
 const EXPECTED_TOOL_NAMES = [
@@ -18,6 +18,19 @@ const EXPECTED_TOOL_NAMES = [
   "close_session",
   "get_session",
   "list_sessions",
+  "terminal_create_session",
+  "terminal_fill",
+  "terminal_type",
+  "terminal_press_key",
+  "terminal_send_signal",
+  "terminal_wait_for",
+  "terminal_wait_for_exit",
+  "terminal_read_screen",
+  "terminal_read_history",
+  "terminal_resize",
+  "terminal_close_session",
+  "terminal_get_session",
+  "terminal_list_sessions",
   "approvals__list",
   "approvals__show"
 ];
@@ -98,8 +111,8 @@ const runtime: TerminalPilotRuntime = {
 };
 
 describe("terminal-pilot-mcp tool surface", () => {
-  it("exposes the shared terminal-pilot commands through toolcraft MCP", async () => {
-    const server = createMCPServer(terminalPilotGroup, {
+  it("exposes current and documented terminal-prefixed MCP command names", async () => {
+    const server = createMCPServer(createTerminalPilotMCPGroup(), {
       name: "terminal-pilot",
       version: "0.0.1",
       omitRootToolNamePrefix: true,
@@ -126,6 +139,14 @@ describe("terminal-pilot-mcp tool surface", () => {
 
       expect(result.tools).toHaveLength(EXPECTED_TOOL_NAMES.length);
       expect(result.tools.map((tool) => tool.name)).toEqual(EXPECTED_TOOL_NAMES);
+      expect(
+        await client.callTool({
+          name: "terminal_create_session",
+          arguments: { command: "bash" }
+        })
+      ).toEqual({
+        content: [{ type: "text", text: JSON.stringify({ session: "s1", pid: 1234 }) }]
+      });
     } finally {
       await cleanup();
     }

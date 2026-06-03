@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { fs, vol } from "memfs";
-import type { PipelineRunResult } from "@poe-code/pipeline";
+import { createFsFromVolume, fs, vol, Volume } from "memfs";
+import type { PipelineFileSystem, PipelineRunOptions, PipelineRunResult } from "@poe-code/pipeline";
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
 const sdkSpawnAutonomousMock = vi.hoisted(() => vi.fn());
@@ -122,6 +122,44 @@ describe("SDK pipeline", () => {
     );
   });
 
+  it("uses an injected filesystem for explicit plan initialization preflight", async () => {
+    seedFs({});
+    const injectedFs = createFsFromVolume(
+      Volume.fromJSON({ "/virtual/feature.md": initializedPlan() }, "/")
+    ).promises as unknown as PipelineFileSystem;
+    workspaceRunPipelineMock.mockResolvedValueOnce(workspaceResult);
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/virtual",
+      homeDir,
+      plan: "feature.md",
+      fs: injectedFs,
+      runAgent: vi.fn()
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("supports home-relative explicit plan paths during initialization preflight", async () => {
+    seedFs({
+      "/home/test/plans/feature.md": initializedPlan()
+    });
+    workspaceRunPipelineMock.mockResolvedValueOnce(workspaceResult);
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "~/plans/feature.md",
+      runAgent: vi.fn()
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
   it("initializes the source file in place when the target file has no frontmatter", async () => {
     seedFs({
       "/repo/feature.md": "# Feature\nShip it.\n"
@@ -153,6 +191,53 @@ describe("SDK pipeline", () => {
     expect(result).toEqual(workspaceResult);
     expect(runAgent).toHaveBeenCalledTimes(1);
     expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not run automatic initialization when already aborted", async () => {
+    seedFs({
+      "/repo/feature.md": "# Feature\nShip it.\n"
+    });
+    const controller = new AbortController();
+    controller.abort();
+    const runAgent = vi.fn();
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd,
+        homeDir,
+        plan: "feature.md",
+        signal: controller.signal,
+        runAgent
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(runAgent).not.toHaveBeenCalled();
+    expect(workspaceRunPipelineMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects when automatic initialization exits nonzero", async () => {
+    seedFs({
+      "/repo/feature.md": "# Feature\nShip it.\n"
+    });
+    const runAgent = vi.fn().mockResolvedValue({
+      stdout: "",
+      stderr: "init failed",
+      exitCode: 1
+    });
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd,
+        homeDir,
+        plan: "feature.md",
+        runAgent
+      })
+    ).rejects.toThrow("Pipeline initialization failed with exit code 1");
+
+    expect(runAgent).toHaveBeenCalledTimes(1);
+    expect(workspaceRunPipelineMock).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -261,6 +346,41 @@ describe("SDK pipeline", () => {
     expect(runAgent).toHaveBeenCalledTimes(2);
   });
 
+  it("does not retry a timed out agent after cancellation", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+    const controller = new AbortController();
+    const timeoutError = createActivityTimeoutError();
+    const runAgent = vi.fn(async () => {
+      controller.abort();
+      throw timeoutError;
+    });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options: PipelineRunOptions) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        mode: "yolo",
+        cwd,
+        signal: controller.signal
+      });
+      return workspaceResult;
+    });
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd,
+        homeDir,
+        plan: "feature.md",
+        signal: controller.signal,
+        runAgent
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(runAgent).toHaveBeenCalledTimes(1);
+  });
+
   it("passes pipeline step options through the default SDK spawn runner", async () => {
     seedFs({
       "/repo/feature.md": initializedPlan()
@@ -277,6 +397,8 @@ describe("SDK pipeline", () => {
         prompt: "Ship it.",
         mode: "yolo",
         cwd,
+        logDir: "/tmp/logs",
+        logFileName: "task.jsonl",
         skills: ["foo", "claude/bar"],
         hooks: { from: "claude", strategy: "transform", scope: "merged" }
       });
@@ -298,6 +420,8 @@ describe("SDK pipeline", () => {
         prompt: "Ship it.",
         cwd,
         mode: "yolo",
+        logDir: "/tmp/logs",
+        logFileName: "task.jsonl",
         skills: ["foo", "claude/bar"],
         hooks: { from: "claude", strategy: "transform", scope: "merged" }
       })

@@ -25,9 +25,11 @@ import {
 import {
   applyOrder,
   isRecord,
+  rejectSymbolicLinkComponents,
   sortStrings,
   statIfExists,
   validateTaskId,
+  withFileLock,
   writeAtomically,
   type OrderedEntry
 } from "./utils.js";
@@ -98,7 +100,7 @@ function descriptionFromTaskRecord(taskRecord: TaskRecord): string {
 }
 
 function metadataFromTaskRecord(taskRecord: TaskRecord): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {};
+  const metadata: Record<string, unknown> = Object.create(null);
 
   for (const [key, value] of Object.entries(taskRecord)) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -139,11 +141,11 @@ function createTaskRecord(
   input: TaskCreate,
   initialState: string
 ): TaskRecord {
-  const taskRecord: TaskRecord = {
+  const taskRecord: TaskRecord = Object.assign(Object.create(null), {
     name: input.name,
     state: initialState,
     description: input.description ?? ""
-  };
+  });
 
   for (const [key, value] of Object.entries(defaults.metadata)) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -182,12 +184,12 @@ function assertUpdateDoesNotSetState(patch: TaskUpdate): void {
 }
 
 function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRecord {
-  const nextTaskRecord: TaskRecord = {
+  const nextTaskRecord: TaskRecord = Object.assign(Object.create(null), existing, {
     ...existing,
     name: patch.name ?? existing.name,
     state: existing.state,
     description: patch.description ?? descriptionFromTaskRecord(existing)
-  };
+  });
 
   for (const [key, value] of Object.entries(patch.metadata ?? {})) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -199,11 +201,11 @@ function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRe
 }
 
 function buildTransitionedTaskRecord(existing: TaskRecord, to: string): TaskRecord {
-  return {
+  return Object.assign(Object.create(null), existing, {
     ...existing,
     state: to,
     description: descriptionFromTaskRecord(existing)
-  };
+  });
 }
 
 function buildFiredTaskRecord(
@@ -376,7 +378,10 @@ function getListRecord(store: StoreRecord, list: string): Record<string, unknown
 
 function getTaskRecord(store: StoreRecord, list: string, id: string): TaskRecord | undefined {
   const listRecord = getListRecord(store, list);
-  const taskRecord = listRecord?.[id];
+  const taskRecord =
+    listRecord !== undefined && Object.prototype.hasOwnProperty.call(listRecord, id)
+      ? listRecord[id]
+      : undefined;
 
   return isRecord(taskRecord) ? taskRecord : undefined;
 }
@@ -452,6 +457,8 @@ function activeItemIds(listNode: YAMLMap, validStates: ReadonlySet<string>): str
 }
 
 async function ensureStorePath(deps: BackendDeps): Promise<void> {
+  await rejectSymbolicLinkComponents(deps.fs, deps.path);
+
   if (!deps.create) {
     await deps.fs.stat(deps.path);
     return;
@@ -572,35 +579,41 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
       validateTaskId(id);
 
-      const { document, store } = await readStore(deps.fs, deps.path, validStates);
-      const existing = getTaskOrThrow(store, list, id);
-      const task = createTask(list, id, existing, deps.path);
-      const event = assertFireableTaskEvent(task, eventName);
-      const guardResult = event.guard?.(task) ?? true;
+      const { event, nextTask } = await withFileLock(deps.fs, `${deps.path}.lock`, async () => {
+        const { document, store } = await readStore(deps.fs, deps.path, validStates);
+        const existing = getTaskOrThrow(store, list, id);
+        const task = createTask(list, id, existing, deps.path);
+        const event = assertFireableTaskEvent(task, eventName);
+        const guardResult = event.guard?.(task) ?? true;
 
-      if (guardResult !== true) {
-        throw new InvalidTransitionError({
-          task,
-          event: eventName,
-          to: event.to,
-          reason: guardResult
-        });
-      }
-
-      await event.onExit?.(task);
-
-      const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
-      document.setIn(["lists", list, id, "state"], event.to);
-
-      for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
-        if (!RESERVED_TASK_KEYS.has(key)) {
-          document.setIn(["lists", list, id, key], value);
+        if (guardResult !== true) {
+          throw new InvalidTransitionError({
+            task,
+            event: eventName,
+            to: event.to,
+            reason: guardResult
+          });
         }
-      }
 
-      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+        await event.onExit?.(task);
 
-      const nextTask = createTask(list, id, nextTaskRecord, deps.path);
+        const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
+        document.setIn(["lists", list, id, "state"], event.to);
+
+        for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
+          if (!RESERVED_TASK_KEYS.has(key)) {
+            document.setIn(["lists", list, id, key], value);
+          }
+        }
+
+        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+
+        return {
+          event,
+          nextTask: createTask(list, id, nextTaskRecord, deps.path)
+        };
+      });
+
       await event.onEnter?.(nextTask);
 
       return nextTask;
@@ -684,7 +697,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       const missing = currentActive.filter((id) => !inputSet.has(id));
       const extra = ids.filter((id) => !currentSet.has(id));
 
-      if (missing.length > 0 || extra.length > 0) {
+      if (inputSet.size !== ids.length || missing.length > 0 || extra.length > 0) {
         throw new OrderMismatchError({ missing, extra });
       }
 

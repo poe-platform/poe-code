@@ -1,6 +1,7 @@
 import { execFile as execFileCallback } from "node:child_process";
 import fsPromises from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import fastGlob from "fast-glob";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
@@ -16,13 +17,14 @@ import {
   getOptionalString,
   getRequiredString,
   isObjectRecord,
+  assertNoSymbolicLinkPath,
   resolveAllowedPath
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
 
 type PluginFileSystem = Pick<
   typeof fsPromises,
-  "mkdir" | "readFile" | "readdir" | "stat" | "writeFile"
+  "lstat" | "mkdir" | "readFile" | "readdir" | "rename" | "stat" | "unlink" | "writeFile"
 >;
 
 type GrepOutputMode = "files_with_matches" | "content" | "count";
@@ -97,6 +99,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
     },
     async call(args: unknown) {
       const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
+      await assertNoSymbolicLinkPath(fs, filePath);
       const imageMimeType = detectImageMimeType(filePath);
       if (imageMimeType !== undefined) {
         const content = await fs.readFile(filePath);
@@ -160,6 +163,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       const command = getRequiredString(args, "command");
       const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
       const displayedPath = formatDisplayPath(cwd, filePath);
+      await assertNoSymbolicLinkPath(fs, filePath);
 
       if (command === "str_replace") {
         const oldStr = getRequiredString(args, "old_str", true);
@@ -181,10 +185,10 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
           throw new Error(`old_str appears ${count} times — must be unique`);
         }
 
-        await fs.writeFile(
+        await replaceFileAtomically(
+          fs,
           filePath,
-          replaceAll ? content.split(oldStr).join(newStr) : content.replace(oldStr, newStr),
-          "utf8"
+          replaceAll ? content.split(oldStr).join(newStr) : content.replace(oldStr, newStr)
         );
         return `Edited file: ${displayedPath}`;
       }
@@ -192,12 +196,16 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       if (command === "create") {
         const fileText = getRequiredString(args, "file_text", true);
 
-        if (await fileExists(fs, filePath)) {
-          throw new Error("File already exists — use str_replace to edit");
-        }
-
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, fileText, "utf8");
+        await assertNoSymbolicLinkPath(fs, filePath);
+        try {
+          await fs.writeFile(filePath, fileText, { encoding: "utf8", flag: "wx" });
+        } catch (error) {
+          if (isAlreadyExistsError(error)) {
+            throw new Error("File already exists — use str_replace to edit");
+          }
+          throw error;
+        }
         return `Created file: ${displayedPath}`;
       }
 
@@ -205,7 +213,8 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         const fileText = getRequiredString(args, "file_text", true);
 
         await fs.mkdir(path.dirname(filePath), { recursive: true });
-        await fs.writeFile(filePath, fileText, "utf8");
+        await assertNoSymbolicLinkPath(fs, filePath);
+        await replaceFileAtomically(fs, filePath, fileText);
         return `Overwrote file: ${displayedPath}`;
       }
 
@@ -232,6 +241,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
     async call(args: unknown): Promise<string> {
       const rawPath = getOptionalString(args, "path") ?? ".";
       const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath);
+      await assertNoSymbolicLinkPath(fs, directoryPath);
       const entries = await fs.readdir(directoryPath);
       const names = entries.sort((left, right) => left.localeCompare(right));
 
@@ -288,6 +298,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         allowedPaths,
         getOptionalString(args, "path") ?? "."
       );
+      await assertNoSymbolicLinkPath(fs, searchPath);
 
       return searchContent({
         pattern: getRequiredString(args, "pattern"),
@@ -328,15 +339,20 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         allowedPaths,
         getOptionalString(args, "path") ?? "."
       );
+      await assertNoSymbolicLinkPath(fs, searchPath);
       const matches = await globFiles({
         pattern: getRequiredString(args, "pattern"),
         cwd: searchPath
       });
 
-      const sortedMatches = await sortPathsByModifiedTime(
-        matches.map((match) => resolveAllowedPath(cwd, allowedPaths, match)),
-        fs
+      const resolvedMatches = await Promise.all(
+        matches.map(async (match) => {
+          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match);
+          await assertNoSymbolicLinkPath(fs, resolvedMatch);
+          return resolvedMatch;
+        })
       );
+      const sortedMatches = await sortPathsByModifiedTime(resolvedMatches, fs);
 
       if (sortedMatches.length === 0) {
         return "(no matches)";
@@ -352,13 +368,29 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
   };
 };
 
-async function fileExists(fs: PluginFileSystem, filePath: string): Promise<boolean> {
+async function replaceFileAtomically(
+  fs: PluginFileSystem,
+  filePath: string,
+  content: string
+): Promise<void> {
+  const temporaryPath = path.join(path.dirname(filePath), `.${path.basename(filePath)}.${randomUUID()}.tmp`);
+
   try {
-    await fs.stat(filePath);
-    return true;
-  } catch {
-    return false;
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "EEXIST"
+  );
 }
 
 function countOccurrences(text: string, search: string): number {

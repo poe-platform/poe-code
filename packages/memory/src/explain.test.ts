@@ -97,15 +97,18 @@ describe("explainPage", () => {
     });
 
     mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
-      answer: "Superintendent retries during cleanup races.",
-      citations: [
-        {
-          relPath: "pages/packages/superintendent.md",
-          section: "checkpoints",
-          confidence: "extracted"
-        }
-      ],
-      tokensUsed: 222,
+      stdout: JSON.stringify({
+        answer: "Superintendent retries during cleanup races.",
+        citations: [
+          {
+            relPath: "pages/packages/superintendent.md",
+            section: "checkpoints",
+            confidence: "extracted"
+          }
+        ],
+        tokensUsed: 222
+      }),
+      stderr: "",
       exitCode: 0
     });
 
@@ -127,6 +130,7 @@ describe("explainPage", () => {
     expect(prompt).toContain("FILE: pages/packages/superintendent.md");
     expect(prompt).toContain("FILE: pages/architecture.md");
     expect(prompt).toContain("FILE: pages/incidents/retry.md");
+    expect(resolveAgent.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
 
     expect(result).toEqual({
       answer: "Superintendent retries during cleanup races.",

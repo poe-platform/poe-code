@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { collectProviderEvents } from "../testing/model-response.js";
 
 const storeGetMock = vi.hoisted(() => vi.fn<() => Promise<string | undefined>>());
@@ -47,11 +47,23 @@ function createChunkStream(chunks: unknown[]): AsyncIterable<unknown> {
 }
 
 describe("poe-agent-plugin-openai-chat-completions", () => {
+  const originalPoeBaseUrl = process.env.POE_BASE_URL;
+  const originalOpenaiBaseUrl = process.env.OPENAI_BASE_URL;
+
   beforeEach(() => {
+    delete process.env.POE_BASE_URL;
+    delete process.env.OPENAI_BASE_URL;
     storeGetMock.mockReset();
     createSecretStoreMock.mockClear();
     openAiCreateMock.mockReset();
     openAiConstructorMock.mockClear();
+  });
+
+  afterEach(() => {
+    if (originalPoeBaseUrl === undefined) delete process.env.POE_BASE_URL;
+    else process.env.POE_BASE_URL = originalPoeBaseUrl;
+    if (originalOpenaiBaseUrl === undefined) delete process.env.OPENAI_BASE_URL;
+    else process.env.OPENAI_BASE_URL = originalOpenaiBaseUrl;
   });
 
   it("validates config options with its plugin spec", () => {
@@ -486,6 +498,24 @@ describe("poe-agent-plugin-openai-chat-completions", () => {
         apiKey: "stored-key",
         baseURL: "https://api.poe.com/v1",
         fetch: fetchMock
+      })
+    );
+  });
+
+  it("uses POE_BASE_URL and ignores OPENAI_BASE_URL for Poe credentials", async () => {
+    storeGetMock.mockResolvedValue("stored-key");
+    process.env.POE_BASE_URL = "https://poe-proxy.example.com/v1";
+    process.env.OPENAI_BASE_URL = "https://foreign.example.com/v1";
+
+    await openaiChatCompletionsPlugin().providers?.[0]?.createModel("gpt-5.4", {
+      fetch: globalThis.fetch,
+      options: {}
+    });
+
+    expect(openAiConstructorMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        apiKey: "stored-key",
+        baseURL: "https://poe-proxy.example.com/v1"
       })
     );
   });

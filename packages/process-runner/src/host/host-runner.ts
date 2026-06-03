@@ -8,6 +8,17 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
   return {
     name: "host",
     exec(spec: RunSpec): RunHandle {
+      if (spec.signal?.aborted === true) {
+        return {
+          pid: null,
+          stdin: null,
+          stdout: null,
+          stderr: null,
+          result: Promise.resolve({ exitCode: 1 }),
+          kill() {}
+        };
+      }
+
       const stdinMode = spec.stdin ?? "ignore";
       const stdoutMode = spec.stdout ?? "pipe";
       const stderrMode = spec.stderr ?? "pipe";
@@ -42,7 +53,11 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       });
 
       const cleanupAbort = bindAbortSignal(spec.signal, () => {
-        kill("SIGTERM");
+        try {
+          kill("SIGTERM");
+        } catch {
+          return;
+        }
       });
 
       child.once("close", (code) => {

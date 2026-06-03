@@ -10,16 +10,28 @@ import {
   poeAgentAgent
 } from "./agents/index.js";
 
-export const allAgents: AgentDefinition[] = [
-  claudeCodeAgent,
-  claudeDesktopAgent,
-  codexAgent,
-  geminiCliAgent,
-  openCodeAgent,
-  kimiAgent,
-  gooseAgent,
-  poeAgentAgent
-];
+function freezeAgent(agent: AgentDefinition): AgentDefinition {
+  if (agent.aliases !== undefined) {
+    Object.freeze(agent.aliases);
+  }
+  if (agent.apiShapes !== undefined) {
+    Object.freeze(agent.apiShapes);
+  }
+  Object.freeze(agent.branding.colors);
+  Object.freeze(agent.branding);
+  return Object.freeze(agent);
+}
+
+export const allAgents: readonly AgentDefinition[] = Object.freeze([
+  freezeAgent(claudeCodeAgent),
+  freezeAgent(claudeDesktopAgent),
+  freezeAgent(codexAgent),
+  freezeAgent(geminiCliAgent),
+  freezeAgent(openCodeAgent),
+  freezeAgent(kimiAgent),
+  freezeAgent(gooseAgent),
+  freezeAgent(poeAgentAgent)
+]);
 
 const lookup = new Map<string, string>();
 
@@ -37,5 +49,5 @@ export function resolveAgentId(input: string): string | undefined {
   if (!input) {
     return undefined;
   }
-  return lookup.get(input.toLowerCase());
+  return lookup.get(input.trim().toLowerCase());
 }

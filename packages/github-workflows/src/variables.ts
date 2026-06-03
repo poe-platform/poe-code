@@ -29,14 +29,14 @@ function normalizeVariables(
   options: { allowExtends?: boolean } = {}
 ): Record<string, string> {
   if (value === null || value === undefined) {
-    return {};
+    return Object.create(null) as Record<string, string>;
   }
 
   if (!isRecord(value)) {
     throw new Error(`Invalid GitHub workflow variables in "${filePath}": expected a top-level object.`);
   }
 
-  const result: Record<string, string> = {};
+  const result = Object.create(null) as Record<string, string>;
 
   for (const [key, itemValue] of Object.entries(value)) {
     if (options.allowExtends === true && key === EXTENDS_FIELD_NAME) {
@@ -99,7 +99,7 @@ function extractUserOverrideBlocks(
   const variables = normalizeVariables(filePath, parsed, { allowExtends: true });
 
   if (document.contents === null) {
-    return { metadataBlocks: [], variables, blocks: {} };
+    return { metadataBlocks: [], variables, blocks: Object.create(null) as Record<string, string> };
   }
 
   if (!isMap(document.contents)) {
@@ -107,7 +107,7 @@ function extractUserOverrideBlocks(
   }
 
   const metadataBlocks: string[] = [];
-  const blocks: Record<string, string> = {};
+  const blocks = Object.create(null) as Record<string, string>;
   const items = document.contents.items;
 
   for (const [index, item] of items.entries()) {
@@ -152,7 +152,7 @@ async function readOptionalVariablesContent(filePath: string): Promise<string | 
 }
 
 function filterDisabledVariables(variables: Record<string, string>): Record<string, string> {
-  const result: Record<string, string> = {};
+  const result = Object.create(null) as Record<string, string>;
 
   for (const [key, value] of Object.entries(variables)) {
     if (value === "") {
@@ -299,7 +299,11 @@ export function generateProjectVariablesFile(
 ): string {
   const userOverrides =
     existingProjectFileContent === undefined
-      ? { metadataBlocks: [], variables: {}, blocks: {} }
+      ? {
+          metadataBlocks: [],
+          variables: Object.create(null) as Record<string, string>,
+          blocks: Object.create(null) as Record<string, string>
+        }
       : extractUserOverrideBlocks(VARIABLES_FILE_NAME, existingProjectFileContent);
 
   const sections = [PROJECT_VARIABLES_HEADER, ...userOverrides.metadataBlocks];

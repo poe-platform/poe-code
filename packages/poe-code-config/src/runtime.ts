@@ -72,7 +72,7 @@ export interface RuntimeResolveResult {
 
 type RuntimeResolver = (input: { cwd: string; runtime: RuntimeConfig }) => RuntimeResolveResult;
 
-export const runtimeConfigScope = {
+export const runtimeConfigScope = deepFreeze({
   scope: "runtime",
   schema: {
     type: {
@@ -174,7 +174,7 @@ export const runtimeConfigScope = {
       doc: "Hours to keep an E2B sandbox alive after job exit"
     }
   }
-} satisfies ScopeDefinition<Record<string, SchemaField>>;
+} satisfies ScopeDefinition<Record<string, SchemaField>>);
 
 export function parseRunner(raw: unknown): RunnerScope {
   if (raw === undefined) {
@@ -233,6 +233,18 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
     if (preserveAfterExitHours < 0 || preserveAfterExitHours > 168) {
       throw new Error("preserve_after_exit_hours: expected a number from 0 to 168.");
     }
+    const cpu = parseOptionalNumber(record.cpu);
+    if (cpu !== undefined && cpu <= 0) {
+      throw new Error("cpu: expected a positive finite number.");
+    }
+    const memoryMb = parseOptionalNumber(record.memory_mb);
+    if (memoryMb !== undefined && memoryMb <= 0) {
+      throw new Error("memory_mb: expected a positive finite number.");
+    }
+    const timeoutMinutes = parseOptionalNumber(record.timeout_minutes);
+    if (timeoutMinutes !== undefined && timeoutMinutes < 0) {
+      throw new Error("timeout_minutes: expected a non-negative finite number.");
+    }
 
     return omitUndefined({
       ...shared,
@@ -242,9 +254,9 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       dockerfile: parseOptionalString(record.dockerfile),
       build_context: parseOptionalString(record.build_context),
       workspace_dir: parseWorkspaceDir(record.workspace_dir),
-      cpu: parseOptionalNumber(record.cpu),
-      memory_mb: parseOptionalNumber(record.memory_mb),
-      timeout_minutes: parseOptionalNumber(record.timeout_minutes),
+      cpu,
+      memory_mb: memoryMb,
+      timeout_minutes: timeoutMinutes,
       preserve_after_exit_hours: preserveAfterExitHours
     });
   }
@@ -425,7 +437,7 @@ function parseBuildArgs(value: unknown): Record<string, string> {
     if (typeof entry !== "string") {
       throw new Error(`build_args.${key}: expected a string.`);
     }
-    parsed[key] = entry;
+    defineDataProperty(parsed, key, entry);
   }
   return parsed;
 }
@@ -447,6 +459,9 @@ function parseMounts(value: unknown): RuntimeMount[] {
     const target = record.target;
     if (typeof source !== "string") {
       throw new Error(`mounts[${index}].source: expected a string.`);
+    }
+    if (source.trim().length === 0) {
+      throw new Error(`mounts[${index}].source: expected a non-empty string.`);
     }
     if (typeof target !== "string") {
       throw new Error(`mounts[${index}].target: expected a string.`);
@@ -471,6 +486,27 @@ function parseOptionalString(value: unknown): string | undefined {
     return undefined;
   }
   return value;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
+}
+
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) {
+    return value;
+  }
+
+  for (const entry of Object.values(value)) {
+    deepFreeze(entry);
+  }
+
+  return Object.freeze(value);
 }
 
 function parseOptionalStringArray(value: unknown, key = ""): string[] | undefined {

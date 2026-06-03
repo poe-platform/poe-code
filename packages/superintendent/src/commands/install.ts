@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readFile, stat, mkdir, writeFile, unlink, readdir, chmod } from "node:fs/promises";
+import { readFile, stat, lstat, mkdir, writeFile, rename, unlink, readdir, chmod } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { S, UserError, defineCommand } from "toolcraft";
 import {
@@ -20,8 +20,10 @@ const fs = {
   readFile: (p: string, encoding: "utf8") => readFile(p, encoding),
   writeFile: (p: string, content: string) => writeFile(p, content),
   mkdir: (p: string, options?: { recursive: boolean }) => mkdir(p, options).then(() => undefined) as Promise<void>,
+  rename: (oldPath: string, newPath: string) => rename(oldPath, newPath),
   unlink: (p: string) => unlink(p),
   stat: (p: string) => stat(p).then((s) => ({ mode: s.mode })),
+  lstat: (p: string) => lstat(p).then((s) => ({ isSymbolicLink: () => s.isSymbolicLink() })),
   readdir: (p: string) => readdir(p),
   chmod: (p: string, mode: number) => chmod(p, mode)
 };
@@ -32,6 +34,7 @@ export type InstallResult = {
   skillPath: string;
   planDirectory: string;
   planDirectoryCreated: boolean;
+  dryRun?: true;
 };
 
 const installParams = S.Object({
@@ -42,7 +45,12 @@ const installParams = S.Object({
   scope: S.Enum(["local", "global"] as const, {
     default: "local",
     description: "Install scope"
-  })
+  }),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview install without writing changes",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const installCommand = defineCommand({
@@ -61,7 +69,7 @@ export const installCommand = defineCommand({
       throw new UserError(`Unsupported agent: ${params.agent}`);
     }
 
-    const skillContent = await loadSkillTemplate();
+    const skillContent = params.dryRun === true ? "" : await loadSkillTemplate();
     const skillResult = await installSkill(
       support.id,
       {
@@ -72,35 +80,36 @@ export const installCommand = defineCommand({
         fs,
         cwd,
         homeDir,
-        scope
+        scope,
+        ...(params.dryRun === true ? { dryRun: true } : {})
       }
     );
 
     const planDirectory = await resolvePlanDirectory(cwd, homeDir, process.env);
     const absolutePlanDirectory = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
-    let planDirectoryCreated = false;
-
-    if (!(await pathExists(absolutePlanDirectory))) {
-      await mkdir(absolutePlanDirectory, { recursive: true });
-      planDirectoryCreated = true;
-    }
+    const planDirectoryCreated = await ensurePlanDirectory(
+      absolutePlanDirectory,
+      fs,
+      params.dryRun === true
+    );
 
     return {
       agent: support.id,
       scope,
       skillPath: skillResult.displayPath,
       planDirectory,
-      planDirectoryCreated
+      planDirectoryCreated,
+      ...(params.dryRun === true ? { dryRun: true as const } : {})
     } satisfies InstallResult;
   },
   render: {
     rich: (result, { logger }) => {
-      logger.success(
-        `Installed Superintendent skill for ${result.agent} (${result.scope}).`
-      );
-      logger.message(`Skill: ${result.skillPath}`);
+      logger.success(result.dryRun === true
+        ? `Would install Superintendent skill for ${result.agent} (${result.scope}).`
+        : `Installed Superintendent skill for ${result.agent} (${result.scope}).`);
+      logger.message(`${result.dryRun === true ? "Would create" : "Skill"}: ${result.skillPath}`);
       if (result.planDirectoryCreated) {
-        logger.message(`Created: ${result.planDirectory}`);
+        logger.message(`${result.dryRun === true ? "Would create" : "Created"}: ${result.planDirectory}`);
       }
     },
     markdown: (result) => {
@@ -109,11 +118,12 @@ export const installCommand = defineCommand({
         "",
         `- Agent: ${result.agent}`,
         `- Scope: ${result.scope}`,
-        `- Skill: ${result.skillPath}`
+        `- Skill: ${result.skillPath}`,
+        ...(result.dryRun === true ? ["- Dry run: true"] : [])
       ];
 
       if (result.planDirectoryCreated) {
-        lines.push(`- Created: ${result.planDirectory}`);
+        lines.push(`- ${result.dryRun === true ? "Would create" : "Created"}: ${result.planDirectory}`);
       }
 
       return lines.join("\n");
@@ -139,6 +149,48 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   }
 
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
+}
+
+type PlanDirectoryFs = {
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+};
+
+export async function ensurePlanDirectory(
+  absolutePlanDirectory: string,
+  fileSystem: PlanDirectoryFs,
+  dryRun = false
+): Promise<boolean> {
+  const missingAncestors: string[] = [];
+  let currentPath = absolutePlanDirectory;
+
+  while (true) {
+    try {
+      if ((await fileSystem.lstat(currentPath)).isSymbolicLink()) {
+        throw new UserError(`Refusing to create superintendent plan directory through symbolic link: ${currentPath}`);
+      }
+      break;
+    } catch (error) {
+      if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) {
+        throw error;
+      }
+      missingAncestors.push(currentPath);
+    }
+
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      break;
+    }
+    currentPath = parentPath;
+  }
+
+  if (missingAncestors.length === 0) {
+    return false;
+  }
+  if (!dryRun) {
+    await fileSystem.mkdir(absolutePlanDirectory, { recursive: true });
+  }
+  return true;
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {

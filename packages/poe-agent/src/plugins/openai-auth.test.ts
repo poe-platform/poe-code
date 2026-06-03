@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const storeGetMock = vi.hoisted(() => vi.fn<() => Promise<string | undefined>>());
 const createSecretStoreMock = vi.hoisted(() =>
@@ -16,9 +16,20 @@ vi.mock("auth-store", () => ({
 import { resolveOpenaiApiKey } from "./openai-auth.js";
 
 describe("resolveOpenaiApiKey", () => {
+  const originalPoeApiKey = process.env.POE_API_KEY;
+
   beforeEach(() => {
+    delete process.env.POE_API_KEY;
     createSecretStoreMock.mockClear();
     storeGetMock.mockReset();
+  });
+
+  afterEach(() => {
+    if (originalPoeApiKey === undefined) {
+      delete process.env.POE_API_KEY;
+    } else {
+      process.env.POE_API_KEY = originalPoeApiKey;
+    }
   });
 
   it("returns the explicit api key without consulting auth-store", async () => {
@@ -48,6 +59,13 @@ describe("resolveOpenaiApiKey", () => {
         defaultFileName: "credentials.enc"
       }
     });
+  });
+
+  it("uses POE_API_KEY before consulting auth-store", async () => {
+    process.env.POE_API_KEY = "environment-key";
+
+    await expect(resolveOpenaiApiKey(undefined)).resolves.toBe("environment-key");
+    expect(createSecretStoreMock).not.toHaveBeenCalled();
   });
 
   it("throws when neither explicit nor stored api key is available", async () => {

@@ -8,6 +8,8 @@ const memoryModuleMocks = vi.hoisted(() => ({
   memoryRoot: "/repo/.memfs/memory",
   resolveConfiguredMemoryRootMock: vi.fn(),
   openMemoryMock: vi.fn(),
+  installMemoryMock: vi.fn(),
+  editPageMock: vi.fn(),
   actualOpenMemory: undefined as
     | undefined
     | ((options: { root: string; agent?: string }) => unknown)
@@ -26,7 +28,9 @@ vi.mock("@poe-code/memory", async () => {
   return {
     ...actual,
     resolveConfiguredMemoryRoot: memoryModuleMocks.resolveConfiguredMemoryRootMock,
-    openMemory: memoryModuleMocks.openMemoryMock
+    openMemory: memoryModuleMocks.openMemoryMock,
+    installMemory: memoryModuleMocks.installMemoryMock,
+    editPage: memoryModuleMocks.editPageMock
   };
 });
 
@@ -77,6 +81,8 @@ describe("memory command", () => {
       }
       return openMemory(options);
     });
+    memoryModuleMocks.installMemoryMock.mockReset();
+    memoryModuleMocks.editPageMock.mockReset();
   });
 
   it("initializes the memory directory", async () => {
@@ -168,6 +174,23 @@ describe("memory command", () => {
     writeSpy.mockRestore();
   });
 
+  it("rejects show paths that escape the pages directory", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/valid.md`]: "# Valid\n",
+      [`${memoryRoot}/secret.md`]: "outside-page-secret\n"
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "memory", "show", "../secret"])
+    ).rejects.toThrow(/escape|page path/i);
+  });
+
   it("searches memory pages", async () => {
     const container = createContainer();
     const program = createBaseProgram();
@@ -188,6 +211,87 @@ describe("memory command", () => {
     expect(writeSpy).toHaveBeenCalledWith("two.md:1: match again\n");
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
+    writeSpy.mockRestore();
+  });
+
+  it("registers the documented authoring and retrieval commands", () => {
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    const memory = program.commands.find((command) => command.name() === "memory");
+
+    expect(memory?.commands.map((command) => command.name())).toEqual(
+      expect.arrayContaining(["write", "append", "edit", "ingest", "lint", "query", "explain", "install"])
+    );
+  });
+
+  it("writes and appends page content from command input", async () => {
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "Old content\n"
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "write", "one", "--reason", "rewrite", "--content", "Fresh content\n"]);
+    await expect(memfs.promises.readFile(`${memoryRoot}/pages/one.md`, "utf8")).resolves.toContain("Fresh content");
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "append", "one", "--reason", "append", "--content", "More content\n"]);
+    await expect(memfs.promises.readFile(`${memoryRoot}/pages/one.md`, "utf8")).resolves.toContain("More content");
+  });
+
+  it("queries, explains, and audits through the memory handle", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      query: vi.fn().mockResolvedValue({ answer: "Known.", citations: [], tokensUsed: 3, budget: 256, exitCode: 0 }),
+      explainPage: vi.fn().mockResolvedValue({ answer: "Page.", citations: [], tokensUsed: 4, budget: 256, exitCode: 0, inboundPages: [], outboundSources: [] }),
+      auditClaims: vi.fn().mockResolvedValue([{ page: "pages/one.md", issues: ["Missing source"] }])
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "query", "what?", "--budget", "256"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "explain", "one", "--budget", "256"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "lint"]);
+
+    expect(handle.query).toHaveBeenCalledWith({ question: "what?", budget: 256, agent: undefined });
+    expect(handle.explainPage).toHaveBeenCalledWith({ relPath: "pages/one.md", budget: 256, agent: undefined });
+    expect(handle.auditClaims).toHaveBeenCalledWith({ repoRoot: cwd });
+    expect(writeSpy).toHaveBeenCalledWith("Known.\n");
+    expect(writeSpy).toHaveBeenCalledWith("Page.\n");
+    expect(writeSpy).toHaveBeenCalledWith("pages/one.md: Missing source\n");
+    writeSpy.mockRestore();
+  });
+
+  it("ingests sources and installs the advertised memory integration", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      ingest: vi.fn().mockResolvedValue({
+        diff: { created: ["pages/new.md"], updated: [], deleted: [] },
+        cacheHit: false
+      })
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    memoryModuleMocks.installMemoryMock.mockResolvedValue({ skillInstalled: true, mcpConfigured: true });
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "ingest", "docs/source.md", "--force"]);
+    await program.parseAsync(["node", "cli", "--yes", "memory", "install", "--agent", "codex", "--allow-writes"]);
+
+    expect(handle.ingest).toHaveBeenCalledWith(expect.objectContaining({
+      source: { kind: "file", absPath: "/repo/docs/source.md" },
+      force: true
+    }));
+    expect(memoryModuleMocks.installMemoryMock).toHaveBeenCalledWith(expect.objectContaining({
+      agent: "codex",
+      allowWrites: true,
+      skillContent: expect.stringContaining("poe-code memory")
+    }));
+    expect(writeSpy).toHaveBeenCalledWith("Ingested: 1 created, 0 updated, 0 deleted.\n");
     writeSpy.mockRestore();
   });
 
@@ -218,5 +322,28 @@ describe("memory command", () => {
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledTimes(2);
 
     writeSpy.mockRestore();
+  });
+
+  it("reports memory cache status", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "status"]);
+
+    expect(log).toHaveBeenCalledWith("1 cache entry (3 bytes)");
+  });
+
+  it("clears memory cache entries when confirmed", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "clear"]);
+
+    await expect(memfs.promises.stat(`${memoryRoot}/.cache`)).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

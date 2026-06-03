@@ -74,6 +74,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     }) as FileSystem["readFile"],
     symlink: (target, path) => fs.symlink(target, path),
     readlink: (path) => fs.readlink(path, { encoding: "utf8" }),
+    realpath: (path) => fs.realpath(path),
     writeFile: (path, data, opts) => fs.writeFile(path, data, opts),
     mkdir: (path, opts) => fs.mkdir(path, opts).then(() => {}),
     stat: (path) => fs.stat(path),
@@ -93,10 +94,12 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     writeFile: (
       filePath: string,
       data: string | NodeJS.ArrayBufferView,
-      options?: { encoding?: BufferEncoding }
+      options?: { encoding?: BufferEncoding; flag?: string }
     ) => fs.writeFile(filePath, data, options),
     mkdir: (directoryPath: string, options?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, options).then(() => undefined),
+    lstat: (filePath: string) => fs.lstat(filePath),
+    rename: (oldPath: string, newPath: string) => fs.rename(oldPath, newPath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };
@@ -134,6 +137,40 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
   const readApiKey = poeAuthStore.get.bind(poeAuthStore);
   const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
   const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
+
+  const createPreviewProviderStore = (providerId: string, previewFs: FileSystem): SecretStore | undefined => {
+    const createPreviewStore = (defaultFileName: string) =>
+      createSecretStore({
+        backendEnvVar: "POE_AUTH_BACKEND",
+        env: variables,
+        platform: process.platform,
+        fileStore: {
+          fs: {
+            readFile: (filePath: string, encoding: BufferEncoding) => previewFs.readFile(filePath, encoding),
+            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, writeOptions?: { encoding?: BufferEncoding; flag?: string }) =>
+              previewFs.writeFile(filePath, data, writeOptions),
+            mkdir: (directoryPath: string, mkdirOptions?: { recursive?: boolean }) =>
+              previewFs.mkdir(directoryPath, mkdirOptions).then(() => undefined),
+            lstat: (filePath: string) => previewFs.lstat(filePath),
+            rename: (oldPath: string, newPath: string) => previewFs.rename(oldPath, newPath),
+            unlink: (filePath: string) => previewFs.unlink(filePath),
+            chmod: (filePath: string, mode: number) =>
+              previewFs.chmod ? previewFs.chmod(filePath, mode) : Promise.resolve()
+          },
+          salt: "poe-code:encrypted-file-auth-store:v1",
+          defaultDirectory: ".poe-code",
+          defaultFileName,
+          getHomeDirectory: () => homeDir
+        }
+      });
+    const store = createPreviewStore(`credentials.${providerId}.enc`);
+    if (store.backend !== "file") {
+      return undefined;
+    }
+    return providerId === "poe"
+      ? new MigratingSecretStore(store.store, createPreviewStore("credentials.enc").store)
+      : store.store;
+  };
 
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {
@@ -213,7 +250,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     },
     readApiKey,
     writeApiKey,
-    deleteApiKey
+    deleteApiKey,
+    createPreviewProviderStore
   };
 
   return container;

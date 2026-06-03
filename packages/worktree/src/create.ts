@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { addWorktreeEntry, removeWorktreeEntry } from "./registry.js";
+import { readRegistry, writeRegistry } from "./registry.js";
 import type { Worktree, WorktreeDeps } from "./types.js";
 
 export type CreateWorktreeOptions = {
@@ -21,20 +21,40 @@ export async function createWorktree(
 ): Promise<Worktree> {
   const branch = `poe-code/${opts.name}`;
   const worktreePath = join(opts.worktreeDir, opts.name);
+  const registry = await readRegistry(opts.registryFile, opts.deps.fs);
+  const existing = registry.worktrees.find((worktree) => worktree.name === opts.name);
+
+  if (existing !== undefined) {
+    await writeRegistry(opts.registryFile, {
+      worktrees: registry.worktrees.map((worktree) =>
+        worktree.name === opts.name ? { ...worktree, status: "removing" } : worktree
+      )
+    }, opts.deps.fs);
+  }
 
   // Clean up any existing worktree/branch from a previous run
   try {
-    await opts.deps.exec(`git worktree remove ${worktreePath} --force`, { cwd: opts.cwd });
+    await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd });
   } catch { /* worktree may not exist */ }
   try {
-    await opts.deps.exec(`git branch -D ${branch}`, { cwd: opts.cwd });
+    await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd });
   } catch { /* branch may not exist */ }
-  await removeWorktreeEntry(opts.registryFile, opts.name, opts.deps.fs).catch(() => {});
 
-  await opts.deps.exec(
-    `git worktree add -b ${branch} ${worktreePath} ${opts.baseBranch}`,
-    { cwd: opts.cwd }
-  );
+  try {
+    await opts.deps.exec(
+      `git worktree add -b ${shellQuote(branch)} ${shellQuote(worktreePath)} ${shellQuote(opts.baseBranch)}`,
+      { cwd: opts.cwd }
+    );
+  } catch (error) {
+    if (existing !== undefined) {
+      await writeRegistry(opts.registryFile, {
+        worktrees: registry.worktrees.map((worktree) =>
+          worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
+        )
+      }, opts.deps.fs).catch(() => undefined);
+    }
+    throw error;
+  }
 
   const entry: Worktree = {
     name: opts.name,
@@ -50,7 +70,26 @@ export async function createWorktree(
     ...(opts.prompt !== undefined && { prompt: opts.prompt })
   };
 
-  await addWorktreeEntry(opts.registryFile, entry, opts.deps.fs);
+  try {
+    await writeRegistry(opts.registryFile, {
+      worktrees: [...registry.worktrees.filter((worktree) => worktree.name !== opts.name), entry]
+    }, opts.deps.fs);
+  } catch (error) {
+    await opts.deps.exec(`git worktree remove ${shellQuote(worktreePath)} --force`, { cwd: opts.cwd }).catch(() => undefined);
+    await opts.deps.exec(`git branch -D ${shellQuote(branch)}`, { cwd: opts.cwd }).catch(() => undefined);
+    if (existing !== undefined) {
+      await writeRegistry(opts.registryFile, {
+        worktrees: registry.worktrees.map((worktree) =>
+          worktree.name === opts.name ? { ...worktree, status: "failed" } : worktree
+        )
+      }, opts.deps.fs).catch(() => undefined);
+    }
+    throw error;
+  }
 
   return entry;
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", `'"'"'`)}'`;
 }

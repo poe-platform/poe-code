@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { saveConfiguredService } from "../../services/config.js";
 import { executeConfigure, resolveServiceArgument } from "./configure.js";
 import { registerInstallCommand } from "./install.js";
 import { registerLogoutCommand } from "./logout.js";
@@ -125,7 +126,8 @@ describe("configure command", () => {
         homeDir + "/.local/share/opencode/auth.json"
       ],
       provider: "poe",
-      apiShape: "openai-chat-completions"
+      apiShape: "openai-chat-completions",
+      model: "anthropic/claude-opus-4.7"
     });
   });
 
@@ -143,6 +145,53 @@ describe("configure command", () => {
     await executeConfigure(program, container, "opencode", {});
 
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
+  });
+
+  it.each(["goose", "kimi"])("does not expose supplied credentials while previewing %s configuration", async (service) => {
+    const logs: string[] = [];
+    const { container } = createContainer({ logger: (message) => logs.push(message) });
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("test-model");
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, service, {
+      provider: "poe",
+      apiKey: "preview-secret",
+      model: "test-model"
+    });
+
+    expect(logs.join("\n")).not.toContain("preview-secret");
+    expect(logs.join("\n")).toContain("<redacted>");
+  });
+
+  it("does not fetch Goose model metadata while previewing configuration", async () => {
+    const httpClient = vi.fn();
+    const logs: string[] = [];
+    const { container } = createContainer({ httpClient, logger: (message) => logs.push(message) });
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, "goose", {
+      provider: "poe",
+      apiKey: "preview-secret",
+      model: "test-model"
+    });
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("preview-secret");
+    expect(logs.join("\n")).toContain("<redacted>");
+  });
+
+  it("does not fetch Gemini model choices while previewing configuration", async () => {
+    const httpClient = vi.fn();
+    const { container } = createContainer({ httpClient });
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, "gemini-cli", {
+      provider: "cloudflare",
+      apiKey: "preview-secret",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    expect(httpClient).not.toHaveBeenCalled();
   });
 
   it("uses provider-defined prompt metadata for configure flows", async () => {
@@ -306,7 +355,8 @@ describe("configure command", () => {
         `${homeDir}/.config/goose/secrets.yaml`
       ],
       provider: "poe",
-      apiShape: "openai-chat-completions"
+      apiShape: "openai-chat-completions",
+      model: "openai/gpt-5.5"
     });
     expect(httpClient).toHaveBeenCalledWith(
       "https://api.poe.com/v1/models",
@@ -556,6 +606,36 @@ describe("generate command", () => {
     // Verify the response content appears in the output (as subtext)
     const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
     expect(output).toContain(`model:${DEFAULT_TEXT_MODEL} prompt:What is 2+2?`);
+  });
+
+  it("does not recover malformed config while previewing text generation", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { program } = createGenerateProgram({ fs });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "text", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("does not recover malformed config while previewing media generation", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { program } = createGenerateProgram({ fs });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "image", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
   it("uses explicit text subcommand with params", async () => {
@@ -907,7 +987,6 @@ describe("install command", () => {
     });
 
     container.registry.register(adapter);
-
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
@@ -934,7 +1013,6 @@ describe("install command", () => {
     });
 
     container.registry.register(adapter);
-
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
@@ -970,6 +1048,29 @@ describe("install command", () => {
     expect(install).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();
   });
+
+  it("does not recover malformed config while previewing install without an agent", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "install"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
 });
 
 // ─── logout command ──────────────────────────────────────────────────────────
@@ -984,6 +1085,7 @@ function readStoredApiKey(fs: FileSystem): Promise<string | null> {
     ) => fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, opts).then(() => undefined),
+    lstat: (filePath: string) => fs.lstat(filePath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
       fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
@@ -1091,6 +1193,39 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
   });
 
+  it("deletes stored provider credentials before an unconfigure failure", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: vi.fn()
+    });
+    const adapter: ProviderService = createProviderStub({
+      name: "failing-service",
+      label: "Failing Service",
+      async unconfigure() {
+        throw new Error("cleanup failed");
+      }
+    });
+
+    container.registry.register(adapter);
+    await container.writeApiKey("sk-poe-LogoutFailureSecret1234567890abcdef");
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { "failing-service": { files: [] } } }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "logout"])).rejects.toThrow("cleanup failed");
+    await expect(container.providerRegistry.isLoggedIn("poe")).resolves.toBe(false);
+  });
+
   it("skips deletion during dry run", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
@@ -1121,6 +1256,27 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
   });
 
+  it("does not recover malformed config while previewing logout", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--dry-run", "logout"])).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("deletes stored API key during logout", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
@@ -1144,6 +1300,48 @@ describe("logout command", () => {
 
     const storedKey = await readStoredApiKey(fs);
     expect(storedKey).toBeNull();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
+  });
+
+  it("deletes non-Poe provider credentials and provider configuration during logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await container.providerRegistry.login("anthropic", { apiKey: "anthropic-secret" });
+    await container.providerRegistry.login("cloudflare", { apiKey: "cloudflare-secret" });
+    await fs.mkdir(`${homeDir}/.config/poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.servicesConfigPath,
+      JSON.stringify({
+        providers: {
+          cloudflare: {
+            shapeBaseUrls: { "anthropic-messages": "https://gateway.example.test/anthropic" }
+          }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    await expect(container.providerRegistry.isLoggedIn("anthropic")).resolves.toBe(false);
+    await expect(container.providerRegistry.isLoggedIn("cloudflare")).resolves.toBe(false);
+    await expect(fs.readFile(container.env.servicesConfigPath, "utf8")).rejects.toThrow();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
   });
 
   it("handles missing config file gracefully", async () => {
@@ -1166,6 +1364,26 @@ describe("logout command", () => {
     await program.parseAsync(["node", "cli", "logout"]);
 
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(true);
+  });
+
+  it("warns when POE_API_KEY keeps the session authenticated after logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-key" } },
+      logger: (message) => logs.push(message)
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    expect(logs.some((line) => line.includes("POE_API_KEY"))).toBe(true);
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
   });
 });
 
@@ -1285,6 +1503,54 @@ describe("test command (isolated)", () => {
 
     await program.parseAsync(["node", "cli", "test", "demo-service", "--isolated"]);
   });
+
+  it("does not start OAuth while previewing Poe-backed isolated tests", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { opencode: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    const resolveApiKey = vi.spyOn(container.options, "resolveApiKey");
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "test", "opencode", "--isolated"]);
+
+    expect(logs.join("\n")).toContain("Dry run");
+    expect(resolveApiKey).not.toHaveBeenCalled();
+  });
+
+  it.each(["goose", "kimi"])("does not expose credentials while previewing isolated %s tests", async (service) => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { [service]: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "test-preview-secret" } },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "test", service, "--isolated"]);
+
+    expect(logs.join("\n")).not.toContain("test-preview-secret");
+  });
 });
 
 // ─── test command ─────────────────────────────────────────────────────────────
@@ -1335,6 +1601,22 @@ describe("test command", () => {
 
     expect(testFn).toHaveBeenCalled();
     expect(logs.some((line) => line.includes("Tested Demo Service"))).toBe(true);
+  });
+
+  it("does not recover malformed config while previewing a default test", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const container = createTestContainer();
+    await container.fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await container.fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "test"])
+    ).rejects.toThrow();
+
+    await expect(container.fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(container.fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
   it("fails when the provider does not support the test command", async () => {
@@ -1588,6 +1870,12 @@ describe("unconfigure command", () => {
     });
 
     container.registry.register(adapter);
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
 
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
@@ -1596,6 +1884,94 @@ describe("unconfigure command", () => {
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
+  });
+
+  it("does not remove untracked Claude Code user settings", async () => {
+    const fs = createMemFs();
+    const settingsPath = `${homeDir}/.claude/settings.json`;
+    const original = JSON.stringify({
+      env: {
+        ANTHROPIC_API_KEY: "user-own-key",
+        ANTHROPIC_BASE_URL: "https://user.example.test",
+        USER_SETTING: "keep"
+      },
+      model: "user-model",
+      theme: "keep"
+    });
+    await fs.mkdir(`${homeDir}/.claude`, { recursive: true });
+    await fs.writeFile(settingsPath, original, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "unconfigure", "claude-code"]);
+
+    await expect(fs.readFile(settingsPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("does not recover malformed config while previewing unconfigure", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "unconfigure", "codex"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("preserves global and metadata state when isolated unconfigure commit fails", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "retained-isolated-secret",
+      baseUrl: "https://gateway.example.test",
+      model: "cleanup-model",
+      reasoningEffort: "high"
+    });
+    const originalGlobal = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
+    const originalMetadata = await fs.readFile(configPath, "utf8");
+    const unlink = fs.unlink.bind(fs);
+    vi.spyOn(fs, "unlink").mockImplementation(async (filePath) => {
+      if (filePath === `${homeDir}/.poe-code/codex/config.toml`) {
+        throw new Error("isolated deletion failed");
+      }
+      return unlink(filePath);
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "unconfigure", "codex"])).rejects.toThrow(
+      "isolated deletion failed"
+    );
+
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).resolves.toBe(originalGlobal);
+    await expect(fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8")).resolves.toContain(
+      "retained-isolated-secret"
+    );
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(originalMetadata);
   });
 
   it("logs mutation outcomes when provider reports them", async () => {
@@ -1632,6 +2008,12 @@ describe("unconfigure command", () => {
     });
 
     container.registry.register(adapter);
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
 
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
@@ -1782,5 +2164,28 @@ describe("version command", () => {
 
     expect(logs.some((log) => log.includes("poe-code"))).toBe(true);
     expect(logs.some((log) => log.includes("Network error"))).toBe(false);
+  });
+
+  it("does not check for updates while previewing version output", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "99.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--dry-run", "--version"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.some((log) => log.includes(packageJson.version))).toBe(true);
   });
 });

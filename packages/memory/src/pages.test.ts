@@ -56,6 +56,18 @@ describe("listPages", () => {
       }
     ]);
   });
+
+  it("does not discover markdown pages through symlinked directories", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/pages/local.md": "# Local\n",
+      "/outside/secret.md": "# Outside\nsecret text\n"
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/pages/linked");
+
+    await expect(listPages("/repo/.poe-code/memory")).resolves.toMatchObject([
+      { relPath: "pages/local.md", body: "# Local\n" }
+    ]);
+  });
 });
 
 describe("readPage", () => {
@@ -122,5 +134,17 @@ describe("readPage", () => {
     await expect(readPage("/repo/.poe-code/memory", "pages/notes.txt")).rejects.toThrow(
       /markdown/i
     );
+  });
+
+  it("rejects reads through symlinked page directories", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/pages/.keep": "",
+      "/outside/secret.md": "# Outside\nsecret text\n"
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/pages/linked");
+
+    await expect(
+      readPage("/repo/.poe-code/memory", "pages/linked/secret.md")
+    ).rejects.toThrow(/symbolic link/i);
   });
 });

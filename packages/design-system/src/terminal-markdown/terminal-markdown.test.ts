@@ -97,6 +97,23 @@ describe("terminal markdown entrypoint", () => {
     expect(renderMarkdown(markdown, options)).toBe(render(parse(markdown).ast, options));
   });
 
+  it("rejects a non-finite render width", () => {
+    expect(() => render({
+      type: "root",
+      children: [{ type: "paragraph", children: [{ type: "text", value: "hello" }] }]
+    }, { width: Number.NaN })).toThrow("width must be a positive finite number");
+  });
+
+  it("renders cyclic frontmatter without throwing", () => {
+    const metadata: { self?: unknown } = {};
+    metadata.self = metadata;
+
+    expect(stripAnsi(render({
+      type: "root",
+      children: [{ type: "frontmatter", data: { metadata } }]
+    }, { showFrontmatter: true }))).toContain('metadata: {"self":"[Circular]"}');
+  });
+
   it("renders malformed markdown inputs as readable literal output without crashing", () => {
     expect(() => renderMarkdown("```js\nconst x = 1;\nno closing fence")).not.toThrow();
     expect(stripAnsi(renderMarkdown("```js\nconst x = 1;\nno closing fence"))).toContain(
@@ -1157,6 +1174,16 @@ describe("extractFrontmatter", () => {
     });
   });
 
+  it("preserves __proto__ frontmatter as own metadata without prototype mutation", () => {
+    const { frontmatter } = extractFrontmatter(
+      ["---", "__proto__:", "  owner: attacker", "---", "Body"].join("\n")
+    );
+
+    expect(Object.hasOwn(frontmatter!, "__proto__")).toBe(true);
+    expect((frontmatter as { owner?: string }).owner).toBeUndefined();
+    expect((frontmatter as Record<string, unknown>)["__proto__"]).toEqual({ owner: "attacker" });
+  });
+
   it("supports quoted values and special characters in scalars (test 73)", () => {
     expect(
       extractFrontmatter(
@@ -1229,6 +1256,13 @@ describe("extractFrontmatter", () => {
     expect(extractFrontmatter(["---", "---"].join("\n"))).toEqual({
       frontmatter: {},
       body: ""
+    });
+  });
+
+  it("parses frontmatter with carriage-return-only line endings", () => {
+    expect(extractFrontmatter(["---", "title: Example", "---", "Body"].join("\r"))).toEqual({
+      frontmatter: { title: "Example" },
+      body: "Body"
     });
   });
 

@@ -23,7 +23,12 @@ const inspectorListParams = S.Object({
 
 const inspectorRunParams = S.Object({
   path: S.String({ description: "Path to the superintendent markdown document" }),
-  name: S.Optional(S.String({ description: "Name of the configured inspector to run" }))
+  name: S.Optional(S.String({ description: "Name of the configured inspector to run" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview inspector runs without launching agents",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const inspectorListCommand = defineCommand({
@@ -87,6 +92,12 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
       const defaultCwd = process.cwd();
 
       if (params.name === undefined) {
+        if (params.dryRun === true) {
+          return Object.entries(document.frontmatter.inspectors ?? {}).map(([name, config]) => ({
+            name,
+            summary: `Would run inspector agent ${config.agent}.`
+          }));
+        }
         return runAllInspectorsImpl(document, {}, { defaultCwd });
       }
 
@@ -94,6 +105,10 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
 
       if (config === undefined) {
         throw new UserError(`Inspector not found: ${params.name}`);
+      }
+
+      if (params.dryRun === true) {
+        return [{ name: params.name, summary: `Would run inspector agent ${config.agent}.` }];
       }
 
       return [await runInspectorImpl(params.name, config, document, {}, { defaultCwd })];

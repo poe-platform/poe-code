@@ -75,6 +75,7 @@ export interface EvalFs {
     options?: { withFileTypes?: boolean }
   ): Promise<readonly (string | Dirent)[]>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  realpath(path: string): Promise<string>;
   stat(path: string): Promise<Stats | { isDirectory(): boolean; isFile?(): boolean }>;
 }
 

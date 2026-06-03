@@ -17,9 +17,20 @@ export interface OneOfSchema<
   readonly branches: TBranches;
 }
 
-function assertValidBranches(branches: Record<string, ObjectSchema<any>>): void {
+function assertValidBranches(
+  branches: Record<string, ObjectSchema<any>>,
+  discriminator: string
+): void {
   if (Object.keys(branches).length === 0) {
     throw new Error("OneOf schema requires at least one branch");
+  }
+
+  for (const [branchName, branch] of Object.entries(branches)) {
+    if (Object.prototype.hasOwnProperty.call(branch.shape, discriminator)) {
+      throw new Error(
+        `OneOf branch "${branchName}" must not declare discriminator field "${discriminator}".`
+      );
+    }
   }
 }
 
@@ -30,7 +41,7 @@ export function OneOf<
   discriminator: TDiscriminator;
   branches: TBranches;
 }): OneOfSchema<TBranches, TDiscriminator> {
-  assertValidBranches(config.branches);
+  assertValidBranches(config.branches, config.discriminator);
 
   return {
     kind: "oneOf",

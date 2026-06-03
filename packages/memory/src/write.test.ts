@@ -43,6 +43,56 @@ describe("clearMemory", () => {
       code: "ENOENT"
     });
   });
+
+  it("rejects a symlinked memory root without deleting external content", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/.keep": "",
+      "/outside/pages/remove.md": "preserve me\n",
+      "/outside/INDEX.md": "# external index\n",
+      "/outside/LOG.md": "external log\n"
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory");
+
+    await expect(clearMemory("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/pages/remove.md", "utf8")).resolves.toBe("preserve me\n");
+    await expect(vol.promises.readFile("/outside/INDEX.md", "utf8")).resolves.toBe("# external index\n");
+  });
+
+  it("preserves existing memory when replacement scaffold initialization fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Existing index\n",
+      [`${root}/LOG.md`]: "- existing audit\n",
+      [`${root}/pages/page.md`]: "# Existing page\n"
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).includes(".clear-") && String(filePath).endsWith("/INDEX.md")) {
+        throw new Error("injected index recreate failure");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(clearMemory(root)).rejects.toThrow("injected index recreate failure");
+    await expect(vol.promises.readFile(`${root}/pages/page.md`, "utf8")).resolves.toBe("# Existing page\n");
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("- existing audit\n");
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe("# Existing index\n");
+  });
+
+  it("clears memory without traversing a symlinked child directory", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Existing index\n",
+      [`${root}/LOG.md`]: "- existing audit\n",
+      "/outside/secret.md": "preserve outside\n"
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(clearMemory(root)).resolves.toBeUndefined();
+    await expect(vol.promises.readFile("/outside/secret.md", "utf8")).resolves.toBe("preserve outside\n");
+    await expect(vol.promises.readdir(`${root}/pages`)).resolves.toEqual([]);
+  });
 });
 
 describe("writePage", () => {
@@ -126,6 +176,43 @@ describe("writePage", () => {
       ].join("\n")
     );
   });
+
+  it("removes a newly written page when index publication fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: ""
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(`${root}/INDEX.md.`)) {
+        throw new Error("index offline");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      writePage(root, "pages/new.md", "# New memory\n", { reason: "write" })
+    ).rejects.toThrow("index offline");
+    await expect(vol.promises.stat(`${root}/pages/new.md`)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe("# Memory index\n");
+  });
+
+  it("rejects writes through symlinked page directories", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(
+      writePage(root, "pages/linked/new.md", "# New outside\n", { reason: "write" })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.stat("/outside/new.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });
 
 describe("appendToPage", () => {
@@ -190,5 +277,45 @@ describe("appendToPage", () => {
         ""
       ].join("\n")
     );
+  });
+
+  it("rejects appends through symlinked page directories", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/existing.md": "# Outside\n"
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(
+      appendToPage(root, "pages/linked/existing.md", "appended outside\n", { reason: "append" })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/existing.md", "utf8")).resolves.toBe("# Outside\n");
+  });
+
+  it("preserves existing authored content when append persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const pagePath = `${root}/pages/architecture.md`;
+    const originalContent = "---\nname: architecture\n---\n# Existing memory\n";
+    vol.fromJSON({
+      [pagePath]: originalContent,
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: ""
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(pagePath)) {
+        vol.writeFileSync(String(filePath), "---\nname:");
+        throw new Error("page disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      appendToPage(root, "pages/architecture.md", "\nNew detail.\n", { reason: "probe" })
+    ).rejects.toThrow("page disk full");
+    await expect(vol.promises.readFile(pagePath, "utf8")).resolves.toBe(originalContent);
   });
 });

@@ -6,7 +6,7 @@ vi.mock('./runtime.js');
 
 import { createBackendContainer, resolveBackend } from './backend.js';
 import { setWorkspaceDir } from './runtime.js';
-import { useContainer } from './use-container.js';
+import { cleanupContainer, useContainer } from './use-container.js';
 import type { UseContainerOptions } from './use-container.js';
 import type { CapturedRequests, Container } from './types.js';
 
@@ -53,6 +53,13 @@ describe('useContainer', () => {
         snapshots: Array<{ key: string; response: unknown }>
       ) => Promise<void>;
     }>();
+  });
+
+  it('destroys containers after failed proxy-health validation', async () => {
+    mockContainer.proxyLog = vi.fn().mockResolvedValue('Error: proxy failed');
+
+    await expect(cleanupContainer(mockContainer)).rejects.toThrow('expected healthy proxy');
+    expect(mockContainer.destroy).toHaveBeenCalledOnce();
   });
 
   describe('lifecycle', () => {

@@ -8,7 +8,7 @@ import type { PluginSpec } from "./registry.js";
 const AGENTS_FILE = "AGENTS.md";
 const USER_MEMORY_DIRECTORY = path.join(".config", "poe-code");
 
-type MemoryPluginFileSystem = Pick<typeof fsPromises, "readFile">;
+type MemoryPluginFileSystem = Pick<typeof fsPromises, "lstat" | "readFile" | "realpath">;
 
 export type MemoryPluginOptions = {
   cwd?: string;
@@ -51,7 +51,11 @@ async function loadMemory(options: {
   const projectMemoryPath = await findNearestAgentsFile(options.cwd, options.fs);
 
   if (projectMemoryPath) {
-    const projectMemory = await loadOptionalMemoryFile(projectMemoryPath, options.fs);
+    const projectMemory = await loadOptionalMemoryFile(
+      projectMemoryPath,
+      path.dirname(projectMemoryPath),
+      options.fs,
+    );
     if (projectMemory) {
       sections.push(formatMemorySection("Project memory", projectMemory));
     }
@@ -59,6 +63,7 @@ async function loadMemory(options: {
 
   const userMemory = await loadOptionalMemoryFile(
     path.join(options.homeDir, USER_MEMORY_DIRECTORY, AGENTS_FILE),
+    path.join(options.homeDir, USER_MEMORY_DIRECTORY),
     options.fs,
   );
   if (userMemory) {
@@ -80,7 +85,7 @@ async function findNearestAgentsFile(
 
   while (true) {
     const filePath = path.join(currentDirectory, AGENTS_FILE);
-    if ((await readOptionalFile(filePath, fs)) !== undefined) {
+    if (await exists(filePath, fs)) {
       return filePath;
     }
 
@@ -95,9 +100,10 @@ async function findNearestAgentsFile(
 
 async function loadOptionalMemoryFile(
   filePath: string,
+  trustedDirectory: string,
   fs: MemoryPluginFileSystem,
 ): Promise<string | undefined> {
-  const content = await readOptionalFile(filePath, fs);
+  const content = await readOptionalTrustedFile(filePath, trustedDirectory, fs);
   if (content === undefined) {
     return undefined;
   }
@@ -105,6 +111,7 @@ async function loadOptionalMemoryFile(
   return await expandImports({
     filePath,
     content,
+    trustedDirectory,
     fs,
     loading: new Set<string>(),
   });
@@ -113,6 +120,7 @@ async function loadOptionalMemoryFile(
 async function expandImports(options: {
   filePath: string;
   content: string;
+  trustedDirectory: string;
   fs: MemoryPluginFileSystem;
   loading: Set<string>;
 }): Promise<string | undefined> {
@@ -134,10 +142,16 @@ async function expandImports(options: {
       }
 
       const importedFilePath = path.resolve(path.dirname(normalizedPath), importPath);
-      const importedContent = await readRequiredFile(importedFilePath, options.fs);
+      assertPathContained(importedFilePath, options.trustedDirectory, "AGENTS.md import");
+      const importedContent = await readRequiredTrustedFile(
+        importedFilePath,
+        options.trustedDirectory,
+        options.fs,
+      );
       const expandedImport = await expandImports({
         filePath: importedFilePath,
         content: importedContent,
+        trustedDirectory: options.trustedDirectory,
         fs: options.fs,
         loading: options.loading,
       });
@@ -172,28 +186,64 @@ function normalizeLineEndings(content: string): string {
   return content.split("\r\n").join("\n");
 }
 
-async function readOptionalFile(
+async function readOptionalTrustedFile(
   filePath: string,
+  trustedDirectory: string,
   fs: MemoryPluginFileSystem,
 ): Promise<string | undefined> {
+  if (!(await exists(filePath, fs))) {
+    return undefined;
+  }
+
+  const stat = await fs.lstat(filePath);
+  if (stat.isSymbolicLink()) {
+    throw new Error(`AGENTS.md file escapes its trusted directory: ${filePath}`);
+  }
+
+  const [canonicalPath, canonicalDirectory] = await Promise.all([
+    fs.realpath(filePath),
+    fs.realpath(trustedDirectory),
+  ]);
+  assertPathContained(canonicalPath, canonicalDirectory, "AGENTS.md file");
+
+  return await fs.readFile(filePath, "utf8");
+}
+
+async function readRequiredTrustedFile(
+  filePath: string,
+  trustedDirectory: string,
+  fs: MemoryPluginFileSystem,
+): Promise<string> {
+  const content = await readOptionalTrustedFile(filePath, trustedDirectory, fs);
+  if (content !== undefined) {
+    return content;
+  }
+
+  throw new Error(`Missing AGENTS.md import: ${filePath}`);
+}
+
+async function exists(filePath: string, fs: MemoryPluginFileSystem): Promise<boolean> {
   try {
-    return await fs.readFile(filePath, "utf8");
+    await fs.lstat(filePath);
+    return true;
   } catch (error) {
     if (isMissingFileError(error)) {
-      return undefined;
+      return false;
     }
 
     throw error;
   }
 }
 
-async function readRequiredFile(filePath: string, fs: MemoryPluginFileSystem): Promise<string> {
-  const content = await readOptionalFile(filePath, fs);
-  if (content !== undefined) {
-    return content;
+function assertPathContained(filePath: string, trustedDirectory: string, label: string): void {
+  const relativePath = path.relative(trustedDirectory, filePath);
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error(`${label} escapes its trusted directory: ${filePath}`);
   }
-
-  throw new Error(`Missing AGENTS.md import: ${filePath}`);
 }
 
 function isMissingFileError(error: unknown): boolean {

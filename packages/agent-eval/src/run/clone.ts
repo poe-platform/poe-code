@@ -28,7 +28,7 @@ export async function cloneTarget(input: CloneTargetInput): Promise<{ resolvedSh
       resolvedSha: (await git(input.dest, input.signal).revparse(["HEAD"])).trim()
     };
   } catch (error) {
-    if (input.signal?.aborted && !destExisted) {
+    if (!destExisted) {
       await rm(input.dest, { recursive: true, force: true });
     }
 

@@ -69,10 +69,30 @@ function extractModelOverride(labels: GitHubLabel[]): string | null {
   return null;
 }
 
-function emitOutputs(values: Record<string, string | number>): void {
-  const outputPath = readEnv("GITHUB_OUTPUT");
+export function emitOutputs(
+  values: Record<string, string | number>,
+  outputPath = readEnv("GITHUB_OUTPUT"),
+  fileSystem: Pick<typeof fs, "appendFileSync" | "lstatSync"> = fs
+): void {
+  assertNotSymbolicLink(outputPath, fileSystem);
   const lines = Object.entries(values).map(([key, value]) => `${key}=${value}`);
-  fs.appendFileSync(outputPath, `${lines.join("\n")}\n`);
+  fileSystem.appendFileSync(outputPath, `${lines.join("\n")}\n`);
+}
+
+function assertNotSymbolicLink(
+  outputPath: string,
+  fileSystem: Pick<typeof fs, "lstatSync">
+): void {
+  try {
+    if (fileSystem.lstatSync(outputPath).isSymbolicLink()) {
+      throw new Error(`Refusing to use symbolic link path: ${outputPath}`);
+    }
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }
 
 function resolveProvider(label: string): ProviderMetadata {

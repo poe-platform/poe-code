@@ -101,7 +101,7 @@ async function resolveIsolatedEnvVars(
   vars: Record<string, IsolatedEnvValue>,
   activeProvider?: ActiveProvider
 ): Promise<Record<string, string>> {
-  const out: Record<string, string> = {};
+  const out = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(vars)) {
     out[key] = await resolveIsolatedEnvValue(env, baseDir, value, activeProvider);
   }

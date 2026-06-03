@@ -6,18 +6,27 @@ import { validateEvalYaml } from "../schema.js";
 import { loadEval } from "../source/registry.js";
 
 const mocks = vi.hoisted(() => ({
-  fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"]
+  fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
+  failedWriteSuffix: undefined as string | undefined
 }));
 
 vi.mock("node:fs/promises", () => ({
   default: {
+    lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
     mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
     writeFile: (...args: unknown[]) =>
       mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>))
   },
+  lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
-  writeFile: (...args: unknown[]) =>
-    mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>))
+  rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
+  writeFile: async (...args: unknown[]) => {
+    const [filePath] = args as Parameters<typeof mocks.fs.writeFile>;
+    if (mocks.failedWriteSuffix !== undefined && String(filePath).endsWith(mocks.failedWriteSuffix)) {
+      throw new Error("scaffold write failed");
+    }
+    await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
+  }
 }));
 
 const { evalInit, validateInitName } = await import("./init.js");
@@ -25,6 +34,7 @@ const { evalInit, validateInitName } = await import("./init.js");
 describe("evalInit", () => {
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
+    mocks.failedWriteSuffix = undefined;
   });
 
   it("scaffolds the expected file set", async () => {
@@ -130,6 +140,32 @@ describe("evalInit", () => {
         kind: "plan"
       })
     ).rejects.toThrow("Eval folder already exists: /repo/evals/existing-task");
+  });
+
+  it("removes an incomplete scaffold so initialization can be retried", async () => {
+    mocks.failedWriteSuffix = "/plan.md";
+
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "partial-task", kind: "plan" })
+    ).rejects.toThrow("scaffold write failed");
+    await expect(mocks.fs.stat("/repo/evals/partial-task")).rejects.toMatchObject({ code: "ENOENT" });
+
+    mocks.failedWriteSuffix = undefined;
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "partial-task", kind: "plan" })
+    ).resolves.toMatchObject({ evalDir: "/repo/evals/partial-task" });
+  });
+
+  it("rejects a source directory symlink before writing scaffold files", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo": null, "/outside": null }, "/")).promises;
+    await mocks.fs.symlink("/outside", "/repo/evals");
+
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "escaped-task", kind: "plan" })
+    ).rejects.toThrow("Eval source directory must not be a symbolic link.");
+    await expect(mocks.fs.readFile("/outside/escaped-task/eval.yaml", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });
 

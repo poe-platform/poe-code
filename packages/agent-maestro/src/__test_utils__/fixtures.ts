@@ -71,7 +71,6 @@ export function createConfig(overrides: ConfigOverrides = {}): ResolvedConfig {
       list: defaultTaskList,
       maxConcurrentAgents:
         overrides.agent?.maxConcurrentAgents ?? overrides.maxConcurrentAgents ?? 1,
-      maxTurns: 20,
       maxRetryBackoffMs: 300_000,
       ...overrides.agent
     }

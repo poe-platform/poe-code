@@ -240,6 +240,8 @@ export interface AcpSpawnConfig {
   env?: Record<string, string>;
   /** Whether to skip the ACP authenticate step (workaround for servers that advertise but don't implement auth). */
   skipAuth?: boolean;
+  /** Whether MCP servers may be forwarded through ACP sessions. Defaults to true. */
+  supportsMcpServers?: boolean;
   /** MCP server env serializer, same as CliSpawnConfig. */
   mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
 }

@@ -47,6 +47,10 @@ function createDefaultFs(): ExperimentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
     },
@@ -55,6 +59,12 @@ function createDefaultFs(): ExperimentFileSystem {
     },
     appendFile: async (filePath, content) => {
       await fsPromises.appendFile(filePath, content, "utf8");
+    },
+    rename: async (oldPath, newPath) => {
+      await fsPromises.rename(oldPath, newPath);
+    },
+    unlink: async (filePath) => {
+      await fsPromises.unlink(filePath);
     }
   };
 }
@@ -69,12 +79,14 @@ function resolveJournalPath(docPath: string): string {
 export async function runExperiment(options: ExperimentRunOptions): Promise<ExperimentRunResult> {
   return runWorkspaceExperimentLoop({
     ...options,
-    runAgent: async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
+    runAgent: options.runAgent ?? (async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
       return await sdkSpawn.autonomous(input.agent, {
         prompt: input.prompt,
         cwd: input.cwd,
         model: input.model,
         mode: "yolo",
+        ...(input.logDir ? { logDir: input.logDir } : {}),
+        ...(input.logFileName ? { logFileName: input.logFileName } : {}),
         ...(options.runtime ? { runtime: options.runtime } : {}),
         ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
         ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
@@ -83,7 +95,7 @@ export async function runExperiment(options: ExperimentRunOptions): Promise<Expe
         ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
         ...(input.signal ? { signal: input.signal } : {})
       });
-    }
+    })
   });
 }
 

@@ -24,6 +24,8 @@ interface ConfigurePayloadInit {
   providerId?: string;
 }
 
+const PREVIEW_API_KEY = "<redacted>";
+
 export async function createConfigurePayload(init: ConfigurePayloadInit): Promise<unknown> {
   const { container, flags, options, context, adapter, logger, providerId } = init;
   const payload: Record<string, unknown> = { env: context.env };
@@ -39,17 +41,18 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     }
     const explicitShapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
     const agent = resolveAgentDefinition(adapter.name) ?? { id: adapter.name };
-    const apiKey =
-      providerId === POE_PROVIDER_ID
+    const apiKey = flags.dryRun
+      ? PREVIEW_API_KEY
+      : providerId === POE_PROVIDER_ID
         ? await container.options.resolveApiKey({
-            value: options.apiKey,
-            envValue:
-              provider.auth.kind === "api-key"
-                ? container.env.getVariable(provider.auth.envVar)
-                : undefined,
-            dryRun: flags.dryRun,
-            assumeYes: flags.assumeYes
-          })
+              value: options.apiKey,
+              envValue:
+                provider.auth.kind === "api-key"
+                  ? container.env.getVariable(provider.auth.envVar)
+                  : undefined,
+              dryRun: false,
+              assumeYes: flags.assumeYes
+            })
         : await container.providerRegistry.resolveCredential(
             providerId,
             { apiKey: options.apiKey },
@@ -110,17 +113,19 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     payload.reasoningEffort = reasoningEffort;
   }
 
-  const extension = await adapter.extendConfigurePayload?.({
-    fs: container.fs,
-    env: context.env,
-    httpClient: container.httpClient,
-    logger,
-    payload,
-    prompts: container.prompts,
-    promptLibrary: container.promptLibrary,
-    assumeYes: flags.assumeYes,
-    commandOptions: options as Record<string, unknown>
-  });
+  const extension = flags.dryRun
+    ? undefined
+    : await adapter.extendConfigurePayload?.({
+        fs: container.fs,
+        env: context.env,
+        httpClient: container.httpClient,
+        logger,
+        payload,
+        prompts: container.prompts,
+        promptLibrary: container.promptLibrary,
+        assumeYes: flags.assumeYes,
+        commandOptions: options as Record<string, unknown>
+      });
   if (extension) {
     Object.assign(payload, extension);
   }
@@ -131,6 +136,9 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     const choices = modelPrompt?.choices;
     if (!choices) {
       return undefined;
+    }
+    if (flags.dryRun && typeof choices === "function") {
+      return [{ title: modelPrompt.defaultValue, value: modelPrompt.defaultValue }];
     }
     if (typeof choices !== "function") {
       return choices;

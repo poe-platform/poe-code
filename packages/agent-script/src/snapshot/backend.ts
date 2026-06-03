@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
@@ -20,9 +21,9 @@ export type FileSnapshotBackendOptions = {
 const DEFAULT_WRITE_MAX_ATTEMPTS = 3;
 const DEFAULT_WRITE_RETRY_DELAY_MS = 100;
 const LOCKED_FILE_ERROR_CODES = new Set(["EACCES", "EBUSY", "EPERM"]);
+const pendingOperations = new Map<string, Promise<void>>();
 
 export class FileSnapshotBackend implements SnapshotBackend {
-  #pendingWrite = Promise.resolve();
   readonly #writeMaxAttempts: number;
   readonly #writeRetryDelayMs: number;
 
@@ -51,27 +52,24 @@ export class FileSnapshotBackend implements SnapshotBackend {
   }
 
   async write(snapshot: Snapshot): Promise<void> {
-    const write = this.#pendingWrite
-      .catch(() => undefined)
-      .then(() =>
+    await enqueueOperation(this.path, () =>
         writeSnapshotAtomically(this.path, snapshot, {
           maxAttempts: this.#writeMaxAttempts,
           retryDelayMs: this.#writeRetryDelayMs
         })
-      );
-    this.#pendingWrite = write.catch(() => undefined);
-    await write;
+    );
   }
 
   async remove(): Promise<void> {
-    await this.#pendingWrite;
-    try {
-      await unlink(this.path);
-    } catch (error) {
-      if (!hasErrorCode(error, "ENOENT")) {
-        throw error;
+    await enqueueOperation(this.path, async () => {
+      try {
+        await unlink(this.path);
+      } catch (error) {
+        if (!hasErrorCode(error, "ENOENT")) {
+          throw error;
+        }
       }
-    }
+    });
   }
 }
 
@@ -83,7 +81,6 @@ async function writeSnapshotAtomically(
     retryDelayMs: number;
   }
 ): Promise<void> {
-  const temporaryPath = `${snapshotPath}.tmp`;
   const parentPath = dirname(snapshotPath);
   const contents = serializeAgentScriptSnapshot(snapshot);
 
@@ -91,6 +88,7 @@ async function writeSnapshotAtomically(
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt += 1) {
     try {
+      const temporaryPath = `${snapshotPath}.${randomUUID()}.tmp`;
       await writeSnapshotOnce(temporaryPath, snapshotPath, contents);
       return;
     } catch (error) {
@@ -149,7 +147,21 @@ async function writeSnapshotOnce(
     renamed = true;
   } finally {
     if (!renamed) {
-      await removeTemporarySnapshot(temporaryPath);
+      await removeTemporarySnapshot(temporaryPath).catch(() => undefined);
+    }
+  }
+}
+
+async function enqueueOperation(path: string, operation: () => Promise<void>): Promise<void> {
+  const previous = pendingOperations.get(path) ?? Promise.resolve();
+  const pending = previous.catch(() => undefined).then(operation);
+  const queued = pending.catch(() => undefined);
+  pendingOperations.set(path, queued);
+  try {
+    await pending;
+  } finally {
+    if (pendingOperations.get(path) === queued) {
+      pendingOperations.delete(path);
     }
   }
 }

@@ -1,5 +1,6 @@
 import * as jsonc from "jsonc-parser";
 import type { ConfigFormat, ConfigObject, ConfigValue } from "../types.js";
+import { cloneConfigObject, hasConfigEntry, setConfigEntry } from "./object.js";
 
 function isConfigObject(value: unknown): value is ConfigObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -31,7 +32,7 @@ function parse(content: string): ConfigObject {
   if (!isConfigObject(parsed)) {
     throw new Error("Expected JSON object.");
   }
-  return parsed;
+  return cloneConfigObject(parsed);
 }
 
 function serialize(obj: ConfigObject): string {
@@ -39,17 +40,17 @@ function serialize(obj: ConfigObject): string {
 }
 
 function merge(base: ConfigObject, patch: ConfigObject): ConfigObject {
-  const result: ConfigObject = { ...base };
+  const result = cloneConfigObject(base);
   for (const [key, value] of Object.entries(patch)) {
     if (value === undefined) {
       continue;
     }
     const existing = result[key];
     if (isConfigObject(existing) && isConfigObject(value)) {
-      result[key] = merge(existing, value);
+      setConfigEntry(result, key, merge(existing, value));
       continue;
     }
-    result[key] = value as ConfigValue;
+    setConfigEntry(result, key, value as ConfigValue);
   }
   return result;
 }
@@ -59,10 +60,10 @@ function prune(
   shape: ConfigObject
 ): { changed: boolean; result: ConfigObject } {
   let changed = false;
-  const result: ConfigObject = { ...obj };
+  const result = cloneConfigObject(obj);
 
   for (const [key, pattern] of Object.entries(shape)) {
-    if (!(key in result)) {
+    if (!hasConfigEntry(result, key)) {
       continue;
     }
 
@@ -87,8 +88,12 @@ function prune(
       if (Object.keys(childResult).length === 0) {
         delete result[key];
       } else {
-        result[key] = childResult;
+        setConfigEntry(result, key, childResult);
       }
+      continue;
+    }
+
+    if (isConfigObject(pattern) && Object.keys(pattern).length > 0) {
       continue;
     }
 

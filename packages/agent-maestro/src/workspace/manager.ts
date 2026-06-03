@@ -16,7 +16,11 @@ export async function ensureWorkspace(
   const workspacePath = resolveWorkspacePath(root, qualifiedId);
   await ensureWorkspaceRoot(root);
 
-  const existing = await statIfExists(workspacePath);
+  const existing = await lstatIfExists(workspacePath);
+
+  if (existing?.isSymbolicLink()) {
+    throw new Error(`workspace directory must not be a symbolic link: ${workspacePath}`);
+  }
 
   if (existing !== undefined && !existing.isDirectory()) {
     throw new Error(`workspace path exists and is not a directory: ${workspacePath}`);
@@ -39,13 +43,17 @@ export async function startupTerminalCleanup(
   root: string,
   terminalQualifiedIds: string[]
 ): Promise<{ removed: number }> {
-  const rootStat = await statIfExists(root);
+  const rootStat = await lstatIfExists(root);
 
   if (rootStat === undefined) {
     return { removed: 0 };
   }
 
   if (!rootStat.isDirectory()) {
+    if (rootStat.isSymbolicLink()) {
+      throw new Error(`workspace root must not be a symbolic link: ${root}`);
+    }
+
     throw new Error(`workspace root exists and is not a directory: ${root}`);
   }
 
@@ -92,7 +100,11 @@ function resolveWorkspaceKey(root: string, qualifiedId: string): string {
 }
 
 async function ensureWorkspaceRoot(root: string): Promise<void> {
-  const existing = await statIfExists(root);
+  const existing = await lstatIfExists(root);
+
+  if (existing?.isSymbolicLink()) {
+    throw new Error(`workspace root must not be a symbolic link: ${root}`);
+  }
 
   if (existing !== undefined && !existing.isDirectory()) {
     throw new Error(`workspace root exists and is not a directory: ${root}`);
@@ -149,9 +161,9 @@ function isSafeWorkspaceKeyCharacter(character: string): boolean {
   );
 }
 
-async function statIfExists(filePath: string): Promise<Stats | undefined> {
+async function lstatIfExists(filePath: string): Promise<Stats | undefined> {
   try {
-    return await fs.stat(filePath);
+    return await fs.lstat(filePath);
   } catch (error) {
     if (isNodeError(error) && error.code === "ENOENT") {
       return undefined;

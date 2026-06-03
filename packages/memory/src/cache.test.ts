@@ -6,7 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } = await import("./cache.js");
+const { cacheStatus, clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } = await import("./cache.js");
 
 const baseEntry = {
   key: "abc123",
@@ -105,6 +105,43 @@ describe("readCacheEntry and writeCacheEntry", () => {
       'Ignoring ingest cache entry "bad-shape": Expected string at "ingestedAt".'
     );
   });
+
+  it("rejects traversal cache keys before reading or writing", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/victim/secret.json": JSON.stringify(baseEntry)
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "../../victim/secret")).rejects.toThrow(
+      "cannot escape"
+    );
+    await expect(
+      writeCacheEntry("/repo/.poe-code/memory", {
+        ...baseEntry,
+        key: "../../victim/written"
+      })
+    ).rejects.toThrow("cannot escape");
+    await expect(vol.promises.stat("/repo/.poe-code/memory/victim/written.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("preserves a prior cache hit when refresh persistence fails", async () => {
+    const cachePath = "/repo/.poe-code/memory/.cache/ingest/abc123.json";
+    vol.fromJSON({ [cachePath]: `${JSON.stringify(baseEntry)}\n` });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(cachePath)) {
+        vol.writeFileSync(String(filePath), "{");
+        throw new Error("cache disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      writeCacheEntry("/repo/.poe-code/memory", { ...baseEntry, sourceLabel: "updated" })
+    ).rejects.toThrow("cache disk full");
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toEqual(baseEntry);
+  });
 });
 
 describe("clearCache", () => {
@@ -161,5 +198,43 @@ describe("clearCache", () => {
     await expect(vol.promises.readFile("/repo/.poe-code/memory/.cache/ingest/new.json", "utf8")).resolves.toContain(
       '"key":"new"'
     );
+  });
+
+  it("restores earlier expired entries when a later filtered removal fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/.cache/ingest/a.json`]: JSON.stringify({ ...baseEntry, key: "a", ingestedAt: "2026-04-19T09:00:00.000Z" }),
+      [`${root}/.cache/ingest/b.json`]: JSON.stringify({ ...baseEntry, key: "b", ingestedAt: "2026-04-19T09:00:00.000Z" })
+    });
+    const remove = vol.promises.rm.bind(vol.promises);
+    vi.spyOn(vol.promises, "rm").mockImplementation(async (filePath, options) => {
+      if (String(filePath).endsWith("/b.json")) {
+        throw new Error("injected second removal failure");
+      }
+
+      return remove(filePath, options);
+    });
+
+    await expect(clearCache(root, { olderThanMs: 60 * 60 * 1000 })).rejects.toThrow(
+      "injected second removal failure"
+    );
+    await expect(vol.promises.readFile(`${root}/.cache/ingest/a.json`, "utf8")).resolves.toContain('"key":"a"');
+    await expect(vol.promises.readFile(`${root}/.cache/ingest/b.json`, "utf8")).resolves.toContain('"key":"b"');
+  });
+});
+
+describe("cacheStatus", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  it("reports ingest cache entry count and total bytes", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/a.json": "abc",
+      "/repo/.poe-code/memory/.cache/ingest/b.json": "12345",
+      "/repo/.poe-code/memory/.cache/ingest/ignore.txt": "ignored"
+    });
+
+    await expect(cacheStatus("/repo/.poe-code/memory")).resolves.toEqual({ entries: 2, bytes: 8 });
   });
 });

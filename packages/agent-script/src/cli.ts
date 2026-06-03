@@ -609,7 +609,7 @@ function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): Mo
     return rawModules;
   }
 
-  const rawModules: Record<string, ModuleExports> = {};
+  const rawModules = Object.create(null) as Record<string, ModuleExports>;
 
   for (const [moduleName, moduleExports] of Object.entries(modules)) {
     if (moduleName !== "harness") {

@@ -4,6 +4,7 @@ import {
   chmod,
   mkdtemp,
   mkdir,
+  lstat,
   readFile as readFileFs,
   readdir,
   rm,
@@ -11,7 +12,7 @@ import {
   writeFile as writeFileFs,
 } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { basename, join, resolve } from 'node:path';
+import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { getWorkspaceDir } from './runtime.js';
 import { getApiKey } from './credentials.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
@@ -205,15 +206,61 @@ async function linkRootPackageBins(home: string, repoDir: string): Promise<void>
 
   for (const [name, relPath] of Object.entries(bins)) {
     if (!name) continue;
+    if (basename(name) !== name) {
+      throw new Error(`Invalid package bin name "${name}".`);
+    }
     const target = resolve(repoDir, relPath);
+    if (!isPathWithin(repoDir, target)) {
+      throw new Error(`Package bin target "${relPath}" is outside the workspace.`);
+    }
     try {
+      if ((await lstat(target)).isSymbolicLink()) {
+        throw new Error(`Package bin target "${relPath}" must not be a symbolic link.`);
+      }
       await access(target);
       await chmod(target, 0o755);
       await symlink(target, join(localBinDir, name));
-    } catch {
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('symbolic link')) {
+        throw error;
+      }
       // skip bins whose targets don't exist (not built yet)
     }
   }
+}
+
+function isPathWithin(parentPath: string, candidatePath: string): boolean {
+  const pathFromParent = relative(parentPath, candidatePath);
+  return pathFromParent === '' || (
+    pathFromParent !== '..' &&
+    !pathFromParent.startsWith(`..${sep}`) &&
+    !isAbsolute(pathFromParent)
+  );
+}
+
+async function resolveSnapshotDir(repoDir: string, testName: string): Promise<string> {
+  if (basename(testName) !== testName || testName === '.' || testName === '..') {
+    throw new Error(`Invalid snapshot test name "${testName}".`);
+  }
+  const snapshotsRoot = resolve(repoDir, E2E_FIXTURES_DIR);
+  const snapshotDir = resolve(snapshotsRoot, testName);
+  if (!isPathWithin(snapshotsRoot, snapshotDir)) {
+    throw new Error(`Invalid snapshot test name "${testName}".`);
+  }
+  try {
+    if ((await lstat(snapshotDir)).isSymbolicLink()) {
+      throw new Error(`Snapshot directory must not be a symbolic link: ${snapshotDir}`);
+    }
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+  }
+  return snapshotDir;
+}
+
+function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
 }
 
 async function runPreflight(home: string, repoDir: string): Promise<string> {
@@ -296,7 +343,7 @@ export async function createHostContainer(
   await mkdir(workspace, { recursive: true });
   const repoDir = getWorkspaceDir() ?? process.cwd();
   const snapshotDir = useSnapshots && options.testName
-    ? resolve(repoDir, E2E_FIXTURES_DIR, options.testName)
+    ? await resolveSnapshotDir(repoDir, options.testName)
     : null;
   const wantRecording = useSnapshots && (
     process.env.POE_SNAPSHOT_MODE === 'record' ||
@@ -398,12 +445,12 @@ export async function createHostContainer(
     async destroy() {
       if (proxyState.server !== null) {
         const server = proxyState.server;
+        await server.close();
         proxyState = {
           ...proxyState,
           log: null,
           server: null,
         };
-        await server.close();
       }
       await removeHomeDirectory(home);
     },

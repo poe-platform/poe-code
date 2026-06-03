@@ -377,6 +377,11 @@ async function runSet(
     const metadata =
       options.metadataJson === undefined ? undefined : parseMetadataJson(options.metadataJson);
 
+    if (options.dryRun === true) {
+      logger.dryRun(`[dry-run] Would update task ${task.qualifiedId}.`);
+      return;
+    }
+
     const updated = await tasks.update(task.id, {
       ...(options.name !== undefined ? { name: options.name } : {}),
       ...(description !== undefined ? { description } : {}),
@@ -399,6 +404,16 @@ async function runSetState(
 
   try {
     const opened = await openConfiguredTaskList(options, container);
+    if (options.dryRun === true) {
+      const { task } = await resolveTaskView(opened.taskList, id);
+      if (!opened.resolved.stateOrder.includes(state)) {
+        throw new TasksCommandUsageError(
+          `target state "${state}" is not declared in WORKFLOW.md; declared states: ${opened.resolved.stateOrder.join(", ")}`
+        );
+      }
+      logger.dryRun(`[dry-run] Would set task ${task.qualifiedId} state to ${state}.`);
+      return;
+    }
     await setTaskState(id, state, opened.taskList, opened.resolved.stateOrder);
   } catch (error) {
     handleCommandError(error, logger, options.json);
@@ -441,6 +456,11 @@ async function runNext(
       );
     }
 
+    if (options.dryRun === true) {
+      logger.dryRun(`[dry-run] Would set task ${task.qualifiedId} state to ${nextState}.`);
+      return;
+    }
+
     await setTaskState(id, nextState, opened.taskList, opened.resolved.stateOrder);
   } catch (error) {
     handleCommandError(error, logger, options.json);
@@ -474,6 +494,11 @@ async function runComment(
       throw new TasksCommandUsageError(
         `comment is unsupported on the ${opened.resolved.taskListOptions.type} task backend`
       );
+    }
+
+    if (options.dryRun === true) {
+      logger.dryRun(`[dry-run] Would comment on task ${task.qualifiedId}.`);
+      return;
     }
 
     await comment(task.id, body ?? "");

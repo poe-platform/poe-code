@@ -386,7 +386,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
             fetch: options.fetch ?? globalThis.fetch,
             signal: runContext.abortController.signal,
             logger: runContext.logger,
-            options: getResolvedProviderOptions(provider)
+            options: mergeRunProviderOptions(getResolvedProviderOptions(provider), options)
           };
 
           return provider.createModel(modelName, providerContext);
@@ -429,9 +429,22 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 }
 
+function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunOptions): unknown {
+  if (providerOptions === null || typeof providerOptions !== "object" || Array.isArray(providerOptions)) {
+    return providerOptions;
+  }
+
+  return {
+    ...providerOptions,
+    ...(runOptions.apiKey === undefined ? {} : { apiKey: runOptions.apiKey }),
+    ...(runOptions.baseUrl === undefined ? {} : { baseUrl: runOptions.baseUrl })
+  };
+}
+
 const defaultTranscriptFs: TranscriptFsApi = {
   mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
-  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8")
+  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8"),
+  lstat: filePath => fsPromises.lstat(filePath)
 };
 
 export function agent(): AgentBuilder {
@@ -547,18 +560,14 @@ function resolveModelName(configModel: string | undefined, model: AcpModel | und
 function toSpawnMcpServers(
   mcpServers: ReadonlyArray<McpServerConfig>
 ): NonNullable<CreateAgentSessionOptions["mcpServers"]> {
-  const byName: NonNullable<CreateAgentSessionOptions["mcpServers"]> = {};
-
-  for (const server of mcpServers) {
-    byName[server.name] = {
+  return Object.fromEntries(
+    mcpServers.map(server => [server.name, {
       transport: "stdio",
       command: server.command,
       ...(server.args === undefined ? {} : { args: [...server.args] }),
       ...(server.env === undefined ? {} : { env: { ...server.env } })
-    };
-  }
-
-  return byName;
+    }])
+  );
 }
 
 function normalizeMcpConfigs(

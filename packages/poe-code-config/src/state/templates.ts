@@ -29,6 +29,7 @@ export function createTemplateRegistry(
   let pendingUpdate: Promise<void> = Promise.resolve();
 
   async function readState(): Promise<TemplateState> {
+    await assertSafeStateFile();
     try {
       const raw = await fs.readFile(filePath, "utf8");
       return normalizeTemplateState(JSON.parse(raw));
@@ -42,9 +43,20 @@ export function createTemplateRegistry(
   }
 
   async function writeState(state: TemplateState): Promise<void> {
-    await fs.writeFile(filePath, `${JSON.stringify(state, null, 2)}\n`, {
-      encoding: "utf8"
-    });
+    await assertSafeStateFile();
+    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
+      .toString(36)
+      .slice(2)}.tmp`;
+
+    try {
+      await fs.writeFile(tempPath, `${JSON.stringify(state, null, 2)}\n`, {
+        encoding: "utf8"
+      });
+      await fs.rename(tempPath, filePath);
+    } catch (error) {
+      await fs.unlink(tempPath).catch(() => undefined);
+      throw error;
+    }
   }
 
   async function updateState(mutator: (state: TemplateState) => void): Promise<void> {
@@ -56,6 +68,21 @@ export function createTemplateRegistry(
     });
     pendingUpdate = update.catch(() => undefined);
     await update;
+  }
+
+  async function assertSafeStateFile(): Promise<void> {
+    if (fs.lstat === undefined) {
+      return;
+    }
+    try {
+      if ((await fs.lstat(filePath)).isSymbolicLink()) {
+        throw new Error(`Refusing template state access through symbolic link: ${filePath}`);
+      }
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
   }
 
   async function get(backend: TemplateBackend, hash: string): Promise<TemplateEntry | null> {
@@ -95,8 +122,8 @@ export function createTemplateRegistry(
 
 function createEmptyState(): TemplateState {
   return {
-    docker: {},
-    e2b: {}
+    docker: Object.create(null) as Record<string, TemplateEntry>,
+    e2b: Object.create(null) as Record<string, TemplateEntry>
   };
 }
 
@@ -113,10 +140,10 @@ function normalizeTemplateState(value: unknown): TemplateState {
 
 function normalizeTemplateEntries(value: unknown): Record<string, TemplateEntry> {
   if (!isRecord(value)) {
-    return {};
+    return Object.create(null) as Record<string, TemplateEntry>;
   }
 
-  const entries: Record<string, TemplateEntry> = {};
+  const entries = Object.create(null) as Record<string, TemplateEntry>;
   for (const [hash, entry] of Object.entries(value)) {
     if (isTemplateEntry(entry) && entry.hash === hash) {
       entries[hash] = entry;

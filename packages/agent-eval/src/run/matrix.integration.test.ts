@@ -169,7 +169,7 @@ describe("runMatrix integration", () => {
       })
     );
 
-    await expect(readAggregate(matrixDir, "task", "agent-a", "model-one")).resolves.toMatchObject({
+    await expect(readAggregate(matrixDir, "task", "agent-a", "model~00002fone")).resolves.toMatchObject({
       cell: {
         eval: "task",
         agent: "agent-a",
@@ -184,7 +184,7 @@ describe("runMatrix integration", () => {
         max: 1
       }
     });
-    await expect(readAggregate(matrixDir, "task", "agent-a", "model-two")).resolves.toMatchObject({
+    await expect(readAggregate(matrixDir, "task", "agent-a", "model~00002ftwo")).resolves.toMatchObject({
       cell: {
         eval: "task",
         agent: "agent-a",
@@ -199,7 +199,7 @@ describe("runMatrix integration", () => {
         max: 1
       }
     });
-    await expect(readAggregate(matrixDir, "task", "agent-b", "model-one")).resolves.toMatchObject({
+    await expect(readAggregate(matrixDir, "task", "agent-b", "model~00002fone")).resolves.toMatchObject({
       cell: {
         eval: "task",
         agent: "agent-b",
@@ -208,7 +208,7 @@ describe("runMatrix integration", () => {
       },
       repeats: 2
     });
-    await expect(readAggregate(matrixDir, "task", "agent-b", "model-two")).resolves.toMatchObject({
+    await expect(readAggregate(matrixDir, "task", "agent-b", "model~00002ftwo")).resolves.toMatchObject({
       cell: {
         eval: "task",
         agent: "agent-b",
@@ -243,6 +243,37 @@ describe("runMatrix integration", () => {
       agent: "agent-a",
       model: "model-one"
     });
+  });
+
+  it("sanitizes agent names in synthetic run and aggregate artifact paths", async () => {
+    const outDir = await createOutDir();
+    mockedRun.runEval.mockRejectedValue(new Error("missing agent"));
+
+    const [result] = await collectMatrix({
+      sourceDir: sourceFixture("plan"),
+      evalIds: ["task"],
+      agents: ["../../../agent"],
+      models: ["model/one"],
+      repeats: 1,
+      outDir,
+      verifyOracle: false,
+      judge: "off"
+    });
+
+    const [matrixEntry] = await readdirNames(outDir);
+    const matrixDir = path.join(outDir, matrixEntry as string);
+    expect(result?.runId).not.toContain("/");
+    await expect(readFile(path.join(matrixDir, result?.runId as string, "result.json"), "utf8"))
+      .resolves.toContain('"verdict": "error"');
+    await expect(
+      readFile(
+        path.join(
+          matrixDir,
+          "aggregate-task-..~00002f..~00002f..~00002fagent-model~00002fone.json"
+        ),
+        "utf8"
+      )
+    ).resolves.toBeTruthy();
   });
 });
 

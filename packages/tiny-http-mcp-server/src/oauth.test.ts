@@ -391,7 +391,7 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("www-authenticate")).toContain('error="insufficient_scope"');
   });
 
-  it("uses forwarded protocol and host when building the Express metadata challenge URL", async () => {
+  it("ignores forwarded protocol and host when building the Express metadata challenge URL", async () => {
     const { oauth } = createProtectedResourceMetadata();
     const handlers = createExpressOAuthHandlers({
       path: "/mcp",
@@ -417,7 +417,33 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource/mcp"'
+      `Bearer realm="mcp", resource_metadata="${handle.baseUrl}/.well-known/oauth-protected-resource/mcp"`
+    );
+  });
+
+  it("ignores malformed forwarded protocols when building the challenge URL", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+        "X-Forwarded-Proto": "not a protocol",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp"`
     );
   });
 
@@ -518,7 +544,7 @@ describe("OAuth protected resource", () => {
 
     expect(response.status).toBe(401);
     expect(response.headers.get("www-authenticate")).toBe(
-      'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="audience mismatch"'
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="audience mismatch"`
     );
   });
 
@@ -629,6 +655,43 @@ describe("OAuth protected resource", () => {
     );
   });
 
+  it("does not disclose unexpected verifier exception messages", async () => {
+    const oauth = {
+      resource: PROTECTED_RESOURCE,
+      authorizationServers: [AUTHORIZATION_SERVER],
+      bearerMethodsSupported: ["header"] as const,
+      scopesSupported: [REQUIRED_SCOPE],
+      requiredScopes: [REQUIRED_SCOPE],
+      verifier: {
+        async verify() {
+          throw new Error("database-password=s3cr3t");
+        },
+      },
+    };
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer verifier-error-token",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="token verification failed"`
+    );
+  });
+
   it("passes verified token claims to tools through request.auth", async () => {
     const { oauth, verifier } = createProtectedResourceMetadata();
     const token = verifier.issueToken({
@@ -677,13 +740,32 @@ describe("OAuth protected resource", () => {
     expect(initializeResponse.status).toBe(200);
     expect(sessionId).toBeTruthy();
 
+    const initializedResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(sessionId === null ? {} : {
+          "Mcp-Session-Id": sessionId,
+          "MCP-Protocol-Version": "2025-03-26",
+        }),
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
+    });
+
+    expect(initializedResponse.status).toBe(202);
+
     const toolResponse = await nodeFetch(handle.url, {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        ...(sessionId === null ? {} : { "Mcp-Session-Id": sessionId }),
+        ...(sessionId === null ? {} : {
+          "Mcp-Session-Id": sessionId,
+          "MCP-Protocol-Version": "2025-03-26",
+        }),
       },
       body: createToolCallRequestBody("auth_snapshot"),
     });

@@ -8,6 +8,7 @@ import { resolveApiShape } from "./compatibility.js";
 export interface LoginContext {
   promptForSecret?: PromptForSecret;
   envVars?: Record<string, string | undefined>;
+  store?: SecretStore;
   resolvePreferredLogin?: (input: {
     provider: AuthProvider;
     apiKey?: string;
@@ -44,7 +45,7 @@ export class ProviderRegistry {
       }
       byId.set(provider.id, provider);
     }
-    this.providers = providers;
+    this.providers = Object.freeze([...providers]);
     this.byId = byId;
     this.storeFactory = storeFactory;
     this.envVars = options?.envVars ?? {};
@@ -64,7 +65,7 @@ export class ProviderRegistry {
     });
   }
 
-  async isLoggedIn(id: string): Promise<boolean> {
+  async isLoggedIn(id: string, options: { readOnly?: boolean } = {}): Promise<boolean> {
     const provider = this.requireProvider(id);
     if (provider.auth.kind === "api-key") {
       const envValue = this.envVars[provider.auth.envVar];
@@ -73,27 +74,27 @@ export class ProviderRegistry {
       }
     }
     const store = this.requireStore(id);
-    const credential = await store.get();
-    return credential !== null;
+    const credential = await store.get({ readOnly: options.readOnly });
+    return typeof credential === "string" && credential.trim().length > 0;
   }
 
   async login(id: string, options: ApiKeyLoginOptions, context?: LoginContext): Promise<void> {
     const provider = this.requireProvider(id);
-    const store = this.requireStore(id);
+    const store = context?.store ?? this.requireStore(id);
     if (provider.auth.kind !== "api-key") {
       throw new Error(`Provider "${id}" does not use api-key auth.`);
     }
     const auth = provider.auth;
-    const envApiKey = context?.envVars?.[auth.envVar];
+    const envApiKey = (context?.envVars ?? this.envVars)[auth.envVar];
     const resolvedApiKey =
       options.apiKey ??
       (typeof envApiKey === "string" && envApiKey.trim() ? envApiKey : undefined);
     if (auth.preferredLogin && context?.resolvePreferredLogin) {
-      const apiKey = await context.resolvePreferredLogin({
+      const apiKey = normalizeRequiredCredential(provider.id, await context.resolvePreferredLogin({
         provider,
         apiKey: options.apiKey,
         envValue: typeof envApiKey === "string" ? envApiKey : undefined
-      });
+      }));
       await store.set(apiKey);
       return;
     }
@@ -107,7 +108,7 @@ export class ProviderRegistry {
   async resolveCredential(
     id: string,
     options: ApiKeyLoginOptions = {},
-    context?: Pick<LoginContext, "envVars">
+    context?: Pick<LoginContext, "envVars"> & { readOnly?: boolean }
   ): Promise<string> {
     const provider = this.requireProvider(id);
     if (provider.auth.kind !== "api-key") {
@@ -125,12 +126,15 @@ export class ProviderRegistry {
     }
 
     const store = this.requireStore(id);
-    return apiKeyAuthStrategy.resolveCredential(provider, { secretStore: store });
+    return apiKeyAuthStrategy.resolveCredential(provider, {
+      secretStore: store,
+      readOnly: context?.readOnly
+    });
   }
 
-  async logout(id: string): Promise<void> {
+  async logout(id: string, options: { store?: SecretStore } = {}): Promise<void> {
     this.requireProvider(id);
-    const store = this.requireStore(id);
+    const store = options.store ?? this.requireStore(id);
     await store.delete();
   }
 

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import os from "node:os";
 import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -6,10 +7,24 @@ import { vol } from "memfs";
 import { lint, makeAgentModule } from "@poe-code/agent-script";
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
+const mockedFileSystemState = vi.hoisted(() => ({ failingWritePath: undefined as string | undefined }));
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return {
     ...fs.promises,
+    async writeFile(
+      path: Parameters<typeof fs.promises.writeFile>[0],
+      data: Parameters<typeof fs.promises.writeFile>[1],
+      options?: Parameters<typeof fs.promises.writeFile>[2]
+    ) {
+      if (path === mockedFileSystemState.failingWritePath) {
+        await fs.promises.writeFile(path, "[", options);
+        throw new Error("host call disk full");
+      }
+
+      return fs.promises.writeFile(path, data, options);
+    },
     default: fs.promises
   };
 });
@@ -35,6 +50,7 @@ const expectedCoverageDemoReturnValue = {
 describe("runHarnessPair", () => {
   beforeEach(() => {
     vol.reset();
+    mockedFileSystemState.failingWritePath = undefined;
   });
 
   afterEach(() => {
@@ -122,6 +138,93 @@ describe("runHarnessPair", () => {
         snapshotPath
       })
     ).rejects.toThrow("source changed since snapshot was taken");
+  });
+
+  it("keeps default snapshots isolated for documents sharing a basename", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T00:00:00.000Z"));
+    const firstPath = "/repo/a/shared.md";
+    const secondPath = "/repo/b/shared.md";
+    const source = [
+      'import { step } from "host";',
+      "export default async () => {",
+      "  const first = await step('first');",
+      "  const second = await step('second');",
+      "  return first.concat('|').concat(second);",
+      "};"
+    ].join("\n");
+    vol.fromJSON({
+      [firstPath]: "---\nkind: shared\nversion: 1\n---\n",
+      "/repo/a/shared.ajs": source,
+      [secondPath]: "---\nkind: shared\nversion: 1\n---\n",
+      "/repo/b/shared.ajs": source
+    });
+
+    const firstCall = createDeferred<string>();
+    const secondCall = createDeferred<string>();
+    const controller = new AbortController();
+    const firstRun = runHarnessPair(firstPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            return name === "first" ? firstCall.promise : secondCall.promise;
+          }
+        }
+      }),
+      signal: controller.signal
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(30_000);
+    firstCall.resolve("first-document-secret");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+    controller.abort();
+    secondCall.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({ name: "AbortError" });
+
+    const secondCalls: string[] = [];
+    const secondRun = await runHarnessPair(secondPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            secondCalls.push(name);
+            return `second-document-${name}`;
+          }
+        }
+      })
+    });
+
+    expect(secondCalls).toEqual(["first", "second"]);
+    expect(secondRun).toMatchObject({
+      ok: true,
+      returnValue: "second-document-first|second-document-second"
+    });
+  });
+
+  it("preserves the replay journal when a new host call write fails", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    const priorRecords = JSON.stringify([{ key: "host.step", args: ["old"], result: "preserved" }]);
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      [storePath]: priorRecords
+    });
+    mockedFileSystemState.failingWritePath = `${storePath}.tmp`;
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        snapshotPath
+      })
+    ).rejects.toThrow("host call disk full");
+
+    expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
   });
 
   it("lints the coverage demo .ajs without diagnostics", () => {
@@ -1001,6 +1104,155 @@ describe("runHarnessPair", () => {
     expect(read).toHaveBeenCalledTimes(1);
     expect(vol.existsSync(snapshotPath)).toBe(false);
     expect(vol.existsSync(`${snapshotPath}.host-calls.json`)).toBe(false);
+  });
+
+  it("rejects a symlinked default snapshot directory before writing state", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue("/home/test");
+    const mdPath = "/repo/harness/probe.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/sentinel.txt": "untouched"
+    });
+    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
+    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+
+    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
+      "Default harness snapshot path must not contain symbolic links."
+    );
+    expect(vol.existsSync("/outside/snapshot.json")).toBe(false);
+  });
+
+  it("rejects a symlinked default snapshot directory before reading replay state", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue("/home/test");
+    const mdPath = "/repo/harness/probe.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/snapshot.json": JSON.stringify({ version: 1, sourceHash: "external" })
+    });
+    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
+    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+
+    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
+      "Default harness snapshot path must not contain symbolic links."
+    );
+  });
+
+  it("deep-merges frontmatterOverrides into the validated frontmatter before invoking the default export", async () => {
+    const mdPath = "/repo/harness/override.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  mode: edit",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    mode: S.Optional(S.String()),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "codex", mode: "edit", model: "iris-alpha" }
+    });
+  });
+
+  it("lets frontmatterOverrides replace a scalar field on the agent block", async () => {
+    const mdPath = "/repo/harness/override-scalar.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override-scalar",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  model: original",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override-scalar.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { agent: "claude-code", model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "claude-code", model: "iris-alpha" }
+    });
+  });
+
+  it("ignores undefined values inside frontmatterOverrides instead of clobbering the frontmatter", async () => {
+    const mdPath = "/repo/harness/override-undefined.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override-undefined",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  mode: edit",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override-undefined.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    mode: S.Optional(S.String()),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { agent: undefined, mode: undefined, model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "codex", mode: "edit", model: "iris-alpha" }
+    });
   });
 });
 

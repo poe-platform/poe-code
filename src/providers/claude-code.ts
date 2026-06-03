@@ -96,6 +96,7 @@ export const claudeCodeService = createProvider<
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.claude" }),
+      fileMutation.backup({ target: "~/.claude/settings.json", once: true }),
       configMutation.prune({
         target: "~/.claude/settings.json",
         shape: {
@@ -134,7 +135,8 @@ export const claudeCodeService = createProvider<
           },
           model: true
         }
-      })
+      }),
+      fileMutation.restoreBackup({ target: "~/.claude/settings.json" })
     ]
   },
   install: CLAUDE_CODE_INSTALL_DEFINITION

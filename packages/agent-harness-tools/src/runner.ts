@@ -88,6 +88,10 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
     throw new Error(`Workflow "${fieldName}" participant must be a string.`);
   }
 
+  if (value.participant === "") {
+    throw new Error(`Workflow "${fieldName}" participant must define a non-empty string.`);
+  }
+
   if (
     value.mode !== undefined &&
     value.mode !== "read" &&
@@ -222,7 +226,7 @@ function parseParticipants(value: unknown): Record<string, WorkflowParticipant> 
     throw new Error('Workflow "participants" must be an object.');
   }
 
-  const participants: Record<string, WorkflowParticipant> = {};
+  const participants: Record<string, WorkflowParticipant> = Object.create(null);
   for (const [participantId, participantConfig] of Object.entries(value)) {
     participants[participantId] = normalizeParticipantConfig(participantId, participantConfig);
   }
@@ -316,9 +320,14 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
 
       currentWorkflow = iteration === 0 ? initialWorkflow : await readWorkflow();
 
+      if (iteration >= currentWorkflow.maxIterations) {
+        break;
+      }
+
       await options.onIterationStart?.(iteration);
 
-      let iterationResult: IterationResult = "completed";
+      let iterationResult: IterationResult =
+        currentWorkflow.stages.length === 0 ? "nothing_to_run" : "completed";
 
       for (const stage of currentWorkflow.stages) {
         throwIfAborted(options.signal);
@@ -346,6 +355,7 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
         }
       }
 
+      throwIfAborted(options.signal);
       await options.onIterationEnd?.(iteration, iterationResult);
 
       if (shouldStop) {
@@ -361,7 +371,7 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
           cwd: options.cwd,
           participants: currentWorkflow.participants,
           runAgent: options.runAgent,
-          ...(options.signal ? { signal: options.signal } : {})
+          ...(options.signal && !options.signal.aborted ? { signal: options.signal } : {})
         });
       }
     } catch (error) {

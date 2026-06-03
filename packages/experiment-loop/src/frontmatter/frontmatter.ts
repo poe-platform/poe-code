@@ -158,16 +158,25 @@ export async function writeExperimentFrontmatter(
   const content =
     body.endsWith("\n") || !serialized.endsWith("\n") ? serialized : serialized.slice(0, -1);
 
-  await fs.writeFile(docPath, content);
+  const temporaryPath = `${docPath}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, content);
+    await fs.rename(temporaryPath, docPath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
+  validateFrontmatterFields(parsed);
+  validateDocumentKind(parsed?.kind);
   const agent = parseAgent(parsed?.agent);
   const extendsValue = parseBoolean(parsed?.extends);
   const metric = parseMetric(parsed?.metric);
-  const max_experiments = parseNonNegativeInteger(parsed?.max_experiments);
-  const metric_timeout = parseNonNegativeInteger(parsed?.metric_timeout);
+  const max_experiments = parseOptionalNonNegativeInteger(parsed?.max_experiments, "max_experiments");
+  const metric_timeout = parseOptionalNonNegativeInteger(parsed?.metric_timeout, "metric_timeout");
 
   return {
     ...(agent !== undefined ? { agent } : {}),
@@ -221,7 +230,10 @@ function parseMetricDefinition(value: unknown): MetricDef | undefined {
     return undefined;
   }
 
-  const delta = typeof parsed?.delta === "number" && parsed.delta >= 0 ? parsed.delta : undefined;
+  const delta =
+    typeof parsed?.delta === "number" && Number.isFinite(parsed.delta) && parsed.delta >= 0
+      ? parsed.delta
+      : undefined;
 
   return {
     name,
@@ -289,8 +301,16 @@ function parseString(value: unknown): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
-function parseNonNegativeInteger(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
+function parseOptionalNonNegativeInteger(value: unknown, label: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new Error(`${label} must be a non-negative integer.`);
+  }
+
+  return value;
 }
 
 function parseBoolean(value: unknown): boolean | undefined {
@@ -299,4 +319,37 @@ function parseBoolean(value: unknown): boolean | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function validateDocumentKind(value: unknown): void {
+  if (value !== undefined && value !== "experiment") {
+    throw new Error("Experiment document kind must be 'experiment'.");
+  }
+}
+
+function validateFrontmatterFields(value: Record<string, unknown> | undefined): void {
+  if (value === undefined) {
+    return;
+  }
+
+  const allowedFields = new Set([
+    "$schema",
+    "kind",
+    "version",
+    "agent",
+    "extends",
+    "metric",
+    "baseline",
+    "max_experiments",
+    "metric_timeout",
+    "maxExperiments",
+    "metricTimeout",
+    "status"
+  ]);
+
+  for (const field of Object.keys(value)) {
+    if (!allowedFields.has(field)) {
+      throw new Error(`Unknown experiment frontmatter field: "${field}".`);
+    }
+  }
 }

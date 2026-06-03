@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { lstat, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
 import type { PlanKind } from "../types.js";
@@ -35,6 +35,8 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     throw new Error("sourceDir must be absolute.");
   }
 
+  await assertSafeSourceDirectory(opts.sourceDir);
+
   const evalDir = path.join(opts.sourceDir, opts.name);
 
   try {
@@ -46,21 +48,43 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     throw error;
   }
 
-  await mkdir(path.join(evalDir, "oracle", "tests"), { recursive: true });
-  await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
-  await mkdir(path.join(evalDir, "starter"), { recursive: true });
-  await Promise.all([
-    writeFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
-    writeFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
-    writeFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
-    writeFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
-    writeFile(path.join(evalDir, "starter", ".gitkeep"), "")
-  ]);
+  try {
+    await mkdir(path.join(evalDir, "oracle", "tests"), { recursive: true });
+    await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
+    await mkdir(path.join(evalDir, "starter"), { recursive: true });
+    const writes = await Promise.allSettled([
+      writeFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
+      writeFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
+      writeFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
+      writeFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
+      writeFile(path.join(evalDir, "starter", ".gitkeep"), "")
+    ]);
+    const failedWrite = writes.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failedWrite !== undefined) {
+      throw failedWrite.reason;
+    }
+  } catch (error) {
+    await rm(evalDir, { recursive: true, force: true });
+    throw error;
+  }
 
   return {
     evalDir,
     files: initFiles
   };
+}
+
+async function assertSafeSourceDirectory(sourceDir: string): Promise<void> {
+  try {
+    const sourceStat = await lstat(sourceDir);
+    if (sourceStat.isSymbolicLink()) {
+      throw new Error("Eval source directory must not be a symbolic link.");
+    }
+  } catch (error) {
+    if (!isMissingPath(error)) {
+      throw error;
+    }
+  }
 }
 
 export function validateInitName(name: string): void {
@@ -210,5 +234,15 @@ function isPathAlreadyPresent(error: unknown): boolean {
     error !== null &&
     "code" in error &&
     (error.code === "EEXIST" || error.code === "ENOTEMPTY")
+  );
+}
+
+function isMissingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    ((error as { code?: unknown }).code === "ENOENT" ||
+      (error as { code?: unknown }).code === "ENOTDIR")
   );
 }

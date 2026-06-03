@@ -2,6 +2,7 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { getDefaultProviders } from "../src/providers/index.js";
 import {
   collectSpawnLabels,
@@ -14,6 +15,7 @@ async function main(): Promise<void> {
   const providers = getDefaultProviders();
   const labels = collectSpawnLabels(providers);
   const markdown = renderLabelDocument(labels);
+  await assertSafeOutputDirectory(rootDir, docPath);
   await writeFile(docPath, `${markdown}\n`, { encoding: "utf8" });
   console.log(`Generated ${docPath}`);
 }

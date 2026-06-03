@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { createFsFromVolume, Volume } from "memfs";
 import type { Tool } from "../runtime/plugin-types.js";
 import type { ToolContext } from "../runtime/types.js";
 import shellPlugin, { spec as shellPluginSpec } from "./poe-agent-plugin-shell.js";
@@ -105,6 +106,24 @@ describe("poe-agent-plugin-shell", () => {
         }
       ]
     ]);
+  });
+
+  it("rejects command execution through symlinked allowed directories", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    volume.mkdirSync("/workspace/project", { recursive: true });
+    volume.mkdirSync("/workspace/outside", { recursive: true });
+    volume.symlinkSync("/workspace/outside", "/workspace/project/linked");
+    const runCommand = vi.fn(async () => "ok");
+    const plugin = shellPlugin({
+      cwd: "/workspace/project",
+      fs: createFsFromVolume(volume).promises,
+      runCommand
+    });
+
+    await expect(callTool(plugin.tools, "run_command", { command: "pwd", cwd: "linked" })).rejects.toThrow(
+      "Path may not contain symbolic links"
+    );
+    expect(runCommand).not.toHaveBeenCalled();
   });
 
   it("starts background commands, reads buffered output, and kills them", async () => {

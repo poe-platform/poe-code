@@ -27,17 +27,21 @@ export async function resolveJob(
   jobId: string | undefined,
   intent: JobIntent
 ): Promise<JobEntry> {
+  const allowedStatuses =
+    intent === "running" ? new Set<JobStatus>(["running"]) : new Set<JobStatus>(["running", "exited"]);
   if (jobId !== undefined) {
     const entry = await state.jobs.get(jobId);
     if (entry === null) {
       throw new Error(`No runtime job found for "${jobId}".`);
     }
+    if (!allowedStatuses.has(entry.status) || entry.env_id.trim() === "") {
+      throw new Error(`Runtime job "${jobId}" is not available for this command.`);
+    }
     return entry;
   }
 
-  const allowedStatuses = intent === "running" ? new Set<JobStatus>(["running"]) : new Set<JobStatus>(["running", "exited"]);
   const candidates = (await state.jobs.list())
-    .filter((entry) => allowedStatuses.has(entry.status))
+    .filter((entry) => allowedStatuses.has(entry.status) && entry.env_id.trim() !== "")
     .sort(compareLatestFirst);
 
   if (candidates.length === 1) {
@@ -62,7 +66,8 @@ export async function attachJob(entry: JobEntry): Promise<{ env: OpenedEnv; hand
     jobId: entry.id,
     tool: entry.tool,
     argv: entry.argv,
-    cwd: entry.cwd
+    cwd: entry.cwd,
+    ...(entry.reattach_context === undefined ? {} : { reattachContext: entry.reattach_context })
   });
   const handle = env.job;
   if (handle === null) {
@@ -88,14 +93,19 @@ export async function syncJob(
   opts: { forceSync: boolean; close: boolean }
 ): Promise<void> {
   const { env } = await attachJob(entry);
-  try {
-    await env.downloadWorkspace({
-      conflictPolicy: opts.forceSync ? "overwrite" : "refuse"
-    });
-  } finally {
-    if (opts.close) {
-      await env.close();
-    }
+  const download = await env.downloadWorkspace({
+    conflictPolicy: opts.forceSync ? "overwrite" : "refuse"
+  });
+  if (download.conflicts.length > 0) {
+    throw new Error(
+      [
+        "Runtime workspace sync refused local conflicts:",
+        ...download.conflicts.map((conflict) => `- ${conflict.path}: ${conflict.reason}`)
+      ].join("\n")
+    );
+  }
+  if (opts.close) {
+    await env.close();
   }
 }
 
@@ -109,9 +119,11 @@ export async function streamJobLog(
   }
 ): Promise<void> {
   let detaching = false;
-  const iterator = handle.stream({ sinceByte: 0, ...(opts.since ? { since: opts.since } : {}) })[
-    Symbol.asyncIterator
-  ]();
+  const iterator = handle.stream({
+    sinceByte: 0,
+    ...(opts.since ? { since: opts.since } : {}),
+    follow: opts.follow
+  })[Symbol.asyncIterator]();
   const onSigint = opts.onDetach
     ? () => {
         detaching = true;
@@ -125,22 +137,37 @@ export async function streamJobLog(
   }
 
   try {
+    if (!opts.follow) {
+      while (true) {
+        const result = await iterator.next();
+        if (result.done === true) {
+          break;
+        }
+        opts.write(result.value.data);
+      }
+      return;
+    }
+
+    let pendingNext: Promise<IteratorResult<{ byteOffset: number; data: string }>> | undefined;
     while (!detaching) {
+      pendingNext ??= iterator.next();
       const result = await Promise.race([
-        iterator.next(),
+        pendingNext,
         sleep(250).then(() => ({ timedOut: true as const }))
       ]);
 
       if ("timedOut" in result) {
-        if (!opts.follow) {
-          break;
-        }
         if ((await handle.status()) !== "running") {
+          const finalResult = await pendingNext;
+          if (finalResult.done !== true) {
+            opts.write(finalResult.value.data);
+          }
           break;
         }
         continue;
       }
 
+      pendingNext = undefined;
       if (result.done === true) {
         break;
       }

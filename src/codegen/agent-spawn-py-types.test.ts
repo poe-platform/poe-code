@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createFsFromVolume, Volume } from "memfs";
 import { Project } from "ts-morph";
-import { generateAgentSpawnPythonTypes } from "./agent-spawn-py-types.js";
+import { generateAgentSpawnPythonTypes, runAgentSpawnPythonTypeCodegen } from "./agent-spawn-py-types.js";
 
 describe("generateAgentSpawnPythonTypes", () => {
   it("renders Python enums and dataclasses from the TypeScript AST", () => {
@@ -180,4 +181,32 @@ export type SpawnMode = "read";
     expect(output).toContain('source: Literal["cli", "sdk"]');
     expect(output).toContain("ok: Optional[bool] = None");
   }, 15_000);
+
+  it("rejects a generated Python types symlink outside the repository", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({
+      "/outside.py": "EXTERNAL ORIGINAL\n"
+    });
+    volume.mkdirSync(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn`, { recursive: true });
+    volume.symlinkSync("/outside.py", outputPath);
+    const fileSystem = createFsFromVolume(volume).promises;
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await expect(runAgentSpawnPythonTypeCodegen({
+      repoRoot,
+      project,
+      spawnConfigs: [],
+      fileSystem
+    })).rejects.toThrow("outside the repository");
+    await expect(fileSystem.readFile("/outside.py", "utf8")).resolves.toBe("EXTERNAL ORIGINAL\n");
+  });
 });

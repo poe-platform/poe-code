@@ -39,6 +39,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
+  await rejectSymbolicLink(absoluteDocPath, fs);
   const planDirectory = path.dirname(options.docPath);
   const runLogDir = resolveRunLogDir({
     planPath: absoluteDocPath,
@@ -46,6 +47,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
     homeDir: options.homeDir
   });
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
+  let currentConfig = config;
   const startTime = Date.now();
   let iterationsCompleted = 0;
   let currentIterationStart = 0;
@@ -69,6 +71,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       signal: options.signal,
       readConfig: async (content) => {
         const fresh = await resolveDocumentConfigFromContent(options, fs, absoluteDocPath, content);
+        currentConfig = fresh;
         return {
           frontmatter: createWorkflowFrontmatter(
             fresh.agents,
@@ -88,7 +91,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             agent: specifier.agent,
             prompt: interpolateVariables(input.prompt, {
               current_iteration: String(currentIterationNumber),
-              max_iterations: String(config.maxIterations)
+              max_iterations: String(currentConfig.maxIterations)
             }),
             cwd: input.cwd,
             logDir: runLogDir,
@@ -118,7 +121,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             throw error;
           }
 
-          if (isAbortError(error)) {
+          if (isAbortError(error) || options.signal?.aborted) {
             lastStopKind = "cancelled";
             throw new RalphWorkflowStopError("cancelled");
           }
@@ -136,8 +139,8 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
           await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
         }
 
-        const currentSpecifier = config.agents[iteration % config.agents.length]!;
-        options.onIterationStart?.(iteration + 1, config.maxIterations, currentSpecifier.agent);
+        const currentSpecifier = currentConfig.agents[iteration % currentConfig.agents.length]!;
+        options.onIterationStart?.(iteration + 1, currentConfig.maxIterations, currentSpecifier.agent);
       },
       onIterationEnd: async (iteration, result) => {
         const iterationNumber = iteration + 1;
@@ -251,6 +254,10 @@ async function resolveDocumentConfigFromContent(
   hooks?: ReturnType<typeof parseFrontmatterData>["hooks"];
   prompt: string;
 }> {
+  const projectBasePath = path.join(options.cwd, ".poe-code/ralph/bases");
+  const homeBasePath = path.join(options.homeDir, ".poe-code/ralph/bases");
+  await rejectSymbolicLinkIfPresent(projectBasePath, fs);
+  await rejectSymbolicLinkIfPresent(homeBasePath, fs);
   const resolved = await resolve(
     [
       {
@@ -264,11 +271,11 @@ async function resolveDocumentConfigFromContent(
       },
       {
         source: "base",
-        path: path.join(options.cwd, ".poe-code/ralph/bases")
+        path: projectBasePath
       },
       {
         source: "base",
-        path: path.join(options.homeDir, ".poe-code/ralph/bases")
+        path: homeBasePath
       },
       {
         source: "defaults",
@@ -364,6 +371,10 @@ function createDefaultFs(): RalphFileSystem {
       fsPromises.writeFile(filePath, content, "utf8"),
     readdir: fsPromises.readdir,
     open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -407,7 +418,11 @@ function normalizeAgents(
     if (trimmed.length === 0) {
       throw new Error("agent entries must be non-empty strings.");
     }
-    return parseAgentSpecifier(trimmed);
+    const specifier = parseAgentSpecifier(trimmed);
+    if (specifier.agent.length === 0) {
+      throw new Error("agent entries must include a non-empty agent id.");
+    }
+    return specifier;
   });
 }
 
@@ -454,6 +469,26 @@ function normalizeResolvedPrompt(prompt: unknown): string {
   return prompt;
 }
 
+async function rejectSymbolicLink(filePath: string, fs: Pick<RalphFileSystem, "lstat">): Promise<void> {
+  if ((await fs.lstat(filePath)).isSymbolicLink()) {
+    throw new Error(`Refusing to run Ralph through symbolic link: ${filePath}`);
+  }
+}
+
+async function rejectSymbolicLinkIfPresent(
+  filePath: string,
+  fs: Pick<RalphFileSystem, "lstat">
+): Promise<void> {
+  try {
+    await rejectSymbolicLink(filePath, fs);
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
+}
+
 async function updateFrontmatter(
   fs: RalphFileSystem,
   absoluteDocPath: string,
@@ -477,5 +512,12 @@ async function updateFrontmatter(
     },
     currentBody
   );
-  await fs.writeFile(absoluteDocPath, content);
+  const temporaryPath = `${absoluteDocPath}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, content);
+    await fs.rename(temporaryPath, absoluteDocPath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }

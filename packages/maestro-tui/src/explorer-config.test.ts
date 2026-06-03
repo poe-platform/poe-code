@@ -1,25 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
-  InvalidTransitionError,
-  OrderMismatchError,
   type StateMachineDef,
   type Task,
   type TaskList,
   type Tasks
 } from "@poe-code/task-list";
-import {
-  select,
-  type Action,
-  type ActionContext,
-  type Row
-} from "@poe-code/design-system";
+import { type Action, type ActionContext, type Row } from "@poe-code/design-system";
 import {
   buildMaestroExplorerConfig as buildMaestroExplorerConfigBase,
   type BuildMaestroExplorerConfigOptions
 } from "./explorer-config.js";
 
-const { cancelSelection, editFileMock, openExternalMock } = vi.hoisted(() => ({
-  cancelSelection: Symbol("cancel"),
+const { editFileMock, openExternalMock } = vi.hoisted(() => ({
   editFileMock: vi.fn(),
   openExternalMock: vi.fn()
 }));
@@ -28,9 +20,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
     ...actual,
-    openExternal: openExternalMock,
-    select: vi.fn(),
-    isCancel: vi.fn((value: unknown) => value === cancelSelection)
+    openExternal: openExternalMock
   };
 });
 
@@ -160,14 +150,6 @@ function actionCtx(row: Row, overrides: Partial<ActionContext<void>> = {}): Acti
   };
 }
 
-function moveStateAction(config: ReturnType<typeof buildMaestroExplorerConfig>): Action<void> {
-  const action = config.actions.find((candidate) => candidate.id === "move-state");
-  if (action === undefined) {
-    throw new Error("Move state action was not registered.");
-  }
-  return action;
-}
-
 function openSourceAction(config: ReturnType<typeof buildMaestroExplorerConfig>): Action<void> {
   const action = config.actions.find((candidate) => candidate.id === "open-source");
   if (action === undefined) {
@@ -204,10 +186,31 @@ async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig
 
 describe("buildMaestroExplorerConfig", () => {
   beforeEach(() => {
-    vi.mocked(select).mockReset();
     editFileMock.mockReset();
     openExternalMock.mockReset();
     openExternalMock.mockResolvedValue(undefined);
+  });
+
+  it("exposes only read-only actions and no reorder mutation", () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [task()],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
+
+    expect(config.actions.map((action) => action.id)).toEqual(["open-source", "open-issue"]);
+    expect(config.reorder).toBeUndefined();
+  });
+
+  it("rejects duplicate qualified task identities", () => {
+    expect(() => buildMaestroExplorerConfig({
+      tasks: [
+        task({ name: "first", qualifiedId: "tasks/collision" }),
+        task({ name: "second", qualifiedId: "tasks/collision" })
+      ],
+      taskList: taskList(),
+      onRefresh: async () => []
+    })).toThrow('Duplicate task qualifiedId: tasks/collision');
   });
 
   it("maps and orders task rows by state while preserving order within state", async () => {
@@ -290,12 +293,6 @@ describe("buildMaestroExplorerConfig", () => {
     expect(config.multiSelect).toBe(false);
     expect(config.actions).toEqual([
       expect.objectContaining({
-        id: "move-state",
-        key: "f",
-        label: "Move to state…",
-        primary: true
-      }),
-      expect.objectContaining({
         id: "open-source",
         key: "o",
         label: "Open in $EDITOR"
@@ -323,83 +320,6 @@ describe("buildMaestroExplorerConfig", () => {
       expect.objectContaining({ id: "tasks/fresh", group: "done" })
     ]);
     expect(onRefresh).toHaveBeenCalledOnce();
-  });
-
-  it("registers reorder and persists changed intra-list order with backend-local ids", async () => {
-    const list = taskList();
-    const config = buildMaestroExplorerConfig({
-      tasks: [
-        task({ id: "a", qualifiedId: "work/a", list: "work", state: "planned" }),
-        task({ id: "b", qualifiedId: "work/b", list: "work", state: "planned" }),
-        task({ id: "c", qualifiedId: "bugs/c", list: "bugs", state: "planned" }),
-        task({ id: "d", qualifiedId: "bugs/d", list: "bugs", state: "done" })
-      ],
-      taskList: list,
-      onRefresh: async () => []
-    });
-
-    await config.reorder?.onReorder(["bugs/c", "work/b", "work/a", "bugs/d"], {
-      refresh: vi.fn(async () => undefined),
-      toast: vi.fn()
-    });
-
-    expect(list.list("work").reorder).toHaveBeenCalledWith(["b", "a"]);
-    expect(list.list("bugs").reorder).not.toHaveBeenCalled();
-  });
-
-  it("reorders lists without changing task state when rows cross visual state groups", async () => {
-    const list = taskList();
-    const config = buildMaestroExplorerConfig({
-      tasks: [
-        task({ id: "planned", qualifiedId: "work/planned", list: "work", state: "planned" }),
-        task({ id: "draft", qualifiedId: "work/draft", list: "work", state: "draft" })
-      ],
-      taskList: list,
-      onRefresh: async () => []
-    });
-
-    await config.reorder?.onReorder(["work/draft", "work/planned"], {
-      refresh: vi.fn(async () => undefined),
-      toast: vi.fn()
-    });
-
-    expect(list.list("work").reorder).toHaveBeenCalledWith(["draft", "planned"]);
-    expect(list.list("work").fire).not.toHaveBeenCalled();
-    expect(list.list("work").update).not.toHaveBeenCalled();
-  });
-
-  it("toasts and refreshes from taskList.allTasks when reorder rejects an order mismatch", async () => {
-    const recovered = task({ id: "fresh", qualifiedId: "work/fresh", list: "work", state: "done" });
-    const list = taskList({
-      allTasks: [recovered],
-      reorderErrors: {
-        work: new OrderMismatchError({ missing: ["fresh"], extra: ["stale"] })
-      }
-    });
-    const config = buildMaestroExplorerConfig({
-      tasks: [
-        task({ id: "stale", qualifiedId: "work/stale", list: "work", state: "planned" }),
-        task({ id: "other", qualifiedId: "work/other", list: "work", state: "planned" })
-      ],
-      taskList: list,
-      onRefresh: async () => []
-    });
-    const refresh = vi.fn(async () => {
-      await config.refresh?.();
-    });
-    const toast = vi.fn();
-
-    await config.reorder?.onReorder(["work/other", "work/stale"], { refresh, toast });
-
-    expect(toast).toHaveBeenCalledWith(
-      'reorder requires the exact set of active task ids: missing "fresh"; extra "stale".',
-      "error"
-    );
-    expect(list.allTasks).toHaveBeenCalledOnce();
-    expect(refresh).toHaveBeenCalledOnce();
-    await expect(config.rows()).resolves.toEqual([
-      expect.objectContaining({ id: "work/fresh", group: "done" })
-    ]);
   });
 
   it("renders task details, metadata, and available next events", async () => {
@@ -517,40 +437,6 @@ describe("buildMaestroExplorerConfig", () => {
     resolveEvents(["start"]);
   });
 
-  it("shows the move-state action only when cached row events are available", async () => {
-    const config = buildMaestroExplorerConfig({
-      tasks: [
-        task({ id: "ship", qualifiedId: "tasks/ship" }),
-        task({ id: "done", qualifiedId: "tasks/done", state: "done" })
-      ],
-      taskList: taskList({ events: { "tasks/ship": ["start"] } }),
-      onRefresh: async () => []
-    });
-    const [shipRow, doneRow] = await config.rows();
-    const action = moveStateAction(config);
-
-    expect(action.predicate?.(actionCtx(shipRow!))).toBe(true);
-    expect(action.predicate?.(actionCtx(doneRow!))).toBe(false);
-  });
-
-  it("updates the move-state predicate event cache after refresh", async () => {
-    const refreshed = task({ id: "done", qualifiedId: "tasks/done", state: "done" });
-    const config = buildMaestroExplorerConfig({
-      tasks: [task({ id: "ship", qualifiedId: "tasks/ship" })],
-      taskList: taskList({ events: { "tasks/ship": ["start"] } }),
-      onRefresh: async () => [refreshed]
-    });
-    const [initialRow] = await config.rows();
-    const action = moveStateAction(config);
-
-    expect(action.predicate?.(actionCtx(initialRow!))).toBe(true);
-
-    await config.refresh!();
-    const [refreshedRow] = await config.rows();
-
-    expect(action.predicate?.(actionCtx(refreshedRow!))).toBe(false);
-  });
-
   it("shows the open-source action only when a cached task has sourcePath", async () => {
     const config = buildMaestroExplorerConfig({
       tasks: [
@@ -647,6 +533,11 @@ describe("buildMaestroExplorerConfig", () => {
           metadata: { url: "file:///repo/tasks/file.md" }
         }),
         task({
+          id: "custom",
+          qualifiedId: "tasks/custom",
+          metadata: { url: "httpx:run-untrusted-handler" }
+        }),
+        task({
           id: "empty",
           qualifiedId: "tasks/empty",
           metadata: { url: "" }
@@ -665,11 +556,12 @@ describe("buildMaestroExplorerConfig", () => {
       taskList: taskList(),
       onRefresh: async () => []
     });
-    const [issueRow, fileRow, emptyRow, objectRow, missingRow] = await config.rows();
+    const [issueRow, fileRow, customRow, emptyRow, objectRow, missingRow] = await config.rows();
     const action = openIssueAction(config);
 
     expect(action.predicate?.(actionCtx(issueRow!))).toBe(true);
     expect(action.predicate?.(actionCtx(fileRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(customRow!))).toBe(false);
     expect(action.predicate?.(actionCtx(emptyRow!))).toBe(false);
     expect(action.predicate?.(actionCtx(objectRow!))).toBe(false);
     expect(action.predicate?.(actionCtx(missingRow!))).toBe(false);
@@ -698,98 +590,4 @@ describe("buildMaestroExplorerConfig", () => {
     expect(ctx.toast).toHaveBeenCalledWith("Opened tasks/issue", "info");
   });
 
-  it("moves a task by prompting for an event and firing it", async () => {
-    vi.mocked(select).mockResolvedValue({ event: "archive", targetState: "archived" });
-    const list = taskList({
-      events: { "work/ship": ["start", "archive"] },
-      stateMachine: workflowMachine
-    });
-    const config = buildMaestroExplorerConfig({
-      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
-      taskList: list,
-      onRefresh: async () => []
-    });
-    const [row] = await config.rows();
-    const ctx = actionCtx(row!);
-
-    await moveStateAction(config).handler(ctx);
-
-    expect(select).toHaveBeenCalledWith({
-      message: "Move task to state",
-      options: [
-        {
-          value: { event: "start", targetState: "in-progress" },
-          label: "start    → in-progress"
-        },
-        {
-          value: { event: "archive", targetState: "archived" },
-          label: "archive    → archived"
-        }
-      ]
-    });
-    expect(list.list("work").fire).toHaveBeenCalledWith("ship", "archive");
-    expect(ctx.refresh).toHaveBeenCalledOnce();
-    expect(ctx.toast).toHaveBeenCalledWith("Moved to archived", "info");
-  });
-
-  it("returns silently when move-state selection is cancelled", async () => {
-    vi.mocked(select).mockResolvedValue(cancelSelection);
-    const list = taskList({
-      events: { "work/ship": ["archive"] },
-      stateMachine: workflowMachine
-    });
-    const config = buildMaestroExplorerConfig({
-      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
-      taskList: list,
-      onRefresh: async () => []
-    });
-    const [row] = await config.rows();
-    const ctx = actionCtx(row!);
-
-    await moveStateAction(config).handler(ctx);
-
-    expect(list.list("work").fire).not.toHaveBeenCalled();
-    expect(ctx.refresh).not.toHaveBeenCalled();
-    expect(ctx.toast).not.toHaveBeenCalled();
-  });
-
-  it("shows an info toast when move-state has no current events", async () => {
-    const list = taskList({ stateMachine: workflowMachine });
-    const config = buildMaestroExplorerConfig({
-      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
-      taskList: list,
-      onRefresh: async () => []
-    });
-    const [row] = await config.rows();
-    const ctx = actionCtx(row!);
-
-    await moveStateAction(config).handler(ctx);
-
-    expect(select).not.toHaveBeenCalled();
-    expect(list.list("work").fire).not.toHaveBeenCalled();
-    expect(ctx.toast).toHaveBeenCalledWith("No state moves available.", "info");
-  });
-
-  it("shows invalid transition reasons without refreshing", async () => {
-    vi.mocked(select).mockResolvedValue({ event: "archive", targetState: "archived" });
-    const list = taskList({
-      events: { "work/ship": ["archive"] },
-      fireErrors: {
-        "work/ship:archive": new InvalidTransitionError({ reason: "Cannot archive yet." })
-      },
-      stateMachine: workflowMachine
-    });
-    const config = buildMaestroExplorerConfig({
-      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
-      taskList: list,
-      onRefresh: async () => []
-    });
-    const [row] = await config.rows();
-    const ctx = actionCtx(row!);
-
-    await moveStateAction(config).handler(ctx);
-
-    expect(ctx.toast).toHaveBeenCalledWith("Cannot archive yet.", "error");
-    expect(ctx.refresh).not.toHaveBeenCalled();
-  });
 });

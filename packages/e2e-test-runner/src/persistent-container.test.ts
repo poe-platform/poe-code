@@ -3,7 +3,7 @@ import { vol } from 'memfs';
 import { EventEmitter } from 'node:events';
 import { PassThrough } from 'node:stream';
 import { buildCreateArgs, buildExecArgs, CONTAINER_PATH, CONTAINER_HOME } from './persistent-container.js';
-import { MOUNT_TARGET, setWorkspaceDir } from './runtime.js';
+import { E2E_CACHE_ROOT, MOUNT_TARGET, setWorkspaceDir } from './runtime.js';
 
 function createMockChildProcess(exitCode: number, stdoutData: string, stderrData: string) {
   const child = new EventEmitter() as EventEmitter & { stdout: PassThrough; stderr: PassThrough };
@@ -231,6 +231,18 @@ describe('createContainer', () => {
     expect(proxyStartCall).toBeUndefined();
   });
 
+  it('rejects a symlinked persistent cache root', async () => {
+    vol.mkdirSync('/outside-cache', { recursive: true });
+    vol.mkdirSync(E2E_CACHE_ROOT.substring(0, E2E_CACHE_ROOT.lastIndexOf('/')), { recursive: true });
+    vol.symlinkSync('/outside-cache', E2E_CACHE_ROOT);
+
+    const { createContainer } = await import('./persistent-container.js');
+    await expect(createContainer({ image: 'poe-code-e2e:abc123' })).rejects.toThrow(
+      'Cache root must not be a symbolic link',
+    );
+    expect(vol.existsSync('/outside-cache/root-npm')).toBe(false);
+  });
+
   it('throws requests() guidance when fixtures directory does not exist', async () => {
     const { spawnSync } = await import('node:child_process');
     const mockSpawnSync = vi.mocked(spawnSync);
@@ -314,6 +326,24 @@ describe('createContainer', () => {
         useSnapshots: true,
       })
     ).rejects.toThrow('useSnapshots requires testName');
+  });
+
+  it('rejects snapshot test names that escape the fixture directory', async () => {
+    const { createContainer } = await import('./persistent-container.js');
+
+    await expect(createContainer({ image: 'poe-code-e2e:abc123', testName: '../../outside', useSnapshots: true }))
+      .rejects.toThrow('Invalid snapshot test name');
+  });
+
+  it('rejects symlinked host snapshot directories', async () => {
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.symlinkSync('/outside', '/workspace/repo/.snapshots/proxy');
+    const { createContainer } = await import('./persistent-container.js');
+
+    await expect(createContainer({ image: 'poe-code-e2e:abc123', testName: 'proxy', useSnapshots: true }))
+      .rejects.toThrow('symbolic link');
   });
 
   it('starts proxy lifecycle when fixtures directory exists', async () => {
@@ -934,8 +964,23 @@ describe('destroy', () => {
     expect(mockSpawnSync).toHaveBeenCalledWith(
       'podman',
       ['rm', '-f', 'my-container-id'],
-      { stdio: 'ignore' }
+      { encoding: 'utf-8', stdio: 'pipe' }
     );
+  });
+
+  it('rejects destroy when removing the container fails', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      if (argsArr[0] === 'create') return { status: 0, stdout: 'my-container-id\n', stderr: '', pid: 1, output: [], signal: null };
+      if (argsArr[0] === 'rm') return { status: 1, stdout: '', stderr: 'remove failed', pid: 1, output: [], signal: null };
+      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
+    });
+    const { createContainer } = await import('./persistent-container.js');
+    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
+
+    await expect(container.destroy()).rejects.toThrow('Failed to remove container: remove failed');
   });
 });
 
@@ -1165,7 +1210,7 @@ describe('readFile', () => {
     vol.reset();
   });
 
-  it('calls exec with cat <path> and returns stdout', async () => {
+  it('quotes the read path before passing it through the container shell', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -1177,11 +1222,11 @@ describe('readFile', () => {
       signal: null,
     });
 
-    const content = await container.readFile('/root/.config/settings.json');
+    const content = await container.readFile('/root/.config/settings; touch /tmp/pwned.json');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
       'podman',
-      ['exec', 'test-container-id', 'sh', '-c', 'cat /root/.config/settings.json'],
+      ['exec', 'test-container-id', 'sh', '-c', "cat '/root/.config/settings; touch /tmp/pwned.json'"],
       { encoding: 'utf-8', stdio: 'pipe' }
     );
     expect(content).toBe('{"key": "value"}');
@@ -1246,7 +1291,7 @@ describe('fileExists', () => {
     vol.reset();
   });
 
-  it('returns true when file exists (exit code 0)', async () => {
+  it('quotes existence-check paths before passing them through the container shell', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -1258,11 +1303,11 @@ describe('fileExists', () => {
       signal: null,
     });
 
-    const exists = await container.fileExists('/root/.config/settings.json');
+    const exists = await container.fileExists('/root/.config/settings; touch /tmp/pwned.json');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
       'podman',
-      ['exec', 'test-container-id', 'sh', '-c', 'test -f /root/.config/settings.json'],
+      ['exec', 'test-container-id', 'sh', '-c', "test -f '/root/.config/settings; touch /tmp/pwned.json'"],
       { encoding: 'utf-8', stdio: 'pipe' }
     );
     expect(exists).toBe(true);
@@ -1292,7 +1337,7 @@ describe('writeFile', () => {
     vol.reset();
   });
 
-  it('calls exec -i with content piped to stdin', async () => {
+  it('quotes write paths before piping content through the container shell', async () => {
     const { container, mockSpawnSync } = await setupContainerMock()();
 
     mockSpawnSync.mockReturnValue({
@@ -1304,11 +1349,11 @@ describe('writeFile', () => {
       signal: null,
     });
 
-    await container.writeFile('/root/.config/settings.json', '{"key": "value"}');
+    await container.writeFile('/root/.config/settings; touch /tmp/pwned.json', '{"key": "value"}');
 
     expect(mockSpawnSync).toHaveBeenCalledWith(
       'podman',
-      ['exec', '-i', 'test-container-id', 'sh', '-c', 'cat > /root/.config/settings.json'],
+      ['exec', '-i', 'test-container-id', 'sh', '-c', "cat > '/root/.config/settings; touch /tmp/pwned.json'"],
       { encoding: 'utf-8', input: '{"key": "value"}', stdio: ['pipe', 'pipe', 'pipe'] }
     );
   });

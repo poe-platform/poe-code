@@ -10,7 +10,8 @@ export function intro(title: string): void {
   }
 
   if (format === "markdown") {
-    process.stdout.write(`# ${stripAnsi(title)}\n\n`);
+    const safeTitle = stripAnsi(title).replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+    process.stdout.write(`# ${safeTitle}\n\n`);
     return;
   }
 

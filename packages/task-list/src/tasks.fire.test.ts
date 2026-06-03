@@ -126,6 +126,63 @@ describe("Tasks.fire", () => {
         });
       });
 
+      it("rejects inherited event names as invalid transitions", async () => {
+        const tasks = await openTasks(backend, createWorkflowMachine());
+
+        await tasks.create({
+          id: "ship",
+          name: "Ship"
+        });
+
+        await expect(tasks.fire("ship", "constructor")).rejects.toBeInstanceOf(
+          InvalidTransitionError
+        );
+      });
+
+      it("allows only one simultaneous transition from the same state", async () => {
+        const tasks = await openTasks(backend, createApprovalMachine());
+
+        await tasks.create({
+          id: "approval",
+          name: "Approval"
+        });
+
+        const results = await Promise.allSettled([
+          tasks.fire("approval", "approve"),
+          tasks.fire("approval", "decline")
+        ]);
+
+        expect(results.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+        expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+      });
+
+      if (backend.type === "yaml-file") {
+        it("recovers a transition lock left by a stopped process", async () => {
+          const { fs, rawFs } = createFs();
+          const taskList = await openTaskList({
+            type: "yaml-file",
+            path: backend.path,
+            create: true,
+            fs,
+            stateMachine: createApprovalMachine()
+          });
+          const tasks = taskList.list("planning");
+
+          await tasks.create({
+            id: "approval",
+            name: "Approval"
+          });
+          await rawFs.writeFile(`${backend.path}.lock`, "2147483647", "utf8");
+
+          await expect(tasks.fire("approval", "approve")).resolves.toMatchObject({
+            state: "approved-done"
+          });
+          await expect(rawFs.stat(`${backend.path}.lock`)).rejects.toMatchObject({
+            code: "ENOENT"
+          });
+        });
+      }
+
       it("turns guard decline reasons into InvalidTransitionError", async () => {
         const tasks = await openTasks(
           backend,

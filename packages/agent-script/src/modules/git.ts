@@ -28,6 +28,7 @@ type ExecFileResult = {
 };
 
 const GIT_EXEC_MAX_BUFFER = 10 * 1024 * 1024;
+const SAVEPOINT_REF_PREFIX = "refs/poe-code/checkpoints/";
 
 export function makeGitModule(cwd: string): {
   head(): Promise<string>;
@@ -78,7 +79,7 @@ export function makeGitModule(cwd: string): {
           stashRef
         };
       } catch (error) {
-        await cleanupSavepoint(normalizedCwd, stashRef);
+        await cleanupFailedCheckpoint(normalizedCwd, stashRef);
         throw error;
       }
     },
@@ -200,11 +201,17 @@ function normalizeSavepoint(savepoint: GitSavepoint | unknown): GitSavepoint {
     throw new Error("Git savepoint must be an object.");
   }
 
+  const stashRef =
+    savepoint.stashRef === undefined
+      ? undefined
+      : readNonEmptyString(savepoint.stashRef, "Git savepoint stashRef");
+  if (stashRef !== undefined && !stashRef.startsWith(SAVEPOINT_REF_PREFIX)) {
+    throw new Error("Git savepoint stashRef must be a Poe checkpoint ref.");
+  }
+
   return {
     head: readNonEmptyString(savepoint.head, "Git savepoint head"),
-    ...(savepoint.stashRef === undefined
-      ? {}
-      : { stashRef: readNonEmptyString(savepoint.stashRef, "Git savepoint stashRef") })
+    ...(stashRef === undefined ? {} : { stashRef })
   };
 }
 
@@ -235,7 +242,7 @@ function normalizeWorktreeCreateOptions(
 }
 
 function createSavepointRef(): string {
-  return `refs/poe-code/checkpoints/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+  return `${SAVEPOINT_REF_PREFIX}${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function createDefaultWorktreePath(repoRoot: string, branch: string): string {
@@ -395,20 +402,25 @@ async function runGit(cwd: string, args: string[]): Promise<ExecFileResult> {
   });
 }
 
-async function cleanupSavepoint(cwd: string, stashRef: string): Promise<void> {
+async function cleanupFailedCheckpoint(cwd: string, stashRef: string): Promise<void> {
   await deleteSavepointRef(cwd, stashRef);
-  await tryRunGit(cwd, ["stash", "drop", "stash@{0}"]);
+  const restored = await tryRunGit(cwd, ["stash", "apply", "--index", "stash@{0}"]);
+  if (restored) {
+    await tryRunGit(cwd, ["stash", "drop", "stash@{0}"]);
+  }
 }
 
 async function deleteSavepointRef(cwd: string, stashRef: string): Promise<void> {
   await tryRunGit(cwd, ["update-ref", "--delete", stashRef]);
 }
 
-async function tryRunGit(cwd: string, args: string[]): Promise<void> {
+async function tryRunGit(cwd: string, args: string[]): Promise<boolean> {
   try {
     await runGit(cwd, args);
+    return true;
   } catch (error) {
     void error;
+    return false;
   }
 }
 

@@ -24,6 +24,7 @@ import {
   FixedStrategy,
   RoundRobinStrategy,
   ModelStrategyFactory,
+  AVAILABLE_MODELS,
   type ModelContext,
   type StrategyConfig,
 } from "./model-strategy.js";
@@ -210,6 +211,69 @@ describe("config store", () => {
 
     await expect(fs.readFile(configPath, "utf8")).resolves.toBeDefined();
     await expect(fs.readFile(legacyPath, "utf8")).rejects.toThrow();
+  });
+
+  it("does not partially commit legacy credentials when the atomic config replacement fails", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    const base = fs;
+    await base.writeFile(legacyPath, JSON.stringify({
+      apiKey: "legacy-key",
+      configured_services: { codex: { files: ["/home/user/.codex/config.toml"] } }
+    }), { encoding: "utf8" });
+    const failingFs = {
+      ...base,
+      async rename(oldPath: string, newPath: string) {
+        if (newPath === configPath) {
+          throw new Error("core write offline");
+        }
+        await base.rename(oldPath, newPath);
+      }
+    };
+
+    await expect(loadConfig({ fs: failingFs, filePath: configPath })).rejects.toThrow("core write offline");
+    await expect(base.readFile(configPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toContain("legacy-key");
+  });
+
+  it("preserves prototype-named configured services during legacy credentials migration", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.writeFile(
+      legacyPath,
+      '{"apiKey":"legacy-key","configured_services":{"__proto__":{"files":["/home/user/.custom/config"]}}}',
+      { encoding: "utf8" }
+    );
+
+    await expect(loadConfig({ fs, filePath: configPath })).resolves.toBe("legacy-key");
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+
+    expect(Object.hasOwn(services, "__proto__")).toBe(true);
+    expect(services.__proto__).toMatchObject({ files: ["/home/user/.custom/config"] });
+  });
+
+  it("rejects a symlinked legacy credentials file before importing external secrets", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/credentials.json", JSON.stringify({ apiKey: "external-key" }), {
+      encoding: "utf8"
+    });
+    await fs.symlink("/outside/credentials.json", legacyPath);
+
+    await expect(loadConfig({ fs, filePath: configPath })).rejects.toThrow(
+      "Refusing legacy credentials access through symbolic link"
+    );
+    await expect(fs.readFile(configPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(fs.readFile("/outside/credentials.json", "utf8")).resolves.toContain("external-key");
+  });
+
+  it("preserves malformed legacy credentials during a config read", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.writeFile(legacyPath, "{ malformed-secret", { encoding: "utf8" });
+
+    await expect(loadConfig({ fs, filePath: configPath })).resolves.toBeNull();
+    await expect(fs.readFile(legacyPath, "utf8")).resolves.toBe("{ malformed-secret");
+    await expect(fs.readdir(path.dirname(configPath))).resolves.not.toContainEqual(
+      expect.stringMatching(/^credentials\.json\.invalid-/)
+    );
   });
 
   it("backs up and resets invalid json content", async () => {
@@ -837,6 +901,21 @@ describe("ModelStrategyFactory", () => {
     expect(strategy).toBeInstanceOf(RoundRobinStrategy);
     expect(strategy.getNextModel()).toBe("gpt-5.4");
     expect(strategy.getNextModel()).toBe(CLAUDE_MODEL_SONNET);
+  });
+
+  it("rejects an empty round-robin custom order", () => {
+    expect(() => ModelStrategyFactory.createStrategy({
+      type: "round-robin",
+      customOrder: []
+    })).toThrow("Round-robin custom order must include at least one model");
+  });
+
+  it("does not allow supported-model metadata to alter routing", () => {
+    expect(() => (AVAILABLE_MODELS as unknown as string[]).push("injected-model"))
+      .toThrow();
+
+    const strategy = ModelStrategyFactory.createStrategy({ type: "round-robin" });
+    expect(strategy.getDescription()).not.toContain("injected-model");
   });
 
   it("lists all available strategies", () => {

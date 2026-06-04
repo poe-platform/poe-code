@@ -299,7 +299,7 @@ Running `poe-code auth` with no subcommand is the same as `poe-code auth status`
 |------------|-------------|
 | `status` | Show whether a stored Poe credential is valid and print the account name/handle. Honors `--dry-run` by skipping the `/whoami` request. |
 | `api-key` | Print the stored Poe API key only. Exits with code `1` when no key is stored. |
-| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
+| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout with a trailing newline. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
 | `login` | Store a Poe API key for reuse across commands. Same behavior as top-level `poe-code login`. |
 | `logout` | Remove all configuration and credentials. Same behavior as top-level `poe-code logout`. |
 

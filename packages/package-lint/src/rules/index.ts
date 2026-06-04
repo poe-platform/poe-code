@@ -4,6 +4,7 @@ import { noPublishedToPrivateDep } from "./no-published-to-private-dep.js";
 import { publishedDepNeedsVersionRange } from "./published-dep-needs-version-range.js";
 import { publicNeedsPublishWiring } from "./public-needs-publish-wiring.js";
 import { releaseWorkflowMapsToPackage } from "./release-workflow-maps-to-package.js";
+import { lockstepReleaseGroupValid } from "./lockstep-release-group-valid.js";
 import { noCrossPackageRelativeImport } from "./no-cross-package-relative-import.js";
 import { importedWorkspaceDepUnresolvable } from "./imported-workspace-dep-unresolvable.js";
 import { exportsSubpathResolvable } from "./exports-subpath-resolvable.js";
@@ -15,6 +16,7 @@ export const rules: Rule[] = [
   publishedDepNeedsVersionRange,
   publicNeedsPublishWiring,
   releaseWorkflowMapsToPackage,
+  lockstepReleaseGroupValid,
   noCrossPackageRelativeImport,
   importedWorkspaceDepUnresolvable,
   exportsSubpathResolvable,

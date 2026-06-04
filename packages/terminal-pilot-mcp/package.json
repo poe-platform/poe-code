@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
     "prepublishOnly": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
     "install-local-package": "TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/terminal-pilot-mcp-*.tgz && rm -rf $TMPD",
     "smoke": "cd ../.. && tsx packages/terminal-pilot-mcp/scripts/smoke-test.ts",

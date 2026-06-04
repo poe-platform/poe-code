@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
     "prepublishOnly": "tsc"
   },
   "files": [

@@ -9,6 +9,7 @@ import { noCrossPackageRelativeImport } from "./no-cross-package-relative-import
 import { importedWorkspaceDepUnresolvable } from "./imported-workspace-dep-unresolvable.js";
 import { exportsSubpathResolvable } from "./exports-subpath-resolvable.js";
 import { bundleSelfContained } from "./bundle-self-contained.js";
+import { publishedBinMustBeExecutable } from "./published-bin-must-be-executable.js";
 
 export const rules: Rule[] = [
   shippedDistDepsUnresolvable,
@@ -20,7 +21,8 @@ export const rules: Rule[] = [
   noCrossPackageRelativeImport,
   importedWorkspaceDepUnresolvable,
   exportsSubpathResolvable,
-  bundleSelfContained
+  bundleSelfContained,
+  publishedBinMustBeExecutable
 ];
 
 export function runRules(model: WorkspaceModel, build?: BuildView, only?: string[]): LintResult {

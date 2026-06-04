@@ -33,6 +33,7 @@ export interface PackageInfo {
   exports: unknown;
   bin: Record<string, string>;
   files: string[];
+  scripts: Record<string, string>;
 }
 
 export interface BinTarget {
@@ -163,7 +164,8 @@ async function loadPackage(
     bin: toStringRecord(pkg.bin),
     files: Array.isArray(pkg.files)
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
-      : []
+      : [],
+    scripts: toStringRecord(pkg.scripts)
   };
 }
 

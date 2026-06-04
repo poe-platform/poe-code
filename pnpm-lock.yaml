@@ -707,7 +707,7 @@ importers:
         specifier: '*'
         version: 0.0.9
       toolcraft:
-        specifier: '*'
+        specifier: ^0.0.4
         version: link:../toolcraft
 
   packages/terminal-png:

@@ -19,6 +19,26 @@ function isLooseRange(spec: string): boolean {
   return false;
 }
 
+function isDeclaredLockstepDependency(
+  model: Parameters<Rule["run"]>[0],
+  consumerDir: string,
+  dependencyDir: string
+): boolean {
+  return model.releaseWorkflows.some(
+    (workflow) =>
+      workflow.targetDirs.includes(consumerDir) &&
+      workflow.targetDirs.includes(dependencyDir) &&
+      workflow.lockstepGroups.some(
+        (group) =>
+          group.valid &&
+          group.dirs.includes(consumerDir) &&
+          group.dirs.includes(dependencyDir) &&
+          group.publishedDirs.includes(consumerDir) &&
+          group.publishedDirs.includes(dependencyDir)
+      )
+  );
+}
+
 /**
  * A published → published workspace dependency must use a concrete range. On
  * npm a `*` range resolves to whatever the registry returns, which is the
@@ -34,6 +54,10 @@ export const publishedDepNeedsVersionRange: Rule = {
         const dep = model.byName.get(edge.name);
         if (!dep || !isPublishedNpm(dep)) continue;
         if (!isLooseRange(edge.spec)) continue;
+        if (edge.field !== "peerDependencies" && consumer.bundledDependencies.includes(dep.name)) {
+          continue;
+        }
+        if (isDeclaredLockstepDependency(model, consumer.dir, dep.dir)) continue;
         violations.push({
           rule: id,
           package: consumer.name,
@@ -41,7 +65,7 @@ export const publishedDepNeedsVersionRange: Rule = {
           via: edge.field,
           detail: { dependency: dep.name, field: edge.field, range: edge.spec },
           message: `published dependency ${dep.name}@${edge.spec} needs a concrete version range`,
-          fix: `Replace "${edge.spec}" with a concrete range such as "^${dep.version}".`
+          fix: `Replace "${edge.spec}" with a concrete range such as "^${dep.version}". If ${consumer.name} and ${dep.name} are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow.`
         });
       }
     }

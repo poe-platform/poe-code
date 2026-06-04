@@ -12,6 +12,7 @@ import { formatSseEvent, SSE_HEADERS } from "./sse.js";
 export interface StreamableHttpTransportOptions {
   sessionIdGenerator?: (() => string) | undefined;
   enableJsonResponse?: boolean;
+  allowedOrigins?: readonly string[];
 }
 
 type RequestContextRunner = <T>(
@@ -25,11 +26,11 @@ const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
 export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;
   private readonly enableJsonResponse: boolean;
+  private readonly allowedOrigins: ReadonlySet<string>;
   private readonly sessionStore = createSessionStore();
   private readonly sessionMessages = new Map<string, MessageSession>();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
   private nextNotificationEventId = 1;
-  private notificationUnsubscribe: (() => void) | undefined;
 
   constructor(
     private readonly server: Server,
@@ -44,30 +45,18 @@ export class StreamableHttpTransport {
         ? options.sessionIdGenerator
         : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;
-    this.notificationUnsubscribe = this.server.onNotification((notification) => {
-      const event = formatSseEvent({
-        id: String(this.nextNotificationEventId++),
-        data: JSON.stringify(notification),
-      });
-
-      for (const [sessionId, streams] of this.sseStreams) {
-        if (!this.sessionStore.get(sessionId)?.initialized) {
-          continue;
-        }
-
-        for (const response of streams) {
-          if (!response.writableEnded) {
-            response.write(event);
-          }
-        }
-      }
-    });
+    this.allowedOrigins = new Set(options.allowedOrigins ?? []);
   }
 
   async handleRequest(
     req: IncomingMessage,
     res: ServerResponse
   ): Promise<void> {
+    if (!this.acceptsOrigin(req)) {
+      this.respondWithStatus(res, 403);
+      return;
+    }
+
     switch (req.method) {
       case "POST":
         await this.handlePost(req, res);
@@ -86,11 +75,6 @@ export class StreamableHttpTransport {
   }
 
   async close(): Promise<void> {
-    if (this.notificationUnsubscribe !== undefined) {
-      this.notificationUnsubscribe();
-      this.notificationUnsubscribe = undefined;
-    }
-
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
     }
@@ -148,14 +132,20 @@ export class StreamableHttpTransport {
           return;
         }
 
-        sessionId = this.sessionIdGenerator();
-        if (!this.isValidNewSessionId(sessionId)) {
+        const newSessionId = this.sessionIdGenerator();
+        if (!this.isValidNewSessionId(newSessionId)) {
           this.respondWithStatus(res, 500);
           return;
         }
 
-        this.sessionStore.create(sessionId);
-        this.sessionMessages.set(sessionId, this.server.createMessageSession());
+        sessionId = newSessionId;
+        this.sessionStore.create(newSessionId);
+        this.sessionMessages.set(
+          newSessionId,
+          this.server.createMessageSession((notification) => {
+            this.sendNotificationToSession(newSessionId, notification);
+          })
+        );
       } else if (!this.sessionStore.has(headerSessionId)) {
         this.respondWithStatus(res, 404);
         return;
@@ -387,6 +377,26 @@ export class StreamableHttpTransport {
     this.sseStreams.delete(sessionId);
   }
 
+  private sendNotificationToSession(
+    sessionId: string,
+    notification: JSONRPCMessage
+  ): void {
+    const streams = this.sseStreams.get(sessionId);
+    if (streams === undefined || !this.sessionStore.get(sessionId)?.initialized) {
+      return;
+    }
+
+    const event = formatSseEvent({
+      id: String(this.nextNotificationEventId++),
+      data: JSON.stringify(notification),
+    });
+    for (const response of streams) {
+      if (!response.writableEnded) {
+        response.write(event);
+      }
+    }
+  }
+
   private isJsonRequest(req: IncomingMessage): boolean {
     const contentType = req.headers["content-type"];
 
@@ -398,6 +408,22 @@ export class StreamableHttpTransport {
     const type = value.split(";")[0]?.trim().toLowerCase();
 
     return type === "application/json";
+  }
+
+  private acceptsOrigin(req: IncomingMessage): boolean {
+    const originHeader = req.headers.origin;
+    const origin = Array.isArray(originHeader) ? originHeader[0] : originHeader;
+    if (origin === undefined) {
+      return true;
+    }
+
+    try {
+      const host = req.headers.host;
+      const endpointOrigin = new URL(`http://${Array.isArray(host) ? host[0] : host ?? "127.0.0.1"}`).origin;
+      return origin === endpointOrigin || this.allowedOrigins.has(origin);
+    } catch {
+      return false;
+    }
   }
 
   private acceptsConfiguredResponse(req: IncomingMessage): boolean {

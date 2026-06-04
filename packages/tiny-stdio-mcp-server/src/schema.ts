@@ -39,7 +39,7 @@ export interface TypedSchema<T> extends JSONSchema {
 export function defineSchema<T extends SchemaDefinition>(
   definition: T
 ): TypedSchema<InferSchema<T>> {
-  const properties: JSONSchema["properties"] = {};
+  const properties: NonNullable<JSONSchema["properties"]> = {};
   const required: string[] = [];
 
   for (const [key, prop] of Object.entries(definition)) {

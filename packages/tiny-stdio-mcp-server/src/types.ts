@@ -25,7 +25,8 @@ export const JSON_RPC_ERROR_CODES = Object.freeze({
   INVALID_REQUEST: -32600,
   METHOD_NOT_FOUND: -32601,
   INVALID_PARAMS: -32602,
-  INTERNAL_ERROR: -32603
+  INTERNAL_ERROR: -32603,
+  RESOURCE_NOT_FOUND: -32002
 } as const);
 
 export class ToolError extends Error {
@@ -47,10 +48,21 @@ export interface ToolsCapability {
   listChanged?: boolean;
 }
 
+export interface PromptsCapability {
+  listChanged?: boolean;
+}
+
+export interface ResourcesCapability {
+  subscribe?: boolean;
+  listChanged?: boolean;
+}
+
 export interface InitializeResult {
   protocolVersion: string;
   capabilities: {
     tools?: ToolsCapability;
+    prompts?: PromptsCapability;
+    resources?: ResourcesCapability;
   };
   serverInfo: {
     name: string;
@@ -60,13 +72,132 @@ export interface InitializeResult {
 
 export interface Tool {
   name: string;
-  description: string;
+  title?: string;
+  description?: string;
   inputSchema: JSONSchema;
+  outputSchema?: JSONSchema;
+  annotations?: ToolAnnotations;
+  execution?: ToolExecution;
+  icons?: Icon[];
+  _meta?: Record<string, unknown>;
 }
 
 export interface CallToolResult {
   content: ContentItem[];
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
+}
+
+export interface ToolAnnotations {
+  title?: string;
+  readOnlyHint?: boolean;
+  destructiveHint?: boolean;
+  idempotentHint?: boolean;
+  openWorldHint?: boolean;
+}
+
+export interface ToolExecution {
+  taskSupport?: "optional" | "required" | "forbidden";
+}
+
+export interface Icon {
+  src: string;
+  mimeType?: string;
+  sizes?: string[];
+  theme?: "light" | "dark";
+}
+
+export interface ContentAnnotations {
+  audience?: Array<"user" | "assistant">;
+  priority?: number;
+  lastModified?: string;
+}
+
+export interface ResourceLink {
+  type: "resource_link";
+  uri: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+  annotations?: ContentAnnotations;
+}
+
+export interface PromptArgument {
+  name: string;
+  description?: string;
+  required?: boolean;
+}
+
+export interface Prompt {
+  name: string;
+  title?: string;
+  description?: string;
+  arguments?: PromptArgument[];
+  icons?: Icon[];
+  _meta?: Record<string, unknown>;
+}
+
+export interface PromptMessage {
+  role: "user" | "assistant";
+  content: PromptContentItem;
+}
+
+export interface GetPromptResult {
+  description?: string;
+  messages: PromptMessage[];
+}
+
+export type PromptHandler = (
+  args: Record<string, string>
+) => Promise<GetPromptResult> | GetPromptResult;
+
+export interface PromptDefinition extends Prompt {
+  handler: PromptHandler;
+}
+
+export interface Resource {
+  uri: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  size?: number;
+  annotations?: ContentAnnotations;
+  icons?: Icon[];
+  _meta?: Record<string, unknown>;
+}
+
+export interface ResourceTemplate {
+  uriTemplate: string;
+  name: string;
+  title?: string;
+  description?: string;
+  mimeType?: string;
+  annotations?: ContentAnnotations;
+  icons?: Icon[];
+  _meta?: Record<string, unknown>;
+}
+
+export type ResourceContents =
+  | { uri: string; mimeType?: string; text: string }
+  | { uri: string; mimeType?: string; blob: string };
+
+export interface ReadResourceResult {
+  contents: ResourceContents[];
+}
+
+export type ResourceHandler = (
+  uri: string
+) => Promise<ReadResourceResult> | ReadResourceResult;
+
+export interface ResourceDefinition extends Resource {
+  handler: ResourceHandler;
+}
+
+export interface ResourceTemplateDefinition extends ResourceTemplate {
+  handler: ResourceHandler;
 }
 
 export interface HandleResult {
@@ -74,28 +205,32 @@ export interface HandleResult {
   error?: { code: number; message: string };
 }
 
-// ContentItem is a union of all possible content block types
-export type ContentItem =
-  | { type: "text"; text: string }
-  | { type: "image"; data: string; mimeType: string }
-  | { type: "audio"; data: string; mimeType: string }
+export type PromptContentItem =
+  | { type: "text"; text: string; annotations?: ContentAnnotations }
+  | { type: "image"; data: string; mimeType: string; annotations?: ContentAnnotations }
+  | { type: "audio"; data: string; mimeType: string; annotations?: ContentAnnotations }
   | {
       type: "resource";
+      annotations?: ContentAnnotations;
       resource:
-        | { uri: string; mimeType: string; text: string }
-        | { uri: string; mimeType: string; blob: string };
+        | { uri: string; mimeType?: string; text: string }
+        | { uri: string; mimeType?: string; blob: string };
     };
+
+// ContentItem is a union of all possible tool result content block types.
+export type ContentItem = PromptContentItem | ResourceLink;
 
 export interface JSONSchema {
   type: "object";
-  properties: Record<string, JSONSchemaProperty>;
+  properties?: Record<string, JSONSchemaProperty>;
   required?: string[];
+  [keyword: string]: unknown;
 }
 
-export interface JSONSchemaProperty {
-  type: "string" | "number" | "integer" | "boolean" | "object" | "array";
+export interface JSONSchemaProperty extends Record<string, unknown> {
+  type?: string | string[];
   description?: string;
-  nullable?: boolean;
+  [keyword: string]: unknown;
 }
 
 // Server types
@@ -103,6 +238,8 @@ export interface ServerOptions {
   name: string;
   version: string;
   validateToolArguments?: boolean;
+  supportNotifications?: boolean;
+  supportResourceSubscriptions?: boolean;
 }
 
 import type { ToolReturn } from "./content/index.js";
@@ -113,8 +250,14 @@ export type ToolHandler<T = Record<string, unknown>> = (
 
 export interface ToolDefinition<T = Record<string, unknown>> {
   name: string;
-  description: string;
+  title?: string;
+  description?: string;
   inputSchema: JSONSchema;
+  outputSchema?: JSONSchema;
+  annotations?: ToolAnnotations;
+  execution?: ToolExecution;
+  icons?: Icon[];
+  _meta?: Record<string, unknown>;
   handler: ToolHandler<T>;
 }
 

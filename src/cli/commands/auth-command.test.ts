@@ -382,6 +382,7 @@ describe("auth command", () => {
     );
 
     const written = stdoutSpy.mock.calls.map((c) => c[0]).join("");
+    expect(written.endsWith("\n")).toBe(true);
     const parsed = JSON.parse(written);
     expect(parsed).toEqual({
       user_id: 42,

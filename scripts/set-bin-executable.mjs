@@ -40,7 +40,9 @@ export async function setBinExecutable(packageDirectory, fileSystem = { chmod, r
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const changed = await setBinExecutable(process.cwd());
+  // Progress goes to stderr: this runs in `prepack`, and `npm pack --json`
+  // parses stdout, so any chatter there corrupts the JSON for callers.
   for (const target of changed) {
-    console.log(`chmod 0755 ${target}`);
+    console.error(`chmod 0755 ${target}`);
   }
 }

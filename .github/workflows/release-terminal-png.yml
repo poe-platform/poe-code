@@ -4,8 +4,8 @@ on:
     branches:
       - main
     paths:
-      - 'packages/terminal-png/**'
-      - 'packages/terminal-png-mcp/**'
+      - "packages/terminal-png/**"
+      - "packages/terminal-png-mcp/**"
 concurrency:
   group: release-terminal-png
   cancel-in-progress: false
@@ -37,14 +37,13 @@ jobs:
         id: version
         run: |
           REMOTE=$(npm view terminal-png version 2>/dev/null || echo "0.0.0")
-          cd packages/terminal-png
-          npm version --no-git-tag-version --allow-same-version "${REMOTE}"
-          npm version --no-git-tag-version patch
-          NEXT=$(node -e "console.log(require('./package.json').version)")
+          NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
-      - name: Set terminal-png-mcp version
-        working-directory: packages/terminal-png-mcp
-        run: npm version --no-git-tag-version --allow-same-version "${{ steps.version.outputs.next }}"
+      - name: Prepare lockstep package versions
+        uses: ./.github/actions/prepare-lockstep-release
+        with:
+          version: ${{ steps.version.outputs.next }}
+          packages: '["packages/terminal-png", "packages/terminal-png-mcp"]'
       - name: Publish terminal-png
         working-directory: packages/terminal-png
         run: npm publish --provenance --access public

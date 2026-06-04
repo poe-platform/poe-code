@@ -39,6 +39,6 @@
   ],
   "dependencies": {
     "terminal-png": "*",
-    "tiny-stdio-mcp-server": "*"
+    "tiny-stdio-mcp-server": "^0.1.0"
   }
 }

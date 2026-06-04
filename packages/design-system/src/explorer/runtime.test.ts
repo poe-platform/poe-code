@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
+import { TerminalBuffer } from "terminal-pilot";
 import { FakeTerminalDriver } from "./runtime.test-helpers.js";
 import type { ExplorerConfig, Row } from "./state.js";
 

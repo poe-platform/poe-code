@@ -144,6 +144,23 @@ await esbuild.build({
   plugins: [stripShebangPlugin]
 });
 
+// The superintendent MCP entry is shipped as a root bin, so inline its
+// private workspace dependencies instead of requiring them from the install.
+await esbuild.build({
+  entryPoints: [path.join(rootDir, "packages/superintendent/src/mcp.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "packages/superintendent/dist/mcp.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin],
+  loader: { ".md": "text", ".mustache": "text", ".log": "text" },
+  banner: { js: "#!/usr/bin/env node" }
+});
+
 // Rewrite workspace specifiers in shipped .d.ts files so the published
 // tarball can resolve types without @poe-code/* in node_modules. The
 // rewrites target memory itself plus the two sibling dists whose public

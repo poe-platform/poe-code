@@ -112,6 +112,7 @@
   "packageManager": "npm@10.9.2",
   "dependencies": {
     "@clack/prompts": "^1.0.0",
+    "ajv": "^8.20.0",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "console-table-printer": "^2.15.0",
@@ -130,6 +131,8 @@
     "smol-toml": "^1.6.0",
     "tiktoken": "^1.0.22",
     "turndown": "^7.2.4",
+    "uri-template": "^2.0.0",
+    "uri-template-lite": "^23.4.0",
     "yaml": "^2.8.2"
   },
   "devDependencies": {

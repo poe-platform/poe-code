@@ -30,7 +30,7 @@ vi.mock("./configs.js", async (importOriginal) => {
 });
 
 const { bridgeHooks, cleanupBridgedHooks } = await import("./index.js");
-const { setGitDirRunnerForTest } = await import("../../agent-skill-config/src/git-exclude.js");
+const { setGitDirRunnerForTest } = await import("@poe-code/agent-skill-config");
 
 const cwd = "/repo/project";
 const homeDir = "/home/tester";

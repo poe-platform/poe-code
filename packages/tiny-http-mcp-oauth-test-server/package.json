@@ -1,6 +1,7 @@
 {
   "name": "tiny-http-mcp-oauth-test-server",
   "version": "0.1.0",
+  "private": true,
   "description": "OAuth-protected MCP HTTP fixture that bundles tiny-http-mcp-server with tiny-oauth-test-server",
   "type": "module",
   "main": "dist/index.js",

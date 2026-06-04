@@ -1,6 +1,7 @@
 {
   "name": "tiny-oauth-test-server",
   "version": "0.1.0",
+  "private": true,
   "description": "Spec-compliant OAuth authorization server fixture for tests and demos",
   "type": "module",
   "main": "dist/index.js",

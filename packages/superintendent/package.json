@@ -30,7 +30,7 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
+  "devDependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-skill-config": "*",

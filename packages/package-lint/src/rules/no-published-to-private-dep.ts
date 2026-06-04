@@ -23,6 +23,9 @@ export const noPublishedToPrivateDep: Rule = {
       for (const edge of dependencyEdges(consumer)) {
         const dep = model.byName.get(edge.name);
         if (!dep || !dep.private) continue;
+        if (edge.field !== "peerDependencies" && consumer.bundledDependencies.includes(dep.name)) {
+          continue;
+        }
         violations.push({
           rule: id,
           package: consumer.name,

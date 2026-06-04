@@ -36,6 +36,20 @@ describe("no-published-to-private-dep", () => {
     expect(noPublishedToPrivateDep.run(model)).toHaveLength(0);
   });
 
+  it("passes when the private workspace dependency is bundled", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/pub/package.json": pkgJson({
+        name: "pub",
+        optionalDependencies: { priv: "*" },
+        bundledDependencies: ["priv"]
+      }),
+      "/repo/packages/priv/package.json": pkgJson({ name: "priv", private: true })
+    });
+
+    expect(noPublishedToPrivateDep.run(model)).toHaveLength(0);
+  });
+
   it("ignores private consumers depending on private packages", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

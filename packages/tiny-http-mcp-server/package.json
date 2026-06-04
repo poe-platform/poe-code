@@ -1,6 +1,7 @@
 {
   "name": "tiny-http-mcp-server",
   "version": "0.1.0",
+  "private": true,
   "description": "Minimal MCP server over HTTP built on tiny-stdio-mcp-server",
   "type": "module",
   "main": "dist/index.js",

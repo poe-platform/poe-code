@@ -363,7 +363,7 @@
         "range": "*"
       },
       "message": "published dependency auth-store@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\". If mcp-oauth and auth-store are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -376,46 +376,7 @@
         "range": "*"
       },
       "message": "published dependency poe-oauth@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "terminal-pilot-mcp",
-      "severity": "error",
-      "via": "dependencies",
-      "detail": {
-        "dependency": "terminal-pilot",
-        "field": "dependencies",
-        "range": "*"
-      },
-      "message": "published dependency terminal-pilot@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "terminal-pilot-mcp",
-      "severity": "error",
-      "via": "dependencies",
-      "detail": {
-        "dependency": "toolcraft",
-        "field": "dependencies",
-        "range": "*"
-      },
-      "message": "published dependency toolcraft@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.4\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "terminal-png-mcp",
-      "severity": "error",
-      "via": "dependencies",
-      "detail": {
-        "dependency": "terminal-png",
-        "field": "dependencies",
-        "range": "*"
-      },
-      "message": "published dependency terminal-png@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\". If opencode-poe-auth and poe-oauth are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -428,7 +389,7 @@
         "range": "*"
       },
       "message": "published dependency tiny-stdio-mcp-server@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\". If terminal-png-mcp and tiny-stdio-mcp-server are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -441,7 +402,7 @@
         "range": "*"
       },
       "message": "published dependency mcp-oauth@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\". If tiny-http-mcp-oauth-test-server and mcp-oauth are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -454,7 +415,7 @@
         "range": "*"
       },
       "message": "published dependency tiny-http-mcp-server@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\". If tiny-http-mcp-oauth-test-server and tiny-http-mcp-server are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -467,7 +428,7 @@
         "range": "*"
       },
       "message": "published dependency tiny-oauth-test-server@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\". If tiny-http-mcp-oauth-test-server and tiny-oauth-test-server are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -480,7 +441,7 @@
         "range": "*"
       },
       "message": "published dependency tiny-stdio-mcp-server@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\". If tiny-http-mcp-server and tiny-stdio-mcp-server are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -493,7 +454,7 @@
         "range": "*"
       },
       "message": "published dependency mcp-oauth@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\". If tiny-mcp-client and mcp-oauth are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -506,46 +467,7 @@
         "range": "*"
       },
       "message": "published dependency tiny-stdio-mcp-server@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "toolcraft",
-      "severity": "error",
-      "via": "optionalDependencies",
-      "detail": {
-        "dependency": "auth-store",
-        "field": "optionalDependencies",
-        "range": "*"
-      },
-      "message": "published dependency auth-store@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "toolcraft",
-      "severity": "error",
-      "via": "optionalDependencies",
-      "detail": {
-        "dependency": "mcp-oauth",
-        "field": "optionalDependencies",
-        "range": "*"
-      },
-      "message": "published dependency mcp-oauth@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
-    },
-    {
-      "rule": "published-dep-needs-version-range",
-      "package": "toolcraft",
-      "severity": "error",
-      "via": "optionalDependencies",
-      "detail": {
-        "dependency": "tiny-mcp-client",
-        "field": "optionalDependencies",
-        "range": "*"
-      },
-      "message": "published dependency tiny-mcp-client@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.1.0\". If tiny-stdio-mcp-test-server and tiny-stdio-mcp-server are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -558,7 +480,7 @@
         "range": "*"
       },
       "message": "published dependency toolcraft@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.4\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.4\". If toolcraft-codemode and toolcraft are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "published-dep-needs-version-range",
@@ -571,7 +493,7 @@
         "range": "*"
       },
       "message": "published dependency toolcraft-schema@* needs a concrete version range",
-      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\"."
+      "fix": "Replace \"*\" with a concrete range such as \"^0.0.1\". If toolcraft-codemode and toolcraft-schema are always released together, declare both packages with ./.github/actions/prepare-lockstep-release in their shared release workflow."
     },
     {
       "rule": "shipped-dist-deps-unresolvable",

@@ -1,6 +1,6 @@
 import http from "node:http";
 import type { AddressInfo } from "node:net";
-import { createJwksTokenVerifier } from "../../mcp-oauth/dist/index.js";
+import { createJwksTokenVerifier } from "mcp-oauth";
 import { createTestMcpServer, nodeFetch, TokenVerificationError } from "tiny-http-mcp-server";
 import {
   createOAuthTestServer,

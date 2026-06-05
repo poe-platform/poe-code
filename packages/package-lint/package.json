@@ -1,0 +1,30 @@
+{
+  "name": "@poe-code/package-lint",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "poe-package-lint": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/package-lint/src",
+    "test:unit": "cd ../.. && vitest run packages/package-lint/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/design-system": "*",
+    "typescript": "^5.9.3",
+    "yaml": "^2.8.2"
+  }
+}

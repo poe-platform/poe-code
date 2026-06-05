@@ -18,7 +18,7 @@
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/toolcraft-openapi/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system auth-store"
   },
   "files": [

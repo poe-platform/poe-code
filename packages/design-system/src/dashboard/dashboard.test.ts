@@ -19,7 +19,7 @@ import { createStore } from "./store.js";
 import { createDashboard } from "./dashboard.js";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
-import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
+import { TerminalBuffer } from "terminal-pilot";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
 import type { DashboardStats, OutputItem, Rect } from "./types.js";

@@ -1427,6 +1427,7 @@ describe("createServer", () => {
       transport.send(
         '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
       );
+      transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
       transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/list"}');
 
       // Wait for messages to process
@@ -1479,6 +1480,7 @@ describe("createServer", () => {
       transport.send(
         '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
       );
+      transport.send('{"jsonrpc":"2.0","method":"notifications/initialized"}');
 
       // Wait for initialization
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1512,6 +1514,9 @@ describe("createServer", () => {
       const connectPromise = server.connect(transport);
       transport.send(
         '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
+      );
+      transport.send(
+        '{"jsonrpc":"2.0","method":"notifications/initialized"}'
       );
 
       // Wait for initialization
@@ -1567,6 +1572,9 @@ describe("createServer", () => {
       transport.send(
         '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
       );
+      transport.send(
+        '{"jsonrpc":"2.0","method":"notifications/initialized"}'
+      );
 
       // Wait for initialization
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -1601,6 +1609,7 @@ describe("createServer", () => {
       });
 
       await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
       await server.notifyToolsChanged();
 
       expect(notifications).toEqual([
@@ -1624,6 +1633,7 @@ describe("createServer", () => {
       });
 
       await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
       await server.notifyToolsChanged();
 
       expect(first).toHaveLength(1);
@@ -1639,6 +1649,7 @@ describe("createServer", () => {
       });
 
       await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
       await server.notifyToolsChanged();
 
       unsubscribe();
@@ -1663,6 +1674,7 @@ describe("createServer", () => {
       const notifications: JSONRPCNotification[] = [];
 
       await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
 
       server.onNotification((notification) => {
         notifications.push(notification);
@@ -1687,6 +1699,7 @@ describe("createServer", () => {
       });
 
       await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
       await server.notifyToolsChanged();
 
       expect(notifications[0]).toEqual({
@@ -1727,6 +1740,13 @@ describe("server protocol handlers", () => {
         capabilities: {
           tools: {
             listChanged: true,
+          },
+          prompts: {
+            listChanged: true,
+          },
+          resources: {
+            listChanged: true,
+            subscribe: true,
           },
         },
         serverInfo: {
@@ -1902,7 +1922,11 @@ describe("server protocol handlers", () => {
       expect(response.error).toBeUndefined();
       expect(response.result).toEqual({
         protocolVersion: expect.any(String),
-        capabilities: { tools: { listChanged: true } },
+        capabilities: {
+          tools: { listChanged: true },
+          prompts: { listChanged: true },
+          resources: { listChanged: true, subscribe: true },
+        },
         serverInfo: { name: "test", version: "1.0.0" },
       });
     });
@@ -2770,8 +2794,8 @@ describe("server protocol handlers", () => {
       transport.send(
         '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
       );
-      transport.send('{"jsonrpc":"2.0","id":2,"method":"resources/list"}');
-      transport.send('{"jsonrpc":"2.0","id":3,"method":"prompts/list"}');
+      transport.send('{"jsonrpc":"2.0","id":2,"method":"unknown/resources"}');
+      transport.send('{"jsonrpc":"2.0","id":3,"method":"unknown/prompts"}');
       transport.send('{"jsonrpc":"2.0","id":4,"method":"sampling/complete"}');
       transport.close();
 

@@ -15,7 +15,8 @@
     }
   },
   "scripts": {
-    "build": "tsc && node ./scripts/copy-corpus.mjs"
+    "build": "tsc && node ./scripts/copy-corpus.mjs",
+    "prepack": "node ../../scripts/set-bin-executable.mjs"
   },
   "files": [
     "dist"

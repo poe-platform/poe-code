@@ -977,7 +977,11 @@ describe("StreamableHttpTransport", () => {
       id: 1,
       result: {
         protocolVersion: "2025-03-26",
-        capabilities: { tools: { listChanged: true } },
+        capabilities: {
+          tools: { listChanged: true },
+          prompts: { listChanged: true },
+          resources: { listChanged: true, subscribe: true },
+        },
         serverInfo: { name: "http-test", version: "1.0.0" },
       },
     });
@@ -2053,7 +2057,11 @@ describe("createExpressMiddleware", () => {
       id: 1,
       result: {
         protocolVersion: TEST_PROTOCOL_VERSION,
-        capabilities: { tools: { listChanged: true } },
+        capabilities: {
+          tools: { listChanged: true },
+          prompts: { listChanged: true },
+          resources: { listChanged: true, subscribe: true },
+        },
         serverInfo: { name: "conformance-test-server", version: "1.0.0" },
       },
     });

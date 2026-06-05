@@ -1,4 +1,7 @@
 import * as readline from "readline";
+import AjvModule from "ajv";
+import uriTemplateParser from "uri-template";
+import UriTemplate from "uri-template-lite";
 import type {
   ServerOptions,
   ToolDefinition,
@@ -7,6 +10,14 @@ import type {
   HandleResult,
   InitializeResult,
   Tool,
+  Prompt,
+  PromptDefinition,
+  PromptHandler,
+  Resource,
+  ResourceDefinition,
+  ResourceHandler,
+  ResourceTemplate,
+  ResourceTemplateDefinition,
   Transport,
   JSONSchema,
   SDKTransport,
@@ -38,12 +49,27 @@ export interface Server {
     inputSchema: TypedSchema<T>,
     handler: ToolHandler<T>
   ): Server;
+  registerTool<T>(
+    definition: Omit<ToolDefinition<T>, "handler">,
+    handler: ToolHandler<T>
+  ): Server;
+  prompt(definition: Prompt, handler: PromptHandler): Server;
+  resource(definition: Resource, handler: ResourceHandler): Server;
+  resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server;
   onNotification(
     listener: (notification: JSONRPCNotification) => void
   ): () => void;
   removeTool(name: string): boolean;
+  removePrompt(name: string): boolean;
+  removeResource(uri: string): boolean;
+  removeResourceTemplate(uriTemplate: string): boolean;
   notifyToolsChanged(): Promise<void>;
-  createMessageSession(): MessageSession;
+  notifyPromptsChanged(): Promise<void>;
+  notifyResourcesChanged(): Promise<void>;
+  notifyResourceUpdated(uri: string): Promise<void>;
+  createMessageSession(
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>
+  ): MessageSession;
   handleMessage(
     method: string,
     params?: Record<string, unknown>
@@ -66,10 +92,19 @@ export interface MessageSession {
 interface LifecycleState {
   initialized: boolean;
   initializeAccepted: boolean;
+  notificationReady: boolean;
+  resourceSubscriptions: Set<string>;
 }
 
 export function createServer(options: ServerOptions): Server {
+  const Ajv = "default" in AjvModule ? AjvModule.default : AjvModule;
+  const jsonSchemaValidator = new Ajv({ strict: false });
+  const supportNotifications = options.supportNotifications !== false;
+  const supportResourceSubscriptions = options.supportResourceSubscriptions !== false;
   const tools = new Map<string, ToolDefinition>();
+  const prompts = new Map<string, PromptDefinition>();
+  const resources = new Map<string, ResourceDefinition>();
+  const resourceTemplates = new Map<string, ResourceTemplateDefinition>();
   const notificationListeners = new Set<
     (notification: JSONRPCNotification) => void
   >();
@@ -80,6 +115,8 @@ export function createServer(options: ServerOptions): Server {
   const defaultLifecycle: LifecycleState = {
     initialized: false,
     initializeAccepted: false,
+    notificationReady: false,
+    resourceSubscriptions: new Set(),
   };
   const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
@@ -101,6 +138,7 @@ export function createServer(options: ServerOptions): Server {
       // still enforced by the separate lifecycle object given to each connection.
       lifecycle.initializeAccepted = true;
       lifecycle.initialized = true;
+      lifecycle.notificationReady = false;
       const requestedProtocol =
         typeof params?.protocolVersion === "string"
           ? params.protocolVersion
@@ -112,7 +150,14 @@ export function createServer(options: ServerOptions): Server {
             : PROTOCOL_VERSION,
         capabilities: {
           tools: {
-            listChanged: true,
+            ...(supportNotifications ? { listChanged: true } : {}),
+          },
+          prompts: {
+            ...(supportNotifications ? { listChanged: true } : {}),
+          },
+          resources: {
+            ...(supportNotifications ? { listChanged: true } : {}),
+            ...(supportResourceSubscriptions ? { subscribe: true } : {}),
           },
         },
         serverInfo: {
@@ -133,6 +178,7 @@ export function createServer(options: ServerOptions): Server {
         };
       }
 
+      lifecycle.notificationReady = true;
       return { result: undefined };
     }
 
@@ -149,10 +195,10 @@ export function createServer(options: ServerOptions): Server {
     if (method === "tools/list") {
       const toolList: Tool[] = [];
       for (const tool of tools.values()) {
+        const descriptor = { ...tool };
+        delete (descriptor as Partial<ToolDefinition>).handler;
         toolList.push({
-          name: tool.name,
-          description: tool.description,
-          inputSchema: tool.inputSchema,
+          ...(descriptor as Tool),
         });
       }
       return { result: { tools: toolList } };
@@ -181,7 +227,7 @@ export function createServer(options: ServerOptions): Server {
       }
 
       const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
-      if (options.validateToolArguments !== false && !areValidToolArguments(tool.inputSchema, toolArgs)) {
+      if (options.validateToolArguments !== false && !jsonSchemaValidator.validate(tool.inputSchema, toolArgs)) {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
@@ -198,6 +244,13 @@ export function createServer(options: ServerOptions): Server {
         const result: CallToolResult = isCallToolResult(handlerResult)
           ? handlerResult
           : { content: toContentBlocks(handlerResult) };
+        if (
+          tool.outputSchema !== undefined
+          && (result.structuredContent === undefined
+            || !jsonSchemaValidator.validate(tool.outputSchema, result.structuredContent))
+        ) {
+          throw new Error("Invalid structured tool result");
+        }
         return { result };
       } catch (err) {
         if (err instanceof ToolError) {
@@ -219,6 +272,109 @@ export function createServer(options: ServerOptions): Server {
       }
     }
 
+    if (method === "prompts/list") {
+      return {
+        result: {
+          prompts: [...prompts.values()].map(({ handler: _handler, ...prompt }) => prompt),
+        },
+      };
+    }
+
+    if (method === "prompts/get") {
+      const promptName = typeof params?.name === "string" ? params.name : undefined;
+      if (promptName === undefined) {
+        return invalidParams("Prompt name required");
+      }
+
+      const prompt = prompts.get(promptName);
+      if (prompt === undefined) {
+        return invalidParams(`Prompt not found: ${promptName}`);
+      }
+
+      const args = toStringArguments(params?.arguments);
+      if (args === undefined || !hasRequiredPromptArguments(prompt, args)) {
+        return invalidParams("Invalid prompt arguments");
+      }
+
+      try {
+        const result = await prompt.handler(args);
+        if (!isGetPromptResult(result)) {
+          return internalError("Invalid prompt result");
+        }
+        return { result };
+      } catch (error) {
+        return internalError(toErrorMessage(error));
+      }
+    }
+
+    if (method === "resources/list") {
+      return {
+        result: {
+          resources: [...resources.values()].map(({ handler: _handler, ...resource }) => resource),
+        },
+      };
+    }
+
+    if (method === "resources/templates/list") {
+      return {
+        result: {
+          resourceTemplates: [...resourceTemplates.values()].map(
+            ({ handler: _handler, ...resourceTemplate }) => resourceTemplate
+          ),
+        },
+      };
+    }
+
+    if (method === "resources/read") {
+      const uri = typeof params?.uri === "string" ? params.uri : undefined;
+      if (uri === undefined || !isValidUri(uri)) {
+        return invalidParams("Resource URI required");
+      }
+
+      const resource = findReadableResource(uri, resources, resourceTemplates);
+      if (resource === undefined) {
+        return resourceNotFound(uri);
+      }
+
+      try {
+        const result = await resource.handler(uri);
+        if (!isReadResourceResult(result)) {
+          return internalError("Invalid resource result");
+        }
+        return { result };
+      } catch (error) {
+        return internalError(toErrorMessage(error));
+      }
+    }
+
+    if (method === "resources/subscribe" || method === "resources/unsubscribe") {
+      if (!supportResourceSubscriptions) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
+            message: "Method not found",
+          },
+        };
+      }
+      const uri = typeof params?.uri === "string" ? params.uri : undefined;
+      if (uri === undefined || !isValidUri(uri)) {
+        return invalidParams("Resource URI required");
+      }
+      if (
+        method === "resources/subscribe"
+        && findReadableResource(uri, resources, resourceTemplates) === undefined
+      ) {
+        return resourceNotFound(uri);
+      }
+
+      if (method === "resources/subscribe") {
+        lifecycle.resourceSubscriptions.add(uri);
+      } else {
+        lifecycle.resourceSubscriptions.delete(uri);
+      }
+      return { result: {} };
+    }
+
     return {
       error: {
         code: JSON_RPC_ERROR_CODES.METHOD_NOT_FOUND,
@@ -227,16 +383,26 @@ export function createServer(options: ServerOptions): Server {
     };
   };
 
-  const createMessageSession = (): MessageSession => {
+  const createMessageSession = (
+    listener?: (notification: JSONRPCNotification) => void | Promise<void>
+  ): MessageSession => {
     const lifecycle: LifecycleState = {
       initialized: false,
       initializeAccepted: false,
+      notificationReady: false,
+      resourceSubscriptions: new Set(),
     };
     messageLifecycles.add(lifecycle);
+    if (listener !== undefined) {
+      connectionNotificationListeners.set(listener, lifecycle);
+    }
 
     return {
       handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
       close: () => {
+        if (listener !== undefined) {
+          connectionNotificationListeners.delete(listener);
+        }
         messageLifecycles.delete(lifecycle);
       },
     };
@@ -287,10 +453,15 @@ export function createServer(options: ServerOptions): Server {
     }
   };
 
-  const broadcastNotification = async (method: string): Promise<void> => {
+  const broadcastNotification = async (
+    method: string,
+    params?: Record<string, unknown>,
+    canSend: (lifecycle: LifecycleState) => boolean = () => true
+  ): Promise<void> => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
       method,
+      ...(params === undefined ? {} : { params }),
     };
 
     for (const listener of notificationListeners) {
@@ -299,7 +470,7 @@ export function createServer(options: ServerOptions): Server {
 
     await Promise.all(
       [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
-        if (lifecycle.initialized) {
+        if (lifecycle.notificationReady && canSend(lifecycle)) {
           await listener(notification);
         }
       })
@@ -322,6 +493,37 @@ export function createServer(options: ServerOptions): Server {
       return server;
     },
 
+    registerTool<T>(
+      definition: Omit<ToolDefinition<T>, "handler">,
+      handler: ToolHandler<T>
+    ): Server {
+      tools.set(definition.name, {
+        ...definition,
+        handler: handler as ToolHandler,
+      });
+      return server;
+    },
+
+    prompt(definition: Prompt, handler: PromptHandler): Server {
+      prompts.set(definition.name, { ...definition, handler });
+      return server;
+    },
+
+    resource(definition: Resource, handler: ResourceHandler): Server {
+      if (!isValidUri(definition.uri)) {
+        throw new Error(`Invalid resource URI: ${definition.uri}`);
+      }
+      resources.set(definition.uri, { ...definition, handler });
+      return server;
+    },
+
+    resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
+      uriTemplateParser.parse(definition.uriTemplate);
+      new UriTemplate(definition.uriTemplate);
+      resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
+      return server;
+    },
+
     onNotification(
       listener: (notification: JSONRPCNotification) => void
     ): () => void {
@@ -335,10 +537,45 @@ export function createServer(options: ServerOptions): Server {
       return tools.delete(name);
     },
 
+    removePrompt(name: string): boolean {
+      return prompts.delete(name);
+    },
+
+    removeResource(uri: string): boolean {
+      return resources.delete(uri);
+    },
+
+    removeResourceTemplate(uriTemplate: string): boolean {
+      return resourceTemplates.delete(uriTemplate);
+    },
+
     async notifyToolsChanged(): Promise<void> {
-      if ([...messageLifecycles].some((lifecycle) => lifecycle.initialized)) {
+      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
         await broadcastNotification("notifications/tools/list_changed");
       }
+    },
+
+    async notifyPromptsChanged(): Promise<void> {
+      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
+        await broadcastNotification("notifications/prompts/list_changed");
+      }
+    },
+
+    async notifyResourcesChanged(): Promise<void> {
+      if (supportNotifications && [...messageLifecycles].some((lifecycle) => lifecycle.notificationReady)) {
+        await broadcastNotification("notifications/resources/list_changed");
+      }
+    },
+
+    async notifyResourceUpdated(uri: string): Promise<void> {
+      if (!supportResourceSubscriptions) {
+        return;
+      }
+      await broadcastNotification(
+        "notifications/resources/updated",
+        { uri },
+        (lifecycle) => lifecycle.resourceSubscriptions.has(uri)
+      );
     },
 
     createMessageSession,
@@ -353,7 +590,7 @@ export function createServer(options: ServerOptions): Server {
 
     async connect(transport: Transport): Promise<void> {
       return new Promise((resolve) => {
-        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false, notificationReady: false, resourceSubscriptions: new Set() };
         const messageHandler: MessageHandler = (method, params) =>
           handleMessageWithLifecycle(method, lifecycle, params);
         messageLifecycles.add(lifecycle);
@@ -386,7 +623,7 @@ export function createServer(options: ServerOptions): Server {
 
     async connectSDK(transport: SDKTransport): Promise<void> {
       return new Promise<void>((resolve, reject) => {
-        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false, notificationReady: false, resourceSubscriptions: new Set() };
         const messageHandler: MessageHandler = (method, params) =>
           handleMessageWithLifecycle(method, lifecycle, params);
         messageLifecycles.add(lifecycle);
@@ -459,48 +696,136 @@ export function createServer(options: ServerOptions): Server {
   return server;
 }
 
+function invalidParams(message: string): HandleResult {
+  return {
+    error: {
+      code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+      message,
+    },
+  };
+}
+
+function internalError(message: string): HandleResult {
+  return {
+    error: {
+      code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+      message,
+    },
+  };
+}
+
+function resourceNotFound(uri: string): HandleResult {
+  return {
+    error: {
+      code: JSON_RPC_ERROR_CODES.RESOURCE_NOT_FOUND,
+      message: `Resource not found: ${uri}`,
+    },
+  };
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function isValidUri(uri: string): boolean {
+  try {
+    new URL(uri);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function toStringArguments(value: unknown): Record<string, string> | undefined {
+  if (value === undefined) {
+    return {};
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return undefined;
+  }
+
+  const args: Record<string, string> = {};
+  for (const [name, argument] of Object.entries(value)) {
+    if (typeof argument !== "string") {
+      return undefined;
+    }
+    args[name] = argument;
+  }
+  return args;
+}
+
+function hasRequiredPromptArguments(
+  prompt: PromptDefinition,
+  args: Record<string, string>
+): boolean {
+  return (prompt.arguments ?? []).every(
+    (argument) => argument.required !== true || args[argument.name] !== undefined
+  );
+}
+
+function findReadableResource(
+  uri: string,
+  resources: Map<string, ResourceDefinition>,
+  resourceTemplates: Map<string, ResourceTemplateDefinition>
+): ResourceDefinition | ResourceTemplateDefinition | undefined {
+  const resource = resources.get(uri);
+  if (resource !== undefined) {
+    return resource;
+  }
+
+  return [...resourceTemplates.values()].find((template) =>
+    matchesUriTemplate(template.uriTemplate, uri)
+  );
+}
+
+function matchesUriTemplate(template: string, uri: string): boolean {
+  try {
+    return new UriTemplate(template).match(uri) !== null;
+  } catch {
+    return false;
+  }
+}
+
 function isCallToolResult(value: unknown): value is CallToolResult {
   return hasContentArray(value) && value.content.every(isContentItem);
+}
+
+function isGetPromptResult(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || !("messages" in value)) {
+    return false;
+  }
+
+  return Array.isArray(value.messages)
+    && value.messages.every((message) =>
+      typeof message === "object"
+      && message !== null
+      && "role" in message
+      && (message.role === "user" || message.role === "assistant")
+      && "content" in message
+      && isPromptContentItem(message.content)
+    );
+}
+
+function isReadResourceResult(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || !("contents" in value)) {
+    return false;
+  }
+
+  return Array.isArray(value.contents)
+    && value.contents.every((content) =>
+      typeof content === "object"
+      && content !== null
+      && "uri" in content
+      && typeof content.uri === "string"
+      && isValidUri(content.uri)
+      && (("text" in content && typeof content.text === "string")
+        || ("blob" in content && typeof content.blob === "string" && isBase64(content.blob)))
+    );
 }
 
 function hasContentArray(value: unknown): value is { content: unknown[] } {
   return typeof value === "object" && value !== null && "content" in value
     && Array.isArray((value as { content: unknown }).content);
-}
-
-function areValidToolArguments(schema: JSONSchema, value: unknown): value is Record<string, unknown> {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    return false;
-  }
-
-  const argumentsObject = value as Record<string, unknown>;
-  for (const key of schema.required ?? []) {
-    if (!Object.hasOwn(argumentsObject, key)) {
-      return false;
-    }
-  }
-
-  for (const [key, property] of Object.entries(schema.properties)) {
-    if (!Object.hasOwn(argumentsObject, key)) {
-      continue;
-    }
-
-    const argument = argumentsObject[key];
-    if (argument === null && property.nullable === true) {
-      continue;
-    }
-
-    if (
-      (property.type === "array" && !Array.isArray(argument))
-      || (property.type === "object" && (typeof argument !== "object" || argument === null || Array.isArray(argument)))
-      || (property.type === "integer" && (!Number.isInteger(argument)))
-      || (property.type !== "array" && property.type !== "object" && property.type !== "integer" && typeof argument !== property.type)
-    ) {
-      return false;
-    }
-  }
-
-  return true;
 }
 
 function isContentItem(value: unknown): boolean {
@@ -514,7 +839,11 @@ function isContentItem(value: unknown): boolean {
   }
 
   if (block.type === "image" || block.type === "audio") {
-    return typeof block.data === "string" && typeof block.mimeType === "string";
+    return typeof block.data === "string" && isBase64(block.data) && typeof block.mimeType === "string";
+  }
+
+  if (block.type === "resource_link") {
+    return typeof block.uri === "string" && typeof block.name === "string";
   }
 
   if (block.type !== "resource" || typeof block.resource !== "object" || block.resource === null) {
@@ -523,6 +852,37 @@ function isContentItem(value: unknown): boolean {
 
   const resource = block.resource as Record<string, unknown>;
   return typeof resource.uri === "string"
-    && typeof resource.mimeType === "string"
-    && (typeof resource.text === "string" || typeof resource.blob === "string");
+    && (resource.mimeType === undefined || typeof resource.mimeType === "string")
+    && (typeof resource.text === "string" || (typeof resource.blob === "string" && isBase64(resource.blob)));
+}
+
+function isBase64(value: string): boolean {
+  if (value.length === 0) {
+    return true;
+  }
+
+  if (value.length % 4 !== 0) {
+    return false;
+  }
+
+  const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  const paddingStart = value.indexOf("=");
+  const encoded = paddingStart === -1 ? value : value.slice(0, paddingStart);
+  const padding = paddingStart === -1 ? "" : value.slice(paddingStart);
+  if (padding.length > 2 || [...padding].some((character) => character !== "=")) {
+    return false;
+  }
+  if ([...encoded].some((character) => !alphabet.includes(character))) {
+    return false;
+  }
+
+  return Buffer.from(value, "base64").toString("base64") === value;
+}
+
+function isPromptContentItem(value: unknown): boolean {
+  if (!isContentItem(value)) {
+    return false;
+  }
+
+  return !(typeof value === "object" && value !== null && "type" in value && value.type === "resource_link");
 }

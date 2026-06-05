@@ -5,54 +5,30 @@ import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promi
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
 import { assertSafeBundleOutputs } from "./guard-package-dist.mjs";
+import { resolveBundleGraph } from "./bundle-graph.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
 
 await assertSafeBundleOutputs(rootDir);
 
-// Read workspace package names and create source aliases
+// Read every workspace package.json once, then compute the shared esbuild
+// graph (source aliases + externals) from the bundle-graph helper.
 const packagesDir = path.join(rootDir, "packages");
 const workspaceDirs = await readdir(packagesDir, { withFileTypes: true });
-const workspaceAliases = {};
-const workspacePackageNames = new Set();
-
-const workspaceDeps = new Set();
-
+const packageJsons = [];
 for (const dir of workspaceDirs.filter((d) => d.isDirectory())) {
-  const pkgPath = path.join(packagesDir, dir.name, "package.json");
-  const pkg = JSON.parse(await readFile(pkgPath, "utf8"));
-  workspacePackageNames.add(pkg.name);
-  // Resolve workspace packages to source (Just-in-Time compilation)
-  workspaceAliases[pkg.name] = path.join(packagesDir, dir.name, "src/index.ts");
-  // Resolve sub-path exports (e.g. "toolcraft/cli" → "packages/toolcraft/src/cli.ts")
-  if (pkg.exports && typeof pkg.exports === "object") {
-    for (const subpath of Object.keys(pkg.exports)) {
-      if (subpath === ".") continue;
-      const clean = subpath.replace(/^\.\//, "");
-      const srcFile = path.join(packagesDir, dir.name, "src", `${clean}.ts`);
-      workspaceAliases[`${pkg.name}/${clean}`] = srcFile;
-    }
-  }
-  // Collect workspace package dependencies for externalization
-  for (const dep of Object.keys(pkg.dependencies || {})) {
-    workspaceDeps.add(dep);
-  }
+  const pkg = JSON.parse(await readFile(path.join(packagesDir, dir.name, "package.json"), "utf8"));
+  packageJsons.push({ dir: dir.name, pkg });
 }
 
-// External deps = root package.json dependencies (what users install via npm)
-const packageJson = JSON.parse(
-  await readFile(path.join(rootDir, "package.json"), "utf8")
+const { alias: workspaceAliases, external: externalDeps } = await resolveBundleGraph(
+  rootDir,
+  packageJsons
 );
-const runtimeDeps = Object.keys(packageJson.dependencies || {}).filter(
-  (dep) => !workspacePackageNames.has(dep)
-);
-// Externalize root deps + workspace package deps (excluding workspace packages themselves)
-const allExternalDeps = new Set([...runtimeDeps, ...workspaceDeps]);
-for (const pkg of workspacePackageNames) {
-  allExternalDeps.delete(pkg);
-}
-const externalDeps = [...allExternalDeps, "node:*"];
+
+// Root package.json is reused below to verify external imports are declared.
+const packageJson = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf8"));
 
 // Plugin to strip shebangs from source files
 const stripShebangPlugin = {
@@ -65,7 +41,7 @@ const stripShebangPlugin = {
       }
       return { contents, loader: "ts" };
     });
-  },
+  }
 };
 
 function isProviderSourceFile(filename) {
@@ -113,8 +89,12 @@ const mainBuild = await esbuild.build({
   sourcemap: true,
   plugins: [stripShebangPlugin],
   loader: { ".md": "text", ".mustache": "text", ".log": "text" },
-  metafile: true,
+  metafile: true
 });
+
+// Persist the metafile the main build already produces, so @poe-code/package-lint's
+// build-aware rule can verify the bundle inlined every workspace package.
+await writeFile(path.join(rootDir, "dist/metafile.json"), JSON.stringify(mainBuild.metafile));
 
 await esbuild.build({
   entryPoints: [path.join(rootDir, "src/agent.ts")],
@@ -145,7 +125,7 @@ if (providerEntryPoints.length > 0) {
     banner: undefined,
     sourcemap: true,
     plugins: [stripShebangPlugin],
-    loader: { ".md": "text", ".mustache": "text", ".log": "text" },
+    loader: { ".md": "text", ".mustache": "text", ".log": "text" }
   });
 }
 
@@ -161,7 +141,24 @@ await esbuild.build({
   external: externalDeps,
   alias: workspaceAliases,
   sourcemap: true,
+  plugins: [stripShebangPlugin]
+});
+
+// The superintendent MCP entry is shipped as a root bin, so inline its
+// private workspace dependencies instead of requiring them from the install.
+await esbuild.build({
+  entryPoints: [path.join(rootDir, "packages/superintendent/src/mcp.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "packages/superintendent/dist/mcp.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
   plugins: [stripShebangPlugin],
+  loader: { ".md": "text", ".mustache": "text", ".log": "text" },
+  banner: { js: "#!/usr/bin/env node" }
 });
 
 // Rewrite workspace specifiers in shipped .d.ts files so the published
@@ -197,11 +194,11 @@ await rewriteDts(path.join(rootDir, "packages/memory/dist"), {
   '"@poe-code/agent-mcp-config"': '"../../agent-mcp-config/dist/index.js"',
   '"@poe-code/agent-skill-config"': '"../../agent-skill-config/dist/index.js"',
   '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
-  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"',
+  '"tiny-stdio-mcp-server"': '"../../tiny-stdio-mcp-server/dist/index.js"'
 });
 for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   await rewriteDts(path.join(rootDir, "packages", pkg, "dist"), {
-    '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"',
+    '"@poe-code/config-mutations"': '"../../config-mutations/dist/index.js"'
   });
 }
 
@@ -221,7 +218,7 @@ const wrapper = [
   "#!/usr/bin/env node",
   versionGateSnippet("poe-code"),
   'import("./index.js").then(function (m) { m.main(); }).catch(function (err) { console.error(err); process.exit(1); });',
-  "",
+  ""
 ].join("\n");
 await writeFile(wrapperPath, wrapper, { encoding: "utf8" });
 
@@ -257,11 +254,9 @@ await Promise.all([
   ),
   // tokenfill resolves its built-in corpus via import.meta.url, so after
   // bundling the directory must sit next to dist/index.js.
-  cp(
-    path.join(rootDir, "packages", "tokenfill", "src", "corpus"),
-    path.join(distDir, "corpus"),
-    { recursive: true }
-  )
+  cp(path.join(rootDir, "packages", "tokenfill", "src", "corpus"), path.join(distDir, "corpus"), {
+    recursive: true
+  })
 ]);
 
 await Promise.all(
@@ -289,9 +284,28 @@ for (const meta of Object.values(mainBuild.metafile.outputs)) {
 }
 const rootDepNames = new Set(Object.keys(packageJson.dependencies || {}));
 const nodeBuiltins = new Set([
-  "assert", "buffer", "child_process", "crypto", "events", "fs", "http",
-  "https", "net", "os", "path", "process", "readline", "stream", "string_decoder",
-  "timers", "tls", "tty", "url", "util", "vm", "zlib"
+  "assert",
+  "buffer",
+  "child_process",
+  "crypto",
+  "events",
+  "fs",
+  "http",
+  "https",
+  "net",
+  "os",
+  "path",
+  "process",
+  "readline",
+  "stream",
+  "string_decoder",
+  "timers",
+  "tls",
+  "tty",
+  "url",
+  "util",
+  "vm",
+  "zlib"
 ]);
 function toPackageName(specifier) {
   if (specifier.startsWith("node:")) return null;

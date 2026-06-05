@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { S } from "toolcraft-schema";
-import { stripAnsi } from "../../design-system/src/components/help-formatter-plain.js";
+import { stripAnsi } from "terminal-pilot";
 import {
   ApprovalDeclinedError,
   ToolcraftBugError,

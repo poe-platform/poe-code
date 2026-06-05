@@ -1,0 +1,17 @@
+name: Prepare lockstep release
+description: Set one version across a package group and pin every intra-group dependency to it.
+inputs:
+  version:
+    description: Concrete semantic version to publish.
+    required: true
+  packages:
+    description: JSON array of workspace package directories released together.
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        LOCKSTEP_RELEASE_VERSION: ${{ inputs.version }}
+        LOCKSTEP_RELEASE_PACKAGES: ${{ inputs.packages }}
+      run: node scripts/prepare-lockstep-release.mjs

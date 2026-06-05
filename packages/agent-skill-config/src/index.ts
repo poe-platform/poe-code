@@ -30,4 +30,5 @@ export type { InstallSkillOptions, InstallSkillResult } from "./apply.js";
 
 export { resolveSkillReference } from "./resolve-skill-reference.js";
 export { appendExcludeBlock, removeExcludeBlock } from "./git-exclude.js";
+export { setGitDirRunnerForTest } from "./git-exclude.js";
 export { bridgeActiveSkills, cleanupBridgedSkills } from "./bridge-active-skills.js";

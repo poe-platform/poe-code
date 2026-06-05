@@ -16,6 +16,7 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
     "prepublishOnly": "tsc"
   },
   "files": [
@@ -39,6 +40,6 @@
   ],
   "dependencies": {
     "terminal-png": "*",
-    "tiny-stdio-mcp-server": "*"
+    "tiny-stdio-mcp-server": "^0.1.0"
   }
 }

@@ -9,6 +9,8 @@ import {
   createServer,
   type Server,
   type ServerOptions,
+  type ToolDefinition,
+  type CallToolResult,
   type ToolReturn,
   type TypedSchema,
 } from "tiny-stdio-mcp-server";
@@ -56,11 +58,15 @@ export interface HttpServerHandle {
   close(): Promise<void>;
 }
 
-export interface HttpServer extends Omit<Server, "tool"> {
+export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
   tool<T>(
     name: string,
     description: string,
     inputSchema: TypedSchema<T>,
+    handler: HttpToolHandler<T>
+  ): HttpServer;
+  registerTool<T>(
+    definition: Omit<ToolDefinition<T>, "handler">,
     handler: HttpToolHandler<T>
   ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
@@ -74,7 +80,7 @@ export interface HttpToolContext {
 export type HttpToolHandler<T = Record<string, unknown>> = (
   args: T,
   context: HttpToolContext
-) => Promise<ToolReturn> | ToolReturn;
+) => Promise<ToolReturn | CallToolResult> | ToolReturn | CallToolResult;
 
 function normalizePath(path: string): string {
   if (path.length === 0 || path === "/") {
@@ -181,7 +187,12 @@ export function createHttpServer(
   options: ServerOptions & HttpTransportOptions
 ): HttpServer {
   const requestContextStorage = new AsyncLocalStorage<HttpToolContext>();
-  const server = createServer(options);
+  const supportsSessions = !("sessionIdGenerator" in options) || options.sessionIdGenerator !== undefined;
+  const server = createServer({
+    ...options,
+    supportNotifications: supportsSessions,
+    supportResourceSubscriptions: supportsSessions,
+  });
   const transport = new StreamableHttpTransport(server, options, async (req, callback) =>
     requestContextStorage.run(
       {
@@ -196,6 +207,7 @@ export function createHttpServer(
       : JSON.stringify(createProtectedResourceMetadataDocument(options.oauth));
   const httpServer = server as HttpServer;
   const registerTool = server.tool.bind(server);
+  const registerRichTool = server.registerTool.bind(server);
   const defaultContext = {
     request: {} as AuthenticatedIncomingMessage,
   } satisfies HttpToolContext;
@@ -207,6 +219,17 @@ export function createHttpServer(
     handler: HttpToolHandler<T>
   ): HttpServer => {
     registerTool(name, description, inputSchema, (args) =>
+      handler(args, requestContextStorage.getStore() ?? defaultContext)
+    );
+
+    return httpServer;
+  };
+
+  httpServer.registerTool = <T>(
+    definition: Omit<ToolDefinition<T>, "handler">,
+    handler: HttpToolHandler<T>
+  ): HttpServer => {
+    registerRichTool(definition, (args) =>
       handler(args, requestContextStorage.getStore() ?? defaultContext)
     );
 

@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { countTokens } from "../../tokenfill/dist/index.js";
+import { countTokens } from "tokenfill";
 import { listPages } from "./pages.js";
 import type { MemoryRoot, TokenStats } from "./types.js";
 

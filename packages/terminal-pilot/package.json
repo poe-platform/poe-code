@@ -24,6 +24,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
+    "prepack": "node ../../scripts/set-bin-executable.mjs",
     "test": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "test:unit": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "qa:cli": "cd ../.. && tsx packages/terminal-pilot/src/testing/qa-cli.ts",
@@ -50,6 +51,7 @@
     "headless"
   ],
   "dependencies": {
+    "@poe-code/agent-skill-config": "*",
     "@clack/prompts": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
     "commander": "^14.0.3",
@@ -60,8 +62,10 @@
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2"
   },
+  "bundleDependencies": [
+    "@poe-code/agent-skill-config"
+  ],
   "devDependencies": {
-    "@poe-code/agent-skill-config": "*",
     "toolcraft": "*",
     "toolcraft-schema": "*",
     "terminal-png": "*"

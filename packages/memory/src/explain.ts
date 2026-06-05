@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { countTokens } from "../../tokenfill/dist/index.js";
+import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
 import { readPage } from "./pages.js";

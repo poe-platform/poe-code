@@ -1,6 +1,6 @@
 # tiny-stdio-mcp-server
 
-Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Node.js. Zero runtime dependencies, type-safe tool definitions, rich content helpers for images/audio/files.
+Minimal [Model Context Protocol](https://modelcontextprotocol.io) server for Node.js. Zero runtime dependencies, type-safe tool definitions, prompt and resource registries, rich content helpers for images/audio/files.
 
 ## Install
 
@@ -14,7 +14,7 @@ npm install tiny-stdio-mcp-server
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 
 const schema = defineSchema({
-  text: { type: "string", description: "Text to reverse" },
+  text: { type: "string", description: "Text to reverse" }
 });
 
 createServer({ name: "my-server", version: "1.0.0" })
@@ -49,7 +49,7 @@ Register a tool. The handler receives typed args matching the schema and returns
 ```ts
 const schema = defineSchema({
   query: { type: "string", description: "Search query" },
-  limit: { type: "number", description: "Max results", optional: true },
+  limit: { type: "number", description: "Max results", optional: true }
 });
 
 server.tool("search", "Search for things", schema, async ({ query, limit }) => {
@@ -57,6 +57,50 @@ server.tool("search", "Search for things", schema, async ({ query, limit }) => {
   return `Found results for: ${query}`;
 });
 ```
+
+### `.prompt(definition, handler)`
+
+Register a reusable MCP prompt. Prompt arguments arrive as strings and required
+arguments declared in `definition.arguments` are validated before the handler
+runs.
+
+```ts
+server.prompt(
+  {
+    name: "review",
+    description: "Create a code review prompt",
+    arguments: [{ name: "diff", required: true }]
+  },
+  ({ diff }) => ({
+    messages: [
+      {
+        role: "user",
+        content: { type: "text", text: `Review this diff:\n${diff}` }
+      }
+    ]
+  })
+);
+```
+
+Clients call `prompts/list` and `prompts/get` to discover and render prompts.
+
+### `.resource(definition, handler)` / `.resourceTemplate(definition, handler)`
+
+Register static resources by URI or templated resources by URI template.
+Handlers return MCP `contents` with either `text` or base64 `blob` payloads.
+
+```ts
+server
+  .resource({ uri: "memo://welcome", name: "welcome", mimeType: "text/plain" }, () => ({
+    contents: [{ uri: "memo://welcome", mimeType: "text/plain", text: "Welcome" }]
+  }))
+  .resourceTemplate({ uriTemplate: "memo://{id}", name: "memo" }, (uri) => ({
+    contents: [{ uri, mimeType: "text/plain", text: `Loaded ${uri}` }]
+  }));
+```
+
+Clients call `resources/list`, `resources/templates/list`, `resources/read`,
+`resources/subscribe`, and `resources/unsubscribe`.
 
 ### `.listen()`
 
@@ -82,9 +126,14 @@ Connect using an SDK-compatible in-memory transport (for testing).
 await server.connectSDK(sdkTransport);
 ```
 
-### `.removeTool(name)` / `.notifyToolsChanged()`
+### Dynamic registries and notifications
 
-Dynamically add/remove tools at runtime and notify connected clients.
+Use `.removeTool(name)`, `.removePrompt(name)`, `.removeResource(uri)`, and
+`.removeResourceTemplate(uriTemplate)` to mutate registries at runtime. After a
+change, notify initialized clients with `.notifyToolsChanged()`,
+`.notifyPromptsChanged()`, `.notifyResourcesChanged()`, or
+`.notifyResourceUpdated(uri)`. Resource update notifications are sent only to
+clients subscribed to that URI.
 
 ## `defineSchema(definition)`
 
@@ -93,12 +142,27 @@ Type-safe schema builder. Returns a JSON Schema object with inferred TypeScript 
 ```ts
 const schema = defineSchema({
   name: { type: "string", description: "User name" },
-  age: { type: "number", description: "User age", optional: true },
+  age: { type: "number", description: "User age", optional: true }
 });
 // Handler receives: { name: string; age?: number }
 ```
 
 Supported types: `string`, `number`, `boolean`, `object`, `array`.
+
+## Configuration
+
+`createServer()` accepts these options:
+
+| Option                         | Default | Description                                                               |
+| ------------------------------ | ------- | ------------------------------------------------------------------------- |
+| `name`                         | none    | MCP server name exposed during initialization.                            |
+| `version`                      | none    | MCP server version exposed during initialization.                         |
+| `validateToolArguments`        | `true`  | Validate tool arguments against each tool input schema.                   |
+| `supportNotifications`         | `true`  | Advertise list-change notifications for tools, prompts, and resources.    |
+| `supportResourceSubscriptions` | `true`  | Advertise resource subscription support and enable `resources/subscribe`. |
+
+The server advertises MCP protocol `2025-11-25` by default and also accepts
+clients requesting `2025-03-26` or `2025-06-18`.
 
 ## Content helpers
 
@@ -162,8 +226,12 @@ Use `createTestPair` with the official MCP SDK for in-memory testing:
 ```ts
 import { createTestPair } from "tiny-stdio-mcp-server/testing";
 
-const server = createServer({ name: "test", version: "1.0.0" })
-  .tool("ping", "Ping", defineSchema({}), () => "pong");
+const server = createServer({ name: "test", version: "1.0.0" }).tool(
+  "ping",
+  "Ping",
+  defineSchema({}),
+  () => "pong"
+);
 
 const { client, cleanup } = await createTestPair(server);
 
@@ -174,6 +242,11 @@ await cleanup();
 ```
 
 Requires `@modelcontextprotocol/sdk` as a dev dependency.
+
+## Environment Variables
+
+This package does not use any environment variables. All runtime configuration
+is passed through `createServer()` options and registry methods.
 
 ## License
 

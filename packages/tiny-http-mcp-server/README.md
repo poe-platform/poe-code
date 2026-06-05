@@ -242,7 +242,7 @@ npx tiny-http-mcp-server --stateless
 
 ## API Reference
 
-The package re-exports the base server helpers from `tiny-stdio-mcp-server`, so you can import `defineSchema`, `createServer`, `Image`, `Audio`, `File`, and related types from here as well.
+The package re-exports the base server helpers from `tiny-stdio-mcp-server`, so you can import `defineSchema`, `createServer`, `Image`, `Audio`, `File`, and related prompt/resource types from here as well. HTTP servers advertise the same prompt and resource capabilities as the stdio server.
 
 ### `createHttpServer(options)`
 
@@ -259,7 +259,10 @@ const server = createHttpServer({
 
 Returned `HttpServer` instances support:
 
-- `.tool(name, description, schema, handler)` to register tools
+- `.tool(name, description, schema, handler)` and `.registerTool(definition, handler)` to register tools
+- `.prompt(definition, handler)` to register reusable prompts
+- `.resource(definition, handler)` and `.resourceTemplate(definition, handler)` to register readable resources
+- `.notifyToolsChanged()`, `.notifyPromptsChanged()`, `.notifyResourcesChanged()`, and `.notifyResourceUpdated(uri)` for initialized clients
 - `.listenHttp(options?)` to start a standalone Node HTTP server
 - `.handleRequest(req, res)` to plug into an existing HTTP stack
 
@@ -267,13 +270,16 @@ Returned `HttpServer` instances support:
 
 `createHttpServer()` accepts the base `ServerOptions` from `tiny-stdio-mcp-server` plus HTTP transport options:
 
-| Option               | Type                                         | Default                          | Description                                                                                   |
-| -------------------- | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `name`               | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
-| `version`            | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
-| `sessionIdGenerator` | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
-| `enableJsonResponse` | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
-| `oauth`              | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
+| Option                         | Type                                         | Default                          | Description                                                                                   |
+| ------------------------------ | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `name`                         | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
+| `version`                      | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
+| `validateToolArguments`        | `boolean`                                    | `true`                           | Validate tool call arguments against each tool input schema.                                  |
+| `supportNotifications`         | `boolean`                                    | `true`                           | Advertise tools/prompts/resources list-change notifications.                                  |
+| `supportResourceSubscriptions` | `boolean`                                    | `true`                           | Advertise resource subscription support and enable resource update notifications.             |
+| `sessionIdGenerator`           | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
+| `enableJsonResponse`           | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
+| `oauth`                        | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
 
 ### `createExpressMiddleware(server)`
 
@@ -442,6 +448,7 @@ Creates a ready-made `HttpServer` for integration and conformance tests. It incl
 - `get_image`, `get_audio`, `get_file`, `get_mixed` — binary/resource content blocks
 - `throw_sync`, `throw_async` — error handling scenarios
 - `empty_result`, `slow`, `large_output` — edge-case coverage
+- prompt/resource fixtures for `prompts/list`, `prompts/get`, `resources/list`, `resources/read`, resource templates, subscriptions, and list/update notifications
 
 Supported options:
 

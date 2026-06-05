@@ -35,13 +35,37 @@ For trusted publishing, avoid token-based npm auth in the workflow:
 - Trusted publishing requires `npm >= 11.5.1` and `node >= 22.14.0`.
 - In `actions/setup-node`, set `node-version`, then upgrade npm (example: `npm install --global npm@^11.5.1`) before running `npm publish --provenance --access public`.
 
-For the version alignment step, use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
+For a single-package release, the workflow can align to the current npm version and patch from there. Use `--allow-same-version` so the workflow does not fail on first run after local initial publish:
 
 ```sh
 REMOTE=$(npm view <package-name> version 2>/dev/null || echo "0.0.0")
 npm version --no-git-tag-version --allow-same-version "$REMOTE"
 npm version --no-git-tag-version patch
 ```
+
+For packages that must release in lockstep, use the shared composite action after calculating the concrete version and before packing/publishing any package in the group:
+
+```yaml
+- name: Prepare lockstep package versions
+  uses: ./.github/actions/prepare-lockstep-release
+  with:
+    version: ${{ steps.version.outputs.version }}
+    packages: '["packages/toolcraft", "packages/toolcraft-openapi"]'
+```
+
+The action rewrites every listed `package.json` to the same version and rewrites intra-group `dependencies`, `peerDependencies`, and `optionalDependencies` to that exact version. The group must contain at least two public npm package directories, and each prepared package should be published by the workflow. `npm run lint:packages` enforces this with `lockstep-release-group-valid`.
+
+If a published package declares `bin`, add the shared executable-bit helper to `prepack` so `tsc`-emitted binaries do not ship as mode `0644`:
+
+```json
+{
+  "scripts": {
+    "prepack": "npm run build && node ../../scripts/set-bin-executable.mjs"
+  }
+}
+```
+
+The helper derives targets from the package `bin` field, fails when a declared bin file is missing, and writes progress to stderr so `npm pack --json` output stays valid JSON.
 
 ## 4. Provenance troubleshooting
 

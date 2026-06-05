@@ -18,10 +18,10 @@ A tool that looks up each package, figures out its dependency tree, and determin
 
 Decisions taken (from chat):
 
-- New package `@poe-code/package-lint`, run via `npm run lint:packages`, folded into `npm run lint`.
+- New package `@poe-code/package-lint`, run via `npm run lint:packages` (kept separate from the aggregate `npm run lint` while it remains developer tooling).
 - Offline only — no npm registry calls. "Published" is derived from the explicit `private` flag plus release-workflow wiring, never from `@scope` vs unscoped (scope does not map to publish status: `@poe-code/design-system` is scoped and public; `agent-code-review` is unscoped and private).
-- Rollout is fix-then-hard-fail: clear the existing violations, then `lint`/CI block on any violation.
-- This plan builds the analyzer; applying the fixes it surfaces is a follow-up.
+- Rollout is fix-then-hard-fail: clear the existing violations, then keep `npm run lint:packages` as the package-boundary regression guard.
+- This plan builds the analyzer and tracks the follow-up fixes that reduced the baseline to empty.
 
 Non-goals:
 
@@ -37,7 +37,6 @@ Non-goals:
 ```sh
 npm run lint:packages             # human report, non-zero exit on any violation
 npm run lint:packages -- --json   # machine-readable, for CI logs / tooling
-npm run lint                      # eslint + types + workflows + packages
 ```
 
 `lint:packages` maps to the package bin `poe-package-lint` (no `poe-code` subcommand — dev tooling, not a user feature).
@@ -53,51 +52,30 @@ Exit `0` clean · `1` violations found · `2` tool error (unreadable/malformed `
 ### Example output (rendered via design-system)
 
 ```
-package-lint · 6 rules · 60 packages
+package-lint · 11 rules · 60 packages
 
-✖ shipped-dist-deps-unresolvable        (1)
-    bin poe-superintendent-mcp → packages/superintendent/dist/mcp.js
-      imports toolcraft, tiny-stdio-mcp-server by bare name; neither is in
-      root "dependencies" and the tarball ships no node_modules for them.
-      ERR_MODULE_NOT_FOUND on install. Bundle them, or add to root deps.
-
-✖ no-published-to-private-dep           (7)
-    toolcraft-codemode → @poe-code/agent-script   (dependencies, private)
-    toolcraft          → @poe-code/config-mutations (optionalDependencies, private)
-    … 5 more
-
-✖ public-needs-publish-wiring           (9)
-    auth-store            no release-*.yml; required by published mcp-oauth, toolcraft, toolcraft-openapi
-    @poe-code/design-system  no release-*.yml; required by published toolcraft, toolcraft-openapi
-    mcp-oauth             no release-*.yml; required by published tiny-http-mcp-oauth-test-server, tiny-mcp-client, toolcraft
-
-✖ published-dep-needs-version-range     (17)
-    mcp-oauth         → auth-store@*    → use a concrete range
-    opencode-poe-auth → poe-oauth@*     → use a concrete range
-    … 15 more
-
-bundle-self-contained                   ✓
+shipped-dist-deps-unresolvable          ✓
+no-published-to-private-dep             ✓
+published-dep-needs-version-range       ✓
+public-needs-publish-wiring             ✓
 release-workflow-maps-to-package        ✓
-
-5 rules failed · 34 violations
+lockstep-release-group-valid            ✓
+no-cross-package-relative-import        ✓
+imported-workspace-dep-unresolvable     ✓
+exports-subpath-resolvable              ✓
+bundle-self-contained                   ✓
+published-bin-must-be-executable        ✓
+✓ all 11 rules passed
 ```
 
 `--json` shape:
 
 ```json
 {
-  "summary": { "packages": 60, "rules": 6, "violations": 34, "ok": false },
-  "violations": [
-    {
-      "rule": "shipped-dist-deps-unresolvable",
-      "package": "@poe-code/superintendent",
-      "severity": "error",
-      "via": "bin:poe-superintendent-mcp",
-      "detail": { "unresolved": ["toolcraft", "tiny-stdio-mcp-server"] },
-      "message": "shipped dist imports bare names not in root dependencies",
-      "fix": "Bundle poe-superintendent-mcp so these are inlined, or add each to root \"dependencies\"."
-    }
-  ]
+  "summary": { "packages": 60, "rules": 11, "violations": 0, "ok": true },
+  "evaluated": ["shipped-dist-deps-unresolvable", "..."],
+  "violations": [],
+  "skipped": []
 }
 ```
 
@@ -105,19 +83,21 @@ release-workflow-maps-to-package        ✓
 
 Every rule decides from facts. "Published" = `private !== true`. "Shipped" = the package's built `dist` reaches the published `poe-code` tarball (a root `files` entry or a root `bin` target path under `packages/<dir>/dist`). Packages with a Python project file are tagged `pypi` and exempt from the npm rules.
 
-| id                                      | Proves (fact checked)                                                                                                                                                                                                                                                                                | Caught in this repo today                                                                         |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped (tsc-emitted, unbundled) dist resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself bundled. A bare workspace/third-party import that isn't installed = `ERR_MODULE_NOT_FOUND`.                                        | `poe-superintendent-mcp` → `toolcraft`, `tiny-stdio-mcp-server`                                   |
-| `no-published-to-private-dep`           | No published package depends (deps/peer/optional) on a private workspace package — it will never exist on npm. `optionalDependencies` is the exact vector for the same-name collision.                                                                                                               | 7: `toolcraft-codemode`→`@poe-code/agent-script`; `toolcraft`→ 6 private `@poe-code/*` (optional) |
-| `published-dep-needs-version-range`     | A published→published workspace dep uses a concrete range, never `*`/`workspace:*` (on npm `*` resolves to whatever the registry returns — the collision vector).                                                                                                                                    | 17: `mcp-oauth`→`auth-store@*`, …                                                                 |
-| `public-needs-publish-wiring`           | Hygiene: a public package with no release workflow or no `repository.directory` has no publish path — it cannot be published as-is (`warning`). Whether a published package actually _needs_ it on npm is decided from real imports by `imported-workspace-dep-unresolvable`, not from declarations. | 8 warnings (public packages with no release workflow).                                            |
-| `release-workflow-maps-to-package`      | Every release workflow targets an existing, non-private (or pypi) package — no drift between workflow and packages.                                                                                                                                                                                  | 0                                                                                                 |
-| `no-cross-package-relative-import`      | No source file imports a sibling package by a relative path that escapes its own directory (e.g. `../../mcp-oauth/dist/index.js`) — it bypasses the dependency graph and breaks once published. Error in shipped code, warning in tests.                                                             | 12: `tiny-mcp-client`, `memory`→`tokenfill/dist`, `terminal-pilot` template paths, …              |
-| `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package a published package's shipped source **actually imports** (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches **undeclared** imports the package.json rules can't see.                                                | 1: `terminal-pilot`→`@poe-code/agent-skill-config` (undeclared import of a private package).      |
-| `exports-subpath-resolvable`            | Import-driven: a bare subpath import of a workspace package (e.g. `toolcraft/cli`) must be a subpath the target's `exports` map exposes — Node gates `exports`, so an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED` once published (masked in-repo by test/bundle aliases).                    | 0 today (54 subpath imports across 19 exports-mapped packages all resolve — regression guard).    |
-| `bundle-self-contained` _(build-aware)_ | The bundled entry (`dist/index.js`, `agent.js`, `providers/*`) inlines every referenced workspace package and externalizes nothing absent from root `dependencies`. Consumes the esbuild metafile.                                                                                                   | 0 (bundle is clean)                                                                               |
+| id                                      | Proves (fact checked)                                                                                                                                                                                                                                                                                | Current status                                                                                 |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped (tsc-emitted, unbundled) dist resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself bundled. A bare workspace/third-party import that isn't installed = `ERR_MODULE_NOT_FOUND`.                                        | 0 today (regression guard).                                                                    |
+| `no-published-to-private-dep`           | No published package depends (deps/peer/optional) on a private workspace package — it will never exist on npm. `optionalDependencies` is the exact vector for the same-name collision.                                                                                                               | 0 today (regression guard).                                                                    |
+| `published-dep-needs-version-range`     | A published→published workspace dep uses a concrete range, never loose `*`/`workspace:*`-style ranges, unless the packages are in the same declared lockstep release group or the non-peer dependency is bundled.                                                                                    | 0 today (regression guard).                                                                    |
+| `public-needs-publish-wiring`           | Hygiene: a public package with no release workflow or no `repository.directory` has no publish path — it cannot be published as-is (`warning`). Whether a published package actually _needs_ it on npm is decided from real imports by `imported-workspace-dep-unresolvable`, not from declarations. | 0 today (regression guard).                                                                    |
+| `release-workflow-maps-to-package`      | Every release workflow targets an existing, non-private (or pypi) package — no drift between workflow and packages.                                                                                                                                                                                  | 0                                                                                              |
+| `lockstep-release-group-valid`          | Every `prepare-lockstep-release` workflow group has a concrete version, at least two unique public npm packages, and publish steps for every prepared package.                                                                                                                                       | 0                                                                                              |
+| `no-cross-package-relative-import`      | No source file imports a sibling package by a relative path that escapes its own directory (e.g. `../../mcp-oauth/dist/index.js`) — it bypasses the dependency graph and breaks once published. Error in shipped code, warning in tests.                                                             | 0 today (regression guard).                                                                    |
+| `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package a published package's shipped source **actually imports** (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches **undeclared** imports the package.json rules can't see.                                                | 0 today (regression guard).                                                                    |
+| `exports-subpath-resolvable`            | Import-driven: a bare subpath import of a workspace package (e.g. `toolcraft/cli`) must be a subpath the target's `exports` map exposes — Node gates `exports`, so an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED` once published (masked in-repo by test/bundle aliases).                    | 0 today (54 subpath imports across 19 exports-mapped packages all resolve — regression guard). |
+| `bundle-self-contained` _(build-aware)_ | The bundled entry (`dist/index.js`, `agent.js`, `providers/*`) inlines every referenced workspace package and externalizes nothing absent from root `dependencies`. Consumes the esbuild metafile.                                                                                                   | 0 (bundle is clean)                                                                            |
+| `published-bin-must-be-executable`      | Every genuinely published npm package with a `bin` runs `scripts/set-bin-executable.mjs` in `prepack`, so compiler-emitted bin files ship with executable bits.                                                                                                                                      | 0                                                                                              |
 
-The vendoring guarantee is layered: `shipped-dist-deps-unresolvable` (static, package.json) catches the superintendent bin break without a build; `imported-workspace-dep-unresolvable` and `no-cross-package-relative-import` parse the **real** `src` import graph with the TypeScript compiler's own scanner (the engine `typescript-eslint` runs on), catching undeclared/cross-boundary imports declarations can't see; `bundle-self-contained` (build-aware) consumes the metafile. Private packages that nothing in the published surface imports (`worktree`, `e2e-test-runner`, `cached-resource`, `agent-child-process`, `py-poe-spawn`) are correctly _not_ vendored and raise nothing.
+The vendoring guarantee is layered: `shipped-dist-deps-unresolvable` (static, package.json) catches shipped-bin dependency breaks without a build; `imported-workspace-dep-unresolvable` and `no-cross-package-relative-import` parse the **real** `src` import graph with the TypeScript compiler's own scanner (the engine `typescript-eslint` runs on), catching undeclared/cross-boundary imports declarations can't see; `bundle-self-contained` (build-aware) consumes the metafile. Private packages that nothing in the published surface imports (`worktree`, `e2e-test-runner`, `cached-resource`, `agent-child-process`, `py-poe-spawn`) are correctly _not_ vendored and raise nothing.
 
 ## 3. Implementation details and technical decisions
 
@@ -214,21 +194,21 @@ export function resolveBundleGraph(rootDir, packageJsons): { entryPoints: string
 ### Tests
 
 - **Unit (memfs, no disk, no network)** — one `*.test.ts` per rule. Each builds a synthetic in-memory workspace and asserts a positive (violation raised) and a negative (clean) case. Proves each rule's logic in isolation. Fast (< a few ms each).
-- **Integration baseline (`repo-baseline.test.ts`)** — runs `loadWorkspace` + `runRules` against the _real_ repo and asserts the violation set equals committed `baseline.json`. The baseline is the catalogue of the real issues found here (46 today); it is both regression guard and the fix checklist. Reads real files and parses `src` (no build needed — build-aware rules skip).
+- **Integration baseline (`repo-baseline.test.ts`)** — runs `loadWorkspace` + `runRules` against the _real_ repo and asserts the violation set equals committed `baseline.json`. The baseline is currently empty; it is both regression guard and the accepted-violation checklist if a future rollout intentionally allows a violation. Reads real files and parses `src` (no build needed — build-aware rules skip).
 - **Build-aware rule** — a focused test feeds a synthetic `metafile.json` fixture to `bundle-self-contained` (positive + negative); no real build in unit tests.
 - **Manual QA (markdown, not a script)** — `docs/qa/package-lint.md`: run `npm run lint:packages`, confirm the rendered report matches the failing rules; run `-- --json` and confirm shape; run after `npm run build` and confirm `bundle-self-contained` participates.
 
 ### Rollout
 
-Fix-then-hard-fail. Order: land the analyzer with `baseline.json` capturing today's 46 violations (test green against the baseline) → fix violations in a follow-up, shrinking `baseline.json` toward `[]` → once empty, chain `lint:packages` into the `lint` aggregate and make any violation fail `lint`. CI runs `npm run lint`, so chaining now would fail it — that step waits until the baseline is empty.
+Fix-then-hard-fail. The analyzer landed with a baseline and follow-up fixes reduced `packages/package-lint/baseline.json` to `[]`. `npm run lint:packages` now fails on any new violation; wiring it into the aggregate `npm run lint` remains a separate rollout choice.
 
 ### Autonomy checklist
 
 - Build the package, rules, reporter, CLI from the signatures above.
 - Generate `baseline.json` by running the analyzer against the repo (committed as the starting state).
-- Wire `lint:packages` into root scripts (chaining into the `lint` aggregate is deferred to the hard-fail flip, per rollout).
+- Wire `lint:packages` into root scripts (chaining into the `lint` aggregate remains a separate rollout choice).
 - Persist `dist/metafile.json` from `bundle.mjs` via the shared `resolveBundleGraph` helper.
-- Verify: `npm run lint:packages` exits 1 and lists exactly the baseline; unit tests green; `npm run lint:packages -- --json` parses.
+- Verify: `npm run lint:packages` exits 0 on the empty baseline; unit tests green; `npm run lint:packages -- --json` parses.
 
 ## 5. Code plan
 
@@ -256,17 +236,17 @@ Fix-then-hard-fail. Order: land the analyzer with `baseline.json` capturing toda
 | `src/index.ts`                                     | Public API re-exports.                                                                                                        |
 | `src/rules/*.test.ts`                              | Per-rule memfs unit tests.                                                                                                    |
 | `src/repo-baseline.test.ts`                        | Baseline integration test.                                                                                                    |
-| `packages/package-lint/baseline.json`              | Committed real-violation snapshot (46 found).                                                                                 |
+| `packages/package-lint/baseline.json`              | Committed real-violation snapshot, currently empty after the bundle and release-wiring fixes.                                 |
 | `scripts/bundle-graph.mjs`                         | Shared `resolveBundleGraph` extracted from `bundle.mjs`.                                                                      |
 | `docs/qa/package-lint.md`                          | Manual QA steps.                                                                                                              |
 
 ### Change
 
-| File                  | Change                                                                                                                                                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scripts/bundle.mjs`  | Import `resolveBundleGraph` from `scripts/bundle-graph.mjs` (replace the inline alias/external computation); write `dist/metafile.json` after the main build.                                                                |
-| `package.json` (root) | Add `"lint:packages": "poe-package-lint"`; add `@poe-code/package-lint` devDependency. Chaining it into the `lint` aggregate is deferred to the hard-fail flip (rollout), so CI stays green while the baseline is non-empty. |
-| `turbo.json`          | No change. The root bundle runs `bundle.mjs` outside turbo (only `packages/*` builds are turbo tasks), so a `dist/metafile.json` output entry would be inert; per-package `dist/**` already covers package dists.            |
+| File                  | Change                                                                                                                                                                                                            |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `scripts/bundle.mjs`  | Import `resolveBundleGraph` from `scripts/bundle-graph.mjs` (replace the inline alias/external computation); write `dist/metafile.json` after the main build.                                                     |
+| `package.json` (root) | Add `"lint:packages": "poe-package-lint"`; add `@poe-code/package-lint` devDependency. Chaining it into the `lint` aggregate remains a separate rollout choice.                                                   |
+| `turbo.json`          | No change. The root bundle runs `bundle.mjs` outside turbo (only `packages/*` builds are turbo tasks), so a `dist/metafile.json` output entry would be inert; per-package `dist/**` already covers package dists. |
 
 ### Build order (keeps the branch green)
 
@@ -275,4 +255,4 @@ Fix-then-hard-fail. Order: land the analyzer with `baseline.json` capturing toda
 3. `report.ts` + `cli.ts` + `index.ts`; wire root `lint:packages`.
 4. Extract `scripts/bundle-graph.mjs`, point `bundle.mjs` at it, persist `dist/metafile.json`; add `bundle-self-contained` + its fixture test.
 5. Generate and commit `baseline.json`; add `repo-baseline.test.ts` (green against baseline).
-6. Follow-up (separate change): fix the 34 violations, shrink `baseline.json` to `[]`, flip `lint` to hard-fail.
+6. Follow-up: fix the reported violations and shrink `baseline.json` to `[]` (now complete); aggregate `lint` wiring remains separate.

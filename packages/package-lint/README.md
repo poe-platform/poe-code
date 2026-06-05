@@ -31,13 +31,15 @@ malformed `package.json`).
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped, tsc-emitted bin entry resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself a shipped package.                                                     |
 | `no-published-to-private-dep`           | No published package depends (deps / peer / optional) on a private workspace package.                                                                                                                                             |
-| `published-dep-needs-version-range`     | A published → published workspace dependency uses a concrete range, never `*` / `workspace:*`.                                                                                                                                    |
+| `published-dep-needs-version-range`     | A published → published workspace dependency uses a concrete range, never loose ranges such as `*`, `latest`, or unbounded `workspace:*`; declared lockstep release groups and bundled non-peer deps are exempt.                  |
 | `public-needs-publish-wiring`           | Hygiene: a public package with no release workflow or no `repository.directory` has no publish path (warning). Whether it is actually needed on npm is decided from real imports below, not declarations.                         |
 | `release-workflow-maps-to-package`      | Every release workflow publishes an existing, non-private (or pypi) package.                                                                                                                                                      |
+| `lockstep-release-group-valid`          | Every `prepare-lockstep-release` workflow group has a concrete version, at least two unique package directories, only public npm packages, and publishes every package it prepares.                                               |
 | `no-cross-package-relative-import`      | No source file imports a sibling package by a relative path that escapes its own directory (e.g. `../../mcp-oauth/dist/index.js`); import the sibling by package name. Error in shipped code, warning in tests.                   |
 | `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package a published package's shipped source actually imports (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches undeclared imports of private packages.  |
 | `exports-subpath-resolvable`            | Import-driven: a bare subpath import of a workspace package (e.g. `toolcraft/cli`) is a subpath the target's `exports` map exposes. Node gates `exports` — an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED` once published. |
 | `bundle-self-contained` _(build-aware)_ | The bundled entry inlines every referenced workspace package and externalizes nothing absent from root `dependencies`. Consumes `dist/metafile.json`; skipped when absent.                                                        |
+| `published-bin-must-be-executable`      | Every genuinely published npm package with a `bin` restores executable bits in `prepack` through `scripts/set-bin-executable.mjs`, so `tsc`-emitted bins do not ship with mode `0644`.                                            |
 
 Imports are parsed with the TypeScript compiler's own scanner (the engine
 `typescript-eslint` runs on) over each package's `src`, so the import-driven
@@ -45,6 +47,17 @@ rules reflect what the code actually imports, not what `package.json` declares.
 
 A package with a Python project file (`pyproject.toml` / `setup.py` /
 `setup.cfg`) is tagged `pypi` and exempt from the npm rules.
+
+Lockstep release groups are discovered from `.github/actions/prepare-lockstep-release`
+usage in release workflows. Packages in the same valid group may keep loose
+intra-group ranges because the release action rewrites every package version and
+every intra-group dependency to the same concrete version immediately before
+publish.
+
+Published packages that declare `bin` entries should add
+`node ../../scripts/set-bin-executable.mjs` to `prepack`. The helper derives bin
+paths from `package.json`, fails if a declared target is missing, and writes
+progress to stderr so `npm pack --json` stdout remains parseable.
 
 ## Configuration
 

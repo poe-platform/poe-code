@@ -16,11 +16,11 @@ npm run screenshot-poe-code -- <command> [args...]
 
 ### Options
 
-| Option | Description |
-|--------|-------------|
+| Option                | Description                                                    |
+| --------------------- | -------------------------------------------------------------- |
 | `-o, --output <path>` | Custom output file path (default: `screenshots/<command>.png`) |
-| `--no-header` | Skip the `% command args` header line |
-| `--poe-code` | Run via `npm run dev` with TTY emulation |
+| `--no-header`         | Skip the `% command args` header line                          |
+| `--poe-code`          | Run via `npm run dev` with TTY emulation                       |
 
 ### How It Works
 
@@ -49,15 +49,15 @@ Supported key tokens include `up`, `down`, `left`, `right`, `shift-up`, `shift-d
 
 The tool kills the spawned process after a timeout and saves whatever output was captured up to that point.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POE_SCREENSHOT_TIMEOUT_MS` | `60000` (60s) | Maximum time to wait for the command to exit |
-| `POE_SCREENSHOT_PTY` | unset | Set to `1` to capture the visible PTY screen instead of piped transcript output |
-| `POE_SCREENSHOT_COLUMNS` | `120` in PTY mode, `80` for TTY emulation | Terminal width for PTY or forced-TTY captures |
-| `POE_SCREENSHOT_ROWS` | `40` in PTY mode, `24` for TTY emulation | Terminal height for PTY or forced-TTY captures |
-| `POE_SCREENSHOT_KEYS` | unset | Comma-separated key tokens to send before capture |
-| `POE_SCREENSHOT_KEY_DELAY_MS` | `250` | Delay before sending the first key |
-| `POE_SCREENSHOT_KEY_INTERVAL_MS` | `75` | Delay between sent keys |
+| Variable                         | Default                                   | Description                                                                     |
+| -------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------- |
+| `POE_SCREENSHOT_TIMEOUT_MS`      | `60000` (60s)                             | Maximum time to wait for the command to exit                                    |
+| `POE_SCREENSHOT_PTY`             | unset                                     | Set to `1` to capture the visible PTY screen instead of piped transcript output |
+| `POE_SCREENSHOT_COLUMNS`         | `120` in PTY mode, `80` for TTY emulation | Terminal width for PTY or forced-TTY captures                                   |
+| `POE_SCREENSHOT_ROWS`            | `40` in PTY mode, `24` for TTY emulation  | Terminal height for PTY or forced-TTY captures                                  |
+| `POE_SCREENSHOT_KEYS`            | unset                                     | Comma-separated key tokens to send before capture                               |
+| `POE_SCREENSHOT_KEY_DELAY_MS`    | `250`                                     | Delay before sending the first key                                              |
+| `POE_SCREENSHOT_KEY_INTERVAL_MS` | `75`                                      | Delay between sent keys                                                         |
 
 ```bash
 # Short timeout for fast commands
@@ -79,3 +79,33 @@ The tool forces color output regardless of the user's terminal settings:
 - `POE_NO_SPINNER=1` - disables animated spinners
 
 When `--poe-code` is used, `force-tty.cjs` is injected via `NODE_OPTIONS --require` to emulate a TTY environment (sets `isTTY`, `columns=80`, `rows=24`).
+
+## Release Helpers
+
+### `prepare-lockstep-release.mjs`
+
+Sets one concrete semantic version across a lockstep release group and rewrites
+all intra-group `dependencies`, `peerDependencies`, and `optionalDependencies`
+to that same version. The script is driven by environment variables and is
+usually invoked through `.github/actions/prepare-lockstep-release` from release
+workflows.
+
+| Variable                    | Description                                             |
+| --------------------------- | ------------------------------------------------------- |
+| `LOCKSTEP_RELEASE_VERSION`  | Concrete semver version to write.                       |
+| `LOCKSTEP_RELEASE_PACKAGES` | JSON array of package directories in the release group. |
+
+### `set-bin-executable.mjs`
+
+Restores mode `0755` on every file declared in a package `bin` field. Run it
+from a package `prepack` script after building so binaries emitted by `tsc` ship
+with executable bits. Progress is written to stderr to keep `npm pack --json`
+stdout parseable.
+
+```json
+{
+  "scripts": {
+    "prepack": "npm run build && node ../../scripts/set-bin-executable.mjs"
+  }
+}
+```

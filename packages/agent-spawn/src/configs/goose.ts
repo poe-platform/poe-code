@@ -21,7 +21,8 @@ export const gooseSpawnConfig: CliSpawnConfig = {
   },
   stdinMode: {
     omitPrompt: true,
-    extraArgs: ["--instructions", "-"]
+    extraArgs: ["--instructions", "-"],
+    automaticFallback: false
   },
   interactive: {
     defaultArgs: ["session"],

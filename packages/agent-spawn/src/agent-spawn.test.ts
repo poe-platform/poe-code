@@ -477,16 +477,48 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain(prompt);
   });
 
-  it("does not silently switch buildSpawnArgs callers to stdin for large prompts", () => {
-    const prompt = "x".repeat(128 * 1024);
+  it("uses stdin args for codex when the prompt exceeds the safe argv byte limit", () => {
+    const prompt = "x".repeat(64 * 1024 + 1);
     const result = buildSpawnArgs("codex", { prompt });
 
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
-      prompt,
+      ...codexSpawnConfig.stdinMode!.extraArgs,
       ...codexSpawnConfig.defaultArgs,
       ...codexSpawnConfig.modes.yolo
     ]);
+    expect(result.args).not.toContain(prompt);
+  });
+
+  it("keeps codex prompts at the safe argv byte limit in argv", () => {
+    const prompt = "x".repeat(64 * 1024);
+    const result = buildSpawnArgs("codex", { prompt });
+
+    expect(result.args).toContain(prompt);
+  });
+
+  it("measures the automatic stdin fallback threshold in UTF-8 bytes", () => {
+    const prompt = "é".repeat(32 * 1024 + 1);
+    const result = buildSpawnArgs("codex", { prompt });
+
+    expect(prompt.length).toBeLessThan(64 * 1024);
+    expect(result.args).not.toContain(prompt);
+  });
+
+  it.each(["kimi", "goose"])(
+    "does not automatically pipe large prompts into the %s structured-input protocol",
+    (agent) => {
+      const prompt = "x".repeat(64 * 1024 + 1);
+      const result = buildSpawnArgs(agent, { prompt });
+
+      expect(result.args).toContain(prompt);
+    }
+  );
+
+  it("keeps large prompts in argv for agents without stdinMode", () => {
+    const prompt = "x".repeat(64 * 1024 + 1);
+    const result = buildSpawnArgs("opencode", { prompt });
+
     expect(result.args).toContain(prompt);
   });
 
@@ -806,6 +838,25 @@ describe("spawn", () => {
     const child = spawnMock.mock.results[0]?.value as any;
     expect(typeof child?.__capturedStdin).toBe("function");
     expect(child.__capturedStdin()).toBe("hello");
+  });
+
+  it("automatically writes large prompts to stdin when supported", async () => {
+    const prompt = "x".repeat(64 * 1024 + 1);
+    const child = createMockChildProcess({ stdout: "ok\n", exitCode: 0 });
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(child);
+
+    await spawn("codex", { prompt });
+
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    const [, args, spawnOptions] = spawnMock.mock.calls[0]!;
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.stdinMode!.extraArgs,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(spawnOptions).toMatchObject({ stdio: ["pipe", "pipe", "pipe"] });
+    expect((child as any).__capturedStdin()).toBe(prompt);
   });
 
   it("writes prompt to stdin for claude-code when supported", async () => {

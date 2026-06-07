@@ -127,7 +127,9 @@ describe("unit", () => {
   it("throws a useful error for unbalanced sections", () => {
     expect(() => renderTemplate("{{#items}}x", { items: [] })).toThrow('Unclosed section "items"');
     expect(() => renderTemplate("{{/items}}", {})).toThrow('Closing unopened section "items"');
-    expect(() => renderTemplate("{{#a}}{{/b}}", {})).toThrow('Unclosed section "a" before closing "b"');
+    expect(() => renderTemplate("{{#a}}{{/b}}", {})).toThrow(
+      'Unclosed section "a" before closing "b"'
+    );
   });
 
   it("does not render inherited view properties", () => {
@@ -135,7 +137,9 @@ describe("unit", () => {
       nested: {}
     }) as View;
 
-    expect(renderTemplate("{{constructor}}/{{toString}}/{{nested.toString}}/{{secret.value}}", inherited)).toBe("///");
+    expect(
+      renderTemplate("{{constructor}}/{{toString}}/{{nested.toString}}/{{secret.value}}", inherited)
+    ).toBe("///");
   });
 });
 
@@ -161,7 +165,8 @@ describe.skipIf(Mustache === undefined)("parity", () => {
     },
     {
       name: "github-workflows pull request comment prompt",
-      template: "Read {{url}} from {{comment.author}} on PR {{pr.number}} by {{pr.author}}: {{comment.body}}",
+      template:
+        "Read {{url}} from {{comment.author}} on PR {{pr.number}} by {{pr.author}}: {{comment.body}}",
       view: {
         url: "https://github.com/acme/app/pull/42",
         comment: { author: "bob", body: "poe-code-agent please apply this" },
@@ -170,7 +175,12 @@ describe.skipIf(Mustache === undefined)("parity", () => {
     },
     {
       name: "github-workflows prompt-preview prompt",
-      template: ["Issue URL: {{url}}", "Rules:", "{{custom_project_rules}}", "{{response_style}}"].join("\n"),
+      template: [
+        "Issue URL: {{url}}",
+        "Rules:",
+        "{{custom_project_rules}}",
+        "{{response_style}}"
+      ].join("\n"),
       view: {
         url: "https://github.com/acme/app/issues/188",
         custom_project_rules: "Check docs/internal.md first.\n",
@@ -194,7 +204,9 @@ describe.skipIf(Mustache === undefined)("parity", () => {
     },
     {
       name: "config-mutations templateMergeToml",
-      template: ["[tools]", 'agent = "{{agent}}"', "models = [{{#models}}\"{{.}}\"{{/models}}]"].join("\n"),
+      template: ["[tools]", 'agent = "{{agent}}"', 'models = [{{#models}}"{{.}}"{{/models}}]'].join(
+        "\n"
+      ),
       view: { agent: "codex", models: ["gpt-5.4"] }
     },
     {
@@ -218,7 +230,9 @@ describe.skipIf(Mustache === undefined)("escape", () => {
     try {
       const template = "{{name}} {{{name}}} {{&name}}";
       const view = { name: "<K> & /" };
-      expect(renderTemplate(template, view, { escape: "none" })).toBe(mustache.render(template, view));
+      expect(renderTemplate(template, view, { escape: "none" })).toBe(
+        mustache.render(template, view)
+      );
     } finally {
       mustache.escape = originalEscape;
     }
@@ -239,8 +253,9 @@ describe("yield", () => {
   });
 
   it("preserves unresolved tags during raw yield substitution", () => {
-    expect(renderTemplate("Read {{url}}. {{yield}}", {}, { yield: "Focus on {{repo}}.", escape: "none" }))
-      .toBe("Read {{url}}. Focus on {{repo}}.");
+    expect(
+      renderTemplate("Read {{url}}. {{yield}}", {}, { yield: "Focus on {{repo}}.", escape: "none" })
+    ).toBe("Read {{url}}. Focus on {{repo}}.");
   });
 
   it("treats yield as a normal variable when the option is omitted", () => {
@@ -249,15 +264,143 @@ describe("yield", () => {
   });
 
   it("does not let yield substitution bypass section parsing", () => {
-    expect(renderTemplate("{{#show}}before {{yield}} after{{/show}}", { show: false }, { yield: "{{name}}" }))
-      .toBe("");
-    expect(renderTemplate("{{#show}}before {{yield}} after{{/show}}", { show: true, name: "K" }, { yield: "{{name}}" }))
-      .toBe("before K after");
+    expect(
+      renderTemplate(
+        "{{#show}}before {{yield}} after{{/show}}",
+        { show: false },
+        { yield: "{{name}}" }
+      )
+    ).toBe("");
+    expect(
+      renderTemplate(
+        "{{#show}}before {{yield}} after{{/show}}",
+        { show: true, name: "K" },
+        { yield: "{{name}}" }
+      )
+    ).toBe("before K after");
   });
 
   it("does not throw on multiple or unresolved yield tokens", () => {
     expect(() => renderTemplate("{{yield}} {{yield}}", {}, { yield: "X" })).not.toThrow();
     expect(() => renderTemplate("{{yield}}", {})).not.toThrow();
     expect(renderTemplate("{{yield}}", {})).toBe("");
+  });
+});
+
+describe("partials", () => {
+  it("renders named partials against the parent view", () => {
+    expect(
+      renderTemplate(
+        "Hello {{> greeting}}",
+        { name: "K" },
+        {
+          partials: { greeting: "{{name}}" }
+        }
+      )
+    ).toBe("Hello K");
+  });
+
+  it("renders nested partials", () => {
+    expect(
+      renderTemplate(
+        "{{> outer}}",
+        { name: "K" },
+        {
+          partials: {
+            outer: "Before {{> inner}} after",
+            inner: "{{name}}"
+          }
+        }
+      )
+    ).toBe("Before K after");
+  });
+
+  it("indents each line of a standalone partial", () => {
+    expect(
+      renderTemplate(
+        "Items:\n  {{> items}}\nDone",
+        {},
+        {
+          partials: { items: "one\ntwo\n" }
+        }
+      )
+    ).toBe("Items:\n  one\n  two\nDone");
+  });
+
+  it("composes partials with yield", () => {
+    expect(
+      renderTemplate(
+        "{{> rules}}\n{{yield}}",
+        { name: "K" },
+        {
+          escape: "none",
+          yield: "Hello {{name}}",
+          partials: { rules: "Rules for {{name}}\n" }
+        }
+      )
+    ).toBe("Rules for K\nHello K");
+  });
+
+  it("substitutes yield tokens inside partials", () => {
+    expect(
+      renderTemplate(
+        "{{> layout}}",
+        {},
+        {
+          escape: "none",
+          yield: "Child",
+          partials: { layout: "Before\n{{yield}}\nAfter" }
+        }
+      )
+    ).toBe("Before\nChild\nAfter");
+  });
+
+  it("fails when a referenced partial is missing", () => {
+    expect(() => renderTemplate("{{> missing}}", {}, { partials: {} })).toThrow(
+      'Partial "missing" not found.'
+    );
+  });
+
+  it("fails for missing partials inside inactive sections", () => {
+    expect(() =>
+      renderTemplate("{{#show}}{{> missing}}{{/show}}", { show: false }, { partials: {} })
+    ).toThrow('Partial "missing" not found.');
+  });
+
+  it("fails when partial references are circular", () => {
+    expect(() =>
+      renderTemplate(
+        "{{> one}}",
+        {},
+        {
+          partials: { one: "{{> two}}", two: "{{> one}}" }
+        }
+      )
+    ).toThrow("Circular partial reference detected: one -> two -> one.");
+  });
+
+  it("fails when partial references exceed the recursion limit", () => {
+    const partials = Object.fromEntries(
+      Array.from({ length: 102 }, (_, index) => [
+        `partial-${index}`,
+        index === 101 ? "done" : `{{> partial-${index + 1}}}`
+      ])
+    );
+
+    expect(() => renderTemplate("{{> partial-0}}", {}, { partials })).toThrow(
+      "Maximum partial depth exceeded (100)."
+    );
+  });
+
+  it("validates unresolved variables when requested", () => {
+    expect(() => renderTemplate("Hello {{name}}", {}, { validate: true })).toThrow(
+      'Template variable "name" not found.'
+    );
+  });
+
+  it("validates variables inside inactive sections", () => {
+    expect(() =>
+      renderTemplate("{{#show}}{{name}}{{/show}}", { show: false }, { validate: true })
+    ).toThrow('Template variable "name" not found.');
   });
 });

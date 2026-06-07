@@ -68,6 +68,7 @@ interface ToolDefinition<TServices extends object> {
 }
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
+  approvals?: boolean;
   name: string;
   version?: string;
   humanInLoop?: HumanInLoopRuntimeOptions;
@@ -836,7 +837,8 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
-  const root = mergeApprovalsGroup(normalizeRoots(roots));
+  const normalizedRoot = normalizeRoots(roots);
+  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
 
   if (!hasMcpProxyGroups(root)) {
     return createResolvedMCPServer(root, options);
@@ -850,7 +852,8 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
   options: RunMCPOptions<TServices>
 ): Promise<void> {
   enableSourceMaps();
-  const root = mergeApprovalsGroup(normalizeRoots(roots));
+  const normalizedRoot = normalizeRoots(roots);
+  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const server = createResolvedMCPServer(root, options);
   await server.listen();

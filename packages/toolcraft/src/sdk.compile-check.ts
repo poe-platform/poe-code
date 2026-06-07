@@ -93,6 +93,7 @@ const ignoredRoot = defineGroup({
 });
 
 const ignoredOptions = {
+  approvals: false,
   casing: "camel",
   services: {
     logger: console,

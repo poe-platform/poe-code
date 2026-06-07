@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { vol } from "memfs";
-import { discoverCodeReviewProfiles } from "./assets.js";
+import { discoverCodeReviewProfiles, resolveCodeReviewRolePrompt } from "./assets.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -84,5 +84,41 @@ describe("discoverCodeReviewProfiles", () => {
     await expect(
       discoverCodeReviewProfiles({ cwd: "/repo", profileDirectories: ["../catalog"] })
     ).rejects.toThrow("codeReview.profileDirectories entries must be absolute paths");
+  });
+
+  it("extends the built-in role prompt and reports provenance", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md":
+        "---\nextends: true\n---\nProject policy\n\n{{yield}}"
+    });
+
+    const resolved = await resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" });
+
+    expect(resolved.prompt).toContain("Project policy");
+    expect(resolved.prompt).toContain("Review this pull request");
+    expect(resolved.chain).toHaveLength(2);
+    expect(resolved.chain[0]).toBe("/repo/.poe-code/code-review/prompts/orchestrator.md");
+  });
+
+  it("keeps full role prompt overrides backward compatible", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md": "Full project override"
+    });
+
+    const resolved = await resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" });
+
+    expect(resolved.prompt).toBe("Full project override");
+    expect(resolved.chain).toEqual(["/repo/.poe-code/code-review/prompts/orchestrator.md"]);
+  });
+
+  it("keeps validating declared role prompt metadata", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md":
+        "---\nversion: 1\nrole: subagent\n---\nWrong role"
+    });
+
+    await expect(
+      resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" })
+    ).rejects.toThrow("frontmatter.role must equal orchestrator");
   });
 });

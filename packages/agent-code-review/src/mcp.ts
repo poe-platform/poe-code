@@ -7,11 +7,7 @@ import {
 import { type SpawnResult, spawn } from "@poe-code/agent-spawn";
 import { S, defineCommand, defineGroup } from "toolcraft";
 import { runMCP } from "toolcraft/mcp";
-import {
-  CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT,
-  discoverCodeReviewProfiles,
-  loadCodeReviewRolePrompt
-} from "./assets.js";
+import { discoverCodeReviewProfiles, loadCodeReviewRolePrompt } from "./assets.js";
 import { requireSafeDocumentSegment } from "./document-schemas.js";
 import type {
   CodeReviewDecision,
@@ -21,6 +17,7 @@ import type {
 import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
 import { parseCodeReviewProfileDirectories } from "./config-scope.js";
+import { buildCodeReviewReviewerPrompt } from "./prompt-builders.js";
 
 export const CODE_REVIEW_AGENT_MCP_ROLES = ["agent", "orchestrator", "subagent"] as const;
 
@@ -331,7 +328,7 @@ export function createCodeReviewAgentMcpGroup(
             details: agent
           });
           const prDetails = await fetchPr(pr, undefined, { cwd: context.cwd });
-          const prompt = renderSubagentPrompt({
+          const prompt = buildCodeReviewReviewerPrompt({
             template: await loadCodeReviewRolePrompt({
               cwd: context.cwd,
               role: "subagent"
@@ -509,29 +506,6 @@ async function spawnWithPoeCode(
     ...options,
     ...(shouldUseTextStdinForCodeReview(agent) ? { useStdin: true } : {})
   });
-}
-
-function renderSubagentPrompt(input: {
-  template: string;
-  profile: string;
-  prUrl: string;
-  prDetails: unknown;
-}): string {
-  return `${input.template}
-
-REQUIRED REVIEW FLOW
-1. Read the pull request details, diff, and prior review activity with the available code_review_pr_* tools before drafting.
-2. Do not raise a concern already covered by an existing comment or prior review unless changed code introduces a distinct new issue.
-3. Apply the assigned profile and create exactly one raw review draft with code_review_create_draft; do not publish anything.
-4. The only allowed MCP tools are code_review_pr_view, code_review_pr_diff, code_review_pr_comments, and code_review_create_draft.
-5. ${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}
-
-PROFILE
-${input.profile}
-
-PULL REQUEST
-${input.prUrl}
-${JSON.stringify(input.prDetails)}`;
 }
 
 async function ensureState(

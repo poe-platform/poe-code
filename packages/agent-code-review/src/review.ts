@@ -8,7 +8,6 @@ import {
 } from "github-review";
 import { type SpawnOptions, type SpawnResult, spawn } from "@poe-code/agent-spawn";
 import {
-  CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT,
   discoverCodeReviewProfiles,
   loadCodeReviewProfile,
   loadCodeReviewPrompt,
@@ -21,6 +20,7 @@ import {
   resolveCodeReviewRuntimeOptions
 } from "./config.js";
 import { createCodeReviewAgentMcpConfig } from "./mcp.js";
+import { buildCodeReviewOrchestratorPrompt } from "./prompt-builders.js";
 import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import type { CodeReviewState } from "./review-state.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
@@ -108,7 +108,7 @@ export async function runCodeReview(
     action: "spawned_orchestrator",
     details: agent
   });
-  const prompt = renderReviewPrompt({
+  const prompt = buildCodeReviewOrchestratorPrompt({
     input: options,
     profiles,
     profile,
@@ -181,42 +181,6 @@ async function resolvePrompt(
     ? loadCodeReviewPrompt(resolve(options.cwd, options.promptPath))
     : loadCodeReviewRolePrompt({ cwd: options.cwd, role: "orchestrator" });
 }
-
-function renderReviewPrompt(input: {
-  input: CodeReviewRunOptions;
-  profiles: Awaited<ReturnType<typeof discoverCodeReviewProfiles>>;
-  profile: string;
-  promptTemplate: string;
-  prDetails: Record<string, unknown>;
-  diff: string;
-  priorActivity: Record<string, unknown>;
-}): string {
-  const additionalFeedback = input.input.additionalFeedback?.trim();
-  return [
-    input.promptTemplate,
-    ORCHESTRATOR_WORKFLOW_PROMPT,
-    `\nPROFILE CARDS\n${input.profiles
-      .map((profile) => `## ${profile.name}\n\n${profile.content.trim()}`)
-      .join("\n\n")}`,
-    `\nPRIMARY REVIEW PROFILE\n${input.profile}`,
-    additionalFeedback ? `\nADDITIONAL FEEDBACK\n${additionalFeedback}` : "",
-    `\nPULL REQUEST\n${input.input.prUrl}\n${JSON.stringify(input.prDetails)}`,
-    `\nPRIOR COMMENTS AND REVIEWS\n${JSON.stringify(input.priorActivity)}`,
-    `\nDIFF SUMMARY\n${input.diff}`
-  ]
-    .filter(Boolean)
-    .join("\n");
-}
-
-const ORCHESTRATOR_WORKFLOW_PROMPT = `
-REQUIRED ORCHESTRATION FLOW
-1. Treat PRIOR COMMENTS AND REVIEWS as already-raised concerns and do not repeat the same underlying finding.
-2. Use code_review_profile_list and spawn useful reviewer profiles through code_review_agent_spawn; spawn at least one available profile unless none can evaluate the change.
-3. code_review_agent_spawn is asynchronous. Poll code_review_agent_status until all spawned reviewers are completed or failed before reading drafts.
-4. Read completed raw reviews with code_review_list_drafts, merge useful new findings, and deduplicate overlapping or previously reported concerns.
-5. Create exactly one final merged review with code_review_create_draft, even when there are no new findings.
-6. Do not publish reviews or expose orchestration details in the final review text.
-7. ${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}`;
 
 function absoluteDraftStore(input: CodeReviewRunOptions): string {
   return resolveCodeReviewStoreDirectory(input.cwd, input.draftStore);

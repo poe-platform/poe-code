@@ -12,6 +12,10 @@ import {
 } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import {
+  resolvePromptDocument,
+  type ResolvedPromptDocument
+} from "@poe-code/config-extends";
+import {
   parseCodeReviewProfileMarkdown,
   parseCodeReviewPromptMarkdown,
   requireSafeDocumentSegment
@@ -197,23 +201,42 @@ export async function loadCodeReviewRolePrompt(input: {
   cwd: string;
   role: CodeReviewPromptRole;
 }): Promise<string> {
+  return (await resolveCodeReviewRolePrompt(input)).prompt;
+}
+
+export async function resolveCodeReviewRolePrompt(input: {
+  cwd: string;
+  role: CodeReviewPromptRole;
+}): Promise<ResolvedPromptDocument> {
   const cwd = resolve(input.cwd);
-  const filePath = join(codeReviewAssetsDirectory(cwd), "prompts", `${input.role}.md`);
-  try {
-    await assertContainedAssetDirectoryOrMissing(cwd, dirname(filePath));
-    const parsed = parseCodeReviewPromptMarkdown(
-      await readRegularAssetFile(filePath),
-      filePath,
-      input.role
-    );
-    const prompt = requireMarkdownBody(parsed.content, filePath);
-    return input.role === "agent" ? requireUserFacingOutputContract(prompt) : prompt;
-  } catch (error) {
-    if (isMissingFileError(error)) {
-      const prompt = BUILT_IN_CODE_REVIEW_PROMPTS[input.role];
-      return input.role === "agent" ? requireUserFacingOutputContract(prompt) : prompt;
-    }
-    throw error;
+  const relativePath = join(".poe-code", "code-review", "prompts", `${input.role}.md`);
+  const builtInPath = resolve("/poe-code/code-review/prompts", `${input.role}.md`);
+  const resolvedPrompt = await resolvePromptDocument({
+    cwd,
+    filePath: relativePath,
+    optional: true,
+    baseDocuments: [
+      {
+        filePath: builtInPath,
+        content: BUILT_IN_CODE_REVIEW_PROMPTS[input.role]
+      }
+    ]
+  });
+  validateResolvedRolePrompt(resolvedPrompt, input.role);
+  return input.role === "agent"
+    ? { ...resolvedPrompt, prompt: requireUserFacingOutputContract(resolvedPrompt.prompt) }
+    : resolvedPrompt;
+}
+
+function validateResolvedRolePrompt(
+  prompt: ResolvedPromptDocument,
+  role: CodeReviewPromptRole
+): void {
+  if (prompt.metadata.version !== undefined && prompt.metadata.version !== 1) {
+    throw new Error(`${prompt.source}: frontmatter.version must equal 1`);
+  }
+  if (prompt.metadata.role !== undefined && prompt.metadata.role !== role) {
+    throw new Error(`${prompt.source}: frontmatter.role must equal ${role}`);
   }
 }
 

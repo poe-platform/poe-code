@@ -1,6 +1,6 @@
 import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { resolvePromptDocument } from "./prompt-document.js";
+import { resolvePromptDocument, type PromptDocumentFileSystem } from "./prompt-document.js";
 
 function createFs(files: Record<string, string>) {
   return createFsFromVolume(Volume.fromJSON(files)).promises;
@@ -161,7 +161,7 @@ describe("resolvePromptDocument", () => {
       "/repo/prompts/.keep": ""
     });
     volume.symlinkSync("/outside/review.md", "/repo/prompts/review.md");
-    const fs = createFsFromVolume(volume).promises;
+    const fs = createFsFromVolume(volume).promises as unknown as PromptDocumentFileSystem;
 
     await expect(
       resolvePromptDocument({ cwd: "/repo", filePath: "prompts/review.md", fs })
@@ -184,5 +184,26 @@ describe("resolvePromptDocument", () => {
         fs
       })
     ).rejects.toThrow("Prompt document path escapes configured root");
+  });
+
+  it("resolves optional documents against in-memory base documents", async () => {
+    const volume = Volume.fromJSON({ "/repo/.keep": "" });
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      resolvePromptDocument({
+        cwd: "/repo",
+        filePath: "prompts/review.md",
+        optional: true,
+        baseDocuments: [
+          { filePath: "/package/prompts/review.md", content: "Packaged review prompt" }
+        ],
+        fs
+      })
+    ).resolves.toMatchObject({
+      template: "Packaged review prompt",
+      prompt: "Packaged review prompt",
+      chain: ["/repo/prompts/review.md", "/package/prompts/review.md"]
+    });
   });
 });

@@ -26,6 +26,7 @@ describe("code-review command group", () => {
       "ingest",
       "install",
       "profiles",
+      "prompt-preview",
       "run"
     ]);
   });

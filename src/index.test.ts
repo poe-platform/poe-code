@@ -19,6 +19,7 @@ import {
   planDocumentSchema,
   planDocumentSchemaId,
   openaiResponsesPlugin,
+  previewCodeReviewSpawnPrompt,
   readCodeReviewDraft,
   resolvePromptDocument,
   runExperiment,
@@ -84,6 +85,7 @@ describe("entrypoint module", () => {
     expect(typeof discoverCodeReviewProfiles).toBe("function");
     expect(typeof installCodeReviewAssets).toBe("function");
     expect(typeof loadCodeReviewProfile).toBe("function");
+    expect(typeof previewCodeReviewSpawnPrompt).toBe("function");
     expect(typeof ingestCodeReviewProfile).toBe("function");
     expect(typeof runCodeReview).toBe("function");
     expect(typeof readCodeReviewDraft).toBe("function");

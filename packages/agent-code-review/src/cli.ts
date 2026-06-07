@@ -15,11 +15,20 @@ import {
 } from "./review.js";
 import { readCodeReviewDraft } from "./review-store.js";
 import { loadCodeReviewRuntimeConfig } from "./config.js";
+import {
+  CODE_REVIEW_PREVIEW_SPAWNS,
+  previewCodeReviewSpawnPrompt,
+  type CodeReviewSpawnPromptPreview,
+  type PreviewCodeReviewSpawnPromptInput
+} from "./prompt-preview.js";
 
 type RunCodeReviewHandler = (input: CodeReviewOrchestrationInput) => Promise<CodeReviewResult>;
 type CommitCodeReviewDraftsHandler = (
   input: CommitCodeReviewDraftsInput
 ) => Promise<CodeReviewCommitResult | CodeReviewPublicationPayload>;
+type PreviewCodeReviewSpawnPromptHandler = (
+  input: PreviewCodeReviewSpawnPromptInput
+) => Promise<CodeReviewSpawnPromptPreview>;
 
 const agentMcpCommand = defineCommand({
   name: "agent-mcp",
@@ -119,6 +128,35 @@ export const readCodeReviewDraftCommand = defineCommand({
   }
 });
 
+function createPromptPreviewCommand(
+  preview: PreviewCodeReviewSpawnPromptHandler = (input) => previewCodeReviewSpawnPrompt(input)
+) {
+  return defineCommand({
+    name: "prompt-preview",
+    description: "Preview the exact prompt for a code review spawn without side effects.",
+    params: S.Object({
+      spawn: S.Enum(CODE_REVIEW_PREVIEW_SPAWNS, {
+        description: "Spawn role to preview."
+      }),
+      profile: S.Optional(S.String({ description: "Reviewer profile name." })),
+      cwd: S.Optional(S.String({ description: "Repository root directory." }))
+    }),
+    scope: ["cli"],
+    handler: async ({ params }) => {
+      const cwd = params.cwd?.trim() || process.cwd();
+      const config = await loadCodeReviewRuntimeConfig(cwd);
+      return preview({
+        cwd,
+        spawn: params.spawn,
+        profileDirectories: config.profileDirectories,
+        ...(params.profile ? { profile: params.profile } : {})
+      });
+    }
+  });
+}
+
+export const promptPreviewCodeReviewCommand = createPromptPreviewCommand();
+
 function createRunCodeReviewCommand(run: RunCodeReviewHandler = (input) => runCodeReview(input)) {
   return defineCommand({
     name: "run",
@@ -216,6 +254,7 @@ export const ingestCodeReviewProfileCommand = defineCommand({
 export interface CodeReviewCliDependencies {
   run?: RunCodeReviewHandler;
   commit?: CommitCodeReviewDraftsHandler;
+  preview?: PreviewCodeReviewSpawnPromptHandler;
 }
 
 export function createCodeReviewGroup(dependencies: CodeReviewCliDependencies = {}) {
@@ -226,6 +265,7 @@ export function createCodeReviewGroup(dependencies: CodeReviewCliDependencies = 
       agentMcpCommand,
       installCodeReviewAssetsCommand,
       listCodeReviewProfilesCommand,
+      dependencies.preview ? createPromptPreviewCommand(dependencies.preview) : promptPreviewCodeReviewCommand,
       dependencies.run ? createRunCodeReviewCommand(dependencies.run) : runCodeReviewCommand,
       dependencies.commit
         ? createCommitCodeReviewDraftsCommand(dependencies.commit)

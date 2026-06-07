@@ -41,6 +41,12 @@ export type {
 } from "./agent.js";
 export { bridgeHooks, cleanupBridgedHooks, supportedHookAgents } from "@poe-code/agent-hook-config";
 export { planDocumentSchema, planDocumentSchemaId } from "./plan/document-schema.js";
+export { resolvePromptDocument } from "./sdk/prompt-document.js";
+export type {
+  PromptDocumentFileSystem,
+  ResolvedPromptDocument,
+  ResolvePromptDocumentInput
+} from "./sdk/prompt-document.js";
 export { ghGroup } from "@poe-code/github-workflows";
 export {
   evalCheck,

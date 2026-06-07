@@ -20,6 +20,7 @@ import {
   planDocumentSchemaId,
   openaiResponsesPlugin,
   readCodeReviewDraft,
+  resolvePromptDocument,
   runExperiment,
   runCodeReview,
   runCodeReviewAgentMcp,
@@ -92,6 +93,10 @@ describe("entrypoint module", () => {
 
   it("re-exports runExperiment", () => {
     expect(typeof runExperiment).toBe("function");
+  });
+
+  it("re-exports the prompt document resolver", () => {
+    expect(typeof resolvePromptDocument).toBe("function");
   });
 
   it("re-exports process launcher SDK helpers", () => {

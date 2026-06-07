@@ -5,6 +5,7 @@ export {
 } from "./config-scope.js";
 export {
   loadCodeReviewConfig,
+  loadCodeReviewRuntimeConfig,
   loadDefaultPoeCodeAgent,
   resolveCodeReviewRuntimeOptions,
   resolveCodeReviewRunOptions,

@@ -20,6 +20,7 @@ Configuration uses the normal `.poe-code/config.json` hierarchy under the `codeR
   "codeReview": {
     "agent": "codex",
     "draftStore": ".poe-code/code-review/reviews",
+    "profileDirectories": ["/srv/reviewer-profiles"],
     "humanGate": { "provider": "none" }
   }
 }
@@ -89,6 +90,20 @@ GH_TOKEN="$GH_TOKEN" poe-code code-review commit \
 ```
 
 Use `commit --dry-run` before enabling publication in a pipeline that is still being configured.
+
+## External profile catalogs
+
+Embedding services can configure absolute central catalog directories through `codeReview.profileDirectories`, or pass the same `profileDirectories` array to `runCodeReview` and `discoverCodeReviewProfiles`. The `profiles` command and spawned reviewer agents use the same configured catalogs.
+
+```ts
+await runCodeReview({
+  prUrl: "https://github.com/acme/widgets/pull/123",
+  cwd: "/srv/checkouts/widgets",
+  profileDirectories: ["/srv/reviewer-profiles"]
+});
+```
+
+Profile precedence is deterministic: repo-local profiles win first, then external directories in configured order. An exact-name collision keeps the first profile; names that differ only by Unicode normalization or case are rejected. The built-in `generic` profile is used only when neither repo-local nor external catalogs contain profiles.
 
 ## External human gates
 

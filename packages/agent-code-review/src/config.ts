@@ -10,7 +10,8 @@ import {
 import {
   type CodeReviewHumanGateConfig,
   codeReviewConfigScope,
-  parseCodeReviewConfigDocument
+  parseCodeReviewConfigDocument,
+  parseCodeReviewProfileDirectories
 } from "./config-scope.js";
 import { resolveCodeReviewStoreDirectory } from "./review-store.js";
 
@@ -18,6 +19,7 @@ export interface CodeReviewConfig {
   agent?: string;
   draftStore: string;
   humanGate: CodeReviewHumanGateConfig;
+  profileDirectories: string[];
 }
 
 export interface CodeReviewRunInput {
@@ -27,6 +29,7 @@ export interface CodeReviewRunInput {
   agent?: string;
   draftStore?: string;
   humanGate?: CodeReviewHumanGateConfig;
+  profileDirectories?: string[];
   profilePath?: string;
   promptPath?: string;
   profiles?: string[];
@@ -66,7 +69,8 @@ export async function loadCodeReviewConfig(options: ConfigStoreOptions): Promise
   return {
     ...(agent ? { agent } : {}),
     draftStore,
-    humanGate: config.humanGate
+    humanGate: config.humanGate,
+    profileDirectories: config.profileDirectories
   };
 }
 
@@ -122,6 +126,9 @@ export async function resolveCodeReviewRunOptions(
     ...(agent ? { agent } : {}),
     draftStore,
     humanGate: input.humanGate ?? config.humanGate,
+    profileDirectories: parseCodeReviewProfileDirectories(
+      input.profileDirectories ?? config.profileDirectories
+    ),
     ...(input.profilePath === undefined ? {} : { profilePath: input.profilePath }),
     ...(input.promptPath === undefined ? {} : { promptPath: input.promptPath }),
     ...(input.profiles === undefined ? {} : { profiles: input.profiles }),
@@ -134,12 +141,20 @@ export async function resolveCodeReviewRunOptions(
 export async function resolveCodeReviewRuntimeOptions(
   input: CodeReviewRunInput
 ): Promise<CodeReviewRunOptions> {
-  return resolveCodeReviewRunOptions(input, {
+  return resolveCodeReviewRunOptions(input, runtimeConfigOptions(input.cwd));
+}
+
+export async function loadCodeReviewRuntimeConfig(cwd: string): Promise<CodeReviewConfig> {
+  return loadCodeReviewConfig(runtimeConfigOptions(cwd));
+}
+
+function runtimeConfigOptions(cwd: string): ConfigStoreOptions {
+  return {
     fs: nativeConfigFs,
     filePath: resolveConfigPath(homedir()),
-    projectFilePath: resolveProjectConfigPath(input.cwd),
+    projectFilePath: resolveProjectConfigPath(cwd),
     env: process.env
-  });
+  };
 }
 
 export async function loadDefaultPoeCodeAgent(input: {

@@ -4,6 +4,7 @@ import type { CodeReviewYamlStore } from "./review-store.js";
 import { createCodeReviewState } from "./review-store.js";
 import { runCodeReview } from "./review.js";
 import { spawn } from "@poe-code/agent-spawn";
+import { discoverCodeReviewProfiles } from "./assets.js";
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@poe-code/agent-spawn")>()),
@@ -51,6 +52,37 @@ function createStore(): CodeReviewYamlStore {
 }
 
 describe("runCodeReview asset paths", () => {
+  it("uses and propagates configured external profile directories", async () => {
+    const spawnAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await runCodeReview(
+      { prUrl, cwd: "/repo/worktree" },
+      {
+        resolveOptions: async (input) => ({
+          ...input,
+          agent: "codex",
+          draftStore: ".poe-code/code-review/reviews",
+          humanGate: { provider: "none" },
+          profileDirectories: ["/catalog"]
+        }),
+        fetchPr: async () => ({}),
+        fetchDiff: async () => "",
+        fetchComments: async () => ({}),
+        store: createStore(),
+        spawnAgent
+      }
+    );
+
+    expect(discoverCodeReviewProfiles).toHaveBeenCalledWith({
+      cwd: "/repo/worktree",
+      filters: undefined,
+      profileDirectories: ["/catalog"]
+    });
+    expect(spawnAgent.mock.calls[0]?.[2].mcpServers["code-review"].args).toContain(
+      "[\"/catalog\"]"
+    );
+  });
+
   it("resolves explicit profile and prompt paths relative to cwd", async () => {
     const cwd = "/repo/worktree";
 

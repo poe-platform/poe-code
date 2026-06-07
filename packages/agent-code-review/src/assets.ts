@@ -16,6 +16,7 @@ import {
   parseCodeReviewPromptMarkdown,
   requireSafeDocumentSegment
 } from "./document-schemas.js";
+import { parseCodeReviewProfileDirectories } from "./config-scope.js";
 
 export type CodeReviewAssetReader = (filePath: string, encoding: BufferEncoding) => Promise<string>;
 
@@ -32,7 +33,7 @@ export interface CodeReviewProfile {
   name: string;
   content: string;
   filePath?: string;
-  source: "repo" | "built-in";
+  source: "repo" | "external" | "built-in";
 }
 
 export interface CodeReviewInstallResult {
@@ -113,9 +114,47 @@ export async function loadCodeReviewPrompt(
 export async function discoverCodeReviewProfiles(input: {
   cwd: string;
   filters?: readonly string[];
+  profileDirectories?: readonly string[];
 }): Promise<CodeReviewProfile[]> {
-  const profilesDirectory = join(codeReviewAssetsDirectory(input.cwd), "profiles");
-  await assertContainedAssetDirectoryOrMissing(resolve(input.cwd), profilesDirectory);
+  const cwd = resolve(input.cwd);
+  const directories = [
+    { path: join(codeReviewAssetsDirectory(cwd), "profiles"), source: "repo" as const, root: cwd },
+    ...parseCodeReviewProfileDirectories(input.profileDirectories ?? []).map((directory) => ({
+      path: resolve(directory),
+      source: "external" as const,
+      root: resolve(directory)
+    }))
+  ];
+  const profiles = new Map<string, CodeReviewProfile>();
+  const normalizedNames = new Map<string, string>();
+  for (const directory of directories) {
+    for (const profile of await discoverProfilesInDirectory(directory)) {
+      const normalized = profile.name.normalize("NFKC").toLowerCase();
+      const existingName = normalizedNames.get(normalized);
+      if (existingName && existingName !== profile.name) {
+        throw new Error(`Code review profile filenames normalize to the same name: ${profile.name}`);
+      }
+      normalizedNames.set(normalized, profile.name);
+      if (!profiles.has(profile.name)) profiles.set(profile.name, profile);
+    }
+  }
+  const availableNames = [...profiles.keys()];
+  if (availableNames.length === 0) {
+    validateProfileFilters(input.filters, ["generic"]);
+    return [{ name: "generic", content: BUILT_IN_GENERIC_PROFILE, source: "built-in" }];
+  }
+  validateProfileFilters(input.filters, availableNames);
+  const filterSet = input.filters?.length ? new Set(input.filters) : undefined;
+  return [...profiles.values()].filter((profile) => !filterSet || filterSet.has(profile.name));
+}
+
+async function discoverProfilesInDirectory(input: {
+  path: string;
+  root: string;
+  source: "repo" | "external";
+}): Promise<CodeReviewProfile[]> {
+  const profilesDirectory = input.path;
+  await assertContainedAssetDirectoryOrMissing(input.root, profilesDirectory);
   let profileFileNames: string[];
   try {
     const profileEntries = await readdir(profilesDirectory, {
@@ -137,43 +176,18 @@ export async function discoverCodeReviewProfiles(input: {
     profileFileNames = [];
   }
 
-  const availableNames = profileFileNames.map((fileName) =>
-    requireSafeDocumentSegment(
-      profileNameFromFile(fileName),
-      `${join(profilesDirectory, fileName)}: filename`
-    )
-  );
-  const normalizedNames = new Set<string>();
-  for (const name of availableNames) {
-    const normalized = name.normalize("NFKC").toLowerCase();
-    if (normalizedNames.has(normalized)) {
-      throw new Error(`Code review profile filenames normalize to the same name: ${name}`);
-    }
-    normalizedNames.add(normalized);
-  }
-  if (availableNames.length === 0) {
-    validateProfileFilters(input.filters, ["generic"]);
-    return [
-      {
-        name: "generic",
-        content: BUILT_IN_GENERIC_PROFILE,
-        source: "built-in"
-      }
-    ];
-  }
-
-  validateProfileFilters(input.filters, availableNames);
-  const filterSet = input.filters?.length ? new Set(input.filters) : undefined;
   return Promise.all(
-    profileFileNames
-      .filter((fileName) => !filterSet || filterSet.has(profileNameFromFile(fileName)))
-      .map(async (fileName) => {
+    profileFileNames.map(async (fileName) => {
+        const name = requireSafeDocumentSegment(
+          profileNameFromFile(fileName),
+          `${join(profilesDirectory, fileName)}: filename`
+        );
         const filePath = join(profilesDirectory, fileName);
         return {
-          name: profileNameFromFile(fileName),
+          name,
           content: await loadCodeReviewProfile(filePath),
           filePath,
-          source: "repo" as const
+          source: input.source
         };
       })
   );
@@ -261,6 +275,16 @@ async function assertContainedAssetDirectoryOrMissing(
   cwd: string,
   targetDirectory: string
 ): Promise<void> {
+  let rootStatus: Awaited<ReturnType<typeof lstat>>;
+  try {
+    rootStatus = await lstat(cwd);
+  } catch (error) {
+    if (isMissingFileError(error)) return;
+    throw error;
+  }
+  if (!rootStatus.isDirectory()) {
+    throw new Error(`Code review asset directory is not a regular directory: ${cwd}`);
+  }
   const pathFromCwd = relative(cwd, targetDirectory);
   if (pathFromCwd.startsWith("..") || pathFromCwd.startsWith(sep)) {
     throw new Error(`Code review asset directory escapes repository: ${targetDirectory}`);

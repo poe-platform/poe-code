@@ -84,7 +84,8 @@ export async function runCodeReview(
   }
   const profiles = await discoverCodeReviewProfiles({
     cwd: options.cwd,
-    filters: options.profiles
+    filters: options.profiles,
+    profileDirectories: options.profileDirectories
   });
   const [profile, promptTemplate, prDetails, diff, priorActivity] = await Promise.all([
     resolveProfile(input, options, profiles),
@@ -123,6 +124,7 @@ export async function runCodeReview(
     cwd: options.cwd,
     draftStore,
     agent,
+    profileDirectories: options.profileDirectories,
     ...(options.profiles ? { profiles: options.profiles } : {})
   });
   const spawnResult = await (dependencies.spawnAgent ?? spawnWithPoeCode)(agent, prompt, {

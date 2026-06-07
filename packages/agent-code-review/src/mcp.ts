@@ -20,6 +20,7 @@ import type {
 } from "./review-state.js";
 import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
+import { parseCodeReviewProfileDirectories } from "./config-scope.js";
 
 export const CODE_REVIEW_AGENT_MCP_ROLES = ["agent", "orchestrator", "subagent"] as const;
 
@@ -33,6 +34,7 @@ export interface CodeReviewAgentMcpContext {
   draftStore?: string;
   agent: string;
   profiles?: string[];
+  profileDirectories?: string[];
 }
 
 export interface CodeReviewAgentMcpConfig {
@@ -76,7 +78,8 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     "--cwd",
     "--draft-store",
     "--agent",
-    "--profiles"
+    "--profiles",
+    "--profile-directories"
   ]);
   for (let index = 0; index < argv.length; index += 2) {
     const flag = argv[index];
@@ -97,6 +100,9 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     throw new Error(`Invalid code-review MCP role: ${role}`);
   }
   const profiles = values.get("--profiles")?.split(",");
+  const profileDirectories = values.has("--profile-directories")
+    ? parseCodeReviewProfileDirectories(JSON.parse(requiredValue(values, "--profile-directories")))
+    : undefined;
   if (values.has("--profiles") && profiles?.length === 0) {
     throw new Error("--profiles requires at least one profile");
   }
@@ -107,6 +113,7 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     cwd: requiredValue(values, "--cwd"),
     ...(values.has("--draft-store") ? { draftStore: requiredValue(values, "--draft-store") } : {}),
     agent: requiredValue(values, "--agent"),
+    ...(profileDirectories ? { profileDirectories } : {}),
     ...(profiles && profiles.length > 0
       ? {
           profiles: [
@@ -136,6 +143,9 @@ export function createCodeReviewAgentMcpConfig(
   ];
   if (context.profiles?.length) {
     args.push("--profiles", context.profiles.join(","));
+  }
+  if (context.profileDirectories?.length) {
+    args.push("--profile-directories", JSON.stringify(context.profileDirectories));
   }
   return { transport: "stdio", command: "poe-code", args: ["code-review", ...args] };
 }
@@ -241,7 +251,8 @@ export function createCodeReviewAgentMcpGroup(
     handler: async () =>
       discoverCodeReviewProfiles({
         cwd: context.cwd,
-        filters: context.profiles
+        filters: context.profiles,
+        profileDirectories: context.profileDirectories
       })
   });
   const agentSpawnCommand = defineCommand({
@@ -257,7 +268,8 @@ export function createCodeReviewAgentMcpGroup(
       const pr = canonicalPullRequestUrl(params.pr);
       const profiles = await discoverCodeReviewProfiles({
         cwd: context.cwd,
-        filters: context.profiles
+        filters: context.profiles,
+        profileDirectories: context.profileDirectories
       });
       const profile = profiles.find((candidate) => candidate.name === params.profile);
       if (!profile) {

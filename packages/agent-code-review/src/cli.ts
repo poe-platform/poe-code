@@ -14,6 +14,7 @@ import {
   runCodeReview
 } from "./review.js";
 import { readCodeReviewDraft } from "./review-store.js";
+import { loadCodeReviewRuntimeConfig } from "./config.js";
 
 type RunCodeReviewHandler = (input: CodeReviewOrchestrationInput) => Promise<CodeReviewResult>;
 type CommitCodeReviewDraftsHandler = (
@@ -32,7 +33,8 @@ const agentMcpCommand = defineCommand({
     cwd: S.String({ description: "Repository working directory." }),
     draftStore: S.Optional(S.String({ description: "Absolute YAML review state directory." })),
     agent: S.String({ description: "Poe Code agent used for subagents." }),
-    profiles: S.Optional(S.String({ description: "Comma-separated allowed profile names." }))
+    profiles: S.Optional(S.String({ description: "Comma-separated allowed profile names." })),
+    profileDirectories: S.Optional(S.String({ description: "JSON array of external profile directories." }))
   }),
   scope: ["cli"],
   handler: async ({ params }) =>
@@ -49,7 +51,8 @@ const agentMcpCommand = defineCommand({
         ...(params.draftStore ? ["--draft-store", params.draftStore] : []),
         "--agent",
         params.agent,
-        ...(params.profiles ? ["--profiles", params.profiles] : [])
+        ...(params.profiles ? ["--profiles", params.profiles] : []),
+        ...(params.profileDirectories ? ["--profile-directories", params.profileDirectories] : [])
       ])
     )
 });
@@ -75,19 +78,22 @@ export const installCodeReviewAssetsCommand = defineCommand({
 
 export const listCodeReviewProfilesCommand = defineCommand({
   name: "profiles",
-  description: "List repo-local code review profiles.",
+  description: "List configured code review profiles.",
   params: S.Object({
     cwd: S.Optional(S.String({ description: "Repository root directory." }))
   }),
   scope: ["cli"],
-  handler: async ({ params }) =>
-    (await discoverCodeReviewProfiles({ cwd: params.cwd?.trim() || process.cwd() })).map(
+  handler: async ({ params }) => {
+    const cwd = params.cwd?.trim() || process.cwd();
+    const config = await loadCodeReviewRuntimeConfig(cwd);
+    return (await discoverCodeReviewProfiles({ cwd, profileDirectories: config.profileDirectories })).map(
       ({ name, source, filePath }) => ({
         name,
         source,
         ...(filePath ? { filePath } : {})
       })
-    )
+    );
+  }
 });
 
 export const readCodeReviewDraftCommand = defineCommand({

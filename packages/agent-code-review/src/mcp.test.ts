@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createCodeReviewState } from "./review-store.js";
 import { spawn } from "@poe-code/agent-spawn";
 import { createCodeReviewAgentMcpConfig, createCodeReviewAgentMcpGroup } from "./mcp.js";
+import { parseCodeReviewAgentMcpArgs } from "./mcp.js";
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@poe-code/agent-spawn")>()),
@@ -36,6 +37,38 @@ describe("createCodeReviewAgentMcpConfig", () => {
         "codex"
       ]
     });
+  });
+
+  it("propagates external profile directories to spawned MCP servers", () => {
+    expect(
+      createCodeReviewAgentMcpConfig({
+        role: "orchestrator",
+        session: "session-1",
+        actor: "orchestrator",
+        cwd: "/repo",
+        agent: "codex",
+        profileDirectories: ["/catalog-a", "/catalog-b"]
+      }).args
+    ).toContain("[\"/catalog-a\",\"/catalog-b\"]");
+  });
+
+  it("parses external profile directories from spawned MCP args", () => {
+    expect(
+      parseCodeReviewAgentMcpArgs([
+        "--role",
+        "orchestrator",
+        "--session",
+        "session-1",
+        "--actor",
+        "orchestrator",
+        "--cwd",
+        "/repo",
+        "--agent",
+        "codex",
+        "--profile-directories",
+        '["/catalog"]'
+      ]).profileDirectories
+    ).toEqual(["/catalog"]);
   });
 
   it.each([

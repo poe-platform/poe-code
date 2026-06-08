@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { PassThrough } from "node:stream";
 import {
   createStateManager,
@@ -5,7 +8,12 @@ import {
   type StateFileSystem,
   type StateManager
 } from "@poe-code/poe-code-config";
-import type { RunHandle, RunResult, RunSpec } from "@poe-code/process-runner";
+import {
+  hostExecutionEnvFactory,
+  type RunHandle,
+  type RunResult,
+  type RunSpec
+} from "@poe-code/process-runner";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -215,6 +223,41 @@ function deferred<T>(): {
   return { promise, resolve };
 }
 
+function processEnv(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+async function waitForProcessExit(pid: number, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!isProcessAlive(pid)) {
+      return true;
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 25));
+  }
+  return !isProcessAlive(pid);
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return !(
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ESRCH"
+    );
+  }
+}
+
 describe("runPoeCommand", () => {
   it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
     "rejects invalid activity timeout %s before opening an environment",
@@ -271,7 +314,8 @@ describe("runPoeCommand", () => {
       env: { NODE_ENV: "test" },
       stdin: "inherit",
       stdout: "pipe",
-      stderr: "pipe"
+      stderr: "pipe",
+      killProcessGroup: true
     });
   });
 
@@ -964,6 +1008,52 @@ describe("runPoeCommand", () => {
     expect(killed).toBe(true);
     expect(env.closed).toBe(true);
   });
+
+  it.runIf(process.platform !== "win32")(
+    "terminates the full wrapped host command process group on inactivity timeout",
+    async () => {
+      const { state } = createRecordingState();
+      const tempDir = await mkdtemp(path.join(os.tmpdir(), "poe-wrapped-timeout-"));
+      const pidFile = path.join(tempDir, "inner.pid");
+      let innerPid: number | undefined;
+
+      try {
+        await expect(
+          runPoeCommand({
+            factory: hostExecutionEnvFactory as unknown as ExecutionEnvFactory,
+            openSpec: createOpenSpec({
+              cwd: tempDir,
+              env: processEnv(),
+              jobLabel: {
+                tool: "sh",
+                argv: [
+                  "sh",
+                  "-c",
+                  `trap '' TERM; sleep 30 & echo $! > ${shellQuote(pidFile)}; wait`
+                ]
+              },
+              execution: { activityTimeoutMs: 100 }
+            }),
+            detach: false,
+            state
+          })
+        ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
+
+        innerPid = Number((await readFile(pidFile, "utf8")).trim());
+        expect(Number.isInteger(innerPid)).toBe(true);
+        await expect(waitForProcessExit(innerPid, 2_000)).resolves.toBe(true);
+      } finally {
+        if (innerPid !== undefined && isProcessAlive(innerPid)) {
+          try {
+            process.kill(innerPid, "SIGKILL");
+          } catch {
+            // Best-effort cleanup for a process that may have exited between checks.
+          }
+        }
+        await rm(tempDir, { recursive: true, force: true });
+      }
+    }
+  );
 
   it("rejects a wrapped synchronous timeout when an abort signal is present", async () => {
     const { state } = createRecordingState();

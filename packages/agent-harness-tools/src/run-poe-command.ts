@@ -8,6 +8,7 @@ import type { DownloadResult, ExecutionEnvFactory, OpenedEnv, OpenSpec } from ".
 import { waitForExit, wrapForLogTee, type LogStreamEnv } from "./log-stream.js";
 
 const ULID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const WRAPPED_COMMAND_FORCE_KILL_GRACE_MS = 250;
 
 export async function runPoeCommand(opts: {
   factory: ExecutionEnvFactory;
@@ -68,7 +69,8 @@ export async function runPoeCommand(opts: {
           stdin: execution?.stdin ?? "inherit",
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
-          signal: opts.signal
+          signal: opts.signal,
+          killProcessGroup: wrapCommand ? true : undefined
         });
     const running = opts.detach
       ? undefined
@@ -220,7 +222,8 @@ export function createPoeCommandSession(opts: {
             stdin: openSpec.execution?.stdin ?? "inherit",
             stdout: openSpec.execution?.stdout ?? "pipe",
             stderr: openSpec.execution?.stderr ?? "pipe",
-            signal
+            signal,
+            killProcessGroup: wrapCommand ? true : undefined
           });
       const running = settleRunSync(runSync({
         env: currentEnv,
@@ -403,7 +406,9 @@ async function runSync(opts: {
 }): Promise<{ exitCode: number; download: DownloadResult; stdout?: string; stderr?: string }> {
   const execution = opts.openSpec.execution;
   const capture = execution?.captureOutput === true;
-  const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs);
+  const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs, {
+    forceKillAfterMs: opts.wrapCommand ? WRAPPED_COMMAND_FORCE_KILL_GRACE_MS : undefined
+  });
   const streamState = capture
     ? captureRunStreams(opts.handle, execution, abort.resetActivityTimer)
     : pipeRunStreams(opts.handle);
@@ -516,7 +521,8 @@ function captureRunStreams(
 function createAbortSync(
   signal: AbortSignal | undefined,
   handle: RunHandle,
-  activityTimeoutMs: number | undefined
+  activityTimeoutMs: number | undefined,
+  opts: { forceKillAfterMs?: number } = {}
 ): {
   waitForExit(env: OpenedEnv, jobId: string): Promise<{ exitCode: number }>;
   waitForHandle(): Promise<{ exitCode: number }>;
@@ -524,6 +530,7 @@ function createAbortSync(
   dispose(): void;
 } {
   let activityTimer: ReturnType<typeof setTimeout> | undefined;
+  let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
   let terminationError: Error | undefined;
   let notifyTermination: (() => void) | undefined;
   const terminationPromise = new Promise<void>((resolve) => {
@@ -534,7 +541,13 @@ function createAbortSync(
     if (terminationError !== undefined) return;
     terminationError = error;
     notifyTermination?.();
-    handle.kill("SIGTERM");
+    tryKill(handle, "SIGTERM");
+    if (opts.forceKillAfterMs !== undefined) {
+      forceKillTimer = setTimeout(() => {
+        tryKill(handle, "SIGKILL");
+      }, opts.forceKillAfterMs);
+      forceKillTimer.unref?.();
+    }
   };
   const resetActivityTimer = activityTimeoutMs
     ? () => {
@@ -595,10 +608,19 @@ function createAbortSync(
     resetActivityTimer,
     dispose() {
       if (activityTimer) clearTimeout(activityTimer);
+      if (terminationError === undefined && forceKillTimer) clearTimeout(forceKillTimer);
       exitWaitController.abort();
       signal?.removeEventListener("abort", abort);
     }
   };
+}
+
+function tryKill(handle: RunHandle, signal: NodeJS.Signals): void {
+  try {
+    handle.kill(signal);
+  } catch {
+    return;
+  }
 }
 
 function toLogStreamEnv(env: OpenedEnv): LogStreamEnv {

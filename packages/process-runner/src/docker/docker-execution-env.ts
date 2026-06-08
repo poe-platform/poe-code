@@ -197,7 +197,8 @@ function createDockerEnv(input: {
         stdout: spec.stdout,
         stderr: spec.stderr,
         tty: spec.tty,
-        signal: spec.signal
+        signal: spec.signal,
+        killProcessGroup: spec.killProcessGroup
       });
     },
     async detach() {

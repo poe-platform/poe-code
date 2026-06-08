@@ -3,7 +3,7 @@ import type { Runner, RunSpec } from "../types.js";
 import type { HostRunnerOptions, RunHandle, RunResult } from "../types.js";
 
 export function createHostRunner(options: HostRunnerOptions = {}): Runner {
-  const detached = options.detached === true;
+  const detachedByDefault = options.detached === true;
 
   return {
     name: "host",
@@ -22,6 +22,7 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       const stdinMode = spec.stdin ?? "ignore";
       const stdoutMode = spec.stdout ?? "pipe";
       const stderrMode = spec.stderr ?? "pipe";
+      const killProcessGroup = detachedByDefault || spec.killProcessGroup === true;
       const stdio =
         stdinMode === "inherit" && stdoutMode === "inherit" && stderrMode === "inherit"
           ? "inherit"
@@ -30,15 +31,15 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
         cwd: spec.cwd,
         env: spec.env,
         stdio,
-        ...(detached ? { detached: true } : {})
+        ...(killProcessGroup ? { detached: true } : {})
       });
 
-      if (detached) {
+      if (killProcessGroup) {
         child.unref();
       }
 
       const kill = (signal?: NodeJS.Signals) => {
-        if (detached && process.platform !== "win32" && child.pid !== undefined) {
+        if (killProcessGroup && process.platform !== "win32" && child.pid !== undefined) {
           process.kill(-child.pid, signal);
           return;
         }

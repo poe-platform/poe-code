@@ -1,6 +1,6 @@
 import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createJobRegistry, type JobEntry, type StateFileSystem } from "./jobs.js";
 import { createStateManager } from "./index.js";
 import { createTemplateRegistry, type TemplateEntry } from "./templates.js";
@@ -39,6 +39,18 @@ function createJob(id: string, overrides: Partial<JobEntry> = {}): JobEntry {
     status: "pending",
     ...overrides
   };
+}
+
+async function withLegacyTempName<Result>(operation: () => Promise<Result>): Promise<Result> {
+  const dateSpy = vi.spyOn(Date, "now").mockReturnValue(1_234);
+  const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.5);
+
+  try {
+    return await operation();
+  } finally {
+    dateSpy.mockRestore();
+    randomSpy.mockRestore();
+  }
 }
 
 describe("state manager", () => {
@@ -196,6 +208,27 @@ describe("TemplateRegistry", () => {
       "Refusing template state access through symbolic link"
     );
     await expect(fs.readFile(outsidePath, "utf8")).resolves.toContain('"docker"');
+  });
+
+  it("does not follow a preexisting legacy template temp path symlink", async () => {
+    await withLegacyTempName(async () => {
+      const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+      const outsidePath = "/outside/templates-tmp.json";
+      const legacyTempPath = `${templatesPath}.${process.pid}.1234.i.tmp`;
+      const volume = Volume.fromJSON({ [outsidePath]: "outside-state\n" }, "/");
+      volume.mkdirSync(path.dirname(templatesPath), { recursive: true });
+      volume.symlinkSync(outsidePath, legacyTempPath);
+      const fs = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+      const registry = createTemplateRegistry("/home/tester", fs);
+      const template = createTemplate("alpha");
+
+      await registry.put("docker", template);
+
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+      const stateStat = await fs.lstat?.(templatesPath);
+      expect(stateStat?.isSymbolicLink()).toBe(false);
+      await expect(registry.get("docker", "alpha")).resolves.toEqual(template);
+    });
   });
 });
 
@@ -413,6 +446,28 @@ describe("JobRegistry", () => {
     await expect(registry.list()).rejects.toThrow(
       "Refusing runtime job state access through symbolic link"
     );
+  });
+
+  it("does not follow a preexisting legacy job temp path symlink", async () => {
+    await withLegacyTempName(async () => {
+      const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+      const jobPath = path.join(jobsDir, "job-1.json");
+      const outsidePath = "/outside/job-tmp.json";
+      const legacyTempPath = `${jobPath}.${process.pid}.1234.i.tmp`;
+      const volume = Volume.fromJSON({ [outsidePath]: "outside-job\n" }, "/");
+      volume.mkdirSync(jobsDir, { recursive: true });
+      volume.symlinkSync(outsidePath, legacyTempPath);
+      const fs = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+      const registry = createJobRegistry("/home/tester", fs);
+      const job = createJob("job-1");
+
+      await registry.put(job);
+
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-job\n");
+      const jobStat = await fs.lstat?.(jobPath);
+      expect(jobStat?.isSymbolicLink()).toBe(false);
+      await expect(registry.get("job-1")).resolves.toEqual(job);
+    });
   });
 
   it("rejects invalid job updates without corrupting the stored job", async () => {

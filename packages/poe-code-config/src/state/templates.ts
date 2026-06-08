@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import {
   assertPathHasNoSymbolicLinks,
@@ -49,14 +50,15 @@ export function createTemplateRegistry(
 
   async function writeState(state: TemplateState): Promise<void> {
     await assertSafeStateFile();
-    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
-      .toString(36)
-      .slice(2)}.tmp`;
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
 
     try {
+      await assertSafeStatePath(tempPath);
       await fs.writeFile(tempPath, `${JSON.stringify(state, null, 2)}\n`, {
-        encoding: "utf8"
+        encoding: "utf8",
+        flag: "wx"
       });
+      await assertSafeStateFile();
       await fs.rename(tempPath, filePath);
     } catch (error) {
       await fs.unlink(tempPath).catch(() => undefined);
@@ -68,6 +70,7 @@ export function createTemplateRegistry(
     const update = pendingUpdate.then(async () => {
       await assertSafeStateFile();
       await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await assertSafeStateFile();
       const state = await readState();
       mutator(state);
       await writeState(state);
@@ -77,9 +80,13 @@ export function createTemplateRegistry(
   }
 
   async function assertSafeStateFile(): Promise<void> {
+    await assertSafeStatePath(filePath);
+  }
+
+  async function assertSafeStatePath(statePath: string): Promise<void> {
     await assertPathHasNoSymbolicLinks(
       fs,
-      filePath,
+      statePath,
       "Refusing template state access through symbolic link"
     );
   }

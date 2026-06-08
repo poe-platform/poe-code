@@ -7,7 +7,7 @@ export interface StateFileSystem {
   writeFile(
     path: string,
     data: string,
-    options?: BufferEncoding | { encoding?: BufferEncoding }
+    options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string; mode?: number }
   ): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
   readdir(path: string): Promise<string[]>;

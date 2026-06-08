@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import {
   assertPathHasNoSymbolicLinks,
@@ -188,14 +189,13 @@ export function createJobRegistry(
   async function writeJobAtomically(filePath: string, entry: JobEntry): Promise<void> {
     await assertSafeJobPath(filePath);
     await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
-      .toString(36)
-      .slice(2)}.tmp`;
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
 
     try {
       await assertSafeJobPath(tempPath);
       await fs.writeFile(tempPath, `${JSON.stringify(entry, null, 2)}\n`, {
-        encoding: "utf8"
+        encoding: "utf8",
+        flag: "wx"
       });
       await assertSafeJobPath(filePath);
       await fs.rename(tempPath, filePath);

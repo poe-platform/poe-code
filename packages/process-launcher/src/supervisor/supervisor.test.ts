@@ -1,3 +1,5 @@
+import type { ChildProcess } from "node:child_process";
+import { EventEmitter } from "node:events";
 import net from "node:net";
 import { PassThrough } from "node:stream";
 import { Volume, createFsFromVolume } from "memfs";
@@ -11,10 +13,10 @@ import type {
 } from "../types.js";
 
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
-const spawnSyncMock = vi.hoisted(() => vi.fn());
+const spawnMock = vi.hoisted(() => vi.fn());
 
 vi.mock("node:child_process", () => ({
-  spawnSync: spawnSyncMock
+  spawn: spawnMock
 }));
 
 vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
@@ -32,7 +34,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
   resolveWorkspaceMock.mockReset();
-  spawnSyncMock.mockReset();
+  spawnMock.mockReset();
 });
 
 describe("createSupervisor", () => {
@@ -915,7 +917,11 @@ describe("createSupervisor", () => {
   });
 
   it("does not launch after workspace preparation is signal terminated", async () => {
-    spawnSyncMock.mockReturnValue({ signal: "SIGTERM", status: null, stderr: "", stdout: "" });
+    const child = createWorkspaceCommandChild();
+    spawnMock.mockReturnValue(child);
+    queueMicrotask(() => {
+      child.emit("close", null, "SIGTERM");
+    });
     resolveWorkspaceMock.mockImplementation(async (_locator: string, options: { exec: (command: string, args: string[]) => Promise<{ exitCode: number }> }) => {
       const result = await options.exec("git", ["clone"]);
       if (result.exitCode !== 0) {
@@ -935,6 +941,50 @@ describe("createSupervisor", () => {
 
     await expect(supervisor.start()).rejects.toThrow("workspace preparation failed");
     expect(runner.exec).not.toHaveBeenCalled();
+  });
+
+  it("cancels in-flight workspace preparation when the supervisor signal aborts", async () => {
+    const controller = new AbortController();
+    const child = createWorkspaceCommandChild({
+      closeOnKill: true
+    });
+    spawnMock.mockReturnValue(child);
+    resolveWorkspaceMock.mockImplementation(async (_locator: string, options: { exec: (command: string, args: string[]) => Promise<{ exitCode: number; stderr: string }> }) => {
+      const result = await options.exec("git", ["clone"]);
+      if (result.exitCode !== 0) {
+        throw new Error(result.stderr);
+      }
+      return { cwd: "/tmp/workspaces/poe-code" };
+    });
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+    const errors: unknown[] = [];
+    const supervisor = createSupervisor({
+      runner,
+      signal: controller.signal,
+      spec: createSpec({ cwd: "github://poe-platform/poe-code" }),
+      stateDir: "/home/test/.poe-code/launch",
+      onError: error => {
+        errors.push(error);
+      }
+    });
+
+    const startPromise = supervisor.start();
+    await vi.waitFor(() => {
+      expect(spawnMock).toHaveBeenCalledWith("git", ["clone"], {
+        cwd: undefined,
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+    });
+
+    controller.abort(new Error("cancelled"));
+
+    await expect(startPromise).rejects.toThrow("Workspace command aborted.");
+    expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(runner.exec).not.toHaveBeenCalled();
+    expect(errors).toHaveLength(0);
   });
 });
 
@@ -979,6 +1029,28 @@ function createMemFs(): {
   });
 
   return { fs, stateWrites };
+}
+
+function createWorkspaceCommandChild(options: { closeOnKill?: boolean } = {}): ChildProcess {
+  const child = new EventEmitter() as ChildProcess;
+  const kill = vi.fn((signal?: NodeJS.Signals | number) => {
+    if (options.closeOnKill) {
+      queueMicrotask(() => {
+        child.emit("close", null, typeof signal === "string" ? signal : null);
+      });
+    }
+    return true;
+  });
+
+  Object.assign(child, {
+    pid: 123,
+    stdout: new PassThrough(),
+    stderr: new PassThrough(),
+    stdin: null,
+    kill
+  });
+
+  return child;
 }
 
 function createRecordingRunner(behaviors: Parameters<typeof createMockRunner>[0]) {

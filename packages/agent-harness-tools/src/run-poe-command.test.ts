@@ -873,6 +873,7 @@ describe("runPoeCommand", () => {
   it("does not fail when command stdin closes before execution input is written", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
+    const kill = vi.fn();
 
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
@@ -886,7 +887,7 @@ describe("runPoeCommand", () => {
         stderr: null,
         stdin,
         result: Promise.resolve({ exitCode: 0 }),
-        kill() {}
+        kill
       };
     };
 
@@ -900,11 +901,13 @@ describe("runPoeCommand", () => {
         state
       })
     ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    expect(kill).not.toHaveBeenCalled();
   });
 
   it("rejects when execution input cannot be delivered", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv({ result: new Promise(() => {}) });
+    const kill = vi.fn();
 
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
@@ -918,7 +921,7 @@ describe("runPoeCommand", () => {
         stderr: null,
         stdin,
         result: new Promise(() => {}),
-        kill() {}
+        kill
       };
     };
 
@@ -932,6 +935,7 @@ describe("runPoeCommand", () => {
         state
       })
     ).rejects.toThrow("send stdin offline");
+    expect(kill).toHaveBeenCalledWith("SIGTERM");
   });
 
   it("rejects a wrapped synchronous run when its abort signal fires", async () => {

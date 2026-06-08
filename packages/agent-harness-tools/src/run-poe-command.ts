@@ -42,6 +42,7 @@ export async function runPoeCommand(opts: {
   });
 
   let env: OpenedEnv | null = null;
+  let handle: RunHandle | null = null;
   let jobPhase: "pending" | "running" | "terminal" = "pending";
   let shouldClose = false;
 
@@ -59,7 +60,7 @@ export async function runPoeCommand(opts: {
     const argv = wrapCommand
       ? wrapForLogTee(opts.openSpec.jobLabel.argv, jobId)
       : opts.openSpec.jobLabel.argv;
-    const handle = execution?.tty
+    handle = execution?.tty
       ? env.shell()
       : env.exec({
           command: argv[0],
@@ -131,6 +132,9 @@ export async function runPoeCommand(opts: {
   } catch (error) {
     await pendingJob.catch(() => undefined);
     if (jobPhase === "pending") {
+      if (handle !== null) {
+        tryKill(handle, "SIGTERM");
+      }
       await opts.state.jobs.remove(jobId).catch(() => undefined);
     } else if (jobPhase === "running") {
       await opts.state.jobs.update(jobId, {

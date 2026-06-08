@@ -146,7 +146,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -184,7 +184,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -268,7 +268,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -296,7 +296,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -335,7 +335,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -357,7 +357,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -386,7 +386,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -417,7 +417,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -444,7 +444,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -478,7 +478,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -547,7 +547,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -611,7 +611,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -649,7 +649,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -695,7 +695,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -728,7 +728,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -764,7 +764,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -805,7 +805,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -824,6 +824,29 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Opus");
   });
 
+  it.each(["abc", "0", "-1", "1abc", "1.5"])(
+    "rejects invalid --pages value %s before fetching usage",
+    async (value) => {
+      const program = createProgram({
+        fs,
+        prompts: vi.fn(),
+        env: { cwd, homeDir, variables: {} },
+        httpClient,
+        logger: (message) => logs.push(message)
+      });
+
+      const optsSpy = vi.spyOn(program, "optsWithGlobals");
+      optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+      await expect(
+        program.parseAsync(["node", "cli", "usage", "list", "--pages", value])
+      ).rejects.toThrow("Expected a positive integer.");
+
+      expect(httpClient).not.toHaveBeenCalled();
+      expect(confirmMock).not.toHaveBeenCalled();
+    }
+  );
+
   it("stops after reaching --pages limit", async () => {
     fs = await createConfigVolume("test-key");
     const page1Entries = [
@@ -840,7 +863,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -873,7 +896,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -905,7 +928,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -931,7 +954,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -961,7 +984,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1004,7 +1027,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1054,7 +1077,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1087,7 +1110,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1118,7 +1141,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1147,7 +1170,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1178,7 +1201,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1216,7 +1239,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1249,7 +1272,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1275,7 +1298,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1305,7 +1328,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });

@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import { InvalidArgumentError, type Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, OperationCancelledError } from "../errors.js";
@@ -26,6 +26,17 @@ export interface BalanceResponse {
     refill_usd: string;
     last_recharge_failure_time: number | null;
   };
+}
+
+function parsePositivePageCount(value: string): number {
+  if (!/^[1-9]\d*$/.test(value)) {
+    throw new InvalidArgumentError("Expected a positive integer.");
+  }
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new InvalidArgumentError("Expected a positive integer.");
+  }
+  return parsed;
 }
 
 function formatUsdAndPoints(usd: string, points: number): string {
@@ -152,7 +163,7 @@ export function registerUsageCommand(
     .command("list")
     .description("Display usage history.")
     .option("--filter <model>", "Filter results by model name")
-    .option("--pages <count>", "Number of pages to load automatically", parseInt)
+    .option("--pages <count>", "Number of pages to load automatically", parsePositivePageCount)
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(

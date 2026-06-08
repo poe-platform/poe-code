@@ -1314,6 +1314,9 @@ function createDefaultFs(): SuperintendentFileSystem {
     rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
     },
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
     realpath: fsPromises.realpath
   };
 

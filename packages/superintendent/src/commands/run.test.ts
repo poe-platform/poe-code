@@ -74,9 +74,13 @@ function createFs(files: Record<string, string>): TestFs {
   return {
     readFile: (filePath: string, encoding: BufferEncoding) =>
       rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: async (filePath: string, content: string) => {
+    writeFile: async (
+      filePath: string,
+      content: string,
+      options?: { encoding?: BufferEncoding; flag?: string }
+    ) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
     },
     readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
     stat: async (filePath: string) => {
@@ -100,6 +104,9 @@ function createFs(files: Record<string, string>): TestFs {
     rename: async (oldPath: string, newPath: string) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
       await rawFs.rename(oldPath, newPath);
+    },
+    unlink: async (filePath: string) => {
+      await rawFs.unlink(filePath);
     }
   } as SuperintendentFileSystem;
 }

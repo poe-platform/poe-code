@@ -1,5 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
@@ -32,13 +33,18 @@ export interface SuperintendentFileStat {
 
 export interface SuperintendentFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
+  writeFile(
+    path: string,
+    data: string,
+    options?: { encoding?: BufferEncoding; flag?: string }
+  ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<SuperintendentFileStat>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;
+  unlink?(path: string): Promise<void>;
 }
 
 export interface AgentRunInput {
@@ -473,6 +479,9 @@ function createDefaultFs(): SuperintendentFileSystem {
     },
     rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
+    },
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
     }
   };
 
@@ -502,7 +511,7 @@ async function writeLoopState(
     round: state.round,
     review_turn: state.reviewTurn
   });
-  await fs.writeFile(docPath, updatedContent, { encoding: "utf8" });
+  await writeDocumentContent(fs, docPath, updatedContent);
 }
 
 async function restoreDocument(
@@ -510,7 +519,48 @@ async function restoreDocument(
   docPath: string,
   content: string
 ): Promise<void> {
-  await fs.writeFile(docPath, content, { encoding: "utf8" });
+  await writeDocumentContent(fs, docPath, content);
+}
+
+async function writeDocumentContent(
+  fs: SuperintendentFileSystem,
+  docPath: string,
+  content: string
+): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = createDocumentTempPath(docPath);
+    let tempCreated = false;
+    try {
+      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
+      await fs.rename(tempPath, docPath);
+      tempCreated = false;
+      return;
+    } catch (error) {
+      if (isAlreadyExists(error) && !tempCreated) {
+        continue;
+      }
+      if (tempCreated) {
+        await fs.unlink?.(tempPath).catch(() => undefined);
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to create temporary superintendent document for ${docPath}.`);
+}
+
+function createDocumentTempPath(docPath: string): string {
+  return path.join(
+    path.dirname(docPath),
+    `.${path.basename(docPath)}.${process.pid}.${randomUUID()}.tmp`
+  );
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(
+    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 async function rollbackRoundStatus(

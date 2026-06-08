@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: a11y-aria-pass
     title: Make the generated landing page WCAG 2.1 AA accessible
@@ -31,7 +30,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: design-dark-mode-responsive
     title: Add dark mode, responsive nav, and print styles
     prompt: |
@@ -56,48 +54,71 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: build-demo-site
     title: Add a build:site script that renders the demo landing page
-    prompt: |
+    prompt: >
       In the toolcraft-landing-page package, add a self-contained script at
+
       src/bin/build-site.ts plus an npm script
+
       "build:site": "node dist/bin/build-site.js".
 
-      It renders the bundled example "acme" toolcraft tree to dist-site/index.html
+
+      It renders the bundled example "acme" toolcraft tree to
+      dist-site/index.html
+
       via renderLandingPage, with install/version/repoUrl set for the demo. It
+
       must be deterministic, require no secrets and no network, and also write
+
       dist-site/.nojekyll. Add dist-site/ to the package .gitignore.
 
+
       Add a test asserting the script produces a non-empty, self-contained HTML
+
       document (has <style>, no external <link>/<script src=>). Document the
+
       script in the package README.
     status:
       implement: done
       test: done
       commit: done
-
   - id: publish-demo-to-pages
     title: Publish the landing-page demo to GitHub Pages under a subpath
-    prompt: |
+    prompt: >
       GitHub Pages serves a single deployment for this repo, already produced by
+
       .github/workflows/publish-schemas-pages.yml (it stages docs/schemas into
+
       "$RUNNER_TEMP/pages" and deploys via actions/deploy-pages, with a shared
+
       `pages` concurrency group).
 
+
       Do NOT add a second Pages-deploying workflow — a competing deploy would
+
       clobber the schemas site. Instead extend publish-schemas-pages.yml: after
+
       "npm run build", run the toolcraft-landing-page "build:site" script and
-      copy its dist-site output into "$RUNNER_TEMP/pages/toolcraft-landing-page/"
+
+      copy its dist-site output into
+      "$RUNNER_TEMP/pages/toolcraft-landing-page/"
+
       so the demo is served at
+
       https://poe-platform.github.io/poe-code/toolcraft-landing-page/. Leave the
+
       existing schemas staging untouched.
 
+
       Validate with `npm run lint:workflows`. Per repo policy, do not write unit
+
       tests for the workflow.
     status:
       implement: done
       commit: done
+name: toolcraft-landing-page-pipeline
+state: archived
 ---
 
 # Context

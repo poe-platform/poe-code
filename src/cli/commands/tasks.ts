@@ -384,6 +384,17 @@ async function runSet(
       options.description,
       "Provide exactly one of --description-file or --description when updating description."
     );
+    if (
+      options.name === undefined &&
+      options.description === undefined &&
+      options.descriptionFile === undefined &&
+      options.metadataJson === undefined
+    ) {
+      throw new TasksCommandUsageError(
+        "Provide at least one of --name, --description, --description-file, or --metadata-json."
+      );
+    }
+
     const { taskList } = await openConfiguredTaskList(options, container);
     const { task, tasks } = await resolveTaskView(taskList, id);
     const description =

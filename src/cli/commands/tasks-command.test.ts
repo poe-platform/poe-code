@@ -1065,6 +1065,20 @@ states:
     expect(content).toContain("Updated description");
   });
 
+  it("set rejects empty updates without rewriting markdown tasks", async () => {
+    seedTaskWorkspace();
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["set", "plans/foo"], logs);
+
+    expect(process.exitCode).toBe(2);
+    expect(logs).toEqual([
+      "[error] Provide at least one of --name, --description, --description-file, or --metadata-json."
+    ]);
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+  });
+
   it("set rejects both --description-file and --description together", async () => {
     seedTaskWorkspace();
     vol.writeFileSync(`${cwd}/body.md`, "from file");

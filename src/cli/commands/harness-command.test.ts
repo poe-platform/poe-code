@@ -400,7 +400,7 @@ describe("harness command", () => {
     await expect(memfs.promises.readFile(snapshotPath, "utf8")).resolves.toContain('"step":2');
     expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
       "/repo/harness.md",
-      expect.objectContaining({ snapshotPath })
+      expect.objectContaining({ snapshotPath, snapshotPathIsDefault: true })
     );
   });
 

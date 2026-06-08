@@ -65,6 +65,7 @@ export type RunHarnessPairOptions = {
   snapshotBackend?: SnapshotBackend;
   snapshotIntervalMs?: number;
   snapshotPath?: string;
+  snapshotPathIsDefault?: boolean;
 };
 
 export class LintError extends Error {
@@ -104,7 +105,9 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
-    if (options.snapshotPath === undefined) {
+    const guardDefaultSnapshotPath =
+      options.snapshotPath === undefined || options.snapshotPathIsDefault === true;
+    if (guardDefaultSnapshotPath) {
       await assertDefaultSnapshotPathIsRegular(snapshotPath);
     }
     const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
@@ -138,7 +141,7 @@ export async function runHarnessPair(
               snapshot: runtimeRandom.snapshot
             }
           })
-    });
+    }, { guardDefaultSnapshotPath });
     const modules = hostCallReplay.wrapModules(
       withBuiltinModules(
         options.modulesFor(validated, meta),
@@ -410,9 +413,13 @@ type StatefulHostBinding = {
 
 async function createHostCallReplay(
   snapshotPath: string,
-  statefulBindings: Record<string, StatefulHostBinding> = {}
+  statefulBindings: Record<string, StatefulHostBinding> = {},
+  opts: { guardDefaultSnapshotPath?: boolean } = {}
 ): Promise<HostCallReplay> {
   const storePath = hostCallStorePath(snapshotPath);
+  if (opts.guardDefaultSnapshotPath === true) {
+    await assertDefaultSnapshotPathIsRegular(storePath);
+  }
   const records = await readHostCallRecords(storePath);
   const pendingWrites = new Set<Promise<void>>();
   let writeQueue = Promise.resolve();

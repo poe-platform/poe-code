@@ -119,6 +119,7 @@ async function executeHarnessRun(
     return;
   }
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
+  const snapshotPathIsDefault = options.snapshotPath === undefined;
   await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
 
   resources.logger.intro("harness run");
@@ -138,6 +139,7 @@ async function executeHarnessRun(
         fix: Boolean(options.fix),
         resume: Boolean(options.resume),
         snapshotPath,
+        ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
         ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
       }),
     stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`

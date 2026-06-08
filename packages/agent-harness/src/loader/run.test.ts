@@ -1139,6 +1139,49 @@ describe("runHarnessPair", () => {
     );
   });
 
+  it("rejects an explicit CLI default snapshot path through a symlinked parent", async () => {
+    const mdPath = "/repo/harness/probe.md";
+    const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/sentinel.txt": "untouched"
+    });
+    vol.mkdirSync("/repo/.poe-code/harnesses", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/.poe-code/harnesses/probe");
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        snapshotPath,
+        snapshotPathIsDefault: true
+      })
+    ).rejects.toThrow("Default harness snapshot path must not contain symbolic links.");
+    expect(vol.existsSync("/outside/snapshot.json")).toBe(false);
+  });
+
+  it("rejects a symlinked default host-call replay sidecar before reading it", async () => {
+    const mdPath = "/repo/harness/probe.md";
+    const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/host-calls.json": JSON.stringify([
+        { key: "host.read", args: [], result: "stale" }
+      ])
+    });
+    vol.mkdirSync(dirname(snapshotPath), { recursive: true });
+    vol.symlinkSync("/outside/host-calls.json", `${snapshotPath}.host-calls.json`);
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        snapshotPath,
+        snapshotPathIsDefault: true
+      })
+    ).rejects.toThrow("Default harness snapshot path must not contain symbolic links.");
+  });
+
   it("deep-merges frontmatterOverrides into the validated frontmatter before invoking the default export", async () => {
     const mdPath = "/repo/harness/override.md";
     vol.fromJSON({

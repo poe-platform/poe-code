@@ -82,7 +82,10 @@ export async function writeDefaultDockerfileIfNeeded(input: {
   }
 
   await input.container.fs.mkdir(path.dirname(dockerfilePath), { recursive: true });
-  await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, { encoding: "utf8" });
+  await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, {
+    encoding: "utf8",
+    flag: "wx"
+  });
   return true;
 }
 

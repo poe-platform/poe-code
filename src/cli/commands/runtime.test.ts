@@ -49,6 +49,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  filePath: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, filePath);
+}
+
 function createContainer(
   fs: FileSystem,
   logs: string[] = [],
@@ -241,6 +256,29 @@ describe("runtime command", () => {
     await expect(fs.readFile(dockerfilePath, "utf8")).resolves.toContain(
       "npm i -g poe-code"
     );
+  });
+
+  it("does not follow a Dockerfile symlink inserted before default Dockerfile creation", async () => {
+    const outsidePath = "/outside/Dockerfile";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === dockerfilePath) {
+        await replaceWithSymlink(fs, dockerfilePath, outsidePath);
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "runtime", "init"])).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
   });
 
   it("deep-merges only runtime.type on an initialized project", async () => {

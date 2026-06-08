@@ -192,6 +192,39 @@ function parseSinceDuration(value: string | undefined): number | undefined {
   return duration;
 }
 
+async function fetchModels(
+  container: CliContainer,
+  headers: Record<string, string>
+): Promise<{ object: string; data: ModelEntry[] }> {
+  const response = await container.httpClient(
+    `${container.env.poeBaseUrl}/v1/models`,
+    {
+      method: "GET",
+      headers
+    }
+  );
+
+  if (!response.ok) {
+    throw new ApiError(
+      `Failed to fetch models (HTTP ${response.status})`,
+      {
+        httpStatus: response.status,
+        endpoint: "/v1/models"
+      }
+    );
+  }
+
+  return (await response.json()) as {
+    object: string;
+    data: ModelEntry[];
+  };
+}
+
+function writeYaml(value: unknown): void {
+  const output = yamlStringify(value);
+  process.stdout.write(output.endsWith("\n") ? output : `${output}\n`);
+}
+
 export function registerModelsCommand(
   program: Command,
   container: CliContainer
@@ -251,8 +284,11 @@ export function registerModelsCommand(
         "models"
       );
       const commandOptions = this.opts<ModelsCommandOptions>();
+      const rawView = commandOptions.view === "raw";
 
-      resources.logger.intro("models");
+      if (!rawView) {
+        resources.logger.intro("models");
+      }
 
       try {
         const sinceDuration = parseSinceDuration(commandOptions.since);
@@ -278,38 +314,17 @@ export function registerModelsCommand(
           headers.Authorization = `Bearer ${apiKey}`;
         }
 
-        const result = await withSpinner<{ object: string; data: ModelEntry[] }>({
-          message: "Fetching models...",
-          fn: async () => {
-            const response = await container.httpClient(
-              `${container.env.poeBaseUrl}/v1/models`,
-              {
-                method: "GET",
-                headers
-              }
-            );
-
-            if (!response.ok) {
-              throw new ApiError(
-                `Failed to fetch models (HTTP ${response.status})`,
-                {
-                  httpStatus: response.status,
-                  endpoint: "/v1/models"
-                }
-              );
-            }
-
-            return (await response.json()) as {
-              object: string;
-              data: ModelEntry[];
-            };
-          },
-          stopMessage: (r) => `${r.data.length} models fetched`
-        });
+        const result = rawView
+          ? await fetchModels(container, headers)
+          : await withSpinner<{ object: string; data: ModelEntry[] }>({
+            message: "Fetching models...",
+            fn: () => fetchModels(container, headers),
+            stopMessage: (r) => `${r.data.length} models fetched`
+          });
 
         const { models: allModels, availableEndpoints } = preprocessModels(result.data);
 
-        if (allModels.length === 0) {
+        if (!rawView && allModels.length === 0) {
           resources.logger.info("No models found.");
           return;
         }
@@ -374,23 +389,23 @@ export function registerModelsCommand(
           filtered = filtered.filter((m) => m.created >= cutoff);
         }
 
-        if (hasActiveFilters(commandOptions)) {
+        if (!rawView && hasActiveFilters(commandOptions)) {
           resources.logger.info(`${filtered.length}/${allModels.length} models`);
         }
 
-        if (filtered.length === 0) {
+        if (!rawView && filtered.length === 0) {
           resources.logger.info("No models match the given filters.");
           return;
         }
 
         filtered.sort((a, b) => b.created - a.created);
 
-        const theme = getTheme();
-
-        if (commandOptions.view === "raw") {
-          resources.logger.info(yamlStringify(filtered.map(toRawModel)));
+        if (rawView) {
+          writeYaml(filtered.map(toRawModel));
           return;
         }
+
+        const theme = getTheme();
 
         let columns;
         let rows;

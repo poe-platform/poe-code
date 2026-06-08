@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { parse as yamlParse } from "yaml";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
@@ -115,6 +116,34 @@ async function runModels(options: {
   vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
   await program.parseAsync(["node", "cli", "models", ...(options.args ?? [])]);
   return options.logs.join("\n");
+}
+
+async function runModelsWithStdout(options: {
+  fs: FileSystem;
+  httpClient: HttpClient;
+  args?: string[];
+  variables?: Record<string, string | undefined>;
+}): Promise<string> {
+  const chunks: string[] = [];
+  const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+    chunks.push(String(chunk));
+    return true;
+  }) as typeof process.stdout.write);
+
+  try {
+    const program = createProgram({
+      fs: options.fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: options.variables ?? {} },
+      httpClient: options.httpClient,
+      suppressCommanderOutput: true
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+    await program.parseAsync(["node", "cli", "models", ...(options.args ?? [])]);
+    return chunks.join("");
+  } finally {
+    stdoutSpy.mockRestore();
+  }
 }
 
 describe("models command", () => {
@@ -1124,7 +1153,7 @@ describe("models command", () => {
     expect(logs.some((m) => m.includes("No models with parameters match the given filters."))).toBe(true);
   });
 
-  it("--view raw outputs models in YAML format", async () => {
+  it("--view raw writes parseable YAML to stdout without status decoration", async () => {
     fs = await createConfigVolume("test-key");
     const models = [
       createModelEntry({
@@ -1143,11 +1172,41 @@ describe("models command", () => {
       json: async () => ({ object: "list", data: models })
     });
 
-    const output = await runModels({ fs, httpClient, logs, args: ["--view", "raw"] });
+    const output = await runModelsWithStdout({ fs, httpClient, args: ["--view", "raw"] });
 
-    expect(output).toContain("id: claude-opus-4.7");
-    expect(output).toContain("owned_by: Anthropic");
+    expect(yamlParse(output)).toEqual([
+      expect.objectContaining({
+        id: "claude-opus-4.7",
+        owned_by: "Anthropic",
+        supported_features: ["tools", "web_search"]
+      })
+    ]);
     expect(output).toContain("output_effort");
+    expect(output).not.toContain("models");
+    expect(output).not.toContain("fetched");
+  });
+
+  it("--view raw serializes empty filtered results as YAML", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [createModelEntry({ id: "claude-opus-4.7", owned_by: "Anthropic" })]
+      })
+    });
+
+    const output = await runModelsWithStdout({
+      fs,
+      httpClient,
+      args: ["--view", "raw", "--provider", "openai"]
+    });
+
+    expect(yamlParse(output)).toEqual([]);
+    expect(output.trim()).toBe("[]");
+    expect(output).not.toContain("0/1 models");
+    expect(output).not.toContain("No models match");
   });
 
   it("--view parameters truncates long enum values with ellipsis", async () => {

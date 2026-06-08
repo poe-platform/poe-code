@@ -190,6 +190,7 @@ export function createJobRegistry(
     await assertSafeJobPath(filePath);
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+    let tempCreated = false;
 
     try {
       await assertSafeJobPath(tempPath);
@@ -197,10 +198,13 @@ export function createJobRegistry(
         encoding: "utf8",
         flag: "wx"
       });
+      tempCreated = true;
       await assertSafeJobPath(filePath);
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      await removeTempFile(tempPath).catch(() => undefined);
+      if (tempCreated) {
+        await removeTempFile(tempPath).catch(() => undefined);
+      }
       throw error;
     }
   }

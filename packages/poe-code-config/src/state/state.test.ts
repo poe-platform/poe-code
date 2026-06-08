@@ -230,6 +230,49 @@ describe("TemplateRegistry", () => {
       await expect(registry.get("docker", "alpha")).resolves.toEqual(template);
     });
   });
+
+  it("does not remove a colliding template temp symlink it did not create", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const outsidePath = "/outside/templates-tmp.json";
+    const original = createTemplate("alpha");
+    const volume = Volume.fromJSON(
+      {
+        [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`,
+        [outsidePath]: "outside-state\n"
+      },
+      "/"
+    );
+    const base = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+    let tempPath: string | undefined;
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (
+          tempPath === undefined &&
+          targetPath.startsWith(`${templatesPath}.`) &&
+          targetPath.endsWith(".tmp")
+        ) {
+          tempPath = targetPath;
+          volume.symlinkSync(outsidePath, targetPath);
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.put("docker", createTemplate("bravo"))).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(tempPath).toBeDefined();
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    const tempStat = await fs.lstat?.(tempPath as string);
+    expect(tempStat?.isSymbolicLink()).toBe(true);
+    await expect(
+      createTemplateRegistry("/home/tester", base).get("docker", "alpha")
+    ).resolves.toEqual(original);
+  });
 });
 
 describe("JobRegistry", () => {
@@ -468,6 +511,43 @@ describe("JobRegistry", () => {
       expect(jobStat?.isSymbolicLink()).toBe(false);
       await expect(registry.get("job-1")).resolves.toEqual(job);
     });
+  });
+
+  it("does not remove a colliding job temp symlink it did not create", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const jobPath = path.join(jobsDir, "job-1.json");
+    const outsidePath = "/outside/job-tmp.json";
+    const volume = Volume.fromJSON({ [outsidePath]: "outside-job\n" }, "/");
+    volume.mkdirSync(jobsDir, { recursive: true });
+    const base = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+    let tempPath: string | undefined;
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (
+          tempPath === undefined &&
+          targetPath.startsWith(`${jobPath}.`) &&
+          targetPath.endsWith(".tmp")
+        ) {
+          tempPath = targetPath;
+          volume.symlinkSync(outsidePath, targetPath);
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+
+    await expect(
+      createJobRegistry("/home/tester", fs).put(createJob("job-1"))
+    ).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(tempPath).toBeDefined();
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-job\n");
+    const tempStat = await fs.lstat?.(tempPath as string);
+    expect(tempStat?.isSymbolicLink()).toBe(true);
+    await expect(createJobRegistry("/home/tester", base).get("job-1")).resolves.toBeNull();
   });
 
   it("rejects invalid job updates without corrupting the stored job", async () => {

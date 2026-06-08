@@ -27,14 +27,18 @@ export async function renderTerminalPng(
 
   if (options.output) {
     const temporaryPath = `${options.output}.${randomUUID()}.tmp`;
+    let temporaryCreated = false;
     try {
       await writeFile(temporaryPath, png, { flag: "wx" });
+      temporaryCreated = true;
       await rename(temporaryPath, options.output);
     } catch (error) {
-      try {
-        await rm(temporaryPath, { force: true });
-      } catch (cleanupError) {
-        void cleanupError;
+      if (temporaryCreated) {
+        try {
+          await rm(temporaryPath, { force: true });
+        } catch (cleanupError) {
+          void cleanupError;
+        }
       }
       throw error;
     }

@@ -95,6 +95,7 @@ export class ExperimentJournal {
   private async publish(entries: JournalEntry[]): Promise<void> {
     await this.assertRegularPath();
     const temporaryPath = `${this.journalPath}.${process.pid}.${randomUUID()}.tmp`;
+    let temporaryCreated = false;
 
     try {
       await this.fs.writeFile(
@@ -102,10 +103,13 @@ export class ExperimentJournal {
         entries.length === 0 ? "" : entries.map((e) => JSON.stringify(e)).join("\n") + "\n",
         { encoding: "utf8", flag: "wx" }
       );
+      temporaryCreated = true;
       await this.assertRegularPath();
       await this.fs.rename(temporaryPath, this.journalPath);
     } catch (error) {
-      await this.fs.unlink(temporaryPath).catch(() => undefined);
+      if (temporaryCreated) {
+        await this.fs.unlink(temporaryPath).catch(() => undefined);
+      }
       throw error;
     }
   }

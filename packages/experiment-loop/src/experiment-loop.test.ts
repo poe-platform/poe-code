@@ -971,6 +971,46 @@ describe("writeExperimentFrontmatter", () => {
     await expect(fs.readFile(docPath, "utf8")).resolves.toContain("tests: 42");
   });
 
+  it("does not remove a colliding frontmatter temp symlink it did not create", async () => {
+    const docPath = "/repo/experiment.md";
+    const outsidePath = "/outside/target.md";
+    const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
+    const volume = Volume.fromJSON(
+      {
+        [docPath]: original,
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const baseFs = createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
+    let temporaryPath: string | undefined;
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content, options) {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${docPath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync(outsidePath, filePath);
+        }
+
+        await baseFs.writeFile(filePath, content, options);
+      }
+    };
+
+    await expect(
+      writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs)
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    const tempStat = await fs.lstat(temporaryPath as string);
+    expect(tempStat.isSymbolicLink()).toBe(true);
+    await expect(fs.readFile(docPath, "utf8")).resolves.toBe(original);
+  });
+
   it("preserves the document when frontmatter persistence fails", async () => {
     const docPath = "/repo/experiment.md";
     const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
@@ -1320,6 +1360,49 @@ describe("ExperimentJournal", () => {
       first,
       { ...second, scores: { tests: 42 } }
     ]);
+  });
+
+  it("does not remove a colliding journal temp symlink it did not create", async () => {
+    const first = createJournalEntry({ commit: "first" });
+    const second = createJournalEntry({ commit: "second" });
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const outsidePath = "/outside/journal-target.jsonl";
+    const original = `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`;
+    const volume = Volume.fromJSON(
+      {
+        [journalPath]: original,
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const baseFs = createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
+    let temporaryPath: string | undefined;
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content, options) {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${journalPath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync(outsidePath, filePath);
+        }
+
+        await baseFs.writeFile(filePath, content, options);
+      }
+    };
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await expect(journal.updateLast({ scores: { tests: 42 } })).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    const tempStat = await fs.lstat(temporaryPath as string);
+    expect(tempStat.isSymbolicLink()).toBe(true);
+    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe(original);
   });
 
   it("updateLast patches the last entry and preserves earlier entries", async () => {

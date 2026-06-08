@@ -51,6 +51,7 @@ export function createTemplateRegistry(
   async function writeState(state: TemplateState): Promise<void> {
     await assertSafeStateFile();
     const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+    let tempCreated = false;
 
     try {
       await assertSafeStatePath(tempPath);
@@ -58,10 +59,13 @@ export function createTemplateRegistry(
         encoding: "utf8",
         flag: "wx"
       });
+      tempCreated = true;
       await assertSafeStateFile();
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      await fs.unlink(tempPath).catch(() => undefined);
+      if (tempCreated) {
+        await fs.unlink(tempPath).catch(() => undefined);
+      }
       throw error;
     }
   }

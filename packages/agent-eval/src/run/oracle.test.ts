@@ -1,8 +1,9 @@
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockRunner } from "@poe-code/process-runner/testing";
-import type { Runner, RunSpec } from "@poe-code/process-runner";
+import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
 import type { EvalDef, EvalSource } from "../types.js";
+import { RUN_HANDLE_TERMINATION_GRACE_MS } from "./subprocess-termination.js";
 
 const mocks = vi.hoisted(() => ({
   createHostRunner: vi.fn(),
@@ -76,6 +77,7 @@ describe("verifyOracle", () => {
       env: expect.objectContaining({
         ORACLE_DIR: "/repo/evals/smoke/oracle"
       }),
+      killProcessGroup: true,
       stderr: "pipe",
       stdout: "pipe"
     });
@@ -140,6 +142,33 @@ describe("verifyOracle", () => {
       passed: false,
       output: "verification timed out after 25ms"
     });
+  });
+
+  it("escalates a timed-out verify command before returning the timeout result", async () => {
+    vi.useFakeTimers();
+    mocks.loadEval.mockResolvedValue(
+      createEval({ verify: { command: "npm run verify", timeoutMs: 25 } })
+    );
+    const runner = createStubbornRunner();
+    mocks.createHostRunner.mockReturnValue(runner);
+
+    const result = verifyOracle(source, "smoke");
+    const settled = vi.fn();
+    void result.then(settled, settled);
+
+    await vi.advanceTimersByTimeAsync(25);
+    await Promise.resolve();
+
+    expect(runner.kills).toEqual(["SIGTERM"]);
+    expect(settled).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(RUN_HANDLE_TERMINATION_GRACE_MS);
+
+    await expect(result).resolves.toEqual({
+      passed: false,
+      output: "verification timed out after 25ms"
+    });
+    expect(runner.kills).toEqual(["SIGTERM", "SIGKILL"]);
   });
 
   it("uses an absolute oracle directory for relative source roots", async () => {
@@ -231,6 +260,39 @@ function createRecordingRunner(
     exec(spec) {
       specs.push(spec);
       return runner.exec(spec);
+    }
+  };
+}
+
+function createStubbornRunner(): Runner & { specs: RunSpec[]; kills: NodeJS.Signals[] } {
+  const specs: RunSpec[] = [];
+  const kills: NodeJS.Signals[] = [];
+
+  return {
+    name: "stubborn",
+    specs,
+    kills,
+    exec(spec) {
+      specs.push(spec);
+      let resolveResult: ((result: { exitCode: number }) => void) | undefined;
+      const result = new Promise<{ exitCode: number }>((resolve) => {
+        resolveResult = resolve;
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin: null,
+        result,
+        kill(signal) {
+          if (typeof signal === "string") {
+            kills.push(signal);
+          }
+          if (signal === "SIGKILL") {
+            resolveResult?.({ exitCode: 1 });
+          }
+        }
+      } satisfies RunHandle;
     }
   };
 }

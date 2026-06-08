@@ -2,7 +2,8 @@ import { tmpdir } from "node:os";
 import { vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockRunner } from "@poe-code/process-runner/testing";
-import type { Runner, RunSpec } from "@poe-code/process-runner";
+import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
+import { RUN_HANDLE_TERMINATION_GRACE_MS } from "./subprocess-termination.js";
 
 const mocks = vi.hoisted(() => ({
   createHostRunner: vi.fn(),
@@ -106,6 +107,7 @@ describe("runVitest", () => {
         CLONE_DIR: "/work/clone",
         ORACLE_DIR: "/work/eval/oracle"
       }),
+      killProcessGroup: true,
       stdout: "pipe",
       stderr: "pipe"
     });
@@ -239,6 +241,32 @@ describe("runVitest", () => {
     await expectation;
   });
 
+  it("escalates a timed-out vitest process before rejecting", async () => {
+    vi.useFakeTimers();
+    const runner = createStubbornVitestRunner();
+    mocks.createHostRunner.mockReturnValue(runner);
+
+    const result = runVitest({
+      testsDir: "/work/eval/oracle/tests",
+      cloneDir: "/work/clone",
+      oracleDir: "/work/eval/oracle",
+      timeoutMs: 25
+    });
+    const settled = vi.fn();
+    void result.then(settled, settled);
+
+    await vi.advanceTimersByTimeAsync(25);
+    await Promise.resolve();
+
+    expect(runner.kills).toEqual(["SIGTERM"]);
+    expect(settled).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(RUN_HANDLE_TERMINATION_GRACE_MS);
+
+    await expect(result).rejects.toBeInstanceOf(VitestTimeoutError);
+    expect(runner.kills).toEqual(["SIGTERM", "SIGKILL"]);
+  });
+
   it("rejects a non-finite vitest timeout before execution", async () => {
     mocks.createHostRunner.mockReturnValue(createVitestRunner({ json: { testResults: [] } }));
 
@@ -312,6 +340,44 @@ function createVitestRunner(input: {
       }
 
       return mockRunner.exec(spec);
+    }
+  };
+
+  return runner;
+}
+
+function createStubbornVitestRunner(): Runner & {
+  specs: RunSpec[];
+  outputFile?: string;
+  kills: NodeJS.Signals[];
+} {
+  const kills: NodeJS.Signals[] = [];
+  const runner: Runner & { specs: RunSpec[]; outputFile?: string; kills: NodeJS.Signals[] } = {
+    name: "stubborn",
+    specs: [],
+    kills,
+    exec(spec) {
+      runner.specs.push(spec);
+      runner.outputFile = findOutputFile(spec);
+      let resolveResult: ((result: { exitCode: number }) => void) | undefined;
+      const result = new Promise<{ exitCode: number }>((resolve) => {
+        resolveResult = resolve;
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin: null,
+        result,
+        kill(signal) {
+          if (typeof signal === "string") {
+            kills.push(signal);
+          }
+          if (signal === "SIGKILL") {
+            resolveResult?.({ exitCode: 1 });
+          }
+        }
+      } satisfies RunHandle;
     }
   };
 

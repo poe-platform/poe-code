@@ -1151,7 +1151,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
             if (flags.dryRun) {
               resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
             } else {
-              await container.fs.writeFile(runYamlPath, templates.runYaml);
+              await container.fs.writeFile(runYamlPath, templates.runYaml, {
+                encoding: "utf8",
+                flag: "wx"
+              });
               createdRunYaml = true;
               resources.logger.info(`Create: ${runYamlDisplayPath}`);
             }

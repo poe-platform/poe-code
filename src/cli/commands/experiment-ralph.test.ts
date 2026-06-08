@@ -1849,6 +1849,47 @@ describe("experiment install command", () => {
     await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
   });
 
+  it("does not follow a run.yaml symlink inserted before experiment scaffolding", async () => {
+    const runYamlPath = "/repo/.poe-code/experiments/run.yaml";
+    const outsidePath = "/outside/run.yaml";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === runYamlPath) {
+        await replaceWithSymlink(fs, runYamlPath, outsidePath);
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
+  });
+
   it("defaults to claude-code and local scope with --yes", async () => {
     const fs = createMemFs();
     const container = createCliContainer({

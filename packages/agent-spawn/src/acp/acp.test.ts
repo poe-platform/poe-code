@@ -268,6 +268,15 @@ describe("acp/readLines", () => {
     await expect(collect(readLines(stream))).resolves.toEqual(["hello", "world", "x"]);
   });
 
+  it("preserves multibyte UTF-8 characters split across chunks", async () => {
+    const stream = Readable.from([
+      Buffer.from([0x6f, 0x6b, 0x20, 0xf0, 0x9f]),
+      Buffer.from([0xa7, 0xaa, 0x0a])
+    ]);
+
+    await expect(collect(readLines(stream))).resolves.toEqual(["ok 🧪"]);
+  });
+
   it("throws if the stream errors", async () => {
     const stream = new PassThrough();
     const collected = collect(readLines(stream));

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { dirname, join, parse, resolve, sep } from "node:path";
@@ -545,9 +545,9 @@ async function writeHostCallRecords(
   }
 
   await mkdir(dirname(storePath), { recursive: true });
-  const temporaryPath = `${storePath}.tmp`;
+  const temporaryPath = `${storePath}.${process.pid}.${randomUUID()}.tmp`;
   try {
-    await writeFile(temporaryPath, serialized);
+    await writeFile(temporaryPath, serialized, { encoding: "utf8", flag: "wx" });
     await rename(temporaryPath, storePath);
   } catch (error) {
     await unlinkIfExists(temporaryPath).catch(() => undefined);

@@ -7,7 +7,10 @@ import { vol } from "memfs";
 import { lint, makeAgentModule } from "@poe-code/agent-script";
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
-const mockedFileSystemState = vi.hoisted(() => ({ failingWritePath: undefined as string | undefined }));
+const mockedFileSystemState = vi.hoisted(() => ({
+  failingWritePath: undefined as string | undefined,
+  failingWritePathPrefix: undefined as string | undefined
+}));
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -18,7 +21,13 @@ vi.mock("node:fs/promises", async () => {
       data: Parameters<typeof fs.promises.writeFile>[1],
       options?: Parameters<typeof fs.promises.writeFile>[2]
     ) {
-      if (path === mockedFileSystemState.failingWritePath) {
+      const pathText = String(path);
+      if (
+        path === mockedFileSystemState.failingWritePath ||
+        (mockedFileSystemState.failingWritePathPrefix !== undefined &&
+          pathText.startsWith(mockedFileSystemState.failingWritePathPrefix) &&
+          pathText.endsWith(".tmp"))
+      ) {
         await fs.promises.writeFile(path, "[", options);
         throw new Error("host call disk full");
       }
@@ -51,6 +60,7 @@ describe("runHarnessPair", () => {
   beforeEach(() => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;
+    mockedFileSystemState.failingWritePathPrefix = undefined;
   });
 
   afterEach(() => {
@@ -215,7 +225,7 @@ describe("runHarnessPair", () => {
       ].join("\n"),
       [storePath]: priorRecords
     });
-    mockedFileSystemState.failingWritePath = `${storePath}.tmp`;
+    mockedFileSystemState.failingWritePathPrefix = `${storePath}.`;
 
     await expect(
       runHarnessPair(mdPath, {
@@ -225,6 +235,34 @@ describe("runHarnessPair", () => {
     ).rejects.toThrow("host call disk full");
 
     expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
+  });
+
+  it("does not follow a preexisting legacy host-call temp path symlink", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      "/outside/host-calls.tmp": "outside-state\n"
+    });
+    vol.mkdirSync(dirname(storePath), { recursive: true });
+    vol.symlinkSync("/outside/host-calls.tmp", `${storePath}.tmp`);
+
+    await runHarnessPair(mdPath, {
+      modulesFor: () => ({ host: { async step() { return "new"; } } }),
+      snapshotPath,
+      preserveSnapshotOnSuccess: true
+    });
+
+    expect(vol.readFileSync("/outside/host-calls.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(storePath).isSymbolicLink()).toBe(false);
+    expect(JSON.parse(vol.readFileSync(storePath, "utf8") as string)).toEqual([
+      { key: "host.step", args: ["new"], result: "new" }
+    ]);
   });
 
   it("lints the coverage demo .ajs without diagnostics", () => {

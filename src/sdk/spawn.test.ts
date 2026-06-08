@@ -1986,6 +1986,9 @@ describe("spawn.autonomous()", () => {
 
   it("forwards tee and useStdin through autonomous spawns", async () => {
     const tee = {
+      stdout: {
+        write: vi.fn()
+      },
       stderr: {
         write: vi.fn()
       }

@@ -987,29 +987,44 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("streams OpenCode JSON events via the opencode adapter", async () => {
+    const stdoutLines = [
+      JSON.stringify({
+        type: "text",
+        sessionID: "ses_abc",
+        part: { type: "text", messageID: "msg_1", text: "hi" }
+      }),
+      JSON.stringify({
+        type: "step_finish",
+        sessionID: "ses_abc",
+        part: { tokens: { input: 1, output: 2, cache: { read: 3, write: 0 } } }
+      })
+    ];
     const mock = createMockChildProcess({
-      stdoutLines: [
-        JSON.stringify({
-          type: "text",
-          sessionID: "ses_abc",
-          part: { type: "text", messageID: "msg_1", text: "hi" }
-        }),
-        JSON.stringify({
-          type: "step_finish",
-          sessionID: "ses_abc",
-          part: { tokens: { input: 1, output: 2, cache: { read: 3, write: 0 } } }
-        })
-      ],
+      stdoutLines,
       stderr: "warn\n",
       exitCode: 0
     });
+    let teeStdout = "";
+    let teeStderr = "";
 
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
-      cwd: "/tmp"
+      cwd: "/tmp",
+      tee: {
+        stdout: {
+          write: (chunk: string) => {
+            teeStdout += chunk;
+          }
+        },
+        stderr: {
+          write: (chunk: string) => {
+            teeStderr += chunk;
+          }
+        }
+      }
     });
 
     await expect(collect(events).then(stripMeta)).resolves.toEqual([
@@ -1023,6 +1038,8 @@ describe("acp/spawnStreaming", () => {
       stderr: "warn\n",
       exitCode: 0
     });
+    expect(teeStdout).toBe(`${stdoutLines.join("\n")}\n`);
+    expect(teeStderr).toBe("warn\n");
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0];

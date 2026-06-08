@@ -286,6 +286,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
         activityTimeoutMs: options.activityTimeoutMs,
         activityTimeoutSource: "stdout",
         onStdout(chunk: string) {
+          if (options.tee?.stdout) options.tee.stdout.write(chunk);
           queue.push(chunk);
         },
         onStderr(chunk: string) {

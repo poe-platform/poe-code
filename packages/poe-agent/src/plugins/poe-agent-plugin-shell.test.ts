@@ -437,4 +437,47 @@ describe("poe-agent-plugin-shell", () => {
       }
     ]);
   });
+
+  it("does not wait forever for unresolved shell output notifications", async () => {
+    const cwd = process.cwd();
+    const notify = vi.fn(() => new Promise<void>(() => undefined));
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+    let timeout: NodeJS.Timeout | undefined;
+
+    try {
+      const result = await Promise.race([
+        callTool(
+          plugin.tools,
+          "run_command",
+          {
+            command: createNodeCommand("process.stdout.write('ready\\n');")
+          },
+          new AbortController().signal,
+          {
+            notify
+          }
+        ),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => {
+            reject(new Error("Timed out waiting for command completion"));
+          }, 1_000);
+        })
+      ]);
+
+      expect(result).toContain("ready");
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "shell.stdout",
+          message: "ready\n"
+        })
+      );
+    } finally {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
+    }
+  });
 });

@@ -812,7 +812,6 @@ function spawnShellCommand(
 ): SpawnedCommand {
   const stdout = createRetainedShellOutput();
   const stderr = createRetainedShellOutput();
-  const pendingNotifications = new Set<Promise<void>>();
   let notificationError: Error | undefined;
   const child = spawn(command, {
     cwd,
@@ -822,34 +821,31 @@ function spawnShellCommand(
   });
 
   const notify = (stream: ShellOutputNotification["data"]["stream"], message: string): void => {
-    if (options.notify === undefined || message.length === 0) {
+    const notifyHook = options.notify;
+    if (notifyHook === undefined || message.length === 0) {
       return;
     }
 
-    const pending = Promise.resolve(
-      options.notify({
-        event: stream === "stdout" ? "shell.stdout" : "shell.stderr",
-        message,
-        data: {
-          background: options.background ?? false,
-          command,
-          cwd,
-          ...(options.handle === undefined ? {} : { handle: options.handle }),
-          stream
-        }
-      } satisfies ShellOutputNotification)
-    )
+    void Promise.resolve()
+      .then(() =>
+        notifyHook({
+          event: stream === "stdout" ? "shell.stdout" : "shell.stderr",
+          message,
+          data: {
+            background: options.background ?? false,
+            command,
+            cwd,
+            ...(options.handle === undefined ? {} : { handle: options.handle }),
+            stream
+          }
+        } satisfies ShellOutputNotification)
+      )
       .catch((error) => {
         if (notificationError === undefined) {
           notificationError = toError(error);
           terminate();
         }
-      })
-      .finally(() => {
-        pendingNotifications.delete(pending);
       });
-
-    pendingNotifications.add(pending);
   };
 
   child.stdout?.setEncoding("utf8");
@@ -917,11 +913,9 @@ function spawnShellCommand(
 
   const completion = new Promise<SpawnedCommandOutcome>((resolve) => {
     const resolveOutcome = (outcome: SpawnedCommandOutcome): void => {
-      void Promise.allSettled(Array.from(pendingNotifications)).then(() => {
-        resolve({
-          ...outcome,
-          ...(outcome.error === undefined && notificationError ? { error: notificationError } : {})
-        });
+      resolve({
+        ...outcome,
+        ...(outcome.error === undefined && notificationError ? { error: notificationError } : {})
       });
     };
 

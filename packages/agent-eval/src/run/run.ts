@@ -22,6 +22,7 @@ import {
 } from "@poe-code/experiment-loop";
 import { openSource } from "../source/open.js";
 import { loadEval } from "../source/registry.js";
+import { assertCanonicalDestinationPath } from "../path-boundary.js";
 import type {
   CheatReport,
   EvalDef,
@@ -96,7 +97,9 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     const planMd = await readFile(sourcePlanPath, "utf8");
     const evalYaml = await readFile(sourceEvalYamlPath, "utf8");
     const clonedPlanPath = path.join(cloneDir, evalDef.target.planDest);
+    await assertCanonicalDestinationPath(cloneDir, clonedPlanPath, "target.plan_dest");
     await mkdir(path.dirname(clonedPlanPath), { recursive: true });
+    await assertCanonicalDestinationPath(cloneDir, clonedPlanPath, "target.plan_dest");
     await cp(sourcePlanPath, clonedPlanPath);
 
     const events: SpawnEvent[] = [];

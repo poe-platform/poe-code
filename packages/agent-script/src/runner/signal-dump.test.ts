@@ -77,13 +77,13 @@ describe("runner signal dump handling", () => {
       1,
       expect.stringMatching(/^\/dumps\/\.run\.json\..+\.tmp$/),
       expect.stringContaining('"sourceHash"'),
-      { encoding: "utf8" }
+      { encoding: "utf8", flag: "wx" }
     );
     expect(writeFile).toHaveBeenNthCalledWith(
       2,
       expect.stringMatching(/^\/dumps\/\.run\.json\..+\.tmp$/),
       expect.stringContaining('"sourceHash"'),
-      { encoding: "utf8" }
+      { encoding: "utf8", flag: "wx" }
     );
 
     wait.resolve("done");
@@ -91,6 +91,45 @@ describe("runner signal dump handling", () => {
       ok: true,
       returnValue: "done"
     });
+  });
+
+  it("does not follow or remove a colliding dump temp symlink", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const stderr = createStreamDouble();
+    const result = run("await wait(); return 'done';", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+    vol.fromJSON({ "/outside/dump.tmp": "outside-state\n" });
+    let tempPath: string | undefined;
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process,
+      stderr,
+      writeFile: vi.fn(async (filePath, content, options) => {
+        tempPath = filePath;
+        vol.symlinkSync("/outside/dump.tmp", filePath);
+        const { fs } = await import("memfs");
+        await fs.promises.writeFile(filePath, content, options);
+      })
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    expect(tempPath).toBeDefined();
+    expect(vol.readFileSync("/outside/dump.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
+    await vi.waitFor(() => {
+      expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining("Failed to write SIGUSR1 dump"));
+    });
+
+    wait.resolve("done");
+    await result;
   });
 
   it("dumps while the runner is paused on an await with current scope and pending awaits", async () => {

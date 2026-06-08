@@ -16,7 +16,7 @@ type CliStream = {
 type WriteDumpFile = (
   filepath: string,
   content: string,
-  options: { encoding: "utf8" }
+  options: { encoding: "utf8"; flag: "wx" }
 ) => Promise<void>;
 
 export function attachSignalDumpHandler(
@@ -56,11 +56,15 @@ export function attachSignalDumpHandler(
         const parentPath = dirname(options.dumpPath);
         const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${randomUUID()}.tmp`);
         await mkdir(parentPath, { recursive: true });
+        let tempCreated = false;
         try {
-          await writeDumpFile(tempPath, snapshot, { encoding: "utf8" });
+          await writeDumpFile(tempPath, snapshot, { encoding: "utf8", flag: "wx" });
+          tempCreated = true;
           await rename(tempPath, options.dumpPath);
         } catch (error) {
-          await rm(tempPath, { force: true }).catch(() => undefined);
+          if (tempCreated) {
+            await rm(tempPath, { force: true }).catch(() => undefined);
+          }
           throw error;
         }
       }

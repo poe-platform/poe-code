@@ -9,7 +9,7 @@
     "test:unit": "cd ../.. && vitest run packages/toolcraft-landing-page/src"
   },
   "dependencies": {
-    "toolcraft-design": "^0.0.2"
+    "toolcraft-design": "*"
   },
   "engines": {
     "node": ">=20"

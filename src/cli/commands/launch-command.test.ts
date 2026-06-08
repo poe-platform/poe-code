@@ -197,7 +197,7 @@ describe("launch command", () => {
     expect(spec.env.__proto__).toBe("visible");
   });
 
-  it("prompts for missing start values and uses --yes defaults for runtime and restart", async () => {
+  it("prompts for missing start values in interactive launch start", async () => {
     promptTextMock
       .mockResolvedValueOnce("api")
       .mockResolvedValueOnce("npm run dev");
@@ -205,7 +205,7 @@ describe("launch command", () => {
     const program = createBaseProgram();
     registerLaunchCommand(program, createContainer());
 
-    await program.parseAsync(["node", "cli", "--yes", "launch", "start"]);
+    await program.parseAsync(["node", "cli", "launch", "start"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(startLaunchMock).toHaveBeenCalledWith(
@@ -218,6 +218,25 @@ describe("launch command", () => {
         })
       })
     );
+  });
+
+  it("rejects missing launch start values under --yes without prompting", async () => {
+    const missingIdProgram = createBaseProgram();
+    registerLaunchCommand(missingIdProgram, createContainer());
+
+    await expect(
+      missingIdProgram.parseAsync(["node", "cli", "--yes", "launch", "start"])
+    ).rejects.toThrow("Process ID is required.");
+
+    const missingCommandProgram = createBaseProgram();
+    registerLaunchCommand(missingCommandProgram, createContainer());
+
+    await expect(
+      missingCommandProgram.parseAsync(["node", "cli", "--yes", "launch", "start", "api"])
+    ).rejects.toThrow("Command to run is required.");
+
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(startLaunchMock).not.toHaveBeenCalled();
   });
 
   it("infers the host runtime when a command is provided without a docker image", async () => {

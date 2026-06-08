@@ -237,12 +237,12 @@ async function resolveStartSpec(options: {
   options: StartCommandOptions;
 }): Promise<ProcessSpec | null> {
   const flags = resolveCommandFlags(options.program);
-  const id = await resolveProcessId(options.id);
+  const id = await resolveProcessId(options.id, flags.assumeYes);
   if (id === null) {
     return null;
   }
 
-  const commandParts = await resolveCommandParts(options.commandArgs);
+  const commandParts = await resolveCommandParts(options.commandArgs, flags.assumeYes);
   if (commandParts === null) {
     return null;
   }
@@ -308,9 +308,16 @@ async function resolveStartSpec(options: {
   return spec;
 }
 
-async function resolveProcessId(value: string | undefined): Promise<string | null> {
+async function resolveProcessId(
+  value: string | undefined,
+  assumeYes: boolean
+): Promise<string | null> {
   if (value && value.trim().length > 0) {
     return value.trim();
+  }
+
+  if (assumeYes) {
+    throw new ValidationError("Process ID is required.");
   }
 
   const entered = await promptText({
@@ -329,9 +336,16 @@ async function resolveProcessId(value: string | undefined): Promise<string | nul
   return id;
 }
 
-async function resolveCommandParts(commandArgs: string[]): Promise<string[] | null> {
+async function resolveCommandParts(
+  commandArgs: string[],
+  assumeYes: boolean
+): Promise<string[] | null> {
   if (commandArgs.length > 0) {
     return [...commandArgs];
+  }
+
+  if (assumeYes) {
+    throw new ValidationError("Command to run is required.");
   }
 
   const entered = await promptText({

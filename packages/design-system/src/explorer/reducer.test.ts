@@ -190,6 +190,70 @@ describe("step", () => {
     expect(up.state.detail.cursor).toBe(0);
   });
 
+  it("clamps detail blob scrolling to rendered content", () => {
+    let current: ExplorerState = {
+      ...loadedState(),
+      focused: "detail" as const,
+      size: { cols: 120, rows: 8 },
+      layout: "wide" as const,
+      detail: {
+        rowId: "one",
+        items: [{
+          id: "body",
+          renderedContent: ["one", "two", "three", "four", "five", "six"].join("\n"),
+          render: () => ""
+        }],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    };
+
+    for (let index = 0; index < 5; index += 1) {
+      current = step(current, {
+        type: "key",
+        key: { ch: "f", ctrl: true, meta: false, shift: false }
+      }).state;
+    }
+
+    expect(current.detail.scroll).toBe(2);
+
+    const up = step(current, {
+      type: "key",
+      key: { ch: "b", ctrl: true, meta: false, shift: false }
+    });
+
+    expect(up.state.detail.scroll).toBe(1);
+  });
+
+  it("clamps detail list scrolling to the final item", () => {
+    let current: ExplorerState = {
+      ...loadedState(),
+      focused: "detail" as const,
+      detail: {
+        rowId: "one",
+        items: [
+          { id: "comment-one", title: "Comment one", render: () => "one" },
+          { id: "comment-two", title: "Comment two", render: () => "two" }
+        ],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    };
+
+    for (let index = 0; index < 5; index += 1) {
+      current = step(current, {
+        type: "key",
+        key: { ch: "f", ctrl: true, meta: false, shift: false }
+      }).state;
+    }
+
+    expect(current.detail.scroll).toBe(1);
+  });
+
   it("applies Esc semantics in priority order", () => {
     const withFilter = { ...loadedState(), filter: "one", selected: new Set(["two"]) };
     const filterCleared = step(withFilter, { type: "key", key: key("\u001b") });

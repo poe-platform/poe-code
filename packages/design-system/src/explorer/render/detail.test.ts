@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { stripAnsi } from "../../internal/strip-ansi.js";
 import { REGION_DETAIL } from "../state.js";
 import { fixtureState, listDetailItems, renderStateSnapshot } from "./test-fixtures.js";
 
@@ -29,5 +30,46 @@ describe("explorer detail renderer", () => {
         loading: false
       }
     }))).toMatchSnapshot("error detail");
+  });
+
+  it("clamps stale blob scroll before rendering", () => {
+    const output = stripAnsi(renderStateSnapshot(fixtureState({
+      dirty: REGION_DETAIL,
+      size: { cols: 120, rows: 8 },
+      focused: "detail",
+      detail: {
+        rowId: "27",
+        items: [{
+          id: "body",
+          renderedContent: ["one", "two", "three", "four", "five", "six"].join("\n"),
+          render: () => ""
+        }],
+        cursor: 0,
+        scroll: 99,
+        token: 1,
+        loading: false
+      }
+    })));
+
+    expect(output).toContain("three");
+    expect(output).toContain("six");
+  });
+
+  it("clamps stale list scroll before rendering", () => {
+    const output = stripAnsi(renderStateSnapshot(fixtureState({
+      dirty: REGION_DETAIL,
+      focused: "detail",
+      detail: {
+        rowId: "27",
+        items: listDetailItems(),
+        cursor: 1,
+        scroll: 99,
+        token: 1,
+        loading: false
+      }
+    })));
+
+    expect(output).toContain("packages/auth/src/refresh.ts:88");
+    expect(output).toContain("Rename `t` to `token`");
   });
 });

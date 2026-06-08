@@ -238,7 +238,7 @@ function resize(state: ExplorerState, cols: number, rows: number): StepResult {
   }
 
   return {
-    state: { ...state, size, layout, dirty: REGION_ALL },
+    state: clampDetailScroll({ ...state, size, layout, dirty: REGION_ALL }),
     effects: NO_EFFECTS
   };
 }
@@ -331,8 +331,9 @@ function detailItemRendered(
   const items = state.detail.items.map((item, index) =>
     index === itemIndex ? { ...item, renderedContent: content } : item
   );
+  const detail = { ...state.detail, items };
   return {
-    state: { ...state, detail: { ...state.detail, items }, dirty: REGION_DETAIL },
+    state: clampDetailScroll({ ...state, detail, dirty: REGION_DETAIL }),
     effects: NO_EFFECTS
   };
 }
@@ -595,7 +596,7 @@ function detailScroll(state: ExplorerState, delta: number): StepResult {
     return mark(state, 0);
   }
 
-  const scroll = Math.max(0, state.detail.scroll + delta);
+  const scroll = clamp(state.detail.scroll + delta, 0, maxDetailScroll(state));
   if (scroll === state.detail.scroll) {
     return mark(state, 0);
   }
@@ -604,6 +605,55 @@ function detailScroll(state: ExplorerState, delta: number): StepResult {
     state: { ...state, detail: { ...state.detail, scroll }, dirty: REGION_DETAIL },
     effects: NO_EFFECTS
   };
+}
+
+function clampDetailScroll(state: ExplorerState): ExplorerState {
+  const scroll = clamp(state.detail.scroll, 0, maxDetailScroll(state));
+  if (scroll === state.detail.scroll) {
+    return state;
+  }
+
+  return { ...state, detail: { ...state.detail, scroll } };
+}
+
+function maxDetailScroll(state: ExplorerState): number {
+  const items = state.detail.items;
+  if (items === null || items.length === 0) {
+    return 0;
+  }
+
+  if (items.length === 1 && items[0]?.title === undefined) {
+    const visibleHeight = detailBodyHeight(state);
+    if (visibleHeight <= 0) {
+      return 0;
+    }
+    return Math.max(0, detailContentLineCount(items[0]!) - visibleHeight);
+  }
+
+  return Math.max(0, items.length - 1);
+}
+
+function detailContentLineCount(item: DetailItem): number {
+  return (item.renderedContent ?? "").split("\n").length;
+}
+
+function detailBodyHeight(state: ExplorerState): number {
+  if (state.layout === "too-narrow" || state.layout === "narrow-list-only") {
+    return 0;
+  }
+
+  const rows = normalizeSize(state.size.rows);
+  const footerHeight = rows > 0 ? Math.min(1, rows) : 0;
+  const headerHeight = Math.min(3, Math.max(0, rows - footerHeight));
+  const contentHeight = Math.max(0, rows - headerHeight - footerHeight);
+
+  if (state.layout === "narrow-vertical") {
+    const listHeight = Math.ceil(contentHeight / 2);
+    const detailHeight = contentHeight - listHeight;
+    return Math.max(0, detailHeight - 1);
+  }
+
+  return contentHeight;
 }
 
 function extendSelection(state: ExplorerState, delta: number): StepResult {

@@ -65,7 +65,8 @@ function renderListMode(
   const styles = getExplorerStyles();
   let y = 0;
 
-  for (let index = state.detail.scroll; index < items.length && y < rect.height; index += 1) {
+  const start = clamp(state.detail.scroll, 0, Math.max(0, items.length - 1));
+  for (let index = start; index < items.length && y < rect.height; index += 1) {
     const item = items[index]!;
     const cursor = index === state.detail.cursor;
     const title = item.title ?? item.id;
@@ -94,7 +95,9 @@ function renderListMode(
 }
 
 function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: number): void {
-  const lines = text.split("\n").slice(scroll);
+  const allLines = text.split("\n");
+  const start = clamp(scroll, 0, Math.max(0, allLines.length - rect.height));
+  const lines = allLines.slice(start);
   for (let row = 0; row < rect.height; row += 1) {
     writeLine(screen, rect, row, lines[row] ?? "");
   }
@@ -133,4 +136,8 @@ function fit(text: string, width: number): string {
     return text;
   }
   return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
 }

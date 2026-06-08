@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 import { ValidationError } from "../errors.js";
@@ -33,12 +33,36 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 // ---------------------------------------------------------------------------
 // skill-unconfigure-command.test.ts
 // ---------------------------------------------------------------------------
 
 describe("skill unconfigure command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     vi.restoreAllMocks();
     selectMock.mockReset();
     cancelMock.mockReset();
@@ -264,6 +288,33 @@ describe("skill unconfigure command", () => {
     expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
   });
+
+  it("rejects non-interactive unconfigure when scope must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(
+        program.parseAsync(["node", "cli", "skill", "unconfigure", "claude-code", "--force"])
+      ).rejects.toEqual(
+        new ValidationError(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        )
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -271,7 +322,12 @@ describe("skill unconfigure command", () => {
 // ---------------------------------------------------------------------------
 
 describe("skill configure command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     vi.restoreAllMocks();
     selectMock.mockReset();
     cancelMock.mockReset();
@@ -369,6 +425,58 @@ describe("skill configure command", () => {
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(logs).toContain("Configured skills for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("rejects non-interactive configure when agent must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "skill", "configure", "--local"]))
+        .rejects.toEqual(
+          new ValidationError(
+            "Skill agent selection requires an agent or --yes when running without an interactive TTY."
+          )
+        );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-interactive configure when scope must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "skill", "configure", "claude-code"]))
+        .rejects.toEqual(
+          new ValidationError(
+            "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+          )
+        );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
   });
 
   it("prompts for configure agent despite core.defaultAgent when --yes is absent", async () => {

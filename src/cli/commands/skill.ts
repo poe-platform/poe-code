@@ -32,6 +32,10 @@ async function resolveSkillAgent(input: {
       : DEFAULT_SKILL_AGENT;
   }
 
+  assertInteractivePromptAvailable(
+    "Skill agent selection requires an agent or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: input.promptMessage,
     options: supportedAgents.map((agent) => ({ value: agent, label: agent }))
@@ -41,6 +45,12 @@ async function resolveSkillAgent(input: {
     return undefined;
   }
   return selected as string;
+}
+
+function assertInteractivePromptAvailable(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
 }
 
 export function registerSkillCommand(program: Command, container: CliContainer): void {
@@ -105,6 +115,9 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       } else if (flags.assumeYes) {
         scope = "global";
       } else {
+        assertInteractivePromptAvailable(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        );
         const selected = await select({
           message: "Select scope:",
           options: [
@@ -199,6 +212,9 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       } else if (flags.assumeYes) {
         scope = "global";
       } else {
+        assertInteractivePromptAvailable(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        );
         const selected = await select({
           message: "Select scope:",
           options: [

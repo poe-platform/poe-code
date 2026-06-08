@@ -221,7 +221,7 @@ tasks:
 
       This task is docs/visual validation only — no new screenshot tests.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

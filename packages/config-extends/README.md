@@ -18,6 +18,7 @@ A chain must contain exactly one document layer. Data layers before and after th
 - With `autoExtend: true`, documents that do not set `extends` try to inherit from matching bases automatically.
 - Optional auto-extend discovery is ignored when it finds the document itself, so a document can safely live in a configured base directory without creating a circular extends error.
 - Prompt values can compose with the `{{yield}}` token across resolved base layers.
+- Prompt partials such as `{{> shared-rules}}` are loaded from prompt document directories, expanded before rendering, and included in the resolved `chain`.
 
 ## Environment variables
 
@@ -29,6 +30,8 @@ This package does not read or expose any environment variables.
 
 - `fs`: file system implementation with `readFile(path, encoding)`
 - `autoExtend?`: automatically inherit from bases even when a document does not set `extends: true`
+- `view?`: values used for one-pass prompt template rendering
+- `validate?`: fail when prompt rendering references variables missing from `view`
 
 ### `ResolvePromptDocumentInput`
 

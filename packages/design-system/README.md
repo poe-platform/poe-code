@@ -8,7 +8,8 @@ Shared terminal UI components, themes, prompt primitives, and static renderers f
 - `helpFormatter`: usage, command, and option formatting for CLI help.
 - `renderTable`: tabular and detail-style row rendering.
 - `renderDetailCard`: title, subtitle, prose, badge, section, and label/value rendering for rich command results.
-- `renderTemplate`: Mustache-backed text rendering with configured escaping.
+- `renderTemplate`: Mustache-backed text rendering with configured escaping, optional validation, `{{yield}}`, and Markdown-style partial expansion.
+- `getTemplatePartialNames` / `resolveTemplatePartials`: inspect and expand `{{> partial}}` references for prompt-document callers.
 - `prompts`: themed select, multiselect, text, password, confirm, spinner, and note helpers.
 - `dashboard` / `explorer`: interactive terminal layouts.
 - `terminal-markdown`: Markdown parsing and terminal rendering.
@@ -37,6 +38,12 @@ const output = renderDetailCard({
 ```
 
 The renderer wraps long values, aligns labels, formats optional prose blocks, and skips empty sections.
+
+## Template rendering
+
+`renderTemplate(template, view, options)` supports normal escaped variables, triple-mustache unescaped variables, sections, inverted sections, lambdas, `{{yield}}`, and partial tags such as `{{> shared-rules}}`. Pass `partials` as a name-to-template map. Set `validate: true` to fail when a referenced variable is missing from the active view.
+
+`getTemplatePartialNames(template)` returns the partial names referenced by a template. `resolveTemplatePartials(template, partials)` expands partials recursively and reports missing, circular, or too-deep partial graphs.
 
 ## Environment variables
 

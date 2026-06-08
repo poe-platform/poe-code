@@ -35,6 +35,10 @@ Mode-specific args and env vars are declared in each agent config. Goose uses `G
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into the agent-specific CLI args or environment variables. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
+## Prompt transport
+
+Agents with stdin support can receive prompts through stdin by passing `useStdin: true`. When an agent config allows automatic fallback, prompts larger than 64 KiB, or prompts containing NUL bytes, are sent through stdin instead of as a CLI argument. Provider configs can opt out of the large-prompt automatic fallback when their stdin protocol requires a different payload format.
+
 ## Autonomous streaming
 
 `spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners.
@@ -83,7 +87,7 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
 | `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
 | `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
-| `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
+| `useStdin`                           | `boolean`                        | Force stdin prompt transport when the agent supports it.                               |
 | `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
 | `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |
 | `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence.                                        |

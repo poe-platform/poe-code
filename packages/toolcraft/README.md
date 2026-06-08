@@ -357,7 +357,9 @@ A built-in `approvals` group is auto-merged into every root:
 - `approvals show --approval-id <id>` — show one task.
 - `approvals run --approval-id <id>` — execute one queued task. CLI-only; used by the detached runner.
 
-The name `approvals` is reserved. Defining your own `approvals` group fails at startup.
+Pass `approvals: false` to `runCLI`, `createMCPServer`/`runMCP`, or `createSDK` to omit these approval-management commands while keeping `humanInLoop` execution behavior available for commands that request approval.
+
+The name `approvals` is reserved when the built-in group is enabled. Defining your own `approvals` group fails at startup.
 
 The async runner re-execs your binary (`process.execPath` + `process.argv[1]` by default; override via `humanInLoop.binPath`). Re-exec calls the same toolcraft entrypoint with the same `humanInLoop` options — do not branch on `argv` before calling `runCLI`/`runMCP`/`createSDK`.
 
@@ -465,20 +467,21 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
+- `approvals?: boolean` — set to `false` to omit the built-in approval-management commands.
 - `errorReports?: boolean | { dir?: string }`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createSDK(root, options)`
 
 - `casing?: "camel"` — generated SDK member style.
-- `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
+- `services?` / `humanInLoop?` / `apiVersion?` / `approvals?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createMCPServer(root, options)` / `runMCP(root, options)`
 
 - `name: string`
 - `version: string`
-- `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
+- `services?` / `humanInLoop?` / `apiVersion?` / `approvals?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).

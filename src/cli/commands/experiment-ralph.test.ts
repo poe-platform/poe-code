@@ -82,6 +82,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  path: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, path);
+}
+
 function createBaseProgram(): Command {
   const program = new Command();
   program.exitOverride();
@@ -3321,6 +3336,63 @@ describe("ralph init command", () => {
         state: "in_progress",
         iteration: 2
       }
+    });
+    expect(parsed.body).toBe("# My Plan\n\nBody");
+  });
+
+  it("does not follow a doc symlink inserted before config publish", async () => {
+    const docPath = "/repo/docs/loop.md";
+    const outsidePath = "/outside/loop.md";
+    const baseFs = createMemFs({
+      [docPath]: "# My Plan\n\nBody",
+      [outsidePath]: "outside-state\n"
+    });
+    const fs: FileSystem = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ): Promise<void> {
+        if (filePath === docPath) {
+          await replaceWithSymlink(baseFs, docPath, outsidePath);
+        }
+        await baseFs.writeFile(filePath, data, options);
+      },
+      async rename(oldPath: string, newPath: string): Promise<void> {
+        if (newPath === docPath) {
+          await replaceWithSymlink(baseFs, docPath, outsidePath);
+        }
+        await baseFs.rename(oldPath, newPath);
+      }
+    };
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "init",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--iterations",
+      "5"
+    ]);
+
+    expect(await fs.readFile(outsidePath, "utf8")).toBe("outside-state\n");
+    expect((await fs.lstat(docPath)).isSymbolicLink()).toBe(false);
+    const parsed = parseFrontmatter(await fs.readFile(docPath, "utf8"));
+    expect(parsed.data).toMatchObject({
+      agent: "codex",
+      iterations: 5
     });
     expect(parsed.body).toBe("# My Plan\n\nBody");
   });

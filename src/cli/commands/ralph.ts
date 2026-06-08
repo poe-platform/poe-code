@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { Command } from "commander";
 import {
@@ -50,6 +51,7 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
+import type { FileSystem } from "../../utils/file-system.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
@@ -349,6 +351,31 @@ async function readDocHint(container: CliContainer, docPath: string): Promise<st
     return formatDocHint(data);
   } catch {
     return undefined;
+  }
+}
+
+async function writeTextFileAtomically(
+  fs: Pick<FileSystem, "writeFile" | "rename" | "unlink">,
+  filePath: string,
+  content: string,
+  options: { atomic: boolean }
+): Promise<void> {
+  if (!options.atomic) {
+    await fs.writeFile(filePath, content, { encoding: "utf8" });
+    return;
+  }
+
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
+  try {
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
+    throw error;
   }
 }
 
@@ -698,7 +725,9 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           },
           doc.body
         );
-        await resources.context.fs.writeFile(doc.absolutePath, updated, { encoding: "utf8" });
+        await writeTextFileAtomically(resources.context.fs, doc.absolutePath, updated, {
+          atomic: !flags.dryRun
+        });
 
         resources.logger.resolved(
           "Initialized Ralph config",

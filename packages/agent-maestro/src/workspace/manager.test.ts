@@ -227,6 +227,7 @@ describe("workspace manager", () => {
   it("surfaces removeWorkspace filesystem errors to the caller", async () => {
     const fs = (await import("node:fs/promises")).default;
     const { removeWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/repo/workspaces", { recursive: true });
     const error = Object.assign(new Error("permission denied"), { code: "EACCES" });
     vi.spyOn(fs, "rm").mockRejectedValueOnce(error);
 
@@ -332,5 +333,18 @@ describe("workspace manager", () => {
       "workspace root must not be a symbolic link"
     );
     expect(vol.existsSync("/outside/done")).toBe(true);
+  });
+
+  it("rejects a symlinked workspace root during workspace removal", async () => {
+    const { removeWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/outside/done", { recursive: true });
+    vol.writeFileSync("/outside/done/keep.txt", "keep");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/workspaces");
+
+    await expect(removeWorkspace("/repo/workspaces", "done")).rejects.toThrow(
+      "workspace root must not be a symbolic link"
+    );
+    expect(vol.readFileSync("/outside/done/keep.txt", "utf8")).toBe("keep");
   });
 });

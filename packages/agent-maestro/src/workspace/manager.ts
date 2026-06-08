@@ -36,6 +36,20 @@ export async function ensureWorkspace(
 
 export async function removeWorkspace(root: string, qualifiedId: string): Promise<void> {
   const workspacePath = resolveWorkspacePath(root, qualifiedId);
+  const rootStat = await lstatIfExists(root);
+
+  if (rootStat === undefined) {
+    return;
+  }
+
+  if (rootStat.isSymbolicLink()) {
+    throw new Error(`workspace root must not be a symbolic link: ${root}`);
+  }
+
+  if (!rootStat.isDirectory()) {
+    throw new Error(`workspace root exists and is not a directory: ${root}`);
+  }
+
   await fs.rm(workspacePath, { recursive: true, force: true });
 }
 

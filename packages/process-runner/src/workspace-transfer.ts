@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { promises as nodeFs } from "node:fs";
 import path from "node:path";
 import type { DownloadResult, UploadResult } from "./types.js";
@@ -23,7 +23,11 @@ export interface WorkspaceTransferFileSystem {
   readdir(path: string, options: { withFileTypes: true }): Promise<WorkspaceTransferDirent[]>;
   readFile(path: string): Promise<Buffer>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(path: string, data: string | Buffer): Promise<void>;
+  writeFile(
+    path: string,
+    data: string | Buffer,
+    options?: { flag?: string; mode?: number }
+  ): Promise<void>;
   stat(path: string): Promise<WorkspaceTransferStats>;
   lstat?(path: string): Promise<WorkspaceTransferStats>;
   rename?(oldPath: string, newPath: string): Promise<void>;
@@ -201,7 +205,7 @@ export async function downloadWorkspace(
       continue;
     }
 
-    await writeFileAtomically(localFs, localPath, remoteContent, ".download-tmp");
+    await writeFileAtomically(localFs, env.cwd, localPath, remoteContent, ".download-tmp");
     state.set(remoteFile.path, {
       hash: hashBuffer(remoteContent),
       uploaded: true
@@ -538,17 +542,30 @@ async function renamePath(
 
 async function writeFileAtomically(
   fs: WorkspaceTransferFileSystem,
+  workspacePath: string,
   destinationPath: string,
   data: Buffer,
   temporarySuffix: string
 ): Promise<void> {
-  const temporaryPath = `${destinationPath}${temporarySuffix}`;
+  const temporaryPath = `${destinationPath}.${randomUUID()}${temporarySuffix}`;
+  let temporaryCreated = false;
   await fs.mkdir(path.dirname(destinationPath), { recursive: true });
   try {
-    await fs.writeFile(temporaryPath, data);
+    await assertSafeLocalDownloadPath(fs, workspacePath, temporaryPath);
+    try {
+      await fs.writeFile(temporaryPath, data, { flag: "wx", mode: 0o600 });
+      temporaryCreated = true;
+    } catch (error) {
+      if (!isAlreadyExistsError(error)) {
+        await removeFile(fs, temporaryPath).catch(() => undefined);
+      }
+      throw error;
+    }
     await renamePath(fs, temporaryPath, destinationPath);
   } catch (error) {
-    await removeFile(fs, temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await removeFile(fs, temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }
@@ -705,4 +722,8 @@ function stripSlashes(value: string): string {
 
 function isNotFoundError(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
 }

@@ -29,7 +29,11 @@ interface TruffleHogFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   rename(oldPath: string, newPath: string): Promise<void>;
   rm(path: string, options: { force: boolean }): Promise<void>;
-  writeFile(path: string, data: string, encoding: BufferEncoding): Promise<void>;
+  writeFile(
+    path: string,
+    data: string,
+    options: { encoding: BufferEncoding; flag?: string }
+  ): Promise<void>;
 }
 
 const defaultFileSystem: TruffleHogFileSystem = { appendFile, lstat, readFile, rename, rm, writeFile };
@@ -333,15 +337,22 @@ async function appendStepSummary(fs: TruffleHogFileSystem, env: EnvReader, conte
 }
 
 async function publishFiles(fs: TruffleHogFileSystem, files: Array<{ path: string; content: string }>): Promise<void> {
-  const stagedFiles = files.map((file) => ({ ...file, stagedPath: `${file.path}.${randomUUID()}.tmp` }));
+  const stagedFiles = files.map((file) => ({
+    ...file,
+    created: false,
+    stagedPath: `${file.path}.${randomUUID()}.tmp`
+  }));
 
   try {
-    await Promise.all(stagedFiles.map((file) => fs.writeFile(file.stagedPath, file.content, "utf8")));
+    await Promise.all(stagedFiles.map(async (file) => {
+      await fs.writeFile(file.stagedPath, file.content, { encoding: "utf8", flag: "wx" });
+      file.created = true;
+    }));
     for (const file of stagedFiles) {
       await fs.rename(file.stagedPath, file.path);
     }
   } finally {
-    await Promise.all(stagedFiles.map((file) => fs.rm(file.stagedPath, { force: true })));
+    await Promise.all(stagedFiles.filter((file) => file.created).map((file) => fs.rm(file.stagedPath, { force: true })));
   }
 }
 

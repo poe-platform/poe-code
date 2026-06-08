@@ -120,6 +120,20 @@ function runSecurityCommand(
 
     let stdout = "";
     let stderr = "";
+    let stdinErrorMessage: string | undefined;
+    const appendStderr = (message: string): void => {
+      stderr = stderr.length === 0
+        ? message
+        : `${stderr}${stderr.endsWith("\n") ? "" : "\n"}${message}`;
+    };
+    const appendStdinError = (): void => {
+      if (stdinErrorMessage === undefined) {
+        return;
+      }
+
+      appendStderr(stdinErrorMessage);
+      stdinErrorMessage = undefined;
+    };
 
     child.stdout?.setEncoding("utf8");
     child.stdout?.on("data", (chunk: string | Buffer) => {
@@ -132,20 +146,26 @@ function runSecurityCommand(
     });
 
     if (options?.stdin !== undefined) {
+      child.stdin?.once("error", (error) => {
+        stdinErrorMessage = error instanceof Error ? error.message : String(error);
+      });
       child.stdin?.end(options.stdin);
     }
 
     child.on("error", (error: NodeJS.ErrnoException) => {
       const message =
         error instanceof Error ? error.message : String(error ?? "Unknown error");
+      appendStdinError();
+      appendStderr(message);
       resolve({
         stdout,
-        stderr: stderr ? `${stderr}${message}` : message,
+        stderr,
         exitCode: 127
       });
     });
 
     child.on("close", (code) => {
+      appendStdinError();
       resolve({
         stdout,
         stderr,

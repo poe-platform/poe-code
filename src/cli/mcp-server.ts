@@ -6,7 +6,7 @@ import {
   Image,
   Audio
 } from "tiny-stdio-mcp-server";
-import chalk from "chalk";
+import { color } from "@poe-code/design-system";
 import { getGlobalClient } from "../services/client-instance.js";
 import type { LlmResponse } from "../services/llm-client.js";
 import {
@@ -89,18 +89,18 @@ const TOOL_REGISTRY: ToolRegistryEntry[] = [
 
 export function formatMcpToolsDocs(): string {
   const lines: string[] = [];
-  lines.push(chalk.magenta.bold("Available Tools"));
+  lines.push(color.magenta.bold("Available Tools"));
   lines.push("");
 
   for (const tool of TOOL_REGISTRY) {
-    lines.push(`  ${chalk.cyan(tool.name)}`);
-    lines.push(`  ${chalk.dim(tool.description)}`);
+    lines.push(`  ${color.cyan(tool.name)}`);
+    lines.push(`  ${color.dim(tool.description)}`);
     lines.push("");
     for (const [paramName, paramDef] of Object.entries(tool.schema)) {
       const typeInfo = paramDef.optional
-        ? chalk.dim(`${paramDef.type}, optional`)
-        : chalk.dim(paramDef.type);
-      lines.push(`    ${chalk.yellow(paramName)} ${typeInfo}`);
+        ? color.dim(`${paramDef.type}, optional`)
+        : color.dim(paramDef.type);
+      lines.push(`    ${color.yellow(paramName)} ${typeInfo}`);
       lines.push(`    ${paramDef.description ?? ""}`);
     }
     lines.push("");

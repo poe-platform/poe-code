@@ -66,6 +66,14 @@ export function registerUtilsSymlinkSkillsCommand(
       } else if (flags.assumeYes) {
         scope = "global";
       } else {
+        if (process.stdin.isTTY !== true) {
+          logger.error(
+            "utils symlink skills requires --local, --global, or --yes when running without an interactive TTY."
+          );
+          process.exitCode = 1;
+          return;
+        }
+
         const selected = await select({
           message: "Select scope:",
           options: [
@@ -186,4 +194,3 @@ export async function planSkillsSymlink(
     }
   ];
 }
-

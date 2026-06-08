@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { appendFile, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import {
   createServer,
@@ -154,12 +154,19 @@ async function writeSnapshot(
       recordedAt: new Date().toISOString(),
     },
   };
-  const temporaryPath = `${snapshotPath}.${process.pid}.${Date.now()}.tmp`;
+  const temporaryPath = `${snapshotPath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
   try {
-    await writeFile(temporaryPath, JSON.stringify(snapshot, null, 2));
+    await writeFile(temporaryPath, JSON.stringify(snapshot, null, 2), {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+    temporaryCreated = true;
     await rename(temporaryPath, snapshotPath);
   } catch (error) {
-    await rm(temporaryPath, { force: true }).catch(() => undefined);
+    if (temporaryCreated) {
+      await rm(temporaryPath, { force: true }).catch(() => undefined);
+    }
     throw error;
   }
 }

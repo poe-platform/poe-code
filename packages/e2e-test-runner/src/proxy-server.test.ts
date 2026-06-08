@@ -7,7 +7,7 @@ import { vol } from 'memfs';
 
 const fsHooks = vi.hoisted(() => ({
   appendFile: undefined as undefined | (() => Promise<void>),
-  writeFile: undefined as undefined | ((targetPath: string) => Promise<void>),
+  writeFile: undefined as undefined | ((targetPath: string, options?: unknown) => Promise<void>),
 }));
 
 vi.mock('node:fs/promises', async () => {
@@ -22,7 +22,7 @@ vi.mock('node:fs/promises', async () => {
     },
     writeFile: async (...args: Parameters<typeof fs.promises.writeFile>) => {
       if (fsHooks.writeFile) {
-        await fsHooks.writeFile(String(args[0]));
+        await fsHooks.writeFile(String(args[0]), args[2]);
       }
       return await fs.promises.writeFile(...args);
     },
@@ -716,6 +716,8 @@ describe('startProxyServer record mode', () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    fsHooks.appendFile = undefined;
+    fsHooks.writeFile = undefined;
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
@@ -800,6 +802,50 @@ describe('startProxyServer record mode', () => {
       },
     });
     expect(Number.isNaN(Date.parse(snapshot.metadata.recordedAt))).toBe(false);
+  });
+
+  it('does not follow a preexisting legacy snapshot temp symlink', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'legacy temp path' }],
+    };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    const legacyTemporaryPath = `${snapshotPath}.${process.pid}.1234.tmp`;
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.writeFileSync('/outside/snapshot-tmp.json', 'outside-state\n');
+    vol.symlinkSync('/outside/snapshot-tmp.json', legacyTemporaryPath);
+    const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(1234);
+
+    try {
+      const proxy = await startProxyServer({
+        port: 0,
+        captureFile,
+        onMiss: 'error',
+        routes: [
+          { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+        ],
+      });
+      closeHandles.push(proxy.close);
+
+      const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const responseBody = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(vol.readFileSync('/outside/snapshot-tmp.json', 'utf8')).toBe('outside-state\n');
+      expect(vol.lstatSync(legacyTemporaryPath).isSymbolicLink()).toBe(true);
+      expect(vol.lstatSync(snapshotPath).isSymbolicLink()).toBe(false);
+      expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual(responseBody);
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
   it('uses the generated snapshot key as the file name', async () => {

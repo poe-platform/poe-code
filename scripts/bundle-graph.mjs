@@ -6,9 +6,9 @@ import { readFile } from "node:fs/promises";
  *
  * - `alias`: maps each workspace package (and its sub-path exports) to its
  *   TypeScript source, so the bundle compiles workspace code just-in-time.
- * - `external`: the packages left for npm to install — root runtime deps plus
- *   the third-party deps of workspace packages, never the workspace packages
- *   themselves (those get inlined via `alias`).
+ * - `external`: the packages left for npm to install — root runtime deps,
+ *   root optional runtime deps, plus the third-party deps of workspace packages,
+ *   never the workspace packages themselves (those get inlined via `alias`).
  *
  * Extracted so the alias/external computation lives in one place.
  *
@@ -37,7 +37,10 @@ export async function resolveBundleGraph(rootDir, packageJsons) {
   }
 
   const rootPackageJson = JSON.parse(await readFile(path.join(rootDir, "package.json"), "utf8"));
-  const runtimeDeps = Object.keys(rootPackageJson.dependencies || {}).filter(
+  const runtimeDeps = [
+    ...Object.keys(rootPackageJson.dependencies || {}),
+    ...Object.keys(rootPackageJson.optionalDependencies || {})
+  ].filter(
     (dep) => !workspacePackageNames.has(dep)
   );
   const externalSet = new Set([...runtimeDeps, ...workspaceDeps]);

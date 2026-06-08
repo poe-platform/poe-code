@@ -135,6 +135,9 @@
     "uri-template-lite": "^23.4.0",
     "yaml": "^2.8.2"
   },
+  "optionalDependencies": {
+    "braintrust": "^3.10.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",

@@ -115,14 +115,18 @@ export function createStateStore(
   async function write(id: string, state: ProcessState): Promise<void> {
     const processDir = resolveProcessDir(stateDir, id);
     const statePath = path.join(processDir, "state.json");
-    const temporaryPath = `${statePath}.tmp`;
+    const temporaryPath = `${statePath}.${randomUUID()}.tmp`;
     await assertPathHasNoSymbolicLinks(fs, statePath);
     await fs.mkdir(processDir, { recursive: true });
     await assertPathHasNoSymbolicLinks(fs, statePath);
     await assertPathHasNoSymbolicLinks(fs, temporaryPath);
 
     try {
-      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
+      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`, {
+        encoding: "utf8",
+        flag: "wx"
+      });
+      await assertPathHasNoSymbolicLinks(fs, statePath);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
       await fs.rm(temporaryPath, { force: true }).catch(() => undefined);

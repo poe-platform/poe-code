@@ -952,8 +952,8 @@ function defaultFs(): LauncherFileSystem {
       await nodeFs.rm(filePath, options);
     },
     stat: async filePath => await nodeFs.stat(filePath),
-    writeFile: async (filePath, content) => {
-      await nodeFs.writeFile(filePath, content);
+    writeFile: async (filePath, content, options) => {
+      await nodeFs.writeFile(filePath, content, options);
     }
   };
 }

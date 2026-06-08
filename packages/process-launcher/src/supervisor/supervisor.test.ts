@@ -440,14 +440,18 @@ describe("createSupervisor", () => {
     const originalWriteFile = fs.writeFile.bind(fs);
     let releaseWrite: (() => void) | null = null;
     let blocksFirstState = true;
-    fs.writeFile = vi.fn(async (filePath: string, content: string) => {
-      if (blocksFirstState && filePath.endsWith("state.json.tmp")) {
+    fs.writeFile = vi.fn(async (filePath: string, content: string, options) => {
+      if (
+        blocksFirstState &&
+        filePath.includes("state.json.") &&
+        filePath.endsWith(".tmp")
+      ) {
         blocksFirstState = false;
         await new Promise<void>(resolve => {
           releaseWrite = resolve;
         });
       }
-      await originalWriteFile(filePath, content);
+      await originalWriteFile(filePath, content, options);
     });
     const supervisor = createTestSupervisor({
       fs,
@@ -1072,12 +1076,12 @@ function createMemFs(): {
   const stateWrites: string[] = [];
   const originalWriteFile = fs.writeFile.bind(fs);
 
-  fs.writeFile = vi.fn(async (filePath: string, content: string) => {
-    if (filePath.endsWith("state.json.tmp")) {
+  fs.writeFile = vi.fn(async (filePath: string, content: string, options) => {
+    if (filePath.includes("state.json.") && filePath.endsWith(".tmp")) {
       stateWrites.push(content);
     }
 
-    await originalWriteFile(filePath, content);
+    await originalWriteFile(filePath, content, options);
   });
 
   return { fs, stateWrites };

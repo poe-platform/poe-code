@@ -3,7 +3,11 @@ import type { DockerRunnerOptions, Runner } from "@poe-code/process-runner";
 export interface LauncherFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   readFileBytes?(path: string, start: number): Promise<Uint8Array>;
-  writeFile(path: string, content: string): Promise<void>;
+  writeFile(
+    path: string,
+    content: string,
+    options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+  ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rm(path: string, options?: { force?: boolean }): Promise<void>;
   rename(sourcePath: string, destinationPath: string): Promise<void>;

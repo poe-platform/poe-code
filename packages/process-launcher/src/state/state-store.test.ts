@@ -219,7 +219,7 @@ describe("createStateStore", () => {
     await expect(fs.readFile("/outside/state.json", "utf8")).resolves.toBe(`${JSON.stringify(outside)}\n`);
   });
 
-  it("rejects writes through a symlinked temporary state file", async () => {
+  it("does not follow a preexisting legacy temporary state symlink", async () => {
     const fs = createMemFs();
     const updated = createProcessState("alpha", { status: "running", pid: 123 });
     await fs.mkdir("/state/alpha", { recursive: true });
@@ -231,9 +231,9 @@ describe("createStateStore", () => {
     );
     const store = createStateStore("/state", fs);
 
-    await expect(store.write("alpha", updated)).rejects.toThrow("symbolic link");
+    await store.write("alpha", updated);
     await expect(fs.readFile("/outside/state.json.tmp", "utf8")).resolves.toBe("outside-state\n");
-    await expect(fs.readFile("/state/alpha/state.json", "utf8")).rejects.toThrow();
+    await expect(store.read("alpha")).resolves.toEqual(updated);
   });
 
   it("rejects removals through a symlinked process directory", async () => {
@@ -285,13 +285,17 @@ describe("createStateStore", () => {
     await store.write(initial.id, initial);
     const fs = {
       ...base,
-      writeFile: async (filePath: string, content: string) => {
-        if (filePath === `${statePath}.tmp`) {
-          await rawFs.writeFile(filePath, "{", { encoding: "utf8" });
+      writeFile: async (
+        filePath: string,
+        content: string,
+        options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+      ) => {
+        if (filePath.startsWith(`${statePath}.`) && filePath.endsWith(".tmp")) {
+          await rawFs.writeFile(filePath, "{", options ?? { encoding: "utf8" });
           throw new Error("state disk full");
         }
 
-        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+        await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
       }
     } as LauncherFileSystem;
 

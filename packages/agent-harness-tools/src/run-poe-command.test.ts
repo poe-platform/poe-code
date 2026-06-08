@@ -1013,6 +1013,62 @@ describe("runPoeCommand", () => {
     expect(env.closed).toBe(true);
   });
 
+  it("resets the activity timeout when non-captured output is piped", async () => {
+    vi.useFakeTimers();
+    const stdoutWrite = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderrWrite = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+    const { state } = createRecordingState();
+    const stdout = new PassThrough();
+    const runStarted = deferred<void>();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    let killed = false;
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      runStarted.resolve();
+      return {
+        pid: 123,
+        stdout,
+        stderr: null,
+        stdin: null,
+        result: new Promise(() => {}),
+        kill() {
+          killed = true;
+        }
+      };
+    };
+
+    try {
+      const result = runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({
+          execution: { wrapForLogTee: false, activityTimeoutMs: 100 }
+        }),
+        detach: false,
+        state
+      });
+      const rejection = result.catch((error: unknown) => error);
+
+      await runStarted.promise;
+      await vi.advanceTimersByTimeAsync(90);
+      stdout.write("progress\n");
+      await vi.advanceTimersByTimeAsync(99);
+      expect(killed).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(rejection).resolves.toMatchObject({ name: "ActivityTimeoutError" });
+      expect(killed).toBe(true);
+      expect(env.closed).toBe(true);
+    } finally {
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
   it.runIf(process.platform !== "win32")(
     "terminates the full wrapped host command process group on inactivity timeout",
     async () => {

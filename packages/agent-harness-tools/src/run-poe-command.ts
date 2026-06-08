@@ -415,7 +415,7 @@ async function runSync(opts: {
   });
   const streamState = capture
     ? captureRunStreams(opts.handle, execution, abort.resetActivityTimer)
-    : pipeRunStreams(opts.handle);
+    : pipeRunStreams(opts.handle, abort.resetActivityTimer);
   abort.resetActivityTimer();
 
   try {
@@ -459,17 +459,37 @@ function unwrapSettledRun(result: SettledSyncRun): SyncRunResult {
   return result.value;
 }
 
-function pipeRunStreams(handle: RunHandle): {
+function pipeRunStreams(
+  handle: RunHandle,
+  onActivity: () => void
+): {
   stdout(): string;
   stderr(): string;
   dispose(): void;
 } {
+  const listeners: Array<() => void> = [];
+  const bindActivity = (stream: Readable | null): void => {
+    if (!stream) return;
+    const listener = () => {
+      onActivity();
+    };
+    stream.on("data", listener);
+    listeners.push(() => {
+      stream.off("data", listener);
+    });
+  };
+
+  bindActivity(handle.stdout);
+  bindActivity(handle.stderr);
   handle.stdout?.pipe(process.stdout, { end: false });
   handle.stderr?.pipe(process.stderr, { end: false });
   return {
     stdout: () => "",
     stderr: () => "",
     dispose() {
+      for (const remove of listeners) {
+        remove();
+      }
       handle.stdout?.unpipe(process.stdout);
       handle.stderr?.unpipe(process.stderr);
     }

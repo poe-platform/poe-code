@@ -18,6 +18,7 @@ import type {
 } from "../../utils/command-checks.js";
 
 const confirmMock = vi.hoisted(() => vi.fn());
+const selectMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
@@ -78,6 +79,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
   return {
     ...actual,
     confirm: confirmMock,
+    select: selectMock,
     isCancel: isCancelMock
   };
 });
@@ -168,6 +170,23 @@ function fromArray<T>(items: readonly T[]): AsyncIterable<T> {
   })();
 }
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 describe("spawn command", () => {
   let fs: FileSystem;
   const originalEnv = { ...process.env };
@@ -176,9 +195,11 @@ describe("spawn command", () => {
     fs = createMemFs();
     vi.clearAllMocks();
     process.env = { ...originalEnv, FORCE_COLOR: "1" };
+    setProcessStdinIsTTY(true);
     resetOutputFormatCache();
 
     confirmMock.mockResolvedValue(true);
+    selectMock.mockResolvedValue("yolo");
     isCancelMock.mockReturnValue(false);
 
     vi.mocked(sdkSpawn).mockImplementation(() => ({
@@ -196,6 +217,7 @@ describe("spawn command", () => {
 
   afterEach(() => {
     process.env = { ...originalEnv };
+    restoreProcessStdinIsTTY();
     resetOutputFormatCache();
   });
 
@@ -240,7 +262,7 @@ describe("spawn command", () => {
       prompt: "hello",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -771,6 +793,86 @@ describe("spawn command", () => {
     const help = spawnCommand?.helpInformation() ?? "";
     expect(help).toContain("poe-code");
     expect(help).toContain("beta-agent");
+    expect(help).toContain("prompted;");
+    expect(help).toContain("--yes uses yolo");
+  });
+
+  it("prompts for permission mode when omitted in an interactive terminal", async () => {
+    selectMock.mockResolvedValueOnce("read");
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select permission mode:",
+      initialValue: "edit",
+      options: expect.arrayContaining([
+        expect.objectContaining({ value: "edit" }),
+        expect.objectContaining({ value: "read" }),
+        expect.objectContaining({ value: "yolo" })
+      ])
+    });
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "read" }));
+  });
+
+  it("uses yolo for omitted permission mode when --yes is passed", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "yolo" }));
+  });
+
+  it("rejects omitted permission mode without --yes when stdin is non-interactive", async () => {
+    setProcessStdinIsTTY(false);
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(program.parseAsync(["node", "cli", "spawn", "codex", "hello"])).rejects.toThrow(
+      "spawn requires --mode when running without an interactive TTY"
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid permission mode values before spawning", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mode", "dance", "codex", "hello"])
+    ).rejects.toThrow('Invalid --mode "dance". Expected yolo, edit, or read.');
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
   it("passes through model override via CLI flag", async () => {
@@ -797,7 +899,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: "some-model",
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -830,7 +932,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
       activityTimeoutMs: 600_000,
@@ -862,7 +964,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
       activityTimeoutMs: 600_000,
@@ -894,7 +996,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
       activityTimeoutMs: 600_000,
@@ -928,7 +1030,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       skills: ["foo", "claude/bar"],
       activityTimeoutMs: 600_000,
@@ -965,7 +1067,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -996,7 +1098,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       hooks: { from: "claude", strategy: "auto" },
       activityTimeoutMs: 600_000,
@@ -1028,7 +1130,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       hooks: { from: "CLAUDE-CODE", strategy: "auto" },
       activityTimeoutMs: 600_000,
@@ -1062,7 +1164,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       hooks: { from: "claude", strategy: "transform" },
       activityTimeoutMs: 600_000,
@@ -1144,7 +1246,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1173,7 +1275,7 @@ describe("spawn command", () => {
       prompt: "List files",
       args: [],
       model: "openai/gpt-5.4",
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1211,7 +1313,7 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
@@ -1312,7 +1414,7 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
@@ -1363,7 +1465,7 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
@@ -1416,7 +1518,7 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
@@ -1467,7 +1569,7 @@ describe("spawn command", () => {
       prompt: "Use word_of_the_day",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
@@ -1505,7 +1607,7 @@ describe("spawn command", () => {
       prompt: "continue",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       resumeThreadId: "thread_abc123",
       activityTimeoutMs: 600_000,
@@ -1542,7 +1644,7 @@ describe("spawn command", () => {
       prompt: "hello",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
       logFileName: "attempt.jsonl",
@@ -1676,7 +1778,7 @@ describe("spawn command", () => {
       prompt: "Review the diff carefully.",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1702,7 +1804,7 @@ describe("spawn command", () => {
       prompt: "Summarize the file.",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1761,7 +1863,7 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync(["node", "cli", "spawn", "--stdin", "codex"]);
+      await program.parseAsync(["node", "cli", "spawn", "--stdin", "--mode", "read", "codex"]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -1770,7 +1872,7 @@ describe("spawn command", () => {
       prompt: "@not-a-file.md",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "read",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       useStdin: true,
@@ -1834,7 +1936,7 @@ describe("spawn command", () => {
       prompt: "Explain the change",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: customCwd,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1867,7 +1969,7 @@ describe("spawn command", () => {
       prompt: "Summarize the diff",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "yolo",
       cwd: resolved,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
@@ -1918,7 +2020,7 @@ describe("spawn command", () => {
       args: [],
       model: undefined,
       cwd: "/tmp/workspaces/poe-code",
-      mode: undefined,
+      mode: "yolo",
       runtimeConfigCwd: cwd
     });
     expect(cleanup).toHaveBeenCalledTimes(1);
@@ -1941,7 +2043,7 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync(["node", "cli", "spawn", "codex"]);
+      await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "codex"]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -1950,7 +2052,7 @@ describe("spawn command", () => {
       prompt: "Prompt via stdin",
       args: [],
       model: undefined,
-      mode: undefined,
+      mode: "read",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       useStdin: true,
@@ -1975,7 +2077,18 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync(["node", "cli", "spawn", "--stdin", "codex", "--", "--foo", "bar"]);
+      await program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--stdin",
+        "--mode",
+        "read",
+        "codex",
+        "--",
+        "--foo",
+        "bar"
+      ]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -1984,7 +2097,7 @@ describe("spawn command", () => {
       prompt: "Prompt via stdin",
       args: ["--foo", "bar"],
       model: undefined,
-      mode: undefined,
+      mode: "read",
       cwd: undefined,
       activityTimeoutMs: 600_000,
       useStdin: true,
@@ -2246,7 +2359,7 @@ describe("spawn command", () => {
         args: [],
         model: undefined,
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -2284,7 +2397,7 @@ describe("spawn command", () => {
         args: [],
         model: undefined,
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         resumeThreadId: "thread_abc123",
         runtimeConfigCwd: cwd
       });
@@ -2322,7 +2435,7 @@ describe("spawn command", () => {
         args: [],
         model: undefined,
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -2417,7 +2530,7 @@ describe("spawn command", () => {
         args: [],
         model: undefined,
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
     });
@@ -2477,7 +2590,7 @@ describe("spawn command", () => {
         args: [],
         model: undefined,
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
@@ -2512,7 +2625,7 @@ describe("spawn command", () => {
         args: [],
         model: "anthropic/claude-opus-4.7",
         cwd: undefined,
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
     });
@@ -2551,7 +2664,7 @@ describe("spawn command", () => {
         args: [],
         model: "gpt-4",
         cwd: "/projects/demo",
-        mode: undefined,
+        mode: "yolo",
         runtimeConfigCwd: cwd
       });
     });
@@ -2583,7 +2696,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
+      await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"]);
 
       expect(confirmMock).not.toHaveBeenCalled();
       expect(sdkSpawn).toHaveBeenCalled();
@@ -2601,7 +2714,7 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"]);
+      await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(sdkSpawn).toHaveBeenCalled();
@@ -2639,7 +2752,7 @@ describe("spawn command", () => {
       });
 
       await expect(
-        program.parseAsync(["node", "cli", "spawn", "claude-code", "hello"])
+        program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"])
       ).rejects.toBeInstanceOf(OperationCancelledError);
 
       expect(confirmMock).toHaveBeenCalled();
@@ -2679,7 +2792,16 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
+      await program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--interactive",
+        "--mode",
+        "read",
+        "claude-code",
+        "hello"
+      ]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(spawnInteractive).toHaveBeenCalled();
@@ -2702,7 +2824,16 @@ describe("spawn command", () => {
         logger: () => {}
       });
 
-      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
+      await program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--interactive",
+        "--mode",
+        "read",
+        "claude-code",
+        "hello"
+      ]);
 
       expect(confirmMock).toHaveBeenCalled();
       expect(spawnInteractive).not.toHaveBeenCalled();

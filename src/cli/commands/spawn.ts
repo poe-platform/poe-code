@@ -15,6 +15,7 @@ import { resolveAgentId } from "@poe-code/agent-defs";
 import {
   text,
   confirm,
+  select,
   isCancel,
   resolveOutputFormat,
   renderMarkdown
@@ -44,6 +45,8 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
+
+const SPAWN_MODES = ["yolo", "edit", "read"] as const;
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -80,7 +83,7 @@ export function registerSpawnCommand(
     .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
-    .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
+    .option("--mode <mode>", "Permission mode: yolo | edit | read (prompted; --yes uses yolo)")
     .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
       "--mcp-servers <json|@file>",
@@ -191,11 +194,12 @@ export function registerSpawnCommand(
         throw new Error("No prompt provided via argument or stdin");
       }
       const prompt = promptText ?? "";
+      const mode = await resolveSpawnMode(commandOptions.mode, flags);
 
       const workspace = await resolveSpawnWorkspace(commandOptions.cwd, {
         baseDir: container.env.cwd,
         homeDir: container.env.homeDir,
-        mode: commandOptions.mode as SpawnMode | undefined,
+        mode,
         resolveRemoteLocators: !flags.dryRun,
         fs: container.fs,
         exec: container.commandRunner
@@ -230,7 +234,7 @@ export function registerSpawnCommand(
             prompt,
             args: forwardedArgs,
             model,
-            mode: commandOptions.mode as SpawnMode | undefined,
+            mode,
             ...(skills ? { skills } : {}),
             ...(hooks ? { hooks } : {}),
             ...(commandOptions.resumeThreadId !== undefined
@@ -249,7 +253,7 @@ export function registerSpawnCommand(
           prompt,
           args: forwardedArgs,
           model: commandOptions.model,
-          mode: commandOptions.mode as SpawnMode | undefined,
+          mode,
           mcpServers,
           ...(skills ? { skills } : {}),
           ...(hooks ? { hooks } : {}),
@@ -448,6 +452,54 @@ async function traceSpawnRun<T>(
   run: () => Promise<T>
 ): Promise<T> {
   return integrations?.traceRun("spawn", name, run) ?? run();
+}
+
+async function resolveSpawnMode(input: string | undefined, flags: CommandFlags): Promise<SpawnMode> {
+  const explicitMode = parseSpawnMode(input);
+  if (explicitMode) {
+    return explicitMode;
+  }
+
+  if (flags.assumeYes) {
+    return "yolo";
+  }
+
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode edit, or --mode read; or pass --yes to use yolo."
+    );
+  }
+
+  const selected = await select<SpawnMode>({
+    message: "Select permission mode:",
+    initialValue: "edit",
+    options: [
+      { value: "edit", label: "Edit", hint: "Allow edits, keep provider permission prompts" },
+      { value: "read", label: "Read only", hint: "Inspect without editing" },
+      { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
+    ]
+  });
+  if (isCancel(selected)) {
+    throw new OperationCancelledError();
+  }
+
+  return selected as SpawnMode;
+}
+
+function parseSpawnMode(input: string | undefined): SpawnMode | undefined {
+  if (input === undefined) {
+    return undefined;
+  }
+
+  if (isSpawnMode(input)) {
+    return input;
+  }
+
+  throw new ValidationError(`Invalid --mode "${input}". Expected yolo, edit, or read.`);
+}
+
+function isSpawnMode(input: string): input is SpawnMode {
+  return SPAWN_MODES.includes(input as SpawnMode);
 }
 
 function formatDetachedJob(detached: { jobId: string; envId: string }): string {

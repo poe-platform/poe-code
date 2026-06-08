@@ -17,6 +17,7 @@ function getRotatedLogPath(logDir: string, stream: "stdout" | "stderr", index: n
 
 async function isFile(fs: LauncherFileSystem, filePath: string): Promise<boolean> {
   try {
+    await assertPathHasNoSymbolicLinks(fs, filePath);
     return (await fs.stat(filePath)).isFile();
   } catch (error) {
     if (isNotFoundError(error)) {
@@ -44,6 +45,7 @@ async function moveIfExists(
     return;
   }
 
+  await assertPathHasNoSymbolicLinks(fs, destinationPath);
   const content = await fs.readFile(sourcePath, "utf8");
   await fs.writeFile(destinationPath, content);
   await fs.rm(sourcePath, { force: true });
@@ -131,7 +133,9 @@ export function createLogWriter(
     await assertPathHasNoSymbolicLinks(fs, logDir);
     await fs.mkdir(logDir, { recursive: true });
     await assertPathHasNoSymbolicLinks(fs, logDir);
-    await fs.appendFile(getCurrentLogPath(logDir, stream), `${line}\n`);
+    const currentPath = getCurrentLogPath(logDir, stream);
+    await assertPathHasNoSymbolicLinks(fs, currentPath);
+    await fs.appendFile(currentPath, `${line}\n`);
   }
 
   function write(line: string, stream: "stdout" | "stderr"): Promise<void> {
@@ -181,7 +185,9 @@ export function createLogWriter(
     }
     try {
       await assertPathHasNoSymbolicLinks(fs, logDir);
-      const content = await fs.readFile(getCurrentLogPath(logDir, stream), "utf8");
+      const currentPath = getCurrentLogPath(logDir, stream);
+      await assertPathHasNoSymbolicLinks(fs, currentPath);
+      const content = await fs.readFile(currentPath, "utf8");
       const allLines = getLines(content);
       if (lines === 0) {
         return [];
@@ -228,6 +234,7 @@ async function captureLogs(fs: LauncherFileSystem, logDir: string): Promise<Map<
       continue;
     }
     const filePath = path.join(logDir, fileName);
+    await assertPathHasNoSymbolicLinks(fs, filePath);
     snapshot.set(filePath, await fs.readFile(filePath, "utf8"));
   }
 
@@ -256,11 +263,13 @@ async function restoreLogs(
       getRotatedLogIndex(fileName, "stdout") !== null ||
       getRotatedLogIndex(fileName, "stderr") !== null;
     if (managed && !snapshot.has(filePath)) {
+      await assertPathHasNoSymbolicLinks(fs, filePath);
       await fs.rm(filePath, { force: true });
     }
   }
 
   for (const [filePath, content] of snapshot) {
+    await assertPathHasNoSymbolicLinks(fs, filePath);
     await fs.writeFile(filePath, content);
   }
 }

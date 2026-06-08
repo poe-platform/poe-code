@@ -10,6 +10,12 @@ function createMemFs(): LauncherFileSystem {
   return createFsFromVolume(volume).promises as unknown as LauncherFileSystem;
 }
 
+function symlink(fs: LauncherFileSystem, target: string, linkPath: string): Promise<void> {
+  return (
+    fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }
+  ).symlink(target, linkPath);
+}
+
 describe("createLogWriter", () => {
   it("is exported from the package entrypoint", () => {
     expect(createLogWriterFromIndex).toBe(createLogWriter);
@@ -49,14 +55,34 @@ describe("createLogWriter", () => {
     const fs = createMemFs();
     await fs.mkdir("/project/logs", { recursive: true });
     await fs.mkdir("/outside", { recursive: true });
-    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
-      "/outside",
-      "/project/logs/linked"
-    );
+    await symlink(fs, "/outside", "/project/logs/linked");
     const writer = createLogWriter("/project/logs/linked", 1, fs);
 
     await expect(writer.write("external write", "stdout")).rejects.toThrow("symbolic link");
     await expect(fs.readFile("/outside/stdout.log", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects writing through a symlinked current log file", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/logs", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/stdout.log", "external\n");
+    await symlink(fs, "/outside/stdout.log", "/logs/stdout.log");
+    const writer = createLogWriter("/logs", 1, fs);
+
+    await expect(writer.write("external write", "stdout")).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/stdout.log", "utf8")).resolves.toBe("external\n");
+  });
+
+  it("rejects tailing through a symlinked current log file", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/logs", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/stdout.log", "external\n");
+    await symlink(fs, "/outside/stdout.log", "/logs/stdout.log");
+    const writer = createLogWriter("/logs", 1, fs);
+
+    await expect(writer.tail("stdout")).rejects.toThrow("symbolic link");
   });
 
   it("rotate() shifts log files from current to .1", async () => {
@@ -83,6 +109,32 @@ describe("createLogWriter", () => {
     await expect(fs.readFile("/logs/stdout.2.log", "utf8")).resolves.toBe("previous\n");
   });
 
+  it("rejects rotating through a symlinked current log file", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/logs", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/stdout.log", "external\n");
+    await symlink(fs, "/outside/stdout.log", "/logs/stdout.log");
+    const writer = createLogWriter("/logs", 1, fs);
+
+    await expect(writer.rotate()).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/stdout.log", "utf8")).resolves.toBe("external\n");
+  });
+
+  it("rejects rotating into a symlinked retained log file", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/logs", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/logs/stdout.log", "current\n");
+    await fs.writeFile("/outside/stdout.1.log", "external\n");
+    await symlink(fs, "/outside/stdout.1.log", "/logs/stdout.1.log");
+    const writer = createLogWriter("/logs", 1, fs);
+
+    await expect(writer.rotate()).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/logs/stdout.log", "utf8")).resolves.toBe("current\n");
+    await expect(fs.readFile("/outside/stdout.1.log", "utf8")).resolves.toBe("external\n");
+  });
+
   it("serializes writes with rotation so concurrent appended lines are retained", async () => {
     const baseFs = createMemFs();
     let releaseRotation!: () => void;
@@ -101,8 +153,7 @@ describe("createLogWriter", () => {
           copiedCurrent();
           await gate;
         }
-      }
-      ,
+      },
       async appendFile(filePath, content) {
         await baseFs.appendFile(filePath, content);
       }

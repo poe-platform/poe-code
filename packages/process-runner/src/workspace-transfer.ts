@@ -9,6 +9,7 @@ export interface WorkspaceTransferDirent {
   name: string;
   isFile(): boolean;
   isDirectory(): boolean;
+  isSymbolicLink?(): boolean;
 }
 
 export interface WorkspaceTransferStats {
@@ -182,7 +183,7 @@ export async function downloadWorkspace(
   const remoteFs = env.remoteFs ?? localFs;
   const workspaceDir = env.workspaceDir ?? "/workspace";
   const state = uploadState.get(env) ?? new Map<string, UploadedFileState>();
-  const remoteFiles = await listFilesIfExists(remoteFs, workspaceDir);
+  const remoteFiles = await listFilesIfExists(remoteFs, workspaceDir, { rejectSymlinks: true });
   const remotePaths = new Set(remoteFiles.map((file) => file.path));
   const conflicts: DownloadResult["conflicts"] = [];
   let files = 0;
@@ -239,10 +240,11 @@ export async function downloadWorkspace(
 
 async function listFilesIfExists(
   fs: WorkspaceTransferFileSystem,
-  root: string
+  root: string,
+  options: { rejectSymlinks?: boolean } = {}
 ): Promise<Omit<FileEntry, "content">[]> {
   try {
-    return await listFiles(fs, root);
+    return await listFiles(fs, root, options);
   } catch (error) {
     if (isNotFoundError(error)) {
       return [];
@@ -253,7 +255,8 @@ async function listFilesIfExists(
 
 async function listFiles(
   fs: WorkspaceTransferFileSystem,
-  root: string
+  root: string,
+  options: { rejectSymlinks?: boolean } = {}
 ): Promise<Omit<FileEntry, "content">[]> {
   const result: Omit<FileEntry, "content">[] = [];
 
@@ -261,6 +264,9 @@ async function listFiles(
     const dirents = await fs.readdir(dir, { withFileTypes: true });
     for (const dirent of dirents.sort((left, right) => left.name.localeCompare(right.name))) {
       const absolutePath = path.join(dir, dirent.name);
+      if (options.rejectSymlinks === true && dirent.isSymbolicLink?.() === true) {
+        throw new Error("Workspace download must not follow symbolic links.");
+      }
       if (dirent.isDirectory()) {
         await visit(absolutePath);
         continue;

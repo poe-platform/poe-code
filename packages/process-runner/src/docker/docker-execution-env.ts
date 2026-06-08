@@ -609,10 +609,25 @@ function createContainerWorkspaceFileSystem(input: {
       await execShell(`mkdir -p ${shellQuote(targetPath)}`);
     },
     async readdir(targetPath) {
-      const output = await execShell(`for item in ${shellQuote(targetPath)}/* ${shellQuote(targetPath)}/.[!.]* ${shellQuote(targetPath)}/..?*; do [ -e "$item" ] || continue; if [ -d "$item" ]; then kind=d; size=0; else kind=f; size=$(wc -c < "$item"); fi; printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size"; done`);
+      const quotedTargetPath = shellQuote(targetPath);
+      const output = await execShell([
+        `for item in ${quotedTargetPath}/* ${quotedTargetPath}/.[!.]* ${quotedTargetPath}/..?*; do`,
+        `[ -e "$item" ] || [ -L "$item" ] || continue;`,
+        `if [ -L "$item" ]; then kind=l; size=0;`,
+        `elif [ -d "$item" ]; then kind=d; size=0;`,
+        `elif [ -f "$item" ]; then kind=f; size=$(wc -c < "$item");`,
+        `else continue; fi;`,
+        `printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size";`,
+        `done`
+      ].join(" "));
       return output.split("\n").filter(Boolean).map((line) => {
         const [name = "", kind = "f"] = line.split("\t");
-        return { name, isFile: () => kind === "f", isDirectory: () => kind === "d" };
+        return {
+          name,
+          isFile: () => kind === "f",
+          isDirectory: () => kind === "d",
+          isSymbolicLink: () => kind === "l"
+        };
       });
     },
     readFile: readFileFromContainer,

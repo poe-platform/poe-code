@@ -5,6 +5,7 @@ import { Readable } from "node:stream";
 import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
+import type { WorkspaceTransferFileSystem } from "../workspace-transfer.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
 
 const workspaceTransferMocks = vi.hoisted(() => ({
@@ -524,6 +525,43 @@ describe("dockerExecutionEnvFactory", () => {
       expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
       { conflictPolicy: "overwrite" }
     );
+  });
+
+  it("reports container workspace symlinks without following them", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["linked\tl\t0\n"] }
+    ]);
+    workspaceTransferMocks.downloadWorkspace.mockImplementationOnce(
+      async (transferEnv: { remoteFs: WorkspaceTransferFileSystem }) => {
+        const entries = await transferEnv.remoteFs.readdir("/repo", { withFileTypes: true });
+        expect(entries).toHaveLength(1);
+        expect(entries[0]?.name).toBe("linked");
+        expect(entries[0]?.isSymbolicLink?.()).toBe(true);
+        expect(entries[0]?.isDirectory()).toBe(false);
+        expect(entries[0]?.isFile()).toBe(false);
+        return { files: 0, bytes: 0, conflicts: [] };
+      }
+    );
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs[1]?.args?.at(-1)).toContain('[ -L "$item" ]');
   });
 
   it("skips workspace transfers when synchronization is disabled", async () => {

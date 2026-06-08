@@ -36,11 +36,11 @@ export function acpToTrace(ctx: AcpSpawnContext): AcpTrace {
         cwd: ctx.cwd,
       }),
       output: redact(accumulateAgentOutput(ctx.events)),
-      metadata: {
+      metadata: redactRecord({
         ...spawnCtx.metadata,
         sessionId: ctx.sessionId,
         threadId: ctx.threadId,
-      },
+      }),
       metrics: buildMetrics(ctx),
       children: logToolSpans(ctx.events),
     },
@@ -103,8 +103,7 @@ function collectToolMeta(
     return undefined;
   }
 
-  const redactedMetadata = redact(merged);
-  return asRecord(redactedMetadata) ?? { redacted: redactedMetadata };
+  return redactRecord(merged);
 }
 
 function accumulateAgentOutput(events: AcpEvent[]): string {
@@ -253,6 +252,11 @@ function readSpanTimestamps(
     ...(startTs !== undefined ? { startTs } : {}),
     ...(endTs !== undefined ? { endTs } : {}),
   };
+}
+
+function redactRecord(record: Record<string, unknown>): Record<string, unknown> {
+  const redacted = redact(record);
+  return asRecord(redacted) ?? { redacted };
 }
 
 function asRecord(value: unknown): EventRecord | undefined {

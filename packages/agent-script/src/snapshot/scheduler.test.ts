@@ -76,7 +76,8 @@ describe("snapshot scheduler", () => {
         },
         null,
         2
-      )
+      ),
+      { encoding: "utf8", flag: "wx" }
     );
     expect(renameSpy).toHaveBeenCalledWith(
       expect.stringMatching(/^\/state\.json\..+\.tmp$/),

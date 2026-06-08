@@ -219,6 +219,33 @@ describe("ProviderRegistry", () => {
     await expect(registry.isLoggedIn("poe")).resolves.toBe(true);
   });
 
+  it("passes the provider manifest to the store factory", async () => {
+    const provider = makeProvider({
+      id: "custom",
+      auth: {
+        kind: "api-key",
+        envVar: "CUSTOM_API_KEY",
+        storageKey: "provider:shared-custom",
+        prompt: { title: "Custom API key" }
+      }
+    });
+    const store = {
+      get: async () => "stored-key",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    let requestedProvider: AuthProvider | undefined;
+    const registry = new ProviderRegistry([provider], (candidate) => {
+      requestedProvider = candidate;
+      return store;
+    });
+
+    await expect(registry.isLoggedIn("custom")).resolves.toBe(true);
+
+    expect(requestedProvider).toBe(provider);
+    expect(requestedProvider?.auth.storageKey).toBe("provider:shared-custom");
+  });
+
   it("isLoggedIn rejects whitespace-only stored credentials", async () => {
     const store = {
       get: async () => "   \n\t",

@@ -25,11 +25,16 @@ import {
   anthropicProvider,
   cloudflareProvider,
   ProviderRegistry,
-  poeProvider
+  poeProvider,
+  type AuthProvider
 } from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
 import { resolveApiKeyViaOAuth } from "./oauth-login.js";
+import {
+  providerCredentialFileName,
+  usesLegacyPoeCredentialMirror
+} from "./provider-auth-storage.js";
 
 export interface CliDependencies {
   fs: FileSystem;
@@ -114,6 +119,14 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
   const commandRunner = dependencies.commandRunner ?? runCommand;
 
   const promptLibrary = createPromptLibrary();
+  const authProviders = [poeProvider, anthropicProvider, cloudflareProvider] as const;
+  const requireAuthProvider = (providerId: string): AuthProvider => {
+    const provider = authProviders.find((candidate) => candidate.id === providerId);
+    if (!provider) {
+      throw new Error(`Unknown provider: "${providerId}".`);
+    }
+    return provider;
+  };
 
   const authFs = {
     readFile: (filePath: string, encoding: BufferEncoding) =>
@@ -148,25 +161,27 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
 
   const legacyAuthStore = createAuthStore("credentials.enc");
   const providerAuthStores = new Map<string, SecretStore>();
-  const getProviderAuthStore = (providerId: string): SecretStore => {
-    const cached = providerAuthStores.get(providerId);
+  const getProviderAuthStore = (provider: AuthProvider): SecretStore => {
+    const credentialFileName = providerCredentialFileName(provider);
+    const cached = providerAuthStores.get(credentialFileName);
     if (cached) {
       return cached;
     }
-    const store = createAuthStore(`credentials.${providerId}.enc`);
+    const store = createAuthStore(credentialFileName);
     const providerStore =
-      providerId === "poe" ? new MigratingSecretStore(store, legacyAuthStore) : store;
-    providerAuthStores.set(providerId, providerStore);
+      usesLegacyPoeCredentialMirror(provider) ? new MigratingSecretStore(store, legacyAuthStore) : store;
+    providerAuthStores.set(credentialFileName, providerStore);
     return providerStore;
   };
 
-  const poeAuthStore = getProviderAuthStore("poe");
+  const poeAuthStore = getProviderAuthStore(poeProvider);
 
   const readApiKey = poeAuthStore.get.bind(poeAuthStore);
   const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
   const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
 
   const createPreviewProviderStore = (providerId: string, fs: FileSystem): SecretStore | undefined => {
+    const provider = requireAuthProvider(providerId);
     const createPreviewStore = (defaultFileName: string) =>
       createSecretStore({
         backendEnvVar: "POE_AUTH_BACKEND",
@@ -191,11 +206,11 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
           getHomeDirectory: () => dependencies.env.homeDir
         }
       });
-    const store = createPreviewStore(`credentials.${providerId}.enc`);
+    const store = createPreviewStore(providerCredentialFileName(provider));
     if (store.backend !== "file") {
       return undefined;
     }
-    return providerId === "poe"
+    return usesLegacyPoeCredentialMirror(provider)
       ? new MigratingSecretStore(store.store, createPreviewStore("credentials.enc").store)
       : store.store;
   };
@@ -227,7 +242,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
   const registry = createServiceRegistry();
 
   const providerRegistry = new ProviderRegistry(
-    [poeProvider, anthropicProvider, cloudflareProvider],
+    authProviders,
     getProviderAuthStore,
     {
       envVars: environment.variables

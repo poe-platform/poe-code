@@ -358,16 +358,17 @@ describe("config command", () => {
     expect(output).toContain("Project config");
     expect(output).toContain("Environment variable overrides");
     expect(output).toContain("Resolved (merged)");
-    expect(output).toContain('"apiKey": "sk-global"');
+    expect(output).toContain('"apiKey": "<redacted>"');
     expect(output).toContain('"defaultAgent": "claude"');
-    expect(output).toContain('"apiKey": "sk-project"');
     expect(output).toContain('"defaultAgent": "codex:gpt-5.4"');
-    expect(output).toContain("POE_API_KEY = sk-env");
+    expect(output).toContain("POE_API_KEY = <redacted>");
     expect(output).toContain("POE_DEFAULT_AGENT = opencode:o4-mini");
-    expect(output).toContain('"apiKey": "sk-env"');
     expect(output).toContain('"defaultAgent": "opencode:o4-mini"');
     expect(output).toContain('"poeBaseUrl": "https://global.example.test"');
     expect(output).toContain('"default": "anthropic/claude-sonnet-4.5"');
+    expect(output).not.toContain("sk-global");
+    expect(output).not.toContain("sk-project");
+    expect(output).not.toContain("sk-env");
   });
 
   it("shows empty sections when config files are missing", async () => {

@@ -12,11 +12,24 @@ const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePathPrefix: undefined as string | undefined,
   collidingWritePathPrefix: undefined as string | undefined,
   collidingWriteTarget: undefined as string | undefined,
-  collidingWritePath: undefined as string | undefined
+  collidingWritePath: undefined as string | undefined,
+  symlinkRacePath: undefined as string | undefined,
+  symlinkRaceTarget: undefined as string | undefined
 }));
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  async function replaceWithSymlink(path: string, target: string): Promise<void> {
+    try {
+      await fs.promises.unlink(path);
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    await fs.promises.symlink(target, path);
+  }
+
   return {
     ...fs.promises,
     async writeFile(
@@ -25,6 +38,13 @@ vi.mock("node:fs/promises", async () => {
       options?: Parameters<typeof fs.promises.writeFile>[2]
     ) {
       const pathText = String(path);
+      if (
+        pathText === mockedFileSystemState.symlinkRacePath &&
+        mockedFileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(pathText, mockedFileSystemState.symlinkRaceTarget);
+      }
+
       if (
         path === mockedFileSystemState.failingWritePath ||
         (mockedFileSystemState.failingWritePathPrefix !== undefined &&
@@ -46,6 +66,20 @@ vi.mock("node:fs/promises", async () => {
       }
 
       return fs.promises.writeFile(path, data, options);
+    },
+    async rename(
+      oldPath: Parameters<typeof fs.promises.rename>[0],
+      newPath: Parameters<typeof fs.promises.rename>[1]
+    ) {
+      const newPathText = String(newPath);
+      if (
+        newPathText === mockedFileSystemState.symlinkRacePath &&
+        mockedFileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(newPathText, mockedFileSystemState.symlinkRaceTarget);
+      }
+
+      return fs.promises.rename(oldPath, newPath);
     },
     default: fs.promises
   };
@@ -77,6 +111,8 @@ describe("runHarnessPair", () => {
     mockedFileSystemState.collidingWritePathPrefix = undefined;
     mockedFileSystemState.collidingWriteTarget = undefined;
     mockedFileSystemState.collidingWritePath = undefined;
+    mockedFileSystemState.symlinkRacePath = undefined;
+    mockedFileSystemState.symlinkRaceTarget = undefined;
   });
 
   afterEach(() => {
@@ -654,6 +690,36 @@ describe("runHarnessPair", () => {
       returnValue: true
     });
 
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
+  });
+
+  it("does not follow a harness script symlink inserted before fixed source publish", async () => {
+    const mdPath = "/repo/harness/fix-race.md";
+    const ajsPath = "/repo/harness/fix-race.ajs";
+    vol.fromJSON({
+      [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# Fix race"].join("\n"),
+      [ajsPath]: ['import { log } from "log";', "export default () => true;", ""].join("\n"),
+      "/outside/fix-race.ajs": "outside-state\n"
+    });
+    mockedFileSystemState.symlinkRacePath = ajsPath;
+    mockedFileSystemState.symlinkRaceTarget = "/outside/fix-race.ajs";
+
+    await expect(
+      runHarnessPair(mdPath, {
+        fix: true,
+        modulesFor: () => ({
+          log: {
+            log: vi.fn()
+          }
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+
+    expect(vol.readFileSync("/outside/fix-race.ajs", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(ajsPath).isSymbolicLink()).toBe(false);
     expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
   });
 

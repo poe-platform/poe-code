@@ -167,7 +167,7 @@ export async function runHarnessPair(
     if (!Array.isArray(lintDiagnostics)) {
       executableSource = lintDiagnostics.fixed;
       if (executableSource !== ajsSource) {
-        await writeFile(pair.ajsPath, executableSource, { encoding: "utf8" });
+        await writeTextFileAtomically(pair.ajsPath, executableSource);
       }
     }
 
@@ -545,12 +545,16 @@ async function writeHostCallRecords(
   }
 
   await mkdir(dirname(storePath), { recursive: true });
-  const temporaryPath = `${storePath}.${process.pid}.${randomUUID()}.tmp`;
+  await writeTextFileAtomically(storePath, serialized);
+}
+
+async function writeTextFileAtomically(filePath: string, content: string): Promise<void> {
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   let temporaryCreated = false;
   try {
-    await writeFile(temporaryPath, serialized, { encoding: "utf8", flag: "wx" });
+    await writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
     temporaryCreated = true;
-    await rename(temporaryPath, storePath);
+    await rename(temporaryPath, filePath);
   } catch (error) {
     if (temporaryCreated) {
       await unlinkIfExists(temporaryPath).catch(() => undefined);

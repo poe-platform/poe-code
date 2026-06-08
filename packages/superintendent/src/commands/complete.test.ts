@@ -189,6 +189,53 @@ describe("superintendent complete command", () => {
     expect(writeFile).not.toHaveBeenCalled();
   });
 
+  it("does not follow a preexisting legacy temp path symlink", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const targetPath = "/repo/docs/plans/feature.md";
+    const outsidePath = "/outside/target.md";
+    const volume = Volume.fromJSON(
+      {
+        [targetPath]: document,
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    volume.symlinkSync(outsidePath, `${targetPath}.tmp`);
+    const rawFs = createFsFromVolume(volume).promises;
+
+    await completeCommand.handler({
+      params: { path: targetPath },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+        lstat: async (filePath: string) => {
+          const stat = await rawFs.lstat(filePath);
+          return { isSymbolicLink: () => stat.isSymbolicLink() };
+        },
+        writeFile: async (
+          filePath: string,
+          content: string,
+          options?: { encoding?: BufferEncoding; flag?: string }
+        ) => {
+          await rawFs.writeFile(filePath, content, options);
+        },
+        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
+        unlink: (filePath: string) => rawFs.unlink(filePath),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    });
+
+    await expect(rawFs.readFile(outsidePath, "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    const documentStat = await rawFs.lstat(targetPath);
+    expect(documentStat.isSymbolicLink()).toBe(false);
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toContain("state: completed");
+  });
+
   it("preserves the document when completion persistence fails", async () => {
     const { completeCommand } = await import("./complete.js");
     const targetPath = "/repo/docs/plans/feature.md";

@@ -59,7 +59,11 @@ export type InferSecrets<TSecrets extends SecretDeclarations | undefined> =
 
 export interface HandlerFs {
   readFile(path: string, encoding?: BufferEncoding): Promise<string>;
-  writeFile(path: string, contents: string): Promise<void>;
+  writeFile(
+    path: string,
+    contents: string,
+    options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+  ): Promise<void>;
   exists(path: string): Promise<boolean>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   rename(fromPath: string, toPath: string): Promise<void>;

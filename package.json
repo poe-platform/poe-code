@@ -213,6 +213,7 @@
     "tokenfill": "*",
     "toolcraft": "*",
     "toolcraft-codemode": "*",
+    "toolcraft-landing-page": "*",
     "toolcraft-openapi": "*",
     "toolcraft-schema": "*",
     "ts-morph": "^27.0.2",

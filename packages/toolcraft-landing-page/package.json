@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:unit": "vitest run --passWithNoTests packages/toolcraft-landing-page/src"
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-landing-page/src"
+  },
+  "dependencies": {
+    "toolcraft-design": "^0.0.2"
   },
   "engines": {
     "node": ">=20"

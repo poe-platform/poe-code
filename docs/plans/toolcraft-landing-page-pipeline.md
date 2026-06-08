@@ -28,8 +28,8 @@ tasks:
       the landmarks, skip link, copy-button aria-labels, and the aria-live
       region are present in the output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: design-dark-mode-responsive

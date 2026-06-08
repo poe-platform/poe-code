@@ -2,14 +2,16 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: theme-singleton
     title: Add configurable brand theme as a global singleton
-    prompt: |
+    prompt: >
       In packages/toolcraft-design (currently named toolcraft-design),
+
       make the brand palette a configurable global singleton while keeping
+
       today's output byte-identical by default.
+
 
       1. Add packages/toolcraft-design/src/tokens/brand.ts:
          export interface Brand { name: string; primary: string } // primary = hex
@@ -31,7 +33,8 @@ tasks:
          singleton label: ` ${label} - ${text} ` (today it is hardcoded
          " Poe - "). With brand=purple/label=Poe the produced palettes must
          equal the current dark/light constants exactly.
-      4. Update packages/toolcraft-design/src/internal/theme-detect.ts getTheme()
+      4. Update packages/toolcraft-design/src/internal/theme-detect.ts
+      getTheme()
          to resolve mode (existing light/dark detection unchanged) crossed with
          the active brand from theme-state, caching by (brand, mode). Keep
          resetThemeCache working (or have resetTheme cover it).
@@ -42,23 +45,30 @@ tasks:
          from packages/toolcraft-design/src/index.ts.
 
       TDD. Add unit tests: default config is purple/"Poe"; configureTheme
+
       merges and unknown brand throws; resetTheme restores defaults;
+
       createPalette(blue,"dark") and createPalette(green,"dark") emit the
+
       expected ANSI/hex while semantic colors are unchanged; intro embeds the
+
       configured label. Existing explorer/dashboard snapshots must stay green
+
       because the default brand is still purple. No call-site edits elsewhere.
     status:
       implement: done
       test: done
       commit: done
-
   - id: consolidate-theme-consumers
     title: Route explorer + dashboard through the active brand palette
-    prompt: |
+    prompt: >
       Remove the duplicated brand/theme logic so a non-purple brand actually
+
       takes effect everywhere. All in packages/toolcraft-design.
 
-      1. packages/toolcraft-design/src/explorer/theme.ts currently hardcodes brand
+
+      1. packages/toolcraft-design/src/explorer/theme.ts currently hardcodes
+      brand
          colors (#a200ff / magenta / #006699 / cyan) AND carries its own copy of
          resolveThemeName. Delete the duplicate resolveThemeName (import the
          canonical one from ../internal/theme-detect.js) and source the
@@ -74,21 +84,25 @@ tasks:
          tests must remain green.
 
       TDD. Add focused assertions that switching the active brand (e.g. to
+
       "blue") changes only the brand-colored cells, leaving semantic cells
+
       untouched. Simplify duplicated helpers where the consolidation exposes
+
       them.
     status:
       implement: done
       refactor: done
       test: done
       commit: done
-
   - id: dep-cleanup
     title: Trim design-system dependencies and fix the undeclared test dep
-    prompt: |
+    prompt: >
       Clean up packages/toolcraft-design dependency hygiene.
 
-      1. Drop mustache + @types/mustache from packages/toolcraft-design/package.json.
+
+      1. Drop mustache + @types/mustache from
+      packages/toolcraft-design/package.json.
          They are used ONLY as a test oracle in
          packages/toolcraft-design/src/components/template.test.ts (the runtime
          template.ts is self-contained). Rewrite those assertions to compare the
@@ -103,22 +117,29 @@ tasks:
          "terminal-pilot" correctly.
       3. Keep @clack/prompts as the peerDependency.
 
-      Run packages/toolcraft-design tests and the package-lint package to confirm
+
+      Run packages/toolcraft-design tests and the package-lint package to
+      confirm
+
       no undeclared imports remain.
     status:
       implement: done
       test: done
       commit: done
-
   - id: rename-package
     title: Rename toolcraft-design to toolcraft-design (publish-ready)
-    prompt: |
+    prompt: >
       Rename the package to the unscoped, publish-ready name `toolcraft-design`
+
       matching the toolcraft family. This is one atomic change; the repo must
+
       build and pass tests when done. Use codemod-style edits, not regex
+
       rewriting of files you have not parsed.
 
+
       1. git mv packages/toolcraft-design packages/toolcraft-design.
+
       2. packages/toolcraft-design/package.json: set "name": "toolcraft-design";
          remove "private": true; add an "exports" map (".": types+import to
          dist/index.js), "engines": { "node": ">=20" }, "repository" with
@@ -134,7 +155,8 @@ tasks:
          toolcraft-openapi, agent-eval, agent-harness-tools, superintendent,
          ralph, e2e-test-runner, maestro-tui, markdown-reader, toolcraft,
          config-mutations, github-workflows, agent-spawn, config-extends.
-      5. In packages/toolcraft/package.json and packages/toolcraft-openapi/package.json
+      5. In packages/toolcraft/package.json and
+      packages/toolcraft-openapi/package.json
          update the THREE references each: bundleDependencies,
          optionalDependencies, and the toolcraft-design argument in the
          prepack/postpack `manage-bundled-workspace-deps.mjs` invocations →
@@ -148,38 +170,53 @@ tasks:
          scripts/verify-toolcraft-standalone.mjs to the new bundled name.
       8. Run `npm install` to refresh workspace links / lockfile.
 
+
       Do not touch docs/plans/archive/** (historical). Then build all packages
+
       (turbo) and run the test suites of the renamed package plus the consumers
+
       to confirm everything is green.
     status:
       implement: done
       test: done
       commit: done
-
   - id: write-readme
     title: Add packages/toolcraft-design/README.md
-    prompt: |
+    prompt: >
       Write packages/toolcraft-design/README.md (the package has none and
+
       CLAUDE.md requires one per package). Document: the package purpose and
+
       install/import as `toolcraft-design`; the public exports grouped as in
+
       src/index.ts (tokens, components, prompts, dashboard, explorer,
+
       terminal-markdown, static); the configurable brand theme API
-      (configureTheme({ brand, label }), getThemeConfig, resetTheme, the built-in
+
+      (configureTheme({ brand, label }), getThemeConfig, resetTheme, the
+      built-in
+
       brands purple/blue/green, and how to register more); and ALL environment
+
       variables that affect rendering (POE_CODE_THEME, POE_THEME for light/dark,
+
       and POE_BRAND as a debug-only override that configureTheme takes
+
       precedence over). Keep it accurate to the actual exports — do not invent
+
       APIs.
     status:
       implement: done
       commit: done
-
   - id: wire-brands
     title: Wire blue for toolcraft, green for terminal-pilot, purple for poe-code
-    prompt: |
+    prompt: >
       Configure the brand theme at each consumer's startup using
+
       toolcraft-design's configureTheme. The default is purple/"Poe", so
+
       poe-code already renders correctly; the others must opt in.
+
 
       1. toolcraft: at the toolcraft CLI entrypoint call
          configureTheme({ brand: "blue", label: "Toolcraft" }) before any
@@ -195,14 +232,16 @@ tasks:
          the default; explicit per project preference).
 
       TDD where there is logic (e.g. generated-bootstrap emission); for the
+
       entrypoint one-liners, add a test asserting the active brand after the
+
       entrypoint module configures it. Confirm poe-code output is unchanged
+
       (still purple) and toolcraft/terminal-pilot now resolve blue/green.
     status:
       implement: done
       test: done
       commit: done
-
   - id: regen-docs-and-screenshots
     title: Regenerate design docs and validate the three brands visually
     prompt: |
@@ -223,6 +262,8 @@ tasks:
     status:
       implement: done
       commit: done
+name: toolcraft-design-rename
+state: archived
 ---
 
 # Rename `toolcraft-design` → `toolcraft-design` + configurable brand theme

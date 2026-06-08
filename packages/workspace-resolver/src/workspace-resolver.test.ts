@@ -394,6 +394,21 @@ describe("resolveWorkspace", () => {
     ).rejects.toThrow('Workspace subdirectory "README.md" is not a directory');
   });
 
+  it("rejects a github subdirectory that is a symlink", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });
+    await fs.mkdir(cachePath, { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as ResolverFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      `${cachePath}/safe-subdir`
+    );
+
+    await expect(
+      resolveWorkspace("github://owner/repo/safe-subdir", createOptions({ fs }))
+    ).rejects.toThrow('Workspace subdirectory "safe-subdir" must not be a symbolic link.');
+  });
+
   it("resolves github locators without ref or subdir", async () => {
     const fs = createFs();
     const cachePath = buildCachePath("/home/test", {

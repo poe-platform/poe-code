@@ -36,7 +36,7 @@ export async function resolveWorkspace(
     const workspaceRoot = writable?.cwd ?? cacheDir;
     const cwd = locator.subdir ? path.join(workspaceRoot, locator.subdir) : workspaceRoot;
 
-    await assertPathExists(options.fs, cwd, locator);
+    await assertPathExists(options.fs, cwd, workspaceRoot, locator);
 
     return {
       cwd,
@@ -52,8 +52,13 @@ export async function resolveWorkspace(
 async function assertPathExists(
   fs: WorkspaceResolverOptions["fs"],
   target: string,
+  workspaceRoot: string,
   locator: ResolvedWorkspace["locator"]
 ): Promise<void> {
+  if (locator.scheme === "github" && locator.subdir) {
+    await assertGithubSubdirHasNoSymbolicLinks(fs, workspaceRoot, locator.subdir);
+  }
+
   let stats: Awaited<ReturnType<WorkspaceResolverOptions["fs"]["stat"]>>;
   try {
     stats = await fs.stat(target);
@@ -72,4 +77,33 @@ async function assertPathExists(
     }
     throw new Error(`Workspace path "${target}" is not a directory.`);
   }
+}
+
+async function assertGithubSubdirHasNoSymbolicLinks(
+  fs: WorkspaceResolverOptions["fs"],
+  workspaceRoot: string,
+  subdir: string
+): Promise<void> {
+  let currentPath = workspaceRoot;
+  for (const segment of subdir.split("/").filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Workspace subdirectory "${subdir}" must not be a symbolic link.`);
+      }
+    } catch (error) {
+      if (isMissingPathError(error)) {
+        return;
+      }
+      throw error;
+    }
+  }
+}
+
+function isMissingPathError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error.code === "ENOENT" || error.code === "ENOTDIR")
+  );
 }

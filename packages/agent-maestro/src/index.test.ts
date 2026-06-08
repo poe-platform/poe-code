@@ -1084,7 +1084,7 @@ function createIntegrationFixture(
   name: string,
   options: { list?: string } = {}
 ): IntegrationFixture {
-  const root = nodeFs.mkdtempSync(path.join(os.tmpdir(), `agent-maestro-${name}-`));
+  const root = nodeFs.mkdtempSync(path.join(nodeFs.realpathSync(os.tmpdir()), `agent-maestro-${name}-`));
   const workflowPath = path.join(root, "WORKFLOW.md");
   const workspaceRoot = path.join(root, "workspaces");
   nodeFs.writeFileSync(

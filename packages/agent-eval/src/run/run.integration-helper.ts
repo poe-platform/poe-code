@@ -1,4 +1,4 @@
-import { cp, mkdtemp, readFile, rm, stat } from "node:fs/promises";
+import { cp, mkdtemp, readFile, realpath, rm, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +18,7 @@ export function registerRunIntegrationCleanup(): void {
 }
 
 export async function createRunOutDir(): Promise<string> {
-  const root = await mkdtemp(path.join(tmpdir(), "agent-eval-run-"));
+  const root = await mkdtemp(path.join(await realpath(tmpdir()), "agent-eval-run-"));
   tempRoots.push(root);
   return path.join(root, "runs");
 }

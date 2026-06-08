@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -497,7 +497,7 @@ describe("runtime config", () => {
 });
 
 function withTempProject(fn: (project: { root: string; cwd: string }) => void): void {
-  const root = mkdtempSync(path.join(tmpdir(), "poe-runtime-config-"));
+  const root = mkdtempSync(path.join(realpathSync(tmpdir()), "poe-runtime-config-"));
   const cwd = path.join(root, "project");
   mkdirSync(cwd, { recursive: true });
 

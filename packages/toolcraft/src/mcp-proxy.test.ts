@@ -836,6 +836,7 @@ describe("resolveMcpProxies", () => {
       children: [group],
     });
     const calls: string[] = [];
+    const writeOptions: unknown[] = [];
     const originalWriteFile = mockFsPromises.writeFile.bind(mockFsPromises);
     const originalRename = mockFsPromises.rename.bind(mockFsPromises);
 
@@ -845,6 +846,7 @@ describe("resolveMcpProxies", () => {
 
     vi.spyOn(mockFsPromises, "writeFile").mockImplementation(async (...args) => {
       calls.push(`write:${String(args[0])}`);
+      writeOptions.push(args[2]);
       return originalWriteFile(...args);
     });
     vi.spyOn(mockFsPromises, "rename").mockImplementation(async (...args) => {
@@ -855,8 +857,37 @@ describe("resolveMcpProxies", () => {
     await resolveMcpProxies(root);
 
     expect(calls).toHaveLength(2);
+    expect(writeOptions).toEqual([{ encoding: "utf8", flag: "wx" }]);
     expect(calls[0]).toMatch(new RegExp(`^write:${getCachePath().replaceAll(".", "\\.")}\\.tmp-`));
     expect(calls[1]).toMatch(new RegExp(`^rename:${getCachePath().replaceAll(".", "\\.")}\\.tmp-.*->${getCachePath().replaceAll(".", "\\.")}$`));
+  });
+
+  it("does not follow cache temp symlinks inserted before write", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({
+      name: "root",
+      children: [group],
+    });
+    const originalWriteFile = mockFsPromises.writeFile.bind(mockFsPromises);
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync("/outside/cache.json", "outside-state\n");
+
+    setClientPlans({
+      pages: [{ tools: [tool("create_issue")] }],
+    });
+
+    vi.spyOn(mockFsPromises, "writeFile").mockImplementation(async (...args) => {
+      const targetPath = String(args[0]);
+      if (targetPath.startsWith(`${getCachePath()}.tmp-`)) {
+        vol.symlinkSync("/outside/cache.json", targetPath);
+      }
+
+      return originalWriteFile(...args);
+    });
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/couldn't discover MCP github:/);
+    expect(vol.readFileSync("/outside/cache.json", "utf8")).toBe("outside-state\n");
+    expect(vol.existsSync(getCachePath())).toBe(false);
   });
 
   it("uses distinct staging files for concurrent cache writers", async () => {

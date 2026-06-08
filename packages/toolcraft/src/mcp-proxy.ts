@@ -291,7 +291,10 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
   await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
   await assertCachePathHasNoSymlinks(directory);
-  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`);
+  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
+    encoding: "utf8",
+    flag: "wx"
+  });
   await assertCachePathHasNoSymlinks(tempPath);
   await assertCachePathHasNoSymlinks(cachePath);
   await rename(tempPath, cachePath);

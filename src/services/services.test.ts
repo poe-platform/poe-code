@@ -665,16 +665,19 @@ describe("createPoeClient", () => {
   });
 
   it("redacts secret-like Poe API error response bodies", async () => {
+    const bareToken = "sk-live-1234567890";
+    const projectToken = "sk-proj-abcdefghijklmnopqrstuvwxyz";
     const httpClient: HttpClient = vi.fn(async () => ({
       ok: false,
       status: 401,
       json: async () => ({ error: "Invalid API key" }),
       text: async () =>
         JSON.stringify({
-          error: "invalid",
+          error: `invalid ${bareToken}`,
           access_token: "poe-access-token",
           nested: {
-            client_secret: "poe-client-secret"
+            client_secret: "poe-client-secret",
+            detail: `Gateway echoed token ${projectToken} in detail`
           },
           detail: "Authorization: Bearer poe-bearer-token"
         })
@@ -694,16 +697,25 @@ describe("createPoeClient", () => {
     }
 
     expect(thrown).toMatchObject({
-      message: expect.stringContaining('"access_token":"[redacted]"'),
       context: {
-        responseBody: expect.stringContaining('"client_secret":"[redacted]"'),
         httpStatus: 401,
         apiEndpoint: "chat/completions"
       }
     });
 
-    expect(JSON.stringify(thrown)).not.toMatch(
-      /poe-access-token|poe-client-secret|poe-bearer-token/u
+    const apiError = thrown as { context?: { responseBody?: string } };
+    const responseBody = apiError.context?.responseBody ?? "";
+    const serialized = JSON.stringify(thrown);
+    expect(thrown).toMatchObject({
+      message: expect.stringContaining('"access_token":"[redacted]"')
+    });
+    expect(thrown).toMatchObject({
+      message: expect.stringContaining('"error":"invalid [redacted]"')
+    });
+    expect(responseBody).toContain('"client_secret":"[redacted]"');
+    expect(responseBody).toContain('"detail":"Gateway echoed token [redacted] in detail"');
+    expect(serialized).not.toMatch(
+      /poe-access-token|poe-client-secret|poe-bearer-token|sk-live-1234567890|sk-proj-abcdefghijklmnopqrstuvwxyz/u
     );
   });
 });

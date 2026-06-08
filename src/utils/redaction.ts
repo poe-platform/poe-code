@@ -8,6 +8,16 @@ const ASSIGNED_SECRET_PATTERN = new RegExp(
   String.raw`\b(${ASSIGNED_SECRET_NAME_PATTERN}\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[A-Za-z0-9._~+/=-]+)`,
   "giu"
 );
+const BARE_TOKEN_PATTERNS = [
+  /\bsk-(?:(?:ant|live|proj|test)-)?[A-Za-z0-9_-]{10,}\b/giu,
+  /\bpka_[A-Za-z0-9_-]{16,}\b/gu,
+  /\bgh[pousr]_[A-Za-z0-9_]{20,}\b/gu,
+  /\bglpat-[A-Za-z0-9_-]{20,}\b/gu
+] as const;
+const BARE_TOKEN_PATTERN = new RegExp(
+  BARE_TOKEN_PATTERNS.map((pattern) => pattern.source).join("|"),
+  "giu"
+);
 
 export function redactSecrets(value: unknown): unknown {
   const serialized = safeJsonStringify(value);
@@ -96,7 +106,8 @@ function redactString(value: string): string {
 
   return value
     .replace(BEARER_TOKEN_PATTERN, `$1${REDACTED_SECRET}`)
-    .replace(ASSIGNED_SECRET_PATTERN, redactAssignedSecretValue);
+    .replace(ASSIGNED_SECRET_PATTERN, redactAssignedSecretValue)
+    .replace(BARE_TOKEN_PATTERN, REDACTED_SECRET);
 }
 
 function redactAssignedSecretValue(match: string, prefix: string): string {

@@ -883,6 +883,29 @@ describe("ErrorLogger (read-only environments)", () => {
     expect(logContent).not.toContain("logger-api-key");
   });
 
+  it("redacts bare token-shaped strings in messages, stacks, and context", () => {
+    const syncFs = createSyncFs({ [logFile]: "" });
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+    const error = new Error("provider rejected sk-live-1234567890");
+    error.stack = "Error: provider rejected sk-live-1234567890\n    at sk-proj-abcdefghijklmnopqrstuvwxyz";
+
+    logger.logError(error, {
+      detail: "Gateway echoed ghp_abcdefghijklmnopqrstuvwxyz1234 in detail"
+    });
+
+    const logContent = syncFs.readFileSync(logFile, "utf8");
+    expect(logContent).toContain("provider rejected [redacted]");
+    expect(logContent).toContain("Gateway echoed [redacted] in detail");
+    expect(logContent).not.toMatch(
+      /sk-live-1234567890|sk-proj-abcdefghijklmnopqrstuvwxyz|ghp_abcdefghijklmnopqrstuvwxyz1234/u
+    );
+  });
+
   it("does not write logs through a symlinked log directory", () => {
     const syncFs = createSyncFs({ "/outside/.keep": "" });
     syncFs.mkdirSync("/root/.poe-code", { recursive: true });

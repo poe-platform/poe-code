@@ -11,14 +11,14 @@ import {
 } from "./index.js";
 
 vi.mock("toolcraft-design", () => ({
+  configureTheme: vi.fn(),
   createLogger: () => ({
     info: (message: string) => process.stdout.write(`${message}\n`),
     success: (message: string) => process.stdout.write(`${message}\n`),
     warn: (message: string) => process.stderr.write(`${message}\n`),
     error: (message: string) => process.stderr.write(`${message}\n`),
     resolved: (label: string, value: string) => process.stdout.write(`${label}: ${value}\n`),
-    errorResolved: (label: string, value: string) =>
-      process.stderr.write(`${label}: ${value}\n`),
+    errorResolved: (label: string, value: string) => process.stderr.write(`${label}: ${value}\n`),
     message: (message: string) => process.stdout.write(`${message}\n`)
   }),
   renderTable: vi.fn(() => "table"),

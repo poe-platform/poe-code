@@ -13,6 +13,7 @@ const loggerState = {
 };
 
 vi.mock("toolcraft-design", () => ({
+  configureTheme: vi.fn(),
   createLogger: () => ({
     info: vi.fn(),
     success: vi.fn(),
@@ -477,7 +478,9 @@ describe("approvals built-in commands", () => {
     expect(provider.requestApproval).not.toHaveBeenCalled();
     expect(handler).not.toHaveBeenCalled();
     expect(result).toMatchObject({ id: approvalId, state: "pending" });
-    await expect(taskList.list("approvals").get(approvalId)).resolves.toMatchObject({ state: "pending" });
+    await expect(taskList.list("approvals").get(approvalId)).resolves.toMatchObject({
+      state: "pending"
+    });
   });
 
   it("throws from approvals.run when the runtime task list is unset", async () => {

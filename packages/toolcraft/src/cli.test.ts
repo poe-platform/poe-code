@@ -36,6 +36,7 @@ const formatterState = {
 };
 
 vi.mock("toolcraft-design", () => ({
+  configureTheme: vi.fn(),
   createLogger: () => ({
     info: (message: string) => loggerState.info.push(message),
     success: (message: string) => loggerState.success.push(message),

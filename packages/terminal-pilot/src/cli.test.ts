@@ -1,12 +1,13 @@
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGroupMock } = vi.hoisted(() => ({
-  createTerminalPilotGroupMock: vi.fn(),
-  realpathMock: vi.fn<(path: string) => Promise<string>>(),
-  runCLIMock: vi.fn<() => Promise<void>>(),
-  terminalPilotGroupMock: { name: "terminal-pilot" }
-}));
+const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGroupMock } =
+  vi.hoisted(() => ({
+    createTerminalPilotGroupMock: vi.fn(),
+    realpathMock: vi.fn<(path: string) => Promise<string>>(),
+    runCLIMock: vi.fn<() => Promise<void>>(),
+    terminalPilotGroupMock: { name: "terminal-pilot" }
+  }));
 
 const originalArgv = [...process.argv];
 const cliPath = fileURLToPath(new URL("./cli.ts", import.meta.url));
@@ -24,7 +25,9 @@ vi.mock("./commands/index.js", () => ({
 }));
 
 describe("terminal-pilot CLI entry point", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    const { resetTheme } = await import("toolcraft-design");
+    resetTheme();
     process.argv = [...originalArgv];
     realpathMock.mockReset();
     realpathMock.mockImplementation(async (target) => target);
@@ -32,6 +35,13 @@ describe("terminal-pilot CLI entry point", () => {
     runCLIMock.mockReset();
     runCLIMock.mockResolvedValue(undefined);
     vi.resetModules();
+  });
+
+  it("configures the terminal-pilot brand on import", async () => {
+    await import("./cli.js");
+    const { getThemeConfig } = await import("toolcraft-design");
+
+    expect(getThemeConfig()).toEqual({ brand: "green", label: "Terminal Pilot" });
   });
 
   it("runs toolcraft with the terminal-pilot command group", async () => {
@@ -54,13 +64,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     await main(["node", "terminal-pilot", "list-sessions", "--json"]);
 
-    expect(argvDuringRun).toEqual([
-      "node",
-      "terminal-pilot",
-      "list-sessions",
-      "--output",
-      "json"
-    ]);
+    expect(argvDuringRun).toEqual(["node", "terminal-pilot", "list-sessions", "--output", "json"]);
     expect(process.argv).toEqual(originalArgv);
   });
 
@@ -72,7 +76,9 @@ describe("terminal-pilot CLI entry point", () => {
 
   it("executes when invoked through a symlinked bin path", async () => {
     process.argv = ["node", "/tmp/terminal-pilot-bin", "--help"];
-    realpathMock.mockImplementation(async (target) => target === "/tmp/terminal-pilot-bin" ? cliPath : target);
+    realpathMock.mockImplementation(async (target) =>
+      target === "/tmp/terminal-pilot-bin" ? cliPath : target
+    );
 
     await import("./cli.js");
 

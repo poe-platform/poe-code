@@ -16,6 +16,7 @@ import type {
 } from "toolcraft-schema";
 import {
   cancel,
+  configureTheme,
   confirm,
   createLogger,
   formatCommandList,
@@ -62,6 +63,8 @@ import { renderSourceSnippet } from "./source-snippet.js";
 import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+
+configureTheme({ brand: "blue", label: "Toolcraft" });
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -853,9 +856,7 @@ function getNumericProperty(value: unknown, key: string): number | null {
 
   const propertyValue = (value as Record<string, unknown>)[key];
 
-  return typeof propertyValue === "number" && Number.isFinite(propertyValue)
-    ? propertyValue
-    : null;
+  return typeof propertyValue === "number" && Number.isFinite(propertyValue) ? propertyValue : null;
 }
 
 function getJsonParseMessagePosition(message: string): number | null {
@@ -1576,10 +1577,7 @@ function formatCommandRows<TServices extends object>(
   }));
 }
 
-function formatGlobalOptionsLine(ctx: {
-  showVersion: boolean;
-  presetsEnabled: boolean;
-}): string {
+function formatGlobalOptionsLine(ctx: { showVersion: boolean; presetsEnabled: boolean }): string {
   const flags: string[] = [];
 
   if (ctx.presetsEnabled) {
@@ -4050,7 +4048,11 @@ function renderHttpError(
     lines.push("", "Request headers:", ...formatHttpErrorHeaders(error.request.headers), "");
 
     if (error.request.body !== undefined) {
-      lines.push("Request body:", indentHttpErrorBlock(formatHttpErrorBody(error.request.body)), "");
+      lines.push(
+        "Request body:",
+        indentHttpErrorBlock(formatHttpErrorBody(error.request.body)),
+        ""
+      );
     }
   }
 

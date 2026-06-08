@@ -171,6 +171,7 @@ type OpenApiSecurityRequirementObject = Record<string, string[]>;
 
 export interface GenerateOptions {
   specSha: string;
+  brand?: string;
 }
 
 export interface GeneratedFile {
@@ -428,6 +429,8 @@ interface OperationEntry {
 
 export function generate(document: OpenApiDocument, options: GenerateOptions): GeneratedFile[] {
   const commands = collectGeneratedCommands(document);
+  const brand = options.brand ?? "blue";
+  const label = document.info?.title ?? "Toolcraft";
 
   return [
     ...commands.map((command) => ({
@@ -437,7 +440,8 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
         ...command
       })
     })),
-    createIndexFile(commands)
+    createIndexFile(commands),
+    createCliFile({ brand, label })
   ];
 }
 
@@ -1482,7 +1486,9 @@ function isEnumPrimitiveValue(value: unknown): value is string | number | boolea
 }
 
 function isOpenApiScalarType(type: OpenApiSchemaObject["type"]): type is OpenApiScalarType {
-  return typeof type === "string" && Object.prototype.hasOwnProperty.call(SCHEMA_TYPE_TO_KIND, type);
+  return (
+    typeof type === "string" && Object.prototype.hasOwnProperty.call(SCHEMA_TYPE_TO_KIND, type)
+  );
 }
 
 function expectRequestBody(
@@ -2142,6 +2148,24 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   return {
     path: "index.ts",
     contents: lines.join("\n")
+  };
+}
+
+function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
+  return {
+    path: "cli.ts",
+    contents: [
+      "#!/usr/bin/env node",
+      ...createGeneratedTypeScriptFileLines(),
+      'import { runCLI } from "toolcraft/cli";',
+      'import { configureTheme } from "toolcraft-design";',
+      'import * as groups from "./index.js";',
+      "",
+      `configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,
+      "",
+      "await runCLI(Object.values(groups));",
+      ""
+    ].join("\n")
   };
 }
 

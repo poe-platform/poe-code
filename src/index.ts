@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { realpathSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { configureTheme } from "toolcraft-design";
+
+configureTheme({ brand: "purple", label: "Poe" });
 
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
@@ -192,6 +195,7 @@ async function main(): Promise<void> {
     import("./cli/bootstrap.js")
   ]);
 
+  configureTheme({ brand: "purple", label: "Poe" });
   const runCli = createCliMain(createProgram);
   await runCli();
 }

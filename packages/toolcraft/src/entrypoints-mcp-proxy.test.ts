@@ -77,6 +77,7 @@ class MockMcpClient {
 }
 
 vi.mock("toolcraft-design", () => ({
+  configureTheme: vi.fn(),
   createLogger: (emitter?: (message: string) => void) => ({
     info: (message: string) => emitter?.(message),
     success: vi.fn(),

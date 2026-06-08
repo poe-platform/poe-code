@@ -199,9 +199,9 @@ tasks:
       entrypoint module configures it. Confirm poe-code output is unchanged
       (still purple) and toolcraft/terminal-pilot now resolve blue/green.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: regen-docs-and-screenshots
     title: Regenerate design docs and validate the three brands visually

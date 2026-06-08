@@ -120,8 +120,7 @@ export async function streamJobLog(
 ): Promise<void> {
   let detaching = false;
   const iterator = handle.stream({
-    sinceByte: 0,
-    ...(opts.since ? { since: opts.since } : {}),
+    ...(opts.since === undefined ? { sinceByte: 0 } : { since: opts.since }),
     follow: opts.follow
   })[Symbol.asyncIterator]();
   const onSigint = opts.onDetach

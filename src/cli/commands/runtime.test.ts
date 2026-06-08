@@ -110,6 +110,7 @@ function createJobEntry(overrides: {
 function createJobHandle(input: {
   status: Awaited<ReturnType<JobHandle["status"]>>;
   chunks?: string[];
+  stream?: JobHandle["stream"];
   wait?: () => Promise<{ exitCode: number }>;
   kill?: (signal?: NodeJS.Signals) => Promise<void>;
 }): JobHandle {
@@ -121,10 +122,11 @@ function createJobHandle(input: {
     async status() {
       return input.status;
     },
-    async *stream() {
-      for (const [index, chunk] of (input.chunks ?? []).entries()) {
-        yield { byteOffset: index, data: chunk };
+    stream(options) {
+      if (input.stream !== undefined) {
+        return input.stream(options);
       }
+      return createChunkStream(input.chunks ?? []);
     },
     async wait() {
       if (input.wait) {
@@ -136,6 +138,15 @@ function createJobHandle(input: {
       await input.kill?.(signal);
     }
   };
+}
+
+async function* createChunkStream(chunks: string[]): AsyncIterable<{
+  byteOffset: number;
+  data: string;
+}> {
+  for (const [index, chunk] of chunks.entries()) {
+    yield { byteOffset: index, data: chunk };
+  }
 }
 
 interface RuntimeFactoryEvents {
@@ -439,6 +450,118 @@ describe("runtime command", () => {
     await program.parseAsync(["node", "cli", "runtime", "jobs", "logs"]);
 
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+  });
+
+  it("requests full replay when dumping runtime job logs without since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["full replay\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(streamOptions).toEqual([{ sinceByte: 0, follow: false }]);
+    expect(stripAnsi(logs.join("\n"))).toContain("full replay");
+  });
+
+  it("omits the byte cursor when dumping runtime job logs with since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["recent replay\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "logs",
+      "job-logs",
+      "--since",
+      "5m"
+    ]);
+
+    expect(streamOptions).toHaveLength(1);
+    expect(streamOptions[0]).toMatchObject({ follow: false, since: expect.any(Date) });
+    expect(streamOptions[0]).not.toHaveProperty("sinceByte");
+    expect(stripAnsi(logs.join("\n"))).toContain("recent replay");
+  });
+
+  it("omits the byte cursor when attaching to runtime job logs with since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-attach",
+      createJobHandle({
+        status: "running",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["recent attach\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "attach",
+      "job-attach",
+      "--since",
+      "5m"
+    ]);
+
+    expect(streamOptions).toHaveLength(1);
+    expect(streamOptions[0]).toMatchObject({ follow: true, since: expect.any(Date) });
+    expect(streamOptions[0]).not.toHaveProperty("sinceByte");
+    expect(stripAnsi(logs.join("\n"))).toContain("recent attach");
   });
 
   it("waits for delayed log chunks from an exited runtime job", async () => {

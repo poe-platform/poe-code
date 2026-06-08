@@ -249,6 +249,54 @@ describe("poe-agent-plugin-files", () => {
     await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
   });
 
+  it("does not remove a colliding atomic edit temp symlink", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/app.ts";
+    const outsidePath = "/workspace/outside.tmp";
+    const originalContent = "export const value = 'old';\n";
+    const volume = Volume.fromJSON({
+      [filePath]: originalContent,
+      [outsidePath]: "outside-state\n"
+    }, "/");
+    const base = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...base,
+      async writeFile(
+        targetPath: string,
+        data: Parameters<typeof base.writeFile>[1],
+        options?: Parameters<typeof base.writeFile>[2]
+      ) {
+        if (
+          temporaryPath === undefined &&
+          targetPath.startsWith("/workspace/project/src/.app.ts.") &&
+          targetPath.endsWith(".tmp")
+        ) {
+          temporaryPath = targetPath;
+          volume.symlinkSync(outsidePath, targetPath);
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "str_replace",
+        path: "src/app.ts",
+        old_str: "'old'",
+        new_str: "'new'"
+      })
+    ).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync(outsidePath, "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
+    await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
+  });
+
   it("rejects reads and writes through symlinked allowed descendants", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON({

@@ -368,6 +368,28 @@ describe("runGenerateCli", () => {
     await expect(harness.fs.readFile("/outside/index.ts", "utf8")).rejects.toThrow();
   });
 
+  it("rejects symlinked generated descendants during stale cleanup", async () => {
+    const specText = createEmptySpec();
+    const expectedFiles = createExpectedFiles(specText);
+    const generatedIndex = expectedFiles["src/generated/index.ts"];
+
+    if (generatedIndex === undefined) {
+      throw new Error("Expected generated index file.");
+    }
+
+    const harness = createCliHarness({
+      "/repo/openapi.json": specText,
+      "/repo/src/generated/index.ts": generatedIndex,
+      "/outside/stale.ts": "keep"
+    });
+    await harness.fs.symlink("/outside", "/repo/src/generated/linked");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+    await expect(harness.fs.readFile("/outside/stale.ts", "utf8")).resolves.toBe("keep");
+  });
+
   it("rejects a symlinked generated child directory", async () => {
     const specText = createSpec("List bots.");
     const harness = createCliHarness({ "/repo/openapi.json": specText, "/outside/marker": "keep" });

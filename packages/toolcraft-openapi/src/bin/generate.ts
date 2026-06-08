@@ -9,12 +9,12 @@ import { generate, type GeneratedFile } from "../generate.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
 interface GenerateCliFileSystem {
+  lstat(targetPath: string): Promise<{ isDirectory(): boolean; isSymbolicLink(): boolean }>;
   mkdir(directoryPath: string, options?: { recursive?: boolean }): Promise<unknown>;
   readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
   readdir(directoryPath: string): Promise<string[]>;
   rm(targetPath: string, options?: { force?: boolean }): Promise<void>;
   realpath(targetPath: string): Promise<string>;
-  stat(targetPath: string): Promise<{ isDirectory(): boolean }>;
   writeFile(filePath: string, contents: string, encoding: BufferEncoding): Promise<void>;
 }
 
@@ -142,7 +142,7 @@ export async function syncGeneratedClient(
   if (!options.check && drifted) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
-      await deleteGeneratedFiles(services.fs, deletedFiles);
+      await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);
     } catch (error) {
       await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
       throw error;
@@ -254,17 +254,27 @@ function tryParseUrl(input: string | URL): URL | null {
 }
 
 async function readGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "readdir" | "readFile" | "stat">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "readdir" | "readFile">,
   directoryPath: string
 ): Promise<Map<string, string>> {
   const files = new Map<string, string>();
 
   try {
+    const directoryStats = await fs.lstat(directoryPath);
+
+    if (directoryStats.isSymbolicLink()) {
+      throw new Error("Generated output must remain inside the output directory.");
+    }
+
     const entries = await fs.readdir(directoryPath);
 
     for (const entry of entries) {
       const entryPath = path.resolve(directoryPath, entry);
-      const stats = await fs.stat(entryPath);
+      const stats = await fs.lstat(entryPath);
+
+      if (stats.isSymbolicLink()) {
+        throw new Error("Generated output must remain inside the output directory.");
+      }
 
       if (stats.isDirectory()) {
         for (const [nestedPath, nestedContents] of await readGeneratedFiles(fs, entryPath)) {
@@ -350,10 +360,12 @@ async function assertSafeOutputPath(
 }
 
 async function deleteGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "rm">,
+  fs: Pick<GenerateCliFileSystem, "realpath" | "rm">,
+  outputDir: string,
   filePaths: ReadonlyArray<string>
 ): Promise<void> {
   for (const filePath of filePaths) {
+    await assertSafeOutputPath(fs, outputDir, filePath);
     await fs.rm(filePath, { force: true });
   }
 }
@@ -369,6 +381,7 @@ async function restoreGeneratedFiles(
     const previousContents = currentFiles.get(file.path);
 
     if (previousContents === undefined) {
+      await assertSafeOutputPath(fs, outputDir, file.path);
       await fs.rm(file.path, { force: true });
       continue;
     }

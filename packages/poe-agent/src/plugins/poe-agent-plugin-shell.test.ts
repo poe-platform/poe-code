@@ -330,6 +330,26 @@ describe("poe-agent-plugin-shell", () => {
     ).toBe('Command "env" is not allowed in read mode.');
   });
 
+  it("rejects echo and printf shell expansion surfaces in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "echo $POE_API_KEY" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: 'printf %s "$POE_API_KEY"' }, "read")).toBe(
+      'Command "printf" is not allowed in read mode.',
+    );
+    expect(validate({ command: "echo `printenv POE_API_KEY`" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: "echo `mkdir tmp`" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'echo $POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+  });
+
   it("emits notification events for shell output", async () => {
     const cwd = process.cwd();
     const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];

@@ -169,6 +169,42 @@ describe("poe-agent-plugin-policy", () => {
     }
   });
 
+  it("blocks echo and printf expansion surfaces in read mode", async () => {
+    const { runContext, signal } = await setupRunContext([
+      shellPlugin(),
+      policyPlugin({ mode: "read" })
+    ]);
+
+    try {
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "echo $POE_API_KEY"
+        }),
+        'Command "echo" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: 'printf %s "$POE_API_KEY"'
+        }),
+        'Command "printf" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "echo `printenv POE_API_KEY`"
+        }),
+        'Command "echo" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "echo `mkdir tmp`"
+        }),
+        'Command "echo" is not allowed in read mode.'
+      );
+    } finally {
+      await runContext.dispose();
+    }
+  });
+
   it("allows safe shell in edit mode while blocking destructive commands and network writes", async () => {
     const { runContext, signal } = await setupRunContext([
       shellPlugin(),

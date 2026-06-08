@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import path from "node:path";
 import { appendExcludeBlock, removeExcludeBlock } from "@poe-code/agent-skill-config";
@@ -147,8 +148,12 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 }
 
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
-  const temporaryPath = `${targetPath}.cleanup-tmp`;
-  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, { flag: "wx" });
+  const temporaryPath = `${targetPath}.cleanup-${process.pid}-${randomUUID()}.tmp`;
+  assertNoSymbolicLink(temporaryPath);
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
+    encoding: "utf8",
+    flag: "wx"
+  });
   try {
     fs.renameSync(temporaryPath, targetPath);
   } catch (error) {

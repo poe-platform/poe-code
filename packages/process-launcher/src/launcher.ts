@@ -149,12 +149,15 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
   const signal = options.force ? "SIGKILL" : "SIGTERM";
   const signalProcess = options.signalProcess ?? defaultSignalProcess;
   const daemonPid = record.daemonPid;
+  let signalSent = false;
 
   if (daemonPid !== null && isProcessRunning(daemonPid, options.isPidRunning)) {
-    signalProcess(daemonPid, signal);
-  } else if (record.state !== null && isActiveStatus(record.state.status) && record.state.runtime === "host" && record.state.pid !== null) {
+    signalSent = signalProcessIfPresent(daemonPid, signal, signalProcess);
+  }
+
+  if (!signalSent && record.state !== null && isActiveStatus(record.state.status) && record.state.runtime === "host" && record.state.pid !== null) {
     if (isProcessRunning(record.state.pid, options.isPidRunning)) {
-      signalProcess(record.state.pid, signal);
+      signalProcessIfPresent(record.state.pid, signal, signalProcess);
     }
   }
 
@@ -760,6 +763,26 @@ function resolveLogDir(baseDir: string, id: string): string {
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function signalProcessIfPresent(
+  pid: number,
+  signal: NodeJS.Signals,
+  signalProcess: (pid: number, signal: NodeJS.Signals) => void
+): boolean {
+  try {
+    signalProcess(pid, signal);
+    return true;
+  } catch (error) {
+    if (isMissingProcessSignalError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function isMissingProcessSignalError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ESRCH";
 }
 
 function defaultFs(): LauncherFileSystem {

@@ -309,6 +309,46 @@ describe("process launcher manager", () => {
     });
   });
 
+  it("treats ESRCH while signaling a daemon as already stopped", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let signalAttempted = false;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(654);
+      expect(signal).toBe("SIGTERM");
+      signalAttempted = true;
+      throw createErrnoError("No such process", "ESRCH");
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => pid === 654 && !signalAttempted,
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
   it("signals a live host child when its launcher daemon is stale", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -349,6 +389,63 @@ describe("process launcher manager", () => {
       pid: null,
       status: "stopped"
     });
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
+  it("falls back to a live host child when the daemon exits during stop signaling", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let daemonSignalAttempted = false;
+    let childRunning = true;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(signal).toBe("SIGTERM");
+      if (pid === 654) {
+        daemonSignalAttempted = true;
+        throw createErrnoError("No such process", "ESRCH");
+      }
+      if (pid === 123) {
+        childRunning = false;
+        return;
+      }
+      throw new Error(`Unexpected pid ${pid}`);
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => {
+        if (pid === 654) {
+          return !daemonSignalAttempted;
+        }
+        if (pid === 123) {
+          return childRunning;
+        }
+        return false;
+      },
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledTimes(2);
+    expect(signalProcess).toHaveBeenNthCalledWith(1, 654, "SIGTERM");
+    expect(signalProcess).toHaveBeenNthCalledWith(2, 123, "SIGTERM");
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
   });
 
@@ -868,4 +965,10 @@ function createState(
     args: [...(spec.args ?? [])],
     ...overrides
   };
+}
+
+function createErrnoError(message: string, code: string): NodeJS.ErrnoException {
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
 }

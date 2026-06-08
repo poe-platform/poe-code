@@ -211,6 +211,26 @@ describe("theme-detect", () => {
       expect(theme).toBe(light);
     });
 
+    it("uses POE_BRAND as a debug brand override", () => {
+      const purple = getTheme({ POE_CODE_THEME: "dark" });
+      const blue = getTheme({ POE_CODE_THEME: "dark", POE_BRAND: "blue" });
+
+      expect(blue).not.toBe(purple);
+    });
+
+    it("ignores unknown POE_BRAND values", () => {
+      expect(getTheme({ POE_CODE_THEME: "dark", POE_BRAND: "orange" })).toBe(dark);
+    });
+
+    it("prefers an explicitly configured brand over POE_BRAND", () => {
+      configureTheme({ brand: "green" });
+
+      const configured = getTheme({ POE_CODE_THEME: "dark" });
+      const withOverride = getTheme({ POE_CODE_THEME: "dark", POE_BRAND: "blue" });
+
+      expect(withOverride).toBe(configured);
+    });
+
     it("caches each mode separately", () => {
       const theme1 = getTheme({ POE_CODE_THEME: "light" });
       const theme2 = getTheme({ POE_CODE_THEME: "dark" });

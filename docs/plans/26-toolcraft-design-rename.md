@@ -154,7 +154,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: write-readme
     title: Add packages/toolcraft-design/README.md
@@ -171,8 +171,8 @@ tasks:
       precedence over). Keep it accurate to the actual exports — do not invent
       APIs.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: wire-brands
     title: Wire blue for toolcraft, green for terminal-pilot, purple for poe-code

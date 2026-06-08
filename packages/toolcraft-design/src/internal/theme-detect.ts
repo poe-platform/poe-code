@@ -1,10 +1,11 @@
-import { getThemeConfig, getThemeRevision } from "./theme-state.js";
+import { getThemeConfig, getThemeRevision, isThemeBrandConfigured } from "./theme-state.js";
 import { brands } from "../tokens/brand.js";
 import { createPalette, dark, light, type ThemeName, type ThemePalette } from "../tokens/colors.js";
 
 export interface ThemeEnv {
   POE_CODE_THEME?: string;
   POE_THEME?: string;
+  POE_BRAND?: string;
   APPLE_INTERFACE_STYLE?: string;
   VSCODE_COLOR_THEME_KIND?: string;
   COLORFGBG?: string;
@@ -57,19 +58,24 @@ let cachedRevision = -1;
 export function getTheme(env?: ThemeEnv): ThemePalette {
   const themeName = resolveThemeName(env);
   const config = getThemeConfig();
+  const requestedBrand = env?.POE_BRAND?.toLowerCase();
+  const activeBrandName =
+    !isThemeBrandConfigured() && requestedBrand && Object.hasOwn(brands, requestedBrand)
+      ? requestedBrand
+      : config.brand;
   const revision = getThemeRevision();
   if (revision !== cachedRevision) {
     themeCache.clear();
     cachedRevision = revision;
   }
-  const cacheKey = `${config.brand}:${themeName}`;
+  const cacheKey = `${activeBrandName}:${themeName}`;
   const cachedTheme = themeCache.get(cacheKey);
   if (cachedTheme) {
     return cachedTheme;
   }
-  const activeBrand = brands[config.brand]!;
+  const activeBrand = brands[activeBrandName]!;
   const theme =
-    config.brand === "purple"
+    activeBrandName === "purple"
       ? themeName === "light"
         ? light
         : dark

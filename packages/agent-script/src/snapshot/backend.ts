@@ -92,6 +92,19 @@ async function writeSnapshotAtomically(
       await writeSnapshotOnce(temporaryPath, snapshotPath, contents);
       return;
     } catch (error) {
+      if (hasErrorCode(error, "EEXIST")) {
+        if (attempt === options.maxAttempts) {
+          throw new Error(
+            `Failed to write snapshot at ${snapshotPath} after ${options.maxAttempts} attempts: temporary path already exists`,
+            {
+              cause: error
+            }
+          );
+        }
+
+        continue;
+      }
+
       if (!isLockedFileError(error)) {
         throw error;
       }
@@ -140,13 +153,15 @@ async function writeSnapshotOnce(
   snapshotPath: string,
   contents: string
 ): Promise<void> {
+  let temporaryCreated = false;
   let renamed = false;
   try {
-    await writeFile(temporaryPath, contents);
+    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
     await rename(temporaryPath, snapshotPath);
     renamed = true;
   } finally {
-    if (!renamed) {
+    if (temporaryCreated && !renamed) {
       await removeTemporarySnapshot(temporaryPath).catch(() => undefined);
     }
   }

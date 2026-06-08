@@ -105,7 +105,9 @@
     "packages/memory/dist",
     "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
-    "packages/tiny-stdio-mcp-server/dist"
+    "packages/tiny-oauth-test-server/package.json",
+    "packages/tiny-stdio-mcp-server/dist",
+    "packages/tiny-stdio-mcp-test-server/package.json"
   ],
   "engines": {
     "node": ">=20"

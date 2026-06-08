@@ -161,6 +161,32 @@ await esbuild.build({
   banner: { js: "#!/usr/bin/env node" }
 });
 
+for (const { entryPoint, outfile } of [
+  {
+    entryPoint: "packages/tiny-oauth-test-server/src/cli.ts",
+    outfile: "packages/tiny-oauth-test-server/dist/cli.js"
+  },
+  {
+    entryPoint: "packages/tiny-stdio-mcp-test-server/src/cli.ts",
+    outfile: "packages/tiny-stdio-mcp-test-server/dist/cli.js"
+  }
+]) {
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, entryPoint)],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, outfile),
+    external: externalDeps,
+    alias: workspaceAliases,
+    sourcemap: false,
+    plugins: [stripShebangPlugin],
+    loader: { ".json": "json" },
+    banner: { js: "#!/usr/bin/env node" }
+  });
+}
+
 // Rewrite workspace specifiers in shipped .d.ts files so the published
 // tarball can resolve types without @poe-code/* in node_modules. The
 // rewrites target memory itself plus the two sibling dists whose public

@@ -68,4 +68,21 @@ describe("standalone package publish metadata", () => {
     );
     expect(rootPackage.files).toContain("packages/superintendent/dist");
   });
+
+  it("publishes root tiny test-server bins with package metadata", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.bin?.["tiny-oauth-test-server"]).toBe(
+      "packages/tiny-oauth-test-server/dist/cli.js"
+    );
+    expect(rootPackage.bin?.["tiny-stdio-mcp-test-server"]).toBe(
+      "packages/tiny-stdio-mcp-test-server/dist/cli.js"
+    );
+    expect(rootPackage.files).toEqual(
+      expect.arrayContaining([
+        "packages/tiny-oauth-test-server/package.json",
+        "packages/tiny-stdio-mcp-test-server/package.json"
+      ])
+    );
+  });
 });

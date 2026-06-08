@@ -26,7 +26,8 @@ function getPackageAliases(): Record<string, string> {
   const packages = fs
     .readdirSync(packagesDir, { withFileTypes: true })
     .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
+    .map((dirent) => dirent.name)
+    .filter((pkg) => fs.existsSync(path.resolve(packagesDir, pkg, "package.json")));
 
   const mainAliases: Record<string, string> = {};
   const subpathAliases: Record<string, string> = {};

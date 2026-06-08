@@ -13,7 +13,7 @@ export type {
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./renderer.js";
 export { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
-export type { LogEntry } from "./replay.js";
+export type { LogEntry, MalformedSpawnLogRecord, ReadSpawnLogOptions } from "./replay.js";
 export {
   findLatestLog,
   listSpawnLogs,

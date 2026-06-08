@@ -28,6 +28,7 @@ import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import {
   findLatestLog,
   listSpawnLogs,
+  type MalformedSpawnLogRecord,
   pickRandomLog,
   readSpawnLog,
   replaySpawnLog
@@ -102,6 +103,76 @@ describe("acp/replay", () => {
       { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } },
       { sessionUpdate: "usage_update", used: 1, size: 3 }
     ]);
+  });
+
+  it("readSpawnLog skips malformed JSONL records and reports their location", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    const observed = await collect(readSpawnLog(filePath, { onMalformedRecord }));
+
+    expect(observed).toEqual([
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } },
+      { sessionUpdate: "usage_update", used: 1, size: 3 }
+    ]);
+    expect(onMalformedRecord).toHaveBeenCalledWith({
+      filePath,
+      lineNumber: 2,
+      message: expect.any(String)
+    });
+    expect(onMalformedRecord.mock.calls[0]?.[0].message.length).toBeGreaterThan(0);
+  });
+
+  it("readSpawnLog rejects malformed JSONL records in strict mode with path and line context", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    await expect(
+      collect(readSpawnLog(filePath, { strict: true, onMalformedRecord }))
+    ).rejects.toThrow(`Malformed spawn log record at ${filePath}:2`);
+    expect(onMalformedRecord).not.toHaveBeenCalled();
+  });
+
+  it("readSpawnLog writes contextual warnings for malformed JSONL records by default", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const stderrChunks: string[] = [];
+    const originalStderrWrite = process.stderr.write.bind(process.stderr);
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : Buffer.from(chunk as Uint8Array).toString("utf8"));
+      const callback = typeof rest.at(-1) === "function" ? (rest.at(-1) as (() => void)) : undefined;
+      callback?.();
+      return true;
+    }) as typeof process.stderr.write;
+
+    try {
+      await collect(readSpawnLog(filePath));
+    } finally {
+      process.stderr.write = originalStderrWrite;
+    }
+
+    expect(stderrChunks.join("")).toContain(`Skipping malformed spawn log record at ${filePath}:2:`);
   });
 
   it("listSpawnLogs returns sorted log entries", async () => {
@@ -295,5 +366,27 @@ describe("acp/replay", () => {
       output: 0,
       cached: 5
     });
+  });
+
+  it("replaySpawnLog renders valid records around malformed JSONL records", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 3, size: 8 })
+      ].join("\n")
+    });
+
+    await replaySpawnLog(filePath, { onMalformedRecord });
+
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith("hello");
+    expect(acp.renderUsage).toHaveBeenCalledWith({
+      input: 3,
+      output: 0,
+      cached: 5
+    });
+    expect(onMalformedRecord).toHaveBeenCalledWith(expect.objectContaining({ filePath, lineNumber: 2 }));
   });
 });

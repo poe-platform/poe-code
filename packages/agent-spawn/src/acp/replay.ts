@@ -18,6 +18,17 @@ export interface LogEntry {
   timestamp?: Date;
 }
 
+export interface MalformedSpawnLogRecord {
+  filePath: string;
+  lineNumber: number;
+  message: string;
+}
+
+export interface ReadSpawnLogOptions {
+  strict?: boolean;
+  onMalformedRecord?: (record: MalformedSpawnLogRecord) => void;
+}
+
 interface ListSpawnLogsOptions {
   agent?: string;
   limit?: number;
@@ -104,7 +115,26 @@ function isLegacyEvent(parsed: unknown): parsed is AcpEvent {
   );
 }
 
-export async function* readSpawnLog(filePath: string): AsyncIterable<SessionUpdate> {
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function formatMalformedRecord(record: MalformedSpawnLogRecord): string {
+  return `${record.filePath}:${record.lineNumber}: ${record.message}`;
+}
+
+function warnMalformedRecord(record: MalformedSpawnLogRecord): void {
+  process.stderr.write(`Skipping malformed spawn log record at ${formatMalformedRecord(record)}\n`);
+}
+
+export async function* readSpawnLog(
+  filePath: string,
+  options: ReadSpawnLogOptions = {}
+): AsyncIterable<SessionUpdate> {
   const fileHandle = await open(filePath, "r");
   const stream = fileHandle.createReadStream({ encoding: "utf8" });
   const reader = createInterface({
@@ -113,11 +143,27 @@ export async function* readSpawnLog(filePath: string): AsyncIterable<SessionUpda
   });
 
   try {
+    let lineNumber = 0;
     for await (const line of reader) {
+      lineNumber++;
       const trimmed = line.trim();
       if (trimmed.length === 0) continue;
 
-      const parsed: unknown = JSON.parse(trimmed);
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch (error) {
+        const record: MalformedSpawnLogRecord = {
+          filePath,
+          lineNumber,
+          message: getErrorMessage(error)
+        };
+        if (options.strict === true) {
+          throw new Error(`Malformed spawn log record at ${formatMalformedRecord(record)}`);
+        }
+        (options.onMalformedRecord ?? warnMalformedRecord)(record);
+        continue;
+      }
 
       if (isSessionUpdate(parsed)) {
         yield parsed;
@@ -201,6 +247,9 @@ export async function pickRandomLog(agent?: string): Promise<string | undefined>
   return entries[Math.floor(Math.random() * entries.length)]?.path;
 }
 
-export async function replaySpawnLog(filePath: string): Promise<void> {
-  await renderSessionUpdateStream(readSpawnLog(filePath));
+export async function replaySpawnLog(
+  filePath: string,
+  options: ReadSpawnLogOptions = {}
+): Promise<void> {
+  await renderSessionUpdateStream(readSpawnLog(filePath, options));
 }

@@ -70,7 +70,7 @@ export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";
 
 export { renderAcpEvent, renderAcpStream, renderSessionUpdateStream } from "./acp/renderer.js";
-export type { LogEntry } from "./acp/replay.js";
+export type { LogEntry, MalformedSpawnLogRecord, ReadSpawnLogOptions } from "./acp/replay.js";
 export {
   findLatestLog,
   listSpawnLogs,

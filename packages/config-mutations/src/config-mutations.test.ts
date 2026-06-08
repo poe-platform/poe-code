@@ -862,6 +862,37 @@ describe("runMutations", () => {
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
     });
 
+    it("does not remove a colliding mutation temp symlink", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const outsidePath = "/outside.tmp";
+      const volume = Volume.fromJSON({ [outsidePath]: "outside-state\n" });
+      volume.mkdirSync(homeDir, { recursive: true });
+      const base = createFsFromVolume(volume).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (tempPath === undefined && filePath.includes(".mutation-tmp-")) {
+            tempPath = filePath;
+            volume.symlinkSync(outsidePath, filePath);
+            expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+          }
+
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { added: true } })],
+        { fs, homeDir }
+      );
+
+      expect(tempPath).toBeDefined();
+      expect(volume.readFileSync(outsidePath, "utf8")).toBe("outside-state\n");
+      expect(volume.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe("{\n  \"added\": true\n}\n");
+    });
+
     it("refuses a symlinked config target", async () => {
       const targetPath = `${homeDir}/.config.json`;
       const outsidePath = "/outside/config.json";

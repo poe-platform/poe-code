@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { renderTemplate } from "toolcraft-design";
 import type {
@@ -100,28 +101,35 @@ async function writeAtomically(
   content: string
 ): Promise<void> {
   await assertRegularWriteTarget(context, targetPath);
-  let attempt = 0;
-  while (true) {
-    const tempPath = `${targetPath}.mutation-tmp-${attempt}`;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = `${targetPath}.mutation-tmp-${process.pid}-${randomUUID()}`;
+    let tempCreated = false;
     try {
+      await assertRegularWriteTarget(context, tempPath);
       await context.fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
       await context.fs.rename(tempPath, targetPath);
+      tempCreated = false;
       return;
     } catch (error) {
       if (isAlreadyExists(error)) {
-        attempt += 1;
         continue;
       }
-      try {
-        await context.fs.unlink(tempPath);
-      } catch (cleanupError) {
-        if (!isNotFound(cleanupError)) {
-          void cleanupError;
+
+      if (tempCreated) {
+        try {
+          await context.fs.unlink(tempPath);
+        } catch (cleanupError) {
+          if (!isNotFound(cleanupError)) {
+            void cleanupError;
+          }
         }
       }
       throw error;
     }
   }
+
+  throw new Error(`Unable to create temporary mutation file for ${targetPath}.`);
 }
 
 function describeMutation(kind: string, targetPath?: string): string {

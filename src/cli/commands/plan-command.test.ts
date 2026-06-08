@@ -480,6 +480,12 @@ describe("plan command", () => {
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
+    expect(confirmOrCancelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: false,
+        message: "Archive plan-a.md?"
+      })
+    );
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
     await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
   });
@@ -510,6 +516,83 @@ describe("plan command", () => {
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
+    expect(confirmOrCancelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: false,
+        message: "Permanently delete plan-a.md?"
+      })
+    );
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("returns parseable JSON instead of prompting for archive confirmation", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "archive",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(output)).toEqual({
+      action: "archive",
+      path: "docs/plans/plan-a.md",
+      confirmationRequired: true,
+      skipped: true
+    });
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+  });
+
+  it("returns parseable JSON instead of prompting for delete confirmation", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "delete",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(output)).toEqual({
+      action: "delete",
+      path: "docs/plans/plan-a.md",
+      confirmationRequired: true,
+      skipped: true
+    });
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
   });
 

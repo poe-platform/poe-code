@@ -424,7 +424,7 @@ async function executePlanAction(options: {
     container: options.container,
     plans,
     providedPath: options.pathArg,
-    assumeYes: flags.assumeYes,
+    assumeYes: flags.assumeYes || (format === "json" && options.action !== "edit"),
     promptMessage: `Select a plan to ${options.action}`
   });
 
@@ -452,12 +452,29 @@ async function executePlanAction(options: {
   }
 
   if (!flags.assumeYes) {
+    if (format === "json") {
+      writeOutput(
+        format,
+        JSON.stringify(
+          {
+            action: options.action,
+            path: plan.path,
+            confirmationRequired: true,
+            skipped: true
+          },
+          null,
+          2
+        )
+      );
+      return;
+    }
+
     const confirmed = await confirmOrCancel({
       message:
         options.action === "archive"
           ? `Archive ${path.basename(plan.path)}?`
           : `Permanently delete ${path.basename(plan.path)}?`,
-      initialValue: true
+      initialValue: false
     });
     if (!confirmed) {
       return;

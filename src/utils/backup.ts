@@ -18,7 +18,7 @@ export async function createBackup(
   }
 
   const backupPath = `${targetPath}.backup.${timestamp()}`;
-  await copy(fs, targetPath, backupPath);
+  await copyExclusive(fs, targetPath, backupPath);
   return backupPath;
 }
 
@@ -85,19 +85,6 @@ async function exists(fs: FileSystem, targetPath: string): Promise<boolean> {
     }
     throw error;
   }
-}
-
-async function copy(
-  fs: FileSystem,
-  from: string,
-  to: string
-): Promise<void> {
-  if (typeof fs.copyFile === "function") {
-    await fs.copyFile(from, to);
-    return;
-  }
-  const content = await fs.readFile(from);
-  await fs.writeFile(to, content);
 }
 
 async function copyExclusive(

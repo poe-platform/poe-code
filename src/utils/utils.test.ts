@@ -49,6 +49,24 @@ describe("backup utilities", () => {
     expect(backupContent).toBe("export FOO=bar");
   });
 
+  it("does not write a backup through a preexisting symlink", async () => {
+    const backupPath = `${filePath}.backup.20240101T010101`;
+    const volume = Volume.fromJSON({
+      [filePath]: "export FOO=bar",
+      "/outside.backup": "outside-state\n"
+    });
+    volume.symlinkSync("/outside.backup", backupPath);
+    fs = {
+      ...(createFsFromVolume(volume).promises as unknown as FileSystem),
+      copyFile: undefined
+    };
+
+    await expect(createBackup(fs, filePath, () => "20240101T010101")).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+    await expect(fs.readFile("/outside.backup", "utf8")).resolves.toBe("outside-state\n");
+  });
+
   it("skips backup when file is missing", async () => {
     await fs.unlink(filePath);
 

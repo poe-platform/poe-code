@@ -3,9 +3,10 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { buildDockerRunArgs } from "./args.js";
+import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
+import { createDockerEnvFile } from "./env-file.js";
 import { createHostRunner } from "../host/host-runner.js";
 import {
   downloadWorkspace as downloadTransferredWorkspace,
@@ -21,6 +22,7 @@ import type {
   OpenSpec,
   OpenedEnv,
   Runner,
+  RunHandle,
   RunSpec
 } from "../types.js";
 
@@ -180,26 +182,32 @@ function createDockerEnv(input: {
       return downloadTransferredWorkspace(workspaceTransferEnv, opts);
     },
     exec(spec) {
-      return input.runner.exec({
-        command: input.engine,
-        args: [
-          ...buildContextArgs(input.engine, input.context),
-          "exec",
-          ...(spec.stdin === "pipe" || spec.stdin === "inherit" ? ["-i"] : []),
-          ...(spec.tty === true ? ["-t"] : []),
-          ...(spec.cwd !== undefined ? ["-w", spec.cwd] : []),
-          ...buildEnvArgs(spec.env),
-          containerRef,
-          spec.command,
-          ...(spec.args ?? [])
-        ],
-        stdin: spec.stdin,
-        stdout: spec.stdout,
-        stderr: spec.stderr,
-        tty: spec.tty,
-        signal: spec.signal,
-        killProcessGroup: spec.killProcessGroup
-      });
+      const envFile = createDockerEnvFile(spec.env);
+      try {
+        return cleanUpEnvFileAfterRun(input.runner.exec({
+          command: input.engine,
+          args: [
+            ...buildContextArgs(input.engine, input.context),
+            "exec",
+            ...(spec.stdin === "pipe" || spec.stdin === "inherit" ? ["-i"] : []),
+            ...(spec.tty === true ? ["-t"] : []),
+            ...(spec.cwd !== undefined ? ["-w", spec.cwd] : []),
+            ...buildDockerEnvArgs({ env: spec.env, envFilePath: envFile?.path }),
+            containerRef,
+            spec.command,
+            ...(spec.args ?? [])
+          ],
+          stdin: spec.stdin,
+          stdout: spec.stdout,
+          stderr: spec.stderr,
+          tty: spec.tty,
+          signal: spec.signal,
+          killProcessGroup: spec.killProcessGroup
+        }), envFile?.cleanup);
+      } catch (error) {
+        envFile?.cleanup();
+        throw error;
+      }
     },
     async detach() {
       return createContainerJob(
@@ -476,6 +484,37 @@ async function runOrThrow(runner: Runner, spec: RunSpec): Promise<void> {
   await runAndRead(runner, spec);
 }
 
+function cleanUpEnvFileAfterRun(handle: RunHandle, cleanup: (() => void) | undefined): RunHandle {
+  if (cleanup === undefined) {
+    return handle;
+  }
+
+  let cleanedUp = false;
+  const cleanupOnce = () => {
+    if (cleanedUp) {
+      return;
+    }
+
+    cleanedUp = true;
+    try {
+      cleanup();
+    } catch {
+      // Cleanup is best effort; preserve the command result.
+    }
+  };
+
+  return {
+    pid: handle.pid,
+    stdin: handle.stdin,
+    stdout: handle.stdout,
+    stderr: handle.stderr,
+    result: handle.result.finally(cleanupOnce),
+    kill(signal) {
+      handle.kill(signal);
+    }
+  };
+}
+
 async function readStream(stream: NodeJS.ReadableStream | null): Promise<string> {
   if (stream === null) {
     return "";
@@ -503,14 +542,6 @@ async function readStreamBytes(stream: NodeJS.ReadableStream | null): Promise<Bu
 
 function sortedBuildArgs(buildArgs: Record<string, string>): Array<[string, string]> {
   return Object.entries(buildArgs).sort(([left], [right]) => left.localeCompare(right));
-}
-
-function buildEnvArgs(env: RunSpec["env"]): string[] {
-  if (env === undefined) {
-    return [];
-  }
-
-  return Object.entries(env).flatMap(([key, value]) => ["-e", `${key}=${value}`]);
 }
 
 function createContainerName(): string {

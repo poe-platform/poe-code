@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 import { buildDockerRunArgs } from "./args.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
+import { createDockerEnvFile } from "./env-file.js";
 import type { DockerRunnerOptions, RunHandle, Runner, RunResult, RunSpec } from "../types.js";
 
 export function createDockerRunner(options: DockerRunnerOptions): Runner {
@@ -32,6 +33,7 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
         stderrMode === "inherit" &&
         spec.tty === true;
       const containerName = buildContainerName(options.containerName ?? spec.command);
+      const envFile = createDockerEnvFile(spec.env);
       const runArgs = buildDockerRunArgs({
         engine,
         context,
@@ -40,6 +42,7 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
         args: spec.args ?? [],
         cwd: spec.cwd,
         env: spec.env,
+        envFilePath: envFile?.path,
         mounts: options.mounts ?? [],
         ports: options.ports ?? [],
         network: options.network,
@@ -51,9 +54,15 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
         extraArgs: options.extraArgs ?? []
       });
       const [command, ...args] = runArgs;
-      const child = childProcess.spawn(command, args, {
-        stdio: interactiveMode ? "inherit" : [stdinMode, stdoutMode, stderrMode]
-      });
+      let child: childProcess.ChildProcess;
+      try {
+        child = childProcess.spawn(command, args, {
+          stdio: interactiveMode ? "inherit" : [stdinMode, stdoutMode, stderrMode]
+        });
+      } catch (error) {
+        envFile?.cleanup();
+        throw error;
+      }
       let isResultSettled = false;
       let resolveResult: ((value: RunResult) => void) | null = null;
       const result = new Promise<RunResult>((resolve) => {
@@ -66,6 +75,7 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
 
         isResultSettled = true;
         cleanupAbort();
+        envFile?.cleanup();
         resolveResult?.({ exitCode });
       };
       const cleanupAbort = bindAbortSignal(spec.signal, () => {

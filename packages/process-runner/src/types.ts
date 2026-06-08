@@ -168,6 +168,7 @@ export interface DockerRunArgs {
   args: string[];
   cwd?: string;
   env?: Record<string, string>;
+  envFilePath?: string;
   mounts: DockerMount[];
   ports: DockerPortMapping[];
   network?: string;

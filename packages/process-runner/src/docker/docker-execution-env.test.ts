@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
 import { readdir, readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { detectContext } from "./context.js";
@@ -371,13 +372,62 @@ describe("dockerExecutionEnvFactory", () => {
 
     expect(runner.specs[1]).toEqual({
       command: "docker",
-      args: ["exec", "-i", "-t", "-w", "/workspace", "-e", "A=1", "container-id", "printf", "ok"],
+      args: [
+        "exec",
+        "-i",
+        "-t",
+        "-w",
+        "/workspace",
+        "--env-file",
+        expect.stringMatching(/poe-docker-env-.+\/env$/),
+        "container-id",
+        "printf",
+        "ok"
+      ],
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
       tty: true
     });
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("keeps docker exec env values out of argv", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["ok\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+
+    const handle = env.exec({
+      command: "printf",
+      args: ["ok"],
+      env: { SECRET_TOKEN: "sk-secret" },
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+    const args = runner.specs[1]?.args ?? [];
+    const envFileIndex = args.indexOf("--env-file");
+    const envFilePath = args[envFileIndex + 1];
+
+    expect(envFileIndex).toBeGreaterThanOrEqual(0);
+    expect(args.join("\0")).not.toContain("sk-secret");
+    expect(envFilePath).toEqual(expect.stringMatching(/poe-docker-env-.+\/env$/));
+    expect(readFileSync(envFilePath ?? "", "utf8")).toBe("SECRET_TOKEN=sk-secret\n");
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(existsSync(envFilePath ?? "")).toBe(false);
   });
 
   it("forwards command cancellation signals to docker exec", async () => {

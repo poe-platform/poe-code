@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
 import { randomBytes } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChildProcess } from "node:child_process";
@@ -260,16 +261,27 @@ describe("createDockerRunner", () => {
     vi.mocked(spawn).mockReturnValue(child);
     const { createDockerRunner } = await import("./docker-runner.js");
 
-    createDockerRunner({ image: "node:22" }).exec({
+    const handle = createDockerRunner({ image: "node:22" }).exec({
       command: "node",
       env: { FOO: "bar" }
     });
+    const args = vi.mocked(spawn).mock.calls[0]?.[1] ?? [];
+    const envFileIndex = args.indexOf("--env-file");
+    const envFilePath = args[envFileIndex + 1];
 
     expect(buildDockerRunArgs).toHaveBeenCalledWith(
       expect.objectContaining({
-        env: { FOO: "bar" }
+        env: { FOO: "bar" },
+        envFilePath: expect.stringMatching(/poe-docker-env-.+\/env$/)
       })
     );
+    expect(envFileIndex).toBeGreaterThanOrEqual(0);
+    expect(args.join("\0")).not.toContain("bar");
+    expect(readFileSync(envFilePath ?? "", "utf8")).toBe("FOO=bar\n");
+
+    child.emit("close", 0);
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(existsSync(envFilePath ?? "")).toBe(false);
   });
 
   it("aborting the run triggers docker stop", async () => {

@@ -80,6 +80,7 @@ export function registerSpawnCommand(
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
     .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
+    .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
       "--mcp-servers <json|@file>",
       "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
@@ -102,6 +103,7 @@ export function registerSpawnCommand(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
+    .option("--log-file-name <name>", "Filename override for the spawn log")
     .option(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
@@ -135,7 +137,9 @@ export function registerSpawnCommand(
           skills?: string[] | boolean;
           hooksFrom?: string;
           hooksStrategy?: "auto" | "symlink" | "transform";
+          resumeThreadId?: string;
           logDir?: string;
+          logFileName?: string;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
@@ -225,6 +229,9 @@ export function registerSpawnCommand(
             mode: commandOptions.mode as SpawnMode | undefined,
             ...(skills ? { skills } : {}),
             ...(hooks ? { hooks } : {}),
+            ...(commandOptions.resumeThreadId !== undefined
+              ? { resumeThreadId: commandOptions.resumeThreadId }
+              : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -243,7 +250,13 @@ export function registerSpawnCommand(
           ...(skills ? { skills } : {}),
           ...(hooks ? { hooks } : {}),
           cwd: cwdOverride,
+          ...(commandOptions.resumeThreadId !== undefined
+            ? { resumeThreadId: commandOptions.resumeThreadId }
+            : {}),
           logDir: commandOptions.logDir,
+          ...(commandOptions.logFileName !== undefined
+            ? { logFileName: commandOptions.logFileName }
+            : {}),
           activityTimeoutMs: commandOptions.activityTimeoutMs,
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
@@ -344,7 +357,13 @@ export function registerSpawnCommand(
               ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
               ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
               ...(spawnOptions.hooks ? { hooks: spawnOptions.hooks } : {}),
+              ...(spawnOptions.resumeThreadId !== undefined
+                ? { resumeThreadId: spawnOptions.resumeThreadId }
+                : {}),
               ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+              ...(spawnOptions.logFileName !== undefined
+                ? { logFileName: spawnOptions.logFileName }
+                : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),

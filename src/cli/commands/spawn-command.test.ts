@@ -1473,7 +1473,39 @@ describe("spawn command", () => {
     });
   });
 
-  it("passes --log-dir and --activity-timeout-ms to SDK spawn", async () => {
+  it("passes --resume-thread-id to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--resume-thread-id",
+      "thread_abc123",
+      "codex",
+      "continue"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "continue",
+      args: [],
+      model: undefined,
+      mode: undefined,
+      cwd: undefined,
+      resumeThreadId: "thread_abc123",
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("passes --log-dir, --log-file-name, and --activity-timeout-ms to SDK spawn", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -1489,6 +1521,8 @@ describe("spawn command", () => {
       "spawn",
       "--log-dir",
       "/tmp/spawn-logs",
+      "--log-file-name",
+      "attempt.jsonl",
       "--activity-timeout-ms",
       "1500",
       "codex",
@@ -1502,6 +1536,7 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
+      logFileName: "attempt.jsonl",
       activityTimeoutMs: 1500,
       runtimeConfigCwd: cwd
     });
@@ -2202,6 +2237,45 @@ describe("spawn command", () => {
         model: undefined,
         cwd: undefined,
         mode: undefined,
+        runtimeConfigCwd: cwd
+      });
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("passes --resume-thread-id to interactive spawns", async () => {
+      vi.mocked(spawnInteractive).mockResolvedValue({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      });
+
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--interactive",
+        "--resume-thread-id",
+        "thread_abc123",
+        "claude-code",
+        "continue"
+      ]);
+
+      expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
+        prompt: "continue",
+        args: [],
+        model: undefined,
+        cwd: undefined,
+        mode: undefined,
+        resumeThreadId: "thread_abc123",
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();

@@ -116,7 +116,7 @@ describe("plan install command", () => {
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
       fs,
@@ -134,12 +134,44 @@ describe("plan install command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(fs.readFile("/repo/.codex/skills/poe-code-plan/SKILL.md", "utf8")).resolves.toBe(
       planSkillTemplate
     );
+  });
+
+  it("prompts for the install agent when core.defaultAgent exists without --yes", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    selectMock.mockResolvedValueOnce("claude-code");
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan", "install", "--local"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to install the plan skill for:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "claude-code" })])
+    });
+    await expect(fs.readFile("/repo/.claude/skills/poe-code-plan/SKILL.md", "utf8")).resolves.toBe(
+      planSkillTemplate
+    );
+    await expect(fs.stat("/repo/.codex/skills/poe-code-plan/SKILL.md")).rejects.toThrow("ENOENT");
   });
 
   it("installs globally when --global is passed", async () => {

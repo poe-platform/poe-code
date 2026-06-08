@@ -937,17 +937,14 @@ async function resolvePlanAgent(
   value: string | undefined,
   flags: { assumeYes: boolean; dryRun: boolean }
 ): Promise<string | null> {
-  if (value && value.trim().length > 0) {
-    return value.trim();
-  }
-
-  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-  if (fromConfig !== null) {
-    return parseAgentSpecifier(fromConfig).agent;
+  const trimmed = value?.trim() ?? "";
+  if (trimmed.length > 0) {
+    return trimmed;
   }
 
   if (flags.assumeYes) {
-    return DEFAULT_PLAN_AGENT;
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
   }
 
   const selected = await select({

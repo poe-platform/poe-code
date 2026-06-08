@@ -216,6 +216,36 @@ describe("configured services", () => {
     });
   });
 
+  it("keeps separate invalid legacy credential backups created in the same millisecond", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-23T12:34:56.789Z"));
+
+    try {
+      const fs = createMockFs({ "~/.poe-code/credentials.json": "first invalid\n" }, homeDir);
+
+      await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toEqual({});
+      await fs.writeFile(`${homeDir}/.poe-code/credentials.json`, "second invalid\n", {
+        encoding: "utf8"
+      });
+      await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toEqual({});
+
+      const backups = (await fs.readdir(`${homeDir}/.poe-code`)).filter((entry) =>
+        entry.includes(".invalid-")
+      );
+      expect(backups).toEqual(
+        expect.arrayContaining([
+          "credentials.json.invalid-2026-03-23T12-34-56-789Z.json",
+          "credentials.json.invalid-2026-03-23T12-34-56-789Z-1.json"
+        ])
+      );
+      expect(backups.map((entry) => fs.getContent(`${homeDir}/.poe-code/${entry}`))).toEqual(
+        expect.arrayContaining(["first invalid\n", "second invalid\n"])
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("does not rewrite or warn when apiShape already exists", async () => {
     const fs = createMockFs(
       {

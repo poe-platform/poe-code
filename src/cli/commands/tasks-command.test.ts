@@ -35,6 +35,11 @@ const taskListMocks = vi.hoisted(() => {
   };
 });
 
+const designSystemMocks = vi.hoisted(() => ({
+  confirm: vi.fn(),
+  isCancel: vi.fn(() => false)
+}));
+
 vi.mock("@poe-code/task-list", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/task-list")>();
   return {
@@ -44,6 +49,15 @@ vi.mock("@poe-code/task-list", async (importOriginal) => {
     resolveAuth: taskListMocks.resolveAuth,
     syncGhProject: taskListMocks.syncGhProject,
     verifyGhProject: taskListMocks.verifyGhProject
+  };
+});
+
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    ...actual,
+    confirm: designSystemMocks.confirm,
+    isCancel: designSystemMocks.isCancel
   };
 });
 
@@ -187,6 +201,8 @@ describe("tasks command", () => {
     taskListMocks.syncGhProject.mockReset();
     taskListMocks.moveTasks.mockReset().mockResolvedValue({ created: 0, skipped: 0, errors: [] });
     taskListMocks.resolveAuth.mockReset().mockResolvedValue("fallback-token");
+    designSystemMocks.confirm.mockReset().mockResolvedValue(false);
+    designSystemMocks.isCancel.mockReset().mockReturnValue(false);
     process.exitCode = undefined;
   });
 
@@ -388,7 +404,7 @@ maestro:
     ]);
   });
 
-  it("sync permits interactive runs without --yes", async () => {
+  it("sync permits interactive runs without --yes when the project is already synced", async () => {
     seedWorkflow(`
 maestro:
   active_states:
@@ -406,9 +422,85 @@ maestro:
     }
 
     expect(process.exitCode).toBeUndefined();
+    expect(designSystemMocks.confirm).not.toHaveBeenCalled();
     expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
       expect.objectContaining({ yes: false })
     );
+  });
+
+  it("sync prompts before provisioning missing resources without --yes", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const missingReport = createSyncReport({
+      ok: false,
+      missingStatusField: true,
+      missingOptions: ["queued", "done"]
+    });
+    taskListMocks.syncGhProject
+      .mockResolvedValueOnce(missingReport)
+      .mockResolvedValueOnce(
+        createSyncReport({ created: ["field", "option:queued", "option:done"] })
+      );
+    designSystemMocks.confirm.mockResolvedValueOnce(true);
+    const restoreTTY = setStdinTTY(true);
+
+    try {
+      await runTasks(["sync", "acme/12"]);
+    } finally {
+      restoreTTY();
+    }
+
+    expect(designSystemMocks.confirm).toHaveBeenCalledWith({
+      message: "Create missing GitHub Project resources (Status field; status options: queued, done)?"
+    });
+    expect(taskListMocks.syncGhProject).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ yes: false })
+    );
+    expect(taskListMocks.syncGhProject).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ yes: true })
+    );
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("sync leaves missing resources untouched when interactive confirmation is declined", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const logs: string[] = [];
+    taskListMocks.syncGhProject.mockResolvedValue(
+      createSyncReport({
+        ok: false,
+        missingProject: true,
+        missingStatusField: true,
+        missingOptions: ["queued", "done"]
+      })
+    );
+    designSystemMocks.confirm.mockResolvedValueOnce(false);
+    const restoreTTY = setStdinTTY(true);
+
+    try {
+      await runTasks(["sync", "acme/12"], logs);
+    } finally {
+      restoreTTY();
+    }
+
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ yes: false })
+    );
+    expect(process.exitCode).toBe(1);
+    expect(logs).toContain("[error] GitHub Project sync did not complete.");
   });
 
   it("sync prints GhProjectSyncError op and target on failure", async () => {

@@ -58,7 +58,7 @@ describe("syncGhProject create mutations", () => {
       })
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toEqual({
       ok: true,
       project: { id: "new-project-id", number: 42, owner: "octo-org" },
       statusField: { id: "new-status-field", options: ["Todo", "Doing", "Done"] },
@@ -107,7 +107,7 @@ describe("syncGhProject create mutations", () => {
     ]);
 
     await expect(
-      syncGhProject({ ...DEFAULT_OPTIONS, title: "Delivery Board", client })
+      syncGhProject({ ...DEFAULT_OPTIONS, title: "Delivery Board", yes: true, client })
     ).resolves.toMatchObject({
       ok: true,
       project: { id: "new-project-id", number: 42, owner: "octo-org" },
@@ -148,7 +148,7 @@ describe("syncGhProject create mutations", () => {
       })
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toMatchObject({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toMatchObject({
       ok: true,
       project: { id: "new-project-id", number: 42, owner: "octo-org" },
       statusField: { id: "new-status-field", options: ["Todo", "Doing", "Done"] },
@@ -183,7 +183,7 @@ describe("syncGhProject create mutations", () => {
       })
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toEqual({
       ok: true,
       project: { id: "project-id", number: 7, owner: "octo-org" },
       statusField: { id: "new-status-field", options: ["Todo", "Doing", "Done"] },
@@ -238,7 +238,7 @@ describe("syncGhProject create mutations", () => {
       })
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toEqual({
       ok: true,
       project: { id: "project-id", number: 7, owner: "octo-org" },
       statusField: { id: "status-field", options: ["Todo", "Doing", "Done"] },
@@ -261,6 +261,77 @@ describe("syncGhProject create mutations", () => {
         ]
       }
     });
+  });
+
+  it("does not create a missing project unless yes is true", async () => {
+    const client = new MockGhClient([
+      projectResponse({ organization: null }),
+      projectResponse({ user: null })
+    ]);
+
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: false, client })).resolves.toEqual({
+      ok: false,
+      project: null,
+      statusField: null,
+      missingProject: true,
+      missingStatusField: true,
+      missingOptions: ["Todo", "Doing", "Done"],
+      created: [],
+      updated: []
+    });
+
+    expect(client.calls).toHaveLength(2);
+    expect(client.calls.every((call) => !call.query.includes("mutation"))).toBe(true);
+  });
+
+  it("does not create a missing Status field unless yes is true", async () => {
+    const client = new MockGhClient([
+      projectResponse({
+        organization: {
+          projectV2: project({ field: null })
+        }
+      })
+    ]);
+
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: false, client })).resolves.toEqual({
+      ok: false,
+      project: { id: "project-id", number: 7, owner: "octo-org" },
+      statusField: null,
+      missingProject: false,
+      missingStatusField: true,
+      missingOptions: ["Todo", "Doing", "Done"],
+      created: [],
+      updated: []
+    });
+
+    expect(client.calls).toHaveLength(1);
+    expect(client.calls[0]?.query).not.toContain("mutation");
+  });
+
+  it("does not update missing Status options unless yes is true", async () => {
+    const client = new MockGhClient([
+      projectResponse({
+        organization: {
+          projectV2: project({
+            options: [{ id: "status-todo", name: "Todo" }]
+          })
+        }
+      })
+    ]);
+
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: false, client })).resolves.toEqual({
+      ok: false,
+      project: { id: "project-id", number: 7, owner: "octo-org" },
+      statusField: { id: "status-field", options: ["Todo"] },
+      missingProject: false,
+      missingStatusField: false,
+      missingOptions: ["Doing", "Done"],
+      created: [],
+      updated: []
+    });
+
+    expect(client.calls).toHaveLength(1);
+    expect(client.calls[0]?.query).not.toContain("mutation");
   });
 });
 

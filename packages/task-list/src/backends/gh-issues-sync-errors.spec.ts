@@ -60,7 +60,7 @@ describe("syncGhProject errors", () => {
       new Error("permission denied")
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createProject",
       target: "octo-org/7",
@@ -78,7 +78,7 @@ describe("syncGhProject errors", () => {
       new Error("field limit reached")
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createField",
       target: "Status",
@@ -98,7 +98,7 @@ describe("syncGhProject errors", () => {
       new Error("option update rejected")
     ]);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createOption",
       target: "Doing,Done",

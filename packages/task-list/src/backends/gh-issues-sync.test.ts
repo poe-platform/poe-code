@@ -102,6 +102,7 @@ describe("syncGhProject", () => {
       number: 0,
       title: "Bugs",
       requiredStates: ["draft", "fix"],
+      yes: true,
       auth: { token: "secret" },
       fetch: fetchMock
     });
@@ -154,6 +155,7 @@ describe("syncGhProject", () => {
       number: 0,
       title: "Bugs",
       requiredStates: ["draft", "fix"],
+      yes: true,
       auth: { token: "secret" },
       fetch: fetchMock
     });

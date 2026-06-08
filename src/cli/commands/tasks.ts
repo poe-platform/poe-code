@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
+import { confirm, isCancel } from "@poe-code/design-system";
 import {
   GhProjectSyncError,
   MalformedTaskError,
@@ -220,14 +221,25 @@ async function runSync(
   try {
     const resolved = await resolveTasksOptions(list, options);
     const auth = resolved.auth ?? { token: await resolveAuth({}) };
-    const report = await syncGhProject({
+    const syncOptions = {
       ...resolved,
       auth,
       ...(options.title !== undefined && options.title.trim() !== ""
         ? { title: options.title.trim() }
         : {}),
       yes: options.yes === true
-    });
+    };
+    let report = await syncGhProject(syncOptions);
+
+    if (!report.ok && options.yes !== true) {
+      const shouldProvision = await confirm({
+        message: `Create missing GitHub Project resources (${formatMissingSyncResources(report)})?`
+      });
+
+      if (!isCancel(shouldProvision) && shouldProvision === true) {
+        report = await syncGhProject({ ...syncOptions, yes: true });
+      }
+    }
 
     if (options.json) {
       writeJson(report);
@@ -607,6 +619,21 @@ function logSyncReport(logger: ScopedLogger, report: SyncGhProjectReport): void 
   }
 
   logger.error("[error] GitHub Project sync did not complete.");
+}
+
+function formatMissingSyncResources(report: SyncGhProjectReport): string {
+  const missing: string[] = [];
+  if (report.missingProject) {
+    missing.push("project");
+  }
+  if (report.missingStatusField) {
+    missing.push("Status field");
+  }
+  if (report.missingOptions.length > 0) {
+    missing.push(`status options: ${report.missingOptions.join(", ")}`);
+  }
+
+  return missing.length === 0 ? "missing resources" : missing.join("; ");
 }
 
 function formatProject(report: VerifyGhProjectReport): string {

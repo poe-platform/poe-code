@@ -1409,6 +1409,37 @@ describe("option resolvers", () => {
     expect(apiKeyStore.write).not.toHaveBeenCalled();
   });
 
+  it("does not start OAuth or prompts when assumeYes has no credential", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn();
+    const loginViaOAuth = vi.fn().mockResolvedValue(VALID_API_KEY);
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore,
+      confirm: confirmFn,
+      checkAuth: checkAuthFn,
+      loginViaOAuth
+    });
+
+    await expect(
+      resolvers.resolveApiKey({
+        dryRun: false,
+        assumeYes: true
+      })
+    ).rejects.toThrow("No API key found. Pass --api-key, set POE_API_KEY");
+
+    expect(loginViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
+    expect(apiKeyStore.write).not.toHaveBeenCalled();
+  });
+
   it("falls through to stored credentials when env var is declined", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();

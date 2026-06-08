@@ -254,9 +254,6 @@ describe("login command", () => {
       }
     });
 
-    const optsSpy = vi.spyOn(program, "optsWithGlobals");
-    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
-
     await program.parseAsync(["node", "cli", "login"]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
@@ -332,15 +329,36 @@ describe("login command", () => {
       }
     });
 
-    const optsSpy = vi.spyOn(program, "optsWithGlobals");
-    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
-
     await program.parseAsync(["node", "cli", "login"]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(OAUTH_KEY);
     expect(prompts).not.toHaveBeenCalled();
     expect(logs.some((message) => message.includes("Logged in."))).toBe(true);
+  });
+
+  it("rejects --yes login without starting OAuth when no credential is available", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "login"])).rejects.toThrow(
+      "No API key found. Pass --api-key, set POE_API_KEY"
+    );
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
   });
 
   it("prefers --api-key flag over OAuth flow", async () => {

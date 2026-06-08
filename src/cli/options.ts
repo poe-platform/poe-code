@@ -153,6 +153,12 @@ export function createOptionResolvers(
       }
     }
 
+    if (assumeYes) {
+      throw new Error(
+        "No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authenticate interactively."
+      );
+    }
+
     if (init.loginViaOAuth) {
       const apiKey = await init.loginViaOAuth();
       const normalized = normalizeApiKey(apiKey);

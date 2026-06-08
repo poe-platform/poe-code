@@ -3,6 +3,7 @@ import * as nodeFs from "node:fs/promises";
 import { TextDecoder } from "node:util";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
+import { assertValidManagedProcessId } from "./process-id.js";
 import { createStateStore } from "./state/state-store.js";
 import { createSupervisor } from "./supervisor/supervisor.js";
 import type { LauncherFileSystem, ProcessSpec, ProcessState } from "./types.js";
@@ -884,9 +885,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {
-  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
-    throw new Error(`Invalid managed process id: ${id}`);
-  }
+  assertValidManagedProcessId(id);
   return path.join(baseDir, id);
 }
 

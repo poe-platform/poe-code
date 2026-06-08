@@ -3,16 +3,14 @@ import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
+import { assertValidManagedProcessId } from "../process-id.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 function resolveProcessDir(stateDir: string, id: string): string {
-  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
-    throw new Error(`Invalid managed process id: ${id}`);
-  }
-
+  assertValidManagedProcessId(id);
   return path.join(stateDir, id);
 }
 

@@ -12,6 +12,7 @@ import {
 import { resolveWorkspace, type ExecResult } from "@poe-code/workspace-resolver";
 import { waitForReady } from "../health/health-check.js";
 import { createLogWriter } from "../logs/log-writer.js";
+import { assertValidManagedProcessId } from "../process-id.js";
 import { createStateStore } from "../state/state-store.js";
 import type { ProcessState, ReadyCheck, Supervisor, SupervisorOptions } from "../types.js";
 
@@ -26,6 +27,7 @@ const WORKSPACE_COMMAND_KILL_GRACE_MS = 1_000;
 
 export function createSupervisor(options: SupervisorOptions): Supervisor {
   const { spec } = options;
+  assertValidManagedProcessId(spec.id);
   assertValidRestartConfig(spec);
   const runner = resolveRunner(options);
   const stateStore = createStateStore(options.stateDir, options.fs);

@@ -752,6 +752,27 @@ describe("createSupervisor", () => {
     expect(runner.exec).not.toHaveBeenCalled();
   });
 
+  it("rejects path traversal process ids before creating escaped logs or launching", async () => {
+    const { fs } = createMemFs();
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+
+    expect(() =>
+      createSupervisor({
+        fs,
+        runner,
+        spec: createSpec({ id: "../outside" }),
+        stateDir: "/state"
+      })
+    ).toThrow(/process id/i);
+
+    expect(runner.exec).not.toHaveBeenCalled();
+    await expect(fs.readFile("/outside/logs/stdout.log", "utf8")).rejects.toThrow();
+    await expect(fs.readFile("/outside/state.json", "utf8")).rejects.toThrow();
+  });
+
   it("pipes stdout and stderr to the log writer and onLog callback", async () => {
     vi.useFakeTimers();
     const { fs } = createMemFs();

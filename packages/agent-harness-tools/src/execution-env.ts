@@ -35,6 +35,7 @@ export interface OpenSpec {
     input?: string | Buffer;
     captureOutput?: boolean;
     activityTimeoutMs?: number;
+    activityTimeoutSource?: "all" | "stdout";
     onStdout?(chunk: string): void;
     onStderr?(chunk: string): void;
   };

@@ -284,6 +284,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
         input: useStdin ? options.prompt : "",
         captureOutput: true,
         activityTimeoutMs: options.activityTimeoutMs,
+        activityTimeoutSource: "stdout",
         onStdout(chunk: string) {
           queue.push(chunk);
         },

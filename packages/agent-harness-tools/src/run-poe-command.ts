@@ -515,11 +515,17 @@ function captureRunStreams(
   let stderr = "";
   const listeners: Array<() => void> = [];
 
-  const bind = (stream: Readable | null, onChunk: (chunk: string) => void): void => {
+  const bind = (
+    stream: Readable | null,
+    onChunk: (chunk: string) => void,
+    countsAsActivity: boolean
+  ): void => {
     if (!stream) return;
     stream.setEncoding("utf8");
     const listener = (chunk: string | Buffer) => {
-      onActivity();
+      if (countsAsActivity) {
+        onActivity();
+      }
       onChunk(chunk.toString());
     };
     stream.on("data", listener);
@@ -531,11 +537,11 @@ function captureRunStreams(
   bind(handle.stdout, (chunk) => {
     stdout += chunk;
     execution?.onStdout?.(chunk);
-  });
+  }, true);
   bind(handle.stderr, (chunk) => {
     stderr += chunk;
     execution?.onStderr?.(chunk);
-  });
+  }, execution?.activityTimeoutSource !== "stdout");
 
   return {
     stdout: () => stdout,

@@ -1796,6 +1796,31 @@ describe("acp/spawnStreaming", () => {
       expect(stripMeta(collected)).toEqual([{ event: "session_start", threadId: "t1" }]);
     });
 
+    it("does not reset timeout when only stderr data is received", async () => {
+      const mock = createMockChildProcess({ autoClose: false });
+      const killSpy = vi.spyOn(mock.child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const eventsPromise = collect(events);
+      const doneRejection = expect(done).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      await vi.advanceTimersByTimeAsync(4000);
+      mock.child.stderr.write("diagnostic noise\n");
+      await vi.advanceTimersByTimeAsync(1000);
+
+      await doneRejection;
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+      await expect(eventsPromise).resolves.toEqual([]);
+    });
+
     it("clears timeout when process exits normally", async () => {
       const mock = createMockChildProcess({ autoClose: false });
       vi.mocked(spawnChildProcess).mockReturnValue(mock.child);

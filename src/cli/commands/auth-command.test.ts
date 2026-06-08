@@ -406,7 +406,8 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "auth", "whoami"]);
 
     expect(httpClient).not.toHaveBeenCalled();
-    expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining("Dry run"));
+    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would fetch identity from Poe API.");
     stdoutSpy.mockRestore();
   });
 

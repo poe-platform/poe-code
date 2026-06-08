@@ -839,6 +839,50 @@ describe("ErrorLogger (read-only environments)", () => {
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("ERROR: run command");
   });
 
+  it("redacts secret-like messages and context before writing logs", () => {
+    const syncFs = createSyncFs({ [logFile]: "" });
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+
+    logger.logError(
+      new Error("request failed with Authorization: Bearer logger-bearer-token"),
+      {
+        responseBody: JSON.stringify({
+          access_token: "logger-access-token",
+          nested: {
+            client_secret: "logger-client-secret"
+          }
+        }),
+        requestBody: "api_key=logger-api-key",
+        safe: "visible"
+      }
+    );
+
+    const logContent = syncFs.readFileSync(logFile, "utf8");
+    const contextLine = logContent
+      .split("\n")
+      .find((line: string) => line.startsWith("Context: "));
+    const loggedContext = JSON.parse(contextLine!.slice("Context: ".length)) as {
+      responseBody: string;
+      requestBody: string;
+      safe: string;
+    };
+
+    expect(logContent).toContain("Authorization: Bearer [redacted]");
+    expect(loggedContext.responseBody).toContain('"access_token":"[redacted]"');
+    expect(loggedContext.responseBody).toContain('"client_secret":"[redacted]"');
+    expect(loggedContext.requestBody).toBe("api_key=[redacted]");
+    expect(loggedContext.safe).toBe("visible");
+    expect(logContent).not.toContain("logger-bearer-token");
+    expect(logContent).not.toContain("logger-access-token");
+    expect(logContent).not.toContain("logger-client-secret");
+    expect(logContent).not.toContain("logger-api-key");
+  });
+
   it("does not write logs through a symlinked log directory", () => {
     const syncFs = createSyncFs({ "/outside/.keep": "" });
     syncFs.mkdirSync("/root/.poe-code", { recursive: true });

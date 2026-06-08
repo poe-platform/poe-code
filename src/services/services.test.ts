@@ -642,7 +642,7 @@ describe("createPoeClient", () => {
     expect(response).toEqual({ content: "Sorry, I cannot generate images." });
   });
 
-  it("includes status and body in API errors", async () => {
+  it("includes status and redacted body in API errors", async () => {
     const httpClient: HttpClient = vi.fn(async () => ({
       ok: false,
       status: 401,
@@ -662,6 +662,49 @@ describe("createPoeClient", () => {
       message: "Poe API error (401): Invalid API key",
       httpStatus: 401
     });
+  });
+
+  it("redacts secret-like Poe API error response bodies", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: "Invalid API key" }),
+      text: async () =>
+        JSON.stringify({
+          error: "invalid",
+          access_token: "poe-access-token",
+          nested: {
+            client_secret: "poe-client-secret"
+          },
+          detail: "Authorization: Bearer poe-bearer-token"
+        })
+    }));
+
+    const client = createPoeClient({
+      apiKey: "secret",
+      baseUrl,
+      httpClient
+    });
+
+    let thrown: unknown;
+    try {
+      await client.text({ model: "Text-Model", prompt: "Hello" });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toMatchObject({
+      message: expect.stringContaining('"access_token":"[redacted]"'),
+      context: {
+        responseBody: expect.stringContaining('"client_secret":"[redacted]"'),
+        httpStatus: 401,
+        apiEndpoint: "chat/completions"
+      }
+    });
+
+    expect(JSON.stringify(thrown)).not.toMatch(
+      /poe-access-token|poe-client-secret|poe-bearer-token/u
+    );
   });
 });
 

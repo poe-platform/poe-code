@@ -31,9 +31,11 @@ export {
 } from "./runner.js";
 export { runDocumentWorkflowSequence, type DocumentWorkflowSequenceOptions } from "./sequence.js";
 export {
+  ensureSafeRunLogDir,
   makeRunLogFileName,
   resolveRunLogDir,
   slugifyPlanPath,
+  type RunLogFileSystem,
   type ResolveRunLogDirOptions
 } from "./run-logs.js";
 export {

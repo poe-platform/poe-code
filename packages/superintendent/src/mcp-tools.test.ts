@@ -16,6 +16,7 @@ vi.mock("node:fs/promises", async () => {
     mkdir: rawFs.mkdir.bind(rawFs),
     readFile: rawFs.readFile.bind(rawFs),
     readdir: rawFs.readdir.bind(rawFs),
+    realpath: rawFs.realpath.bind(rawFs),
     rename: rawFs.rename.bind(rawFs),
     lstat: async (filePath: string) => {
       const stat = await rawFs.lstat(filePath);

@@ -160,12 +160,20 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
     mkdir: async (filePath, mkdirOptions) => {
       await rawFs.mkdir(filePath, mkdirOptions);
     },
+    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);
     },
     appendFile: async (filePath, content) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
       await rawFs.appendFile(filePath, content, { encoding: "utf8" });
+    },
+    rename: async (oldPath, newPath) => {
+      await rawFs.mkdir(path.dirname(newPath), { recursive: true });
+      await rawFs.rename(oldPath, newPath);
+    },
+    unlink: async (filePath) => {
+      await rawFs.unlink(filePath);
     }
   } as SimulationFs;
 

@@ -2,8 +2,8 @@ import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import {
   archivePlan as archivePlanShared,
+  ensureSafeRunLogDir,
   makeRunLogFileName,
-  resolveRunLogDir,
   resolveWorkflowPath,
   runDocumentWorkflow
 } from "@poe-code/agent-harness-tools";
@@ -41,10 +41,11 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   await rejectSymbolicLink(absoluteDocPath, fs);
   const planDirectory = path.dirname(options.docPath);
-  const runLogDir = resolveRunLogDir({
+  const runLogDir = await ensureSafeRunLogDir({
     planPath: absoluteDocPath,
     runner: "ralph",
-    homeDir: options.homeDir
+    homeDir: options.homeDir,
+    fs
   });
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
   let currentConfig = config;
@@ -394,7 +395,8 @@ function createDefaultFs(): RalphFileSystem {
     },
     rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
-    }
+    },
+    realpath: fsPromises.realpath
   };
 
   return fs as RalphFileSystem;

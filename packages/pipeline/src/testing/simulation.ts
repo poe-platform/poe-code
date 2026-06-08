@@ -129,6 +129,7 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
       return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     mkdir: (filePath, mkdirOptions) => rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
+    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
     rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
     rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>,
     unlink: (filePath) => rawFs.unlink(filePath) as Promise<void>

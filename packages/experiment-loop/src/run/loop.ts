@@ -2,9 +2,9 @@ import "@poe-code/agent-spawn/register-factories";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import {
+  ensureSafeRunLogDir,
   makeRunLogFileName,
   resolvePoeCommandExecution,
-  resolveRunLogDir,
   resolveWorkflowPath,
   runPoeCommand
 } from "@poe-code/agent-harness-tools";
@@ -62,7 +62,8 @@ function createDefaultFs(): ExperimentFileSystem {
     },
     unlink: async (filePath: string) => {
       await fsPromises.unlink(filePath);
-    }
+    },
+    realpath: fsPromises.realpath
   };
 
   return fs as ExperimentFileSystem;
@@ -359,10 +360,11 @@ export async function runExperimentLoop(
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
-  const runLogDir = resolveRunLogDir({
+  const runLogDir = await ensureSafeRunLogDir({
     planPath: absoluteDocPath,
     runner: "experiment",
-    homeDir: options.homeDir
+    homeDir: options.homeDir,
+    fs
   });
   const startTime = Date.now();
 

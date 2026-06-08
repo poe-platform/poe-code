@@ -123,6 +123,7 @@ function createSimulationFs(options: SimulationOptions): {
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);
     },
+    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
     rename: async (oldPath, newPath) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
       await rawFs.rename(oldPath, newPath);

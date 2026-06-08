@@ -65,7 +65,7 @@ export const CSS = String.raw`
       .surfaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 30px; }
       .surface, .cmd { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
       pre, code { font-family: var(--mono); }
-      pre { overflow-x: auto; }
+      pre { max-width: 100%; overflow-x: auto; }
       .group { margin-top: 44px; }
       .group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
       .cmd { margin-bottom: 14px; }
@@ -76,6 +76,7 @@ export const CSS = String.raw`
       .badges { display: flex; gap: 6px; margin-left: auto; }
       .badge { padding: 3px 8px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
       .params { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .params-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
       .params th, .params td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
       .params th { color: var(--faint); font-family: var(--mono); font-size: 12px; }
       .secrets { color: var(--muted); }
@@ -87,8 +88,60 @@ export const CSS = String.raw`
       @media (prefers-reduced-motion: reduce) {
         html { scroll-behavior: auto; }
       }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111113;
+          --bg-soft: #19191d;
+          --code-bg: #202026;
+          --ink: #f4f4f5;
+          --muted: #c4c4cc;
+          --faint: #a3a3ad;
+          --line: #3f3f48;
+          --line-strong: #5b5b66;
+          --accent: #d8a7ff;
+          --accent: color-mix(in srgb, {{accent}} 55%, white);
+          --accent-soft: rgba(216, 167, 255, .18);
+          --accent-soft: color-mix(in srgb, {{accent}} 24%, transparent);
+        }
+        .nav { background: rgba(17,17,19,.96); }
+      }
       @media (max-width: 620px) {
+        .wrap, .nav-inner { width: min(100% - 28px, 1040px); }
         .nav-inner, .group-head { align-items: flex-start; flex-direction: column; padding-block: 14px; }
+        .nav-inner { gap: 10px; }
+        .nav-links { width: 100%; gap: 8px; }
+        .nav-links a { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 10px; border: 1px solid var(--line); }
         .hero { padding-top: 64px; }
+        .install { width: 100%; flex-direction: column; }
+        .install code { width: 100%; }
+        .install .copy { min-height: 44px; border-top: 1px solid var(--line-strong); border-left: 0; }
+        .surface, .cmd { padding: 16px; }
+        .cmd-top { align-items: flex-start; flex-direction: column; }
+        .cmd-path { max-width: 100%; margin-bottom: 0; overflow-wrap: anywhere; }
+        .badges { margin-left: 0; flex-wrap: wrap; }
+        .params { min-width: 620px; }
+        .example pre { padding-right: 18px; }
+        .example .copy { position: static; width: 100%; min-height: 44px; margin-top: 8px; }
+      }
+      @media print {
+        :root {
+          --bg: #ffffff;
+          --bg-soft: #ffffff;
+          --code-bg: #ffffff;
+          --ink: #000000;
+          --muted: #333333;
+          --faint: #555555;
+          --line: #aaaaaa;
+          --line-strong: #777777;
+        }
+        html { scroll-padding-top: 0; }
+        body, .surface, .cmd, .example pre, .quickstart pre { background: transparent; }
+        .nav, .copy, .skip-link { display: none; }
+        .hero, main section, footer { padding-block: 24px; }
+        .surface, .cmd, .group, pre, table { break-inside: avoid; }
+        .install code, .params-scroll, pre, .example pre, .quickstart pre { overflow: visible; white-space: pre-wrap; }
+        .params { min-width: 0; table-layout: fixed; }
+        .params th, .params td { overflow-wrap: anywhere; }
+        a { color: inherit; text-decoration: underline; }
       }
 `;

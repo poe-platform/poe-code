@@ -30,7 +30,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: design-dark-mode-responsive
     title: Add dark mode, responsive nav, and print styles
@@ -52,10 +52,10 @@ tasks:
       Update examples/index.html to match. Add render tests asserting the
       dark-mode and print media queries appear in the inlined CSS.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: build-demo-site
     title: Add a build:site script that renders the demo landing page

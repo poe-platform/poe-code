@@ -69,9 +69,11 @@ export const TEMPLATE = String.raw`<!doctype html>
               </div>
               <p class="cmd-desc">{{description}}</p>
               {{#hasParams}}
-              <table class="params"><thead><tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Description</th></tr></thead><tbody>
-                {{#params}}<tr><td><code>{{name}}</code></td><td>{{type}}</td><td>{{requirement}}</td><td>{{description}}</td></tr>{{/params}}
-              </tbody></table>
+              <div class="params-scroll">
+                <table class="params"><thead><tr><th>Parameter</th><th>Type</th><th>Requirement</th><th>Description</th></tr></thead><tbody>
+                  {{#params}}<tr><td><code>{{name}}</code></td><td>{{type}}</td><td>{{requirement}}</td><td>{{description}}</td></tr>{{/params}}
+                </tbody></table>
+              </div>
               {{/hasParams}}
               {{#hasSecrets}}<p class="secrets"><strong>Secrets:</strong> {{#secrets}}<code>{{name}}</code> — {{description}} {{/secrets}}</p>{{/hasSecrets}}
               <div class="example"><pre><span aria-hidden="true">$ </span>{{example}}</pre><button class="copy" type="button" data-copy="{{example}}" aria-label="Copy {{example}}">Copy</button></div>

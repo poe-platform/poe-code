@@ -137,11 +137,6 @@
       .nav-links a:hover {
         color: var(--ink);
       }
-      @media (max-width: 620px) {
-        .nav-links {
-          display: none;
-        }
-      }
 
       /* ---------- hero ---------- */
       .hero {
@@ -282,6 +277,7 @@
         min-height: 38px;
       }
       .surface pre {
+        max-width: 100%;
         margin: 0;
         font-family: var(--mono);
         font-size: 12.5px;
@@ -391,6 +387,11 @@
         font-size: 13.5px;
         margin: 6px 0 0;
       }
+      .params-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
       table.params th {
         text-align: left;
         font-family: var(--mono);
@@ -466,6 +467,7 @@
         position: relative;
       }
       .example pre {
+        max-width: 100%;
         margin: 0;
         font-family: var(--mono);
         font-size: 13px;
@@ -493,6 +495,7 @@
 
       /* ---------- quickstart ---------- */
       .quickstart pre {
+        max-width: 100%;
         font-family: var(--mono);
         font-size: 13px;
         line-height: 1.6;
@@ -523,6 +526,153 @@
       @media (prefers-reduced-motion: reduce) {
         html {
           scroll-behavior: auto;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f4f4f5;
+          --muted: #c4c4cc;
+          --faint: #a3a3ad;
+          --bg: #111113;
+          --bg-soft: #19191d;
+          --code-bg: #202026;
+          --line: #3f3f48;
+          --line-strong: #5b5b66;
+          --accent: #d8a7ff;
+          --accent: color-mix(in srgb, #7a00c2 55%, white);
+          --accent-soft: rgba(216, 167, 255, .18);
+          --accent-soft: color-mix(in srgb, #7a00c2 24%, transparent);
+          --warn: #f0a45d;
+          --warn-soft: #3b2818;
+          --ok: #7bcf80;
+        }
+        .nav {
+          background: rgba(17, 17, 19, 0.9);
+        }
+      }
+      @media (max-width: 620px) {
+        .wrap {
+          padding-inline: 14px;
+        }
+        .nav-inner {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 10px;
+          padding-inline: 14px;
+        }
+        .nav-links {
+          width: 100%;
+          margin-left: 0;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .nav-links a {
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 10px;
+          border: 1px solid var(--line);
+          border-radius: 6px;
+        }
+        .install {
+          width: 100%;
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .install code {
+          width: 100%;
+        }
+        .install .copy {
+          min-height: 44px;
+          border-top: 1px solid var(--line-strong);
+          border-left: 0;
+        }
+        .group-head,
+        .cmd-top {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .cmd {
+          padding: 16px;
+        }
+        .cmd-path {
+          max-width: 100%;
+          overflow-wrap: anywhere;
+        }
+        .badges {
+          margin-left: 0;
+        }
+        table.params {
+          min-width: 620px;
+        }
+        .example pre {
+          padding-right: 16px;
+        }
+        .example .copy {
+          position: static;
+          width: 100%;
+          min-height: 44px;
+          margin-top: 8px;
+        }
+      }
+      @media print {
+        :root {
+          --ink: #000000;
+          --muted: #333333;
+          --faint: #555555;
+          --bg: #ffffff;
+          --bg-soft: #ffffff;
+          --code-bg: #ffffff;
+          --line: #aaaaaa;
+          --line-strong: #777777;
+        }
+        html {
+          scroll-padding-top: 0;
+        }
+        body,
+        .surface,
+        .cmd,
+        .example pre,
+        .quickstart pre {
+          background: transparent;
+        }
+        .nav,
+        .copy,
+        .skip-link {
+          display: none;
+        }
+        .hero,
+        section,
+        footer {
+          padding-block: 24px;
+        }
+        .surface,
+        .cmd,
+        .group,
+        pre,
+        table {
+          break-inside: avoid;
+        }
+        .install code,
+        .params-scroll,
+        pre,
+        .surface pre,
+        .example pre,
+        .quickstart pre {
+          overflow: visible;
+          white-space: pre-wrap;
+        }
+        table.params {
+          min-width: 0;
+          table-layout: fixed;
+        }
+        table.params th,
+        table.params td {
+          overflow-wrap: anywhere;
+        }
+        a {
+          color: inherit;
+          text-decoration: underline;
         }
       }
     </style>
@@ -628,32 +778,34 @@ acme mcp</pre>
                 </span>
               </div>
               <p class="cmd-desc">Deploy a service to production. Gated on a human approval.</p>
-              <table class="params">
-                <thead>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th></th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pname">target</td>
-                    <td class="ptype">string</td>
-                    <td><span class="req">required</span></td>
-                    <td class="pdesc">Service name to deploy.</td>
-                  </tr>
-                  <tr>
-                    <td class="pname">--wait</td>
-                    <td class="ptype">boolean</td>
-                    <td><span class="opt">optional</span></td>
-                    <td class="pdesc">
-                      Block until rollout is healthy. <span class="default">default: true</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">target</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Service name to deploy.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--wait</td>
+                      <td class="ptype">boolean</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Block until rollout is healthy. <span class="default">default: true</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <p class="secrets">
                 <span class="slabel">secrets</span>
                 <code>DEPLOY_API_KEY</code> — required for the /deploy endpoint
@@ -682,32 +834,34 @@ acme mcp</pre>
                 </span>
               </div>
               <p class="cmd-desc">Spin up an ephemeral preview environment for a branch.</p>
-              <table class="params">
-                <thead>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th></th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pname">branch</td>
-                    <td class="ptype">string</td>
-                    <td><span class="req">required</span></td>
-                    <td class="pdesc">Git branch to preview.</td>
-                  </tr>
-                  <tr>
-                    <td class="pname">--ttl</td>
-                    <td class="ptype">number</td>
-                    <td><span class="opt">optional</span></td>
-                    <td class="pdesc">
-                      Hours before teardown. <span class="default">default: 24</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">branch</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Git branch to preview.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--ttl</td>
+                      <td class="ptype">number</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Hours before teardown. <span class="default">default: 24</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <div class="example">
                 <pre><span class="prompt">$ </span>acme deploy preview feature/login --ttl 48</pre>
                 <button
@@ -741,32 +895,34 @@ acme mcp</pre>
                 </span>
               </div>
               <p class="cmd-desc">List open issues, newest first.</p>
-              <table class="params">
-                <thead>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th></th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pname">--limit</td>
-                    <td class="ptype">number</td>
-                    <td><span class="opt">optional</span></td>
-                    <td class="pdesc">
-                      Maximum issues to return. <span class="default">default: 20</span>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td class="pname">--label</td>
-                    <td class="ptype">string</td>
-                    <td><span class="opt">optional</span></td>
-                    <td class="pdesc">Filter by label.</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">--limit</td>
+                      <td class="ptype">number</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Maximum issues to return. <span class="default">default: 20</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--label</td>
+                      <td class="ptype">string</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">Filter by label.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <div class="example">
                 <pre><span class="prompt">$ </span>acme issues list --label bug --limit 5</pre>
                 <button
@@ -792,30 +948,32 @@ acme mcp</pre>
                 </span>
               </div>
               <p class="cmd-desc">Open a new issue.</p>
-              <table class="params">
-                <thead>
-                  <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th></th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="pname">title</td>
-                    <td class="ptype">string</td>
-                    <td><span class="req">required</span></td>
-                    <td class="pdesc">Issue title.</td>
-                  </tr>
-                  <tr>
-                    <td class="pname">--body</td>
-                    <td class="ptype">string</td>
-                    <td><span class="opt">optional</span></td>
-                    <td class="pdesc">Markdown body.</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">title</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Issue title.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--body</td>
+                      <td class="ptype">string</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">Markdown body.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
               <p class="secrets">
                 <span class="slabel">secrets</span>
                 <code>ACME_TOKEN</code> — API token with write scope

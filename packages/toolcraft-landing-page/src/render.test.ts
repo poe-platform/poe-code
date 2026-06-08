@@ -66,4 +66,27 @@ describe("renderLandingPage", () => {
     expect(html).toContain("@media (prefers-reduced-motion: reduce)");
     expect(html).toContain("html { scroll-behavior: auto; }");
   });
+
+  it("inlines dark-mode and print styles", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain("@media (prefers-color-scheme: dark)");
+    expect(html).toContain("--bg: #111113;");
+    expect(html).toContain("--accent: #d8a7ff;");
+    expect(html).toContain("@media print");
+    expect(html).toContain(".nav, .copy, .skip-link { display: none; }");
+    expect(html).toContain(
+      ".install code, .params-scroll, pre, .example pre, .quickstart pre { overflow: visible; white-space: pre-wrap; }"
+    );
+    expect(html).toContain(".params { min-width: 0; table-layout: fixed; }");
+  });
+
+  it("inlines narrow-screen navigation and overflow styles", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain("@media (max-width: 620px)");
+    expect(html).toContain(".nav-links { width: 100%; gap: 8px; }");
+    expect(html).toContain(".params-scroll { max-width: 100%; overflow-x: auto;");
+    expect(html).toContain("-webkit-overflow-scrolling: touch;");
+  });
 });

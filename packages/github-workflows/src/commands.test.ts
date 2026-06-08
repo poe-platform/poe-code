@@ -14,7 +14,8 @@ const designSystemState = vi.hoisted(() => ({
 }));
 
 const fileSystemState = vi.hoisted(() => ({
-  failingWritePath: undefined as string | undefined
+  failingWritePath: undefined as string | undefined,
+  beforeFailingWrite: undefined as (() => void) | undefined
 }));
 
 vi.mock("@poe-code/agent-spawn", () => ({
@@ -40,6 +41,7 @@ vi.mock("node:fs/promises", async () => {
     ...fs.promises,
     async writeFile(targetPath: string, content: string | Uint8Array, encoding?: BufferEncoding) {
       if (targetPath === fileSystemState.failingWritePath) {
+        fileSystemState.beforeFailingWrite?.();
         throw new Error("injected workflow write failure");
       }
       await fs.promises.writeFile(targetPath, content, encoding);
@@ -126,6 +128,7 @@ describe("ghGroup", () => {
     });
     vi.clearAllMocks();
     fileSystemState.failingWritePath = undefined;
+    fileSystemState.beforeFailingWrite = undefined;
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
     spawnState.spawn.mockResolvedValue({
       stdout: "ok",
@@ -954,6 +957,21 @@ describe("ghGroup", () => {
     expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
   });
 
+  it("rejects a symlinked .github parent during workflow install", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.mkdirSync("/outside-github", { recursive: true });
+    vol.symlinkSync("/outside-github", "/repo/.github");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-github/workflows/variables.yaml")).toBe(false);
+    expect(vol.existsSync("/outside-github/workflows/README.md")).toBe(false);
+  });
+
   it("shows the default prompt in a note and suggests eject for customization", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
@@ -1119,6 +1137,20 @@ describe("ghGroup", () => {
     expect(readRepoFile("/outside-prompt.md")).toBe("sentinel");
   });
 
+  it("rejects a symlinked workflows parent during ejected install", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
+    vol.mkdirSync("/repo/.github", { recursive: true });
+    vol.mkdirSync("/outside-workflows", { recursive: true });
+    vol.symlinkSync("/outside-workflows", "/repo/.github/workflows");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened", eject: true }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-workflows/poe-code-github-issue-opened.md")).toBe(false);
+  });
+
   it("rejects symlinked workflow support destinations", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
@@ -1133,6 +1165,23 @@ describe("ghGroup", () => {
     ).rejects.toThrow(/symbolic link/i);
     expect(readRepoFile("/outside-variables.yaml")).toBe("sentinel variables");
     expect(readRepoFile("/outside-readme.md")).toBe("sentinel readme");
+  });
+
+  it("does not roll back through a symlinked workflows parent", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/outside-rollback", { recursive: true });
+    fileSystemState.failingWritePath = "/repo/.github/workflows/variables.yaml";
+    fileSystemState.beforeFailingWrite = () => {
+      vol.rmSync("/repo/.github/workflows", { recursive: true, force: true });
+      vol.symlinkSync("/outside-rollback", "/repo/.github/workflows");
+    };
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-rollback/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-rollback/variables.yaml")).toBe(false);
   });
 
   it("fails to install automations that do not have install templates", async () => {

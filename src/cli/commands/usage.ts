@@ -2,7 +2,15 @@ import { InvalidArgumentError, type Command } from "commander";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, OperationCancelledError } from "../errors.js";
-import { confirm, isCancel, getTheme, widths, typography, renderTable } from "@poe-code/design-system";
+import {
+  confirm,
+  isCancel,
+  getTheme,
+  widths,
+  typography,
+  renderTable,
+  withSpinner
+} from "@poe-code/design-system";
 import type { ScopedLogger } from "../logger.js";
 
 export interface BalanceResponse {
@@ -104,27 +112,34 @@ async function executeBalance(
       dryRun: false
     });
 
-    const response = await container.httpClient(
-      `${container.env.poeBaseUrl}/usage/current_balance`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`
-        }
-      }
-    );
+    const data = await withSpinner<BalanceResponse>({
+      message: "Fetching usage balance...",
+      fn: async () => {
+        const response = await container.httpClient(
+          `${container.env.poeBaseUrl}/usage/current_balance`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${apiKey}`
+            }
+          }
+        );
 
-    if (!response.ok) {
-      throw new ApiError(
-        `Failed to fetch usage balance (HTTP ${response.status})`,
-        {
-          httpStatus: response.status,
-          endpoint: "/usage/current_balance"
+        if (!response.ok) {
+          throw new ApiError(
+            `Failed to fetch usage balance (HTTP ${response.status})`,
+            {
+              httpStatus: response.status,
+              endpoint: "/usage/current_balance"
+            }
+          );
         }
-      );
-    }
 
-    const data = (await response.json()) as BalanceResponse;
+        return (await response.json()) as BalanceResponse;
+      },
+      stopMessage: () => "Usage balance fetched"
+    });
+
     renderBalanceDisplay(data, resources.logger);
     resources.logger.feedback(
       "Need more points?",
@@ -260,24 +275,7 @@ export function registerUsageCommand(
             url += `&starting_after=${startingAfter}`;
           }
 
-          const response = await container.httpClient(url, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${apiKey}`
-            }
-          });
-
-          if (!response.ok) {
-            throw new ApiError(
-              `Failed to fetch usage history (HTTP ${response.status})`,
-              {
-                httpStatus: response.status,
-                endpoint: "/usage/points_history"
-              }
-            );
-          }
-
-          const result = (await response.json()) as {
+          const result = await withSpinner<{
             has_more: boolean;
             data: Array<{
               query_id: string;
@@ -287,7 +285,40 @@ export function registerUsageCommand(
               cost_points: number;
               cost_breakdown_in_points?: Record<string, string>;
             }>;
-          };
+          }>({
+            message: `Fetching usage history page ${pagesLoaded + 1}...`,
+            fn: async () => {
+              const response = await container.httpClient(url, {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${apiKey}`
+                }
+              });
+
+              if (!response.ok) {
+                throw new ApiError(
+                  `Failed to fetch usage history (HTTP ${response.status})`,
+                  {
+                    httpStatus: response.status,
+                    endpoint: "/usage/points_history"
+                  }
+                );
+              }
+
+              return (await response.json()) as {
+                has_more: boolean;
+                data: Array<{
+                  query_id: string;
+                  creation_time: number;
+                  bot_name: string;
+                  cost_usd: string;
+                  cost_points: number;
+                  cost_breakdown_in_points?: Record<string, string>;
+                }>;
+              };
+            },
+            stopMessage: (page) => `${page.data.length} usage entries fetched`
+          });
 
           pagesLoaded++;
           totalFetched += result.data.length;

@@ -9,6 +9,9 @@ import { storeTestApiKey } from "../../../tests/test-helpers.js";
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const getThemeMock = vi.hoisted(() => vi.fn());
+const withSpinnerMock = vi.hoisted(() =>
+  vi.fn(async <T>({ fn }: { fn: () => Promise<T> | T }) => await fn())
+);
 const typographyMock = vi.hoisted(() => ({
   bold: vi.fn((t: string) => t),
   dim: vi.fn((t: string) => t),
@@ -42,6 +45,7 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     confirm: confirmMock,
     isCancel: isCancelMock,
     getTheme: getThemeMock,
+    withSpinner: withSpinnerMock,
     typography: typographyMock
   };
 });
@@ -133,6 +137,7 @@ describe("usage balance command", () => {
     logs = [];
     httpClient = vi.fn();
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
   });
 
   it("fetches and displays current balance", async () => {
@@ -165,6 +170,16 @@ describe("usage balance command", () => {
         })
       })
     );
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Fetching usage balance...",
+        stopMessage: expect.any(Function)
+      })
+    );
+    const balanceSpinnerOptions = withSpinnerMock.mock.calls[0]?.[0] as
+      | { stopMessage?: () => string }
+      | undefined;
+    expect(balanceSpinnerOptions?.stopMessage?.()).toBe("Usage balance fetched");
     expect(
       logs.some((message) => message.includes("Balance:") && message.includes("1,500 pts"))
     ).toBe(true);
@@ -318,6 +333,7 @@ describe("usage balance styling", () => {
     logs = [];
     httpClient = vi.fn();
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
     typographyMock.bold.mockReset().mockImplementation((t: string) => t);
   });
 
@@ -503,6 +519,7 @@ describe("usage list command", () => {
     confirmMock.mockReset();
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
   });
 
   it("fetches and displays usage history from GET /usage/points_history with limit=20", async () => {
@@ -817,6 +834,18 @@ describe("usage list command", () => {
 
     expect(confirmMock).not.toHaveBeenCalled();
     expect(httpClient).toHaveBeenCalledTimes(2);
+    expect(withSpinnerMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        message: "Fetching usage history page 1..."
+      })
+    );
+    expect(withSpinnerMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        message: "Fetching usage history page 2..."
+      })
+    );
 
     const output = logs.join("\n");
     expect(output).toContain("Claude-Sonnet-4.5");
@@ -1058,6 +1087,7 @@ describe("usage list table styling", () => {
     confirmMock.mockReset();
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
   });
 
   it("styles column headers with theme.header", async () => {

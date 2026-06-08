@@ -105,6 +105,9 @@ type SpawnFunction = (
   options?: SpawnOptionsWithoutStdio
 ) => ChildProcessWithoutNullStreams;
 
+const disposeSigtermGraceMs = 1_000;
+const disposeSigkillCloseGraceMs = 1_000;
+
 export interface AcpTransportOptions {
   command: string;
   args?: readonly string[];
@@ -131,6 +134,9 @@ export class AcpTransport {
   private resolveClosed: ((value: AcpTransportClosedEvent) => void) | null = null;
   private closeEvent: AcpTransportClosedEvent | null = null;
   private closeReason: Error | null = null;
+  private disposeStarted = false;
+  private disposeEscalationTimer: NodeJS.Timeout | null = null;
+  private disposeForcedCloseTimer: NodeJS.Timeout | null = null;
 
   constructor(options: AcpTransportOptions) {
     const {
@@ -160,6 +166,10 @@ export class AcpTransport {
 
     this.child.stdin.on("error", (error) => {
       const reason = error instanceof Error ? error : new Error(String(error));
+      if (this.disposeStarted) {
+        this.closeReason ??= reason;
+        return;
+      }
       this.close(reason, this.child.exitCode ?? null, this.child.signalCode ?? null);
     });
 
@@ -292,10 +302,11 @@ export class AcpTransport {
   }
 
   dispose(reason: Error = new Error("ACP transport disposed")): void {
-    if (this.closeEvent !== null) {
+    if (this.closeEvent !== null || this.disposeStarted) {
       return;
     }
 
+    this.disposeStarted = true;
     this.closeReason = reason;
     this.layer.dispose(reason);
 
@@ -308,13 +319,53 @@ export class AcpTransport {
       return;
     }
 
-    const killed = this.child.kill();
-    this.close(reason, this.child.exitCode, killed ? "SIGTERM" : this.child.signalCode);
+    const killed = this.child.kill("SIGTERM");
+    if (this.closeEvent !== null) {
+      return;
+    }
+
+    if (!killed) {
+      this.close(reason, this.child.exitCode, this.child.signalCode);
+      return;
+    }
+
+    this.disposeEscalationTimer = setTimeout(() => {
+      this.disposeEscalationTimer = null;
+      if (this.closeEvent !== null) {
+        return;
+      }
+
+      const forceKilled = this.child.kill("SIGKILL");
+      if (this.closeEvent !== null) {
+        return;
+      }
+
+      if (!forceKilled) {
+        this.close(reason, this.child.exitCode, this.child.signalCode);
+        return;
+      }
+
+      this.disposeForcedCloseTimer = setTimeout(() => {
+        this.disposeForcedCloseTimer = null;
+        this.close(reason, this.child.exitCode, this.child.signalCode ?? "SIGKILL");
+      }, disposeSigkillCloseGraceMs);
+      this.disposeForcedCloseTimer.unref();
+    }, disposeSigtermGraceMs);
+    this.disposeEscalationTimer.unref();
   }
 
   private close(reason: Error, code: number | null, signal: NodeJS.Signals | null): void {
     if (this.closeEvent !== null) {
       return;
+    }
+
+    if (this.disposeEscalationTimer !== null) {
+      clearTimeout(this.disposeEscalationTimer);
+      this.disposeEscalationTimer = null;
+    }
+    if (this.disposeForcedCloseTimer !== null) {
+      clearTimeout(this.disposeForcedCloseTimer);
+      this.disposeForcedCloseTimer = null;
     }
 
     this.layer.dispose(reason);

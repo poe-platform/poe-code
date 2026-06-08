@@ -37,7 +37,12 @@ import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
 import { discoverPipelineInitSources } from "./pipeline-init.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import { resolvePipelineLoopAgent } from "./pipeline-loop-agent.js";
 import {
   runPipelineInit as sdkRunPipelineInit,
@@ -139,6 +144,42 @@ type PipelineDashboardRunOptions = {
   runOptions: PipelineRunOptions;
   integrations?: Integrations;
 };
+
+function createPipelinePlanPromptHandlers(cancelMessage: string): {
+  selectPlans(input: {
+    message: string;
+    options: Array<{ label: string; value: string }>;
+    required: boolean;
+  }): Promise<string[] | null>;
+  promptForPath(input: { message: string; placeholder: string }): Promise<string | null>;
+} {
+  return {
+    async selectPlans(input) {
+      requireInteractiveStdin(
+        "Pipeline plan selection requires --plan, --plans, or --yes when running without an interactive TTY."
+      );
+
+      const selected = await multiselect(input);
+      if (isCancel(selected)) {
+        cancel(cancelMessage);
+        return null;
+      }
+      return Array.isArray(selected) ? selected : null;
+    },
+    async promptForPath(input) {
+      requireInteractiveStdin(
+        "Pipeline plan path selection requires --plan, --plans, or --yes when running without an interactive TTY."
+      );
+
+      const value = await promptText(input);
+      if (isCancel(value)) {
+        cancel(cancelMessage);
+        return null;
+      }
+      return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+    }
+  };
+}
 
 function resolvePipelineAgent(value: string | undefined): string {
   if (!value || value.trim().length === 0) {
@@ -815,28 +856,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
             assumeYes: flags.assumeYes,
             fs: container.fs,
-            selectPlans: async (input: {
-              message: string;
-              options: Array<{ label: string; value: string }>;
-              required: boolean;
-            }) => {
-              const selected = await multiselect(input);
-              if (isCancel(selected)) {
-                cancel("Pipeline run cancelled.");
-                return null;
-              }
-              return Array.isArray(selected) ? selected : null;
-            },
-            promptForPath: async (
-              input: Parameters<NonNullable<PipelineRunOptions["promptForPath"]>>[0]
-            ) => {
-              const value = await promptText(input);
-              if (isCancel(value)) {
-                cancel("Pipeline run cancelled.");
-                return null;
-              }
-              return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-            }
+            ...createPipelinePlanPromptHandlers("Pipeline run cancelled.")
           });
 
           if (!planPaths || planPaths.length === 0) {
@@ -845,6 +865,12 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
           await dryRunPipelinePlans({ container, resources, planPaths });
           return;
+        }
+
+        if (!flags.assumeYes && !options.agent) {
+          requireInteractiveStdin(
+            "Pipeline run agent selection requires --agent or --yes when running without an interactive TTY."
+          );
         }
 
         const selectedAgent = await resolvePipelineLoopAgent({
@@ -874,28 +900,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
           assumeYes: flags.assumeYes,
           fs: container.fs,
-          selectPlans: async (input: {
-            message: string;
-            options: Array<{ label: string; value: string }>;
-            required: boolean;
-          }) => {
-            const selected = await multiselect(input);
-            if (isCancel(selected)) {
-              cancel("Pipeline run cancelled.");
-              return null;
-            }
-            return Array.isArray(selected) ? selected : null;
-          },
-          promptForPath: async (
-            input: Parameters<NonNullable<PipelineRunOptions["promptForPath"]>>[0]
-          ) => {
-            const value = await promptText(input);
-            if (isCancel(value)) {
-              cancel("Pipeline run cancelled.");
-              return null;
-            }
-            return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-          }
+          ...createPipelinePlanPromptHandlers("Pipeline run cancelled.")
         });
 
         if (!planPaths || planPaths.length === 0) {
@@ -1040,6 +1045,12 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
+        if (!flags.assumeYes && !options.agent) {
+          requireInteractiveStdin(
+            "Pipeline init agent selection requires --agent or --yes when running without an interactive TTY."
+          );
+        }
+
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
           configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
@@ -1076,6 +1087,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             resources.logger.info("No source documents available to initialize.");
             return;
           }
+
+          requireInteractiveStdin(
+            "Pipeline source selection requires --source or --sources when running without an interactive TTY."
+          );
 
           const selected = await multiselect({
             message: "Select source Markdown docs to convert:",
@@ -1290,6 +1305,12 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       }
 
       try {
+        if (!flags.assumeYes && !options.agent) {
+          requireInteractiveStdin(
+            "Pipeline install agent selection requires --agent or --yes when running without an interactive TTY."
+          );
+        }
+
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
           configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
@@ -1318,6 +1339,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         } else if (flags.assumeYes) {
           scope = DEFAULT_PIPELINE_SCOPE;
         } else {
+          requireInteractiveStdin(
+            "Pipeline install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+          );
+
           const selected = await select({
             message: "Select install scope:",
             options: [

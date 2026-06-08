@@ -475,7 +475,10 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select agent to run pipeline steps with:",
@@ -501,7 +504,9 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "run"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "run"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -515,6 +520,77 @@ describe("pipeline run command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline run cancelled.");
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline run agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects discovered plan selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": PIPELINE_MD_EMPTY
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--agent", "codex"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline plan selection requires --plan, --plans, or --yes when running without an interactive TTY."
+    );
+
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects manual plan path prompts in non-interactive dry-run mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--dry-run"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline plan path selection requires --plan, --plans, or --yes when running without an interactive TTY."
+    );
+
     expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
   });
 
@@ -1758,15 +1834,19 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "pipeline",
-      "init",
-      "--source",
-      "docs/plans/alpha.md",
-      "Build the pipeline plan"
-    ]);
+    await withMockedTerminal(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "init",
+          "--source",
+          "docs/plans/alpha.md",
+          "Build the pipeline plan"
+        ]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select agent to generate pipeline plans with:",
@@ -1792,7 +1872,9 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "init"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "init"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1806,6 +1888,63 @@ describe("pipeline init command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline init cancelled.");
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/alpha.md": "# Alpha\n"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "pipeline",
+            "init",
+            "--source",
+            "docs/plans/alpha.md"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline init agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+  });
+
+  it("rejects source selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/alpha.md": "# Alpha\n"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "init", "--agent", "codex"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline source selection requires --source or --sources when running without an interactive TTY."
+    );
+
     expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
   });
 });
@@ -2251,7 +2390,9 @@ describe("pipeline install command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "install"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "install"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -2265,6 +2406,55 @@ describe("pipeline install command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline install cancelled.");
+  });
+
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "install"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Pipeline install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "pipeline",
+            "install",
+            "--agent",
+            "claude-code"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
   });
 
   it("does not overwrite steps.yaml without --force", async () => {

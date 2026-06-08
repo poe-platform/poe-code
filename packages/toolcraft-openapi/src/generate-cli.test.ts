@@ -339,7 +339,12 @@ describe("runGenerateCli", () => {
     let indexWriteFailed = false;
     vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
       async (filePath, contents, encoding) => {
-        if (filePath === "/repo/src/generated/index.ts" && !indexWriteFailed) {
+        const pathText = String(filePath);
+        if (
+          pathText.startsWith("/repo/src/generated/.index.ts.") &&
+          pathText.endsWith(".tmp") &&
+          !indexWriteFailed
+        ) {
           indexWriteFailed = true;
           throw new Error("disk full during index write");
         }
@@ -368,6 +373,43 @@ describe("runGenerateCli", () => {
       "Generated output must remain inside the output directory."
     );
     await expect(harness.fs.readFile("/outside/index.ts", "utf8")).rejects.toThrow();
+  });
+
+  it("does not follow generated file symlinks inserted during publish", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({
+      "/repo/openapi.json": specText,
+      "/outside/index.ts": "outside-state\n"
+    });
+    const writeFile = harness.services.fs.writeFile.bind(harness.services.fs);
+    let stagedPath: string | undefined;
+
+    vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
+      async (filePath, contents, encoding) => {
+        const pathText = String(filePath);
+        if (
+          stagedPath === undefined &&
+          pathText.startsWith("/repo/src/generated/.index.ts.") &&
+          pathText.endsWith(".tmp")
+        ) {
+          stagedPath = pathText;
+          await harness.fs.symlink("/outside/index.ts", "/repo/src/generated/index.ts");
+        }
+
+        return writeFile(filePath, contents, encoding);
+      }
+    );
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+
+    expect(stagedPath).toBeDefined();
+    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).resolves.toBe(
+      "outside-state\n"
+    );
+    await expect(harness.fs.lstat(stagedPath as string)).rejects.toThrow("ENOENT");
+    expect((await harness.fs.lstat("/repo/src/generated/index.ts")).isSymbolicLink()).toBe(true);
   });
 
   it("rejects symlinked generated descendants during stale cleanup", async () => {

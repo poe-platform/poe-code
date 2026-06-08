@@ -100,6 +100,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .description("Import markdown task files into a workflow-configured backend.")
     .option("--from <dir>", "Source directory of markdown task files.")
     .option("--to <workflow.md>", "Target workflow file path.")
+    .option("--delete-source", "Delete source files after successful creation.")
     .option("--keep", "Keep source files after successful creation.")
     .option("--rate <number>", "Maximum task creates per minute.")
     .option("--limit <number>", "Maximum tasks to import.")
@@ -291,6 +292,9 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
     if (options.to === undefined || options.to.trim() === "") {
       throw new TasksCommandUsageError("tasks import requires --to <workflow.md>.");
     }
+    if (options.keep === true && options.deleteSource === true) {
+      throw new TasksCommandUsageError("Provide only one of --keep or --delete-source.");
+    }
 
     const rate =
       options.rate === undefined ? undefined : parsePositiveNumber(options.rate, "--rate");
@@ -307,7 +311,7 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
     await moveTasks({
       source,
       target: await resolveWorkflowMoveTargetOptions(options.to),
-      ...(options.keep === true ? {} : { deleteSource: true }),
+      ...(options.deleteSource === true ? { deleteSource: true } : {}),
       ...(rate !== undefined ? { rate } : {}),
       ...(limit !== undefined ? { limit } : {}),
       ...(options.dryRun === true ? { dryRun: true } : {}),

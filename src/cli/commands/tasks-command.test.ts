@@ -690,7 +690,7 @@ states:
     expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
-  it("import builds a markdown-dir source from --from and forwards SDK flags", async () => {
+  it("import builds a markdown-dir source from --from and keeps source files by default", async () => {
     seedWorkflow(
       `
 tasks:
@@ -742,12 +742,38 @@ states:
           }
         }
       },
-      deleteSource: true,
       rate: 25,
       limit: 8,
       dryRun: true,
       onProgress: expect.any(Function)
     });
+  });
+
+  it("import deletes source files when --delete-source is passed", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "import",
+      "--from",
+      `${cwd}/source-dir`,
+      "--to",
+      `${cwd}/target.md`,
+      "--delete-source"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.objectContaining({ deleteSource: true })
+    );
   });
 
   it("import keeps source files when --keep is passed", async () => {
@@ -797,10 +823,44 @@ states:
         source: expect.objectContaining({
           type: "markdown-dir",
           path: `${cwd}/bugs-here`
-        }),
-        deleteSource: true
+        })
       })
     );
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.not.objectContaining({ deleteSource: expect.anything() })
+    );
+  });
+
+  it("import rejects conflicting source deletion flags", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+    const logs: string[] = [];
+
+    await runTasks(
+      [
+        "import",
+        "--from",
+        `${cwd}/source-dir`,
+        "--to",
+        `${cwd}/target.md`,
+        "--keep",
+        "--delete-source"
+      ],
+      logs
+    );
+
+    expect(logs).toEqual(["[error] Provide only one of --keep or --delete-source."]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
   it("import reports missing --from or --to clearly", async () => {

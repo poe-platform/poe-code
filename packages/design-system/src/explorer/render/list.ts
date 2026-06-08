@@ -62,7 +62,7 @@ export function renderList(
       break;
     }
 
-    const selected = state.selected.has(row.id);
+    const selected = state.multiSelect && state.selected.has(row.id);
     const cursor = rowIndex === state.filtered[state.cursor];
     const positions = state.matchPositions.get(rowIndex) ?? [];
     const hash = lineHash(row, selected, cursor, positions);

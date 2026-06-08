@@ -29,7 +29,8 @@ export function renderHeader(
     const prompt = `${state.title.toLocaleLowerCase()}>`;
     const filter = state.filter.length > 0 ? ` ${state.filter}` : "";
     const count = `${state.filtered.length}/${state.rows.length}`;
-    const selected = state.selected.size > 0 ? `  (${state.selected.size} selected)` : "";
+    const selected =
+      state.multiSelect && state.selected.size > 0 ? `  (${state.selected.size} selected)` : "";
     const spinner = state.detail.loading ? "  *" : "";
     const right = `${count}${selected}${spinner}`;
     screen.put(0, 1, "│", styles.border);

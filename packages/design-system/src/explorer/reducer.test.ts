@@ -133,6 +133,26 @@ describe("step", () => {
     expect([...selectedByNamedSpace.state.selected]).toEqual(["one"]);
   });
 
+  it("ignores selection keys when multi-select is disabled", () => {
+    const state = loadedState({ multiSelect: false });
+    const space = step(state, { type: "key", key: key(" ") });
+    const selectAll = step(space.state, { type: "key", key: key("\u0001") });
+    const shifted = step(selectAll.state, { type: "key", key: key("\u001b[1;2B") });
+
+    expect(space.state.selected.size).toBe(0);
+    expect(space.state.filter).toBe("");
+    expect(selectAll.state.selected.size).toBe(0);
+    expect(shifted.state.selected.size).toBe(0);
+    expect(shifted.state.cursor).toBe(0);
+  });
+
+  it("clears stale selection when rows load with multi-select disabled", () => {
+    const state = { ...loadedState({ multiSelect: false }), selected: new Set(["one", "two"]) };
+    const next = step(state, { type: "rowsLoaded", rows });
+
+    expect(next.state.selected.size).toBe(0);
+  });
+
   it("cycles focus with Tab", () => {
     const detailFocused = step(loadedState(), { type: "key", key: key("\t") });
     const listFocused = step(detailFocused.state, { type: "key", key: key("\t") });

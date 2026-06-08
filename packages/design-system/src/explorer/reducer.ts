@@ -136,6 +136,10 @@ function stepKey(
     return updateFilter(state, state.filter.slice(0, -1));
   }
 
+  if (!state.multiSelect && isSelectionSpace(key)) {
+    return mark(state, 0);
+  }
+
   if (isPrintable(key)) {
     return updateFilter(state, `${state.filter}${key.ch}`);
   }
@@ -252,7 +256,7 @@ function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
   const filtered = matches.map((match) => match.index);
   const matchPositions = createMatchPositions(matches);
   const cursor = clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
-  const selected = pruneSelection(state.selected, rows);
+  const selected = state.multiSelect ? pruneSelection(state.selected, rows) : new Set<string>();
   const detail = resetDetailForCursor(state, rows, filtered, cursor);
   const modal = modalStillValid(state.modal, rows);
   if (state.modal?.kind === "confirm" && modal === null) {
@@ -528,6 +532,10 @@ function confirmKey(state: ExplorerState, runtimeHandles: ActionRuntimeHandles):
 }
 
 function toggleSelect(state: ExplorerState): StepResult {
+  if (!state.multiSelect) {
+    return mark(state, 0);
+  }
+
   const row = currentRow(state);
   if (row === undefined) {
     return mark(state, 0);
@@ -544,6 +552,10 @@ function toggleSelect(state: ExplorerState): StepResult {
 }
 
 function selectAll(state: ExplorerState): StepResult {
+  if (!state.multiSelect) {
+    return mark(state, 0);
+  }
+
   const selected = new Set(state.selected);
   for (const index of state.filtered) {
     const row = state.rows[index];
@@ -563,14 +575,15 @@ function clearSelection(state: ExplorerState): StepResult {
 }
 
 function selectionChanged(state: ExplorerState, selected: Set<string>): StepResult {
-  if (setsEqual(state.selected, selected)) {
+  const normalized = state.multiSelect ? selected : new Set<string>();
+  if (setsEqual(state.selected, normalized)) {
     return mark(state, 0);
   }
 
   const next = {
     ...state,
-    selected,
-    actionState: recomputeActionState({ ...state, selected }),
+    selected: normalized,
+    actionState: recomputeActionState({ ...state, selected: normalized }),
     dirty: REGION_LIST | REGION_FOOTER
   };
 
@@ -594,6 +607,10 @@ function detailScroll(state: ExplorerState, delta: number): StepResult {
 }
 
 function extendSelection(state: ExplorerState, delta: number): StepResult {
+  if (!state.multiSelect) {
+    return moveCursor(state, delta);
+  }
+
   const moved = moveCursor(state, delta);
   const row = currentRow(moved.state);
   if (row === undefined) {
@@ -855,7 +872,7 @@ function actionSource(state: ExplorerState, action: Action<unknown>): ActionSour
 }
 
 function selectedRows(state: ExplorerState): Row[] {
-  if (state.selected.size === 0) {
+  if (!state.multiSelect || state.selected.size === 0) {
     const row = currentRow(state);
     return row === undefined ? [] : [row];
   }
@@ -951,6 +968,10 @@ function isPrintable(key: ExplorerKeypressEvent): key is ExplorerKeypressEvent &
 
 function isBackspace(key: ExplorerKeypressEvent): boolean {
   return key.name === "backspace" || key.name === "delete";
+}
+
+function isSelectionSpace(key: ExplorerKeypressEvent): boolean {
+  return key.name === "space" || key.ch === " ";
 }
 
 function isConfirmYes(key: ExplorerKeypressEvent): boolean {

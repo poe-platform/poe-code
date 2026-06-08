@@ -115,6 +115,7 @@ export interface ExplorerState {
     loading: boolean;
   };
   selected: Set<string>;
+  multiSelect: boolean;
   modal:
     | null
     | { kind: "help" }
@@ -144,6 +145,7 @@ export function createInitialState<R>(
     cols: normalizeSize(size.cols),
     rows: normalizeSize(size.rows)
   };
+  const multiSelect = config.multiSelect ?? true;
 
   return {
     title: config.title,
@@ -164,6 +166,7 @@ export function createInitialState<R>(
       loading: false
     },
     selected: new Set(),
+    multiSelect,
     modal: null,
     toast: null,
     dirty: REGION_ALL,

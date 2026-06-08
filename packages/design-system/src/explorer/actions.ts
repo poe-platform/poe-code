@@ -64,7 +64,7 @@ function currentDetailItem(state: ExplorerState): DetailItem | undefined {
 }
 
 function selectedRows(state: ExplorerState, fallback: Row): Row[] {
-  if (state.selected.size === 0) {
+  if (!state.multiSelect || state.selected.size === 0) {
     return fallback.id === "" ? [] : [fallback];
   }
 

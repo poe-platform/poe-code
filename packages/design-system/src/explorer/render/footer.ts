@@ -58,7 +58,7 @@ function footerHints(state: ExplorerState): FooterHint[] {
       continue;
     }
     const key = actionKey(entry, id);
-    const label = state.selected.size > 0 && entry.source === "row"
+    const label = state.multiSelect && state.selected.size > 0 && entry.source === "row"
       ? `${entry.label} ${state.selected.size}`
       : entry.label;
     hints.push({ key, label, running: entry.running === true });

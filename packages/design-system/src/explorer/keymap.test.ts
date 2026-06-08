@@ -101,6 +101,32 @@ describe("resolveBindings", () => {
     expect(bindings.resolve(key("\u001f"))).toEqual({ type: "builtin", id: "clearSelection" });
   });
 
+  it("omits selection bindings when multi-select is disabled", () => {
+    const bindings = resolveBindings(config({ multiSelect: false }));
+
+    expect(bindings.resolve(key(" "))).toBeUndefined();
+    expect(bindings.resolve(key("\u0001"))).toBeUndefined();
+    expect(bindings.resolve(key("\u001f"))).toBeUndefined();
+    expect(bindings.resolve(key("\u001b[1;2A"))).toBeUndefined();
+    expect(bindings.keysByTarget.has("builtin:toggleSelect")).toBe(false);
+  });
+
+  it("allows actions to claim selection keys when multi-select is disabled", () => {
+    const bindings = resolveBindings(config({
+      multiSelect: false,
+      actions: [
+        {
+          id: "open",
+          label: "Open",
+          key: "space",
+          handler: () => undefined
+        }
+      ]
+    }));
+
+    expect(bindings.resolve(key(" "))).toEqual({ type: "action", id: "open" });
+  });
+
   it("keeps action ids separate from same-named built-ins", () => {
     const bindings = resolveBindings(config({
       actions: [

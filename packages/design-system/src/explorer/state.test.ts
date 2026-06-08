@@ -62,7 +62,8 @@ describe("createInitialState", () => {
       toast: null,
       dirty: REGION_ALL,
       size: { cols: 100, rows: 0 },
-      layout: "medium"
+      layout: "medium",
+      multiSelect: true
     });
     expect(state.selected.size).toBe(0);
     expect(state.matchPositions.size).toBe(0);
@@ -85,6 +86,13 @@ describe("createInitialState", () => {
       label: "Comment",
       source: "detail"
     });
+  });
+
+  it("stores disabled multi-select configuration", () => {
+    const state = createInitialState(config({ multiSelect: false }), { cols: 120, rows: 24 });
+
+    expect(state.multiSelect).toBe(false);
+    expect(state.selected.size).toBe(0);
   });
 
   it.each([

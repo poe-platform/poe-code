@@ -110,6 +110,36 @@ describe("runExplorer", () => {
     expect(handledRows).toEqual([["one", "two"]]);
   });
 
+  it("keeps destructive actions single-row when multi-select is disabled", async () => {
+    const driver = currentDriver();
+    const handledRows: string[][] = [];
+    const result = runExplorer(config({
+      multiSelect: false,
+      actions: [{
+        id: "delete",
+        label: "Delete",
+        key: "d",
+        destructive: true,
+        handler: (ctx) => {
+          handledRows.push(ctx.rows.map((row) => row.id));
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(key(" "));
+    driver.press(namedKey("down"));
+    driver.press(key(" "));
+    driver.press(key("d"));
+    await waitFor(() => strippedOutput(driver).includes("Confirm"));
+    expect(strippedOutput(driver)).not.toContain("selected");
+    driver.press(key("y"));
+
+    await expect(result).resolves.toBeNull();
+    expect(handledRows).toEqual([["two"]]);
+  });
+
   it("cancels stale async detail jobs when the cursor moves", async () => {
     const driver = currentDriver();
     let firstAborted = false;

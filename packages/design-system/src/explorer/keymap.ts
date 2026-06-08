@@ -97,20 +97,32 @@ const baseBuiltinCommands: ExplorerBuiltinCommand[] = [
 ];
 
 const reorderCommands: ExplorerBuiltinCommand[] = ["reorderUp", "reorderDown"];
+const selectionCommands = new Set<ExplorerBuiltinCommand>([
+  "toggleSelect",
+  "selectAll",
+  "clearSelection",
+  "extendSelectionUp",
+  "extendSelectionDown"
+]);
 const reservedActionIds = new Set<string>(["quit"]);
 
 export function resolveBindings<R>(
   config: ExplorerConfig<R>,
   defaults: ExplorerBindingDefaults = {}
 ): ResolvedBindings {
-  const commands = config.reorder === undefined
-    ? baseBuiltinCommands
-    : [
-        ...baseBuiltinCommands.filter((command) =>
-          command !== "extendSelectionUp" && command !== "extendSelectionDown"
-        ),
-        ...reorderCommands
-      ];
+  const baseCommands =
+    config.reorder === undefined
+      ? baseBuiltinCommands
+      : [
+          ...baseBuiltinCommands.filter((command) =>
+            command !== "extendSelectionUp" && command !== "extendSelectionDown"
+          ),
+          ...reorderCommands
+        ];
+  const commands =
+    config.multiSelect === false
+      ? baseCommands.filter((command) => !selectionCommands.has(command))
+      : baseCommands;
   const commandBindings = new Map<string, string[]>();
   const flatBindings = new Map<string, BindingTarget>();
   const targetKeys = new Map<string, string[]>();

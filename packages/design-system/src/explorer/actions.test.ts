@@ -136,6 +136,19 @@ describe("buildActionContext", () => {
     expect(ctx.exit).toBe(runtimeHandles.exit);
   });
 
+  it("ignores stale selected rows when multi-select is disabled", () => {
+    const action: Action<unknown> = { id: "archive", label: "Archive", handler: () => undefined };
+    const state = {
+      ...loadedState({ actions: [action], multiSelect: false }),
+      selected: new Set(["two"])
+    };
+
+    const ctx = buildActionContext(state, action, "row", handles());
+
+    expect(ctx.row).toEqual(rows[0]);
+    expect(ctx.rows).toEqual([rows[0]]);
+  });
+
   it("includes the focused detail item for detail-sourced contexts", () => {
     const item: DetailItem = {
       id: "detail-one",

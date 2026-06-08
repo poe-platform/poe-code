@@ -184,11 +184,17 @@ export async function waitForGracefulStop(
   handle: JobHandle,
   graceMs = 30_000
 ): Promise<void> {
-  await handle.kill("SIGTERM");
-  const result = await Promise.race([handle.wait().then(() => "exited" as const), sleep(graceMs)]);
+  const waitForExit = handle.wait().then(() => "exited" as const);
+  const sigtermFailure = handle.kill("SIGTERM").then<never>(
+    () => pendingForever(),
+    (error: unknown) => {
+      throw error;
+    }
+  );
+  const result = await Promise.race([waitForExit, sleep(graceMs), sigtermFailure]);
   if (result !== "exited") {
     await handle.kill("SIGKILL");
-    await handle.wait().catch(() => undefined);
+    await waitForExit.catch(() => undefined);
   }
 }
 
@@ -199,5 +205,11 @@ function compareLatestFirst(left: JobEntry, right: JobEntry): number {
 function sleep(ms: number): Promise<"timeout"> {
   return new Promise((resolve) => {
     setTimeout(() => resolve("timeout"), ms);
+  });
+}
+
+function pendingForever(): Promise<never> {
+  return new Promise<never>(() => {
+    // Successful signal delivery should not settle the graceful-stop race.
   });
 }

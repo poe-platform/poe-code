@@ -869,6 +869,56 @@ describe("runtime command", () => {
     ]);
   });
 
+  it("escalates stopping a job when SIGTERM delivery stalls", async () => {
+    vi.useFakeTimers();
+    try {
+      const fs = createMemFs({
+        [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
+          createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+          null,
+          2
+        )}\n`
+      });
+      const signals: Array<NodeJS.Signals | undefined> = [];
+      let resolveStopped!: (value: { exitCode: number }) => void;
+      const stopped = new Promise<{ exitCode: number }>((resolve) => {
+        resolveStopped = resolve;
+      });
+      jobHandles.set(
+        "env-stop",
+        createJobHandle({
+          status: "running",
+          wait: async () => await stopped,
+          kill: async (signal) => {
+            signals.push(signal);
+            if (signal === "SIGTERM") {
+              return await new Promise<void>(() => {
+                // Simulate a runtime API that never confirms graceful signal delivery.
+              });
+            }
+            resolveStopped({ exitCode: 137 });
+          }
+        })
+      );
+      const container = createContainer(fs);
+      const program = createBaseProgram();
+      registerRuntimeCommand(program, container);
+
+      const stop = program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
+
+      await vi.waitFor(() => expect(signals).toEqual(["SIGTERM"]));
+      await vi.advanceTimersByTimeAsync(30_000);
+      await vi.waitFor(() => expect(signals).toEqual(["SIGTERM", "SIGKILL"]));
+      await stop;
+
+      await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+        '"status": "killed"'
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("previews stopping a runtime job without killing or rewriting it", async () => {
     const jobPath = path.join(jobsDir, "job-stop.json");
     const fs = createMemFs({

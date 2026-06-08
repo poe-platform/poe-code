@@ -1,5 +1,4 @@
 import { getTheme } from "../../internal/theme-detect.js";
-import { light } from "../../tokens/colors.js";
 import { ScreenBuffer } from "../buffer.js";
 import type { CellStyle, Rect } from "../types.js";
 
@@ -78,5 +77,5 @@ function truncateCells(
 }
 
 function getAccentStyle(): CellStyle {
-  return getTheme() === light ? { fg: "#006699", bold: true } : { fg: "cyan", bold: true };
+  return getTheme().styles.accent;
 }

@@ -50,7 +50,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: consolidate-theme-consumers
     title: Route explorer + dashboard through the active brand palette
@@ -78,10 +78,10 @@ tasks:
       untouched. Simplify duplicated helpers where the consolidation exposes
       them.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: dep-cleanup
     title: Trim design-system dependencies and fix the undeclared test dep
@@ -250,13 +250,13 @@ Three coordinated changes:
 
 ### 2.1 Dependency audit
 
-| Dependency | Kind today | Real usage | Decision |
-| --- | --- | --- | --- |
-| `@clack/prompts` | peerDependency | `prompts/` primitives | **Keep** (peer) |
-| `mustache` + `@types/mustache` | devDependency | **test-oracle only** in `components/template.test.ts`; runtime `template.ts` is self-contained | **Drop** — replace oracle assertions with fixed expected strings |
-| `terminal-pilot` | **undeclared** | imported in 3 test files (`terminal-markdown.test.ts`, `explorer/runtime.test.ts`, `dashboard/dashboard.test.ts`) | **Declare** as devDependency |
-| `@poe-code/terminal-pilot` | **wrong specifier** | `terminal-markdown.test.ts:5` (real package name is `terminal-pilot`) | **Fix** specifier → `terminal-pilot` |
-| `vitest`, `tsx` | inherited from root workspace | tests / scripts | leave inherited (dev-only) |
+| Dependency                     | Kind today                    | Real usage                                                                                                        | Decision                                                         |
+| ------------------------------ | ----------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| `@clack/prompts`               | peerDependency                | `prompts/` primitives                                                                                             | **Keep** (peer)                                                  |
+| `mustache` + `@types/mustache` | devDependency                 | **test-oracle only** in `components/template.test.ts`; runtime `template.ts` is self-contained                    | **Drop** — replace oracle assertions with fixed expected strings |
+| `terminal-pilot`               | **undeclared**                | imported in 3 test files (`terminal-markdown.test.ts`, `explorer/runtime.test.ts`, `dashboard/dashboard.test.ts`) | **Declare** as devDependency                                     |
+| `@poe-code/terminal-pilot`     | **wrong specifier**           | `terminal-markdown.test.ts:5` (real package name is `terminal-pilot`)                                             | **Fix** specifier → `terminal-pilot`                             |
+| `vitest`, `tsx`                | inherited from root workspace | tests / scripts                                                                                                   | leave inherited (dev-only)                                       |
 
 Result: zero runtime deps beyond the `@clack/prompts` peer; two devDeps removed; one devDep added; one specifier fixed.
 
@@ -291,7 +291,7 @@ Semantic colors (success=green, warning=yellow, error=red, muted=dim) are brand-
    - `purple` — `#a200ff` (unchanged)
    - `blue` — `#2f6fed`
    - `green` — `#1f9d57`
-   Adding a brand is one entry; no `if`/`switch` per brand anywhere.
+     Adding a brand is one entry; no `if`/`switch` per brand anywhere.
 6. **Consolidate**, don't duplicate: `explorer/theme.ts` and the dashboard components read the active brand palette; delete the duplicate `resolveThemeName` in `explorer/theme.ts`.
 7. **Dependency cleanup** as in §2.1 (drop `mustache`, declare/fix `terminal-pilot`, add README).
 
@@ -299,18 +299,24 @@ Semantic colors (success=green, warning=yellow, error=red, muted=dim) are brand-
 
 ```ts
 // tokens/brand.ts
-export interface Brand { name: string; primary: string; } // primary = hex
+export interface Brand {
+  name: string;
+  primary: string;
+} // primary = hex
 export const brands: Record<string, Brand> = {
   purple: { name: "purple", primary: "#a200ff" },
-  blue:   { name: "blue",   primary: "#2f6fed" },
-  green:  { name: "green",  primary: "#1f9d57" },
+  blue: { name: "blue", primary: "#2f6fed" },
+  green: { name: "green", primary: "#1f9d57" }
 };
 
 // internal/theme-state.ts  (the singleton)
-export interface ThemeConfig { brand: string; label: string; }
-export function configureTheme(patch: Partial<ThemeConfig>): void;  // merge into singleton
-export function getThemeConfig(): ThemeConfig;                       // { brand:"purple", label:"Poe" } default
-export function resetTheme(): void;                                  // replaces resetThemeCache (tests)
+export interface ThemeConfig {
+  brand: string;
+  label: string;
+}
+export function configureTheme(patch: Partial<ThemeConfig>): void; // merge into singleton
+export function getThemeConfig(): ThemeConfig; // { brand:"purple", label:"Poe" } default
+export function resetTheme(): void; // replaces resetThemeCache (tests)
 ```
 
 - `tokens/colors.ts` exposes `createPalette(brand: Brand, mode: ThemeName): ThemePalette` — the brand `primary` drives `header`, `intro` background, `resolvedSymbol`, `info`, `accent`, `prompt`, `number`; semantic entries stay fixed. `intro` reads the singleton `label`: `` ` ${label} - ${text} ` ``.

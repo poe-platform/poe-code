@@ -1,4 +1,4 @@
-import { resolveThemeName } from "../../internal/theme-detect.js";
+import { getTheme } from "../../internal/theme-detect.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
 import { displayWidth, expandTabs, graphemes, graphemeWidth } from "../terminal-width.js";
@@ -76,13 +76,12 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
     return [];
   }
 
-  const themeName = resolveThemeName();
-  const mutedStyle = getMutedStyle(themeName);
+  const mutedStyle = getTheme().styles.muted;
   const textWidth = Math.max(width - TEXT_OFFSET, 0);
   const visualLines: VisualLine[] = [];
 
   for (const item of items) {
-    const itemStyle = getItemStyle(item.kind, themeName);
+    const itemStyle = getItemStyle(item.kind);
 
     if (hasAnsi(item.text) || hasCursorControls(item.text)) {
       const styledLines = parseAnsi(item.text, hasAnsi(item.text) ? {} : itemStyle);
@@ -156,12 +155,14 @@ function appendSegment(segments: StyledSegment[], text: string, style: CellStyle
 }
 
 function stylesEqual(left: CellStyle, right: CellStyle): boolean {
-  return left.fg === right.fg
-    && left.bg === right.bg
-    && left.bold === right.bold
-    && left.dim === right.dim
-    && left.inverse === right.inverse
-    && left.underline === right.underline;
+  return (
+    left.fg === right.fg &&
+    left.bg === right.bg &&
+    left.bold === right.bold &&
+    left.dim === right.dim &&
+    left.inverse === right.inverse &&
+    left.underline === right.underline
+  );
 }
 
 function getPrefix(kind: OutputItemKind): string {
@@ -184,28 +185,25 @@ function getPrefix(kind: OutputItemKind): string {
   return "◇";
 }
 
-function getItemStyle(kind: OutputItemKind, themeName: "dark" | "light"): CellStyle {
+function getItemStyle(kind: OutputItemKind): CellStyle {
+  const styles = getTheme().styles;
   if (kind === "success") {
-    return themeName === "light" ? { fg: "#008800" } : { fg: "green" };
+    return styles.success;
   }
 
   if (kind === "error") {
-    return themeName === "light" ? { fg: "#cc0000" } : { fg: "red" };
+    return styles.error;
   }
 
   if (kind === "tool") {
-    return getMutedStyle(themeName);
+    return styles.muted;
   }
 
   if (kind === "status") {
-    return themeName === "light" ? { fg: "#a200ff" } : { fg: "magenta" };
+    return styles.info;
   }
 
-  return themeName === "light" ? { fg: "#a200ff" } : { fg: "magenta" };
-}
-
-function getMutedStyle(themeName: "dark" | "light"): CellStyle {
-  return themeName === "light" ? { fg: "#666666" } : { dim: true };
+  return styles.info;
 }
 
 function wrapText(value: string, width: number): string[] {

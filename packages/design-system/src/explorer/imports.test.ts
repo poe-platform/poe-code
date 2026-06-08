@@ -6,7 +6,14 @@ const explorerDir = path.resolve(import.meta.dirname);
 const srcDir = path.resolve(explorerDir, "..");
 
 const importPattern = /import\s+([\s\S]*?)\s+from\s+["']([^"']+)["'];?/g;
-const leafModules = new Set(["actions.ts", "filter.ts", "jobs.ts", "keymap.ts", "layout.ts", "theme.ts"]);
+const leafModules = new Set([
+  "actions.ts",
+  "filter.ts",
+  "jobs.ts",
+  "keymap.ts",
+  "layout.ts",
+  "theme.ts"
+]);
 const reducerAllowed = new Set(["actions.ts", "events.ts", "filter.ts", "keymap.ts", "state.ts"]);
 const renderAllowed = new Set([
   "layout.ts",
@@ -121,14 +128,23 @@ function validateEdge(edge: ImportEdge): string[] {
     }
 
     return [
-      formatViolation(edge, "render modules may only import render siblings, state, theme, layout, buffer, ansi, or terminal width")
+      formatViolation(
+        edge,
+        "render modules may only import render siblings, state, theme, layout, buffer, ansi, or terminal width"
+      )
     ];
   }
 
   if (edge.source === "reducer.ts") {
     return reducerAllowed.has(edge.target)
       ? []
-      : [formatViolation(edge, "reducer may only import state, events, actions, keymap, or filter")];
+      : [
+          formatViolation(edge, "reducer may only import state, events, actions, keymap, or filter")
+        ];
+  }
+
+  if (edge.source === "theme.ts" && edge.target === "internal/theme-detect.ts") {
+    return [];
   }
 
   if (leafModules.has(edge.source)) {

@@ -4,10 +4,7 @@ import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
 import { defaultHints, renderFooter } from "./components/footer.js";
 import { createKeymap } from "./keymap.js";
-import {
-  computeVisualLines,
-  renderOutputPane
-} from "./components/output-pane.js";
+import { computeVisualLines, renderOutputPane } from "./components/output-pane.js";
 import {
   formatElapsed,
   formatNumber,
@@ -19,6 +16,7 @@ import { createStore } from "./store.js";
 import { createDashboard } from "./dashboard.js";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { resetThemeCache } from "../internal/theme-detect.js";
+import { configureTheme, resetTheme } from "../internal/theme-state.js";
 import { TerminalBuffer } from "terminal-pilot";
 import type { DashboardLayout } from "./layout.js";
 import type { KeypressEvent } from "./terminal.js";
@@ -511,6 +509,7 @@ describe("output pane", () => {
   });
 
   afterEach(() => {
+    resetTheme();
     if (previousPoeCodeTheme === undefined) {
       delete process.env.POE_CODE_THEME;
     } else {
@@ -570,7 +569,9 @@ describe("output pane", () => {
   });
 
   it("computeVisualLines preserves explicit blank lines and wraps each paragraph", () => {
-    const items: OutputItem[] = [{ kind: "info", text: ["alpha beta", "", "gamma"].join("\n"), ts: 1 }];
+    const items: OutputItem[] = [
+      { kind: "info", text: ["alpha beta", "", "gamma"].join("\n"), ts: 1 }
+    ];
 
     expect(computeVisualLines(items, 9)).toEqual([
       {
@@ -621,6 +622,29 @@ describe("output pane", () => {
     ]);
   });
 
+  it("changes only brand-colored output cells for a non-purple brand", () => {
+    configureTheme({ brand: "blue" });
+
+    expect(
+      computeVisualLines(
+        [
+          { kind: "info", text: "info", ts: 1 },
+          { kind: "success", text: "success", ts: 2 },
+          { kind: "error", text: "error", ts: 3 },
+          { kind: "tool", text: "tool", ts: 4 },
+          { kind: "status", text: "status", ts: 5 }
+        ],
+        20
+      )
+    ).toEqual([
+      { prefix: "◇", prefixStyle: { fg: "#2f6fed" }, style: { fg: "#2f6fed" }, text: "info" },
+      { prefix: "◆", prefixStyle: { fg: "green" }, style: { fg: "green" }, text: "success" },
+      { prefix: "■", prefixStyle: { fg: "red" }, style: { fg: "red" }, text: "error" },
+      { prefix: "│", prefixStyle: { dim: true }, style: { dim: true }, text: "tool" },
+      { prefix: "●", prefixStyle: { fg: "#2f6fed" }, style: { fg: "#2f6fed" }, text: "status" }
+    ]);
+  });
+
   it("computeVisualLines renders ANSI escape codes as styled segments", () => {
     const items: OutputItem[] = [
       { kind: "tool", text: "plain \u001b[31mred\u001b[0m after", ts: 1 }
@@ -648,9 +672,7 @@ describe("output pane", () => {
 
     const result = computeVisualLines(items, 16);
     expect(result).toHaveLength(2);
-    expect(result[0]!.segments).toEqual([
-      { text: "greengreengre", style: { fg: "green" } }
-    ]);
+    expect(result[0]!.segments).toEqual([{ text: "greengreengre", style: { fg: "green" } }]);
     expect(result[1]!.segments).toEqual([
       { text: "en", style: { fg: "green" } },
       { text: " tail", style: {} }
@@ -671,9 +693,7 @@ describe("output pane", () => {
 
   it("renderOutputPane writes segment-specific styles into the screen buffer", () => {
     const buffer = new ScreenBuffer(30, 1);
-    const items: OutputItem[] = [
-      { kind: "tool", text: "\u001b[31mRED\u001b[0m plain", ts: 1 }
-    ];
+    const items: OutputItem[] = [{ kind: "tool", text: "\u001b[31mRED\u001b[0m plain", ts: 1 }];
 
     renderOutputPane(buffer, { x: 0, y: 0, width: 30, height: 1 }, items);
 
@@ -746,9 +766,7 @@ describe("output pane", () => {
   it("renderOutputPane leaves empty rows when content is shorter than the pane", () => {
     const buffer = new ScreenBuffer(16, 5);
     const rect: Rect = { x: 0, y: 0, width: 16, height: 4 };
-    const items: OutputItem[] = [
-      { kind: "info", text: "alpha", ts: 1 }
-    ];
+    const items: OutputItem[] = [{ kind: "info", text: "alpha", ts: 1 }];
 
     renderOutputPane(buffer, rect, items);
 
@@ -858,6 +876,7 @@ describe("stats pane", () => {
   });
 
   afterEach(() => {
+    resetTheme();
     if (previousPoeCodeTheme === undefined) {
       delete process.env.POE_CODE_THEME;
     } else {
@@ -1001,10 +1020,16 @@ describe("stats pane", () => {
       )[0]
     ).toMatchObject({ style: { fg: "red" }, text: "Error" });
     expect(
-      statsToLines({ status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+      statsToLines(
+        { status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
     ).toMatchObject({ style: { fg: "green" }, text: "Done" });
     expect(
-      statsToLines({ status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+      statsToLines(
+        { status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
     ).toMatchObject({ style: { dim: true }, text: "Idle" });
   });
 
@@ -1031,11 +1056,44 @@ describe("stats pane", () => {
       )[0]
     ).toMatchObject({ style: { fg: "#cc0000" }, text: "Error" });
     expect(
-      statsToLines({ status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+      statsToLines(
+        { status: "done", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
     ).toMatchObject({ style: { fg: "#008800" }, text: "Done" });
     expect(
-      statsToLines({ status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 }, 20)[0]
+      statsToLines(
+        { status: "idle", iterations: 0, tokensIn: 0, tokensOut: 0, elapsedMs: 0 },
+        20
+      )[0]
     ).toMatchObject({ style: { fg: "#666666" }, text: "Idle" });
+  });
+
+  it("changes only the brand-colored running status for a non-purple brand", () => {
+    configureTheme({ brand: "blue" });
+
+    const statuses = ["running", "paused", "error", "done", "idle"] as const;
+    const styles = statuses.map(
+      (status) =>
+        statsToLines(
+          {
+            status,
+            iterations: 0,
+            tokensIn: 0,
+            tokensOut: 0,
+            elapsedMs: 0
+          },
+          20
+        )[0]?.style
+    );
+
+    expect(styles).toEqual([
+      { fg: "#2f6fed" },
+      { fg: "yellow" },
+      { fg: "red" },
+      { fg: "green" },
+      { dim: true }
+    ]);
   });
 
   it("statsToLines includes the current action only when present", () => {
@@ -1071,7 +1129,9 @@ describe("stats pane", () => {
       }
     ]);
     expect(withoutCurrent).toHaveLength(7);
-    expect(withoutCurrent.some((line) => line.prefix === "Current:" || line.text === "generating patch")).toBe(false);
+    expect(
+      withoutCurrent.some((line) => line.prefix === "Current:" || line.text === "generating patch")
+    ).toBe(false);
   });
 
   it("statsToLines renders the Current section for an empty action and clips narrow widths", () => {
@@ -1174,6 +1234,7 @@ describe("footer", () => {
   });
 
   afterEach(() => {
+    resetTheme();
     if (previousPoeCodeTheme === undefined) {
       delete process.env.POE_CODE_THEME;
     } else {
@@ -1234,11 +1295,19 @@ describe("footer", () => {
   it("styles keys with the accent color in bold", () => {
     const buffer = new ScreenBuffer(20, 1);
 
-    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
-      { key: "q", label: "Quit" }
-    ]);
+    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [{ key: "q", label: "Quit" }]);
 
     expect(buffer.get(7, 0)).toEqual({ ch: "q", style: { fg: "cyan", bold: true } });
+    expect(buffer.get(9, 0)).toEqual({ ch: "Q", style: {} });
+  });
+
+  it("styles keys with the active non-purple brand", () => {
+    configureTheme({ brand: "blue" });
+    const buffer = new ScreenBuffer(20, 1);
+
+    renderFooter(buffer, { x: 0, y: 0, width: 20, height: 1 }, [{ key: "q", label: "Quit" }]);
+
+    expect(buffer.get(7, 0)).toEqual({ ch: "q", style: { fg: "#2f6fed", bold: true } });
     expect(buffer.get(9, 0)).toEqual({ ch: "Q", style: {} });
   });
 });
@@ -1499,9 +1568,10 @@ describe("createDashboard", () => {
         for (let iteration = 1; iteration <= 30; iteration += 1) {
           dashboard.appendOutput({
             kind: "tool",
-            text: iteration % 2 === 0
-              ? "Running npm test -- --runInBand"
-              : "Tool execution returned a non-zero exit code",
+            text:
+              iteration % 2 === 0
+                ? "Running npm test -- --runInBand"
+                : "Tool execution returned a non-zero exit code",
             ts: iteration
           });
           dashboard.updateStats({
@@ -1510,11 +1580,16 @@ describe("createDashboard", () => {
             tokensIn: iteration * 137,
             tokensOut: iteration * 89,
             elapsedMs: iteration * 1_000,
-            currentAction: iteration === 30 ? "Completed" : actions[(iteration - 1) % actions.length]
+            currentAction:
+              iteration === 30 ? "Completed" : actions[(iteration - 1) % actions.length]
           });
         }
 
-        const screen = renderTerminalOutput(stdout.output, stdout.columns ?? size.cols, stdout.rows ?? size.rows);
+        const screen = renderTerminalOutput(
+          stdout.output,
+          stdout.columns ?? size.cols,
+          stdout.rows ?? size.rows
+        );
         const layout = computeDashboardLayout({
           totalWidth: stdout.columns ?? size.cols,
           totalHeight: stdout.rows ?? size.rows

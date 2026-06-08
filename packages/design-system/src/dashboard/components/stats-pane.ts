@@ -1,5 +1,4 @@
 import { getTheme } from "../../internal/theme-detect.js";
-import { light } from "../../tokens/colors.js";
 import { ScreenBuffer } from "../buffer.js";
 import type { CellStyle, DashboardStats, Rect } from "../types.js";
 import type { VisualLine } from "./output-pane.js";
@@ -148,23 +147,5 @@ function getStatusStyle(status: DashboardStats["status"]): CellStyle {
 }
 
 function getToneStyle(tone: StatusTone): CellStyle {
-  const isLightTheme = getTheme() === light;
-
-  if (tone === "muted") {
-    return isLightTheme ? { fg: "#666666" } : { dim: true };
-  }
-
-  if (tone === "info") {
-    return isLightTheme ? { fg: "#a200ff" } : { fg: "magenta" };
-  }
-
-  if (tone === "warning") {
-    return isLightTheme ? { fg: "#cc6600" } : { fg: "yellow" };
-  }
-
-  if (tone === "error") {
-    return isLightTheme ? { fg: "#cc0000" } : { fg: "red" };
-  }
-
-  return isLightTheme ? { fg: "#008800" } : { fg: "green" };
+  return getTheme().styles[tone];
 }

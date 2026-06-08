@@ -99,11 +99,9 @@ export function registerMcpCommand(
 
       let agent = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
-        if (fromConfig !== null) {
-          agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (flags.assumeYes || options.yes) {
-          agent = DEFAULT_MCP_AGENT;
+        if (flags.assumeYes || options.yes) {
+          const fromConfig = await resolveDefaultAgent(container);
+          agent = fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_MCP_AGENT;
         } else {
           const selected = await select({
             message: "Select agent to configure:",

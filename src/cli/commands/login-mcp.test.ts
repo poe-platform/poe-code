@@ -856,29 +856,34 @@ describe("mcp command", () => {
     expect(entry.config.args).not.toContain("--agent");
   });
 
-  it("uses core.defaultAgent for configure without prompting", async () => {
+  it("prompts for configure when core.defaultAgent is configured without --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
       `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
       "utf8"
     );
-    selectMock.mockImplementation(() => {
-      throw new Error("select should not be called");
-    });
+    selectMock.mockResolvedValue("codex");
 
     await program.parseAsync(["node", "cli", "mcp", "configure"]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to configure:",
+      options: [
+        { value: "claude-desktop", label: "claude-desktop" },
+        { value: "claude-code", label: "claude-code" },
+        { value: "codex", label: "codex" }
+      ]
+    });
     expect(configureMock).toHaveBeenCalledTimes(1);
     expect(configureMock).toHaveBeenCalledWith(
-      "claude-code",
+      "codex",
       expect.any(Object),
       expect.any(Object)
     );
   });
 
-  it("prefers core.defaultAgent over --yes for configure", async () => {
+  it("uses core.defaultAgent with --yes for configure", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -911,7 +916,7 @@ describe("mcp command", () => {
     expect(configureMock).toHaveBeenCalledWith("claude-code", expect.any(Object), expect.any(Object));
   });
 
-  it("drops the model portion of core.defaultAgent for configure", async () => {
+  it("drops the model portion of core.defaultAgent for configure with --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -926,7 +931,7 @@ describe("mcp command", () => {
       throw new Error("select should not be called");
     });
 
-    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+    await program.parseAsync(["node", "cli", "mcp", "configure", "--yes"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(configureMock).toHaveBeenCalledWith(
@@ -936,7 +941,7 @@ describe("mcp command", () => {
     );
   });
 
-  it("throws for an invalid core.defaultAgent before prompting", async () => {
+  it("throws for an invalid core.defaultAgent with --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -948,7 +953,7 @@ describe("mcp command", () => {
     });
 
     await expect(
-      program.parseAsync(["node", "cli", "mcp", "configure"])
+      program.parseAsync(["node", "cli", "mcp", "configure", "--yes"])
     ).rejects.toThrow('Invalid value for core.defaultAgent: "unknown-agent"');
 
     expect(selectMock).not.toHaveBeenCalled();

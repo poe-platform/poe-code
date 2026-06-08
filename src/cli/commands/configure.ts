@@ -827,17 +827,14 @@ export async function resolveServiceArgument(
     return provided;
   }
   const flags = resolveCommandFlags(program);
-  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-  if (fromConfig !== null) {
-    return parseAgentSpecifier(fromConfig).agent;
-  }
   const services = container.registry.list();
   const action = selectionContext?.action ?? "configure";
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }
   if (flags.assumeYes) {
-    return DEFAULT_SERVICE_AGENT;
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_SERVICE_AGENT;
   }
   const selectionLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,

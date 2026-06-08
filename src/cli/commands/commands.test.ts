@@ -455,7 +455,7 @@ describe("configure command", () => {
     ]);
   });
 
-  it("uses core.defaultAgent without prompting when no agent is provided", async () => {
+  it("prompts for an agent when core.defaultAgent is configured without --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -463,13 +463,19 @@ describe("configure command", () => {
       `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
       { encoding: "utf8" }
     );
+    prompts.mockImplementation(async (descriptor) => ({ [descriptor.name]: "codex" }));
 
     const program = createTestProgram();
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
-    ).resolves.toBe("claude-code");
-    expect(prompts).not.toHaveBeenCalled();
+    ).resolves.toBe("codex");
+    expect(prompts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "serviceSelection",
+        message: "Pick a tool to configure:"
+      })
+    );
   });
 
   it("prefers an explicit agent over core.defaultAgent", async () => {
@@ -489,7 +495,7 @@ describe("configure command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("prefers core.defaultAgent over --yes", async () => {
+  it("uses core.defaultAgent with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -516,7 +522,7 @@ describe("configure command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("throws a ValidationError for an invalid core.defaultAgent before prompting", async () => {
+  it("throws a ValidationError for an invalid core.defaultAgent with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -526,7 +532,7 @@ describe("configure command", () => {
     );
 
     const invokeSpy = vi.spyOn(container.registry, "invoke");
-    const program = createTestProgram();
+    const program = createTestProgram(["node", "cli", "--yes"]);
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
@@ -535,7 +541,7 @@ describe("configure command", () => {
     expect(invokeSpy).not.toHaveBeenCalled();
   });
 
-  it("drops the model portion of core.defaultAgent for configure", async () => {
+  it("drops the model portion of core.defaultAgent for configure with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -548,7 +554,7 @@ describe("configure command", () => {
       { encoding: "utf8" }
     );
 
-    const program = createTestProgram();
+    const program = createTestProgram(["node", "cli", "--yes"]);
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
@@ -1055,7 +1061,7 @@ describe("install command", () => {
     expect(install).toHaveBeenCalledOnce();
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -1077,7 +1083,7 @@ describe("install command", () => {
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "install"]);
+    await program.parseAsync(["node", "cli", "--yes", "install"]);
 
     expect(install).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();
@@ -1824,7 +1830,7 @@ describe("test command", () => {
     );
   });
 
-  it("uses core.defaultAgent for test without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for test with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -1855,7 +1861,7 @@ describe("test command", () => {
     const program = createBaseProgram();
     registerTestCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "test"]);
+    await program.parseAsync(["node", "cli", "--yes", "test"]);
 
     expect(testFn).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();

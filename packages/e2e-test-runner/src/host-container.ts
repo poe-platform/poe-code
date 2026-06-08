@@ -182,6 +182,7 @@ function buildExecEnv(
 interface ProxyState {
   captureFile: string;
   log: string | null;
+  repoDir: string;
   server: ProxyServer | null;
   snapshotDir: string;
   enabled: boolean;
@@ -247,16 +248,25 @@ async function resolveSnapshotDir(repoDir: string, testName: string): Promise<st
   if (!isPathWithin(snapshotsRoot, snapshotDir)) {
     throw new Error(`Invalid snapshot test name "${testName}".`);
   }
-  try {
-    if ((await lstat(snapshotDir)).isSymbolicLink()) {
-      throw new Error(`Snapshot directory must not be a symbolic link: ${snapshotDir}`);
-    }
-  } catch (error) {
-    if (!isMissingPathError(error)) {
+  await assertSnapshotPathHasNoSymlink(repoDir, snapshotDir);
+  return snapshotDir;
+}
+
+async function assertSnapshotPathHasNoSymlink(repoDir: string, snapshotDir: string): Promise<void> {
+  let currentPath = resolve(repoDir);
+  for (const segment of relative(currentPath, snapshotDir).split(sep).filter(Boolean)) {
+    currentPath = join(currentPath, segment);
+    try {
+      if ((await lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Snapshot directory must not be a symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (isMissingPathError(error)) {
+        return;
+      }
       throw error;
     }
   }
-  return snapshotDir;
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
@@ -351,7 +361,9 @@ export async function createHostContainer(
   );
 
   if (snapshotDir !== null && wantRecording) {
+    await assertSnapshotPathHasNoSymlink(repoDir, snapshotDir);
     await mkdir(snapshotDir, { recursive: true });
+    await assertSnapshotPathHasNoSymlink(repoDir, snapshotDir);
   }
 
   let proxyState: ProxyState = {
@@ -360,6 +372,7 @@ export async function createHostContainer(
     log: null,
     onMiss: useSnapshots ? resolveOnMiss(process.env.POE_SNAPSHOT_MISS) : 'error',
     mode: useSnapshots ? resolveSnapshotMode(process.env.POE_SNAPSHOT_MODE) : 'playback',
+    repoDir,
     server: null,
     snapshotDir: snapshotDir ?? '',
   };
@@ -502,7 +515,9 @@ export async function createHostContainer(
         throw new Error(`writeSnapshots() requires ${E2E_FIXTURES_DIR}/<testName> directory to exist`);
       }
 
+      await assertSnapshotPathHasNoSymlink(proxyState.repoDir, proxyState.snapshotDir);
       await mkdir(proxyState.snapshotDir, { recursive: true });
+      await assertSnapshotPathHasNoSymlink(proxyState.repoDir, proxyState.snapshotDir);
       for (const snapshot of snapshots) {
         if (!isSafeSnapshotKey(snapshot.key)) {
           throw new Error(`Invalid snapshot key "${snapshot.key}". Use only letters, numbers, "-" and "_".`);

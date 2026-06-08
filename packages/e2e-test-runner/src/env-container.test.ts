@@ -192,6 +192,16 @@ describe('createEnvContainer', () => {
       .rejects.toThrow('symbolic link');
   });
 
+  it('rejects a symlinked snapshots root before playback or recording', async () => {
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.symlinkSync('/outside', '/workspace/.snapshots');
+    const { createEnvContainer } = await import('./env-container.js');
+
+    await expect(createEnvContainer({ testName: 'proxy', useSnapshots: true }))
+      .rejects.toThrow('symbolic link');
+    expect(vol.existsSync('/outside/proxy')).toBe(false);
+  });
+
   it('reads and writes files inside the sandbox home', async () => {
     const { createEnvContainer } = await import('./env-container.js');
     const container = await createEnvContainer();

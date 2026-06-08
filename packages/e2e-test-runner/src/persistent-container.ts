@@ -17,7 +17,7 @@ import {
 } from './runtime.js';
 export { CONTAINER_HOME } from './runtime.js';
 import { mkdirSync, existsSync, lstatSync, readdirSync } from 'node:fs';
-import { basename, relative, resolve } from 'node:path';
+import { basename, isAbsolute, relative, resolve, sep } from 'node:path';
 import type { CapturedExchange } from './proxy-types.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
 import { shellQuote } from './shell-quote.js';
@@ -226,10 +226,25 @@ function resolveHostSnapshotDir(workspace: string, testName: string): string {
   if (fromRoot.startsWith('..')) {
     throw new Error(`Invalid snapshot test name "${testName}".`);
   }
-  if (existsSync(snapshotDir) && lstatSync(snapshotDir).isSymbolicLink()) {
-    throw new Error(`Snapshot directory must not be a symbolic link: ${snapshotDir}`);
-  }
+  assertSnapshotPathHasNoSymlink(workspace, snapshotDir);
   return snapshotDir;
+}
+
+function assertSnapshotPathHasNoSymlink(workspace: string, snapshotDir: string): void {
+  let currentPath = resolve(workspace);
+  const fromWorkspace = relative(currentPath, snapshotDir);
+  if (fromWorkspace.startsWith('..') || isAbsolute(fromWorkspace)) {
+    throw new Error(`Snapshot directory is outside the workspace: ${snapshotDir}`);
+  }
+  for (const segment of fromWorkspace.split(sep).filter(Boolean)) {
+    currentPath = resolve(currentPath, segment);
+    if (!existsSync(currentPath)) {
+      return;
+    }
+    if (lstatSync(currentPath).isSymbolicLink()) {
+      throw new Error(`Snapshot directory must not be a symbolic link: ${currentPath}`);
+    }
+  }
 }
 
 export async function createPersistentContainer(
@@ -250,7 +265,9 @@ export async function createPersistentContainer(
     process.env.POE_SNAPSHOT_MISS === 'record'
   );
   if (hostSnapshotDir !== null && !existsSync(hostSnapshotDir) && wantRecording) {
+    assertSnapshotPathHasNoSymlink(workspace, hostSnapshotDir);
     mkdirSync(hostSnapshotDir, { recursive: true });
+    assertSnapshotPathHasNoSymlink(workspace, hostSnapshotDir);
   }
   const proxyEnabled = useSnapshots && hostSnapshotDir !== null && existsSync(hostSnapshotDir);
   const snapshotMode = proxyEnabled
@@ -311,6 +328,7 @@ export async function createPersistentContainer(
       throw new Error(`Failed to prepare proxy directories: ${(prepareProxyResult.stderr ?? '').trim()}`);
     }
 
+    assertSnapshotPathHasNoSymlink(workspace, hostSnapshotDir);
     if (readdirSync(hostSnapshotDir).length > 0) {
       const copyResult = spawnSync(
         engine,

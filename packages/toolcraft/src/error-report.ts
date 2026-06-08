@@ -196,6 +196,28 @@ function redactValue(value: string | undefined): string {
   return `<set, ${value.length} chars>`;
 }
 
+function collectStringLeaves(value: unknown, output: Set<string>): void {
+  if (typeof value === "string") {
+    if (value.length > 0) {
+      output.add(value);
+    }
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      collectStringLeaves(entry, output);
+    }
+    return;
+  }
+
+  if (isPlainObject(value)) {
+    for (const entry of Object.values(value)) {
+      collectStringLeaves(entry, output);
+    }
+  }
+}
+
 function schemaSecretValue(schema: AnySchema): boolean | undefined {
   const unwrapped = unwrapOptional(schema);
 
@@ -248,6 +270,70 @@ function redactParams(params: unknown, command: Command<any, any, any, any> | un
   }
 
   return redactParamsValue(params, command.params, "");
+}
+
+function collectSensitiveParamValues(
+  value: unknown,
+  schema: AnySchema,
+  name: string,
+  output: Set<string>
+): void {
+  if (shouldRedactParam(name, schema)) {
+    collectStringLeaves(value, output);
+    return;
+  }
+
+  const unwrapped = unwrapOptional(schema);
+
+  if (unwrapped.kind === "object" && isPlainObject(value)) {
+    for (const [key, childValue] of Object.entries(value)) {
+      const childSchema = unwrapped.shape[key];
+      if (childSchema !== undefined) {
+        collectSensitiveParamValues(childValue, childSchema, key, output);
+      }
+    }
+    return;
+  }
+
+  if (unwrapped.kind === "array" && Array.isArray(value)) {
+    for (const entry of value) {
+      collectSensitiveParamValues(entry, unwrapped.item, name, output);
+    }
+  }
+}
+
+function createReportStringRedactor(
+  context: ErrorReportContext,
+  env: Record<string, string | undefined>
+): (value: string) => string {
+  const values = new Set<string>();
+
+  for (const value of Object.values(context.secrets ?? {})) {
+    if (value !== undefined && value.length > 0) {
+      values.add(value);
+    }
+  }
+
+  for (const [name, secret] of Object.entries(context.command?.secrets ?? {})) {
+    const value = context.secrets?.[name] ?? env[secret.env];
+    if (value !== undefined && value.length > 0) {
+      values.add(value);
+    }
+  }
+
+  if (context.command !== undefined) {
+    collectSensitiveParamValues(context.params, context.command.params, "", values);
+  }
+
+  const orderedValues = [...values].sort((left, right) => right.length - left.length);
+
+  return (value: string): string => {
+    let redacted = value;
+    for (const secretValue of orderedValues) {
+      redacted = redacted.split(secretValue).join("<redacted>");
+    }
+    return redacted;
+  };
 }
 
 function commandSecretEnvNames(secrets: SecretDeclarations | undefined): string[] {
@@ -322,7 +408,11 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value, null, 2) ?? "undefined";
 }
 
-function redactStructuredErrorField(name: string, value: unknown): unknown {
+function redactStructuredErrorField(
+  name: string,
+  value: unknown,
+  redactString: (value: string) => string
+): unknown {
   if (typeof value === "string") {
     const redactedHeaderValue = redactHttpHeaderValue(name, value);
     if (redactedHeaderValue !== value) {
@@ -332,22 +422,30 @@ function redactStructuredErrorField(name: string, value: unknown): unknown {
     if (isSensitiveName(name)) {
       return "<redacted>";
     }
+
+    return redactString(value);
   }
 
   if (Array.isArray(value)) {
-    return value.map((entry) => redactStructuredErrorField(name, entry));
+    return value.map((entry) => redactStructuredErrorField(name, entry, redactString));
   }
 
   if (isPlainObject(value)) {
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, redactStructuredErrorField(key, entry)])
+      Object.entries(value).map(([key, entry]) => [
+        key,
+        redactStructuredErrorField(key, entry, redactString)
+      ])
     );
   }
 
   return value;
 }
 
-function ownStructuredFields(error: Error): Record<string, unknown> {
+function ownStructuredFields(
+  error: Error,
+  redactString: (value: string) => string
+): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
 
   for (const key of Object.keys(error)) {
@@ -356,7 +454,11 @@ function ownStructuredFields(error: Error): Record<string, unknown> {
     }
 
     Object.defineProperty(fields, key, {
-      value: redactStructuredErrorField(key, (error as unknown as Record<string, unknown>)[key]),
+      value: redactStructuredErrorField(
+        key,
+        (error as unknown as Record<string, unknown>)[key],
+        redactString
+      ),
       enumerable: true,
       configurable: true,
       writable: true
@@ -366,21 +468,19 @@ function ownStructuredFields(error: Error): Record<string, unknown> {
   return fields;
 }
 
-function formatStackChain(error: unknown): string {
+function formatStackChain(error: unknown, redactString: (value: string) => string): string {
   const lines: string[] = [];
   let current: unknown = error;
   let index = 0;
 
   while (current !== undefined) {
     if (current instanceof Error) {
-      lines.push(
-        index === 0
-          ? (current.stack ?? String(current))
-          : `Caused by: ${current.stack ?? String(current)}`
-      );
+      const stack = current.stack ?? String(current);
+      lines.push(redactString(index === 0 ? stack : `Caused by: ${stack}`));
       current = current.cause;
     } else {
-      lines.push(index === 0 ? String(current) : `Caused by: ${String(current)}`);
+      const message = String(current);
+      lines.push(redactString(index === 0 ? message : `Caused by: ${message}`));
       current = undefined;
     }
 
@@ -390,34 +490,44 @@ function formatStackChain(error: unknown): string {
   return lines.join("\n");
 }
 
-function formatHeaderValue(name: string, value: string): string {
-  return redactHttpHeaderValue(name, value);
+function formatHeaderValue(
+  name: string,
+  value: string,
+  redactString: (value: string) => string
+): string {
+  return redactString(redactHttpHeaderValue(name, value));
 }
 
-function formatHeaders(headers: Record<string, string>): string {
+function formatHeaders(
+  headers: Record<string, string>,
+  redactString: (value: string) => string
+): string {
   return Object.entries(headers)
-    .map(([name, value]) => `${name}: ${formatHeaderValue(name, value)}`)
+    .map(([name, value]) => `${name}: ${formatHeaderValue(name, value, redactString)}`)
     .join("\n");
 }
 
-function formatBody(body: unknown): string {
+function formatBody(body: unknown, redactString: (value: string) => string): string {
   const redactedBody = redactHttpBody(body);
 
   if (typeof redactedBody === "string") {
-    return redactedBody;
+    return redactString(redactedBody);
   }
 
-  return stableJson(redactedBody);
+  return redactString(stableJson(redactedBody));
 }
 
-function formatHttpTranscript(error: HttpErrorLike): string {
+function formatHttpTranscript(
+  error: HttpErrorLike,
+  redactString: (value: string) => string
+): string {
   const requestLines = [
     `${error.request.method} ${error.request.url}`,
-    formatHeaders(error.request.headers)
+    formatHeaders(error.request.headers, redactString)
   ].filter((line) => line.length > 0);
 
   if (error.request.body !== undefined) {
-    requestLines.push("", formatBody(error.request.body));
+    requestLines.push("", formatBody(error.request.body, redactString));
   }
 
   return [
@@ -426,9 +536,9 @@ function formatHttpTranscript(error: HttpErrorLike): string {
     "",
     "Response:",
     `${error.response.status} ${error.response.statusText}`,
-    formatHeaders(error.response.headers),
+    formatHeaders(error.response.headers, redactString),
     "",
-    formatBody(error.response.body)
+    formatBody(error.response.body, redactString)
   ].join("\n");
 }
 
@@ -443,9 +553,10 @@ function resolveToolcraftVersion(version: string | undefined): string {
 function buildReport(context: ErrorReportContext): string {
   const env = context.env ?? process.env;
   const error = context.error;
+  const redactString = createReportStringRedactor(context, env);
   const errorName = error instanceof Error ? error.name : typeof error;
-  const errorMessage = error instanceof Error ? error.message : String(error);
-  const structuredFields = error instanceof Error ? ownStructuredFields(error) : {};
+  const errorMessage = redactString(error instanceof Error ? error.message : String(error));
+  const structuredFields = error instanceof Error ? ownStructuredFields(error, redactString) : {};
   const secretLines = Object.entries(context.command?.secrets ?? {}).map(([name, secret]) => {
     const value = context.secrets?.[name] ?? env[secret.env];
     return `${secret.env}=${redactValue(value)}`;
@@ -459,7 +570,9 @@ function buildReport(context: ErrorReportContext): string {
     `platform: ${process.platform} ${process.arch}`,
     "",
     "Argv",
-    stableJson(redactArgv(context.argv, { command: context.command, secrets: context.secrets })),
+    redactString(
+      stableJson(redactArgv(context.argv, { command: context.command, secrets: context.secrets }))
+    ),
     "",
     "Resolved Secrets",
     ...(secretLines.length === 0 ? ["<none>"] : secretLines),
@@ -470,20 +583,20 @@ function buildReport(context: ErrorReportContext): string {
       : context.commandPath,
     "",
     "Parsed Params",
-    stableJson(redactParams(context.params, context.command)),
+    redactString(stableJson(redactParams(context.params, context.command))),
     "",
     "Error",
     `name: ${errorName}`,
     `message: ${errorMessage}`,
     "structured fields:",
-    stableJson(structuredFields),
+    redactString(stableJson(structuredFields)),
     "",
     "Stack",
-    formatStackChain(error)
+    formatStackChain(error, redactString)
   ];
 
   if (hasHttpContext(error)) {
-    lines.push("", "HTTP Transcript", formatHttpTranscript(error));
+    lines.push("", "HTTP Transcript", formatHttpTranscript(error, redactString));
   }
 
   return `${lines.join("\n")}\n`;

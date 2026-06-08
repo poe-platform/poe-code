@@ -78,7 +78,7 @@ function prepare(packageDir, dependencyNames) {
     const workspaceDir = findWorkspacePackageDir(dependencyName);
     const packOutput = execFileSync(
       "npm",
-      ["pack", workspaceDir, "--json", "--pack-destination", tempDir],
+      ["pack", workspaceDir, "--json", "--pack-destination", tempDir, "--dry-run=false"],
       {
         cwd: repoRoot,
         encoding: "utf8"

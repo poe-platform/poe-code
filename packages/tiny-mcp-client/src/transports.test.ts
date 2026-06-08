@@ -1471,6 +1471,40 @@ describe("JsonRpcMessageLayer sendRequest", () => {
       vi.useRealTimers();
     }
   });
+
+  it("clears pending request state and timeout when a request is cancelled", async () => {
+    vi.useFakeTimers();
+    try {
+      const input = new PassThrough();
+      const output = new PassThrough();
+      trackForCleanup(input, output);
+      const layer = new JsonRpcMessageLayer(input, output, 25);
+      const onTimeout = vi.fn();
+      const pendingCount = () =>
+        (
+          layer as unknown as {
+            pendingRequests: Map<unknown, unknown>;
+          }
+        ).pendingRequests.size;
+
+      const responsePromise = layer.sendRequest("slow/method", undefined, {
+        onTimeout,
+      });
+      expect(pendingCount()).toBe(1);
+
+      expect(layer.cancelRequest(1, "user cancelled")).toBe(true);
+
+      await expect(responsePromise).rejects.toBe("user cancelled");
+      expect(pendingCount()).toBe(0);
+
+      await vi.advanceTimersByTimeAsync(25);
+
+      expect(onTimeout).not.toHaveBeenCalled();
+      expect(layer.cancelRequest(1, "already gone")).toBe(false);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 describe("JsonRpcMessageLayer UTF-8 input", () => {
@@ -7123,6 +7157,21 @@ describe("McpClient callTool", () => {
       throw new Error("Expected initialized notification line to be written");
     }
 
+    const activeMessageLayer = (
+      client as unknown as {
+        messageLayer: JsonRpcMessageLayer | null;
+      }
+    ).messageLayer;
+    if (activeMessageLayer === null) {
+      throw new Error("Expected message layer to exist after connect");
+    }
+    const pendingCount = () =>
+      (
+        activeMessageLayer as unknown as {
+          pendingRequests: Map<unknown, unknown>;
+        }
+      ).pendingRequests.size;
+
     const abortController = new AbortController();
     const callToolPromise = client.callTool(
       {
@@ -7142,6 +7191,8 @@ describe("McpClient callTool", () => {
     const callToolRequest = JSON.parse(callToolLineResult.value) as {
       id: number;
     };
+    expect(pendingCount()).toBe(1);
+
     abortController.abort("user cancelled");
 
     const cancelledLineResult = await iterator.next();
@@ -7158,6 +7209,7 @@ describe("McpClient callTool", () => {
     });
 
     await callToolRejection;
+    expect(pendingCount()).toBe(0);
     await client.close();
   });
 

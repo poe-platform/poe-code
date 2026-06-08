@@ -478,6 +478,9 @@ export class McpClient {
       const abortPromise = new Promise<CallToolResult>((_, reject) => {
         const rejectWithAbortReason = () => {
           sendCancellationNotification();
+          if (requestId !== undefined) {
+            messageLayer.cancelRequest(requestId, signal.reason);
+          }
           reject(signal.reason);
         };
 
@@ -3264,6 +3267,18 @@ export class JsonRpcMessageLayer {
         reject(error);
       }
     });
+  }
+
+  cancelRequest(requestId: RequestId, reason: unknown): boolean {
+    const pending = this.pendingRequests.get(requestId);
+    if (pending === undefined) {
+      return false;
+    }
+
+    this.pendingRequests.delete(requestId);
+    clearTimeout(pending.timeout);
+    pending.reject(reason);
+    return true;
   }
 
   dispose(reason = new Error("JSON-RPC message layer disposed")): void {

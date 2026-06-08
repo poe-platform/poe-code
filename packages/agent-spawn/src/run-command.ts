@@ -1,5 +1,10 @@
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
+import { setTimeout as delay } from "node:timers/promises";
+
+const TERMINATION_GRACE_MS = 1_000;
+const PROCESS_GROUP_POLL_MS = 25;
+const PROCESS_GROUP_FINAL_WAIT_MS = 500;
 
 export interface CommandRunnerResult {
   stdout: string;
@@ -40,6 +45,10 @@ export function runCommand(
     }
 
     const hasStdin = options?.stdin != null;
+    const timeoutMs = options?.timeoutMs;
+    const hasTimeout = typeof timeoutMs === "number" && timeoutMs > 0;
+    const canAbort = options?.signal !== undefined;
+    const killProcessGroup = process.platform !== "win32" && (hasTimeout || canAbort);
     const child = spawn(command, args, {
       stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
       cwd: options?.cwd,
@@ -48,8 +57,12 @@ export function runCommand(
             ...(process.env as Record<string, string | undefined>),
             ...options.env
           }
-        : undefined
+        : undefined,
+      ...(killProcessGroup ? { detached: true } : {})
     });
+    if (killProcessGroup) {
+      child.unref();
+    }
     let stdout = "";
     let stderr = "";
     let settled = false;
@@ -89,20 +102,33 @@ export function runCommand(
       aborted = reason === "abort";
       terminationMessage =
         reason === "timeout"
-          ? `Command timed out after ${options?.timeoutMs} ms.`
+          ? `Command timed out after ${timeoutMs} ms.`
           : "Command aborted.";
-      child.kill("SIGTERM");
+      killChild("SIGTERM");
       escalationTimeout = setTimeout(() => {
-        child.kill("SIGKILL");
-      }, 1_000);
+        killChild("SIGKILL");
+      }, TERMINATION_GRACE_MS);
+    };
+
+    const killChild = (signal: NodeJS.Signals): void => {
+      if (killProcessGroup && typeof child.pid === "number" && child.pid > 0) {
+        try {
+          process.kill(-child.pid, signal);
+          return;
+        } catch {
+          // Fall back to the direct child when the process group is already gone or unavailable.
+        }
+      }
+
+      child.kill(signal);
     };
 
     function abortCommand(): void {
       terminate("abort");
     }
 
-    if (typeof options?.timeoutMs === "number" && options.timeoutMs > 0) {
-      timeout = setTimeout(() => terminate("timeout"), options.timeoutMs);
+    if (hasTimeout) {
+      timeout = setTimeout(() => terminate("timeout"), timeoutMs);
     }
     options?.signal?.addEventListener("abort", abortCommand, { once: true });
 
@@ -138,22 +164,58 @@ export function runCommand(
     });
 
     child.on("close", (code, signal) => {
-      const exitCode = timedOut ? 124 : aborted ? 130 : code ?? signalExitCode(signal);
-      const finalStderr =
-        terminationMessage === undefined
-          ? stderr
-          : stderr
-            ? `${stderr}${terminationMessage}`
-            : terminationMessage;
-      finish({
-        stdout,
-        stderr: finalStderr,
-        exitCode,
-        ...(timedOut ? { timedOut: true } : {}),
-        ...(aborted ? { aborted: true } : {})
-      });
+      void (async () => {
+        if ((timedOut || aborted) && killProcessGroup && typeof child.pid === "number") {
+          await waitForProcessGroupExit(child.pid);
+        }
+
+        const exitCode = timedOut ? 124 : aborted ? 130 : code ?? signalExitCode(signal);
+        const finalStderr =
+          terminationMessage === undefined
+            ? stderr
+            : stderr
+              ? `${stderr}${terminationMessage}`
+              : terminationMessage;
+        finish({
+          stdout,
+          stderr: finalStderr,
+          exitCode,
+          ...(timedOut ? { timedOut: true } : {}),
+          ...(aborted ? { aborted: true } : {})
+        });
+      })();
     });
   });
+}
+
+async function waitForProcessGroupExit(pid: number): Promise<void> {
+  const deadline = Date.now() + TERMINATION_GRACE_MS + PROCESS_GROUP_FINAL_WAIT_MS;
+
+  while (Date.now() < deadline) {
+    if (!isProcessGroupAlive(pid)) {
+      return;
+    }
+
+    await delay(PROCESS_GROUP_POLL_MS);
+  }
+}
+
+function isProcessGroupAlive(pid: number): boolean {
+  try {
+    process.kill(-pid, 0);
+    return true;
+  } catch (error) {
+    return !isNoSuchProcess(error);
+  }
+}
+
+function isNoSuchProcess(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ESRCH"
+  );
 }
 
 function signalExitCode(signal: NodeJS.Signals | null): number {

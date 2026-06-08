@@ -90,6 +90,42 @@ describe("harness schema codegen", () => {
     await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("{\"external\":true}\n");
   });
 
+  it("does not remove a colliding staged schema symlink", async () => {
+    const volume = Volume.fromJSON({
+      "/outside.tmp": "outside-state\n"
+    });
+    const rawFs = createFsFromVolume(volume).promises;
+    let stagedPath: string | undefined;
+    const fs = {
+      ...rawFs,
+      async writeFile(
+        filePath: Parameters<typeof rawFs.writeFile>[0],
+        data: Parameters<typeof rawFs.writeFile>[1],
+        options?: Parameters<typeof rawFs.writeFile>[2]
+      ) {
+        const pathText = String(filePath);
+        if (
+          pathText.startsWith("/repo/docs/schemas/harnesses/.coverage-demo.schema.json.") &&
+          pathText.endsWith(".tmp")
+        ) {
+          stagedPath = pathText;
+          volume.symlinkSync("/outside.tmp", pathText);
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        }
+
+        return rawFs.writeFile(filePath, data, options);
+      }
+    };
+
+    await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow();
+
+    expect(stagedPath).toBeDefined();
+    expect(volume.readFileSync("/outside.tmp", "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(stagedPath as string).isSymbolicLink()).toBe(true);
+    await expect(fs.readFile("/repo/docs/schemas/harnesses/coverage-demo.schema.json", "utf8"))
+      .rejects.toThrow();
+  });
+
   it("restores previously published schemas when a later write fails", async () => {
     const volume = Volume.fromJSON({
       "/repo/docs/schemas/harnesses/coverage-demo.schema.json": "old coverage schema\n",

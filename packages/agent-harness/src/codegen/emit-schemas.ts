@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,7 +15,7 @@ interface HarnessSchemaFileSystem {
   writeFile(
     filePath: string,
     data: string,
-    options?: BufferEncoding | { encoding?: BufferEncoding }
+    options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
   ): Promise<unknown>;
 }
 
@@ -42,7 +43,12 @@ export async function runHarnessCodegen(
   const outputDirectory = path.join(repoRoot, "docs", "schemas", "harnesses");
 
   await fs.mkdir(outputDirectory, { recursive: true });
-  const documents: Array<{ outputPath: string; stagedPath: string; serialized: string }> = [];
+  const documents: Array<{
+    created: boolean;
+    outputPath: string;
+    stagedPath: string;
+    serialized: string;
+  }> = [];
 
   for (const template of await listBuiltinTemplateSchemaSources()) {
     const ajsSource = await nodeFs.readFile(template.ajsPath, "utf8");
@@ -59,12 +65,13 @@ export async function runHarnessCodegen(
       ...toJsonSchema(schema)
     };
     const outputPath = path.join(outputDirectory, fileName);
-    const stagedPath = path.join(outputDirectory, `.${fileName}.tmp`);
+    const stagedPath = path.join(outputDirectory, `.${fileName}.${randomUUID()}.tmp`);
 
     await assertSafeSchemaOutput(repoRoot, outputPath, fs);
     await assertSafeSchemaOutput(repoRoot, stagedPath, fs);
 
     documents.push({
+      created: false,
       outputPath,
       stagedPath,
       serialized: serializeJsonDocument(document)
@@ -73,15 +80,24 @@ export async function runHarnessCodegen(
 
   try {
     for (const document of documents) {
-      await fs.writeFile(document.stagedPath, document.serialized, "utf8");
+      await fs.writeFile(document.stagedPath, document.serialized, {
+        encoding: "utf8",
+        flag: "wx"
+      });
+      document.created = true;
+    }
+
+    for (const document of documents) {
+      await fs.rename(document.stagedPath, document.outputPath);
+      document.created = false;
     }
   } catch (error) {
-    await Promise.all(documents.map((document) => unlinkIfExists(document.stagedPath, fs)));
+    await Promise.all(
+      documents
+        .filter((document) => document.created)
+        .map((document) => unlinkIfExists(document.stagedPath, fs))
+    );
     throw error;
-  }
-
-  for (const document of documents) {
-    await fs.rename(document.stagedPath, document.outputPath);
   }
 }
 

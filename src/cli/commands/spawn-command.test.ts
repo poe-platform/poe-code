@@ -379,7 +379,7 @@ describe("spawn command", () => {
     );
   });
 
-  it("wraps spawn runs with enabled integrations and passes spawn middleware", async () => {
+  it("wraps spawn runs with enabled integrations without forwarding spawn middleware", async () => {
     const calls: string[] = [];
     const spawnMiddleware: AcpMiddleware = vi.fn(async (_ctx, next) => {
       calls.push("middleware");
@@ -402,7 +402,7 @@ describe("spawn command", () => {
     });
     vi.mocked(sdkSpawn).mockImplementation((_service, options) => {
       calls.push("spawn");
-      expect(options.middlewares).toEqual([spawnMiddleware]);
+      expect(options.middlewares).toBeUndefined();
       return {
         events: emptyAsyncIterable(),
         result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })

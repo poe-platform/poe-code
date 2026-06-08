@@ -157,4 +157,40 @@ describe("harness schema codegen", () => {
     await expect(fs.readFile("/repo/docs/schemas/harnesses/experiment-demo.schema.json", "utf8"))
       .resolves.toBe("old experiment schema\n");
   });
+
+  it("restores previously published schemas when a later publish rename fails", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/docs/schemas/harnesses/coverage-demo.schema.json": "old coverage schema\n",
+      "/repo/docs/schemas/harnesses/experiment-demo.schema.json": "old experiment schema\n"
+    });
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = {
+      ...rawFs,
+      async rename(
+        fromPath: Parameters<typeof rawFs.rename>[0],
+        toPath: Parameters<typeof rawFs.rename>[1]
+      ) {
+        const fromText = String(fromPath);
+        if (
+          fromText.includes("/.experiment-demo.schema.json.") &&
+          fromText.endsWith(".tmp")
+        ) {
+          throw new Error("simulated schema publish failure");
+        }
+
+        return rawFs.rename(fromPath, toPath);
+      }
+    };
+
+    await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+      "simulated schema publish failure"
+    );
+    await expect(fs.readFile("/repo/docs/schemas/harnesses/coverage-demo.schema.json", "utf8"))
+      .resolves.toBe("old coverage schema\n");
+    await expect(fs.readFile("/repo/docs/schemas/harnesses/experiment-demo.schema.json", "utf8"))
+      .resolves.toBe("old experiment schema\n");
+    await expect(
+      fs.readdir("/repo/docs/schemas/harnesses").then((entries) => [...entries].sort())
+    ).resolves.toEqual(["coverage-demo.schema.json", "experiment-demo.schema.json"]);
+  });
 });

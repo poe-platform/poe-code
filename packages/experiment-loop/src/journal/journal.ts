@@ -1,9 +1,8 @@
+import { randomUUID } from "node:crypto";
 import { dirname, join, parse, resolve, sep } from "node:path";
 import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
 const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
-
-let temporaryFileSequence = 0;
 
 export class ExperimentJournal {
   constructor(
@@ -94,13 +93,16 @@ export class ExperimentJournal {
   }
 
   private async publish(entries: JournalEntry[]): Promise<void> {
-    const temporaryPath = `${this.journalPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+    await this.assertRegularPath();
+    const temporaryPath = `${this.journalPath}.${process.pid}.${randomUUID()}.tmp`;
 
     try {
       await this.fs.writeFile(
         temporaryPath,
-        entries.length === 0 ? "" : entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
+        entries.length === 0 ? "" : entries.map((e) => JSON.stringify(e)).join("\n") + "\n",
+        { encoding: "utf8", flag: "wx" }
       );
+      await this.assertRegularPath();
       await this.fs.rename(temporaryPath, this.journalPath);
     } catch (error) {
       await this.fs.unlink(temporaryPath).catch(() => undefined);

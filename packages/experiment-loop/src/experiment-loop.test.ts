@@ -1292,6 +1292,36 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([first, second]);
   });
 
+  it("does not follow a preexisting legacy publish temp path symlink", async () => {
+    vi.resetModules();
+    const { ExperimentJournal: FreshExperimentJournal } = await import("./journal/journal.js");
+    const first = createJournalEntry({ commit: "first" });
+    const second = createJournalEntry({ commit: "second" });
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const outsidePath = "/outside/journal-target.jsonl";
+    const volume = Volume.fromJSON(
+      {
+        [journalPath]: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`,
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    volume.symlinkSync(outsidePath, `${journalPath}.${process.pid}.0.tmp`);
+    const fs = createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
+    const journal = new FreshExperimentJournal(journalPath, fs);
+
+    const updated = await journal.updateLast({ scores: { tests: 42 } });
+
+    expect(updated).toEqual(expect.objectContaining({ scores: { tests: 42 } }));
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    const journalStat = await fs.lstat(journalPath);
+    expect(journalStat.isSymbolicLink()).toBe(false);
+    await expect(journal.readAll()).resolves.toEqual([
+      first,
+      { ...second, scores: { tests: 42 } }
+    ]);
+  });
+
   it("updateLast patches the last entry and preserves earlier entries", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);

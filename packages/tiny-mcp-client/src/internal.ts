@@ -449,10 +449,19 @@ export class McpClient {
 
     try {
       let requestId: RequestId | undefined;
+      let cancellationSent = false;
+      const sendCancellationNotification = () => {
+        if (requestId === undefined || cancellationSent) {
+          return;
+        }
+        cancellationSent = true;
+        messageLayer.sendNotification("notifications/cancelled", { requestId });
+      };
       const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
         onRequestId: (nextRequestId) => {
           requestId = nextRequestId;
         },
+        onTimeout: sendCancellationNotification,
       }).then((result) => {
         if (!isCallToolResult(result)) {
           throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
@@ -468,9 +477,7 @@ export class McpClient {
       let abortListener: (() => void) | undefined;
       const abortPromise = new Promise<CallToolResult>((_, reject) => {
         const rejectWithAbortReason = () => {
-          if (requestId !== undefined) {
-            messageLayer.sendNotification("notifications/cancelled", { requestId });
-          }
+          sendCancellationNotification();
           reject(signal.reason);
         };
 
@@ -3134,6 +3141,7 @@ interface ActiveIncomingRequest {
 export interface JsonRpcRequestOptions {
   timeoutMs?: number;
   onRequestId?: (requestId: RequestId) => void;
+  onTimeout?: (requestId: RequestId) => void;
 }
 
 interface JsonRpcRequestContext {
@@ -3242,6 +3250,7 @@ export class JsonRpcMessageLayer {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(id);
+        options.onTimeout?.(id);
         reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 

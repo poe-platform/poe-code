@@ -293,6 +293,38 @@ describe("McpClient SDK integration callTool", () => {
     }
   });
 
+  it("cancels an in-flight slow tool call when the request timeout elapses", async () => {
+    const server = await createMockSlowToolServer({ delayMs: 1_000, pollIntervalMs: 5 });
+    const { client, cleanup } = await createSdkTestPair(server, () =>
+      new McpClient({
+        clientInfo: {
+          name: "test-client",
+          version: "1.0.0",
+        },
+        requestTimeoutMs: 100,
+      })
+    );
+
+    try {
+      const callPromise = client.callTool({
+        name: "slow",
+        arguments: {
+          delayMs: 500,
+        },
+      });
+
+      await waitFor(() => server.wasStarted(), "Timed out waiting for slow tool to start");
+
+      await expect(callPromise).rejects.toThrow(
+        'JSON-RPC request "tools/call" timed out after 100ms'
+      );
+      await waitFor(() => server.wasCancelled(), "Timed out waiting for slow tool cancellation");
+      expect(server.getCancelledRequestIds()).toEqual(server.getStartedRequestIds());
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("rejects with JSON-RPC error code and message for unknown tool names", async () => {
     const server = await createMockErrorServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>

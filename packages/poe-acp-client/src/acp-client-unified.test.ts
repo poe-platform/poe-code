@@ -53,6 +53,7 @@ import {
   parseSessionUpdate,
   saveRunReport,
   type RunReport,
+  type RunReportFileSystem,
   type ToolCallSummary,
 } from "./index.js";
 
@@ -3208,6 +3209,56 @@ describe("saveRunReport", () => {
       { message: "[redacted]", toolCallId: "tool-1" },
     ]);
     expect(rawJson).not.toMatch(/report-input-secret|report-output-secret/u);
+  });
+
+  it("does not follow a report file symlink inserted before JSON publish", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/report.json": "outside-state\n",
+    });
+    const baseFs = createFsFromVolume(volume).promises;
+    const jsonPath = "/home/test/.poe-code/reports/20260525-010203-004-run-1.json";
+    const outsidePath = "/outside/report.json";
+    let plantedSymlink = false;
+    const fs: RunReportFileSystem = {
+      mkdir: (path, options) => baseFs.mkdir(path, options),
+      writeFile: async (path, data, options) => {
+        await baseFs.writeFile(path, data, options);
+        if (
+          !plantedSymlink &&
+          path.startsWith("/home/test/.poe-code/reports/.20260525-010203-004-run-1.json.") &&
+          path.endsWith(".tmp")
+        ) {
+          plantedSymlink = true;
+          await baseFs.symlink(outsidePath, jsonPath);
+        }
+      },
+      rm: (path, options) => baseFs.rm(path, options),
+      rename: (oldPath, newPath) => baseFs.rename(oldPath, newPath),
+      realpath: (path) => baseFs.realpath(path) as Promise<string>,
+    };
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      now: () => new Date("2026-05-25T01:02:03.004Z"),
+    });
+
+    expect(output.jsonPath).toBe(jsonPath);
+    expect(plantedSymlink).toBe(true);
+    expect((await baseFs.lstat(jsonPath)).isSymbolicLink()).toBe(false);
+    await expect(baseFs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    expect(JSON.parse(await baseFs.readFile(jsonPath, "utf8"))).toMatchObject({
+      runId: "run-1",
+    });
   });
 
   it("preserves raw tool content when explicitly requested", async () => {

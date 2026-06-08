@@ -1,7 +1,7 @@
 import * as fsPromises from "node:fs/promises";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
-import { isAbsolute, join, relative, sep } from "node:path";
+import { basename, dirname, isAbsolute, join, relative, sep } from "node:path";
 import {
   extractToolCallSummariesFromSessionUpdateStream,
   extractUsageFromSessionUpdateStream,
@@ -49,9 +49,10 @@ export type RunReportFileSystem = {
   writeFile(
     path: string,
     data: string,
-    options?: { encoding?: BufferEncoding },
+    options?: { encoding?: BufferEncoding; flag?: string },
   ): Promise<void>;
-  rm(path: string): Promise<void>;
+  rm(path: string, options?: { force?: boolean }): Promise<void>;
+  rename?(oldPath: string, newPath: string): Promise<void>;
   realpath?(path: string): Promise<string>;
 };
 
@@ -155,9 +156,9 @@ export async function saveRunReport(
   const summaryPath = join(reportsDir, `${baseFileName}.txt`);
   const savedReport = options.includeRawContent === true ? report : redactRunReport(report);
 
-  await fs.writeFile(jsonPath, JSON.stringify(savedReport, null, 2), { encoding: "utf8" });
+  await writeReportFile(fs, jsonPath, JSON.stringify(savedReport, null, 2));
   try {
-    await fs.writeFile(summaryPath, formatRunReportSummary(savedReport), { encoding: "utf8" });
+    await writeReportFile(fs, summaryPath, formatRunReportSummary(savedReport));
   } catch (error) {
     await fs.rm(jsonPath);
     throw error;
@@ -168,6 +169,48 @@ export async function saveRunReport(
     jsonPath,
     summaryPath,
   };
+}
+
+async function writeReportFile(
+  fs: RunReportFileSystem,
+  targetPath: string,
+  content: string,
+): Promise<void> {
+  if (fs.rename === undefined) {
+    await fs.writeFile(targetPath, content, { encoding: "utf8" });
+    return;
+  }
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = join(
+      dirname(targetPath),
+      `.${basename(targetPath)}.${process.pid}.${randomUUID()}.tmp`,
+    );
+    let tempCreated = false;
+    try {
+      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
+      await fs.rename(tempPath, targetPath);
+      tempCreated = false;
+      return;
+    } catch (error) {
+      if (isAlreadyExists(error) && !tempCreated) {
+        continue;
+      }
+      if (tempCreated) {
+        await fs.rm(tempPath, { force: true }).catch(() => undefined);
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to create temporary run report file for ${targetPath}.`);
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(
+    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 function redactRunReport(report: RunReport): RunReport {

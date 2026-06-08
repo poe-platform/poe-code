@@ -30,7 +30,7 @@ function browserCommand(url: string, platform: NodeJS.Platform): { command: stri
   }
 
   if (platform === "win32") {
-    return { command: "cmd", args: ["/c", "start", "", url] };
+    return { command: "rundll32.exe", args: ["url.dll,FileProtocolHandler", url] };
   }
 
   return { command: "xdg-open", args: [url] };

@@ -319,6 +319,52 @@ describe("runPoeCommand", () => {
     });
   });
 
+  it("waits for captured wrapped stdio to drain after the exit marker", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      if (spec.command !== "sh" || spec.args?.[0] !== "-c") {
+        throw new Error("Expected wrapped shell command");
+      }
+
+      const stdout = new PassThrough();
+      const stderr = new PassThrough();
+      void writeExitFile(env.fs.promises, spec, 0).then(() => {
+        setImmediate(() => {
+          stdout.write("late stdout\n");
+          stderr.write("late stderr\n");
+          stdout.end();
+          stderr.end();
+        });
+      });
+
+      return {
+        pid: 123,
+        stdout,
+        stderr,
+        stdin: null,
+        result: Promise.resolve({ exitCode: 0 }),
+        kill() {}
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({ execution: { captureOutput: true } }),
+        detach: false,
+        state
+      })
+    ).resolves.toMatchObject({
+      kind: "sync",
+      exitCode: 0,
+      stdout: "late stdout\n",
+      stderr: "late stderr\n"
+    });
+  });
+
   it("persists display argv while executing the original argv", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();

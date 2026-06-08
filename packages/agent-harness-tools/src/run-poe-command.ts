@@ -428,6 +428,9 @@ async function runSync(opts: {
     const { exitCode } = opts.wrapCommand
       ? await abort.waitForExit(opts.env, opts.jobId)
       : await abort.waitForHandle();
+    if (capture) {
+      await abort.waitForDrain(streamState.drained());
+    }
     const download = await opts.env.downloadWorkspace({
       conflictPolicy: opts.openSpec.runner?.download_conflict ?? "refuse"
     });
@@ -471,6 +474,7 @@ function pipeRunStreams(
 ): {
   stdout(): string;
   stderr(): string;
+  drained(): Promise<void>;
   dispose(): void;
 } {
   const listeners: Array<() => void> = [];
@@ -492,6 +496,7 @@ function pipeRunStreams(
   return {
     stdout: () => "",
     stderr: () => "",
+    drained: () => Promise.resolve(),
     dispose() {
       for (const remove of listeners) {
         remove();
@@ -509,11 +514,13 @@ function captureRunStreams(
 ): {
   stdout(): string;
   stderr(): string;
+  drained(): Promise<void>;
   dispose(): void;
 } {
   let stdout = "";
   let stderr = "";
   const listeners: Array<() => void> = [];
+  const drainPromises: Array<Promise<void>> = [];
 
   const bind = (
     stream: Readable | null,
@@ -522,15 +529,35 @@ function captureRunStreams(
   ): void => {
     if (!stream) return;
     stream.setEncoding("utf8");
+    let settled = false;
+    let settleDrain = () => {};
     const listener = (chunk: string | Buffer) => {
       if (countsAsActivity) {
         onActivity();
       }
       onChunk(chunk.toString());
     };
+    const drainPromise = new Promise<void>((resolve) => {
+      settleDrain = () => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        stream.off("end", settleDrain);
+        stream.off("close", settleDrain);
+        stream.off("error", settleDrain);
+        resolve();
+      };
+    });
     stream.on("data", listener);
+    stream.once("end", settleDrain);
+    stream.once("close", settleDrain);
+    stream.once("error", settleDrain);
+    drainPromises.push(drainPromise);
     listeners.push(() => {
       stream.off("data", listener);
+      settleDrain();
     });
   };
 
@@ -546,6 +573,9 @@ function captureRunStreams(
   return {
     stdout: () => stdout,
     stderr: () => stderr,
+    drained: async () => {
+      await Promise.all(drainPromises);
+    },
     dispose() {
       for (const remove of listeners) {
         remove();
@@ -562,6 +592,7 @@ function createAbortSync(
 ): {
   waitForExit(env: OpenedEnv, jobId: string): Promise<{ exitCode: number }>;
   waitForHandle(): Promise<{ exitCode: number }>;
+  waitForDrain(drain: Promise<void>): Promise<void>;
   resetActivityTimer(): void;
   dispose(): void;
 } {
@@ -637,6 +668,20 @@ function createAbortSync(
 
       if (result.kind === "exit") {
         return result.value;
+      }
+
+      throw terminationError!;
+    },
+    async waitForDrain(drain) {
+      if (terminationError !== undefined) throw terminationError;
+
+      const result = await Promise.race([
+        drain.then(() => ({ kind: "drained" as const })),
+        terminationPromise.then(() => ({ kind: "terminate" as const }))
+      ]);
+
+      if (result.kind === "drained") {
+        return;
       }
 
       throw terminationError!;

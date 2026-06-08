@@ -428,7 +428,7 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("codex", {
       model: "test-model",
       expectedOutput: "CODEX_OK",
-      hooks: { from: "claude-code", strategy: "transform" }
+      hooks: { from: "claude-code", strategy: "transform", scope: "project" }
     });
     await check.run({ isDryRun: false, runCommand, logWarning });
 
@@ -438,6 +438,8 @@ describe("createSpawnHealthCheck", () => {
       "claude-code",
       "--hooks-strategy",
       "transform",
+      "--hooks-scope",
+      "project",
       "--model",
       "test-model",
       "--mode",

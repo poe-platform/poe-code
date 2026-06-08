@@ -8,6 +8,7 @@ import {
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
+  type HookBridgeOptions,
   type McpSpawnConfig,
   type SpawnMode
 } from "@poe-code/agent-spawn";
@@ -104,6 +105,13 @@ export function registerSpawnCommand(
       ])
     )
     .addOption(
+      new Option("--hooks-scope <scope>", "Hook bridge scope (default: merged)").choices([
+        "project",
+        "user",
+        "merged"
+      ])
+    )
+    .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
@@ -142,6 +150,7 @@ export function registerSpawnCommand(
           skills?: string[] | boolean;
           hooksFrom?: string;
           hooksStrategy?: "auto" | "symlink" | "transform";
+          hooksScope?: "project" | "user" | "merged";
           resumeThreadId?: string;
           logDir?: string;
           logFileName?: string;
@@ -154,6 +163,7 @@ export function registerSpawnCommand(
       const hooks = resolveHookOptions(
         commandOptions.hooksFrom,
         commandOptions.hooksStrategy,
+        commandOptions.hooksScope,
         this
       );
       let integrations: Integrations | null = null;
@@ -765,6 +775,7 @@ function resolveSkillOptions(
 function resolveHookOptions(
   from: string | undefined,
   strategy: "auto" | "symlink" | "transform" | undefined,
+  scope: HookBridgeOptions["scope"] | undefined,
   command: Command
 ): NonNullable<SpawnCommandOptions["hooks"]> | undefined {
   if (!from) {
@@ -774,10 +785,20 @@ function resolveHookOptions(
         "error: option '--hooks-strategy <strategy>' requires '--hooks-from <agentId>'"
       );
     }
+    if (scope) {
+      command.outputHelp({ error: true });
+      command.error(
+        "error: option '--hooks-scope <scope>' requires '--hooks-from <agentId>'"
+      );
+    }
     return undefined;
   }
 
-  return { from, strategy: strategy ?? "auto" };
+  return {
+    from,
+    strategy: strategy ?? "auto",
+    ...(scope ? { scope } : {})
+  };
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

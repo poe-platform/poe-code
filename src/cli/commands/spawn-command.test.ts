@@ -1172,6 +1172,40 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes --hooks-scope through to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--hooks-from",
+      "claude",
+      "--hooks-scope",
+      "project",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: undefined,
+      mode: "yolo",
+      cwd: undefined,
+      hooks: { from: "claude", strategy: "auto", scope: "project" },
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
   it("shows usage when --hooks-strategy is provided without --hooks-from", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -1192,6 +1226,35 @@ describe("spawn command", () => {
         "spawn",
         "--hooks-strategy",
         "auto",
+        "codex",
+        "List files"
+      ])
+    ).rejects.toThrow("--hooks-from");
+
+    expect(stderr).toContain("Usage:");
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("shows usage when --hooks-scope is provided without --hooks-from", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    let stderr = "";
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    spawnCommand?.configureOutput({ writeErr: (value) => (stderr += value) });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--hooks-scope",
+        "project",
         "codex",
         "List files"
       ])

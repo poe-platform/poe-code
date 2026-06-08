@@ -1741,10 +1741,32 @@ describe("test command", () => {
       "--hooks-from",
       "claude-code",
       "--hooks-strategy",
-      "transform"
+      "transform",
+      "--hooks-scope",
+      "user"
     ]);
 
-    expect(receivedHooks).toEqual({ from: "claude-code", strategy: "transform" });
+    expect(receivedHooks).toEqual({ from: "claude-code", strategy: "transform", scope: "user" });
+  });
+
+  it("requires --hooks-from when --hooks-scope is provided to tests", async () => {
+    const container = createTestContainer();
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test() {}
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+    const testCommand = program.commands.find((command) => command.name() === "test");
+    testCommand?.configureOutput({ writeErr: () => {} });
+
+    await expect(
+      program.parseAsync(["node", "cli", "test", "demo-service", "--hooks-scope", "project"])
+    ).rejects.toThrow("--hooks-from");
   });
 
   it("model is undefined when --model is not provided", async () => {

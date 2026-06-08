@@ -43,11 +43,34 @@ describe("ralphDriver", () => {
     expect(outcome).toEqual({ reason: "normal" });
   });
 
+  it("does not follow an existing workspace plan symlink while copying the plan", async () => {
+    const source = planDoc("Implement the thing");
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": source,
+      "/outside/workspace-plan.md": "outside-state\n"
+    });
+    vol.mkdirSync("/repo/workspaces/task-1", { recursive: true });
+    vol.symlinkSync("/outside/workspace-plan.md", "/repo/workspaces/task-1/ralph-plan.md");
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await expect(fs.readFile(options.docPath, "utf8")).resolves.toBe(source);
+        expect((await fs.lstat(options.docPath)).isSymbolicLink()).toBe(false);
+        return result(options.docPath, "completed");
+      }
+    });
+
+    const outcome = await driver.run(createDriverContext(ralphContextDefaults));
+
+    expect(outcome).toEqual({ reason: "normal" });
+    expect(vol.readFileSync("/outside/workspace-plan.md", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync("/repo/workspaces/task-1/ralph-plan.md").isSymbolicLink()).toBe(false);
+  });
+
   it("fails before running ralph when the plan cannot be copied into the workspace", async () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": planDoc("Copy failure")
     });
-    vi.spyOn(fs, "copyFile").mockRejectedValue("copy denied");
+    vi.spyOn(fs, "readFile").mockRejectedValueOnce("copy denied");
     const runRalph = vi.fn(async (options: RalphRunOptions) =>
       result(options.docPath, "completed")
     );
@@ -387,13 +410,13 @@ describe("ralphDriver", () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": planDoc("Stat failure")
     });
-    const realStat = fs.stat.bind(fs);
-    vi.spyOn(fs, "stat").mockImplementation(async (filePath) => {
+    const realLstat = fs.lstat.bind(fs);
+    vi.spyOn(fs, "lstat").mockImplementation(async (filePath) => {
       if (filePath === "/repo/workspaces/task-1/ralph-plan.md") {
         throw Object.assign(new Error("stat denied"), { code: "EACCES" });
       }
 
-      return realStat(filePath);
+      return realLstat(filePath);
     });
     const driver = createRalphDriver({
       runRalph: async (options) => result(options.docPath, "completed")
@@ -428,6 +451,33 @@ describe("ralphDriver", () => {
     await expect(fs.readFile("/repo/workspaces/task-1/ralph-plan.md", "utf8")).resolves.toBe(
       updated
     );
+  });
+
+  it("does not follow a workspace symlink inserted before archive fallback restore", async () => {
+    const updated = planDoc("Archived update", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Archive me"),
+      "/outside/workspace-plan.md": "outside-state\n"
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await fs.mkdir("/repo/workspaces/task-1/archive", { recursive: true });
+        await fs.writeFile("/repo/workspaces/task-1/archive/ralph-plan.md", updated, "utf8");
+        await fs.rm(options.docPath);
+        await fs.symlink("/outside/workspace-plan.md", options.docPath);
+        return result(options.docPath, "completed");
+      }
+    });
+
+    const outcome = await driver.run(createDriverContext(ralphContextDefaults));
+
+    expect(outcome).toEqual({ reason: "normal" });
+    expect(vol.readFileSync("/outside/workspace-plan.md", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync("/repo/workspaces/task-1/ralph-plan.md").isSymbolicLink()).toBe(false);
+    await expect(fs.readFile("/repo/workspaces/task-1/ralph-plan.md", "utf8")).resolves.toBe(
+      updated
+    );
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(updated);
   });
 
   it("fails cleanly when ralph removes the workspace plan and the archive fallback is missing", async () => {

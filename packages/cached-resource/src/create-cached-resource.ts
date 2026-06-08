@@ -30,7 +30,7 @@ export interface CachedResource<T> {
 function createDefaultFs(): DiskCacheFs {
   return {
     readFile: (path, encoding) => fs.readFile(path, encoding),
-    writeFile: (path, data) => fs.writeFile(path, data),
+    writeFile: (path, data, options) => fs.writeFile(path, data, options),
     rename: (from, to) => fs.rename(from, to),
     mkdir: (path, options) => fs.mkdir(path, options).then(() => {}),
     unlink: (path) => fs.unlink(path),

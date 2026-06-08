@@ -25,8 +25,8 @@ function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
   return {
     readFile: (p: string, encoding: BufferEncoding) =>
       fs.readFile(p, encoding) as Promise<string>,
-    writeFile: (p: string, data: string) =>
-      fs.writeFile(p, data) as Promise<void>,
+    writeFile: (p: string, data: string, options?: { encoding?: BufferEncoding; flag?: string }) =>
+      fs.writeFile(p, data, options) as Promise<void>,
     rename: (from: string, to: string) => fs.rename(from, to) as Promise<void>,
     mkdir: (p: string, options?: { recursive?: boolean }) =>
       fs.mkdir(p, options) as Promise<void>,
@@ -1043,6 +1043,40 @@ describe("persist", () => {
     await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("prior");
   });
 
+  it("does not follow or remove a colliding temporary cache symlink", async () => {
+    const volume = Volume.fromJSON({ "/outside/cache-tmp.json": "outside-state\n" }, "/");
+    const fsPromises = createFsFromVolume(volume).promises;
+    let firstTemporaryWrite = true;
+    let collisionPath: string | undefined;
+    volume.mkdirSync("/cache", { recursive: true });
+
+    const fs: DiskCacheFs = {
+      readFile: (p, encoding) => fsPromises.readFile(p, encoding) as Promise<string>,
+      writeFile: async (p, data, options) => {
+        if (firstTemporaryWrite && p.endsWith(".tmp")) {
+          firstTemporaryWrite = false;
+          collisionPath = p;
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+          await fsPromises.symlink("/outside/cache-tmp.json", p);
+          throw Object.assign(new Error("temporary path already exists"), { code: "EEXIST" });
+        }
+
+        await fsPromises.writeFile(p, data, options);
+      },
+      rename: (from, to) => fsPromises.rename(from, to) as Promise<void>,
+      mkdir: (p, options) => fsPromises.mkdir(p, options) as Promise<void>,
+      unlink: (p) => fsPromises.unlink(p) as Promise<void>,
+      realpath: (p) => fsPromises.realpath(p) as Promise<string>,
+    };
+
+    await persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs });
+
+    expect(collisionPath).toBeDefined();
+    expect(await fsPromises.readFile("/outside/cache-tmp.json", "utf8")).toBe("outside-state\n");
+    expect((await fsPromises.lstat(collisionPath as string)).isSymbolicLink()).toBe(true);
+    expect(JSON.parse(await fs.readFile("/cache/test.json", "utf8"))).toMatchObject({ data: "data" });
+  });
+
   it("does not write through a symlinked cache subdirectory", async () => {
     const volume = Volume.fromJSON({ "/outside/marker": "original" }, "/");
     const fsPromises = createFsFromVolume(volume).promises;
@@ -1050,7 +1084,7 @@ describe("persist", () => {
     volume.symlinkSync("/outside", "/cache/link");
     const fs: DiskCacheFs = {
       readFile: (p, encoding) => fsPromises.readFile(p, encoding) as Promise<string>,
-      writeFile: (p, data) => fsPromises.writeFile(p, data) as Promise<void>,
+      writeFile: (p, data, options) => fsPromises.writeFile(p, data, options) as Promise<void>,
       rename: (from, to) => fsPromises.rename(from, to) as Promise<void>,
       mkdir: (p, options) => fsPromises.mkdir(p, options) as Promise<void>,
       unlink: (p) => fsPromises.unlink(p) as Promise<void>,

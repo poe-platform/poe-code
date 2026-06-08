@@ -429,7 +429,7 @@ async function stageProviderLogin(input: {
       input.container.options.resolveApiKey({
         value: preferred.apiKey,
         envValue: preferred.envValue,
-        dryRun: false,
+        dryRun: true,
         assumeYes: input.flags.assumeYes,
         allowStored: false
       })

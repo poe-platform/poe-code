@@ -372,6 +372,38 @@ describe("provider login", () => {
     await expect(container.providerRegistry.resolveCredential("cloudflare")).rejects.toThrow();
   });
 
+  it("does not rotate Poe credentials when provider endpoint storage fails", async () => {
+    const container = createContainer(fs);
+    await container.writeApiKey("sk-old");
+    vi.spyOn(container.options, "resolveApiKey").mockImplementation(async (input) => {
+      if (!input.dryRun) {
+        await container.writeApiKey("sk-new");
+      }
+      return "sk-new";
+    });
+    await fs.writeFile(`${homeDir}/.config`, "not a directory", { encoding: "utf8" });
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "provider",
+        "login",
+        "poe",
+        "--api-key",
+        "sk-new",
+        "--shape-base-url",
+        "anthropic-messages=https://example.test/anthropic"
+      ])
+    ).rejects.toThrow();
+
+    await expect(container.readApiKey()).resolves.toBe("sk-old");
+  });
+
   it("refreshes configured service credentials after provider key rotation", async () => {
     const container = createContainer(fs);
     const program = createBaseProgram();

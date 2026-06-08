@@ -347,6 +347,42 @@ describe("ralphDriver", () => {
     await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(original);
   });
 
+  it("does not follow a temp symlink inserted before plan publication", async () => {
+    const original = planDoc("Keep original");
+    const updated = planDoc("Updated", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": original,
+      "/outside/ralph-plan.tmp": "outside-state\n"
+    });
+    let tempPath: string | undefined;
+    const realWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.startsWith(`/repo/docs/plans/.ralph-plan.md.${process.pid}.`)) {
+        tempPath = targetPath;
+        vol.symlinkSync("/outside/ralph-plan.tmp", targetPath);
+      }
+
+      return realWriteFile(filePath, content, options);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await realWriteFile(options.docPath, updated, "utf8");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toMatchObject({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph"
+    });
+    expect(tempPath).toBeDefined();
+    expect(vol.readFileSync("/outside/ralph-plan.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(original);
+  });
+
   it("returns step_failed when archive fallback probing hits an unexpected fs error", async () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": planDoc("Stat failure")
@@ -472,10 +508,12 @@ describe("ralphDriver", () => {
     const updated = planDoc("Updated", { status: "completed", iteration: 1 });
     vol.fromJSON({ "/repo/docs/plans/ralph-plan.md": planDoc("Original") });
     const writes: string[] = [];
+    const writeOptions: unknown[] = [];
     const realWriteFile = fs.writeFile.bind(fs);
     vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
       if (String(filePath).startsWith("/repo/docs/plans/.ralph-plan.md.")) {
         writes.push(String(filePath));
+        writeOptions.push(options);
       }
       return realWriteFile(filePath, content, options);
     });
@@ -492,6 +530,10 @@ describe("ralphDriver", () => {
     ]);
 
     expect(new Set(writes).size).toBe(2);
+    expect(writeOptions).toEqual([
+      { encoding: "utf8", flag: "wx" },
+      { encoding: "utf8", flag: "wx" }
+    ]);
   });
 
   it("runs three Ralph iterations, emits three agent events, and succeeds once", async () => {

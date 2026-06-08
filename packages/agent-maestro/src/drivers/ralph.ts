@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -22,8 +23,6 @@ type RalphResultWithFailure = Omit<RalphRunResult, "stopReason"> & {
 type RalphAgentRunInput = AgentRunInput & {
   mode?: import("@poe-code/agent-spawn").SpawnMode;
 };
-
-let planPublicationSequence = 0;
 
 export function createRalphDriver(options: { runRalph?: RalphRunner } = {}): WorkflowDriver {
   const runner = options.runRalph ?? runRalph;
@@ -138,15 +137,24 @@ async function persistPlan(workspaceDocPath: string, planPath: string): Promise<
   const content = await fs.readFile(updatedDocPath, "utf8");
   const tempPath = path.join(
     path.dirname(planPath),
-    `.${path.basename(planPath)}.${process.pid}.${planPublicationSequence += 1}.tmp`
+    `.${path.basename(planPath)}.${process.pid}.${randomUUID()}.tmp`
   );
 
   if (updatedDocPath !== workspaceDocPath) {
     await fs.writeFile(workspaceDocPath, content, "utf8");
   }
 
-  await fs.writeFile(tempPath, content, "utf8");
-  await fs.rename(tempPath, planPath);
+  let tempCreated = false;
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await fs.rename(tempPath, planPath);
+  } catch (error) {
+    if (tempCreated) {
+      await fs.rm(tempPath, { force: true }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 async function resolveUpdatedDocPath(workspaceDocPath: string): Promise<string> {

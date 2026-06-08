@@ -228,6 +228,12 @@ function validateProviderLoginBaseUrlOptions(input: {
   flags: ReturnType<typeof resolveCommandFlags>;
   parsedShapeBaseUrls: Partial<Record<ApiShapeId, string>>;
 }): void {
+  for (const baseUrl of Object.values(input.parsedShapeBaseUrls)) {
+    if (baseUrl !== undefined) {
+      assertHttpBaseUrl(input.provider.id, baseUrl);
+    }
+  }
+
   const explicitBaseUrl = resolveNonEmpty(input.options.baseUrl);
   if (explicitBaseUrl !== undefined) {
     assertHttpBaseUrl(input.provider.id, explicitBaseUrl);

@@ -707,6 +707,28 @@ describe("provider login", () => {
     ).rejects.toThrow('Invalid --shape-base-url value "anthropic-messages"');
     expect(loginSpy).not.toHaveBeenCalled();
   });
+
+  it("rejects invalid shape base URLs before login or config writes", async () => {
+    const container = createContainer(fs);
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "provider",
+        "login",
+        "poe",
+        "--shape-base-url",
+        "anthropic-messages=not-a-url"
+      ])
+    ).rejects.toThrow('Provider "poe" base URL must be an http(s) URL.');
+    expect(loginSpy).not.toHaveBeenCalled();
+    await expect(fs.stat(resolveServicesConfigPath(homeDir))).rejects.toBeTruthy();
+  });
 });
 
 // ─── provider logout ──────────────────────────────────────────────────────────

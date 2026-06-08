@@ -1,6 +1,5 @@
+import { randomUUID } from "node:crypto";
 import type { FileSystem } from "../utils/file-system.js";
-
-let temporaryFileSequence = 0;
 
 export class MediaDownloadError extends Error {
   readonly kind: "fetch" | "write";
@@ -53,13 +52,18 @@ export async function downloadToFile(options: {
     });
   }
 
-  const temporaryPath = `${options.outputPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+  const temporaryPath = `${options.outputPath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
 
   try {
     await options.fs.writeFile(temporaryPath, buffer, { flag: "wx" });
+    temporaryCreated = true;
     await options.fs.rename(temporaryPath, options.outputPath);
+    temporaryCreated = false;
   } catch {
-    await options.fs.unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await options.fs.unlink(temporaryPath).catch(() => undefined);
+    }
     throw new MediaDownloadError("Failed to write media", {
       kind: "write",
       url: options.url,

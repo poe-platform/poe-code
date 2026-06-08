@@ -50,11 +50,16 @@ export async function restoreLatestBackup(
 
   const latest = path.join(dir, backups[0]);
   const temporaryPath = `${targetPath}.restore-${randomUUID()}`;
+  let temporaryCreated = false;
   try {
-    await copy(fs, latest, temporaryPath);
+    await copyExclusive(fs, latest, temporaryPath);
+    temporaryCreated = true;
     await fs.rename(temporaryPath, targetPath);
+    temporaryCreated = false;
   } catch (error) {
-    await fs.unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
   return true;
@@ -93,4 +98,13 @@ async function copy(
   }
   const content = await fs.readFile(from);
   await fs.writeFile(to, content);
+}
+
+async function copyExclusive(
+  fs: FileSystem,
+  from: string,
+  to: string
+): Promise<void> {
+  const content = await fs.readFile(from);
+  await fs.writeFile(to, content, { flag: "wx" });
 }

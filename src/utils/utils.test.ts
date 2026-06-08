@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import path from "node:path";
+import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "./file-system.js";
 import { createBackup, restoreLatestBackup } from "./backup.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
@@ -99,6 +100,36 @@ describe("backup utilities", () => {
     };
 
     await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow("replacement write failed");
+    await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
+  });
+
+  it("does not remove a colliding restore temp symlink", async () => {
+    const volume = Volume.fromJSON({
+      [filePath]: "current valid content",
+      [`${filePath}.backup.20240101T010101`]: "restored content",
+      "/outside.tmp": "outside-state\n"
+    });
+    const baseFs = createFsFromVolume(volume).promises as unknown as FileSystem;
+    let temporaryPath: string | undefined;
+    fs = {
+      ...baseFs,
+      copyFile: undefined,
+      async writeFile(target, data, options) {
+        if (temporaryPath === undefined && target.includes(".restore-")) {
+          temporaryPath = target;
+          volume.symlinkSync("/outside.tmp", target);
+          expect(options).toEqual({ flag: "wx" });
+        }
+
+        await baseFs.writeFile(target, data, options);
+      }
+    };
+
+    await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync("/outside.tmp", "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
     await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
   });
 });

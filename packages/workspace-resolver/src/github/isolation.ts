@@ -1,4 +1,5 @@
 import path from "node:path";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import type { ParsedLocator, WorkspaceResolverOptions } from "../types.js";
 
 let nextCheckoutSequence = 0;
@@ -18,11 +19,9 @@ export async function createWritableCheckout(
   );
   const revision = locator.ref ?? "HEAD";
 
+  await assertPathHasNoSymbolicLinks(options.fs, cwd);
   await options.fs.mkdir(path.dirname(cwd), { recursive: true });
-  const checkoutParentStats = await options.fs.lstat(path.dirname(cwd));
-  if (checkoutParentStats.isSymbolicLink()) {
-    throw new Error(`Workspace checkout parent "${path.dirname(cwd)}" must not be a symbolic link.`);
-  }
+  await assertPathHasNoSymbolicLinks(options.fs, cwd);
   await assertExecSuccess(
     await options.exec("git", ["worktree", "add", "--detach", cwd, revision], {
       cwd: sourceCwd
@@ -54,6 +53,7 @@ async function removeCheckout(
   sourceCwd: string,
   options: WorkspaceResolverOptions
 ): Promise<void> {
+  await assertPathHasNoSymbolicLinks(options.fs, cwd);
   const result = await options.exec("git", ["worktree", "remove", "--force", cwd], {
     cwd: sourceCwd
   });
@@ -61,6 +61,7 @@ async function removeCheckout(
     return;
   }
   if (options.fs.rm) {
+    await assertPathHasNoSymbolicLinks(options.fs, cwd);
     await options.fs.rm(cwd, { recursive: true, force: true });
     return;
   }

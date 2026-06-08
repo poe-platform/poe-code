@@ -176,6 +176,53 @@ describe("poe-agent-plugin-shell", () => {
     await plugin.dispose?.();
   });
 
+  it("bounds retained foreground command output and marks truncation", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    const output = await callTool(plugin.tools, "run_command", {
+      command: createNodeCommand(
+        "process.stdout.write('x'.repeat(140_000)); process.stdout.write('tail-marker');"
+      )
+    });
+
+    expect(typeof output).toBe("string");
+    expect(String(output)).toContain("[output truncated:");
+    expect(String(output)).toContain("tail-marker");
+    expect(String(output).length).toBeLessThan(132_000);
+  });
+
+  it("bounds retained background command output and marks truncation", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    try {
+      const handle = await callTool(plugin.tools, "run_command", {
+        command: createNodeCommand(
+          "process.stdout.write('x'.repeat(140_000)); process.stdout.write('tail-marker'); setInterval(() => {}, 1_000);"
+        ),
+        run_in_background: true
+      });
+
+      await waitForBackgroundOutput(plugin.tools, String(handle), "tail-marker");
+      const output = await callTool(plugin.tools, "read_background", { handle });
+
+      expect(typeof output).toBe("string");
+      expect(String(output)).toContain("[output truncated:");
+      expect(String(output)).toContain("tail-marker");
+      expect(String(output).length).toBeLessThan(132_500);
+      await callTool(plugin.tools, "kill_background", { handle });
+    } finally {
+      await plugin.dispose?.();
+    }
+  });
+
   it("times out foreground commands", async () => {
     const cwd = process.cwd();
     const plugin = shellPlugin({

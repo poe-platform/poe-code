@@ -47,16 +47,16 @@ type SpawnedCommandOutcome = {
 };
 
 type SpawnedCommand = {
-  stdout: { value: string };
-  stderr: { value: string };
+  stdout: RetainedShellOutput;
+  stderr: RetainedShellOutput;
   terminate(): void;
   completion: Promise<SpawnedCommandOutcome>;
 };
 
 type BackgroundCommand = {
   handle: string;
-  stdout: { value: string };
-  stderr: { value: string };
+  stdout: RetainedShellOutput;
+  stderr: RetainedShellOutput;
   status: "running" | "exited";
   exitCode: number | null;
   exitSignal: NodeJS.Signals | null;
@@ -81,6 +81,12 @@ type ShellOutputNotification = {
 const defaultTimeoutSeconds = 120;
 const maxTimeoutSeconds = 600;
 const terminateGracePeriodMs = 1_000;
+const maxRetainedOutputChars = 128 * 1024;
+
+type RetainedShellOutput = {
+  value: string;
+  omittedChars: number;
+};
 
 const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
@@ -731,9 +737,9 @@ function formatBackgroundCommand(backgroundCommand: BackgroundCommand): string {
   }
 
   lines.push("STDOUT:");
-  lines.push(formatCapturedOutput(backgroundCommand.stdout.value));
+  lines.push(formatCapturedOutput(formatRetainedOutput(backgroundCommand.stdout)));
   lines.push("STDERR:");
-  lines.push(formatCapturedOutput(backgroundCommand.stderr.value));
+  lines.push(formatCapturedOutput(formatRetainedOutput(backgroundCommand.stderr)));
 
   return lines.join("\n");
 }
@@ -759,10 +765,19 @@ async function defaultRunCommand(
   }
 
   if (outcome.exitCode !== 0) {
-    throw new Error(getCommandFailureMessage(spawned.stdout.value, spawned.stderr.value, outcome));
+    throw new Error(
+      getCommandFailureMessage(
+        formatRetainedOutput(spawned.stdout),
+        formatRetainedOutput(spawned.stderr),
+        outcome
+      )
+    );
   }
 
-  const combinedOutput = combineOutput(spawned.stdout.value, spawned.stderr.value);
+  const combinedOutput = combineOutput(
+    formatRetainedOutput(spawned.stdout),
+    formatRetainedOutput(spawned.stderr)
+  );
   return combinedOutput || "Command completed with no output";
 }
 
@@ -777,8 +792,8 @@ function spawnShellCommand(
     handle?: string;
   }
 ): SpawnedCommand {
-  const stdout = { value: "" };
-  const stderr = { value: "" };
+  const stdout = createRetainedShellOutput();
+  const stderr = createRetainedShellOutput();
   const pendingNotifications = new Set<Promise<void>>();
   let notificationError: Error | undefined;
   const child = spawn(command, {
@@ -822,14 +837,14 @@ function spawnShellCommand(
   child.stdout?.setEncoding("utf8");
   child.stdout?.on("data", (chunk: string | Buffer) => {
     const value = chunk.toString();
-    stdout.value += value;
+    appendRetainedOutput(stdout, value);
     notify("stdout", value);
   });
 
   child.stderr?.setEncoding("utf8");
   child.stderr?.on("data", (chunk: string | Buffer) => {
     const value = chunk.toString();
-    stderr.value += value;
+    appendRetainedOutput(stderr, value);
     notify("stderr", value);
   });
 
@@ -950,6 +965,43 @@ function toError(error: unknown): Error {
   }
 
   return new Error(String(error));
+}
+
+function createRetainedShellOutput(): RetainedShellOutput {
+  return {
+    value: "",
+    omittedChars: 0
+  };
+}
+
+function appendRetainedOutput(output: RetainedShellOutput, chunk: string): void {
+  if (chunk.length === 0) {
+    return;
+  }
+
+  if (chunk.length >= maxRetainedOutputChars) {
+    output.omittedChars += output.value.length + chunk.length - maxRetainedOutputChars;
+    output.value = chunk.slice(-maxRetainedOutputChars);
+    return;
+  }
+
+  const combinedLength = output.value.length + chunk.length;
+  if (combinedLength <= maxRetainedOutputChars) {
+    output.value += chunk;
+    return;
+  }
+
+  const overflow = combinedLength - maxRetainedOutputChars;
+  output.omittedChars += overflow;
+  output.value = output.value.slice(overflow) + chunk;
+}
+
+function formatRetainedOutput(output: RetainedShellOutput): string {
+  if (output.omittedChars === 0) {
+    return output.value;
+  }
+
+  return `[output truncated: ${output.omittedChars} characters omitted]\n${output.value}`;
 }
 
 function combineOutput(stdout: string, stderr: string): string {

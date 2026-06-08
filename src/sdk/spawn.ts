@@ -191,7 +191,7 @@ export function spawn(
         const acpSpawn = spawnAcp({
           agentId: service,
           prompt: options.prompt,
-          cwd: options.cwd,
+          cwd,
           model,
           mode: options.mode,
           mcpServers: options.mcpServers,
@@ -221,7 +221,7 @@ export function spawn(
           prompt: options.prompt,
           model,
           mode: options.mode,
-          cwd: options.cwd,
+          cwd,
           startedAt: new Date()
         };
 

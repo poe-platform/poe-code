@@ -1099,6 +1099,71 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("resolves workspace locators before spawning ACP agents", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code/packages/auth",
+      locator: {
+        scheme: "github",
+        owner: "poe-platform",
+        repo: "poe-code",
+        ref: "main",
+        subdir: "packages/auth"
+      }
+    });
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("opencode", "inspect auth", {
+      cwd: "github://poe-platform/poe-code#main:packages/auth",
+      mode: "read"
+    });
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code#main:packages/auth",
+      expect.objectContaining({
+        mode: "read"
+      })
+    );
+    expect(createSdkContainer).toHaveBeenCalledWith({
+      cwd: "/tmp/workspaces/poe-code/packages/auth"
+    });
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "opencode",
+        prompt: "inspect auth",
+        cwd: "/tmp/workspaces/poe-code/packages/auth",
+        mode: "read"
+      })
+    );
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(applyMiddlewares).mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        agent: "opencode",
+        prompt: "inspect auth",
+        cwd: "/tmp/workspaces/poe-code/packages/auth",
+        mode: "read"
+      })
+    );
+  });
+
   it("uses CLI streaming for ACP agents that do not support MCP over ACP", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",

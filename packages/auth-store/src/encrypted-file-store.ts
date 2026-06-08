@@ -55,6 +55,7 @@ export interface EncryptedFileStoreInput {
 export class EncryptedFileStore implements SecretStore {
   private readonly fs: EncryptedFileStoreFileSystem;
   private readonly filePath: string;
+  private readonly symbolicLinkCheckStartPath: string | null;
   private readonly salt: string;
   private readonly getMachineIdentity: () => MachineIdentity | Promise<MachineIdentity>;
   private readonly getRandomBytes: (size: number) => Buffer;
@@ -63,11 +64,22 @@ export class EncryptedFileStore implements SecretStore {
   constructor(input: EncryptedFileStoreInput) {
     this.fs = input.fs ?? fs;
     this.salt = input.salt;
-    this.filePath = input.filePath ?? path.join(
-      (input.getHomeDirectory ?? homedir)(),
-      input.defaultDirectory ?? ".auth-store",
-      input.defaultFileName ?? "credentials.enc"
-    );
+    if (input.filePath === undefined) {
+      const homeDirectory = (input.getHomeDirectory ?? homedir)();
+      const defaultDirectory = input.defaultDirectory ?? ".auth-store";
+      this.filePath = path.join(
+        homeDirectory,
+        defaultDirectory,
+        input.defaultFileName ?? "credentials.enc"
+      );
+      this.symbolicLinkCheckStartPath = resolveDefaultDirectoryCheckStart(
+        homeDirectory,
+        defaultDirectory
+      );
+    } else {
+      this.filePath = input.filePath;
+      this.symbolicLinkCheckStartPath = null;
+    }
     this.getMachineIdentity = input.getMachineIdentity ?? defaultMachineIdentity;
     this.getRandomBytes = input.getRandomBytes ?? randomBytes;
   }
@@ -163,7 +175,10 @@ export class EncryptedFileStore implements SecretStore {
 
   private async assertRegularCredentialPath(): Promise<void> {
     const resolvedPath = path.resolve(this.filePath);
-    const protectedPaths = [path.dirname(resolvedPath), resolvedPath];
+    const protectedPaths = getProtectedCredentialPaths(
+      resolvedPath,
+      this.symbolicLinkCheckStartPath
+    );
 
     for (const currentPath of protectedPaths) {
       try {
@@ -192,6 +207,41 @@ export class EncryptedFileStore implements SecretStore {
     }
     return this.keyPromise;
   }
+}
+
+function resolveDefaultDirectoryCheckStart(
+  homeDirectory: string,
+  defaultDirectory: string
+): string {
+  const [firstSegment] = defaultDirectory.split(/[\\/]+/).filter(Boolean);
+  return path.resolve(homeDirectory, firstSegment ?? ".");
+}
+
+function getProtectedCredentialPaths(
+  resolvedPath: string,
+  symbolicLinkCheckStartPath: string | null
+): string[] {
+  if (symbolicLinkCheckStartPath === null) {
+    return [path.dirname(resolvedPath), resolvedPath];
+  }
+
+  const resolvedStartPath = path.resolve(symbolicLinkCheckStartPath);
+  if (!isPathInsideOrEqual(resolvedPath, resolvedStartPath)) {
+    return [path.dirname(resolvedPath), resolvedPath];
+  }
+
+  const protectedPaths = [resolvedStartPath];
+  let currentPath = resolvedStartPath;
+  for (const segment of path.relative(resolvedStartPath, resolvedPath).split(path.sep).filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+    protectedPaths.push(currentPath);
+  }
+  return protectedPaths;
+}
+
+function isPathInsideOrEqual(childPath: string, parentPath: string): boolean {
+  const relativePath = path.relative(parentPath, childPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 async function removeIfPresent(fileSystem: EncryptedFileStoreFileSystem, filePath: string): Promise<void> {

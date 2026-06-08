@@ -632,6 +632,49 @@ describe("createAuthStoreSessionStore", () => {
     expect(await sessionStore.load(RESOURCE_URL)).toEqual(session);
     expect(await sessionStore.load(NON_CANONICAL_RESOURCE_URL)).toEqual(session);
   });
+
+  it("rejects default Poe Code state root symlinks", async () => {
+    const volume = new Volume();
+    volume.mkdirSync("/home/test", { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.symlinkSync("/outside", "/home/test/.poe-code");
+    const fs = createFsFromVolume(volume).promises as MemFsPromises & {
+      readdir(path: string): Promise<string[]>;
+    };
+    const sessionStore = createAuthStoreSessionStore({
+      backend: "file",
+      fileStore: {
+        fs,
+        salt: "poe-code:test:mcp-oauth:v1",
+        getHomeDirectory: () => "/home/test",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
+      },
+    });
+    const session: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: {
+        clientId: "client-1",
+      },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: {
+          resource: RESOURCE_URL,
+          authorization_servers: [AUTHORIZATION_SERVER],
+        },
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      },
+    };
+
+    await expect(sessionStore.save(RESOURCE_URL, session)).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readdir("/outside/mcp-oauth")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });
 
 describe("createDefaultOAuthClientProvider", () => {

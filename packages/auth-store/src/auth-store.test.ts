@@ -293,6 +293,29 @@ describe("EncryptedFileStore", () => {
     await expect(fs.readFile("/outside/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("rejects credentials beneath a symlinked default directory ancestor", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/home/test", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/home/test/.poe-code"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      defaultDirectory: ".poe-code/mcp-oauth",
+      defaultFileName: "credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getHomeDirectory: () => "/home/test",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(store.get()).rejects.toThrow(/symbolic link/i);
+    await expect(store.delete()).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/mcp-oauth/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("allows credentials beneath a symlinked operating-system path ancestor", async () => {
     const fs = createStatMemFs();
     await fs.mkdir("/private/var/tmp/home/.app", { recursive: true });

@@ -19,6 +19,14 @@ vi.mock("./primitives/cancel.js", () => ({
 
 const spinnerFactory = vi.mocked(primitiveSpinner);
 
+function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR" | "POE_NO_SPINNER", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
 // === with-spinner.test.ts ===
 
 describe("withSpinner", () => {
@@ -27,6 +35,8 @@ describe("withSpinner", () => {
   let resetOutputFormatCache: typeof import("../internal/output-format.js").resetOutputFormatCache;
   let resolveOutputFormat: typeof import("../internal/output-format.js").resolveOutputFormat;
   const originalEnv = process.env.POE_NO_SPINNER;
+  const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
   const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(async () => {
@@ -34,7 +44,9 @@ describe("withSpinner", () => {
     vi.resetModules();
     spinnerFactory.mockClear();
     stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    process.env.POE_NO_SPINNER = undefined;
+    delete process.env.FORCE_COLOR;
+    delete process.env.NO_COLOR;
+    delete process.env.POE_NO_SPINNER;
     ({ resetOutputFormatCache, resolveOutputFormat } = await import("../internal/output-format.js"));
     resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
@@ -48,7 +60,9 @@ describe("withSpinner", () => {
   afterEach(() => {
     vi.useRealTimers();
     stdoutSpy.mockRestore();
-    process.env.POE_NO_SPINNER = originalEnv;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
+    restoreEnv("POE_NO_SPINNER", originalEnv);
     resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
       value: originalIsTTY,
@@ -158,8 +172,9 @@ describe("withSpinner", () => {
     expect(output).toContain("response content");
   });
 
-  it("falls back to plain output when POE_NO_SPINNER=1", async () => {
+  it("falls back to plain output without ANSI when POE_NO_SPINNER=1 and NO_COLOR=1", async () => {
     process.env.POE_NO_SPINNER = "1";
+    process.env.NO_COLOR = "1";
 
     const result = await withSpinner({
       message: "Loading...",
@@ -173,9 +188,10 @@ describe("withSpinner", () => {
 
     const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
     expect(output).toContain("hello");
+    expect(output).not.toContain("\x1b[");
   });
 
-  it("falls back to plain output when not a TTY", async () => {
+  it("falls back to plain output without ANSI when not a TTY", async () => {
     Object.defineProperty(process.stdout, "isTTY", {
       value: false,
       writable: true,
@@ -193,6 +209,7 @@ describe("withSpinner", () => {
 
     const output = stdoutSpy.mock.calls.map((c) => c[0]).join("");
     expect(output).toContain("hello");
+    expect(output).not.toContain("\x1b[");
   });
 
   it("uses default stop text when stopMessage is omitted", async () => {

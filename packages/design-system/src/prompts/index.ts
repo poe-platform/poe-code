@@ -144,12 +144,12 @@ export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T>
     const result = await fn();
     const msg = stopMessage ? stopMessage(result) : undefined;
     if (msg) {
-      process.stdout.write(`\x1b[32m◆\x1b[0m  ${msg}\n`);
+      process.stdout.write(`${color.green("◆")}  ${msg}\n`);
     }
     const sub = subtext ? subtext(result) : undefined;
     if (sub) {
       for (const line of sub.split("\n")) {
-        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
+        process.stdout.write(`${color.gray("│")}     ${line}\n`);
       }
     }
     return result;
@@ -173,7 +173,7 @@ export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T>
     const sub = subtext ? subtext(result) : undefined;
     if (sub) {
       for (const line of sub.split("\n")) {
-        process.stdout.write(`\x1b[90m│\x1b[0m     ${line}\n`);
+        process.stdout.write(`${color.gray("│")}     ${line}\n`);
       }
     }
 

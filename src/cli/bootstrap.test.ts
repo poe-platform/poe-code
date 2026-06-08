@@ -86,6 +86,58 @@ describe("createCliMain", () => {
     expect(capturedOptions).toMatchObject({ logToStderr: true });
   });
 
+  it("redacts sensitive argv values before logging bootstrap errors", async () => {
+    process.argv = [
+      "node",
+      "poe-code",
+      "provider",
+      "login",
+      "anthropic",
+      "--api-key",
+      "sk-ant-secret",
+      "--token=token-secret",
+      "--client-secret=client-value-123",
+      "--password",
+      "pw-secret",
+      "--safe",
+      "visible"
+    ];
+    const parseAsync = vi.fn(async () => {
+      throw new Error("login failed");
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(parseAsync).toHaveBeenCalledWith(process.argv);
+    const context = logErrorWithStackTrace.mock.calls[0][2] as { argv: string[] };
+    expect(context.argv).toEqual([
+      "node",
+      "poe-code",
+      "provider",
+      "login",
+      "anthropic",
+      "--api-key",
+      "[redacted]",
+      "--token=[redacted]",
+      "--client-secret=[redacted]",
+      "--password",
+      "[redacted]",
+      "--safe",
+      "visible"
+    ]);
+    expect(JSON.stringify(context)).not.toContain("sk-ant-secret");
+    expect(JSON.stringify(context)).not.toContain("token-secret");
+    expect(JSON.stringify(context)).not.toContain("client-value-123");
+    expect(JSON.stringify(context)).not.toContain("pw-secret");
+  });
+
   it("does not persist diagnostics for dry-run command failures", async () => {
     process.argv = ["node", "poe-code", "--dry-run", "runtime", "build", "--runtime", "host"];
     const parseAsync = vi.fn(async () => {

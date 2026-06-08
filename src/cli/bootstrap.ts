@@ -14,6 +14,7 @@ import type { CliDependencies } from "./program.js";
 import { createPromptRunner } from "./prompt-runner.js";
 
 const fsAdapter = nodeFs as unknown as FileSystem;
+const REDACTED_ARG_VALUE = "[redacted]";
 
 export function createCliMain(
   programFactory: (dependencies: CliDependencies) => Command
@@ -57,7 +58,7 @@ export function createCliMain(
         if (!isDryRun) {
           errorLogger.logErrorWithStackTrace(error, "CLI execution", {
             component: "main",
-            argv: process.argv
+            argv: redactSensitiveArgv(process.argv)
           });
         }
 
@@ -79,6 +80,42 @@ export function createCliMain(
       throw error;
     }
   };
+}
+
+export function redactSensitiveArgv(argv: readonly string[]): string[] {
+  const redacted: string[] = [];
+  let shouldRedactNext = false;
+
+  for (const argument of argv) {
+    if (shouldRedactNext) {
+      redacted.push(REDACTED_ARG_VALUE);
+      shouldRedactNext = false;
+      continue;
+    }
+
+    const equalsIndex = argument.indexOf("=");
+    if (equalsIndex > 0) {
+      const name = argument.slice(0, equalsIndex);
+      if (isSensitiveArgumentName(name)) {
+        redacted.push(`${name}=${REDACTED_ARG_VALUE}`);
+        continue;
+      }
+    }
+
+    redacted.push(argument);
+    shouldRedactNext = isSensitiveArgumentName(argument);
+  }
+
+  return redacted;
+}
+
+function isSensitiveArgumentName(argument: string): boolean {
+  if (!argument.startsWith("-")) {
+    return false;
+  }
+
+  const normalized = argument.replace(/^-+/, "").toLowerCase();
+  return /(?:api[-_]?key|token|secret|password|passwd|pwd)/u.test(normalized);
 }
 
 export function isCliInvocation(

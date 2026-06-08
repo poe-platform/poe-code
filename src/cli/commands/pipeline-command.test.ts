@@ -94,6 +94,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  path: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, path);
+}
+
 function createBaseProgram(): Command {
   const program = new Command();
   program.exitOverride();
@@ -2533,6 +2548,47 @@ describe("pipeline install command", () => {
       ])
     ).rejects.toThrow("injected steps.yaml write failure");
 
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
+  });
+
+  it("does not follow a steps.yaml symlink inserted before pipeline scaffolding", async () => {
+    const stepsPath = "/repo/.poe-code/pipeline/steps.yaml";
+    const outsidePath = "/outside/steps.yaml";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const originalWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath) === stepsPath) {
+        await replaceWithSymlink(fs, stepsPath, outsidePath);
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).rejects.toThrow();

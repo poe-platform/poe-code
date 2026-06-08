@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { readFile, stat } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
@@ -75,6 +76,7 @@ import {
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
+import type { FileSystem } from "../../utils/file-system.js";
 
 async function resolvePipelineCommandConfig(
   container: CliContainer,
@@ -806,6 +808,31 @@ async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<b
   }
 }
 
+async function writePipelineTextFile(
+  fs: Pick<FileSystem, "writeFile" | "rename" | "unlink">,
+  filePath: string,
+  content: string,
+  options: { exclusive: boolean }
+): Promise<void> {
+  if (options.exclusive) {
+    await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
+    return;
+  }
+
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
+  try {
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
 export function registerPipelineCommand(program: Command, container: CliContainer): void {
   const pipeline = program
     .command("pipeline")
@@ -1414,8 +1441,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             await container.fs.mkdir(path.dirname(pipelinePaths.stepsPath), {
               recursive: true
             });
-            await container.fs.writeFile(pipelinePaths.stepsPath, templates.steps, {
-              encoding: "utf8"
+            await writePipelineTextFile(container.fs, pipelinePaths.stepsPath, templates.steps, {
+              exclusive: !finalStepsExists
             });
             createdSteps = !finalStepsExists;
             resources.logger.info(
@@ -1460,8 +1487,8 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         } catch (error) {
           if (!flags.dryRun) {
             if (previousSteps !== undefined) {
-              await container.fs.writeFile(pipelinePaths.stepsPath, previousSteps, {
-                encoding: "utf8"
+              await writePipelineTextFile(container.fs, pipelinePaths.stepsPath, previousSteps, {
+                exclusive: false
               });
             } else if (migratedSteps) {
               await container.fs.rename(

@@ -222,7 +222,7 @@ tasks:
       This task is docs/visual validation only — no new screenshot tests.
     status:
       implement: done
-      commit: open
+      commit: done
 ---
 
 # Rename `toolcraft-design` → `toolcraft-design` + configurable brand theme

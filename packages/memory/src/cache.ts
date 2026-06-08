@@ -2,7 +2,12 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
-import { assertSafeRelPath, MEMORY_CACHE_DIR_RELPATH, MEMORY_INGEST_CACHE_DIR_RELPATH } from "./paths.js";
+import {
+  assertMemoryRootIsNotSymlink,
+  assertSafeRelPath,
+  MEMORY_CACHE_DIR_RELPATH,
+  MEMORY_INGEST_CACHE_DIR_RELPATH
+} from "./paths.js";
 import type { IngestCacheEntry, IngestCacheKey, MemoryRoot } from "./types.js";
 
 export function computeIngestKey(input: {
@@ -26,6 +31,7 @@ export async function readCacheEntry(
   root: MemoryRoot,
   key: IngestCacheKey
 ): Promise<IngestCacheEntry | null> {
+  await assertMemoryRootIsNotSymlink(root);
   const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${assertSafeRelPath(key)}.json`);
 
   let raw: string;
@@ -50,7 +56,9 @@ export async function readCacheEntry(
 
 export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry): Promise<void> {
   const key = assertSafeRelPath(entry.key);
+  await assertMemoryRootIsNotSymlink(root);
   await fs.mkdir(path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH), { recursive: true });
+  await assertMemoryRootIsNotSymlink(root);
   await writeFileAtomically(
     path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${key}.json`),
     `${JSON.stringify(entry)}\n`
@@ -58,6 +66,7 @@ export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry)
 }
 
 export async function cacheStatus(root: MemoryRoot): Promise<{ entries: number; bytes: number }> {
+  await assertMemoryRootIsNotSymlink(root);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
   const fileNames = await readCacheFileNames(ingestDir);
   const sizes = await Promise.all(
@@ -74,6 +83,7 @@ export async function clearCache(
   root: MemoryRoot,
   opts: { olderThanMs?: number } = {}
 ): Promise<{ removed: number }> {
+  await assertMemoryRootIsNotSymlink(root);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
   const cacheDir = path.join(root, MEMORY_CACHE_DIR_RELPATH);
   const fileNames = await readCacheFileNames(ingestDir);

@@ -20,6 +20,7 @@ export async function initMemory(root: MemoryRoot): Promise<void> {
 
   try {
     await fs.mkdir(pagesPath, { recursive: true });
+    await assertMemoryRootIsNotSymlink(root);
     indexCreated = await writeFileIfMissing(indexPath, "# Memory index\n");
     logCreated = await writeFileIfMissing(logPath, "");
   } catch (error) {

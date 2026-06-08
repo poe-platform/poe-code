@@ -74,6 +74,21 @@ describe("readCacheEntry and writeCacheEntry", () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toEqual(baseEntry);
   });
 
+  it("rejects writes through symlinked memory root ancestors", async () => {
+    vol.fromJSON({
+      "/repo/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code");
+
+    await expect(writeCacheEntry("/repo/.poe-code/memory", baseEntry)).rejects.toThrow(
+      /symbolic link/i
+    );
+    await expect(vol.promises.stat("/outside/memory/.cache/ingest/abc123.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("returns null when the cache entry does not exist", async () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "missing")).resolves.toBeNull();
   });

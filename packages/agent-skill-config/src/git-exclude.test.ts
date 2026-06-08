@@ -255,6 +255,33 @@ describe("git exclude blocks", () => {
     expect(vol.readFileSync("/outside/exclude", "utf8")).toBe("# outside\n");
   });
 
+  it("does not follow or remove a colliding temporary exclude symlink", () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync("/outside/exclude.tmp", "outside-state\n");
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    let tempPath: string | undefined;
+    const writeFile = vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.includes(".poe-code-") && targetPath.endsWith(".tmp")) {
+        tempPath = targetPath;
+        fs.symlinkSync("/outside/exclude.tmp", targetPath);
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    try {
+      expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow();
+      expect(tempPath).toBeDefined();
+      expect(vol.readFileSync("/outside/exclude.tmp", "utf8")).toBe("outside-state\n");
+      expect(vol.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
+      expect(vol.existsSync(excludePath)).toBe(false);
+    } finally {
+      writeFile.mockRestore();
+    }
+  });
+
   it("preserves prior exclude content when atomic replacement fails", () => {
     vol.mkdirSync(path.dirname(excludePath), { recursive: true });
     vol.writeFileSync(excludePath, "# user ignore\n");

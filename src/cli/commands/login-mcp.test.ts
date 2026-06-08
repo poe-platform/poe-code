@@ -118,6 +118,25 @@ function createMcpMemfs(): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;
@@ -489,6 +508,7 @@ describe("mcp command", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     configureMock.mockReset();
     unconfigureMock.mockReset();
@@ -504,6 +524,7 @@ describe("mcp command", () => {
   });
 
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     consoleSpy.mockRestore();
   });
 
@@ -881,6 +902,22 @@ describe("mcp command", () => {
       expect.any(Object),
       expect.any(Object)
     );
+  });
+
+  it("rejects non-interactive configure when agent selection would prompt", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { program } = await createMcpProgram();
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "mcp", "configure"])).rejects.toThrow(
+        "MCP agent selection requires an agent or --yes when running without an interactive TTY."
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).not.toHaveBeenCalled();
   });
 
   it("uses core.defaultAgent with --yes for configure", async () => {

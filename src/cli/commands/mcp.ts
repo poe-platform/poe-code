@@ -23,6 +23,7 @@ import {
   toMcpServerCommand
 } from "../../utils/execution-context.js";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
+import { ValidationError } from "../errors.js";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
@@ -103,6 +104,11 @@ export function registerMcpCommand(
           const fromConfig = await resolveDefaultAgent(container);
           agent = fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_MCP_AGENT;
         } else {
+          if (process.stdin.isTTY !== true) {
+            throw new ValidationError(
+              "MCP agent selection requires an agent or --yes when running without an interactive TTY."
+            );
+          }
           const selected = await select({
             message: "Select agent to configure:",
             options: supportedAgents.map((a) => ({ value: a, label: a }))

@@ -761,6 +761,8 @@ describe("runtime command", () => {
     expect(runtimeEvents.attached).toEqual([]);
     expect(runtimeEvents.downloads).toEqual([]);
     expect(logs.join("\n")).toContain("Dry run");
+    expect(logs.join("\n")).toContain("would stop runtime job job-stop.");
+    expect(logs.join("\n")).not.toContain("sync its workspace");
     await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
   });
 
@@ -804,7 +806,7 @@ describe("runtime command", () => {
     ]);
   });
 
-  it("syncs a stopped job by default using conflict protection", async () => {
+  it("stops a job without syncing by default", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
         createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
@@ -812,14 +814,27 @@ describe("runtime command", () => {
         2
       )}\n`
     });
-    jobHandles.set("env-stop", createJobHandle({ status: "running" }));
+    const signals: Array<NodeJS.Signals | undefined> = [];
+    jobHandles.set(
+      "env-stop",
+      createJobHandle({
+        status: "running",
+        kill: async (signal) => {
+          signals.push(signal);
+        }
+      })
+    );
     const container = createContainer(fs);
     const program = createBaseProgram();
     registerRuntimeCommand(program, container);
 
     await program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
 
-    expect(runtimeEvents.downloads).toEqual([{ envId: "env-stop", conflictPolicy: "refuse" }]);
+    expect(signals).toEqual(["SIGTERM"]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+      '"status": "killed"'
+    );
   });
 
   it("rejects stopping an explicitly selected exited job without replacing its result", async () => {

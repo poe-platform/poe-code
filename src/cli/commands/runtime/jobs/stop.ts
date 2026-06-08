@@ -40,8 +40,10 @@ async function executeRuntimeJobsStop(
   const resources = createExecutionResources(container, flags, "runtime:jobs:stop");
   const state = createRuntimeState(container);
   const entry = await resolveJob(state, jobId, "running");
+  const shouldSync = options.sync === true;
   if (flags.dryRun) {
-    resources.logger.dryRun(`Dry run: would stop runtime job ${entry.id} and sync its workspace.`);
+    const syncSuffix = shouldSync ? " and sync its workspace" : "";
+    resources.logger.dryRun(`Dry run: would stop runtime job ${entry.id}${syncSuffix}.`);
     return;
   }
   const { handle } = await attachJob(entry);
@@ -53,7 +55,9 @@ async function executeRuntimeJobsStop(
     exited_at: new Date().toISOString()
   });
 
-  await syncJob(entry, { forceSync: options.forceSync === true, close: false });
+  if (shouldSync) {
+    await syncJob(entry, { forceSync: options.forceSync === true, close: false });
+  }
 
   resources.logger.success(`Stopped runtime job ${entry.id}.`);
 }

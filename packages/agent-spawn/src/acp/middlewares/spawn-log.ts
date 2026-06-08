@@ -192,6 +192,7 @@ function prepareEventForLog(event: AcpEvent, includeContent: boolean): AcpEvent 
   }
 
   if (redacted.event === "tool_start") {
+    redactField(redacted, "title");
     redactField(redacted, "input");
   }
 

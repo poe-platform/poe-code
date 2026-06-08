@@ -13,6 +13,7 @@ import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "../midd
 import { sessionCapture } from "./session-capture.js";
 import { spawnLog } from "./spawn-log.js";
 import { usageCapture } from "./usage-capture.js";
+import { adaptCodex } from "../../adapters/codex.js";
 import type { AcpEvent } from "../types.js";
 
 async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
@@ -368,11 +369,51 @@ describe("acp/middlewares/spawnLog", () => {
         event: "tool_start",
         id: "tool-1",
         kind: "exec",
-        title: "run command",
+        title: "[redacted]",
         input: "[redacted]"
       },
       { event: "tool_complete", id: "tool-1", kind: "exec", path: "[redacted]" }
     ]);
+  });
+
+  it("redacts adapter-produced command titles from spawn logs by default", async () => {
+    const token = "sk-title-token-456";
+    const command = `curl -H "Authorization: Bearer ${token}" https://example.test`;
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = adaptCodex((async function* () {
+        yield JSON.stringify({
+          type: "item.started",
+          item: {
+            id: "cmd-1",
+            type: "command_execution",
+            command
+          }
+        });
+      })());
+    };
+    const ctx = createContext({
+      logPath: "/tmp/default-redacted-log/command-title.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual([
+      {
+        event: "tool_start",
+        id: "cmd-1",
+        kind: "exec",
+        title: command
+      }
+    ]);
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).not.toContain(token);
+    expect(JSON.parse(content)).toEqual({
+      event: "tool_start",
+      id: "cmd-1",
+      kind: "exec",
+      title: "[redacted]"
+    });
   });
 
   it("does not allow ctx.logFileName to escape ctx.logDir", async () => {

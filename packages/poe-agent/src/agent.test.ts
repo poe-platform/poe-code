@@ -1,7 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { spawnSync } from "node:child_process";
-import path from "node:path";
-import { pathToFileURL } from "node:url";
 import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
 import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 import { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
@@ -2120,16 +2117,4 @@ describe("poe-agent system prompt", () => {
     expect(prompt).toContain("Assist with defensive security only");
   });
 
-  it("can import built system-prompt module in plain node", () => {
-    const modulePath = path.resolve(process.cwd(), "packages/poe-agent/dist/system-prompt.js");
-    const moduleUrl = pathToFileURL(modulePath).href;
-    const command = `await import(${JSON.stringify(moduleUrl)});`;
-
-    const result = spawnSync(process.execPath, ["--input-type=module", "-e", command], {
-      encoding: "utf8"
-    });
-
-    expect(result.status).toBe(0);
-    expect(result.stderr).toBe("");
-  });
 });

@@ -4633,6 +4633,35 @@ describe("runCLI", () => {
     expect(output).not.toContain("\u001b[");
   });
 
+  it("uses plain help formatting when stdout TTY status is undefined", async () => {
+    setStdoutColumns(100);
+    Object.defineProperty(process.stdout, "isTTY", {
+      configurable: true,
+      value: undefined
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [
+        defineCommand({
+          name: "deploy",
+          description: "Deploy a service",
+          params: S.Object({}),
+          handler: async () => null
+        })
+      ]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
+    expect(output).not.toContain("\u001b[");
+  });
+
   it("suppresses fields tagged global from leaf help and surfaces them only on root", async () => {
     setStdoutColumns(100);
     const patchBot = defineCommand({

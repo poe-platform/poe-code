@@ -1642,13 +1642,13 @@ function renderHelpSections(sections: string[]): string {
 }
 
 function formatHelpCommandList(rows: HelpCommandRow[]): string {
-  return process.stdout.isTTY === false
+  return process.stdout.isTTY !== true
     ? helpFormatterPlain.formatCommandList(rows)
     : formatCommandList(rows);
 }
 
 function formatHelpOptionList(rows: HelpOptionRow[]): string {
-  return process.stdout.isTTY === false
+  return process.stdout.isTTY !== true
     ? helpFormatterPlain.formatOptionList(rows)
     : formatOptionList(rows);
 }
@@ -3946,7 +3946,7 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
 }
 
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
-  return process.stdout.isTTY === false ? value : style(value);
+  return process.stdout.isTTY !== true ? value : style(value);
 }
 
 function formatHttpErrorStatus(value: string): string {

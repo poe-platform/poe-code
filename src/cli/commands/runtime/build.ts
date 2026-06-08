@@ -174,10 +174,28 @@ async function requireRuntimeBuildPaths(
   if (!(await pathExists(container.fs, dockerfilePath))) {
     throw new Error(`${label} runtime requires a Dockerfile at ${dockerfilePath}.`);
   }
+  const buildContext = path.resolve(container.env.cwd, runtime.build_context ?? ".");
+  const canonicalCwd = await container.fs.realpath(container.env.cwd);
+  const canonicalDockerfilePath = await container.fs.realpath(dockerfilePath);
+  const canonicalBuildContext = await container.fs.realpath(buildContext);
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalDockerfilePath, "runtime.dockerfile");
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalBuildContext, "runtime.build_context");
+
   return {
-    dockerfilePath,
-    buildContext: path.resolve(container.env.cwd, runtime.build_context ?? ".")
+    dockerfilePath: canonicalDockerfilePath,
+    buildContext: canonicalBuildContext
   };
+}
+
+function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
+  if (!isPathInsideOrEqual(cwd, targetPath)) {
+    throw new Error(`${fieldName} must remain inside runtime cwd ${cwd}.`);
+  }
+}
+
+function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 async function loadE2bRunnerModule(): Promise<E2bRunnerModule> {

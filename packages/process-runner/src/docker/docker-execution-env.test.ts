@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, realpath } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
@@ -15,7 +15,8 @@ const workspaceTransferMocks = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
-  readdir: vi.fn()
+  readdir: vi.fn(),
+  realpath: vi.fn(async (filePath: string) => filePath)
 }));
 
 vi.mock("./engine.js", () => ({
@@ -47,6 +48,7 @@ describe("dockerExecutionEnvFactory", () => {
     vi.mocked(detectEngine).mockReturnValue("docker");
     vi.mocked(detectContext).mockReturnValue(null);
     vi.mocked(readdir).mockResolvedValue([]);
+    vi.mocked(realpath).mockImplementation(async (filePath) => String(filePath));
     workspaceTransferMocks.uploadWorkspace.mockResolvedValue({ files: 0, bytes: 0, skipped: [] });
     workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
   });
@@ -248,6 +250,39 @@ describe("dockerExecutionEnvFactory", () => {
     await buildDockerRuntimeTemplate(input);
 
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
+  });
+
+  it("rejects dockerfile template build contexts outside the runtime cwd", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0 }]);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+
+    await expect(
+      buildDockerRuntimeTemplate({
+        cwd: "/repo/project",
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: "..",
+          build_args: {}
+        },
+        runner
+      })
+    ).rejects.toThrow("runtime.build_context must remain inside runtime cwd /repo/project.");
+
+    await expect(
+      buildDockerRuntimeTemplate({
+        cwd: "/repo/project",
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: "/tmp/context",
+          build_args: {}
+        },
+        runner
+      })
+    ).rejects.toThrow("runtime.build_context must remain inside runtime cwd /repo/project.");
+    expect(readFile).not.toHaveBeenCalled();
+    expect(runner.specs).toEqual([]);
   });
 
   it("builds and caches a dockerfile image on template cache miss with sorted build args", async () => {

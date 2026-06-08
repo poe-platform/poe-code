@@ -1089,6 +1089,25 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toContain("Built Docker image poe-code/local:mock-hash");
   });
 
+  it("rejects docker runtime builds with build contexts outside the project", async () => {
+    const fs = createMemFs({
+      [projectConfigPath]: `${JSON.stringify(
+        { runtime: { type: "docker", dockerfile: "Dockerfile", build_context: ".." } },
+        null,
+        2
+      )}\n`,
+      [path.join(cwd, "Dockerfile")]: "FROM custom\n"
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "runtime", "build"])).rejects.toThrow(
+      "runtime.build_context must remain inside runtime cwd /repo."
+    );
+    expect(buildDockerRuntimeTemplateMock).not.toHaveBeenCalled();
+  });
+
   it("does not build when a docker image is pinned in config", async () => {
     const fs = createMemFs({
       [projectConfigPath]: `${JSON.stringify(

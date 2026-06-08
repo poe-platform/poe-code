@@ -1,4 +1,4 @@
-import { existsSync } from "node:fs";
+import { existsSync, realpathSync } from "node:fs";
 import path from "node:path";
 import type { ResolvedConfig, SchemaField, ScopeDefinition } from "./types.js";
 
@@ -289,8 +289,6 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
   },
   docker({ cwd, runtime }) {
     const dockerRuntime = runtime as DockerRuntime;
-    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, dockerRuntime);
-
     if (dockerRuntime.image !== undefined) {
       return {
         runtime: dockerRuntime,
@@ -299,9 +297,13 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
         buildContext: null
       };
     }
+
+    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, dockerRuntime);
     if (!existsSync(dockerfilePath)) {
       throw new Error(`Docker runtime requires image or a Dockerfile at ${dockerfilePath}.`);
     }
+    assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
+    assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
     return {
       runtime: dockerRuntime,
       runner: "docker",
@@ -311,8 +313,6 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
   },
   e2b({ cwd, runtime }) {
     const e2bRuntime = runtime as E2bRuntime;
-    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, e2bRuntime);
-
     if (e2bRuntime.template_id !== undefined) {
       return {
         runtime: e2bRuntime,
@@ -321,9 +321,13 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
         buildContext: null
       };
     }
+
+    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, e2bRuntime);
     if (!existsSync(dockerfilePath)) {
       throw new Error(`E2B runtime requires template_id or a Dockerfile at ${dockerfilePath}.`);
     }
+    assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
+    assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
     return {
       runtime: e2bRuntime,
       runner: "e2b",
@@ -341,6 +345,19 @@ function resolveRuntimeBuildPaths(
     dockerfilePath: path.resolve(cwd, runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")),
     buildContext: path.resolve(cwd, runtime.build_context ?? ".")
   };
+}
+
+function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
+  const canonicalCwd = realpathSync(cwd);
+  const canonicalTarget = realpathSync(targetPath);
+  if (!isPathInsideOrEqual(canonicalCwd, canonicalTarget)) {
+    throw new Error(`${fieldName} must remain inside runtime cwd ${canonicalCwd}.`);
+  }
+}
+
+function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 function parseSharedRuntimeFields(record: Record<string, unknown>): SharedRuntimeFields {

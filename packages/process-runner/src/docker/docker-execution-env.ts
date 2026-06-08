@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
@@ -283,11 +283,7 @@ export async function buildDockerRuntimeTemplate(
   const runner = input.runner ?? createHostRunner();
   const engine = input.runtime.engine ?? detectEngine();
   const context = detectContext();
-  const dockerfilePath = path.resolve(
-    input.cwd,
-    input.runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
-  );
-  const buildContext = path.resolve(input.cwd, input.runtime.build_context ?? ".");
+  const { dockerfilePath, buildContext } = await resolveRuntimeBuildPaths(input.cwd, input.runtime);
   const dockerfileBytes = await readFile(dockerfilePath);
   const buildContextFiles = await readBuildContextFiles(buildContext);
   const hash = hashDockerTemplate(
@@ -331,6 +327,39 @@ export async function buildDockerRuntimeTemplate(
     image,
     cached: false
   };
+}
+
+async function resolveRuntimeBuildPaths(
+  cwd: string,
+  runtime: DockerRuntime
+): Promise<{ dockerfilePath: string; buildContext: string }> {
+  const dockerfilePath = path.resolve(
+    cwd,
+    runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
+  );
+  const buildContext = path.resolve(cwd, runtime.build_context ?? ".");
+  const canonicalCwd = await realpath(cwd);
+  const canonicalDockerfilePath = await realpath(dockerfilePath);
+  const canonicalBuildContext = await realpath(buildContext);
+
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalDockerfilePath, "runtime.dockerfile");
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalBuildContext, "runtime.build_context");
+
+  return {
+    dockerfilePath: canonicalDockerfilePath,
+    buildContext: canonicalBuildContext
+  };
+}
+
+function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
+  if (!isPathInsideOrEqual(cwd, targetPath)) {
+    throw new Error(`${fieldName} must remain inside runtime cwd ${cwd}.`);
+  }
+}
+
+function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 function hashDockerTemplate(

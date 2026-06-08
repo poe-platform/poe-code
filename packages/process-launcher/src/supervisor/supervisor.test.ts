@@ -450,6 +450,39 @@ describe("createSupervisor", () => {
     expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
   });
 
+  it("escalates readiness-failure shutdown to SIGKILL when SIGTERM is ignored", async () => {
+    vi.useFakeTimers();
+    const handle = createControllableHandle();
+    handle.kill.mockImplementation((signal?: NodeJS.Signals) => {
+      if (signal === "SIGKILL") {
+        handle.finish({ exitCode: 137 });
+      }
+    });
+    const supervisor = createTestSupervisor({
+      runner: { name: "controllable", exec: vi.fn(() => handle) },
+      spec: { readyCheck: { kind: "log-pattern", pattern: "READY" }, restart: "never" }
+    });
+
+    let settled = false;
+    const startPromise = supervisor.start().finally(() => {
+      settled = true;
+    });
+    const startupFailure = expect(startPromise).rejects.toThrow(/readiness/i);
+
+    await vi.waitFor(() => expect(supervisor.getState().status).toBe("restarting"));
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(handle.kill).not.toHaveBeenCalledWith("SIGKILL");
+    expect(settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    await startupFailure;
+    expect(handle.kill).toHaveBeenNthCalledWith(1, "SIGTERM");
+    expect(handle.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
+  });
+
   it("rejects initial startup when it crashes before readiness", async () => {
     vi.useFakeTimers();
     const supervisor = createTestSupervisor({

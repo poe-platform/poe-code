@@ -82,13 +82,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     const activeHandle = handle;
 
     if (activeHandle !== null) {
-      activeHandle.kill("SIGTERM");
-
-      const exited = await waitForExit(activeHandle, 5_000);
-      if (!exited) {
-        activeHandle.kill("SIGKILL");
-        await activeHandle.result;
-      }
+      await terminateHandle(activeHandle);
     }
 
     clearStableTimer();
@@ -149,7 +143,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
 
       if (!ready) {
         if (runId === nextRunId && handle === nextHandle) {
-          nextHandle.kill("SIGTERM");
+          await terminateHandle(nextHandle);
         }
 
         if (!isRestart) {
@@ -410,6 +404,16 @@ function delay(durationMs: number): Promise<void> {
   return new Promise(resolve => {
     setTimeout(resolve, durationMs);
   });
+}
+
+async function terminateHandle(activeHandle: RunHandle): Promise<void> {
+  activeHandle.kill("SIGTERM");
+
+  const exited = await waitForExit(activeHandle, 5_000);
+  if (!exited) {
+    activeHandle.kill("SIGKILL");
+    await activeHandle.result;
+  }
 }
 
 function waitForExit(activeHandle: RunHandle, timeoutMs: number): Promise<boolean> {

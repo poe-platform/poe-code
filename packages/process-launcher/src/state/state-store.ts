@@ -121,6 +121,7 @@ export function createStateStore(
     await assertPathHasNoSymbolicLinks(fs, statePath);
     await fs.mkdir(processDir, { recursive: true });
     await assertPathHasNoSymbolicLinks(fs, statePath);
+    await assertPathHasNoSymbolicLinks(fs, temporaryPath);
 
     try {
       await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);

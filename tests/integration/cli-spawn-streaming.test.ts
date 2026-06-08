@@ -140,6 +140,8 @@ describe("CLI spawn streaming integration", () => {
         "node",
         "cli",
         "spawn",
+        "--mode",
+        "yolo",
         "codex",
         "hello"
       ]);

@@ -6,6 +6,7 @@ import {
   mkdir,
   open,
   readdir,
+  realpath,
   rename,
   stat,
   unlink
@@ -215,6 +216,10 @@ export async function resolveCodeReviewRolePrompt(input: {
     cwd,
     filePath: relativePath,
     optional: true,
+    fs: {
+      readFile: async (filePath, _encoding) => await readRegularAssetFile(filePath),
+      realpath: async (filePath) => await realpath(filePath)
+    },
     baseDocuments: [
       {
         filePath: builtInPath,

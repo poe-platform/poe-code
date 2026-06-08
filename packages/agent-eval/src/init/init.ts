@@ -53,11 +53,11 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
     await mkdir(path.join(evalDir, "starter"), { recursive: true });
     const writes = await Promise.allSettled([
-      writeFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
-      writeFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
-      writeFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
-      writeFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
-      writeFile(path.join(evalDir, "starter", ".gitkeep"), "")
+      writeNewFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
+      writeNewFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
+      writeNewFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
+      writeNewFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
+      writeNewFile(path.join(evalDir, "starter", ".gitkeep"), "")
     ]);
     const failedWrite = writes.find((result): result is PromiseRejectedResult => result.status === "rejected");
     if (failedWrite !== undefined) {
@@ -72,6 +72,10 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     evalDir,
     files: initFiles
   };
+}
+
+async function writeNewFile(filePath: string, content: string): Promise<void> {
+  await writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
 }
 
 async function assertSafeSourceDirectory(sourceDir: string): Promise<void> {

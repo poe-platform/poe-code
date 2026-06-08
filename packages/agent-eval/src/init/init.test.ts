@@ -7,7 +7,8 @@ import { loadEval } from "../source/registry.js";
 
 const mocks = vi.hoisted(() => ({
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
-  failedWriteSuffix: undefined as string | undefined
+  failedWriteSuffix: undefined as string | undefined,
+  racedWriteSuffix: undefined as string | undefined
 }));
 
 vi.mock("node:fs/promises", () => ({
@@ -22,6 +23,10 @@ vi.mock("node:fs/promises", () => ({
   rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
   writeFile: async (...args: unknown[]) => {
     const [filePath] = args as Parameters<typeof mocks.fs.writeFile>;
+    if (mocks.racedWriteSuffix !== undefined && String(filePath).endsWith(mocks.racedWriteSuffix)) {
+      mocks.racedWriteSuffix = undefined;
+      await mocks.fs.symlink("/outside/secret.txt", filePath);
+    }
     if (mocks.failedWriteSuffix !== undefined && String(filePath).endsWith(mocks.failedWriteSuffix)) {
       throw new Error("scaffold write failed");
     }
@@ -35,6 +40,7 @@ describe("evalInit", () => {
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
     mocks.failedWriteSuffix = undefined;
+    mocks.racedWriteSuffix = undefined;
   });
 
   it("scaffolds the expected file set", async () => {
@@ -166,6 +172,19 @@ describe("evalInit", () => {
     await expect(mocks.fs.readFile("/outside/escaped-task/eval.yaml", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
+  });
+
+  it("does not overwrite a scaffold file symlink inserted before publish", async () => {
+    mocks.fs = createFsFromVolume(
+      Volume.fromJSON({ "/repo/evals/.keep": "", "/outside/secret.txt": "keep\n" }, "/")
+    ).promises;
+    mocks.racedWriteSuffix = "/eval.yaml";
+
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "raced-task", kind: "plan" })
+    ).rejects.toMatchObject({ code: "EEXIST" });
+    await expect(mocks.fs.readFile("/outside/secret.txt", "utf8")).resolves.toBe("keep\n");
+    await expect(mocks.fs.stat("/repo/evals/raced-task")).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
 

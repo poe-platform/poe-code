@@ -1,12 +1,8 @@
 import type { runHarnessPair } from "@poe-code/agent-harness";
 
 import type { WorkflowDriver } from "./types.js";
+import { createUnsupportedWorkflowDriver } from "./unsupported.js";
 
 export type HarnessEntrypoint = typeof runHarnessPair;
 
-export const harnessDriver: WorkflowDriver = {
-  kind: "harness",
-  async run() {
-    throw new Error("harness driver not implemented");
-  }
-};
+export const harnessDriver: WorkflowDriver = createUnsupportedWorkflowDriver("harness");

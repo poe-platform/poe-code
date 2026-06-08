@@ -188,7 +188,8 @@ async function runVerify(
 
   try {
     const resolved = await resolveTasksOptions(list, options);
-    const report = await verifyGhProject(resolved);
+    const auth = resolved.auth ?? { token: await resolveAuth({}) };
+    const report = await verifyGhProject({ ...resolved, auth });
 
     if (options.json) {
       writeJson(report);

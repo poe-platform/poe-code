@@ -268,6 +268,23 @@ tasks:
     );
   });
 
+  it("verify falls back to gh auth token when none is configured", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    taskListMocks.verifyGhProject.mockResolvedValue(createVerifyReport());
+
+    await runTasks(["verify", "acme/12"]);
+
+    expect(taskListMocks.verifyGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: { token: "fallback-token" } })
+    );
+  });
+
   it("sync passes merged frontmatter and flags to the SDK call", async () => {
     seedWorkflow(`
 maestro:

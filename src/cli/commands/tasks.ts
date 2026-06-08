@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
-import { confirm, isCancel } from "@poe-code/design-system";
+import { confirm, isCancel } from "toolcraft-design";
 import {
   GhProjectSyncError,
   MalformedTaskError,

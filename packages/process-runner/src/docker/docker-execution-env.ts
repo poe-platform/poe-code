@@ -455,6 +455,21 @@ async function runAndRead(runner: Runner, spec: RunSpec): Promise<string> {
   return output;
 }
 
+async function runAndReadBytes(runner: Runner, spec: RunSpec): Promise<Buffer> {
+  const handle = runner.exec(spec);
+  const stdout = readStreamBytes(handle.stdout);
+  const stderr = readStream(handle.stderr);
+  const result = await handle.result;
+  const output = await stdout;
+  if (result.exitCode !== 0) {
+    const errorOutput = await stderr;
+    throw new Error(
+      `Command failed with exit code ${result.exitCode}: ${spec.command} ${(spec.args ?? []).join(" ")}${errorOutput ? `\n${errorOutput}` : ""}`
+    );
+  }
+  return output;
+}
+
 async function runOrThrow(runner: Runner, spec: RunSpec): Promise<void> {
   await runAndRead(runner, spec);
 }
@@ -470,6 +485,18 @@ async function readStream(stream: NodeJS.ReadableStream | null): Promise<string>
     chunks.push(String(chunk));
   }
   return chunks.join("");
+}
+
+async function readStreamBytes(stream: NodeJS.ReadableStream | null): Promise<Buffer> {
+  if (stream === null) {
+    return Buffer.alloc(0);
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk, "utf8") : Buffer.from(chunk as Uint8Array));
+  }
+  return Buffer.concat(chunks);
 }
 
 function sortedBuildArgs(buildArgs: Record<string, string>): Array<[string, string]> {
@@ -635,8 +662,10 @@ function createContainerJob(
               opts.since.getTime() / 1000
             )}`;
       let byteOffset = opts?.sinceByte ?? 0;
+      let pendingBytes: Buffer<ArrayBufferLike> = Buffer.alloc(0);
+      let pendingByteOffset = byteOffset;
       while (true) {
-        const stdout = await runAndRead(runner, {
+        const stdout = await runAndReadBytes(runner, {
           command: engine,
           args: [
             ...buildContextArgs(engine, context),
@@ -649,9 +678,18 @@ function createContainerJob(
           stdout: "pipe",
           stderr: "pipe"
         });
-        if (stdout.length > 0) {
-          yield { byteOffset, data: stdout };
-          byteOffset += Buffer.byteLength(stdout);
+        if (stdout.byteLength > 0) {
+          const combined = pendingBytes.byteLength === 0
+            ? stdout
+            : Buffer.concat([pendingBytes, stdout]);
+          const completeLength = completeUtf8PrefixLength(combined);
+          byteOffset += stdout.byteLength;
+          pendingBytes = combined.subarray(completeLength);
+          const data = combined.subarray(0, completeLength).toString("utf8");
+          if (data.length > 0) {
+            yield { byteOffset: pendingByteOffset, data };
+            pendingByteOffset += completeLength;
+          }
         }
         if (opts?.follow !== true || (await this.status()) !== "running") {
           return;
@@ -694,6 +732,46 @@ function createContainerJob(
       });
     }
   };
+}
+
+function completeUtf8PrefixLength(contents: Buffer): number {
+  if (contents.length === 0) {
+    return 0;
+  }
+
+  let leadIndex = contents.length - 1;
+  while (leadIndex >= 0 && isUtf8ContinuationByte(contents[leadIndex]!)) {
+    leadIndex -= 1;
+  }
+
+  if (leadIndex < 0) {
+    return contents.length;
+  }
+
+  const expectedLength = utf8SequenceLength(contents[leadIndex]!);
+  if (expectedLength === 0) {
+    return contents.length;
+  }
+
+  const availableLength = contents.length - leadIndex;
+  return availableLength < expectedLength ? leadIndex : contents.length;
+}
+
+function isUtf8ContinuationByte(byte: number): boolean {
+  return byte >= 0x80 && byte <= 0xbf;
+}
+
+function utf8SequenceLength(byte: number): number {
+  if (byte >= 0xc2 && byte <= 0xdf) {
+    return 2;
+  }
+  if (byte >= 0xe0 && byte <= 0xef) {
+    return 3;
+  }
+  if (byte >= 0xf0 && byte <= 0xf4) {
+    return 4;
+  }
+  return 0;
 }
 
 async function readDetachedExitCode(

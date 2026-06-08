@@ -828,6 +828,45 @@ describe("dockerExecutionEnvFactory", () => {
       vi.useRealTimers();
     }
   });
+
+  it("preserves UTF-8 characters split across detached log polling reads", async () => {
+    vi.useFakeTimers();
+    const bytes = Buffer.from("🧪\n", "utf8");
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: [bytes.subarray(0, 2)] },
+      { exitCode: 0, stdout: [] },
+      { exitCode: 0, stdout: [bytes.subarray(2)] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    try {
+      const chunks: Array<{ byteOffset: number; data: string }> = [];
+      const reading = (async () => {
+        for await (const chunk of job.stream({ follow: true })) {
+          chunks.push(chunk);
+        }
+      })();
+      await vi.advanceTimersByTimeAsync(250);
+      await reading;
+
+      expect(chunks).toEqual([{ byteOffset: 0, data: "🧪\n" }]);
+      expect(runner.specs[2]?.args?.at(-1)).toContain("tail -c +3");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {
@@ -869,7 +908,7 @@ function createState(template: unknown) {
 }
 
 function createCapturingRunner(
-  results: Array<{ exitCode: number; stdout?: string[]; stderr?: string[] }>
+  results: Array<{ exitCode: number; stdout?: Array<string | Uint8Array>; stderr?: Array<string | Uint8Array> }>
 ): Runner & { specs: RunSpec[] } {
   const specs: RunSpec[] = [];
   const runner: Runner & { specs: RunSpec[] } = {
@@ -891,8 +930,8 @@ function createCapturingRunner(
 
 function createHandle(result: {
   exitCode: number;
-  stdout?: string[];
-  stderr?: string[];
+  stdout?: Array<string | Uint8Array>;
+  stderr?: Array<string | Uint8Array>;
 }): RunHandle {
   return {
     pid: 123,
@@ -904,6 +943,6 @@ function createHandle(result: {
   };
 }
 
-function ReadableStreamFrom(chunks: string[]): NodeJS.ReadableStream {
+function ReadableStreamFrom(chunks: Array<string | Uint8Array>): NodeJS.ReadableStream {
   return Readable.from(chunks);
 }

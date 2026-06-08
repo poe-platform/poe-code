@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Command } from "commander";
-import { executeConfigure, registerConfigureCommand } from "./configure.js";
+import { createOverlayFileSystem, executeConfigure, registerConfigureCommand } from "./configure.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { loadConfiguredServices } from "../../services/config.js";
@@ -154,6 +154,24 @@ function stubInvokeAndCaptureProvider(container: ReturnType<typeof createContain
   return {
     provider: () => provider
   };
+}
+
+function withRenameOverride(fs: FileSystem, rename: FileSystem["rename"]): FileSystem {
+  return new Proxy(fs, {
+    get(target, property, receiver) {
+      if (property === "rename") {
+        return rename;
+      }
+      const value = Reflect.get(target, property, receiver) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) as FileSystem;
+}
+
+function createTestFsError(code: string, filePath: string): NodeJS.ErrnoException {
+  const error = new Error(`${code}: test failure, '${filePath}'`) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
 }
 
 describe("configure provider resolution", () => {
@@ -1094,5 +1112,75 @@ describe("configure provider resolution", () => {
 
     expect(writeSpy).not.toHaveBeenCalled();
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe(before);
+  });
+
+  it("keeps overlay symlinks staged until commit", async () => {
+    const linkPath = `${homeDir}/links/current`;
+    const targetPath = `${homeDir}/target`;
+    const transaction = createOverlayFileSystem(fs);
+
+    await fs.mkdir(path.dirname(linkPath), { recursive: true });
+    await fs.writeFile(targetPath, "target", { encoding: "utf8" });
+    await transaction.fs.symlink("../target", linkPath);
+
+    await expect(fs.lstat(linkPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(transaction.fs.readlink(linkPath)).resolves.toBe("../target");
+    await expect(transaction.hasMaterialChange()).resolves.toBe(true);
+
+    await transaction.commit();
+
+    expect((await fs.lstat(linkPath)).isSymbolicLink()).toBe(true);
+    await expect(fs.readlink(linkPath)).resolves.toBe("../target");
+  });
+
+  it("replaces symlinked overlay targets without writing through them", async () => {
+    const outsidePath = "/outside/config.toml";
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const transaction = createOverlayFileSystem(fs);
+
+    await fs.mkdir(path.dirname(outsidePath), { recursive: true });
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(outsidePath, "outside", { encoding: "utf8" });
+    await fs.symlink(outsidePath, configFile);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+    await transaction.commit();
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
+    expect((await fs.lstat(configFile)).isSymbolicLink()).toBe(false);
+    await expect(fs.readFile(configFile, "utf8")).resolves.toBe("inside");
+  });
+
+  it("restores original symlinks and removes staged temps when overlay commit fails", async () => {
+    const outsidePath = "/outside/config.toml";
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const laterFile = `${homeDir}/.poe-code/later.toml`;
+    const failedRenames: string[] = [];
+    const failingFs = withRenameOverride(fs, async (from, to) => {
+      if (to === laterFile) {
+        failedRenames.push(from);
+        throw createTestFsError("EIO", to);
+      }
+      await fs.rename(from, to);
+    });
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await fs.mkdir(path.dirname(outsidePath), { recursive: true });
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(outsidePath, "outside", { encoding: "utf8" });
+    await fs.symlink(outsidePath, configFile);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+    await transaction.fs.writeFile(laterFile, "later", { encoding: "utf8" });
+
+    await expect(transaction.commit()).rejects.toThrow("EIO");
+
+    expect((await fs.lstat(configFile)).isSymbolicLink()).toBe(true);
+    await expect(fs.readlink(configFile)).resolves.toBe(outsidePath);
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
+    await expect(fs.lstat(laterFile)).rejects.toMatchObject({ code: "ENOENT" });
+    for (const failedRename of failedRenames) {
+      await expect(fs.lstat(failedRename)).rejects.toMatchObject({ code: "ENOENT" });
+    }
   });
 });

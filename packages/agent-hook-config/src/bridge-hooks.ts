@@ -8,6 +8,7 @@ import {
   type AgentHookConfig
 } from "./configs.js";
 import { readClaudeHooks } from "./read-hooks.js";
+import { assertNoSymbolicLink } from "./path-safety.js";
 import { symlinkHooks } from "./symlink-hooks.js";
 import { transformHooks, type HookDrop } from "./transform-hooks.js";
 import { writeCodexHooks } from "./write-hooks.js";
@@ -87,27 +88,6 @@ function collectMissingParents(targetPath: string): string[] {
   }
 
   return parents.reverse();
-}
-
-function assertNoSymbolicLink(targetPath: string): void {
-  const parsed = path.parse(path.resolve(targetPath));
-  let current = parsed.root;
-  for (const segment of path.resolve(targetPath).slice(parsed.root.length).split(path.sep)) {
-    if (segment.length === 0) {
-      continue;
-    }
-    current = path.join(current, segment);
-    try {
-      if (fs.lstatSync(current).isSymbolicLink()) {
-        throw new Error(`Hook bridge path must not traverse a symbolic link: ${current}`);
-      }
-    } catch (error) {
-      if (isNodeError(error) && error.code === "ENOENT") {
-        return;
-      }
-      throw error;
-    }
-  }
 }
 
 function removeDirectoryIfEmpty(targetPath: string): void {
@@ -241,6 +221,7 @@ export function bridgeHooks(
 
   if (strategy === "symlink") {
     const symlinkPath = requireTargetPath(target.id, target.config, cwd, homeDir);
+    assertNoSymbolicLink(path.dirname(symlinkPath));
     manifest.createdParents = collectMissingParents(symlinkPath);
     const result = symlinkHooks(source.id, target.id, cwd, homeDir, "project");
     manifest.symlinkPath = result.symlinkPath;

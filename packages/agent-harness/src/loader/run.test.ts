@@ -9,7 +9,10 @@ import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
 const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,
-  failingWritePathPrefix: undefined as string | undefined
+  failingWritePathPrefix: undefined as string | undefined,
+  collidingWritePathPrefix: undefined as string | undefined,
+  collidingWriteTarget: undefined as string | undefined,
+  collidingWritePath: undefined as string | undefined
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -30,6 +33,16 @@ vi.mock("node:fs/promises", async () => {
       ) {
         await fs.promises.writeFile(path, "[", options);
         throw new Error("host call disk full");
+      }
+
+      if (
+        mockedFileSystemState.collidingWritePathPrefix !== undefined &&
+        mockedFileSystemState.collidingWriteTarget !== undefined &&
+        pathText.startsWith(mockedFileSystemState.collidingWritePathPrefix) &&
+        pathText.endsWith(".tmp")
+      ) {
+        mockedFileSystemState.collidingWritePath = pathText;
+        await fs.promises.symlink(mockedFileSystemState.collidingWriteTarget, pathText);
       }
 
       return fs.promises.writeFile(path, data, options);
@@ -61,6 +74,9 @@ describe("runHarnessPair", () => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;
     mockedFileSystemState.failingWritePathPrefix = undefined;
+    mockedFileSystemState.collidingWritePathPrefix = undefined;
+    mockedFileSystemState.collidingWriteTarget = undefined;
+    mockedFileSystemState.collidingWritePath = undefined;
   });
 
   afterEach(() => {
@@ -263,6 +279,38 @@ describe("runHarnessPair", () => {
     expect(JSON.parse(vol.readFileSync(storePath, "utf8") as string)).toEqual([
       { key: "host.step", args: ["new"], result: "new" }
     ]);
+  });
+
+  it("does not remove a colliding host-call temp symlink it did not create", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      "/outside/host-calls.tmp": "outside-state\n"
+    });
+    vol.mkdirSync(dirname(storePath), { recursive: true });
+    mockedFileSystemState.collidingWritePathPrefix = `${storePath}.`;
+    mockedFileSystemState.collidingWriteTarget = "/outside/host-calls.tmp";
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        snapshotPath,
+        preserveSnapshotOnSuccess: true
+      })
+    ).rejects.toThrow("EEXIST");
+
+    expect(mockedFileSystemState.collidingWritePath).toBeDefined();
+    expect(vol.readFileSync("/outside/host-calls.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(mockedFileSystemState.collidingWritePath as string).isSymbolicLink()).toBe(
+      true
+    );
+    expect(vol.existsSync(storePath)).toBe(false);
   });
 
   it("lints the coverage demo .ajs without diagnostics", () => {

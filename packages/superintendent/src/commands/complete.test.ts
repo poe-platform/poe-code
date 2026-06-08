@@ -236,6 +236,63 @@ describe("superintendent complete command", () => {
     await expect(rawFs.readFile(targetPath, "utf8")).resolves.toContain("state: completed");
   });
 
+  it("does not remove a colliding completion temp symlink it did not create", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const targetPath = "/repo/docs/plans/feature.md";
+    const outsidePath = "/outside/target.md";
+    const volume = Volume.fromJSON(
+      {
+        [targetPath]: document,
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+
+    await expect(completeCommand.handler({
+      params: { path: targetPath },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+        lstat: async (filePath: string) => {
+          const stat = await rawFs.lstat(filePath);
+          return { isSymbolicLink: () => stat.isSymbolicLink() };
+        },
+        writeFile: async (
+          filePath: string,
+          content: string,
+          options?: { encoding?: BufferEncoding; flag?: string }
+        ) => {
+          if (
+            temporaryPath === undefined &&
+            filePath.startsWith(`${targetPath}.`) &&
+            filePath.endsWith(".tmp")
+          ) {
+            temporaryPath = filePath;
+            volume.symlinkSync(outsidePath, filePath);
+          }
+
+          await rawFs.writeFile(filePath, content, options);
+        },
+        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
+        unlink: (filePath: string) => rawFs.unlink(filePath),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    })).rejects.toMatchObject({ code: "EEXIST" });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(rawFs.readFile(outsidePath, "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    const tempStat = await rawFs.lstat(temporaryPath as string);
+    expect(tempStat.isSymbolicLink()).toBe(true);
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
+  });
+
   it("preserves the document when completion persistence fails", async () => {
     const { completeCommand } = await import("./complete.js");
     const targetPath = "/repo/docs/plans/feature.md";

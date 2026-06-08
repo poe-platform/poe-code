@@ -546,11 +546,15 @@ async function writeHostCallRecords(
 
   await mkdir(dirname(storePath), { recursive: true });
   const temporaryPath = `${storePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
   try {
     await writeFile(temporaryPath, serialized, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
     await rename(temporaryPath, storePath);
   } catch (error) {
-    await unlinkIfExists(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await unlinkIfExists(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

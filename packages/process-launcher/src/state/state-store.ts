@@ -121,15 +121,19 @@ export function createStateStore(
     await assertPathHasNoSymbolicLinks(fs, statePath);
     await assertPathHasNoSymbolicLinks(fs, temporaryPath);
 
+    let temporaryCreated = false;
     try {
       await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`, {
         encoding: "utf8",
         flag: "wx"
       });
+      temporaryCreated = true;
       await assertPathHasNoSymbolicLinks(fs, statePath);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
-      await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      if (temporaryCreated) {
+        await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      }
       throw error;
     }
   }

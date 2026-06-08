@@ -91,11 +91,15 @@ async function writeDocumentAtomically(
   }
 ): Promise<void> {
   const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
   try {
     await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
-    await fs.unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

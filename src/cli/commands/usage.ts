@@ -347,6 +347,10 @@ export function registerUsageCommand(
           startingAfter = result.data[result.data.length - 1].query_id;
 
           if (maxPages === undefined && !flags.assumeYes) {
+            if (process.stdin.isTTY !== true) {
+              break;
+            }
+
             const shouldContinue = await confirm({ message: "Load more?" });
             if (isCancel(shouldContinue)) {
               throw new OperationCancelledError();

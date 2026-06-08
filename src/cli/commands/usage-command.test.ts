@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -19,6 +19,25 @@ const typographyMock = vi.hoisted(() => ({
   underline: vi.fn((t: string) => t),
   strikethrough: vi.fn((t: string) => t)
 }));
+
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
 
 function createIdentityTheme() {
   return {
@@ -513,6 +532,7 @@ describe("usage list command", () => {
   let httpClient: HttpClient;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     fs = createMemfs(homeDir);
     logs = [];
     httpClient = vi.fn();
@@ -520,6 +540,10 @@ describe("usage list command", () => {
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
     withSpinnerMock.mockClear();
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("fetches and displays usage history from GET /usage/points_history with limit=20", async () => {
@@ -688,6 +712,41 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Sonnet-4.5");
     expect(output).toContain("gpt-5.2");
     expect(output).toContain("Claude-Opus");
+  });
+
+  it("stops after the first page without prompting in non-interactive mode", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    fs = await createConfigVolume("test-key");
+    const page1Entries = [
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }
+    ];
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ has_more: true, data: page1Entries })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+    try {
+      await program.parseAsync(["node", "cli", "usage", "list"]);
+    } finally {
+      restoreStdin();
+    }
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(httpClient).toHaveBeenCalledTimes(1);
+    expect(logs.join("\n")).toContain("Claude-Sonnet-4.5");
   });
 
   it("loads all available usage pages without prompting when --yes is set", async () => {
@@ -1081,6 +1140,7 @@ describe("usage list table styling", () => {
   let httpClient: HttpClient;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     fs = createMemfs(homeDir);
     logs = [];
     httpClient = vi.fn();
@@ -1088,6 +1148,10 @@ describe("usage list table styling", () => {
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
     withSpinnerMock.mockClear();
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("styles column headers with theme.header", async () => {

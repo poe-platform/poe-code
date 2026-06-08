@@ -238,6 +238,30 @@ describe("poe-agent-plugin-shell", () => {
     ).rejects.toThrow("Command timed out after 0.05 seconds");
   });
 
+  it("includes captured output when a foreground command times out", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    let message = "";
+    try {
+      await callTool(plugin.tools, "run_command", {
+        command: createNodeCommand(
+          "process.stdout.write('partial stdout\\n'); process.stderr.write('partial stderr\\n'); setTimeout(() => {}, 5_000);"
+        ),
+        timeout: 0.05
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain("Command timed out after 0.05 seconds");
+    expect(message).toContain("partial stdout");
+    expect(message).toContain("partial stderr");
+  });
+
   it("aborts foreground commands when the tool signal is aborted", async () => {
     const cwd = process.cwd();
     const plugin = shellPlugin({

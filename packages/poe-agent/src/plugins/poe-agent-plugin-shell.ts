@@ -751,7 +751,13 @@ async function defaultRunCommand(
   const outcome = await spawned.completion;
 
   if (outcome.timedOut) {
-    throw new Error(`Command timed out after ${options.timeoutMs / 1_000} seconds`);
+    throw new Error(
+      getCommandTimeoutMessage(
+        formatRetainedOutput(spawned.stdout),
+        formatRetainedOutput(spawned.stderr),
+        options.timeoutMs
+      )
+    );
   }
 
   if (outcome.aborted) {
@@ -1033,6 +1039,12 @@ function getCommandFailureMessage(
   }
 
   return "Command failed";
+}
+
+function getCommandTimeoutMessage(stdout: string, stderr: string, timeoutMs: number): string {
+  const message = `Command timed out after ${timeoutMs / 1_000} seconds`;
+  const combinedOutput = combineOutput(stdout, stderr);
+  return combinedOutput.length > 0 ? `${message}: ${combinedOutput}` : message;
 }
 
 export default shellPlugin;

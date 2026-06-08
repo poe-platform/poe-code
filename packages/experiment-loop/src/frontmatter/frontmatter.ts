@@ -1,4 +1,5 @@
 import matter from "gray-matter";
+import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { stringify } from "yaml";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
@@ -158,9 +159,9 @@ export async function writeExperimentFrontmatter(
   const content =
     body.endsWith("\n") || !serialized.endsWith("\n") ? serialized : serialized.slice(0, -1);
 
-  const temporaryPath = `${docPath}.tmp`;
+  const temporaryPath = `${docPath}.${process.pid}.${randomUUID()}.tmp`;
   try {
-    await fs.writeFile(temporaryPath, content);
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
     await fs.rename(temporaryPath, docPath);
   } catch (error) {
     await fs.unlink(temporaryPath).catch(() => undefined);

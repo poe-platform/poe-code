@@ -33,8 +33,11 @@ import type {
 function createDefaultFs(): ExperimentFileSystem {
   const fs = {
     readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
-    writeFile: (filePath: string, content: string) =>
-      fsPromises.writeFile(filePath, content, "utf8"),
+    writeFile: (
+      filePath: string,
+      content: string,
+      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+    ) => fsPromises.writeFile(filePath, content, options ?? { encoding: "utf8" }),
     readdir: fsPromises.readdir,
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);

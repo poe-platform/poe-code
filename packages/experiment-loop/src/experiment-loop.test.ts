@@ -950,6 +950,27 @@ describe("writeExperimentFrontmatter", () => {
     expect(written).not.toContain("metric_timeout");
   });
 
+  it("does not follow a preexisting legacy temp path symlink", async () => {
+    const docPath = "/repo/experiment.md";
+    const outsidePath = "/outside/target.md";
+    const volume = Volume.fromJSON(
+      {
+        [docPath]: "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n",
+        [outsidePath]: "outside stays unchanged\n"
+      },
+      "/"
+    );
+    volume.symlinkSync(outsidePath, `${docPath}.tmp`);
+    const fs = createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
+
+    await writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs);
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside stays unchanged\n");
+    const documentStat = await fs.lstat(docPath);
+    expect(documentStat.isSymbolicLink()).toBe(false);
+    await expect(fs.readFile(docPath, "utf8")).resolves.toContain("tests: 42");
+  });
+
   it("preserves the document when frontmatter persistence fails", async () => {
     const docPath = "/repo/experiment.md";
     const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";

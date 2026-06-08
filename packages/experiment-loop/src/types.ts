@@ -11,7 +11,11 @@ export interface ExperimentLinkStat {
 }
 
 export interface ExperimentFileSystem extends WorkflowFileSystem {
-  writeFile(path: string, content: string): Promise<void>;
+  writeFile(
+    path: string,
+    content: string,
+    options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+  ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   appendFile(path: string, content: string): Promise<void>;
   stat(path: string): Promise<ExperimentFileStat>;

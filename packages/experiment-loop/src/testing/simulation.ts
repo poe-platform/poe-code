@@ -139,9 +139,9 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
 
   const fs = {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: async (filePath, content) => {
+    writeFile: async (filePath, content, options) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
     },
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
     stat: async (filePath) => {

@@ -418,7 +418,11 @@ describe("writeRegistry", () => {
     const base = createMemFs({ [REGISTRY]: stringify(initial, { lineWidth: 0 }) }) as ExtendedWorktreeFileSystem;
     const fs = {
       ...base,
-      writeFile: async (filePath: string, data: string, options?: { encoding?: BufferEncoding }) => {
+      writeFile: async (
+        filePath: string,
+        data: string,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ) => {
         if (filePath !== REGISTRY) {
           await base.writeFile(filePath, "partial", options);
           throw new Error("disk full");
@@ -429,6 +433,34 @@ describe("writeRegistry", () => {
 
     await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry({ name: "new" })] }, fs)).rejects.toThrow("disk full");
     await expect(readRegistry(REGISTRY, base)).resolves.toEqual(initial);
+  });
+
+  it("does not follow or remove a colliding temporary registry symlink", async () => {
+    const base = createMemFs({ "/outside/worktrees.tmp": "outside-state\n" }) as ExtendedWorktreeFileSystem;
+    await base.mkdir("/repo/.poe-code", { recursive: true });
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...base,
+      writeFile: async (
+        filePath: string,
+        data: string,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ) => {
+        if (filePath.startsWith(`${REGISTRY}.tmp-`)) {
+          temporaryPath = filePath;
+          await base.symlink("/outside/worktrees.tmp", filePath);
+        }
+
+        await base.writeFile(filePath, data, options);
+      }
+    } as ExtendedWorktreeFileSystem;
+
+    await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry()] }, fs)).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile("/outside/worktrees.tmp", "utf8")).resolves.toBe("outside-state\n");
+    expect((await base.lstat(temporaryPath as string)).isSymbolicLink()).toBe(true);
+    await expect(base.readFile(REGISTRY, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("rejects writes through a symlinked registry file", async () => {

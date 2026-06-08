@@ -1,17 +1,18 @@
 import path from "node:path";
 import * as fs from "node:fs/promises";
 import { execSync } from "node:child_process";
+import parseDuration from "parse-duration";
 import type { Command } from "commander";
 import { confirmOrCancel } from "@poe-code/design-system";
 import { defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
+  cacheStatus,
+  clearCache,
   editPage,
   initMemory,
   installMemory,
   openMemory,
   resolveConfiguredMemoryRoot,
-  runMemoryCacheClear,
-  runMemoryCacheStatus,
   type MemoryHandle
 } from "@poe-code/memory";
 import memorySkillTemplate from "../../../packages/memory/src/templates/SKILL_memory.md";
@@ -48,6 +49,25 @@ function resolvePageRelPath(input: string): string {
 
 function displayPageRelPath(relPath: string): string {
   return relPath.startsWith("pages/") ? relPath.slice("pages/".length) : relPath;
+}
+
+function parseCacheOlderThan(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const duration = parseDuration(value);
+  if (duration === null || Number.isNaN(duration) || duration < 0) {
+    throw new ValidationError(`Invalid duration for --older-than: "${value}".`);
+  }
+  return duration;
+}
+
+function formatCacheDryRunMessage(olderThan: string | undefined): string {
+  if (olderThan === undefined) {
+    return "Would clear all memory cache entries.";
+  }
+  return `Would clear memory cache entries older than ${olderThan}.`;
 }
 
 async function assertInitialized(mem: Pick<MemoryHandle, "statusOf">): Promise<void> {
@@ -457,7 +477,12 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .command("status")
     .description("Show ingest cache entry count and bytes.")
     .action(async () => {
-      await runMemoryCacheStatus({ root: await resolveRoot(container) });
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "memory:cache:status");
+      const status = await cacheStatus(await resolveRoot(container));
+      resources.logger.info(
+        `${status.entries} cache ${status.entries === 1 ? "entry" : "entries"} (${status.bytes} bytes)`
+      );
     });
 
   cache
@@ -466,11 +491,24 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .option("--older-than <duration>", "Clear entries older than the duration.")
     .action(async (options: { olderThan?: string }) => {
       const flags = resolveCommandFlags(program);
-      await runMemoryCacheClear({
-        root: await resolveRoot(container),
-        olderThan: options.olderThan,
-        yes: flags.assumeYes
-      });
+      const resources = createExecutionResources(container, flags, "memory:cache:clear");
+      if (!flags.assumeYes) {
+        throw new Error("Refusing to clear cache without --yes.");
+      }
+
+      const olderThanMs = parseCacheOlderThan(options.olderThan);
+      if (flags.dryRun) {
+        resources.logger.dryRun(formatCacheDryRunMessage(options.olderThan));
+        return;
+      }
+
+      const result = await clearCache(
+        await resolveRoot(container),
+        olderThanMs === undefined ? {} : { olderThanMs }
+      );
+      resources.logger.info(
+        `removed ${result.removed} cache ${result.removed === 1 ? "entry" : "entries"}`
+      );
     });
 
   memory

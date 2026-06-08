@@ -56,13 +56,15 @@ function createBaseProgram(): Command {
   return program;
 }
 
-function createContainer(): ReturnType<typeof createCliContainer> {
+function createContainer(logs: string[] = []): ReturnType<typeof createCliContainer> {
   const fs = memfs.promises as unknown as FileSystem;
   return createCliContainer({
     fs,
     prompts: vi.fn().mockResolvedValue({}),
     env: { cwd, homeDir },
-    logger: () => {}
+    logger: (message) => {
+      logs.push(message);
+    }
   });
 }
 
@@ -325,15 +327,15 @@ describe("memory command", () => {
   });
 
   it("reports memory cache status", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
     vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "status"]);
 
-    expect(log).toHaveBeenCalledWith("1 cache entry (3 bytes)");
+    expect(logs).toContain("1 cache entry (3 bytes)");
   });
 
   it("clears memory cache entries when confirmed", async () => {
@@ -345,5 +347,18 @@ describe("memory command", () => {
     await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "clear"]);
 
     await expect(memfs.promises.stat(`${memoryRoot}/.cache`)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("does not clear memory cache entries during dry-run", async () => {
+    const logs: string[] = [];
+    const container = createContainer(logs);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "cache", "clear"]);
+
+    await expect(memfs.promises.stat(`${memoryRoot}/.cache/ingest/one.json`)).resolves.toBeDefined();
+    expect(logs).toContain("Would clear all memory cache entries.");
   });
 });

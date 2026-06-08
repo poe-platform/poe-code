@@ -80,6 +80,22 @@ describe("runMemoryCacheClear", () => {
     expect(clearCache).toHaveBeenCalledWith("/repo/.poe-code/memory", {});
   });
 
+  it("logs dry-run cache clears without deleting entries", async () => {
+    const log = vi.fn();
+
+    await expect(
+      runMemoryCacheClear({
+        root: "/repo/.poe-code/memory",
+        yes: true,
+        dryRun: true,
+        log
+      })
+    ).resolves.toEqual({ removed: 0 });
+
+    expect(clearCache).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalledWith("Would clear all memory cache entries.");
+  });
+
   it("rejects invalid older-than values", async () => {
     parseDuration.mockReturnValue(null);
 

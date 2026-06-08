@@ -213,6 +213,18 @@ function mergePrunedConfigObject(base: ConfigObject, patch: ConfigObject): Confi
   return result;
 }
 
+function serializeConfigUpdate(
+  format: ReturnType<typeof getConfigFormat>,
+  rawContent: string | null,
+  current: ConfigObject,
+  next: ConfigObject
+): string {
+  if (rawContent !== null && format.serializeUpdate) {
+    return format.serializeUpdate(rawContent, current, next);
+  }
+  return format.serialize(next);
+}
+
 // ============================================================================
 // Apply Mutation
 // ============================================================================
@@ -625,6 +637,7 @@ async function applyConfigMerge(
   const format = getConfigFormat(formatName);
 
   const rawContent = await readFileIfExists(context.fs, targetPath);
+  let preserveContent = rawContent;
   let current: ConfigObject;
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
@@ -634,6 +647,7 @@ async function applyConfigMerge(
       await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
+    preserveContent = null;
   }
 
   const value = resolveValue(mutation.value, options);
@@ -646,7 +660,7 @@ async function applyConfigMerge(
     merged = format.merge(current, value);
   }
 
-  const serialized = format.serialize(merged);
+  const serialized = serializeConfigUpdate(format, preserveContent, current, merged);
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
@@ -733,7 +747,7 @@ async function applyConfigPrune(
     };
   }
 
-  const serialized = format.serialize(result);
+  const serialized = serializeConfigUpdate(format, rawContent, current, result);
   if (!context.dryRun) {
     await writeAtomically(context, targetPath, serialized);
   }
@@ -767,6 +781,7 @@ async function applyConfigTransform(
   const format = getConfigFormat(formatName);
 
   const rawContent = await readFileIfExists(context.fs, targetPath);
+  let preserveContent = rawContent;
   let current: ConfigObject;
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
@@ -775,6 +790,7 @@ async function applyConfigTransform(
       await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
+    preserveContent = null;
   }
 
   const { content: transformed, changed } = mutation.transform(current, options);
@@ -803,7 +819,7 @@ async function applyConfigTransform(
     };
   }
 
-  const serialized = format.serialize(transformed);
+  const serialized = serializeConfigUpdate(format, preserveContent, current, transformed);
   if (!context.dryRun) {
     await writeAtomically(context, targetPath, serialized);
   }

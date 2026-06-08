@@ -735,6 +735,26 @@ describe("runMutations", () => {
       expect(content).toEqual({ existing: true, new: "value" });
     });
 
+    it("preserves JSONC comments when merging into an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "existing": true',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { new: "value" } })],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(jsonFormat.parse(content)).toEqual({ existing: true, new: "value" });
+    });
+
     it("deep merges nested objects", async () => {
       const fs = createMockFs({
         "~/.config.json": '{"nested": {"a": 1}}'
@@ -936,6 +956,28 @@ describe("runMutations", () => {
       expect(content).toEqual({ keep: true });
     });
 
+    it("preserves JSONC comments when pruning an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "keep": true,',
+          '  "remove": true',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [configMutation.prune({ target: "~/.config.json", shape: { remove: {} } })],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(content).not.toContain('"remove"');
+      expect(jsonFormat.parse(content)).toEqual({ keep: true });
+    });
+
     it("deletes file when result is empty", async () => {
       const fs = createMockFs({
         "~/.config.json": '{"remove": true}'
@@ -1064,6 +1106,34 @@ describe("runMutations", () => {
         runMutations([configMutation.transform({ target: "~/.config.json", transform: () => ({ content: { changed: true }, changed: true }) })], { fs, homeDir })
       ).rejects.toThrow("transform interrupted");
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"keep":true}\n');
+    });
+
+    it("preserves JSONC comments when transforming an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "key": "old"',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [
+          configMutation.transform({
+            target: "~/.config.json",
+            transform: (content) => ({
+              content: { ...content, key: "new" },
+              changed: true
+            })
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(jsonFormat.parse(content)).toEqual({ key: "new" });
     });
 
     it("creates directory if not exists", async () => {

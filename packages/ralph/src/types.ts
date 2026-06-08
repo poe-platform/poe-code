@@ -6,7 +6,11 @@ export interface RalphFileStat {
 
 export interface RalphFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(path: string, content: string): Promise<void>;
+  writeFile(
+    path: string,
+    content: string,
+    options?: { flag?: string; mode?: number }
+  ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   stat(path: string): Promise<RalphFileStat>;

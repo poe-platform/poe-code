@@ -46,7 +46,7 @@ export async function runPlanBrowser(options: {
     return;
   }
 
-  if (options.assumeYes || process.stdin.isTTY === false) {
+  if (options.assumeYes || process.stdin.isTTY !== true) {
     await renderPlanPreview(plans[0]!);
     return;
   }

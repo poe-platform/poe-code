@@ -197,6 +197,31 @@ describe("plan browser", () => {
     expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
   });
 
+  it("previews the first plan when stdin TTY status is undefined", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
+    });
+    const runExplorerImpl = vi.fn(async () => null);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: undefined
+    });
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).not.toHaveBeenCalled();
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+  });
+
   it("writes no-plans output without launching the explorer", async () => {
     const fs = createMemFs();
     const runExplorerImpl = vi.fn(async () => null);

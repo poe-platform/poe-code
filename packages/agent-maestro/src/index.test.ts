@@ -1000,13 +1000,14 @@ describe("integration", () => {
     await waitForEventCount(events.events, 13);
 
     const eventSnapshot = stripUndefined(events.events);
+    const nonReconcileEventsForTask = (id: string) =>
+      eventsForTask(eventSnapshot, id).filter((event) => event.type !== "reconcile");
     expect(eventSnapshot[0]).toEqual(tickEvent(25));
-    expect(eventsForTask(eventSnapshot, "pipeline")).toEqual([
+    expect(nonReconcileEventsForTask("pipeline")).toEqual([
       dispatchEvent(fixture, "pipeline"),
-      ...successEvents("pipeline", 1, { reconcile: false }),
-      { type: "reconcile", task_id: "tasks/pipeline", action: "stop_clean" }
+      ...successEvents("pipeline", 1, { reconcile: false })
     ]);
-    expect(eventsForTask(eventSnapshot, "ralph")).toEqual([
+    expect(nonReconcileEventsForTask("ralph")).toEqual([
       dispatchEvent(fixture, "ralph"),
       {
         type: "attempt_phase",

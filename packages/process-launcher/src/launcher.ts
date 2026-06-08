@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import { createLogWriter } from "./logs/log-writer.js";
+import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
 import { createStateStore } from "./state/state-store.js";
 import { createSupervisor } from "./supervisor/supervisor.js";
 import type { LauncherFileSystem, ProcessSpec, ProcessState } from "./types.js";
@@ -97,7 +98,10 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
     throw new Error(`Managed process "${spec.id}" is already running.`);
   }
 
-  await fs.mkdir(resolveProcessDir(options.baseDir, spec.id), { recursive: true });
+  const processDir = resolveProcessDir(options.baseDir, spec.id);
+  await assertProcessDirectorySafe(fs, options.baseDir, spec.id);
+  await fs.mkdir(processDir, { recursive: true });
+  await assertProcessDirectorySafe(fs, options.baseDir, spec.id);
   await writeSpec(fs, options.baseDir, spec);
   await writeState(fs, options.baseDir, createBootstrapState(spec));
   await writeMeta(fs, options.baseDir, spec.id, { daemonPid: null });
@@ -579,12 +583,14 @@ function isActiveStatus(status: ProcessState["status"]): boolean {
 
 async function listIds(fs: LauncherFileSystem, baseDir: string): Promise<string[]> {
   try {
+    await assertPathNotSymbolicLink(fs, baseDir);
     const entries = await fs.readdir(baseDir);
     const ids: string[] = [];
 
     for (const entry of entries) {
       const entryPath = path.join(baseDir, entry);
       try {
+        await assertPathNotSymbolicLink(fs, entryPath);
         const stat = await fs.stat(entryPath);
         if (!stat.isFile()) {
           ids.push(entry);
@@ -692,6 +698,7 @@ async function writeJsonFile(
 ): Promise<void> {
   await assertPathNotSymbolicLink(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await assertPathNotSymbolicLink(fs, filePath);
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
@@ -704,18 +711,7 @@ async function assertProcessDirectorySafe(
 }
 
 async function assertPathNotSymbolicLink(fs: LauncherFileSystem, filePath: string): Promise<void> {
-
-  try {
-    if ((await fs.lstat(filePath)).isSymbolicLink()) {
-      throw new Error(`Refusing to access managed process through symbolic link: ${filePath}`);
-    }
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return;
-    }
-
-    throw error;
-  }
+  await assertPathHasNoSymbolicLinks(fs, filePath);
 }
 
 function assertOptionalFiniteDuration(value: number | undefined, description: string): void {

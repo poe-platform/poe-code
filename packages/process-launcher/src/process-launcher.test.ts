@@ -541,6 +541,71 @@ describe("process launcher manager", () => {
     await expect(startManagedProcess({ baseDir, fs, spec, spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
   });
 
+  it("rejects starting through a symlinked launch root before persisting state", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    volume.mkdirSync("/outside/launch", { recursive: true });
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+    const spawnDaemon = vi.fn(async () => null);
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon
+      })
+    ).rejects.toThrow(/symbolic link/i);
+
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(rawFs.readFile("/outside/launch/api/spec.json", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects listing through a symlinked launch root", async () => {
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    const volume = Volume.fromJSON({
+      "/outside/launch/api/spec.json": `${JSON.stringify(spec)}\n`,
+      "/outside/launch/api/state.json": `${JSON.stringify(createState(spec, { status: "stopped" }))}\n`,
+      "/outside/launch/api/meta.json": `${JSON.stringify({ daemonPid: null })}\n`
+    }, "/");
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("rejects run, log, and removal operations through a symlinked launch root", async () => {
+    const spec: ProcessSpec = { id: "api", command: "__must_not_execute__", restart: "never" };
+    const volume = Volume.fromJSON({
+      "/outside/launch/api/logs/stdout.log": "external-log\n",
+      "/outside/launch/api/spec.json": `${JSON.stringify(spec)}\n`,
+      "/outside/launch/api/state.json": `${JSON.stringify(createState(spec, { status: "stopped" }))}\n`,
+      "/outside/launch/api/meta.json": `${JSON.stringify({ daemonPid: null })}\n`
+    }, "/");
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    const fs = {
+      ...baseFs,
+      writeFile: async (filePath: string, content: string) => {
+        if (filePath.startsWith("/state/launch/")) {
+          throw new Error("unexpected write through symlinked launch root");
+        }
+        await baseFs.writeFile(filePath, content);
+      }
+    } as LauncherFileSystem;
+
+    await expect(readManagedLogs({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(runManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(removeManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/launch/api/logs/stdout.log", "utf8")).resolves.toBe("external-log\n");
+  });
+
   it("rejects a symlinked managed process directory", async () => {
     const volume = Volume.fromJSON({
       "/outside/logs/stdout.log": "external-log\n",

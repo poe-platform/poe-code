@@ -68,11 +68,15 @@ export function registerConfigureCommand(program: Command, container: CliContain
       collectRepeatedOption
     )
     .option("--skip-if-configured", "Exit without writes when current config already matches")
-    .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
-      const resolved = await resolveServiceArgument(program, container, service, {
+    .action(async (
+      service: string | undefined,
+      options: ConfigureCommandOptions,
+      command: Command
+    ) => {
+      const resolved = await resolveServiceArgument(command, container, service, {
         action: "configure"
       });
-      await executeConfigure(program, container, resolved, options);
+      await executeConfigure(command, container, resolved, options);
     });
 
   return configureCommand;

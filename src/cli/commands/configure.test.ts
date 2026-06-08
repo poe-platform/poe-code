@@ -190,6 +190,36 @@ describe("configure provider resolution", () => {
     expect(services.codex?.provider).toBe(PROVIDER_NAME);
   });
 
+  it.each([
+    ["root", ["node", "cli", "--yes", "configure", "codex"]],
+    ["command-local", ["node", "cli", "configure", "codex", "--yes"]]
+  ])("honors %s --yes while configuring defaults", async (_label, argv) => {
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" }, prompts);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockImplementation(
+      async (_id, options) => options?.apiKey ?? "sk-test"
+    );
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const resolveModelSpy = vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    stubInvoke(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync(argv);
+
+    expect(resolveModelSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assumeDefault: true
+      })
+    );
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
   it("keeps claude-code on Poe with --yes when only POE_API_KEY is set", async () => {
     const container = createContainer(fs, { POE_API_KEY: "sk-env" });
     mockOptions(container);

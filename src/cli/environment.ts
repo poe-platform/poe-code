@@ -67,6 +67,12 @@ export function resolveSpawnLogDir(homeDir: string): string {
 
 const DEFAULT_POE_API_BASE_URL = "https://api.poe.com/v1";
 
+export function resolvePoeApiBaseUrl(
+  variables: Record<string, string | undefined> = process.env
+): string {
+  return resolvePoeBaseUrls(variables).poeApiBaseUrl;
+}
+
 function resolvePoeBaseUrls(variables: Record<string, string | undefined>): {
   poeApiBaseUrl: string;
   poeBaseUrl: string;

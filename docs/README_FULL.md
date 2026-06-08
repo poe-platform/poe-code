@@ -43,6 +43,7 @@
   - [generateVideo()](#generatevideo)
   - [generateAudio()](#generateaudio)
   - [getPoeApiKey()](#getpoeapikey)
+  - [getPoeAuthIdentity()](#getpoeauthidentity)
   - [Types](#sdk-types)
 - [Providers](#providers)
   - [Claude Code](#claude-code-provider)
@@ -1298,9 +1299,22 @@ const apiKey = await getPoeApiKey();
 **Resolution order:**
 
 1. `POE_API_KEY` environment variable
-2. `~/.poe-code/credentials.json` file
+2. `~/.poe-code/credentials.enc` file
 
 **Throws** `Error` if no credentials found. Error message: `"No API key found. Set POE_API_KEY or run 'poe-code login'."`
+
+### getPoeAuthIdentity()
+
+Fetch the authenticated Poe account identity using the resolved API key.
+
+```typescript
+import { getPoeAuthIdentity } from "poe-code";
+
+const identity = await getPoeAuthIdentity();
+console.log(identity.name, identity.handle);
+```
+
+Uses `POE_API_KEY` or the stored credential, honors `POE_BASE_URL`, and throws an API error when Poe rejects the credential.
 
 ### SDK Types
 
@@ -2696,6 +2710,7 @@ export { generateImage } from "poe-code";   // Image generation
 export { generateVideo } from "poe-code";   // Video generation
 export { generateAudio } from "poe-code";   // Audio generation
 export { getPoeApiKey } from "poe-code";    // API key resolution
+export { getPoeAuthIdentity } from "poe-code"; // Poe account identity
 export {
   agent,
   openaiChatCompletionsPlugin,

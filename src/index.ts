@@ -15,7 +15,11 @@ export {
 export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
-export { getPoeApiKey } from "./sdk/credentials.js";
+export { getPoeApiKey, getPoeAuthIdentity } from "./sdk/credentials.js";
+export type {
+  GetPoeAuthIdentityOptions,
+  PoeAuthIdentity
+} from "./sdk/credentials.js";
 export {
   agent,
   openaiChatCompletionsPlugin,

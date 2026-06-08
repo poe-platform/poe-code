@@ -121,4 +121,82 @@ describe("getPoeApiKey", () => {
     expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });
+
+  it("fetches Poe auth identity with an explicit API key", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        user_id: 42,
+        handle: "sdk",
+        name: "SDK User",
+        profile_picture: "https://example.com/sdk.jpg",
+        plan: "extra-field"
+      })
+    }));
+
+    const { getPoeAuthIdentity } = await import("./credentials.js");
+    const identity = await getPoeAuthIdentity({ apiKey: "direct-key", httpClient });
+
+    expect(identity).toEqual({
+      user_id: 42,
+      handle: "sdk",
+      name: "SDK User",
+      profile_picture: "https://example.com/sdk.jpg",
+      plan: "extra-field"
+    });
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://api.poe.com/v1/whoami",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({ Authorization: "Bearer direct-key" })
+      })
+    );
+    expect(createSecretStoreMock).not.toHaveBeenCalled();
+  });
+
+  it("uses stored credentials and normalized POE_BASE_URL when fetching auth identity", async () => {
+    process.env.POE_BASE_URL = "https://proxy.example.com";
+    store.get.mockResolvedValue("stored-key");
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        user_id: 7,
+        handle: "stored",
+        name: "Stored User",
+        profile_picture: ""
+      })
+    }));
+
+    const { getPoeAuthIdentity } = await import("./credentials.js");
+    await getPoeAuthIdentity({ httpClient });
+
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://proxy.example.com/v1/whoami",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer stored-key" })
+      })
+    );
+    expect(store.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws ApiError when auth identity lookup fails", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({})
+    }));
+
+    const { fetchPoeAuthIdentity } = await import("./credentials.js");
+
+    await expect(
+      fetchPoeAuthIdentity({ apiKey: "bad-key", httpClient })
+    ).rejects.toMatchObject({
+      name: "ApiError",
+      message: "Failed to fetch identity (HTTP 401)",
+      httpStatus: 401,
+      endpoint: "/v1/whoami"
+    });
+  });
 });

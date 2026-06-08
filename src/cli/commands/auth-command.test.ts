@@ -477,6 +477,40 @@ describe("auth command", () => {
     stdoutSpy.mockRestore();
   });
 
+  it("uses configured Poe API base URL for whoami", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Proxy User", handle: "proxy" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: {
+        cwd,
+        homeDir,
+        variables: { POE_BASE_URL: "https://proxy.example.com" }
+      },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://proxy.example.com/v1/whoami",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer stored-key" })
+      })
+    );
+    stdoutSpy.mockRestore();
+  });
+
   it("sets exit code 1 when no API key is available for whoami", async () => {
     const program = createProgram({
       fs,

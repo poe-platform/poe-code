@@ -1,4 +1,28 @@
 import { createSecretStore } from "auth-store";
+import { ApiError } from "../cli/errors.js";
+import type { HttpClient } from "../cli/http.js";
+import { resolvePoeApiBaseUrl } from "../cli/environment.js";
+
+export interface PoeAuthIdentity {
+  user_id: number;
+  handle: string;
+  name: string;
+  profile_picture: string;
+  [key: string]: unknown;
+}
+
+export interface FetchPoeAuthIdentityOptions {
+  apiKey: string;
+  baseUrl?: string;
+  httpClient?: HttpClient;
+}
+
+export interface GetPoeAuthIdentityOptions {
+  apiKey?: string;
+  baseUrl?: string;
+  variables?: Record<string, string | undefined>;
+  httpClient?: HttpClient;
+}
 
 /**
  * Reads the Poe API key with the following priority:
@@ -38,4 +62,51 @@ export async function ensurePoeApiKeyEnv(): Promise<void> {
   }
 
   process.env.POE_API_KEY = await getPoeApiKey();
+}
+
+export async function getPoeAuthIdentity(
+  options: GetPoeAuthIdentityOptions = {}
+): Promise<PoeAuthIdentity> {
+  const apiKey = options.apiKey ?? await getPoeApiKey();
+  return fetchPoeAuthIdentity({
+    apiKey,
+    baseUrl: options.baseUrl ?? resolvePoeApiBaseUrl(options.variables),
+    httpClient: options.httpClient
+  });
+}
+
+export async function fetchPoeAuthIdentity(
+  options: FetchPoeAuthIdentityOptions
+): Promise<PoeAuthIdentity> {
+  const httpClient = options.httpClient ?? createDefaultHttpClient();
+  const response = await httpClient(`${trimTrailingSlashes(options.baseUrl ?? resolvePoeApiBaseUrl())}/whoami`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${options.apiKey}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new ApiError(`Failed to fetch identity (HTTP ${response.status})`, {
+      httpStatus: response.status,
+      endpoint: "/v1/whoami"
+    });
+  }
+
+  return await response.json() as PoeAuthIdentity;
+}
+
+function createDefaultHttpClient(): HttpClient {
+  return async (url, init) => {
+    const response = await globalThis.fetch(url, init as RequestInit);
+    return {
+      ok: response.ok,
+      status: response.status,
+      json: () => response.json()
+    };
+  };
+}
+
+function trimTrailingSlashes(value: string): string {
+  return value.replace(/\/+$/, "");
 }

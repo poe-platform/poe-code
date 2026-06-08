@@ -36,7 +36,12 @@ import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@p
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
 
@@ -325,6 +330,10 @@ async function resolveSelectedPlan(options: {
     return options.plans[0]!;
   }
 
+  requireInteractiveStdin(
+    "Plan selection requires a path or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: options.promptMessage,
     options: options.plans.map((plan) => ({
@@ -468,6 +477,10 @@ async function executePlanAction(options: {
       );
       return;
     }
+
+    requireInteractiveStdin(
+      `plan ${options.action} requires --yes when running without an interactive TTY.`
+    );
 
     const confirmed = await confirmOrCancel({
       message:
@@ -828,6 +841,10 @@ async function resolvePlanQuestion(
     );
   }
 
+  requireInteractiveStdin(
+    "Plan question prompt requires a question when running without an interactive TTY."
+  );
+
   const entered = await promptText({
     message: "What do you want to plan?"
   });
@@ -857,6 +874,10 @@ async function resolvePlanSessionAgent(
     const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
     return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
   }
+
+  requireInteractiveStdin(
+    "Plan session agent selection requires --agent or --yes when running without an interactive TTY."
+  );
 
   const selected = await select({
     message: "Select agent to draft the plan with:",
@@ -964,6 +985,10 @@ async function resolvePlanAgent(
     return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
   }
 
+  requireInteractiveStdin(
+    "Plan install agent selection requires --agent or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: "Select agent to install the plan skill for:",
     options: supportedAgents.map((name) => ({ value: name, label: name }))
@@ -988,6 +1013,10 @@ async function resolvePlanScope(
   if (assumeYes) {
     return DEFAULT_PLAN_SCOPE;
   }
+
+  requireInteractiveStdin(
+    "Plan install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+  );
 
   const selected = await select({
     message: "Select install scope:",

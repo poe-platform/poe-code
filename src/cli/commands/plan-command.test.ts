@@ -70,6 +70,23 @@ function createBaseProgram(): Command {
   return program;
 }
 
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
+}
+
 describe("plan command", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -352,6 +369,27 @@ describe("plan command", () => {
     );
   });
 
+  it("rejects plan selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": "# Plan"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "view"]), false)
+    ).rejects.toThrow(
+      "Plan selection requires a path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
   it("archives the first matching plan with --yes", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
@@ -470,13 +508,17 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "archive",
-      "docs/plans/plan-a.md"
-    ]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "archive",
+          "docs/plans/plan-a.md"
+        ]),
+      true
+    );
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
@@ -506,13 +548,17 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "delete",
-      "docs/plans/plan-a.md"
-    ]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "delete",
+          "docs/plans/plan-a.md"
+        ]),
+      true
+    );
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
@@ -523,6 +569,40 @@ describe("plan command", () => {
       })
     );
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("rejects archive confirmation in non-interactive mode", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "plan",
+            "archive",
+            "docs/plans/plan-a.md"
+          ]),
+        false
+      )
+    ).rejects.toThrow("plan archive requires --yes when running without an interactive TTY.");
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
   });
 
   it("returns parseable JSON instead of prompting for archive confirmation", async () => {

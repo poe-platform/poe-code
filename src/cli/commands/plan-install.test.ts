@@ -38,6 +38,23 @@ function createBaseProgram(): Command {
   return program;
 }
 
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
+}
+
 describe("plan install command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -161,7 +178,10 @@ describe("plan install command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "install", "--local"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "install", "--local"]),
+      true
+    );
 
     expect(selectMock).toHaveBeenCalledTimes(1);
     expect(selectMock).toHaveBeenCalledWith({
@@ -172,6 +192,47 @@ describe("plan install command", () => {
       planSkillTemplate
     );
     await expect(fs.stat("/repo/.codex/skills/poe-code-plan/SKILL.md")).rejects.toThrow("ENOENT");
+  });
+
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "install"]), false)
+    ).rejects.toThrow(
+      "Plan install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(
+        () => program.parseAsync(["node", "cli", "plan", "install", "--agent", "claude-code"]),
+        false
+      )
+    ).rejects.toThrow(
+      "Plan install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
   });
 
   it("installs globally when --global is passed", async () => {

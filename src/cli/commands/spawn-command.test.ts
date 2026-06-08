@@ -1513,7 +1513,7 @@ describe("spawn command", () => {
     });
   });
 
-  it("passes --log-dir, --log-file-name, and --activity-timeout-ms to SDK spawn", async () => {
+  it("passes log and activity timeout options to SDK spawn", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -1531,6 +1531,7 @@ describe("spawn command", () => {
       "/tmp/spawn-logs",
       "--log-file-name",
       "attempt.jsonl",
+      "--log-content",
       "--activity-timeout-ms",
       "1500",
       "codex",
@@ -1545,6 +1546,7 @@ describe("spawn command", () => {
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
       logFileName: "attempt.jsonl",
+      logContent: true,
       activityTimeoutMs: 1500,
       runtimeConfigCwd: cwd
     });

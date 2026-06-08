@@ -86,7 +86,8 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
 | `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
 | `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |
-| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence.                                        |
+| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
+| `logContent`                         | `boolean`                        | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs.   |
 
 ## Environment variables
 

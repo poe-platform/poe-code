@@ -5,6 +5,8 @@ import { ensureSafeDefaultSpawnLogDir, getDefaultSpawnLogDir } from "../spawn-lo
 import type { AcpEvent } from "../types.js";
 import type { AcpMiddleware, SpawnContext } from "../middleware.js";
 
+const REDACTED_LOG_CONTENT = "[redacted]";
+
 function pad(value: number, width: number): string {
   return String(value).padStart(width, "0");
 }
@@ -84,10 +86,13 @@ class SpawnLogWriter {
 
   private readonly usesDefaultLogDir: boolean;
 
+  private readonly includeContent: boolean;
+
   constructor(ctx: SpawnContext) {
     this.filePath = resolveLogFilePath(ctx);
     this.logDirPath = this.filePath ? path.dirname(this.filePath) : "";
     this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
+    this.includeContent = ctx.logContent === true;
   }
 
   async writeEvent(event: AcpEvent): Promise<void> {
@@ -106,7 +111,7 @@ class SpawnLogWriter {
         return;
       }
 
-      const eventForLog = stripRawMeta(event);
+      const eventForLog = prepareEventForLog(event, this.includeContent);
       previousSize = (await this.fileHandle.stat()).size;
       await this.fileHandle.appendFile(`${JSON.stringify(eventForLog)}\n`, "utf8");
     } catch {
@@ -172,6 +177,35 @@ function stripRawMeta(event: AcpEvent): AcpEvent {
     delete eventWithoutRaw._meta;
   }
   return eventWithoutRaw;
+}
+
+function prepareEventForLog(event: AcpEvent, includeContent: boolean): AcpEvent {
+  const eventWithoutRaw = stripRawMeta(event);
+  if (includeContent) {
+    return eventWithoutRaw;
+  }
+
+  const redacted = { ...eventWithoutRaw } as Record<string, unknown>;
+
+  if (redacted.event === "agent_message" || redacted.event === "reasoning") {
+    redactField(redacted, "text");
+  }
+
+  if (redacted.event === "tool_start") {
+    redactField(redacted, "input");
+  }
+
+  if (redacted.event === "tool_complete") {
+    redactField(redacted, "path");
+  }
+
+  return redacted as AcpEvent;
+}
+
+function redactField(event: Record<string, unknown>, key: string): void {
+  if (Object.hasOwn(event, key)) {
+    event[key] = REDACTED_LOG_CONTENT;
+  }
 }
 
 async function writePreloadedEvents(writer: SpawnLogWriter, events: AcpEvent[]): Promise<void> {

@@ -1268,6 +1268,29 @@ describe("SDK spawn()", () => {
     expect(ctx.logDir).toBe("/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl");
   });
 
+  it("forwards logContent to middleware context in SDK streaming path", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      logContent: true
+    });
+
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(ctx.logContent).toBe(true);
+  });
+
   it("appends user middlewares after built-in streaming middlewares", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

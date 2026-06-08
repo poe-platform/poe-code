@@ -232,6 +232,7 @@ describe("acp/middlewares/spawnLog", () => {
     const ctx = createContext({
       agent: "codex",
       logDir: "/tmp/spawn-logs",
+      logContent: true,
       startedAt: new Date("2026-03-20T12:34:56.789Z")
     });
 
@@ -309,7 +310,8 @@ describe("acp/middlewares/spawnLog", () => {
       })();
     };
     const ctx = createContext({
-      logPath: "/tmp/redacted-log/session.jsonl"
+      logPath: "/tmp/redacted-log/session.jsonl",
+      logContent: true
     });
 
     await applyMiddlewares([spawnLog, redact, source], ctx);
@@ -325,6 +327,52 @@ describe("acp/middlewares/spawnLog", () => {
       text: "<redacted>",
       _meta: { ts: 123 }
     });
+  });
+
+  it("redacts message and tool content from spawn logs by default", async () => {
+    const token = "sk-test-token-123";
+    const sourceEvents: AcpEvent[] = [
+      { event: "agent_message", text: `answer ${token}` },
+      { event: "reasoning", text: `thought ${token}` },
+      {
+        event: "tool_start",
+        id: "tool-1",
+        kind: "exec",
+        title: "run command",
+        input: { command: `echo ${token}` }
+      } as AcpEvent,
+      { event: "tool_complete", id: "tool-1", kind: "exec", path: `stdout ${token}` }
+    ];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+    const ctx = createContext({
+      logPath: "/tmp/default-redacted-log/session.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual(sourceEvents);
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).not.toContain(token);
+    expect(content.trim().split("\n").map((line) => JSON.parse(line))).toEqual([
+      { event: "agent_message", text: "[redacted]" },
+      { event: "reasoning", text: "[redacted]" },
+      {
+        event: "tool_start",
+        id: "tool-1",
+        kind: "exec",
+        title: "run command",
+        input: "[redacted]"
+      },
+      { event: "tool_complete", id: "tool-1", kind: "exec", path: "[redacted]" }
+    ]);
   });
 
   it("does not allow ctx.logFileName to escape ctx.logDir", async () => {
@@ -528,6 +576,7 @@ describe("acp/middlewares/spawnLog", () => {
     const ctx = createContext({
       agent: "codex",
       logDir: "/tmp/preloaded-logs",
+      logContent: true,
       startedAt: new Date("2026-03-20T12:34:56.789Z"),
       events: [
         { event: "session_start", threadId: "thread-preloaded" },

@@ -105,6 +105,7 @@ export function registerSpawnCommand(
     )
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option("--log-file-name <name>", "Filename override for the spawn log")
+    .option("--log-content", "Include message and tool content in ACP JSONL spawn logs")
     .option(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
@@ -141,6 +142,7 @@ export function registerSpawnCommand(
           resumeThreadId?: string;
           logDir?: string;
           logFileName?: string;
+          logContent?: boolean;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
@@ -259,6 +261,7 @@ export function registerSpawnCommand(
           ...(commandOptions.logFileName !== undefined
             ? { logFileName: commandOptions.logFileName }
             : {}),
+          ...(commandOptions.logContent ? { logContent: true } : {}),
           activityTimeoutMs: commandOptions.activityTimeoutMs,
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
@@ -366,6 +369,7 @@ export function registerSpawnCommand(
               ...(spawnOptions.logFileName !== undefined
                 ? { logFileName: spawnOptions.logFileName }
                 : {}),
+              ...(spawnOptions.logContent ? { logContent: true } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),

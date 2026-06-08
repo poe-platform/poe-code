@@ -13,6 +13,7 @@ export interface SpawnCommandOptions {
   resumeThreadId?: string;
   logDir?: string;
   logFileName?: string;
+  logContent?: boolean;
   activityTimeoutMs?: number;
   middlewares?: AcpMiddleware[];
   cwd?: string;

@@ -211,6 +211,7 @@ export function spawn(
           agent: service,
           logDir: options.logDir,
           logFileName: options.logFileName,
+          ...(options.logContent ? { logContent: true } : {}),
           events: [],
           usage: {
             inputTokens: 0,
@@ -277,6 +278,7 @@ export function spawn(
           agent: service,
           logDir: options.logDir,
           logFileName: options.logFileName,
+          ...(options.logContent ? { logContent: true } : {}),
           events: [],
           usage: {
             inputTokens: 0,

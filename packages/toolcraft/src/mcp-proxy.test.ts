@@ -862,6 +862,34 @@ describe("resolveMcpProxies", () => {
     expect(calls[1]).toMatch(new RegExp(`^rename:${getCachePath().replaceAll(".", "\\.")}\\.tmp-.*->${getCachePath().replaceAll(".", "\\.")}$`));
   });
 
+  it("removes a staged cache file when atomic rename fails", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({
+      name: "root",
+      children: [group],
+    });
+    let stagedPath: string | undefined;
+    const originalWriteFile = mockFsPromises.writeFile.bind(mockFsPromises);
+
+    setClientPlans({
+      pages: [{ tools: [tool("create_issue")] }],
+    });
+
+    vi.spyOn(mockFsPromises, "writeFile").mockImplementation(async (...args) => {
+      stagedPath = String(args[0]);
+      return originalWriteFile(...args);
+    });
+    vi.spyOn(mockFsPromises, "rename").mockRejectedValue(
+      Object.assign(new Error("rename failed"), { code: "EIO" })
+    );
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/couldn't discover MCP github: rename failed/);
+
+    expect(stagedPath).toMatch(new RegExp(`^${getCachePath().replaceAll(".", "\\.")}\\.tmp-`));
+    expect(vol.existsSync(stagedPath ?? "")).toBe(false);
+    expect(vol.existsSync(getCachePath())).toBe(false);
+  });
+
   it("does not follow cache temp symlinks inserted before write", async () => {
     const group = createProxyGroup({});
     const root = defineGroup({

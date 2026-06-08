@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { createLogger } from "toolcraft-design";
@@ -286,6 +286,7 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
 async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void> {
   const directory = path.dirname(cachePath);
   const tempPath = `${cachePath}.tmp-${randomUUID()}`;
+  let tempCreated = false;
 
   await assertCachePathHasNoSymlinks(cachePath);
   await assertCachePathHasNoSymlinks(tempPath);
@@ -295,9 +296,20 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
     encoding: "utf8",
     flag: "wx"
   });
-  await assertCachePathHasNoSymlinks(tempPath);
-  await assertCachePathHasNoSymlinks(cachePath);
-  await rename(tempPath, cachePath);
+  tempCreated = true;
+
+  try {
+    await assertCachePathHasNoSymlinks(tempPath);
+    await assertCachePathHasNoSymlinks(cachePath);
+    await rename(tempPath, cachePath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated) {
+      await unlink(tempPath).catch(() => undefined);
+    }
+
+    throw error;
+  }
 }
 
 async function fetchCache(

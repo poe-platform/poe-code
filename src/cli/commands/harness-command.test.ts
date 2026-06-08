@@ -1,5 +1,5 @@
 import path from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol, fs as memfs } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -60,6 +60,24 @@ const { run: runAgentScript } = await import("@poe-code/agent-script");
 
 const cwd = "/repo";
 const homeDir = "/home/test";
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
 
 function createBaseProgram(): Command {
   const program = new Command();
@@ -127,6 +145,7 @@ async function snapshotForSource(source: string): Promise<string> {
 
 describe("harness command", () => {
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     vol.reset();
     vol.mkdirSync(cwd, { recursive: true });
     vol.mkdirSync(homeDir, { recursive: true });
@@ -149,6 +168,10 @@ describe("harness command", () => {
       events: (async function* () {})(),
       result: Promise.resolve({ exitCode: 0, stdout: "spawned", stderr: "" })
     });
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("runs an explicit harness path and wires agent spawns through the SDK", async () => {
@@ -483,6 +506,23 @@ describe("harness command", () => {
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
   });
 
+  it("fails run discovery without prompting when multiple harnesses are found in non-interactive mode", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    writePair("/repo/.poe-code/harnesses", "alpha");
+    writePair("/repo/.poe-code/harnesses", "beta");
+
+    try {
+      await expect(runHarnessCommand(["harness", "run"])).rejects.toThrow(
+        /pass a path or --yes when running without an interactive TTY/i
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(harnessMocks.selectMock).not.toHaveBeenCalled();
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
   it("fails new when the template kind is missing", async () => {
     await expect(
       runHarnessCommand(["--yes", "harness", "new", "missing", "example"])
@@ -565,6 +605,23 @@ describe("harness command", () => {
       message: "Harness directory",
       initialValue: ".poe-code/harnesses/example"
     });
+  });
+
+  it("fails new without prompting for a directory in non-interactive mode", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+
+    try {
+      await expect(runHarnessCommand(["harness", "new", "demo", "example"])).rejects.toThrow(
+        /requires --dir or --yes when running without an interactive TTY/i
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(harnessMocks.promptTextMock).not.toHaveBeenCalled();
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("refuses to overwrite an existing scaffold file", async () => {

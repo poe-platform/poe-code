@@ -457,6 +457,12 @@ async function resolveDiscoveredHarness(
     throw new ValidationError("Multiple harness pairs found; ambiguous, pass a path.");
   }
 
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "Multiple harness pairs found; pass a path or --yes when running without an interactive TTY."
+    );
+  }
+
   const selected = await select({
     message: "Select harness",
     options: pairs.map((pair) => ({
@@ -507,6 +513,12 @@ async function discoverProjectThenUserHarnesses(
 async function resolveOutputDir(defaultDir: string, assumeYes: boolean): Promise<string> {
   if (assumeYes) {
     return defaultDir;
+  }
+
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "Harness directory selection requires --dir or --yes when running without an interactive TTY."
+    );
   }
 
   const answer = await promptText({

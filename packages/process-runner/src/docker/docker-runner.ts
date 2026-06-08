@@ -198,6 +198,7 @@ function spawnControlCommand(
       stdio: "ignore"
     });
     child.once("error", () => undefined);
+    child.unref();
   } catch {
     return;
   }

@@ -142,6 +142,7 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["stop", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(stopChild.unref).toHaveBeenCalledTimes(1);
   });
 
   it("kill with SIGKILL spawns docker kill", async () => {
@@ -157,6 +158,7 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["kill", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(killChild.unref).toHaveBeenCalledTimes(1);
   });
 
   it("parses exit code from the docker process close event", async () => {
@@ -302,6 +304,7 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["stop", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(stopChild.unref).toHaveBeenCalledTimes(1);
   });
 
   it("waits for the docker run child to close before resolving an aborted run", async () => {
@@ -425,6 +428,7 @@ describe("createDockerRunner", () => {
     ], {
       stdio: "ignore"
     });
+    expect(killChild.unref).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -440,7 +444,8 @@ function createMockChildProcess(options: {
     stdout: options.stdout ? new PassThrough() : null,
     stderr: options.stderr ? new PassThrough() : null,
     stdin: options.stdin ? new PassThrough() : null,
-    kill: vi.fn()
+    kill: vi.fn(),
+    unref: vi.fn()
   });
 
   return child;

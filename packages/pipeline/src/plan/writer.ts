@@ -225,17 +225,22 @@ export async function writeTaskStatus(options: {
   canonicalizeDocument(document);
 
   const tempPath = `${options.planPath}.${process.pid}.${randomUUID()}.tmp`;
+  let tempCreated = false;
   try {
     await options.fs.writeFile(tempPath, serializeDocument(parts, document), {
       encoding: "utf8",
       flag: "wx"
     });
+    tempCreated = true;
     if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
       throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
     }
     await options.fs.rename(tempPath, options.planPath);
+    tempCreated = false;
   } catch (error) {
-    await options.fs.unlink(tempPath).catch(() => undefined);
+    if (tempCreated) {
+      await options.fs.unlink(tempPath).catch(() => undefined);
+    }
     throw error;
   }
 }

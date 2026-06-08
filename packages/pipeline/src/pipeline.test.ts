@@ -1831,6 +1831,62 @@ describe("writeTaskStatus", () => {
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toContain("status: done");
   });
 
+  it("does not remove a colliding status temp symlink", async () => {
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const volume = Volume.fromJSON(
+      {
+        "/repo/plan.yaml": initial,
+        "/outside/target.yaml": "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const baseFs = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: Parameters<typeof baseFs.writeFile>[1],
+        options?: Parameters<typeof baseFs.writeFile>[2]
+      ) {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`/repo/plan.yaml.${process.pid}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync("/outside/target.yaml", filePath);
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        }
+
+        await baseFs.writeFile(filePath, data, options);
+      }
+    };
+
+    await expect(
+      writeTaskStatus({
+        fs,
+        planPath: "/repo/plan.yaml",
+        taskId: "task-1",
+        status: "done"
+      })
+    ).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    await expect(baseFs.readFile("/outside/target.yaml", "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    expect((await baseFs.lstat(temporaryPath as string)).isSymbolicLink()).toBe(true);
+    await expect(baseFs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [

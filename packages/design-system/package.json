@@ -23,7 +23,6 @@
     "@clack/prompts": "^1.0.0"
   },
   "devDependencies": {
-    "@types/mustache": "^4.2.6",
-    "mustache": "^4.2.0"
+    "terminal-pilot": "*"
   }
 }

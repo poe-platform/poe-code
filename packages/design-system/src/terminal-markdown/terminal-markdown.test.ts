@@ -2,7 +2,7 @@ import path from "node:path";
 import { performance } from "node:perf_hooks";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
-import { TerminalPilot } from "@poe-code/terminal-pilot";
+import { TerminalPilot } from "terminal-pilot";
 import { symbols } from "../components/symbols.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { resetThemeCache, getTheme } from "../internal/theme-detect.js";

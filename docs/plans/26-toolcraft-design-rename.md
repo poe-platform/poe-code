@@ -106,9 +106,9 @@ tasks:
       Run packages/design-system tests and the package-lint package to confirm
       no undeclared imports remain.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: rename-package
     title: Rename @poe-code/design-system to toolcraft-design (publish-ready)

@@ -3,19 +3,6 @@ import { renderTemplate } from "./template.js";
 
 type View = Record<string, unknown>;
 
-interface MustacheRenderer {
-  render(template: string, view: View): string;
-  escape: (value: string) => string;
-}
-
-const importModule = (specifier: string): Promise<unknown> => import(specifier);
-const Mustache = await importModule("mustache")
-  .then((module) => {
-    const candidate = module as { default?: MustacheRenderer };
-    return candidate.default ?? (module as MustacheRenderer);
-  })
-  .catch(() => undefined as MustacheRenderer | undefined);
-
 describe("unit", () => {
   const cases: Array<{
     name: string;
@@ -143,9 +130,8 @@ describe("unit", () => {
   });
 });
 
-describe.skipIf(Mustache === undefined)("parity", () => {
-  const mustache = Mustache as MustacheRenderer;
-  const cases: Array<{ name: string; template: string; view: View }> = [
+describe("representative templates", () => {
+  const cases: Array<{ name: string; template: string; view: View; expected: string }> = [
     {
       name: "github-workflows run prompt",
       template: "Read {{url}} from {{comment.author}} in {{repo}}: {{comment.body}}",
@@ -153,7 +139,9 @@ describe.skipIf(Mustache === undefined)("parity", () => {
         url: "https://github.com/acme/app/issues/42",
         repo: "acme/app",
         comment: { author: "alice", body: "please fix this" }
-      }
+      },
+      expected:
+        "Read https:&#x2F;&#x2F;github.com&#x2F;acme&#x2F;app&#x2F;issues&#x2F;42 from alice in acme&#x2F;app: please fix this"
     },
     {
       name: "github-workflows shared variables prompt",
@@ -161,7 +149,8 @@ describe.skipIf(Mustache === undefined)("parity", () => {
       view: {
         repo: "acme/app",
         response_style: "- Use the repository house style.\n"
-      }
+      },
+      expected: "Repo from env: acme&#x2F;app\nStyle:\n- Use the repository house style.\n"
     },
     {
       name: "github-workflows pull request comment prompt",
@@ -171,7 +160,9 @@ describe.skipIf(Mustache === undefined)("parity", () => {
         url: "https://github.com/acme/app/pull/42",
         comment: { author: "bob", body: "poe-code-agent please apply this" },
         pr: { number: "42", author: "alice" }
-      }
+      },
+      expected:
+        "Read https:&#x2F;&#x2F;github.com&#x2F;acme&#x2F;app&#x2F;pull&#x2F;42 from bob on PR 42 by alice: poe-code-agent please apply this"
     },
     {
       name: "github-workflows prompt-preview prompt",
@@ -185,57 +176,55 @@ describe.skipIf(Mustache === undefined)("parity", () => {
         url: "https://github.com/acme/app/issues/188",
         custom_project_rules: "Check docs/internal.md first.\n",
         response_style: "- Start with a direct answer or decision.\n- Keep it concise.\n"
-      }
+      },
+      expected:
+        "Issue URL: https:&#x2F;&#x2F;github.com&#x2F;acme&#x2F;app&#x2F;issues&#x2F;188\nRules:\nCheck docs&#x2F;internal.md first.\n\n- Start with a direct answer or decision.\n- Keep it concise.\n"
     },
     {
       name: "github-workflows sourced item prompt",
       template: "Fix {{dependency.package.name}}",
-      view: { dependency: { package: { name: "lodash" } } }
+      view: { dependency: { package: { name: "lodash" } } },
+      expected: "Fix lodash"
     },
     {
       name: "config-mutations templateWrite",
       template: "#!/bin/bash\necho {{name}}",
-      view: { name: "myapp" }
+      view: { name: "myapp" },
+      expected: "#!/bin/bash\necho myapp"
     },
     {
       name: "config-mutations templateMergeJson",
       template: ["{", '  "command": "{{command}}",', '  "enabled": {{enabled}}', "}"].join("\n"),
-      view: { command: "poe-code", enabled: true }
+      view: { command: "poe-code", enabled: true },
+      expected: ["{", '  "command": "poe-code",', '  "enabled": true', "}"].join("\n")
     },
     {
       name: "config-mutations templateMergeToml",
       template: ["[tools]", 'agent = "{{agent}}"', 'models = [{{#models}}"{{.}}"{{/models}}]'].join(
         "\n"
       ),
-      view: { agent: "codex", models: ["gpt-5.4"] }
+      view: { agent: "codex", models: ["gpt-5.4"] },
+      expected: ["[tools]", 'agent = "codex"', 'models = ["gpt-5.4"]'].join("\n")
     },
     {
       name: "config-mutations template render arrays after preprocessing",
       template: ["Tasks:", "{{tasks}}", "Enabled: {{enabled}}"].join("\n"),
-      view: { tasks: "lint\ntest", enabled: true }
+      view: { tasks: "lint\ntest", enabled: true },
+      expected: "Tasks:\nlint\ntest\nEnabled: true"
     }
   ];
 
-  it.each(cases)("matches mustache.js for $name", ({ template, view }) => {
-    expect(renderTemplate(template, view)).toBe(mustache.render(template, view));
+  it.each(cases)("renders $name", ({ template, view, expected }) => {
+    expect(renderTemplate(template, view)).toBe(expected);
   });
 });
 
-describe.skipIf(Mustache === undefined)("escape", () => {
-  const mustache = Mustache as MustacheRenderer;
+describe("escape", () => {
+  it("disables escaping for all interpolation forms", () => {
+    const template = "{{name}} {{{name}}} {{&name}}";
+    const view = { name: "<K> & /" };
 
-  it("matches mustache.js with Mustache.escape overridden to identity", () => {
-    const originalEscape = mustache.escape;
-    mustache.escape = (value: string) => value;
-    try {
-      const template = "{{name}} {{{name}}} {{&name}}";
-      const view = { name: "<K> & /" };
-      expect(renderTemplate(template, view, { escape: "none" })).toBe(
-        mustache.render(template, view)
-      );
-    } finally {
-      mustache.escape = originalEscape;
-    }
+    expect(renderTemplate(template, view, { escape: "none" })).toBe("<K> & / <K> & / <K> & /");
   });
 });
 

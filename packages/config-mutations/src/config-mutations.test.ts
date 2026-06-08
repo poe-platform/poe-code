@@ -749,6 +749,49 @@ describe("runMutations", () => {
       expect(content).toEqual({ nested: { a: 1, b: 2 } });
     });
 
+    it("preserves proto-named merge entries as data when pruning by prefix", async () => {
+      const fs = createMockFs({}, homeDir);
+      const patch = JSON.parse('{"__proto__":{"polluted":true}}') as any;
+
+      await runMutations(
+        [
+          configMutation.merge({
+            target: "~/.config.json",
+            value: patch,
+            pruneByPrefix: { __proto__: "old-" }
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
+      expect(Object.prototype.hasOwnProperty.call(content, "__proto__")).toBe(true);
+      expect(content.polluted).toBeUndefined();
+    });
+
+    it("preserves nested proto-named merge entries as data when pruning is enabled", async () => {
+      const fs = createMockFs({
+        "~/.config.json": '{"nested": {"keep": true}}'
+      }, homeDir);
+      const patch = JSON.parse('{"nested":{"__proto__":{"polluted":true}}}') as any;
+
+      await runMutations(
+        [
+          configMutation.merge({
+            target: "~/.config.json",
+            value: patch,
+            pruneByPrefix: { unrelated: "old-" }
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
+      expect(content.nested.keep).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(content.nested, "__proto__")).toBe(true);
+      expect(content.nested.polluted).toBeUndefined();
+    });
+
     it("creates new TOML file", async () => {
       const fs = createMockFs({}, homeDir);
       await fs.mkdir(`${homeDir}/.config`, { recursive: true });

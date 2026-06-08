@@ -11,6 +11,7 @@ import type {
   FileSystem
 } from "../types.js";
 import { getConfigFormat, detectFormat } from "../formats/index.js";
+import { cloneConfigObject, setConfigEntry } from "../formats/object.js";
 import { resolvePath } from "./path-utils.js";
 import {
   isNotFound,
@@ -158,7 +159,7 @@ function pruneKeysByPrefix(
   const result: ConfigObject = {};
   for (const [key, value] of Object.entries(table)) {
     if (!key.startsWith(prefix)) {
-      result[key] = value;
+      setConfigEntry(result, key, value);
     }
   }
   return result;
@@ -173,28 +174,42 @@ function mergeWithPruneByPrefix(
   patch: ConfigObject,
   pruneByPrefix?: Record<string, string>
 ): ConfigObject {
-  const result: ConfigObject = { ...base };
+  const result = cloneConfigObject(base);
   const prefixMap = pruneByPrefix ?? {};
 
   for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      continue;
+    }
+
     const current = result[key];
     const prefix = prefixMap[key];
 
     if (isConfigObject(current) && isConfigObject(value)) {
       if (prefix) {
         const pruned = pruneKeysByPrefix(current, prefix);
-        result[key] = { ...pruned, ...value };
+        setConfigEntry(result, key, mergePrunedConfigObject(pruned, value));
       } else {
-        result[key] = mergeWithPruneByPrefix(
-          current,
-          value as ConfigObject,
-          prefixMap
-        );
+        setConfigEntry(result, key, mergeWithPruneByPrefix(current, value, prefixMap));
       }
       continue;
     }
-    result[key] = value;
+    setConfigEntry(result, key, value);
   }
+  return result;
+}
+
+function mergePrunedConfigObject(base: ConfigObject, patch: ConfigObject): ConfigObject {
+  const result = cloneConfigObject(base);
+
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    setConfigEntry(result, key, value);
+  }
+
   return result;
 }
 
@@ -623,7 +638,7 @@ async function applyConfigMerge(
 
   const value = resolveValue(mutation.value, options);
 
-  // Use mergeWithPruneByPrefix for TOML files with pruneByPrefix option
+  // Keep prefix pruning on the same proto-safe object-write path as normal merges.
   let merged: ConfigObject;
   if (mutation.pruneByPrefix) {
     merged = mergeWithPruneByPrefix(current, value, mutation.pruneByPrefix);

@@ -612,13 +612,16 @@ async function writeAtomically(filePath: string, content: string): Promise<void>
     `.${basename(filePath)}.${randomUUID()}.tmp`
   );
   let temporary: Awaited<ReturnType<typeof open>> | undefined;
+  let temporaryCreated = false;
   try {
     temporary = await open(temporaryPath, "wx");
+    temporaryCreated = true;
     await temporary.writeFile(content, "utf8");
     await temporary.sync();
     await temporary.close();
     temporary = undefined;
     await rename(temporaryPath, filePath);
+    temporaryCreated = false;
     const parent = await open(dirname(filePath), constants.O_RDONLY);
     try {
       await parent.sync();
@@ -627,7 +630,9 @@ async function writeAtomically(filePath: string, content: string): Promise<void>
     }
   } catch (error) {
     await temporary?.close().catch(() => undefined);
-    await unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

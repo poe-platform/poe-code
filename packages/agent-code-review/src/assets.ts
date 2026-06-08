@@ -364,11 +364,13 @@ async function createAssetUnlessPresent(filePath: string, content: string): Prom
   for (;;) {
     const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
     let temporary: Awaited<ReturnType<typeof open>> | undefined;
+    let temporaryCreated = false;
     try {
       temporary = await open(
         temporaryPath,
         constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
       );
+      temporaryCreated = true;
       try {
         await temporary.writeFile(content, "utf8");
         await temporary.sync();
@@ -378,11 +380,14 @@ async function createAssetUnlessPresent(filePath: string, content: string): Prom
       }
       await link(temporaryPath, filePath);
       await unlink(temporaryPath);
+      temporaryCreated = false;
       await syncDirectory(dirname(filePath));
       return true;
     } catch (error) {
       await temporary?.close().catch(() => undefined);
-      await unlink(temporaryPath).catch(() => undefined);
+      if (temporaryCreated) {
+        await unlink(temporaryPath).catch(() => undefined);
+      }
       if (!isAlreadyExistsError(error)) {
         throw error;
       }
@@ -420,20 +425,25 @@ async function assertInstallTargetIsFileOrMissing(filePath: string): Promise<boo
 async function overwriteAssetAtomically(filePath: string, content: string): Promise<void> {
   const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
   let temporary: Awaited<ReturnType<typeof open>> | undefined;
+  let temporaryCreated = false;
   try {
     temporary = await open(
       temporaryPath,
       constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
     );
+    temporaryCreated = true;
     await temporary.writeFile(content, "utf8");
     await temporary.sync();
     await temporary.close();
     temporary = undefined;
     await rename(temporaryPath, filePath);
+    temporaryCreated = false;
     await syncDirectory(dirname(filePath));
   } catch (error) {
     await temporary?.close().catch(() => undefined);
-    await unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

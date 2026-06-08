@@ -108,7 +108,7 @@ async function runModels(options: {
   const program = createProgram({
     fs: options.fs,
     prompts: vi.fn(),
-    env: { cwd, homeDir, variables: options.variables },
+    env: { cwd, homeDir, variables: options.variables ?? {} },
     httpClient: options.httpClient,
     logger: (message) => options.logs.push(message)
   });
@@ -911,6 +911,14 @@ describe("models command", () => {
     expect(output).not.toContain("$/MTok");
   });
 
+  it("rejects invalid --view values before fetching models", async () => {
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--view", "price"] })
+    ).rejects.toThrow(/Allowed choices are .*pricing/);
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
   it("filters by --since duration (excludes old models)", async () => {
     fs = await createConfigVolume("test-key");
     const now = Date.now();
@@ -928,6 +936,16 @@ describe("models command", () => {
 
     expect(output).toContain("a/recent");
     expect(output).not.toContain("b/old");
+  });
+
+  it("rejects invalid --since durations before fetching models", async () => {
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--since", "last-week"] })
+    ).rejects.toThrow(
+      'Invalid --since duration "last-week". Use a positive duration such as 7d, 2w, 3mo, or 1y.'
+    );
+
+    expect(httpClient).not.toHaveBeenCalled();
   });
 
   it("filters by --since with long-form duration (e.g. '30 days')", async () => {

@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import { Option, type Command } from "commander";
 import parseDuration from "parse-duration";
 import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
@@ -52,6 +52,9 @@ interface PreprocessedModelEntry extends ModelEntry {
   normalized_supported_endpoints: string[];
 }
 
+const modelViewNames = ["capabilities", "pricing", "parameters", "raw"] as const;
+type ModelViewName = typeof modelViewNames[number];
+
 interface ModelsCommandOptions {
   provider?: string;
   model?: string;
@@ -62,7 +65,7 @@ interface ModelsCommandOptions {
   output?: string;
   tools?: boolean;
   since?: string;
-  view: string;
+  view: ModelViewName;
 }
 
 function formatTokenCount(tokens: number): string {
@@ -176,6 +179,19 @@ function hasActiveFilters(options: ModelsCommandOptions): boolean {
     options.since !== undefined;
 }
 
+function parseSinceDuration(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const duration = parseDuration(value);
+  if (duration == null || !Number.isFinite(duration) || duration <= 0) {
+    throw new ValidationError(
+      `Invalid --since duration "${value}". Use a positive duration such as 7d, 2w, 3mo, or 1y.`
+    );
+  }
+  return duration;
+}
+
 export function registerModelsCommand(
   program: Command,
   container: CliContainer
@@ -193,7 +209,12 @@ export function registerModelsCommand(
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
     .option("--tools", "Show only models with tool support")
     .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
-    .option("--view <name>", "Table view: capabilities, pricing, parameters, or raw", "capabilities")
+    .addOption(
+      new Option(
+        "--view <name>",
+        "Table view: capabilities, pricing, parameters, or raw"
+      ).choices(Array.from(modelViewNames)).default("capabilities")
+    )
     .addHelpText("after", [
       "",
       "Filters:",
@@ -234,6 +255,7 @@ export function registerModelsCommand(
       resources.logger.intro("models");
 
       try {
+        const sinceDuration = parseSinceDuration(commandOptions.since);
         let apiKey: string | null = null;
         try {
           apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
@@ -347,12 +369,9 @@ export function registerModelsCommand(
             return required.every((r) => modalities.includes(r));
           });
         }
-        if (commandOptions.since) {
-          const duration = parseDuration(commandOptions.since);
-          if (duration != null) {
-            const cutoff = Date.now() - duration;
-            filtered = filtered.filter((m) => m.created >= cutoff);
-          }
+        if (sinceDuration !== undefined) {
+          const cutoff = Date.now() - sinceDuration;
+          filtered = filtered.filter((m) => m.created >= cutoff);
         }
 
         if (hasActiveFilters(commandOptions)) {

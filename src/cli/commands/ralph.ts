@@ -26,7 +26,12 @@ import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ralphConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import {
   runRalph as sdkRunRalph,
   type RalphRunOptions,
@@ -374,6 +379,10 @@ async function resolveDocPath(options: {
     return docs[0]!.path;
   }
 
+  requireInteractiveStdin(
+    "Ralph doc selection requires a doc path or --yes when running without an interactive TTY."
+  );
+
   const hints = await Promise.all(docs.map((doc) => readDocHint(options.container, doc.path)));
 
   const selected = await select({
@@ -432,6 +441,12 @@ function resolveConfiguredAgents(value: RalphFrontmatter["agent"]): string | str
 
 async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
   const flags = resolveCommandFlags(program);
+  if (!flags.assumeYes) {
+    requireInteractiveStdin(
+      "Ralph agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+  }
+
   const selectedAgent = await resolveLoopAgent({
     configuredDefaultAgent: await resolveDefaultAgent(container),
     assumeYes: flags.assumeYes,
@@ -460,6 +475,12 @@ async function resolveRunAgent(options: {
   }
 
   const flags = resolveCommandFlags(options.program);
+  if (!flags.assumeYes && options.providedAgent === undefined && configured === undefined) {
+    requireInteractiveStdin(
+      "Ralph agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+  }
+
   try {
     const selectedAgent = await resolveLoopAgent({
       providedAgent: options.providedAgent,
@@ -510,6 +531,10 @@ async function resolveRunIterations(options: {
     return DEFAULT_RALPH_ITERATIONS;
   }
 
+  requireInteractiveStdin(
+    "Ralph iteration selection requires --iterations, frontmatter iterations, or --yes when running without an interactive TTY."
+  );
+
   const entered = await promptText({
     message: "How many Ralph iterations should run?"
   });
@@ -548,6 +573,10 @@ async function resolveInitIterations(options: {
   if (flags.assumeYes) {
     return DEFAULT_RALPH_ITERATIONS;
   }
+
+  requireInteractiveStdin(
+    "Ralph iteration selection requires --iterations or --yes when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "How many Ralph iterations should run?"

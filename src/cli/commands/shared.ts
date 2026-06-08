@@ -360,6 +360,12 @@ export function resolveCommandFlags(program: Command): CommandFlags {
   };
 }
 
+export function requireInteractiveStdin(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
+}
+
 export function createExecutionResources(
   container: CliContainer,
   flags: CommandFlags,

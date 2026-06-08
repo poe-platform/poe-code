@@ -443,7 +443,10 @@ describe("experiment run command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select agent to run the experiment with:",
@@ -533,7 +536,10 @@ describe("experiment run command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "experiment", "run"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -559,6 +565,55 @@ describe("experiment run command", () => {
         docPath: "docs/plans/plan-a.md"
       })
     );
+  });
+
+  it("rejects missing doc selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": experimentPlanDoc("A")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "experiment", "run"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Experiment doc selection requires a doc path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Experiment agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
   });
 
   it("preserves multi-agent frontmatter arrays for experiment run", async () => {
@@ -1864,6 +1919,57 @@ describe("experiment install command", () => {
     ).rejects.toBeInstanceOf(ValidationError);
   });
 
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "experiment", "install"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Experiment install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "experiment",
+            "install",
+            "--agent",
+            "claude-code"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Experiment install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
   it("installs to global scope when --global is specified", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
@@ -2147,7 +2253,10 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select agent to run Ralph with:",
@@ -2304,7 +2413,10 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -2336,6 +2448,83 @@ describe("ralph run command", () => {
     );
   });
 
+  it("rejects missing doc selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "ralph", "run"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Ralph doc selection requires a doc path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": ["---", "iterations: 4", "---", "# Loop"].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run iterations in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": ["---", "agent: codex", "---", "# Loop"].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph iteration selection requires --iterations, frontmatter iterations, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
   it("shows frontmatter hints in the doc selection prompt", async () => {
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md");
 
@@ -2362,7 +2551,10 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run"]),
+      { stdin: true }
+    );
 
     const call = selectMock.mock.calls[0]![0];
     expect(call.options[0].label).toContain("docs/plans/plan-a.md");
@@ -3164,7 +3356,10 @@ describe("ralph init command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "init"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "init"]),
+      { stdin: true }
+    );
 
     const updated = await fs.readFile("/repo/docs/plans/plan-a.md", "utf8");
     const parsed = parseFrontmatter(updated);
@@ -3203,6 +3398,65 @@ describe("ralph init command", () => {
         iteration: 0
       }
     });
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "init", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init iterations in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "ralph",
+            "init",
+            "docs/loop.md",
+            "--agent",
+            "codex"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph iteration selection requires --iterations or --yes when running without an interactive TTY."
+    );
+
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
   });

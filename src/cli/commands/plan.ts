@@ -505,9 +505,12 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const flags = resolveCommandFlags(program);
       const kind = resolveKind(opts.kind);
       const question = questionArg?.trim() ?? "";
-      const agent = resolvePlanSessionAgent(opts.agent);
 
       if (question.length > 0) {
+        const agent = await resolvePlanSessionAgent(container, opts.agent, flags);
+        if (agent === null) {
+          return;
+        }
         await runPlanSession({
           container,
           agent,
@@ -528,7 +531,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         createPlanBrowserOptions(container, {
           kind,
           assumeYes: false,
-          onCreatePlan: () => runPlanSessionWithPrompt(container, agent, false)
+          onCreatePlan: () => runPlanSessionWithPrompt(container, opts.agent, flags)
         })
       );
     });
@@ -823,25 +826,53 @@ async function resolvePlanQuestion(
   return question;
 }
 
-function resolvePlanSessionAgent(value: string | undefined): string {
+async function resolvePlanSessionAgent(
+  container: CliContainer,
+  value: string | undefined,
+  flags: { assumeYes: boolean; dryRun: boolean }
+): Promise<string | null> {
   const trimmed = value?.trim() ?? "";
-  return trimmed.length > 0 ? trimmed : DEFAULT_PLAN_AGENT;
+  if (trimmed.length > 0) {
+    return trimmed;
+  }
+
+  if (flags.assumeYes) {
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
+  }
+
+  const selected = await select({
+    message: "Select agent to draft the plan with:",
+    options: supportedAgents.map((name) => ({ value: name, label: name }))
+  });
+  if (isCancel(selected)) {
+    cancel("Plan session cancelled.");
+    return null;
+  }
+
+  return selected as string;
 }
 
 async function runPlanSessionWithPrompt(
   container: CliContainer,
-  agent: string,
-  assumeYes: boolean
+  agentValue: string | undefined,
+  flags: { assumeYes: boolean; dryRun: boolean }
 ): Promise<void> {
-  const question = await resolvePlanQuestion(undefined, assumeYes);
+  const question = await resolvePlanQuestion(undefined, flags.assumeYes);
   if (question === null) {
+    return;
+  }
+
+  const agent = await resolvePlanSessionAgent(container, agentValue, flags);
+  if (agent === null) {
     return;
   }
 
   await runPlanSession({
     container,
     agent,
-    question
+    question,
+    dryRun: flags.dryRun
   });
 }
 

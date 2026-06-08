@@ -5,11 +5,12 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerPlanCommand } from "./plan.js";
 
-const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, isCancelMock, spawnResult } = vi.hoisted(
+const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, selectMock, isCancelMock, spawnResult } = vi.hoisted(
   () => ({
     runPlanBrowserMock: vi.fn().mockResolvedValue(undefined),
     sdkSpawnMock: vi.fn(),
     promptTextMock: vi.fn(),
+    selectMock: vi.fn(),
     isCancelMock: vi.fn(() => false),
     spawnResult: { stdout: "", stderr: "", exitCode: 0 }
   })
@@ -29,7 +30,8 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     ...actual,
     intro: vi.fn(),
     isCancel: isCancelMock,
-    promptText: promptTextMock
+    promptText: promptTextMock,
+    select: selectMock
   };
 });
 
@@ -60,6 +62,7 @@ describe("plan root and browse commands", () => {
     vi.clearAllMocks();
     sdkSpawnMock.mockReset();
     promptTextMock.mockReset();
+    selectMock.mockReset();
     isCancelMock.mockReset();
     isCancelMock.mockReturnValue(false);
   });
@@ -78,7 +81,7 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]);
 
     expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
@@ -137,6 +140,7 @@ describe("plan root and browse commands", () => {
       result: Promise.resolve(spawnResult)
     });
     promptTextMock.mockResolvedValue("Draft plan from browser");
+    selectMock.mockResolvedValue("codex");
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -163,7 +167,15 @@ describe("plan root and browse commands", () => {
     expect(promptTextMock).toHaveBeenCalledWith({
       message: "What do you want to plan?"
     });
-    expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to draft the plan with:",
+      options: expect.arrayContaining([{ value: "codex", label: "codex" }])
+    });
+    expect(sdkSpawnMock).toHaveBeenCalledWith(
+      "codex",
+      expect.any(String),
+      expect.objectContaining({ interactive: true })
+    );
   });
 
   it("rejects an invalid root --kind value", async () => {

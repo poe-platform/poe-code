@@ -220,7 +220,8 @@ function createDockerEnv(input: {
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
-        tty: true
+        tty: true,
+        signal: shellSpec?.signal
       });
     },
     async close() {

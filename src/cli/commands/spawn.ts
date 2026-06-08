@@ -563,6 +563,12 @@ async function confirmUnconfiguredService(
     return true;
   }
 
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      `${label} is not configured via poe. Pass --yes to proceed without prompting.`
+    );
+  }
+
   const shouldProceed = await confirm({
     message: `${label} is not configured via poe. Do you want to proceed?`
   });

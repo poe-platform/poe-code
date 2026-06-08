@@ -1933,7 +1933,16 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync(["node", "cli", "spawn", "--stdin", "--mode", "read", "codex"]);
+      await program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "spawn",
+        "--stdin",
+        "--mode",
+        "read",
+        "codex"
+      ]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -2113,7 +2122,7 @@ describe("spawn command", () => {
       .mockReturnValue(stdinStream as NodeJS.ReadStream);
 
     try {
-      await program.parseAsync(["node", "cli", "spawn", "--mode", "read", "codex"]);
+      await program.parseAsync(["node", "cli", "--yes", "spawn", "--mode", "read", "codex"]);
     } finally {
       stdinSpy.mockRestore();
     }
@@ -2150,6 +2159,7 @@ describe("spawn command", () => {
       await program.parseAsync([
         "node",
         "cli",
+        "--yes",
         "spawn",
         "--stdin",
         "--mode",
@@ -2826,6 +2836,28 @@ describe("spawn command", () => {
       ).rejects.toBeInstanceOf(OperationCancelledError);
 
       expect(confirmMock).toHaveBeenCalled();
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("rejects non-interactive unconfigured services without --yes", async () => {
+      setProcessStdinIsTTY(false);
+
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await expect(
+        program.parseAsync(["node", "cli", "spawn", "--mode", "read", "claude-code", "hello"])
+      ).rejects.toThrow(
+        "Claude Code is not configured via poe. Pass --yes to proceed without prompting."
+      );
+
+      expect(confirmMock).not.toHaveBeenCalled();
       expect(sdkSpawn).not.toHaveBeenCalled();
     });
 

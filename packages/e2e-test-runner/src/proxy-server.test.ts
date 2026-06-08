@@ -554,11 +554,16 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     });
     closeHandles.push(proxy.close);
 
-    await fetch(`${proxy.url}/v1/chat/completions`, {
+    await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         authorization: 'Bearer test-token',
+        'proxy-authorization': 'Basic proxy-secret',
         'content-type': 'application/json',
+        cookie: 'session=secret-cookie',
+        'x-api-key': 'api-key-secret',
+        'x-session-token': 'session-token-secret',
+        'x-safe-header': 'safe-value',
       },
       body: JSON.stringify({
         model: 'dummy-model',
@@ -568,7 +573,26 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
 
     const request = upstream.getLastRequest();
     expect(request?.headers.authorization).toBe('Bearer test-token');
+    expect(request?.headers['proxy-authorization']).toBe('Basic proxy-secret');
+    expect(request?.headers.cookie).toBe('session=secret-cookie');
+    expect(request?.headers['x-api-key']).toBe('api-key-secret');
+    expect(request?.headers['x-session-token']).toBe('session-token-secret');
     expect(request?.headers['content-type']).toBe('application/json');
+    expect(request?.headers['x-safe-header']).toBe('safe-value');
+
+    const captureContent = vol.readFileSync(captureFile, 'utf8') as string;
+    const captured = JSON.parse(captureContent.trim()) as CapturedExchange;
+    expect(captured.request.headers.authorization).toBe('[redacted]');
+    expect(captured.request.headers['proxy-authorization']).toBe('[redacted]');
+    expect(captured.request.headers.cookie).toBe('[redacted]');
+    expect(captured.request.headers['x-api-key']).toBe('[redacted]');
+    expect(captured.request.headers['x-session-token']).toBe('[redacted]');
+    expect(captured.request.headers['content-type']).toBe('application/json');
+    expect(captured.request.headers['x-safe-header']).toBe('safe-value');
+    expect(JSON.stringify(captured)).not.toContain('test-token');
+    expect(JSON.stringify(captured)).not.toContain('proxy-secret');
+    expect(JSON.stringify(captured)).not.toContain('api-key-secret');
+    expect(JSON.stringify(captured)).not.toContain('session-token-secret');
   });
 
   it('uses the first matching route when multiple route prefixes match', async () => {

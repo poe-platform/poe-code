@@ -57,6 +57,30 @@ function normalizeHeaders(headers: IncomingHttpHeaders): Record<string, string> 
   return result;
 }
 
+function redactCapturedHeaders(headers: Record<string, string>): Record<string, string> {
+  const redacted: Record<string, string> = {};
+
+  for (const [name, value] of Object.entries(headers)) {
+    redacted[name] = isSensitiveHeaderName(name) ? '[redacted]' : value;
+  }
+
+  return redacted;
+}
+
+function isSensitiveHeaderName(name: string): boolean {
+  const normalized = name.toLowerCase();
+  return (
+    normalized === 'authorization' ||
+    normalized === 'proxy-authorization' ||
+    normalized === 'cookie' ||
+    normalized === 'set-cookie' ||
+    normalized === 'x-api-key' ||
+    normalized.includes('api-key') ||
+    normalized.includes('token') ||
+    normalized.includes('secret')
+  );
+}
+
 function sanitizeModelName(model: string): string {
   const lower = model.toLowerCase();
   let result = '';
@@ -228,6 +252,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
       const requestBodyRaw = await readBody(request);
       const requestBody = parseBody(requestBodyRaw);
       const requestHeaders = normalizeHeaders(request.headers);
+      const capturedRequestHeaders = redactCapturedHeaders(requestHeaders);
       const method = request.method ?? 'GET';
 
       async function forwardUpstream(): Promise<{
@@ -263,7 +288,7 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
           request: {
             method,
             path: requestUrl.pathname,
-            headers: requestHeaders,
+            headers: capturedRequestHeaders,
             body: requestBody,
           },
           response: { status, body },
@@ -305,7 +330,12 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         const exchange: CapturedExchange = {
           timestamp: new Date().toISOString(),
           route: route.path,
-          request: { method, path: requestUrl.pathname, headers: requestHeaders, body: requestBody },
+          request: {
+            method,
+            path: requestUrl.pathname,
+            headers: capturedRequestHeaders,
+            body: requestBody,
+          },
           response: { status: upstream.status, body: upstream.body },
         };
         await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);
@@ -321,7 +351,12 @@ export async function startProxyServer(config: ProxyConfig): Promise<ProxyServer
         const exchange: CapturedExchange = {
           timestamp: new Date().toISOString(),
           route: route.path,
-          request: { method, path: requestUrl.pathname, headers: requestHeaders, body: requestBody },
+          request: {
+            method,
+            path: requestUrl.pathname,
+            headers: capturedRequestHeaders,
+            body: requestBody,
+          },
           response: { status: upstream.status, body: upstream.body },
         };
         await appendFile(config.captureFile, `${JSON.stringify(exchange)}\n`);

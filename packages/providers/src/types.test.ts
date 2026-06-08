@@ -14,7 +14,9 @@ describe("provider types", () => {
   it("defines provider api shape bindings", () => {
     expectTypeOf<ApiShapeBinding>().toEqualTypeOf<{
       readonly id: ApiShapeId;
-      readonly defaultBaseUrl: string;
+      readonly baseUrlPath?: string;
+      readonly envBaseUrlPath?: string;
+      readonly defaultBaseUrl?: string;
     }>();
   });
 

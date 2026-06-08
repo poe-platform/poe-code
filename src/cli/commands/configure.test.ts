@@ -1016,6 +1016,21 @@ describe("configure provider resolution", () => {
     });
   });
 
+  it("derives Poe OpenAI URLs from the provider default root", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://api.poe.com/v1",
+      agentBaseUrl: "https://api.poe.com"
+    });
+  });
+
   it("rejects unknown configure --shape-base-url shape ids before writing", async () => {
     const container = createContainer(fs);
     mockOptions(container);

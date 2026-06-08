@@ -22,8 +22,7 @@ const anthropic: AuthProvider = {
   },
   apiShapes: [
     {
-      id: "anthropic-messages",
-      defaultBaseUrl: "https://api.anthropic.com"
+      id: "anthropic-messages"
     }
   ]
 };
@@ -32,7 +31,8 @@ const anthropic: AuthProvider = {
 `baseUrl` and `baseUrlEnvVar` are optional. `baseUrl` is only for providers that have a real
 provider-level default. When a provider declares `baseUrlEnvVar`, consumers may resolve a
 provider base URL from that environment variable before falling back to stored provider config
-or declared defaults.
+or declared defaults. When `apiShapes[].defaultBaseUrl` is absent, consumers derive the default
+shape URL from `baseUrl` plus `apiShapes[].envBaseUrlPath` or `apiShapes[].baseUrlPath`.
 
 `requiresBaseUrl: true` marks providers, such as Cloudflare AI Gateway, that cannot be
 configured without an explicit gateway URL. `modelInput: { kind: "freeform" }` marks providers

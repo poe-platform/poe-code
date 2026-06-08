@@ -38,8 +38,7 @@ describe("anthropicProvider", () => {
   it("declares anthropic messages api shape", () => {
     expect(anthropicProvider.apiShapes).toEqual([
       {
-        id: "anthropic-messages",
-        defaultBaseUrl: "https://api.anthropic.com"
+        id: "anthropic-messages"
       }
     ]);
   });

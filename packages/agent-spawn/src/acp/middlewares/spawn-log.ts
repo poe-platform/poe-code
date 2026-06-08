@@ -106,10 +106,9 @@ class SpawnLogWriter {
         return;
       }
 
-      const meta = (event as { _meta?: Record<string, unknown> })._meta;
-      const toLog = meta?.raw ?? event;
+      const eventForLog = stripRawMeta(event);
       previousSize = (await this.fileHandle.stat()).size;
-      await this.fileHandle.appendFile(`${JSON.stringify(toLog)}\n`, "utf8");
+      await this.fileHandle.appendFile(`${JSON.stringify(eventForLog)}\n`, "utf8");
     } catch {
       this.isDisabled = true;
       if (this.fileHandle && previousSize !== undefined) {
@@ -155,6 +154,24 @@ class SpawnLogWriter {
       this.isDisabled = true;
     }
   }
+}
+
+function stripRawMeta(event: AcpEvent): AcpEvent {
+  const meta = event._meta;
+  if (!meta || !Object.hasOwn(meta, "raw")) {
+    return event;
+  }
+
+  const metaWithoutRaw = Object.fromEntries(
+    Object.entries(meta).filter(([key]) => key !== "raw")
+  );
+  const eventWithoutRaw = { ...event };
+  if (Object.keys(metaWithoutRaw).length > 0) {
+    eventWithoutRaw._meta = metaWithoutRaw;
+  } else {
+    delete eventWithoutRaw._meta;
+  }
+  return eventWithoutRaw;
 }
 
 async function writePreloadedEvents(writer: SpawnLogWriter, events: AcpEvent[]): Promise<void> {

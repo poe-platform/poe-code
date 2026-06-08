@@ -279,6 +279,54 @@ describe("acp/middlewares/spawnLog", () => {
     expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-builder.jsonl");
   });
 
+  it("logs transformed events without raw ACP payload metadata", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield {
+          event: "agent_message",
+          text: "secret text",
+          _meta: {
+            raw: {
+              sessionUpdate: "agent_message_chunk",
+              content: { type: "text", text: "secret text" }
+            },
+            ts: 123
+          }
+        } as AcpEvent;
+      })();
+    };
+    const redact: AcpMiddleware = async (ctx, next) => {
+      await next();
+      const sourceStream = ctx.eventStream;
+      ctx.eventStream = (async function* () {
+        for await (const event of sourceStream ?? []) {
+          if (event.event === "agent_message") {
+            yield { ...event, text: "<redacted>" };
+          } else {
+            yield event;
+          }
+        }
+      })();
+    };
+    const ctx = createContext({
+      logPath: "/tmp/redacted-log/session.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, redact, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toHaveLength(1);
+    expect(observed[0]).toMatchObject({ event: "agent_message", text: "<redacted>" });
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).toContain("<redacted>");
+    expect(content).not.toContain("secret text");
+    expect(JSON.parse(content)).toEqual({
+      event: "agent_message",
+      text: "<redacted>",
+      _meta: { ts: 123 }
+    });
+  });
+
   it("does not allow ctx.logFileName to escape ctx.logDir", async () => {
     const source: AcpMiddleware = async (ctx) => {
       ctx.eventStream = (async function* () {

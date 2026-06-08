@@ -320,6 +320,10 @@ async function resolveProcessId(
     throw new ValidationError("Process ID is required.");
   }
 
+  assertInteractivePromptAvailable(
+    "Process ID is required when running without an interactive TTY."
+  );
+
   const entered = await promptText({
     message: "Process ID"
   });
@@ -347,6 +351,10 @@ async function resolveCommandParts(
   if (assumeYes) {
     throw new ValidationError("Command to run is required.");
   }
+
+  assertInteractivePromptAvailable(
+    "Command to run is required when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "Command to run"
@@ -377,6 +385,10 @@ async function resolveRuntime(options: {
     return "host";
   }
 
+  assertInteractivePromptAvailable(
+    "Runtime selection requires a command, --image, or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: "Runtime",
     options: [
@@ -395,6 +407,10 @@ async function resolveDockerImage(value: string | undefined): Promise<string | n
   if (value && value.trim().length > 0) {
     return value.trim();
   }
+
+  assertInteractivePromptAvailable(
+    "Docker image is required when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "Docker image"
@@ -424,6 +440,10 @@ async function resolveRestart(
     return "on-failure";
   }
 
+  assertInteractivePromptAvailable(
+    "Restart policy selection requires --restart or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: "Restart policy",
     options: [
@@ -438,6 +458,12 @@ async function resolveRestart(
   }
 
   return selected as ProcessSpec["restart"];
+}
+
+function assertInteractivePromptAvailable(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
 }
 
 function resolveReadyCheck(options: StartCommandOptions): ProcessSpec["readyCheck"] | undefined {

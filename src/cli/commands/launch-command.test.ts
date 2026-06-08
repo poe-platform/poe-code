@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 import { registerLaunchCommand } from "./launch.js";
@@ -68,8 +68,28 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   };
 });
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 describe("launch command", () => {
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     vi.clearAllMocks();
     followLaunchLogsMock.mockReturnValue((async function* () {})());
     listLaunchesMock.mockResolvedValue([]);
@@ -79,6 +99,10 @@ describe("launch command", () => {
     restartLaunchMock.mockResolvedValue(undefined);
     removeLaunchMock.mockResolvedValue(undefined);
     runLaunchDaemonMock.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("parses launch start flags and forwards a structured spec to the sdk", async () => {
@@ -236,6 +260,32 @@ describe("launch command", () => {
     ).rejects.toThrow("Command to run is required.");
 
     expect(promptTextMock).not.toHaveBeenCalled();
+    expect(startLaunchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing launch start values in non-interactive mode without prompting", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+
+    try {
+      const missingIdProgram = createBaseProgram();
+      registerLaunchCommand(missingIdProgram, createContainer());
+
+      await expect(
+        missingIdProgram.parseAsync(["node", "cli", "launch", "start"])
+      ).rejects.toThrow("Process ID is required when running without an interactive TTY.");
+
+      const missingCommandProgram = createBaseProgram();
+      registerLaunchCommand(missingCommandProgram, createContainer());
+
+      await expect(
+        missingCommandProgram.parseAsync(["node", "cli", "launch", "start", "api"])
+      ).rejects.toThrow("Command to run is required when running without an interactive TTY.");
+    } finally {
+      restoreStdin();
+    }
+
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(selectMock).not.toHaveBeenCalled();
     expect(startLaunchMock).not.toHaveBeenCalled();
   });
 

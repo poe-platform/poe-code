@@ -442,6 +442,14 @@ describe("runtime command", () => {
   });
 
   it("waits for delayed log chunks from an exited runtime job", async () => {
+    let markStreamStarted: () => void = () => {};
+    const streamStarted = new Promise<void>((resolve) => {
+      markStreamStarted = resolve;
+    });
+    let releaseLogChunk: () => void = () => {};
+    const logChunkReady = new Promise<void>((resolve) => {
+      releaseLogChunk = resolve;
+    });
     const fs = createMemFs({
       [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
         createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
@@ -452,7 +460,8 @@ describe("runtime command", () => {
     jobHandles.set("env-logs", {
       ...createJobHandle({ status: "exited" }),
       async *stream() {
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        markStreamStarted();
+        await logChunkReady;
         yield { byteOffset: 0, data: "late line\n" };
       }
     });
@@ -461,7 +470,11 @@ describe("runtime command", () => {
     const program = createBaseProgram();
     registerRuntimeCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+    const run = program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+    await streamStarted;
+    expect(stripAnsi(logs.join("\n"))).not.toContain("late line");
+    releaseLogChunk();
+    await run;
 
     expect(stripAnsi(logs.join("\n"))).toContain("late line");
   });

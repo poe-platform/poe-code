@@ -235,7 +235,7 @@ async function runSpawn(
   } = buildCliArgs(spawnConfig, options, stdinMode);
 
   if (context?.dryRun) {
-    const rendered = [binaryName, ...spawnArgs].join(" ");
+    const rendered = [binaryName, ...displaySpawnArgs].join(" ");
     context.logger?.dryRun(rendered);
     return { stdout: "", stderr: "", exitCode: 0 };
   }

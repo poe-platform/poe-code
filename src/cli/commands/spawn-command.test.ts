@@ -618,6 +618,7 @@ describe("spawn command", () => {
 
   it("skips execution during dry run spawn", async () => {
     const logs: string[] = [];
+    const prompt = "investigate token=sk-dry-run-secret";
     const { runner, calls } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -633,7 +634,7 @@ describe("spawn command", () => {
       "--dry-run",
       "spawn",
       "claude-code",
-      "Dry run prompt"
+      prompt
     ]);
 
     expect(calls).toHaveLength(0);
@@ -641,6 +642,8 @@ describe("spawn command", () => {
     const dryRunLog = logs.find((line) => line.includes("Dry run: would spawn Claude Code."));
     expect(dryRunLog).toBeTruthy();
     expect(dryRunLog).toContain("Prompt:");
+    expect(dryRunLog).toContain("[prompt redacted]");
+    expect(dryRunLog).not.toContain("sk-dry-run-secret");
   });
 
   it("does not recover malformed config during dry run spawn", async () => {
@@ -745,6 +748,7 @@ describe("spawn command", () => {
   it("honors --dry-run for spawn poe-agent", async () => {
     spawnPoeAgentWithAcpMock.mockClear();
     const logs: string[] = [];
+    const prompt = "investigate token=sk-poe-agent-dry-run-secret";
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
       fs,
@@ -760,11 +764,14 @@ describe("spawn command", () => {
       "--dry-run",
       "spawn",
       "poe-agent",
-      "Explain the change"
+      prompt
     ]);
 
     expect(spawnPoeAgentWithAcpMock).not.toHaveBeenCalled();
-    expect(logs.some((line) => line.includes("Dry run: would spawn Poe Agent."))).toBe(true);
+    const dryRunLog = logs.find((line) => line.includes("Dry run: would spawn Poe Agent."));
+    expect(dryRunLog).toBeTruthy();
+    expect(dryRunLog).toContain("[prompt redacted]");
+    expect(dryRunLog).not.toContain("sk-poe-agent-dry-run-secret");
   });
 
   it("lists poe-agent in spawn help", () => {

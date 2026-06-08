@@ -2353,11 +2353,16 @@ export class StdioTransport implements McpTransport {
 
     this.readable = child.stdout;
     this.writable = child.stdin;
+    const stderrDecoder = new TextDecoder();
     child.stderr.on("data", (chunk: unknown) => {
-      this.stderrOutput += chunkToString(chunk);
-      if (this.stderrOutput.length > StdioTransport.STDERR_MAX_LENGTH) {
-        this.stderrOutput = this.stderrOutput.slice(-StdioTransport.STDERR_MAX_LENGTH);
-      }
+      const decoded =
+        chunk instanceof Uint8Array
+          ? stderrDecoder.decode(chunk, { stream: true })
+          : `${stderrDecoder.decode()}${String(chunk)}`;
+      this.appendStderrOutput(decoded);
+    });
+    child.stderr.once("end", () => {
+      this.appendStderrOutput(stderrDecoder.decode());
     });
     this.closed = new Promise((resolve) => {
       let settled = false;
@@ -2406,6 +2411,17 @@ export class StdioTransport implements McpTransport {
 
   getStderrOutput(): string {
     return this.stderrOutput;
+  }
+
+  private appendStderrOutput(chunk: string): void {
+    if (chunk.length === 0) {
+      return;
+    }
+
+    this.stderrOutput += chunk;
+    if (this.stderrOutput.length > StdioTransport.STDERR_MAX_LENGTH) {
+      this.stderrOutput = this.stderrOutput.slice(-StdioTransport.STDERR_MAX_LENGTH);
+    }
   }
 
   dispose(reason = new Error("Stdio transport disposed")): void {
@@ -2966,18 +2982,6 @@ export type ParsedJsonRpcMessage =
 
 export function serializeJsonRpcMessage(message: JsonRpcMessage): string {
   return `${JSON.stringify(message)}\n`;
-}
-
-function chunkToString(chunk: unknown): string {
-  if (typeof chunk === "string") {
-    return chunk;
-  }
-
-  if (chunk instanceof Uint8Array) {
-    return Buffer.from(chunk).toString("utf8");
-  }
-
-  return String(chunk);
 }
 
 function normalizeLine(line: string): string {

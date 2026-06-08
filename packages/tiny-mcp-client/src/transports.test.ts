@@ -2677,6 +2677,22 @@ describe("StdioTransport stderr capture", () => {
     expect(transport.getStderrOutput()).toBe("first second");
   });
 
+  it("preserves UTF-8 characters split across stderr chunks", () => {
+    const child = createMockChildProcess();
+    const spawn = vi.fn<StdioSpawn>(() => child);
+
+    const transport = new StdioTransport({
+      command: "node",
+      spawn,
+    });
+
+    const encoded = Buffer.from("é", "utf8");
+    child.stderr.write(encoded.subarray(0, 1));
+    child.stderr.write(encoded.subarray(1));
+
+    expect(transport.getStderrOutput()).toBe("é");
+  });
+
   it("caps stderr at 64KB keeping the tail", () => {
     const child = createMockChildProcess();
     const spawn = vi.fn<StdioSpawn>(() => child);

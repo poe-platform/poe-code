@@ -6,6 +6,9 @@ import { detectEngine } from "./engine.js";
 import { createDockerEnvFile } from "./env-file.js";
 import type { DockerRunnerOptions, RunHandle, Runner, RunResult, RunSpec } from "../types.js";
 
+const DOCKER_ABORT_GRACE_MS = 10_000;
+const DOCKER_ABORT_FORCE_GRACE_MS = 5_000;
+
 export function createDockerRunner(options: DockerRunnerOptions): Runner {
   const engine = options.engine ?? detectEngine();
   const context = options.context ?? detectContext();
@@ -64,10 +67,18 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
         throw error;
       }
       let isResultSettled = false;
+      let exitCodeOverride: number | null = null;
       let resolveResult: ((value: RunResult) => void) | null = null;
+      let abortEscalationTimers: Array<ReturnType<typeof setTimeout>> = [];
       const result = new Promise<RunResult>((resolve) => {
         resolveResult = resolve;
       });
+      const clearAbortEscalation = () => {
+        for (const timer of abortEscalationTimers) {
+          clearTimeout(timer);
+        }
+        abortEscalationTimers = [];
+      };
       const settleResult = (exitCode: number) => {
         if (isResultSettled) {
           return;
@@ -75,12 +86,26 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
 
         isResultSettled = true;
         cleanupAbort();
+        clearAbortEscalation();
         envFile?.cleanup();
-        resolveResult?.({ exitCode });
+        resolveResult?.({ exitCode: exitCodeOverride ?? exitCode });
+      };
+      const scheduleAbortEscalation = () => {
+        const terminateTimer = setTimeout(() => {
+          killHostDockerChild(child, "SIGTERM");
+          const forceTimer = setTimeout(() => {
+            killHostDockerChild(child, "SIGKILL");
+          }, DOCKER_ABORT_FORCE_GRACE_MS);
+          unrefTimer(forceTimer);
+          abortEscalationTimers.push(forceTimer);
+        }, DOCKER_ABORT_GRACE_MS);
+        unrefTimer(terminateTimer);
+        abortEscalationTimers.push(terminateTimer);
       };
       const cleanupAbort = bindAbortSignal(spec.signal, () => {
-        settleResult(1);
+        exitCodeOverride = 1;
         spawnControlCommand(engine, context, ["stop", containerName]);
+        scheduleAbortEscalation();
       });
 
       child.once("error", () => {
@@ -113,6 +138,14 @@ export function createDockerRunner(options: DockerRunnerOptions): Runner {
       };
     }
   };
+}
+
+function killHostDockerChild(child: childProcess.ChildProcess, signal: NodeJS.Signals): void {
+  try {
+    child.kill(signal);
+  } catch {
+    return;
+  }
 }
 
 function buildContainerName(name: string): string {
@@ -160,10 +193,14 @@ function spawnControlCommand(
   context: string | null,
   args: string[]
 ): void {
-  const child = childProcess.spawn(engine, [...buildContextArgs(engine, context), ...args], {
-    stdio: "ignore"
-  });
-  child.once("error", () => undefined);
+  try {
+    const child = childProcess.spawn(engine, [...buildContextArgs(engine, context), ...args], {
+      stdio: "ignore"
+    });
+    child.once("error", () => undefined);
+  } catch {
+    return;
+  }
 }
 
 function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): () => void {
@@ -181,4 +218,15 @@ function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): 
   return () => {
     signal.removeEventListener("abort", onAbort);
   };
+}
+
+function unrefTimer(timer: ReturnType<typeof setTimeout>): void {
+  if (
+    typeof timer === "object" &&
+    timer !== null &&
+    "unref" in timer &&
+    typeof timer.unref === "function"
+  ) {
+    timer.unref();
+  }
 }

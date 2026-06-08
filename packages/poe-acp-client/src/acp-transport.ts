@@ -130,7 +130,8 @@ export class AcpTransport {
   private readonly command: string;
   private readonly child: ChildProcessWithoutNullStreams;
   private readonly layer: JsonRpcMessageLayer;
-  private readonly stderrChunks: string[] = [];
+  private stderrOutput = "";
+  private static readonly STDERR_MAX_LENGTH = 65_536;
   private resolveClosed: ((value: AcpTransportClosedEvent) => void) | null = null;
   private closeEvent: AcpTransportClosedEvent | null = null;
   private closeReason: Error | null = null;
@@ -161,7 +162,10 @@ export class AcpTransport {
 
     this.child.stderr.setEncoding("utf8");
     this.child.stderr.on("data", (chunk) => {
-      this.stderrChunks.push(String(chunk));
+      this.stderrOutput += String(chunk);
+      if (this.stderrOutput.length > AcpTransport.STDERR_MAX_LENGTH) {
+        this.stderrOutput = this.stderrOutput.slice(-AcpTransport.STDERR_MAX_LENGTH);
+      }
     });
 
     this.child.stdin.on("error", (error) => {
@@ -294,7 +298,7 @@ export class AcpTransport {
   }
 
   getStderrOutput(): string {
-    return this.stderrChunks.join("");
+    return this.stderrOutput;
   }
 
   pendingRequestCount(): number {

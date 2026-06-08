@@ -438,6 +438,34 @@ describe("AcpTransport", () => {
     });
   });
 
+  it("caps stderr diagnostics at 64 KiB while keeping the tail", async () => {
+    const mock = createMockChildProcess();
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const transport = new AcpTransport({ command: "poe-agent" });
+    cleanup.push(() => {
+      mock.stdin.destroy();
+      mock.stdout.destroy();
+      mock.stderr.destroy();
+    });
+
+    const firstChunk = "x".repeat(40_000);
+    const secondChunk = "y".repeat(40_000);
+    const expectedTail = (firstChunk + secondChunk).slice(-65_536);
+
+    mock.stderr.write(firstChunk);
+    mock.stderr.write(secondChunk);
+
+    expect(transport.getStderrOutput()).toHaveLength(65_536);
+    expect(transport.getStderrOutput()).toBe(expectedTail);
+
+    mock.emitClose(1, null);
+
+    await expect(transport.closed).resolves.toMatchObject({
+      code: 1,
+      stderr: expectedTail,
+    });
+  });
+
   it("waits for child close before settling disposal", async () => {
     vi.useFakeTimers();
     const mock = createMockChildProcess();

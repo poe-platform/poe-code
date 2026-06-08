@@ -1,4 +1,5 @@
-import { access, lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { access, lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { McpSpawnConfig, SpawnResult } from "@poe-code/agent-spawn";
@@ -937,8 +938,7 @@ async function writeTrackedFile(
   await assertWritableWorkflowDestination(rootPath, filePath);
   const previousContent = opts === undefined ? await readOptionalFile(filePath) : opts.previousContent;
   writtenFiles.push({ rootPath, filePath, previousContent });
-  await assertWritableWorkflowDestination(rootPath, filePath);
-  await writeFile(filePath, content, "utf8");
+  await writeWorkflowFileAtomically(rootPath, filePath, content);
 }
 
 async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promise<void> {
@@ -956,12 +956,46 @@ async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promis
     }
 
     await assertWritableWorkflowDestination(file.rootPath, file.filePath);
-    await writeFile(file.filePath, file.previousContent, "utf8");
+    await writeWorkflowFileAtomically(file.rootPath, file.filePath, file.previousContent);
   }
 }
 
 async function assertWritableWorkflowDestination(rootPath: string, filePath: string): Promise<void> {
   await assertWorkflowPathHasNoSymlinkComponents(rootPath, filePath);
+}
+
+async function writeWorkflowFileAtomically(
+  rootPath: string,
+  filePath: string,
+  content: string
+): Promise<void> {
+  await assertWritableWorkflowDestination(rootPath, filePath);
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
+  try {
+    await assertWritableWorkflowDestination(rootPath, temporaryPath);
+    await writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await assertWritableWorkflowDestination(rootPath, temporaryPath);
+    await assertWritableWorkflowDestination(rootPath, filePath);
+    await rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await unlinkWorkflowTemporaryFile(rootPath, temporaryPath).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+async function unlinkWorkflowTemporaryFile(rootPath: string, temporaryPath: string): Promise<void> {
+  await assertWritableWorkflowDestination(rootPath, temporaryPath);
+  try {
+    await unlink(temporaryPath);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+  }
 }
 
 async function assertWorkflowPathHasNoSymlinkComponents(rootPath: string, targetPath: string): Promise<void> {

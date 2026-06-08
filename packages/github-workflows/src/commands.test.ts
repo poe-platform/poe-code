@@ -15,7 +15,9 @@ const designSystemState = vi.hoisted(() => ({
 
 const fileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,
-  beforeFailingWrite: undefined as (() => void) | undefined
+  beforeFailingWrite: undefined as (() => void) | undefined,
+  symlinkRacePath: undefined as string | undefined,
+  symlinkRaceTarget: undefined as string | undefined
 }));
 
 vi.mock("@poe-code/agent-spawn", () => ({
@@ -37,14 +39,53 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  async function replaceWithSymlink(path: string, target: string): Promise<void> {
+    try {
+      await fs.promises.unlink(path);
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    await fs.promises.symlink(target, path);
+  }
+
+  function isInjectedFailingWrite(targetPath: string): boolean {
+    return (
+      targetPath === fileSystemState.failingWritePath ||
+      (fileSystemState.failingWritePath !== undefined &&
+        targetPath.startsWith(`${fileSystemState.failingWritePath}.`) &&
+        targetPath.endsWith(".tmp"))
+    );
+  }
+
   return {
     ...fs.promises,
-    async writeFile(targetPath: string, content: string | Uint8Array, encoding?: BufferEncoding) {
-      if (targetPath === fileSystemState.failingWritePath) {
+    async writeFile(
+      targetPath: string,
+      content: string | Uint8Array,
+      options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
+    ) {
+      if (
+        targetPath === fileSystemState.symlinkRacePath &&
+        fileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(targetPath, fileSystemState.symlinkRaceTarget);
+      }
+      if (isInjectedFailingWrite(targetPath)) {
         fileSystemState.beforeFailingWrite?.();
         throw new Error("injected workflow write failure");
       }
-      await fs.promises.writeFile(targetPath, content, encoding);
+      await fs.promises.writeFile(targetPath, content, options);
+    },
+    async rename(oldPath: string, newPath: string) {
+      if (
+        newPath === fileSystemState.symlinkRacePath &&
+        fileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(newPath, fileSystemState.symlinkRaceTarget);
+      }
+      await fs.promises.rename(oldPath, newPath);
     }
   };
 });
@@ -130,6 +171,8 @@ describe("ghGroup", () => {
     vi.clearAllMocks();
     fileSystemState.failingWritePath = undefined;
     fileSystemState.beforeFailingWrite = undefined;
+    fileSystemState.symlinkRacePath = undefined;
+    fileSystemState.symlinkRaceTarget = undefined;
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
     spawnState.spawn.mockResolvedValue({
       stdout: "ok",
@@ -957,6 +1000,24 @@ describe("ghGroup", () => {
       getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
     ).rejects.toThrow(/symbolic link/i);
     expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
+  });
+
+  it("does not follow a workflow destination symlink inserted before publish", async () => {
+    const workflowPath = "/repo/.github/workflows/poe-code-github-issue-opened.yml";
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo/.github/workflows", { recursive: true });
+    vol.writeFileSync("/outside-workflow.yml", "sentinel");
+    fileSystemState.symlinkRacePath = workflowPath;
+    fileSystemState.symlinkRaceTarget = "/outside-workflow.yml";
+
+    await getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }));
+
+    expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
+    expect(vol.lstatSync(workflowPath).isSymbolicLink()).toBe(false);
+    expect(readRepoFile(workflowPath)).toContain(
+      "poe-code github-workflows install github-issue-opened"
+    );
   });
 
   it("rejects a symlinked .github parent during workflow install", async () => {

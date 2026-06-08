@@ -1795,6 +1795,42 @@ describe("writeTaskStatus", () => {
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
   });
 
+  it("does not follow a preexisting legacy temp path symlink", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_234);
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const volume = Volume.fromJSON(
+      {
+        "/repo/plan.yaml": initial,
+        "/outside/target.yaml": "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const legacyTempPath = `/repo/plan.yaml.${process.pid}.1234.tmp`;
+    volume.symlinkSync("/outside/target.yaml", legacyTempPath);
+    const fs = createFsFromVolume(volume).promises;
+
+    await writeTaskStatus({
+      fs,
+      planPath: "/repo/plan.yaml",
+      taskId: "task-1",
+      status: "done"
+    });
+
+    await expect(fs.readFile("/outside/target.yaml", "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    const planStat = await fs.lstat("/repo/plan.yaml");
+    expect(planStat.isSymbolicLink()).toBe(false);
+    await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toContain("status: done");
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [

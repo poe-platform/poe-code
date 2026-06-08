@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
@@ -223,9 +224,12 @@ export async function writeTaskStatus(options: {
 
   canonicalizeDocument(document);
 
-  const tempPath = `${options.planPath}.${process.pid}.${Date.now()}.tmp`;
+  const tempPath = `${options.planPath}.${process.pid}.${randomUUID()}.tmp`;
   try {
-    await options.fs.writeFile(tempPath, serializeDocument(parts, document), { encoding: "utf8" });
+    await options.fs.writeFile(tempPath, serializeDocument(parts, document), {
+      encoding: "utf8",
+      flag: "wx"
+    });
     if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
       throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
     }

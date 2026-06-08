@@ -31,14 +31,16 @@ const {
   isCancelMock,
   promptTextMock,
   renderTableMock,
-  selectMock
+  selectMock,
+  withSpinnerMock
 } = vi.hoisted(() => ({
   cancelMock: vi.fn(),
   getThemeMock: vi.fn(() => "dark"),
   isCancelMock: vi.fn(() => false),
   promptTextMock: vi.fn(),
   renderTableMock: vi.fn(() => "rendered table"),
-  selectMock: vi.fn()
+  selectMock: vi.fn(),
+  withSpinnerMock: vi.fn(async <T>({ fn }: { fn: () => Promise<T> }) => await fn())
 }));
 
 vi.mock("../../sdk/launch.js", () => ({
@@ -61,7 +63,8 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     isCancel: isCancelMock,
     promptText: promptTextMock,
     renderTable: renderTableMock,
-    select: selectMock
+    select: selectMock,
+    withSpinner: withSpinnerMock
   };
 });
 
@@ -148,6 +151,37 @@ describe("launch command", () => {
         }
       })
     );
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Starting managed process api; waiting for log readiness...",
+        fn: expect.any(Function),
+        stopMessage: expect.any(Function)
+      })
+    );
+  });
+
+  it("describes TCP readiness while launch start waits", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "launch",
+      "start",
+      "api",
+      "--ready-port",
+      "3000",
+      "--",
+      "node",
+      "server.js"
+    ]);
+
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Starting managed process api; waiting for TCP port 3000..."
+      })
+    );
   });
 
   it("preserves prototype-named launch environment entries", async () => {
@@ -228,6 +262,7 @@ describe("launch command", () => {
     ]);
 
     expect(startLaunchMock).not.toHaveBeenCalled();
+    expect(withSpinnerMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would start managed process api.");
   });
 
@@ -250,7 +285,24 @@ describe("launch command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "launch", "restart", "api"]);
 
     expect(restartLaunchMock).not.toHaveBeenCalled();
+    expect(withSpinnerMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would restart managed process api.");
+  });
+
+  it("wraps launch restart in a progress spinner", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync(["node", "cli", "launch", "restart", "api"]);
+
+    expect(restartLaunchMock).toHaveBeenCalledWith({ homeDir: "/home/test", id: "api" });
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Restarting managed process api...",
+        fn: expect.any(Function),
+        stopMessage: expect.any(Function)
+      })
+    );
   });
 
   it("previews launch rm without removing managed process data", async () => {

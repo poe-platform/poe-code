@@ -139,6 +139,7 @@ describe("CLI spawn streaming integration", () => {
       await program.parseAsync([
         "node",
         "cli",
+        "--yes",
         "spawn",
         "--mode",
         "yolo",

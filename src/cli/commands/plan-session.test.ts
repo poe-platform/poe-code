@@ -43,6 +43,25 @@ function createBaseProgram(): Command {
   return program;
 }
 
+async function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  try {
+    return await run();
+  } finally {
+    if (stdinDescriptor !== undefined) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  }
+}
+
 describe("buildPlanPrompt", () => {
   it("embeds the skill content, plan directory, and question", () => {
     const prompt = buildPlanPrompt({
@@ -128,7 +147,10 @@ describe("plan <question> root command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]);
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]),
+      true
+    );
 
     expect(selectMock).toHaveBeenCalledWith({
       message: "Select agent to draft the plan with:",

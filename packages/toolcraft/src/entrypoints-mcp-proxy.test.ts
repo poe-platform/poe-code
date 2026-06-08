@@ -103,6 +103,12 @@ vi.mock("toolcraft-design", () => ({
     commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
   formatOptionList: (options: Array<{ flags: string; description: string }>) =>
     options.map((option) => `  ${option.flags}  ${option.description}`).join("\n"),
+  helpFormatterPlain: {
+    formatCommandList: (commands: Array<{ name: string; description: string }>) =>
+      commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
+    formatOptionList: (options: Array<{ flags: string; description: string }>) =>
+      options.map((option) => `  ${option.flags}  ${option.description}`).join("\n")
+  },
   promptText: vi.fn(),
   select: vi.fn(),
   confirm: vi.fn(),

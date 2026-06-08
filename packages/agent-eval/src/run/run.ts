@@ -40,6 +40,7 @@ import { BudgetEnforcer } from "./budget.js";
 import { CheatFilter } from "./cheat.js";
 import { cloneTarget } from "./clone.js";
 import { resolveDispatch, type DispatchSpec } from "./dispatch.js";
+import { ensureRunArtifactDirectory } from "./artifact-path.js";
 import { judgeRun } from "./judge.js";
 import { executeMetrics } from "./metrics/metrics.js";
 import { verifyOracle } from "./oracle.js";
@@ -75,10 +76,9 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     now: new Date()
   });
   const runDir = path.join(opts.outDir ?? "runs", runId);
-  await mkdir(path.dirname(runDir), { recursive: true });
 
   {
-    await mkdir(runDir, { recursive: true });
+    await ensureRunArtifactDirectory(source.rootDir, runDir);
 
     const controller = new AbortController();
     const cloneDir = path.join(runDir, "clone");

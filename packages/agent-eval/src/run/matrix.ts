@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
 import { aggregateRuns } from "../aggregate.js";
 import { openSource } from "../source/open.js";
@@ -10,6 +10,7 @@ import type {
   EvalRunResult,
   PlanKind
 } from "../types.js";
+import { assertRunArtifactPath, ensureRunArtifactDirectory } from "./artifact-path.js";
 import { runEval } from "./run.js";
 import { writeRunResult } from "./result-writer.js";
 
@@ -26,7 +27,7 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
   assertPositiveInteger("repeats", repeats);
 
   const matrixDir = path.join(opts.outDir ?? "runs", matrixId);
-  await mkdir(matrixDir, { recursive: true });
+  await ensureRunArtifactDirectory(source.rootDir, matrixDir);
 
   for (const evalId of evalIds) {
     const evalDef = await loadEval(source, evalId);
@@ -57,7 +58,7 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
         }
 
         const aggregate = aggregateRuns(cellRuns);
-        await writeAggregate(matrixDir, evalId, agent, model, aggregate);
+        await writeAggregate(source.rootDir, matrixDir, evalId, agent, model, aggregate);
         for (const result of cellRuns) {
           yield result;
         }
@@ -87,7 +88,7 @@ async function runSingle(
       error: getErrorMessage(error)
     });
     const runDir = path.join(opts.outDir ?? "runs", result.runId);
-    await mkdir(runDir, { recursive: true });
+    await ensureRunArtifactDirectory(opts.sourceDir, runDir);
     await writeRunResult(runDir, result);
     return result;
   }
@@ -156,17 +157,20 @@ function createErrorResult(
 }
 
 async function writeAggregate(
+  sourceRootDir: string,
   matrixDir: string,
   evalId: string,
   agent: string,
   model: string,
   aggregate: unknown
 ): Promise<void> {
+  const aggregatePath = path.join(
+    matrixDir,
+    `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
+  );
+  await assertRunArtifactPath(sourceRootDir, aggregatePath);
   await writeFile(
-    path.join(
-      matrixDir,
-      `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
-    ),
+    aggregatePath,
     `${JSON.stringify(aggregate, null, 2)}\n`,
     "utf8"
   );

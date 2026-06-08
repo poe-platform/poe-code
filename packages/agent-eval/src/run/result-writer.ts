@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
+import { assertRunArtifactPath } from "./artifact-path.js";
 import type { NormalizedTrace } from "./trace/types.js";
 
 export async function writeRunArtifacts(
@@ -73,6 +74,7 @@ async function assertSafeRunDirectory(runDir: string): Promise<void> {
       throw error;
     }
   }
+  await assertRunArtifactPath(path.parse(path.resolve(runDir)).root, path.dirname(runDir));
 }
 
 export async function writeRunCompletion(

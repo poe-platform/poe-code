@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", () => ({
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
+  lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
   writeFile: async (...args: unknown[]) => {
     const [targetPath] = args as Parameters<typeof mocks.fs.writeFile>;
     if (mocks.failAggregates && String(targetPath).includes("aggregate-")) {
@@ -39,6 +40,20 @@ describe("runMatrix publication", () => {
     const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
 
     await expect(iterator.next()).rejects.toThrow("aggregate publication failed");
+  });
+
+  it("rejects source-relative symlinked output parents before running cells", async () => {
+    await mocks.fs.mkdir("/source", { recursive: true });
+    await mocks.fs.mkdir("/outside", { recursive: true });
+    await mocks.fs.symlink("/outside", "/source/runs");
+
+    const iterator = runMatrix({ ...options(["model-one"]), outDir: "/source/runs" })[
+      Symbol.asyncIterator
+    ]();
+
+    await expect(iterator.next()).rejects.toThrow(/symbolic link/);
+    expect(mocks.runEval).not.toHaveBeenCalled();
+    await expect(mocks.fs.readdir("/outside")).resolves.toEqual([]);
   });
 
   it("writes distinct aggregates for model identifiers that sanitize alike", async () => {

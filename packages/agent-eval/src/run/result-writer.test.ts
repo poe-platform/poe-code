@@ -93,6 +93,24 @@ describe("writeRunArtifacts", () => {
     await expect(readText("/outside/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("rejects a symlinked evidence parent before writing artifacts", async () => {
+    const { fs } = await import("memfs");
+    await fs.promises.mkdir("/outside", { recursive: true });
+    await fs.promises.symlink("/outside", "/runs");
+
+    await expect(
+      writeRunArtifacts("/runs/run-1", {
+        result: createResult(),
+        events: [],
+        trace: createTrace(),
+        cheatReport: { cheated: false, violations: [] },
+        planMd: "# Plan\n",
+        evalYaml: "id: task\n"
+      })
+    ).rejects.toThrow(/symbolic link/);
+    await expect(readText("/outside/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("rolls back newly committed evidence when one artifact commit fails", async () => {
     mocks.failedRenameTarget = "/runs/run-1/trace.json";
 

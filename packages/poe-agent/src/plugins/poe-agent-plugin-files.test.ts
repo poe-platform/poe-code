@@ -32,7 +32,7 @@ async function callTool(tools: TestTool[] | undefined, name: string, args: unkno
 describe("poe-agent-plugin-files", () => {
   afterEach(() => {
     vi.resetModules();
-    vi.unmock("node:child_process");
+    vi.doUnmock("node:child_process");
   });
 
   it("passes the tool signal to ripgrep", async () => {

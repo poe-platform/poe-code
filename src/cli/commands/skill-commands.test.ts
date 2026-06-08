@@ -130,7 +130,7 @@ describe("skill unconfigure command", () => {
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
-  it("uses the default agent for root --yes unconfigure", async () => {
+  it("uses default agent and scope for root --yes unconfigure", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -142,10 +142,10 @@ describe("skill unconfigure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure"]);
 
     expect(selectMock).not.toHaveBeenCalled();
-    expect(logs).toContain("Would remove skill directory for claude-code at .claude/skills");
+    expect(logs).toContain("Would remove skill directory for claude-code at ~/.claude/skills");
   });
 
   it("warns when directory has files and --force is not set", async () => {

@@ -188,6 +188,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         scope = "local";
       } else if (options.global) {
         scope = "global";
+      } else if (flags.assumeYes) {
+        scope = "global";
       } else {
         const selected = await select({
           message: "Select scope:",

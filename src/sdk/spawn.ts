@@ -125,13 +125,6 @@ export function spawn(
       const acpSpawnConfig = getAcpSpawnConfig(service);
       const spawnConfig = getSpawnConfig(service);
       const registeredService = container.registry.get(service);
-      const supportsInteractive = spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined;
-      const canSpawn = options.interactive
-        ? supportsInteractive
-        : acpSpawnConfig !== undefined || spawnConfig !== undefined || registeredService !== undefined;
-      if (canSpawn) {
-        await ensurePoeApiKeyEnv();
-      }
 
       integrations = await loadIntegrations(await resolveMergedDocument(container));
       const middlewares = [
@@ -151,6 +144,9 @@ export function spawn(
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
+        if (spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined) {
+          await ensurePoeApiKeyEnv();
+        }
         const interactiveResult = await spawnInteractive(service, {
           prompt: options.prompt,
           cwd,
@@ -188,6 +184,9 @@ export function spawn(
               activeProvider
             ).then((details) => ({ ...activeProvider?.extraEnv, ...details.env }))
           : undefined;
+        if (activeProvider === undefined || activeProvider.id === "poe") {
+          await ensurePoeApiKeyEnv();
+        }
         const acpSpawn = spawnAcp({
           agentId: service,
           prompt: options.prompt,
@@ -251,6 +250,7 @@ export function spawn(
 
       if (supportsStreaming) {
         const model = await resolveModel();
+        await ensurePoeApiKeyEnv();
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
@@ -315,6 +315,7 @@ export function spawn(
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
+        await ensurePoeApiKeyEnv();
         return spawnNonStreaming(service, {
           prompt: options.prompt,
           cwd,

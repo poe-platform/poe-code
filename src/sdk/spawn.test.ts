@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
 import { DEFAULT_CODEX_MODEL } from "../cli/constants.js";
 
@@ -1160,6 +1161,90 @@ describe("SDK spawn()", () => {
         prompt: "inspect auth",
         cwd: "/tmp/workspaces/poe-code/packages/auth",
         mode: "read"
+      })
+    );
+  });
+
+  it("does not require Poe credentials before resolving a non-Poe ACP provider", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
+    const variables: Record<string, string> = {
+      CF_AIG_TOKEN: "cf-token",
+      CF_AIG_BASE_URL: "https://gateway.example.test"
+    };
+    const providerRegistry = {
+      forAgent: vi.fn(() => [cloudflareProvider]),
+      resolveCredential: vi.fn(async () => variables.CF_AIG_TOKEN)
+    };
+    const registry = {
+      get: vi.fn((name: string) =>
+        name === "opencode"
+          ? {
+              name: "opencode",
+              label: "OpenCode",
+              isolatedEnv: {
+                agentBinary: "opencode",
+                configProbe: { kind: "isolatedFile", relativePath: "config.json" },
+                env: {
+                  XDG_CONFIG_HOME: { kind: "isolatedDir", relativePath: ".config" }
+                }
+              }
+            }
+          : undefined
+      )
+    };
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        cwd: "/repo",
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables,
+        getVariable: (name: string) => variables[name],
+        resolveHomePath: (...segments: string[]) => [homeDir, ...segments].join("/")
+      },
+      registry,
+      providerRegistry
+    } as any);
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("opencode", "inspect auth");
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
+    expect(providerRegistry.resolveCredential).toHaveBeenCalledWith(
+      "cloudflare",
+      undefined,
+      expect.objectContaining({ envVars: variables })
+    );
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "opencode",
+        env: expect.objectContaining({
+          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer cf-token",
+          XDG_CONFIG_HOME: "/home/test/.poe-code/opencode/.config"
+        })
       })
     );
   });

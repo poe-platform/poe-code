@@ -75,7 +75,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: publish-demo-to-pages
     title: Publish the landing-page demo to GitHub Pages under a subpath
@@ -96,8 +96,8 @@ tasks:
       Validate with `npm run lint:workflows`. Per repo policy, do not write unit
       tests for the workflow.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # Context

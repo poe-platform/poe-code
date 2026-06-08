@@ -29,11 +29,14 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: npm clean-install
       - run: npm run build
+      - run: npm run build:site --workspace toolcraft-landing-page
       - name: Stage Pages artifact
         run: |
           rm -rf "$RUNNER_TEMP/pages"
           mkdir -p "$RUNNER_TEMP/pages/schemas"
           cp -R docs/schemas/. "$RUNNER_TEMP/pages/schemas"
+          mkdir -p "$RUNNER_TEMP/pages/toolcraft-landing-page"
+          cp -R packages/toolcraft-landing-page/dist-site/. "$RUNNER_TEMP/pages/toolcraft-landing-page"
           touch "$RUNNER_TEMP/pages/.nojekyll"
       - uses: actions/upload-pages-artifact@v3
         with:

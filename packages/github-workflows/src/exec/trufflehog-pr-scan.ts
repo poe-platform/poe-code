@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { UserError } from "toolcraft";
 import type { CommandRunner } from "@poe-code/agent-spawn";
 import { runCommand } from "@poe-code/agent-spawn";
+import { workflowSubprocessTimeoutMs } from "../subprocess-timeout.js";
 
 const DEFAULT_RESULTS_FILE = "/tmp/trufflehog-results.jsonl";
 const DEFAULT_STDERR_FILE = "/tmp/trufflehog-stderr.log";
@@ -182,7 +183,7 @@ async function scanForSecrets(
       "--json",
       `--results=${results}`
     ],
-    { cwd }
+    { cwd, timeoutMs: workflowSubprocessTimeoutMs }
   );
 
   await publishFiles(fs, [
@@ -302,7 +303,8 @@ async function ghApi(
   args: string[] = []
 ): Promise<string> {
   const result = await runner("gh", ["api", pathParts.join("/"), ...args], {
-    env: { GH_TOKEN: githubToken }
+    env: { GH_TOKEN: githubToken },
+    timeoutMs: workflowSubprocessTimeoutMs
   });
 
   if (result.exitCode !== 0) {

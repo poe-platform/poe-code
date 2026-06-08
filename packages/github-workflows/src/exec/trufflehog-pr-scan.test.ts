@@ -7,6 +7,7 @@ import {
   runTruffleHogPrScanCommand,
   uniqueTruffleHogFindings
 } from "./trufflehog-pr-scan.js";
+import { workflowSubprocessTimeoutMs } from "../subprocess-timeout.js";
 
 function env(values: Record<string, string>): { get(key: string): string | undefined } {
   return { get: (key) => values[key] };
@@ -158,6 +159,26 @@ describe("runTruffleHogPrScanCommand", () => {
     await expect(fs.readFile("/outside-stderr.log", "utf8")).resolves.toBe("original stderr");
   });
 
+  it("runs the Docker scan subprocess with the workflow timeout", async () => {
+    const { fs } = createTestFileSystem();
+    const runner = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
+
+    await runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+      cwd: "/repo",
+      fs,
+      runner
+    });
+
+    expect(runner).toHaveBeenCalledWith(
+      "docker",
+      expect.any(Array),
+      expect.objectContaining({
+        cwd: "/repo",
+        timeoutMs: workflowSubprocessTimeoutMs
+      })
+    );
+  });
+
   it("rejects symlinked advisory results without publishing external findings", async () => {
     const { volume, fs } = createTestFileSystem({ "/outside-results.jsonl": `${finding}\n` });
     volume.symlinkSync("/outside-results.jsonl", "/tmp/trufflehog-results.jsonl");
@@ -182,6 +203,25 @@ describe("runTruffleHogPrScanCommand", () => {
     ).rejects.toThrow("symbolic link");
 
     await expect(fs.readFile("/outside-output", "utf8")).resolves.toBe("original output");
+  });
+
+  it("runs GitHub API subprocesses with the workflow timeout", async () => {
+    const { fs } = createTestFileSystem({ "/tmp/trufflehog-results.jsonl": "" });
+    const runner = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "[]", stderr: "" });
+
+    await runTruffleHogPrScanCommand("report-advisory-result", env(advisoryEnv), {
+      fs,
+      runner
+    });
+
+    expect(runner).toHaveBeenCalledWith(
+      "gh",
+      expect.any(Array),
+      expect.objectContaining({
+        env: { GH_TOKEN: "token" },
+        timeoutMs: workflowSubprocessTimeoutMs
+      })
+    );
   });
 
   it("validates the step summary before posting an advisory comment", async () => {

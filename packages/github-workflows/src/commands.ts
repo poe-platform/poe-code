@@ -13,6 +13,7 @@ import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import { runTruffleHogPrScanCommand } from "./exec/trufflehog-pr-scan.js";
 import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
+import { workflowSubprocessTimeoutMs } from "./subprocess-timeout.js";
 import type { AutomationDefinition } from "./types.js";
 import { generateProjectVariablesFile, loadVariableStatuses, loadVariables } from "./variables.js";
 
@@ -166,7 +167,8 @@ const runCommandDef = defineCommand({
 
     const sourceResult = await runCommand("sh", ["-c", resolveSourceCommand(automation.source, env)], {
       cwd,
-      env: buildCommandEnv(env, secrets)
+      env: buildCommandEnv(env, secrets),
+      timeoutMs: workflowSubprocessTimeoutMs
     });
 
     if (sourceResult.exitCode !== 0) {

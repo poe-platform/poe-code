@@ -5,12 +5,16 @@ export interface CommandRunnerResult {
   stdout: string;
   stderr: string;
   exitCode: number;
+  timedOut?: boolean;
+  aborted?: boolean;
 }
 
 export interface CommandRunnerOptions {
   cwd?: string;
   env?: Record<string, string | undefined>;
   stdin?: string | Buffer;
+  timeoutMs?: number;
+  signal?: AbortSignal;
 }
 
 export type CommandRunner = (
@@ -25,6 +29,16 @@ export function runCommand(
   options?: CommandRunnerOptions
 ): Promise<CommandRunnerResult> {
   return new Promise((resolve) => {
+    if (options?.signal?.aborted === true) {
+      resolve({
+        stdout: "",
+        stderr: "Command aborted before start.",
+        exitCode: 130,
+        aborted: true
+      });
+      return;
+    }
+
     const hasStdin = options?.stdin != null;
     const child = spawn(command, args, {
       stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
@@ -38,6 +52,59 @@ export function runCommand(
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    let timedOut = false;
+    let aborted = false;
+    let terminationMessage: string | undefined;
+    let timeout: NodeJS.Timeout | undefined;
+    let escalationTimeout: NodeJS.Timeout | undefined;
+
+    const cleanup = (): void => {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+        timeout = undefined;
+      }
+      if (escalationTimeout !== undefined) {
+        clearTimeout(escalationTimeout);
+        escalationTimeout = undefined;
+      }
+      options?.signal?.removeEventListener("abort", abortCommand);
+    };
+
+    const finish = (result: CommandRunnerResult): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(result);
+    };
+
+    const terminate = (reason: "timeout" | "abort"): void => {
+      if (settled || timedOut || aborted) {
+        return;
+      }
+
+      timedOut = reason === "timeout";
+      aborted = reason === "abort";
+      terminationMessage =
+        reason === "timeout"
+          ? `Command timed out after ${options?.timeoutMs} ms.`
+          : "Command aborted.";
+      child.kill("SIGTERM");
+      escalationTimeout = setTimeout(() => {
+        child.kill("SIGKILL");
+      }, 1_000);
+    };
+
+    function abortCommand(): void {
+      terminate("abort");
+    }
+
+    if (typeof options?.timeoutMs === "number" && options.timeoutMs > 0) {
+      timeout = setTimeout(() => terminate("timeout"), options.timeoutMs);
+    }
+    options?.signal?.addEventListener("abort", abortCommand, { once: true });
 
     if (hasStdin && child.stdin) {
       child.stdin.on("error", () => {});
@@ -63,7 +130,7 @@ export function runCommand(
             : 127;
       const message =
         error instanceof Error ? error.message : String(error ?? "error");
-      resolve({
+      finish({
         stdout,
         stderr: stderr ? `${stderr}${message}` : message,
         exitCode
@@ -71,10 +138,19 @@ export function runCommand(
     });
 
     child.on("close", (code, signal) => {
-      resolve({
+      const exitCode = timedOut ? 124 : aborted ? 130 : code ?? signalExitCode(signal);
+      const finalStderr =
+        terminationMessage === undefined
+          ? stderr
+          : stderr
+            ? `${stderr}${terminationMessage}`
+            : terminationMessage;
+      finish({
         stdout,
-        stderr,
-        exitCode: code ?? signalExitCode(signal)
+        stderr: finalStderr,
+        exitCode,
+        ...(timedOut ? { timedOut: true } : {}),
+        ...(aborted ? { aborted: true } : {})
       });
     });
   });

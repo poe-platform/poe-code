@@ -50,6 +50,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { ghGroup } = await import("./commands.js");
+const { workflowSubprocessTimeoutMs } = await import("./subprocess-timeout.js");
 
 const promptDir = fileURLToPath(new URL("./prompts", import.meta.url));
 const builtInDir = path.dirname(promptDir);
@@ -585,6 +586,7 @@ describe("ghGroup", () => {
       ["-c", "gh api repos/acme/app/dependabot/alerts --jq '[.[]]'"],
       expect.objectContaining({
         cwd: "/repo",
+        timeoutMs: workflowSubprocessTimeoutMs,
         env: expect.objectContaining({
           GITHUB_REPOSITORY: "acme/app",
           GITHUB_TOKEN: "gh-token"
@@ -730,13 +732,13 @@ describe("ghGroup", () => {
       1,
       "poe-code",
       ["install", "claude-code", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
       ["configure", "claude-code", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
   });
 
@@ -756,13 +758,13 @@ describe("ghGroup", () => {
       1,
       "poe-code",
       ["install", "codex", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
       ["configure", "codex", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
   });
 

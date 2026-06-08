@@ -94,6 +94,49 @@ function createAuthStoreConfig(fs: MemFsPromises) {
   };
 }
 
+function createAuthStoreFilePathConfig(fs: MemFsPromises, filePath: string) {
+  return {
+    backend: "file" as const,
+    fileStore: {
+      fs,
+      filePath,
+      salt: "poe-code:test:mcp-oauth:v1",
+      getHomeDirectory: () => "/home/test",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
+    },
+  };
+}
+
+function createStoredSession(resource: string, label: string): StoredOAuthSession {
+  return {
+    resource,
+    authorizationServer: AUTHORIZATION_SERVER,
+    client: {
+      clientId: `client-${label}`,
+    },
+    tokens: {
+      accessToken: `access-${label}`,
+      refreshToken: `refresh-${label}`,
+      tokenType: "Bearer",
+      expiresAt: 123_456,
+    },
+    discovery: {
+      resourceMetadataUrl: `${new URL(resource).origin}/.well-known/oauth-protected-resource`,
+      resourceMetadata: {
+        resource,
+        authorization_servers: [AUTHORIZATION_SERVER],
+      },
+      authorizationServerMetadata: {
+        issuer: AUTHORIZATION_SERVER,
+        authorization_endpoint: AUTHORIZATION_ENDPOINT,
+        token_endpoint: TOKEN_ENDPOINT,
+        response_types_supported: ["code"],
+        code_challenge_methods_supported: ["S256"],
+      },
+    },
+  };
+}
+
 function createCallbackResponse(code: string): Response {
   return new Response(JSON.stringify({ code }), {
     status: 200,
@@ -631,6 +674,38 @@ describe("createAuthStoreSessionStore", () => {
 
     expect(await sessionStore.load(RESOURCE_URL)).toEqual(session);
     expect(await sessionStore.load(NON_CANONICAL_RESOURCE_URL)).toEqual(session);
+  });
+
+  it("derives isolated session files from a configured filePath", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises & {
+      readdir(path: string): Promise<string[]>;
+    };
+    const sessionStore = createAuthStoreSessionStore(
+      createAuthStoreFilePathConfig(fs, "/home/test/oauth/session.enc")
+    );
+    const otherResource = "https://other-resource.example.com/mcp";
+    const session = createStoredSession(RESOURCE_URL, "resource");
+    const otherSession = createStoredSession(otherResource, "other");
+
+    await sessionStore.save(otherResource, otherSession);
+
+    expect(await sessionStore.load(RESOURCE_URL)).toBeNull();
+
+    await sessionStore.save(RESOURCE_URL, session);
+
+    expect(await sessionStore.load(RESOURCE_URL)).toEqual(session);
+    expect(await sessionStore.load(otherResource)).toEqual(otherSession);
+
+    const directoryEntries = await fs.readdir("/home/test/oauth");
+    expect(directoryEntries).toHaveLength(2);
+    expect(directoryEntries).not.toContain("session.enc");
+    expect(new Set(directoryEntries).size).toBe(2);
+    expect(directoryEntries).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^session-[a-f0-9]{64}\.enc$/),
+        expect.stringMatching(/^session-[a-f0-9]{64}\.enc$/),
+      ])
+    );
   });
 
   it("rejects default Poe Code state root symlinks", async () => {
@@ -1796,6 +1871,44 @@ describe("createDefaultOAuthClientProvider", () => {
       expect(result.error?.message).toBe("OAuth client registration response missing client_id");
     }
     expect(pair.authorizationRequests).toHaveLength(0);
+  });
+
+  it("derives isolated dynamic client files from a configured filePath", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises & {
+      readdir(path: string): Promise<string[]>;
+    };
+    const clientStore = createAuthStoreClientStore(
+      createAuthStoreFilePathConfig(fs, "/home/test/oauth/client.enc")
+    );
+    const otherIssuer = "https://other-auth.example.com";
+
+    await clientStore.save(otherIssuer, { clientId: "other-client" });
+
+    expect(await clientStore.load(AUTHORIZATION_SERVER)).toBeNull();
+
+    await clientStore.save(AUTHORIZATION_SERVER, {
+      clientId: "stored-client",
+      clientSecret: "stored-secret",
+    });
+
+    expect(await clientStore.load(AUTHORIZATION_SERVER)).toEqual({
+      clientId: "stored-client",
+      clientSecret: "stored-secret",
+    });
+    expect(await clientStore.load(otherIssuer)).toEqual({
+      clientId: "other-client",
+    });
+
+    const directoryEntries = await fs.readdir("/home/test/oauth");
+    expect(directoryEntries).toHaveLength(2);
+    expect(directoryEntries).not.toContain("client.enc");
+    expect(new Set(directoryEntries).size).toBe(2);
+    expect(directoryEntries).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
+        expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
+      ])
+    );
   });
 
   it.each([

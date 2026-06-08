@@ -9,6 +9,7 @@ import {
   listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
+import { withSpinner } from "@poe-code/design-system";
 
 export function registerInstallCommand(
   program: Command,
@@ -60,12 +61,23 @@ export async function executeInstall(
     resources
   );
 
-  await container.registry.invoke(canonicalService, "install", async (entry) => {
-    if (!entry.install) {
-      throw new Error(`Agent "${canonicalService}" does not support install.`);
-    }
-    await entry.install(providerContext);
-  });
+  const installProvider = async (): Promise<void> => {
+    await container.registry.invoke(canonicalService, "install", async (entry) => {
+      if (!entry.install) {
+        throw new Error(`Agent "${canonicalService}" does not support install.`);
+      }
+      await entry.install(providerContext);
+    });
+  };
+
+  if (flags.dryRun) {
+    await installProvider();
+  } else {
+    await withSpinner({
+      message: `Installing ${adapter.label}...`,
+      fn: installProvider
+    });
+  }
 
   const dryMessage =
     canonicalService === "claude-code"

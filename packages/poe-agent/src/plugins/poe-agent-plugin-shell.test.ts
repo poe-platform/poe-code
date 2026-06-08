@@ -263,6 +263,26 @@ describe("poe-agent-plugin-shell", () => {
     expect(validate({ command: "bash -lc 'git status --short'" }, "read")).toBeUndefined();
   });
 
+  it("rejects environment dumps and env command wrappers in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "printenv" }, "read")).toBe(
+      'Command "printenv" is not allowed in read mode.',
+    );
+    expect(validate({ command: "env" }, "read")).toBe(
+      'Command "env" is not allowed in read mode.',
+    );
+    expect(validate({ command: "env sh -c 'mkdir tmp'" }, "read")).toBe(
+      'Command "env" is not allowed in read mode.',
+    );
+    expect(
+      validate(
+        { command: "env node -e 'require(\"fs\").writeFileSync(\"x\", \"y\")'" },
+        "read"
+      )
+    ).toBe('Command "env" is not allowed in read mode.');
+  });
+
   it("emits notification events for shell output", async () => {
     const cwd = process.cwd();
     const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];

@@ -535,8 +535,6 @@ function isReadOnlyCommand(commandName: string, args: string[]): boolean {
     case "dirname":
     case "echo":
     case "printf":
-    case "env":
-    case "printenv":
     case "true":
     case "false":
     case "test":

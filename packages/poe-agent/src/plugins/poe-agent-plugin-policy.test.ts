@@ -141,6 +141,34 @@ describe("poe-agent-plugin-policy", () => {
     }
   });
 
+  it("blocks environment dumps and env command wrappers in read mode", async () => {
+    const { runContext, signal } = await setupRunContext([
+      shellPlugin(),
+      policyPlugin({ mode: "read" })
+    ]);
+
+    try {
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", { command: "printenv" }),
+        'Command "printenv" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "env sh -c 'mkdir tmp'"
+        }),
+        'Command "env" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "env node -e 'require(\"fs\").writeFileSync(\"x\", \"y\")'"
+        }),
+        'Command "env" is not allowed in read mode.'
+      );
+    } finally {
+      await runContext.dispose();
+    }
+  });
+
   it("allows safe shell in edit mode while blocking destructive commands and network writes", async () => {
     const { runContext, signal } = await setupRunContext([
       shellPlugin(),

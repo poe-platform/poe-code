@@ -1728,6 +1728,7 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
+      useStdin: true,
       runtimeConfigCwd: cwd
     });
   });
@@ -1907,6 +1908,7 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
+      useStdin: true,
       runtimeConfigCwd: cwd
     });
   });
@@ -1940,6 +1942,7 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
+      useStdin: true,
       runtimeConfigCwd: cwd
     });
   });

@@ -349,6 +349,7 @@ export function registerSpawnCommand(
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
               ...(spawnOptions.middlewares ? { middlewares: spawnOptions.middlewares } : {}),
+              ...(spawnOptions.useStdin ? { useStdin: spawnOptions.useStdin } : {}),
               runtimeConfigCwd: container.env.cwd,
               ...runtimeOptions
             })

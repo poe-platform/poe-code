@@ -180,6 +180,36 @@ export async function streamJobLog(
   }
 }
 
+export function createLineBufferedLogWriter(writeLine: (line: string) => void): {
+  flush(): void;
+  write(chunk: string): void;
+} {
+  let pending = "";
+
+  return {
+    write(chunk) {
+      if (chunk.length === 0) {
+        return;
+      }
+
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        writeLine(pending.slice(0, newlineIndex));
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    flush() {
+      if (pending.length === 0) {
+        return;
+      }
+      writeLine(pending);
+      pending = "";
+    }
+  };
+}
+
 export async function waitForGracefulStop(
   handle: JobHandle,
   graceMs = 30_000

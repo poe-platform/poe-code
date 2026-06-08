@@ -452,6 +452,32 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
   });
 
+  it("preserves split lines and blank lines when dumping runtime job logs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        chunks: ["part", "ial\n", "\n", "tail"]
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(logs).toEqual(["partial", "", "tail"]);
+    expect(stripAnsi(logs.join("\n"))).toBe("partial\n\ntail");
+  });
+
   it("requests full replay when dumping runtime job logs without since", async () => {
     const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
     const fs = createMemFs({
@@ -562,6 +588,32 @@ describe("runtime command", () => {
     expect(streamOptions[0]).toMatchObject({ follow: true, since: expect.any(Date) });
     expect(streamOptions[0]).not.toHaveProperty("sinceByte");
     expect(stripAnsi(logs.join("\n"))).toContain("recent attach");
+  });
+
+  it("preserves split lines and blank lines when attaching to runtime job logs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-attach",
+      createJobHandle({
+        status: "running",
+        chunks: ["att", "ach\n", "\n", "done"]
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "attach", "job-attach"]);
+
+    expect(logs).toEqual(["attach", "", "done"]);
+    expect(stripAnsi(logs.join("\n"))).toBe("attach\n\ndone");
   });
 
   it("waits for delayed log chunks from an exited runtime job", async () => {

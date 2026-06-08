@@ -3,6 +3,7 @@ import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
 import {
   attachJob,
+  createLineBufferedLogWriter,
   createRuntimeState,
   parseSince,
   resolveJob,
@@ -48,17 +49,22 @@ async function executeRuntimeJobsAttach(
     return;
   }
   const { handle } = await attachJob(entry);
+  const logWriter = createLineBufferedLogWriter((line) => {
+    resources.logger.info(line);
+  });
 
   await streamJobLog(handle, {
     since: parseSince(options.since),
     follow: true,
     write(chunk) {
-      resources.logger.info(chunk.trimEnd());
+      logWriter.write(chunk);
     },
     onDetach() {
+      logWriter.flush();
       resources.logger.info("detaching (job continues running)");
     }
   });
+  logWriter.flush();
 
   if (options.syncOnExit === true && (await handle.status()) !== "running") {
     await syncJob(entry, { forceSync: options.forceSync === true, close: false });

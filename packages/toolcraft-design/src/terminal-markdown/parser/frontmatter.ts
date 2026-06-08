@@ -24,6 +24,8 @@ type ParsedKeyValue = {
 
 class FrontmatterParseError extends Error {}
 
+type BlockChomping = "clip" | "strip" | "keep";
+
 class YamlSubsetParser {
   private readonly lines: YamlLine[];
   private position = 0;
@@ -132,6 +134,12 @@ class YamlSubsetParser {
 
   private readEntryValue(entry: ParsedKeyValue, currentIndent: number): unknown {
     if (entry.value !== undefined) {
+      const chomping = blockScalarChomping(entry.value);
+
+      if (chomping !== null) {
+        return this.readBlockScalar(currentIndent, chomping);
+      }
+
       return parseScalar(entry.value);
     }
 
@@ -144,6 +152,33 @@ class YamlSubsetParser {
     return isArrayItem(nestedLine.content)
       ? this.parseArray(nestedLine.indent)
       : this.parseObject(nestedLine.indent);
+  }
+
+  private readBlockScalar(parentIndent: number, chomping: BlockChomping): string {
+    const collected: YamlLine[] = [];
+
+    while (this.position < this.lines.length) {
+      const line = this.lines[this.position];
+
+      if (line.content.length > 0 && line.indent <= parentIndent) {
+        break;
+      }
+
+      collected.push(line);
+      this.position += 1;
+    }
+
+    const contentIndents = collected
+      .filter((line) => line.content.length > 0)
+      .map((line) => line.indent);
+    const blockIndent = contentIndents.length === 0 ? parentIndent + 1 : Math.min(...contentIndents);
+    const textLines = collected.map((line) =>
+      line.content.length === 0
+        ? ""
+        : " ".repeat(Math.max(0, line.indent - blockIndent)) + line.content
+    );
+
+    return chompBlockScalar(textLines, chomping);
   }
 
   private peekMeaningfulLine(): YamlLine | undefined {
@@ -303,6 +338,43 @@ function isArrayItem(content: string): boolean {
 
   const nextCharacter = content[1];
   return nextCharacter === " " || nextCharacter === "\t";
+}
+
+function blockScalarChomping(value: string): BlockChomping | null {
+  if (value === "|") {
+    return "clip";
+  }
+
+  if (value === "|-") {
+    return "strip";
+  }
+
+  if (value === "|+") {
+    return "keep";
+  }
+
+  return null;
+}
+
+function chompBlockScalar(lines: string[], chomping: BlockChomping): string {
+  if (chomping === "keep") {
+    return lines.map((line) => `${line}\n`).join("");
+  }
+
+  let end = lines.length;
+
+  while (end > 0 && lines[end - 1].length === 0) {
+    end -= 1;
+  }
+
+  const trimmed = lines.slice(0, end);
+
+  if (trimmed.length === 0) {
+    return "";
+  }
+
+  const joined = trimmed.join("\n");
+  return chomping === "clip" ? `${joined}\n` : joined;
 }
 
 function parseScalar(value: string): unknown {

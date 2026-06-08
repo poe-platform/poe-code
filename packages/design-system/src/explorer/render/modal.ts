@@ -1,6 +1,7 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerState } from "../state.js";
 import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
+import { fitToWidth, padEndCells } from "./text.js";
 
 type ExplorerCellStyle = ExplorerStyles["accent"];
 
@@ -18,7 +19,7 @@ export function renderModal(state: ExplorerState, screen: ScreenBuffer): void {
   drawBox(screen, x, y, width, height, title(state), styles.borderFocused);
   const lines = modalLines(state);
   for (let row = 0; row < Math.min(lines.length, height - 2); row += 1) {
-    screen.put(x + 2, y + 1 + row, fit(lines[row]!, width - 4), row === 1 ? styles.accent : {});
+    screen.put(x + 2, y + 1 + row, fitToWidth(lines[row]!, width - 4, x + 2), row === 1 ? styles.accent : {});
   }
 }
 
@@ -76,8 +77,9 @@ function drawBox(
   style: ExplorerCellStyle
 ): void {
   screen.clearRect({ x, y, width, height });
-  const titleSegment = `─ ${boxTitle} `;
-  screen.put(x, y, `╭${titleSegment}${"─".repeat(Math.max(0, width - titleSegment.length - 2))}╮`, style);
+  const innerWidth = Math.max(0, width - 2);
+  const titleSegment = fitToWidth(`─ ${boxTitle} `, innerWidth, x + 1);
+  screen.put(x, y, `╭${padEndCells(titleSegment, innerWidth, "─", x + 1)}╮`, style);
   for (let row = 1; row < height - 1; row += 1) {
     screen.put(x, y + row, "│", style);
     screen.put(x + width - 1, y + row, "│", style);
@@ -111,11 +113,4 @@ function paletteLines(state: ExplorerState): string[] {
 
 function labelFor(action: { label: string | (() => string) }): string {
   return typeof action.label === "function" ? action.label() : action.label;
-}
-
-function fit(text: string, width: number): string {
-  if (text.length <= width) {
-    return text;
-  }
-  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
 }

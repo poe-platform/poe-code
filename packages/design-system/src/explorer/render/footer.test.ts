@@ -6,6 +6,7 @@ import { resolveBindings } from "../keymap.js";
 import { REGION_FOOTER } from "../state.js";
 import { renderFooter } from "./footer.js";
 import { dumpScreen, fixtureState, listDetailItems, renderStateSnapshot } from "./test-fixtures.js";
+import { cellWidth } from "./text.js";
 
 describe("explorer footer renderer", () => {
   it("snapshots footer states", () => {
@@ -38,5 +39,20 @@ describe("explorer footer renderer", () => {
     renderFooter(state, screen, computeExplorerLayout(state.size));
 
     expect(stripAnsi(dumpScreen(screen))).toContain("⇧↑↓ reorder (within state)");
+  });
+
+  it("clips wide footer hints by terminal cells", () => {
+    const state = fixtureState({
+      size: { cols: 15, rows: 4 },
+      selected: new Set()
+    });
+    state.actionState.get("edit")!.label = "修复🚀流程";
+    const screen = new ScreenBuffer(15, 4);
+
+    renderFooter(state, screen, computeExplorerLayout(state.size));
+
+    const footer = stripAnsi(dumpScreen(screen)).split("\n").at(-1)!;
+    expect(cellWidth(footer)).toBe(15);
+    expect(footer).toContain("…");
   });
 });

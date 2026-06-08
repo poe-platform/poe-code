@@ -2,6 +2,7 @@ import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
+import { cellWidth, centerCells, fitToWidth, splitGraphemeCells, stripAnsi } from "./text.js";
 
 const listLineCache = new WeakMap<ScreenBuffer, { rectKey: string; lines: Map<number, string> }>();
 
@@ -30,7 +31,7 @@ export function renderList(
 
   if (state.filtered.length === 0) {
     const hint = state.emptyHint;
-    writeLine(screen, rect, Math.floor(rect.height / 2), center(hint, rect.width), styles.muted);
+    writeLine(screen, rect, Math.floor(rect.height / 2), centerCells(hint, rect.width, rect.x), styles.muted);
     cache.clear();
     return;
   }
@@ -95,27 +96,44 @@ function renderRow(
   const marker = opts.selected ? "┃" : " ";
   const cursor = opts.cursor ? "●" : "◌";
   const focus = opts.cursor && opts.focused ? " ▌" : "";
-  const badge = row.badge ? ` ${row.badge.text}` : "";
   const prefix = `${marker} ${cursor} `;
-  const available = Math.max(0, rect.width - prefix.length - focus.length - badge.length);
-  const title = stripAnsi(row.title).slice(0, available);
+  const prefixWidth = cellWidth(prefix, rect.x);
+  const focusWidth = cellWidth(focus);
+  const badge = row.badge
+    ? fitToWidth(
+      ` ${row.badge.text}`,
+      Math.max(0, rect.width - prefixWidth - focusWidth),
+      rect.x + prefixWidth
+    )
+    : "";
+  const badgeWidth = cellWidth(badge);
+  const available = Math.max(0, rect.width - prefixWidth - focusWidth - badgeWidth);
+  const rawTitle = stripAnsi(row.title);
+  const titleX = rect.x + prefixWidth;
+  const title = fitToWidth(rawTitle, available, titleX);
+  const titleWasTruncated = cellWidth(rawTitle, titleX) > available;
+  const positions = new Set(opts.positions);
   let x = rect.x;
   const y = rect.y + rowY;
 
   screen.put(x, y, prefix, opts.cursor ? styles.accent : styles.muted);
-  x += prefix.length;
+  x += prefixWidth;
 
-  for (let index = 0; index < title.length; index += 1) {
-    const style = opts.positions.includes(index) ? styles.matchHighlight : {};
-    screen.put(x + index, y, title[index]!, style);
+  for (const segment of splitGraphemeCells(title, x)) {
+    const isTruncationMarker = titleWasTruncated && segment.end === title.length && segment.value === "…";
+    const style = !isTruncationMarker && hasMatchPosition(segment.start, segment.end, positions)
+      ? styles.matchHighlight
+      : {};
+    screen.put(x, y, segment.value, style);
+    x += segment.width;
   }
 
   if (row.badge) {
-    screen.put(rect.x + rect.width - badge.length - focus.length, y, badge, styles.tones[row.badge.tone ?? "muted"]);
+    screen.put(rect.x + rect.width - badgeWidth - focusWidth, y, badge, styles.tones[row.badge.tone ?? "muted"]);
   }
 
   if (focus) {
-    screen.put(rect.x + rect.width - focus.length, y, focus, styles.borderFocused);
+    screen.put(rect.x + rect.width - focusWidth, y, focus, styles.borderFocused);
   }
 }
 
@@ -126,24 +144,19 @@ function writeLine(
   text: string,
   style = {}
 ): void {
-  screen.put(rect.x, rect.y + row, fit(text, rect.width), style);
+  screen.put(rect.x, rect.y + row, fitToWidth(text, rect.width, rect.x), style);
 }
 
 function lineHash(row: Row, selected: boolean, cursor: boolean, positions: number[]): string {
   return `${row.id}:${selected ? 1 : 0}:${cursor ? 1 : 0}:${positions.join(",")}`;
 }
 
-function center(text: string, width: number): string {
-  return `${" ".repeat(Math.max(0, Math.floor((width - text.length) / 2)))}${text}`;
-}
-
-function fit(text: string, width: number): string {
-  if (text.length <= width) {
-    return text;
+function hasMatchPosition(start: number, end: number, positions: Set<number>): boolean {
+  for (let position = start; position < end; position += 1) {
+    if (positions.has(position)) {
+      return true;
+    }
   }
-  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
-}
 
-function stripAnsi(value: string): string {
-  return value.replace(/\u001b\[[0-9;]*m/g, "");
+  return false;
 }

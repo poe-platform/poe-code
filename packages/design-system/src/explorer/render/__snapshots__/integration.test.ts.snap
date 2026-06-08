@@ -12,7 +12,7 @@ exports[`explorer render integration > snapshots width breakpoints > list only 1
 [2mB[0m[2ma[0m[2mc[0m[2mk[0m[2ml[0m[2mo[0m[2mg[0m                                                     
 [2m [0m[2m [0m[2m◌[0m[2m [0mMaestro                                                 
 [2m [0m[2m [0m[2m5[0m[2md[0m[2m [0m[2m·[0m[2m [0m[2mk[0m[2mj[0m[2mo[0m[2mp[0m[2me[0m[2mk[0m[2m [0m[2m·[0m[2m [0m[2mp[0m[2mi[0m[2mp[0m[2me[0m[2ml[0m[2mi[0m[2mn[0m[2me[0m                                    
-  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m"
+  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m…[0m"
 `;
 
 exports[`explorer render integration > snapshots width breakpoints > medium 1`] = `
@@ -48,7 +48,7 @@ exports[`explorer render integration > snapshots width breakpoints > narrow vert
 A reusable list + detail + actions explorer component.                          
                                                                                 
 ## What we're building                                                          
-  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m pa"
+  [1m[36m[[0m[1m[36me[0m[1m[36m][0m edit 2  [1m[36m[[0m[1m[36ma[0m[1m[36m][0m archive 2  [1m[36m[[0m[1m[36md[0m[1m[36m][0m delete 2  [1m[36m[[0m[1m[36mE[0m[1m[36mn[0m[1m[36mt[0m[1m[36me[0m[1m[36mr[0m[1m[36m][0m open 2  [1m[36m[[0m[1m[36m?[0m[1m[36m][0m help  [1m[36m[[0m[1m[36mC[0m[1m[36mt[0m[1m[36mr[0m[1m[36ml[0m[1m[36m+[0m[1m[36mP[0m[1m[36m][0m p…"
 `;
 
 exports[`explorer render integration > snapshots width breakpoints > wide 1`] = `

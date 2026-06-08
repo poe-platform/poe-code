@@ -2,6 +2,7 @@ import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { DetailItem, ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
+import { fitToWidth } from "./text.js";
 
 export function renderDetail(
   state: ExplorerState,
@@ -125,17 +126,7 @@ function writeLine(screen: ScreenBuffer, rect: Rect, row: number, text: string, 
   if (row < 0 || row >= rect.height) {
     return;
   }
-  screen.put(rect.x, rect.y + row, fit(text, rect.width), style);
-}
-
-function fit(text: string, width: number): string {
-  if (width <= 0) {
-    return "";
-  }
-  if (text.length <= width) {
-    return text;
-  }
-  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
+  screen.put(rect.x, rect.y + row, fitToWidth(text, rect.width, rect.x), style);
 }
 
 function clamp(value: number, min: number, max: number): number {

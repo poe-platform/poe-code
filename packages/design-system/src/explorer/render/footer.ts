@@ -2,6 +2,7 @@ import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerLayout } from "../layout.js";
 import type { ActionStateEntry, ExplorerState } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
+import { cellWidth, fitToWidth } from "./text.js";
 
 type FooterHint = {
   key: string;
@@ -26,23 +27,41 @@ export function renderFooter(
   const hints = footerHints(state);
   let x = rect.x + 2;
   const y = rect.y;
+  const endX = rect.x + rect.width;
 
   for (const hint of hints) {
-    if (x >= rect.x + rect.width) {
+    if (x >= endX) {
       break;
     }
     if (hint.bracketed === false) {
       const text = `${hint.key} ${hint.label}`;
-      screen.put(x, y, text, hint.running ? styles.muted : {});
-      x += text.length + 2;
+      x += putFooterText(screen, x, y, endX, text, hint.running ? styles.muted : {}) + 2;
       continue;
     }
 
-    screen.put(x, y, `[${hint.key}]`, hint.running ? styles.muted : styles.accent);
-    x += hint.key.length + 2;
-    screen.put(x, y, ` ${hint.label}`, hint.running ? styles.muted : {});
-    x += hint.label.length + 3;
+    const keyText = `[${hint.key}]`;
+    const keyWidth = putFooterText(screen, x, y, endX, keyText, hint.running ? styles.muted : styles.accent);
+    x += keyWidth;
+    if (keyWidth < cellWidth(keyText) || x >= endX) {
+      break;
+    }
+
+    x += putFooterText(screen, x, y, endX, ` ${hint.label}`, hint.running ? styles.muted : {}) + 2;
   }
+}
+
+function putFooterText(
+  screen: ScreenBuffer,
+  x: number,
+  y: number,
+  endX: number,
+  text: string,
+  style = {}
+): number {
+  const remaining = Math.max(0, endX - x);
+  const fitted = fitToWidth(text, remaining, x);
+  screen.put(x, y, fitted, style);
+  return cellWidth(fitted, x);
 }
 
 function footerHints(state: ExplorerState): FooterHint[] {

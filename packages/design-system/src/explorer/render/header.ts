@@ -2,6 +2,7 @@ import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerLayout } from "../layout.js";
 import type { ExplorerState } from "../state.js";
 import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
+import { cellWidth, fitToWidth, padEndCells } from "./text.js";
 
 type ExplorerCellStyle = ExplorerStyles["accent"];
 
@@ -19,7 +20,7 @@ export function renderHeader(
   }
 
   if (layout.mode === "too-narrow") {
-    screen.put(0, 0, fit("Terminal too narrow", rect.width), styles.borderFocused);
+    screen.put(0, 0, fitToWidth("Terminal too narrow", rect.width), styles.borderFocused);
     return;
   }
 
@@ -35,8 +36,10 @@ export function renderHeader(
     const right = `${count}${selected}${spinner}`;
     screen.put(0, 1, "│", styles.border);
     screen.put(Math.max(0, rect.width - 1), 1, "│", styles.border);
-    screen.put(2, 1, fit(`${prompt}${filter}`, Math.max(0, rect.width - right.length - 5)), styles.accent);
-    screen.put(Math.max(2, rect.width - right.length - 2), 1, right, styles.muted);
+    const rightWidth = cellWidth(right);
+    const promptWidth = Math.max(0, rect.width - rightWidth - 5);
+    screen.put(2, 1, fitToWidth(`${prompt}${filter}`, promptWidth, 2), styles.accent);
+    screen.put(Math.max(2, rect.width - rightWidth - 2), 1, right, styles.muted);
   }
 
   if (rect.height > 2) {
@@ -50,11 +53,10 @@ function drawTopBorder(screen: ScreenBuffer, title: string, width: number, style
     return;
   }
 
-  const label = `─ ${title} `;
-  const middle = label.length < width - 1
-    ? `${label}${"─".repeat(width - 1 - label.length)}`
-    : label.slice(0, Math.max(0, width - 1));
-  screen.put(0, 0, `┌${middle.slice(0, Math.max(0, width - 2))}┐`, style);
+  const innerWidth = Math.max(0, width - 2);
+  const label = fitToWidth(`─ ${title} `, innerWidth, 1);
+  const middle = padEndCells(label, innerWidth, "─", 1);
+  screen.put(0, 0, `┌${middle}┐`, style);
 }
 
 function drawHorizontal(screen: ScreenBuffer, y: number, width: number, style: ExplorerCellStyle): void {
@@ -64,14 +66,4 @@ function drawHorizontal(screen: ScreenBuffer, y: number, width: number, style: E
   }
 
   screen.put(0, y, `├${"─".repeat(Math.max(0, width - 2))}┤`, style);
-}
-
-function fit(text: string, width: number): string {
-  if (width <= 0) {
-    return "";
-  }
-  if (text.length <= width) {
-    return text;
-  }
-  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
 }

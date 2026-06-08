@@ -13,7 +13,8 @@ const renderAllowed = new Set([
   "state.ts",
   "theme.ts",
   "dashboard/ansi.ts",
-  "dashboard/buffer.ts"
+  "dashboard/buffer.ts",
+  "dashboard/terminal-width.ts"
 ]);
 const leafAllowed = new Set(["events.ts", "state.ts"]);
 
@@ -120,7 +121,7 @@ function validateEdge(edge: ImportEdge): string[] {
     }
 
     return [
-      formatViolation(edge, "render modules may only import render siblings, state, theme, layout, buffer, or ansi")
+      formatViolation(edge, "render modules may only import render siblings, state, theme, layout, buffer, ansi, or terminal width")
     ];
   }
 

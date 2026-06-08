@@ -15,6 +15,7 @@ import { renderFooter } from "./footer.js";
 import { renderHeader } from "./header.js";
 import { renderList } from "./list.js";
 import { renderModal } from "./modal.js";
+import { fitToWidth } from "./text.js";
 
 type RegionRenderer = (state: ExplorerState, screen: ScreenBuffer, layout: ExplorerLayout) => void;
 
@@ -61,18 +62,8 @@ function renderToast(state: ExplorerState, screen: ScreenBuffer): void {
   }
 
   const styles = getExplorerStyles();
-  const message = fit(` ${state.toast.message} `, screen.width);
+  const message = fitToWidth(` ${state.toast.message} `, screen.width);
   screen.put(0, y, message, styles.accent);
-}
-
-function fit(text: string, width: number): string {
-  if (width <= 0) {
-    return "";
-  }
-  if (text.length <= width) {
-    return text;
-  }
-  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
 }
 
 export { renderDetail } from "./detail.js";

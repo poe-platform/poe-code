@@ -5,6 +5,8 @@ import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
 import { assertRunArtifactPath } from "./artifact-path.js";
 import type { NormalizedTrace } from "./trace/types.js";
 
+const TEMP_WRITE_MAX_ATTEMPTS = 3;
+
 export async function writeRunArtifacts(
   runDir: string,
   parts: {
@@ -99,15 +101,38 @@ export async function writeRunResult(runDir: string, result: EvalRunResult): Pro
 }
 
 async function atomicWrite(filePath: string, content: string): Promise<void> {
-  const tempPath = path.join(
-    path.dirname(filePath),
-    `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
-  );
+  for (let attempt = 1; attempt <= TEMP_WRITE_MAX_ATTEMPTS; attempt += 1) {
+    const tempPath = path.join(
+      path.dirname(filePath),
+      `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
+    );
+    try {
+      await writeTempThenRename(tempPath, filePath, content);
+      return;
+    } catch (error) {
+      if (isExistingPath(error) && attempt < TEMP_WRITE_MAX_ATTEMPTS) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+}
+
+async function writeTempThenRename(
+  tempPath: string,
+  filePath: string,
+  content: string
+): Promise<void> {
+  let tempCreated = false;
   try {
-    await writeFile(tempPath, content, "utf8");
+    await writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
     await rename(tempPath, filePath);
   } catch (error) {
-    await rm(tempPath, { force: true }).catch(() => undefined);
+    if (tempCreated) {
+      await rm(tempPath, { force: true }).catch(() => undefined);
+    }
     throw error;
   }
 }
@@ -120,12 +145,19 @@ function formatEventsJsonl(events: readonly SpawnEvent[]): string {
 }
 
 function isMissingPath(error: unknown): boolean {
+  return hasErrorCode(error, "ENOENT") || hasErrorCode(error, "ENOTDIR");
+}
+
+function isExistingPath(error: unknown): boolean {
+  return hasErrorCode(error, "EEXIST");
+}
+
+function hasErrorCode(error: unknown, code: string): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
     "code" in error &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
+    (error as { code?: unknown }).code === code
   );
 }
 

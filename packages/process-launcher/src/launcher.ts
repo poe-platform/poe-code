@@ -480,6 +480,17 @@ function normalizeRecord(
     return record;
   }
 
+  if (
+    record.state.runtime === "host" &&
+    record.state.pid !== null &&
+    isProcessRunning(record.state.pid, isPidRunningOverride)
+  ) {
+    return {
+      ...record,
+      daemonPid: null
+    };
+  }
+
   return {
     ...record,
     daemonPid: null,

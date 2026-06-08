@@ -309,6 +309,49 @@ describe("process launcher manager", () => {
     });
   });
 
+  it("signals a live host child when its launcher daemon is stale", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let childRunning = true;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(123);
+      expect(signal).toBe("SIGTERM");
+      childRunning = false;
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => pid === 123 && childRunning,
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    const stateContent = await fs.readFile(path.join(baseDir, "api", "state.json"), "utf8");
+    expect(JSON.parse(stateContent)).toMatchObject({
+      pid: null,
+      status: "stopped"
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
   it("rejects a stop timeout without clearing a running daemon", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";

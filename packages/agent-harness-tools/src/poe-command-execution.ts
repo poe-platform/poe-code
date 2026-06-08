@@ -32,6 +32,7 @@ export function resolvePoeCommandExecution(input: {
   runtimeConfigCwd?: string;
   env: Record<string, string>;
   argv: string[];
+  displayArgv?: string[];
   tool: string;
   runtime?: RuntimeOverrideOptions;
   context?: {
@@ -67,7 +68,8 @@ export function resolvePoeCommandExecution(input: {
       uploadIgnoreFiles: config.runner.workspace?.exclude ?? [],
       jobLabel: {
         tool: input.tool,
-        argv: input.argv
+        argv: input.argv,
+        ...(input.displayArgv === undefined ? {} : { displayArgv: input.displayArgv })
       },
       ...input.openSpec
     }

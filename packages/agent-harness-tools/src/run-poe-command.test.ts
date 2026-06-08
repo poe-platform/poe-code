@@ -319,6 +319,33 @@ describe("runPoeCommand", () => {
     });
   });
 
+  it("persists display argv while executing the original argv", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    await runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: {
+          tool: "claude-code",
+          argv: ["claude", "-p", "prompt with sk-secret"],
+          displayArgv: ["claude", "-p", "[prompt redacted]"]
+        },
+        execution: { wrapForLogTee: false }
+      }),
+      detach: false,
+      state
+    });
+
+    const [job] = await state.jobs.list();
+    expect(job.argv).toEqual(["claude", "-p", "[prompt redacted]"]);
+    expect(JSON.stringify(job)).not.toContain("sk-secret");
+    expect(env.execSpecs[0]).toMatchObject({
+      command: "claude",
+      args: ["-p", "prompt with sk-secret"]
+    });
+  });
+
   it("records completed status when environment cleanup fails after a sync run", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
@@ -435,6 +462,42 @@ describe("runPoeCommand", () => {
     expect(env.downloads).toEqual([]);
     await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
       reattach_context: { engine: "podman", context: null }
+    });
+  });
+
+  it("uses display argv in detached job context", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const result = await runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: {
+          tool: "codex",
+          argv: ["codex", "exec", "prompt with bearer-token"],
+          displayArgv: ["codex", "exec", "[prompt redacted]"]
+        },
+        execution: { wrapForLogTee: false }
+      }),
+      detach: true,
+      state
+    });
+
+    if (result.kind !== "detached") {
+      throw new Error("Expected detached result.");
+    }
+
+    expect(env.detachedJobContext).toEqual({
+      id: result.jobId,
+      tool: "codex",
+      argv: ["codex", "exec", "[prompt redacted]"]
+    });
+    await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
+      argv: ["codex", "exec", "[prompt redacted]"]
+    });
+    expect(JSON.stringify(env.detachedJobContext)).not.toContain("bearer-token");
+    expect(env.execSpecs[0]).toMatchObject({
+      command: "codex",
+      args: ["exec", "prompt with bearer-token"]
     });
   });
 

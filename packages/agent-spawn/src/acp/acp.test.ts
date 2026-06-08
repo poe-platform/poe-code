@@ -1346,7 +1346,7 @@ describe("acp/spawnStreaming", () => {
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
-      prompt: "hello",
+      prompt: "inspect api_key=sk-secret",
       cwd: "/tmp",
       runtime: "docker",
       runtimeImage: "poe-code:test",
@@ -1373,8 +1373,12 @@ describe("acp/spawnStreaming", () => {
       target: "/usr/local/lib/poe-code",
       readonly: true
     });
+    expect(capturedOpenSpec?.jobLabel.argv).toContain("inspect api_key=sk-secret");
+    expect(capturedOpenSpec?.jobLabel.displayArgv).toContain("[prompt redacted]");
+    expect(JSON.stringify(capturedOpenSpec?.jobLabel.displayArgv)).not.toContain("sk-secret");
     expect(capturedRunSpec).toMatchObject({
       command: "opencode",
+      args: expect.arrayContaining(["inspect api_key=sk-secret"]),
       cwd: "/tmp",
       stdin: "pipe",
       stdout: "pipe",

@@ -15,6 +15,7 @@ import { buildSpawnArgs } from "./spawn.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { spawn } from "./spawn.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { REDACTED_PROMPT_ARG } from "./prompt-transport.js";
 import type { CliSpawnConfig, OtelSink } from "./types.js";
 
 const skillBridgeMock = vi.hoisted(() => ({
@@ -209,6 +210,30 @@ describe("buildSpawnArgs", () => {
       ...claudeCodeSpawnConfig.defaultArgs,
       ...claudeCodeSpawnConfig.modes.yolo
     ]);
+  });
+
+  it("redacts prompt arguments from display args without changing execution args", () => {
+    const prompt = "investigate api_key=sk-secret";
+    const result = buildSpawnArgs("claude-code", { prompt });
+
+    expect(result.args).toContain(prompt);
+    expect(result.displayArgs).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      REDACTED_PROMPT_ARG,
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo
+    ]);
+    expect(JSON.stringify(result.displayArgs)).not.toContain("sk-secret");
+  });
+
+  it("does not add a display redaction when the prompt is sent over stdin", () => {
+    const result = buildSpawnArgs("codex", {
+      prompt: "investigate api_key=sk-secret",
+      useStdin: true
+    });
+
+    expect(result.args).not.toContain("sk-secret");
+    expect(result.displayArgs).toEqual(result.args);
   });
 
   it("includes model flag when model is provided", () => {

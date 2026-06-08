@@ -7,7 +7,7 @@ import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
-import { shouldSendPromptViaStdin } from "../prompt-transport.js";
+import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
@@ -191,6 +191,11 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const mcpArgsPosition = getMcpArgsPosition(spawnConfig);
   const resumeArgsPosition = spawnConfig.resume?.position ?? "afterPrompt";
   const args: string[] = [];
+  const promptArgIndexes = new Set<number>();
+  const pushPromptArg = () => {
+    promptArgIndexes.add(args.length);
+    args.push(options.prompt);
+  };
 
   if (mcpArgsPosition === "beforeCommand") {
     args.push(...mcpArgs);
@@ -212,7 +217,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const useStdin = shouldSendPromptViaStdin(spawnConfig, options);
   if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
-    args.push(options.prompt);
+    pushPromptArg();
   }
 
   if (options.model && spawnConfig.modelFlag) {
@@ -253,11 +258,13 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const cwd = options.cwd ?? process.cwd();
   const queue = createLineQueue();
   const argv = [binaryName, ...args];
+  const displayArgv = [binaryName, ...redactPromptArgIndexes(args, promptArgIndexes)];
   const execution = resolveSpawnExecution({
     cwd,
     runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
+    displayArgv,
     tool: agentId,
     runtime: {
       runtime: options.runtime,

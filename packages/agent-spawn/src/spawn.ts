@@ -7,7 +7,7 @@ import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { observeAgentSpawn } from "./observability/otel.js";
 import { createSpawnParallel } from "./parallel.js";
-import { shouldSendPromptViaStdin } from "./prompt-transport.js";
+import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "./prompt-transport.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
@@ -47,6 +47,7 @@ export interface BuildSpawnArgsOptions {
 export interface BuildSpawnArgsResult {
   binaryName: string;
   args: string[];
+  displayArgs: string[];
   env?: Record<string, string>;
 }
 
@@ -89,7 +90,7 @@ function buildCliArgs(
   config: CliSpawnConfig,
   options: BuildSpawnArgsOptions,
   stdinMode?: StdinMode
-): { args: string[]; env?: Record<string, string> } {
+): { args: string[]; displayArgs: string[]; env?: Record<string, string> } {
   const mcpArgs = getMcpArgs(config, options.mcpServers);
   const resumeArgs = getResumeArgs(config, options);
   const defaultArgsPosition = getDefaultArgsPosition(config);
@@ -97,6 +98,11 @@ function buildCliArgs(
   const resumeArgsPosition = config.resume?.position ?? "afterPrompt";
 
   const args: string[] = [];
+  const promptArgIndexes = new Set<number>();
+  const pushPromptArg = () => {
+    promptArgIndexes.add(args.length);
+    args.push(options.prompt);
+  };
 
   if (mcpArgsPosition === "beforeCommand") {
     args.push(...mcpArgs);
@@ -115,13 +121,16 @@ function buildCliArgs(
     if (resumeArgsPosition === "beforePrompt") {
       args.push(...resumeArgs);
     }
-    args.push(...(stdinMode.omitPrompt ? [] : [options.prompt]), ...stdinMode.extraArgs);
+    if (!stdinMode.omitPrompt) {
+      pushPromptArg();
+    }
+    args.push(...stdinMode.extraArgs);
   } else {
     args.push(config.promptFlag);
     if (resumeArgsPosition === "beforePrompt") {
       args.push(...resumeArgs);
     }
-    args.push(options.prompt);
+    pushPromptArg();
   }
 
   if (options.model && config.modelFlag) {
@@ -152,7 +161,7 @@ function buildCliArgs(
     args.push(...resumeArgs);
   }
 
-  return { args, env: mode.env };
+  return { args, displayArgs: redactPromptArgIndexes(args, promptArgIndexes), env: mode.env };
 }
 
 function getResumeArgs(
@@ -179,7 +188,12 @@ export function buildSpawnArgs(
     ? spawnConfig.stdinMode
     : undefined;
   const result = buildCliArgs(spawnConfig, options, stdinMode);
-  return { binaryName, args: result.args, env: result.env };
+  return {
+    binaryName,
+    args: result.args,
+    displayArgs: result.displayArgs,
+    env: result.env
+  };
 }
 
 export async function spawn(
@@ -214,7 +228,11 @@ async function runSpawn(
     ? spawnConfig.stdinMode
     : undefined;
 
-  const { args: spawnArgs, env: modeEnv } = buildCliArgs(spawnConfig, options, stdinMode);
+  const {
+    args: spawnArgs,
+    displayArgs: displaySpawnArgs,
+    env: modeEnv
+  } = buildCliArgs(spawnConfig, options, stdinMode);
 
   if (context?.dryRun) {
     const rendered = [binaryName, ...spawnArgs].join(" ");
@@ -232,11 +250,13 @@ async function runSpawn(
 
     const processEnv = modeEnv ? { ...process.env, ...modeEnv } : undefined;
     const argv = [binaryName, ...spawnArgs];
+    const displayArgv = [binaryName, ...displaySpawnArgs];
     const execution = resolveSpawnExecution({
       cwd,
       runtimeConfigCwd: options.runtimeConfigCwd,
       env: (processEnv ?? process.env) as Record<string, string>,
       argv,
+      displayArgv,
       tool: resolvedId,
       runtime: {
         runtime: options.runtime,

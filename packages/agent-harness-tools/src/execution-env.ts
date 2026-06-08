@@ -24,7 +24,7 @@ export interface OpenSpec {
   hostRunner?: Runner;
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
-  jobLabel: { tool: string; argv: string[] };
+  jobLabel: { tool: string; argv: string[]; displayArgv?: string[] };
   execution?: {
     wrapForLogTee?: boolean;
     stdin?: RunSpec["stdin"];

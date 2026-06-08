@@ -30,12 +30,13 @@ export async function runPoeCommand(opts: {
   const jobId = createUlid();
   const execution = opts.openSpec.execution;
   const wrapCommand = execution?.wrapForLogTee !== false;
+  const displayArgv = getDisplayArgv(opts.openSpec);
   const pendingJob = opts.state.jobs.put({
     id: jobId,
     env_id: "",
     env_kind: opts.factory.type,
     tool: opts.openSpec.jobLabel.tool,
-    argv: opts.openSpec.jobLabel.argv,
+    argv: displayArgv,
     cwd: opts.openSpec.cwd,
     started_at: "",
     status: "pending"
@@ -103,7 +104,7 @@ export async function runPoeCommand(opts: {
       setDetachedJobContext(env, {
         id: jobId,
         tool: opts.openSpec.jobLabel.tool,
-        argv: opts.openSpec.jobLabel.argv
+        argv: displayArgv
       });
       await env.detach();
       shouldClose = false;
@@ -195,12 +196,13 @@ export function createPoeCommandSession(opts: {
     async run(openSpec, signal) {
       validateActivityTimeout(openSpec.execution?.activityTimeoutMs);
       const jobId = createUlid();
+      const displayArgv = getDisplayArgv(openSpec);
       const pendingJob = opts.state.jobs.put({
         id: jobId,
         env_id: "",
         env_kind: opts.factory.type,
         tool: openSpec.jobLabel.tool,
-        argv: openSpec.jobLabel.argv,
+        argv: displayArgv,
         cwd: openSpec.cwd,
         started_at: "",
         status: "pending"
@@ -273,6 +275,10 @@ export function createPoeCommandSession(opts: {
       await (env ?? openedEnv)?.close();
     }
   };
+}
+
+function getDisplayArgv(openSpec: OpenSpec): string[] {
+  return openSpec.jobLabel.displayArgv ?? openSpec.jobLabel.argv;
 }
 
 function validateActivityTimeout(activityTimeoutMs: number | undefined): void {

@@ -378,6 +378,37 @@ describe("createSupervisor", () => {
     await supervisor.stop();
   });
 
+  it("ready check with log pattern observes matching partial output before newline", async () => {
+    const stdout = new PassThrough();
+    const handle = createControllableHandle();
+    handle.stdout = stdout;
+    handle.kill.mockImplementation(() => {
+      stdout.end();
+      handle.finish({ exitCode: 0 });
+    });
+    const logs: Array<{ line: string; stream: "stdout" | "stderr" }> = [];
+    const supervisor = createTestSupervisor({
+      onLog: (line, stream) => {
+        logs.push({ line, stream });
+      },
+      runner: { name: "controllable", exec: vi.fn(() => handle) },
+      spec: { readyCheck: { kind: "log-pattern", pattern: "READY" }, restart: "never" }
+    });
+
+    const startPromise = supervisor.start();
+    await vi.waitFor(() => {
+      expect(supervisor.getState().status).toBe("restarting");
+    });
+
+    stdout.write("READY");
+    await expect(startPromise).resolves.toBeUndefined();
+
+    expect(supervisor.getState().status).toBe("running");
+    expect(logs).toEqual([]);
+
+    await supervisor.stop();
+  });
+
   it("concurrent start calls wait for the same readiness check", async () => {
     vi.useFakeTimers();
     const supervisor = createTestSupervisor({

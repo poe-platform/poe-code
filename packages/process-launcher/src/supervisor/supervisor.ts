@@ -18,6 +18,7 @@ import type { ProcessState, ReadyCheck, Supervisor, SupervisorOptions } from "..
 type LogListener = (line: string, stream: "stdout" | "stderr") => void;
 type SubscribableLog = LogListener & {
   subscribe(listener: LogListener): () => void;
+  publishPartial(line: string, stream: "stdout" | "stderr"): void;
 };
 
 const WORKSPACE_COMMAND_TIMEOUT_MS = 10 * 60_000;
@@ -470,12 +471,15 @@ function waitForExit(activeHandle: RunHandle, timeoutMs: number): Promise<boolea
 function createLogSource(onLog: SupervisorOptions["onLog"]): SubscribableLog {
   const listeners = new Set<LogListener>();
 
-  const log = ((line: string, stream: "stdout" | "stderr") => {
-    onLog?.(line, stream);
-
+  const notifySubscribers = (line: string, stream: "stdout" | "stderr") => {
     for (const listener of listeners) {
       listener(line, stream);
     }
+  };
+
+  const log = ((line: string, stream: "stdout" | "stderr") => {
+    onLog?.(line, stream);
+    notifySubscribers(line, stream);
   }) as SubscribableLog;
 
   log.subscribe = listener => {
@@ -485,6 +489,7 @@ function createLogSource(onLog: SupervisorOptions["onLog"]): SubscribableLog {
       listeners.delete(listener);
     };
   };
+  log.publishPartial = notifySubscribers;
 
   return log;
 }
@@ -493,7 +498,7 @@ function pipeOutput(
   stream: NodeJS.ReadableStream | null,
   output: "stdout" | "stderr",
   write: (line: string, stream: "stdout" | "stderr") => Promise<void>,
-  onLog: LogListener
+  logSource: SubscribableLog
 ): Promise<void> {
   if (stream === null) {
     return Promise.resolve();
@@ -517,17 +522,21 @@ function pipeOutput(
         const rawLine = remainder.slice(0, lineBreak);
         remainder = remainder.slice(lineBreak + 1);
         writes = writes.then(async () => {
-          const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-          onLog(line, output);
+          const line = normalizeLogLine(rawLine);
+          logSource(line, output);
           await write(line, output);
         });
+      }
+
+      if (remainder.length > 0) {
+        logSource.publishPartial(normalizeLogLine(remainder), output);
       }
     });
     stream.once("end", () => {
       if (remainder.length > 0) {
-        const finalLine = remainder.endsWith("\r") ? remainder.slice(0, -1) : remainder;
+        const finalLine = normalizeLogLine(remainder);
         writes = writes.then(async () => {
-          onLog(finalLine, output);
+          logSource(finalLine, output);
           await write(finalLine, output);
         });
       }
@@ -538,6 +547,10 @@ function pipeOutput(
     });
     stream.once("error", reject);
   });
+}
+
+function normalizeLogLine(line: string): string {
+  return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
 async function resolveProcessWorkspace(

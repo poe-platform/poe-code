@@ -3166,6 +3166,81 @@ describe("saveRunReport", () => {
     expect(summaryOnDisk).toContain("Error count: 1");
   });
 
+  it("redacts raw tool content from saved JSON reports by default", async () => {
+    const vol = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(vol).promises;
+    const report: RunReport = {
+      runId: "run-raw",
+      startTime: "2026-02-24T06:00:00.000Z",
+      endTime: "2026-02-24T06:00:10.000Z",
+      exitStatus: "failed",
+      toolCalls: [
+        {
+          toolCallId: "tool-1",
+          title: "Run command",
+          kind: "execute",
+          status: "failed",
+          rawInput: { command: "curl -H 'Authorization: Bearer report-input-secret'" },
+          rawOutput: "POE_API_KEY=report-output-secret",
+        },
+      ],
+      usage: { used: 150, size: 195, updates: 2 },
+      errors: [{ message: "POE_API_KEY=report-output-secret", toolCallId: "tool-1" }],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      now: () => new Date("2026-02-24T07:08:09.456Z"),
+    });
+    const rawJson = await fs.readFile(output.jsonPath, "utf8");
+    const jsonOnDisk = JSON.parse(rawJson) as RunReport;
+
+    expect(jsonOnDisk.toolCalls[0]).toMatchObject({
+      toolCallId: "tool-1",
+      title: "Run command",
+      kind: "execute",
+      status: "failed",
+      rawInput: "[redacted]",
+      rawOutput: "[redacted]",
+    });
+    expect(jsonOnDisk.errors).toEqual([
+      { message: "[redacted]", toolCallId: "tool-1" },
+    ]);
+    expect(rawJson).not.toMatch(/report-input-secret|report-output-secret/u);
+  });
+
+  it("preserves raw tool content when explicitly requested", async () => {
+    const vol = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(vol).promises;
+    const report: RunReport = {
+      runId: "run-raw",
+      startTime: "2026-02-24T06:00:00.000Z",
+      endTime: "2026-02-24T06:00:10.000Z",
+      exitStatus: "failed",
+      toolCalls: [
+        {
+          toolCallId: "tool-1",
+          title: "Run command",
+          status: "failed",
+          rawInput: { command: "curl -H 'Authorization: Bearer report-input-secret'" },
+          rawOutput: "POE_API_KEY=report-output-secret",
+        },
+      ],
+      usage: { used: 150, size: 195, updates: 2 },
+      errors: [{ message: "POE_API_KEY=report-output-secret", toolCallId: "tool-1" }],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      includeRawContent: true,
+      now: () => new Date("2026-02-24T07:08:09.456Z"),
+    });
+
+    expect(JSON.parse(await fs.readFile(output.jsonPath, "utf8"))).toEqual(report);
+  });
+
   it("removes a written report artifact when the companion write fails", async () => {
     const written = new Set<string>();
     const remove = vi.fn(async (path: string) => {

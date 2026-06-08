@@ -58,6 +58,7 @@ export type RunReportFileSystem = {
 export interface SaveRunReportOptions {
   fs?: RunReportFileSystem;
   homeDir?: string;
+  includeRawContent?: boolean;
   now?: () => Date;
 }
 
@@ -152,10 +153,11 @@ export async function saveRunReport(
 
   const jsonPath = join(reportsDir, `${baseFileName}.json`);
   const summaryPath = join(reportsDir, `${baseFileName}.txt`);
+  const savedReport = options.includeRawContent === true ? report : redactRunReport(report);
 
-  await fs.writeFile(jsonPath, JSON.stringify(report, null, 2), { encoding: "utf8" });
+  await fs.writeFile(jsonPath, JSON.stringify(savedReport, null, 2), { encoding: "utf8" });
   try {
-    await fs.writeFile(summaryPath, formatRunReportSummary(report), { encoding: "utf8" });
+    await fs.writeFile(summaryPath, formatRunReportSummary(savedReport), { encoding: "utf8" });
   } catch (error) {
     await fs.rm(jsonPath);
     throw error;
@@ -165,6 +167,35 @@ export async function saveRunReport(
     reportsDir,
     jsonPath,
     summaryPath,
+  };
+}
+
+function redactRunReport(report: RunReport): RunReport {
+  const rawOutputToolCallIds = new Set(
+    report.toolCalls
+      .filter((toolCall) => toolCall.rawOutput !== undefined)
+      .map((toolCall) => toolCall.toolCallId),
+  );
+
+  return {
+    ...report,
+    toolCalls: report.toolCalls.map(redactToolCallSummary),
+    errors: report.errors.map((error) =>
+      error.toolCallId === undefined || !rawOutputToolCallIds.has(error.toolCallId)
+        ? { ...error }
+        : {
+            ...error,
+            message: "[redacted]",
+          }
+    ),
+  };
+}
+
+function redactToolCallSummary(toolCall: ToolCallSummary): ToolCallSummary {
+  return {
+    ...toolCall,
+    ...(toolCall.rawInput === undefined ? {} : { rawInput: "[redacted]" }),
+    ...(toolCall.rawOutput === undefined ? {} : { rawOutput: "[redacted]" }),
   };
 }
 

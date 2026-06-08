@@ -12,7 +12,7 @@ import {
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import type { ExecutionState } from "@poe-code/process-runner";
-import { withSpinner } from "@poe-code/design-system";
+import { withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { renderTemplate } from "@poe-code/design-system";
+import { renderTemplate } from "toolcraft-design";
 import type {
   Mutation,
   MutationContext,

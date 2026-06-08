@@ -7,23 +7,23 @@ tasks:
   - id: theme-singleton
     title: Add configurable brand theme as a global singleton
     prompt: |
-      In packages/design-system (currently named @poe-code/design-system),
+      In packages/toolcraft-design (currently named toolcraft-design),
       make the brand palette a configurable global singleton while keeping
       today's output byte-identical by default.
 
-      1. Add packages/design-system/src/tokens/brand.ts:
+      1. Add packages/toolcraft-design/src/tokens/brand.ts:
          export interface Brand { name: string; primary: string } // primary = hex
          export const brands: Record<string, Brand> = {
            purple: { name: "purple", primary: "#a200ff" },
            blue:   { name: "blue",   primary: "#2f6fed" },
            green:  { name: "green",  primary: "#1f9d57" },
          };
-      2. Add packages/design-system/src/internal/theme-state.ts holding the
+      2. Add packages/toolcraft-design/src/internal/theme-state.ts holding the
          singleton: configureTheme(patch: { brand?: string; label?: string }),
          getThemeConfig() (default { brand: "purple", label: "Poe" }), and
          resetTheme(). An unknown brand name must throw. configureTheme must
          invalidate the getTheme cache.
-      3. Refactor packages/design-system/src/tokens/colors.ts to expose
+      3. Refactor packages/toolcraft-design/src/tokens/colors.ts to expose
          createPalette(brand: Brand, mode: "dark"|"light"): ThemePalette. The
          brand.primary drives header, intro background, resolvedSymbol, info,
          accent, prompt, and number; success(green)/warning(yellow)/error(red)/
@@ -31,15 +31,15 @@ tasks:
          singleton label: ` ${label} - ${text} ` (today it is hardcoded
          " Poe - "). With brand=purple/label=Poe the produced palettes must
          equal the current dark/light constants exactly.
-      4. Update packages/design-system/src/internal/theme-detect.ts getTheme()
+      4. Update packages/toolcraft-design/src/internal/theme-detect.ts getTheme()
          to resolve mode (existing light/dark detection unchanged) crossed with
          the active brand from theme-state, caching by (brand, mode). Keep
          resetThemeCache working (or have resetTheme cover it).
-      5. Make packages/design-system/src/prompts/theme.ts brand-aware:
+      5. Make packages/toolcraft-design/src/prompts/theme.ts brand-aware:
          promptTheme.style.accentColor must follow the active brand's primary
          (default purple #a200ff as today).
       6. Export configureTheme, getThemeConfig, resetTheme, brands, and Brand
-         from packages/design-system/src/index.ts.
+         from packages/toolcraft-design/src/index.ts.
 
       TDD. Add unit tests: default config is purple/"Poe"; configureTheme
       merges and unknown brand throws; resetTheme restores defaults;
@@ -56,16 +56,16 @@ tasks:
     title: Route explorer + dashboard through the active brand palette
     prompt: |
       Remove the duplicated brand/theme logic so a non-purple brand actually
-      takes effect everywhere. All in packages/design-system.
+      takes effect everywhere. All in packages/toolcraft-design.
 
-      1. packages/design-system/src/explorer/theme.ts currently hardcodes brand
+      1. packages/toolcraft-design/src/explorer/theme.ts currently hardcodes brand
          colors (#a200ff / magenta / #006699 / cyan) AND carries its own copy of
          resolveThemeName. Delete the duplicate resolveThemeName (import the
          canonical one from ../internal/theme-detect.js) and source the
          brand-colored entries (accent, borderFocused, matchHighlight, the
          "info" tone) from the active brand palette instead of literals. Keep
          semantic tones (success/warning/error/muted) as-is.
-      2. packages/design-system/src/dashboard/components/footer.ts,
+      2. packages/toolcraft-design/src/dashboard/components/footer.ts,
          output-pane.ts, and stats-pane.ts hardcode #a200ff / magenta /
          #006699 for the brand accent. Replace those literals with the active
          brand color (read via the design-system theme, not inline hex).
@@ -86,24 +86,24 @@ tasks:
   - id: dep-cleanup
     title: Trim design-system dependencies and fix the undeclared test dep
     prompt: |
-      Clean up packages/design-system dependency hygiene.
+      Clean up packages/toolcraft-design dependency hygiene.
 
-      1. Drop mustache + @types/mustache from packages/design-system/package.json.
+      1. Drop mustache + @types/mustache from packages/toolcraft-design/package.json.
          They are used ONLY as a test oracle in
-         packages/design-system/src/components/template.test.ts (the runtime
+         packages/toolcraft-design/src/components/template.test.ts (the runtime
          template.ts is self-contained). Rewrite those assertions to compare the
          renderer output against fixed expected strings so coverage is preserved
          without the dependency.
       2. terminal-pilot is imported by three test files but is not declared:
          add "terminal-pilot" to devDependencies (use the workspace version,
-         "*"). In packages/design-system/src/terminal-markdown/terminal-markdown.test.ts
+         "*"). In packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts
          fix the wrong specifier `@poe-code/terminal-pilot` to `terminal-pilot`
          (the real package name). The other two test files
          (explorer/runtime.test.ts, dashboard/dashboard.test.ts) already import
          "terminal-pilot" correctly.
       3. Keep @clack/prompts as the peerDependency.
 
-      Run packages/design-system tests and the package-lint package to confirm
+      Run packages/toolcraft-design tests and the package-lint package to confirm
       no undeclared imports remain.
     status:
       implement: done
@@ -111,40 +111,40 @@ tasks:
       commit: done
 
   - id: rename-package
-    title: Rename @poe-code/design-system to toolcraft-design (publish-ready)
+    title: Rename toolcraft-design to toolcraft-design (publish-ready)
     prompt: |
       Rename the package to the unscoped, publish-ready name `toolcraft-design`
       matching the toolcraft family. This is one atomic change; the repo must
       build and pass tests when done. Use codemod-style edits, not regex
       rewriting of files you have not parsed.
 
-      1. git mv packages/design-system packages/toolcraft-design.
+      1. git mv packages/toolcraft-design packages/toolcraft-design.
       2. packages/toolcraft-design/package.json: set "name": "toolcraft-design";
          remove "private": true; add an "exports" map (".": types+import to
          dist/index.js), "engines": { "node": ">=20" }, "repository" with
          "directory": "packages/toolcraft-design", and "publishConfig":
          { "access": "public" }. Fix any internal script paths that referenced
          the old directory.
-      3. Replace ALL import specifiers "@poe-code/design-system" with
+      3. Replace ALL import specifiers "toolcraft-design" with
          "toolcraft-design" across the repo (≈118 .ts sites in src/, packages/**,
-         tests/). Afterward `grep -r "@poe-code/design-system" --include=*.ts`
+         tests/). Afterward `grep -r "toolcraft-design" --include=*.ts`
          must return zero hits outside docs/plans/archive.
-      4. Update the dependency key "@poe-code/design-system" → "toolcraft-design"
+      4. Update the dependency key "toolcraft-design" → "toolcraft-design"
          in every consumer package.json: package-lint, plan-browser, pipeline,
          toolcraft-openapi, agent-eval, agent-harness-tools, superintendent,
          ralph, e2e-test-runner, maestro-tui, markdown-reader, toolcraft,
          config-mutations, github-workflows, agent-spawn, config-extends.
       5. In packages/toolcraft/package.json and packages/toolcraft-openapi/package.json
          update the THREE references each: bundleDependencies,
-         optionalDependencies, and the @poe-code/design-system argument in the
+         optionalDependencies, and the toolcraft-design argument in the
          prepack/postpack `manage-bundled-workspace-deps.mjs` invocations →
          toolcraft-design.
       6. Root package.json: rename the dependency key; update files[] entry
-         "packages/design-system/dist" → "packages/toolcraft-design/dist";
+         "packages/toolcraft-design/dist" → "packages/toolcraft-design/dist";
          update scripts generate:design-docs (--filter), generate:design-docs:all
          (-w target), and demo:dashboard / demo:explorer paths.
       7. scripts/generate-docs.ts: update the ~35 codeSnippet template strings
-         that embed `from "@poe-code/design-system"`. Update
+         that embed `from "toolcraft-design"`. Update
          scripts/verify-toolcraft-standalone.mjs to the new bundled name.
       8. Run `npm install` to refresh workspace links / lockfile.
 
@@ -152,8 +152,8 @@ tasks:
       (turbo) and run the test suites of the renamed package plus the consumers
       to confirm everything is green.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: write-readme
@@ -225,7 +225,7 @@ tasks:
       commit: open
 ---
 
-# Rename `@poe-code/design-system` → `toolcraft-design` + configurable brand theme
+# Rename `toolcraft-design` → `toolcraft-design` + configurable brand theme
 
 Rename the design-system package to the unscoped, publish-ready `toolcraft-design` (matching the `toolcraft` family), trim dependencies it doesn't need, and make the brand palette a configurable global singleton so `poe-code` stays purple, `toolcraft` (and the tools it generates) render blue, and `terminal-pilot` renders green. The `tasks:` frontmatter above is the executable Pipeline; the sections below are the design record.
 
@@ -233,7 +233,7 @@ Rename the design-system package to the unscoped, publish-ready `toolcraft-desig
 
 Three coordinated changes:
 
-1. **Rename** `@poe-code/design-system` (scoped, `private`, leaf) to `toolcraft-design` (unscoped, publish-ready). Same public API surface; only the import specifier and package name change.
+1. **Rename** `toolcraft-design` (scoped, `private`, leaf) to `toolcraft-design` (unscoped, publish-ready). Same public API surface; only the import specifier and package name change.
 2. **Configurable brand theme** — a global singleton (`configureTheme`) that selects a brand palette and an intro label. Default `purple` / label `"Poe"` preserves today's `poe-code` output with zero edits to existing call sites. Brands are declarative data, so adding `green` for `terminal-pilot` is one registry entry, no branching.
 3. **Dependency hygiene** — drop the `mustache` test-oracle, declare the undeclared `terminal-pilot` dev dependency, fix one wrong import specifier, and add the missing README.
 
@@ -246,7 +246,7 @@ Three coordinated changes:
 
 ## 2. Current state (analysis)
 
-`@poe-code/design-system` — v0.0.2, `private: true`, `main: dist/index.js`. It is a **leaf**: zero `@poe-code/*` runtime imports. Public surface is `packages/design-system/src/index.ts`.
+`toolcraft-design` — v0.0.2, `private: true`, `main: dist/index.js`. It is a **leaf**: zero `@poe-code/*` runtime imports. Public surface is `packages/toolcraft-design/src/index.ts`.
 
 ### 2.1 Dependency audit
 
@@ -262,11 +262,11 @@ Result: zero runtime deps beyond the `@clack/prompts` peer; two devDeps removed;
 
 ### 2.2 Blast radius of the rename
 
-- **17 consumer `package.json`** declare `@poe-code/design-system`: `package-lint`, `plan-browser`, `pipeline`, `toolcraft-openapi`, `agent-eval`, `agent-harness-tools`, `superintendent`, `ralph`, `e2e-test-runner`, `maestro-tui`, `markdown-reader`, `toolcraft`, `config-mutations`, `github-workflows`, `agent-spawn`, `config-extends` (+ the package itself).
+- **17 consumer `package.json`** declare `toolcraft-design`: `package-lint`, `plan-browser`, `pipeline`, `toolcraft-openapi`, `agent-eval`, `agent-harness-tools`, `superintendent`, `ralph`, `e2e-test-runner`, `maestro-tui`, `markdown-reader`, `toolcraft`, `config-mutations`, `github-workflows`, `agent-spawn`, `config-extends` (+ the package itself).
 - **118 import sites** (`.ts`) across the repo: 57 in root `src/`, plus `toolcraft` (13), `agent-spawn` (8), `maestro-tui` (7), `superintendent`/`plan-browser`/`agent-eval` (6 each), `toolcraft-openapi` (3), and others.
 - **Two publishable bundlers** reference it in three places each — `bundleDependencies`, `optionalDependencies`, and the `manage-bundled-workspace-deps.mjs` arg list in `prepack`/`postpack`: `packages/toolcraft/package.json` and `packages/toolcraft-openapi/package.json`.
-- **Root `package.json`**: dependency `"@poe-code/design-system": "*"` (line 160); `files[]` entry `packages/design-system/dist` (line 103); scripts `generate:design-docs` (`--filter=@poe-code/design-system`, line 47), `generate:design-docs:all` (`-w @poe-code/design-system`, line 48), `demo:dashboard`/`demo:explorer` (paths, lines 77–78).
-- **`scripts/generate-docs.ts`**: ~35 `codeSnippet` template strings embed `import … from "@poe-code/design-system"`.
+- **Root `package.json`**: dependency `"toolcraft-design": "*"` (line 160); `files[]` entry `packages/toolcraft-design/dist` (line 103); scripts `generate:design-docs` (`--filter=toolcraft-design`, line 47), `generate:design-docs:all` (`-w toolcraft-design`, line 48), `demo:dashboard`/`demo:explorer` (paths, lines 77–78).
+- **`scripts/generate-docs.ts`**: ~35 `codeSnippet` template strings embed `import … from "toolcraft-design"`.
 - **`scripts/verify-toolcraft-standalone.mjs`** references the bundled name.
 - No tsconfig path-mapping, vitest alias, or turbo reference keys on the package name (verified — nothing to change there beyond workspace globs).
 

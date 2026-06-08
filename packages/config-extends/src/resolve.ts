@@ -3,7 +3,7 @@ import {
   getTemplatePartialNames,
   renderTemplate,
   resolveTemplatePartials
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { findBase } from "./discover.js";
 import { mergeLayers } from "./merge.js";
 import { parseDocument } from "./parse.js";

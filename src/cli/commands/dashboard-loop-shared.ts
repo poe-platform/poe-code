@@ -1,4 +1,4 @@
-import { shouldUseInteractiveDashboard, type Dashboard } from "@poe-code/design-system";
+import { shouldUseInteractiveDashboard, type Dashboard } from "toolcraft-design";
 
 type DashboardQuitCommandOptions = {
   abortController: AbortController;

@@ -10,7 +10,7 @@ import {
   multiselect,
   promptText,
   select
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   resolveAgentId,
   parseAgentSpecifier,

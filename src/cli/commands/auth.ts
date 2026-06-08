@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
-import { spinner } from "@poe-code/design-system";
+import { spinner } from "toolcraft-design";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { executeLogin, type LoginCommandOptions } from "./login.js";
 import { executeLogout } from "./logout.js";

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import { Volume, createFsFromVolume } from "memfs";
 import type { RunLoopOptions, SuperintendentFileSystem } from "../runtime/loop.js";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 
 function createDoc(builderAgent: string): string {
   return [
@@ -389,9 +389,9 @@ describe("superintendent run command", () => {
     const selectPrompt = vi.fn(async () => cancelled);
     const runLoopMock = vi.fn();
     vi.resetModules();
-    vi.doMock("@poe-code/design-system", async () => {
-      const actual = await vi.importActual<typeof import("@poe-code/design-system")>(
-        "@poe-code/design-system"
+    vi.doMock("toolcraft-design", async () => {
+      const actual = await vi.importActual<typeof import("toolcraft-design")>(
+        "toolcraft-design"
       );
       return {
         ...actual,
@@ -420,7 +420,7 @@ describe("superintendent run command", () => {
 
       expect(runLoopMock).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("@poe-code/design-system");
+      vi.doUnmock("toolcraft-design");
       vi.resetModules();
     }
   });

@@ -9,8 +9,12 @@
   ],
   "tasks": {
     "build": {
-      "dependsOn": ["^build"],
-      "outputs": ["dist/**"]
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": [
+        "dist/**"
+      ]
     },
     "//#test:unit": {
       "inputs": [
@@ -26,11 +30,15 @@
       "outputs": []
     },
     "lint:types": {
-      "dependsOn": ["^build"],
+      "dependsOn": [
+        "^build"
+      ],
       "outputs": []
     },
     "generate:docs": {
-      "outputs": ["docs/**"]
+      "outputs": [
+        "docs/**"
+      ]
     }
   }
 }

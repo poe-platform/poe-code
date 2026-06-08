@@ -10,7 +10,7 @@ import {
   defineGroup
 } from "./index.js";
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   createLogger: () => ({
     info: (message: string) => process.stdout.write(`${message}\n`),
     success: (message: string) => process.stdout.write(`${message}\n`),

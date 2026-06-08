@@ -1,4 +1,4 @@
-import { getTheme, renderTable, withOutputFormat } from "@poe-code/design-system";
+import { getTheme, renderTable, withOutputFormat } from "toolcraft-design";
 import type { AggregatedCell, EvalRunResult, ResultComparison } from "../types.js";
 import { comparisonText, matrixRows, runRows, terminalTableOptions } from "./format.js";
 

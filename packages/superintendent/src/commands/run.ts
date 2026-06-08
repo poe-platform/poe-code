@@ -32,7 +32,7 @@ import {
   shouldUseInteractiveDashboard,
   text,
   type Dashboard
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   planConfigScope,
   mergeLoopCallbacks,

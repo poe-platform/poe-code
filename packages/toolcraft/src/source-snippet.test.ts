@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { resetOutputFormatCache } from "@poe-code/design-system";
+import { resetOutputFormatCache } from "toolcraft-design";
 import { renderSourceSnippet } from "./source-snippet.js";
 
 describe("renderSourceSnippet", () => {

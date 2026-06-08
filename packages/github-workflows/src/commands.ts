@@ -6,7 +6,7 @@ import { runCommand, spawn } from "@poe-code/agent-spawn";
 import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "toolcraft";
 import type { Group } from "toolcraft";
-import { cancel, isCancel, renderTemplate, select } from "@poe-code/design-system";
+import { cancel, isCancel, renderTemplate, select } from "toolcraft-design";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";

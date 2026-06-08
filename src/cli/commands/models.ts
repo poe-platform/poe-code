@@ -4,7 +4,7 @@ import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, ValidationError } from "../errors.js";
-import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
+import { getTheme, renderTable, withSpinner } from "toolcraft-design";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 interface ModelParameter {

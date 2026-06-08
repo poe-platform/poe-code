@@ -22,8 +22,8 @@ vi.mock("./error-logger.js", async () => {
   };
 });
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+vi.mock("toolcraft-design", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("toolcraft-design");
   return {
     ...actual,
     log: {
@@ -147,7 +147,7 @@ describe("createCliMain", () => {
       parseAsync,
       optsWithGlobals: () => ({ dryRun: true })
     };
-    const { log } = await import("@poe-code/design-system");
+    const { log } = await import("toolcraft-design");
     const { createCliMain } = await import("./bootstrap.js");
     const main = createCliMain(() => fakeProgram as Command);
 

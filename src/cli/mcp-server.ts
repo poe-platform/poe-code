@@ -6,7 +6,7 @@ import {
   Image,
   Audio
 } from "tiny-stdio-mcp-server";
-import { color } from "@poe-code/design-system";
+import { color } from "toolcraft-design";
 import { getGlobalClient } from "../services/client-instance.js";
 import type { LlmResponse } from "../services/llm-client.js";
 import {

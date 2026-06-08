@@ -32,7 +32,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-hook-config": "*",
     "@poe-code/agent-skill-config": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "@poe-code/poe-acp-client": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/process-runner": "*",

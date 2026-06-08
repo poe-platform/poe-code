@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import type { ActionContext, Row } from "@poe-code/design-system";
+import type { ActionContext, Row } from "toolcraft-design";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 

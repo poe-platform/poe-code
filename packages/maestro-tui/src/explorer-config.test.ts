@@ -5,7 +5,7 @@ import {
   type TaskList,
   type Tasks
 } from "@poe-code/task-list";
-import { type Action, type ActionContext, type Row } from "@poe-code/design-system";
+import { type Action, type ActionContext, type Row } from "toolcraft-design";
 import {
   buildMaestroExplorerConfig as buildMaestroExplorerConfigBase,
   type BuildMaestroExplorerConfigOptions
@@ -16,8 +16,8 @@ const { editFileMock, openExternalMock } = vi.hoisted(() => ({
   openExternalMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     openExternal: openExternalMock

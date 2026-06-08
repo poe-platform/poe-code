@@ -1,4 +1,4 @@
-import { text as designText } from "@poe-code/design-system";
+import { text as designText } from "toolcraft-design";
 import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";

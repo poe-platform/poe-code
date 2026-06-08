@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
-import { intro, outro, withSpinner } from "@poe-code/design-system";
+import { intro, outro, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import {
   DEFAULT_TEXT_MODEL,

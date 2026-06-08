@@ -26,7 +26,7 @@ import {
   renderTable,
   select,
   withSpinner
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";

@@ -386,13 +386,13 @@ describe("terminal markdown integration", () => {
       "## Reproduction",
       "",
       "```bash",
-      "npm run test -- packages/design-system",
+      "npm run test -- packages/toolcraft-design",
       "```"
     ].join("\n");
 
     expectRenderedMarkdown(
       markdown,
-      ["name: Bug report", "Checklist", "I searched existing issues.", "npm run test -- packages/design-system"],
+      ["name: Bug report", "Checklist", "I searched existing issues.", "npm run test -- packages/toolcraft-design"],
       { showFrontmatter: true }
     );
   });

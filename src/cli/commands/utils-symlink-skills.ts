@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { Command } from "commander";
-import { cancel, isCancel, select } from "@poe-code/design-system";
+import { cancel, isCancel, select } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { resolveCommandFlags } from "./shared.js";

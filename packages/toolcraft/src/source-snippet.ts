@@ -1,4 +1,4 @@
-import { text } from "@poe-code/design-system";
+import { text } from "toolcraft-design";
 
 export interface SourceSnippetOptions {
   source: string;

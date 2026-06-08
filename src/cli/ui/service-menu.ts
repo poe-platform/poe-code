@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import type { ProviderService } from "../service-registry.js";
-import { getTheme, resolveThemeName, type ThemeName } from "@poe-code/design-system";
+import { getTheme, resolveThemeName, type ThemeName } from "toolcraft-design";
 
 const HEADER_WIDTH = 70;
 

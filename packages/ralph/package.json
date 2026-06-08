@@ -27,7 +27,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-defs": "*",
     "@poe-code/config-extends": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "yaml": "^2.8.3"
   }
 }

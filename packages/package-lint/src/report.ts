@@ -1,4 +1,4 @@
-import { color, symbols, text } from "@poe-code/design-system";
+import { color, symbols, text } from "toolcraft-design";
 import type { LintResult, Violation } from "./model.js";
 
 const RULE_COLUMN = 40;

@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { text } from "@poe-code/design-system";
+import { text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { checkForUpdate } from "../../services/version.js";
 import { VersionExit } from "../exit-signals.js";

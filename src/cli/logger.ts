@@ -5,7 +5,7 @@ import {
   note,
   outro,
   resolveOutputFormat
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import chalk from "chalk";
 import type { LoggerFn } from "./types.js";
 import type { ErrorLogger, ErrorContext } from "./error-logger.js";

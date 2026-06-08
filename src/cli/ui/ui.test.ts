@@ -5,7 +5,7 @@ import {
   resetThemeCache,
   dark,
   light
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { createProgram } from "../program.js";
 import { createHomeFs } from "../../../tests/test-helpers.js";
 import { renderServiceMenu } from "./service-menu.js";

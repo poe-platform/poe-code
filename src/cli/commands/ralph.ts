@@ -8,7 +8,7 @@ import {
   promptText,
   select,
   text as designText
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   resolveAgentId,
   parseAgentSpecifier,

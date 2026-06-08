@@ -13,7 +13,7 @@ import {
   select,
   text,
   withOutputFormat
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   archivePlan,
   deletePlan,

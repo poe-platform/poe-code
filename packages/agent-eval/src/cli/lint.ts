@@ -1,12 +1,12 @@
 import nodeFs from "node:fs/promises";
 import path from "node:path";
-import { color, getTheme, renderTable, withOutputFormat } from "@poe-code/design-system";
+import { color, getTheme, renderTable, withOutputFormat } from "toolcraft-design";
 
 import { evalLint, type LintIssue, type LintResult } from "../lint/lint.js";
 import { listEvals } from "../source/registry.js";
 import { resolveEvalCliTarget } from "./target.js";
 import type { EvalFs } from "../types.js";
-import type { RenderTableOptions, TableColumn } from "@poe-code/design-system";
+import type { RenderTableOptions, TableColumn } from "toolcraft-design";
 
 export interface LintCliInput {
   evalId?: string;

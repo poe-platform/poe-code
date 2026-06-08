@@ -51,7 +51,7 @@ vi.mock("auth-store", () => ({
   createSecretStore: mocks.createSecretStore,
 }));
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   password: mocks.password,
   isCancel: mocks.isCancel,
 }));

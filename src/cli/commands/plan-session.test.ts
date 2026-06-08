@@ -13,8 +13,8 @@ const { isCancelMock, sdkSpawnMock, selectMock, spawnResult } = vi.hoisted(() =>
   spawnResult: { stdout: "", stderr: "", exitCode: 0 }
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     isCancel: isCancelMock,

@@ -1,5 +1,5 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
-import { text } from "@poe-code/design-system";
+import { text } from "toolcraft-design";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import {

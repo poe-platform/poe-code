@@ -28,7 +28,7 @@
   "dependencies": {
     "@poe-code/agent-spawn": "*",
     "@poe-code/config-extends": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "toolcraft": "*",
     "toolcraft-schema": "*",
     "yaml": "^2.8.2"

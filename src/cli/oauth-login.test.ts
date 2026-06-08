@@ -10,7 +10,7 @@ vi.mock("poe-oauth", () => ({
   createOAuthClient: createOAuthClientMock
 }));
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   text: { muted: (value: string) => value, link: (value: string) => value },
   log: { message: vi.fn(), warn: vi.fn() },
   spinner: () => ({ start: vi.fn(), stop: vi.fn() })

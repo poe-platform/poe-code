@@ -31,9 +31,9 @@ vi.mock("@poe-code/agent-harness", async () => {
   };
 });
 
-vi.mock("@poe-code/design-system", async () => {
+vi.mock("toolcraft-design", async () => {
   const actual =
-    await vi.importActual<typeof import("@poe-code/design-system")>("@poe-code/design-system");
+    await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
   return {
     ...actual,
     select: harnessMocks.selectMock,

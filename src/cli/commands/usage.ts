@@ -10,7 +10,7 @@ import {
   typography,
   renderTable,
   withSpinner
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type { ScopedLogger } from "../logger.js";
 
 export interface BalanceResponse {

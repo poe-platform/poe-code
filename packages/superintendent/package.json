@@ -37,7 +37,7 @@
     "@poe-code/agent-spawn": "*",
     "@poe-code/braintrust": "*",
     "toolcraft": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "@poe-code/poe-agent": "*",
     "@poe-code/poe-code-config": "*"
   }

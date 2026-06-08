@@ -4,7 +4,7 @@ import type {
   DetailItem,
   ExplorerConfig,
   Row
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { archivePlan, deletePlan, editFile } from "./actions.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";

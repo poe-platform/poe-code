@@ -1,4 +1,4 @@
-import { getTheme, renderTable, text, type TableColumn } from "@poe-code/design-system";
+import { getTheme, renderTable, text, type TableColumn } from "toolcraft-design";
 import type { Command } from "commander";
 import type { JobEntry } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../../../container.js";

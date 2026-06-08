@@ -20,7 +20,7 @@ import {
   isCancel,
   resolveOutputFormat,
   renderMarkdown
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,

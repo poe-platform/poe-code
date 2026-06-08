@@ -31,9 +31,9 @@ const {
   cancelMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async () => {
+vi.mock("toolcraft-design", async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    "@poe-code/design-system"
+    "toolcraft-design"
   );
   return {
     ...actual,

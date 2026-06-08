@@ -7,7 +7,7 @@ const loggerState = {
   error: [] as string[],
 };
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   createLogger: () => ({
     info: vi.fn(),
     success: vi.fn(),

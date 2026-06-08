@@ -35,7 +35,7 @@ const formatterState = {
   plainOptionListCalls: 0
 };
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   createLogger: () => ({
     info: (message: string) => loggerState.info.push(message),
     success: (message: string) => loggerState.success.push(message),

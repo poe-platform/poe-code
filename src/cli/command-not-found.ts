@@ -1,4 +1,4 @@
-import { formatCommandNotFoundPanel, log, outro, symbols } from "@poe-code/design-system";
+import { formatCommandNotFoundPanel, log, outro, symbols } from "toolcraft-design";
 import { detectExecutionContext, formatCliHelpCommand } from "../utils/execution-context.js";
 import type { CliContainer } from "./container.js";
 import { SilentError } from "./errors.js";

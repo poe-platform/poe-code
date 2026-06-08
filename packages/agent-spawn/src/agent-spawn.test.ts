@@ -46,7 +46,7 @@ vi.mock("@poe-code/agent-hook-config", () => ({
   cleanupBridgedHooks: hookBridgeMock.cleanupBridgedHooks
 }));
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   logger: designLoggerMock
 }));
 

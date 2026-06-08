@@ -1,5 +1,5 @@
 import { renderAcpEvent, renderAcpStream } from "@poe-code/agent-spawn";
-import { renderMarkdown, resolveOutputFormat } from "@poe-code/design-system";
+import { renderMarkdown, resolveOutputFormat } from "toolcraft-design";
 import { spawnPoeAgentWithAcp } from "../../providers/poe-agent.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import type { CustomSpawnHandler } from "./spawn.js";

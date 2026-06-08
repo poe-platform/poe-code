@@ -3,7 +3,7 @@ import * as fs from "node:fs/promises";
 import { execSync } from "node:child_process";
 import parseDuration from "parse-duration";
 import type { Command } from "commander";
-import { confirmOrCancel } from "@poe-code/design-system";
+import { confirmOrCancel } from "toolcraft-design";
 import { defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
   cacheStatus,

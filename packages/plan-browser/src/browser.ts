@@ -2,7 +2,7 @@ import {
   renderMarkdown,
   runExplorer,
   type ExplorerConfig
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { discoverAllPlans } from "./discovery.js";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { loadPlanPreviewMarkdown } from "./format.js";

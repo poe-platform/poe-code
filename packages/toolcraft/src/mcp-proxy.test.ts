@@ -79,7 +79,7 @@ class MockMcpClient {
   }
 }
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   createLogger: (emitter?: (message: string) => void) => ({
     info: (message: string) => {
       emitter?.(message);

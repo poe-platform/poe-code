@@ -4,7 +4,7 @@ import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
-import { resetOutputFormatCache } from "@poe-code/design-system";
+import { resetOutputFormatCache } from "toolcraft-design";
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
@@ -74,8 +74,8 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     confirm: confirmMock,

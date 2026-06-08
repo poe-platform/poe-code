@@ -9,7 +9,7 @@ import {
   listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
-import { withSpinner } from "@poe-code/design-system";
+import { withSpinner } from "toolcraft-design";
 
 export function registerInstallCommand(
   program: Command,

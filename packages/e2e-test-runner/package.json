@@ -23,7 +23,7 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "auth-store": "*"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import { getTheme, renderTable, text, type TableColumn } from "@poe-code/design-system";
+import { getTheme, renderTable, text, type TableColumn } from "toolcraft-design";
 import {
   createStateManager,
   type TemplateBackend,

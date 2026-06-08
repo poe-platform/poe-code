@@ -1,5 +1,5 @@
 import { Command, Option } from "commander";
-import { select, promptText, isCancel, cancel, getTheme, renderTable, withSpinner } from "@poe-code/design-system";
+import { select, promptText, isCancel, cancel, getTheme, renderTable, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ValidationError } from "../errors.js";

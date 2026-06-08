@@ -29,7 +29,7 @@ import {
   resetOutputFormatCache,
   select,
   text
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type {
   Command,
   CommandRequirementOptions,

@@ -194,7 +194,7 @@ try {
       requiredEntries: [
         "package/dist/index.js",
         "package/dist/bin/generate.js",
-        "package/node_modules/@poe-code/design-system/package.json",
+        "package/node_modules/toolcraft-design/package.json",
         "package/node_modules/auth-store/package.json"
       ]
     }

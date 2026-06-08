@@ -9,7 +9,7 @@ import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 
 const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
@@ -56,8 +56,8 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     createDashboard: vi.fn(),
@@ -74,7 +74,7 @@ vi.mock("./pipeline-loop-agent.js", () => ({
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { createDashboard, withOutputFormat } from "@poe-code/design-system";
+import { createDashboard, withOutputFormat } from "toolcraft-design";
 
 resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
 

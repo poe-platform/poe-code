@@ -140,14 +140,14 @@ const reviewComments: Record<string, Array<{
     {
       id: "pr-1847-comment-1",
       title: "Review: detail loading",
-      subtitle: "packages/design-system/src/explorer/jobs.ts:19",
+      subtitle: "packages/toolcraft-design/src/explorer/jobs.ts:19",
       body: "The 150 ms loading threshold is the right behavior. This demo should make that visible with --slow-detail.",
       tone: "success"
     },
     {
       id: "pr-1847-comment-2",
       title: "Review: destructive confirm",
-      subtitle: "packages/design-system/src/explorer/reducer.ts:435",
+      subtitle: "packages/toolcraft-design/src/explorer/reducer.ts:435",
       body: "Confirm modal behavior should be reachable from manual QA with a simple keybinding.",
       tone: "warning"
     }

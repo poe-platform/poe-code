@@ -9,8 +9,15 @@ type PackageJson = {
   bundledDependencies?: string[];
   bundleDependencies?: string[];
   dependencies?: Record<string, string>;
+  engines?: Record<string, string>;
   exports?: Record<string, unknown>;
   files?: string[];
+  name?: string;
+  optionalDependencies?: Record<string, string>;
+  private?: boolean;
+  publishConfig?: {
+    access?: string;
+  };
   repository?: {
     directory?: string;
   };
@@ -42,6 +49,19 @@ describe("standalone package publish metadata", () => {
     ).toEqual([]);
   });
 
+  it("declares bundled toolcraft-design as optional in standalone consumers", () => {
+    expect(
+      readPackageJson("packages/toolcraft/package.json").optionalDependencies?.[
+        "toolcraft-design"
+      ]
+    ).toBe("^0.0.2");
+    expect(
+      readPackageJson("packages/toolcraft-openapi/package.json").optionalDependencies?.[
+        "toolcraft-design"
+      ]
+    ).toBe("^0.0.2");
+  });
+
   it("records repository.directory for standalone toolcraft packages", () => {
     expect(readPackageJson("packages/toolcraft/package.json").repository?.directory).toBe(
       "packages/toolcraft"
@@ -52,6 +72,24 @@ describe("standalone package publish metadata", () => {
     expect(readPackageJson("packages/toolcraft-openapi/package.json").repository?.directory).toBe(
       "packages/toolcraft-openapi"
     );
+  });
+
+  it("publishes toolcraft-design as an unscoped ESM package", () => {
+    const designPackage = readPackageJson("packages/toolcraft-design/package.json");
+
+    expect(designPackage).toMatchObject({
+      name: "toolcraft-design",
+      engines: { node: ">=20" },
+      exports: {
+        ".": {
+          types: "./dist/index.d.ts",
+          import: "./dist/index.js",
+        },
+      },
+      repository: { directory: "packages/toolcraft-design" },
+      publishConfig: { access: "public" },
+    });
+    expect(designPackage.private).not.toBe(true);
   });
 
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {

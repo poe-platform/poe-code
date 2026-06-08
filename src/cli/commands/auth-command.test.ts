@@ -10,8 +10,8 @@ import { storeTestApiKey } from "../../../tests/test-helpers.js";
 const spinnerStopMessages: string[] = [];
 const spinnerMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     spinner: spinnerMock

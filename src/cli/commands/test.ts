@@ -11,7 +11,7 @@ import {
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 import { type CommandCheck } from "../../utils/command-checks.js";
-import { withSpinner } from "@poe-code/design-system";
+import { withSpinner } from "toolcraft-design";
 import { resolveProviderRuntimeEnv } from "../isolated-env.js";
 import type { HookBridgeOptions } from "@poe-code/agent-spawn";
 

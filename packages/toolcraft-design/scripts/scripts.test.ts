@@ -174,7 +174,7 @@ describe("generate-docs", () => {
     const output = captureTextOutput('heading "Available Commands"', "markdown");
 
     expect(output).toContain("Available Commands");
-    expect(output).not.toContain("> @poe-code/design-system");
+    expect(output).not.toContain("> toolcraft-design");
     expect(output).not.toContain("tsx scripts/demo.ts");
   });
 

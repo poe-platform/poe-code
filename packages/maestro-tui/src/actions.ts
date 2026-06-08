@@ -1,4 +1,4 @@
-import { openExternal, type Action } from "@poe-code/design-system";
+import { openExternal, type Action } from "toolcraft-design";
 import { editFile } from "@poe-code/plan-browser";
 import type { Task } from "@poe-code/task-list";
 

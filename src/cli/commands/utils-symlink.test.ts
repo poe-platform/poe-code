@@ -7,8 +7,8 @@ const { selectMock, cancelMock } = vi.hoisted(() => ({
   cancelMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+vi.mock("toolcraft-design", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("toolcraft-design");
   return {
     ...actual,
     select: selectMock,

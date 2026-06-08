@@ -12,7 +12,7 @@ A toolcraft surface that derives a single self-contained static HTML landing pag
 
 A `toolcraft-landing-page` package. It takes a toolcraft command tree (a `root` group) and produces a static HTML landing page documenting the tool — the same "define once" model as CLI/MCP/SDK, now extended to a web page. It joins the `toolcraft-*` family (`toolcraft-schema`, `toolcraft-openapi`, `toolcraft-codemode`).
 
-The page is a single self-contained `index.html`: inlined CSS, a small amount of inlined vanilla JS (copy-to-clipboard, smooth-scroll), no external assets, no framework, no animation library. Rendering goes through the existing `renderTemplate` Mustache engine in `@poe-code/design-system`.
+The page is a single self-contained `index.html`: inlined CSS, a small amount of inlined vanilla JS (copy-to-clipboard, smooth-scroll), no external assets, no framework, no animation library. Rendering goes through the existing `renderTemplate` Mustache engine in `toolcraft-design`.
 
 Design language: minimal and typography-forward — system sans for prose, monospace for commands/code, generous whitespace, single centered column, hairline borders, and one restrained accent color (default `#a200ff`, the existing design-system brand token). Hero with the tool name/headline/install line, a "one definition → every surface" strip, then command reference cards grouped by sub-group, each with parameter tables and scope/approval/secret badges.
 
@@ -119,7 +119,7 @@ Separation of concerns: `walk.ts` is the only place that knows the toolcraft tre
 
 ### Templating
 
-`render.ts` calls `renderTemplate(TEMPLATE, view, { escape: "html" })` from `@poe-code/design-system`. With `escape: "html"`, literal template markup passes through untouched while every `{{value}}` is HTML-escaped — exactly the contract needed to emit HTML safely. Repeated structures (groups, commands, params, badges) use Mustache sections (`{{#groups}}…{{/groups}}`) rather than pre-built fragments, so triple-stache is avoided. CSS and JS are concatenated into the template inside `<style>`/`<script>`; the accent color is injected as a `--accent` custom property via a single `{{accent}}` tag. CSS uses single braces only, so it never collides with Mustache's `{{`/`}}`.
+`render.ts` calls `renderTemplate(TEMPLATE, view, { escape: "html" })` from `toolcraft-design`. With `escape: "html"`, literal template markup passes through untouched while every `{{value}}` is HTML-escaped — exactly the contract needed to emit HTML safely. Repeated structures (groups, commands, params, badges) use Mustache sections (`{{#groups}}…{{/groups}}`) rather than pre-built fragments, so triple-stache is avoided. CSS and JS are concatenated into the template inside `<style>`/`<script>`; the accent color is injected as a `--accent` custom property via a single `{{accent}}` tag. CSS uses single braces only, so it never collides with Mustache's `{{`/`}}`.
 
 ### Reading the tree
 
@@ -234,13 +234,13 @@ The repo's screenshot tooling is terminal-only, so HTML visual QA is a markdown 
 - [ ] Confirm `toJsonSchema` is imported from `toolcraft-schema` (or re-exported by `toolcraft`) and how enums/defaults surface in `JsonSchema`.
 - [ ] Confirm the reserved `approvals` group is present on a constructed root and must be filtered out of the reference.
 - [ ] Confirm toolcraft handler context allows an injected `fs` service for the memfs-backed bin test (DI via `defineGroup<Services>`).
-- [ ] Mirror `toolcraft-openapi`'s `package.json` exactly for the `@poe-code/design-system` bundling (`bundleDependencies` + `prepack`/`postpack`), dropping `auth-store`.
+- [ ] Mirror `toolcraft-openapi`'s `package.json` exactly for the `toolcraft-design` bundling (`bundleDependencies` + `prepack`/`postpack`), dropping `auth-store`.
 
 ## 5. Code plan
 
 ### Files to create
 
-- `packages/toolcraft-landing-page/package.json` — unscoped name `toolcraft-landing-page`; `type: module`; `bin: { "toolcraft-landing-page": "dist/bin/generate.js" }`; `exports: { ".": … }`; deps `toolcraft`, `toolcraft-schema`, `@poe-code/design-system`; `bundleDependencies: ["@poe-code/design-system"]` with the openapi `prepack`/`postpack` scripts; `files: ["dist"]`; `engines.node >= 20`.
+- `packages/toolcraft-landing-page/package.json` — unscoped name `toolcraft-landing-page`; `type: module`; `bin: { "toolcraft-landing-page": "dist/bin/generate.js" }`; `exports: { ".": … }`; deps `toolcraft`, `toolcraft-schema`, `toolcraft-design`; `bundleDependencies: ["toolcraft-design"]` with the openapi `prepack`/`postpack` scripts; `files: ["dist"]`; `engines.node >= 20`.
 - `packages/toolcraft-landing-page/tsconfig.json` — extends root; `module`/`moduleResolution: NodeNext`.
 - `packages/toolcraft-landing-page/src/model.ts` — types from §4.
 - `packages/toolcraft-landing-page/src/walk.ts` — `buildPageModel`.

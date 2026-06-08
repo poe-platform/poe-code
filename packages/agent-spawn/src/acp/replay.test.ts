@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   acp: {
     renderAgentMessage: vi.fn(),
     renderToolStart: vi.fn(),
@@ -23,7 +23,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-import { acp } from "@poe-code/design-system";
+import { acp } from "toolcraft-design";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import {
   findLatestLog,

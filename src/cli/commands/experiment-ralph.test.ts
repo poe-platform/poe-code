@@ -7,7 +7,7 @@ import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
 import { allAgents } from "@poe-code/agent-defs";
 import { ValidationError } from "../errors.js";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
@@ -52,8 +52,8 @@ vi.mock("../../sdk/spawn.js", () => ({
   })
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     createDashboard: vi.fn(),
@@ -70,7 +70,7 @@ import {
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { acp, createDashboard, withOutputFormat } from "@poe-code/design-system";
+import { acp, createDashboard, withOutputFormat } from "toolcraft-design";
 
 const cwd = "/repo";
 const homeDir = "/home/test";

@@ -4,7 +4,7 @@ import type {
   ExplorerConfig,
   Row,
   Tone
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
 import { buildOpenIssueAction, buildOpenSourceAction } from "./actions.js";

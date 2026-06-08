@@ -30,7 +30,7 @@ const skillBridgeMock = vi.hoisted(() => ({
 
 const acpLaunchOrder = vi.hoisted(() => [] as string[]);
 
-vi.mock("@poe-code/design-system", () => {
+vi.mock("toolcraft-design", () => {
   return {
     logger: {
       warn: vi.fn()
@@ -446,7 +446,7 @@ describe("acp/renderer", () => {
 
   it("ignores session_start events (no output)", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     const output = captureStdout(() => renderAcpEvent({ event: "session_start" } as any));
 
@@ -461,7 +461,7 @@ describe("acp/renderer", () => {
 
   it("renders agent_message via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "agent_message", text: "hello" } as any);
 
@@ -470,7 +470,7 @@ describe("acp/renderer", () => {
 
   it("renders tool_start via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "tool_start", kind: "read", title: "README.md" } as any);
 
@@ -479,7 +479,7 @@ describe("acp/renderer", () => {
 
   it("renders tool_complete via design-system (kind only, no output)", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "tool_complete", kind: "read", path: "README.md" } as any);
 
@@ -488,7 +488,7 @@ describe("acp/renderer", () => {
 
   it("renders reasoning via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "reasoning", text: "thinking..." } as any);
 
@@ -497,7 +497,7 @@ describe("acp/renderer", () => {
 
   it("renders usage via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({
       event: "usage",
@@ -517,7 +517,7 @@ describe("acp/renderer", () => {
 
   it("renders error via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "error", message: "nope" } as any);
 
@@ -526,7 +526,7 @@ describe("acp/renderer", () => {
 
   it("includes stack trace when present on error events", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "error", message: "nope", stack: "stack line 1" } as any);
 
@@ -535,7 +535,7 @@ describe("acp/renderer", () => {
 
   it("renders unknown event types as muted text showing the type", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     const output = captureStdout(() => renderAcpEvent({ event: "some_future_event" } as any));
 
@@ -571,7 +571,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream buffers consecutive agent_message events and flushes at end", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -590,7 +590,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream buffers consecutive reasoning events and flushes at end", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -610,7 +610,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream flushes reasoning buffer when non-reasoning event arrives", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -633,7 +633,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream flushes buffer when non-agent_message event arrives", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;

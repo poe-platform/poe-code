@@ -17,7 +17,7 @@ import {
   confirm as dsConfirm,
   isCancel,
   cancel as dsCancel
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";

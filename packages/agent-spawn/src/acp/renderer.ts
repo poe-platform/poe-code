@@ -1,4 +1,4 @@
-import { acp, resolveOutputFormat, text } from "@poe-code/design-system";
+import { acp, resolveOutputFormat, text } from "toolcraft-design";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import type { AcpEvent } from "./types.js";
 import { toRenderKind } from "./session-update-converter.js";

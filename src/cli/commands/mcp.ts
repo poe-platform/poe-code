@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { select, isCancel, cancel } from "@poe-code/design-system";
+import { select, isCancel, cancel } from "toolcraft-design";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import { initializeClient } from "../../services/client-instance.js";

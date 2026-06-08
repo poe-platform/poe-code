@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fs, vol } from "memfs";
-import type { ExplorerConfig } from "@poe-code/design-system";
+import type { ExplorerConfig } from "toolcraft-design";
 import type { OpenTaskListOptions, Task, TaskList } from "@poe-code/task-list";
 
 const { editFileMock, openTaskListMock, runExplorerMock } = vi.hoisted(() => ({
@@ -14,8 +14,8 @@ vi.mock("node:fs/promises", async () => ({
   default: fs.promises
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     runExplorer: runExplorerMock

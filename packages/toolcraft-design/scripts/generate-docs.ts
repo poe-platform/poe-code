@@ -61,7 +61,7 @@ export const sections: Section[] = [
   {
     title: "Overview",
     description:
-      "The `@poe-code/design-system` package provides a consistent visual language for poe-code CLI output. Import components from the package:",
+      "The `toolcraft-design` package provides a consistent visual language for poe-code CLI output. Import components from the package:",
     elements: []
   },
   {
@@ -85,7 +85,7 @@ export const sections: Section[] = [
         name: "layout-basic",
         description:
           "Core layout: intro banner, info messages, resolved prompts, success message",
-        codeSnippet: `import { intro, outro, log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { intro, outro, log, symbols } from "toolcraft-design";
 
 intro("Configure");
 log.message("Configuring...", { symbol: symbols.info });
@@ -98,7 +98,7 @@ outro("Configuration complete.");`,
         name: "layout-expanded",
         description:
           "Full layout with note and outro: intro, resolved prompts, success, note box, outro",
-        codeSnippet: `import { intro, outro, note, log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { intro, outro, note, log, symbols } from "toolcraft-design";
 
 intro("configure claude-code");
 log.message("Claude Code default model\\n   Claude-Opus-4.6", { symbol: symbols.resolved });
@@ -112,75 +112,75 @@ outro("Problems? https://...");`,
   {
     title: "Text Styles",
     description:
-      "Semantic text styling functions for consistent CLI output. Import from `@poe-code/design-system`.",
+      "Semantic text styling functions for consistent CLI output. Import from `toolcraft-design`.",
     elements: [
       {
         name: "intro",
         description: "Prominent introductory banners with brand background",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.intro("Configure")`,
         demoArgs: `intro "Configure"`
       },
       {
         name: "heading",
         description: "Section headings with brand accent color",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.heading("Available Commands")`,
         demoArgs: `heading "Available Commands"`
       },
       {
         name: "section",
         description: "Bold text for subsection labels",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.section("Options:")`,
         demoArgs: `section "Options:"`
       },
       {
         name: "command",
         description: "CLI command names in accent color",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.command("poe-code configure")`,
         demoArgs: `command "poe-code configure"`
       },
       {
         name: "argument",
         description: "Command arguments (dimmed)",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.argument("<provider>")`,
         demoArgs: `argument "<provider>"`
       },
       {
         name: "option",
         description: "CLI flags and options in yellow",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.option("--dry-run")`,
         demoArgs: `option "--dry-run"`
       },
       {
         name: "example",
         description: "Example text (dimmed)",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.example("$ poe-code configure claude")`,
         demoArgs: `example "$ poe-code configure claude"`
       },
       {
         name: "usageCommand",
         description: "Commands in usage examples (green)",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.usageCommand("npm install -g poe-code")`,
         demoArgs: `usageCommand "npm install -g poe-code"`
       },
       {
         name: "link",
         description: "Hyperlinks and references",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.link("https://poe.com")`,
         demoArgs: `link "https://poe.com"`
       },
       {
         name: "muted",
         description: "De-emphasized text",
-        codeSnippet: `import { text } from "@poe-code/design-system";
+        codeSnippet: `import { text } from "toolcraft-design";
 text.muted("(optional)")`,
         demoArgs: `muted "(optional)"`
       }
@@ -194,28 +194,28 @@ text.muted("(optional)")`,
       {
         name: "info",
         description: "Information indicator (magenta dot)",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Configuring claude-code...", { symbol: symbols.info });`,
         demoArgs: `symbol info`
       },
       {
         name: "success",
         description: "Success indicator (magenta diamond)",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Configuration complete!", { symbol: symbols.success });`,
         demoArgs: `symbol success`
       },
       {
         name: "resolved",
         description: "Resolved/completed indicator (hollow diamond)",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("API Key\\n   poe-abc...xyz", { symbol: symbols.resolved });`,
         demoArgs: `symbol resolved`
       },
       {
         name: "errorResolved",
         description: "Error with details indicator (red square)",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Config Failed\\n   Missing API key", { symbol: symbols.errorResolved });`,
         demoArgs: `symbol errorResolved`
       }
@@ -229,28 +229,28 @@ log.message("Config Failed\\n   Missing API key", { symbol: symbols.errorResolve
       {
         name: "log-info",
         description: "Informational messages during operations",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Configuring claude-code...", { symbol: symbols.info });`,
         demoArgs: `log info`
       },
       {
         name: "log-success",
         description: "Success confirmation messages",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Configuration complete!", { symbol: symbols.success });`,
         demoArgs: `log success`
       },
       {
         name: "log-warn",
         description: "Warning messages for non-critical issues",
-        codeSnippet: `import { log } from "@poe-code/design-system";
+        codeSnippet: `import { log } from "toolcraft-design";
 log.warn("API key expires in 7 days");`,
         demoArgs: `log warn`
       },
       {
         name: "log-error",
         description: "Error messages for failures",
-        codeSnippet: `import { log } from "@poe-code/design-system";
+        codeSnippet: `import { log } from "toolcraft-design";
 log.error("Failed to write config file");`,
         demoArgs: `log error`
       }
@@ -259,47 +259,47 @@ log.error("Failed to write config file");`,
   {
     title: "Prompts",
     description:
-      "Interactive prompts for user input. Import from `@poe-code/design-system`.",
+      "Interactive prompts for user input. Import from `toolcraft-design`.",
     elements: [
       {
         name: "prompt-intro",
         description: "Command intro banner with animation",
-        codeSnippet: `import { intro } from "@poe-code/design-system";
+        codeSnippet: `import { intro } from "toolcraft-design";
 intro("Configure");`,
         demoArgs: `intro "Configure"`
       },
       {
         name: "prompt-note",
         description: "Boxed note for next steps or important info",
-        codeSnippet: `import { note } from "@poe-code/design-system";
+        codeSnippet: `import { note } from "toolcraft-design";
 note("Run poe-code test", "Next steps.");`,
         demoArgs: `note`
       },
       {
         name: "prompt-outro",
         description: "Command outro with feedback link",
-        codeSnippet: `import { outro } from "@poe-code/design-system";
+        codeSnippet: `import { outro } from "toolcraft-design";
 outro("Problems? https://...");`,
         demoArgs: `outro`
       },
       {
         name: "prompt-resolved",
         description: "Resolved prompt value display",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("API Key\\n   poe-abc...xyz", { symbol: symbols.resolved });`,
         demoArgs: `resolved`
       },
       {
         name: "prompt-errorResolved",
         description: "Error with details display",
-        codeSnippet: `import { log, symbols } from "@poe-code/design-system";
+        codeSnippet: `import { log, symbols } from "toolcraft-design";
 log.message("Config Failed\\n   Missing API key", { symbol: symbols.errorResolved });`,
         demoArgs: `errorResolved`
       },
       {
         name: "menu",
         description: "Interactive select prompt for choosing options",
-        codeSnippet: `import { select } from "@poe-code/design-system";
+        codeSnippet: `import { select } from "toolcraft-design";
 const choice = await select({
   message: "Pick an agent:",
   options: [
@@ -319,7 +319,7 @@ const choice = await select({
       {
         name: "spinner-dots",
         description: "Animated dots spinner for async operations",
-        codeSnippet: `import { spinner } from "@poe-code/design-system";
+        codeSnippet: `import { spinner } from "toolcraft-design";
 const s = spinner();
 s.start("Configuring...");
 await doWork();
@@ -329,7 +329,7 @@ s.stop("Done!");`,
       {
         name: "spinner-timer",
         description: "Timer spinner showing elapsed time",
-        codeSnippet: `import { renderSpinnerFrame, renderSpinnerStopped } from "@poe-code/design-system";
+        codeSnippet: `import { renderSpinnerFrame, renderSpinnerStopped } from "toolcraft-design";
 const frame = renderSpinnerFrame({ message: "Processing...", timer: "1s" });
 const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });`,
         demoArgs: `spinner timer`
@@ -337,7 +337,7 @@ const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });`,
       {
         name: "table",
         description: "Styled terminal table with themed borders and column alignment",
-        codeSnippet: `import { renderTable, getTheme } from "@poe-code/design-system";
+        codeSnippet: `import { renderTable, getTheme } from "toolcraft-design";
 
 const output = renderTable({
   theme: getTheme(),
@@ -354,7 +354,7 @@ const output = renderTable({
       {
         name: "diff",
         description: "Unified diff display for file changes (used in --dry-run)",
-        codeSnippet: `import { color, log } from "@poe-code/design-system";
+        codeSnippet: `import { color, log } from "toolcraft-design";
 const diffLines = [
   color.gray("--- config.json"),
   color.red('-  "model": "gpt-4",'),
@@ -374,7 +374,7 @@ log.message(diffLines.join("\\n"), { symbol: color.yellow("~") });`,
         name: "dashboard",
         description:
           "Two-pane dashboard layout with scrollable output on the left, live stats on the right, and keyboard hints in the footer",
-        codeSnippet: `import { createDashboard } from "@poe-code/design-system";
+        codeSnippet: `import { createDashboard } from "toolcraft-design";
 
 const dashboard = createDashboard({
   title: "Agent Output",
@@ -397,7 +397,7 @@ dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensO
         name: "terminal-markdown",
         description:
           "Full markdown renderer showcase with headings, lists, tables, blockquotes, alerts, links, and footnotes.",
-        codeSnippet: `import { renderMarkdown } from "@poe-code/design-system";
+        codeSnippet: `import { renderMarkdown } from "toolcraft-design";
 
 const markdown = [
   "# Design System Markdown",
@@ -415,7 +415,7 @@ process.stdout.write(renderMarkdown(markdown));`,
         name: "terminal-markdown-minimal",
         description:
           "Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.",
-        codeSnippet: `import { renderMarkdown } from "@poe-code/design-system";
+        codeSnippet: `import { renderMarkdown } from "toolcraft-design";
 
 const markdown = [
   "# Markdown Minimal",
@@ -440,7 +440,7 @@ function screenshotPath(name: string): string {
 
 function runScreenshot(name: string, demoArgs: string): void {
   const outputPath = screenshotPath(name);
-  const cmd = `npm run screenshot -- --no-header -o ${outputPath} npm run demo -w @poe-code/design-system -- ${demoArgs}`;
+  const cmd = `npm run screenshot -- --no-header -o ${outputPath} npm run demo -w toolcraft-design -- ${demoArgs}`;
   console.log(`Generating screenshot: ${name}`);
   execSync(cmd, { cwd: ROOT_DIR, stdio: "inherit" });
 }
@@ -475,14 +475,14 @@ function renderSharedIntro(
     "",
     "## Package Overview",
     "",
-    "The `@poe-code/design-system` package provides consistent visual styling for the poe-code CLI.",
+    "The `toolcraft-design` package provides consistent visual styling for the poe-code CLI.",
     "",
     "```typescript",
     "// Import components",
-    'import { text, symbols, intro, outro, log } from "@poe-code/design-system";',
+    'import { text, symbols, intro, outro, log } from "toolcraft-design";',
     "",
     "// Import tokens for advanced customization",
-    'import { brand, dark, light, spacing, typography, widths } from "@poe-code/design-system";',
+    'import { brand, dark, light, spacing, typography, widths } from "toolcraft-design";',
     "```",
     "",
     "## Design Tokens",
@@ -504,7 +504,7 @@ function renderSharedIntro(
     "The design system supports dark and light themes, auto-detected from environment:",
     "",
     "```typescript",
-    'import { getTheme, resolveThemeName } from "@poe-code/design-system";',
+    'import { getTheme, resolveThemeName } from "toolcraft-design";',
     "",
     "const themeName = resolveThemeName(); // 'dark' or 'light'",
     "const palette = getTheme();",

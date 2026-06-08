@@ -13,7 +13,8 @@ describe("codeReview config", () => {
 
     await expect(loadCodeReviewConfig({ fs, filePath: homeConfigPath })).resolves.toEqual({
       draftStore: ".poe-code/code-review/reviews",
-      humanGate: { provider: "none" }
+      humanGate: { provider: "none" },
+      profileDirectories: []
     });
   });
 
@@ -23,7 +24,8 @@ describe("codeReview config", () => {
         codeReview: {
           agent: "codex",
           draftStore: ".reviews",
-          humanGate: { provider: "none" }
+          humanGate: { provider: "none" },
+          profileDirectories: ["/catalog-a", "/catalog-b"]
         }
       })
     });
@@ -36,7 +38,8 @@ describe("codeReview config", () => {
     await expect(store.scope(codeReviewConfigScope).getAll()).resolves.toEqual({
       agent: "codex",
       draftStore: ".reviews",
-      humanGate: { provider: "none" }
+      humanGate: { provider: "none" },
+      profileDirectories: ["/catalog-a", "/catalog-b"]
     });
   });
 
@@ -46,7 +49,8 @@ describe("codeReview config", () => {
         codeReview: {
           agent: "claude-code",
           draftStore: ".poe-code/code-review/from-config",
-          humanGate: { provider: "none" }
+          humanGate: { provider: "none" },
+          profileDirectories: ["/catalog-from-config"]
         }
       })
     });
@@ -58,6 +62,7 @@ describe("codeReview config", () => {
           cwd: "/repo",
           agent: "codex",
           draftStore: ".poe-code/code-review/from-sdk",
+          profileDirectories: ["/catalog-from-sdk"],
           additionalFeedback: "Please revisit the API boundary."
         },
         { fs, filePath: homeConfigPath, projectFilePath: projectConfigPath }
@@ -68,7 +73,20 @@ describe("codeReview config", () => {
       agent: "codex",
       draftStore: ".poe-code/code-review/from-sdk",
       humanGate: { provider: "none" },
+      profileDirectories: ["/catalog-from-sdk"],
       additionalFeedback: "Please revisit the API boundary."
     });
+  });
+
+  it("rejects relative external profile directories", async () => {
+    const fs = createMockFs({
+      [projectConfigPath]: JSON.stringify({
+        codeReview: { profileDirectories: ["../catalog"] }
+      })
+    });
+
+    await expect(
+      loadCodeReviewConfig({ fs, filePath: homeConfigPath, projectFilePath: projectConfigPath })
+    ).rejects.toThrow("codeReview.profileDirectories entries must be absolute paths");
   });
 });

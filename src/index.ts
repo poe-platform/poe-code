@@ -41,6 +41,13 @@ export type {
 } from "./agent.js";
 export { bridgeHooks, cleanupBridgedHooks, supportedHookAgents } from "@poe-code/agent-hook-config";
 export { planDocumentSchema, planDocumentSchemaId } from "./plan/document-schema.js";
+export { resolvePromptDocument } from "./sdk/prompt-document.js";
+export type {
+  PromptDocumentFileSystem,
+  PromptDocumentBaseDocument,
+  ResolvedPromptDocument,
+  ResolvePromptDocumentInput
+} from "./sdk/prompt-document.js";
 export { ghGroup } from "@poe-code/github-workflows";
 export {
   evalCheck,
@@ -72,6 +79,7 @@ export {
   ingestCodeReviewProfile,
   installCodeReviewAssets,
   loadCodeReviewProfile,
+  previewCodeReviewSpawnPrompt,
   readCodeReviewDraft,
   runCodeReview,
   runCodeReviewAgentMcp,
@@ -157,12 +165,15 @@ export type {
   CodeReviewIngestResult,
   CodeReviewInstallResult,
   CodeReviewOrchestrationInput,
+  CodeReviewPreviewSpawn,
   CodeReviewProfile,
   CodeReviewResult,
+  CodeReviewSpawnPromptPreview,
   CodeReviewRunInput,
   CodeReviewRunOptions,
   CodeReviewState,
   CommitCodeReviewDraftsInput,
+  PreviewCodeReviewSpawnPromptInput,
   ReadCodeReviewDraftInput
 } from "agent-code-review";
 export type {

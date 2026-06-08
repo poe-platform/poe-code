@@ -25,7 +25,9 @@ vi.mock("@poe-code/agent-spawn", () => ({
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
+    getTemplatePartialNames: actual.getTemplatePartialNames,
     renderTemplate: actual.renderTemplate,
+    resolveTemplatePartials: actual.resolveTemplatePartials,
     select: designSystemState.select,
     isCancel: () => false,
     cancel: vi.fn()

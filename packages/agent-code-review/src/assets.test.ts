@@ -1,0 +1,124 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import { vol } from "memfs";
+import { discoverCodeReviewProfiles, resolveCodeReviewRolePrompt } from "./assets.js";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+describe("discoverCodeReviewProfiles", () => {
+  beforeEach(() => vol.reset());
+
+  it("discovers external catalogs when the repository has no local profiles", async () => {
+    vol.fromJSON({
+      "/catalog/security.md": "# Security\n\nFind security regressions."
+    });
+
+    await expect(
+      discoverCodeReviewProfiles({ cwd: "/repo", profileDirectories: ["/catalog"] })
+    ).resolves.toEqual([
+      {
+        name: "security",
+        content: "# Security\n\nFind security regressions.",
+        filePath: "/catalog/security.md",
+        source: "external"
+      }
+    ]);
+  });
+
+  it("uses repo-local profiles before external catalogs and earlier catalogs before later ones", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/profiles/security.md": "repo security",
+      "/catalog-a/security.md": "catalog a security",
+      "/catalog-a/performance.md": "catalog a performance",
+      "/catalog-b/performance.md": "catalog b performance",
+      "/catalog-b/accessibility.md": "catalog b accessibility"
+    });
+
+    const profiles = await discoverCodeReviewProfiles({
+      cwd: "/repo",
+      profileDirectories: ["/catalog-a", "/catalog-b"]
+    });
+
+    expect(profiles.map(({ name, content, source }) => ({ name, content, source }))).toEqual([
+      { name: "security", content: "repo security", source: "repo" },
+      { name: "performance", content: "catalog a performance", source: "external" },
+      { name: "accessibility", content: "catalog b accessibility", source: "external" }
+    ]);
+  });
+
+  it("filters profiles after applying catalog precedence", async () => {
+    vol.fromJSON({
+      "/catalog-a/security.md": "catalog a security",
+      "/catalog-b/security.md": "catalog b security",
+      "/catalog-b/accessibility.md": "catalog b accessibility"
+    });
+
+    await expect(
+      discoverCodeReviewProfiles({
+        cwd: "/repo",
+        profileDirectories: ["/catalog-a", "/catalog-b"],
+        filters: ["security"]
+      })
+    ).resolves.toEqual([
+      {
+        name: "security",
+        content: "catalog a security",
+        filePath: "/catalog-a/security.md",
+        source: "external"
+      }
+    ]);
+  });
+
+  it("rejects a symlinked external catalog root", async () => {
+    vol.fromJSON({ "/real/security.md": "security" });
+    vol.symlinkSync("/real", "/catalog");
+
+    await expect(
+      discoverCodeReviewProfiles({ cwd: "/repo", profileDirectories: ["/catalog"] })
+    ).rejects.toThrow("not a regular directory");
+  });
+
+  it("rejects relative external catalog paths from direct SDK calls", async () => {
+    await expect(
+      discoverCodeReviewProfiles({ cwd: "/repo", profileDirectories: ["../catalog"] })
+    ).rejects.toThrow("codeReview.profileDirectories entries must be absolute paths");
+  });
+
+  it("extends the built-in role prompt and reports provenance", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md":
+        "---\nextends: true\n---\nProject policy\n\n{{yield}}"
+    });
+
+    const resolved = await resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" });
+
+    expect(resolved.prompt).toContain("Project policy");
+    expect(resolved.prompt).toContain("Review this pull request");
+    expect(resolved.chain).toHaveLength(2);
+    expect(resolved.chain[0]).toBe("/repo/.poe-code/code-review/prompts/orchestrator.md");
+  });
+
+  it("keeps full role prompt overrides backward compatible", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md": "Full project override"
+    });
+
+    const resolved = await resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" });
+
+    expect(resolved.prompt).toBe("Full project override");
+    expect(resolved.chain).toEqual(["/repo/.poe-code/code-review/prompts/orchestrator.md"]);
+  });
+
+  it("keeps validating declared role prompt metadata", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/code-review/prompts/orchestrator.md":
+        "---\nversion: 1\nrole: subagent\n---\nWrong role"
+    });
+
+    await expect(
+      resolveCodeReviewRolePrompt({ cwd: "/repo", role: "orchestrator" })
+    ).rejects.toThrow("frontmatter.role must equal orchestrator");
+  });
+});

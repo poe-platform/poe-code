@@ -20,6 +20,7 @@ Configuration uses the normal `.poe-code/config.json` hierarchy under the `codeR
   "codeReview": {
     "agent": "codex",
     "draftStore": ".poe-code/code-review/reviews",
+    "profileDirectories": ["/srv/reviewer-profiles"],
     "humanGate": { "provider": "none" }
   }
 }
@@ -64,11 +65,27 @@ The workflow uses these commands:
 
 - `install`: run `poe-code code-review install [--cwd <repo>] [--force]` to install repo-local starter profiles and prompts.
 - `profiles`: run `poe-code code-review profiles [--cwd <repo>]` to list available reviewer profiles. Add or edit `.poe-code/code-review/profiles/*.md`, or rely on the built-in `generic` fallback when the directory contains no profiles.
+- `prompt-preview`: run `poe-code code-review prompt-preview --spawn <orchestrator|reviewer|profile-synthesis> [--profile <name>] [--cwd <repo>]` to render the exact effective spawn prompt without GitHub, model, or agent calls.
 - `ingest`: run `poe-code code-review ingest <github-username> --repo <owner/name> [--repo <owner/name>...] [--profile <name>] [--agent <agent>] [--cwd <repo>]` to synthesize a profile from authored GitHub review history; repeat `--repo` for each source repository.
 - `run`: run `poe-code code-review run <github-pr-url> [--cwd <repo>] [--agent <agent>] [--profiles <profile>...] [--additional-feedback <text>]` to fetch the PR, launch review agents, and create a merged YAML draft without publishing it.
 - `drafts`: run `poe-code code-review drafts <github-pr-url> [--cwd <repo>] [--draft-store <dir>]` to read the active YAML draft.
 - `commit`: run `poe-code code-review commit <github-pr-url> [--cwd <repo>] [--draft-store <dir>] [--actor <name>] [--dry-run]` to validate and publish the final merged review. `--dry-run` returns only the payload that would be submitted and leaves YAML state active.
 - `agent-mcp`: run `poe-code code-review agent-mcp --role <agent|orchestrator|subagent> --session <id> --actor <name> --cwd <repo> [--draft-store <dir>] --agent <agent> [--profiles <csv>]` to start the stdio MCP process intended for spawned review agents.
+
+## Prompt composition and preview
+
+Repo-local role prompts live in `.poe-code/code-review/prompts/*.md`. A plain Markdown file remains a complete replacement for the built-in role prompt. To add a small policy layer while retaining the packaged default, use the shared prompt-document composition format:
+
+```md
+---
+extends: true
+---
+Apply the repository security policy before reviewing.
+
+{{yield}}
+```
+
+The public `previewCodeReviewSpawnPrompt(...)` SDK returns the final prompt plus `promptDocument` provenance, including the resolved source chain. Preview uses deterministic placeholder PR context unless callers provide `prUrl`, `prDetails`, `diff`, or `priorActivity` values.
 
 - Agents and subagents receive PR read tools plus `code_review_create_draft` only.
 - Orchestrators additionally receive profile/spawn/status and draft-management tools.
@@ -90,6 +107,20 @@ GH_TOKEN="$GH_TOKEN" poe-code code-review commit \
 ```
 
 Use `commit --dry-run` before enabling publication in a pipeline that is still being configured.
+
+## External profile catalogs
+
+Embedding services can configure absolute central catalog directories through `codeReview.profileDirectories`, or pass the same `profileDirectories` array to `runCodeReview` and `discoverCodeReviewProfiles`. The `profiles` command and spawned reviewer agents use the same configured catalogs.
+
+```ts
+await runCodeReview({
+  prUrl: "https://github.com/acme/widgets/pull/123",
+  cwd: "/srv/checkouts/widgets",
+  profileDirectories: ["/srv/reviewer-profiles"]
+});
+```
+
+Profile precedence is deterministic: repo-local profiles win first, then external directories in configured order. An exact-name collision keeps the first profile; names that differ only by Unicode normalization or case are rejected. The built-in `generic` profile is used only when neither repo-local nor external catalogs contain profiles.
 
 ## External human gates
 

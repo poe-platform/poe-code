@@ -19,7 +19,9 @@ import {
   planDocumentSchema,
   planDocumentSchemaId,
   openaiResponsesPlugin,
+  previewCodeReviewSpawnPrompt,
   readCodeReviewDraft,
+  resolvePromptDocument,
   runExperiment,
   runCodeReview,
   runCodeReviewAgentMcp,
@@ -83,6 +85,7 @@ describe("entrypoint module", () => {
     expect(typeof discoverCodeReviewProfiles).toBe("function");
     expect(typeof installCodeReviewAssets).toBe("function");
     expect(typeof loadCodeReviewProfile).toBe("function");
+    expect(typeof previewCodeReviewSpawnPrompt).toBe("function");
     expect(typeof ingestCodeReviewProfile).toBe("function");
     expect(typeof runCodeReview).toBe("function");
     expect(typeof readCodeReviewDraft).toBe("function");
@@ -92,6 +95,10 @@ describe("entrypoint module", () => {
 
   it("re-exports runExperiment", () => {
     expect(typeof runExperiment).toBe("function");
+  });
+
+  it("re-exports the prompt document resolver", () => {
+    expect(typeof resolvePromptDocument).toBe("function");
   });
 
   it("re-exports process launcher SDK helpers", () => {

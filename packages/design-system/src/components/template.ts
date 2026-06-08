@@ -2,13 +2,22 @@ export type TemplateEscape = "html" | "none";
 
 export interface RenderTemplateOptions {
   escape?: TemplateEscape;
+  partials?: Record<string, string>;
+  validate?: boolean;
   yield?: string;
 }
 
 type Token =
   | { type: "text"; value: string; start: number }
   | { type: "name" | "unescaped"; name: string; raw: string }
-  | { type: "section" | "inverted"; name: string; children: Token[]; rawStart: number; rawEnd: number };
+  | { type: "partial"; name: string; indent: string }
+  | {
+      type: "section" | "inverted";
+      name: string;
+      children: Token[];
+      rawStart: number;
+      rawEnd: number;
+    };
 
 interface SectionFrame {
   token: Extract<Token, { type: "section" | "inverted" }>;
@@ -21,6 +30,16 @@ interface Context {
 }
 
 type Lambda = (...args: unknown[]) => unknown;
+
+interface RenderState {
+  escape: (value: string) => string;
+  partials: Record<string, string>;
+  partialStack: string[];
+  preserveMissing: boolean;
+  validate: boolean;
+}
+
+const MAX_PARTIAL_DEPTH = 100;
 
 const HTML_ESCAPE: Record<string, string> = {
   "&": "&amp;",
@@ -38,23 +57,44 @@ export function renderTemplate(
   view: Record<string, unknown>,
   options: RenderTemplateOptions = {}
 ): string {
-  const prepared = options.yield === undefined
+  const prepared =
+    options.yield === undefined
     ? template
-    : template.split("{{yield}}").join(options.yield);
+      : resolveTemplatePartials(template, options.partials ?? {})
+          .split("{{yield}}")
+          .join(options.yield);
   const tokens = parseTemplate(prepared);
-  const escape = options.escape === "none" ? String : escapeHtml;
-  const preserveMissing = options.yield !== undefined && options.escape === "none";
+  validatePartialReferences(tokens, options.partials ?? {}, []);
+  if (options.validate === true) {
+    const expanded = resolveTemplatePartials(prepared, options.partials ?? {});
+    validateVariables(parseTemplate(expanded), { view });
+  }
+  const state: RenderState = {
+    escape: options.escape === "none" ? String : escapeHtml,
+    partials: options.partials ?? {},
+    partialStack: [],
+    preserveMissing: options.yield !== undefined && options.escape === "none",
+    validate: options.validate === true
+  };
 
-  return renderTokens(tokens, { view }, prepared, escape, preserveMissing);
+  return renderTokens(tokens, { view }, prepared, state);
 }
 
-function renderTemplateInContext(
+export function getTemplatePartialNames(template: string): string[] {
+  const names = new Set<string>();
+  collectPartialNames(parseTemplate(template), names);
+  return [...names];
+}
+
+export function resolveTemplatePartials(
   template: string,
-  context: Context,
-  escape: (value: string) => string,
-  preserveMissing: boolean
+  partials: Record<string, string>
 ): string {
-  return renderTokens(parseTemplate(template), context, template, escape, preserveMissing);
+  return expandTemplatePartials(template, partials, []);
+}
+
+function renderTemplateInContext(template: string, context: Context, state: RenderState): string {
+  return renderTokens(parseTemplate(template), context, template, state);
 }
 
 function parseTemplate(template: string): Token[] {
@@ -83,10 +123,6 @@ function parseTemplate(template: string): Token[] {
       continue;
     }
 
-    if (parsed.kind === "partial") {
-      throw new Error(`Partials are not supported: "${parsed.name}"`);
-    }
-
     if (parsed.kind === "delimiter") {
       throw new Error("Custom delimiters are not supported");
     }
@@ -102,6 +138,16 @@ function parseTemplate(template: string): Token[] {
       tokens.push(token);
       stack.push({ token, parent: tokens });
       tokens = token.children;
+      index = standalone?.nextIndex ?? parsed.end;
+      continue;
+    }
+
+    if (parsed.kind === "partial") {
+      tokens.push({
+        type: "partial",
+        name: parsed.name,
+        indent: standalone === undefined ? "" : template.slice(standalone.lineStart, open)
+      });
       index = standalone?.nextIndex ?? parsed.end;
       continue;
     }
@@ -132,8 +178,19 @@ function parseTemplate(template: string): Token[] {
   return root;
 }
 
-function parseTag(template: string, open: number): {
-  kind: "name" | "unescaped" | "section" | "inverted" | "close" | "comment" | "partial" | "delimiter";
+function parseTag(
+  template: string,
+  open: number
+): {
+  kind:
+    | "name"
+    | "unescaped"
+    | "section"
+    | "inverted"
+    | "close"
+    | "comment"
+    | "partial"
+    | "delimiter";
   name: string;
   end: number;
 } {
@@ -205,8 +262,7 @@ function renderTokens(
   tokens: Token[],
   context: Context,
   template: string,
-  escape: (value: string) => string,
-  preserveMissing: boolean
+  state: RenderState
 ): string {
   let output = "";
 
@@ -218,35 +274,67 @@ function renderTokens(
 
       case "name":
       case "unescaped": {
-        const value = lookup(context, token.name);
-        if (value == null) {
-          if (preserveMissing) {
+        const result = lookup(context, token.name);
+        if (!result.hit || result.value == null) {
+          if (state.validate) {
+            throw new Error(`Template variable "${token.name}" not found.`);
+          }
+          if (state.preserveMissing) {
             output += token.raw;
           }
           continue;
         }
-        const rendered = String(value);
-        output += token.type === "name" ? escape(rendered) : rendered;
+        const rendered = String(result.value);
+        output += token.type === "name" ? state.escape(rendered) : rendered;
+        continue;
+      }
+
+      case "partial": {
+        if (!Object.hasOwn(state.partials, token.name)) {
+          throw new Error(`Partial "${token.name}" not found.`);
+        }
+        if (state.partialStack.includes(token.name)) {
+          throw new Error(
+            `Circular partial reference detected: ${[...state.partialStack, token.name].join(" -> ")}.`
+          );
+        }
+        if (state.partialStack.length >= MAX_PARTIAL_DEPTH) {
+          throw new Error(`Maximum partial depth exceeded (${MAX_PARTIAL_DEPTH}).`);
+        }
+
+        const partial = indentPartial(state.partials[token.name], token.indent);
+        output += renderTokens(parseTemplate(partial), context, partial, {
+          ...state,
+          partialStack: [...state.partialStack, token.name]
+        });
         continue;
       }
 
       case "inverted": {
-        const value = lookup(context, token.name);
+        const result = lookup(context, token.name);
+        if (!result.hit && state.validate) {
+          throw new Error(`Template variable "${token.name}" not found.`);
+        }
+        const value = result.value;
         if (!value || (Array.isArray(value) && value.length === 0)) {
-          output += renderTokens(token.children, context, template, escape, preserveMissing);
+          output += renderTokens(token.children, context, template, state);
         }
         continue;
       }
 
       case "section": {
-        const value = lookup(context, token.name);
+        const result = lookup(context, token.name);
+        if (!result.hit && state.validate) {
+          throw new Error(`Template variable "${token.name}" not found.`);
+        }
+        const value = result.value;
         if (!value) {
           continue;
         }
 
         if (Array.isArray(value)) {
           for (const item of value) {
-            output += renderTokens(token.children, pushContext(context, item), template, escape, preserveMissing);
+            output += renderTokens(token.children, pushContext(context, item), template, state);
           }
           continue;
         }
@@ -254,7 +342,7 @@ function renderTokens(
         if (typeof value === "function") {
           const raw = template.slice(token.rawStart, token.rawEnd);
           const rendered = (value as Lambda).call(context.view, raw, (nextTemplate: string) =>
-            renderTemplateInContext(nextTemplate, context, escape, preserveMissing)
+            renderTemplateInContext(nextTemplate, context, state)
           );
           if (rendered != null) {
             output += String(rendered);
@@ -263,11 +351,11 @@ function renderTokens(
         }
 
         if (typeof value === "object" || typeof value === "string" || typeof value === "number") {
-          output += renderTokens(token.children, pushContext(context, value), template, escape, preserveMissing);
+          output += renderTokens(token.children, pushContext(context, value), template, state);
           continue;
         }
 
-        output += renderTokens(token.children, context, template, escape, preserveMissing);
+        output += renderTokens(token.children, context, template, state);
       }
     }
   }
@@ -275,9 +363,9 @@ function renderTokens(
   return output;
 }
 
-function lookup(context: Context, name: string): unknown {
+function lookup(context: Context, name: string): { hit: boolean; value: unknown } {
   if (name === ".") {
-    return callLambda(context.view, context.view);
+    return { hit: true, value: callLambda(context.view, context.view) };
   }
 
   let cursor: Context | undefined = context;
@@ -287,13 +375,155 @@ function lookup(context: Context, name: string): unknown {
       : lookupName(cursor.view, name);
 
     if (result.hit) {
-      return callLambda(result.value, cursor.view);
+      return { hit: true, value: callLambda(result.value, cursor.view) };
     }
 
     cursor = cursor.parent;
   }
 
-  return undefined;
+  return { hit: false, value: undefined };
+}
+
+function collectPartialNames(tokens: Token[], names: Set<string>): void {
+  for (const token of tokens) {
+    if (token.type === "partial") {
+      names.add(token.name);
+      continue;
+    }
+    if (token.type === "section" || token.type === "inverted") {
+      collectPartialNames(token.children, names);
+    }
+  }
+}
+
+function validateVariables(tokens: Token[], context: Context): void {
+  for (const token of tokens) {
+    if (token.type === "text" || token.type === "partial") {
+      continue;
+    }
+    if (token.type === "name" || token.type === "unescaped") {
+      if (!lookup(context, token.name).hit) {
+        throw new Error(`Template variable "${token.name}" not found.`);
+      }
+      continue;
+    }
+    if (token.type !== "section" && token.type !== "inverted") {
+      continue;
+    }
+
+    const result = lookup(context, token.name);
+    if (!result.hit) {
+      throw new Error(`Template variable "${token.name}" not found.`);
+    }
+    if (Array.isArray(result.value) && result.value.length > 0) {
+      for (const item of result.value) {
+        validateVariables(token.children, pushContext(context, item));
+      }
+      continue;
+    }
+    if (
+      typeof result.value === "object" && result.value !== null ||
+      typeof result.value === "string" ||
+      typeof result.value === "number"
+    ) {
+      validateVariables(token.children, pushContext(context, result.value));
+      continue;
+    }
+
+    validateVariables(token.children, context);
+  }
+}
+
+function validatePartialReferences(
+  tokens: Token[],
+  partials: Record<string, string>,
+  partialStack: string[]
+): void {
+  for (const token of tokens) {
+    if (token.type === "section" || token.type === "inverted") {
+      validatePartialReferences(token.children, partials, partialStack);
+      continue;
+    }
+    if (token.type !== "partial") {
+      continue;
+    }
+    if (!Object.hasOwn(partials, token.name)) {
+      throw new Error(`Partial "${token.name}" not found.`);
+    }
+    if (partialStack.includes(token.name)) {
+      throw new Error(
+        `Circular partial reference detected: ${[...partialStack, token.name].join(" -> ")}.`
+      );
+    }
+    if (partialStack.length >= MAX_PARTIAL_DEPTH) {
+      throw new Error(`Maximum partial depth exceeded (${MAX_PARTIAL_DEPTH}).`);
+    }
+
+    validatePartialReferences(parseTemplate(partials[token.name]), partials, [
+      ...partialStack,
+      token.name
+    ]);
+  }
+}
+
+function indentPartial(partial: string, indent: string): string {
+  if (indent === "") {
+    return partial;
+  }
+
+  return partial
+    .split("\n")
+    .map((line) => (line === "" ? "" : `${indent}${line}`))
+    .join("\n");
+}
+
+function expandTemplatePartials(
+  template: string,
+  partials: Record<string, string>,
+  partialStack: string[]
+): string {
+  let output = "";
+  let index = 0;
+
+  while (index < template.length) {
+    const open = template.indexOf("{{", index);
+    if (open === -1) {
+      output += template.slice(index);
+      break;
+    }
+
+    const parsed = parseTag(template, open);
+    if (parsed.kind !== "partial") {
+      output += template.slice(index, parsed.end);
+      index = parsed.end;
+      continue;
+    }
+
+    if (!Object.hasOwn(partials, parsed.name)) {
+      throw new Error(`Partial "${parsed.name}" not found.`);
+    }
+    if (partialStack.includes(parsed.name)) {
+      throw new Error(
+        `Circular partial reference detected: ${[...partialStack, parsed.name].join(" -> ")}.`
+      );
+    }
+    if (partialStack.length >= MAX_PARTIAL_DEPTH) {
+      throw new Error(`Maximum partial depth exceeded (${MAX_PARTIAL_DEPTH}).`);
+    }
+
+    const standalone = getStandalone(template, open, parsed.end, parsed.kind);
+    const beforePartial =
+      standalone === undefined
+        ? template.slice(index, open)
+        : template.slice(index, standalone.lineStart);
+    const indent = standalone === undefined ? "" : template.slice(standalone.lineStart, open);
+    const partial = indentPartial(partials[parsed.name], indent);
+    output +=
+      beforePartial + expandTemplatePartials(partial, partials, [...partialStack, parsed.name]);
+    index = standalone?.nextIndex ?? parsed.end;
+  }
+
+  return output;
 }
 
 function lookupName(view: unknown, name: string): { hit: boolean; value: unknown } {

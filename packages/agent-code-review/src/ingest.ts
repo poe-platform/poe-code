@@ -10,8 +10,9 @@ import {
   fetchReviewHistory
 } from "github-review";
 import { type SpawnOptions, type SpawnResult, spawn } from "@poe-code/agent-spawn";
-import { CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT, loadCodeReviewRolePrompt } from "./assets.js";
+import { loadCodeReviewRolePrompt } from "./assets.js";
 import { loadDefaultPoeCodeAgent } from "./config.js";
+import { buildCodeReviewProfileSynthesisPrompt } from "./prompt-builders.js";
 import {
   parseCodeReviewProfileMarkdown,
   requireGitHubActorName,
@@ -184,7 +185,7 @@ export async function ingestCodeReviewProfile(
       observation
     })
   );
-  const synthesisPrompt = renderSynthesisPrompt({
+  const synthesisPrompt = buildCodeReviewProfileSynthesisPrompt({
     template: await (dependencies.loadPrompt ?? loadCodeReviewRolePrompt)({
       cwd,
       role: "profile-synthesis"
@@ -238,15 +239,6 @@ function normalizeComment(comment: ReviewHistoryComment): NormalizedIngestCommen
     ...(comment.line === undefined ? {} : { line: comment.line }),
     ...(comment.diffHunk ? { diffHunk: comment.diffHunk } : {})
   };
-}
-
-function renderSynthesisPrompt(input: {
-  template: string;
-  commentsPath: string;
-  profilePath: string;
-  partial: boolean;
-}): string {
-  return `${input.template.trim()}\n\n# Profile synthesis task\n\nRead the normalized review evidence from \`${input.commentsPath}\` and directly write the completed Markdown profile to \`${input.profilePath}\`.\n\nRequirements:\n- Write in first person so the profile can be inserted directly into runtime code-review prompts.\n- Describe concrete review priorities, likely concerns, tone, and useful heuristics grounded in the evidence.\n- ${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}\n- Do not write analysis or summaries anywhere other than the requested profile file.\n${input.partial ? "- The fetched evidence is partial because API rate limits interrupted collection; be conservative about claims.\n" : ""}`;
 }
 
 function serializeSource(input: {

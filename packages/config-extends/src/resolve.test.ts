@@ -285,12 +285,9 @@ describe("resolve", () => {
         {
           source: "document",
           filePath: "/workspace/review.yaml",
-          content: [
-            "extends: true",
-            "nested:",
-            "  shared: document",
-            "  onlyDocument: true"
-          ].join("\n")
+          content: ["extends: true", "nested:", "  shared: document", "  onlyDocument: true"].join(
+            "\n"
+          )
         },
         {
           source: "base",
@@ -820,10 +817,19 @@ describe("resolve", () => {
 
   it("nests chained layouts while keeping one final template", async () => {
     const fs = createMemFs({
-      "/base-a/review.md": ["---", "extends: true", "---", "Base A intro", "", "{{yield}}"].join("\n"),
-      "/base-b/review.md": ["---", "extends: true", "---", "Base B intro", "", "{{yield}}", "", "Base B outro"].join(
+      "/base-a/review.md": ["---", "extends: true", "---", "Base A intro", "", "{{yield}}"].join(
         "\n"
       ),
+      "/base-b/review.md": [
+        "---",
+        "extends: true",
+        "---",
+        "Base B intro",
+        "",
+        "{{yield}}",
+        "",
+        "Base B outro"
+      ].join("\n"),
       "/base-c/review.md": "Read {{url}}."
     });
 
@@ -1140,5 +1146,147 @@ describe("resolve", () => {
       },
       chain: ["/workspace/poe-code-review.yaml", "/bases/review.yaml"]
     });
+  });
+
+  it("resolves markdown partials and reports every source file", async () => {
+    const fs = createMemFs({
+      "/workspace/evidence-rules.md": "Evidence for {{company}}.\n{{> output-contract}}",
+      "/workspace/output-contract.md": "Return Markdown.",
+      "/bases/review.md": "Base instructions.\n\n{{yield}}\n\n{{> shared-style}}",
+      "/bases/shared-style.md": "Be concise."
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: "---\nextends: true\n---\n{{> evidence-rules}}\n\nAnalyze {{company}}."
+          },
+          { source: "base", path: "/bases" }
+        ],
+        { fs, view: { company: "Poe" }, validate: true }
+      )
+    ).resolves.toEqual({
+      data: {
+        prompt: [
+          "Base instructions.",
+          "",
+          "Evidence for Poe.",
+          "Return Markdown.",
+          "Analyze Poe.",
+          "",
+          "Be concise."
+        ].join("\n")
+      },
+      sources: { prompt: "document" },
+      chain: [
+        "/workspace/review.md",
+        "/bases/review.md",
+        "/workspace/evidence-rules.md",
+        "/workspace/output-contract.md",
+        "/bases/shared-style.md"
+      ]
+    });
+  });
+
+  it("fails when a markdown partial does not exist", async () => {
+    const fs = createMemFs();
+
+    await expect(
+      resolve(
+        [{ source: "document", filePath: "/workspace/review.md", content: "{{> missing}}" }],
+        { fs }
+      )
+    ).rejects.toThrow('Partial "missing" not found.');
+  });
+
+  it("lets document partials override inherited partials", async () => {
+    const fs = createMemFs({
+      "/workspace/rules.md": "Project rules.",
+      "/bases/review.md": "{{> rules}}\n\n{{yield}}",
+      "/bases/rules.md": "Base rules."
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: "---\nextends: true\n---\nReview."
+          },
+          { source: "base", path: "/bases" }
+        ],
+        { fs }
+      )
+    ).resolves.toMatchObject({
+      data: { prompt: "Project rules.\nReview." },
+      chain: ["/workspace/review.md", "/bases/review.md", "/workspace/rules.md"]
+    });
+  });
+
+  it("composes inheritance when yield is inside a markdown partial", async () => {
+    const fs = createMemFs({
+      "/bases/review.md": "{{> layout}}",
+      "/bases/layout.md": "Before\n\n{{yield}}\n\nAfter"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: "---\nextends: true\n---\nChild"
+          },
+          { source: "base", path: "/bases" }
+        ],
+        { fs }
+      )
+    ).resolves.toMatchObject({
+      data: { prompt: "Before\n\nChild\n\nAfter" },
+      chain: ["/workspace/review.md", "/bases/review.md", "/bases/layout.md"]
+    });
+  });
+
+  it("rejects markdown partial names that escape prompt directories", async () => {
+    const fs = createMemFs({
+      "/secret.md": "secret"
+    });
+
+    await expect(
+      resolve(
+        [{ source: "document", filePath: "/workspace/review.md", content: "{{> ../secret}}" }],
+        { fs }
+      )
+    ).rejects.toThrow('Partial name must remain inside prompt directories: "../secret".');
+  });
+
+  it("fails on circular markdown partial references", async () => {
+    const fs = createMemFs({
+      "/workspace/one.md": "{{> two}}",
+      "/workspace/two.md": "{{> one}}"
+    });
+
+    await expect(
+      resolve([{ source: "document", filePath: "/workspace/review.md", content: "{{> one}}" }], {
+        fs
+      })
+    ).rejects.toThrow("Circular partial reference detected: one -> two -> one.");
+  });
+
+  it("validates variables across resolved prompts before execution", async () => {
+    const fs = createMemFs({
+      "/workspace/rules.md": "Rules for {{company}}"
+    });
+
+    await expect(
+      resolve([{ source: "document", filePath: "/workspace/review.md", content: "{{> rules}}" }], {
+        fs,
+        validate: true
+      })
+    ).rejects.toThrow('Template variable "company" not found.');
   });
 });

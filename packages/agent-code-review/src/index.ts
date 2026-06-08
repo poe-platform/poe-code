@@ -5,6 +5,7 @@ export {
 } from "./config-scope.js";
 export {
   loadCodeReviewConfig,
+  loadCodeReviewRuntimeConfig,
   loadDefaultPoeCodeAgent,
   resolveCodeReviewRuntimeOptions,
   resolveCodeReviewRunOptions,
@@ -21,6 +22,7 @@ export {
   discoverCodeReviewProfiles,
   installCodeReviewAssets,
   loadCodeReviewRolePrompt,
+  resolveCodeReviewRolePrompt,
   loadCodeReviewProfile,
   loadCodeReviewPrompt,
   type CodeReviewAssetReader,
@@ -28,6 +30,13 @@ export {
   type CodeReviewProfile,
   type CodeReviewPromptRole
 } from "./assets.js";
+export {
+  CODE_REVIEW_PREVIEW_SPAWNS,
+  previewCodeReviewSpawnPrompt,
+  type CodeReviewPreviewSpawn,
+  type CodeReviewSpawnPromptPreview,
+  type PreviewCodeReviewSpawnPromptInput
+} from "./prompt-preview.js";
 export {
   parseCodeReviewState,
   serializeCodeReviewState,
@@ -61,6 +70,7 @@ export {
   createCodeReviewGroup,
   installCodeReviewAssetsCommand,
   listCodeReviewProfilesCommand,
+  promptPreviewCodeReviewCommand,
   readCodeReviewDraftCommand,
   type CodeReviewCliDependencies
 } from "./cli.js";

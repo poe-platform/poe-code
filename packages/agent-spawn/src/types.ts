@@ -152,6 +152,7 @@ export interface SpawnContext {
 export interface StdinMode {
   omitPrompt: boolean;
   extraArgs: string[];
+  automaticFallback?: boolean;
 }
 
 export interface InteractiveSpawnConfig {

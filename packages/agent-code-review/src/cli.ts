@@ -14,11 +14,21 @@ import {
   runCodeReview
 } from "./review.js";
 import { readCodeReviewDraft } from "./review-store.js";
+import { loadCodeReviewRuntimeConfig } from "./config.js";
+import {
+  CODE_REVIEW_PREVIEW_SPAWNS,
+  previewCodeReviewSpawnPrompt,
+  type CodeReviewSpawnPromptPreview,
+  type PreviewCodeReviewSpawnPromptInput
+} from "./prompt-preview.js";
 
 type RunCodeReviewHandler = (input: CodeReviewOrchestrationInput) => Promise<CodeReviewResult>;
 type CommitCodeReviewDraftsHandler = (
   input: CommitCodeReviewDraftsInput
 ) => Promise<CodeReviewCommitResult | CodeReviewPublicationPayload>;
+type PreviewCodeReviewSpawnPromptHandler = (
+  input: PreviewCodeReviewSpawnPromptInput
+) => Promise<CodeReviewSpawnPromptPreview>;
 
 const agentMcpCommand = defineCommand({
   name: "agent-mcp",
@@ -32,7 +42,8 @@ const agentMcpCommand = defineCommand({
     cwd: S.String({ description: "Repository working directory." }),
     draftStore: S.Optional(S.String({ description: "Absolute YAML review state directory." })),
     agent: S.String({ description: "Poe Code agent used for subagents." }),
-    profiles: S.Optional(S.String({ description: "Comma-separated allowed profile names." }))
+    profiles: S.Optional(S.String({ description: "Comma-separated allowed profile names." })),
+    profileDirectories: S.Optional(S.String({ description: "JSON array of external profile directories." }))
   }),
   scope: ["cli"],
   handler: async ({ params }) =>
@@ -49,7 +60,8 @@ const agentMcpCommand = defineCommand({
         ...(params.draftStore ? ["--draft-store", params.draftStore] : []),
         "--agent",
         params.agent,
-        ...(params.profiles ? ["--profiles", params.profiles] : [])
+        ...(params.profiles ? ["--profiles", params.profiles] : []),
+        ...(params.profileDirectories ? ["--profile-directories", params.profileDirectories] : [])
       ])
     )
 });
@@ -75,19 +87,22 @@ export const installCodeReviewAssetsCommand = defineCommand({
 
 export const listCodeReviewProfilesCommand = defineCommand({
   name: "profiles",
-  description: "List repo-local code review profiles.",
+  description: "List configured code review profiles.",
   params: S.Object({
     cwd: S.Optional(S.String({ description: "Repository root directory." }))
   }),
   scope: ["cli"],
-  handler: async ({ params }) =>
-    (await discoverCodeReviewProfiles({ cwd: params.cwd?.trim() || process.cwd() })).map(
+  handler: async ({ params }) => {
+    const cwd = params.cwd?.trim() || process.cwd();
+    const config = await loadCodeReviewRuntimeConfig(cwd);
+    return (await discoverCodeReviewProfiles({ cwd, profileDirectories: config.profileDirectories })).map(
       ({ name, source, filePath }) => ({
         name,
         source,
         ...(filePath ? { filePath } : {})
       })
-    )
+    );
+  }
 });
 
 export const readCodeReviewDraftCommand = defineCommand({
@@ -112,6 +127,35 @@ export const readCodeReviewDraftCommand = defineCommand({
     return draft;
   }
 });
+
+function createPromptPreviewCommand(
+  preview: PreviewCodeReviewSpawnPromptHandler = (input) => previewCodeReviewSpawnPrompt(input)
+) {
+  return defineCommand({
+    name: "prompt-preview",
+    description: "Preview the exact prompt for a code review spawn without side effects.",
+    params: S.Object({
+      spawn: S.Enum(CODE_REVIEW_PREVIEW_SPAWNS, {
+        description: "Spawn role to preview."
+      }),
+      profile: S.Optional(S.String({ description: "Reviewer profile name." })),
+      cwd: S.Optional(S.String({ description: "Repository root directory." }))
+    }),
+    scope: ["cli"],
+    handler: async ({ params }) => {
+      const cwd = params.cwd?.trim() || process.cwd();
+      const config = await loadCodeReviewRuntimeConfig(cwd);
+      return preview({
+        cwd,
+        spawn: params.spawn,
+        profileDirectories: config.profileDirectories,
+        ...(params.profile ? { profile: params.profile } : {})
+      });
+    }
+  });
+}
+
+export const promptPreviewCodeReviewCommand = createPromptPreviewCommand();
 
 function createRunCodeReviewCommand(run: RunCodeReviewHandler = (input) => runCodeReview(input)) {
   return defineCommand({
@@ -210,6 +254,7 @@ export const ingestCodeReviewProfileCommand = defineCommand({
 export interface CodeReviewCliDependencies {
   run?: RunCodeReviewHandler;
   commit?: CommitCodeReviewDraftsHandler;
+  preview?: PreviewCodeReviewSpawnPromptHandler;
 }
 
 export function createCodeReviewGroup(dependencies: CodeReviewCliDependencies = {}) {
@@ -220,6 +265,7 @@ export function createCodeReviewGroup(dependencies: CodeReviewCliDependencies = 
       agentMcpCommand,
       installCodeReviewAssetsCommand,
       listCodeReviewProfilesCommand,
+      dependencies.preview ? createPromptPreviewCommand(dependencies.preview) : promptPreviewCodeReviewCommand,
       dependencies.run ? createRunCodeReviewCommand(dependencies.run) : runCodeReviewCommand,
       dependencies.commit
         ? createCommitCodeReviewDraftsCommand(dependencies.commit)

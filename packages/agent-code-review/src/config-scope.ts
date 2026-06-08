@@ -1,4 +1,5 @@
 import { defineScope } from "@poe-code/poe-code-config";
+import { isAbsolute } from "node:path";
 
 export interface CodeReviewHumanGateConfig extends Record<string, unknown> {
   provider: "none";
@@ -23,17 +24,29 @@ function parseHumanGate(value: unknown): CodeReviewHumanGateConfig {
   return { provider };
 }
 
+export function parseCodeReviewProfileDirectories(value: unknown): string[] {
+  if (!Array.isArray(value) || value.some((directory) => typeof directory !== "string")) {
+    throw new Error("codeReview.profileDirectories must be an array of strings");
+  }
+  const directories = value.map((directory) => directory.trim());
+  if (directories.some((directory) => !directory || !isAbsolute(directory))) {
+    throw new Error("codeReview.profileDirectories entries must be absolute paths");
+  }
+  return [...new Set(directories)];
+}
+
 export function parseCodeReviewConfigDocument(value: unknown): {
   agent?: string;
   draftStore?: string;
   humanGate?: CodeReviewHumanGateConfig;
+  profileDirectories?: string[];
 } {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("codeReview must be an object");
   }
   const config = value as Record<string, unknown>;
   for (const key of Object.keys(config)) {
-    if (!["agent", "draftStore", "humanGate"].includes(key)) {
+    if (!["agent", "draftStore", "humanGate", "profileDirectories"].includes(key)) {
       throw new Error(`codeReview.${key} is not supported`);
     }
   }
@@ -46,7 +59,10 @@ export function parseCodeReviewConfigDocument(value: unknown): {
   return {
     ...(config.agent === undefined ? {} : { agent: config.agent }),
     ...(config.draftStore === undefined ? {} : { draftStore: config.draftStore }),
-    ...(config.humanGate === undefined ? {} : { humanGate: parseHumanGate(config.humanGate) })
+    ...(config.humanGate === undefined ? {} : { humanGate: parseHumanGate(config.humanGate) }),
+    ...(config.profileDirectories === undefined
+      ? {}
+      : { profileDirectories: parseCodeReviewProfileDirectories(config.profileDirectories) })
   };
 }
 
@@ -66,5 +82,11 @@ export const codeReviewConfigScope = defineScope("codeReview", {
     default: { provider: "none" } satisfies CodeReviewHumanGateConfig,
     parse: parseHumanGate,
     doc: "External human-gate configuration for code review runs."
+  },
+  profileDirectories: {
+    type: "json",
+    default: [] as string[],
+    parse: parseCodeReviewProfileDirectories,
+    doc: "Absolute external reviewer profile directories, in precedence order after repo-local profiles."
   }
 });

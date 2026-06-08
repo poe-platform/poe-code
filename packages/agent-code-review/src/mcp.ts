@@ -7,11 +7,7 @@ import {
 import { type SpawnResult, spawn } from "@poe-code/agent-spawn";
 import { S, defineCommand, defineGroup } from "toolcraft";
 import { runMCP } from "toolcraft/mcp";
-import {
-  CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT,
-  discoverCodeReviewProfiles,
-  loadCodeReviewRolePrompt
-} from "./assets.js";
+import { discoverCodeReviewProfiles, loadCodeReviewRolePrompt } from "./assets.js";
 import { requireSafeDocumentSegment } from "./document-schemas.js";
 import type {
   CodeReviewDecision,
@@ -20,6 +16,8 @@ import type {
 } from "./review-state.js";
 import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
+import { parseCodeReviewProfileDirectories } from "./config-scope.js";
+import { buildCodeReviewReviewerPrompt } from "./prompt-builders.js";
 
 export const CODE_REVIEW_AGENT_MCP_ROLES = ["agent", "orchestrator", "subagent"] as const;
 
@@ -33,6 +31,7 @@ export interface CodeReviewAgentMcpContext {
   draftStore?: string;
   agent: string;
   profiles?: string[];
+  profileDirectories?: string[];
 }
 
 export interface CodeReviewAgentMcpConfig {
@@ -76,7 +75,8 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     "--cwd",
     "--draft-store",
     "--agent",
-    "--profiles"
+    "--profiles",
+    "--profile-directories"
   ]);
   for (let index = 0; index < argv.length; index += 2) {
     const flag = argv[index];
@@ -97,6 +97,9 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     throw new Error(`Invalid code-review MCP role: ${role}`);
   }
   const profiles = values.get("--profiles")?.split(",");
+  const profileDirectories = values.has("--profile-directories")
+    ? parseCodeReviewProfileDirectories(JSON.parse(requiredValue(values, "--profile-directories")))
+    : undefined;
   if (values.has("--profiles") && profiles?.length === 0) {
     throw new Error("--profiles requires at least one profile");
   }
@@ -107,6 +110,7 @@ export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpC
     cwd: requiredValue(values, "--cwd"),
     ...(values.has("--draft-store") ? { draftStore: requiredValue(values, "--draft-store") } : {}),
     agent: requiredValue(values, "--agent"),
+    ...(profileDirectories ? { profileDirectories } : {}),
     ...(profiles && profiles.length > 0
       ? {
           profiles: [
@@ -136,6 +140,9 @@ export function createCodeReviewAgentMcpConfig(
   ];
   if (context.profiles?.length) {
     args.push("--profiles", context.profiles.join(","));
+  }
+  if (context.profileDirectories?.length) {
+    args.push("--profile-directories", JSON.stringify(context.profileDirectories));
   }
   return { transport: "stdio", command: "poe-code", args: ["code-review", ...args] };
 }
@@ -241,7 +248,8 @@ export function createCodeReviewAgentMcpGroup(
     handler: async () =>
       discoverCodeReviewProfiles({
         cwd: context.cwd,
-        filters: context.profiles
+        filters: context.profiles,
+        profileDirectories: context.profileDirectories
       })
   });
   const agentSpawnCommand = defineCommand({
@@ -257,7 +265,8 @@ export function createCodeReviewAgentMcpGroup(
       const pr = canonicalPullRequestUrl(params.pr);
       const profiles = await discoverCodeReviewProfiles({
         cwd: context.cwd,
-        filters: context.profiles
+        filters: context.profiles,
+        profileDirectories: context.profileDirectories
       });
       const profile = profiles.find((candidate) => candidate.name === params.profile);
       if (!profile) {
@@ -319,7 +328,7 @@ export function createCodeReviewAgentMcpGroup(
             details: agent
           });
           const prDetails = await fetchPr(pr, undefined, { cwd: context.cwd });
-          const prompt = renderSubagentPrompt({
+          const prompt = buildCodeReviewReviewerPrompt({
             template: await loadCodeReviewRolePrompt({
               cwd: context.cwd,
               role: "subagent"
@@ -497,29 +506,6 @@ async function spawnWithPoeCode(
     ...options,
     ...(shouldUseTextStdinForCodeReview(agent) ? { useStdin: true } : {})
   });
-}
-
-function renderSubagentPrompt(input: {
-  template: string;
-  profile: string;
-  prUrl: string;
-  prDetails: unknown;
-}): string {
-  return `${input.template}
-
-REQUIRED REVIEW FLOW
-1. Read the pull request details, diff, and prior review activity with the available code_review_pr_* tools before drafting.
-2. Do not raise a concern already covered by an existing comment or prior review unless changed code introduces a distinct new issue.
-3. Apply the assigned profile and create exactly one raw review draft with code_review_create_draft; do not publish anything.
-4. The only allowed MCP tools are code_review_pr_view, code_review_pr_diff, code_review_pr_comments, and code_review_create_draft.
-5. ${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}
-
-PROFILE
-${input.profile}
-
-PULL REQUEST
-${input.prUrl}
-${JSON.stringify(input.prDetails)}`;
 }
 
 async function ensureState(

@@ -221,6 +221,7 @@ type SDKChildrenShape<
 >;
 
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
+  approvals?: boolean;
   services?: TServices;
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
@@ -564,7 +565,7 @@ export function createSDK(
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
   enableSourceMaps();
-  const mergedRoot = mergeApprovalsGroup(root);
+  const mergedRoot = options.approvals === false ? root : mergeApprovalsGroup(root);
 
   if (!hasMcpProxyGroups(mergedRoot)) {
     return createResolvedSDK(mergedRoot, options);

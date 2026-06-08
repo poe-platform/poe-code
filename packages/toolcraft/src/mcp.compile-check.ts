@@ -21,6 +21,7 @@ const ignoredRoot = defineGroup({
 });
 
 const ignoredOptions = {
+  approvals: false,
   name: "toolcraft-test",
   version: "1.0.0",
   tools: ["usage"],

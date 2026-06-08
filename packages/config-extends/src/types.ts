@@ -24,6 +24,8 @@ export interface FileSystem {
 export interface ResolveOptions {
   fs: FileSystem;
   autoExtend?: boolean;
+  validate?: boolean;
+  view?: Record<string, unknown>;
 }
 
 export interface ResolvedDocument {

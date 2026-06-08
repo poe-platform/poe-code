@@ -371,6 +371,84 @@ describe("approvals built-in commands", () => {
     expect("run" in (sdk.approvals as Record<string, unknown>)).toBe(false);
   });
 
+  it("omits approval-management commands across CLI, MCP, and SDK when approvals is false", async () => {
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [
+        defineCommand({
+          name: "deploy",
+          params: S.Object({}),
+          handler: async () => ({ ok: true })
+        })
+      ]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+    const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root, { approvals: false });
+    expect(write.mock.calls.flat().join("")).not.toContain("approvals");
+
+    const mcpServer = createMCPServer(root, {
+      approvals: false,
+      name: "toolcraft-test",
+      version: "1.0.0"
+    });
+    const { client, cleanup } = await createSdkTestPair(
+      mcpServer,
+      () =>
+        new McpClient({
+          clientInfo: {
+            name: "test-client",
+            version: "1.0.0"
+          }
+        })
+    );
+
+    try {
+      const { tools } = await client.listTools();
+      expect(tools.map((tool) => tool.name)).not.toContain("toolcraft__approvals__list");
+      expect(tools.map((tool) => tool.name)).not.toContain("toolcraft__approvals__show");
+    } finally {
+      await cleanup();
+    }
+
+    const sdk = createSDK(root, { approvals: false }) as Record<string, unknown>;
+    expect(sdk).not.toHaveProperty("approvals");
+    expect(sdk).toHaveProperty("deploy");
+  });
+
+  it("keeps human-in-loop execution enabled when approval-management commands are omitted", async () => {
+    const provider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" as const }))
+    };
+    const handler = vi.fn(async () => ({ ok: true }));
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "deploy",
+            params: S.Object({}),
+            humanInLoop: {
+              mode: "sync",
+              message: () => "Deploy?"
+            },
+            handler
+          })
+        ]
+      }),
+      {
+        approvals: false,
+        humanInLoop: { provider }
+      }
+    ) as { deploy(params: Record<string, never>): Promise<{ ok: boolean }> };
+
+    await expect(sdk.deploy({})).resolves.toEqual({ ok: true });
+    expect(provider.requestApproval).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
   it("previews approvals.run without prompting or transitioning state during dry run", async () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const provider = {

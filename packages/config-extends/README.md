@@ -8,6 +8,7 @@ Shared document-inheritance utilities for layered config resolution.
 - `findBase(name, basePaths, fs)`: discovers a base document by name across configured base paths.
 - `parseDocument(content, filePath)`: parses a document and separates inheritance metadata from data.
 - `mergeLayers(layers)`: merges data layers and tracks the source of each resolved key.
+- `resolvePromptDocument(input)`: resolves a safe Markdown prompt document with inheritance, partials, one-pass rendering, and provenance.
 
 ## Resolution behavior
 
@@ -28,3 +29,12 @@ This package does not read or expose any environment variables.
 
 - `fs`: file system implementation with `readFile(path, encoding)`
 - `autoExtend?`: automatically inherit from bases even when a document does not set `extends: true`
+
+### `ResolvePromptDocumentInput`
+
+- `cwd`, `filePath`: root and project-relative Markdown document path
+- `optional?`: fall back to a configured base when the project document is missing
+- `basePaths?`: absolute directories containing inherited base documents
+- `baseDocuments?`: in-memory packaged base documents with absolute virtual paths
+- `variables?`, `validate?`: one-pass rendering view and unresolved-variable validation
+- `fs?`: injectable file system for callers and tests

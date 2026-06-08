@@ -211,6 +211,7 @@ interface HelpOptionRow {
 
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
+  approvals?: boolean;
   casing?: Casing;
   humanInLoop?: HumanInLoopRuntimeOptions;
   projectRoot?: string;
@@ -4455,7 +4456,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   enableSourceMaps();
-  const root = mergeApprovalsGroup(normalizeRoots(roots, process.argv));
+  const normalizedRoot = normalizeRoots(roots, process.argv);
+  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;

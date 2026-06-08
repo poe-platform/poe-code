@@ -1,5 +1,9 @@
 import path from "node:path";
-import { renderTemplate } from "@poe-code/design-system";
+import {
+  getTemplatePartialNames,
+  renderTemplate,
+  resolveTemplatePartials
+} from "@poe-code/design-system";
 import { findBase } from "./discover.js";
 import { mergeLayers } from "./merge.js";
 import { parseDocument } from "./parse.js";
@@ -42,31 +46,47 @@ export async function resolve(
         depth: 1
       })
     : undefined;
-  const composedPrompt = composePromptChain(
+  const promptFiles = [documentLayer.filePath, ...(resolvedBase?.chain ?? [])];
+  const expandedPrompts = await expandPromptPartials(
     {
       source: documentLayer.source,
       data: parsedDocument.data
     },
-    resolvedBase?.layers ?? []
+    resolvedBase?.layers ?? [],
+    promptFiles,
+    options
   );
+  const composedPrompt = composePromptChain(
+    expandedPrompts.documentLayer,
+    expandedPrompts.baseLayers
+  );
+  const renderedPrompt =
+    composedPrompt === undefined ? undefined : renderPrompt(composedPrompt.prompt, options);
   const merged = mergeLayers([
     ...collectDataLayers(chain.slice(0, documentIndex)),
     {
       source: documentLayer.source,
-      data: withResolvedPrompt(parsedDocument.data, composedPrompt?.prompt)
+      data: withResolvedPrompt(parsedDocument.data, renderedPrompt)
     },
-    ...stripResolvedBasePrompts(resolvedBase?.layers ?? [], composedPrompt?.consumedBaseIndexes ?? new Set<number>()),
+    ...stripResolvedBasePrompts(
+      resolvedBase?.layers ?? [],
+      composedPrompt?.consumedBaseIndexes ?? new Set<number>()
+    ),
     ...collectDataLayers(chain.slice(documentIndex + 1))
   ]);
 
-  if (composedPrompt !== undefined && merged.sources.prompt === documentLayer.source && composedPrompt.source !== undefined) {
+  if (
+    composedPrompt !== undefined &&
+    merged.sources.prompt === documentLayer.source &&
+    composedPrompt.source !== undefined
+  ) {
     merged.sources.prompt = composedPrompt.source;
   }
 
   return {
     data: merged.data,
     sources: merged.sources,
-    chain: [documentLayer.filePath, ...(resolvedBase?.chain ?? [])]
+    chain: [...promptFiles, ...expandedPrompts.partialFiles]
   };
 }
 
@@ -245,10 +265,7 @@ function composePromptChain(
   };
 }
 
-function composeAdjacentPrompts(
-  high: string | undefined,
-  low: string
-): string {
+function composeAdjacentPrompts(high: string | undefined, low: string): string {
   if (high === undefined || high === "") {
     return low.includes(YIELD_TOKEN) ? replaceYield(low, "") : low;
   }
@@ -264,11 +281,118 @@ function composeAdjacentPrompts(
   return high;
 }
 
-function replaceYield(
-  prompt: string,
-  replacement: string
-): string {
-  return renderTemplate(prompt, {}, { yield: replacement, escape: "none" });
+function replaceYield(prompt: string, replacement: string): string {
+  return prompt.split(YIELD_TOKEN).join(replacement);
+}
+
+async function expandPromptPartials(
+  documentLayer: DataLayer,
+  baseLayers: DataLayer[],
+  promptFiles: string[],
+  options: ResolveOptions
+): Promise<{ baseLayers: DataLayer[]; documentLayer: DataLayer; partialFiles: string[] }> {
+  const directories = unique(promptFiles.map((filePath) => path.dirname(filePath)));
+  const partials: Record<string, string> = {};
+  const partialFiles: string[] = [];
+
+  const loadPartial = async (name: string): Promise<void> => {
+    if (Object.hasOwn(partials, name)) {
+      return;
+    }
+
+    const partial = await findPartial(name, directories, options.fs);
+    partials[name] = partial.content;
+    partialFiles.push(partial.filePath);
+    for (const nestedName of getTemplatePartialNames(partial.content)) {
+      await loadPartial(nestedName);
+    }
+  };
+
+  const promptLayers = [documentLayer, ...baseLayers];
+  for (const layer of promptLayers) {
+    const prompt = layer.data.prompt;
+    if (typeof prompt !== "string") {
+      continue;
+    }
+    for (const name of getTemplatePartialNames(prompt)) {
+      await loadPartial(name);
+    }
+  }
+
+  const expandedLayers = promptLayers.map((layer) => withExpandedPrompt(layer, partials));
+
+  return {
+    documentLayer: expandedLayers[0],
+    baseLayers: expandedLayers.slice(1),
+    partialFiles
+  };
+}
+
+function withExpandedPrompt(layer: DataLayer, partials: Record<string, string>): DataLayer {
+  const prompt = layer.data.prompt;
+  if (typeof prompt !== "string") {
+    return layer;
+  }
+
+  return {
+    source: layer.source,
+    data: {
+      ...layer.data,
+      prompt: resolveTemplatePartials(prompt, partials)
+    }
+  };
+}
+
+function renderPrompt(prompt: string, options: ResolveOptions): string {
+  if (options.view === undefined && options.validate !== true) {
+    return prompt;
+  }
+
+  return renderTemplate(prompt, options.view ?? {}, { escape: "none", validate: options.validate });
+}
+
+async function findPartial(
+  name: string,
+  directories: string[],
+  fs: ResolveOptions["fs"]
+): Promise<{ content: string; filePath: string }> {
+  const checkedPaths: string[] = [];
+
+  for (const directory of directories) {
+    const filePath = path.join(directory, `${name}.md`);
+    assertInsideDirectory(name, directory, filePath);
+    checkedPaths.push(filePath);
+
+    try {
+      return { content: await fs.readFile(filePath, "utf8"), filePath };
+    } catch (error) {
+      if (hasCode(error, "ENOENT")) {
+        continue;
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Partial "${name}" not found.\nChecked paths:\n- ${checkedPaths.join("\n- ")}`);
+}
+
+function assertInsideDirectory(name: string, directory: string, filePath: string): void {
+  const relativePath = path.relative(path.resolve(directory), path.resolve(filePath));
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error(`Partial name must remain inside prompt directories: "${name}".`);
+  }
+}
+
+function unique(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return typeof error === "object" && error !== null && "code" in error && error.code === code;
 }
 
 function assertValidYieldCount(prompt: string): void {

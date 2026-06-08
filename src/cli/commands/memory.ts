@@ -19,7 +19,12 @@ import memorySkillTemplate from "../../../packages/memory/src/templates/SKILL_me
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags, shlexQuote } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  shlexQuote
+} from "./shared.js";
 
 async function resolveRoot(container: CliContainer): Promise<string> {
   return resolveConfiguredMemoryRoot({
@@ -524,6 +529,10 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       await assertInitialized(mem);
 
       if (!flags.assumeYes) {
+        requireInteractiveStdin(
+          "memory clear requires --yes when running without an interactive TTY."
+        );
+
         await confirmOrCancel({
           message: "Clear all memory pages and cache?"
         });

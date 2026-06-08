@@ -68,6 +68,23 @@ function createContainer(logs: string[] = []): ReturnType<typeof createCliContai
   });
 }
 
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
+}
+
 describe("memory command", () => {
   beforeEach(() => {
     vol.reset();
@@ -130,6 +147,26 @@ describe("memory command", () => {
     await expect(memfs.promises.readdir(`${memoryRoot}/pages`)).resolves.toEqual([]);
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
+  });
+
+  it("rejects memory clear without --yes in non-interactive mode", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "# One\n"
+    });
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "memory", "clear"]), false)
+    ).rejects.toThrow("memory clear requires --yes when running without an interactive TTY.");
+
+    await expect(memfs.promises.readFile(`${memoryRoot}/pages/one.md`, "utf8")).resolves.toBe(
+      "# One\n"
+    );
   });
 
   it("lists pages with descriptions", async () => {

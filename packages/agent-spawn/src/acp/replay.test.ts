@@ -232,6 +232,15 @@ describe("acp/replay", () => {
     expect(await findLatestLog("codex")).toBe(createLogFile("20260321-123456-789-codex.jsonl"));
   });
 
+  it("findLatestLog prefers newer timestamped logs over custom filenames", async () => {
+    vol.fromJSON({
+      [createLogFile("manual.jsonl")]: "",
+      [createLogFile("20260322-123456-789-codex.jsonl")]: ""
+    });
+
+    expect(await findLatestLog()).toBe(createLogFile("20260322-123456-789-codex.jsonl"));
+  });
+
   it("findLatestLog returns undefined when there is no matching log", async () => {
     vol.fromJSON({
       [createLogFile("20260320-123456-789-codex.jsonl")]: ""

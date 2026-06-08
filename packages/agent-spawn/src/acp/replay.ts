@@ -179,8 +179,20 @@ export async function listSpawnLogs(options: ListSpawnLogsOptions = {}): Promise
 }
 
 export async function findLatestLog(agent?: string): Promise<string | undefined> {
-  const [entry] = await listSpawnLogs({ agent, limit: 1 });
-  return entry?.path;
+  const entries = await listSpawnLogs({ agent, limit: Number.MAX_SAFE_INTEGER });
+  const timestamped = entries
+    .filter((entry) => entry.timestamp !== undefined)
+    .sort(compareLogTimestampsDescending);
+  return (timestamped[0] ?? entries[0])?.path;
+}
+
+function compareLogTimestampsDescending(a: LogEntry, b: LogEntry): number {
+  const diff = b.timestamp!.getTime() - a.timestamp!.getTime();
+  if (diff !== 0) {
+    return diff;
+  }
+
+  return a.filename < b.filename ? 1 : a.filename > b.filename ? -1 : 0;
 }
 
 export async function pickRandomLog(agent?: string): Promise<string | undefined> {

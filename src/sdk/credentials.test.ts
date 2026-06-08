@@ -52,6 +52,16 @@ describe("getPoeApiKey", () => {
     expect(createSecretStoreMock).not.toHaveBeenCalled();
   });
 
+  it("leaves an exported key untouched when ensuring POE_API_KEY", async () => {
+    process.env.POE_API_KEY = "  env-key  ";
+
+    const { ensurePoeApiKeyEnv } = await import("./credentials.js");
+    await ensurePoeApiKeyEnv();
+
+    expect(process.env.POE_API_KEY).toBe("  env-key  ");
+    expect(createSecretStoreMock).not.toHaveBeenCalled();
+  });
+
   it("returns key from auth store when environment variable is missing", async () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue("auth-store-key");
@@ -60,6 +70,18 @@ describe("getPoeApiKey", () => {
     const result = await getPoeApiKey();
 
     expect(result).toBe("auth-store-key");
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+    expect(store.get).toHaveBeenCalledTimes(1);
+  });
+
+  it("exports the auth-store key when ensuring POE_API_KEY", async () => {
+    delete process.env.POE_API_KEY;
+    store.get.mockResolvedValue("  auth-store-key  ");
+
+    const { ensurePoeApiKeyEnv } = await import("./credentials.js");
+    await ensurePoeApiKeyEnv();
+
+    expect(process.env.POE_API_KEY).toBe("auth-store-key");
     expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
     expect(store.get).toHaveBeenCalledTimes(1);
   });

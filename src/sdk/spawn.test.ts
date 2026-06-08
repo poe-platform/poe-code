@@ -50,8 +50,10 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
 });
 
 const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
+const ensurePoeApiKeyEnvMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./credentials.js", () => ({
+  ensurePoeApiKeyEnv: ensurePoeApiKeyEnvMock,
   getPoeApiKey: getPoeApiKeyMock
 }));
 
@@ -101,6 +103,14 @@ beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
   getPoeApiKeyMock.mockReset();
   getPoeApiKeyMock.mockResolvedValue("test-key");
+  ensurePoeApiKeyEnvMock.mockReset();
+  ensurePoeApiKeyEnvMock.mockImplementation(async () => {
+    const envKey = process.env.POE_API_KEY;
+    if (typeof envKey === "string" && envKey.trim().length > 0) {
+      return;
+    }
+    process.env.POE_API_KEY = await getPoeApiKeyMock();
+  });
   vi.mocked(spawnStreaming).mockReset();
   vi.mocked(spawnInteractive).mockReset();
   vi.mocked(agentSpawn).mockReset();

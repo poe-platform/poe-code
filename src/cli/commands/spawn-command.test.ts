@@ -30,6 +30,12 @@ vi.mock("../../sdk/spawn.js", () => ({
   spawn: vi.fn()
 }));
 
+const ensurePoeApiKeyEnvMock = vi.hoisted(() => vi.fn());
+
+vi.mock("../../sdk/credentials.js", () => ({
+  ensurePoeApiKeyEnv: ensurePoeApiKeyEnvMock
+}));
+
 const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
   vi.fn(() => ({
     events: (async function* () {})(),
@@ -179,6 +185,8 @@ describe("spawn command", () => {
       events: emptyAsyncIterable(),
       result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
     }));
+    ensurePoeApiKeyEnvMock.mockReset();
+    ensurePoeApiKeyEnvMock.mockResolvedValue(undefined);
     vi.mocked(resolveWorkspace).mockReset();
     vi.mocked(resolveWorkspace).mockImplementation(async (input, options) => ({
       cwd: path.isAbsolute(input) ? input : path.join(options.baseDir, input),
@@ -2276,6 +2284,43 @@ describe("spawn command", () => {
         cwd: undefined,
         mode: undefined,
         resumeThreadId: "thread_abc123",
+        runtimeConfigCwd: cwd
+      });
+      expect(sdkSpawn).not.toHaveBeenCalled();
+    });
+
+    it("exports stored Poe credentials before interactive spawns", async () => {
+      delete process.env.POE_API_KEY;
+      ensurePoeApiKeyEnvMock.mockImplementationOnce(async () => {
+        process.env.POE_API_KEY = "stored-key";
+      });
+      vi.mocked(spawnInteractive).mockImplementation(async () => {
+        expect(process.env.POE_API_KEY).toBe("stored-key");
+        return {
+          stdout: "",
+          stderr: "",
+          exitCode: 0
+        };
+      });
+
+      const { runner } = createCommandRunnerStub();
+      const program = createProgram({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        commandRunner: runner,
+        logger: () => {}
+      });
+
+      await program.parseAsync(["node", "cli", "spawn", "--interactive", "claude-code", "hello"]);
+
+      expect(ensurePoeApiKeyEnvMock).toHaveBeenCalledTimes(1);
+      expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
+        prompt: "hello",
+        args: [],
+        model: undefined,
+        cwd: undefined,
+        mode: undefined,
         runtimeConfigCwd: cwd
       });
       expect(sdkSpawn).not.toHaveBeenCalled();

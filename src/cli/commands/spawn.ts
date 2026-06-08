@@ -35,6 +35,7 @@ import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
+import { ensurePoeApiKeyEnv } from "../../sdk/credentials.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
@@ -222,6 +223,7 @@ export function registerSpawnCommand(
             commandOptions.model,
             { readOnly: flags.dryRun }
           );
+          await ensurePoeApiKeyEnv();
           const result = await spawnInteractive(canonicalService, {
             prompt,
             args: forwardedArgs,

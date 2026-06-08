@@ -1,6 +1,6 @@
 import * as nodeFs from "node:fs/promises";
 import os from "node:os";
-import { getPoeApiKey } from "./credentials.js";
+import { ensurePoeApiKeyEnv } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
@@ -129,8 +129,8 @@ export function spawn(
       const canSpawn = options.interactive
         ? supportsInteractive
         : acpSpawnConfig !== undefined || spawnConfig !== undefined || registeredService !== undefined;
-      if (canSpawn && (!process.env.POE_API_KEY || process.env.POE_API_KEY.trim().length === 0)) {
-        process.env.POE_API_KEY = await getPoeApiKey();
+      if (canSpawn) {
+        await ensurePoeApiKeyEnv();
       }
 
       integrations = await loadIntegrations(await resolveMergedDocument(container));

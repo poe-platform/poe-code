@@ -30,3 +30,12 @@ export async function getPoeApiKey(): Promise<string> {
 
   throw new Error("No API key found. Set POE_API_KEY or run 'poe-code login'.");
 }
+
+export async function ensurePoeApiKeyEnv(): Promise<void> {
+  const envKey = process.env.POE_API_KEY;
+  if (typeof envKey === "string" && envKey.trim().length > 0) {
+    return;
+  }
+
+  process.env.POE_API_KEY = await getPoeApiKey();
+}

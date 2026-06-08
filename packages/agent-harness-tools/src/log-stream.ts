@@ -29,9 +29,15 @@ export function wrapForLogTee(argv: string[], jobId: string): string[] {
   const logFile = shellQuote(jobLogPath(jobId));
   const exitFile = shellQuote(jobExitPath(jobId));
   const exitTmpFile = shellQuote(`${jobExitPath(jobId)}.tmp`);
+  const safetyChecks = [
+    `test ! -L ${shellQuote(JOB_DIR)}`,
+    `test ! -L ${logFile}`,
+    `test ! -L ${exitFile}`,
+    `test ! -L ${exitTmpFile}`
+  ].join(" && ");
   const script = [
     `mkdir -p ${shellQuote(JOB_DIR)}`,
-    `test ! -L ${logFile} && test ! -L ${exitFile} && test ! -L ${exitTmpFile}`,
+    safetyChecks,
     `({ (${command}); echo $? > ${exitTmpFile}; } 2>&1 | tee ${logFile}; mv ${exitTmpFile} ${exitFile})`
   ].join(" && ");
 
@@ -181,13 +187,32 @@ async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Buffer |
 }
 
 async function assertRegularManagedFile(fs: LogStreamFs, file: string): Promise<void> {
-  if (fs.promises.lstat === undefined) {
+  const lstat = fs.promises.lstat;
+  if (lstat === undefined) {
     return;
   }
 
+  await assertManagedJobDirectory(lstat);
+
   try {
-    if ((await fs.promises.lstat(file)).isSymbolicLink()) {
+    if ((await lstat(file)).isSymbolicLink()) {
       throw new Error("Managed job file must not be a symbolic link.");
+    }
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return;
+    }
+
+    throw error;
+  }
+}
+
+async function assertManagedJobDirectory(
+  lstat: NonNullable<LogStreamFs["promises"]["lstat"]>
+): Promise<void> {
+  try {
+    if ((await lstat(JOB_DIR)).isSymbolicLink()) {
+      throw new Error("Managed job directory must not be a symbolic link.");
     }
   } catch (error) {
     if (isNodeError(error) && error.code === "ENOENT") {

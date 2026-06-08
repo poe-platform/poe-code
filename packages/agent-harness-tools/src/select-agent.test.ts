@@ -82,7 +82,26 @@ describe("resolveLoopAgent", () => {
     ).rejects.toThrow("array handled by caller");
   });
 
-  it("uses the configured default agent when CLI and frontmatter are absent", async () => {
+  it("uses the configured default agent with assumeYes when CLI and frontmatter are absent", async () => {
+    let selectCalls = 0;
+    const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async () => {
+      selectCalls += 1;
+      return "goose";
+    };
+
+    const result = await resolveLoopAgent(
+      createInput({
+        configuredDefaultAgent: "codex:openai/gpt-5.4",
+        assumeYes: true,
+        select
+      })
+    );
+
+    expect(result).toEqual({ agent: "codex:openai/gpt-5.4" });
+    expect(selectCalls).toBe(0);
+  });
+
+  it("prompts instead of accepting the configured default agent without assumeYes", async () => {
     let selectCalls = 0;
     const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async () => {
       selectCalls += 1;
@@ -96,8 +115,8 @@ describe("resolveLoopAgent", () => {
       })
     );
 
-    expect(result).toEqual({ agent: "codex:openai/gpt-5.4" });
-    expect(selectCalls).toBe(0);
+    expect(result).toEqual({ agent: "goose" });
+    expect(selectCalls).toBe(1);
   });
 
   it("uses fallbackAgent when assumeYes is enabled and no earlier source exists", async () => {

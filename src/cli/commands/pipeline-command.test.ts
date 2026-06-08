@@ -425,7 +425,38 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for pipeline run without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for pipeline run with --yes and preserves the model", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--plan", "plan.yaml"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex:openai/gpt-5.4",
+        plan: "plan.yaml"
+      })
+    );
+  });
+
+  it("prompts for the pipeline run agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("goose");
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -446,10 +477,13 @@ describe("pipeline run command", () => {
 
     await program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run pipeline steps with:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "goose" })])
+    });
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: "codex:openai/gpt-5.4",
+        agent: "goose",
         plan: "plan.yaml"
       })
     );
@@ -1656,7 +1690,55 @@ describe("pipeline init command", () => {
     );
   });
 
-  it("uses core.defaultAgent for init without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for init with --yes and preserves the model", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/alpha.md": "# Alpha\n"
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "pipeline",
+      "init",
+      "--source",
+      "docs/plans/alpha.md",
+      "Build the pipeline plan"
+    ]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipelineInit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex:openai/gpt-5.4",
+        question: "Build the pipeline plan",
+        sources: [
+          {
+            absolutePath: "/repo/docs/plans/alpha.md",
+            relativePath: "docs/plans/alpha.md",
+            title: "alpha"
+          }
+        ]
+      })
+    );
+  });
+
+  it("prompts for the pipeline init agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("goose");
     const fs = createMemFs({
       "/repo/docs/plans/alpha.md": "# Alpha\n"
     });
@@ -1686,18 +1768,14 @@ describe("pipeline init command", () => {
       "Build the pipeline plan"
     ]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to generate pipeline plans with:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "goose" })])
+    });
     expect(vi.mocked(sdkRunPipelineInit)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: "codex:openai/gpt-5.4",
-        question: "Build the pipeline plan",
-        sources: [
-          {
-            absolutePath: "/repo/docs/plans/alpha.md",
-            relativePath: "docs/plans/alpha.md",
-            title: "alpha"
-          }
-        ]
+        agent: "goose",
+        question: "Build the pipeline plan"
       })
     );
   });
@@ -2135,7 +2213,7 @@ describe("pipeline install command", () => {
     );
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -2153,7 +2231,7 @@ describe("pipeline install command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(

@@ -425,7 +425,7 @@ describe("superintendent run command", () => {
     }
   });
 
-  it("uses the configured default builder agent when flag and frontmatter are empty", async () => {
+  it("uses the configured default builder agent with --yes when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
         "  prompt: |",
@@ -448,6 +448,7 @@ describe("superintendent run command", () => {
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
       configuredDefaultAgent: "codex",
+      assumeYes: true,
       interactive: false,
       useDashboard: false,
       fs,
@@ -460,6 +461,47 @@ describe("superintendent run command", () => {
 
     expect(selectPrompt).not.toHaveBeenCalled();
     expect(result.builderAgent).toBe("codex");
+  });
+
+  it("prompts for the builder agent when core.defaultAgent exists without --yes", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn(async () => "goose");
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      configuredDefaultAgent: "codex",
+      interactive: true,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select agent to run Superintendent builder with:"
+      })
+    );
+    expect(result.builderAgent).toBe("goose");
   });
 
   it("falls back to claude-code with --yes when no builder agent is configured", async () => {

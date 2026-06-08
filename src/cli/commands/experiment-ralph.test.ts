@@ -383,7 +383,43 @@ describe("experiment run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for experiment run without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for experiment run with --yes and preserves the model", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code:anthropic/claude-sonnet-4.6",
+        docPath: "docs/loop.md"
+      })
+    );
+  });
+
+  it("prompts for the experiment agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("codex");
     const fs = createMemFs({
       "/repo/docs/loop.md": "# Loop"
     });
@@ -409,10 +445,13 @@ describe("experiment run command", () => {
 
     await program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run the experiment with:",
+      options: getExperimentAgentOptions()
+    });
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: "claude-code:anthropic/claude-sonnet-4.6",
+        agent: "codex",
         docPath: "docs/loop.md"
       })
     );
@@ -1783,7 +1822,7 @@ describe("experiment install command", () => {
     await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
       fs,
@@ -1801,7 +1840,7 @@ describe("experiment install command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(
@@ -2040,7 +2079,48 @@ describe("ralph run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for ralph run without prompting when frontmatter omits agent", async () => {
+  it("uses core.defaultAgent for ralph run with --yes when frontmatter omits agent", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "docs/loop.md"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("prompts for the Ralph agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("codex");
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
@@ -2069,11 +2149,14 @@ describe("ralph run command", () => {
 
     await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run Ralph with:",
+      options: getExperimentAgentOptions()
+    });
     expect(promptTextMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
-        agent: "claude-code",
+        agent: "codex",
         docPath: "docs/loop.md",
         maxIterations: 4
       })
@@ -2121,7 +2204,7 @@ describe("ralph run command", () => {
     );
   });
 
-  it("preserves the model from core.defaultAgent for ralph run", async () => {
+  it("preserves the model from core.defaultAgent for ralph run with --yes", async () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
@@ -2152,7 +2235,7 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "docs/loop.md"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();

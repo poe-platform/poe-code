@@ -47,11 +47,11 @@ export async function resolveLoopAgent(
     return resolveSelectedAgent(input.frontmatterAgent);
   }
 
-  if (input.configuredDefaultAgent !== undefined && input.configuredDefaultAgent !== null) {
-    return resolveSelectedAgent(input.configuredDefaultAgent);
-  }
-
   if (input.assumeYes) {
+    if (input.configuredDefaultAgent !== undefined && input.configuredDefaultAgent !== null) {
+      return resolveSelectedAgent(input.configuredDefaultAgent);
+    }
+
     return resolveSelectedAgent(input.fallbackAgent);
   }
 

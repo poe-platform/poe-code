@@ -79,7 +79,43 @@ describe("skill unconfigure command", () => {
     ).rejects.toEqual(new ValidationError("Use either --local or --global, not both."));
   });
 
-  it("uses core.defaultAgent for unconfigure without prompting and drops the model portion", async () => {
+  it("prompts for unconfigure agent despite core.defaultAgent when --yes is absent", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${homeDir}/.codex/skills`, { recursive: true });
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    selectMock.mockResolvedValueOnce("claude-code");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "unconfigure", "--global", "--force"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Select agent to unconfigure:" })
+    );
+    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
+    await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+    await expect(fs.stat(`${homeDir}/.codex/skills`)).resolves.toBeDefined();
+  });
+
+  it("uses core.defaultAgent for --yes unconfigure and drops the model portion", async () => {
     const { fs, vol } = createMemFs();
     const logs: string[] = [];
 
@@ -102,7 +138,7 @@ describe("skill unconfigure command", () => {
       "utf8"
     );
 
-    await program.parseAsync(["node", "cli", "skill", "unconfigure", "--global", "--force"]);
+    await program.parseAsync(["node", "cli", "--yes", "skill", "unconfigure", "--global", "--force"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Removed skill directory for codex at ~/.codex/skills");
@@ -335,7 +371,40 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
-  it("uses core.defaultAgent for configure without prompting and drops the model portion", async () => {
+  it("prompts for configure agent despite core.defaultAgent when --yes is absent", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+    selectMock.mockResolvedValueOnce("claude-code");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Select agent to configure:" })
+    );
+    expect(logs).toContain("Configured skills for claude-code at ./.claude/skills");
+    await expect(fs.stat(`${cwd}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+    await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+  });
+
+  it("uses core.defaultAgent for --yes configure and drops the model portion", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -356,7 +425,7 @@ describe("skill configure command", () => {
       "utf8"
     );
 
-    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Configured skills for codex at ./.codex/skills");

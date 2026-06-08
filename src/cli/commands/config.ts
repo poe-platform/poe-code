@@ -25,7 +25,22 @@ interface ConfigEditCommandOptions {
 }
 
 const REDACTED_CONFIG_VALUE = "<redacted>";
-const SENSITIVE_CONFIG_KEYS = new Set(["apiKey"]);
+const SENSITIVE_CONFIG_KEY_NAMES = new Set([
+  "apikey",
+  "authorization",
+  "proxyauthorization",
+  "secret",
+  "token",
+  "password"
+]);
+const SENSITIVE_CONFIG_KEY_SUFFIXES = [
+  "apikey",
+  "apitoken",
+  "authtoken",
+  "accesstoken",
+  "secret",
+  "password"
+];
 const SENSITIVE_ENV_VARS = new Set(["POE_API_KEY"]);
 
 export function registerConfigCommand(program: Command, container: CliContainer): void {
@@ -176,7 +191,7 @@ function redactConfigDocument(document: ConfigDocument): ConfigDocument {
 }
 
 function redactConfigValue(value: unknown, key?: string): unknown {
-  if (key !== undefined && SENSITIVE_CONFIG_KEYS.has(key)) {
+  if (key !== undefined && isSensitiveConfigKey(key)) {
     return REDACTED_CONFIG_VALUE;
   }
 
@@ -194,6 +209,12 @@ function redactConfigValue(value: unknown, key?: string): unknown {
   }
 
   return value;
+}
+
+function isSensitiveConfigKey(key: string): boolean {
+  const normalized = key.toLowerCase().replace(/[-_\s]/g, "");
+  return SENSITIVE_CONFIG_KEY_NAMES.has(normalized)
+    || SENSITIVE_CONFIG_KEY_SUFFIXES.some(suffix => normalized.endsWith(suffix));
 }
 
 function redactEnvEntry(entry: string): string {

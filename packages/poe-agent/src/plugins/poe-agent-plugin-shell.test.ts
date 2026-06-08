@@ -334,6 +334,20 @@ describe("poe-agent-plugin-shell", () => {
     expect(validate({ command: "bash -lc 'git status --short'" }, "read")).toBeUndefined();
   });
 
+  it("rejects shell wrappers with trailing commands in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "bash -lc 'git status --short; echo $POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'git status --short && mkdir tmp'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'pwd; printenv POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+  });
+
   it("rejects environment dumps and env command wrappers in read mode", () => {
     const validate = getRunCommandValidate();
 

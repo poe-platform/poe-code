@@ -485,9 +485,7 @@ function getNestedReadOnlyCommand(
   }
 
   try {
-    const nestedEntries = parseShellCommand(wrappedCommand);
-    const nestedSegment = nestedEntries.filter((entry): entry is string => typeof entry === "string");
-    const nestedParts = stripLeadingAssignments(nestedSegment);
+    const nestedParts = parseSingleCommandParts(wrappedCommand);
     const nestedCommandName = nestedParts[0];
     if (!nestedCommandName) {
       return undefined;
@@ -497,6 +495,22 @@ function getNestedReadOnlyCommand(
   } catch {
     return undefined;
   }
+}
+
+function parseSingleCommandParts(command: string): string[] {
+  const entries = parseShellCommand(command);
+  const segment: string[] = [];
+
+  for (const entry of entries) {
+    if (typeof entry === "string") {
+      segment.push(entry);
+      continue;
+    }
+
+    throw new Error("Shell wrappers must contain exactly one simple command.");
+  }
+
+  return stripLeadingAssignments(segment);
 }
 
 function stripLeadingAssignments(tokens: string[]): string[] {

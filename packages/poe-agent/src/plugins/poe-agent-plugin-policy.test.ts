@@ -130,12 +130,47 @@ describe("poe-agent-plugin-policy", () => {
       await expect(
         runPreToolUse(runContext, signal, "run_command", { command: "git status --short" })
       ).resolves.toEqual({ type: "continue" });
+      await expect(
+        runPreToolUse(runContext, signal, "run_command", {
+          command: "bash -lc 'git status --short'"
+        })
+      ).resolves.toEqual({ type: "continue" });
 
       const mkdirResult = await runPreToolUse(runContext, signal, "run_command", {
         command: "mkdir tmp"
       });
 
       expectToolError(mkdirResult, "read mode");
+    } finally {
+      await runContext.dispose();
+    }
+  });
+
+  it("blocks shell wrappers with trailing rejected commands in read mode", async () => {
+    const { runContext, signal } = await setupRunContext([
+      shellPlugin(),
+      policyPlugin({ mode: "read" })
+    ]);
+
+    try {
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "bash -lc 'git status --short; echo $POE_API_KEY'"
+        }),
+        'Command "bash" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "bash -lc 'git status --short && mkdir tmp'"
+        }),
+        'Command "bash" is not allowed in read mode.'
+      );
+      expectToolError(
+        await runPreToolUse(runContext, signal, "run_command", {
+          command: "bash -lc 'pwd; printenv POE_API_KEY'"
+        }),
+        'Command "bash" is not allowed in read mode.'
+      );
     } finally {
       await runContext.dispose();
     }

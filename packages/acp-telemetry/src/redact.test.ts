@@ -102,6 +102,24 @@ describe("redact", () => {
     );
   });
 
+  it("redacts env-style and quoted assigned secret strings", () => {
+    const input = [
+      "OPENAI_API_KEY=sk-live",
+      "OPENAI_API_KEY=\"sk-quoted\"",
+      "token: \"tok123\"",
+      "password=\"pw123\"",
+      "prompt_tokens=12",
+    ].join(" ");
+
+    expect(redact(input)).toBe([
+      "OPENAI_API_KEY=[redacted]",
+      "OPENAI_API_KEY=\"[redacted]\"",
+      "token: \"[redacted]\"",
+      "password=\"[redacted]\"",
+      "prompt_tokens=12",
+    ].join(" "));
+  });
+
   it("replaces cyclic references without throwing", () => {
     const value: Record<string, unknown> = { output: "ok" };
     value.self = value;

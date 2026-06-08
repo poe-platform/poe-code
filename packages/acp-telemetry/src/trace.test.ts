@@ -341,6 +341,40 @@ describe("acpToTrace", () => {
     });
   });
 
+  it("redacts env-style assigned secrets from trace strings", () => {
+    const events = [
+      {
+        event: "agent_message",
+        text: "OPENAI_API_KEY=\"sk-agent\"",
+      },
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-1",
+        kind: "execute",
+        input: "token: \"tok-input\"",
+      },
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tc-1",
+        rawOutput: "password=\"pw-output\"",
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({
+      events,
+      prompt: "OPENAI_API_KEY=sk-prompt",
+    }));
+
+    expect(trace.root.input).toMatchObject({
+      prompt: "OPENAI_API_KEY=[redacted]",
+    });
+    expect(trace.root.output).toBe("OPENAI_API_KEY=\"[redacted]\"");
+    expect(trace.root.children[0]).toMatchObject({
+      input: "token: \"[redacted]\"",
+      output: "password=\"[redacted]\"",
+    });
+  });
+
   it("redacts tool metadata and preserves own __proto__ metadata entries", () => {
     const metadata: Record<string, unknown> = { raw: "a".repeat(65_537) };
     Object.defineProperty(metadata, "__proto__", {

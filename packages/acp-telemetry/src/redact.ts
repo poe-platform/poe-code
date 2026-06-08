@@ -3,8 +3,12 @@ const MAX_JSON_BYTES = 262_144;
 const BINARY_SCAN_BYTES = 1_024;
 const REDACTED_SECRET = "[redacted]";
 const BEARER_TOKEN_PATTERN = /\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi;
-const ASSIGNED_SECRET_PATTERN =
-  /\b((?:api[-_ ]?key|token|secret|password)\s*[:=]\s*)[A-Za-z0-9._~+/=-]+/gi;
+const ASSIGNED_SECRET_NAME_PATTERN =
+  String.raw`(?:(?:[A-Za-z0-9]+[-_])*api[-_ ]?key|(?:[A-Za-z0-9]+[-_])*(?:token|secret|password|private[-_ ]?key))`;
+const ASSIGNED_SECRET_PATTERN = new RegExp(
+  String.raw`\b(${ASSIGNED_SECRET_NAME_PATTERN}\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[A-Za-z0-9._~+/=-]+)`,
+  "gi",
+);
 
 export function redact(value: unknown): unknown {
   const serialized = safelySerialize(value);
@@ -79,7 +83,17 @@ function redactString(value: string): string {
 
   return value
     .replace(BEARER_TOKEN_PATTERN, `$1${REDACTED_SECRET}`)
-    .replace(ASSIGNED_SECRET_PATTERN, `$1${REDACTED_SECRET}`);
+    .replace(ASSIGNED_SECRET_PATTERN, redactAssignedSecretValue);
+}
+
+function redactAssignedSecretValue(match: string, prefix: string): string {
+  const secret = match.slice(prefix.length);
+  const quote = secret[0];
+  if (quote === '"' || quote === "'") {
+    return `${prefix}${quote}${REDACTED_SECRET}${quote}`;
+  }
+
+  return `${prefix}${REDACTED_SECRET}`;
 }
 
 function isSensitiveKey(key: string): boolean {

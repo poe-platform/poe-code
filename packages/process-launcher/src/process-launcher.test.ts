@@ -855,6 +855,58 @@ describe("process launcher manager", () => {
     await iterator.return?.();
   });
 
+  it("follows appended output from a byte cursor instead of rereading the log", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    const logPath = "/state/launch/api/logs/stdout.log";
+    const seedLog = `${Array.from({ length: 1_000 }, (_entry, index) => `line-${index}`).join("\n")}\n`;
+    await baseFs.mkdir(path.dirname(logPath), { recursive: true });
+    await baseFs.writeFile(logPath, seedLog);
+    const wholeFileReads: string[] = [];
+    const byteReads: Array<{ filePath: string; start: number }> = [];
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      readFile: async (filePath, encoding) => {
+        wholeFileReads.push(filePath);
+        return await baseFs.readFile(filePath, encoding);
+      },
+      readFileBytes: async (filePath, start) => {
+        byteReads.push({ filePath, start });
+        const content = await rawFs.readFile(filePath) as Buffer;
+        return content.subarray(start);
+      }
+    };
+    const controller = new AbortController();
+    const iterator = followManagedLogs({
+      baseDir: "/state/launch",
+      fs,
+      id: "api",
+      pollIntervalMs: 1,
+      signal: controller.signal
+    })[Symbol.asyncIterator]();
+
+    const first = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.appendFile(logPath, "first\n");
+    await expect(first).resolves.toEqual({ done: false, value: "first" });
+
+    const second = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.appendFile(logPath, "second\n");
+    await expect(second).resolves.toEqual({ done: false, value: "second" });
+
+    const logReads = byteReads
+      .filter(read => read.filePath === logPath)
+      .map(read => read.start);
+    expect(wholeFileReads.filter(filePath => filePath === logPath)).toEqual([]);
+    expect(logReads).toContain(Buffer.byteLength(seedLog));
+    expect(logReads).toContain(Buffer.byteLength(`${seedLog}first\n`));
+
+    controller.abort();
+    await iterator.return?.();
+  });
+
   it("follows fresh output after current log rotation", async () => {
     const fs = createMemFs();
     const logDir = "/state/launch/api/logs";
@@ -907,6 +959,10 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
       await rawFs.mkdir(filePath, options);
     },
     readFile: async (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+    readFileBytes: async (filePath, start) => {
+      const content = await rawFs.readFile(filePath) as Buffer;
+      return content.subarray(start);
+    },
     readdir: async filePath => rawFs.readdir(filePath) as Promise<string[]>,
     rm: async (filePath, options) => {
       await rawFs.rm(filePath, options);
@@ -917,8 +973,11 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
     stat: async filePath => {
       const stat = await rawFs.stat(filePath);
       return {
+        dev: Number(stat.dev),
+        ino: Number(stat.ino),
         isFile: () => stat.isFile(),
-        mtimeMs: Number(stat.mtimeMs)
+        mtimeMs: Number(stat.mtimeMs),
+        size: Number(stat.size)
       };
     },
     lstat: async filePath => {

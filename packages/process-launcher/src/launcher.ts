@@ -1,5 +1,6 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
+import { TextDecoder } from "node:util";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
 import { createStateStore } from "./state/state-store.js";
@@ -77,6 +78,18 @@ export interface RunManagedProcessOptions {
 
 interface ManagedProcessMeta {
   daemonPid: number | null;
+}
+
+interface FollowLogCursor {
+  decoder: TextDecoder;
+  fileId: string | null;
+  offset: number;
+  remainder: string;
+}
+
+interface LogFileStat {
+  fileId: string | null;
+  size: number | null;
 }
 
 const DEFAULT_POLL_INTERVAL_MS = 100;
@@ -289,12 +302,14 @@ export async function readManagedLogs(options: ReadManagedLogsOptions): Promise<
 export async function* followManagedLogs(
   options: FollowManagedLogsOptions
 ): AsyncIterable<string> {
+  const fs = options.fs ?? defaultFs();
   const stream = options.stream ?? "stdout";
   const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
   if (!Number.isFinite(pollIntervalMs) || pollIntervalMs < 0) {
     throw new Error(`Invalid managed log poll interval: ${pollIntervalMs}`);
   }
-  let previous = await readFollowedLogs(options, stream);
+  const cursor = createFollowLogCursor();
+  await primeFollowCursor(fs, options.baseDir, options.id, stream, cursor);
 
   while (!options.signal?.aborted) {
     await sleep(pollIntervalMs);
@@ -302,10 +317,7 @@ export async function* followManagedLogs(
       return;
     }
 
-    const next = await readFollowedLogs(options, stream);
-
-    const delta = hasSamePrefix(previous, next) ? next.slice(previous.length) : next;
-    previous = next;
+    const delta = await readFollowedLogDelta(fs, options.baseDir, options.id, stream, cursor);
 
     for (const line of delta) {
       yield line;
@@ -313,25 +325,158 @@ export async function* followManagedLogs(
   }
 }
 
-async function readFollowedLogs(
-  options: FollowManagedLogsOptions,
-  stream: "stdout" | "stderr"
-): Promise<string[]> {
-  return await readManagedLogs({
-    baseDir: options.baseDir,
-    fs: options.fs,
-    id: options.id,
-    lines: Number.MAX_SAFE_INTEGER,
-    stream
-  });
+function createFollowLogCursor(): FollowLogCursor {
+  return {
+    decoder: new TextDecoder(),
+    fileId: null,
+    offset: 0,
+    remainder: ""
+  };
 }
 
-function hasSamePrefix(previous: string[], next: string[]): boolean {
-  if (next.length < previous.length) {
-    return false;
+async function primeFollowCursor(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string,
+  stream: "stdout" | "stderr",
+  cursor: FollowLogCursor
+): Promise<void> {
+  const stat = await statFollowedLog(fs, baseDir, id, stream);
+
+  resetFollowCursor(cursor, stat?.fileId ?? null);
+  if (stat === null) {
+    return;
   }
 
-  return previous.every((line, index) => next[index] === line);
+  if (stat.size !== null) {
+    cursor.offset = stat.size;
+    return;
+  }
+
+  const bytes = await readFollowedLogBytes(
+    fs,
+    resolveCurrentLogPath(baseDir, id, stream),
+    0
+  );
+  resetFollowCursor(cursor, stat.fileId);
+  cursor.offset = bytes.byteLength;
+}
+
+async function readFollowedLogDelta(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string,
+  stream: "stdout" | "stderr",
+  cursor: FollowLogCursor
+): Promise<string[]> {
+  const stat = await statFollowedLog(fs, baseDir, id, stream);
+
+  if (stat === null) {
+    resetFollowCursor(cursor, null);
+    return [];
+  }
+
+  if (
+    (cursor.fileId !== null && stat.fileId !== null && cursor.fileId !== stat.fileId) ||
+    (stat.size !== null && stat.size < cursor.offset)
+  ) {
+    resetFollowCursor(cursor, stat.fileId);
+  } else if (cursor.fileId === null) {
+    cursor.fileId = stat.fileId;
+  }
+
+  if (stat.size !== null && stat.size === cursor.offset) {
+    return [];
+  }
+
+  const bytes = await readFollowedLogBytes(
+    fs,
+    resolveCurrentLogPath(baseDir, id, stream),
+    cursor.offset
+  );
+  cursor.offset += bytes.byteLength;
+
+  if (bytes.byteLength === 0) {
+    return [];
+  }
+
+  return consumeFollowedLogBytes(cursor, bytes);
+}
+
+async function statFollowedLog(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string,
+  stream: "stdout" | "stderr"
+): Promise<LogFileStat | null> {
+  await assertProcessDirectorySafe(fs, baseDir, id);
+  await assertPathNotSymbolicLink(fs, resolveLogDir(baseDir, id));
+  const logPath = resolveCurrentLogPath(baseDir, id, stream);
+  await assertPathNotSymbolicLink(fs, logPath);
+
+  try {
+    const stat = await fs.stat(logPath);
+    return {
+      fileId: getFileId(stat),
+      size: typeof stat.size === "number" ? stat.size : null
+    };
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
+async function readFollowedLogBytes(
+  fs: LauncherFileSystem,
+  logPath: string,
+  offset: number
+): Promise<Uint8Array> {
+  await assertPathNotSymbolicLink(fs, logPath);
+
+  if (fs.readFileBytes !== undefined) {
+    return await fs.readFileBytes(logPath, offset);
+  }
+
+  return Buffer.from(await fs.readFile(logPath, "utf8")).subarray(offset);
+}
+
+function consumeFollowedLogBytes(cursor: FollowLogCursor, bytes: Uint8Array): string[] {
+  const content = cursor.remainder + cursor.decoder.decode(bytes, { stream: true });
+  const lines: string[] = [];
+  let start = 0;
+
+  while (true) {
+    const lineBreak = content.indexOf("\n", start);
+    if (lineBreak === -1) {
+      break;
+    }
+
+    lines.push(normalizeLogLine(content.slice(start, lineBreak)));
+    start = lineBreak + 1;
+  }
+
+  cursor.remainder = content.slice(start);
+  return lines;
+}
+
+function resetFollowCursor(cursor: FollowLogCursor, fileId: string | null): void {
+  cursor.decoder = new TextDecoder();
+  cursor.fileId = fileId;
+  cursor.offset = 0;
+  cursor.remainder = "";
+}
+
+function normalizeLogLine(line: string): string {
+  return line.endsWith("\r") ? line.slice(0, -1) : line;
+}
+
+function getFileId(stat: { dev?: number; ino?: number }): string | null {
+  return typeof stat.dev === "number" && typeof stat.ino === "number"
+    ? `${stat.dev}:${stat.ino}`
+    : null;
 }
 
 export async function removeManagedProcess(options: RemoveManagedProcessOptions): Promise<void> {
@@ -761,6 +906,10 @@ function resolveLogDir(baseDir: string, id: string): string {
   return path.join(resolveProcessDir(baseDir, id), "logs");
 }
 
+function resolveCurrentLogPath(baseDir: string, id: string, stream: "stdout" | "stderr"): string {
+  return path.join(resolveLogDir(baseDir, id), `${stream}.log`);
+}
+
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
@@ -786,7 +935,46 @@ function isMissingProcessSignalError(error: unknown): boolean {
 }
 
 function defaultFs(): LauncherFileSystem {
-  return nodeFs as unknown as LauncherFileSystem;
+  return {
+    appendFile: async (filePath, content) => {
+      await nodeFs.appendFile(filePath, content);
+    },
+    lstat: async filePath => await nodeFs.lstat(filePath),
+    mkdir: async (filePath, options) => {
+      await nodeFs.mkdir(filePath, options);
+    },
+    readFile: async (filePath, encoding) => await nodeFs.readFile(filePath, encoding),
+    readFileBytes: readDefaultFileBytes,
+    readdir: async filePath => await nodeFs.readdir(filePath),
+    rename: async (sourcePath, destinationPath) => {
+      await nodeFs.rename(sourcePath, destinationPath);
+    },
+    rm: async (filePath, options) => {
+      await nodeFs.rm(filePath, options);
+    },
+    stat: async filePath => await nodeFs.stat(filePath),
+    writeFile: async (filePath, content) => {
+      await nodeFs.writeFile(filePath, content);
+    }
+  };
+}
+
+async function readDefaultFileBytes(filePath: string, start: number): Promise<Uint8Array> {
+  const handle = await nodeFs.open(filePath, "r");
+
+  try {
+    const stat = await handle.stat();
+    const length = Math.max(0, stat.size - start);
+    if (length === 0) {
+      return new Uint8Array();
+    }
+
+    const buffer = Buffer.allocUnsafe(length);
+    const { bytesRead } = await handle.read(buffer, 0, length, start);
+    return buffer.subarray(0, bytesRead);
+  } finally {
+    await handle.close();
+  }
 }
 
 function defaultSignalProcess(pid: number, signal: NodeJS.Signals): void {

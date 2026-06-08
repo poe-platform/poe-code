@@ -9,6 +9,13 @@ function createMemFs(files: Record<string, string> = {}): StateFileSystem {
   return createFsFromVolume(Volume.fromJSON(files, "/")).promises as unknown as StateFileSystem;
 }
 
+function symlink(fs: StateFileSystem, target: string, linkPath: string): Promise<void> {
+  return (fs as StateFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+    target,
+    linkPath
+  );
+}
+
 function createTemplate(hash: string, overrides: Partial<TemplateEntry> = {}): TemplateEntry {
   return {
     hash,
@@ -109,8 +116,12 @@ describe("TemplateRegistry", () => {
     };
     const registry = createTemplateRegistry("/home/tester", fs);
 
-    await expect(registry.put("docker", createTemplate("bravo"))).rejects.toThrow("templates disk full");
-    await expect(createTemplateRegistry("/home/tester", base).get("docker", "alpha")).resolves.toEqual(original);
+    await expect(registry.put("docker", createTemplate("bravo"))).rejects.toThrow(
+      "templates disk full"
+    );
+    await expect(
+      createTemplateRegistry("/home/tester", base).get("docker", "alpha")
+    ).resolves.toEqual(original);
   });
 
   it("ignores persisted templates stored under a mismatched hash key", async () => {
@@ -148,18 +159,43 @@ describe("TemplateRegistry", () => {
   it("rejects reads and writes through a symlinked template state file", async () => {
     const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
     const outsidePath = "/outside/templates.json";
-    const volume = Volume.fromJSON({
-      [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
-    }, "/");
+    const volume = Volume.fromJSON(
+      {
+        [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+      },
+      "/"
+    );
     volume.mkdirSync(path.dirname(templatesPath), { recursive: true });
     volume.symlinkSync(outsidePath, templatesPath);
     const fs = createFsFromVolume(volume).promises as unknown as StateFileSystem;
     const registry = createTemplateRegistry("/home/tester", fs);
 
-    await expect(registry.list("docker")).rejects.toThrow("Refusing template state access through symbolic link");
+    await expect(registry.list("docker")).rejects.toThrow(
+      "Refusing template state access through symbolic link"
+    );
     await expect(registry.put("docker", createTemplate("alpha"))).rejects.toThrow(
       "Refusing template state access through symbolic link"
     );
+  });
+
+  it("rejects reads and writes through a symlinked runtime state directory", async () => {
+    const stateDir = path.join("/home/tester", ".poe-code", "state");
+    const outsideDir = "/outside/state";
+    const outsidePath = path.join(outsideDir, "templates.json");
+    const fs = createMemFs({
+      [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+    });
+    await fs.mkdir(path.dirname(stateDir), { recursive: true });
+    await symlink(fs, outsideDir, stateDir);
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.list("docker")).rejects.toThrow(
+      "Refusing template state access through symbolic link"
+    );
+    await expect(registry.put("docker", createTemplate("alpha"))).rejects.toThrow(
+      "Refusing template state access through symbolic link"
+    );
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toContain('"docker"');
   });
 });
 
@@ -228,13 +264,16 @@ describe("JobRegistry", () => {
       }
     };
 
-    await expect(createJobRegistry("/home/tester", fs).put(createJob("job-1"))).rejects.toThrow("rename offline");
+    await expect(createJobRegistry("/home/tester", fs).put(createJob("job-1"))).rejects.toThrow(
+      "rename offline"
+    );
   });
 
   it("ignores job records whose id does not match their filename", async () => {
     const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
     const fs = createMemFs({
-      [path.join(jobsDir, "requested-job.json")]: `${JSON.stringify(createJob("other-job"), null, 2)}\n`
+      [path.join(jobsDir, "requested-job.json")]:
+        `${JSON.stringify(createJob("other-job"), null, 2)}\n`
     });
     const registry = createJobRegistry("/home/tester", fs);
 
@@ -246,9 +285,9 @@ describe("JobRegistry", () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);
 
-    await expect(registry.put(createJob("job-1", { exit_code: Number.POSITIVE_INFINITY }))).rejects.toThrow(
-      "Invalid job entry."
-    );
+    await expect(
+      registry.put(createJob("job-1", { exit_code: Number.POSITIVE_INFINITY }))
+    ).rejects.toThrow("Invalid job entry.");
     await expect(registry.get("job-1")).resolves.toBeNull();
   });
 
@@ -272,10 +311,7 @@ describe("JobRegistry", () => {
     await registry.put(exitedNpm);
     await registry.put(runningNode);
 
-    await expect(registry.list({ status: "running" })).resolves.toEqual([
-      runningNode,
-      runningNpm
-    ]);
+    await expect(registry.list({ status: "running" })).resolves.toEqual([runningNode, runningNpm]);
     await expect(registry.list({ status: "running", tool: "node" })).resolves.toEqual([
       runningNode
     ]);
@@ -311,7 +347,10 @@ describe("JobRegistry", () => {
     const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
     const outsideDir = "/outside/jobs";
     const vol = Volume.fromJSON(
-      { [path.join(outsideDir, "external.json")]: `${JSON.stringify(createJob("external"), null, 2)}\n` },
+      {
+        [path.join(outsideDir, "external.json")]:
+          `${JSON.stringify(createJob("external"), null, 2)}\n`
+      },
       "/"
     );
     const fs = createFsFromVolume(vol).promises as unknown as StateFileSystem;
@@ -330,6 +369,49 @@ describe("JobRegistry", () => {
     );
     await expect(fs.readFile(path.join(outsideDir, "external.json"), "utf8")).resolves.toContain(
       '"id": "external"'
+    );
+  });
+
+  it("rejects reads and writes through a symlinked runtime state directory", async () => {
+    const stateDir = path.join("/home/tester", ".poe-code", "state");
+    const outsideJobsDir = "/outside/state/jobs";
+    const fs = createMemFs({
+      [path.join(outsideJobsDir, "external.json")]:
+        `${JSON.stringify(createJob("external"), null, 2)}\n`
+    });
+    await fs.mkdir(path.dirname(stateDir), { recursive: true });
+    await symlink(fs, "/outside/state", stateDir);
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.list()).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.put(createJob("job-1"))).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.remove("external")).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(
+      fs.readFile(path.join(outsideJobsDir, "external.json"), "utf8")
+    ).resolves.toContain('"id": "external"');
+  });
+
+  it("rejects reads through a symlinked job state file", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const outsidePath = "/outside/job-1.json";
+    const fs = createMemFs({
+      [outsidePath]: `${JSON.stringify(createJob("job-1"), null, 2)}\n`
+    });
+    await fs.mkdir(jobsDir, { recursive: true });
+    await symlink(fs, outsidePath, path.join(jobsDir, "job-1.json"));
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.get("job-1")).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.list()).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
     );
   });
 

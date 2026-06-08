@@ -1,5 +1,10 @@
 import path from "node:path";
-import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
+import {
+  assertPathHasNoSymbolicLinks,
+  defaultStateFs,
+  isNotFoundError,
+  type StateFileSystem
+} from "./fs.js";
 
 export type TemplateBackend = "docker" | "e2b";
 
@@ -61,6 +66,7 @@ export function createTemplateRegistry(
 
   async function updateState(mutator: (state: TemplateState) => void): Promise<void> {
     const update = pendingUpdate.then(async () => {
+      await assertSafeStateFile();
       await fs.mkdir(path.dirname(filePath), { recursive: true });
       const state = await readState();
       mutator(state);
@@ -71,18 +77,11 @@ export function createTemplateRegistry(
   }
 
   async function assertSafeStateFile(): Promise<void> {
-    if (fs.lstat === undefined) {
-      return;
-    }
-    try {
-      if ((await fs.lstat(filePath)).isSymbolicLink()) {
-        throw new Error(`Refusing template state access through symbolic link: ${filePath}`);
-      }
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-    }
+    await assertPathHasNoSymbolicLinks(
+      fs,
+      filePath,
+      "Refusing template state access through symbolic link"
+    );
   }
 
   async function get(backend: TemplateBackend, hash: string): Promise<TemplateEntry | null> {

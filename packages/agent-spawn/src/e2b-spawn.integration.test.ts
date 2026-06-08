@@ -13,7 +13,7 @@ import {
 import { e2bExecutionEnvFactory } from "@poe-code/runner-e2b";
 import { spawn } from "./spawn.js";
 
-describe.skipIf(process.env.E2B_API_KEY)("spawn through e2b with captured sandbox fake", () => {
+describe("spawn through e2b with captured sandbox fake", () => {
   const repoRoot = process.cwd();
   const originalEnv = { ...process.env };
 

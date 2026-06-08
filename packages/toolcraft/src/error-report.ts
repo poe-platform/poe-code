@@ -8,10 +8,10 @@ import type { Command, SecretDeclarations } from "./index.js";
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
 import { findProjectRoot } from "./mcp-proxy.js";
 import { findPackageMetadata } from "./package-metadata.js";
+import { isSensitiveName, redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
 import { UserError } from "./user-error.js";
 
 const ERROR_REPORTS_ENV = "TOOLCRAFT_ERROR_REPORTS";
-const DEFAULT_SENSITIVE_NAMES = ["password", "token", "apikey", "secret"];
 
 export type ErrorReportsOption = boolean | { dir?: string };
 
@@ -196,11 +196,6 @@ function redactValue(value: string | undefined): string {
   return `<set, ${value.length} chars>`;
 }
 
-function isSensitiveName(name: string): boolean {
-  const normalized = name.toLowerCase();
-  return DEFAULT_SENSITIVE_NAMES.some((candidate) => normalized.includes(candidate));
-}
-
 function schemaSecretValue(schema: AnySchema): boolean | undefined {
   const unwrapped = unwrapOptional(schema);
 
@@ -328,8 +323,15 @@ function stableJson(value: unknown): string {
 }
 
 function redactStructuredErrorField(name: string, value: unknown): unknown {
-  if (typeof value === "string" && name.toLowerCase() === "authorization") {
-    return "Bearer ****";
+  if (typeof value === "string") {
+    const redactedHeaderValue = redactHttpHeaderValue(name, value);
+    if (redactedHeaderValue !== value) {
+      return redactedHeaderValue;
+    }
+
+    if (isSensitiveName(name)) {
+      return "<redacted>";
+    }
   }
 
   if (Array.isArray(value)) {
@@ -389,7 +391,7 @@ function formatStackChain(error: unknown): string {
 }
 
 function formatHeaderValue(name: string, value: string): string {
-  return name.toLowerCase() === "authorization" ? "Bearer ****" : value;
+  return redactHttpHeaderValue(name, value);
 }
 
 function formatHeaders(headers: Record<string, string>): string {
@@ -399,11 +401,13 @@ function formatHeaders(headers: Record<string, string>): string {
 }
 
 function formatBody(body: unknown): string {
-  if (typeof body === "string") {
-    return body;
+  const redactedBody = redactHttpBody(body);
+
+  if (typeof redactedBody === "string") {
+    return redactedBody;
   }
 
-  return stableJson(body);
+  return stableJson(redactedBody);
 }
 
 function formatHttpTranscript(error: HttpErrorLike): string {

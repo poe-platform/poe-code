@@ -2104,6 +2104,47 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("redacts secret-like response body fields in default HttpError snippets", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: JSON.stringify({
+              access_token: "response-access-token",
+              refreshToken: "response-refresh-token",
+              nested: {
+                client_secret: "response-client-secret",
+                trace_id: "8f3c-123"
+              }
+            })
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain('"access_token": "<redacted>"');
+    expect(output).toContain('"refreshToken": "<redacted>"');
+    expect(output).toContain('"client_secret": "<redacted>"');
+    expect(output).toContain('"trace_id": "8f3c-123"');
+    expect(output).not.toContain("response-access-token");
+    expect(output).not.toContain("response-refresh-token");
+    expect(output).not.toContain("response-client-secret");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("prints full HttpError-like details with --verbose without a stack trace", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -2154,6 +2195,56 @@ describe("runCLI", () => {
       "
     `);
     expect(readStderr(stderrWrite)).not.toContain("at fake-handler");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("redacts secret-like request and response body fields in verbose HttpError details", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          request: {
+            body: {
+              name: "demo",
+              client_secret: "request-client-secret",
+              nested: {
+                apiKey: "request-api-key"
+              }
+            }
+          },
+          response: {
+            body: {
+              error: "unauthorized",
+              tokens: [
+                {
+                  refresh_token: "response-refresh-token"
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain('"name": "demo"');
+    expect(output).toContain('"client_secret": "<redacted>"');
+    expect(output).toContain('"apiKey": "<redacted>"');
+    expect(output).toContain('"tokens": "<redacted>"');
+    expect(output).not.toContain("request-client-secret");
+    expect(output).not.toContain("request-api-key");
+    expect(output).not.toContain("response-refresh-token");
     expect(process.exitCode).toBe(1);
   });
 

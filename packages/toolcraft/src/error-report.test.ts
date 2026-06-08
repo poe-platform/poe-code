@@ -234,6 +234,45 @@ describe("writeErrorReport", () => {
     expect(report).toContain("visible-label");
   });
 
+  it("redacts secret-like HTTP request and response body fields from reports", async () => {
+    const error = createHttpErrorLike();
+    error.request.body = {
+      name: "demo",
+      client_secret: "report-client-secret",
+      nested: {
+        apiKey: "report-api-key"
+      }
+    };
+    error.response.body = {
+      error: "internal",
+      access_token: "report-access-token",
+      nested: [
+        {
+          refreshToken: "report-refresh-token"
+        }
+      ]
+    };
+
+    await writeErrorReport({
+      command,
+      commandPath: "widgets.create",
+      error,
+      errorReports: true,
+      projectRoot: "/repo"
+    });
+
+    const report = await readOnlyReportFile("/repo");
+    expect(report).toContain('"name": "demo"');
+    expect(report).toContain('"client_secret": "<redacted>"');
+    expect(report).toContain('"apiKey": "<redacted>"');
+    expect(report).toContain('"access_token": "<redacted>"');
+    expect(report).toContain('"refreshToken": "<redacted>"');
+    expect(report).not.toContain("report-client-secret");
+    expect(report).not.toContain("report-api-key");
+    expect(report).not.toContain("report-access-token");
+    expect(report).not.toContain("report-refresh-token");
+  });
+
   it("preserves enumerable __proto__ structured error fields", async () => {
     const error = new Error("boom");
     Object.defineProperty(error, "__proto__", {

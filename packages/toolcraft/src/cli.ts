@@ -55,6 +55,7 @@ import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-l
 import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
+import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { renderSourceSnippet } from "./source-snippet.js";
@@ -3997,20 +3998,22 @@ function formatGraphQLErrorEnvelopeBody(body: GraphQLErrorEnvelopeLike): string 
 }
 
 function formatHttpErrorBody(body: unknown): string {
-  if (typeof body === "string") {
-    return body;
+  const redactedBody = redactHttpBody(body);
+
+  if (typeof redactedBody === "string") {
+    return redactedBody;
   }
 
-  if (isProblemDetailsLike(body)) {
-    return formatProblemDetailsBody(body);
+  if (isProblemDetailsLike(redactedBody)) {
+    return formatProblemDetailsBody(redactedBody);
   }
 
-  if (isGraphQLErrorEnvelopeLike(body)) {
-    return formatGraphQLErrorEnvelopeBody(body);
+  if (isGraphQLErrorEnvelopeLike(redactedBody)) {
+    return formatGraphQLErrorEnvelopeBody(redactedBody);
   }
 
-  const serialized = JSON.stringify(body, null, 2);
-  return serialized === undefined ? String(body) : serialized;
+  const serialized = JSON.stringify(redactedBody, null, 2);
+  return serialized === undefined ? String(redactedBody) : serialized;
 }
 
 function indentHttpErrorBlock(value: string): string {
@@ -4021,7 +4024,7 @@ function indentHttpErrorBlock(value: string): string {
 }
 
 function formatHttpHeaderValue(name: string, value: string): string {
-  return name.toLowerCase() === "authorization" ? "Bearer ****" : value;
+  return redactHttpHeaderValue(name, value);
 }
 
 function formatHttpErrorHeaders(headers: Record<string, string>): string[] {

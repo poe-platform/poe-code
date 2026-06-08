@@ -39,6 +39,29 @@ const DEFAULT_MODELS: Record<GenerateType, string> = {
   audio: DEFAULT_AUDIO_BOT
 };
 
+const KNOWN_MIME_EXTENSIONS: Readonly<Record<string, string>> = {
+  "application/octet-stream": "bin",
+  "application/pdf": "pdf",
+  "audio/mp3": "mp3",
+  "audio/mp4": "m4a",
+  "audio/mpeg": "mp3",
+  "audio/ogg": "ogg",
+  "audio/wav": "wav",
+  "audio/webm": "webm",
+  "audio/x-wav": "wav",
+  "image/gif": "gif",
+  "image/jpeg": "jpg",
+  "image/jpg": "jpg",
+  "image/png": "png",
+  "image/svg+xml": "svg",
+  "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
+  "video/webm": "webm"
+};
+
+const SAFE_GENERATED_EXTENSION_PATTERN = /^[a-z0-9][a-z0-9-]{0,31}$/;
+
 export function registerGenerateCommand(
   program: Command,
   container: CliContainer
@@ -180,8 +203,12 @@ function registerMediaSubcommand(
           }
 
           const mimeType = response.mimeType ?? getDefaultMimeType(type);
+          const hasExplicitOutput = opts.output !== undefined;
           const filename = opts.output ?? generateFilename(type, mimeType);
           const resolved = resolveOutputPath(filename, container.env.cwd);
+          if (!hasExplicitOutput) {
+            assertGeneratedOutputPathInsideCwd(resolved.path, container.env.cwd);
+          }
 
           try {
             await downloadToFile({
@@ -364,21 +391,22 @@ function generateFilename(type: MediaType, mimeType: string): string {
 }
 
 function mimeTypeToExt(mimeType: string): string {
-  const known: Record<string, string> = {
-    "image/png": "png",
-    "video/mp4": "mp4",
-    "audio/mp3": "mp3",
-    "audio/mpeg": "mp3"
-  };
-  const mapped = known[mimeType];
+  const normalized = normalizeMimeType(mimeType);
+  const mapped = KNOWN_MIME_EXTENSIONS[normalized];
   if (mapped) {
     return mapped;
   }
-  const slashIndex = mimeType.indexOf("/");
-  if (slashIndex === -1 || slashIndex === mimeType.length - 1) {
+  const slashIndex = normalized.indexOf("/");
+  if (slashIndex === -1 || slashIndex === normalized.length - 1) {
     return "bin";
   }
-  return mimeType.slice(slashIndex + 1);
+  const subtype = normalized.slice(slashIndex + 1);
+  return SAFE_GENERATED_EXTENSION_PATTERN.test(subtype) ? subtype : "bin";
+}
+
+function normalizeMimeType(mimeType: string): string {
+  const baseType = mimeType.split(";", 1)[0];
+  return (baseType ?? "").trim().toLowerCase();
 }
 
 function getDefaultMimeType(type: MediaType): string {
@@ -398,4 +426,14 @@ function resolveOutputPath(filename: string, cwd: string): { path: string; label
     path: path.join(cwd, filename),
     label: `./${filename}`
   };
+}
+
+function assertGeneratedOutputPathInsideCwd(outputPath: string, cwd: string): void {
+  const relative = path.relative(cwd, outputPath);
+  if (relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))) {
+    return;
+  }
+  throw new ValidationError(
+    "Generated output filename resolved outside the current working directory."
+  );
 }

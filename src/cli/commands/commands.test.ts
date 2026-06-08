@@ -807,6 +807,40 @@ describe("generate command", () => {
     nowSpy.mockRestore();
   });
 
+  it("sanitizes response MIME subtypes before generating default output paths", async () => {
+    const { program, fs } = createGenerateProgram();
+    await fs.mkdir("/outside", { recursive: true });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image",
+        mimeType: "image/../../../outside/owned.png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([4, 3, 2]).buffer
+    } as unknown as Response);
+
+    try {
+      await program.parseAsync(["node", "cli", "generate", "image", "A sunset"]);
+
+      const saved = await fs.readFile("/repo/image-1737984000.bin");
+      expect(saved).toEqual(Buffer.from([4, 3, 2]));
+      await expect(fs.readFile("/outside/owned.png")).rejects.toThrow();
+
+      const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+      expect(output).toContain("./image-1737984000.bin");
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it("uses provided output path for image generation", async () => {
     const { program, fs } = createGenerateProgram();
     const client: LlmClient = {

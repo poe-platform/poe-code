@@ -3,7 +3,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
 import {
-  assertMemoryRootIsNotSymlink,
+  assertNoSymlinkSegments,
   assertSafeRelPath,
   MEMORY_CACHE_DIR_RELPATH,
   MEMORY_INGEST_CACHE_DIR_RELPATH
@@ -31,8 +31,9 @@ export async function readCacheEntry(
   root: MemoryRoot,
   key: IngestCacheKey
 ): Promise<IngestCacheEntry | null> {
-  await assertMemoryRootIsNotSymlink(root);
-  const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${assertSafeRelPath(key)}.json`);
+  const safeKey = assertSafeRelPath(key);
+  await assertIngestCachePathIsNotSymlink(root);
+  const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${safeKey}.json`);
 
   let raw: string;
   try {
@@ -56,9 +57,9 @@ export async function readCacheEntry(
 
 export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry): Promise<void> {
   const key = assertSafeRelPath(entry.key);
-  await assertMemoryRootIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root);
   await fs.mkdir(path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH), { recursive: true });
-  await assertMemoryRootIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root);
   await writeFileAtomically(
     path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${key}.json`),
     `${JSON.stringify(entry)}\n`
@@ -66,7 +67,7 @@ export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry)
 }
 
 export async function cacheStatus(root: MemoryRoot): Promise<{ entries: number; bytes: number }> {
-  await assertMemoryRootIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
   const fileNames = await readCacheFileNames(ingestDir);
   const sizes = await Promise.all(
@@ -83,7 +84,7 @@ export async function clearCache(
   root: MemoryRoot,
   opts: { olderThanMs?: number } = {}
 ): Promise<{ removed: number }> {
-  await assertMemoryRootIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
   const cacheDir = path.join(root, MEMORY_CACHE_DIR_RELPATH);
   const fileNames = await readCacheFileNames(ingestDir);
@@ -131,6 +132,10 @@ export async function clearCache(
   await removeEmptyDirectory(cacheDir);
 
   return { removed: expiredEntries.length };
+}
+
+async function assertIngestCachePathIsNotSymlink(root: MemoryRoot): Promise<void> {
+  await assertNoSymlinkSegments(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
 }
 
 function parseCacheEntry(value: unknown, _key: string): IngestCacheEntry {

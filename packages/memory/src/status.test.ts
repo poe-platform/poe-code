@@ -81,4 +81,27 @@ describe("statusOf", () => {
       initialized: true
     });
   });
+
+  it("rejects a symlinked initialized memory root", async () => {
+    vol.fromJSON({
+      "/outside/memory/INDEX.md": "# Index\n",
+      "/outside/memory/LOG.md": "- log\n",
+      "/outside/memory/pages/secret.md": "# Outside\n"
+    });
+    vol.mkdirSync("/repo/.poe-code", { recursive: true });
+    await vol.promises.symlink("/outside/memory", "/repo/.poe-code/memory");
+
+    await expect(statusOf("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("rejects a symlinked pages directory before counting pages", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Index\n",
+      "/repo/.poe-code/memory/LOG.md": "- log\n",
+      "/outside/pages/secret.md": "# Outside\n"
+    });
+    await vol.promises.symlink("/outside/pages", "/repo/.poe-code/memory/pages");
+
+    await expect(statusOf("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+  });
 });

@@ -1,6 +1,12 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { MEMORY_INDEX_RELPATH, MEMORY_LOG_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import {
+  assertMemoryRootIsNotSymlink,
+  assertNoSymlinkSegments,
+  MEMORY_INDEX_RELPATH,
+  MEMORY_LOG_RELPATH,
+  MEMORY_PAGES_DIR_RELPATH
+} from "./paths.js";
 import { collectMarkdownRelPaths } from "./pages.js";
 import type { MemoryRoot } from "./types.js";
 
@@ -10,6 +16,8 @@ export async function statusOf(root: MemoryRoot): Promise<{
   lastWriteAt: string | null;
   initialized: boolean;
 }> {
+  await assertMemoryRootIsNotSymlink(root);
+
   if (
     !(await pathExists(root)) ||
     !(await pathExists(path.join(root, MEMORY_INDEX_RELPATH))) ||
@@ -33,6 +41,7 @@ export async function statusOf(root: MemoryRoot): Promise<{
   let lastWriteAtMs = Number.NEGATIVE_INFINITY;
 
   for (const relPath of markdownRelPaths) {
+    await assertNoSymlinkSegments(root, relPath);
     const stat = await fs.stat(path.join(root, relPath));
     totalBytes += stat.size;
     lastWriteAtMs = Math.max(lastWriteAtMs, stat.mtimeMs);

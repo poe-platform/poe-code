@@ -138,4 +138,21 @@ describe("memory MCP helpers", () => {
     expect(result.result).toMatchObject({ isError: true });
     expect(handle.searchMemory).not.toHaveBeenCalled();
   });
+
+  it("returns an MCP tool error when memory search rejects", async () => {
+    const handle = createHandle();
+    handle.searchMemory = vi.fn().mockRejectedValue(
+      new Error('Memory root "/repo/.poe-code/memory" cannot be a symbolic link.')
+    );
+    const { server } = await startMemoryMcpServer(handle, { allowWrites: false });
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    const result = await server.handleMessage("tools/call", {
+      name: "search_memory",
+      arguments: { query: "secret" }
+    });
+
+    expect(result.result).toMatchObject({ isError: true });
+    expect(handle.searchMemory).toHaveBeenCalledWith("secret");
+  });
 });

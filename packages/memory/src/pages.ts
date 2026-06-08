@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
 import {
+  assertMemoryRootIsNotSymlink,
   assertNoSymlinkSegments,
   assertSafeRelPath,
   MEMORY_CACHE_DIR_RELPATH,
@@ -47,8 +48,16 @@ export async function collectMarkdownRelPaths(
   root: MemoryRoot,
   startRelPath = ""
 ): Promise<string[]> {
+  const normalizedStartRelPath = startRelPath.length === 0 ? "" : assertSafeRelPath(startRelPath);
+  await assertMemoryRootIsNotSymlink(root);
+  if (normalizedStartRelPath.length > 0) {
+    await assertNoSymlinkSegments(root, normalizedStartRelPath);
+  } else {
+    await assertNoSymlinkSegments(root, MEMORY_PAGES_DIR_RELPATH);
+  }
+
   const relPaths: string[] = [];
-  await collectMarkdownRelPathsInto(root, startRelPath, relPaths);
+  await collectMarkdownRelPathsInto(root, normalizedStartRelPath, relPaths);
   return relPaths.sort((left, right) => left.localeCompare(right));
 }
 

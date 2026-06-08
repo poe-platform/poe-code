@@ -1,12 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  resolveOutputFormat,
-  resetOutputFormatCache,
-  withOutputFormat
-} from "./output-format.js";
+import { resolveOutputFormat, resetOutputFormatCache, withOutputFormat } from "./output-format.js";
 import { resolveThemeName, getTheme, resetThemeCache } from "./theme-detect.js";
 import { supportsColor } from "./color-support.js";
 import { dark, light } from "../tokens/colors.js";
+import { configureTheme, resetTheme } from "./theme-state.js";
 
 describe("resolveOutputFormat", () => {
   beforeEach(() => {
@@ -93,12 +90,14 @@ describe("resolveOutputFormat", () => {
   });
 
   it("propagates the scoped override through timer callbacks", async () => {
-    const scoped = await withOutputFormat("markdown", async () =>
-      new Promise<ReturnType<typeof resolveOutputFormat>>((resolve) => {
-        setTimeout(() => {
-          resolve(resolveOutputFormat({ OUTPUT_FORMAT: "json" }));
-        }, 0);
-      })
+    const scoped = await withOutputFormat(
+      "markdown",
+      async () =>
+        new Promise<ReturnType<typeof resolveOutputFormat>>((resolve) => {
+          setTimeout(() => {
+            resolve(resolveOutputFormat({ OUTPUT_FORMAT: "json" }));
+          }, 0);
+        })
     );
 
     expect(scoped).toBe("markdown");
@@ -116,13 +115,15 @@ describe("supportsColor", () => {
   });
 
   it("does not force color for FORCE_COLOR=0", () => {
-    expect(supportsColor({ FORCE_COLOR: "0", TERM: "xterm-256color" }, { isTTY: false })).toBe(false);
+    expect(supportsColor({ FORCE_COLOR: "0", TERM: "xterm-256color" }, { isTTY: false })).toBe(
+      false
+    );
   });
 });
 
 describe("theme-detect", () => {
   beforeEach(() => {
-    resetThemeCache();
+    resetTheme();
   });
 
   describe("resolveThemeName", () => {
@@ -176,17 +177,21 @@ describe("theme-detect", () => {
     });
 
     it("POE_CODE_THEME takes precedence over APPLE_INTERFACE_STYLE", () => {
-      expect(resolveThemeName({
-        POE_CODE_THEME: "light",
-        APPLE_INTERFACE_STYLE: "Dark"
-      })).toBe("light");
+      expect(
+        resolveThemeName({
+          POE_CODE_THEME: "light",
+          APPLE_INTERFACE_STYLE: "Dark"
+        })
+      ).toBe("light");
     });
 
     it("POE_CODE_THEME takes precedence over POE_THEME", () => {
-      expect(resolveThemeName({
-        POE_CODE_THEME: "light",
-        POE_THEME: "dark"
-      })).toBe("light");
+      expect(
+        resolveThemeName({
+          POE_CODE_THEME: "light",
+          POE_THEME: "dark"
+        })
+      ).toBe("light");
     });
   });
 
@@ -206,10 +211,12 @@ describe("theme-detect", () => {
       expect(theme).toBe(light);
     });
 
-    it("caches the theme", () => {
+    it("caches each mode separately", () => {
       const theme1 = getTheme({ POE_CODE_THEME: "light" });
       const theme2 = getTheme({ POE_CODE_THEME: "dark" });
-      expect(theme1).toBe(theme2);
+      expect(theme1).toBe(light);
+      expect(theme2).toBe(dark);
+      expect(getTheme({ POE_CODE_THEME: "light" })).toBe(theme1);
     });
 
     it("resetThemeCache clears the cache", () => {
@@ -217,6 +224,15 @@ describe("theme-detect", () => {
       resetThemeCache();
       const theme = getTheme({ POE_CODE_THEME: "dark" });
       expect(theme).toBe(dark);
+    });
+
+    it("caches by brand and mode", () => {
+      const purple = getTheme({ POE_CODE_THEME: "dark" });
+      configureTheme({ brand: "blue" });
+      const blue = getTheme({ POE_CODE_THEME: "dark" });
+
+      expect(blue).not.toBe(purple);
+      expect(getTheme({ POE_CODE_THEME: "dark" })).toBe(blue);
     });
   });
 });

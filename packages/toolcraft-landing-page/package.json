@@ -1,0 +1,12 @@
+{
+  "name": "toolcraft-landing-page",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:unit": "vitest run --passWithNoTests packages/toolcraft-landing-page/src"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

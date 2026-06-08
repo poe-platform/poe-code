@@ -12,6 +12,8 @@ When adding a new provider, the author should be creating 1 provider file, every
 
 We are not doing branches unless requested. Everything happens on main and we push straight to main (when requested).
 
+ALWAYS monitor the build after push until the release is successful. 
+
 ## Bad habits that I want to avoid
 
 - Functions that do nothing just proxy to another functions are not allowed
@@ -59,6 +61,8 @@ Regexes are not allowed. When modifying existing files, you must parse them and 
 The Providers should have as little as possible boilerplate, keep them simple, declarative. They should not know anything about logging, dry run.
 
 Providers must be declarative and minimal: you are not allowed to add repeated information that can be inferred from existing config.
+
+A provider may define an optional `spawn(context, options)` conversation function — the imperative hook that actually runs the agent (e.g. `gemini-cli`). Prefer the declarative `agent-spawn` config; reach for `spawn` only when the declarative path can't express the run.
 
 ## Testing
 

@@ -449,7 +449,7 @@ s.stop("Done!");
 ```json
 {"type":"spinner","state":"running","message":"Configuring claude-code..."}
 
-{"type":"spinner","state":"stopped","message":"Configuration complete!"}
+{"type":"spinner","state":"stopped","message":"Configuration complete!","code":0,"subtext":"claude-code is ready to use"}
 ```
 
 ### spinner-timer
@@ -465,7 +465,7 @@ const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });
 ```json
 {"type":"spinner","state":"running","message":"Configuring claude-code...","timer":"1s"}
 
-{"type":"spinner","state":"stopped","message":"Configuration complete!","timer":"2s"}
+{"type":"spinner","state":"stopped","message":"Configuration complete!","code":0,"timer":"2s","subtext":"claude-code is ready to use"}
 ```
 
 ### table

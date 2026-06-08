@@ -1,4 +1,5 @@
-import { brand } from "../tokens/colors.js";
+import { getThemeConfig } from "../internal/theme-state.js";
+import { brands } from "../tokens/brand.js";
 
 export const promptTheme = {
   symbols: {
@@ -8,6 +9,8 @@ export const promptTheme = {
     success: "◇"
   },
   style: {
-    accentColor: brand
+    get accentColor(): string {
+      return brands[getThemeConfig().brand]!.primary;
+    }
   }
 } as const;

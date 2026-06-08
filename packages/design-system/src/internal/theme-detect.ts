@@ -1,4 +1,6 @@
-import { dark, light, type ThemeName, type ThemePalette } from "../tokens/colors.js";
+import { getThemeConfig, getThemeRevision } from "./theme-state.js";
+import { brands } from "../tokens/brand.js";
+import { createPalette, dark, light, type ThemeName, type ThemePalette } from "../tokens/colors.js";
 
 export interface ThemeEnv {
   POE_CODE_THEME?: string;
@@ -49,17 +51,34 @@ export function resolveThemeName(env: ThemeEnv = process.env as ThemeEnv): Theme
   return "dark";
 }
 
-let cachedTheme: ThemePalette | undefined;
+const themeCache = new Map<string, ThemePalette>();
+let cachedRevision = -1;
 
 export function getTheme(env?: ThemeEnv): ThemePalette {
+  const themeName = resolveThemeName(env);
+  const config = getThemeConfig();
+  const revision = getThemeRevision();
+  if (revision !== cachedRevision) {
+    themeCache.clear();
+    cachedRevision = revision;
+  }
+  const cacheKey = `${config.brand}:${themeName}`;
+  const cachedTheme = themeCache.get(cacheKey);
   if (cachedTheme) {
     return cachedTheme;
   }
-  const themeName = resolveThemeName(env);
-  cachedTheme = themeName === "light" ? light : dark;
-  return cachedTheme;
+  const activeBrand = brands[config.brand]!;
+  const theme =
+    config.brand === "purple"
+      ? themeName === "light"
+        ? light
+        : dark
+      : createPalette(activeBrand, themeName);
+  themeCache.set(cacheKey, theme);
+  return theme;
 }
 
 export function resetThemeCache(): void {
-  cachedTheme = undefined;
+  themeCache.clear();
+  cachedRevision = getThemeRevision();
 }

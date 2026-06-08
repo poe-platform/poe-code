@@ -72,10 +72,8 @@ outro("Configuration complete.");
 # Configure
 
 - **info:** Configuring claude-code...
-- Provider
-   claude
-- API Key
-   poe-abc...xyz
+- Provider    claude
+- API Key    poe-abc...xyz
 ---
 Configuration complete.
 ```
@@ -97,8 +95,7 @@ outro("Problems? https://...");
 ```markdown
 # configure claude-code
 
-- Claude Code default model
-   Claude-Opus-4.6
+- Claude Code default model    Claude-Opus-4.6
 - **success:** Configured Claude Code.
 > **Next steps.**
 > If using VSCode - Open the Disable Login Prompt setting and check the box.
@@ -409,9 +406,7 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```markdown
-- API Key
-   poe-abc...xyz
-   Expires: 2026-12-31
+- API Key    poe-abc...xyz    Expires: 2026-12-31
 ```
 
 ### prompt-errorResolved
@@ -424,9 +419,7 @@ log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved
 ```
 
 ```markdown
-- Configuration Failed
-   Missing API key
-   Check your .env file or run poe-code login
+- Configuration Failed    Missing API key    Check your .env file or run poe-code login
 ```
 
 ### menu
@@ -531,15 +524,7 @@ log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
 
 ```markdown
-- --- config.json
-+++ config.json
-@@ -1,3 +1,5 @@
- {
--  "model": "gpt-4",
-+  "model": "claude-sonnet-4",
-   "temperature": 0.7
-+  "maxTokens": 4096
- }
+- --- config.json +++ config.json @@ -1,3 +1,5 @@  { -  "model": "gpt-4", +  "model": "claude-sonnet-4",    "temperature": 0.7 +  "maxTokens": 4096  }
 ```
 
 ## Dashboard

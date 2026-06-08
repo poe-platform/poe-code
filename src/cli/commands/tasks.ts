@@ -231,7 +231,7 @@ async function runSync(
     };
     let report = await syncGhProject(syncOptions);
 
-    if (!report.ok && options.yes !== true) {
+    if (!report.ok && options.yes !== true && options.json !== true) {
       const shouldProvision = await confirm({
         message: `Create missing GitHub Project resources (${formatMissingSyncResources(report)})?`
       });

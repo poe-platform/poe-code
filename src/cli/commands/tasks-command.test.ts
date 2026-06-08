@@ -380,6 +380,39 @@ maestro:
     }
   });
 
+  it("prints sync --json missing-resource reports without prompting", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const report = createSyncReport({
+      ok: false,
+      missingStatusField: true,
+      missingOptions: ["queued", "done"]
+    });
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const restoreTTY = setStdinTTY(true);
+    taskListMocks.syncGhProject.mockResolvedValue(report);
+
+    try {
+      await runTasks(["sync", "acme/12", "--json"]);
+      expect(stdout).toHaveBeenCalledWith(`${JSON.stringify(report)}\n`);
+    } finally {
+      restoreTTY();
+      stdout.mockRestore();
+    }
+
+    expect(designSystemMocks.confirm).not.toHaveBeenCalled();
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ yes: false })
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
   it("sync refuses non-interactive runs without --yes", async () => {
     seedWorkflow(`
 maestro:

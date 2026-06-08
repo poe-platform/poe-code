@@ -435,6 +435,23 @@ describe("acp/middlewares/spawnLog", () => {
     await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
   });
 
+  it("does not write default logs through a symlinked state root", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const outsideDir = path.join(homedir(), "outside-state");
+    await fs.mkdir(homedir(), { recursive: true });
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.symlink(outsideDir, stateDir);
+
+    const ctx = createContext({
+      events: [{ event: "agent_message", text: "external state root probe" }],
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog], ctx);
+
+    await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+  });
+
   it("falls back to current time when startedAt is invalid", async () => {
     vi.useFakeTimers();
     try {

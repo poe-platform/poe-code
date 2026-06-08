@@ -151,7 +151,21 @@ describe("acp/replay", () => {
     vol.symlinkSync(outsideDir, logDir);
     vol.writeFileSync(path.join(outsideDir, "20260320-123456-789-codex.jsonl"), "secret");
 
-    await expect(listSpawnLogs()).rejects.toThrow("outside the poe-code state directory");
+    await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
+  });
+
+  it("listSpawnLogs rejects a symlinked default state root", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const outsideDir = path.join(homedir(), "outside-state");
+    vol.mkdirSync(homedir(), { recursive: true });
+    vol.mkdirSync(path.join(outsideDir, "spawn-logs"), { recursive: true });
+    vol.symlinkSync(outsideDir, stateDir);
+    vol.writeFileSync(
+      path.join(outsideDir, "spawn-logs", "20260320-123456-789-codex.jsonl"),
+      "external"
+    );
+
+    await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
   });
 
   it("listSpawnLogs keeps jsonl files even when metadata cannot be derived", async () => {

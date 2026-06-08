@@ -574,6 +574,47 @@ describe("harness command", () => {
     ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("does not follow a scaffold file symlink inserted after the existence check", async () => {
+    const mdPath = "/repo/.poe-code/harnesses/example/example.md";
+    const ajsPath = "/repo/.poe-code/harnesses/example/example.ajs";
+    const outsidePath = "/outside/example.md";
+    vol.fromJSON({
+      [outsidePath]: "outside-state\n"
+    });
+    const fs = {
+      ...(memfs.promises as unknown as FileSystem),
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ) {
+        if (filePath === mdPath) {
+          await memfs.promises.symlink(outsidePath, mdPath);
+        }
+        await memfs.promises.writeFile(filePath, data, options);
+      }
+    } as FileSystem;
+    const program = createBaseProgram();
+    registerHarnessCommand(
+      program,
+      createCliContainer({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: () => undefined,
+        commandRunner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+      })
+    );
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "harness", "new", "demo", "example"])
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    await expect(memfs.promises.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    await expect(memfs.promises.lstat(mdPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(memfs.promises.lstat(ajsPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("rejects a basename that escapes the harness directory", async () => {
     await expect(runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])).rejects.toThrow(
       /invalid harness basename/i

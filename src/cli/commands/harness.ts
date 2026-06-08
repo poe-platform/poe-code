@@ -370,8 +370,8 @@ async function executeHarnessNew(
   await container.fs.mkdir(resolvedDir, { recursive: true });
   try {
     await Promise.all([
-      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
-      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
+      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8", flag: "wx" }),
+      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8", flag: "wx" })
     ]);
   } catch (error) {
     await Promise.all([

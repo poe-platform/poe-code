@@ -211,7 +211,7 @@ async function runSync(
 ): Promise<void> {
   const logger = container.loggerFactory.create({ scope: "tasks:sync" });
 
-  if (!options.yes && process.stdin.isTTY !== true) {
+  if (!options.yes && options.json !== true && process.stdin.isTTY !== true) {
     const message = "tasks sync requires --yes when running without an interactive TTY.";
     writeError(message, logger, options.json);
     process.exitCode = 1;

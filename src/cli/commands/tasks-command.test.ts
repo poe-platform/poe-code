@@ -380,7 +380,7 @@ maestro:
     }
   });
 
-  it("prints sync --json missing-resource reports without prompting", async () => {
+  it("prints sync --json missing-resource reports without prompting in non-interactive mode", async () => {
     seedWorkflow(`
 maestro:
   active_states:
@@ -394,7 +394,7 @@ maestro:
       missingOptions: ["queued", "done"]
     });
     const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    const restoreTTY = setStdinTTY(true);
+    const restoreTTY = setStdinTTY(false);
     taskListMocks.syncGhProject.mockResolvedValue(report);
 
     try {

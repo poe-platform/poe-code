@@ -66,6 +66,8 @@ import { throwValidationErrors, type ValidationError } from "./validation-errors
 
 configureTheme({ brand: "blue", label: "Toolcraft" });
 
+export { configureTheme };
+
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
   "secrets",

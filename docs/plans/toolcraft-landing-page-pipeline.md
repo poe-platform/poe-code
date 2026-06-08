@@ -73,8 +73,8 @@ tasks:
       document (has <style>, no external <link>/<script src=>). Document the
       script in the package README.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: publish-demo-to-pages

@@ -2157,8 +2157,7 @@ function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
     contents: [
       "#!/usr/bin/env node",
       ...createGeneratedTypeScriptFileLines(),
-      'import { runCLI } from "toolcraft/cli";',
-      'import { configureTheme } from "toolcraft-design";',
+      'import { configureTheme, runCLI } from "toolcraft/cli";',
       'import * as groups from "./index.js";',
       "",
       `configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,

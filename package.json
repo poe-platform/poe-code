@@ -34,6 +34,7 @@
     "dev:bundle": "npm run build && node dist/bin.cjs",
     "test": "turbo run test:unit --concurrency=1 --",
     "test:unit": "vitest run",
+    "test:postinstall-lifecycle": "vitest run --config vitest.postinstall.config.ts",
     "typecheck": "npm run lint:types",
     "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",

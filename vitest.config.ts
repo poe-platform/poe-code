@@ -133,6 +133,7 @@ export default defineConfig({
     ],
     exclude: [
       "**/node_modules/**",
+      "scripts/**/*.lifecycle.test.ts",
       "**/*.e2e.test.ts" // E2E tests run separately
     ],
     maxWorkers: 2,

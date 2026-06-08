@@ -209,4 +209,84 @@ export type SpawnMode = "read";
     })).rejects.toThrow("outside the repository");
     await expect(fileSystem.readFile("/outside.py", "utf8")).resolves.toBe("EXTERNAL ORIGINAL\n");
   });
+
+  it("rejects a generated Python types symlink outside the repository in check mode", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({
+      "/outside.py": "EXTERNAL ORIGINAL\n"
+    });
+    volume.mkdirSync(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn`, { recursive: true });
+    volume.symlinkSync("/outside.py", outputPath);
+    const fileSystem = createFsFromVolume(volume).promises;
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await expect(runAgentSpawnPythonTypeCodegen({
+      check: true,
+      repoRoot,
+      project,
+      spawnConfigs: [],
+      fileSystem
+    })).rejects.toThrow("outside the repository");
+    await expect(fileSystem.readFile("/outside.py", "utf8")).resolves.toBe("EXTERNAL ORIGINAL\n");
+  });
+
+  it("does not follow generated Python types symlinks inserted during publish", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({
+      "/outside.py": "EXTERNAL ORIGINAL\n"
+    });
+    const rawFileSystem = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fileSystem = {
+      ...rawFileSystem,
+      async writeFile(
+        filePath: Parameters<typeof rawFileSystem.writeFile>[0],
+        data: Parameters<typeof rawFileSystem.writeFile>[1],
+        options?: Parameters<typeof rawFileSystem.writeFile>[2]
+      ) {
+        const pathText = String(filePath);
+        if (
+          temporaryPath === undefined &&
+          pathText.startsWith(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn/.types.py.`) &&
+          pathText.endsWith(".tmp")
+        ) {
+          temporaryPath = pathText;
+          volume.symlinkSync("/outside.py", outputPath);
+        }
+
+        return rawFileSystem.writeFile(filePath, data, options);
+      }
+    };
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await expect(runAgentSpawnPythonTypeCodegen({
+      repoRoot,
+      project,
+      spawnConfigs: [],
+      fileSystem
+    })).rejects.toThrow("outside the repository");
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fileSystem.readFile("/outside.py", "utf8")).resolves.toBe("EXTERNAL ORIGINAL\n");
+    await expect(fileSystem.lstat(temporaryPath as string)).rejects.toThrow("ENOENT");
+    expect((await fileSystem.lstat(outputPath)).isSymbolicLink()).toBe(true);
+  });
 });

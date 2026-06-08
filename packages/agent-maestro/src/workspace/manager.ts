@@ -14,6 +14,7 @@ export async function ensureWorkspace(
   qualifiedId: string
 ): Promise<EnsureWorkspaceResult> {
   const workspacePath = resolveWorkspacePath(root, qualifiedId);
+  await assertPathAncestorsHaveNoSymbolicLinks(root);
   await ensureWorkspaceRoot(root);
 
   const existing = await lstatIfExists(workspacePath);
@@ -36,6 +37,7 @@ export async function ensureWorkspace(
 
 export async function removeWorkspace(root: string, qualifiedId: string): Promise<void> {
   const workspacePath = resolveWorkspacePath(root, qualifiedId);
+  await assertPathAncestorsHaveNoSymbolicLinks(root);
   const rootStat = await lstatIfExists(root);
 
   if (rootStat === undefined) {
@@ -57,6 +59,7 @@ export async function startupTerminalCleanup(
   root: string,
   terminalQualifiedIds: string[]
 ): Promise<{ removed: number }> {
+  await assertPathAncestorsHaveNoSymbolicLinks(root);
   const rootStat = await lstatIfExists(root);
 
   if (rootStat === undefined) {
@@ -173,6 +176,26 @@ function isSafeWorkspaceKeyCharacter(character: string): boolean {
     character === "_" ||
     character === "-"
   );
+}
+
+async function assertPathAncestorsHaveNoSymbolicLinks(targetPath: string): Promise<void> {
+  const absolutePath = path.resolve(targetPath);
+  const root = path.parse(absolutePath).root;
+  const segments = absolutePath.slice(root.length).split(path.sep).filter(Boolean);
+  let currentPath = root;
+
+  for (const segment of segments.slice(0, -1)) {
+    currentPath = path.join(currentPath, segment);
+    const stat = await lstatIfExists(currentPath);
+
+    if (stat === undefined) {
+      return;
+    }
+
+    if (stat.isSymbolicLink()) {
+      throw new Error(`workspace path must not contain symbolic links: ${targetPath}`);
+    }
+  }
 }
 
 async function lstatIfExists(filePath: string): Promise<Stats | undefined> {

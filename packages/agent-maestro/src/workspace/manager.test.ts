@@ -335,6 +335,19 @@ describe("workspace manager", () => {
     expect(vol.existsSync("/outside/done")).toBe(true);
   });
 
+  it("rejects a workspace root below a symlinked ancestor during startup cleanup", async () => {
+    const { startupTerminalCleanup } = await import("./manager.js");
+    vol.mkdirSync("/outside/workspaces/done", { recursive: true });
+    vol.writeFileSync("/outside/workspaces/done/keep.txt", "keep");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/link");
+
+    await expect(startupTerminalCleanup("/repo/link/workspaces", ["done"])).rejects.toThrow(
+      "workspace path must not contain symbolic links"
+    );
+    expect(vol.readFileSync("/outside/workspaces/done/keep.txt", "utf8")).toBe("keep");
+  });
+
   it("rejects a symlinked workspace root during workspace removal", async () => {
     const { removeWorkspace } = await import("./manager.js");
     vol.mkdirSync("/outside/done", { recursive: true });
@@ -346,5 +359,30 @@ describe("workspace manager", () => {
       "workspace root must not be a symbolic link"
     );
     expect(vol.readFileSync("/outside/done/keep.txt", "utf8")).toBe("keep");
+  });
+
+  it("rejects a workspace root below a symlinked ancestor during workspace removal", async () => {
+    const { removeWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/outside/workspaces/done", { recursive: true });
+    vol.writeFileSync("/outside/workspaces/done/keep.txt", "keep");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/link");
+
+    await expect(removeWorkspace("/repo/link/workspaces", "done")).rejects.toThrow(
+      "workspace path must not contain symbolic links"
+    );
+    expect(vol.readFileSync("/outside/workspaces/done/keep.txt", "utf8")).toBe("keep");
+  });
+
+  it("rejects creating a workspace root below a symlinked ancestor", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/link");
+
+    await expect(ensureWorkspace("/repo/link/workspaces", "job")).rejects.toThrow(
+      "workspace path must not contain symbolic links"
+    );
+    expect(vol.existsSync("/outside/workspaces")).toBe(false);
   });
 });

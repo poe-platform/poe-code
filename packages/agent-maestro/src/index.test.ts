@@ -1162,6 +1162,7 @@ async function waitForEventCount(events: readonly MaestroEvent[], count: number)
       return;
     }
 
+    await vi.advanceTimersByTimeAsync(0);
     await new Promise<void>((resolve) => realSetImmediate(resolve));
     await flushMicrotasks();
   }

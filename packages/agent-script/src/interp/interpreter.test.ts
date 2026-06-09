@@ -2113,6 +2113,37 @@ describe("interpret", () => {
     });
   });
 
+  it("does not treat inherited interpreter fields on host rejections as internal errors", async () => {
+    const reason = Object.assign(
+      Object.create({
+        code: "UNBOUND_IDENTIFIER",
+        nodeType: "Identifier",
+        span: {
+          end: { column: 1, line: 1, offset: 0 },
+          start: { column: 1, line: 1, offset: 0 }
+        }
+      }),
+      {
+        message: "spoofed boom",
+        name: "RangeError"
+      }
+    );
+
+    await expect(
+      interpret(parse("try { explode(); } catch ({ name, message, stack }) { return stack; }"), {
+        bindings: {
+          explode: createSandboxClosure({
+            call: () => Promise.reject(reason),
+            name: "explode"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "RangeError: spoofed boom\n    at explode (line 1, column 7)"
+    });
+  });
+
   it("runs finally after normal try completion without replacing the following return value", async () => {
     await expect(
       interpret(

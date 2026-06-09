@@ -2696,13 +2696,19 @@ function isInterpreterError(value: unknown): value is InterpreterError {
   return (
     typeof value === "object" &&
     value !== null &&
-    "code" in value &&
-    "message" in value &&
-    "nodeType" in value &&
-    "span" in value &&
-    ((value as { code: unknown }).code === "UNBOUND_IDENTIFIER" ||
-      (value as { code: unknown }).code === "UNSUPPORTED_NODE")
+    hasOwnProperty(value, "code") &&
+    hasOwnProperty(value, "message") &&
+    hasOwnProperty(value, "nodeType") &&
+    hasOwnProperty(value, "span") &&
+    (value.code === "UNBOUND_IDENTIFIER" || value.code === "UNSUPPORTED_NODE")
   );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function wrapHostResult(

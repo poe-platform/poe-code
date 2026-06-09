@@ -132,6 +132,44 @@ describe("runner signal dump handling", () => {
     await result;
   });
 
+  it("removes a partial dump temp file when writing fails", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const stderr = createStreamDouble();
+    const result = run("await wait(); return 'done';", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+    let tempPath: string | undefined;
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process,
+      stderr,
+      writeFile: vi.fn(async (filePath, content, options) => {
+        tempPath = filePath;
+        const { fs } = await import("memfs");
+        await fs.promises.writeFile(filePath, content.slice(0, 12), options);
+        throw new Error("dump disk full");
+      })
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    await vi.waitFor(() => {
+      expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining("dump disk full"));
+    });
+    expect(tempPath).toBeDefined();
+    expect(vol.existsSync(tempPath ?? "")).toBe(false);
+    expect(vol.existsSync("/dumps/run.json")).toBe(false);
+
+    wait.resolve("done");
+    await result;
+  });
+
   it("dumps while the runner is paused on an await with current scope and pending awaits", async () => {
     const wait = createDeferred<string>();
     const process = createProcessDouble();

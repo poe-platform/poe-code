@@ -62,7 +62,7 @@ export function attachSignalDumpHandler(
           tempCreated = true;
           await rename(tempPath, options.dumpPath);
         } catch (error) {
-          if (tempCreated) {
+          if (tempCreated || !isAlreadyExistsError(error)) {
             await rm(tempPath, { force: true }).catch(() => undefined);
           }
           throw error;
@@ -74,6 +74,10 @@ export function attachSignalDumpHandler(
       stderr.write(`Failed to write ${signal} dump to ${options.dumpPath ?? "<memory>"}: ${readErrorMessage(error)}\n`);
     }
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 function readErrorMessage(error: unknown): string {

@@ -115,6 +115,96 @@ describe("makeMcpModule", () => {
     });
   });
 
+  it("requires own fields for MCP data payloads and server handles", async () => {
+    const callTool = vi.fn(async (params: unknown) => params);
+    const connectMcp = vi.fn(async () => ({
+      async listTools() {
+        return {
+          tools: [
+            Object.assign(
+              Object.create({
+                description: "polluted description",
+                inputSchema: {
+                  type: "object"
+                }
+              }),
+              {
+                name: "search"
+              }
+            )
+          ]
+        };
+      },
+      callTool
+    }));
+    const mcp = makeMcpModule(connectMcp);
+    const inheritedHandle = Object.assign(
+      Object.create({
+        args: ["--polluted"],
+        env: {
+          TOKEN: "polluted"
+        }
+      }),
+      {
+        command: "mcp-server"
+      }
+    );
+
+    expect(() => mcp.server(Object.create({ command: "mcp-server" }) as never)).toThrow(
+      "MCP server command must be a non-empty string."
+    );
+
+    const client = await mcp.client(inheritedHandle as never);
+
+    expect(connectMcp).toHaveBeenCalledWith({
+      command: "mcp-server"
+    });
+    await expect(client.tools()).resolves.toEqual([
+      {
+        name: "search"
+      }
+    ]);
+    const inheritedBatchCall = Object.assign(
+      Object.create({
+        args: {
+          polluted: true
+        }
+      }),
+      {
+        name: "search"
+      }
+    );
+
+    await expect(
+      client.toolBatch([inheritedBatchCall])
+    ).resolves.toEqual([
+      {
+        ok: true,
+        value: {
+          name: "search"
+        }
+      }
+    ]);
+    expect(callTool).toHaveBeenCalledWith({
+      name: "search"
+    });
+
+    const inheritedToolsEnvelope = makeMcpModule(async () => ({
+      async listTools() {
+        return Object.create({
+          tools: []
+        });
+      },
+      async callTool() {
+        return {};
+      }
+    }));
+
+    await expect(
+      (await inheritedToolsEnvelope.client({ command: "mcp-server" })).tools()
+    ).rejects.toThrow("MCP listTools() must resolve to an object with a tools array.");
+  });
+
   it("rejects non-object tool arguments before calling the injected client", async () => {
     const callTool = vi.fn(async () => ({}));
     const mcp = makeMcpModule(async () => ({

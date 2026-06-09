@@ -202,20 +202,21 @@ function normalizeProtocolBatchResults(
 }
 
 function normalizeProtocolBatchResult(value: unknown, index: number): McpModuleToolBatchResult {
-  if (!isRecord(value) || typeof value.ok !== "boolean") {
+  const ok = isRecord(value) ? getOwnProperty(value, "ok") : undefined;
+  if (typeof ok !== "boolean") {
     throw new Error(`MCP callToolBatch()[${index}] must be a result envelope.`);
   }
 
-  if (value.ok === true) {
+  if (ok === true) {
     return {
       ok: true,
-      value: value.value
+      value: getOwnProperty(value, "value")
     };
   }
 
   return {
     ok: false,
-    error: normalizeToolBatchError(value.error)
+    error: normalizeToolBatchError(getOwnProperty(value, "error"))
   };
 }
 
@@ -224,10 +225,14 @@ function normalizeServerHandle(value: unknown): McpModuleServerHandle {
     throw new Error("MCP server must be an object.");
   }
 
+  const command = getOwnProperty(value, "command");
+  const args = getOwnProperty(value, "args");
+  const env = getOwnProperty(value, "env");
+
   return {
-    command: readNonEmptyTrimmedString(value.command, "MCP server command"),
-    ...(value.args === undefined ? {} : { args: readStringArray(value.args, "MCP server args") }),
-    ...(value.env === undefined ? {} : { env: readStringRecord(value.env, "MCP server env") })
+    command: readNonEmptyTrimmedString(command, "MCP server command"),
+    ...(args === undefined ? {} : { args: readStringArray(args, "MCP server args") }),
+    ...(env === undefined ? {} : { env: readStringRecord(env, "MCP server env") })
   };
 }
 
@@ -253,11 +258,12 @@ function validateConnection(value: unknown): McpConnection {
 }
 
 function normalizeToolsResult(value: unknown): McpModuleTool[] {
-  if (!isRecord(value) || !Array.isArray(value.tools)) {
+  const tools = isRecord(value) ? getOwnProperty(value, "tools") : undefined;
+  if (!Array.isArray(tools)) {
     throw new Error("MCP listTools() must resolve to an object with a tools array.");
   }
 
-  return value.tools.map((tool, index) => normalizeTool(tool, index));
+  return tools.map((tool, index) => normalizeTool(tool, index));
 }
 
 function normalizeTool(value: unknown, index: number): McpModuleTool {
@@ -265,12 +271,15 @@ function normalizeTool(value: unknown, index: number): McpModuleTool {
     throw new Error(`MCP tool[${index}] must be an object.`);
   }
 
+  const description = getOwnProperty(value, "description");
+  const inputSchema = getOwnProperty(value, "inputSchema");
+
   return {
-    name: readNonEmptyString(value.name, `MCP tool[${index}] name`),
-    ...(value.description === undefined
+    name: readNonEmptyString(getOwnProperty(value, "name"), `MCP tool[${index}] name`),
+    ...(description === undefined
       ? {}
-      : { description: readOptionalString(value.description, `MCP tool[${index}] description`) }),
-    ...(value.inputSchema === undefined ? {} : { schema: value.inputSchema })
+      : { description: readOptionalString(description, `MCP tool[${index}] description`) }),
+    ...(inputSchema === undefined ? {} : { schema: inputSchema })
   };
 }
 
@@ -344,11 +353,16 @@ function normalizeToolBatchCall(value: unknown, index: number): NormalizedToolBa
       throw new Error(`MCP toolBatch call[${index}] must be an object.`);
     }
 
+    const args = getOwnProperty(value, "args");
+
     return {
       ok: true,
       request: {
-        name: readNonEmptyTrimmedString(value.name, `MCP toolBatch call[${index}] name`),
-        ...(value.args === undefined ? {} : { arguments: readToolArguments(value.args) })
+        name: readNonEmptyTrimmedString(
+          getOwnProperty(value, "name"),
+          `MCP toolBatch call[${index}] name`
+        ),
+        ...(args === undefined ? {} : { arguments: readToolArguments(args) })
       }
     };
   } catch (error) {
@@ -368,11 +382,13 @@ function normalizeToolBatchError(error: unknown): McpModuleToolBatchError {
   }
 
   if (isRecord(error)) {
-    const name = typeof error.name === "string" && error.name.trim().length > 0
-      ? error.name
+    const nameValue = getOwnProperty(error, "name");
+    const messageValue = getOwnProperty(error, "message");
+    const name = typeof nameValue === "string" && nameValue.trim().length > 0
+      ? nameValue
       : "Error";
-    const message = typeof error.message === "string"
-      ? error.message
+    const message = typeof messageValue === "string"
+      ? messageValue
       : String(error);
 
     return {
@@ -401,6 +417,20 @@ function isMcpDisconnectError(error: McpModuleToolBatchError): boolean {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function isPlainObjectRecord(value: unknown): value is Record<string, unknown> {

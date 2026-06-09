@@ -80,6 +80,17 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
+}
+
+function getOwnString(record: object, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
+}
+
 function toUrl(value: string | URL, label: string): URL {
   try {
     return new URL(String(value));
@@ -121,11 +132,13 @@ function normalizeVerifiedAudience(
 }
 
 function parseScopes(payload: JWTPayload): string[] {
+  const scope = getOwnString(payload, "scope");
+  const scopes = getOwnEntry(payload, "scopes");
   const raw =
-    typeof payload.scope === "string"
-      ? payload.scope
-      : typeof payload.scopes === "string"
-        ? payload.scopes
+    scope !== undefined
+      ? scope
+      : typeof scopes === "string"
+        ? scopes
         : null;
 
   if (raw !== null) {
@@ -135,29 +148,34 @@ function parseScopes(payload: JWTPayload): string[] {
       .filter((scope) => scope.length > 0);
   }
 
-  return isStringArray(payload.scopes) ? [...payload.scopes] : [];
+  return isStringArray(scopes) ? [...scopes] : [];
 }
 
 function toVerifiedAccessToken(
   token: string,
   payload: JWTPayload,
-  audience = normalizeAudience(payload.aud)
+  audience = normalizeAudience(getOwnEntry(payload, "aud"))
 ): JwksVerifiedAccessToken {
+  const issuer = getOwnString(payload, "iss");
+  const expiresAt = getOwnEntry(payload, "exp");
+  const subject = getOwnString(payload, "sub");
+  const clientId = getOwnString(payload, "client_id");
+
   return {
     token,
-    issuer: typeof payload.iss === "string" ? payload.iss : "",
+    issuer: issuer ?? "",
     audience,
     scopes: parseScopes(payload),
-    expiresAt: typeof payload.exp === "number" ? payload.exp : 0,
+    expiresAt: typeof expiresAt === "number" ? expiresAt : 0,
     claims: { ...payload },
-    ...(typeof payload.sub === "string"
+    ...(subject !== undefined
       ? {
-          subject: payload.sub,
+          subject,
         }
       : {}),
-    ...(typeof payload.client_id === "string"
+    ...(clientId !== undefined
       ? {
-          clientId: payload.client_id,
+          clientId,
         }
       : {}),
   };
@@ -250,11 +268,12 @@ async function loadJwks(
   }
 
   const payload = (await response.json()) as unknown;
-  if (!isObjectRecord(payload) || !Array.isArray(payload.keys)) {
+  const keys = isObjectRecord(payload) ? getOwnEntry(payload, "keys") : undefined;
+  if (!isObjectRecord(payload) || !Array.isArray(keys)) {
     throw createInvalidTokenError("invalid JWKS document");
   }
 
-  return payload as unknown as JSONWebKeySet;
+  return { ...payload, keys } as unknown as JSONWebKeySet;
 }
 
 function resolveAlgorithm(
@@ -262,7 +281,7 @@ function resolveAlgorithm(
   allowedAlgorithms: readonly string[]
 ): string {
   const header = decodeProtectedHeader(token);
-  const alg = header.alg;
+  const alg = getOwnString(header, "alg");
 
   if (hasCriticalHeaderClaims(header)) {
     throw createInvalidTokenError("unsupported critical token claims");
@@ -281,23 +300,29 @@ function resolveAlgorithm(
 }
 
 function hasCriticalHeaderClaims(header: ReturnType<typeof decodeProtectedHeader>): boolean {
-  return Array.isArray(header.crit) && header.crit.length > 0;
+  const criticalClaims = getOwnEntry(header, "crit");
+  return Array.isArray(criticalClaims) && criticalClaims.length > 0;
 }
 
 function isVerificationCandidate(key: JWK, alg: string, kid: string | undefined): boolean {
-  if (kid !== undefined && key.kid !== kid) {
+  const keyId = getOwnString(key, "kid");
+  const keyAlgorithm = getOwnString(key, "alg");
+  const keyUse = getOwnString(key, "use");
+  const keyOps = getOwnEntry(key, "key_ops");
+
+  if (kid !== undefined && keyId !== kid) {
     return false;
   }
 
-  if (typeof key.alg === "string" && key.alg !== alg) {
+  if (keyAlgorithm !== undefined && keyAlgorithm !== alg) {
     return false;
   }
 
-  if (typeof key.use === "string" && key.use !== "sig") {
+  if (keyUse !== undefined && keyUse !== "sig") {
     return false;
   }
 
-  if (Array.isArray(key.key_ops) && !key.key_ops.includes("verify")) {
+  if (Array.isArray(keyOps) && !keyOps.includes("verify")) {
     return false;
   }
 
@@ -316,7 +341,7 @@ async function verifyJwtAgainstJwks(input: {
   clockSkewSeconds: number;
 }) {
   const protectedHeader = decodeProtectedHeader(input.token);
-  const kid = typeof protectedHeader.kid === "string" ? protectedHeader.kid : undefined;
+  const kid = getOwnString(protectedHeader, "kid");
   const candidateKeys = input.jwks.keys.filter((key) => isVerificationCandidate(key, input.alg, kid));
 
   if (candidateKeys.length === 0) {
@@ -372,7 +397,10 @@ export function createJwksTokenVerifier(
           authorizationServers: input.authorizationServers,
           clockSkewSeconds,
         });
-        const audience = normalizeVerifiedAudience(verified.payload.aud, expectedResource);
+        const audience = normalizeVerifiedAudience(
+          getOwnEntry(verified.payload, "aud"),
+          expectedResource
+        );
         const accessToken = toVerifiedAccessToken(input.token, verified.payload, audience);
 
         if (

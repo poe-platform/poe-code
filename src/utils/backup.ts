@@ -93,5 +93,16 @@ async function copyExclusive(
   to: string
 ): Promise<void> {
   const content = await fs.readFile(from);
-  await fs.writeFile(to, content, { flag: "wx" });
+  try {
+    await fs.writeFile(to, content, { flag: "wx" });
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      await fs.unlink(to).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }

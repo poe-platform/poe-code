@@ -67,6 +67,32 @@ describe("backup utilities", () => {
     await expect(fs.readFile("/outside.backup", "utf8")).resolves.toBe("outside-state\n");
   });
 
+  it("cleans a partial backup when backup creation fails", async () => {
+    const baseFs = fs;
+    let backupPath: string | undefined;
+    fs = {
+      ...baseFs,
+      copyFile: undefined,
+      writeFile: async (target, data, options) => {
+        if (target.includes(".backup.")) {
+          backupPath = target;
+          await baseFs.writeFile(target, "partial backup", options);
+          throw new Error("backup write failed");
+        }
+
+        await baseFs.writeFile(target, data, options);
+      }
+    };
+
+    await expect(createBackup(fs, filePath, () => "20240101T010101")).rejects.toThrow(
+      "backup write failed"
+    );
+    expect(backupPath).toBeDefined();
+    await expect(baseFs.readFile(backupPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("skips backup when file is missing", async () => {
     await fs.unlink(filePath);
 
@@ -105,11 +131,13 @@ describe("backup utilities", () => {
     await createBackup(fs, filePath, () => "20240101T010101");
     await fs.writeFile(filePath, "current valid content", { encoding: "utf8" });
     const baseFs = fs;
+    let temporaryPath: string | undefined;
     fs = {
       ...baseFs,
       copyFile: undefined,
       writeFile: async (target, data, options) => {
         if (target.includes(".restore-")) {
+          temporaryPath = target;
           await baseFs.writeFile(target, "partial restored bytes", options);
           throw new Error("replacement write failed");
         }
@@ -119,6 +147,10 @@ describe("backup utilities", () => {
 
     await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow("replacement write failed");
     await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
+    expect(temporaryPath).toBeDefined();
+    await expect(baseFs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not remove a colliding restore temp symlink", async () => {

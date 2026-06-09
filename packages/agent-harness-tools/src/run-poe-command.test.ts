@@ -229,6 +229,33 @@ function processEnv(): Record<string, string> {
   );
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function shellQuote(value: string): string {
   return `'${value.replace(/'/g, `'\\''`)}'`;
 }
@@ -1011,6 +1038,42 @@ describe("runPoeCommand", () => {
       })
     ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
     expect(kill).not.toHaveBeenCalled();
+  });
+
+  it("does not treat inherited stdin error codes as closed pipes", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    const kill = vi.fn();
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const stdin = new PassThrough();
+      queueMicrotask(() => {
+        stdin.emit("error", new Error("inherited stdin EPIPE"));
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin,
+        result: new Promise(() => {}),
+        kill
+      };
+    };
+
+    await withObjectPrototypeProperties({ code: "EPIPE" }, async () => {
+      await expect(
+        runPoeCommand({
+          factory: createFactory(env),
+          openSpec: createOpenSpec({
+            execution: { input: "hello", stdin: "pipe", wrapForLogTee: false }
+          }),
+          detach: false,
+          state
+        })
+      ).rejects.toThrow("inherited stdin EPIPE");
+    });
+    expect(kill).toHaveBeenCalledWith("SIGTERM");
   });
 
   it("rejects when execution input cannot be delivered", async () => {

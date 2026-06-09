@@ -727,7 +727,10 @@ async function writeExecutionInput(handle: RunHandle, input: string | Buffer): P
 
   await new Promise<void>((resolve, reject) => {
     stdin.on("error", (error: NodeJS.ErrnoException) => {
-      if (error.code === "EPIPE") {
+      if (
+        Object.prototype.hasOwnProperty.call(error, "code") &&
+        error.code === "EPIPE"
+      ) {
         resolve();
         return;
       }

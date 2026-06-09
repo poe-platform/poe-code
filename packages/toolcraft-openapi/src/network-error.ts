@@ -16,7 +16,7 @@ export function classifyNetworkError(error: unknown, url: string): UserError | n
   const host = getHost(networkError, urlParts);
   const redactedUrl = redactSensitiveQueryValues(url);
 
-  switch (networkError?.code) {
+  switch (readStringProperty(networkError, "code")) {
     case "ECONNREFUSED":
       return new UserError(
         `Connection refused: ${host}:${getPort(networkError, urlParts)}. Is the server running?`,
@@ -55,11 +55,11 @@ function findNetworkError(error: unknown): NetworkErrorLike | null {
   let current: unknown = error;
 
   while (isErrorLikeObject(current)) {
-    if (typeof current.code === "string") {
+    if (readStringProperty(current, "code") !== undefined) {
       return current;
     }
 
-    current = current.cause;
+    current = readOwnProperty(current, "cause");
   }
 
   return null;
@@ -77,23 +77,24 @@ function findAbortError(error: unknown): NetworkErrorLike | null {
       return current;
     }
 
-    current = current.cause;
+    current = readOwnProperty(current, "cause");
   }
 
   return null;
 }
 
 function hasCause(error: Error): boolean {
-  return "cause" in error && error.cause !== undefined;
+  return readOwnProperty(error, "cause") !== undefined;
 }
 
 function getHost(error: NetworkErrorLike | null, url: URL): string {
-  return typeof error?.address === "string" ? error.address : url.hostname;
+  return readStringProperty(error, "address") ?? url.hostname;
 }
 
 function getPort(error: NetworkErrorLike | null, url: URL): string {
-  if (typeof error?.port === "number" || typeof error?.port === "string") {
-    return String(error.port);
+  const port = readStringOrNumberProperty(error, "port");
+  if (port !== undefined) {
+    return String(port);
   }
 
   if (url.port) {
@@ -104,12 +105,14 @@ function getPort(error: NetworkErrorLike | null, url: URL): string {
 }
 
 function getTimeoutMs(error: NetworkErrorLike): string {
-  if (typeof error.ms === "number" || typeof error.ms === "string") {
-    return String(error.ms);
+  const ms = readStringOrNumberProperty(error, "ms");
+  if (ms !== undefined) {
+    return String(ms);
   }
 
-  if (typeof error.timeout === "number" || typeof error.timeout === "string") {
-    return String(error.timeout);
+  const timeout = readStringOrNumberProperty(error, "timeout");
+  if (timeout !== undefined) {
+    return String(timeout);
   }
 
   return "unknown";
@@ -117,4 +120,31 @@ function getTimeoutMs(error: NetworkErrorLike): string {
 
 function isErrorLikeObject(value: unknown): value is NetworkErrorLike & { name?: unknown } {
   return typeof value === "object" && value !== null;
+}
+
+function readOwnProperty<Name extends PropertyKey>(
+  value: object | null | undefined,
+  name: Name
+): unknown {
+  if (value === null || value === undefined || !Object.prototype.hasOwnProperty.call(value, name)) {
+    return undefined;
+  }
+
+  return (value as Record<Name, unknown>)[name];
+}
+
+function readStringProperty(
+  value: object | null | undefined,
+  name: keyof NetworkErrorLike
+): string | undefined {
+  const property = readOwnProperty(value, name);
+  return typeof property === "string" ? property : undefined;
+}
+
+function readStringOrNumberProperty(
+  value: object | null | undefined,
+  name: keyof NetworkErrorLike
+): string | number | undefined {
+  const property = readOwnProperty(value, name);
+  return typeof property === "string" || typeof property === "number" ? property : undefined;
 }

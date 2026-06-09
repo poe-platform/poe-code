@@ -2,6 +2,33 @@ import { UserError } from "toolcraft";
 import { describe, expect, it } from "vitest";
 import { classifyNetworkError } from "./network-error.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
+
 describe("classifyNetworkError", () => {
   it("classifies fetch failed errors with an ECONNREFUSED cause", () => {
     const error = new TypeError("fetch failed", {
@@ -72,6 +99,36 @@ describe("classifyNetworkError", () => {
       "Network request failed: https://api.example.com/openapi.json."
     );
     expect(classified?.cause).toBe(error);
+  });
+
+  it("ignores inherited fetch failure causes", async () => {
+    const error = new TypeError("fetch failed");
+
+    await withObjectPrototypeProperties(
+      { cause: { code: "ENOTFOUND", address: "polluted.example" } },
+      async () => {
+        const classified = classifyNetworkError(error, "https://api.example.com/openapi.json");
+
+        expect(classified).toBeInstanceOf(UserError);
+        expect(classified?.message).toBe(
+          "Network request failed: https://api.example.com/openapi.json."
+        );
+      }
+    );
+  });
+
+  it("ignores inherited network detail fields", async () => {
+    const error = new TypeError("fetch failed", {
+      cause: { code: "ECONNREFUSED" }
+    });
+
+    await withObjectPrototypeProperties({ address: "polluted.example", port: 1234 }, async () => {
+      const classified = classifyNetworkError(error, "http://127.0.0.1:8080/openapi.json");
+
+      expect(classified?.message).toBe(
+        "Connection refused: 127.0.0.1:8080. Is the server running?"
+      );
+    });
   });
 
   it.each([

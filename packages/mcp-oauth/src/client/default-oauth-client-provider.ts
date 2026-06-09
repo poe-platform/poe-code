@@ -457,13 +457,14 @@ export function createDefaultOAuthClientProvider(
     }
 
     const client = await clientStore.load(issuer);
-    if (client !== null && !isUsableClient(client)) {
+    const normalizedClient = client === null ? null : normalizeStoredClient(client);
+    if (client !== null && normalizedClient === null) {
       await clientStore.clear(issuer);
       return null;
     }
 
-    registeredClients.set(issuer, client);
-    return client;
+    registeredClients.set(issuer, normalizedClient);
+    return normalizedClient;
   }
 
   async function saveRegisteredClient(
@@ -554,41 +555,75 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
     return null;
   }
 
-  if (!isUsableClient(session.client)) {
+  const client = normalizeStoredClient(getOwnEntry(session, "client"));
+  if (client === null) {
     return { ...session, client: { clientId: "" }, tokens: undefined };
   }
 
-  return isUsableTokens(session.tokens)
-    ? session
-    : { ...session, tokens: undefined };
+  return {
+    ...session,
+    client,
+    tokens: normalizeStoredTokens(getOwnEntry(session, "tokens")),
+  };
 }
 
-function isUsableClient(client: StoredOAuthSession["client"]): boolean {
-  return (
-    typeof client.clientId === "string"
-    && client.clientId.trim().length > 0
-    && (
-      client.clientSecret === undefined
-      || (typeof client.clientSecret === "string" && client.clientSecret.trim().length > 0)
-    )
-  );
-}
-
-function isUsableTokens(tokens: StoredOAuthTokens | undefined): tokens is StoredOAuthTokens {
-  if (tokens === undefined) {
-    return true;
+function normalizeStoredClient(value: unknown): StoredOAuthSession["client"] | null {
+  if (!isObjectRecord(value)) {
+    return null;
   }
 
-  return (
-    typeof tokens.accessToken === "string"
-    && tokens.accessToken.trim().length > 0
-    && tokens.tokenType === "Bearer"
-    && (tokens.expiresAt === null || (typeof tokens.expiresAt === "number" && Number.isFinite(tokens.expiresAt)))
-    && (
-      tokens.refreshToken === undefined
-      || (typeof tokens.refreshToken === "string" && tokens.refreshToken.trim().length > 0)
+  const clientId = getOwnString(value, "clientId");
+  if (clientId === undefined || clientId.trim().length === 0) {
+    return null;
+  }
+
+  const clientSecret = getOwnEntry(value, "clientSecret");
+  if (clientSecret === undefined) {
+    return { clientId };
+  }
+
+  if (typeof clientSecret !== "string" || clientSecret.trim().length === 0) {
+    return null;
+  }
+
+  return { clientId, clientSecret };
+}
+
+function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
+  if (value === undefined || !isObjectRecord(value)) {
+    return undefined;
+  }
+
+  const accessToken = getOwnString(value, "accessToken");
+  const tokenType = getOwnString(value, "tokenType");
+  const expiresAt = getOwnEntry(value, "expiresAt");
+  const refreshToken = getOwnEntry(value, "refreshToken");
+  const scope = getOwnString(value, "scope");
+  const normalizedRefreshToken = typeof refreshToken === "string" ? refreshToken : undefined;
+
+  if (
+    accessToken === undefined ||
+    accessToken.trim().length === 0 ||
+    tokenType !== "Bearer" ||
+    !(
+      expiresAt === null ||
+      (typeof expiresAt === "number" && Number.isFinite(expiresAt))
+    ) ||
+    (
+      refreshToken !== undefined &&
+      (typeof refreshToken !== "string" || refreshToken.trim().length === 0)
     )
-  );
+  ) {
+    return undefined;
+  }
+
+  return {
+    accessToken,
+    tokenType,
+    expiresAt,
+    ...(normalizedRefreshToken === undefined ? {} : { refreshToken: normalizedRefreshToken }),
+    ...(scope === undefined || scope.length === 0 ? {} : { scope }),
+  };
 }
 
 function getClientMetadata(
@@ -601,6 +636,10 @@ function getOwnEntry(record: object, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, key)
     ? (record as Record<string, unknown>)[key]
     : undefined;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function getOwnString(record: object, key: string): string | undefined {

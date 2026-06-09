@@ -805,6 +805,76 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
   });
 
+  it("does not emit inherited persisted tokens as bearer credentials", async () => {
+    const session = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+    } as StoredOAuthSession;
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return session; },
+        async save() {},
+        async clear() {},
+      },
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        tokens: {
+          accessToken: "polluted-access",
+          tokenType: "Bearer",
+          expiresAt: null,
+        },
+      },
+      async () => {
+        expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+      }
+    );
+  });
+
+  it("does not trust inherited persisted client fields", async () => {
+    const session = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      tokens: {
+        accessToken: "stored-access",
+        tokenType: "Bearer",
+        expiresAt: null,
+      },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+    } as StoredOAuthSession;
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return session; },
+        async save() {},
+        async clear() {},
+      },
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        client: { clientId: "static-client" },
+      },
+      async () => {
+        expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+      }
+    );
+  });
+
   it("fails before authorization when the server metadata does not advertise S256", async () => {
     const pair = createOAuthPair();
     const provider = createDefaultOAuthClientProvider({
@@ -2026,6 +2096,28 @@ describe("createDefaultOAuthClientProvider", () => {
         expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
         expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
       ])
+    );
+  });
+
+  it("rejects inherited persisted dynamic client identifiers", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const clientStore = createAuthStoreClientStore(createAuthStoreConfig(fs));
+
+    await clientStore.save(
+      AUTHORIZATION_SERVER,
+      {} as unknown as { clientId: string; clientSecret?: string }
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        clientId: "polluted-client",
+        clientSecret: "polluted-secret",
+      },
+      async () => {
+        await expect(clientStore.load(AUTHORIZATION_SERVER)).rejects.toThrow(
+          "Stored OAuth client must be a JSON object with clientId"
+        );
+      }
     );
   });
 

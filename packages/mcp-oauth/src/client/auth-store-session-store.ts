@@ -70,13 +70,14 @@ export function createAuthStoreClientStore(
       }
 
       const parsed = JSON.parse(value);
-      if (
-        typeof parsed === "object"
-        && parsed !== null
-        && !Array.isArray(parsed)
-        && typeof parsed.clientId === "string"
-      ) {
-        return parsed as StoredOAuthClient;
+      const clientId = isObjectRecord(parsed) ? getOwnString(parsed, "clientId") : undefined;
+      if (clientId !== undefined) {
+        const client: Record<string, unknown> = { clientId };
+        if (isObjectRecord(parsed) && Object.prototype.hasOwnProperty.call(parsed, "clientSecret")) {
+          client.clientSecret = getOwnEntry(parsed, "clientSecret");
+        }
+
+        return client as unknown as StoredOAuthClient;
       }
 
       throw new Error("Stored OAuth client must be a JSON object with clientId");
@@ -152,4 +153,17 @@ function createIssuerSecretStore(issuer: string, options: CreateSecretStoreInput
       accountPrefix: "issuer",
     }
   );
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
 }

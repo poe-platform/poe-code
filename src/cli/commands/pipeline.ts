@@ -815,7 +815,14 @@ async function writePipelineTextFile(
   options: { exclusive: boolean }
 ): Promise<void> {
   if (options.exclusive) {
-    await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
+    try {
+      await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        await fs.unlink(filePath).catch(() => undefined);
+      }
+      throw error;
+    }
     return;
   }
 
@@ -826,11 +833,15 @@ async function writePipelineTextFile(
     temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 export function registerPipelineCommand(program: Command, container: CliContainer): void {

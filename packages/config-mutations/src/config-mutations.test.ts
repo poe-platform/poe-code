@@ -119,6 +119,20 @@ describe.each([
     expect((result as any).polluted).toBeUndefined();
   });
 
+  it("does not deep merge with inherited base entries", () => {
+    Object.defineProperty(Object.prototype, "inheritedMergeTarget", {
+      value: { polluted: true },
+      configurable: true
+    });
+    try {
+      expect(format.merge({}, { inheritedMergeTarget: { safe: true } })).toEqual({
+        inheritedMergeTarget: { safe: true }
+      });
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).inheritedMergeTarget;
+    }
+  });
+
   it("ignores inherited and incompatible nested prune targets", () => {
     expect(format.prune({ keep: true }, { constructor: {} } as any)).toEqual({
       changed: false,

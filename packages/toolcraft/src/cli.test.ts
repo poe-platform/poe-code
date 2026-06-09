@@ -35,6 +35,33 @@ const formatterState = {
   plainOptionListCalls: 0
 };
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
+
 vi.mock("toolcraft-design", () => ({
   configureTheme: vi.fn(),
   createLogger: () => ({
@@ -2380,6 +2407,50 @@ describe("runCLI", () => {
     expect(readStderr(stderrWrite)).toContain(
       "Response body:\n  GraphQL error: Unauthorized\n    at path: viewer"
     );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("ignores inherited GraphQL error metadata fields", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              errors: [
+                {
+                  message: "Unauthorized"
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties(
+      {
+        extensions: { code: "POLLUTED" },
+        path: ["polluted"]
+      },
+      async () => {
+        process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+        await runCLI(root);
+      }
+    );
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  GraphQL error: Unauthorized");
+    expect(output).not.toContain("at path: polluted");
+    expect(output).not.toContain("POLLUTED");
     expect(process.exitCode).toBe(1);
   });
 

@@ -3936,7 +3936,7 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
       return false;
     }
 
-    if ("path" in error) {
+    if (hasOwnProperty(error, "path")) {
       const pathValue = error.path;
       if (
         !Array.isArray(pathValue) ||
@@ -3946,18 +3946,25 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
       }
     }
 
-    if ("extensions" in error) {
+    if (hasOwnProperty(error, "extensions")) {
       if (!isPlainObject(error.extensions)) {
         return false;
       }
 
-      if ("code" in error.extensions && typeof error.extensions.code !== "string") {
+      if (hasOwnProperty(error.extensions, "code") && typeof error.extensions.code !== "string") {
         return false;
       }
     }
 
     return true;
   });
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
@@ -3999,11 +4006,16 @@ function formatGraphQLErrorEnvelopeBody(body: GraphQLErrorEnvelopeLike): string 
     .map((error) => {
       const lines = [`GraphQL error: ${error.message}`];
 
-      if (error.path !== undefined) {
+      if (hasOwnProperty(error, "path") && error.path !== undefined) {
         lines.push(`  at path: ${error.path.join(".")}`);
       }
 
-      if (error.extensions?.code !== undefined) {
+      if (
+        hasOwnProperty(error, "extensions") &&
+        error.extensions !== undefined &&
+        hasOwnProperty(error.extensions, "code") &&
+        error.extensions.code !== undefined
+      ) {
         lines.push(`  code:    ${error.extensions.code}`);
       }
 

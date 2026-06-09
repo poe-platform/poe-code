@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
+import { getOwnErrorCode, hasOwnErrorCode } from "../error-codes.js";
 import type { AgentScriptSnapshot } from "../restore.js";
 import { serializeAgentScriptSnapshot } from "./dump-format.js";
 
@@ -111,7 +112,7 @@ async function writeSnapshotAtomically(
 
       if (attempt === options.maxAttempts) {
         throw new Error(
-          `Failed to write snapshot at ${snapshotPath} after ${options.maxAttempts} attempts: file is locked (${getErrorCode(error)})`,
+          `Failed to write snapshot at ${snapshotPath} after ${options.maxAttempts} attempts: file is locked (${getOwnErrorCode(error)})`,
           {
             cause: error
           }
@@ -207,19 +208,10 @@ async function delay(ms: number): Promise<void> {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return getErrorCode(error) === code;
+  return hasOwnErrorCode(error, code);
 }
 
 function isLockedFileError(error: unknown): boolean {
-  const code = getErrorCode(error);
+  const code = getOwnErrorCode(error);
   return code !== undefined && LOCKED_FILE_ERROR_CODES.has(code);
-}
-
-function getErrorCode(error: unknown): string | undefined {
-  return typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    typeof (error as { code?: unknown }).code === "string"
-    ? (error as { code: string }).code
-    : undefined;
 }

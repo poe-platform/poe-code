@@ -3,6 +3,7 @@ import path, { dirname, extname } from "node:path";
 import { inspect } from "node:util";
 import { pathToFileURL } from "node:url";
 
+import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { Budget, SandboxError } from "./interp/budget.js";
@@ -688,12 +689,7 @@ function createAbortError(): Error {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 function readErrorMessage(error: unknown): string {

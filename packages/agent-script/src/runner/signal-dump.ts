@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rename, rm, writeFile as nodeWriteFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { RunResult } from "../run.js";
 import { dumpCurrent } from "../snapshot/dump.js";
 
@@ -77,11 +78,7 @@ export function attachSignalDumpHandler(
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    error instanceof Error &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return error instanceof Error && hasOwnErrorCode(error, "EEXIST");
 }
 
 function readErrorMessage(error: unknown): string {

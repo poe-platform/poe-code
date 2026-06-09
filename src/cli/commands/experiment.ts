@@ -1151,10 +1151,17 @@ export function registerExperimentCommand(program: Command, container: CliContai
             if (flags.dryRun) {
               resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
             } else {
-              await container.fs.writeFile(runYamlPath, templates.runYaml, {
-                encoding: "utf8",
-                flag: "wx"
-              });
+              try {
+                await container.fs.writeFile(runYamlPath, templates.runYaml, {
+                  encoding: "utf8",
+                  flag: "wx"
+                });
+              } catch (error) {
+                if (!isAlreadyExists(error)) {
+                  await container.fs.unlink(runYamlPath).catch(() => undefined);
+                }
+                throw error;
+              }
               createdRunYaml = true;
               resources.logger.info(`Create: ${runYamlDisplayPath}`);
             }
@@ -1202,4 +1209,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.context.finalize();
       }
     });
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }

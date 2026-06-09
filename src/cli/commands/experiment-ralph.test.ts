@@ -1849,6 +1849,47 @@ describe("experiment install command", () => {
     await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
   });
 
+  it("cleans a partial run.yaml when scaffolding fails in an existing experiments directory", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/experiments/existing.md": "# Existing\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === "/repo/.poe-code/experiments/run.yaml") {
+        await writeFile(filePath, "partial run yaml\n", options);
+        throw new Error("run.yaml write failed");
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toThrow("run.yaml write failed");
+
+    await expect(fs.readFile("/repo/.poe-code/experiments/existing.md", "utf8")).resolves.toBe(
+      "# Existing\n"
+    );
+    await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).rejects.toMatchObject(
+      { code: "ENOENT" }
+    );
+  });
+
   it("does not follow a run.yaml symlink inserted before experiment scaffolding", async () => {
     const runYamlPath = "/repo/.poe-code/experiments/run.yaml";
     const outsidePath = "/outside/run.yaml";

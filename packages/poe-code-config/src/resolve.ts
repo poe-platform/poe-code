@@ -16,7 +16,7 @@ export function resolveScope<S extends ScopeSchema>(
   for (const key of Object.keys(schema) as Array<keyof S & string>) {
     const field = schema[key];
     const envValue = resolveEnvValue(field, env, key);
-    const fileValue = resolveFileValue(field, fileValues?.[key], key);
+    const fileValue = resolveFileValue(field, getOwnRecordValue(fileValues, key), key);
     const value = envValue ?? fileValue;
     defineDataProperty(
       resolved,
@@ -35,6 +35,15 @@ function defineDataProperty(object: object, key: string, value: unknown): void {
     value,
     writable: true
   });
+}
+
+function getOwnRecordValue(
+  record: Record<string, unknown> | undefined,
+  key: string
+): unknown | undefined {
+  return record !== undefined && Object.prototype.hasOwnProperty.call(record, key)
+    ? record[key]
+    : undefined;
 }
 
 function cloneValue<T>(value: T): T {
@@ -62,12 +71,12 @@ function resolveEnvValue<T extends SchemaField>(
     return undefined;
   }
 
-  const raw = env[field.env];
+  const raw = getOwnRecordValue(env, field.env);
   if (raw === undefined) {
     return undefined;
   }
 
-  return coerceValue(field, raw, key);
+  return typeof raw === "string" ? coerceValue(field, raw, key) : undefined;
 }
 
 function resolveFileValue<T extends SchemaField>(

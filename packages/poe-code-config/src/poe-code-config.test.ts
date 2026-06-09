@@ -1107,6 +1107,34 @@ describe("resolveScope", () => {
     });
   });
 
+  it("ignores inherited file values", () => {
+    const inherited = Object.create({
+      apiKey: "inherited-key",
+      timeout: 45,
+      enabled: true
+    }) as Record<string, unknown>;
+
+    expect(resolveScope(schema, inherited)).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
+  it("ignores inherited environment values", () => {
+    const inherited = Object.create({
+      POE_API_KEY: "inherited-key",
+      POE_TIMEOUT: "45",
+      POE_ENABLED: "true"
+    }) as Record<string, string | undefined>;
+
+    expect(resolveScope(schema, undefined, inherited)).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
   it("parses json values from file and env", () => {
     const jsonSchema = {
       plugins: {

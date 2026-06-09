@@ -48,7 +48,11 @@ export async function renderTerminalPng(
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return (
+    error instanceof Error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 export * from "./ansi-parser.js";

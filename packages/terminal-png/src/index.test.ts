@@ -37,6 +37,33 @@ const renameMock = vi.mocked(rename);
 const rmMock = vi.mocked(rm);
 const writeFileMock = vi.mocked(writeFile);
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("renderTerminalPng", () => {
   beforeEach(() => {
     parseAnsiMock.mockReset();
@@ -115,6 +142,19 @@ describe("renderTerminalPng", () => {
     await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
       "disk full"
     );
+
+    expect(renameMock).not.toHaveBeenCalled();
+    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
+  });
+
+  it("removes partial temporary paths when write errors only inherit existing-path codes", async () => {
+    writeFileMock.mockRejectedValueOnce(new Error("temporary write denied"));
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
+        "temporary write denied"
+      );
+    });
 
     expect(renameMock).not.toHaveBeenCalled();
     expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });

@@ -90,11 +90,18 @@ export async function runHarnessCodegen(
 
   try {
     for (const document of documents) {
-      await fs.writeFile(document.stagedPath, document.serialized, {
-        encoding: "utf8",
-        flag: "wx"
-      });
-      document.created = true;
+      try {
+        await fs.writeFile(document.stagedPath, document.serialized, {
+          encoding: "utf8",
+          flag: "wx"
+        });
+        document.created = true;
+      } catch (error) {
+        if (!isAlreadyExistsError(error)) {
+          await unlinkIfExists(document.stagedPath, fs).catch(() => undefined);
+        }
+        throw error;
+      }
     }
 
     for (const document of documents) {
@@ -217,6 +224,10 @@ async function assertSafeSchemaOutput(
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 function resolveRepoRoot(): string {

@@ -133,6 +133,7 @@ describe("harness schema codegen", () => {
     });
     const rawFs = createFsFromVolume(volume).promises;
     let writeCount = 0;
+    let partialStagedPath: string | undefined;
     const fs = {
       ...rawFs,
       async writeFile(
@@ -142,6 +143,8 @@ describe("harness schema codegen", () => {
       ) {
         writeCount += 1;
         if (writeCount === 2) {
+          partialStagedPath = String(filePath);
+          await rawFs.writeFile(filePath, "partial schema\n", options);
           throw new Error("simulated later schema failure");
         }
 
@@ -156,6 +159,10 @@ describe("harness schema codegen", () => {
       .resolves.toBe("old coverage schema\n");
     await expect(fs.readFile("/repo/docs/schemas/harnesses/experiment-demo.schema.json", "utf8"))
       .resolves.toBe("old experiment schema\n");
+    expect(partialStagedPath).toMatch(
+      /^\/repo\/docs\/schemas\/harnesses\/\..+\.schema\.json\..+\.tmp$/
+    );
+    await expect(fs.readFile(partialStagedPath ?? "", "utf8")).rejects.toThrow();
   });
 
   it("restores previously published schemas when a later publish rename fails", async () => {

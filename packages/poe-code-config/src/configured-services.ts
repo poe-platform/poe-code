@@ -368,6 +368,7 @@ async function writeInvalidBackup(fs: FileSystem, filePath: string, content: str
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
+        await fs.unlink(candidate).catch(() => undefined);
         throw error;
       }
     }

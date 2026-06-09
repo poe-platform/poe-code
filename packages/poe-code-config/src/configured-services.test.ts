@@ -270,6 +270,31 @@ describe("configured services", () => {
     await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
   });
 
+  it("cleans a partial invalid legacy credential backup when recovery fails", async () => {
+    const legacyPath = `${homeDir}/.poe-code/credentials.json`;
+    const base = createMockFs({ "~/.poe-code/credentials.json": "not json\n" }, homeDir);
+    let backupPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.includes(".invalid-")) {
+          backupPath = targetPath;
+          await base.writeFile(targetPath, "partial backup\n", options);
+          throw new Error("legacy backup disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).rejects.toThrow(
+      "legacy backup disk full"
+    );
+
+    expect(backupPath).toBeDefined();
+    expect(base.getContent(backupPath ?? "")).toBeUndefined();
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
+  });
+
   it("does not rewrite or warn when apiShape already exists", async () => {
     const fs = createMockFs(
       {

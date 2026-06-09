@@ -20,17 +20,19 @@ const mockedFileSystemState = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  function hasOwnErrorCode(error: unknown, code: string): boolean {
+    return (
+      error instanceof Error &&
+      Object.prototype.hasOwnProperty.call(error, "code") &&
+      (error as { code?: unknown }).code === code
+    );
+  }
+
   async function replaceWithSymlink(path: string, target: string): Promise<void> {
     try {
       await fs.promises.unlink(path);
     } catch (error) {
-      if (
-        !(
-          error instanceof Error &&
-          Object.prototype.hasOwnProperty.call(error, "code") &&
-          (error as { code?: unknown }).code === "ENOENT"
-        )
-      ) {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

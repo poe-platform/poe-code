@@ -45,11 +45,20 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  function hasOwnErrorCode(error: unknown, code: string): boolean {
+    return (
+      typeof error === "object" &&
+      error !== null &&
+      Object.prototype.hasOwnProperty.call(error, "code") &&
+      (error as { code?: unknown }).code === code
+    );
+  }
+
   async function replaceWithSymlink(path: string, target: string): Promise<void> {
     try {
       await fs.promises.unlink(path);
     } catch (error) {
-      if ((error as { code?: unknown }).code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

@@ -6,6 +6,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, jwtVerify } from "jose";
 import { createOAuthTestServer } from "./index.js";
 
+function hasOwnErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
+}
+
 function createPkceChallenge(verifier: string): string {
   return createHash("sha256").update(verifier).digest("base64url");
 }
@@ -424,7 +433,7 @@ describe("tiny-oauth-test-server", () => {
         expect(rootResponse.status).toBe(404);
         return;
       } catch (error) {
-        if ((error as { code?: unknown }).code !== "EADDRINUSE" || attempt === 4) {
+        if (!hasOwnErrorCode(error, "EADDRINUSE") || attempt === 4) {
           throw error;
         }
       }

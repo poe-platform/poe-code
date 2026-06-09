@@ -182,6 +182,46 @@ describe("process launcher manager", () => {
     expect(JSON.parse(metaContent)).toMatchObject({ daemonPid: 321 });
   });
 
+  it("preserves the existing spec when updated spec persistence fails", async () => {
+    const baseFs = createMemFs();
+    const baseDir = "/state/launch";
+    const originalSpec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(
+      baseFs,
+      baseDir,
+      originalSpec,
+      createState(originalSpec, { status: "stopped" }),
+      null
+    );
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content, options) {
+        if (filePath.includes("/spec.json")) {
+          await baseFs.writeFile(filePath, "{", options);
+          throw new Error("spec disk full");
+        }
+        await baseFs.writeFile(filePath, content, options);
+      }
+    };
+    const spawnDaemon = vi.fn(async () => 321);
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        spec: { ...originalSpec, command: "pnpm" },
+        spawnDaemon
+      })
+    ).rejects.toThrow("spec disk full");
+
+    await expect(fs.readFile(path.join(baseDir, "api", "spec.json"), "utf8")).resolves.toBe(
+      `${JSON.stringify(originalSpec)}\n`
+    );
+    const entries = await fs.readdir(path.join(baseDir, "api"));
+    expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+    expect(spawnDaemon).not.toHaveBeenCalled();
+  });
+
   it("persists stopped state when daemon spawning rejects", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -506,14 +546,14 @@ describe("process launcher manager", () => {
     let metaWrites = 0;
     const fs = {
       ...baseFs,
-      writeFile: async (filePath: string, content: string) => {
-        if (filePath.endsWith("/meta.json")) {
+      writeFile: async (filePath: string, content: string, options) => {
+        if (filePath.includes("/meta.json")) {
           metaWrites += 1;
           if (metaWrites === 2) {
             throw new Error("meta failed");
           }
         }
-        await baseFs.writeFile(filePath, content);
+        await baseFs.writeFile(filePath, content, options);
       }
     } as LauncherFileSystem;
     const signalProcess = vi.fn();
@@ -984,8 +1024,8 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
       const stat = await rawFs.lstat(filePath);
       return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
-    writeFile: async (filePath, content) => {
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+    writeFile: async (filePath, content, options) => {
+      await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
     },
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);

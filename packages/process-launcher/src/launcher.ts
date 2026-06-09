@@ -1,5 +1,6 @@
-import path from "node:path";
+import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
+import path from "node:path";
 import { TextDecoder } from "node:util";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
@@ -96,6 +97,7 @@ interface LogFileStat {
 const DEFAULT_POLL_INTERVAL_MS = 100;
 const DEFAULT_STARTUP_TIMEOUT_MS = 30_000;
 const DEFAULT_STOP_TIMEOUT_MS = 5_000;
+const TEMP_WRITE_MAX_ATTEMPTS = 3;
 
 export async function startManagedProcess(options: StartManagedProcessOptions): Promise<ManagedProcessRecord> {
   assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
@@ -859,7 +861,47 @@ async function writeJsonFile(
   await assertPathNotSymbolicLink(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await assertPathNotSymbolicLink(fs, filePath);
-  await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+  await writeFileAtomically(fs, filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function writeFileAtomically(
+  fs: LauncherFileSystem,
+  filePath: string,
+  content: string
+): Promise<void> {
+  for (let attempt = 1; attempt <= TEMP_WRITE_MAX_ATTEMPTS; attempt += 1) {
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+
+    try {
+      await writeTempThenRename(fs, tempPath, filePath, content);
+      return;
+    } catch (error) {
+      if (isExistingPath(error) && attempt < TEMP_WRITE_MAX_ATTEMPTS) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+async function writeTempThenRename(
+  fs: LauncherFileSystem,
+  tempPath: string,
+  filePath: string,
+  content: string
+): Promise<void> {
+  let tempCreated = false;
+
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    if (tempCreated || !isExistingPath(error)) {
+      await fs.rm(tempPath, { force: true }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 async function assertProcessDirectorySafe(
@@ -882,6 +924,15 @@ function assertOptionalFiniteDuration(value: number | undefined, description: st
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isExistingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {

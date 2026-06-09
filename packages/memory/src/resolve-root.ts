@@ -17,7 +17,7 @@ export interface ResolveConfiguredMemoryRootOptions {
 export async function resolveConfiguredMemoryRoot(
   options: ResolveConfiguredMemoryRootOptions
 ): Promise<MemoryRoot> {
-  const envOverride = options.env[MEMORY_ROOT_ENV_VAR]?.trim();
+  const envOverride = readOptionalString(options.env, MEMORY_ROOT_ENV_VAR)?.trim();
   if (envOverride && envOverride.length > 0) {
     return resolveAgainstCwd(options.cwd, envOverride);
   }
@@ -33,13 +33,21 @@ export async function resolveConfiguredMemoryRoot(
 }
 
 function readMemoryRoot(document: Record<string, unknown>): string | undefined {
-  const memory = document.memory;
+  const memory = getOwnEntry(document, "memory");
   if (!memory || typeof memory !== "object" || Array.isArray(memory)) {
     return undefined;
   }
 
-  const root = (memory as Record<string, unknown>).root;
-  return typeof root === "string" ? root : undefined;
+  return readOptionalString(memory as Record<string, unknown>, "root");
+}
+
+function readOptionalString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function resolveAgainstCwd(cwd: string, value: string): string {

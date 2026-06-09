@@ -193,13 +193,13 @@ function parseYamlFrontmatter(yamlBlock: string): Record<string, unknown> {
 }
 
 function parsePageFrontmatter(value: Record<string, unknown>): PageFrontmatter {
-  const name = readOptionalString(value.name, "name");
-  const description = readOptionalString(value.description, "description");
+  const name = readOptionalString(getOwnEntry(value, "name"), "name");
+  const description = readOptionalString(getOwnEntry(value, "description"), "description");
   const lastTouchedAt = readOptionalString(
-    value.last_touched_at ?? value.lastTouchedAt,
+    getOwnEntry(value, "last_touched_at") ?? getOwnEntry(value, "lastTouchedAt"),
     "last_touched_at"
   );
-  const sources = parseSources(value.sources);
+  const sources = parseSources(getOwnEntry(value, "sources"));
 
   return {
     ...(name === undefined ? {} : { name }),
@@ -227,9 +227,12 @@ function parseSources(value: unknown): SourceRef[] | undefined {
       throw new Error('Invalid "sources" frontmatter. Expected each source to be a string or object.');
     }
 
-    const path = readRequiredString(item.path, "sources[].path");
-    const startLine = readOptionalPositiveInteger(item.startLine, "sources[].startLine");
-    const endLine = readOptionalPositiveInteger(item.endLine, "sources[].endLine");
+    const path = readRequiredString(getOwnEntry(item, "path"), "sources[].path");
+    const startLine = readOptionalPositiveInteger(
+      getOwnEntry(item, "startLine"),
+      "sources[].startLine"
+    );
+    const endLine = readOptionalPositiveInteger(getOwnEntry(item, "endLine"), "sources[].endLine");
     return parseSourceRef(serializeSourceRef({ path, ...(startLine === undefined ? {} : { startLine }), ...(endLine === undefined ? {} : { endLine }) }));
   });
 }
@@ -275,4 +278,8 @@ function assertValidLineNumber(line: number, value: string): void {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }

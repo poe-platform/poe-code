@@ -6,6 +6,33 @@ import {
   serializeSourceRef
 } from "./frontmatter.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("parseSourceRef", () => {
   it("parses plain paths and github-style line anchors", () => {
     expect(parseSourceRef("packages/memory/src/frontmatter.ts")).toEqual({
@@ -88,6 +115,38 @@ describe("parseFrontmatter", () => {
       },
       body: "# Superintendent\n\nBody"
     });
+  });
+
+  it("ignores inherited frontmatter fields", () => {
+    withObjectPrototypeProperties(
+      {
+        name: "polluted-name",
+        description: "polluted-description",
+        last_touched_at: "2026-04-18T10:22:00Z",
+        sources: ["polluted/source.ts#L1"]
+      },
+      () => {
+        expect(parseFrontmatter(["---", "{}", "---", "# Memory"].join("\n"))).toEqual({
+          frontmatter: {},
+          body: "# Memory"
+        });
+      }
+    );
+  });
+
+  it("ignores inherited source object fields", () => {
+    withObjectPrototypeProperties(
+      {
+        path: "polluted/source.ts",
+        startLine: 1,
+        endLine: 2
+      },
+      () => {
+        expect(() =>
+          parseFrontmatter(["---", "sources:", "  - {}", "---", "# Memory"].join("\n"))
+        ).toThrow('Invalid "sources[].path" frontmatter. Expected a string.');
+      }
+    );
   });
 
   it("throws when the yaml frontmatter is malformed", () => {

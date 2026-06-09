@@ -13,6 +13,33 @@ import {
 import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import { parseFrontmatter } from "@poe-code/ralph";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("format helpers", () => {
   it("formats Ralph detail strings", () => {
     const { data } = parseFrontmatter([
@@ -82,6 +109,23 @@ describe("format helpers", () => {
     ).toBe("build");
   });
 
+  it("ignores inherited superintendent status fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        status: {
+          state: "review",
+          review_turn: 99
+        },
+        state: "review",
+        review_turn: 99
+      },
+      () => {
+        expect(formatSuperintendentDetail({})).toBe("in progress");
+        expect(formatSuperintendentDetail({ status: {} })).toBe("in progress");
+      }
+    );
+  });
+
   it("returns the last experiment journal status when present", () => {
     expect(
       getLastExperimentState(
@@ -110,10 +154,27 @@ describe("format helpers", () => {
     ).rejects.toThrow("permission denied");
   });
 
+  it("does not treat inherited read error codes as missing journals", async () => {
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        readExperimentState(
+          { readFile: async () => { throw new Error("permission denied"); } },
+          "/repo/docs/plans/tune.md"
+        )
+      ).rejects.toThrow("permission denied");
+    });
+  });
+
   it("falls back to open when experiment journal content is empty or invalid", () => {
     expect(getLastExperimentState("")).toBe("open");
     expect(getLastExperimentState("{not-json")).toBe("open");
     expect(getLastExperimentState(JSON.stringify({ status: "completed" }))).toBe("open");
+  });
+
+  it("ignores inherited experiment journal status fields", async () => {
+    await withObjectPrototypeProperties({ status: "keep" }, () => {
+      expect(getLastExperimentState(JSON.stringify({}))).toBe("open");
+    });
   });
 
   it("converts pipeline YAML plans into preview markdown", () => {

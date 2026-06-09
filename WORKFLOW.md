@@ -1,17 +1,16 @@
 ---
 tasks:
-  type: markdown-dir
-  path: ./docs/plans
-  singleList: plans
-  frontmatterMode: passthrough
-  create: false
-  lockStaleMs: 30000
-  lockRetries: 20
+  type: gh-issues
+  repo: poe-platform/poe-code
+  project:
+    owner: poe-platform
+    number: 7
+  auth:
+    token: $MAESTRO_GH_TOKEN
 agent:
   service: codex
-  list: plans
+  list: poe-platform/7
   max_concurrent_agents: 1
-  max_turns: 20
   max_retry_backoff_ms: 300000
 polling:
   interval_ms: 30000
@@ -27,10 +26,13 @@ states:
       Write the plan back with:
         poe-code tasks set {{ task.id }} --description-file <plan>
 
-      Advance when the plan is ready:
+      When the plan is ready, submit it for approval:
         poe-code tasks next {{ task.id }}
 
-  planned:
+  awaiting-build:
+    gate: true
+
+  build:
     prompt: |
       Task: {{ task.qualifiedId }} ({{ task.url }})
 
@@ -39,22 +41,44 @@ states:
       Advance when the PR is open:
         poe-code tasks next {{ task.id }}
 
-  in-review:
+  review:
     prompt: |
       Task: {{ task.qualifiedId }} ({{ task.url }})
 
-      Check review state:
+      Review the PR:
         gh pr view --json reviews,comments
 
       Address any unaddressed feedback, push, and rebase if needed.
-      If approved and merged, advance:
+      When the review is clean, advance:
         poe-code tasks next {{ task.id }}
 
       Otherwise exit; maestro will re-check next tick.
 
-  done:
-    terminal: true
-  archived:
+  qa:
+    prompt: |
+      Task: {{ task.qualifiedId }} ({{ task.url }})
+
+      Run QA for the change: execute the relevant QA steps and verify it works.
+
+      When QA passes, submit it for release approval:
+        poe-code tasks next {{ task.id }}
+
+      Otherwise exit; maestro will re-check next tick.
+
+  awaiting-release:
+    gate: true
+
+  release:
+    prompt: |
+      Task: {{ task.qualifiedId }} ({{ task.url }})
+
+      Merge the PR, then watch the release publish to completion. If the release
+      build fails, fix it and re-run until it is green.
+
+      When the release is published successfully, advance:
+        poe-code tasks next {{ task.id }}
+
+  archive:
     terminal: true
 ---
 {{ task.qualifiedId }}: {{ task.name }}

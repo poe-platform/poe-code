@@ -2,13 +2,20 @@ import { createFsFromVolume, Volume } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  failedReadFileTarget: undefined as string | undefined,
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"]
 }));
 
 vi.mock("node:fs/promises", () => ({
   default: {
-    readFile: (...args: unknown[]) =>
-      mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>)),
+    readFile: (...args: unknown[]) => {
+      const [target] = args as Parameters<typeof mocks.fs.readFile>;
+      if (String(target) === mocks.failedReadFileTarget) {
+        throw new Error("readFile denied");
+      }
+
+      return mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>));
+    },
     readdir: (...args: unknown[]) =>
       mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
     stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>)),
@@ -18,8 +25,36 @@ vi.mock("node:fs/promises", () => ({
 
 const { evalLint } = await import("./lint.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("evalLint", () => {
   beforeEach(() => {
+    mocks.failedReadFileTarget = undefined;
     mocks.fs = createFsFromVolume(Volume.fromJSON(validFiles(), "/")).promises;
   });
 
@@ -118,6 +153,14 @@ describe("evalLint", () => {
     ).promises;
 
     await expectIssueCodes(["E002"]);
+  });
+
+  it("does not treat inherited readFile error codes as missing lint files", async () => {
+    mocks.failedReadFileTarget = "/repo/evals/smoke/plan.md";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(lint()).rejects.toThrow("readFile denied");
+    });
   });
 
   it("reports E002 when plan.md frontmatter fails to parse", async () => {

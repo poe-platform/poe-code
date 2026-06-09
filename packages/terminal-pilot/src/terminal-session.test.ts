@@ -44,6 +44,33 @@ function createPtyMock() {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("TerminalSession spawn helper setup", () => {
   beforeEach(() => {
     accessSyncMock.mockReset();
@@ -81,6 +108,32 @@ describe("TerminalSession spawn helper setup", () => {
         })
     ).not.toThrow();
     expect(spawnMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not ignore spawn-helper chmod errors with inherited missing-file codes", async () => {
+    accessSyncMock.mockImplementation(() => {
+      throw new Error("spawn helper access denied");
+    });
+    chmodSyncMock.mockImplementation(() => {
+      throw new Error("spawn helper chmod denied");
+    });
+
+    const { TerminalSession } = await import("./terminal-session.js");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+      expect(
+        () =>
+          new TerminalSession({
+            id: "session-1",
+            command: process.execPath,
+            args: ["-e", "process.exit(0)"],
+            cwd: process.cwd(),
+            env: process.env,
+            observe: false
+          })
+      ).toThrow("spawn helper chmod denied");
+    });
+    expect(spawnMock).not.toHaveBeenCalled();
   });
 
   it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, 1.5])(

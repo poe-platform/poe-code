@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { defineCommand, S } from "toolcraft";
+import { hasOwnErrorCode } from "../errors.js";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
   DEFAULT_INSTALL_AGENT,
@@ -91,7 +92,7 @@ async function folderExists(
     await fs.stat(folderPath);
     return true;
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
 

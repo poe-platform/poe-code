@@ -2600,6 +2600,52 @@ describe("generate", () => {
     }
   );
 
+  it("ignores inherited supported path-item operations", () => {
+    const pathItem = Object.create({
+      get: {
+        tags: ["bots"],
+        operationId: "listBots",
+        responses: {
+          "200": {
+            description: "Listed."
+          }
+        }
+      }
+    }) as OpenApiDocument["paths"][string];
+
+    const files = generate(
+      createDocument({
+        "/bots": pathItem
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).not.toContain("bots/list.ts");
+  });
+
+  it("ignores inherited unsupported path-item operations", () => {
+    const pathItem = Object.create({
+      trace: {
+        tags: ["bots"],
+        operationId: "traceBots",
+        responses: {
+          "200": {
+            description: "Traced."
+          }
+        }
+      }
+    }) as OpenApiDocument["paths"][string];
+
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots": pathItem
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
+  });
+
   it("accepts a path placeholder satisfied by a path-item parameter", () => {
     const files = generate(
       createDocument({

@@ -472,7 +472,7 @@ function collectOperations(
       assertSupportedHttpMethods(path, pathItem);
 
       return HTTP_METHOD_ORDER.flatMap((method) => {
-        const operation = pathItem[method];
+        const operation = getOwnPathItemValue(pathItem, method) as OpenApiOperation | undefined;
         if (operation === undefined) {
           return [];
         }
@@ -480,6 +480,12 @@ function collectOperations(
         return [{ method, path, operation, pathItem } satisfies OperationEntry];
       });
     });
+}
+
+function getOwnPathItemValue(pathItem: OpenApiPathItemObject, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(pathItem, key)
+    ? (pathItem as Record<string, unknown>)[key]
+    : undefined;
 }
 
 function createGeneratedCommand(
@@ -1866,10 +1872,8 @@ function getOperationAuthMode(
 }
 
 function assertSupportedHttpMethods(path: string, pathItem: OpenApiPathItemObject): void {
-  const rawPathItem = pathItem as Record<string, unknown>;
-
   for (const method of UNSUPPORTED_HTTP_METHODS) {
-    const operation = rawPathItem[method];
+    const operation = getOwnPathItemValue(pathItem, method);
 
     if (operation === undefined) {
       continue;

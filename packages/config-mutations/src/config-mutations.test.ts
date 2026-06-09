@@ -976,6 +976,28 @@ describe("runMutations", () => {
       expect(backups).toHaveLength(2);
       expect(backups.map((filePath) => fs.files[filePath])).toEqual(["{ first", "{ second"]);
     });
+
+    it("cleans a partial invalid-document backup when backup creation fails", async () => {
+      const fs = createMockFs({ "~/.config.json": "{ broken" }, homeDir);
+      const originalWriteFile = fs.writeFile.bind(fs);
+      let backupPath: string | undefined;
+      fs.writeFile = async (filePath, content, options) => {
+        if (filePath.includes(".invalid-")) {
+          backupPath = filePath;
+          await originalWriteFile(filePath, "partial backup", options);
+          throw new Error("invalid backup disk full");
+        }
+
+        await originalWriteFile(filePath, content, options);
+      };
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("invalid backup disk full");
+      expect(backupPath).toBeDefined();
+      expect(fs.getContent(backupPath ?? "")).toBeUndefined();
+      expect(fs.getContent("~/.config.json")).toBe("{ broken");
+    });
   });
 
   describe("configMutation.prune", () => {
@@ -1261,6 +1283,28 @@ describe("runMutations", () => {
       const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".backup-"));
       expect(backups).toHaveLength(2);
       expect(backups.map((filePath) => fs.files[filePath])).toEqual(["first", "second"]);
+    });
+
+    it("cleans a partial generated backup when backup creation fails", async () => {
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+      const originalWriteFile = fs.writeFile.bind(fs);
+      let backupPath: string | undefined;
+      fs.writeFile = async (filePath, content, options) => {
+        if (filePath.includes(".backup-")) {
+          backupPath = filePath;
+          await originalWriteFile(filePath, "partial backup", options);
+          throw new Error("generated backup disk full");
+        }
+
+        await originalWriteFile(filePath, content, options);
+      };
+
+      await expect(
+        runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir })
+      ).rejects.toThrow("generated backup disk full");
+      expect(backupPath).toBeDefined();
+      expect(fs.getContent(backupPath ?? "")).toBeUndefined();
+      expect(fs.getContent("~/.settings.json")).toBe("original");
     });
 
     it("restores and consumes the latest generated backup atomically", async () => {

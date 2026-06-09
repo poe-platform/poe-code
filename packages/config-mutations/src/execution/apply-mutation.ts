@@ -55,6 +55,7 @@ async function backupInvalidDocument(
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
+        await context.fs.unlink(backupPath).catch(() => undefined);
         throw error;
       }
       attempt += 1;
@@ -514,6 +515,7 @@ async function applyBackup(
         break;
       } catch (error) {
         if (!isAlreadyExists(error)) {
+          await context.fs.unlink(backupPath).catch(() => undefined);
           throw error;
         }
         attempt += 1;

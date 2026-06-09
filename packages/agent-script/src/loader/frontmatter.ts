@@ -148,16 +148,23 @@ function readYamlErrorLine(error: unknown): number {
   if (
     typeof error === "object" &&
     error !== null &&
-    "mark" in error &&
+    hasOwnProperty(error, "mark") &&
     typeof error.mark === "object" &&
     error.mark !== null &&
-    "line" in error.mark &&
+    hasOwnProperty(error.mark, "line") &&
     typeof error.mark.line === "number"
   ) {
     return error.mark.line;
   }
 
   return 0;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function countLines(value: string): number {

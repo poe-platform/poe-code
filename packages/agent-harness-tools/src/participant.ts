@@ -8,10 +8,16 @@ export interface WorkflowParticipant {
   prompt?: string;
 }
 
-type WorkflowParticipantInput = Omit<WorkflowParticipant, "id">;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwnEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return hasOwnEntry(record, key) ? record[key] : undefined;
 }
 
 function normalizeParticipantAgent(id: string, value: unknown): string | string[] {
@@ -65,44 +71,46 @@ export function normalizeParticipantConfig(
     throw new Error(`Participant "${id}" must be a string or object.`);
   }
 
-  if (!("agent" in input)) {
+  if (!hasOwnEntry(input, "agent")) {
     throw new Error(`Participant "${id}" is missing required field: agent.`);
   }
 
-  const participantInput = input as WorkflowParticipantInput & Record<string, unknown>;
   const participant: WorkflowParticipant = {
     id,
-    agent: normalizeParticipantAgent(id, participantInput.agent)
+    agent: normalizeParticipantAgent(id, getOwnEntry(input, "agent"))
   };
 
-  if (participantInput.mode !== undefined) {
+  const mode = getOwnEntry(input, "mode");
+  if (mode !== undefined) {
     if (
-      participantInput.mode !== "read" &&
-      participantInput.mode !== "edit" &&
-      participantInput.mode !== "yolo"
+      mode !== "read" &&
+      mode !== "edit" &&
+      mode !== "yolo"
     ) {
       throw new Error(
         `Participant "${id}" has invalid mode. Expected "read", "edit", or "yolo".`
       );
     }
-    participant.mode = participantInput.mode;
+    participant.mode = mode;
   }
 
-  if (participantInput.model !== undefined) {
-    if (typeof participantInput.model !== "string") {
+  const model = getOwnEntry(input, "model");
+  if (model !== undefined) {
+    if (typeof model !== "string") {
       throw new Error(`Participant "${id}" has invalid model. Expected a string.`);
     }
-    if (participantInput.model.length === 0) {
+    if (model.length === 0) {
       throw new Error(`Participant "${id}" must define a non-empty model.`);
     }
-    participant.model = participantInput.model;
+    participant.model = model;
   }
 
-  if (participantInput.prompt !== undefined) {
-    if (typeof participantInput.prompt !== "string") {
+  const prompt = getOwnEntry(input, "prompt");
+  if (prompt !== undefined) {
+    if (typeof prompt !== "string") {
       throw new Error(`Participant "${id}" has invalid prompt. Expected a string.`);
     }
-    participant.prompt = participantInput.prompt;
+    participant.prompt = prompt;
   }
 
   return participant;

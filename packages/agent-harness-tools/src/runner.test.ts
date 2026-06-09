@@ -25,6 +25,33 @@ function createFs(files: Record<string, string> = {}): {
   return { fs, volume };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createOptions(
   options: {
     frontmatter?: Frontmatter;
@@ -76,6 +103,133 @@ function createOptions(
 }
 
 describe("runDocumentWorkflow", () => {
+  it("ignores inherited workflow document fields", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const iterationEnds: Array<[number, IterationResult]> = [];
+
+    await withObjectPrototypeProperties(
+      {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        setup: {
+          prompt: "Polluted setup"
+        },
+        stages: [
+          {
+            id: "polluted",
+            participant: "default",
+            prompt: "Polluted stage"
+          }
+        ],
+        max_iterations: 1
+      },
+      async () => {
+        await runDocumentWorkflow(
+          createOptions({
+            fs,
+            frontmatter: {},
+            runAgent,
+            onIterationEnd: (iteration, result) => {
+              iterationEnds.push([iteration, result]);
+            }
+          })
+        );
+      }
+    );
+
+    expect(runAgent).not.toHaveBeenCalled();
+    expect(iterationEnds).toEqual([[0, "nothing_to_run"]]);
+  });
+
+  it("does not accept inherited setup fields", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+
+    await withObjectPrototypeProperties({ prompt: "Polluted setup" }, async () => {
+      await expect(
+        runDocumentWorkflow(
+          createOptions({
+            fs,
+            frontmatter: {
+              participants: {
+                default: {
+                  agent: "claude",
+                  mode: "edit"
+                }
+              },
+              setup: {}
+            }
+          })
+        )
+      ).rejects.toThrow('Workflow "setup" must define a non-empty prompt.');
+    });
+  });
+
+  it("does not accept inherited stage fields", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+
+    await withObjectPrototypeProperties(
+      {
+        id: "polluted",
+        participant: "default",
+        prompt: "Polluted stage",
+        mode: "edit"
+      },
+      async () => {
+        await expect(
+          runDocumentWorkflow(
+            createOptions({
+              fs,
+              frontmatter: {
+                participants: {
+                  default: {
+                    agent: "claude",
+                    mode: "edit"
+                  }
+                },
+                stages: [{}]
+              }
+            })
+          )
+        ).rejects.toThrow("Workflow stage at index 0 must define a non-empty id.");
+      }
+    );
+  });
+
+  it("does not accept inherited stage hook fields", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+
+    await withObjectPrototypeProperties({ from: "polluted" }, async () => {
+      await expect(
+        runDocumentWorkflow(
+          createOptions({
+            fs,
+            frontmatter: {
+              participants: {
+                default: {
+                  agent: "claude",
+                  mode: "edit"
+                }
+              },
+              stages: [
+                {
+                  id: "implement",
+                  participant: "default",
+                  prompt: "Implement",
+                  hooks: {}
+                }
+              ]
+            }
+          })
+        )
+      ).rejects.toThrow('Workflow stage "implement" hooks from must be a non-empty string.');
+    });
+  });
+
   it("runs setup, stages, and teardown in order", async () => {
     const prompts: string[] = [];
     const options = createOptions({

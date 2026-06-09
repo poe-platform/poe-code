@@ -5,6 +5,33 @@ import {
   type WorkflowParticipant
 } from "./participant.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("normalizeParticipantConfig", () => {
   it("normalizes a string agent", () => {
     expect(normalizeParticipantConfig("writer", "claude")).toEqual({
@@ -90,6 +117,30 @@ describe("normalizeParticipantConfig", () => {
         mode: "edit"
       })
     ).toThrow('Participant "writer" is missing required field: agent.');
+  });
+
+  it("does not accept an inherited agent field", async () => {
+    await withObjectPrototypeProperties({ agent: "codex" }, () => {
+      expect(() => normalizeParticipantConfig("writer", {})).toThrow(
+        'Participant "writer" is missing required field: agent.'
+      );
+    });
+  });
+
+  it("ignores inherited optional fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        mode: "read",
+        model: "polluted-model",
+        prompt: "Polluted prompt"
+      },
+      () => {
+        expect(normalizeParticipantConfig("writer", { agent: "claude" })).toEqual({
+          id: "writer",
+          agent: "claude-code"
+        });
+      }
+    );
   });
 
   it("throws for a model-only inline agent specifier", () => {

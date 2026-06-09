@@ -5,6 +5,10 @@ export interface AgentSpecifier {
   model?: string;
 }
 
+function getOwnModel(specifier: AgentSpecifier): string | undefined {
+  return Object.prototype.hasOwnProperty.call(specifier, "model") ? specifier.model : undefined;
+}
+
 export function parseAgentSpecifier(input: string): AgentSpecifier {
   const colonIndex = input.indexOf(":");
   if (colonIndex === -1) {
@@ -21,8 +25,9 @@ export function parseAgentSpecifier(input: string): AgentSpecifier {
 }
 
 export function formatAgentSpecifier(specifier: AgentSpecifier): string {
-  if (specifier.model) {
-    return `${specifier.agent}:${specifier.model}`;
+  const model = getOwnModel(specifier);
+  if (model) {
+    return `${specifier.agent}:${model}`;
   }
   return specifier.agent;
 }
@@ -33,6 +38,6 @@ export function normalizeAgentId(input: string): string {
 
   return formatAgentSpecifier({
     agent,
-    model: specifier.model
+    model: getOwnModel(specifier)
   });
 }

@@ -12,6 +12,33 @@ vi.mock("node:fs/promises", async () => {
   };
 });
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("resolveConfig", () => {
   it("rejects an unresolved environment variable used as workspace root", () => {
     delete process.env.MAESTRO_MISSING_WORKSPACE;
@@ -33,6 +60,66 @@ describe("resolveConfig", () => {
     expect(Object.hasOwn(config.states, "__proto__")).toBe(true);
     expect(config.states.__proto__).toEqual({ prompt: "Plan safely" });
     expect(config.activeStateNames).toContain("__proto__");
+  });
+
+  it("does not accept inherited top-level workflow fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        states: {
+          planned: { prompt: "Polluted plan" },
+          done: { terminal: true }
+        },
+        tasks: { type: "markdown-dir", path: "./polluted-tasks" }
+      },
+      () => {
+        expect(() => resolveConfig({}, "/repo")).toThrow("requires a states map");
+      }
+    );
+  });
+
+  it("does not resolve inherited task fields", async () => {
+    await withObjectPrototypeProperties({ path: "./polluted-tasks" }, () => {
+      const cfg = resolveConfig(
+        {
+          tasks: { type: "markdown-dir" },
+          states: {
+            planned: { prompt: "Plan" },
+            done: { terminal: true }
+          }
+        },
+        "/repo"
+      );
+
+      expect(cfg.tasks).toEqual({ type: "markdown-dir" });
+      expect(Object.hasOwn(cfg.tasks ?? {}, "path")).toBe(false);
+    });
+  });
+
+  it("does not validate inherited state definition fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        terminal: true,
+        agent: "polluted-agent",
+        model: "polluted-model",
+        mode: "read"
+      },
+      () => {
+        const cfg = resolveConfig(
+          {
+            states: {
+              planned: { prompt: "Plan" },
+              done: { terminal: true }
+            }
+          },
+          "/repo"
+        );
+
+        expect(cfg.states.planned).toEqual({ prompt: "Plan" });
+        expect(Object.hasOwn(cfg.states.planned ?? {}, "agent")).toBe(false);
+        expect(Object.hasOwn(cfg.states.planned ?? {}, "model")).toBe(false);
+        expect(Object.hasOwn(cfg.states.planned ?? {}, "mode")).toBe(false);
+      }
+    );
   });
 
   const originalEnv = { ...process.env };

@@ -62,7 +62,7 @@ const maestroConfigScope = {
 export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
   const rawConfig = isRecord(raw) ? raw : {};
   const scoped = resolveScope(maestroConfigScope, rawConfig, process.env);
-  const { states, stateOrder } = parseStates(rawConfig.states);
+  const { states, stateOrder } = parseStates(getOwnEntry(rawConfig, "states"));
   const polling = scoped.polling;
   const workspace = scoped.workspace;
   const agent = scoped.agent as JsonRecord;
@@ -72,25 +72,37 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
   }
 
   return {
-    tasks: resolveTasks(rawConfig.tasks, cwd),
+    tasks: resolveTasks(getOwnEntry(rawConfig, "tasks"), cwd),
     states,
     activeStateNames: stateOrder.filter((name) => states[name]?.prompt !== undefined),
     terminalStateNames: stateOrder.filter((name) => states[name]?.terminal === true),
     stateOrder,
     polling: {
-      intervalMs: readPositiveInteger(polling.interval_ms, 30_000, "polling.interval_ms")
+      intervalMs: readPositiveInteger(
+        getOwnEntry(polling, "interval_ms"),
+        30_000,
+        "polling.interval_ms"
+      )
     },
     workspace: {
       root: resolvePathValue(
-        readString(workspace.root) ?? path.join(os.tmpdir(), "poe-code-maestro"),
+        readString(getOwnEntry(workspace, "root")) ?? path.join(os.tmpdir(), "poe-code-maestro"),
         cwd
       )
     },
     agent: {
-      service: readString(agent.service) ?? "codex",
-      list: readString(resolveStringValue(agent.list)),
-      maxConcurrentAgents: readPositiveInteger(agent.max_concurrent_agents, 1, "agent.max_concurrent_agents"),
-      maxRetryBackoffMs: readNonNegativeInteger(agent.max_retry_backoff_ms, 300_000, "agent.max_retry_backoff_ms")
+      service: readString(getOwnEntry(agent, "service")) ?? "codex",
+      list: readString(resolveStringValue(getOwnEntry(agent, "list"))),
+      maxConcurrentAgents: readPositiveInteger(
+        getOwnEntry(agent, "max_concurrent_agents"),
+        1,
+        "agent.max_concurrent_agents"
+      ),
+      maxRetryBackoffMs: readNonNegativeInteger(
+        getOwnEntry(agent, "max_retry_backoff_ms"),
+        300_000,
+        "agent.max_retry_backoff_ms"
+      )
     }
   };
 }
@@ -153,8 +165,9 @@ function resolveTasks(value: unknown, cwd: string): OpenTaskListOptions | undefi
 
   const resolved = resolveStringValues(value);
 
-  if (typeof resolved.path === "string") {
-    resolved.path = resolvePathValue(resolved.path, cwd);
+  const taskPath = getOwnEntry(resolved, "path");
+  if (typeof taskPath === "string") {
+    defineRecordEntry(resolved, "path", resolvePathValue(taskPath, cwd));
   }
 
   return resolved as unknown as OpenTaskListOptions;
@@ -173,18 +186,20 @@ function resolveStringValues(value: JsonRecord): JsonRecord {
 
   for (const [key, entry] of Object.entries(value)) {
     if (typeof entry === "string") {
-      resolved[key] = resolveStringValue(entry);
+      defineRecordEntry(resolved, key, resolveStringValue(entry));
       continue;
     }
 
     if (Array.isArray(entry)) {
-      resolved[key] = entry.map((item) =>
-        typeof item === "string" ? resolveStringValue(item) : item
+      defineRecordEntry(
+        resolved,
+        key,
+        entry.map((item) => (typeof item === "string" ? resolveStringValue(item) : item))
       );
       continue;
     }
 
-    resolved[key] = isRecord(entry) ? resolveStringValues(entry) : entry;
+    defineRecordEntry(resolved, key, isRecord(entry) ? resolveStringValues(entry) : entry);
   }
 
   return resolved;
@@ -301,6 +316,19 @@ function isRecord(value: unknown): value is JsonRecord {
 
 function hasOwn(value: JsonRecord, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function getOwnEntry(value: JsonRecord, key: string): unknown {
+  return hasOwn(value, key) ? value[key] : undefined;
+}
+
+function defineRecordEntry(record: JsonRecord, key: string, value: unknown): void {
+  Object.defineProperty(record, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isEnvName(value: string): boolean {

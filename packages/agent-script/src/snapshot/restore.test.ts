@@ -212,6 +212,45 @@ describe("snapshot restore", () => {
     );
   });
 
+  it("does not index AST nodes from inherited type and nodeId fields", () => {
+    const source = "await task();";
+    const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");
+
+    const restored = withObjectPrototypeProperties(
+      {
+        nodeId: awaitNodeId,
+        type: "AwaitExpression"
+      },
+      () =>
+        restore(
+          {
+            sourceHash: hashSource(source),
+            currentAstNodeId: awaitNodeId,
+            scopeChain: [
+              {
+                id: "module",
+                bindings: {}
+              }
+            ],
+            callStack: [],
+            pendingPromises: [],
+            moduleBindings: {}
+          },
+          {
+            source,
+            budget: new Budget()
+          }
+        )
+    );
+
+    expect(Object.hasOwn(restored.currentNode, "type")).toBe(true);
+    expect(Object.hasOwn(restored.currentNode, "nodeId")).toBe(true);
+    expect(restored.currentNode).toMatchObject({
+      nodeId: awaitNodeId,
+      type: "AwaitExpression"
+    });
+  });
+
   it("rejects snapshots when a saved module is no longer registered", () => {
     const source = 'import * as time from "time"; await time.now();';
     const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");

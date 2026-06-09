@@ -519,10 +519,10 @@ function indexAstNodes(root: Module): Map<number, ParseResult> {
     }
 
     if (
-      "type" in value &&
+      hasOwnProperty(value, "type") &&
       typeof value.type === "string" &&
       value.type !== "Module" &&
-      "nodeId" in value &&
+      hasOwnProperty(value, "nodeId") &&
       typeof value.nodeId === "number"
     ) {
       nodeById.set(value.nodeId, value as ParseResult);

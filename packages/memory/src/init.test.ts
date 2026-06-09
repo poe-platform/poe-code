@@ -91,4 +91,23 @@ describe("initMemory", () => {
     await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow("log scaffold failed");
     await expect(vol.promises.stat("/repo/.poe-code/memory")).rejects.toMatchObject({ code: "ENOENT" });
   });
+
+  it("removes a partially written scaffold file when exclusive creation fails", async () => {
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).endsWith("/INDEX.md")) {
+        vol.writeFileSync(String(filePath), "# Partial index\n", options as never);
+        throw new Error("index scaffold failed");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow("index scaffold failed");
+    await expect(vol.promises.stat("/repo/.poe-code/memory/INDEX.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(vol.promises.stat("/repo/.poe-code/memory")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
 });

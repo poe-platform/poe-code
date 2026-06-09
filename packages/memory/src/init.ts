@@ -47,6 +47,7 @@ async function writeFileIfMissing(filePath: string, content: string): Promise<bo
     return true;
   } catch (error) {
     if (!hasErrorCode(error, "EEXIST")) {
+      await fs.unlink(filePath).catch(() => undefined);
       throw error;
     }
 

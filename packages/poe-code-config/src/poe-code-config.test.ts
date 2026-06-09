@@ -806,6 +806,23 @@ describe("deepMergeDocuments", () => {
     });
   });
 
+  it("preserves proto-named scopes and runtime keys as data", () => {
+    const base = JSON.parse(
+      '{"__proto__":{"base":true},"runtime":{"build_args":{"__proto__":"base-value"}}}'
+    ) as ConfigDocument;
+    const override = JSON.parse(
+      '{"__proto__":{"override":true},"runtime":{"build_args":{"PACKAGE_MANAGER":"npm"}}}'
+    ) as ConfigDocument;
+
+    const result = deepMergeDocuments(base, override);
+    const runtime = result.runtime as Record<string, Record<string, unknown>>;
+
+    expect(Object.hasOwn(result, "__proto__")).toBe(true);
+    expect(result.__proto__).toEqual({ base: true, override: true });
+    expect(Object.hasOwn(runtime.build_args, "__proto__")).toBe(true);
+    expect(runtime.build_args.__proto__).toBe("base-value");
+  });
+
   it("returns the base document unchanged when override scope is empty", () => {
     const base = {
       core: { apiKey: "global-key" }

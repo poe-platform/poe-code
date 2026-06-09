@@ -30,7 +30,7 @@ export function osascriptProvider(options: OsascriptProviderOptions = {}): Human
         const { stdout } = await execFileAsync(binary, ["-e", script]);
         return parseStdout(stdout);
       } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        if (hasOwnErrorCode(error, "ENOENT")) {
           throw new Error("osascript not found — provide a different provider on this platform");
         }
         if (isUserCanceled(error)) {
@@ -42,4 +42,13 @@ export function osascriptProvider(options: OsascriptProviderOptions = {}): Human
       }
     }
   };
+}
+
+function hasOwnErrorCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
 }

@@ -6,6 +6,32 @@ import { loadConfiguredServices, saveConfiguredService, unconfigureService } fro
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("configured services", () => {
   it("derives apiShape when saving a new service entry", async () => {
     const fs = createMockFs(undefined, homeDir);
@@ -84,6 +110,57 @@ describe("configured services", () => {
       provider: "poe",
       files: ["/tmp/proto.toml"]
     });
+  });
+
+  it("ignores inherited legacy credential document fields", async () => {
+    const fs = createMockFs({ "~/.poe-code/credentials.json": "{}\n" }, homeDir);
+
+    await withObjectPrototypeProperties(
+      {
+        apiKey: "polluted-key",
+        configured_services: {
+          codex: {
+            provider: "poe",
+            files: ["/polluted"]
+          }
+        }
+      },
+      async () => {
+        await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toEqual({});
+      }
+    );
+
+    expect(fs.getContent("~/.poe-code/config.json")).toBeUndefined();
+    expect(fs.getContent("~/.poe-code/credentials.json")).toBeUndefined();
+  });
+
+  it("ignores inherited configured service metadata fields", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"configured_services":{"codex":{}}}\n'
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        provider: "cloudflare",
+        apiShape: "google-generations",
+        files: ["/polluted"],
+        model: "polluted-model",
+        reasoningEffort: "high",
+        baseUrl: "https://polluted.example.test",
+        shapeBaseUrl: ["openai-responses=https://polluted.example.test"]
+      },
+      async () => {
+        await expect(loadConfiguredServices({ fs, filePath: configPath, readOnly: true })).resolves.toEqual({
+          codex: {
+            provider: "poe",
+            files: []
+          }
+        });
+      }
+    );
   });
 
   it("does not unconfigure an absent inherited constructor service", async () => {

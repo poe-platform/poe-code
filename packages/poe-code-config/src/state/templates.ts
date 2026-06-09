@@ -63,7 +63,7 @@ export function createTemplateRegistry(
       await assertSafeStateFile();
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      if (tempCreated) {
+      if (tempCreated || !isAlreadyExistsError(error)) {
         await fs.unlink(tempPath).catch(() => undefined);
       }
       throw error;
@@ -172,6 +172,10 @@ function isTemplateEntry(value: unknown): value is TemplateEntry {
     (value.template_id === undefined || typeof value.template_id === "string") &&
     (value.image === undefined || typeof value.image === "string")
   );
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

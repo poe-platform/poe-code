@@ -116,10 +116,14 @@ describe("TemplateRegistry", () => {
     const base = createMemFs({
       [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`
     });
+    let tempPath: string | undefined;
     const fs: StateFileSystem = {
       ...base,
       async writeFile(targetPath, data, options) {
         if (targetPath === templatesPath || targetPath.includes(".tmp")) {
+          if (targetPath.includes(".tmp")) {
+            tempPath = targetPath;
+          }
           await base.writeFile(targetPath, "{", options);
           throw new Error("templates disk full");
         }
@@ -134,6 +138,10 @@ describe("TemplateRegistry", () => {
     await expect(
       createTemplateRegistry("/home/tester", base).get("docker", "alpha")
     ).resolves.toEqual(original);
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("ignores persisted templates stored under a mismatched hash key", async () => {
@@ -323,6 +331,37 @@ describe("JobRegistry", () => {
 
     await expect(registry.get("job-1")).resolves.toEqual(job);
     await expect(registry.list()).resolves.toEqual([job]);
+  });
+
+  it("preserves the stored job when a partial temp write fails", async () => {
+    const job = createJob("job-1", { status: "running" });
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const jobPath = path.join(jobsDir, "job-1.json");
+    const base = createMemFs({
+      [jobPath]: `${JSON.stringify(job, null, 2)}\n`
+    });
+    let tempPath: string | undefined;
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (targetPath.startsWith(`${jobPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("jobs disk full");
+        }
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+
+    await expect(createJobRegistry("/home/tester", fs).update("job-1", {
+      status: "exited"
+    })).rejects.toThrow("jobs disk full");
+
+    await expect(createJobRegistry("/home/tester", base).get("job-1")).resolves.toEqual(job);
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("preserves rename failures when temporary cleanup also rejects", async () => {

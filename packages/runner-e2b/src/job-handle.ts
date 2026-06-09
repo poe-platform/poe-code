@@ -128,9 +128,18 @@ async function readExitCode(sandbox: E2bSandbox, jobId: string): Promise<number 
     }
     return exitCode;
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return null;
     }
     throw error;
   }
+}
+
+function hasOwnErrorCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
 }

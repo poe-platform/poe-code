@@ -5,12 +5,21 @@ import type { EvalRunOptions, EvalRunResult } from "../types.js";
 const mocks = vi.hoisted(() => ({
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
   failAggregates: false,
+  failAggregateRenames: false,
   runEval: vi.fn<[EvalRunOptions], Promise<EvalRunResult>>()
 }));
 
 vi.mock("node:fs/promises", () => ({
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
   lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
+  rename: async (...args: unknown[]) => {
+    const [, targetPath] = args as Parameters<typeof mocks.fs.rename>;
+    if (mocks.failAggregateRenames && String(targetPath).includes("/aggregate-")) {
+      throw new Error("aggregate commit failed");
+    }
+    await mocks.fs.rename(...(args as Parameters<typeof mocks.fs.rename>));
+  },
+  rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
   writeFile: async (...args: unknown[]) => {
     const [targetPath] = args as Parameters<typeof mocks.fs.writeFile>;
     if (mocks.failAggregates && String(targetPath).includes("aggregate-")) {
@@ -32,6 +41,7 @@ describe("runMatrix publication", () => {
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/runs/.keep": "" }, "/")).promises;
     mocks.failAggregates = false;
+    mocks.failAggregateRenames = false;
     mocks.runEval.mockReset().mockImplementation(async (opts) => result(opts));
   });
 
@@ -40,6 +50,18 @@ describe("runMatrix publication", () => {
     const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
 
     await expect(iterator.next()).rejects.toThrow("aggregate publication failed");
+  });
+
+  it("cleans staged aggregate files when publication commit fails", async () => {
+    mocks.failAggregateRenames = true;
+    const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).rejects.toThrow("aggregate commit failed");
+
+    const [matrixId] = (await mocks.fs.readdir("/runs")).filter((name) => name !== ".keep");
+    const files = await mocks.fs.readdir(`/runs/${String(matrixId)}`);
+    expect(files.filter((name) => String(name).includes(".tmp"))).toEqual([]);
+    expect(files.filter((name) => String(name).startsWith("aggregate-"))).toEqual([]);
   });
 
   it("rejects source-relative symlinked output parents before running cells", async () => {

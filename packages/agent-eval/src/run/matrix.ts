@@ -1,4 +1,5 @@
-import { writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { aggregateRuns } from "../aggregate.js";
 import { openSource } from "../source/open.js";
@@ -15,6 +16,7 @@ import { runEval } from "./run.js";
 import { writeRunResult } from "./result-writer.js";
 
 const defaultRepeats = 3;
+const tempWriteMaxAttempts = 3;
 
 export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRunResult> {
   assertNonEmpty("agents", opts.agents);
@@ -169,11 +171,41 @@ async function writeAggregate(
     `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
   );
   await assertRunArtifactPath(sourceRootDir, aggregatePath);
-  await writeFile(
-    aggregatePath,
-    `${JSON.stringify(aggregate, null, 2)}\n`,
-    "utf8"
-  );
+  await writeFileAtomically(aggregatePath, `${JSON.stringify(aggregate, null, 2)}\n`);
+}
+
+async function writeFileAtomically(filePath: string, content: string): Promise<void> {
+  for (let attempt = 1; attempt <= tempWriteMaxAttempts; attempt += 1) {
+    const tempPath = path.join(
+      path.dirname(filePath),
+      `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
+    );
+
+    try {
+      await writeTempThenRename(tempPath, filePath, content);
+      return;
+    } catch (error) {
+      if (isExistingPath(error) && attempt < tempWriteMaxAttempts) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+async function writeTempThenRename(tempPath: string, filePath: string, content: string): Promise<void> {
+  let tempCreated = false;
+
+  try {
+    await writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await rename(tempPath, filePath);
+  } catch (error) {
+    if (tempCreated) {
+      await rm(tempPath, { force: true }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 function assertNonEmpty(
@@ -218,4 +250,13 @@ function isSafePathSegmentChar(char: string): boolean {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function isExistingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }

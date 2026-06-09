@@ -14,6 +14,7 @@ import {
   type TypeLiteralNode,
   type TypeNode
 } from "ts-morph";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 
 interface SpawnConfigLike {
   agentId: string;
@@ -165,7 +166,7 @@ async function realpathNearestExisting(
     try {
       return await fileSystem.realpath(currentPath);
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
 
@@ -207,7 +208,7 @@ async function atomicWriteOutput(
 }
 
 function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function resolveRepoRoot(): string {
@@ -221,7 +222,7 @@ async function readFileIfExists(
   try {
     return await fileSystem.readFile(filePath, "utf8");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
     throw error;

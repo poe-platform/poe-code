@@ -3,6 +3,25 @@ import { createFsFromVolume, Volume } from "memfs";
 import { Project } from "ts-morph";
 import { generateAgentSpawnPythonTypes, runAgentSpawnPythonTypeCodegen } from "./agent-spawn-py-types.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("generateAgentSpawnPythonTypes", () => {
   it("renders Python enums and dataclasses from the TypeScript AST", () => {
     const project = new Project({
@@ -239,6 +258,81 @@ export type SpawnMode = "read";
     await expect(fileSystem.readFile("/outside.py", "utf8")).resolves.toBe("EXTERNAL ORIGINAL\n");
   });
 
+  it("does not treat inherited realpath codes as missing Python types output", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({});
+    volume.mkdirSync(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn`, { recursive: true });
+    const rawFileSystem = createFsFromVolume(volume).promises;
+    const realpathError = new Error("realpath denied");
+    const fileSystem = {
+      ...rawFileSystem,
+      async realpath(filePath: Parameters<typeof rawFileSystem.realpath>[0]) {
+        if (String(filePath) === outputPath) {
+          throw realpathError;
+        }
+        return rawFileSystem.realpath(filePath);
+      }
+    };
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(runAgentSpawnPythonTypeCodegen({
+        repoRoot,
+        project,
+        spawnConfigs: [],
+        fileSystem
+      })).rejects.toBe(realpathError);
+    });
+  });
+
+  it("does not treat inherited read codes as missing generated Python types", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({});
+    volume.mkdirSync(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn`, { recursive: true });
+    const rawFileSystem = createFsFromVolume(volume).promises;
+    const readError = new Error("read denied");
+    const fileSystem = {
+      ...rawFileSystem,
+      async readFile(
+        filePath: Parameters<typeof rawFileSystem.readFile>[0],
+        options?: Parameters<typeof rawFileSystem.readFile>[1]
+      ) {
+        if (String(filePath) === outputPath) {
+          throw readError;
+        }
+        return rawFileSystem.readFile(filePath, options);
+      }
+    };
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(runAgentSpawnPythonTypeCodegen({
+        repoRoot,
+        project,
+        spawnConfigs: [],
+        fileSystem
+      })).rejects.toBe(readError);
+    });
+  });
+
   it("does not follow generated Python types symlinks inserted during publish", async () => {
     const repoRoot = "/repo";
     const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
@@ -328,12 +422,14 @@ export type SpawnMode = "read";
       'export type SpawnMode = "read";'
     );
 
-    await expect(runAgentSpawnPythonTypeCodegen({
-      repoRoot,
-      project,
-      spawnConfigs: [],
-      fileSystem
-    })).rejects.toThrow("python types disk full");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(runAgentSpawnPythonTypeCodegen({
+        repoRoot,
+        project,
+        spawnConfigs: [],
+        fileSystem
+      })).rejects.toThrow("python types disk full");
+    });
 
     expect(temporaryPath).toBeDefined();
     await expect(fileSystem.lstat(temporaryPath as string)).rejects.toThrow("ENOENT");

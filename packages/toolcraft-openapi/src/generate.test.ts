@@ -2321,6 +2321,50 @@ describe("generate", () => {
     );
   });
 
+  it("ignores inherited reference markers", () => {
+    const inheritedSchema = Object.assign(
+      Object.create({ $ref: "#/components/schemas/IntegerValue" }),
+      { type: "string" }
+    ) as never;
+
+    const files = generate(
+      {
+        ...createDocument({
+          "/bots": {
+            get: {
+              tags: ["bots"],
+              operationId: "listBots",
+              parameters: [
+                {
+                  name: "filter",
+                  in: "query",
+                  schema: inheritedSchema
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Listed."
+                }
+              }
+            }
+          }
+        }),
+        components: {
+          schemas: {
+            IntegerValue: {
+              type: "integer"
+            }
+          }
+        }
+      },
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain("filter: S.Optional(S.String())");
+  });
+
   it("preserves OpenAPI scalar and array constraints in generated MCP schemas", () => {
     const files = generate(
       createDocument({

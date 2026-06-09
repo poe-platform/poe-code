@@ -2202,5 +2202,9 @@ function compareGeneratedCommandPaths(left: GeneratedCommand, right: GeneratedCo
 }
 
 function isReferenceObject(value: unknown): value is OpenApiReferenceObject {
-  return typeof value === "object" && value !== null && "$ref" in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "$ref")
+  );
 }

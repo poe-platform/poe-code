@@ -35,12 +35,15 @@ function resolveModuleSpecifier(modulePath: string, cwd: string): string {
 }
 
 function isTokenVerifier(value: unknown): value is TokenVerifier {
-  return (
-    typeof value === "object"
-    && value !== null
-    && "verify" in value
-    && typeof value.verify === "function"
-  );
+  if (
+    typeof value !== "object"
+    || value === null
+    || !Object.prototype.hasOwnProperty.call(value, "verify")
+  ) {
+    return false;
+  }
+
+  return typeof (value as { verify?: unknown }).verify === "function";
 }
 
 export async function loadOAuthVerifier(input: {

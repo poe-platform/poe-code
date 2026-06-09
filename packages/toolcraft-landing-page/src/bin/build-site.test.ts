@@ -1,8 +1,26 @@
 import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { buildSite } from "./build-site.js";
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
 
 describe("buildSite", () => {
   it("writes a non-empty self-contained HTML document", async () => {
@@ -64,5 +82,37 @@ describe("buildSite", () => {
     );
     const entries = await fs.readdir(outputDirectory);
     expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);
+  });
+
+  it("does not retry temp writes that only inherit existing-path codes", async () => {
+    const writeError = new Error("temp write failed");
+    const writeFile = vi.fn(
+      async (
+        filePath: string,
+        _contents: string,
+        _options: { encoding: "utf8"; flag?: string }
+      ) => {
+        if (filePath.includes("/index.html.")) {
+          throw writeError;
+        }
+      }
+    );
+    const fileSystem = {
+      mkdir: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
+      rm: vi.fn(async () => undefined),
+      writeFile
+    };
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(buildSite({ fs: fileSystem, outputDirectory: "/package/dist-site" })).rejects.toBe(
+        writeError
+      );
+    });
+
+    expect(writeFile.mock.calls.filter(([filePath]) => filePath.includes("/index.html."))).toHaveLength(
+      1
+    );
+    expect(fileSystem.rm).toHaveBeenCalledOnce();
   });
 });

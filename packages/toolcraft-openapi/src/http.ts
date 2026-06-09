@@ -5,9 +5,11 @@ import { classifyNetworkError } from "./network-error.js";
 import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
+type QueryObject = { readonly [key: string]: QueryValue };
+type HeaderScalar = string | number | boolean | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
 
-export type QueryValue = QueryScalar | QueryScalar[];
+export type QueryValue = QueryScalar | QueryValue[] | QueryObject;
 
 export interface HttpRequestOptions {
   baseUrl: string;
@@ -18,7 +20,13 @@ export interface HttpRequestOptions {
   fetch?: typeof globalThis.fetch;
   pathParams?: Record<string, string | number | boolean>;
   query?: Record<string, QueryValue>;
+  headers?: Record<string, HeaderScalar>;
   body?: unknown;
+  bodyMode?: "json" | "form" | "raw" | "base64" | "multipart";
+  contentType?: string;
+  multipartBinaryFields?: readonly string[];
+  responseMode?: "json" | "text" | "binary";
+  accept?: string;
   dryRun?: boolean;
   verbose?: boolean;
   signal?: AbortSignal;
@@ -38,6 +46,13 @@ export interface HttpErrorResponse {
   statusText: string;
   headers: Record<string, string>;
   body: unknown;
+}
+
+export interface BinaryHttpResponse {
+  contentType: string;
+  encoding: "base64";
+  byteLength: number;
+  data: string;
 }
 
 export class HttpError extends Error {
@@ -69,9 +84,26 @@ export async function requestJson<TResult = unknown>(
   const token = options.auth === "none" ? undefined : await options.tokenSource.getToken();
   const method = options.method.toUpperCase();
   const hasBody = options.body !== undefined;
-  const serializedBody = hasBody ? JSON.stringify(options.body) : undefined;
+  const serializedBody = hasBody
+    ? options.bodyMode === "form"
+      ? serializeFormBody(options.body)
+      : options.bodyMode === "raw"
+        ? serializeRawBody(options.body)
+        : options.bodyMode === "base64"
+          ? decodeBase64Body(options.body)
+          : options.bodyMode === "multipart"
+            ? serializeMultipartBody(options.body, options.multipartBinaryFields)
+            : JSON.stringify(options.body)
+    : undefined;
   const url = buildRequestUrl(options);
-  const headers = createHeaders(token, hasBody);
+  const headers = createHeaders(
+    token,
+    hasBody,
+    options.headers,
+    options.accept,
+    options.bodyMode,
+    options.contentType
+  );
   const writeStdout = options.writeStdout ?? process.stdout.write.bind(process.stdout);
   const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
   const requestLine = `${method} ${redactSensitiveQueryValues(url)}`;
@@ -100,10 +132,40 @@ export async function requestJson<TResult = unknown>(
     throw classifyNetworkError(error, url) ?? error;
   }
 
-  const text = await response.text();
   const contentType = response.headers.get("content-type");
   const request = createHttpErrorRequest(method, url, headers, options.body);
   const responseHeaders = redactHeaders(serializeHeaders(response.headers));
+
+  if (response.ok && options.responseMode === "binary") {
+    const bytes = new Uint8Array(await response.arrayBuffer());
+
+    if (bytes.byteLength === 0) {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders))
+        );
+      }
+
+      return undefined;
+    }
+
+    const body: BinaryHttpResponse = {
+      contentType: contentType ?? options.accept ?? "application/octet-stream",
+      encoding: "base64",
+      byteLength: bytes.byteLength,
+      data: Buffer.from(bytes).toString("base64")
+    };
+
+    if (options.verbose) {
+      writeStderr(
+        formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
+      );
+    }
+
+    return body as TResult;
+  }
+
+  const text = await response.text();
 
   if (response.ok) {
     if (text.length === 0) {
@@ -114,6 +176,16 @@ export async function requestJson<TResult = unknown>(
       }
 
       return undefined;
+    }
+
+    if (options.responseMode === "text") {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
+        );
+      }
+
+      return text as TResult;
     }
 
     if (!isJsonContentType(contentType)) {
@@ -234,10 +306,24 @@ function substitutePathParams(
 }
 
 function appendQueryValue(searchParams: URLSearchParams, key: string, value: QueryValue): void {
+  if (isQueryObject(value)) {
+    for (const [childKey, childValue] of Object.entries(value)) {
+      appendQueryValue(searchParams, `${key}[${childKey}]`, childValue);
+    }
+    return;
+  }
+
   const values = Array.isArray(value) ? value : [value];
 
-  for (const entry of values) {
+  for (const [index, entry] of values.entries()) {
     if (entry === undefined) {
+      continue;
+    }
+
+    if (isQueryObject(entry)) {
+      for (const [childKey, childValue] of Object.entries(entry)) {
+        appendQueryValue(searchParams, `${key}[${Array.isArray(value) ? `${index}][` : ""}${childKey}]`, childValue);
+      }
       continue;
     }
 
@@ -245,10 +331,88 @@ function appendQueryValue(searchParams: URLSearchParams, key: string, value: Que
   }
 }
 
-function createHeaders(token: string | undefined, hasBody: boolean): Record<string, string> {
+function serializeFormBody(body: unknown): string {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    throw new UserError("URL-encoded form bodies must be objects.");
+  }
+
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(body)) {
+    appendQueryValue(searchParams, key, value as QueryValue);
+  }
+  return searchParams.toString();
+}
+
+function serializeRawBody(body: unknown): string {
+  if (typeof body !== "string") {
+    throw new UserError("Raw request bodies must be strings.");
+  }
+
+  return body;
+}
+
+function decodeBase64Body(body: unknown): ArrayBuffer {
+  if (typeof body !== "string") {
+    throw new UserError("Base64 request bodies must be strings.");
+  }
+
+  return Uint8Array.from(Buffer.from(body, "base64")).buffer;
+}
+
+function serializeMultipartBody(body: unknown, binaryFields: readonly string[] = []): FormData {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    throw new UserError("Multipart request bodies must be objects.");
+  }
+
+  const binary = new Set(binaryFields);
+  const form = new FormData();
+  for (const [key, value] of Object.entries(body)) {
+    if (value === undefined) continue;
+    if (binary.has(key)) {
+      form.append(key, new Blob([decodeBase64Body(value)]), key);
+    } else if (Array.isArray(value)) {
+      for (const item of value) form.append(key, String(item));
+    } else {
+      form.append(key, String(value));
+    }
+  }
+  return form;
+}
+
+function isQueryObject(value: QueryValue): value is QueryObject {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function createHeaders(
+  token: string | undefined,
+  hasBody: boolean,
+  customHeaders: Record<string, HeaderScalar> | undefined,
+  accept = "application/json",
+  bodyMode: "json" | "form" | "raw" | "base64" | "multipart" = "json",
+  contentType?: string
+): Record<string, string> {
+  const headers = Object.fromEntries(
+    Object.entries(customHeaders ?? {})
+      .filter(
+        ([name, value]) =>
+          value !== undefined &&
+          !["accept", "content-type"].includes(name.toLowerCase()) &&
+          !(token !== undefined && name.toLowerCase() === "authorization")
+      )
+      .map(([name, value]) => [name, String(value)])
+  );
+
   return {
+    ...headers,
+    Accept: accept,
     ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
-    ...(hasBody ? { "Content-Type": "application/json" } : {})
+    ...(hasBody && bodyMode !== "multipart"
+      ? {
+          "Content-Type":
+            contentType ??
+            (bodyMode === "form" ? "application/x-www-form-urlencoded" : "application/json")
+        }
+      : {})
   };
 }
 

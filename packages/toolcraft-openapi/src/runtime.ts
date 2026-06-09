@@ -116,13 +116,18 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       command.optionalSections,
       params,
       resolvedValues
-    ) as Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "body">>;
+    ) as Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "headers" | "body">>;
 
     return requestJson({
-      baseUrl,
+      baseUrl: command.baseUrl ?? baseUrl,
       path: command.path,
       method: command.method,
       auth: command.auth,
+      responseMode: command.responseMode,
+      accept: command.accept,
+      bodyMode: command.bodyMode,
+      contentType: command.contentType,
+      multipartBinaryFields: command.multipartBinaryFields,
       tokenSource,
       fetch,
       dryRun: params.dryRun as boolean | undefined,
@@ -170,6 +175,7 @@ const RUNTIME_DEFINITION_BUILDERS = {
     options === undefined ? S.Boolean() : S.Boolean(options),
   enum: (definition: Extract<GeneratedParamDefinition, { kind: "enum" }>, options?: Record<string, unknown>) =>
     options === undefined ? S.Enum(definition.enumValues) : S.Enum(definition.enumValues, options),
+  json: (_definition: Extract<GeneratedParamDefinition, { kind: "json" }>) => S.Json(),
   number: (_definition: Extract<GeneratedParamDefinition, { kind: "number" }>, options?: Record<string, unknown>) =>
     options === undefined ? S.Number() : S.Number(options),
   string: (_definition: Extract<GeneratedParamDefinition, { kind: "string" }>, options?: Record<string, unknown>) =>

@@ -6,7 +6,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { UserError } from "toolcraft";
 import { hasOwnErrorCode } from "../error-codes.js";
+import { withOutputFormat, type OutputFormat } from "toolcraft-design";
 import { generate, type GeneratedFile } from "../generate.js";
+import { inspectOpenApiSource } from "../inspect-source.js";
+import { renderOpenApiInspection } from "../render-inspection.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
 interface GenerateCliFileSystem {
@@ -40,6 +43,8 @@ interface GenerateCliServices {
 interface GenerateCliOptions {
   check: boolean;
   input: string;
+  inspect: boolean;
+  outputFormat: OutputFormat;
   outputDir: string;
 }
 
@@ -53,6 +58,8 @@ interface SyncGeneratedClientResult {
 const DEFAULT_OPTIONS: GenerateCliOptions = {
   check: false,
   input: "openapi.json",
+  inspect: false,
+  outputFormat: "terminal",
   outputDir: "src/generated"
 };
 
@@ -62,6 +69,8 @@ Options:
   --input <path-or-url>  OpenAPI document to read (default: openapi.json)
   --output <dir>         Directory for generated command files (default: src/generated)
   --check                Exit non-zero if generated output would change
+  --inspect              Inspect route compatibility without writing files
+  --output-format <fmt>  Inspection output: terminal, markdown, or json (default: terminal)
   -h, --help             Show this help text
 `;
 
@@ -80,6 +89,14 @@ export async function runGenerateCli(
 
     if (parsed === "help") {
       services.stdout.write(HELP_TEXT);
+      return 0;
+    }
+
+    if (parsed.inspect) {
+      const report = await inspectOpenApiSource(parsed.input, services);
+      services.stdout.write(
+        `${withOutputFormat(parsed.outputFormat, () => renderOpenApiInspection(report))}\n`
+      );
       return 0;
     }
 
@@ -179,7 +196,12 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
-    if (argument === "--input" || argument === "--output") {
+    if (argument === "--inspect") {
+      options.inspect = true;
+      continue;
+    }
+
+    if (argument === "--input" || argument === "--output" || argument === "--output-format") {
       const value = argv[index + 1];
 
       if (value === undefined) {
@@ -201,6 +223,11 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
+    if (argument.startsWith("--output-format=")) {
+      assignOptionValue(options, "--output-format", argument.slice("--output-format=".length));
+      continue;
+    }
+
     throw new UserError(`Unknown argument ${JSON.stringify(argument)}.`);
   }
 
@@ -209,7 +236,7 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
 
 function assignOptionValue(
   options: GenerateCliOptions,
-  argument: "--input" | "--output",
+  argument: "--input" | "--output" | "--output-format",
   value: string
 ): void {
   if (value.length === 0) {
@@ -218,6 +245,16 @@ function assignOptionValue(
 
   if (argument === "--input") {
     options.input = value;
+    return;
+  }
+
+  if (argument === "--output-format") {
+    if (value !== "terminal" && value !== "markdown" && value !== "json") {
+      throw new UserError(
+        `Invalid value ${JSON.stringify(value)} for "--output-format". Expected terminal, markdown, or json.`
+      );
+    }
+    options.outputFormat = value;
     return;
   }
 

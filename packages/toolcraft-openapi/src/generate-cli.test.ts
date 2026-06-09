@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { stripAnsi } from "toolcraft-design";
 import { generate, type OpenApiDocument } from "./generate.js";
 import { runGenerateCli } from "./bin/generate.js";
 
@@ -145,6 +146,43 @@ async function readRepoFiles(
 }
 
 describe("runGenerateCli", () => {
+  it("inspects every route without writing generated files", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    const originalNoColor = process.env.NO_COLOR;
+    process.env.NO_COLOR = "1";
+
+    try {
+      const exitCode = await runGenerateCli(["node", "generate", "--inspect"], harness.services);
+
+      expect(exitCode).toBe(0);
+      expect(stripAnsi(harness.stdout())).toContain("Internal Agent API  v1.0.0");
+      expect(stripAnsi(harness.stdout())).toContain("1 operation · 1 supported · 0 unsupported");
+      expect(await readRepoFiles(harness.fs, "/repo")).toEqual({ "openapi.json": specText });
+    } finally {
+      if (originalNoColor === undefined) delete process.env.NO_COLOR;
+      else process.env.NO_COLOR = originalNoColor;
+    }
+  });
+
+  it("renders complete JSON inspection output", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--inspect", "--output-format", "json"],
+      harness.services
+    );
+
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(harness.stdout())).toMatchObject({
+      operationCount: 1,
+      supportedCount: 1,
+      unsupportedCount: 0,
+      operations: [{ operationId: "listBots", status: "supported" }]
+    });
+  });
+
   it("writes an explicit empty module when the spec has no operations", async () => {
     const specText = createEmptySpec();
     const harness = createCliHarness({ "/repo/openapi.json": specText });
@@ -476,9 +514,7 @@ describe("runGenerateCli", () => {
     );
 
     expect(stagedPath).toBeDefined();
-    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).resolves.toBe(
-      "outside-state\n"
-    );
+    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).resolves.toBe("outside-state\n");
     await expect(harness.fs.lstat(stagedPath as string)).rejects.toThrow("ENOENT");
     expect((await harness.fs.lstat("/repo/src/generated/index.ts")).isSymbolicLink()).toBe(true);
   });

@@ -68,6 +68,10 @@ const VALUE_REFERENCE_OPERATIONS = {
 };
 
 const VALUE_EXPRESSION_OPERATIONS = {
+  emptyObject: {
+    render: (_value: Extract<GeneratedValueExpression, { kind: "emptyObject" }>) => "{}",
+    evaluate: (_value: Extract<GeneratedValueExpression, { kind: "emptyObject" }>) => ({})
+  },
   reference: {
     render: (value: Extract<GeneratedValueExpression, { kind: "reference" }>) =>
       renderValueReference(value.reference),
@@ -457,7 +461,7 @@ function renderSerializedQueryArray(
   reference: string,
   serialization: Extract<GeneratedValueExpression, { kind: "queryArray" }>['serialization']
 ): string {
-  if (serialization === "repeat") {
+  if (serialization === "repeat" || serialization === "brackets") {
     return reference;
   }
 
@@ -468,7 +472,7 @@ function serializeQueryArrayValue(
   value: unknown,
   serialization: Extract<GeneratedValueExpression, { kind: "queryArray" }>['serialization']
 ): unknown {
-  if (serialization === "repeat" || value === undefined || value === null) {
+  if (serialization === "repeat" || serialization === "brackets" || value === undefined || value === null) {
     return value;
   }
 

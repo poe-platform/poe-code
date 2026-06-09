@@ -14,6 +14,135 @@ function createDocument(paths: OpenApiDocument["paths"]): OpenApiDocument {
 }
 
 describe("generate", () => {
+  it("resolves percent-encoded local JSON Pointer path references", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botId}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [{ name: "botId", in: "path", required: true, schema: { type: "string" } }],
+            responses: { "200": { description: "Viewed." } }
+          }
+        },
+        "/bots/{botId}/status": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBotStatus",
+            parameters: [{ $ref: "#/paths/~1bots~1%7BbotId%7D/get/parameters/0" }],
+            responses: { "200": { description: "Viewed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/bot-status.ts");
+    expect(commandFile?.contents).toContain('"botId": params.botId,');
+  });
+
+  it("unwraps parameter-shaped references used as array item schemas", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "fields",
+                in: "query",
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/paths/~1bots~1%7BbotId%7D/get/parameters/1" }
+                }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        },
+        "/bots/{botId}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [
+              { name: "botId", in: "path", required: true, schema: { type: "string" } },
+              { name: "fields", in: "query", schema: { type: "string", enum: ["name", "status"] } }
+            ],
+            responses: { "200": { description: "Viewed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.path === "bots/list.ts")?.contents).toContain(
+      'fields: S.Optional(S.Array(S.Enum(["name","status"] as const)))'
+    );
+  });
+
+  it("sends an empty object for a required empty-object request body", () => {
+    const files = generate(
+      createDocument({
+        "/zones": {
+          post: {
+            tags: ["zones"],
+            operationId: "listAvailableZones",
+            requestBody: {
+              required: true,
+              content: { "application/json": { schema: { type: "object", properties: {} } } }
+            },
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.contents.includes("operation-id: listAvailableZones"))?.contents).toContain(
+      "body: {}"
+    );
+  });
+
+  it("generates commands from Swagger 2 query and body parameters", () => {
+    const files = generate(
+      {
+        swagger: "2.0",
+        info: { title: "Internal Agent API", version: "1.0.0" },
+        consumes: ["application/json"],
+        produces: ["application/json"],
+        definitions: {
+          BotInput: {
+            type: "object",
+            required: ["name"],
+            properties: { name: { type: "string" } }
+          }
+        },
+        paths: {
+          "/bots": {
+            post: {
+              tags: ["bots"],
+              operationId: "createBot",
+              parameters: [
+                { name: "notify", in: "query", type: "boolean" },
+                { name: "body", in: "body", required: true, schema: { $ref: "#/definitions/BotInput" } }
+              ],
+              responses: { "200": { description: "Created.", schema: { type: "object" } } }
+            }
+          }
+        }
+      } as never,
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/create-bot.ts");
+
+    expect(commandFile?.contents).toContain("notify: S.Optional(S.Boolean())");
+    expect(commandFile?.contents).toContain("name: S.String()");
+    expect(commandFile?.contents).toContain('"notify": params.notify');
+    expect(commandFile?.contents).toContain('"name": params.name');
+  });
+
   it("generates a path-param command with a scalar JSON body", () => {
     const files = generate(
       createDocument({
@@ -872,9 +1001,8 @@ describe("generate", () => {
     expect(files).toMatchSnapshot();
   });
 
-  it("rejects enum values whose primitive type disagrees with schema.type", () => {
-    expect(() =>
-      generate(
+  it("trusts explicit enum primitive values when schema.type disagrees", () => {
+    const files = generate(
         createDocument({
           "/bots/{botHandle}/actions/set-image-comprehension": {
             post: {
@@ -914,12 +1042,209 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "setImageComprehension" uses unsupported request body field "mode". Enum values must match declared schema.type "string".'
-      )
     );
+
+    const commandFile = files.find((file) => file.path === "bots/set-image-comprehension.ts");
+
+    expect(commandFile?.contents).toContain("mode: S.Enum([1,2] as const)");
+  });
+
+  it("infers nullable enums when explicit values include null", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              { name: "status", in: "query", schema: { type: "string", enum: ["active", null] } }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+    expect(commandFile?.contents).toContain('status: S.Optional(S.Enum(["active"] as const, { nullable: true }))');
+  });
+
+  it("ignores malformed non-primitive enum metadata when valid choices remain", () => {
+    const files = generate(
+      createDocument({
+        "/expenses": {
+          get: {
+            tags: ["expenses"],
+            operationId: "listExpenses",
+            parameters: [
+              {
+                name: "projects",
+                in: "query",
+                schema: { type: "string", enum: ["all", "none", ["project1", "project2"]] }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: listExpenses"))?.contents;
+    expect(command).toContain('projects: S.Optional(S.Enum(["all","none"]');
+  });
+
+  it("collapses same-shape oneOf and anyOf parameter branches", () => {
+    const files = generate(
+      createDocument({
+        "/images": {
+          get: {
+            tags: ["images"],
+            operationId: "searchImages",
+            parameters: [
+              {
+                name: "countries",
+                in: "query",
+                schema: {
+                  oneOf: [
+                    { type: "array", items: { type: "string", format: "country-code-2" } },
+                    { type: "array", items: { type: "string", format: "negated-country-code-2" } }
+                  ]
+                }
+              },
+              {
+                name: "region",
+                in: "query",
+                schema: {
+                  anyOf: [
+                    { type: "string", format: "country-code-2" },
+                    { type: "string", format: "ipv4" }
+                  ]
+                }
+              }
+            ],
+            responses: { "200": { description: "Searched." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: searchImages"))?.contents;
+    expect(command).toContain('countries: S.Optional(S.Array(S.String()))');
+    expect(command).toContain('region: S.Optional(S.String())');
+  });
+
+  it("serializes deepObject query arrays with bracketed keys", () => {
+    const files = generate(
+      createDocument({
+        "/accounts": {
+          get: {
+            tags: ["accounts"],
+            operationId: "listAccounts",
+            parameters: [
+              {
+                name: "expand",
+                in: "query",
+                style: "deepObject",
+                explode: true,
+                schema: { type: "array", items: { type: "string" } }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: listAccounts"))?.contents;
+    expect(command).toContain('"expand[]": resolvedExpand,');
+  });
+
+  it("uses JSON params for deepObject query unions", () => {
+    const files = generate(
+      createDocument({
+        "/accounts": {
+          get: {
+            tags: ["accounts"],
+            operationId: "listAccounts",
+            parameters: [
+              {
+                name: "created",
+                in: "query",
+                style: "deepObject",
+                explode: true,
+                schema: {
+                  anyOf: [
+                    { type: "object", properties: { gt: { type: "integer" } } },
+                    { type: "integer" }
+                  ]
+                }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: listAccounts"))?.contents;
+    expect(command).toContain('created: S.Optional(S.Json())');
+    expect(command).toContain('"created": params.created,');
+  });
+
+  it("uses JSON params for deepObject arrays of objects", () => {
+    const files = generate(
+      createDocument({
+        "/credit-notes/preview": {
+          get: {
+            tags: ["credit-notes"],
+            operationId: "previewCreditNote",
+            parameters: [
+              {
+                name: "lines",
+                in: "query",
+                style: "deepObject",
+                explode: true,
+                schema: {
+                  type: "array",
+                  items: { type: "object", properties: { amount: { type: "integer" } } }
+                }
+              }
+            ],
+            responses: { "200": { description: "Previewed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: previewCreditNote"))?.contents;
+    expect(command).toContain('lines: S.Optional(S.Json())');
+    expect(command).toContain('"lines": params.lines,');
+  });
+
+  it("promotes a query-declared path placeholder to a required path parameter", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{bot_id}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [{ name: "bot_id", in: "query", required: true, schema: { type: "string" } }],
+            responses: { "200": { description: "Viewed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/view.ts");
+    expect(commandFile?.contents).toContain('pathParams: {\n        "bot_id": params.bot_id,');
+    expect(commandFile?.contents).not.toContain('query: {\n        "bot_id": params.bot_id,');
   });
 
   it("generates a scalar query command", () => {
@@ -2653,16 +2978,32 @@ describe("generate", () => {
     );
   });
 
-  it.each(["head", "options", "trace"] as const)(
-    "throws for unsupported %s operations instead of silently dropping them",
-    (method) => {
+  it.each(["head", "options"] as const)("generates supported %s operations", (method) => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          [method]: {
+            tags: ["bots"],
+            responses: { "200": { description: "Checked." } }
+          }
+        } as OpenApiDocument["paths"][string]
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toContain(
+      `bots/${method === "head" ? "check" : "options"}.ts`
+    );
+  });
+
+  it("throws for unsupported trace operations instead of silently dropping them", () => {
       expect(() =>
         generate(
           createDocument({
             "/bots": {
-              [method]: {
+              trace: {
                 tags: ["bots"],
-                operationId: `${method}Bots`,
+                operationId: "traceBots",
                 responses: {
                   "200": {
                     description: "Listed."
@@ -2675,11 +3016,10 @@ describe("generate", () => {
         )
       ).toThrowError(
         new UserError(
-          `Operation ${JSON.stringify(`${method}Bots`)} uses unsupported HTTP method ${JSON.stringify(method.toUpperCase())}. Supported in v1: GET, POST, PUT, PATCH, DELETE.`
+          'Operation "traceBots" uses unsupported HTTP method "TRACE". Supported in v1: GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS.'
         )
       );
-    }
-  );
+  });
 
   it("ignores inherited supported path-item operations", () => {
     const pathItem = Object.create({
@@ -2916,9 +3256,8 @@ describe("generate", () => {
     );
   });
 
-  it("throws when an operation declares a non-JSON success response", () => {
-    expect(() =>
-      generate(
+  it("generates text response commands for textual success media types", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}/export": {
             get: {
@@ -2946,17 +3285,52 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "exportBot" declares unsupported success response content type(s) for status "200": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
-      )
     );
+
+    const commandFile = files.find((file) => file.path === "bots/export-bot.ts");
+    expect(commandFile?.contents).toContain('responseMode: "text",');
+    expect(commandFile?.contents).toContain('accept: "text/plain",');
   });
 
-  it("throws when an operation declares a non-JSON wildcard success response", () => {
+  it("allows mixed success response content types when JSON is available", () => {
     expect(() =>
       generate(
+        createDocument({
+          "/bots/{handle}/export": {
+            get: {
+              tags: ["bots"],
+              operationId: "exportBot",
+              parameters: [
+                {
+                  name: "handle",
+                  in: "path",
+                  required: true,
+                  schema: { type: "string" }
+                }
+              ],
+              responses: {
+                "200": {
+                  description: "Exported.",
+                  content: {
+                    "application/json": {
+                      schema: { type: "object" }
+                    },
+                    "text/plain": {
+                      schema: { type: "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
+  });
+
+  it("generates text response commands for wildcard textual success responses", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}/export": {
             get: {
@@ -2984,17 +3358,40 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "exportBot" declares unsupported success response content type(s) for status "2XX": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
-      )
+    );
+
+    expect(files.find((file) => file.path === "bots/export-bot.ts")?.contents).toContain(
+      'responseMode: "text",'
     );
   });
 
-  it("throws when an operation declares a non-JSON default response", () => {
+  it("accepts wildcard success response media types", () => {
     expect(() =>
       generate(
+        createDocument({
+          "/bots/{handle}": {
+            get: {
+              tags: ["bots"],
+              operationId: "viewBot",
+              parameters: [
+                { name: "handle", in: "path", required: true, schema: { type: "string" } }
+              ],
+              responses: {
+                "200": {
+                  description: "Viewed.",
+                  content: { "*/*": { schema: { type: "object" } } }
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).not.toThrow();
+  });
+
+  it("generates text response commands for textual default responses", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}/export": {
             get: {
@@ -3022,12 +3419,42 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "exportBot" declares unsupported success response content type(s) for status "default": "text/plain". Only application/json responses (or empty success responses) are supported in v1.'
-      )
     );
+
+    expect(files.find((file) => file.path === "bots/export-bot.ts")?.contents).toContain(
+      'responseMode: "text",'
+    );
+  });
+
+  it("generates binary response commands for file media types", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/archive": {
+          get: {
+            tags: ["bots"],
+            operationId: "archiveBot",
+            parameters: [
+              { name: "handle", in: "path", required: true, schema: { type: "string" } }
+            ],
+            responses: {
+              "200": {
+                description: "Archived.",
+                content: {
+                  "application/octet-stream": {
+                    schema: { type: "string", format: "binary" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.path === "bots/archive-bot.ts")?.contents;
+    expect(command).toContain('responseMode: "binary",');
+    expect(command).toContain('accept: "application/octet-stream",');
   });
 
   it("allows wildcard error response ranges when success responses stay JSON", () => {
@@ -3072,7 +3499,7 @@ describe("generate", () => {
     ).not.toThrow();
   });
 
-  it("throws when a success response schema uses nested oneOf composition", () => {
+  it("accepts success response schemas with nested oneOf composition", () => {
     expect(() =>
       generate(
         createDocument({
@@ -3110,11 +3537,7 @@ describe("generate", () => {
         }),
         { specSha: "spec-sha-123" }
       )
-    ).toThrowError(
-      new UserError(
-        'Operation "viewBot" uses unsupported success response schema for status "200" property "result". JSON Schema composition keyword "oneOf" is not supported in v1.'
-      )
-    );
+    ).not.toThrow();
   });
 
   it("accepts success response schemas that use anyOf for nullable unknown values", () => {
@@ -3158,7 +3581,7 @@ describe("generate", () => {
     ).not.toThrow();
   });
 
-  it("throws when a success response schema relies on nested additionalProperties", () => {
+  it("accepts success response schemas with nested additionalProperties", () => {
     expect(() =>
       generate(
         createDocument({
@@ -3199,55 +3622,152 @@ describe("generate", () => {
         }),
         { specSha: "spec-sha-123" }
       )
-    ).toThrowError(
-      new UserError(
-        'Operation "viewBot" uses unsupported success response schema for status "200" property "metadata". Object response schemas with additionalProperties are not supported in v1.'
-      )
-    );
+    ).not.toThrow();
   });
 
-  it("throws when a request body omits application/json content", () => {
-    expect(() =>
-      generate(
-        createDocument({
-          "/bots/{handle}/import": {
-            post: {
-              tags: ["bots"],
-              operationId: "importBot",
-              parameters: [
-                {
-                  name: "handle",
-                  in: "path",
-                  required: true,
-                  schema: { type: "string" }
-                }
-              ],
-              requestBody: {
+  it("generates raw text request bodies for non-JSON textual media types", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}/import": {
+          post: {
+            tags: ["bots"],
+            operationId: "importBot",
+            parameters: [
+              {
+                name: "handle",
+                in: "path",
                 required: true,
-                content: {
-                  "application/xml": {
-                    schema: { type: "string" }
-                  }
-                }
-              },
-              responses: {
-                "200": {
-                  description: "Imported."
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "text/xml": {
+                  schema: { type: "object", properties: { name: { type: "string" } } }
                 }
               }
-            }
+            },
+            responses: { "200": { description: "Imported." } }
           }
-        }),
-        { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError('Operation "importBot" must define a JSON request body media type in v1.')
+        }
+      }),
+      { specSha: "spec-sha-123" }
     );
+
+    const command = files.find((file) => file.path === "bots/import-bot.ts")?.contents;
+    expect(command).toContain('bodyMode: "raw",');
+    expect(command).toContain('contentType: "text/xml",');
+    expect(command).toContain('body: params.body,');
+    expect(command).toContain('body: S.String(');
+    expect(command).not.toContain('name: S.String(');
   });
 
-  it("throws when a request body relies on additionalProperties", () => {
-    expect(() =>
-      generate(
+  it("generates base64 request bodies for binary media types", () => {
+    const files = generate(
+      createDocument({
+        "/imports": {
+          post: {
+            tags: ["imports"],
+            operationId: "importArchive",
+            requestBody: {
+              required: true,
+              content: {
+                "application/zip": {
+                  schema: { type: "string", format: "binary" }
+                }
+              }
+            },
+            responses: { "200": { description: "Imported." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.path === "imports/import-archive.ts")?.contents;
+    expect(command).toContain('bodyMode: "base64",');
+    expect(command).toContain('contentType: "application/zip",');
+    expect(command).toContain('body: params.body,');
+    expect(command).toContain('body: S.String(');
+  });
+
+  it("generates multipart forms with declared base64 file fields", () => {
+    const files = generate(
+      createDocument({
+        "/uploads": {
+          post: {
+            tags: ["uploads"],
+            operationId: "uploadFile",
+            requestBody: {
+              required: true,
+              content: {
+                "multipart/form-data": {
+                  schema: {
+                    type: "object",
+                    required: ["file"],
+                    properties: {
+                      file: { type: "string", format: "binary" },
+                      description: { type: "string" },
+                      placement: { type: "integer" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: { "200": { description: "Uploaded." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.path === "uploads/upload-file.ts")?.contents;
+    expect(command).toContain('bodyMode: "multipart",');
+    expect(command).toContain('multipartBinaryFields: ["file"],');
+    expect(command).toContain('file: S.String(');
+    expect(command).toContain('description: S.Optional(S.String(');
+    expect(command).toContain('placement: S.Optional(S.Number(');
+  });
+
+  it("generates URL-encoded form request bodies", () => {
+    const files = generate(
+      createDocument({
+        "/tokens": {
+          post: {
+            tags: ["tokens"],
+            operationId: "createToken",
+            requestBody: {
+              required: true,
+              content: {
+                "application/x-www-form-urlencoded": {
+                  schema: {
+                    type: "object",
+                    required: ["username", "password"],
+                    properties: {
+                      username: { type: "string" },
+                      password: { type: "string" },
+                      scopes: { type: "array", items: { type: "string" } }
+                    }
+                  }
+                }
+              }
+            },
+            responses: { "200": { description: "Created." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "tokens/create-token.ts");
+    expect(commandFile?.contents).toContain('bodyMode: "form",');
+    expect(commandFile?.contents).toContain('"username": params.username,');
+    expect(commandFile?.contents).toContain('"password": params.password,');
+  });
+
+  it("uses a JSON param when a request body relies on additionalProperties", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}/import": {
             post: {
@@ -3282,11 +3802,10 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "importBot" uses unsupported requestBody. Object request bodies with additionalProperties are not supported in v1.'
-      )
+      );
+
+    expect(files.find((file) => file.path === "bots/import-bot.ts")?.contents).toContain(
+      "body: S.Json()"
     );
   });
 
@@ -3374,55 +3893,43 @@ describe("generate", () => {
     ).toBe(true);
   });
 
-  it("throws when a GET operation defines a request body", () => {
-    expect(() =>
-      generate(
-        createDocument({
-          "/bots/{handle}": {
-            get: {
-              tags: ["bots"],
-              operationId: "viewBot",
-              parameters: [
-                {
-                  name: "handle",
-                  in: "path",
-                  required: true,
-                  schema: { type: "string" }
-                }
-              ],
-              requestBody: {
-                required: true,
-                content: {
-                  "application/json": {
-                    schema: {
-                      type: "object",
-                      properties: {
-                        includeArchived: { type: "boolean" }
-                      }
-                    }
+  it("generates explicitly declared GET request bodies", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [
+              { name: "handle", in: "path", required: true, schema: { type: "string" } }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["includeArchived"],
+                    properties: { includeArchived: { type: "boolean" } }
                   }
                 }
-              },
-              responses: {
-                "200": {
-                  description: "Viewed."
-                }
               }
-            }
+            },
+            responses: { "200": { description: "Viewed." } }
           }
-        }),
-        { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "viewBot" uses unsupported requestBody on GET. Request bodies are not supported on GET in v1.'
-      )
+        }
+      }),
+      { specSha: "spec-sha-123" }
     );
+
+    const command = files.find((file) => file.contents.includes("operation-id: viewBot"))?.contents;
+    expect(command).toContain('method: "GET",');
+    expect(command).toContain('body: {');
+    expect(command).toContain('"includeArchived": params.includeArchived,');
   });
 
-  it("throws when a request body field is a nested object", () => {
-    expect(() =>
-      generate(
+  it("uses JSON params for nested request body fields", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}": {
             patch: {
@@ -3463,12 +3970,120 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "updateBot" uses unsupported request body field "metadata". Nested object body fields are not supported in v1.'
-      )
+      );
+
+    const commandFile = files.find((file) => file.path === "bots/update-bot.ts");
+
+    expect(commandFile?.contents).toContain("metadata: S.Optional(S.Json())");
+    expect(commandFile?.contents).toContain('"metadata": params.metadata');
+  });
+
+  it("uses JSON params for structural object body fields without an explicit type", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{handle}": {
+          patch: {
+            tags: ["bots"],
+            operationId: "updateBot",
+            parameters: [
+              { name: "handle", in: "path", required: true, schema: { type: "string" } }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["metadata", "rules"],
+                    properties: {
+                      metadata: { properties: { theme: { type: "string" } } },
+                      rules: { type: "array", items: { properties: { name: { type: "string" } } } }
+                    }
+                  }
+                }
+              }
+            },
+            responses: { "200": { description: "Updated." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
     );
+
+    const commandFile = files.find((file) => file.path === "bots/update-bot.ts");
+
+    expect(commandFile?.contents).toContain("metadata: S.Json()")
+    expect(commandFile?.contents).toContain("rules: S.Json()")
+  });
+
+  it("uses JSON params for unconstrained request body fields", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          post: {
+            tags: ["bots"],
+            operationId: "createBot",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["configuration", "items"],
+                    properties: {
+                      configuration: { description: "Provider-defined JSON configuration." },
+                      items: { type: "array", items: {} }
+                    }
+                  }
+                }
+              }
+            },
+            responses: { "201": { description: "Created." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/create-bot.ts");
+
+    expect(commandFile?.contents).toContain("configuration: S.Json()")
+    expect(commandFile?.contents).toContain("items: S.Json()")
+  });
+
+  it("generates deep-object query parameters as JSON params", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "filter",
+                in: "query",
+                style: "deepObject",
+                explode: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    owner: { type: "string" },
+                    active: { type: "boolean" }
+                  }
+                }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain("filter: S.Optional(S.Json())");
+    expect(commandFile?.contents).toContain('"filter": params.filter,');
   });
 
   it("generates a command for a top-level scalar request body", () => {
@@ -3763,9 +4378,8 @@ describe("generate", () => {
           }),`);
   });
 
-  it("throws a oneOf-specific error", () => {
-    expect(() =>
-      generate(
+  it("uses a JSON param for composed request bodies", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}": {
             patch: {
@@ -3798,17 +4412,15 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "oneOf" is not supported in v1.'
-      )
-    );
+      );
+
+    const commandFile = files.find((file) => file.path === "bots/update-bot.ts");
+    expect(commandFile?.contents).toContain("body: S.Json()");
+    expect(commandFile?.contents).toContain("body: params.body");
   });
 
-  it("throws an anyOf-specific error", () => {
-    expect(() =>
-      generate(
+  it("uses a JSON param for anyOf request bodies", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}": {
             patch: {
@@ -3841,17 +4453,14 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "anyOf" is not supported in v1.'
-      )
+      );
+    expect(files.find((file) => file.path === "bots/update-bot.ts")?.contents).toContain(
+      "body: S.Json()"
     );
   });
 
-  it("throws an allOf-specific error", () => {
-    expect(() =>
-      generate(
+  it("uses a JSON param for allOf request bodies", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}": {
             patch: {
@@ -3884,11 +4493,9 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "updateBot" uses unsupported requestBody. JSON Schema composition keyword "allOf" is not supported in v1.'
-      )
+      );
+    expect(files.find((file) => file.path === "bots/update-bot.ts")?.contents).toContain(
+      "body: S.Json()"
     );
   });
 
@@ -3954,9 +4561,8 @@ describe("generate", () => {
     expect(files.find((file) => file.path === "accounts/list.ts")).toBeDefined();
   });
 
-  it("throws when an operation has no tags and no usable static path segment", () => {
-    expect(() =>
-      generate(
+  it("uses the operation ID as the noun when an operation has no usable static path segment", () => {
+    const files = generate(
         createDocument({
           "/{botHandle}": {
             get: {
@@ -3978,17 +4584,13 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "viewBot" must define tags[0] or a static resource segment in the path to derive a command noun.'
-      )
     );
+
+    expect(files.map((file) => file.path)).toContain("view-bot/view.ts");
   });
 
-  it("throws when a derived noun maps to an invalid TypeScript identifier", () => {
-    expect(() =>
-      generate(
+  it("prefixes a derived noun that starts with a digit", () => {
+    const files = generate(
         createDocument({
           "/v2/1-clicks": {
             get: {
@@ -4002,17 +4604,13 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "listOneClicks" derives command noun "1-clicks", which maps to invalid TypeScript identifier "1Clicks".'
-      )
     );
+
+    expect(files.map((file) => file.path)).toContain("api-1-clicks/one-clicks.ts");
   });
 
-  it("throws when a tag-derived noun maps to a reserved TypeScript identifier", () => {
-    expect(() =>
-      generate(
+  it("prefixes a tag-derived noun that maps to a reserved TypeScript identifier", () => {
+    const files = generate(
         createDocument({
           "/defaults": {
             get: {
@@ -4027,12 +4625,9 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "listDefaults" derives command noun "default", which maps to invalid TypeScript identifier "default".'
-      )
     );
+
+    expect(files.map((file) => file.path)).toContain("api-default/list.ts");
   });
 
   it("prefers operation.description over summary in generated command descriptions", () => {
@@ -4132,9 +4727,8 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain("  }, { additionalProperties: false }),");
   });
 
-  it("throws when an ambiguous operation omits operationId", () => {
-    expect(() =>
-      generate(
+  it("derives a stable verb when an operation omits operationId", () => {
+    const files = generate(
         createDocument({
           "/bots/search": {
             post: {
@@ -4148,17 +4742,13 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "POST /bots/search" is missing an operationId, so toolcraft-openapi cannot derive a stable command verb.'
-      )
-    );
+      );
+
+    expect(files.map((file) => file.path)).toContain("bots/create-search.ts");
   });
 
-  it("throws when an operation uses an unsupported header parameter", () => {
-    expect(() =>
-      generate(
+  it("generates scalar header parameters", () => {
+    const files = generate(
         {
           openapi: "3.0.3",
           info: {
@@ -4187,12 +4777,68 @@ describe("generate", () => {
           }
         },
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "listBots" uses unsupported parameter location "header". Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.'
-      )
+      );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain('"x-trace-id": S.Optional(S.String())');
+    expect(commandFile?.contents).toContain('headers: {');
+    expect(commandFile?.contents).toContain('"x-trace-id": params["x-trace-id"],');
+  });
+
+  it("generates explicit Authorization headers for unauthenticated operations", () => {
+    const files = generate(
+      createDocument({
+        "/tokens": {
+          post: {
+            tags: ["tokens"],
+            operationId: "createToken",
+            security: [],
+            parameters: [
+              {
+                name: "Authorization",
+                in: "header",
+                required: true,
+                schema: { type: "string" }
+              } as never
+            ],
+            responses: { "200": { description: "Created." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
     );
+
+    const command = files.find((file) => file.contents.includes("operation-id: createToken"))?.contents;
+    expect(command).toContain('"Authorization": S.String(');
+    expect(command).toContain('"Authorization": params.Authorization,');
+  });
+
+  it("ignores declarative Accept and Content-Type header parameters", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          post: {
+            tags: ["bots"],
+            operationId: "createBot",
+            parameters: [
+              { name: "Accept", in: "header", required: true, schema: { type: "string" } },
+              { name: "Content-Type", in: "header", required: true, schema: { type: "string" } }
+            ],
+            requestBody: {
+              content: { "text/json": { schema: { type: "object", properties: { name: { type: "string" } } } } }
+            },
+            responses: { "200": { description: "Created." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/create-bot.ts");
+    expect(commandFile?.contents).toContain("name: S.Optional(S.String())");
+    expect(commandFile?.contents).not.toContain('"Accept": params');
+    expect(commandFile?.contents).not.toContain('"Content-Type": params');
   });
 
   it("throws when an operation uses an unsupported cookie parameter", () => {
@@ -4229,7 +4875,7 @@ describe("generate", () => {
       )
     ).toThrowError(
       new UserError(
-        'Operation "listBots" uses unsupported parameter location "cookie". Only path and query parameters are supported in v1; use auth or handwritten commands for headers/cookies.'
+        'Operation "listBots" uses unsupported parameter location "cookie". Only path, query, and header parameters are supported in v1; use auth or handwritten commands for cookies.'
       )
     );
   });
@@ -4311,35 +4957,28 @@ describe("generate", () => {
     );
   });
 
-  it("throws when an operation declares per-operation servers", () => {
-    expect(() =>
-      generate(
-        createDocument({
-          "/bots": {
-            get: {
-              tags: ["bots"],
-              operationId: "listBots",
-              servers: [{ url: "https://alt.example.com" }],
-              responses: {
-                "200": {
-                  description: "List."
-                }
-              }
-            } as never
-          }
-        }),
-        { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "listBots" uses unsupported per-operation servers. Configure the client baseUrl instead.'
-      )
+  it("generates fixed per-operation server overrides", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            servers: [{ url: "https://alt.example.com" }],
+            responses: { "200": { description: "List." } }
+          } as never
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.find((file) => file.contents.includes("operation-id: listBots"))?.contents).toContain(
+      'baseUrl: "https://alt.example.com",'
     );
   });
 
-  it("throws when a path parameter uses an array schema", () => {
-    expect(() =>
-      generate(
+  it("serializes path array parameters using simple comma-separated values", () => {
+    const files = generate(
         createDocument({
           "/bots/{botHandle}": {
             get: {
@@ -4365,12 +5004,35 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "viewBot" path parameter "botHandle" must use a scalar schema (string, number, integer, or boolean).'
-      )
     );
+
+    const commandFile = files.find((file) => file.path === "bots/view.ts");
+    expect(commandFile?.contents).toContain("botHandle: S.Array(S.String())");
+    expect(commandFile?.contents).toContain('params.botHandle.join(","),');
+  });
+
+  it("qualifies duplicate path and query parameter names by location", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{bot_id}": {
+          get: {
+            tags: ["bots"],
+            operationId: "viewBot",
+            parameters: [
+              { name: "bot_id", in: "path", required: true, schema: { type: "string" } },
+              { name: "bot_id", in: "query", required: true, schema: { type: "string" } }
+            ],
+            responses: { "200": { description: "Viewed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/view.ts");
+    expect(commandFile?.contents).toContain('"bot_id": S.String()')
+    expect(commandFile?.contents).toContain("queryBotId: S.String()")
+    expect(commandFile?.contents).toContain('"bot_id": params.queryBotId,')
   });
 
   it("throws when a path parameter uses an object schema", () => {
@@ -4411,53 +5073,42 @@ describe("generate", () => {
     );
   });
 
-  it("throws when GET operations resolve to the same noun and verb", () => {
-    expect(() =>
-      generate(
+  it("uses operation IDs to disambiguate generated command paths", () => {
+    const files = generate(
         createDocument({
-          "/bots/search": {
+          "/quotes": {
             get: {
-              tags: ["bots"],
-              operationId: "getSearch",
+              tags: ["forex"],
+              operationId: "listQuotes",
               responses: {
                 "200": {
-                  description: "Search."
+                  description: "Quotes."
                 }
               }
             }
           },
-          "/bots/{botHandle}/search": {
+          "/symbols": {
             get: {
-              tags: ["bots"],
-              operationId: "viewSearch",
-              parameters: [
-                {
-                  name: "botHandle",
-                  in: "path",
-                  required: true,
-                  schema: { type: "string" }
-                }
-              ],
+              tags: ["forex"],
+              operationId: "listSymbols",
               responses: {
                 "200": {
-                  description: "Search."
+                  description: "Symbols."
                 }
               }
             }
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Generated command path "bots search" is defined more than once ("viewSearch" and "getSearch").'
-      )
+      );
+
+    expect(files.map((file) => file.path)).toEqual(
+      expect.arrayContaining(["forex/quotes.ts", "forex/symbols.ts"])
     );
   });
 
-  it("throws when two operations resolve to the same noun and verb", () => {
-    expect(() =>
-      generate(
+  it("uses path-qualified verbs when operation IDs cannot disambiguate command paths", () => {
+    const files = generate(
         createDocument({
           "/bots": {
             post: {
@@ -4483,11 +5134,94 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
+      );
+
+    expect(files.map((file) => file.path)).toEqual(
+      expect.arrayContaining(["bots/create-bot.ts", "bots/create-create.ts"])
+    );
+  });
+
+  it("throws when path-qualified verbs still cannot distinguish command paths", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/bots/create": {
+            post: {
+              tags: ["bots"],
+              operationId: "createBot",
+              responses: {
+                "201": {
+                  description: "Created."
+                }
+              }
+            }
+          },
+          "/bots/create/": {
+            post: {
+              tags: ["bots"],
+              operationId: "bots/create-bot",
+              responses: {
+                "201": {
+                  description: "Created."
+                }
+              }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
       )
     ).toThrowError(
       new UserError(
         'Generated command path "bots create-bot" is defined more than once ("createBot" and "bots/create-bot").'
       )
+    );
+  });
+
+  it("uses parent path context when child resource paths collide", () => {
+    const files = generate(
+      createDocument({
+        "/maps/{id}/attachments": {
+          post: { tags: ["attachments"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], responses: { "201": { description: "Created." } } }
+        },
+        "/spots/{id}/attachments": {
+          post: { tags: ["attachments"], parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }], responses: { "201": { description: "Created." } } }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toEqual(
+      expect.arrayContaining(["attachments/maps-id-attachments.ts", "attachments/spots-id-attachments.ts"])
+    );
+  });
+
+  it("distinguishes collection and resource paths with identical operation IDs", () => {
+    const files = generate(
+      createDocument({
+        "/products-uuid": {
+          patch: {
+            tags: ["Product [uuid]"],
+            operationId: "patch_products_uuid",
+            responses: { "200": { description: "Patched." } }
+          }
+        },
+        "/products-uuid/{uuid}": {
+          patch: {
+            tags: ["Product [uuid]"],
+            operationId: "patch_products_uuid",
+            parameters: [{ name: "uuid", in: "path", required: true, schema: { type: "string" } }],
+            responses: { "200": { description: "Patched." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    expect(files.map((file) => file.path)).toEqual(
+      expect.arrayContaining([
+        "product-uuid/update-products-uuid.ts",
+        "product-uuid/update-products-uuid-uuid.ts"
+      ])
     );
   });
 
@@ -4530,6 +5264,40 @@ describe("generate", () => {
 
     expect(commandFile?.contents).toContain("tag: S.Optional(S.String())");
     expect(commandFile?.contents).toContain("tags: S.Optional(S.Array(S.String()))");
+  });
+
+  it("qualifies body params that collide with path params while preserving wire names", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{code}": {
+          patch: {
+            tags: ["bots"],
+            operationId: "updateBot",
+            parameters: [{ name: "code", in: "path", required: true, schema: { type: "string" } }],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["code"],
+                    properties: { code: { type: "string" } }
+                  }
+                }
+              }
+            },
+            responses: { "200": { description: "Updated." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/update-bot.ts");
+    expect(commandFile?.contents).toContain("code: S.String()");
+    expect(commandFile?.contents).toContain("bodyCode: S.String()");
+    expect(commandFile?.contents).toContain('"code": params.bodyCode');
+    expect(commandFile?.contents).toContain('"code": params.code');
   });
 
   it("throws when the OpenAPI document is missing paths", () => {
@@ -4679,9 +5447,8 @@ describe("generate", () => {
     );
   });
 
-  it("throws when a required request body object has no writable fields", () => {
-    expect(() =>
-      generate(
+  it("sends an empty object when a required request body object declares no fields", () => {
+    const files = generate(
         createDocument({
           "/bots/{handle}": {
             patch: {
@@ -4715,12 +5482,9 @@ describe("generate", () => {
           }
         }),
         { specSha: "spec-sha-123" }
-      )
-    ).toThrowError(
-      new UserError(
-        'Operation "patchBot" requestBody is required but does not define any writable fields.'
-      )
     );
+
+    expect(files.find((file) => file.path === "bots/patch-bot.ts")?.contents).toContain("body: {}");
   });
 
   it("throws when a required request body filters all fields via readOnly", () => {

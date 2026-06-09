@@ -17,7 +17,7 @@ import {
   type OpenApiSourceFileSystem
 } from "../spec-source.js";
 
-const HTTP_METHOD_NAMES = ["get", "post", "put", "patch", "delete"] as const;
+const HTTP_METHOD_NAMES = ["get", "post", "put", "patch", "delete", "head", "options"] as const;
 
 export type OnUnmocked = "throw" | "reply404";
 
@@ -90,7 +90,7 @@ export async function mockFetch(options: MockFetchOptions): Promise<MockFetchHan
     const method = (init?.method ?? getRequestMethod(input) ?? "GET").toUpperCase();
     const headers = collectHeaders(input, init);
     const bodyText = await readRequestBody(input, init);
-    const parsedBody = parseJsonOrUndefined(bodyText);
+    const parsedBody = parseRequestBody(bodyText, headers["content-type"]);
 
     const matchingPath = operations.filter((op) => op.pathRegex.test(requestUrl.pathname));
     if (matchingPath.length === 0) {
@@ -410,7 +410,7 @@ function pickJsonMediaType(
   }
 
   for (const [type, media] of Object.entries(content)) {
-    if (media !== undefined && /application\/json|\+json/i.test(type)) {
+    if (media !== undefined && (type === "*/*" || /application\/json|\+json/i.test(type))) {
       return media;
     }
   }
@@ -597,6 +597,9 @@ function collectHeaders(input: RequestInfo | URL, init: RequestInit | undefined)
 
   appendHeaders(headers, requestHeaders);
   appendHeaders(headers, initHeaders);
+  if (init?.body instanceof FormData && headers["content-type"] === undefined) {
+    appendHeaders(headers, new Request("https://mock.invalid", { method: "POST", body: init.body }).headers);
+  }
 
   return headers;
 }
@@ -649,9 +652,18 @@ async function readRequestBody(
   return undefined;
 }
 
-function parseJsonOrUndefined(text: string | undefined): unknown {
+function parseRequestBody(text: string | undefined, contentType: string | undefined): unknown {
   if (text === undefined || text.length === 0) {
     return undefined;
+  }
+
+  if (contentType?.toLowerCase().includes("application/x-www-form-urlencoded") === true) {
+    const body: Record<string, string | string[]> = {};
+    for (const [key, value] of new URLSearchParams(text)) {
+      const existing = body[key];
+      body[key] = existing === undefined ? value : Array.isArray(existing) ? [...existing, value] : [existing, value];
+    }
+    return body;
   }
   try {
     return JSON.parse(text) as unknown;
@@ -663,8 +675,13 @@ function parseJsonOrUndefined(text: string | undefined): unknown {
 function buildResponse(fixture: MockFixtureEntry, defaultStatus: number): Response {
   const status = fixture.status ?? defaultStatus;
   const headers = new Headers(fixture.headers ?? { "content-type": "application/json" });
+  const contentType = headers.get("content-type")?.toLowerCase();
   const body =
-    fixture.body === undefined ? null : fixture.body === null ? null : JSON.stringify(fixture.body);
+    fixture.body === undefined || fixture.body === null
+      ? null
+      : contentType?.includes("json") === true
+        ? JSON.stringify(fixture.body)
+        : String(fixture.body);
 
   return new Response(body, { status, headers });
 }

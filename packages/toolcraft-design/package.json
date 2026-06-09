@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "postbuild": "node scripts/smoke-built-exports.cjs",
+    "postbuild": "node scripts/smoke-built-exports.mjs",
     "lint": "cd ../.. && eslint packages/toolcraft-design --ext ts && tsc -p packages/toolcraft-design/tsconfig.json --noEmit",
     "test": "cd ../.. && vitest run $(rg --files packages/toolcraft-design/src -g '*.test.ts' | sort | tr '\\n' ' ')",
     "demo": "tsx scripts/demo.ts",

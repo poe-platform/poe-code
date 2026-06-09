@@ -383,6 +383,21 @@ return exports;
 }
 
 describe("commandsFromSpec", () => {
+  it("uses fixed per-operation server overrides", async () => {
+    const document = createListDocument("List bots.");
+    (document.paths?.["/bots"]?.get as { servers?: Array<{ url: string }> }).servers = [
+      { url: "https://alt.example.com" }
+    ];
+    const [group] = await commandsFromSpec(document);
+    const command = group?.kind === "group" ? group.children[0] : undefined;
+    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response("{}", { headers: { "content-type": "application/json" } }));
+
+    if (command?.kind !== "command") throw new Error("Expected runtime command.");
+    await command.handler({ params: {}, baseUrl: "https://default.example.com", tokenSource: createAuthProvider([]), fetch });
+
+    expect(fetch).toHaveBeenCalledWith("https://alt.example.com/bots", expect.any(Object));
+  });
+
   it("does not use Function to build runtime handlers", async () => {
     const unexpectedFunction = vi.fn(() => {
       throw new Error("Runtime generation should not use Function.");

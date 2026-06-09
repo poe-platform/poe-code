@@ -28,6 +28,9 @@ describe("toolcraft-openapi", () => {
       "defineClient",
       "defineClientFromSpec",
       "generate",
+      "inspectOpenApiDocument",
+      "inspectOpenApiSource",
+      "renderOpenApiInspection",
       "requestJson"
     ]);
   });

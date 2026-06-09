@@ -91,7 +91,7 @@ export function applyRuntimeOverrides(
   }
 
   const base: Record<string, unknown> =
-    "rawScope" in config && config.rawScope
+    Object.prototype.hasOwnProperty.call(config, "rawScope") && config.rawScope
       ? { ...config.rawScope }
       : { ...(config.runtime as unknown as Record<string, unknown>) };
 

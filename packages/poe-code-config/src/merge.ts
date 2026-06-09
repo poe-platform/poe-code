@@ -5,8 +5,8 @@ export function deepMergeDocuments(base: ConfigDocument, override: ConfigDocumen
   const scopes = new Set([...Object.keys(base), ...Object.keys(override)]);
 
   for (const scope of scopes) {
-    const baseScope = getOwnEntry(base, scope) ?? {};
-    const overrideScope = getOwnEntry(override, scope) ?? {};
+    const baseScope = getOwnRecordEntry(base, scope);
+    const overrideScope = getOwnRecordEntry(override, scope);
     const nextScope = mergeScope(scope, baseScope, overrideScope);
 
     if (Object.keys(nextScope).length > 0) {
@@ -88,6 +88,11 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = getOwnEntry(record, key);
+  return isRecord(value) ? value : {};
 }
 
 function setOwnEntry(target: Record<string, unknown>, key: string, value: unknown): void {

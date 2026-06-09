@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import path from "node:path";
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
+  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
 }
 
 export function assertNoSymbolicLink(targetPath: string): void {

@@ -60,7 +60,7 @@ const bridgeStates = new WeakMap<BridgeHookManifest, BridgeState>();
 const liveTransformOwners = new Map<string, Set<string>>();
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
+  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
 }
 
 function pathExists(targetPath: string): boolean {

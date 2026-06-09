@@ -1,4 +1,5 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import type { FileSystem } from "@poe-code/config-mutations";
 import { describe, expect, it, vi } from "vitest";
 import { loadConfiguredServices, saveConfiguredService, unconfigureService } from "./configured-services.js";
 
@@ -244,6 +245,29 @@ describe("configured services", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("cleans a partial legacy credential reset temp file when invalid recovery fails", async () => {
+    const legacyPath = `${homeDir}/.poe-code/credentials.json`;
+    const base = createMockFs({ "~/.poe-code/credentials.json": "not json\n" }, homeDir);
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${legacyPath}.`) && targetPath.endsWith(".tmp")) {
+          await base.writeFile(targetPath, "partial\n", options);
+          throw new Error("legacy reset disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).rejects.toThrow(
+      "legacy reset disk full"
+    );
+
+    const entries = await base.readdir(`${homeDir}/.poe-code`);
+    expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
   });
 
   it("does not rewrite or warn when apiShape already exists", async () => {

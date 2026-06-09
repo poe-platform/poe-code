@@ -1266,6 +1266,8 @@ describe("store", () => {
 
     await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow("config scope disk full");
     await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+    const entries = await base.readdir(path.dirname(configPath));
+    expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
   });
 
   it("does not remove a colliding temporary config file it did not create", async () => {

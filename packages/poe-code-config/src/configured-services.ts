@@ -383,7 +383,7 @@ async function writeFileAtomically(fs: FileSystem, filePath: string, content: st
     tempCreated = true;
     await fs.rename(tempPath, filePath);
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExists(error)) {
       await fs.unlink(tempPath).catch(() => undefined);
     }
     throw error;

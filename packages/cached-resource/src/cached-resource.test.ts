@@ -35,6 +35,33 @@ function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T,
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createMockFetch(data: unknown) {
   return vi
     .fn<(input: string | URL | Request, init?: RequestInit) => Promise<Response>>()
@@ -1130,6 +1157,19 @@ describe("removeFromDisk", () => {
     await expect(
       removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
     ).rejects.toThrow("permission denied");
+  });
+
+  it("does not ignore delete failures with inherited missing-file codes", async () => {
+    const fs = createMemFs({ "/cache/test.json": "cached" });
+    fs.unlink = vi.fn(async () => {
+      throw new Error("cache unlink denied");
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
+      ).rejects.toThrow("cache unlink denied");
+    });
   });
 
   it("does not delete cache names outside the cache directory", async () => {

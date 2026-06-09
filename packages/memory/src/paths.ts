@@ -89,5 +89,10 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
 }
 
 function isMissing(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "ENOENT"
+  );
 }

@@ -57,6 +57,41 @@ describe("CodeReviewYamlStore.startRun resume semantics", () => {
       codeReviewFileName(PR_URL)
     );
   });
+
+  it("round-trips prototype-named actors through persisted YAML state", async () => {
+    const store = new CodeReviewYamlStore({ directory });
+    const profile = "__proto__";
+    await store.startRun({
+      sessionId: "session-1",
+      prUrl: PR_URL,
+      selectedAgent: "codex",
+      selectedProfiles: [profile]
+    });
+    await store.addSubagent(PR_URL, profile, {
+      profile,
+      agent: "codex",
+      status: "completed",
+      completedAt: "2026-05-26T00:00:00.000Z"
+    });
+    await store.addRawReview(PR_URL, profile, {
+      body: "Prototype-named actor review.",
+      comments: []
+    });
+
+    const read = await store.read(PR_URL);
+
+    expect(Object.hasOwn(read?.rawReviews ?? {}, profile)).toBe(true);
+    expect(read?.rawReviews[profile]).toEqual({
+      body: "Prototype-named actor review.",
+      comments: []
+    });
+    expect(Object.hasOwn(read?.subagents ?? {}, profile)).toBe(true);
+    expect(read?.subagents[profile]).toMatchObject({
+      profile,
+      agent: "codex",
+      status: "completed"
+    });
+  });
 });
 
 describe("CodeReviewYamlStore merged draft management", () => {

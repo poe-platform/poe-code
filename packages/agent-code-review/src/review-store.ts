@@ -207,7 +207,7 @@ export class CodeReviewYamlStore {
   ): Promise<CodeReviewState> {
     return this.#updateActive(prUrl, (state) => {
       const key = requireActor(actor);
-      if (state.rawReviews[key] !== undefined) {
+      if (hasOwnRecordEntry(state.rawReviews, key)) {
         throw new Error(`Raw review is immutable after creation: ${key}`);
       }
       return {
@@ -235,7 +235,7 @@ export class CodeReviewYamlStore {
   ): Promise<CodeReviewState> {
     return this.#updateActive(prUrl, (state) => {
       const key = requireActor(actor);
-      if (state.subagents[key] !== undefined) {
+      if (hasOwnRecordEntry(state.subagents, key)) {
         throw new Error(`Code review profile was already spawned in this session: ${key}`);
       }
       return {
@@ -540,6 +540,10 @@ function hasUnresolvedPublicationClaim(state: CodeReviewState): boolean {
     if (action === "publication_failed") return false;
   }
   return false;
+}
+
+function hasOwnRecordEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
 }
 
 async function withFileLock<T>(

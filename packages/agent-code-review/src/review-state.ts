@@ -235,18 +235,18 @@ export function serializeCodeReviewState(state: CodeReviewState): string {
 
 function validateDraftRecord(value: unknown, field: string): Record<string, CodeReviewDraft> {
   const reviews = requireMapping(value, `Code review state ${field}`);
-  const validated: Record<string, CodeReviewDraft> = {};
+  const entries: Array<[string, CodeReviewDraft]> = [];
   for (const [actor, draft] of Object.entries(reviews)) {
     if (!isSafeIdentifier(actor))
       throw new Error(`Code review state ${field}.${actor} key must be a safe identifier.`);
-    validated[actor] = validateDraft(draft, `Code review state ${field}.${actor}`);
+    entries.push([actor, validateDraft(draft, `Code review state ${field}.${actor}`)]);
   }
-  return validated;
+  return Object.fromEntries(entries) as Record<string, CodeReviewDraft>;
 }
 
 function validateSubagents(value: unknown): Record<string, CodeReviewSubagentStatus> {
   const statuses = requireMapping(value, "Code review state subagents");
-  const validated: Record<string, CodeReviewSubagentStatus> = {};
+  const entries: Array<[string, CodeReviewSubagentStatus]> = [];
   for (const [actor, value] of Object.entries(statuses)) {
     if (!isSafeIdentifier(actor))
       throw new Error(`Code review state subagents.${actor} key must be a safe identifier.`);
@@ -279,16 +279,16 @@ function validateSubagents(value: unknown): Record<string, CodeReviewSubagentSta
     if (!optionalString(status.error)) {
       throw new Error(`Code review state subagents.${actor}.error must be a non-empty string.`);
     }
-    validated[actor] = {
+    entries.push([actor, {
       profile: status.profile,
       status: status.status,
       ...(status.agent === undefined ? {} : { agent: status.agent }),
       ...(status.started_at === undefined ? {} : { startedAt: status.started_at }),
       ...(status.completed_at === undefined ? {} : { completedAt: status.completed_at }),
       ...(status.error === undefined ? {} : { error: status.error })
-    };
+    }]);
   }
-  return validated;
+  return Object.fromEntries(entries) as Record<string, CodeReviewSubagentStatus>;
 }
 
 function validateActions(value: unknown): CodeReviewOrchestratorAction[] {

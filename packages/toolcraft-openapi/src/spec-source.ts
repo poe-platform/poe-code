@@ -136,8 +136,15 @@ function formatParseErrorMessage(error: unknown, sourceText: string, filePath: s
   })}`;
 }
 
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
 function getYamlLinePosition(error: unknown): { line: number; column: number } | null {
-  if (typeof error !== "object" || error === null || !("linePos" in error)) {
+  if (typeof error !== "object" || error === null || !hasOwnProperty(error, "linePos")) {
     return null;
   }
 
@@ -153,8 +160,8 @@ function getYamlLinePosition(error: unknown): { line: number; column: number } |
     return null;
   }
 
-  const line = "line" in firstPosition ? firstPosition.line : undefined;
-  const column = "col" in firstPosition ? firstPosition.col : undefined;
+  const line = hasOwnProperty(firstPosition, "line") ? firstPosition.line : undefined;
+  const column = hasOwnProperty(firstPosition, "col") ? firstPosition.col : undefined;
 
   if (typeof line !== "number" || typeof column !== "number") {
     return null;
@@ -167,7 +174,7 @@ function getYamlOffsetPosition(
   error: unknown,
   sourceText: string
 ): { line: number; column: number } | null {
-  if (typeof error !== "object" || error === null || !("pos" in error)) {
+  if (typeof error !== "object" || error === null || !hasOwnProperty(error, "pos")) {
     return null;
   }
 

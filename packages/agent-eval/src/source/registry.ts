@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 
 import { validateEvalYaml } from "../schema.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { assertFsCanonicalContainedPath } from "../path-boundary.js";
 import type { EvalDef, EvalFs, EvalSource, PlanKind } from "../types.js";
 
@@ -213,13 +214,7 @@ export function assertSafeEvalId(id: string): void {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 function getErrorMessage(error: unknown): string {

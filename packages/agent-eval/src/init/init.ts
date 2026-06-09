@@ -1,6 +1,7 @@
 import { lstat, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { PlanKind } from "../types.js";
 
 export interface InitOptions {
@@ -233,21 +234,9 @@ function isDigit(code: number): boolean {
 }
 
 function isPathAlreadyPresent(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    ((error as { code?: unknown }).code === "EEXIST" ||
-      (error as { code?: unknown }).code === "ENOTEMPTY")
-  );
+  return hasOwnErrorCode(error, "EEXIST") || hasOwnErrorCode(error, "ENOTEMPTY");
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

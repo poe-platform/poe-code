@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
 import { assertRunArtifactPath } from "./artifact-path.js";
 import type { NormalizedTrace } from "./trace/types.js";
@@ -153,12 +154,7 @@ function isExistingPath(error: unknown): boolean {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 async function readExistingFile(filePath: string): Promise<string | undefined> {

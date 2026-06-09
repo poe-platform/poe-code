@@ -1244,6 +1244,28 @@ describe("resolve", () => {
     ).rejects.toThrow('Partial "missing" not found.');
   });
 
+  it("does not treat inherited partial read error codes as missing partials", async () => {
+    const raw = createMemFs();
+    const fs: FileSystem = {
+      readFile: async (filePath, encoding) => {
+        if (filePath === "/workspace/rules.md") {
+          throw new Error("partial read denied");
+        }
+
+        return raw.readFile(filePath, encoding);
+      }
+    };
+
+    await withObjectPrototypeProperty("code", "ENOENT", async () => {
+      await expect(
+        resolve(
+          [{ source: "document", filePath: "/workspace/review.md", content: "{{> rules}}" }],
+          { fs }
+        )
+      ).rejects.toThrow("partial read denied");
+    });
+  });
+
   it("lets document partials override inherited partials", async () => {
     const fs = createMemFs({
       "/workspace/rules.md": "Project rules.",

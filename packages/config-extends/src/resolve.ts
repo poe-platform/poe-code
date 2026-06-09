@@ -392,7 +392,12 @@ function unique(values: string[]): string[] {
 }
 
 function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
 }
 
 function assertValidYieldCount(prompt: string): void {

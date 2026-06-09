@@ -585,12 +585,7 @@ function exitCodeForError(error: unknown): number {
 }
 
 function isParseError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    (error as { name?: unknown }).name === "ParseError"
-  );
+  return error instanceof Error && error.name === "ParseError";
 }
 
 function hasDefaultExport(source: string, filename: string): boolean {

@@ -578,10 +578,10 @@ function readErrorMessage(error: unknown): string {
   if (
     typeof error === "object" &&
     error !== null &&
-    "message" in error &&
-    typeof error.message === "string"
+    Object.prototype.hasOwnProperty.call(error, "message") &&
+    typeof (error as { message?: unknown }).message === "string"
   ) {
-    return error.message;
+    return (error as { message: string }).message;
   }
 
   return String(error);

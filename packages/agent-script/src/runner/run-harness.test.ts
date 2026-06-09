@@ -683,6 +683,44 @@ describe("runHarness", () => {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("does not mark inherited error names as aborted", async () => {
+    const filepath = "/repo/docs/plans/inherited-abort.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'import { fail } from "api";',
+        "return fail();",
+        "```"
+      ].join("\n")
+    });
+
+    await withObjectPrototypeProperties({ name: "AbortError" }, async () => {
+      const result = await runHarness(filepath, {
+        modulesFor: () => ({
+          api: {
+            fail: createSandboxClosure({
+              call: () => {
+                throw {};
+              },
+              name: "fail"
+            })
+          }
+        })
+      });
+
+      expect(result).toMatchObject({
+        ok: false
+      });
+      expect(result).not.toHaveProperty("aborted");
+    });
+  });
+
   it("checkpoints the running script to snapshotPath", async () => {
     vol.mkdirSync("/checkpoints");
     vi.useFakeTimers();

@@ -349,6 +349,14 @@ describe("agent-script CLI", () => {
     await expectRunExitCode(["runtime.ajs"], 1);
     await expectRunExitCode(["--max-steps", "20", "budget.ajs"], 3);
   });
+
+  it("does not treat inherited error names as parse failures", async () => {
+    vol.writeFileSync("/repo/runtime.ajs", "throw {};");
+
+    await withObjectPrototypeProperties({ name: "ParseError" }, async () => {
+      await expectRunExitCode(["runtime.ajs"], 1);
+    });
+  });
 });
 
 async function expectRunExitCode(argv: readonly string[], expectedExitCode: number): Promise<void> {

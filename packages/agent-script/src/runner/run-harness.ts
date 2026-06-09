@@ -213,10 +213,14 @@ function isSetupError(error: unknown): boolean {
 }
 
 function isAbortError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.name === "AbortError";
+  }
+
   return (
     typeof error === "object" &&
     error !== null &&
-    "name" in error &&
+    Object.prototype.hasOwnProperty.call(error, "name") &&
     (error as { name?: unknown }).name === "AbortError"
   );
 }

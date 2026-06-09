@@ -10,6 +10,7 @@ import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,
   failingWritePathPrefix: undefined as string | undefined,
+  failingWriteActualPath: undefined as string | undefined,
   collidingWritePathPrefix: undefined as string | undefined,
   collidingWriteTarget: undefined as string | undefined,
   collidingWritePath: undefined as string | undefined,
@@ -51,6 +52,7 @@ vi.mock("node:fs/promises", async () => {
           pathText.startsWith(mockedFileSystemState.failingWritePathPrefix) &&
           pathText.endsWith(".tmp"))
       ) {
+        mockedFileSystemState.failingWriteActualPath = pathText;
         await fs.promises.writeFile(path, "[", options);
         throw new Error("host call disk full");
       }
@@ -108,6 +110,7 @@ describe("runHarnessPair", () => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;
     mockedFileSystemState.failingWritePathPrefix = undefined;
+    mockedFileSystemState.failingWriteActualPath = undefined;
     mockedFileSystemState.collidingWritePathPrefix = undefined;
     mockedFileSystemState.collidingWriteTarget = undefined;
     mockedFileSystemState.collidingWritePath = undefined;
@@ -287,6 +290,10 @@ describe("runHarnessPair", () => {
     ).rejects.toThrow("host call disk full");
 
     expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
+    expect(mockedFileSystemState.failingWriteActualPath).toMatch(
+      new RegExp(`^${storePath.replaceAll(".", "\\.")}\\.`)
+    );
+    expect(vol.existsSync(mockedFileSystemState.failingWriteActualPath ?? "")).toBe(false);
   });
 
   it("does not follow a preexisting legacy host-call temp path symlink", async () => {

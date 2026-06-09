@@ -556,7 +556,7 @@ async function writeTextFileAtomically(filePath: string, content: string): Promi
     temporaryCreated = true;
     await rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await unlinkIfExists(temporaryPath).catch(() => undefined);
     }
     throw error;
@@ -578,6 +578,10 @@ async function unlinkIfExists(path: string): Promise<void> {
       throw error;
     }
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 function hostCallStorePath(snapshotPath: string): string {

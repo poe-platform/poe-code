@@ -204,6 +204,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
           if (isAlreadyExistsError(error)) {
             throw new Error("File already exists — use str_replace to edit");
           }
+          await fs.unlink(filePath).catch(() => undefined);
           throw error;
         }
         return `Created file: ${displayedPath}`;

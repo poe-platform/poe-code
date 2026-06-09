@@ -218,6 +218,37 @@ describe("poe-agent-plugin-files", () => {
     await expect(base.readFile(filePath, "utf8")).resolves.toBe("created by another actor\n");
   });
 
+  it("removes a partially written file when create persistence fails", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/new.ts";
+    const base = createFsFromVolume(Volume.fromJSON({}, "/")).promises;
+    const fs = {
+      ...base,
+      async writeFile(
+        targetPath: string,
+        data: Parameters<typeof base.writeFile>[1],
+        options?: Parameters<typeof base.writeFile>[2]
+      ) {
+        if (targetPath === filePath) {
+          await base.writeFile(targetPath, "partial\n", options);
+          throw new Error("create disk full");
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "create",
+        path: "src/new.ts",
+        file_text: "created by agent\n"
+      })
+    ).rejects.toThrow("create disk full");
+    await expect(base.readFile(filePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("preserves prior content when a str_replace persistence write fails", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/app.ts";

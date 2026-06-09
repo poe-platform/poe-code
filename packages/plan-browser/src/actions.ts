@@ -1,5 +1,6 @@
 import path from "node:path";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { ActionFs } from "./types.js";
 
 export function resolveEditor(
@@ -89,12 +90,7 @@ function getOwnEnvValue(
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 function parseEditorCommand(command: string): string[] {

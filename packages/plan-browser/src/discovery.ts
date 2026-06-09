@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { planConfigScope, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
@@ -31,12 +32,7 @@ function createDefaultFs(): DiscoveryFs {
 }
 
 function isNotFound(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function getOwnValue(

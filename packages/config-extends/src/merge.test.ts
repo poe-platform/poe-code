@@ -79,6 +79,39 @@ describe("mergeLayers", () => {
     });
   });
 
+  it("ignores inherited values when a higher-priority layer is missing a key", () => {
+    Object.defineProperty(Object.prototype, "title", {
+      configurable: true,
+      value: "Polluted"
+    });
+
+    try {
+      expect(
+        mergeLayers([
+          {
+            source: "first",
+            data: {}
+          },
+          {
+            source: "second",
+            data: {
+              title: "Second"
+            }
+          }
+        ])
+      ).toEqual({
+        data: {
+          title: "Second"
+        },
+        sources: {
+          title: "second"
+        }
+      });
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).title;
+    }
+  });
+
   it("treats null as defined and does not fall through", () => {
     expect(
       mergeLayers([

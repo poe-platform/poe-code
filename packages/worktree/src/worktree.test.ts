@@ -416,6 +416,7 @@ describe("writeRegistry", () => {
   it("preserves the live registry when a staged write fails", async () => {
     const initial = { worktrees: [makeEntry({ name: "existing" })] };
     const base = createMemFs({ [REGISTRY]: stringify(initial, { lineWidth: 0 }) }) as ExtendedWorktreeFileSystem;
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       writeFile: async (
@@ -424,6 +425,7 @@ describe("writeRegistry", () => {
         options?: { encoding?: BufferEncoding; flag?: string }
       ) => {
         if (filePath !== REGISTRY) {
+          temporaryPath = filePath;
           await base.writeFile(filePath, "partial", options);
           throw new Error("disk full");
         }
@@ -433,6 +435,10 @@ describe("writeRegistry", () => {
 
     await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry({ name: "new" })] }, fs)).rejects.toThrow("disk full");
     await expect(readRegistry(REGISTRY, base)).resolves.toEqual(initial);
+    expect(temporaryPath?.startsWith(`${REGISTRY}.tmp-`)).toBe(true);
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow or remove a colliding temporary registry symlink", async () => {

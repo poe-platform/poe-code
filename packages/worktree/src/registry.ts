@@ -46,7 +46,7 @@ export async function writeRegistry(
     await assertPathHasNoSymbolicLinks(registryFile, fs);
     await fs.rename(temporaryFile, registryFile);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await fs.unlink(temporaryFile).catch(() => undefined);
     }
     throw error;
@@ -55,6 +55,10 @@ export async function writeRegistry(
 
 function isNotFound(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && "code" in error && error.code === "ENOENT");
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
 async function assertPathHasNoSymbolicLinks(

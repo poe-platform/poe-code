@@ -1,6 +1,7 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { isNotFound } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { FileSystem } from "./file-system.js";
 
 type TimestampProvider = () => string;
@@ -104,5 +105,5 @@ async function copyExclusive(
 }
 
 function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

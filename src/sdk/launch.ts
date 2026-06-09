@@ -15,6 +15,7 @@ import {
   type ProcessSpec
 } from "@poe-code/process-launcher";
 import { createHostRunner, detectEngine, type Engine } from "@poe-code/process-runner";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 import { getCurrentExecutionContext } from "../utils/execution-context.js";
 
 export type { ManagedProcessRecord, ProcessSpec } from "@poe-code/process-launcher";
@@ -222,7 +223,7 @@ function sendSignalToManagedProcess(pid: number, signal: NodeJS.Signals): void {
 }
 
 function isMissingProcessGroupError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "ESRCH";
+  return hasOwnErrorCode(error, "ESRCH");
 }
 
 function objectToEnv(

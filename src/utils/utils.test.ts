@@ -30,6 +30,25 @@ import {
   toOpenCodeMcpCommand
 } from "./execution-context.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 // ── backup ────────────────────────────────────────────────────────────────────
 
 describe("backup utilities", () => {
@@ -84,9 +103,11 @@ describe("backup utilities", () => {
       }
     };
 
-    await expect(createBackup(fs, filePath, () => "20240101T010101")).rejects.toThrow(
-      "backup write failed"
-    );
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(createBackup(fs, filePath, () => "20240101T010101")).rejects.toThrow(
+        "backup write failed"
+      );
+    });
     expect(backupPath).toBeDefined();
     await expect(baseFs.readFile(backupPath as string, "utf8")).rejects.toMatchObject({
       code: "ENOENT"

@@ -6,6 +6,7 @@ import {
   DEFAULT_CLAUDE_CODE_MODEL,
   DEFAULT_CODEX_MODEL
 } from "../cli/constants.js";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 
 const CLAUDE_DEFAULT_MODEL = DEFAULT_CLAUDE_CODE_MODEL;
 
@@ -291,7 +292,7 @@ export class StrategyConfigManager {
 }
 
 function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function tryUnlinkSync(filePath: string): void {

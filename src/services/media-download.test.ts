@@ -3,6 +3,25 @@ import { Volume, createFsFromVolume } from "memfs";
 import { downloadToFile, MediaDownloadError } from "./media-download.js";
 import type { FileSystem } from "../utils/file-system.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("downloadToFile", () => {
   it("classifies transport failures as media fetch errors", async () => {
     const error = await downloadToFile({
@@ -44,15 +63,17 @@ describe("downloadToFile", () => {
       unlink: (filePath: string) => base.unlink(filePath)
     } as unknown as FileSystem;
 
-    await expect(downloadToFile({
-      url: "https://cdn.example.test/generated.png",
-      outputPath,
-      fs,
-      fetcher: async () => ({
-        ok: true,
-        arrayBuffer: async () => Buffer.from("new-image").buffer
-      } as Response)
-    })).rejects.toBeInstanceOf(MediaDownloadError);
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(downloadToFile({
+        url: "https://cdn.example.test/generated.png",
+        outputPath,
+        fs,
+        fetcher: async () => ({
+          ok: true,
+          arrayBuffer: async () => Buffer.from("new-image").buffer
+        } as Response)
+      })).rejects.toBeInstanceOf(MediaDownloadError);
+    });
 
     expect(await base.readFile(outputPath, "utf8")).toBe("old-image");
     expect(temporaryPath).toBeDefined();

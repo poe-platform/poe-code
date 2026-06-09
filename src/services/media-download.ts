@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 import type { FileSystem } from "../utils/file-system.js";
 
 export class MediaDownloadError extends Error {
@@ -73,5 +74,5 @@ export async function downloadToFile(options: {
 }
 
 function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

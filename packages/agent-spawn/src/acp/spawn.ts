@@ -170,7 +170,9 @@ function getResumeArgs(
   return config.resume.args(options.resumeThreadId, options.cwd ?? process.cwd());
 }
 
-export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingResult {
+export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResult {
+  const options = normalizeSpawnStreamingOptions(input);
+
   if (options.signal?.aborted) {
     throw createAbortError();
   }
@@ -562,4 +564,65 @@ async function startCapture(
     return undefined;
   }
   return startNativeOtelCapture(agentId, options.captureOtelContent);
+}
+
+function normalizeSpawnStreamingOptions(options: SpawnStreamingOptions): SpawnStreamingOptions {
+  return createNullRecord({
+    agentId: getOwnProperty(options, "agentId") as SpawnStreamingOptions["agentId"],
+    prompt: getOwnProperty(options, "prompt") as SpawnStreamingOptions["prompt"],
+    ...optionalOwnProperty(options, "cwd"),
+    ...optionalOwnProperty(options, "model"),
+    ...optionalOwnProperty(options, "mode"),
+    ...optionalOwnProperty(options, "args"),
+    ...optionalOwnProperty(options, "mcpServers"),
+    ...optionalOwnProperty(options, "skills"),
+    ...optionalOwnProperty(options, "hooks"),
+    ...optionalOwnProperty(options, "resumeThreadId"),
+    ...optionalOwnProperty(options, "useStdin"),
+    ...optionalOwnProperty(options, "interactive"),
+    ...optionalOwnProperty(options, "signal"),
+    ...optionalOwnProperty(options, "otelSink"),
+    ...optionalOwnProperty(options, "captureOtel"),
+    ...optionalOwnProperty(options, "captureOtelContent"),
+    ...optionalOwnProperty(options, "env"),
+    ...optionalOwnProperty(options, "middlewares"),
+    ...optionalOwnProperty(options, "tee"),
+    ...optionalOwnProperty(options, "activityTimeoutMs"),
+    ...optionalOwnProperty(options, "logPath"),
+    ...optionalOwnProperty(options, "logDir"),
+    ...optionalOwnProperty(options, "logFileName"),
+    ...optionalOwnProperty(options, "runtime"),
+    ...optionalOwnProperty(options, "runtimeImage"),
+    ...optionalOwnProperty(options, "runtimeTemplate"),
+    ...optionalOwnProperty(options, "runtimeConfigCwd"),
+    ...optionalOwnProperty(options, "detach"),
+    ...optionalOwnProperty(options, "mountPoeCode"),
+    ...optionalOwnProperty(options, "runnerSync")
+  });
+}
+
+function optionalOwnProperty<Name extends keyof SpawnStreamingOptions>(
+  options: SpawnStreamingOptions,
+  name: Name
+): Pick<SpawnStreamingOptions, Name> | Record<string, never> {
+  const value = getOwnProperty(options, name);
+  return value === undefined ? {} : ({ [name]: value } as Pick<SpawnStreamingOptions, Name>);
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }

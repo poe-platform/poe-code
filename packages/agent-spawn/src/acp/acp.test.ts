@@ -1115,6 +1115,59 @@ describe("acp/spawnStreaming", () => {
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
   });
 
+  it("ignores inherited streaming spawn option fields", async () => {
+    const stdoutLines = [
+      JSON.stringify({
+        type: "text",
+        sessionID: "ses_inherited",
+        part: { type: "text", messageID: "msg_1", text: "clean" }
+      })
+    ];
+    const mock = createMockChildProcess({
+      stdoutLines,
+      exitCode: 0
+    });
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const cwd = process.cwd();
+
+    await withObjectPrototypeProperties(
+      {
+        args: ["--polluted"],
+        cwd: "/polluted",
+        mcpServers: {
+          polluted: {
+            command: "polluted-mcp"
+          }
+        },
+        mode: "read",
+        model: "polluted/model",
+        runtime: "docker"
+      },
+      async () => {
+        const { events, done } = spawnStreaming({
+          agentId: "opencode",
+          prompt: "hello"
+        });
+
+        await expect(collect(events).then(stripMeta)).resolves.toEqual([
+          { event: "session_start", threadId: "ses_inherited" },
+          { event: "agent_message", text: "clean" }
+        ]);
+        await expect(done).resolves.toMatchObject({ exitCode: 0 });
+      }
+    );
+
+    const [command, args, spawnOptions] = spawnMock.mock.calls[0];
+    expect(command).toBe("opencode");
+    expect(args).toEqual([
+      openCodeSpawnConfig.promptFlag,
+      "hello",
+      ...openCodeSpawnConfig.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
+    ]);
+    expect(spawnOptions).toMatchObject({ cwd, stdio: ["pipe", "pipe", "pipe"] });
+  });
+
   it("runs streaming middlewares in onion order with populated context on the way out", async () => {
     const mock = createMockChildProcess({
       stdoutLines: [

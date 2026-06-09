@@ -3882,7 +3882,7 @@ function isHttpErrorLike(error: unknown): error is HttpErrorLike {
     typeof response.status === "number" &&
     typeof response.statusText === "string" &&
     isStringRecord(response.headers) &&
-    "body" in response
+    hasOwnProperty(response, "body")
   );
 }
 
@@ -3891,7 +3891,7 @@ function hasTypedOptionalField(
   field: string,
   type: "number" | "string"
 ): boolean {
-  return !(field in value) || typeof value[field] === type;
+  return !hasOwnProperty(value, field) || typeof value[field] === type;
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -3923,7 +3923,7 @@ function isProblemDetailsLike(body: unknown): body is ProblemDetailsLike {
     return false;
   }
 
-  return isNonEmptyString(body.title) || isNonEmptyString(body.detail);
+  return hasOwnNonEmptyString(body, "title") || hasOwnNonEmptyString(body, "detail");
 }
 
 function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelopeLike {
@@ -3967,6 +3967,13 @@ function hasOwnProperty<Name extends PropertyKey>(
   return Object.prototype.hasOwnProperty.call(value, name);
 }
 
+function hasOwnNonEmptyString<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, string> {
+  return hasOwnProperty(value, name) && isNonEmptyString(value[name]);
+}
+
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
   return process.stdout.isTTY !== true ? value : style(value);
 }
@@ -3978,23 +3985,23 @@ function formatHttpErrorStatus(value: string): string {
 function formatProblemDetailsBody(body: ProblemDetailsLike): string {
   const lines: string[] = [];
 
-  if (isNonEmptyString(body.title)) {
+  if (hasOwnNonEmptyString(body, "title")) {
     lines.push(`Problem: ${body.title}`);
   }
 
-  if (isNonEmptyString(body.detail)) {
+  if (hasOwnNonEmptyString(body, "detail")) {
     lines.push(`Detail:  ${body.detail}`);
   }
 
-  if (body.type !== undefined) {
+  if (hasOwnProperty(body, "type") && body.type !== undefined) {
     lines.push(`Type:    ${body.type}`);
   }
 
-  if (body.instance !== undefined) {
+  if (hasOwnProperty(body, "instance") && body.instance !== undefined) {
     lines.push(`Instance: ${body.instance}`);
   }
 
-  if (body.status !== undefined) {
+  if (hasOwnProperty(body, "status") && body.status !== undefined) {
     lines.push(`Status:  ${body.status}`);
   }
 

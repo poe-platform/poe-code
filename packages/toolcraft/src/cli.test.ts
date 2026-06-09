@@ -2387,6 +2387,47 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("ignores inherited RFC 7807 problem detail response fields", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {}
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties(
+      {
+        detail: "polluted detail",
+        status: 400,
+        title: "Polluted Problem",
+        type: "https://example.com/polluted"
+      },
+      async () => {
+        process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+        await runCLI(root);
+      }
+    );
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  {}");
+    expect(output).not.toContain("Polluted Problem");
+    expect(output).not.toContain("polluted detail");
+    expect(output).not.toContain("https://example.com/polluted");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("falls back to JSON when problem detail text is blank", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -2613,6 +2654,41 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(readStderr(stderrWrite)).toContain('Response body:\n  {\n    "foo": 1\n  }');
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not treat inherited response bodies as HttpError details", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        const error = createHttpErrorLike();
+        error.response = {
+          headers: {
+            "content-type": "application/json"
+          },
+          status: 500,
+          statusText: "Internal Server Error"
+        } as typeof error.response;
+        throw error;
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties({ body: { title: "Polluted Problem" } }, async () => {
+      process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+      await runCLI(root);
+    });
+
+    const output = readStderr(stderrWrite);
+    expect(output).not.toContain("Response body:");
+    expect(output).not.toContain("Polluted Problem");
     expect(process.exitCode).toBe(1);
   });
 

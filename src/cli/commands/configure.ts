@@ -710,7 +710,7 @@ async function replaceBasePathAtomically(
       if (isAlreadyExistsError(error) && !temporaryCreated) {
         continue;
       }
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await fs.unlink(temporaryPath).catch((cleanupError) => {
           if (!isNotFoundError(cleanupError)) {
             throw cleanupError;

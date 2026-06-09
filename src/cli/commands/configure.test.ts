@@ -168,6 +168,18 @@ function withRenameOverride(fs: FileSystem, rename: FileSystem["rename"]): FileS
   }) as FileSystem;
 }
 
+function withWriteFileOverride(fs: FileSystem, writeFile: FileSystem["writeFile"]): FileSystem {
+  return new Proxy(fs, {
+    get(target, property, receiver) {
+      if (property === "writeFile") {
+        return writeFile;
+      }
+      const value = Reflect.get(target, property, receiver) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) as FileSystem;
+}
+
 function createTestFsError(code: string, filePath: string): NodeJS.ErrnoException {
   const error = new Error(`${code}: test failure, '${filePath}'`) as NodeJS.ErrnoException;
   error.code = code;
@@ -1149,6 +1161,33 @@ describe("configure provider resolution", () => {
     await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
     expect((await fs.lstat(configFile)).isSymbolicLink()).toBe(false);
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe("inside");
+  });
+
+  it("removes partial overlay temps when base file writes fail", async () => {
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const partialTemps: string[] = [];
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(configFile, "original", { encoding: "utf8" });
+    const failingFs = withWriteFileOverride(fs, async (filePath, data, options) => {
+      const filePathText = String(filePath);
+      if (filePathText.startsWith(`${configFile}.overlay-tmp-${process.pid}-`)) {
+        partialTemps.push(filePathText);
+        await fs.writeFile(filePath, "partial", options);
+        throw createTestFsError("ENOSPC", filePathText);
+      }
+      await fs.writeFile(filePath, data, options);
+    });
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+
+    await expect(transaction.commit()).rejects.toThrow("ENOSPC");
+
+    expect(partialTemps.length).toBeGreaterThan(0);
+    await expect(fs.readFile(configFile, "utf8")).resolves.toBe("original");
+    for (const partialTemp of partialTemps) {
+      await expect(fs.lstat(partialTemp)).rejects.toMatchObject({ code: "ENOENT" });
+    }
   });
 
   it("restores original symlinks and removes staged temps when overlay commit fails", async () => {

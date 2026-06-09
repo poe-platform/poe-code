@@ -28,7 +28,7 @@ export function replaceErrorStack(
 }
 
 export function attachErrorSpan(error: object, span: ErrorSourceSpan | undefined): void {
-  if (span === undefined || "span" in error) {
+  if (span === undefined || hasOwnProperty(error, "span")) {
     return;
   }
 
@@ -39,7 +39,7 @@ export function attachErrorSpan(error: object, span: ErrorSourceSpan | undefined
 }
 
 export function attachErrorCause(error: object, cause: unknown): void {
-  if (cause === undefined || "cause" in error) {
+  if (cause === undefined || hasOwnProperty(error, "cause")) {
     return;
   }
 
@@ -69,30 +69,31 @@ export function materializeWrappedErrorCause(value: unknown): void {
 }
 
 export function readErrorSpan(value: unknown): ErrorSourceSpan | undefined {
-  if (typeof value !== "object" || value === null || !("span" in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "span")) {
     return undefined;
   }
 
-  const span = (value as { span?: unknown }).span;
+  const span = value.span;
   return isErrorSourceSpan(span) ? span : undefined;
 }
 
 export function readErrorCause(value: unknown): unknown {
-  return typeof value === "object" && value !== null && "cause" in value
-    ? (value as { cause?: unknown }).cause
+  return typeof value === "object" && value !== null && hasOwnProperty(value, "cause")
+    ? value.cause
     : undefined;
 }
 
 export function isErrorSourceSpan(value: unknown): value is ErrorSourceSpan {
-  if (typeof value !== "object" || value === null || !("start" in value) || !("end" in value)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    !hasOwnProperty(value, "start") ||
+    !hasOwnProperty(value, "end")
+  ) {
     return false;
   }
 
-  const span = value as {
-    end: unknown;
-    start: unknown;
-  };
-  return isErrorSourcePosition(span.start) && isErrorSourcePosition(span.end);
+  return isErrorSourcePosition(value.start) && isErrorSourcePosition(value.end);
 }
 
 export function createSourceSpan(
@@ -144,10 +145,20 @@ function isErrorSourcePosition(value: unknown): value is ErrorSourcePosition {
   return (
     typeof value === "object" &&
     value !== null &&
-    typeof (value as { line?: unknown }).line === "number" &&
-    typeof (value as { column?: unknown }).column === "number" &&
-    typeof (value as { offset?: unknown }).offset === "number"
+    hasOwnProperty(value, "line") &&
+    typeof value.line === "number" &&
+    hasOwnProperty(value, "column") &&
+    typeof value.column === "number" &&
+    hasOwnProperty(value, "offset") &&
+    typeof value.offset === "number"
   );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function createSourcePosition(source: string, line: number, column: number): ErrorSourcePosition {

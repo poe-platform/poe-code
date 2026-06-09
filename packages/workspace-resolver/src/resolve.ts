@@ -1,4 +1,5 @@
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { cloneOrUpdate } from "./github/clone.js";
 import { createWritableCheckout } from "./github/isolation.js";
 import { parseLocator } from "./parse.js";
@@ -101,12 +102,5 @@ async function assertGithubSubdirHasNoSymbolicLinks(
 }
 
 function isMissingPathError(error: unknown): boolean {
-  return (
-    error instanceof Error &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (
-      (error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR"
-    )
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

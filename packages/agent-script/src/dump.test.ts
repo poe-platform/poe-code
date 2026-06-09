@@ -19,6 +19,18 @@ describe("dump", () => {
     expect(() => JSON.parse(dumped)).not.toThrow();
   });
 
+  it("does not read inherited snapshot properties", async () => {
+    const result = Object.create({
+      snapshot: {
+        sourceHash: hashSource("return 1")
+      }
+    }) as Parameters<typeof dump>[0];
+
+    await expect(dump(result)).rejects.toThrow(
+      "Run completed without producing a snapshot."
+    );
+  });
+
   it("writes human-readable JSON with 2-space indentation", async () => {
     await expect(
       dump({

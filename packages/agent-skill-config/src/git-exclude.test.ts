@@ -297,6 +297,34 @@ describe("git exclude blocks", () => {
     rename.mockRestore();
   });
 
+  it("removes a partially written temporary exclude file when creation fails", () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.writeFileSync(excludePath, "# user ignore\n");
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    let tempPath: string | undefined;
+    const writeFile = vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.includes(".poe-code-") && targetPath.endsWith(".tmp")) {
+        tempPath = targetPath;
+        originalWriteFileSync(filePath, "# partial\n", options);
+        throw new Error("exclude disk full");
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    try {
+      expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+        "exclude disk full"
+      );
+      expect(tempPath).toBeDefined();
+      expect(vol.existsSync(tempPath as string)).toBe(false);
+      expect(vol.readFileSync(excludePath, "utf8")).toBe("# user ignore\n");
+    } finally {
+      writeFile.mockRestore();
+    }
+  });
+
   it("silently no-ops outside a git repo", () => {
     restoreRunner();
     restoreRunner = setGitDirRunnerForTest(() => undefined);

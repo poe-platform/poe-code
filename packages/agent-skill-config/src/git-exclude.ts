@@ -66,6 +66,10 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
 }
 
+function isAlreadyExistsError(error: unknown): boolean {
+  return isNodeError(error) && error.code === "EEXIST";
+}
+
 function assertNoSymbolicLink(targetPath: string): void {
   const parsed = path.parse(path.resolve(targetPath));
   let current = parsed.root;
@@ -100,7 +104,7 @@ function writeExcludeFile(excludePath: string, content: string): void {
     tempCreated = true;
     fs.renameSync(tempPath, excludePath);
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExistsError(error)) {
       try {
         fs.rmSync(tempPath, { force: true });
       } catch (cleanupError) {

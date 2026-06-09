@@ -68,6 +68,25 @@ function createContainer(logs: string[] = []): ReturnType<typeof createCliContai
   });
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
   const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 
@@ -211,6 +230,33 @@ describe("memory command", () => {
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();
+  });
+
+  it("does not treat inherited read codes as missing memory pages", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    const pagePath = `${memoryRoot}/pages/nested/example.md`;
+    const readError = new Error("memory read denied");
+    const originalReadFile = memfs.promises.readFile.bind(memfs.promises);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [pagePath]: "Hello world"
+    });
+    vi.spyOn(memfs.promises, "readFile").mockImplementation(async (filePath, options) => {
+      if (String(filePath) === pagePath) {
+        throw readError;
+      }
+      return originalReadFile(filePath, options as never) as never;
+    });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        program.parseAsync(["node", "cli", "--yes", "memory", "show", "nested/example"])
+      ).rejects.toBe(readError);
+    });
   });
 
   it("rejects show paths that escape the pages directory", async () => {

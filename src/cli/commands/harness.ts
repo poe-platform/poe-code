@@ -30,6 +30,7 @@ import {
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 
 type HarnessRunOptions = {
@@ -319,12 +320,7 @@ async function pathExists(container: CliContainer, targetPath: string): Promise<
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 async function executeHarnessNew(

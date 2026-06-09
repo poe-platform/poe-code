@@ -2,6 +2,7 @@ import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "@poe-code/github-workflows";
 import type { OpenTaskListOptions, StateMachineDef } from "@poe-code/task-list";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 
 const DEFAULT_WORKFLOW_PATH = "./WORKFLOW.md";
 const MAESTRO_TASK_STATE_MACHINE_STATES = [
@@ -368,5 +369,5 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isFileNotFoundError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

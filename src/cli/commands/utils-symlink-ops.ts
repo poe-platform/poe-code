@@ -1,5 +1,6 @@
 import { dirname } from "node:path";
 import { isNotFound } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
 export async function tryLstat(fs: FileSystem, path: string) {
@@ -23,11 +24,7 @@ export function formatLoggedPath(
 }
 
 export function isPermissionError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    (error.code === "EACCES" || error.code === "EPERM")
-  );
+  return hasOwnErrorCode(error, "EACCES") || hasOwnErrorCode(error, "EPERM");
 }
 
 export type SymlinkOp =

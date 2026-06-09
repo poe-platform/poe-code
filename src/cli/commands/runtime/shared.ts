@@ -4,6 +4,7 @@ import { pathExists } from "@poe-code/config-mutations";
 import { cancel as dsCancel, isCancel, select as dsSelect } from "toolcraft-design";
 import { OperationCancelledError } from "../../errors.js";
 import type { CliContainer } from "../../container.js";
+import { hasOwnErrorCode } from "../../../utils/error-codes.js";
 
 export const runtimeTypes = ["host", "docker", "e2b"] as const;
 export type RuntimeType = (typeof runtimeTypes)[number];
@@ -108,5 +109,5 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

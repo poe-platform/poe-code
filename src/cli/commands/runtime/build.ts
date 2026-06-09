@@ -17,6 +17,7 @@ import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";
 import { ValidationError } from "../../errors.js";
+import { hasOwnErrorCode } from "../../../utils/error-codes.js";
 
 interface BuildLogEntry {
   level: "debug" | "info" | "warn" | "error";
@@ -230,10 +231,5 @@ async function loadE2bRunnerModule(): Promise<E2bRunnerModule> {
 }
 
 function isModuleNotFound(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ERR_MODULE_NOT_FOUND"
-  );
+  return hasOwnErrorCode(error, "ERR_MODULE_NOT_FOUND");
 }

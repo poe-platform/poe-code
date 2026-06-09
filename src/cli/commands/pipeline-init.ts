@@ -3,6 +3,7 @@ import { parse as parseYaml } from "yaml";
 import type { CliContainer } from "../container.js";
 import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { resolvePlanDirectory as resolveSourcePlanDirectory } from "./plan.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 
 export interface BuildPipelineInitPromptOptions {
   question?: string;
@@ -197,10 +198,5 @@ function longestBacktickRun(content: string): number {
 }
 
 function isMissingDirectory(error: unknown): boolean {
-  if (!error || typeof error !== "object" || !("code" in error)) {
-    return false;
-  }
-
-  const code = (error as { code?: unknown }).code;
-  return code === "ENOENT" || code === "ENOTDIR";
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

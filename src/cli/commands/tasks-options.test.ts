@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { vol } from "memfs";
+import { fs as memfs, vol } from "memfs";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -7,6 +7,25 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { resolveTasksOptions, TasksOptionsError } = await import("./tasks-options.js");
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
 
 function seedWorkflow(frontmatter: string): void {
   vol.fromJSON(
@@ -117,6 +136,19 @@ maestro:
       })
     ).rejects.toMatchObject({
       code: "missing_workflow"
+    });
+  });
+
+  it("does not treat inherited workflow read codes as missing workflows", async () => {
+    const readError = new Error("workflow read denied");
+    vi.spyOn(memfs.promises, "readFile").mockRejectedValueOnce(readError);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        resolveTasksOptions("acme/12", {
+          workflow: "/repo/WORKFLOW.md"
+        })
+      ).rejects.toBe(readError);
     });
   });
 

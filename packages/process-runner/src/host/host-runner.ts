@@ -1,4 +1,5 @@
 import { spawn as spawnChildProcess } from "node:child_process";
+import type { ChildProcess, SpawnOptions } from "node:child_process";
 import type { Runner, RunSpec } from "../types.js";
 import type { HostRunnerOptions, RunHandle, RunResult } from "../types.js";
 
@@ -26,14 +27,14 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       const stdoutMode = spec.stdout ?? "pipe";
       const stderrMode = spec.stderr ?? "pipe";
       const killProcessGroup = detachedByDefault || spec.killProcessGroup === true;
-      const stdio =
+      const stdio: SpawnOptions["stdio"] =
         stdinMode === "inherit" && stdoutMode === "inherit" && stderrMode === "inherit"
           ? "inherit"
           : [stdinMode, stdoutMode, stderrMode];
-      const child = spawnChildProcess(
+      const child: ChildProcess = spawnChildProcess(
         spec.command,
         spec.args ?? [],
-        createNullRecord({
+        createNullRecord<SpawnOptions>({
           cwd: spec.cwd,
           env: spec.env,
           stdio,

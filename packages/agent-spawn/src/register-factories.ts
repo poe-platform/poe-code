@@ -1,4 +1,5 @@
 import { spawn as spawnChildProcess } from "node:child_process";
+import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
 import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
 import { dockerExecutionEnvFactory, hostExecutionEnvFactory } from "@poe-code/process-runner";
@@ -73,7 +74,7 @@ function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: 
   const stdin = spec.stdin ?? "ignore";
   const stdout = spec.stdout ?? "pipe";
   const stderr = spec.stderr ?? "pipe";
-  const stdio =
+  const stdio: SpawnOptions["stdio"] =
     stdin === "inherit" && stdout === "inherit" && stderr === "inherit"
       ? "inherit"
       : ([stdin, stdout, stderr] as [
@@ -81,10 +82,10 @@ function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: 
           "pipe" | "inherit",
           "pipe" | "inherit"
         ]);
-  const child = spawnProcess(
+  const child: ChildProcess = spawnProcess(
     spec.command,
     spec.args ?? [],
-    createNullRecord({
+    createNullRecord<SpawnOptions>({
       cwd: spec.cwd,
       env: spec.env,
       stdio

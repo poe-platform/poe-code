@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { constants } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
 import { hasOwnErrorCode } from "./error-codes.js";
@@ -52,10 +53,10 @@ export function runCommand(
     const hasTimeout = typeof timeoutMs === "number" && timeoutMs > 0;
     const canAbort = options?.signal !== undefined;
     const killProcessGroup = process.platform !== "win32" && (hasTimeout || canAbort);
-    const child = spawn(
+    const child: ChildProcess = spawn(
       command,
       args,
-      createNullRecord({
+      createNullRecord<SpawnOptions>({
         stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
         cwd: options?.cwd,
         env: options?.env

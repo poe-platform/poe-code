@@ -51,7 +51,8 @@ async function withObjectPrototypeProperties<T>(
     originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
-      value
+      value,
+      writable: true
     });
   }
 
@@ -1340,6 +1341,34 @@ describe("createRalphSimulation", () => {
     await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
   });
 
+  it("rejects temp-sibling lstat failures that only inherit missing-path codes", async () => {
+    const targetPath = "/repo/docs/plans/plan.md";
+    const original = "---\nkind: ralph\nagent: codex\niterations: 1\nstatus:\n  state: open\n  iteration: 0\n---\n# Preserve this Ralph plan\n";
+    const { fs, rawFs } = createRunFs({ [targetPath]: original });
+    const baseLstat = fs!.lstat.bind(fs);
+    const lstatError = new Error("lstat failed");
+    fs!.lstat = async (filePath: string) => {
+      if (filePath === `${targetPath}.tmp`) {
+        throw lstatError;
+      }
+      return baseLstat(filePath);
+    };
+    const controller = new AbortController();
+    controller.abort();
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: targetPath,
+        fs,
+        runAgent: vi.fn(),
+        signal: controller.signal
+      })).rejects.toBe(lstatError);
+    });
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
+  });
+
   it("rejects workflow configuration from a symlinked base directory", async () => {
     const { fs, rawFs } = createRunFs({
       "/repo/docs/plans/linked.md": "---\nkind: ralph\nextends: true\n---\n",
@@ -1378,6 +1407,36 @@ describe("createRalphSimulation", () => {
       signal: controller.signal
     })).rejects.toThrow("ralph disk full");
     await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("cleans failed status temp writes that only inherit existing-path codes", async () => {
+    const targetPath = "/repo/docs/plans/plan.md";
+    const original = "---\nkind: ralph\nagent: codex\niterations: 1\nstatus:\n  state: open\n  iteration: 0\n---\n# Preserve this Ralph plan\n";
+    const { fs, rawFs } = createRunFs({ [targetPath]: original });
+    const baseWriteFile = fs!.writeFile.bind(fs);
+    fs!.writeFile = async (filePath: string, content: string, options?: { flag?: string; mode?: number }) => {
+      if (filePath.startsWith(`${targetPath}.`) && filePath.endsWith(".tmp")) {
+        await baseWriteFile(filePath, content.slice(0, 12), options);
+        throw new Error("ralph disk full");
+      }
+      await baseWriteFile(filePath, content, options);
+    };
+    const controller = new AbortController();
+    controller.abort();
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: targetPath,
+        fs,
+        runAgent: vi.fn(),
+        signal: controller.signal
+      })).rejects.toThrow("ralph disk full");
+    });
+
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
+    await expect(rawFs.readdir(path.dirname(targetPath))).resolves.toEqual(["plan.md"]);
   });
 
   it("uses agent-kit path resolution for home-directory docs", async () => {

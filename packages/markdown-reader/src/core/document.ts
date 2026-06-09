@@ -175,7 +175,12 @@ function toUserError(error: unknown, file: string): UserError {
     return error;
   }
 
-  const code = typeof error === "object" && error !== null && "code" in error ? error.code : undefined;
+  const code =
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code")
+      ? (error as { code?: unknown }).code
+      : undefined;
 
   if (code === "ENOENT") {
     return new UserError(`file not found: ${file}`);

@@ -395,6 +395,22 @@ describe("readRegistry", () => {
     });
   });
 
+  it("rejects inherited top-level registry fields", async () => {
+    const fs = createMemFs({ [REGISTRY]: "{}\n" });
+
+    await withObjectPrototypeProperties({ worktrees: [makeEntry()] }, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+    });
+  });
+
+  it("rejects inherited worktree entry fields", async () => {
+    const fs = createMemFs({ [REGISTRY]: "worktrees:\n  - {}\n" });
+
+    await withObjectPrototypeProperties(makeEntry() as unknown as Record<string, unknown>, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+    });
+  });
+
   it("parses existing registry YAML", async () => {
     const fs = createMemFs({
       [REGISTRY]:

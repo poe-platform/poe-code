@@ -372,11 +372,15 @@ async function writeTextFileAtomically(
     temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 async function resolveDocPath(options: {

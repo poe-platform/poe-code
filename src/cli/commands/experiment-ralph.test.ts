@@ -3479,6 +3479,62 @@ describe("ralph init command", () => {
     expect(parsed.body).toBe("# My Plan\n\nBody");
   });
 
+  it("cleans a partial doc temp file when config publish fails", async () => {
+    const docPath = "/repo/docs/loop.md";
+    const initial = "# My Plan\n\nBody";
+    const baseFs = createMemFs({
+      [docPath]: initial
+    });
+    let temporaryPath: string | undefined;
+    const fs: FileSystem = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ): Promise<void> {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${docPath}.${process.pid}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          await baseFs.writeFile(filePath, "partial doc config\n", options);
+          throw new Error("doc config write failed");
+        }
+        await baseFs.writeFile(filePath, data, options);
+      }
+    };
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "init",
+        "docs/loop.md",
+        "--agent",
+        "codex",
+        "--iterations",
+        "5"
+      ])
+    ).rejects.toThrow("doc config write failed");
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(docPath, "utf8")).resolves.toBe(initial);
+    await expect(fs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("errors when the doc does not exist", async () => {
     const container = createCliContainer({
       fs: createMemFs(),

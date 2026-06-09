@@ -64,7 +64,12 @@ async function backupInvalidDocument(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 async function assertRegularWriteTarget(

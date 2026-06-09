@@ -36,6 +36,33 @@ function createVolFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 // --- formats/index.test.ts ---
 
 describe("getConfigFormat", () => {
@@ -875,6 +902,37 @@ describe("runMutations", () => {
       await expect(
         runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
       ).rejects.toThrow("config disk full");
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+      expect(tempPath).toBeDefined();
+      await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+        code: "ENOENT"
+      });
+    });
+
+    it("cleans partial mutation temp files when write errors only inherit existing-path codes", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"existing":true}\n' })).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
+      let injected = false;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (!injected && filePath.includes(".mutation-tmp-")) {
+            injected = true;
+            tempPath = filePath;
+            await base.writeFile(filePath, "{", options);
+            throw new Error("config temp denied");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+        await expect(
+          runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+        ).rejects.toThrow("config temp denied");
+      });
+
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
       expect(tempPath).toBeDefined();
       await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({

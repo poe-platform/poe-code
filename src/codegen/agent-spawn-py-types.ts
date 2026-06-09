@@ -198,12 +198,16 @@ async function atomicWriteOutput(
     await fileSystem.rename(tempPath, outputPath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExists(error)) {
       await fileSystem.unlink(tempPath).catch(() => undefined);
     }
 
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 function resolveRepoRoot(): string {

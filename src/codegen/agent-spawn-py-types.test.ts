@@ -289,4 +289,54 @@ export type SpawnMode = "read";
     await expect(fileSystem.lstat(temporaryPath as string)).rejects.toThrow("ENOENT");
     expect((await fileSystem.lstat(outputPath)).isSymbolicLink()).toBe(true);
   });
+
+  it("cleans partial generated Python types temp files", async () => {
+    const repoRoot = "/repo";
+    const outputPath = `${repoRoot}/packages/py-poe-spawn/src/poe_spawn/types.py`;
+    const volume = Volume.fromJSON({});
+    volume.mkdirSync(repoRoot, { recursive: true });
+    const rawFileSystem = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fileSystem = {
+      ...rawFileSystem,
+      async writeFile(
+        filePath: Parameters<typeof rawFileSystem.writeFile>[0],
+        data: Parameters<typeof rawFileSystem.writeFile>[1],
+        options?: Parameters<typeof rawFileSystem.writeFile>[2]
+      ) {
+        const pathText = String(filePath);
+        if (
+          temporaryPath === undefined &&
+          pathText.startsWith(`${repoRoot}/packages/py-poe-spawn/src/poe_spawn/.types.py.`) &&
+          pathText.endsWith(".tmp")
+        ) {
+          temporaryPath = pathText;
+          await rawFileSystem.writeFile(filePath, "partial", options);
+          throw new Error("python types disk full");
+        }
+
+        return rawFileSystem.writeFile(filePath, data, options);
+      }
+    };
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/acp/types.ts`,
+      'export interface SpawnResultEvent { event: "spawn_result"; exitCode: number; } export type KnownAcpEvent = SpawnResultEvent;'
+    );
+    project.createSourceFile(
+      `${repoRoot}/packages/agent-spawn/src/types.ts`,
+      'export type SpawnMode = "read";'
+    );
+
+    await expect(runAgentSpawnPythonTypeCodegen({
+      repoRoot,
+      project,
+      spawnConfigs: [],
+      fileSystem
+    })).rejects.toThrow("python types disk full");
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fileSystem.lstat(temporaryPath as string)).rejects.toThrow("ENOENT");
+    await expect(fileSystem.lstat(outputPath)).rejects.toThrow("ENOENT");
+  });
 });

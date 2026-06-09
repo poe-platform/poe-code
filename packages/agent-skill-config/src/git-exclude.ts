@@ -63,7 +63,7 @@ function readExcludeFile(excludePath: string): string | undefined {
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
+  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
 }
 
 function isAlreadyExistsError(error: unknown): boolean {

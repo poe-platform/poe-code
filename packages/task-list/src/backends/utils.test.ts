@@ -34,4 +34,38 @@ describe("backend utilities", () => {
     expect(volume.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
     await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).rejects.toThrow();
   });
+
+  it("removes a partial atomic write temp file when the temp write fails", async () => {
+    const { rawFs } = createFs({
+      "/repo/tasks.yaml": "old state\n"
+    });
+    let tempPath: string | undefined;
+    const fs = {
+      ...rawFs,
+      async writeFile(
+        filePath: Parameters<typeof rawFs.writeFile>[0],
+        data: Parameters<typeof rawFs.writeFile>[1],
+        options?: Parameters<typeof rawFs.writeFile>[2]
+      ) {
+        const pathText = String(filePath);
+        if (pathText.startsWith("/repo/tasks.yaml.") && pathText.endsWith(".tmp")) {
+          tempPath = pathText;
+          await rawFs.writeFile(filePath, "partial\n", options);
+          throw new Error("task list disk full");
+        }
+
+        return rawFs.writeFile(filePath, data, options);
+      }
+    } as TaskListFs;
+
+    await expect(writeAtomically(fs, "/repo/tasks.yaml", "new state\n")).rejects.toThrow(
+      "task list disk full"
+    );
+
+    expect(tempPath).toBeDefined();
+    await expect(rawFs.readFile(tempPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toBe("old state\n");
+  });
 });

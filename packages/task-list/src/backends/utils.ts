@@ -117,7 +117,7 @@ export async function writeAtomically(fs: TaskListFs, filePath: string, content:
     await fs.rename(tempPath, filePath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !hasErrorCode(error, "EEXIST")) {
       try {
         await fs.unlink(tempPath);
       } catch (unlinkError) {

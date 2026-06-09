@@ -96,7 +96,8 @@ function parseQualifiedId(qualifiedId: string): {
 }
 
 function descriptionFromTaskRecord(taskRecord: TaskRecord): string {
-  return typeof taskRecord.description === "string" ? taskRecord.description : "";
+  const description = getOwnEntry(taskRecord, "description");
+  return typeof description === "string" ? description : "";
 }
 
 function metadataFromTaskRecord(taskRecord: TaskRecord): Record<string, unknown> {
@@ -116,8 +117,8 @@ function createTask(list: string, id: string, taskRecord: TaskRecord, sourcePath
     list,
     id,
     qualifiedId: `${list}/${id}`,
-    name: taskRecord.name as string,
-    state: taskRecord.state as string,
+    name: getOwnEntry(taskRecord, "name") as string,
+    state: getOwnEntry(taskRecord, "state") as string,
     description: descriptionFromTaskRecord(taskRecord),
     metadata: metadataFromTaskRecord(taskRecord),
     ...(sourcePath !== undefined && { sourcePath: path.resolve(sourcePath) })
@@ -245,23 +246,24 @@ function assertValidStoreRecord(store: unknown, filePath: string): asserts store
     throw malformedStore(filePath, "store");
   }
 
-  if (store.$schema !== STORE_SCHEMA_ID) {
+  if (getOwnEntry(store, "$schema") !== STORE_SCHEMA_ID) {
     throw malformedStore(filePath, "$schema");
   }
 
-  if (store.kind !== STORE_KIND) {
+  if (getOwnEntry(store, "kind") !== STORE_KIND) {
     throw malformedStore(filePath, "kind");
   }
 
+  const version = getOwnEntry(store, "version");
   if (
-    typeof store.version !== "number" ||
-    !Number.isInteger(store.version) ||
-    store.version !== STORE_VERSION
+    typeof version !== "number" ||
+    !Number.isInteger(version) ||
+    version !== STORE_VERSION
   ) {
     throw malformedStore(filePath, "version");
   }
 
-  if (!isRecord(store.lists)) {
+  if (!isRecord(getOwnEntry(store, "lists"))) {
     throw malformedStore(filePath, "lists");
   }
 }
@@ -276,41 +278,47 @@ function assertValidTaskRecord(
     throw malformedTask(list, id, "task");
   }
 
-  if (hasOwnTaskField(taskRecord, "$schema") && taskRecord.$schema !== TASK_SCHEMA_ID) {
+  if (hasOwnTaskField(taskRecord, "$schema") && getOwnEntry(taskRecord, "$schema") !== TASK_SCHEMA_ID) {
     throw malformedTask(list, id, "$schema");
   }
 
-  if (hasOwnTaskField(taskRecord, "kind") && taskRecord.kind !== TASK_KIND) {
+  if (hasOwnTaskField(taskRecord, "kind") && getOwnEntry(taskRecord, "kind") !== TASK_KIND) {
     throw malformedTask(list, id, "kind");
   }
 
   if (hasOwnTaskField(taskRecord, "version")) {
+    const version = getOwnEntry(taskRecord, "version");
     if (
-      typeof taskRecord.version !== "number" ||
-      !Number.isInteger(taskRecord.version) ||
-      taskRecord.version !== TASK_VERSION
+      typeof version !== "number" ||
+      !Number.isInteger(version) ||
+      version !== TASK_VERSION
     ) {
       throw malformedTask(list, id, "version");
     }
   }
 
+  const name = getOwnEntry(taskRecord, "name");
   if (
     !hasOwnTaskField(taskRecord, "name") ||
-    typeof taskRecord.name !== "string" ||
-    taskRecord.name.length === 0
+    typeof name !== "string" ||
+    name.length === 0
   ) {
     throw malformedTask(list, id, "name");
   }
 
+  const state = getOwnEntry(taskRecord, "state");
   if (
     !hasOwnTaskField(taskRecord, "state") ||
-    typeof taskRecord.state !== "string" ||
-    !validStates.has(taskRecord.state)
+    typeof state !== "string" ||
+    !validStates.has(state)
   ) {
     throw malformedTask(list, id, "state");
   }
 
-  if (hasOwnTaskField(taskRecord, "description") && typeof taskRecord.description !== "string") {
+  if (
+    hasOwnTaskField(taskRecord, "description") &&
+    typeof getOwnEntry(taskRecord, "description") !== "string"
+  ) {
     throw malformedTask(list, id, "description");
   }
 }
@@ -319,12 +327,16 @@ function hasOwnTaskField(taskRecord: TaskRecord, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(taskRecord, key);
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 function validateStoreEntries(
   store: StoreRecord,
   filePath: string,
   validStates: ReadonlySet<string>
 ): void {
-  const lists = store.lists;
+  const lists = getOwnEntry(store, "lists");
 
   if (!isRecord(lists)) {
     throw malformedStore(filePath, "lists");
@@ -380,11 +392,12 @@ async function readStore(
 }
 
 function getListsRecord(store: StoreRecord): Record<string, unknown> {
-  return store.lists as Record<string, unknown>;
+  const lists = getOwnEntry(store, "lists");
+  return isRecord(lists) ? lists : {};
 }
 
 function getListRecord(store: StoreRecord, list: string): Record<string, unknown> | undefined {
-  const listRecord = getListsRecord(store)[list];
+  const listRecord = getOwnEntry(getListsRecord(store), list);
   return isRecord(listRecord) ? listRecord : undefined;
 }
 
@@ -757,7 +770,7 @@ export async function yamlFileBackend(deps: BackendDeps): Promise<TaskList> {
 
     const listNames = sortStrings(Object.keys(getListsRecord(store)));
     for (const listName of listNames) {
-      const listRecord = getListsRecord(store)[listName];
+      const listRecord = getOwnEntry(getListsRecord(store), listName);
       if (!isRecord(listRecord)) continue;
 
       const entries: OrderedEntry[] = Object.entries(listRecord)

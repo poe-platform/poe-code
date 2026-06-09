@@ -1410,7 +1410,11 @@ function resolveLocalReference(
   let current: unknown = document;
 
   for (const segment of ref.slice(2).split("/").map(unescapeJsonPointerSegment)) {
-    if (typeof current !== "object" || current === null || !(segment in current)) {
+    if (
+      typeof current !== "object" ||
+      current === null ||
+      !Object.prototype.hasOwnProperty.call(current, segment)
+    ) {
       throw new UserError(
         `Operation ${JSON.stringify(operationId)} references missing $ref ${JSON.stringify(ref)} in ${context}.`
       );

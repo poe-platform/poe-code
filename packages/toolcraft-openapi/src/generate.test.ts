@@ -2277,6 +2277,50 @@ describe("generate", () => {
     );
   });
 
+  it("does not resolve missing refs through inherited prototype properties", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: {
+            title: "Internal Agent API",
+            version: "1.0.0"
+          },
+          components: {
+            schemas: {}
+          },
+          paths: {
+            "/bots": {
+              get: {
+                tags: ["bots"],
+                operationId: "listBots",
+                parameters: [
+                  {
+                    name: "filter",
+                    in: "query",
+                    schema: {
+                      $ref: "#/components/schemas/__proto__"
+                    }
+                  }
+                ],
+                responses: {
+                  "200": {
+                    description: "Listed."
+                  }
+                }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "listBots" references missing $ref "#/components/schemas/__proto__" in parameter "filter".'
+      )
+    );
+  });
+
   it("preserves OpenAPI scalar and array constraints in generated MCP schemas", () => {
     const files = generate(
       createDocument({

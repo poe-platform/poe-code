@@ -727,6 +727,10 @@ function resolveLocalRef(root: JsonSchema, ref: string): JsonSchema | undefined 
       return undefined;
     }
 
+    if (!Object.prototype.hasOwnProperty.call(current, segment)) {
+      return undefined;
+    }
+
     current = current[segment];
   }
 

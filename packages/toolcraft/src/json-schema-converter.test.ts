@@ -395,4 +395,14 @@ describe("convertJsonSchema", () => {
       'JSON Schema "#/properties/payload" uses "$ref": https://example.com/schema.json. toolcraft only supports internal refs like "#/components/schemas/Foo".'
     );
   });
+
+  it("does not resolve missing refs through inherited prototype properties", async () => {
+    const schema = await loadSchema({
+      $ref: "#/__proto__"
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#" uses "$ref": #/__proto__. toolcraft only supports internal refs like "#/components/schemas/Foo".'
+    );
+  });
 });

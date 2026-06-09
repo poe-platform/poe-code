@@ -1,6 +1,7 @@
 import { TaskNotFoundError, type Task } from "@poe-code/task-list";
 import { S } from "toolcraft-schema";
 import type { CommandNode, Group, RenderPrimitives } from "../index.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { UserError, defineCommand, defineGroup } from "../index.js";
 import { ensureApprovalList } from "./approval-tasks.js";
 import { runApproval } from "./runner.js";
@@ -313,5 +314,5 @@ function escapeMarkdownCell(value: string): string {
 }
 
 function isMissingStateError(error: unknown): error is NodeJS.ErrnoException {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

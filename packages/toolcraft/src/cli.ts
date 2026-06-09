@@ -49,6 +49,7 @@ import {
   getCommandSourcePath,
   resolveCommandSecrets
 } from "./index.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
@@ -2330,7 +2331,7 @@ async function loadPresetValues(
       encoding: "utf8"
     });
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       throw new UserError(`Preset file "${presetPath}" was not found.`);
     }
 

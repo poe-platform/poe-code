@@ -7,6 +7,7 @@ import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
 import type { Tool } from "tiny-mcp-client";
 import type { Command, Group, Scope } from "./index.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { convertJsonSchema } from "./json-schema-converter.js";
 import type { ObjectSchema } from "toolcraft-schema";
 
@@ -273,9 +274,7 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
       version: parsed.version === 1 ? 1 : 1,
     };
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-
-    if (code === "ENOENT" || error instanceof SyntaxError) {
+    if (hasOwnErrorCode(error, "ENOENT") || error instanceof SyntaxError) {
       return undefined;
     }
 
@@ -313,11 +312,7 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    (error as NodeJS.ErrnoException).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function fetchCache(
@@ -589,7 +584,7 @@ async function assertCachePathHasNoSymlinks(filePath: string): Promise<void> {
         throw new Error(`MCP cache path must not contain symbolic links: ${currentPath}.`);
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

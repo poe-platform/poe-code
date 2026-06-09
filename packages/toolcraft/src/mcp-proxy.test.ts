@@ -120,6 +120,25 @@ vi.mock("tiny-mcp-client", () => ({
 
 const { parseRefreshEnv, resolveCachePath, resolveMcpProxies } = await import("./mcp-proxy.js");
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 function tool(
   name: string,
   schema: Record<string, unknown> = {
@@ -908,13 +927,15 @@ describe("resolveMcpProxies", () => {
       if (targetPath.startsWith(`${getCachePath()}.tmp-`)) {
         stagedPath = targetPath;
         await originalWriteFile(args[0] as string, "partial\n", args[2] as never);
-        throw Object.assign(new Error("disk full"), { code: "ENOSPC" });
+        throw new Error("disk full");
       }
 
       return originalWriteFile(...args);
     });
 
-    await expect(resolveMcpProxies(root)).rejects.toThrow(/couldn't discover MCP github: disk full/);
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(resolveMcpProxies(root)).rejects.toThrow(/couldn't discover MCP github: disk full/);
+    });
 
     expect(stagedPath).toMatch(new RegExp(`^${getCachePath().replaceAll(".", "\\.")}\\.tmp-`));
     expect(vol.existsSync(stagedPath ?? "")).toBe(false);
@@ -979,7 +1000,9 @@ describe("resolveMcpProxies", () => {
     vol.symlinkSync("/outside", "/repo/.toolcraft/mcp");
     setClientPlans({ pages: [{ tools: [tool("create_issue")] }] });
 
-    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    });
     expect(vol.existsSync("/outside/github.json")).toBe(false);
   });
 
@@ -999,7 +1022,9 @@ describe("resolveMcpProxies", () => {
     );
     vol.symlinkSync("/outside/github.json", getCachePath());
 
-    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    });
     expect(group.children).toHaveLength(0);
   });
 

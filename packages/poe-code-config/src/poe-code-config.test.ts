@@ -1236,6 +1236,28 @@ describe("store", () => {
     );
   });
 
+  it("cleans a partial invalid config backup when recovery fails", async () => {
+    const original = "not json\n";
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    let backupPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.includes(".invalid-")) {
+          backupPath = targetPath;
+          await base.writeFile(targetPath, "partial backup\n", options);
+          throw new Error("config backup disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(readDocument(fs, configPath)).rejects.toThrow("config backup disk full");
+    expect(backupPath).toBeDefined();
+    expect(base.getContent(backupPath ?? "")).toBeUndefined();
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
   it("writes a scope while preserving unrelated scopes", async () => {
     const fs = createMockFs(
       {

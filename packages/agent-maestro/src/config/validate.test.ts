@@ -210,6 +210,22 @@ describe("validateDispatch", () => {
     });
   });
 
+  it("does not treat inherited prototype names as declared initial states", async () => {
+    await expect(
+      validateDispatch(
+        cfg({
+          activeStateNames: ["constructor"],
+          stateOrder: ["constructor", "done"]
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "unknown_initial_state",
+      state: "constructor"
+    });
+  });
+
   it("requires agent.list for gh-issues tasks", async () => {
     const base = cfg();
 

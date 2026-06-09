@@ -66,7 +66,11 @@ export async function validateDispatch(
 
   const initialState = cfg.stateOrder[0];
 
-  if (initialState === undefined || cfg.states[initialState] === undefined) {
+  if (
+    initialState === undefined ||
+    !hasOwnState(cfg.states, initialState) ||
+    cfg.states[initialState] === undefined
+  ) {
     return { ok: false, code: "unknown_initial_state", state: initialState ?? "" };
   }
 
@@ -197,6 +201,10 @@ function hasEmptyStringValue(value: unknown): boolean {
   }
 
   return Object.values(value).some((entry) => hasEmptyStringValue(entry));
+}
+
+function hasOwnState(states: Record<string, unknown>, state: string): boolean {
+  return Object.prototype.hasOwnProperty.call(states, state);
 }
 
 function isRecord(value: unknown): value is JsonRecord {

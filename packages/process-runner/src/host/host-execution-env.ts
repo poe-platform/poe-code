@@ -30,16 +30,24 @@ export const hostExecutionEnvFactory: ExecutionEnvFactory = {
       },
       shell() {
         const shellSpec = openSpec.shellSpec;
+        const shellArgs = getOwnShellSpecProperty(shellSpec, "args");
+        const shellCwd = getOwnShellSpecProperty(shellSpec, "cwd");
+        const shellEnv = getOwnShellSpecProperty(shellSpec, "env");
+        const shellSignal = getOwnShellSpecProperty(shellSpec, "signal");
         return createHostRunner().exec({
-          command: shellSpec?.command ?? openSpec.env.SHELL ?? process.env.SHELL ?? "sh",
-          ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-          cwd: shellSpec?.cwd ?? openSpec.cwd,
-          env: shellSpec && "env" in shellSpec ? shellSpec.env : openSpec.env,
+          command:
+            getOwnShellSpecProperty(shellSpec, "command") ??
+            openSpec.env.SHELL ??
+            process.env.SHELL ??
+            "sh",
+          ...(shellArgs ? { args: shellArgs } : {}),
+          cwd: shellCwd ?? openSpec.cwd,
+          env: hasOwnShellSpecProperty(shellSpec, "env") ? shellEnv : openSpec.env,
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",
           tty: true,
-          signal: shellSpec?.signal
+          ...(shellSignal === undefined ? {} : { signal: shellSignal })
         });
       },
       async close() {}
@@ -49,3 +57,17 @@ export const hostExecutionEnvFactory: ExecutionEnvFactory = {
     throw new Error("host runtime does not support reattach");
   }
 };
+
+function getOwnShellSpecProperty<Name extends keyof RunSpec>(
+  shellSpec: RunSpec | undefined,
+  name: Name
+): RunSpec[Name] | undefined {
+  return hasOwnShellSpecProperty(shellSpec, name) ? shellSpec[name] : undefined;
+}
+
+function hasOwnShellSpecProperty<Name extends keyof RunSpec>(
+  shellSpec: RunSpec | undefined,
+  name: Name
+): shellSpec is RunSpec & Record<Name, RunSpec[Name]> {
+  return shellSpec !== undefined && Object.prototype.hasOwnProperty.call(shellSpec, name);
+}

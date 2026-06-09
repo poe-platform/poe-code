@@ -1134,6 +1134,7 @@ describe("acp/spawnStreaming", () => {
       {
         args: ["--polluted"],
         cwd: "/polluted",
+        detached: true,
         mcpServers: {
           polluted: {
             command: "polluted-mcp"
@@ -1165,6 +1166,7 @@ describe("acp/spawnStreaming", () => {
       ...openCodeSpawnConfig.defaultArgs,
       ...openCodeSpawnConfig.modes.yolo
     ]);
+    expect(Object.getPrototypeOf(spawnOptions)).toBeNull();
     expect(spawnOptions).toMatchObject({ cwd, stdio: ["pipe", "pipe", "pipe"] });
   });
 

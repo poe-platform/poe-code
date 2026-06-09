@@ -3,11 +3,14 @@ import type { Runner, RunSpec } from "../types.js";
 import type { HostRunnerOptions, RunHandle, RunResult } from "../types.js";
 
 export function createHostRunner(options: HostRunnerOptions = {}): Runner {
-  const detachedByDefault = options.detached === true;
+  const runnerOptions = normalizeHostRunnerOptions(options);
+  const detachedByDefault = runnerOptions.detached === true;
 
   return {
     name: "host",
-    exec(spec: RunSpec): RunHandle {
+    exec(inputSpec: RunSpec): RunHandle {
+      const spec = normalizeRunSpec(inputSpec);
+
       if (spec.signal?.aborted === true) {
         return {
           pid: null,
@@ -27,12 +30,16 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
         stdinMode === "inherit" && stdoutMode === "inherit" && stderrMode === "inherit"
           ? "inherit"
           : [stdinMode, stdoutMode, stderrMode];
-      const child = spawnChildProcess(spec.command, spec.args ?? [], {
-        cwd: spec.cwd,
-        env: spec.env,
-        stdio,
-        ...(killProcessGroup ? { detached: true } : {})
-      });
+      const child = spawnChildProcess(
+        spec.command,
+        spec.args ?? [],
+        createNullRecord({
+          cwd: spec.cwd,
+          env: spec.env,
+          stdio,
+          ...(killProcessGroup ? { detached: true } : {})
+        })
+      );
 
       if (killProcessGroup) {
         child.unref();
@@ -84,6 +91,53 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       };
     }
   };
+}
+
+function normalizeHostRunnerOptions(options: HostRunnerOptions): HostRunnerOptions {
+  return createNullRecord({
+    ...optionalOwnProperty(options, "detached")
+  });
+}
+
+function normalizeRunSpec(spec: RunSpec): RunSpec {
+  return createNullRecord({
+    command: getOwnProperty(spec, "command") as RunSpec["command"],
+    ...optionalOwnProperty(spec, "args"),
+    ...optionalOwnProperty(spec, "cwd"),
+    ...optionalOwnProperty(spec, "env"),
+    ...optionalOwnProperty(spec, "stdin"),
+    ...optionalOwnProperty(spec, "stdout"),
+    ...optionalOwnProperty(spec, "stderr"),
+    ...optionalOwnProperty(spec, "tty"),
+    ...optionalOwnProperty(spec, "signal"),
+    ...optionalOwnProperty(spec, "killProcessGroup")
+  });
+}
+
+function optionalOwnProperty<T extends object, Name extends keyof T>(
+  value: T,
+  name: Name
+): Pick<T, Name> | Record<string, never> {
+  const property = getOwnProperty(value, name);
+  return property === undefined ? {} : ({ [name]: property } as Pick<T, Name>);
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }
 
 function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): () => void {

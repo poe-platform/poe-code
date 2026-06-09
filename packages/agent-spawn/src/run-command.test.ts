@@ -61,6 +61,40 @@ describe("runCommand", () => {
     });
   });
 
+  it("ignores inherited command runner option fields", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess);
+    const controller = new AbortController();
+    controller.abort();
+    spawnMock.mockClear();
+    spawnMock.mockReturnValue(createSignalTerminatedProcess("SIGTERM"));
+
+    await withObjectPrototypeProperties(
+      {
+        cwd: "/polluted",
+        detached: true,
+        env: { POLLUTED: "1" },
+        signal: controller.signal,
+        stdin: "polluted input",
+        timeoutMs: 1_000
+      },
+      async () => {
+        await expect(runCommand("clean-command", [], {})).resolves.toMatchObject({
+          exitCode: 143
+        });
+      }
+    );
+
+    const [command, args, options] = spawnMock.mock.calls[0]!;
+    expect(command).toBe("clean-command");
+    expect(args).toEqual([]);
+    expect(options).toMatchObject({
+      cwd: undefined,
+      env: undefined,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    expect(Object.getPrototypeOf(options)).toBeNull();
+  });
+
   it("terminates timed out commands while preserving captured output", async () => {
     vi.useFakeTimers();
     try {

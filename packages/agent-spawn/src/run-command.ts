@@ -32,9 +32,11 @@ export type CommandRunner = (
 export function runCommand(
   command: string,
   args: string[],
-  options?: CommandRunnerOptions
+  inputOptions?: CommandRunnerOptions
 ): Promise<CommandRunnerResult> {
   return new Promise((resolve) => {
+    const options = normalizeCommandRunnerOptions(inputOptions);
+
     if (options?.signal?.aborted === true) {
       resolve({
         stdout: "",
@@ -50,17 +52,21 @@ export function runCommand(
     const hasTimeout = typeof timeoutMs === "number" && timeoutMs > 0;
     const canAbort = options?.signal !== undefined;
     const killProcessGroup = process.platform !== "win32" && (hasTimeout || canAbort);
-    const child = spawn(command, args, {
-      stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
-      cwd: options?.cwd,
-      env: options?.env
-        ? {
-            ...(process.env as Record<string, string | undefined>),
-            ...options.env
-          }
-        : undefined,
-      ...(killProcessGroup ? { detached: true } : {})
-    });
+    const child = spawn(
+      command,
+      args,
+      createNullRecord({
+        stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
+        cwd: options?.cwd,
+        env: options?.env
+          ? {
+              ...(process.env as Record<string, string | undefined>),
+              ...options.env
+            }
+          : undefined,
+        ...(killProcessGroup ? { detached: true } : {})
+      })
+    );
     if (killProcessGroup) {
       child.unref();
     }
@@ -190,6 +196,48 @@ export function runCommand(
       })();
     });
   });
+}
+
+function normalizeCommandRunnerOptions(
+  options: CommandRunnerOptions | undefined
+): CommandRunnerOptions {
+  if (options === undefined) {
+    return createNullRecord({});
+  }
+
+  return createNullRecord({
+    ...optionalOwnProperty(options, "cwd"),
+    ...optionalOwnProperty(options, "env"),
+    ...optionalOwnProperty(options, "stdin"),
+    ...optionalOwnProperty(options, "timeoutMs"),
+    ...optionalOwnProperty(options, "signal")
+  });
+}
+
+function optionalOwnProperty<Name extends keyof CommandRunnerOptions>(
+  options: CommandRunnerOptions,
+  name: Name
+): Pick<CommandRunnerOptions, Name> | Record<string, never> {
+  const value = getOwnProperty(options, name);
+  return value === undefined ? {} : ({ [name]: value } as Pick<CommandRunnerOptions, Name>);
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }
 
 async function waitForProcessGroupExit(pid: number): Promise<void> {

@@ -37,6 +37,33 @@ function readHooks(): unknown {
   return JSON.parse(vol.readFileSync(targetPath, "utf8") as string);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("writeCodexHooks", () => {
   beforeEach(() => {
     vol.reset();
@@ -64,6 +91,23 @@ describe("writeCodexHooks", () => {
       }
     });
     expect(vol.readFileSync(targetPath, "utf8")).toMatch(/\n$/);
+  });
+
+  it("does not create hooks when read errors have inherited missing-file codes", async () => {
+    const readFile = vi.spyOn(fs, "readFileSync").mockImplementation(() => {
+      throw new Error("hook read denied");
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+        expect(() =>
+          writeCodexHooks(targetPath, [generatedEntry("Stop", "notify", "")], "current")
+        ).toThrow("hook read denied");
+      });
+      expect(vol.existsSync(targetPath)).toBe(false);
+    } finally {
+      readFile.mockRestore();
+    }
   });
 
   it("creates an absent target without inventing event keys for empty input", () => {

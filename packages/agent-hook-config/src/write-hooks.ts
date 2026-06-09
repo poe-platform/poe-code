@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { SourceHookEntry } from "./read-hooks.js";
 import type { GeneratedHookEntry } from "./transform-hooks.js";
 
@@ -37,7 +38,7 @@ function parseHooksFile(targetPath: string): { file: CodexHooksFile; fileCreated
   try {
     content = readFileSync(targetPath, "utf8");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return { file: { hooks: {} }, fileCreated: true };
     }
 
@@ -146,7 +147,7 @@ function writeTemporaryFile(targetPath: string, runId: string, content: string):
       writeFileSync(temporaryPath, content, { flag: "wx" });
       return temporaryPath;
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+      if (!hasOwnErrorCode(error, "EEXIST")) {
         try {
           unlinkSync(temporaryPath);
         } catch (cleanupError) {

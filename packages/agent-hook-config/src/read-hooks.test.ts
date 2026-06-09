@@ -19,6 +19,33 @@ function writeSettings(filePath: string, settings: unknown): void {
   vol.fromJSON({ [filePath]: JSON.stringify(settings) }, "/");
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("readClaudeHooks", () => {
   beforeEach(() => {
     vol.reset();
@@ -53,6 +80,16 @@ describe("readClaudeHooks", () => {
     fs.symlinkSync("/outside/settings.json", projectPath);
 
     expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(/symbolic link/);
+  });
+
+  it("does not ignore symlinked settings files with inherited missing-file codes", async () => {
+    writeSettings("/outside/settings.json", { hooks: {} });
+    vol.mkdirSync(path.dirname(projectPath), { recursive: true });
+    fs.symlinkSync("/outside/settings.json", projectPath);
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+      expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(/symbolic link/);
+    });
   });
 
   it("reads only a user settings file in user scope", () => {

@@ -51,6 +51,33 @@ function generatedSettings(statusMessage = "[generated:poe-code:bridge-run] runn
   });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("symlinkHooks", () => {
   beforeEach(() => {
     vol.reset();
@@ -173,6 +200,19 @@ describe("symlinkHooks", () => {
     expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
       /refuse.*user-authored/i
     );
+    expect(readFileSync(targetPath, "utf8")).toBe(contents);
+    expect(lstatSync(targetPath).isSymbolicLink()).toBe(false);
+  });
+
+  it("does not ignore user-authored targets with inherited missing-file codes", async () => {
+    const contents = generatedSettings("user-authored");
+    vol.fromJSON({ [targetPath]: contents }, "/");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+      expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+        /refuse.*user-authored/i
+      );
+    });
     expect(readFileSync(targetPath, "utf8")).toBe(contents);
     expect(lstatSync(targetPath).isSymbolicLink()).toBe(false);
   });

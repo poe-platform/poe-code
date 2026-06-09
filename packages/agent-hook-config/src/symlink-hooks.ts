@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveHookPath, type AgentHookConfig } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { assertNoSymbolicLink } from "./path-safety.js";
 
 export interface SymlinkResult {
@@ -181,7 +182,7 @@ export function symlinkHooks(
       throw new Error(`Refuse to replace user-authored hook file at ${symlinkPath}`);
     }
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }

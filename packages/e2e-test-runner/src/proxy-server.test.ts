@@ -196,20 +196,28 @@ function parseBody(body: string): unknown {
   }
 }
 
-async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
-  const originalDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'code');
-  Object.defineProperty(Object.prototype, 'code', {
-    configurable: true,
-    value: code,
-  });
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>,
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+    });
+  }
 
   try {
     return await callback();
   } finally {
-    if (originalDescriptor) {
-      Object.defineProperty(Object.prototype, 'code', originalDescriptor);
-    } else {
-      delete (Object.prototype as { code?: unknown }).code;
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
     }
   }
 }
@@ -1007,7 +1015,7 @@ describe('startProxyServer record mode', () => {
     });
     closeHandles.push(proxy.close);
 
-    const response = await withObjectPrototypeCode('EEXIST', async () =>
+    const response = await withObjectPrototypeProperties({ code: 'EEXIST' }, async () =>
       makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
@@ -1223,12 +1231,53 @@ describe('startProxyServer playback mode', () => {
     });
     closeHandles.push(proxy.close);
 
-    const response = await withObjectPrototypeCode('ENOENT', async () =>
+    const response = await withObjectPrototypeProperties({ code: 'ENOENT' }, async () =>
       fetch(`${proxy.url}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
       }),
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: `Snapshot ${snapshotPath} is missing response.`,
+    });
+  });
+
+  it('does not serve inherited snapshot responses', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'inherited snapshot response' }],
+    };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify({ key, request: payload }));
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await withObjectPrototypeProperties(
+      { response: { id: 'polluted' } },
+      async () =>
+        fetch(`${proxy.url}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify(payload),
+        }),
     );
 
     expect(response.status).toBe(502);

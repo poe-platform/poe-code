@@ -188,7 +188,11 @@ async function readSnapshotResponse(route: ProxyRoute, key: string): Promise<unk
   const snapshotPath = join(route.snapshotDir, `${key}.json`);
   const snapshotRaw = await readFile(snapshotPath, 'utf8');
   const snapshot = parseBody(snapshotRaw);
-  if (snapshot === null || typeof snapshot !== 'object' || !('response' in snapshot)) {
+  if (
+    snapshot === null ||
+    typeof snapshot !== 'object' ||
+    !Object.prototype.hasOwnProperty.call(snapshot, 'response')
+  ) {
     throw new Error(`Snapshot ${snapshotPath} is missing response.`);
   }
 

@@ -40,12 +40,16 @@ export interface SpawnAcpResult {
 
 function toAcpMcpServers(servers?: McpSpawnConfig): McpServer[] {
   if (!servers) return [];
-  return Object.entries(servers).map(([name, server]) => ({
-    name,
-    command: server.command,
-    args: server.args ?? [],
-    env: server.env ? Object.entries(server.env).map(([k, v]) => ({ name: k, value: v })) : []
-  }));
+  return Object.entries(servers).map(([name, server]) => {
+    const args = getOwnProperty(server, "args") as McpSpawnConfig[string]["args"];
+    const env = getOwnProperty(server, "env") as McpSpawnConfig[string]["env"];
+    return {
+      name,
+      command: getOwnProperty(server, "command") as string,
+      args: args ?? [],
+      env: env ? Object.entries(env).map(([k, v]) => ({ name: k, value: v })) : []
+    };
+  });
 }
 
 function createAbortError(): Error {
@@ -83,7 +87,9 @@ function accumulateUsage(ctx: SpawnContext, event: AcpEvent): void {
   }
 }
 
-export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
+export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
+  const options = normalizeSpawnAcpOptions(input);
+
   if (options.signal?.aborted) {
     throw createAbortError();
   }
@@ -108,7 +114,10 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   if (!acpConfig) {
     throw new Error(`Agent "${resolvedId}" does not support ACP spawn.`);
   }
-  if (options.mcpServers && acpConfig.supportsMcpServers === false) {
+  const supportsMcpServers = getOwnProperty(acpConfig, "supportsMcpServers") as
+    | boolean
+    | undefined;
+  if (options.mcpServers && supportsMcpServers === false) {
     throw new Error(`Agent "${resolvedId}" does not support MCP servers over ACP spawn.`);
   }
 
@@ -117,30 +126,35 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   if (!binaryName) {
     throw new Error(`Agent "${resolvedId}" has no binaryName.`);
   }
-  const mcpEnvVars =
-    options.mcpServers && acpConfig.mcpEnv ? acpConfig.mcpEnv(options.mcpServers) : {};
+  const mcpEnv = getOwnProperty(acpConfig, "mcpEnv") as
+    | ((servers: McpSpawnConfig) => NodeJS.ProcessEnv)
+    | undefined;
+  const mcpEnvVars = options.mcpServers && mcpEnv ? mcpEnv(options.mcpServers) : {};
 
-  const envOverrides = { ...(acpConfig.env ?? {}), ...mcpEnvVars, ...(options.env ?? {}) };
+  const acpEnv = getOwnProperty(acpConfig, "env") as NodeJS.ProcessEnv | undefined;
+  const envOverrides = { ...(acpEnv ?? {}), ...mcpEnvVars, ...(options.env ?? {}) };
   const env =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const cwd = options.cwd ?? process.cwd();
   const manifest = bridgeResourcesForRun(options.agentId, cwd, options.skills, options.hooks);
 
   let client: AcpClient;
+  const acpArgs = getOwnProperty(acpConfig, "acpArgs") as typeof acpConfig.acpArgs;
+  const skipAuth = getOwnProperty(acpConfig, "skipAuth") as typeof acpConfig.skipAuth;
   try {
     client = new AcpClient({
       command: binaryName,
       args:
-        typeof acpConfig.acpArgs === "function"
-          ? acpConfig.acpArgs({
+        typeof acpArgs === "function"
+          ? acpArgs({
               model: options.model,
               mode: options.mode,
               mcpServers: options.mcpServers
             })
-          : acpConfig.acpArgs,
+          : acpArgs,
       cwd,
       env,
-      skipAuth: acpConfig.skipAuth ?? false,
+      skipAuth: skipAuth ?? false,
       autoApprove: (options.mode ?? "yolo") === "yolo"
     });
   } catch (error) {
@@ -399,4 +413,54 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
       await client.setConfigOption(sessionId, "model", model).catch(() => undefined);
     }
   };
+}
+
+function normalizeSpawnAcpOptions(options: SpawnAcpOptions): SpawnAcpOptions {
+  return createNullRecord({
+    agentId: getOwnProperty(options, "agentId") as SpawnAcpOptions["agentId"],
+    prompt: getOwnProperty(options, "prompt") as SpawnAcpOptions["prompt"],
+    ...optionalOwnProperty(options, "cwd"),
+    ...optionalOwnProperty(options, "model"),
+    ...optionalOwnProperty(options, "mode"),
+    ...optionalOwnProperty(options, "mcpServers"),
+    ...optionalOwnProperty(options, "skills"),
+    ...optionalOwnProperty(options, "hooks"),
+    ...optionalOwnProperty(options, "resumeThreadId"),
+    ...optionalOwnProperty(options, "runtime"),
+    ...optionalOwnProperty(options, "runtimeImage"),
+    ...optionalOwnProperty(options, "runtimeTemplate"),
+    ...optionalOwnProperty(options, "detach"),
+    ...optionalOwnProperty(options, "mountPoeCode"),
+    ...optionalOwnProperty(options, "runnerSync"),
+    ...optionalOwnProperty(options, "signal"),
+    ...optionalOwnProperty(options, "otelSink"),
+    ...optionalOwnProperty(options, "middlewares"),
+    ...optionalOwnProperty(options, "env")
+  });
+}
+
+function optionalOwnProperty<Name extends keyof SpawnAcpOptions>(
+  options: SpawnAcpOptions,
+  name: Name
+): Pick<SpawnAcpOptions, Name> | Record<string, never> {
+  const value = getOwnProperty(options, name);
+  return value === undefined ? {} : ({ [name]: value } as Pick<SpawnAcpOptions, Name>);
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }

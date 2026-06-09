@@ -131,6 +131,33 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return items;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function stripMeta<T>(events: T[]): T[] {
   return events.map((event) => {
     if (event && typeof event === "object") {
@@ -952,6 +979,41 @@ describe("spawnAcp", () => {
     ).toThrow("spawnAcp does not support runtime overrides; use spawnStreaming instead.");
 
     expect(lastMockAcpClient).toBeUndefined();
+  });
+
+  it("ignores inherited ACP spawn option fields", async () => {
+    const cwd = process.cwd();
+
+    await withObjectPrototypeProperties(
+      {
+        cwd: "/polluted",
+        env: {
+          POLLUTED: "1"
+        },
+        mcpServers: {
+          polluted: {
+            command: "polluted-mcp"
+          }
+        },
+        mode: "read",
+        model: "polluted/model",
+        runtime: "docker"
+      },
+      async () => {
+        const { events, done } = spawnAcp({
+          agentId: "opencode",
+          prompt: "test"
+        });
+
+        await collect(events);
+        await done;
+      }
+    );
+
+    expect(lastMockAcpClientOptions.cwd).toBe(cwd);
+    expect(lastMockAcpClientOptions.args).not.toContain("polluted/model");
+    expect(lastMockAcpClientOptions.env).toBeUndefined();
+    expect(lastMockAcpClient.newSession).toHaveBeenCalledWith(cwd, []);
   });
 
   it("does not prompt when aborted while creating an ACP session", async () => {

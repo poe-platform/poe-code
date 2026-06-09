@@ -7,8 +7,8 @@ export function isNotFound(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "ENOENT"
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "ENOENT"
   );
 }
 

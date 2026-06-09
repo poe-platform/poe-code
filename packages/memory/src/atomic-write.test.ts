@@ -46,4 +46,36 @@ describe("writeFileAtomically", () => {
     expect(vol.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
     await expect(vol.promises.readFile(filePath, "utf8")).resolves.toBe("# Existing\n");
   });
+
+  it("removes a partial temporary file when the temp write fails", async () => {
+    const filePath = "/repo/.poe-code/memory/pages/page.md";
+    vol.fromJSON({
+      [filePath]: "# Existing\n"
+    });
+
+    let tempPath: string | undefined;
+    const writeFile = vol.promises.writeFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (targetPath, data, options) => {
+      const pathText = String(targetPath);
+      if (
+        tempPath === undefined &&
+        pathText.startsWith(`${filePath}.`) &&
+        pathText.endsWith(".tmp")
+      ) {
+        tempPath = pathText;
+        await writeFile(targetPath, "partial\n", options);
+        throw new Error("disk full");
+      }
+
+      await writeFile(targetPath, data, options);
+    });
+
+    await expect(writeFileAtomically(filePath, "# Updated\n")).rejects.toThrow("disk full");
+
+    expect(tempPath).toBeDefined();
+    await expect(vol.promises.readFile(tempPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(vol.promises.readFile(filePath, "utf8")).resolves.toBe("# Existing\n");
+  });
 });

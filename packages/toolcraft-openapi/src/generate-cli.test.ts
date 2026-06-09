@@ -337,6 +337,7 @@ describe("runGenerateCli", () => {
 
     const writeFile = harness.services.fs.writeFile.bind(harness.services.fs);
     let indexWriteFailed = false;
+    let stagedPath: string | undefined;
     vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
       async (filePath, contents, encoding) => {
         const pathText = String(filePath);
@@ -346,6 +347,8 @@ describe("runGenerateCli", () => {
           !indexWriteFailed
         ) {
           indexWriteFailed = true;
+          stagedPath = pathText;
+          await writeFile(filePath, String(contents).slice(0, 12), encoding);
           throw new Error("disk full during index write");
         }
 
@@ -361,6 +364,8 @@ describe("runGenerateCli", () => {
       ...before,
       "openapi.json": updatedSpec
     });
+    expect(stagedPath).toBeDefined();
+    await expect(harness.fs.lstat(stagedPath as string)).rejects.toThrow("ENOENT");
   });
 
   it("rejects a symlinked generated output directory", async () => {

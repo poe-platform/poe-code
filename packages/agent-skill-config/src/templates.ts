@@ -13,7 +13,12 @@ async function pathExists(target: string): Promise<boolean> {
     await stat(target);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (
+      error &&
+      typeof error === "object" &&
+      Object.prototype.hasOwnProperty.call(error, "code") &&
+      (error as { code?: unknown }).code === "ENOENT"
+    ) {
       return false;
     }
     throw error;

@@ -191,6 +191,40 @@ describe("yamlFileBackend", () => {
     await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toContain("__proto__:");
   });
 
+  it("does not accept inherited task state fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    inherited:",
+        "      name: Inherited",
+        ""
+      ].join("\n")
+    });
+
+    Object.defineProperty(Object.prototype, "state", {
+      value: "draft",
+      configurable: true
+    });
+    try {
+      const taskList = await yamlFileBackend({
+        path: "/repo/tasks.yaml",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      });
+
+      await expect(taskList.list("planning").get("inherited")).rejects.toThrow(
+        new MalformedTaskError('Malformed task "planning/inherited": invalid "state".')
+      );
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).state;
+    }
+  });
+
   it("sets an absolute sourcePath when reading tasks", async () => {
     const { fs } = createFs({
       "/repo/tasks.yaml": [

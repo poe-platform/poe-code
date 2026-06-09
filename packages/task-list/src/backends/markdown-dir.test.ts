@@ -187,6 +187,35 @@ Body`
     expect((task.metadata as { owner?: string }).owner).toBeUndefined();
   });
 
+  it("does not accept inherited task state fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/inherited.md": `---
+name: Inherited
+---
+
+Body`
+    });
+
+    Object.defineProperty(Object.prototype, "state", {
+      value: "draft",
+      configurable: true
+    });
+    try {
+      const taskList = await markdownDirBackend({
+        path: "/repo/tasks",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      });
+
+      await expect(taskList.list("planning").get("inherited")).rejects.toThrow(
+        new MalformedTaskError('Malformed task "/repo/tasks/planning/inherited.md": invalid "state".')
+      );
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).state;
+    }
+  });
+
   it("preserves proto-named metadata through create, update, and fire", async () => {
     const { fs } = createFs();
     const taskList = await openTaskList({

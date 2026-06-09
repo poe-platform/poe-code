@@ -276,15 +276,15 @@ function assertValidTaskRecord(
     throw malformedTask(list, id, "task");
   }
 
-  if ("$schema" in taskRecord && taskRecord.$schema !== TASK_SCHEMA_ID) {
+  if (hasOwnTaskField(taskRecord, "$schema") && taskRecord.$schema !== TASK_SCHEMA_ID) {
     throw malformedTask(list, id, "$schema");
   }
 
-  if ("kind" in taskRecord && taskRecord.kind !== TASK_KIND) {
+  if (hasOwnTaskField(taskRecord, "kind") && taskRecord.kind !== TASK_KIND) {
     throw malformedTask(list, id, "kind");
   }
 
-  if ("version" in taskRecord) {
+  if (hasOwnTaskField(taskRecord, "version")) {
     if (
       typeof taskRecord.version !== "number" ||
       !Number.isInteger(taskRecord.version) ||
@@ -294,17 +294,29 @@ function assertValidTaskRecord(
     }
   }
 
-  if (typeof taskRecord.name !== "string" || taskRecord.name.length === 0) {
+  if (
+    !hasOwnTaskField(taskRecord, "name") ||
+    typeof taskRecord.name !== "string" ||
+    taskRecord.name.length === 0
+  ) {
     throw malformedTask(list, id, "name");
   }
 
-  if (typeof taskRecord.state !== "string" || !validStates.has(taskRecord.state)) {
+  if (
+    !hasOwnTaskField(taskRecord, "state") ||
+    typeof taskRecord.state !== "string" ||
+    !validStates.has(taskRecord.state)
+  ) {
     throw malformedTask(list, id, "state");
   }
 
-  if ("description" in taskRecord && typeof taskRecord.description !== "string") {
+  if (hasOwnTaskField(taskRecord, "description") && typeof taskRecord.description !== "string") {
     throw malformedTask(list, id, "description");
   }
+}
+
+function hasOwnTaskField(taskRecord: TaskRecord, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(taskRecord, key);
 }
 
 function validateStoreEntries(

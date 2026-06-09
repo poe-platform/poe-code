@@ -330,6 +330,30 @@ describe("bridgeHooks", () => {
     expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
   });
 
+  it("removes a partial cleanup temp file when cleanup rewrite creation fails", () => {
+    vol.mkdirSync(path.dirname(targetPath), { recursive: true });
+    vol.writeFileSync(targetPath, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user" }] }] } }));
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });
+    const original = vol.readFileSync(targetPath, "utf8") as string;
+    const writeFileSync = fs.writeFileSync.bind(fs);
+    let temporaryPath: string | undefined;
+    vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      if (String(filePath).startsWith(`${targetPath}.cleanup-`) && String(filePath).endsWith(".tmp")) {
+        temporaryPath = String(filePath);
+        writeFileSync(filePath, "partial cleanup\n", options);
+        throw new Error("cleanup disk full");
+      }
+
+      return writeFileSync(filePath, data, options);
+    });
+
+    expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup disk full");
+    expect(temporaryPath).toBeDefined();
+    expect(vol.existsSync(temporaryPath as string)).toBe(false);
+    expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
+  });
+
   it("ignores a preexisting legacy cleanup temp symlink", () => {
     sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
     const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });

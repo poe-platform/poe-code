@@ -150,10 +150,21 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
   const temporaryPath = `${targetPath}.cleanup-${process.pid}-${randomUUID()}.tmp`;
   assertNoSymbolicLink(temporaryPath);
-  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
-    encoding: "utf8",
-    flag: "wx"
-  });
+  try {
+    fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+  } catch (error) {
+    if (!isNodeError(error) || error.code !== "EEXIST") {
+      try {
+        fs.unlinkSync(temporaryPath);
+      } catch (cleanupError) {
+        void cleanupError;
+      }
+    }
+    throw error;
+  }
   try {
     fs.renameSync(temporaryPath, targetPath);
   } catch (error) {

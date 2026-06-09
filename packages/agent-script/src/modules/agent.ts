@@ -296,11 +296,11 @@ function normalizeRetryOptions(
     ? defaultIsRetryable
     : (isRetryableValue as (result: SpawnAgentResult) => boolean);
 
-  return {
+  return createNullRecord({
     maxAttempts,
     backoffMs,
     isRetryable
-  };
+  });
 }
 
 function defaultIsRetryable(result: SpawnAgentResult): boolean {
@@ -352,7 +352,7 @@ function resolveSpawnInput(
   const definition = normalizeAgentDefinition(agentDef);
   const normalizedOptions = normalizeSpawnOptions(options);
 
-  return {
+  return createNullRecord({
     agent: definition.agent,
     prompt: prependSystemPrompt(definition.prompt, normalizedOptions.prompt),
     ...((normalizedOptions.model ?? definition.model)
@@ -372,16 +372,16 @@ function resolveSpawnInput(
       ? { timeoutMs: normalizedOptions.timeoutMs }
       : {}),
     ...(normalizedOptions.signal !== undefined ? { signal: normalizedOptions.signal } : {})
-  };
+  });
 }
 
 function normalizeAgentDefinition(
   agentDef: AgentModuleDefinition | unknown
 ): Exclude<AgentModuleDefinition, string> {
   if (typeof agentDef === "string") {
-    return {
+    return createNullRecord({
       agent: readRequiredAgent(agentDef)
-    };
+    });
   }
 
   if (!isRecord(agentDef)) {
@@ -394,7 +394,7 @@ function normalizeAgentDefinition(
   const cwd = getOwnProperty(agentDef, "cwd");
   const mcp = getOwnProperty(agentDef, "mcp");
 
-  return {
+  return createNullRecord({
     agent: readRequiredAgent(getOwnProperty(agentDef, "agent")),
     ...(prompt === undefined
       ? {}
@@ -409,7 +409,7 @@ function normalizeAgentDefinition(
       ? {}
       : { cwd: readOptionalString(cwd, "Agent definition cwd") }),
     ...(mcp === undefined ? {} : { mcp: readMcpConfig(mcp, "Agent definition mcp") })
-  };
+  });
 }
 
 function normalizeSpawnOptions(
@@ -427,7 +427,7 @@ function normalizeSpawnOptions(
   const timeoutMs = getOwnProperty(options, "timeoutMs");
   const signal = getOwnProperty(options, "signal");
 
-  return {
+  return createNullRecord({
     prompt: readRequiredPrompt(getOwnProperty(options, "prompt")),
     ...(model === undefined
       ? {}
@@ -444,7 +444,7 @@ function normalizeSpawnOptions(
           timeoutMs: readNonNegativeFiniteNumber(timeoutMs, "Agent spawn options timeoutMs")
         }),
     ...(signal === undefined ? {} : { signal: readAbortSignal(signal, "Agent spawn options signal") })
-  };
+  });
 }
 
 function validateSpawnResult(result: unknown): SpawnAgentResult {
@@ -454,7 +454,7 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
 
   const usage = getOwnProperty(result, "usage");
 
-  return {
+  return createNullRecord({
     exitCode: readFiniteNumber(getOwnProperty(result, "exitCode"), "spawnAgent result exitCode"),
     stdout: readOptionalString(getOwnProperty(result, "stdout"), "spawnAgent result stdout") ?? "",
     stderr: readOptionalString(getOwnProperty(result, "stderr"), "spawnAgent result stderr") ?? "",
@@ -464,7 +464,7 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
       "spawnAgent result durationMs"
     ),
     ...(usage === undefined ? {} : { usage: readSpawnUsage(usage) })
-  };
+  });
 }
 
 function recordActiveSpawnUsage(usage: SpawnUsage | undefined): void {
@@ -479,7 +479,7 @@ function readSpawnUsage(value: unknown): SpawnUsage {
   const cachedTokens = getOwnProperty(value, "cachedTokens");
   const costUsd = getOwnProperty(value, "costUsd");
 
-  return {
+  return createNullRecord({
     inputTokens: readNonNegativeFiniteNumber(
       getOwnProperty(value, "inputTokens"),
       "spawnAgent result usage inputTokens"
@@ -501,7 +501,7 @@ function readSpawnUsage(value: unknown): SpawnUsage {
       : {
           costUsd: readNonNegativeFiniteNumber(costUsd, "spawnAgent result usage costUsd")
         })
-  };
+  });
 }
 
 function prependSystemPrompt(systemPrompt: string | undefined, userPrompt: string): string {
@@ -558,7 +558,7 @@ function readMcpConfig(value: unknown, label: string): AgentModuleMcpConfig {
   const entries = Object.entries(value).map(
     ([name, server]) => [name, readMcpServer(server, `${label}.${name}`)] as const
   );
-  return Object.fromEntries(entries) as AgentModuleMcpConfig;
+  return createNullRecord(Object.fromEntries(entries) as AgentModuleMcpConfig);
 }
 
 function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
@@ -570,14 +570,14 @@ function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
   const env = getOwnProperty(value, "env");
   const timeout = getOwnProperty(value, "timeout");
 
-  return {
+  return createNullRecord({
     command: readNonEmptyString(getOwnProperty(value, "command"), `${label}.command`),
     ...(args === undefined ? {} : { args: readStringArray(args, `${label}.args`) }),
     ...(env === undefined ? {} : { env: readStringRecord(env, `${label}.env`) }),
     ...(timeout === undefined
       ? {}
       : { timeout: readPositiveFiniteNumber(timeout, `${label}.timeout`) })
-  };
+  });
 }
 
 function readStringArray(value: unknown, label: string): string[] {
@@ -690,6 +690,10 @@ function hasOwnProperty<Name extends PropertyKey>(
   name: Name
 ): value is Record<Name, unknown> {
   return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

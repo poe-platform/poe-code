@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { makeAgentModule } from "./agent.js";
+import {
+  createSpawnUsageAccumulator,
+  makeAgentModule,
+  runWithSpawnUsageAccumulator
+} from "./agent.js";
 import type { OtelSink } from "../observability/otel.js";
 
 describe("makeAgentModule", () => {
@@ -193,6 +197,56 @@ describe("makeAgentModule", () => {
       )
     ).rejects.toThrow("Agent spawn retry maxAttempts must be a finite number.");
     expect(spawnAgent).not.toHaveBeenCalled();
+  });
+
+  it("does not let Object.prototype fields leak into normalized agent data", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "done",
+      durationMs: 1
+    }));
+    const agent = makeAgentModule(spawnAgent);
+    const accumulator = createSpawnUsageAccumulator();
+
+    await withObjectPrototypeProperties(
+      {
+        cwd: "/polluted",
+        mcp: {
+          search: {
+            command: "polluted-mcp"
+          }
+        },
+        mode: "read",
+        model: "polluted/model",
+        timeoutMs: 10,
+        usage: {
+          cachedTokens: 30,
+          inputTokens: 10,
+          outputTokens: 20
+        }
+      },
+      async () => {
+        await runWithSpawnUsageAccumulator(accumulator, async () => {
+          await expect(agent.spawn("codex", { prompt: "Inspect." })).resolves.toMatchObject({
+            exitCode: 0,
+            summary: "done"
+          });
+        });
+      }
+    );
+
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Inspect."
+    });
+    expect(accumulator.snapshot()).toEqual({
+      cachedTokens: 0,
+      inputTokens: 0,
+      outputTokens: 0,
+      spawnCount: 1
+    });
   });
 
   it("throws when the injected spawn returns a non-zero exit code", async () => {
@@ -452,4 +506,31 @@ function createRecordingOtelSink(events: string[]): OtelSink {
       events.push(`exception:${error instanceof Error ? error.message : String(error)}`);
     }
   };
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
 }

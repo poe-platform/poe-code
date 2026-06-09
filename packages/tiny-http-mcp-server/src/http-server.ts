@@ -187,7 +187,8 @@ export function createHttpServer(
   options: ServerOptions & HttpTransportOptions
 ): HttpServer {
   const requestContextStorage = new AsyncLocalStorage<HttpToolContext>();
-  const supportsSessions = !("sessionIdGenerator" in options) || options.sessionIdGenerator !== undefined;
+  const supportsSessions =
+    !hasOwnProperty(options, "sessionIdGenerator") || options.sessionIdGenerator !== undefined;
   const server = createServer({
     ...options,
     supportNotifications: supportsSessions,
@@ -342,6 +343,10 @@ export function createHttpServer(
   httpServer.handleRequest = transport.handleRequest.bind(transport);
 
   return httpServer;
+}
+
+function hasOwnProperty(value: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 export type { RequestAuthInfo, TokenVerifier, VerifiedAccessToken };

@@ -112,9 +112,13 @@ export function createTestMcpServer(
   return createHttpServer({
     name: options.name ?? "conformance-test-server",
     version: options.version ?? "1.0.0",
-    ...("enableJsonResponse" in options ? { enableJsonResponse: options.enableJsonResponse } : {}),
-    ...("sessionIdGenerator" in options ? { sessionIdGenerator: options.sessionIdGenerator } : {}),
-    ...("oauth" in options ? { oauth: options.oauth } : {}),
+    ...(hasOwnProperty(options, "enableJsonResponse")
+      ? { enableJsonResponse: options.enableJsonResponse }
+      : {}),
+    ...(hasOwnProperty(options, "sessionIdGenerator")
+      ? { sessionIdGenerator: options.sessionIdGenerator }
+      : {}),
+    ...(hasOwnProperty(options, "oauth") ? { oauth: options.oauth } : {}),
   })
     .tool("echo", "Echo input text", textSchema, ({ text }) => String(text))
     .tool("reverse", "Reverse input text", textSchema, ({ text }) =>
@@ -162,4 +166,8 @@ export function createTestMcpServer(
     .tool("large_output", "Return 100KB of text", emptySchema, () =>
       "x".repeat(100_000)
     );
+}
+
+function hasOwnProperty(value: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

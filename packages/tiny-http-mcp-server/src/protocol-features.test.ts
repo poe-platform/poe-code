@@ -8,6 +8,44 @@ import { createHttpTestPair } from "./testing.js";
 import { nodeFetch } from "./test-support.js";
 import { defineSchema } from "tiny-stdio-mcp-server";
 
+const INITIALIZE_BODY = {
+  jsonrpc: "2.0",
+  id: 1,
+  method: "initialize",
+  params: {
+    protocolVersion: "2025-11-25",
+    capabilities: {},
+    clientInfo: { name: "test", version: "1" },
+  },
+};
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("HTTP prompt and resource SDK interoperability", () => {
   it("exposes prompts and resources through Streamable HTTP", async () => {
     const server = createHttpServer({ name: "http-features", version: "1.0.0" })
@@ -92,6 +130,58 @@ describe("HTTP prompt and resource SDK interoperability", () => {
     } finally {
       await pair.cleanup();
     }
+  });
+
+  it("ignores inherited HTTP session id generator options", async () => {
+    await withObjectPrototypeProperties(
+      { sessionIdGenerator: () => "polluted-session" },
+      async () => {
+        const server = createHttpServer({
+          name: "inherited-generator",
+          version: "1.0.0",
+          enableJsonResponse: true,
+        });
+        const handle = await server.listenHttp({ port: 0 });
+
+        try {
+          const response = await nodeFetch(handle.url, {
+            method: "POST",
+            headers: {
+              Accept: "application/json, text/event-stream",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(INITIALIZE_BODY),
+          });
+
+          expect(response.status).toBe(200);
+          expect(response.headers.get("mcp-session-id")).toBeTruthy();
+          expect(response.headers.get("mcp-session-id")).not.toBe("polluted-session");
+        } finally {
+          await handle.close();
+        }
+      }
+    );
+  });
+
+  it("keeps HTTP sessions enabled when sessionIdGenerator is inherited undefined", async () => {
+    await withObjectPrototypeProperties({ sessionIdGenerator: undefined }, async () => {
+      const server = createHttpServer({
+        name: "inherited-stateless",
+        version: "1.0.0",
+        enableJsonResponse: true,
+      }).resource({ uri: "memory://item", name: "item" }, () => ({
+        contents: [{ uri: "memory://item", text: "item" }],
+      }));
+      const pair = await createHttpTestPair(server);
+
+      try {
+        expect(pair.client.getServerCapabilities()).toMatchObject({
+          resources: { subscribe: true },
+        });
+      } finally {
+        await pair.cleanup();
+      }
+    });
   });
 
   it("preserves request context for rich HTTP tool registration", async () => {

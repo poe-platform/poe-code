@@ -3,6 +3,7 @@ import path from "node:path";
 import { UserError } from "toolcraft";
 import { parse } from "toolcraft-design";
 import { parseDocument } from "yaml";
+import { getOwnErrorCode } from "../error-codes.js";
 import { scanMarkdown, type Section } from "./scan.js";
 
 export interface MarkdownReaderFs {
@@ -175,12 +176,7 @@ function toUserError(error: unknown, file: string): UserError {
     return error;
   }
 
-  const code =
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code")
-      ? (error as { code?: unknown }).code
-      : undefined;
+  const code = getOwnErrorCode(error);
 
   if (code === "ENOENT") {
     return new UserError(`file not found: ${file}`);

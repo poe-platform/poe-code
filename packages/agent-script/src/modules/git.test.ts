@@ -68,6 +68,33 @@ function mockExecFileSequence(
   return execFileMock;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("makeGitModule", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -652,6 +679,28 @@ describe("makeGitModule", () => {
       path: "/private/var/tmp/repo/worktrees/feature",
       branch: "feature/symlink-root"
     });
+  });
+
+  it("does not treat inherited realpath error codes as missing worktree ancestors", async () => {
+    vi.mocked(realpath).mockImplementation(async (path) => {
+      if (String(path) === "/repo/worktrees/feature") {
+        throw new Error("realpath denied");
+      }
+
+      return String(path);
+    });
+    mockExecFileSequence([() => ({ stdout: "/repo\n" })]);
+
+    const git = makeGitModule("/repo");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        git.worktreeCreate("feature/denied", {
+          path: "/repo/worktrees/feature"
+        })
+      ).rejects.toThrow("realpath denied");
+    });
+    expect(mkdir).not.toHaveBeenCalled();
   });
 
   it("rejects worktree paths whose existing parent resolves outside the repository", async () => {

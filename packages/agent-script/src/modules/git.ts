@@ -357,7 +357,11 @@ async function resolveCanonicalPath(path: string): Promise<string> {
 }
 
 function isNotFoundError(error: unknown): boolean {
-  return isRecord(error) && error.code === "ENOENT";
+  return (
+    isRecord(error) &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    error.code === "ENOENT"
+  );
 }
 
 function isBranchAlreadyExistsError(error: unknown, branch: string): boolean {

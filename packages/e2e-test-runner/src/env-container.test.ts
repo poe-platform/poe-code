@@ -64,6 +64,24 @@ function createMockChildProcess(
   return child as unknown as ChildProcess;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'code');
+  Object.defineProperty(Object.prototype, 'code', {
+    configurable: true,
+    value: code,
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, 'code', descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe('createEnvContainer', () => {
   const originalPath = process.env.PATH;
 
@@ -245,6 +263,57 @@ describe('createEnvContainer', () => {
     await expect(access(home)).rejects.toMatchObject({
       code: 'ENOENT',
     });
+  });
+
+  it('does not retry destroy errors that only inherit retryable codes', async () => {
+    const fsPromises = await import('node:fs/promises');
+    const removeError = new Error('plain remove failure');
+    const rmSpy = vi.spyOn(fsPromises, 'rm').mockRejectedValueOnce(removeError);
+
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await withObjectPrototypeCode('ENOTEMPTY', async () => {
+      await expect(container.destroy()).rejects.toBe(removeError);
+    });
+
+    expect(rmSpy).toHaveBeenCalledOnce();
+  });
+
+  it('rejects snapshot lstat failures that only inherit missing-path codes', async () => {
+    const fsPromises = await import('node:fs/promises');
+    const lstatError = new Error('lstat failed');
+    vi.spyOn(fsPromises, 'lstat').mockRejectedValueOnce(lstatError);
+
+    const { createEnvContainer } = await import('./env-container.js');
+
+    await withObjectPrototypeCode('ENOENT', async () => {
+      await expect(createEnvContainer({ testName: 'proxy', useSnapshots: true }))
+        .rejects.toBe(lstatError);
+    });
+  });
+
+  it('rejects fresh-home preflight failures that only inherit missing-path codes', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const fsPromises = await import('node:fs/promises');
+    const accessError = new Error('access failed');
+    vi.spyOn(fsPromises, 'access').mockRejectedValueOnce(accessError);
+    vi.mocked(spawnSync).mockReturnValue({
+      status: 0,
+      stdout: 'ok\n',
+      stderr: '',
+      pid: 1,
+      output: [],
+      signal: null,
+    });
+
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await withObjectPrototypeCode('ENOENT', async () => {
+      await expect(container.exec('echo hello')).rejects.toBe(accessError);
+    });
+    expect(spawnSync).not.toHaveBeenCalled();
   });
 
   it('defers API key preflight until first exec', async () => {

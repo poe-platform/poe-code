@@ -13,6 +13,7 @@ import {
   parseCodeReviewConfigDocument,
   parseCodeReviewProfileDirectories
 } from "./config-scope.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveCodeReviewStoreDirectory } from "./review-store.js";
 
 export interface CodeReviewConfig {
@@ -235,5 +236,5 @@ function requireNonEmptyString(value: unknown, field: string): string {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

@@ -29,6 +29,7 @@ import {
   parseCodeReviewState,
   serializeCodeReviewState
 } from "./review-state.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export const DEFAULT_CODE_REVIEW_REVIEWS_DIRECTORY = ".poe-code/code-review/reviews";
 export const CODE_REVIEW_DIRECTORY = ".poe-code/code-review";
@@ -600,12 +601,7 @@ function isRunningProcess(processId: number): boolean {
     process.kill(processId, 0);
     return true;
   } catch (error) {
-    return !(
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ESRCH"
-    );
+    return !hasOwnErrorCode(error, "ESRCH");
   }
 }
 
@@ -748,9 +744,9 @@ function safeFilePart(part: string): string {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isExistingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

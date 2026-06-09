@@ -21,6 +21,7 @@ import {
   parseCodeReviewPromptMarkdown,
   requireSafeDocumentSegment
 } from "./document-schemas.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { parseCodeReviewProfileDirectories } from "./config-scope.js";
 
 export type CodeReviewAssetReader = (filePath: string, encoding: BufferEncoding) => Promise<string>;
@@ -484,9 +485,9 @@ function invalidInstallTargetError(filePath: string): Error {
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

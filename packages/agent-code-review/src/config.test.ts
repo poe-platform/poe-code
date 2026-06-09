@@ -68,6 +68,25 @@ describe("codeReview config", () => {
     );
   });
 
+  it("does not ignore config read errors with inherited missing-file codes", async () => {
+    const baseFs = createMockFs();
+    const fs = {
+      ...baseFs,
+      readFile: async (filePath: string, encoding: "utf8") => {
+        if (filePath === homeConfigPath) {
+          throw new Error("config read denied");
+        }
+        return await baseFs.readFile(filePath, encoding);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(loadCodeReviewConfig({ fs, filePath: homeConfigPath })).rejects.toThrow(
+        "config read denied"
+      );
+    });
+  });
+
   it("ignores inherited codeReview scope fields", async () => {
     await withObjectPrototypeProperties(
       {

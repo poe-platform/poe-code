@@ -19,6 +19,7 @@ import {
   requireSafeDocumentSegment,
   serializeCodeReviewIngestSource
 } from "./document-schemas.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export const DEFAULT_CODE_REVIEW_INGEST_DIRECTORY = ".poe-code/code-review/ingest";
 export const DEFAULT_CODE_REVIEW_PROFILES_DIRECTORY = ".poe-code/code-review/profiles";
@@ -543,9 +544,9 @@ async function removeStaleLegacyOutput(filePath: string): Promise<void> {
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

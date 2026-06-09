@@ -980,7 +980,7 @@ async function writeWorkflowFileAtomically(
     await assertWritableWorkflowDestination(rootPath, filePath);
     await rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await unlinkWorkflowTemporaryFile(rootPath, temporaryPath).catch(() => undefined);
     }
     throw error;
@@ -1063,6 +1063,10 @@ function renderProjectReadme(): string {
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 async function selectAutomationName(message: string, automations: AutomationDefinition[]): Promise<string> {

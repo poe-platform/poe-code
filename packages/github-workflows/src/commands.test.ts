@@ -15,7 +15,13 @@ const designSystemState = vi.hoisted(() => ({
 
 const fileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,
-  beforeFailingWrite: undefined as (() => void) | undefined,
+  beforeFailingWrite: undefined as
+    | ((
+        targetPath: string,
+        content: string | Uint8Array,
+        options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
+      ) => void | Promise<void>)
+    | undefined,
   symlinkRacePath: undefined as string | undefined,
   symlinkRaceTarget: undefined as string | undefined
 }));
@@ -73,7 +79,7 @@ vi.mock("node:fs/promises", async () => {
         await replaceWithSymlink(targetPath, fileSystemState.symlinkRaceTarget);
       }
       if (isInjectedFailingWrite(targetPath)) {
-        fileSystemState.beforeFailingWrite?.();
+        await fileSystemState.beforeFailingWrite?.(targetPath, content, options);
         throw new Error("injected workflow write failure");
       }
       await fs.promises.writeFile(targetPath, content, options);
@@ -1091,12 +1097,26 @@ describe("ghGroup", () => {
       writeBuiltInPrompt(name, `# Prompt for ${name}`);
       seedWorkflowTemplate(name, "caller");
     }
-    fileSystemState.failingWritePath = "/repo/.github/workflows/poe-code-github-issue-comment-created.yml";
+    const failingPath = "/repo/.github/workflows/poe-code-github-issue-comment-created.yml";
+    let partialTempPath: string | undefined;
+    fileSystemState.failingWritePath = failingPath;
+    fileSystemState.beforeFailingWrite = (targetPath, content, options) => {
+      if (targetPath.startsWith(`${failingPath}.`) && targetPath.endsWith(".tmp")) {
+        partialTempPath = targetPath;
+        vol.writeFileSync(
+          targetPath,
+          typeof content === "string" ? content.slice(0, 16) : Buffer.from(content).subarray(0, 16),
+          options
+        );
+      }
+    };
 
     await expect(getCommand(["install"]).handler(createContext({}))).rejects.toThrow(
       "injected workflow write failure"
     );
 
+    expect(partialTempPath).toMatch(new RegExp(`^${failingPath.replaceAll(".", "\\.")}\\.`));
+    expect(vol.existsSync(partialTempPath ?? "")).toBe(false);
     expect(vol.existsSync("/repo/.github/workflows/poe-code-fix-vulnerabilities.yml")).toBe(false);
   });
 

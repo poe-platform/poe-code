@@ -186,16 +186,46 @@ export function symlinkHooks(
     }
   }
 
-  mkdirSync(symlinkParent, { recursive: true });
-  assertNoSymbolicLink(symlinkParent);
   try {
+    mkdirSync(symlinkParent, { recursive: true });
+    assertNoSymbolicLink(symlinkParent);
     symlinkSync(targetPath, symlinkPath);
   } catch (error) {
-    if (replacedContents !== undefined) {
-      writeFileSync(symlinkPath, replacedContents, "utf8");
-    }
+    restoreGeneratedFile(symlinkParent, symlinkPath, replacedContents, error);
     throw error;
   }
 
   return { symlinkPath, targetPath, replaced };
+}
+
+function restoreGeneratedFile(
+  symlinkParent: string,
+  symlinkPath: string,
+  contents: string | undefined,
+  originalError: unknown
+): void {
+  if (contents === undefined) {
+    return;
+  }
+
+  try {
+    assertNoSymbolicLink(symlinkParent);
+    writeFileSync(symlinkPath, contents, { encoding: "utf8", flag: "wx" });
+  } catch (restoreError) {
+    throw new AggregateError(
+      [originalError, restoreError],
+      [
+        `Hook symlink replacement failed: ${formatUnknownError(originalError)}`,
+        `Generated hook file restore failed: ${formatUnknownError(restoreError)}`
+      ].join(" ")
+    );
+  }
+}
+
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return String(error);
 }

@@ -122,6 +122,50 @@ describe("symlinkHooks", () => {
     expect(readFileSync(targetPath, "utf8")).toBe(contents);
   });
 
+  it("restores a generated regular file when parent preparation fails", () => {
+    const contents = generatedSettings();
+    vol.fromJSON({ [targetPath]: contents }, "/");
+    const mkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation((directoryPath, options) => {
+      if (String(directoryPath) === path.dirname(targetPath)) {
+        throw new Error("parent preparation denied");
+      }
+
+      return mkdirSync(directoryPath, options);
+    });
+
+    expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+      "parent preparation denied"
+    );
+    expect(readFileSync(targetPath, "utf8")).toBe(contents);
+  });
+
+  it("does not overwrite a hook path recreated before generated file restore", () => {
+    const contents = generatedSettings();
+    vol.fromJSON({ [targetPath]: contents }, "/");
+    vi.spyOn(fs, "symlinkSync").mockImplementation(() => {
+      vol.writeFileSync(targetPath, "new occupant", "utf8");
+      const error = new Error("hook path recreated") as NodeJS.ErrnoException;
+      error.code = "EEXIST";
+      throw error;
+    });
+
+    let failure: unknown;
+    try {
+      symlinkHooks("source", "target", cwd, homeDir, "project");
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors[0]).toMatchObject({
+      code: "EEXIST",
+      message: "hook path recreated"
+    });
+    expect((failure as AggregateError).errors[1]).toMatchObject({ code: "EEXIST" });
+    expect(readFileSync(targetPath, "utf8")).toBe("new occupant");
+  });
+
   it("refuses to replace a regular file containing a user-authored hook", () => {
     const contents = generatedSettings("user-authored");
     vol.fromJSON({ [targetPath]: contents }, "/");

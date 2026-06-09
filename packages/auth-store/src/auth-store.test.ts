@@ -137,6 +137,29 @@ describe("createSecretStore", () => {
     ], { stdin: "keychain-secret" });
   });
 
+  it("ignores inherited backend environment values", async () => {
+    const filePath = "/home/test/.app/credentials.enc";
+    const fs = createMemFs();
+
+    await withObjectPrototypeProperties({ INHERITED_AUTH_BACKEND: "keychain" }, async () => {
+      const result = createSecretStore({
+        backendEnvVar: "INHERITED_AUTH_BACKEND",
+        env: {},
+        platform: "linux",
+        fileStore: {
+          fs,
+          filePath,
+          salt: "test-app:store:v1",
+          getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+        }
+      });
+
+      expect(result.backend).toBe("file");
+      await result.store.set("test-secret");
+      expect(await result.store.get()).toBe("test-secret");
+    });
+  });
+
   it("throws when keychain backend is requested on non-macOS", () => {
     expect(() => {
       createSecretStore({

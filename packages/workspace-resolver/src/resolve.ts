@@ -103,7 +103,10 @@ async function assertGithubSubdirHasNoSymbolicLinks(
 function isMissingPathError(error: unknown): boolean {
   return (
     error instanceof Error &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (
+      (error as { code?: unknown }).code === "ENOENT" ||
+      (error as { code?: unknown }).code === "ENOTDIR"
+    )
   );
 }

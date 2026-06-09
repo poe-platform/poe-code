@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { buildCachePath } from "./github/clone.js";
+import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
 import { resolveWorkspace } from "./resolve.js";
 import { parseLocator } from "./parse.js";
 import type { ResolverFileSystem, WorkspaceResolverOptions } from "./types.js";
@@ -17,6 +18,33 @@ function createOptions(overrides: Partial<WorkspaceResolverOptions> = {}): Works
     fs: overrides.fs ?? createFs(),
     exec: overrides.exec ?? (async () => ({ stdout: "", stderr: "", exitCode: 0 }))
   };
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
 }
 
 describe("parseLocator", () => {
@@ -180,6 +208,22 @@ describe("parseLocator", () => {
 
   it("rejects unknown locator schemes", () => {
     expect(() => parseLocator("s3://bucket/repo")).toThrow('Unsupported workspace locator scheme "s3".');
+  });
+});
+
+describe("assertPathHasNoSymbolicLinks", () => {
+  it("does not treat inherited lstat error codes as missing local path segments", async () => {
+    const fs = {
+      lstat: vi.fn(async () => {
+        throw new Error("workspace lstat denied");
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(assertPathHasNoSymbolicLinks(fs, "/workspace/app")).rejects.toThrow(
+        "workspace lstat denied"
+      );
+    });
   });
 });
 
@@ -407,6 +451,28 @@ describe("resolveWorkspace", () => {
     await expect(
       resolveWorkspace("github://owner/repo/safe-subdir", createOptions({ fs }))
     ).rejects.toThrow('Workspace subdirectory "safe-subdir" must not be a symbolic link.');
+  });
+
+  it("does not treat inherited github subdir lstat codes as missing paths", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });
+    await fs.mkdir(`${cachePath}/safe-subdir`, { recursive: true });
+    const wrappedFs: ResolverFileSystem = {
+      ...fs,
+      lstat: vi.fn(async (target) => {
+        if (String(target) === `${cachePath}/safe-subdir`) {
+          throw new Error("github subdir lstat denied");
+        }
+
+        return fs.lstat(target);
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        resolveWorkspace("github://owner/repo/safe-subdir", createOptions({ fs: wrappedFs }))
+      ).rejects.toThrow("github subdir lstat denied");
+    });
   });
 
   it("resolves github locators without ref or subdir", async () => {

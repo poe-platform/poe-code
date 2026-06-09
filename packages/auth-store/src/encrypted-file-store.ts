@@ -156,7 +156,7 @@ export class EncryptedFileStore implements SecretStore {
       await this.fs.chmod(temporaryPath, ENCRYPTION_FILE_MODE);
       await this.fs.rename(temporaryPath, this.filePath);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await removeIfPresent(this.fs, temporaryPath).catch(() => undefined);
       }
       throw error;
@@ -331,5 +331,14 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
     typeof error === "object" &&
     "code" in error &&
     (error as NodeJS.ErrnoException).code === "ENOENT"
+  );
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return Boolean(
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error as NodeJS.ErrnoException).code === "EEXIST"
   );
 }

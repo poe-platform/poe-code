@@ -413,9 +413,11 @@ describe("EncryptedFileStore", () => {
 
     await original.set("old-secret");
 
+    let temporaryPath: string | undefined;
     const fs: EncryptedFileStoreFileSystem = {
       ...baseFs,
       async writeFile(targetPath, _data, options) {
+        temporaryPath = targetPath;
         await baseFs.writeFile(targetPath, "{", options);
         throw new Error("credential disk full");
       }
@@ -424,6 +426,11 @@ describe("EncryptedFileStore", () => {
 
     await expect(rotating.set("new-secret")).rejects.toThrow("credential disk full");
     await expect(original.get()).resolves.toBe("old-secret");
+    expect(temporaryPath?.startsWith(`${filePath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(baseFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not share cached keys between ambiguous identity tuples", async () => {

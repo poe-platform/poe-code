@@ -773,6 +773,24 @@ describe("initProjectConfig", () => {
     expect(fs.getContent(projectConfigPath)).toBe('{"core":{"apiKey":"concurrent-value"}}\n');
   });
 
+  it("does not treat inherited write error codes as concurrent project config creation", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    fs.writeFile = async (filePath) => {
+      if (filePath === projectConfigPath) {
+        throw new Error("project config create denied");
+      }
+
+      throw new Error(`Unexpected write: ${filePath}`);
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow(
+        "project config create denied"
+      );
+    });
+  });
+
   it("removes a partially written config when initialization fails", async () => {
     const fs = createMockFs(undefined, homeDir);
     fs.directories.add("/repo");
@@ -1450,6 +1468,34 @@ describe("store", () => {
     await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
     const entries = await base.readdir(path.dirname(configPath));
     expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+  });
+
+  it("removes partial temporary config files after inherited existing-path errors", async () => {
+    const original = '{"core":{"apiKey":"old"}}\n';
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    let tempPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${configPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "partial temp\n", options);
+          throw new Error("config temp exists");
+        }
+
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow(
+        "config temp exists"
+      );
+    });
+
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+    expect(base.getContent(tempPath as string)).toBeUndefined();
   });
 
   it("does not remove a colliding temporary config file it did not create", async () => {

@@ -15,7 +15,8 @@ async function withObjectPrototypeProperties<T>(
     originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
-      value
+      value,
+      writable: true
     });
   }
 
@@ -344,6 +345,34 @@ describe("configured services", () => {
 
     const entries = await base.readdir(`${homeDir}/.poe-code`);
     expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
+  });
+
+  it("cleans partial legacy credential reset temps after inherited existing-path errors", async () => {
+    const legacyPath = `${homeDir}/.poe-code/credentials.json`;
+    const base = createMockFs({ "~/.poe-code/credentials.json": "not json\n" }, homeDir);
+    let tempPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${legacyPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "partial\n", options);
+          throw new Error("legacy reset temp exists");
+        }
+
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(loadConfiguredServices({ fs, filePath: configPath })).rejects.toThrow(
+        "legacy reset temp exists"
+      );
+    });
+
+    expect(tempPath).toBeDefined();
+    expect(base.getContent(tempPath ?? "")).toBeUndefined();
     await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
   });
 

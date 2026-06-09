@@ -1034,6 +1034,45 @@ describe('startProxyServer record mode', () => {
       id: 'prior',
     });
   });
+
+  it('removes a partially written temporary snapshot when creation fails', async () => {
+    const payload = { model: 'dummy-model', messages: [{ role: 'user', content: 'retry' }] };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify({ key, response: { id: 'prior' } }));
+    let temporaryPath: string | undefined;
+    fsHooks.writeFile = async (targetPath, options) => {
+      if (targetPath.startsWith(`${snapshotPath}.`) && targetPath.endsWith('.tmp')) {
+        temporaryPath = targetPath;
+        vol.writeFileSync(targetPath, '{', options as Parameters<typeof vol.writeFileSync>[2]);
+        throw new Error('snapshot disk full');
+      }
+    };
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ id: 'fresh' }), { status: 200 }),
+    );
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [{ path: '/v1', target: 'http://unused.test', mode: 'record', snapshotDir }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    expect(response.status).toBe(502);
+    expect(temporaryPath).toBeDefined();
+    expect(vol.existsSync(temporaryPath as string)).toBe(false);
+    expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual({
+      id: 'prior',
+    });
+  });
 });
 
 describe('startProxyServer playback mode', () => {

@@ -164,11 +164,20 @@ async function writeSnapshot(
     temporaryCreated = true;
     await rename(temporaryPath, snapshotPath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await rm(temporaryPath, { force: true }).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: string }).code === 'EEXIST'
+  );
 }
 
 function isMissingFileError(error: unknown): boolean {

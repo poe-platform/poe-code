@@ -186,6 +186,25 @@ function createTestFsError(code: string, filePath: string): NodeJS.ErrnoExceptio
   return error;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("configure provider resolution", () => {
   let fs: FileSystem;
 
@@ -1173,7 +1192,7 @@ describe("configure provider resolution", () => {
       if (filePathText.startsWith(`${configFile}.overlay-tmp-${process.pid}-`)) {
         partialTemps.push(filePathText);
         await fs.writeFile(filePath, "partial", options);
-        throw createTestFsError("ENOSPC", filePathText);
+        throw new Error("overlay write failed");
       }
       await fs.writeFile(filePath, data, options);
     });
@@ -1181,7 +1200,9 @@ describe("configure provider resolution", () => {
 
     await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
 
-    await expect(transaction.commit()).rejects.toThrow("ENOSPC");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(transaction.commit()).rejects.toThrow("overlay write failed");
+    });
 
     expect(partialTemps.length).toBeGreaterThan(0);
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe("original");
@@ -1221,5 +1242,33 @@ describe("configure provider resolution", () => {
     for (const failedRename of failedRenames) {
       await expect(fs.lstat(failedRename)).rejects.toMatchObject({ code: "ENOENT" });
     }
+  });
+
+  it("does not treat inherited lstat codes as missing overlay base entries", async () => {
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const lstatError = new Error("overlay lstat denied");
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(configFile, "original", { encoding: "utf8" });
+    const failingFs = new Proxy(fs, {
+      get(target, property, receiver) {
+        if (property === "lstat") {
+          return async (filePath: string) => {
+            if (filePath === configFile) {
+              throw lstatError;
+            }
+            return target.lstat(filePath);
+          };
+        }
+        const value = Reflect.get(target, property, receiver) as unknown;
+        return typeof value === "function" ? value.bind(target) : value;
+      }
+    }) as FileSystem;
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(transaction.hasMaterialChange()).rejects.toBe(lstatError);
+    });
   });
 });

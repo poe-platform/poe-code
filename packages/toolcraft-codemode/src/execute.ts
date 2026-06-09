@@ -65,7 +65,11 @@ function createBudget(options: ExecuteBudgetOptions | undefined): Budget {
 }
 
 function readErrorCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !Object.prototype.hasOwnProperty.call(error, "code")
+  ) {
     return undefined;
   }
 

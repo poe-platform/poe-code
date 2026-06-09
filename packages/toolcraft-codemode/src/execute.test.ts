@@ -58,6 +58,25 @@ async function runExecute(
   return command.handler({ params: { source } } as never);
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("makeExecuteCommand", () => {
   it("returns a value computed from two host calls", async () => {
     const result = await runExecute(
@@ -127,6 +146,28 @@ describe("makeExecuteCommand", () => {
       }
     });
     expect(fail).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report inherited runtime error codes", async () => {
+    const fail = vi.fn(async () => {
+      throw new Error("host exploded");
+    });
+
+    await withObjectPrototypeCode("EACCES", async () => {
+      const result = await runExecute(
+        ['import { fail } from "math_tools";', "return await fail({});"].join("\n"),
+        { fail }
+      );
+
+      expect(result).toMatchObject({
+        ok: false,
+        kind: "runtime",
+        error: {
+          message: "host exploded",
+          code: undefined
+        }
+      });
+    });
   });
 
   it("returns a runtime budget error when maxSteps is exceeded", async () => {

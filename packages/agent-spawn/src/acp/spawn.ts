@@ -567,46 +567,21 @@ async function startCapture(
 }
 
 function normalizeSpawnStreamingOptions(options: SpawnStreamingOptions): SpawnStreamingOptions {
-  return createNullRecord({
+  const normalized = createNullRecord<SpawnStreamingOptions>({
     agentId: getOwnProperty(options, "agentId") as SpawnStreamingOptions["agentId"],
-    prompt: getOwnProperty(options, "prompt") as SpawnStreamingOptions["prompt"],
-    ...optionalOwnProperty(options, "cwd"),
-    ...optionalOwnProperty(options, "model"),
-    ...optionalOwnProperty(options, "mode"),
-    ...optionalOwnProperty(options, "args"),
-    ...optionalOwnProperty(options, "mcpServers"),
-    ...optionalOwnProperty(options, "skills"),
-    ...optionalOwnProperty(options, "hooks"),
-    ...optionalOwnProperty(options, "resumeThreadId"),
-    ...optionalOwnProperty(options, "useStdin"),
-    ...optionalOwnProperty(options, "interactive"),
-    ...optionalOwnProperty(options, "signal"),
-    ...optionalOwnProperty(options, "otelSink"),
-    ...optionalOwnProperty(options, "captureOtel"),
-    ...optionalOwnProperty(options, "captureOtelContent"),
-    ...optionalOwnProperty(options, "env"),
-    ...optionalOwnProperty(options, "middlewares"),
-    ...optionalOwnProperty(options, "tee"),
-    ...optionalOwnProperty(options, "activityTimeoutMs"),
-    ...optionalOwnProperty(options, "logPath"),
-    ...optionalOwnProperty(options, "logDir"),
-    ...optionalOwnProperty(options, "logFileName"),
-    ...optionalOwnProperty(options, "runtime"),
-    ...optionalOwnProperty(options, "runtimeImage"),
-    ...optionalOwnProperty(options, "runtimeTemplate"),
-    ...optionalOwnProperty(options, "runtimeConfigCwd"),
-    ...optionalOwnProperty(options, "detach"),
-    ...optionalOwnProperty(options, "mountPoeCode"),
-    ...optionalOwnProperty(options, "runnerSync")
+    prompt: getOwnProperty(options, "prompt") as SpawnStreamingOptions["prompt"]
   });
-}
-
-function optionalOwnProperty<Name extends keyof SpawnStreamingOptions>(
-  options: SpawnStreamingOptions,
-  name: Name
-): Pick<SpawnStreamingOptions, Name> | Record<string, never> {
-  const value = getOwnProperty(options, name);
-  return value === undefined ? {} : ({ [name]: value } as Pick<SpawnStreamingOptions, Name>);
+  const optionalNames: readonly (keyof SpawnStreamingOptions)[] = [
+    "cwd", "model", "mode", "args", "mcpServers", "skills", "hooks", "resumeThreadId",
+    "useStdin", "interactive", "signal", "otelSink", "captureOtel", "captureOtelContent", "env",
+    "middlewares", "tee", "activityTimeoutMs", "logPath", "logDir", "logFileName", "runtime",
+    "runtimeImage", "runtimeTemplate", "runtimeConfigCwd", "detach", "mountPoeCode", "runnerSync"
+  ];
+  for (const name of optionalNames) {
+    const value = getOwnProperty(options, name);
+    if (value !== undefined) Object.assign(normalized, { [name]: value });
+  }
+  return normalized;
 }
 
 function getOwnProperty<Name extends PropertyKey>(

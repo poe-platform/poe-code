@@ -387,13 +387,15 @@ function restoreRandomState(random: ReplayableRandom): (state: unknown) => void 
 }
 
 function isClockState(value: unknown): value is RunClockSnapshot {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Object.prototype.hasOwnProperty.call(value, "next") &&
-    typeof value.next === "number" &&
-    Number.isFinite(value.next)
-  );
+  if (!hasOwnProperty(value, "next")) return false;
+  return typeof value.next === "number" && Number.isFinite(value.next);
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: unknown,
+  name: Name
+): value is Record<Name, unknown> {
+  return typeof value === "object" && value !== null && Object.hasOwn(value, name);
 }
 
 type HostCallRecord = {

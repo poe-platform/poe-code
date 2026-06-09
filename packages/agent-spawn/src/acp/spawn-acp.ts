@@ -416,35 +416,20 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
 }
 
 function normalizeSpawnAcpOptions(options: SpawnAcpOptions): SpawnAcpOptions {
-  return createNullRecord({
+  const normalized = createNullRecord<SpawnAcpOptions>({
     agentId: getOwnProperty(options, "agentId") as SpawnAcpOptions["agentId"],
-    prompt: getOwnProperty(options, "prompt") as SpawnAcpOptions["prompt"],
-    ...optionalOwnProperty(options, "cwd"),
-    ...optionalOwnProperty(options, "model"),
-    ...optionalOwnProperty(options, "mode"),
-    ...optionalOwnProperty(options, "mcpServers"),
-    ...optionalOwnProperty(options, "skills"),
-    ...optionalOwnProperty(options, "hooks"),
-    ...optionalOwnProperty(options, "resumeThreadId"),
-    ...optionalOwnProperty(options, "runtime"),
-    ...optionalOwnProperty(options, "runtimeImage"),
-    ...optionalOwnProperty(options, "runtimeTemplate"),
-    ...optionalOwnProperty(options, "detach"),
-    ...optionalOwnProperty(options, "mountPoeCode"),
-    ...optionalOwnProperty(options, "runnerSync"),
-    ...optionalOwnProperty(options, "signal"),
-    ...optionalOwnProperty(options, "otelSink"),
-    ...optionalOwnProperty(options, "middlewares"),
-    ...optionalOwnProperty(options, "env")
+    prompt: getOwnProperty(options, "prompt") as SpawnAcpOptions["prompt"]
   });
-}
-
-function optionalOwnProperty<Name extends keyof SpawnAcpOptions>(
-  options: SpawnAcpOptions,
-  name: Name
-): Pick<SpawnAcpOptions, Name> | Record<string, never> {
-  const value = getOwnProperty(options, name);
-  return value === undefined ? {} : ({ [name]: value } as Pick<SpawnAcpOptions, Name>);
+  const optionalNames: readonly (keyof SpawnAcpOptions)[] = [
+    "cwd", "model", "mode", "mcpServers", "skills", "hooks", "resumeThreadId", "runtime",
+    "runtimeImage", "runtimeTemplate", "detach", "mountPoeCode", "runnerSync", "signal",
+    "otelSink", "middlewares", "env"
+  ];
+  for (const name of optionalNames) {
+    const value = getOwnProperty(options, name);
+    if (value !== undefined) Object.assign(normalized, { [name]: value });
+  }
+  return normalized;
 }
 
 function getOwnProperty<Name extends PropertyKey>(

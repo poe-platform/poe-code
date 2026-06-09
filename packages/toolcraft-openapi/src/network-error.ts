@@ -104,7 +104,7 @@ function getPort(error: NetworkErrorLike | null, url: URL): string {
   return url.protocol === "https:" ? "443" : "80";
 }
 
-function getTimeoutMs(error: NetworkErrorLike): string {
+function getTimeoutMs(error: NetworkErrorLike | null): string {
   const ms = readStringOrNumberProperty(error, "ms");
   if (ms !== undefined) {
     return String(ms);

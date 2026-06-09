@@ -3,6 +3,33 @@ import { describe, expect, it } from "vitest";
 import { hashSource } from "../parse/hash.js";
 import { serialize } from "./serialize.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("serialize", () => {
   it("serializes resumable interpreter state without host references", () => {
     const source = "await task()";
@@ -160,6 +187,61 @@ describe("serialize", () => {
 
     expect(Object.hasOwn(payload, "__proto__")).toBe(true);
     expect(payload.__proto__).toBe("preserved");
+  });
+
+  it("does not classify inherited runtime markers as closures or promises", () => {
+    const inheritedClosureSnapshot = withObjectPrototypeProperties(
+      {
+        astNodeId: 11,
+        capturedScopeId: 1,
+        kind: "fn"
+      },
+      () =>
+        serialize({
+          source: "return payload",
+          currentAstNodeId: 1,
+          scopeChain: [
+            {
+              id: 1,
+              bindings: {
+                inheritedClosure: { label: "plain closure-shaped object" }
+              }
+            }
+          ],
+          callStack: [],
+          pendingPromises: [],
+          moduleBindings: {}
+        })
+    );
+    const inheritedPromiseSnapshot = withObjectPrototypeProperties(
+      {
+        id: 7,
+        kind: "promise"
+      },
+      () =>
+        serialize({
+          source: "return payload",
+          currentAstNodeId: 1,
+          scopeChain: [
+            {
+              id: 1,
+              bindings: {
+                inheritedPromise: { label: "plain promise-shaped object" }
+              }
+            }
+          ],
+          callStack: [],
+          pendingPromises: [],
+          moduleBindings: {}
+        })
+    );
+
+    expect(inheritedClosureSnapshot.scopeChain[0]?.bindings.inheritedClosure).toEqual({
+      label: "plain closure-shaped object"
+    });
+    expect(inheritedPromiseSnapshot.scopeChain[0]?.bindings.inheritedPromise).toEqual({
+      label: "plain promise-shaped object"
+    });
   });
 
   it("rejects host references captured in serialized values", () => {

@@ -323,22 +323,35 @@ function isRuntimeClosureValue(value: unknown): value is RuntimeClosureValue {
   return (
     typeof value === "object" &&
     value !== null &&
-    "kind" in value &&
+    hasOwnProperty(value, "kind") &&
     value.kind === "fn" &&
-    "astNodeId" in value &&
+    hasOwnProperty(value, "astNodeId") &&
     typeof value.astNodeId === "number" &&
-    "capturedScopeId" in value &&
+    hasOwnProperty(value, "capturedScopeId") &&
     (typeof value.capturedScopeId === "number" || typeof value.capturedScopeId === "string")
   );
 }
 
 function isRuntimePromiseValue(value: unknown): value is RuntimePromiseValue {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "promise" && "id" in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "promise" &&
+    hasOwnProperty(value, "id")
+  );
 }
 
 function isPlainObject(value: object): value is Record<string, RuntimeSnapshotValue> {
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function withSerializableContainer<TValue>(

@@ -2,6 +2,7 @@ import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  failedStatTarget: undefined as string | undefined,
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
   evalLint: vi.fn()
 }));
@@ -12,7 +13,14 @@ vi.mock("node:fs/promises", () => ({
       mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>)),
     readdir: (...args: unknown[]) =>
       mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
-    stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+    stat: (...args: unknown[]) => {
+      const [target] = args as Parameters<typeof mocks.fs.stat>;
+      if (String(target) === mocks.failedStatTarget) {
+        throw new Error("source stat denied");
+      }
+
+      return mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>));
+    }
   }
 }));
 
@@ -22,11 +30,39 @@ vi.mock("../lint/lint.js", () => ({
 
 const { renderLintResults, runLintCli } = await import("./lint.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("runLintCli", () => {
   const originalForceColor = process.env.FORCE_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "0";
+    mocks.failedStatTarget = undefined;
     mocks.fs = createFsFromVolume(Volume.fromJSON(createSourceFiles(["smoke"]), "/")).promises;
     mocks.evalLint.mockReset();
     mocks.evalLint.mockResolvedValue({ evalId: "smoke", issues: [] });
@@ -80,6 +116,17 @@ describe("runLintCli", () => {
       sourceDir: "/repo/evals",
       evalId: "missing-eval"
     });
+  });
+
+  it("does not treat inherited stat error codes as missing source directories", async () => {
+    mocks.failedStatTarget = "/repo/evals";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(runLintCli({ sourceDir: "/repo/evals" })).resolves.toBe(1);
+    });
+
+    expect(stderr()).toContain("source stat denied");
+    expect(mocks.evalLint).not.toHaveBeenCalled();
   });
 
   it("lints all evals when evalId is omitted and multiple evals exist", async () => {
@@ -166,6 +213,13 @@ function createSourceFiles(evalIds: readonly string[]): Record<string, string> {
 function stdout(): string {
   return vi
     .mocked(process.stdout.write)
+    .mock.calls.map((call) => String(call[0]))
+    .join("");
+}
+
+function stderr(): string {
+  return vi
+    .mocked(process.stderr.write)
     .mock.calls.map((call) => String(call[0]))
     .join("");
 }

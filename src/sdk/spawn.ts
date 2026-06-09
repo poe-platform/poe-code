@@ -24,7 +24,13 @@ import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { createTraceSinkMiddleware } from "./trace.js";
 import { resolveActiveProviderForService, resolveMergedDocument } from "../cli/commands/shared.js";
 import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
-import type { AcpEvent, SpawnOptions, SpawnResult, SpawnRetryOptions, SpawnUsage } from "./types.js";
+import type {
+  AcpEvent,
+  SpawnOptions,
+  SpawnResult,
+  SpawnRetryOptions,
+  SpawnUsage
+} from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
 /**

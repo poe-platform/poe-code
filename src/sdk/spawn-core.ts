@@ -61,7 +61,9 @@ export async function spawnCore(
     throw new Error(`Unknown service "${service}".`);
   }
 
-  const model = await resolveConfiguredModel(container, service, options.model, { readOnly: flags.dryRun });
+  const model = await resolveConfiguredModel(container, service, options.model, {
+    readOnly: flags.dryRun
+  });
   const workspace = await resolveSpawnWorkspace(options.cwd, {
     baseDir: container.env.cwd,
     homeDir: container.env.homeDir,
@@ -88,7 +90,12 @@ export async function spawnCore(
     };
 
     const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
-    const resources = createExecutionResources(container, commandFlags, `spawn:${service}`, options.env);
+    const resources = createExecutionResources(
+      container,
+      commandFlags,
+      `spawn:${service}`,
+      options.env
+    );
 
     if (flags.dryRun) {
       const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);

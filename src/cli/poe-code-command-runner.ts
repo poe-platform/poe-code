@@ -60,10 +60,7 @@ export function createPoeCodeCommandRunner(input: {
       : {};
 
     if (adapter.isolatedEnv.requiresConfig !== false) {
-      const hasConfig = await isolatedConfigExists(
-        container.fs,
-        details.configProbePath!
-      );
+      const hasConfig = await isolatedConfigExists(container.fs, details.configProbePath!);
       if (!hasConfig) {
         await ensureIsolatedConfigForService({
           container,

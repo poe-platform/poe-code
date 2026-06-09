@@ -77,10 +77,7 @@ export async function buildActiveProvider(input: {
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
     resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
-    resolveShapeBaseUrl(
-      environmentBaseUrl,
-      shape.envBaseUrlPath ?? shape.baseUrlPath
-    ) ??
+    resolveShapeBaseUrl(environmentBaseUrl, shape.envBaseUrlPath ?? shape.baseUrlPath) ??
     (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
 
   if (input.provider.requiresBaseUrl === true && configuredBaseUrl === undefined) {
@@ -242,13 +239,19 @@ export function resolveShapeBaseUrl(
   return `${normalizedBaseUrl}/${trimLeadingSlash(suffix)}`;
 }
 
-function resolveBaseUrlRoot(baseUrl: string | undefined, pathSuffix: string | undefined): string | undefined {
+function resolveBaseUrlRoot(
+  baseUrl: string | undefined,
+  pathSuffix: string | undefined
+): string | undefined {
   const normalizedBaseUrl = resolveNonEmpty(baseUrl);
   const normalizedSuffix = resolveNonEmpty(pathSuffix);
   if (normalizedBaseUrl === undefined || normalizedSuffix === undefined) {
     return normalizedBaseUrl;
   }
-  return stripTrailingPathSegment(trimTrailingSlash(normalizedBaseUrl), trimLeadingSlash(normalizedSuffix));
+  return stripTrailingPathSegment(
+    trimTrailingSlash(normalizedBaseUrl),
+    trimLeadingSlash(normalizedSuffix)
+  );
 }
 
 function trimTrailingSlash(value: string): string {

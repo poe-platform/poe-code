@@ -75,25 +75,25 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 
 ## Config options
 
-| Option                               | Type                             | Description                                                                            |
-| ------------------------------------ | -------------------------------- | -------------------------------------------------------------------------------------- |
-| `prompt`                             | `string`                         | Prompt sent to the agent.                                                              |
-| `cwd`                                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
-| `model`                              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
-| `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
-| `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
-| `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
-| `env`                                | `Record<string, string>`         | Per-invocation child environment overrides. Caller values take precedence.              |
-| `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
-| `captureOtel`                        | `boolean`                        | Capture native agent OTLP/HTTP JSON on host-runtime spawns. |
-| `captureOtelContent`                 | `boolean`                        | Opt in to native prompt/tool content capture. |
+| Option               | Type                             | Description                                                                            |
+| -------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+| `prompt`             | `string`                         | Prompt sent to the agent.                                                              |
+| `cwd`                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
+| `model`              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
+| `mode`               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
+| `args`               | `string[]`                       | Extra args forwarded to the agent process.                                             |
+| `mcpServers`         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
+| `env`                | `Record<string, string>`         | Per-invocation child environment overrides. Caller values take precedence.             |
+| `middlewares`        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
+| `captureOtel`        | `boolean`                        | Capture native agent OTLP/HTTP JSON on host-runtime spawns.                            |
+| `captureOtelContent` | `boolean`                        | Opt in to native prompt/tool content capture.                                          |
 
 Native capture sets a per-spawn `poe.code.spawn.id` resource attribute and stores captured OTLP records plus the correlation id in the backend-neutral ACP trace metadata. Unsupported agents and non-host runtimes warn and continue. Environment equivalents are `POE_CODE_CAPTURE_OTEL=1` and `POE_CODE_CAPTURE_OTEL_CONTENT=1`.
-| `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
-| `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
-| `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |
-| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
-| `logContent`                         | `boolean`                        | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs.   |
+| `useStdin` | `boolean` | Send the prompt through stdin when the agent supports it. |
+| `interactive` | `boolean` | Spawn the agent in interactive TUI mode. |
+| `activityTimeoutMs` | `number` | Kill/retry inactive streaming processes after this many milliseconds. |
+| `logPath` / `logDir` / `logFileName` | `string` | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
+| `logContent` | `boolean` | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs. |
 
 ## Environment variables
 

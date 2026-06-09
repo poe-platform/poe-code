@@ -19,6 +19,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
@@ -83,9 +87,10 @@ function parseProjectVariables(
   content: string
 ): { extendsBuiltIns: boolean; variables: Record<string, string> } {
   const parsed = parseVariablesDocument(filePath, content).toJS();
+  const extendsValue = isRecord(parsed) ? getOwnEntry(parsed, EXTENDS_FIELD_NAME) : undefined;
 
   return {
-    extendsBuiltIns: !isRecord(parsed) || parsed[EXTENDS_FIELD_NAME] !== false,
+    extendsBuiltIns: extendsValue !== false,
     variables: normalizeVariables(filePath, parsed, { allowExtends: true })
   };
 }
@@ -118,7 +123,7 @@ function extractUserOverrideBlocks(
 
     const start = item.key.range?.[0];
     const nextStart = items[index + 1]?.key?.range?.[0];
-    const parsedValue = isRecord(parsed) ? parsed[key] : undefined;
+    const parsedValue = isRecord(parsed) ? getOwnEntry(parsed, key) : undefined;
     const block =
       typeof start === "number"
         ? content.slice(start, typeof nextStart === "number" ? nextStart : content.length).trimEnd()

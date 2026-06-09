@@ -25,12 +25,12 @@ describe("opencode", () => {
     expect(auth).toHaveProperty("poe.type");
     expect(auth).toHaveProperty("poe.key");
 
-    const testResult = await container.exec("poe-code test opencode");
+    const testResult = await container.exec("poe-code test opencode --model openai/gpt-5.2");
     expect(testResult).toSucceedWith("Tested OpenCode CLI.");
   });
 
   it("test --isolated", async () => {
-    const result = await container.exec("poe-code test opencode --isolated");
+    const result = await container.exec("poe-code test opencode --isolated --model openai/gpt-5.2");
     expect(result).toSucceedWith("Tested OpenCode CLI.");
   });
 

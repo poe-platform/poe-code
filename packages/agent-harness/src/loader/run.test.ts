@@ -980,6 +980,83 @@ describe("runHarnessPair", () => {
     });
   });
 
+  it("does not restore clock state whose next value is only inherited", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+
+    const mdPath = "/repo/harness/inherited-clock.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: inherited-clock\nversion: 1\n---\n",
+      "/repo/harness/inherited-clock.ajs": [
+        'import * as time from "time";',
+        'import { wait } from "host";',
+        "export default async () => {",
+        "  await wait('first');",
+        "  await wait('second');",
+        "  return String(time.now());",
+        "};"
+      ].join("\n")
+    });
+
+    const snapshotBackend = new MemorySnapshotBackend();
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const controller = new AbortController();
+    const firstRun = runHarnessPair(mdPath, {
+      clock: {
+        now: () => 1_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait(name: string) {
+            return name === "first" ? first.promise : second.promise;
+          }
+        }
+      }),
+      signal: controller.signal,
+      snapshotBackend
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.resolve("done");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(snapshotBackend.snapshot).toMatchObject({
+      sourceHash: expect.any(String)
+    });
+    snapshotBackend.snapshot = {
+      ...snapshotBackend.snapshot,
+      clock: Object.create({ next: 42 }) as Snapshot["clock"]
+    } as Snapshot;
+
+    controller.abort();
+    second.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({
+      name: "AbortError"
+    });
+
+    const resumed = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => 1_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait() {
+            return "done";
+          }
+        }
+      }),
+      snapshotBackend
+    });
+
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: "1000"
+    });
+  });
+
   it("uses the injected clock source for each live time.now call", async () => {
     const mdPath = "/repo/harness/live-clock.md";
     vol.fromJSON({

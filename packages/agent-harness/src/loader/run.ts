@@ -284,8 +284,9 @@ function createReplayableClock(input: {
   now: (() => number) | undefined;
   snapshot: RunClockSnapshot | undefined;
 }): ReplayableClock {
-  let next = input.snapshot?.next;
-  let replaying = input.snapshot !== undefined;
+  const snapshot = isClockState(input.snapshot) ? input.snapshot : undefined;
+  let next = snapshot?.next;
+  let replaying = snapshot !== undefined;
   const hostNow = input.now ?? Date.now;
 
   return {
@@ -389,7 +390,7 @@ function isClockState(value: unknown): value is RunClockSnapshot {
   return (
     typeof value === "object" &&
     value !== null &&
-    "next" in value &&
+    Object.prototype.hasOwnProperty.call(value, "next") &&
     typeof value.next === "number" &&
     Number.isFinite(value.next)
   );

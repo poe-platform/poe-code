@@ -25,13 +25,13 @@ export function parsePluginConfigEntry(input: unknown): PluginConfigEntry {
     }
   }
 
-  const name = input.name;
+  const name = hasOwnProperty(input, "name") ? input.name : undefined;
   if (typeof name !== "string" || name.trim().length === 0) {
     throw new PluginConfigError("agent.plugins.name: must be a non-empty string.");
   }
 
   const entry: PluginConfigEntry = { name: name.trim() };
-  if ("options" in input) {
+  if (hasOwnProperty(input, "options")) {
     entry.options = input.options;
   }
   return entry;
@@ -157,4 +157,8 @@ function getLevenshteinDistance(left: string, right: string): number {
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwnProperty(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

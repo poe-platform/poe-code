@@ -27,4 +27,42 @@ describe("buildSite", () => {
     expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
     await expect(fs.readFile(path.join(outputDirectory, ".nojekyll"), "utf8")).resolves.toBe("");
   });
+
+  it("preserves prior output when rebuilding HTML fails", async () => {
+    const volume = new Volume();
+    const fs = createFsFromVolume(volume).promises;
+    const outputDirectory = "/package/dist-site";
+    await buildSite({ fs, outputDirectory });
+    const originalHtml = await fs.readFile(path.join(outputDirectory, "index.html"), "utf8");
+    const failingFs = {
+      async mkdir(directoryPath: string, options: { recursive: true }) {
+        await fs.mkdir(directoryPath, options);
+      },
+      async rename(sourcePath: string, destinationPath: string) {
+        await fs.rename(sourcePath, destinationPath);
+      },
+      async rm(filePath: string, options: { force: true }) {
+        await fs.rm(filePath, options);
+      },
+      async writeFile(
+        filePath: string,
+        contents: string,
+        options: { encoding: "utf8"; flag?: string }
+      ) {
+        if (filePath.includes("/index.html.")) {
+          await fs.writeFile(filePath, "partial", options);
+          throw new Error("html write failed");
+        }
+        await fs.writeFile(filePath, contents, options);
+      }
+    };
+
+    await expect(buildSite({ fs: failingFs, outputDirectory })).rejects.toThrow("html write failed");
+
+    await expect(fs.readFile(path.join(outputDirectory, "index.html"), "utf8")).resolves.toBe(
+      originalHtml
+    );
+    const entries = await fs.readdir(outputDirectory);
+    expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);
+  });
 });

@@ -46,6 +46,7 @@ interface TasksCommandOptions extends TasksCliOptions {
   deleteSource?: boolean;
   keep?: boolean;
   dryRun?: boolean;
+  force?: boolean;
   rate?: string;
   limit?: string;
   stateMap?: string;
@@ -142,6 +143,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .argument("<id>", "Qualified task id.")
     .argument("<state>", "Target state.")
     .option("--workflow <path>", "Workflow file path.", "./WORKFLOW.md")
+    .option("--force", "Override human gates.")
     .option("--yes", "Run non-interactively.")
     .action(async (id: string, state: string, options: TasksCommandOptions, command: Command) => {
       await runSetState(id, state, mergeCommandOptions(options, command), container);
@@ -152,6 +154,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .description("Advance a task to the next declared workflow state.")
     .argument("<id>", "Qualified task id.")
     .option("--workflow <path>", "Workflow file path.", "./WORKFLOW.md")
+    .option("--force", "Override human gates.")
     .option("--yes", "Run non-interactively.")
     .action(async (id: string, options: TasksCommandOptions, command: Command) => {
       await runNext(id, mergeCommandOptions(options, command), container);
@@ -432,13 +435,14 @@ async function runSetState(
 
   try {
     const opened = await openConfiguredTaskList(options, container);
+    const { task } = await resolveTaskView(opened.taskList, id);
+    if (!opened.resolved.stateOrder.includes(state)) {
+      throw new TasksCommandUsageError(
+        `target state "${state}" is not declared in WORKFLOW.md; declared states: ${opened.resolved.stateOrder.join(", ")}`
+      );
+    }
+    assertGateAllowed(opened.resolved, task.state, state, options.force);
     if (options.dryRun === true) {
-      const { task } = await resolveTaskView(opened.taskList, id);
-      if (!opened.resolved.stateOrder.includes(state)) {
-        throw new TasksCommandUsageError(
-          `target state "${state}" is not declared in WORKFLOW.md; declared states: ${opened.resolved.stateOrder.join(", ")}`
-        );
-      }
       logger.dryRun(`[dry-run] Would set task ${task.qualifiedId} state to ${state}.`);
       return;
     }
@@ -446,6 +450,54 @@ async function runSetState(
   } catch (error) {
     handleCommandError(error, logger, options.json);
   }
+}
+
+function assertGateAllowed(
+  resolved: Pick<ResolvedWorkflowTasksOptions, "stateOrder" | "gateStates">,
+  fromState: string,
+  toState: string,
+  force: boolean | undefined
+): void {
+  if (force === true) {
+    return;
+  }
+
+  const gate = findCrossedGate(resolved, fromState, toState);
+  if (gate === undefined) {
+    return;
+  }
+
+  const reason =
+    gate === fromState
+      ? `cannot advance out of "${fromState}": it is a human gate`
+      : `cannot move to "${toState}": it would cross the human gate "${gate}"`;
+  throw new TasksCommandUsageError(`${reason}. Advance it from the board or pass --force.`);
+}
+
+function findCrossedGate(
+  resolved: Pick<ResolvedWorkflowTasksOptions, "stateOrder" | "gateStates">,
+  fromState: string,
+  toState: string
+): string | undefined {
+  if (resolved.gateStates.includes(fromState)) {
+    return fromState;
+  }
+
+  const fromIndex = resolved.stateOrder.indexOf(fromState);
+  const toIndex = resolved.stateOrder.indexOf(toState);
+  if (fromIndex < 0 || toIndex < 0) {
+    return undefined;
+  }
+
+  const lowerBound = Math.min(fromIndex, toIndex);
+  const upperBound = Math.max(fromIndex, toIndex);
+  for (let index = lowerBound + 1; index < upperBound; index += 1) {
+    if (resolved.gateStates.includes(resolved.stateOrder[index])) {
+      return resolved.stateOrder[index];
+    }
+  }
+
+  return undefined;
 }
 
 async function runNext(
@@ -483,6 +535,8 @@ async function runNext(
         `no state after \`${task.state}\`; use \`set-state\` to override`
       );
     }
+
+    assertGateAllowed(opened.resolved, task.state, nextState, options.force);
 
     if (options.dryRun === true) {
       logger.dryRun(`[dry-run] Would set task ${task.qualifiedId} state to ${nextState}.`);

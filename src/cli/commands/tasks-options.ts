@@ -50,6 +50,7 @@ export interface ResolvedWorkflowTasksOptions {
   taskListOptions: OpenTaskListOptions;
   stateOrder: string[];
   stateMachine: StateMachineDef;
+  gateStates: string[];
   workflowPath: string;
 }
 
@@ -107,13 +108,26 @@ export async function resolveWorkflowTasksOptions(
   const taskListOptions = readTaskListOptions(frontmatter, workflowPath);
   const stateOrder = resolveRequiredStates(undefined, frontmatter);
   const stateMachine = createAnyToAnyStateMachine(stateOrder);
+  const gateStates = readGateStates(frontmatter);
 
   return {
     taskListOptions,
     stateOrder,
     stateMachine,
+    gateStates,
     workflowPath
   };
+}
+
+function readGateStates(frontmatter: Record<string, unknown>): string[] {
+  const states = asRecord(frontmatter.states);
+  if (states === undefined) {
+    return [];
+  }
+
+  return Object.entries(states)
+    .filter(([, definition]) => asRecord(definition)?.gate === true)
+    .map(([name]) => name);
 }
 
 async function readWorkflowFrontmatter(workflowPath: string): Promise<Record<string, unknown>> {

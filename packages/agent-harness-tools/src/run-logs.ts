@@ -127,8 +127,8 @@ function isNotFoundError(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "ENOENT"
   );
 }
 

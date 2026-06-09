@@ -7,6 +7,7 @@ export const gooseAgent: AgentDefinition = {
   summary: "Block's open-source AI agent with ACP support.",
   binaryName: "goose",
   apiShapes: ["openai-chat-completions"],
+  otelCapture: {},
   configPath: "~/.config/goose/config.yaml",
   branding: {
     colors: {

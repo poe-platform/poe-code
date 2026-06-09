@@ -1724,6 +1724,32 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes native OTel capture options to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--capture-otel",
+      "--capture-otel-content",
+      "codex",
+      "hello"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({ captureOtel: true, captureOtelContent: true })
+    );
+  });
+
   it("rejects invalid --mcp-servers JSON", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

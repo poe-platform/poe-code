@@ -17,6 +17,12 @@ function freezeAgent(agent: AgentDefinition): AgentDefinition {
   if (agent.apiShapes !== undefined) {
     Object.freeze(agent.apiShapes);
   }
+  if (agent.otelCapture?.env !== undefined) {
+    Object.freeze(agent.otelCapture.env);
+  }
+  if (agent.otelCapture !== undefined) {
+    Object.freeze(agent.otelCapture);
+  }
   Object.freeze(agent.branding.colors);
   Object.freeze(agent.branding);
   return Object.freeze(agent);

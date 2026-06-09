@@ -117,6 +117,8 @@ export function registerSpawnCommand(
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option("--log-file-name <name>", "Filename override for the spawn log")
     .option("--log-content", "Include message and tool content in ACP JSONL spawn logs")
+    .option("--capture-otel", "Capture native OpenTelemetry emitted by the spawned agent")
+    .option("--capture-otel-content", "Include prompt and tool content in native OpenTelemetry")
     .option(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
@@ -155,6 +157,8 @@ export function registerSpawnCommand(
           logDir?: string;
           logFileName?: string;
           logContent?: boolean;
+          captureOtel?: boolean;
+          captureOtelContent?: boolean;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
@@ -276,6 +280,12 @@ export function registerSpawnCommand(
             ? { logFileName: commandOptions.logFileName }
             : {}),
           ...(commandOptions.logContent ? { logContent: true } : {}),
+          ...(commandOptions.captureOtel || commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL === "1" || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
+            ? { captureOtel: true }
+            : {}),
+          ...(commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
+            ? { captureOtelContent: true }
+            : {}),
           activityTimeoutMs: commandOptions.activityTimeoutMs,
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
@@ -384,6 +394,8 @@ export function registerSpawnCommand(
                 ? { logFileName: spawnOptions.logFileName }
                 : {}),
               ...(spawnOptions.logContent ? { logContent: true } : {}),
+              ...(spawnOptions.captureOtel ? { captureOtel: true } : {}),
+              ...(spawnOptions.captureOtelContent ? { captureOtelContent: true } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
@@ -714,10 +726,19 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       timeout = value.timeout;
     }
 
+    let autoApprove: boolean | undefined;
+    if ("autoApprove" in value && value.autoApprove !== undefined) {
+      if (typeof value.autoApprove !== "boolean") {
+        throw new ValidationError(`--mcp-servers entry "${name}".autoApprove must be a boolean`);
+      }
+      autoApprove = value.autoApprove;
+    }
+
     servers[name] = {
       command,
       ...(args ? { args } : {}),
       ...(env ? { env } : {}),
+      ...(autoApprove !== undefined ? { autoApprove } : {}),
       ...(timeout !== undefined ? { timeout } : {})
     };
   }

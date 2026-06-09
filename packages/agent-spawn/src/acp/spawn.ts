@@ -7,6 +7,7 @@ import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
+import { startNativeOtelCapture, type NativeOtelCapture } from "../native-otel.js";
 import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
@@ -184,6 +185,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     throw new Error(`Agent "${agentId}" has no binaryName.`);
   }
 
+  const capturePromise = startCapture(options.agentId, options);
   const mcpArgs = getMcpArgs(spawnConfig, options.mcpServers);
   const mcpEnvVars = getMcpEnv(spawnConfig, options.mcpServers);
   const resumeArgs = getResumeArgs(spawnConfig, options);
@@ -243,6 +245,15 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...spawnConfig.stdinMode!.extraArgs);
   }
 
+  const runArgs = async (): Promise<{ args: string[]; env: Record<string, string>; capture?: NativeOtelCapture }> => {
+    const capture = await capturePromise;
+    return {
+      args: capture?.args ?? [],
+      env: { ...(capture?.env ?? {}), ...(options.env ?? {}) },
+      ...(capture ? { capture } : {})
+    };
+  };
+
   if (options.args && options.args.length > 0) {
     if (resumeArgsPosition === "afterPrompt") {
       args.push(...resumeArgs);
@@ -252,49 +263,8 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...resumeArgs);
   }
 
-  const envOverrides = { ...mcpEnvVars, ...modeResolved.env };
-  const processEnv =
-    Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const cwd = options.cwd ?? process.cwd();
   const queue = createLineQueue();
-  const argv = [binaryName, ...args];
-  const displayArgv = [binaryName, ...redactPromptArgIndexes(args, promptArgIndexes)];
-  const execution = resolveSpawnExecution({
-    cwd,
-    runtimeConfigCwd: options.runtimeConfigCwd,
-    env: (processEnv ?? process.env) as Record<string, string>,
-    argv,
-    displayArgv,
-    tool: agentId,
-    runtime: {
-      runtime: options.runtime,
-      runtimeImage: options.runtimeImage,
-      runtimeTemplate: options.runtimeTemplate,
-      detach: options.detach,
-      mountPoeCode: options.mountPoeCode,
-      runnerSync: options.runnerSync
-    },
-    openSpec: {
-      execution: {
-        wrapForLogTee: false,
-        stdin: "pipe",
-        stdout: "pipe",
-        stderr: "pipe",
-        env: processEnv as Record<string, string> | undefined,
-        input: useStdin ? options.prompt : "",
-        captureOutput: true,
-        activityTimeoutMs: options.activityTimeoutMs,
-        activityTimeoutSource: "stdout",
-        onStdout(chunk: string) {
-          if (options.tee?.stdout) options.tee.stdout.write(chunk);
-          queue.push(chunk);
-        },
-        onStderr(chunk: string) {
-          if (options.tee?.stderr) options.tee.stderr.write(chunk);
-        }
-      }
-    }
-  });
 
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
   const adapter = getAdapter(spawnConfig.adapter);
@@ -416,6 +386,51 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
         [
           ...(options.middlewares ?? []),
           async (_ctx, next) => {
+            const nativeOtel = await runArgs();
+            const spawnArgs = [...args, ...nativeOtel.args];
+            const envOverrides = mergeEnvironment(
+              mcpEnvVars,
+              modeResolved.env,
+              nativeOtel.env
+            );
+            const processEnv =
+              Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+            const execution = resolveSpawnExecution({
+              cwd,
+              runtimeConfigCwd: options.runtimeConfigCwd,
+              env: (processEnv ?? process.env) as Record<string, string>,
+              argv: [binaryName, ...spawnArgs],
+              displayArgv: [binaryName, ...redactPromptArgIndexes(spawnArgs, promptArgIndexes)],
+              tool: agentId,
+              runtime: {
+                runtime: options.runtime,
+                runtimeImage: options.runtimeImage,
+                runtimeTemplate: options.runtimeTemplate,
+                detach: options.detach,
+                mountPoeCode: options.mountPoeCode,
+                runnerSync: options.runnerSync
+              },
+              openSpec: {
+                execution: {
+                  wrapForLogTee: false,
+                  stdin: "pipe",
+                  stdout: "pipe",
+                  stderr: "pipe",
+                  env: processEnv as Record<string, string> | undefined,
+                  input: useStdin ? options.prompt : "",
+                  captureOutput: true,
+                  activityTimeoutMs: options.activityTimeoutMs,
+                  activityTimeoutSource: "stdout",
+                  onStdout(chunk: string) {
+                    if (options.tee?.stdout) options.tee.stdout.write(chunk);
+                    queue.push(chunk);
+                  },
+                  onStderr(chunk: string) {
+                    if (options.tee?.stderr) options.tee.stderr.write(chunk);
+                  }
+                }
+              }
+            });
             try {
               const runResult = await runPoeCommand({
                 factory: execution.factory,
@@ -438,6 +453,13 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
               queue.close();
             }
             await eventStreamDone;
+            if (nativeOtel.capture) {
+              ctx.metadata = {
+                ...ctx.metadata,
+                nativeOtelCorrelationId: nativeOtel.capture.correlationId,
+                nativeOtel: await nativeOtel.capture.drain()
+              };
+            }
             await next();
           }
         ],
@@ -482,4 +504,58 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
       () => done
     )
   };
+}
+
+function mergeEnvironment(
+  ...sources: Array<Record<string, string> | undefined>
+): Record<string, string> {
+  const merged: Record<string, string> = {};
+  for (const source of sources) {
+    for (const [key, value] of Object.entries(source ?? {})) {
+      const existing = merged[key];
+      merged[key] = existing === undefined ? value : mergeJsonObjectStrings(existing, value);
+    }
+  }
+  return merged;
+}
+
+function mergeJsonObjectStrings(left: string, right: string): string {
+  try {
+    const leftValue = JSON.parse(left) as unknown;
+    const rightValue = JSON.parse(right) as unknown;
+    if (isObject(leftValue) && isObject(rightValue)) {
+      return JSON.stringify(deepMerge(leftValue, rightValue));
+    }
+  } catch {
+    return right;
+  }
+  return right;
+}
+
+function deepMerge(
+  left: Record<string, unknown>,
+  right: Record<string, unknown>
+): Record<string, unknown> {
+  const merged = { ...left };
+  for (const [key, value] of Object.entries(right)) {
+    const existing = merged[key];
+    merged[key] = isObject(existing) && isObject(value) ? deepMerge(existing, value) : value;
+  }
+  return merged;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+async function startCapture(
+  agentId: string,
+  options: Pick<SpawnOptions, "captureOtel" | "captureOtelContent" | "runtime">
+): Promise<NativeOtelCapture | undefined> {
+  if (!options.captureOtel) return undefined;
+  if (options.runtime !== undefined && options.runtime !== "host") {
+    console.warn("warning: native OpenTelemetry capture currently supports only the host runtime");
+    return undefined;
+  }
+  return startNativeOtelCapture(agentId, options.captureOtelContent);
 }

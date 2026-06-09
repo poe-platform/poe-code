@@ -194,6 +194,81 @@ async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]>
 }
 
 describe("SDK spawn()", () => {
+  it("forwards native OTel capture and trace sink middleware to streaming spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const traceSink = vi.fn();
+    await spawn("codex", "test prompt", {
+      captureOtel: true,
+      captureOtelContent: true,
+      traceSink
+    }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureOtel: true,
+        captureOtelContent: true,
+        middlewares: [expect.any(Function)]
+      })
+    );
+  });
+
+  it("runs integration and user middleware inside native capture", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+    const integrationMiddleware = vi.fn();
+    const userMiddleware = vi.fn();
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: integrationMiddleware,
+      shutdown: vi.fn().mockResolvedValue(undefined)
+    });
+
+    await spawn("codex", "test prompt", {
+      captureOtel: true,
+      middlewares: [userMiddleware]
+    }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ middlewares: [integrationMiddleware, userMiddleware] })
+    );
+    expect(applyMiddlewares).toHaveBeenCalledWith(
+      [sessionCapture, usageCapture, spawnLog],
+      expect.any(Object)
+    );
+  });
+
+  it("enables native OTel capture from the SDK environment", async () => {
+    process.env.POE_CODE_CAPTURE_OTEL = "1";
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("codex", "test prompt").result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(expect.objectContaining({ captureOtel: true }));
+  });
+
   it("returns events and result from spawnStreaming() when supported", async () => {
     const event = { event: "agent_message", text: "hello" };
 

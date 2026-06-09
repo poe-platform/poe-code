@@ -2,6 +2,8 @@ import "./register-factories.js";
 
 export const agentSpawn = {};
 export { noopOtelSink } from "./observability/otel.js";
+export { startNativeOtelCapture } from "./native-otel.js";
+export type { NativeOtelCapture, NativeOtelRecord } from "./native-otel.js";
 
 export {
   runCommand,

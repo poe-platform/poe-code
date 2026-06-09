@@ -16,4 +16,14 @@ describe("agent definition types", () => {
       readonly ApiShapeId[] | undefined
     >();
   });
+
+  it("allows declarative native OTel capture overlays", () => {
+    expectTypeOf<AgentDefinition["otelCapture"]>().toMatchTypeOf<
+      | {
+          env?: Record<string, string>;
+          args?: (endpoint: string, content: boolean) => string[];
+        }
+      | undefined
+    >();
+  });
 });

@@ -103,6 +103,14 @@ export {
   stopLaunch
 } from "./sdk/launch.js";
 export type {
+  AcpMiddleware,
+  AcpSpawnContext,
+  McpSpawnConfig,
+  McpSpawnServer,
+  OtelSink,
+  SessionResult,
+  SessionToolCall,
+  SpawnMode,
   SpawnOptions,
   HookBridgeOptions,
   SpawnRetryOptions,
@@ -120,6 +128,8 @@ export type {
   HookDrop
 } from "@poe-code/agent-hook-config";
 export { SpawnParallelError } from "@poe-code/agent-spawn";
+export { acpToTrace, createTraceSinkMiddleware } from "./sdk/trace.js";
+export type { AcpTrace, AcpTraceSpan, TraceSink } from "./sdk/trace.js";
 export type {
   SpawnParallelCall,
   SpawnParallelOptions,

@@ -12,7 +12,7 @@ import { openCodeSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
-import { serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
+import { serializeCodexMcpArgs, serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
@@ -172,6 +172,21 @@ describe("serializeGooseMcpArgs", () => {
 });
 
 describe("configs/MCP serialization", () => {
+  it("auto-approves explicitly configured Codex MCP servers by default", () => {
+    expect(serializeCodexMcpArgs({ slack: { command: "slack-mcp" } })).toEqual([
+      "-c",
+      'mcp_servers.slack.command="slack-mcp"',
+      "-c",
+      'mcp_servers.slack.default_tools_approval_mode="approve"'
+    ]);
+  });
+
+  it("allows Codex MCP auto-approval to be disabled", () => {
+    expect(
+      serializeCodexMcpArgs({ slack: { command: "slack-mcp", autoApprove: false } })
+    ).toEqual(["-c", 'mcp_servers.slack.command="slack-mcp"']);
+  });
+
   it("preserves special MCP server names in Kimi JSON arguments", () => {
     const args = kimiSpawnConfig.mcpArgs!(
       JSON.parse('{"__proto__":{"command":"custom-server"}}')

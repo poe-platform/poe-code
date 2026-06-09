@@ -5,6 +5,7 @@ Pure ACP event-to-trace conversion plus Braintrust and OpenTelemetry emitters.
 ## Public Exports
 
 - `acpToTrace(ctx)` converts an `@poe-code/agent-spawn` ACP spawn context into an `AcpTrace`.
+- `createTraceSinkMiddleware(sink)` delivers each completed trace to a backend-neutral consumer.
 - `emitToBraintrust(trace, parent)` writes the trace as nested Braintrust task/tool spans.
 - `emitToOtel(trace, tracer)` writes the trace as OpenTelemetry-style spans and attributes.
 - `redact(value)` removes sensitive prompt, tool, and metadata fields before emission.
@@ -30,3 +31,5 @@ OpenTelemetry emission expects a tracer-like object with `startSpan`. Agent span
 ## Configuration
 
 No env vars, no config.
+
+Failed or aborted spawns still invoke a trace sink once with all trace data captured before failure.

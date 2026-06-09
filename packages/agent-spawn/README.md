@@ -83,6 +83,10 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
 | `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
 | `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
+| `captureOtel`                        | `boolean`                        | Capture native agent OTLP/HTTP JSON on host-runtime spawns. |
+| `captureOtelContent`                 | `boolean`                        | Opt in to native prompt/tool content capture. |
+
+Native capture sets a per-spawn `poe.code.spawn.id` resource attribute and stores captured OTLP records plus the correlation id in the backend-neutral ACP trace metadata. Unsupported agents and non-host runtimes warn and continue. Environment equivalents are `POE_CODE_CAPTURE_OTEL=1` and `POE_CODE_CAPTURE_OTEL_CONTENT=1`.
 | `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
 | `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
 | `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |

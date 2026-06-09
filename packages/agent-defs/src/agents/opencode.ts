@@ -7,6 +7,11 @@ export const openCodeAgent: AgentDefinition = {
   summary: "Configure OpenCode CLI to use the Poe API.",
   binaryName: "opencode",
   apiShapes: ["openai-chat-completions"],
+  otelCapture: {
+    env: {
+      OPENCODE_CONFIG_CONTENT: '{"experimental":{"openTelemetry":true}}'
+    }
+  },
   configPath: "~/.config/opencode/config.json",
   branding: {
     colors: {

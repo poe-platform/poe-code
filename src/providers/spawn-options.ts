@@ -15,6 +15,8 @@ export interface SpawnCommandOptions {
   logFileName?: string;
   logContent?: boolean;
   activityTimeoutMs?: number;
+  captureOtel?: boolean;
+  captureOtelContent?: boolean;
   middlewares?: AcpMiddleware[];
   cwd?: string;
   useStdin?: boolean;

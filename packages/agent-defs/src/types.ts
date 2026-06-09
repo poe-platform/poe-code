@@ -4,6 +4,11 @@ export type ApiShapeId =
   | "anthropic-messages"
   | "google-generations";
 
+export interface OtelCaptureDefinition {
+  env?: Record<string, string>;
+  args?: (endpoint: string, content: boolean) => string[];
+}
+
 export interface AgentDefinition {
   id: string;
   name: string;
@@ -13,6 +18,7 @@ export interface AgentDefinition {
   /** Binary name for CLI agents. Optional for GUI-only apps like Claude Desktop. */
   binaryName?: string;
   readonly apiShapes?: readonly ApiShapeId[];
+  readonly otelCapture?: OtelCaptureDefinition;
   configPath: string;
   branding: {
     colors: {

@@ -300,6 +300,8 @@ describe("spawnInteractive", () => {
       "-c",
       "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
       "-c",
+      "mcp_servers.test.default_tools_approval_mode=\"approve\"",
+      "-c",
       "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
       ...codexSpawnConfig.modes.yolo
     ]);

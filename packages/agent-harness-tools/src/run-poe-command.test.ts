@@ -23,6 +23,7 @@ import type {
   OpenSpec,
   UploadResult
 } from "./execution-env.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { LogStreamFs } from "./log-stream.js";
 import { createPoeCommandSession, runPoeCommand } from "./run-poe-command.js";
 
@@ -276,12 +277,7 @@ function isProcessAlive(pid: number): boolean {
     process.kill(pid, 0);
     return true;
   } catch (error) {
-    return !(
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ESRCH"
-    );
+    return !hasOwnErrorCode(error, "ESRCH");
   }
 }
 

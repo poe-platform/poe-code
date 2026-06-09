@@ -1,5 +1,6 @@
 import nodeFs from "node:fs";
 import type { FSWatcher } from "node:fs";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { LogChunk } from "./execution-env.js";
 
 const JOB_DIR = "/tmp/poe-jobs";
@@ -105,7 +106,7 @@ async function wasModifiedSince(fs: LogStreamFs, file: string, since: Date): Pro
     const stat = await fs.promises.stat(file);
     return stat.mtimeMs >= since.getTime();
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -179,7 +180,7 @@ async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Buffer |
     const contents = await fs.promises.readFile(file);
     return Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return null;
     }
     throw error;
@@ -199,7 +200,7 @@ async function assertRegularManagedFile(fs: LogStreamFs, file: string): Promise<
       throw new Error("Managed job file must not be a symbolic link.");
     }
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return;
     }
 
@@ -215,7 +216,7 @@ async function assertManagedJobDirectory(
       throw new Error("Managed job directory must not be a symbolic link.");
     }
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return;
     }
 
@@ -319,8 +320,4 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
-}
-
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
 }

@@ -4,6 +4,7 @@ import type { StateManager } from "@poe-code/poe-code-config";
 import type { RunHandle } from "@poe-code/process-runner";
 import type { Readable } from "node:stream";
 import { createBinaryExistsDetectors } from "./binary-exists.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { DownloadResult, ExecutionEnvFactory, OpenedEnv, OpenSpec } from "./execution-env.js";
 import { waitForExit, wrapForLogTee, type LogStreamEnv } from "./log-stream.js";
 
@@ -727,10 +728,7 @@ async function writeExecutionInput(handle: RunHandle, input: string | Buffer): P
 
   await new Promise<void>((resolve, reject) => {
     stdin.on("error", (error: NodeJS.ErrnoException) => {
-      if (
-        Object.prototype.hasOwnProperty.call(error, "code") &&
-        error.code === "EPIPE"
-      ) {
+      if (hasOwnErrorCode(error, "EPIPE")) {
         resolve();
         return;
       }

@@ -1,5 +1,6 @@
 import { fileMutation, runMutations, templateMutation } from "@poe-code/config-mutations";
 import { resolveAgentSupport } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { createTemplateLoader } from "./templates.js";
 import type { ApplyOptions, SkillFile } from "./types.js";
 
@@ -29,12 +30,7 @@ async function pathExists(fs: ApplyOptions["fs"], targetPath: string): Promise<b
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      Object.prototype.hasOwnProperty.call(error, "code") &&
-      (error as { code?: unknown }).code === "ENOENT"
-    ) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;

@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export type GitDirRunner = (cwd: string) => string | undefined;
 
@@ -55,19 +56,15 @@ function readExcludeFile(excludePath: string): string | undefined {
   try {
     return fs.readFileSync(excludePath, "utf8");
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
     throw error;
   }
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
-}
-
 function isAlreadyExistsError(error: unknown): boolean {
-  return isNodeError(error) && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function assertNoSymbolicLink(targetPath: string): void {
@@ -84,7 +81,7 @@ function assertNoSymbolicLink(targetPath: string): void {
         throw new Error(`Refusing to update Git exclude path through symbolic link: ${current}`);
       }
     } catch (error) {
-      if (isNodeError(error) && error.code === "ENOENT") {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         return;
       }
       throw error;

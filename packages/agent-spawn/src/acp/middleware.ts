@@ -21,6 +21,7 @@ export interface SpawnContext {
   logPath?: string;
   logDir?: string;
   logFileName?: string;
+  logContent?: boolean;
   events: AcpEvent[];
   usage: SpawnUsage;
   eventStream?: AsyncIterable<AcpEvent>;

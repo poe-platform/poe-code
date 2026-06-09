@@ -53,14 +53,15 @@ Precedence:
 
 - CLI flag via `providedAgent`
 - frontmatter string via `frontmatterAgent`
-- `configuredDefaultAgent` from `core.defaultAgent`
-- `fallbackAgent` when `assumeYes` / `--yes` is enabled
+- when `assumeYes` / `--yes` is enabled, `configuredDefaultAgent` from `core.defaultAgent`
+- when `assumeYes` / `--yes` is enabled and no configured default exists, `fallbackAgent`
 - interactive `select(...)` prompt
 
 Notes:
 
 - Only a single frontmatter string is handled here. If frontmatter contains an array, the caller must resolve that case before calling `resolveLoopAgent`.
 - Validation and alias resolution happen inside the helper. Supported `agent:model` specifiers keep their model suffix.
+- Without `assumeYes`, an omitted agent reaches the interactive prompt even when `configuredDefaultAgent` is set. This keeps defaults opt-in for commands that could otherwise mutate files or run agents.
 - Cancellation is only possible in the interactive prompt path. If `select(...)` returns a value that `isCancel(...)` recognizes, the function returns `{ cancelled: true }` and does not throw. Callers are responsible for showing the cancellation message and stopping the command cleanly.
 - `pipeline`, `experiment`, `ralph`, and `superintendent` all route their single-agent loop selection through this function so the precedence stays aligned across commands.
 

@@ -1,6 +1,6 @@
 import path from "node:path";
 import { homedir } from "node:os";
-import { mkdir, realpath } from "node:fs/promises";
+import { lstat, mkdir, realpath } from "node:fs/promises";
 
 export function getDefaultSpawnLogDir(): string {
   return path.join(homedir(), ".poe-code", "spawn-logs");
@@ -11,8 +11,15 @@ export async function ensureSafeDefaultSpawnLogDir(create: boolean): Promise<str
   const logDir = getDefaultSpawnLogDir();
 
   if (create) {
+    await assertNotSymbolicLink(stateDir);
     await mkdir(stateDir, { recursive: true });
+    await assertNotSymbolicLink(stateDir);
+    await assertNotSymbolicLink(logDir);
     await mkdir(logDir, { recursive: true });
+    await assertNotSymbolicLink(logDir);
+  } else {
+    await assertNotSymbolicLink(stateDir);
+    await assertNotSymbolicLink(logDir);
   }
 
   const [canonicalStateDir, canonicalLogDir] = await Promise.all([
@@ -30,4 +37,17 @@ export async function ensureSafeDefaultSpawnLogDir(create: boolean): Promise<str
   }
 
   return logDir;
+}
+
+async function assertNotSymbolicLink(targetPath: string): Promise<void> {
+  try {
+    if ((await lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Default spawn log path may not contain symbolic links: ${targetPath}`);
+    }
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }

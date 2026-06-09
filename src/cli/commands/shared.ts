@@ -27,6 +27,7 @@ import {
 import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
 import {
   resolveApiShape,
+  type ApiShapeBinding,
   type ApiShapeId,
   type AuthProvider,
   type EnvValueSource,
@@ -88,13 +89,14 @@ export async function buildActiveProvider(input: {
     );
   }
 
-  if (configuredBaseUrl === undefined && shape.defaultBaseUrl === undefined) {
+  const defaultBaseUrl = resolveDefaultShapeBaseUrl(input.provider, shape);
+  if (configuredBaseUrl === undefined && defaultBaseUrl === undefined) {
     throw new Error(
       `Provider "${input.provider.id}" does not declare a default base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
     );
   }
 
-  const baseUrl = configuredBaseUrl ?? shape.defaultBaseUrl;
+  const baseUrl = configuredBaseUrl ?? defaultBaseUrl;
   if (baseUrl === undefined) {
     throw new Error(
       `Provider "${input.provider.id}" does not declare a default base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
@@ -118,6 +120,17 @@ export async function buildActiveProvider(input: {
       credential: input.credential
     })
   };
+}
+
+function resolveDefaultShapeBaseUrl(
+  provider: AuthProvider,
+  shape: ApiShapeBinding
+): string | undefined {
+  if (shape.defaultBaseUrl !== undefined) {
+    return shape.defaultBaseUrl;
+  }
+  const providerDefaultRoot = resolveBaseUrlRoot(provider.baseUrl, provider.baseUrlEnvPath);
+  return resolveShapeBaseUrl(providerDefaultRoot, shape.envBaseUrlPath ?? shape.baseUrlPath);
 }
 
 function resolveProviderEnv(
@@ -345,6 +358,12 @@ export function resolveCommandFlags(program: Command): CommandFlags {
     assumeYes: Boolean(opts.yes),
     verbose: Boolean(opts.verbose)
   };
+}
+
+export function requireInteractiveStdin(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
 }
 
 export function createExecutionResources(

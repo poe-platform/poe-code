@@ -16,7 +16,7 @@ describe("syncGhProject idempotency", () => {
       options: []
     });
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toEqual({
       ok: true,
       project: { id: "project-id", number: 7, owner: "octo-org" },
       statusField: { id: "status-field", options: ["Todo", "Doing", "Done"] },
@@ -52,14 +52,14 @@ describe("syncGhProject idempotency", () => {
       failUpdateOnce: true
     });
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createOption",
       target: "Todo,Doing,Done",
       message: "network failed"
     } satisfies Partial<GhProjectSyncError>);
 
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
+    await expect(syncGhProject({ ...DEFAULT_OPTIONS, yes: true, client })).resolves.toEqual({
       ok: true,
       project: { id: "project-id", number: 7, owner: "octo-org" },
       statusField: { id: "status-field", options: ["Todo", "Doing", "Done"] },

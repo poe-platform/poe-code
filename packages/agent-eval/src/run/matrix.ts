@@ -1,4 +1,5 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { aggregateRuns } from "../aggregate.js";
 import { openSource } from "../source/open.js";
@@ -10,10 +11,12 @@ import type {
   EvalRunResult,
   PlanKind
 } from "../types.js";
+import { assertRunArtifactPath, ensureRunArtifactDirectory } from "./artifact-path.js";
 import { runEval } from "./run.js";
 import { writeRunResult } from "./result-writer.js";
 
 const defaultRepeats = 3;
+const tempWriteMaxAttempts = 3;
 
 export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRunResult> {
   assertNonEmpty("agents", opts.agents);
@@ -26,7 +29,7 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
   assertPositiveInteger("repeats", repeats);
 
   const matrixDir = path.join(opts.outDir ?? "runs", matrixId);
-  await mkdir(matrixDir, { recursive: true });
+  await ensureRunArtifactDirectory(source.rootDir, matrixDir);
 
   for (const evalId of evalIds) {
     const evalDef = await loadEval(source, evalId);
@@ -57,7 +60,7 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
         }
 
         const aggregate = aggregateRuns(cellRuns);
-        await writeAggregate(matrixDir, evalId, agent, model, aggregate);
+        await writeAggregate(source.rootDir, matrixDir, evalId, agent, model, aggregate);
         for (const result of cellRuns) {
           yield result;
         }
@@ -87,7 +90,7 @@ async function runSingle(
       error: getErrorMessage(error)
     });
     const runDir = path.join(opts.outDir ?? "runs", result.runId);
-    await mkdir(runDir, { recursive: true });
+    await ensureRunArtifactDirectory(opts.sourceDir, runDir);
     await writeRunResult(runDir, result);
     return result;
   }
@@ -156,20 +159,53 @@ function createErrorResult(
 }
 
 async function writeAggregate(
+  sourceRootDir: string,
   matrixDir: string,
   evalId: string,
   agent: string,
   model: string,
   aggregate: unknown
 ): Promise<void> {
-  await writeFile(
-    path.join(
-      matrixDir,
-      `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
-    ),
-    `${JSON.stringify(aggregate, null, 2)}\n`,
-    "utf8"
+  const aggregatePath = path.join(
+    matrixDir,
+    `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
   );
+  await assertRunArtifactPath(sourceRootDir, aggregatePath);
+  await writeFileAtomically(aggregatePath, `${JSON.stringify(aggregate, null, 2)}\n`);
+}
+
+async function writeFileAtomically(filePath: string, content: string): Promise<void> {
+  for (let attempt = 1; attempt <= tempWriteMaxAttempts; attempt += 1) {
+    const tempPath = path.join(
+      path.dirname(filePath),
+      `.${path.basename(filePath)}.${process.pid}.${randomUUID()}.tmp`
+    );
+
+    try {
+      await writeTempThenRename(tempPath, filePath, content);
+      return;
+    } catch (error) {
+      if (isExistingPath(error) && attempt < tempWriteMaxAttempts) {
+        continue;
+      }
+      throw error;
+    }
+  }
+}
+
+async function writeTempThenRename(tempPath: string, filePath: string, content: string): Promise<void> {
+  let tempCreated = false;
+
+  try {
+    await writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await rename(tempPath, filePath);
+  } catch (error) {
+    if (tempCreated || !isExistingPath(error)) {
+      await rm(tempPath, { force: true }).catch(() => undefined);
+    }
+    throw error;
+  }
 }
 
 function assertNonEmpty(
@@ -214,4 +250,13 @@ function isSafePathSegmentChar(char: string): boolean {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function isExistingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }

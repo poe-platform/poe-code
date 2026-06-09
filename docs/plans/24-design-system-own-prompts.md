@@ -10,13 +10,13 @@ Replace `@clack/prompts` with an in-repo prompts implementation so `poe-code` ru
 
 ## 1. What we're building
 
-Remove the `@clack/prompts` (and transitive `@clack/core`) dependency. Roll our own interactive prompts inside `@poe-code/design-system`, heavily inspired by clack's UX (same glyphs, same key handling, same render-diffing strategy), but written against Node 18-compatible APIs only.
+Remove the `@clack/prompts` (and transitive `@clack/core`) dependency. Roll our own interactive prompts inside `toolcraft-design`, heavily inspired by clack's UX (same glyphs, same key handling, same render-diffing strategy), but written against Node 18-compatible APIs only.
 
 The single API blocker for Node 18 is `node:util`'s `styleText` and `stripVTControlCharacters`, both used unconditionally by `@clack/core@1.2.0` and `@clack/prompts@1.2.0`. `styleText` landed in Node 20.12; `stripVTControlCharacters` in 16.9 but is paired with `styleText` calls inside clack. Replacing those two with `chalk` (already a peer dep) and our existing `stripAnsi` helper unlocks Node 18.
 
 Non-goals:
 
-- Do not change the public API surface exported from `@poe-code/design-system`. All current callers (in `src/cli/**`, `packages/**`) keep working without edits.
+- Do not change the public API surface exported from `toolcraft-design`. All current callers (in `src/cli/**`, `packages/**`) keep working without edits.
 - Do not implement prompt variants we don't already use: `autocomplete`, `autocompleteMultiselect`, `groupMultiselect`, `date`, `selectKey`, `path`, `progress`, `taskLog`, `group`, `tasks`, `box`, `stream`. Only `text`, `password`, `confirm`, `select`, `multiselect`.
 - Do not change the already-in-house primitives: `intro`, `outro`, `note`, `log`, `spinner`, `cancel`. Only the inputs that still proxy to clack get replaced.
 
@@ -25,7 +25,7 @@ Non-goals:
 Identical to today — same import paths, same signatures, same on-screen rendering.
 
 ```ts
-import { text, confirm, select, multiselect, password, isCancel } from "@poe-code/design-system";
+import { text, confirm, select, multiselect, password, isCancel } from "toolcraft-design";
 
 const name = await text({ message: "Project name?", placeholder: "my-app" });
 if (isCancel(name)) process.exit(0);
@@ -77,7 +77,7 @@ Node engine: `engines.node` becomes `">=18.18"` in the root and design-system `p
 ### 3.1 Where the code lives
 
 ```text
-packages/design-system/src/prompts/
+packages/toolcraft-design/src/prompts/
   index.ts                        # public wrappers — already exists; rewire to local impls
   theme.ts                        # already exists
   primitives/                     # already exists (intro/outro/note/log/spinner/cancel)
@@ -99,13 +99,13 @@ packages/design-system/src/prompts/
 
 ### 3.2 Dependencies
 
-Add to `@poe-code/design-system` `dependencies`:
+Add to `toolcraft-design` `dependencies`:
 
 - `sisteransi` (cursor / erase escape sequences; trivially small, no engines floor)
 - `fast-wrap-ansi` (ANSI-aware hard-wrap; matches clack's rendering exactly)
 - `fast-string-width` (visual width of strings with wide chars / ANSI; matches clack)
 
-Keep: `chalk` (already a peer dep). Reuse: existing `stripAnsi` helper at `packages/design-system/src/internal/strip-ansi.ts`. Drop: `@clack/prompts` from root `package.json` and `packages/design-system/package.json`. Verify `@clack/core` disappears from the lockfile after the change (it's only a transitive dep).
+Keep: `chalk` (already a peer dep). Reuse: existing `stripAnsi` helper at `packages/toolcraft-design/src/internal/strip-ansi.ts`. Drop: `@clack/prompts` from root `package.json` and `packages/toolcraft-design/package.json`. Verify `@clack/core` disappears from the lockfile after the change (it's only a transitive dep).
 
 No `node:util` `styleText` or `stripVTControlCharacters`. All color via `chalk`; all VT-strip via the existing `stripAnsi`.
 
@@ -303,7 +303,7 @@ S_ERROR           ■  x
 - Non-Windows: `process.env.TERM !== "linux"`.
 - Windows: enabled when any of CI, WT_SESSION, TERMINUS_SUBLIME, ConEmuTask=`{cmd::Cmder}`, TERM_PROGRAM in (Terminus-Sublime, vscode), TERM in (xterm-256color, alacritty), TERMINAL_EMULATOR=JetBrains-JediTerm.
 
-We already have a theme/symbol layer in `packages/design-system/src/components/symbols.ts`. Reuse where it overlaps; otherwise add a `glyphs.ts` for prompt-only glyphs.
+We already have a theme/symbol layer in `packages/toolcraft-design/src/components/symbols.ts`. Reuse where it overlaps; otherwise add a `glyphs.ts` for prompt-only glyphs.
 
 #### 3.4.4 Frame template
 
@@ -401,7 +401,7 @@ Used by every prompt's render:
 
 ### 3.5 What we are NOT porting
 
-- `box`, `path`, `progress`, `taskLog`, `tasks`, `stream`, `group`, `selectKey`, `groupMultiselect`, `autocomplete`, `autocompleteMultiselect`, `date` — none are used by any caller in this repo (verified with `grep -rn "@poe-code/design-system" --include="*.ts"` then filtered).
+- `box`, `path`, `progress`, `taskLog`, `tasks`, `stream`, `group`, `selectKey`, `groupMultiselect`, `autocomplete`, `autocompleteMultiselect`, `date` — none are used by any caller in this repo (verified with `grep -rn "toolcraft-design" --include="*.ts"` then filtered).
 - `clearOnError` for password (no caller uses it; if a caller emerges, easy to add).
 - Configurable `active`/`inactive` labels on `confirm` (no caller passes them; we hardcode "Yes"/"No").
 - `vertical: true` on `confirm` (no caller).
@@ -520,7 +520,7 @@ The wrappers in `prompts/index.ts` continue to export `select`, `text`, `confirm
 
 ### 4.2 Tests
 
-Unit tests in `packages/design-system/src/prompts/interactive/*.test.ts` — vitest, no real TTY. Drive each prompt with a `PassThrough` for stdin and a buffer-capturing writable for stdout. Set `input.isTTY = true` on the PassThrough so the prompt enters interactive mode.
+Unit tests in `packages/toolcraft-design/src/prompts/interactive/*.test.ts` — vitest, no real TTY. Drive each prompt with a `PassThrough` for stdin and a buffer-capturing writable for stdout. Set `input.isTTY = true` on the PassThrough so the prompt enters interactive mode.
 
 Per-prompt coverage:
 
@@ -533,13 +533,13 @@ Per-prompt coverage:
 - Resize: emit `output.emit("resize")` mid-prompt → render is called.
 - Non-TTY: pipe a string into stdin, call `text` → returns the piped line; call `select` without `POE_NO_PROMPT` → rejects with the documented error.
 
-Cancel-symbol tests in `packages/design-system/src/prompts/interactive/cancel-symbol.test.ts`:
+Cancel-symbol tests in `packages/toolcraft-design/src/prompts/interactive/cancel-symbol.test.ts`:
 
 - `isCancel(CANCEL) === true`.
 - `isCancel("foo") === false`.
 - `Symbol.for("poe.cancel") === CANCEL` (registry symbol survives duplicate module instances).
 
-Pagination tests in `packages/design-system/src/prompts/interactive/pagination.test.ts`:
+Pagination tests in `packages/toolcraft-design/src/prompts/interactive/pagination.test.ts`:
 
 - 3 options, maxItems=5 → no markers, all visible.
 - 10 options, maxItems=5, cursor=0 → bottom marker only.
@@ -547,11 +547,11 @@ Pagination tests in `packages/design-system/src/prompts/interactive/pagination.t
 - 10 options, cursor=5 → both markers.
 - Long option wraps to 2 lines → wrap budget enforced.
 
-Update existing `packages/design-system/src/prompts/prompts.test.ts`:
+Update existing `packages/toolcraft-design/src/prompts/prompts.test.ts`:
 
 - Drop `vi.mock("@clack/prompts", ...)`. Mock `./interactive/confirm.js` instead (the only local primitive `confirmOrCancel` invokes).
 
-Engine smoke: add `packages/design-system/scripts/check-node18.mjs` that imports `@poe-code/design-system` and runs `text` against a piped stdin. Document in the design-system README how to run under Node 18 (`nvm exec 18.18 node …`). Not gated in CI for first merge.
+Engine smoke: add `packages/toolcraft-design/scripts/check-node18.mjs` that imports `toolcraft-design` and runs `text` against a piped stdin. Document in the design-system README how to run under Node 18 (`nvm exec 18.18 node …`). Not gated in CI for first merge.
 
 Manual QA (`docs/plans/qa/27-design-system-own-prompts.md`): happy path for each prompt, cancel via Ctrl-C, cancel via Esc, validate error in text & password, resize mid-prompt, non-TTY pipe-in with and without `POE_NO_PROMPT`, narrow terminal (40 cols) for wrap behavior, long option list (30 items) for pagination markers.
 
@@ -563,7 +563,7 @@ Manual QA (`docs/plans/qa/27-design-system-own-prompts.md`): happy path for each
 ### 4.4 Autonomy checklist
 
 - Build green: `npm run build` (turbo) and `npm run lint:types`.
-- Test green: `npm run test` and `(cd packages/design-system && npm test)`.
+- Test green: `npm run test` and `(cd packages/toolcraft-design && npm test)`.
 - `grep -rn "@clack/prompts" packages src` returns no matches.
 - `npm ls @clack/prompts` is empty (and `@clack/core` too).
 - `npm run dev -- configure` walks through prompts visually (compare to a screenshot of pre-change behavior; pixel-perfect not required, glyph and color parity is).
@@ -574,33 +574,33 @@ Manual QA (`docs/plans/qa/27-design-system-own-prompts.md`): happy path for each
 
 ### 5.1 New files
 
-- `packages/design-system/src/prompts/interactive/cancel-symbol.ts` — `CANCEL = Symbol.for("poe.cancel")` + `isCancel`.
-- `packages/design-system/src/prompts/interactive/keys.ts` — `Action` type + `mapKey(name, char)` returning the action or undefined. Includes hjkl aliases and Ctrl-C / Escape → cancel.
-- `packages/design-system/src/prompts/interactive/glyphs.ts` — unicode-detection (port of clack's `Ze` function), exports `GLYPHS = { stepActive, stepCancel, stepError, stepSubmit, bar, barStart, barEnd, radioActive, radioInactive, checkboxActive, checkboxSelected, checkboxInactive, passwordMask }` with ASCII fallbacks, plus `symbol(state)` and `symbolBar(state)` helpers returning the colored glyph.
-- `packages/design-system/src/prompts/interactive/wrap.ts` — `wrapTextWithPrefix`, `getColumns`, `getRows`. Internally calls `fast-wrap-ansi` with `{hard:true, trim:false}`.
-- `packages/design-system/src/prompts/interactive/pagination.ts` — `limitOptions` port of clack's algorithm (windowing, `…` markers, wrap-aware trimming).
-- `packages/design-system/src/prompts/interactive/core.ts` — `Prompt<T>` base class. Constructor, `prompt()`, `close()`, `onKeypress`, `render()`, `restoreCursor()`, `diffLines` helper, `_setUserInput`, `_clearUserInput`, subscribers map.
-- `packages/design-system/src/prompts/interactive/text.ts` — `TextPromptImpl` extends `Prompt<string>` with `userInputWithCursor` getter; `textPrompt(opts)` builds it and returns `.prompt()`. Render function matches §3.4.5.
-- `packages/design-system/src/prompts/interactive/password.ts` — `PasswordPromptImpl` extends `Prompt<string>` with `masked` / `userInputWithCursor` getters and `clear()`; `passwordPrompt(opts)` + render.
-- `packages/design-system/src/prompts/interactive/confirm.ts` — `ConfirmPromptImpl` extends `Prompt<boolean>`; `confirmPrompt(opts)` + render.
-- `packages/design-system/src/prompts/interactive/select.ts` — `SelectPromptImpl<V>` extends `Prompt<V>`; `selectPrompt(opts)` + render using `limitOptions`.
-- `packages/design-system/src/prompts/interactive/multiselect.ts` — `MultiselectPromptImpl<V>` extends `Prompt<V[]>`; `multiselectPrompt(opts)` + render with `space`/`a`/`i` keys.
-- `packages/design-system/src/prompts/interactive/{core,text,password,confirm,select,multiselect,pagination,cancel-symbol,wrap}.test.ts`.
+- `packages/toolcraft-design/src/prompts/interactive/cancel-symbol.ts` — `CANCEL = Symbol.for("poe.cancel")` + `isCancel`.
+- `packages/toolcraft-design/src/prompts/interactive/keys.ts` — `Action` type + `mapKey(name, char)` returning the action or undefined. Includes hjkl aliases and Ctrl-C / Escape → cancel.
+- `packages/toolcraft-design/src/prompts/interactive/glyphs.ts` — unicode-detection (port of clack's `Ze` function), exports `GLYPHS = { stepActive, stepCancel, stepError, stepSubmit, bar, barStart, barEnd, radioActive, radioInactive, checkboxActive, checkboxSelected, checkboxInactive, passwordMask }` with ASCII fallbacks, plus `symbol(state)` and `symbolBar(state)` helpers returning the colored glyph.
+- `packages/toolcraft-design/src/prompts/interactive/wrap.ts` — `wrapTextWithPrefix`, `getColumns`, `getRows`. Internally calls `fast-wrap-ansi` with `{hard:true, trim:false}`.
+- `packages/toolcraft-design/src/prompts/interactive/pagination.ts` — `limitOptions` port of clack's algorithm (windowing, `…` markers, wrap-aware trimming).
+- `packages/toolcraft-design/src/prompts/interactive/core.ts` — `Prompt<T>` base class. Constructor, `prompt()`, `close()`, `onKeypress`, `render()`, `restoreCursor()`, `diffLines` helper, `_setUserInput`, `_clearUserInput`, subscribers map.
+- `packages/toolcraft-design/src/prompts/interactive/text.ts` — `TextPromptImpl` extends `Prompt<string>` with `userInputWithCursor` getter; `textPrompt(opts)` builds it and returns `.prompt()`. Render function matches §3.4.5.
+- `packages/toolcraft-design/src/prompts/interactive/password.ts` — `PasswordPromptImpl` extends `Prompt<string>` with `masked` / `userInputWithCursor` getters and `clear()`; `passwordPrompt(opts)` + render.
+- `packages/toolcraft-design/src/prompts/interactive/confirm.ts` — `ConfirmPromptImpl` extends `Prompt<boolean>`; `confirmPrompt(opts)` + render.
+- `packages/toolcraft-design/src/prompts/interactive/select.ts` — `SelectPromptImpl<V>` extends `Prompt<V>`; `selectPrompt(opts)` + render using `limitOptions`.
+- `packages/toolcraft-design/src/prompts/interactive/multiselect.ts` — `MultiselectPromptImpl<V>` extends `Prompt<V[]>`; `multiselectPrompt(opts)` + render with `space`/`a`/`i` keys.
+- `packages/toolcraft-design/src/prompts/interactive/{core,text,password,confirm,select,multiselect,pagination,cancel-symbol,wrap}.test.ts`.
 - `docs/plans/qa/27-design-system-own-prompts.md` — manual QA checklist.
 
 ### 5.2 Files to change
 
-- `packages/design-system/src/prompts/index.ts`:
+- `packages/toolcraft-design/src/prompts/index.ts`:
   - Remove `import * as clack from "@clack/prompts"`.
   - Import local `textPrompt`, `confirmPrompt`, `selectPrompt`, `multiselectPrompt`, `passwordPrompt` and `isCancel` / `CANCEL` from `./interactive/index.js`.
   - Replace `clack.select`, `clack.multiselect`, `clack.text`, `clack.confirm`, `clack.password` with the local equivalents inside the existing wrapper functions.
   - Drop `Parameters<typeof clack.*>` type derivations; declare explicit `TextOptions`, `PasswordOptions`, `ConfirmOptions`, `SelectOptions<V>`, `MultiselectOptions<V>` interfaces (fields listed in §4.1).
-- `packages/design-system/src/prompts/primitives/cancel.ts`:
+- `packages/toolcraft-design/src/prompts/primitives/cancel.ts`:
   - Remove `export { isCancel } from "@clack/prompts"`. Re-export from `../interactive/cancel-symbol.js` instead.
-- `packages/design-system/src/prompts/prompts.test.ts`:
+- `packages/toolcraft-design/src/prompts/prompts.test.ts`:
   - Drop the `vi.mock("@clack/prompts", ...)` block.
   - Mock `./interactive/confirm.js` (the function `confirmOrCancel` calls) and `./primitives/cancel.js` directly.
-- `packages/design-system/package.json`:
+- `packages/toolcraft-design/package.json`:
   - Remove `@clack/prompts` from `peerDependencies`.
   - Add `sisteransi`, `fast-wrap-ansi`, `fast-string-width` to `dependencies`.
   - Add `"engines": { "node": ">=18.18" }`.

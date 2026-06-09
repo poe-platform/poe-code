@@ -1,15 +1,19 @@
 import { renderAcpEvent, renderAcpStream } from "@poe-code/agent-spawn";
-import { renderMarkdown, resolveOutputFormat } from "@poe-code/design-system";
+import { renderMarkdown, resolveOutputFormat } from "toolcraft-design";
 import { spawnPoeAgentWithAcp } from "../../providers/poe-agent.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import type { CustomSpawnHandler } from "./spawn.js";
+
+const REDACTED_PROMPT_ARG = "[prompt redacted]";
 
 export function createPoeAgentSpawnHandler(): CustomSpawnHandler {
   return async ({ options, flags, resources }) => {
     const shouldEmitUiOutput = resolveOutputFormat() !== "json";
 
     if (flags.dryRun) {
-      resources.logger.info(`Dry run: would spawn Poe Agent.\nPrompt: ${options.prompt}`);
+      resources.logger.info(
+        `Dry run: would spawn Poe Agent.\nPrompt: ${REDACTED_PROMPT_ARG} (${options.prompt.length} chars)`
+      );
       return;
     }
 

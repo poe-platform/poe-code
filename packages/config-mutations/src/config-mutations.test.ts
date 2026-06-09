@@ -735,6 +735,26 @@ describe("runMutations", () => {
       expect(content).toEqual({ existing: true, new: "value" });
     });
 
+    it("preserves JSONC comments when merging into an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "existing": true',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { new: "value" } })],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(jsonFormat.parse(content)).toEqual({ existing: true, new: "value" });
+    });
+
     it("deep merges nested objects", async () => {
       const fs = createMockFs({
         "~/.config.json": '{"nested": {"a": 1}}'
@@ -747,6 +767,49 @@ describe("runMutations", () => {
 
       const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
       expect(content).toEqual({ nested: { a: 1, b: 2 } });
+    });
+
+    it("preserves proto-named merge entries as data when pruning by prefix", async () => {
+      const fs = createMockFs({}, homeDir);
+      const patch = JSON.parse('{"__proto__":{"polluted":true}}') as any;
+
+      await runMutations(
+        [
+          configMutation.merge({
+            target: "~/.config.json",
+            value: patch,
+            pruneByPrefix: { __proto__: "old-" }
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
+      expect(Object.prototype.hasOwnProperty.call(content, "__proto__")).toBe(true);
+      expect(content.polluted).toBeUndefined();
+    });
+
+    it("preserves nested proto-named merge entries as data when pruning is enabled", async () => {
+      const fs = createMockFs({
+        "~/.config.json": '{"nested": {"keep": true}}'
+      }, homeDir);
+      const patch = JSON.parse('{"nested":{"__proto__":{"polluted":true}}}') as any;
+
+      await runMutations(
+        [
+          configMutation.merge({
+            target: "~/.config.json",
+            value: patch,
+            pruneByPrefix: { unrelated: "old-" }
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
+      expect(content.nested.keep).toBe(true);
+      expect(Object.prototype.hasOwnProperty.call(content.nested, "__proto__")).toBe(true);
+      expect(content.nested.polluted).toBeUndefined();
     });
 
     it("creates new TOML file", async () => {
@@ -797,6 +860,37 @@ describe("runMutations", () => {
         runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
       ).rejects.toThrow("config disk full");
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+    });
+
+    it("does not remove a colliding mutation temp symlink", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const outsidePath = "/outside.tmp";
+      const volume = Volume.fromJSON({ [outsidePath]: "outside-state\n" });
+      volume.mkdirSync(homeDir, { recursive: true });
+      const base = createFsFromVolume(volume).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (tempPath === undefined && filePath.includes(".mutation-tmp-")) {
+            tempPath = filePath;
+            volume.symlinkSync(outsidePath, filePath);
+            expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+          }
+
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { added: true } })],
+        { fs, homeDir }
+      );
+
+      expect(tempPath).toBeDefined();
+      expect(volume.readFileSync(outsidePath, "utf8")).toBe("outside-state\n");
+      expect(volume.lstatSync(tempPath as string).isSymbolicLink()).toBe(true);
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe("{\n  \"added\": true\n}\n");
     });
 
     it("refuses a symlinked config target", async () => {
@@ -891,6 +985,28 @@ describe("runMutations", () => {
 
       const content = JSON.parse(fs.files[`${homeDir}/.config.json`]);
       expect(content).toEqual({ keep: true });
+    });
+
+    it("preserves JSONC comments when pruning an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "keep": true,',
+          '  "remove": true',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [configMutation.prune({ target: "~/.config.json", shape: { remove: {} } })],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(content).not.toContain('"remove"');
+      expect(jsonFormat.parse(content)).toEqual({ keep: true });
     });
 
     it("deletes file when result is empty", async () => {
@@ -1021,6 +1137,34 @@ describe("runMutations", () => {
         runMutations([configMutation.transform({ target: "~/.config.json", transform: () => ({ content: { changed: true }, changed: true }) })], { fs, homeDir })
       ).rejects.toThrow("transform interrupted");
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"keep":true}\n');
+    });
+
+    it("preserves JSONC comments when transforming an existing JSON file", async () => {
+      const fs = createMockFs({
+        "~/.config.json": [
+          "{",
+          "  // Keep this user note",
+          '  "key": "old"',
+          "}"
+        ].join("\n")
+      }, homeDir);
+
+      await runMutations(
+        [
+          configMutation.transform({
+            target: "~/.config.json",
+            transform: (content) => ({
+              content: { ...content, key: "new" },
+              changed: true
+            })
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      const content = fs.files[`${homeDir}/.config.json`];
+      expect(content).toContain("// Keep this user note");
+      expect(jsonFormat.parse(content)).toEqual({ key: "new" });
     });
 
     it("creates directory if not exists", async () => {

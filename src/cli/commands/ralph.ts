@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { Command } from "commander";
 import {
@@ -8,7 +9,7 @@ import {
   promptText,
   select,
   text as designText
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   resolveAgentId,
   parseAgentSpecifier,
@@ -26,7 +27,12 @@ import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ralphConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import {
   runRalph as sdkRunRalph,
   type RalphRunOptions,
@@ -45,6 +51,7 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
+import type { FileSystem } from "../../utils/file-system.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
@@ -347,6 +354,31 @@ async function readDocHint(container: CliContainer, docPath: string): Promise<st
   }
 }
 
+async function writeTextFileAtomically(
+  fs: Pick<FileSystem, "writeFile" | "rename" | "unlink">,
+  filePath: string,
+  content: string,
+  options: { atomic: boolean }
+): Promise<void> {
+  if (!options.atomic) {
+    await fs.writeFile(filePath, content, { encoding: "utf8" });
+    return;
+  }
+
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
+  try {
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
 async function resolveDocPath(options: {
   container: CliContainer;
   program: Command;
@@ -373,6 +405,10 @@ async function resolveDocPath(options: {
   if (flags.assumeYes) {
     return docs[0]!.path;
   }
+
+  requireInteractiveStdin(
+    "Ralph doc selection requires a doc path or --yes when running without an interactive TTY."
+  );
 
   const hints = await Promise.all(docs.map((doc) => readDocHint(options.container, doc.path)));
 
@@ -432,6 +468,12 @@ function resolveConfiguredAgents(value: RalphFrontmatter["agent"]): string | str
 
 async function promptForAgent(container: CliContainer, program: Command): Promise<string | null> {
   const flags = resolveCommandFlags(program);
+  if (!flags.assumeYes) {
+    requireInteractiveStdin(
+      "Ralph agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+  }
+
   const selectedAgent = await resolveLoopAgent({
     configuredDefaultAgent: await resolveDefaultAgent(container),
     assumeYes: flags.assumeYes,
@@ -460,6 +502,12 @@ async function resolveRunAgent(options: {
   }
 
   const flags = resolveCommandFlags(options.program);
+  if (!flags.assumeYes && options.providedAgent === undefined && configured === undefined) {
+    requireInteractiveStdin(
+      "Ralph agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+  }
+
   try {
     const selectedAgent = await resolveLoopAgent({
       providedAgent: options.providedAgent,
@@ -510,6 +558,10 @@ async function resolveRunIterations(options: {
     return DEFAULT_RALPH_ITERATIONS;
   }
 
+  requireInteractiveStdin(
+    "Ralph iteration selection requires --iterations, frontmatter iterations, or --yes when running without an interactive TTY."
+  );
+
   const entered = await promptText({
     message: "How many Ralph iterations should run?"
   });
@@ -548,6 +600,10 @@ async function resolveInitIterations(options: {
   if (flags.assumeYes) {
     return DEFAULT_RALPH_ITERATIONS;
   }
+
+  requireInteractiveStdin(
+    "Ralph iteration selection requires --iterations or --yes when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "How many Ralph iterations should run?"
@@ -669,7 +725,9 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           },
           doc.body
         );
-        await resources.context.fs.writeFile(doc.absolutePath, updated, { encoding: "utf8" });
+        await writeTextFileAtomically(resources.context.fs, doc.absolutePath, updated, {
+          atomic: !flags.dryRun
+        });
 
         resources.logger.resolved(
           "Initialized Ralph config",

@@ -192,6 +192,15 @@ function buildVerifyReport(
 export async function syncGhProject(opts: SyncGhProjectOptions): Promise<SyncGhProjectReport> {
   const client = resolveGhClient(opts);
   let lookup = await lookupProject(client, opts.owner, opts.number);
+  const initialReport = buildVerifyReport(lookup, opts);
+  if (initialReport.ok || opts.yes !== true) {
+    return {
+      ...initialReport,
+      created: [],
+      updated: []
+    };
+  }
+
   let resolvedNumber = opts.number;
   const created: string[] = [];
 

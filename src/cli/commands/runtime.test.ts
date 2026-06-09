@@ -49,6 +49,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  filePath: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, filePath);
+}
+
 function createContainer(
   fs: FileSystem,
   logs: string[] = [],
@@ -110,6 +125,7 @@ function createJobEntry(overrides: {
 function createJobHandle(input: {
   status: Awaited<ReturnType<JobHandle["status"]>>;
   chunks?: string[];
+  stream?: JobHandle["stream"];
   wait?: () => Promise<{ exitCode: number }>;
   kill?: (signal?: NodeJS.Signals) => Promise<void>;
 }): JobHandle {
@@ -121,10 +137,11 @@ function createJobHandle(input: {
     async status() {
       return input.status;
     },
-    async *stream() {
-      for (const [index, chunk] of (input.chunks ?? []).entries()) {
-        yield { byteOffset: index, data: chunk };
+    stream(options) {
+      if (input.stream !== undefined) {
+        return input.stream(options);
       }
+      return createChunkStream(input.chunks ?? []);
     },
     async wait() {
       if (input.wait) {
@@ -136,6 +153,15 @@ function createJobHandle(input: {
       await input.kill?.(signal);
     }
   };
+}
+
+async function* createChunkStream(chunks: string[]): AsyncIterable<{
+  byteOffset: number;
+  data: string;
+}> {
+  for (const [index, chunk] of chunks.entries()) {
+    yield { byteOffset: index, data: chunk };
+  }
 }
 
 interface RuntimeFactoryEvents {
@@ -230,6 +256,29 @@ describe("runtime command", () => {
     await expect(fs.readFile(dockerfilePath, "utf8")).resolves.toContain(
       "npm i -g poe-code"
     );
+  });
+
+  it("does not follow a Dockerfile symlink inserted before default Dockerfile creation", async () => {
+    const outsidePath = "/outside/Dockerfile";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === dockerfilePath) {
+        await replaceWithSymlink(fs, dockerfilePath, outsidePath);
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "runtime", "init"])).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
   });
 
   it("deep-merges only runtime.type on an initialized project", async () => {
@@ -441,7 +490,179 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
   });
 
+  it("preserves split lines and blank lines when dumping runtime job logs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        chunks: ["part", "ial\n", "\n", "tail"]
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(logs).toEqual(["partial", "", "tail"]);
+    expect(stripAnsi(logs.join("\n"))).toBe("partial\n\ntail");
+  });
+
+  it("requests full replay when dumping runtime job logs without since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["full replay\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(streamOptions).toEqual([{ sinceByte: 0, follow: false }]);
+    expect(stripAnsi(logs.join("\n"))).toContain("full replay");
+  });
+
+  it("omits the byte cursor when dumping runtime job logs with since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["recent replay\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "logs",
+      "job-logs",
+      "--since",
+      "5m"
+    ]);
+
+    expect(streamOptions).toHaveLength(1);
+    expect(streamOptions[0]).toMatchObject({ follow: false, since: expect.any(Date) });
+    expect(streamOptions[0]).not.toHaveProperty("sinceByte");
+    expect(stripAnsi(logs.join("\n"))).toContain("recent replay");
+  });
+
+  it("omits the byte cursor when attaching to runtime job logs with since", async () => {
+    const streamOptions: Array<Parameters<JobHandle["stream"]>[0]> = [];
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-attach",
+      createJobHandle({
+        status: "running",
+        stream(options) {
+          streamOptions.push(options);
+          return createChunkStream(["recent attach\n"]);
+        }
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "attach",
+      "job-attach",
+      "--since",
+      "5m"
+    ]);
+
+    expect(streamOptions).toHaveLength(1);
+    expect(streamOptions[0]).toMatchObject({ follow: true, since: expect.any(Date) });
+    expect(streamOptions[0]).not.toHaveProperty("sinceByte");
+    expect(stripAnsi(logs.join("\n"))).toContain("recent attach");
+  });
+
+  it("preserves split lines and blank lines when attaching to runtime job logs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-attach",
+      createJobHandle({
+        status: "running",
+        chunks: ["att", "ach\n", "\n", "done"]
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "attach", "job-attach"]);
+
+    expect(logs).toEqual(["attach", "", "done"]);
+    expect(stripAnsi(logs.join("\n"))).toBe("attach\n\ndone");
+  });
+
   it("waits for delayed log chunks from an exited runtime job", async () => {
+    let markStreamStarted: () => void = () => {};
+    const streamStarted = new Promise<void>((resolve) => {
+      markStreamStarted = resolve;
+    });
+    let releaseLogChunk: () => void = () => {};
+    const logChunkReady = new Promise<void>((resolve) => {
+      releaseLogChunk = resolve;
+    });
     const fs = createMemFs({
       [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
         createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
@@ -452,7 +673,8 @@ describe("runtime command", () => {
     jobHandles.set("env-logs", {
       ...createJobHandle({ status: "exited" }),
       async *stream() {
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        markStreamStarted();
+        await logChunkReady;
         yield { byteOffset: 0, data: "late line\n" };
       }
     });
@@ -461,7 +683,11 @@ describe("runtime command", () => {
     const program = createBaseProgram();
     registerRuntimeCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+    const run = program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+    await streamStarted;
+    expect(stripAnsi(logs.join("\n"))).not.toContain("late line");
+    releaseLogChunk();
+    await run;
 
     expect(stripAnsi(logs.join("\n"))).toContain("late line");
   });
@@ -733,6 +959,56 @@ describe("runtime command", () => {
     ]);
   });
 
+  it("escalates stopping a job when SIGTERM delivery stalls", async () => {
+    vi.useFakeTimers();
+    try {
+      const fs = createMemFs({
+        [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
+          createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+          null,
+          2
+        )}\n`
+      });
+      const signals: Array<NodeJS.Signals | undefined> = [];
+      let resolveStopped!: (value: { exitCode: number }) => void;
+      const stopped = new Promise<{ exitCode: number }>((resolve) => {
+        resolveStopped = resolve;
+      });
+      jobHandles.set(
+        "env-stop",
+        createJobHandle({
+          status: "running",
+          wait: async () => await stopped,
+          kill: async (signal) => {
+            signals.push(signal);
+            if (signal === "SIGTERM") {
+              return await new Promise<void>(() => {
+                // Simulate a runtime API that never confirms graceful signal delivery.
+              });
+            }
+            resolveStopped({ exitCode: 137 });
+          }
+        })
+      );
+      const container = createContainer(fs);
+      const program = createBaseProgram();
+      registerRuntimeCommand(program, container);
+
+      const stop = program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
+
+      await vi.waitFor(() => expect(signals).toEqual(["SIGTERM"]));
+      await vi.advanceTimersByTimeAsync(30_000);
+      await vi.waitFor(() => expect(signals).toEqual(["SIGTERM", "SIGKILL"]));
+      await stop;
+
+      await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+        '"status": "killed"'
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("previews stopping a runtime job without killing or rewriting it", async () => {
     const jobPath = path.join(jobsDir, "job-stop.json");
     const fs = createMemFs({
@@ -761,6 +1037,8 @@ describe("runtime command", () => {
     expect(runtimeEvents.attached).toEqual([]);
     expect(runtimeEvents.downloads).toEqual([]);
     expect(logs.join("\n")).toContain("Dry run");
+    expect(logs.join("\n")).toContain("would stop runtime job job-stop.");
+    expect(logs.join("\n")).not.toContain("sync its workspace");
     await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
   });
 
@@ -804,7 +1082,7 @@ describe("runtime command", () => {
     ]);
   });
 
-  it("syncs a stopped job by default using conflict protection", async () => {
+  it("stops a job without syncing by default", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
         createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
@@ -812,14 +1090,27 @@ describe("runtime command", () => {
         2
       )}\n`
     });
-    jobHandles.set("env-stop", createJobHandle({ status: "running" }));
+    const signals: Array<NodeJS.Signals | undefined> = [];
+    jobHandles.set(
+      "env-stop",
+      createJobHandle({
+        status: "running",
+        kill: async (signal) => {
+          signals.push(signal);
+        }
+      })
+    );
     const container = createContainer(fs);
     const program = createBaseProgram();
     registerRuntimeCommand(program, container);
 
     await program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
 
-    expect(runtimeEvents.downloads).toEqual([{ envId: "env-stop", conflictPolicy: "refuse" }]);
+    expect(signals).toEqual(["SIGTERM"]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+      '"status": "killed"'
+    );
   });
 
   it("rejects stopping an explicitly selected exited job without replacing its result", async () => {
@@ -886,6 +1177,25 @@ describe("runtime command", () => {
       })
     );
     expect(stripAnsi(logs.join("\n"))).toContain("Built Docker image poe-code/local:mock-hash");
+  });
+
+  it("rejects docker runtime builds with build contexts outside the project", async () => {
+    const fs = createMemFs({
+      [projectConfigPath]: `${JSON.stringify(
+        { runtime: { type: "docker", dockerfile: "Dockerfile", build_context: ".." } },
+        null,
+        2
+      )}\n`,
+      [path.join(cwd, "Dockerfile")]: "FROM custom\n"
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "runtime", "build"])).rejects.toThrow(
+      "runtime.build_context must remain inside runtime cwd /repo."
+    );
+    expect(buildDockerRuntimeTemplateMock).not.toHaveBeenCalled();
   });
 
   it("does not build when a docker image is pinned in config", async () => {

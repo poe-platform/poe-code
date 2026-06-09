@@ -35,8 +35,8 @@ export interface ExperimentJournalOptions {
 function createDefaultFs(): ExperimentFileSystem {
   return {
     readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
-    writeFile: async (filePath, content) => {
-      await fsPromises.writeFile(filePath, content, "utf8");
+    writeFile: async (filePath, content, options) => {
+      await fsPromises.writeFile(filePath, content, options ?? { encoding: "utf8" });
     },
     readdir: fsPromises.readdir,
     stat: async (filePath: string) => {

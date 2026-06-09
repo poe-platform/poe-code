@@ -26,7 +26,7 @@ import {
   renderTable,
   select,
   withSpinner
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
@@ -119,6 +119,7 @@ async function executeHarnessRun(
     return;
   }
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
+  const snapshotPathIsDefault = options.snapshotPath === undefined;
   await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
 
   resources.logger.intro("harness run");
@@ -138,6 +139,7 @@ async function executeHarnessRun(
         fix: Boolean(options.fix),
         resume: Boolean(options.resume),
         snapshotPath,
+        ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
         ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
       }),
     stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
@@ -368,8 +370,8 @@ async function executeHarnessNew(
   await container.fs.mkdir(resolvedDir, { recursive: true });
   try {
     await Promise.all([
-      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
-      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
+      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8", flag: "wx" }),
+      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8", flag: "wx" })
     ]);
   } catch (error) {
     await Promise.all([
@@ -455,6 +457,12 @@ async function resolveDiscoveredHarness(
     throw new ValidationError("Multiple harness pairs found; ambiguous, pass a path.");
   }
 
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "Multiple harness pairs found; pass a path or --yes when running without an interactive TTY."
+    );
+  }
+
   const selected = await select({
     message: "Select harness",
     options: pairs.map((pair) => ({
@@ -505,6 +513,12 @@ async function discoverProjectThenUserHarnesses(
 async function resolveOutputDir(defaultDir: string, assumeYes: boolean): Promise<string> {
   if (assumeYes) {
     return defaultDir;
+  }
+
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "Harness directory selection requires --dir or --yes when running without an interactive TTY."
+    );
   }
 
   const answer = await promptText({

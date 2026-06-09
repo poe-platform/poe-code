@@ -96,9 +96,9 @@ function createSimulationFs(options: SimulationOptions): {
 
   const fs = {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: async (filePath, content) => {
+    writeFile: async (filePath, content, options) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
     },
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
     open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
@@ -123,6 +123,7 @@ function createSimulationFs(options: SimulationOptions): {
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);
     },
+    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
     rename: async (oldPath, newPath) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
       await rawFs.rename(oldPath, newPath);

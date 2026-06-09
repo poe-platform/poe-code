@@ -19,7 +19,7 @@ A tool that looks up each package, figures out its dependency tree, and determin
 Decisions taken (from chat):
 
 - New package `@poe-code/package-lint`, run via `npm run lint:packages` (kept separate from the aggregate `npm run lint` while it remains developer tooling).
-- Offline only — no npm registry calls. "Published" is derived from the explicit `private` flag plus release-workflow wiring, never from `@scope` vs unscoped (scope does not map to publish status: `@poe-code/design-system` is scoped and public; `agent-code-review` is unscoped and private).
+- Offline only — no npm registry calls. "Published" is derived from the explicit `private` flag plus release-workflow wiring, never from `@scope` vs unscoped (scope does not map to publish status: `toolcraft-design` is scoped and public; `agent-code-review` is unscoped and private).
 - Rollout is fix-then-hard-fail: clear the existing violations, then keep `npm run lint:packages` as the package-boundary regression guard.
 - This plan builds the analyzer and tracks the follow-up fixes that reduced the baseline to empty.
 
@@ -110,7 +110,7 @@ The vendoring guarantee is layered: `shipped-dist-deps-unresolvable` (static, pa
 - **`PackageInfo`** — `{ name, dir, private, version, dependencies, peerDependencies, optionalDependencies, repositoryDirectory, ecosystem: "npm" | "pypi", exports, bin, files }`. `ecosystem` is `pypi` when a `pyproject.toml`/`setup.py`/`setup.cfg` sits in the package dir — detected from the single `readdir` already taken to find `package.json`, not a per-file `stat` fan-out, and never a name pattern.
 - **`Rule`** — `(model: WorkspaceModel, build?: BuildView) => Violation[]`. Pure. Rules live one-per-file under `src/rules/` and register in `src/rules/index.ts`. A rule that needs `build` and gets `undefined` returns `[]` plus a single skipped-note.
 - **`BuildView`** — `{ inlinedDirs: Set<string>, externals: Set<string> }`, parsed from `dist/metafile.json`. `undefined` when the metafile is absent.
-- **Reporter** — `formatReport(result, { json })`. Rendered output uses `@poe-code/design-system` (no `chalk`/`@clack` directly, per house style). `--json` bypasses rendering.
+- **Reporter** — `formatReport(result, { json })`. Rendered output uses `toolcraft-design` (no `chalk`/`@clack` directly, per house style). `--json` bypasses rendering.
 - **CLI** — `src/cli.ts` (bin `poe-package-lint`): parse flags → `loadWorkspace` → load `BuildView` if present → run rules → print → exit code.
 
 ### Determining "published"
@@ -132,7 +132,7 @@ Two explicit signals, combined — never naming:
 - `bundledDependencies` (npm's vendoring instruction): a dep listed here ships inside the consumer's tarball, so for `public-needs-publish-wiring` it does **not** require its own publish path. This is a declared package.json fact npm acts on at pack time, not a naming guess.
 - A public package without publish wiring is **not** treated as a publisher: it never reaches npm, so it imposes no publish requirement on its own deps (avoids the circular "an unpublishable package requires its deps be published").
 - `pypi` packages: exempt from all npm rules; `py-poe-spawn` is private + has a Python release workflow.
-- Packages that are public but bundled-only (e.g. `@poe-code/design-system` shipped via root `files`): `public-needs-publish-wiring` flags them at `warning` (no publish path). Whether they are genuinely broken is decided by `imported-workspace-dep-unresolvable` from real imports — if a published consumer imports them unbundled, that consumer is the error.
+- Packages that are public but bundled-only (e.g. `toolcraft-design` shipped via root `files`): `public-needs-publish-wiring` flags them at `warning` (no publish path). Whether they are genuinely broken is decided by `imported-workspace-dep-unresolvable` from real imports — if a published consumer imports them unbundled, that consumer is the error.
 - Lint run before a build: build-aware rules skip with a note; CI runs `lint:packages` after `build` so the metafile exists.
 
 ### Performance
@@ -216,7 +216,7 @@ Fix-then-hard-fail. The analyzer landed with a baseline and follow-up fixes redu
 
 | File                                               | Purpose                                                                                                                       |
 | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `packages/package-lint/package.json`               | Private package; bin `poe-package-lint`; deps: `@poe-code/design-system`, `typescript` (import scanner), `yaml`.              |
+| `packages/package-lint/package.json`               | Private package; bin `poe-package-lint`; deps: `toolcraft-design`, `typescript` (import scanner), `yaml`.                     |
 | `packages/package-lint/README.md`                  | Rules, flags, exit codes, env (none).                                                                                         |
 | `packages/package-lint/tsconfig.json`              | Standard package tsconfig.                                                                                                    |
 | `src/model.ts`                                     | `loadWorkspace`, `loadBuildView`, types, `shippedDirs`/`binTargets` derivation, release-workflow parsing, source-import scan. |

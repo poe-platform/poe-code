@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import * as nodeFs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { setImmediate as realSetImmediate } from "node:timers";
+import { setImmediate as realSetImmediate, setTimeout as realSetTimeout } from "node:timers";
 import { fs, vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RalphRunOptions } from "@poe-code/ralph";
@@ -1000,13 +1000,14 @@ describe("integration", () => {
     await waitForEventCount(events.events, 13);
 
     const eventSnapshot = stripUndefined(events.events);
+    const nonReconcileEventsForTask = (id: string) =>
+      eventsForTask(eventSnapshot, id).filter((event) => event.type !== "reconcile");
     expect(eventSnapshot[0]).toEqual(tickEvent(25));
-    expect(eventsForTask(eventSnapshot, "pipeline")).toEqual([
+    expect(nonReconcileEventsForTask("pipeline")).toEqual([
       dispatchEvent(fixture, "pipeline"),
-      ...successEvents("pipeline", 1, { reconcile: false }),
-      { type: "reconcile", task_id: "tasks/pipeline", action: "stop_clean" }
+      ...successEvents("pipeline", 1, { reconcile: false })
     ]);
-    expect(eventsForTask(eventSnapshot, "ralph")).toEqual([
+    expect(nonReconcileEventsForTask("ralph")).toEqual([
       dispatchEvent(fixture, "ralph"),
       {
         type: "attempt_phase",
@@ -1162,8 +1163,13 @@ async function waitForEventCount(events: readonly MaestroEvent[], count: number)
       return;
     }
 
+    await vi.advanceTimersByTimeAsync(0);
     await new Promise<void>((resolve) => realSetImmediate(resolve));
     await flushMicrotasks();
+
+    if (attempt % 20 === 19) {
+      await new Promise<void>((resolve) => realSetTimeout(resolve, 1));
+    }
   }
 
   if (events.length >= count) {

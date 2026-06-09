@@ -161,6 +161,32 @@ await esbuild.build({
   banner: { js: "#!/usr/bin/env node" }
 });
 
+for (const { entryPoint, outfile } of [
+  {
+    entryPoint: "packages/tiny-oauth-test-server/src/cli.ts",
+    outfile: "packages/tiny-oauth-test-server/dist/cli.js"
+  },
+  {
+    entryPoint: "packages/tiny-stdio-mcp-test-server/src/cli.ts",
+    outfile: "packages/tiny-stdio-mcp-test-server/dist/cli.js"
+  }
+]) {
+  await esbuild.build({
+    entryPoints: [path.join(rootDir, entryPoint)],
+    bundle: true,
+    platform: "node",
+    target: "node18",
+    format: "esm",
+    outfile: path.join(rootDir, outfile),
+    external: externalDeps,
+    alias: workspaceAliases,
+    sourcemap: false,
+    plugins: [stripShebangPlugin],
+    loader: { ".json": "json" },
+    banner: { js: "#!/usr/bin/env node" }
+  });
+}
+
 // Rewrite workspace specifiers in shipped .d.ts files so the published
 // tarball can resolve types without @poe-code/* in node_modules. The
 // rewrites target memory itself plus the two sibling dists whose public
@@ -269,20 +295,22 @@ await Promise.all(
   })
 );
 
-// Verify every external static import in dist/index.js is declared in root
-// dependencies (or is a Node built-in). Missing deps would only surface
-// as ERR_MODULE_NOT_FOUND when the published package is installed.
-// Dynamic imports are skipped: those are guarded at the call site (e.g.
-// optional peerDependencies surfaced via try/catch with a friendly message).
+// Verify every external import in dist/index.js is declared in root
+// dependencies / optionalDependencies (or is a Node built-in). Missing deps
+// would only surface as ERR_MODULE_NOT_FOUND when the published package is
+// installed.
 const externalImports = new Set();
 for (const meta of Object.values(mainBuild.metafile.outputs)) {
   for (const imp of meta.imports ?? []) {
-    if (imp.external && imp.kind !== "dynamic-import") {
+    if (imp.external) {
       externalImports.add(imp.path);
     }
   }
 }
-const rootDepNames = new Set(Object.keys(packageJson.dependencies || {}));
+const rootDepNames = new Set([
+  ...Object.keys(packageJson.dependencies || {}),
+  ...Object.keys(packageJson.optionalDependencies || {})
+]);
 const nodeBuiltins = new Set([
   "assert",
   "buffer",
@@ -317,7 +345,7 @@ const undeclared = [...externalImports]
   .filter((dep) => dep && !rootDepNames.has(dep) && !nodeBuiltins.has(dep));
 if (undeclared.length > 0) {
   console.error(
-    `\nBundle imports packages not declared in root dependencies:\n  ${undeclared.join("\n  ")}\n\nAdd them to package.json "dependencies" so end users get them on install.`
+    `\nBundle imports packages not declared in root dependencies or optionalDependencies:\n  ${undeclared.join("\n  ")}\n\nAdd them to package.json so end users get them on install.`
   );
   process.exit(1);
 }

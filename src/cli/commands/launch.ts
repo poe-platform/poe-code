@@ -1,5 +1,5 @@
 import { Command, Option } from "commander";
-import { select, promptText, isCancel, cancel, getTheme, renderTable } from "@poe-code/design-system";
+import { select, promptText, isCancel, cancel, getTheme, renderTable, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ValidationError } from "../errors.js";
@@ -76,10 +76,15 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
         return;
       }
 
-      await startLaunch({
-        cwd: container.env.cwd,
-        homeDir: container.env.homeDir,
-        spec
+      await withSpinner({
+        message: formatStartSpinnerMessage(spec),
+        fn: () =>
+          startLaunch({
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            spec
+          }),
+        stopMessage: (record) => formatManagedProcessStatus(record, spec.id)
       });
     });
 
@@ -116,7 +121,11 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
         resources.logger.dryRun(`Dry run: would restart managed process ${id}.`);
         return;
       }
-      await restartLaunch({ homeDir: container.env.homeDir, id });
+      await withSpinner({
+        message: `Restarting managed process ${id}...`,
+        fn: () => restartLaunch({ homeDir: container.env.homeDir, id }),
+        stopMessage: (record) => formatManagedProcessStatus(record, id)
+      });
     });
 
   launch
@@ -228,12 +237,12 @@ async function resolveStartSpec(options: {
   options: StartCommandOptions;
 }): Promise<ProcessSpec | null> {
   const flags = resolveCommandFlags(options.program);
-  const id = await resolveProcessId(options.id);
+  const id = await resolveProcessId(options.id, flags.assumeYes);
   if (id === null) {
     return null;
   }
 
-  const commandParts = await resolveCommandParts(options.commandArgs);
+  const commandParts = await resolveCommandParts(options.commandArgs, flags.assumeYes);
   if (commandParts === null) {
     return null;
   }
@@ -299,10 +308,21 @@ async function resolveStartSpec(options: {
   return spec;
 }
 
-async function resolveProcessId(value: string | undefined): Promise<string | null> {
+async function resolveProcessId(
+  value: string | undefined,
+  assumeYes: boolean
+): Promise<string | null> {
   if (value && value.trim().length > 0) {
     return value.trim();
   }
+
+  if (assumeYes) {
+    throw new ValidationError("Process ID is required.");
+  }
+
+  assertInteractivePromptAvailable(
+    "Process ID is required when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "Process ID"
@@ -320,10 +340,21 @@ async function resolveProcessId(value: string | undefined): Promise<string | nul
   return id;
 }
 
-async function resolveCommandParts(commandArgs: string[]): Promise<string[] | null> {
+async function resolveCommandParts(
+  commandArgs: string[],
+  assumeYes: boolean
+): Promise<string[] | null> {
   if (commandArgs.length > 0) {
     return [...commandArgs];
   }
+
+  if (assumeYes) {
+    throw new ValidationError("Command to run is required.");
+  }
+
+  assertInteractivePromptAvailable(
+    "Command to run is required when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "Command to run"
@@ -354,6 +385,10 @@ async function resolveRuntime(options: {
     return "host";
   }
 
+  assertInteractivePromptAvailable(
+    "Runtime selection requires a command, --image, or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: "Runtime",
     options: [
@@ -372,6 +407,10 @@ async function resolveDockerImage(value: string | undefined): Promise<string | n
   if (value && value.trim().length > 0) {
     return value.trim();
   }
+
+  assertInteractivePromptAvailable(
+    "Docker image is required when running without an interactive TTY."
+  );
 
   const entered = await promptText({
     message: "Docker image"
@@ -401,6 +440,10 @@ async function resolveRestart(
     return "on-failure";
   }
 
+  assertInteractivePromptAvailable(
+    "Restart policy selection requires --restart or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: "Restart policy",
     options: [
@@ -417,6 +460,12 @@ async function resolveRestart(
   return selected as ProcessSpec["restart"];
 }
 
+function assertInteractivePromptAvailable(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
+}
+
 function resolveReadyCheck(options: StartCommandOptions): ProcessSpec["readyCheck"] | undefined {
   if (options.readyPattern && options.readyPattern.trim().length > 0) {
     return { kind: "log-pattern", pattern: options.readyPattern.trim() };
@@ -428,6 +477,32 @@ function resolveReadyCheck(options: StartCommandOptions): ProcessSpec["readyChec
   }
 
   return undefined;
+}
+
+function formatStartSpinnerMessage(spec: ProcessSpec): string {
+  const readiness = formatReadinessWait(spec.readyCheck);
+  if (readiness) {
+    return `Starting managed process ${spec.id}; ${readiness}...`;
+  }
+  return `Starting managed process ${spec.id}...`;
+}
+
+function formatReadinessWait(readyCheck: ProcessSpec["readyCheck"] | undefined): string | null {
+  if (readyCheck === undefined) {
+    return null;
+  }
+  if (readyCheck.kind === "log-pattern") {
+    return "waiting for log readiness";
+  }
+  return `waiting for TCP port ${readyCheck.port}`;
+}
+
+function formatManagedProcessStatus(record: ManagedProcessRecord, fallbackId: string): string {
+  const id = record.spec?.id ?? record.state?.id ?? fallbackId;
+  if (record.state?.status) {
+    return `Managed process ${id} is ${record.state.status}.`;
+  }
+  return `Managed process ${id} updated.`;
 }
 
 function parseEnvEntries(entries: string[]): Record<string, string> {

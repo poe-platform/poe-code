@@ -13,7 +13,7 @@ import {
   select,
   text,
   withOutputFormat
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   archivePlan,
   deletePlan,
@@ -36,7 +36,12 @@ import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@p
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import planSkillTemplate from "../../templates/plan/SKILL_plan.md";
 
@@ -325,6 +330,10 @@ async function resolveSelectedPlan(options: {
     return options.plans[0]!;
   }
 
+  requireInteractiveStdin(
+    "Plan selection requires a path or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: options.promptMessage,
     options: options.plans.map((plan) => ({
@@ -424,7 +433,7 @@ async function executePlanAction(options: {
     container: options.container,
     plans,
     providedPath: options.pathArg,
-    assumeYes: flags.assumeYes,
+    assumeYes: flags.assumeYes || (format === "json" && options.action !== "edit"),
     promptMessage: `Select a plan to ${options.action}`
   });
 
@@ -452,12 +461,33 @@ async function executePlanAction(options: {
   }
 
   if (!flags.assumeYes) {
+    if (format === "json") {
+      writeOutput(
+        format,
+        JSON.stringify(
+          {
+            action: options.action,
+            path: plan.path,
+            confirmationRequired: true,
+            skipped: true
+          },
+          null,
+          2
+        )
+      );
+      return;
+    }
+
+    requireInteractiveStdin(
+      `plan ${options.action} requires --yes when running without an interactive TTY.`
+    );
+
     const confirmed = await confirmOrCancel({
       message:
         options.action === "archive"
           ? `Archive ${path.basename(plan.path)}?`
           : `Permanently delete ${path.basename(plan.path)}?`,
-      initialValue: true
+      initialValue: false
     });
     if (!confirmed) {
       return;
@@ -505,9 +535,12 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const flags = resolveCommandFlags(program);
       const kind = resolveKind(opts.kind);
       const question = questionArg?.trim() ?? "";
-      const agent = resolvePlanSessionAgent(opts.agent);
 
       if (question.length > 0) {
+        const agent = await resolvePlanSessionAgent(container, opts.agent, flags);
+        if (agent === null) {
+          return;
+        }
         await runPlanSession({
           container,
           agent,
@@ -528,7 +561,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         createPlanBrowserOptions(container, {
           kind,
           assumeYes: false,
-          onCreatePlan: () => runPlanSessionWithPrompt(container, agent, false)
+          onCreatePlan: () => runPlanSessionWithPrompt(container, opts.agent, flags)
         })
       );
     });
@@ -808,6 +841,10 @@ async function resolvePlanQuestion(
     );
   }
 
+  requireInteractiveStdin(
+    "Plan question prompt requires a question when running without an interactive TTY."
+  );
+
   const entered = await promptText({
     message: "What do you want to plan?"
   });
@@ -823,25 +860,57 @@ async function resolvePlanQuestion(
   return question;
 }
 
-function resolvePlanSessionAgent(value: string | undefined): string {
+async function resolvePlanSessionAgent(
+  container: CliContainer,
+  value: string | undefined,
+  flags: { assumeYes: boolean; dryRun: boolean }
+): Promise<string | null> {
   const trimmed = value?.trim() ?? "";
-  return trimmed.length > 0 ? trimmed : DEFAULT_PLAN_AGENT;
+  if (trimmed.length > 0) {
+    return trimmed;
+  }
+
+  if (flags.assumeYes) {
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
+  }
+
+  requireInteractiveStdin(
+    "Plan session agent selection requires --agent or --yes when running without an interactive TTY."
+  );
+
+  const selected = await select({
+    message: "Select agent to draft the plan with:",
+    options: supportedAgents.map((name) => ({ value: name, label: name }))
+  });
+  if (isCancel(selected)) {
+    cancel("Plan session cancelled.");
+    return null;
+  }
+
+  return selected as string;
 }
 
 async function runPlanSessionWithPrompt(
   container: CliContainer,
-  agent: string,
-  assumeYes: boolean
+  agentValue: string | undefined,
+  flags: { assumeYes: boolean; dryRun: boolean }
 ): Promise<void> {
-  const question = await resolvePlanQuestion(undefined, assumeYes);
+  const question = await resolvePlanQuestion(undefined, flags.assumeYes);
   if (question === null) {
+    return;
+  }
+
+  const agent = await resolvePlanSessionAgent(container, agentValue, flags);
+  if (agent === null) {
     return;
   }
 
   await runPlanSession({
     container,
     agent,
-    question
+    question,
+    dryRun: flags.dryRun
   });
 }
 
@@ -906,18 +975,19 @@ async function resolvePlanAgent(
   value: string | undefined,
   flags: { assumeYes: boolean; dryRun: boolean }
 ): Promise<string | null> {
-  if (value && value.trim().length > 0) {
-    return value.trim();
-  }
-
-  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-  if (fromConfig !== null) {
-    return parseAgentSpecifier(fromConfig).agent;
+  const trimmed = value?.trim() ?? "";
+  if (trimmed.length > 0) {
+    return trimmed;
   }
 
   if (flags.assumeYes) {
-    return DEFAULT_PLAN_AGENT;
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_PLAN_AGENT;
   }
+
+  requireInteractiveStdin(
+    "Plan install agent selection requires --agent or --yes when running without an interactive TTY."
+  );
 
   const selected = await select({
     message: "Select agent to install the plan skill for:",
@@ -943,6 +1013,10 @@ async function resolvePlanScope(
   if (assumeYes) {
     return DEFAULT_PLAN_SCOPE;
   }
+
+  requireInteractiveStdin(
+    "Plan install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+  );
 
   const selected = await select({
     message: "Select install scope:",

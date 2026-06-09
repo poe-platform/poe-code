@@ -1,7 +1,7 @@
 import nodeFs from "node:fs/promises";
 import path from "node:path";
 import { UserError } from "toolcraft";
-import { parse } from "@poe-code/design-system";
+import { parse } from "toolcraft-design";
 import { parseDocument } from "yaml";
 import { scanMarkdown, type Section } from "./scan.js";
 

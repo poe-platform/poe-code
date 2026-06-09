@@ -26,6 +26,7 @@ export async function writePage(
 
   const before = await snapshot(root);
   await fs.mkdir(path.dirname(pagePath), { recursive: true });
+  await assertNoSymlinkSegments(root, pageRelPath);
 
   try {
     await writeFileAtomically(pagePath, serializeFrontmatter(opts.frontmatter ?? {}, body));
@@ -49,6 +50,7 @@ export async function appendToPage(
   const originalPage = await readMarkdownIfPresent(pagePath);
   const before = await snapshot(root);
   await fs.mkdir(path.dirname(pagePath), { recursive: true });
+  await assertNoSymlinkSegments(root, pageRelPath);
 
   const parsed =
     originalPage === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(originalPage);

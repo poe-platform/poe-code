@@ -54,6 +54,13 @@ export interface ConfigFormat {
   /** Serialize object to string (with consistent formatting) */
   serialize(obj: ConfigObject): string;
 
+  /** Serialize an update against original content while preserving comments when possible */
+  serializeUpdate?(
+    content: string,
+    current: ConfigObject,
+    next: ConfigObject
+  ): string;
+
   /** Deep merge patch into base, returning new object */
   merge(base: ConfigObject, patch: ConfigObject): ConfigObject;
 

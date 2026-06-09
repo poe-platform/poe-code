@@ -5,7 +5,7 @@ import {
   withOutputFormat,
   type RenderTableOptions,
   type TableColumn
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { evalCheck, type CheckResult } from "../check/check.js";
 import { openSource } from "../source/open.js";
 import { listEvals } from "../source/registry.js";

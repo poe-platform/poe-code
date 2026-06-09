@@ -35,6 +35,19 @@ Mode-specific args and env vars are declared in each agent config. Goose uses `G
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into the agent-specific CLI args or environment variables. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
+## Resume sessions
+
+Pass `resumeThreadId` to load a prior provider thread or session before sending the next prompt. The option uses each agent's declarative resume config and throws if the selected agent does not support session resume.
+
+```ts
+const first = await spawn("claude-code", { prompt: "Inspect the auth flow" });
+
+const followup = await spawn("claude-code", {
+  prompt: "Now add the missing tests",
+  resumeThreadId: first.threadId
+});
+```
+
 ## Prompt transport
 
 Agents with stdin support can receive prompts through stdin by passing `useStdin: true`. When an agent config allows automatic fallback, prompts larger than 64 KiB, or prompts containing NUL bytes, are sent through stdin instead of as a CLI argument. Provider configs can opt out of the large-prompt automatic fallback when their stdin protocol requires a different payload format.
@@ -78,19 +91,21 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 
 ## Config options
 
-| Option                               | Type                             | Description                                                                            |
-| ------------------------------------ | -------------------------------- | -------------------------------------------------------------------------------------- |
-| `prompt`                             | `string`                         | Prompt sent to the agent.                                                              |
-| `cwd`                                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
-| `model`                              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
-| `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
-| `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
-| `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
-| `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
-| `useStdin`                           | `boolean`                        | Force stdin prompt transport when the agent supports it.                               |
-| `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
-| `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |
-| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence.                                        |
+| Option                               | Type                             | Description                                                                                  |
+| ------------------------------------ | -------------------------------- | -------------------------------------------------------------------------------------------- |
+| `prompt`                             | `string`                         | Prompt sent to the agent.                                                                    |
+| `cwd`                                | `string`                         | Working directory. Defaults to the caller's process cwd.                                     |
+| `model`                              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config.       |
+| `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                          |
+| `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                                   |
+| `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                                 |
+| `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing.       |
+| `resumeThreadId`                     | `string`                         | Resume a prior provider thread/session before sending the prompt.                            |
+| `useStdin`                           | `boolean`                        | Force stdin prompt transport when the agent supports it.                                     |
+| `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                                     |
+| `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                        |
+| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
+| `logContent`                         | `boolean`                        | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs.         |
 
 ## Environment variables
 

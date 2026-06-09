@@ -9,7 +9,7 @@ import { ValidationError } from "../errors.js";
 import pipelineSkillPlan from "../../templates/pipeline/SKILL_plan.md";
 import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache";
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 
 const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
@@ -56,8 +56,8 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     createDashboard: vi.fn(),
@@ -74,7 +74,7 @@ vi.mock("./pipeline-loop-agent.js", () => ({
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { createDashboard, withOutputFormat } from "@poe-code/design-system";
+import { createDashboard, withOutputFormat } from "toolcraft-design";
 
 resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
 
@@ -92,6 +92,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
     volume.writeFileSync(filePath, content);
   }
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  path: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, path);
 }
 
 function createBaseProgram(): Command {
@@ -425,7 +440,7 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for pipeline run without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for pipeline run with --yes and preserves the model", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -444,12 +459,49 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "run", "--plan", "plan.yaml"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "codex:openai/gpt-5.4",
+        plan: "plan.yaml"
+      })
+    );
+  });
+
+  it("prompts for the pipeline run agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("goose");
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]),
+      { stdin: true }
+    );
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run pipeline steps with:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "goose" })])
+    });
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "goose",
         plan: "plan.yaml"
       })
     );
@@ -467,7 +519,9 @@ describe("pipeline run command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "run"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "run"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -481,6 +535,77 @@ describe("pipeline run command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline run cancelled.");
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    await fs.writeFile("/repo/plan.yaml", "tasks: []\n", { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--plan", "plan.yaml"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline run agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects discovered plan selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": PIPELINE_MD_EMPTY
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--agent", "codex"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline plan selection requires --plan, --plans, or --yes when running without an interactive TTY."
+    );
+
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+  });
+
+  it("rejects manual plan path prompts in non-interactive dry-run mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "run", "--dry-run"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline plan path selection requires --plan, --plans, or --yes when running without an interactive TTY."
+    );
+
     expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
   });
 
@@ -1656,7 +1781,7 @@ describe("pipeline init command", () => {
     );
   });
 
-  it("uses core.defaultAgent for init without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for init with --yes and preserves the model", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/alpha.md": "# Alpha\n"
     });
@@ -1679,6 +1804,7 @@ describe("pipeline init command", () => {
     await program.parseAsync([
       "node",
       "cli",
+      "--yes",
       "pipeline",
       "init",
       "--source",
@@ -1702,6 +1828,53 @@ describe("pipeline init command", () => {
     );
   });
 
+  it("prompts for the pipeline init agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("goose");
+    const fs = createMemFs({
+      "/repo/docs/plans/alpha.md": "# Alpha\n"
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withMockedTerminal(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "init",
+          "--source",
+          "docs/plans/alpha.md",
+          "Build the pipeline plan"
+        ]),
+      { stdin: true }
+    );
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to generate pipeline plans with:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "goose" })])
+    });
+    expect(vi.mocked(sdkRunPipelineInit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "goose",
+        question: "Build the pipeline plan"
+      })
+    );
+  });
+
   it("cancels pipeline init when agent selection is cancelled", async () => {
     resolvePipelineLoopAgentMock.mockResolvedValueOnce({ cancelled: true });
 
@@ -1714,7 +1887,9 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "init"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "init"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -1728,6 +1903,63 @@ describe("pipeline init command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline init cancelled.");
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/alpha.md": "# Alpha\n"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "pipeline",
+            "init",
+            "--source",
+            "docs/plans/alpha.md"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline init agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
+  });
+
+  it("rejects source selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/alpha.md": "# Alpha\n"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "pipeline", "init", "--agent", "codex"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline source selection requires --source or --sources when running without an interactive TTY."
+    );
+
     expect(vi.mocked(sdkRunPipelineInit)).not.toHaveBeenCalled();
   });
 });
@@ -2135,7 +2367,7 @@ describe("pipeline install command", () => {
     );
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -2153,7 +2385,7 @@ describe("pipeline install command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "pipeline", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(
@@ -2173,7 +2405,9 @@ describe("pipeline install command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "pipeline", "install"]);
+    await withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "install"]), {
+      stdin: true
+    });
 
     expect(resolvePipelineLoopAgentMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -2187,6 +2421,55 @@ describe("pipeline install command", () => {
       })
     );
     expect(cancelMock).toHaveBeenCalledWith("Pipeline install cancelled.");
+  });
+
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "pipeline", "install"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Pipeline install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "pipeline",
+            "install",
+            "--agent",
+            "claude-code"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Pipeline install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
   });
 
   it("does not overwrite steps.yaml without --force", async () => {
@@ -2265,6 +2548,47 @@ describe("pipeline install command", () => {
       ])
     ).rejects.toThrow("injected steps.yaml write failure");
 
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
+  });
+
+  it("does not follow a steps.yaml symlink inserted before pipeline scaffolding", async () => {
+    const stepsPath = "/repo/.poe-code/pipeline/steps.yaml";
+    const outsidePath = "/outside/steps.yaml";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const originalWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath) === stepsPath) {
+        await replaceWithSymlink(fs, stepsPath, outsidePath);
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
     ).rejects.toThrow();

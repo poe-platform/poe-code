@@ -165,6 +165,36 @@ describe("symlinkHooks", () => {
     expect(lstatSync(path.dirname(targetPath)).isDirectory()).toBe(true);
   });
 
+  it("rejects a symlinked target parent directory", () => {
+    vol.mkdirSync(cwd, { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    fs.symlinkSync("/outside", path.dirname(targetPath));
+
+    expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+      /symbolic link/
+    );
+    expect(vol.existsSync("/outside/settings.json")).toBe(false);
+  });
+
+  it("rechecks target parents after creating missing directories", () => {
+    vol.mkdirSync(cwd, { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    const mkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation((directoryPath, options) => {
+      if (String(directoryPath) === path.dirname(targetPath)) {
+        fs.symlinkSync("/outside", directoryPath);
+        return undefined;
+      }
+
+      return mkdirSync(directoryPath, options);
+    });
+
+    expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+      /symbolic link/
+    );
+    expect(vol.existsSync("/outside/settings.json")).toBe(false);
+  });
+
   it("throws when the source has no project hook path", () => {
     expect(() => symlinkHooks("project-less", "target", cwd, homeDir, "project")).toThrow(
       /project-less.*project/i

@@ -28,7 +28,7 @@ vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
 }));
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   getTheme: getThemeMock,
   renderTable: renderTableMock
 }));

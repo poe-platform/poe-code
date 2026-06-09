@@ -1,6 +1,19 @@
 import path from "node:path";
 import type { DockerRunArgs } from "../types.js";
 
+export function buildDockerEnvArgs(input: Pick<DockerRunArgs, "env" | "envFilePath">): string[] {
+  const keys = Object.keys(input.env ?? {});
+  if (keys.length === 0) {
+    return [];
+  }
+
+  if (input.envFilePath !== undefined) {
+    return ["--env-file", input.envFilePath];
+  }
+
+  return keys.flatMap((key) => ["-e", key]);
+}
+
 export function buildDockerRunArgs(input: DockerRunArgs): string[] {
   const args: string[] = [input.engine];
 
@@ -32,9 +45,7 @@ export function buildDockerRunArgs(input: DockerRunArgs): string[] {
     args.push("-w", input.cwd);
   }
 
-  for (const [key, value] of Object.entries(input.env ?? {})) {
-    args.push("-e", `${key}=${value}`);
-  }
+  args.push(...buildDockerEnvArgs(input));
 
   for (const mount of input.mounts) {
     const volume = `${path.resolve(mount.source)}:${mount.target}${mount.readonly ? ":ro" : ""}`;

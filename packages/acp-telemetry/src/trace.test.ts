@@ -285,6 +285,96 @@ describe("acpToTrace", () => {
     expect(trace.root.children[0]?.output).toBe("[truncated:65537]");
   });
 
+  it("redacts secrets from trace payloads and metadata before emission", () => {
+    const events = [
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-1",
+        kind: "execute",
+        input: {
+          env: {
+            PATH: "/usr/bin",
+            POE_API_KEY: "sk-tool",
+          },
+          headers: {
+            Authorization: "Bearer tool-token",
+          },
+        },
+        _meta: { token: "meta-token" },
+      },
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tc-1",
+        rawOutput: "api_key=sk-output",
+        content: [{ type: "text", text: "Bearer output-token" }],
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({
+      events,
+      metadata: { apiKey: "sk-root" },
+      prompt: "Use Bearer prompt-token",
+    }));
+
+    expect(trace.root.input).toMatchObject({
+      prompt: "Use Bearer [redacted]",
+    });
+    expect(trace.root.metadata).toMatchObject({
+      apiKey: "[redacted]",
+      sessionId: "session-1",
+      threadId: "thread-1",
+    });
+    expect(trace.root.children[0]).toMatchObject({
+      input: {
+        env: {
+          PATH: "/usr/bin",
+          POE_API_KEY: "[redacted]",
+        },
+        headers: {
+          Authorization: "[redacted]",
+        },
+      },
+      output: ["api_key=[redacted]", "Bearer [redacted]"],
+      metadata: {
+        token: "[redacted]",
+      },
+    });
+  });
+
+  it("redacts env-style assigned secrets from trace strings", () => {
+    const events = [
+      {
+        event: "agent_message",
+        text: "OPENAI_API_KEY=\"sk-agent\"",
+      },
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-1",
+        kind: "execute",
+        input: "token: \"tok-input\"",
+      },
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tc-1",
+        rawOutput: "password=\"pw-output\"",
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({
+      events,
+      prompt: "OPENAI_API_KEY=sk-prompt",
+    }));
+
+    expect(trace.root.input).toMatchObject({
+      prompt: "OPENAI_API_KEY=[redacted]",
+    });
+    expect(trace.root.output).toBe("OPENAI_API_KEY=\"[redacted]\"");
+    expect(trace.root.children[0]).toMatchObject({
+      input: "token: \"[redacted]\"",
+      output: "password=\"[redacted]\"",
+    });
+  });
+
   it("redacts tool metadata and preserves own __proto__ metadata entries", () => {
     const metadata: Record<string, unknown> = { raw: "a".repeat(65_537) };
     Object.defineProperty(metadata, "__proto__", {

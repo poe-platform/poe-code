@@ -7,7 +7,7 @@ import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
 import { allAgents } from "@poe-code/agent-defs";
 import { ValidationError } from "../errors.js";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 import experimentSkillPlan from "../../templates/experiment/SKILL_experiment.md";
 import experimentRunYaml from "../../templates/experiment/run.yaml.mustache";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
@@ -52,8 +52,8 @@ vi.mock("../../sdk/spawn.js", () => ({
   })
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     createDashboard: vi.fn(),
@@ -70,7 +70,7 @@ import {
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
-import { acp, createDashboard, withOutputFormat } from "@poe-code/design-system";
+import { acp, createDashboard, withOutputFormat } from "toolcraft-design";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -80,6 +80,21 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(homeDir, { recursive: true });
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+async function replaceWithSymlink(
+  fs: Pick<FileSystem, "symlink" | "unlink">,
+  path: string,
+  target: string
+): Promise<void> {
+  try {
+    await fs.unlink(path);
+  } catch (error) {
+    if ((error as { code?: unknown }).code !== "ENOENT") {
+      throw error;
+    }
+  }
+  await fs.symlink(target, path);
 }
 
 function createBaseProgram(): Command {
@@ -383,7 +398,7 @@ describe("experiment run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for experiment run without prompting and preserves the model", async () => {
+  it("uses core.defaultAgent for experiment run with --yes and preserves the model", async () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": "# Loop"
     });
@@ -407,12 +422,54 @@ describe("experiment run command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]);
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "run", "docs/loop.md"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code:anthropic/claude-sonnet-4.6",
+        docPath: "docs/loop.md"
+      })
+    );
+  });
+
+  it("prompts for the experiment agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("codex");
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify(
+        { core: { defaultAgent: "claude-code:anthropic/claude-sonnet-4.6" } },
+        null,
+        2
+      )}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]),
+      { stdin: true }
+    );
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run the experiment with:",
+      options: getExperimentAgentOptions()
+    });
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
         docPath: "docs/loop.md"
       })
     );
@@ -494,7 +551,10 @@ describe("experiment run command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "experiment", "run"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -520,6 +580,55 @@ describe("experiment run command", () => {
         docPath: "docs/plans/plan-a.md"
       })
     );
+  });
+
+  it("rejects missing doc selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": experimentPlanDoc("A")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "experiment", "run"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Experiment doc selection requires a doc path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "experiment", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Experiment agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
   });
 
   it("preserves multi-agent frontmatter arrays for experiment run", async () => {
@@ -1740,6 +1849,47 @@ describe("experiment install command", () => {
     await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
   });
 
+  it("does not follow a run.yaml symlink inserted before experiment scaffolding", async () => {
+    const runYamlPath = "/repo/.poe-code/experiments/run.yaml";
+    const outsidePath = "/outside/run.yaml";
+    const fs = createMemFs({
+      [outsidePath]: "outside-state\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === runYamlPath) {
+        await replaceWithSymlink(fs, runYamlPath, outsidePath);
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toMatchObject({ code: "EEXIST" });
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
+  });
+
   it("defaults to claude-code and local scope with --yes", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
@@ -1783,7 +1933,7 @@ describe("experiment install command", () => {
     await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
       fs,
@@ -1801,7 +1951,7 @@ describe("experiment install command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "experiment", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "experiment", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(
@@ -1823,6 +1973,57 @@ describe("experiment install command", () => {
     await expect(
       program.parseAsync(["node", "cli", "experiment", "install", "--local", "--global"])
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "experiment", "install"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Experiment install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "experiment",
+            "install",
+            "--agent",
+            "claude-code"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Experiment install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
   });
 
   it("installs to global scope when --global is specified", async () => {
@@ -2040,7 +2241,7 @@ describe("ralph run command", () => {
     );
   });
 
-  it("uses core.defaultAgent for ralph run without prompting when frontmatter omits agent", async () => {
+  it("uses core.defaultAgent for ralph run with --yes when frontmatter omits agent", async () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
@@ -2067,13 +2268,60 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "docs/loop.md"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
+        docPath: "docs/loop.md",
+        maxIterations: 4
+      })
+    );
+  });
+
+  it("prompts for the Ralph agent when core.defaultAgent exists without --yes", async () => {
+    selectMock.mockResolvedValueOnce("codex");
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "iterations: 4",
+        "status:",
+        "  state: open",
+        "  iteration: 0",
+        "---",
+        "# A"
+      ].join("\n")
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+      { stdin: true }
+    );
+
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to run Ralph with:",
+      options: getExperimentAgentOptions()
+    });
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
         docPath: "docs/loop.md",
         maxIterations: 4
       })
@@ -2121,7 +2369,7 @@ describe("ralph run command", () => {
     );
   });
 
-  it("preserves the model from core.defaultAgent for ralph run", async () => {
+  it("preserves the model from core.defaultAgent for ralph run with --yes", async () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
@@ -2152,7 +2400,7 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]);
+    await program.parseAsync(["node", "cli", "--yes", "ralph", "run", "docs/loop.md"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
@@ -2221,7 +2469,10 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run"]),
+      { stdin: true }
+    );
 
     expect(selectMock).toHaveBeenCalledTimes(2);
     expect(selectMock).toHaveBeenNthCalledWith(1, {
@@ -2253,6 +2504,83 @@ describe("ralph run command", () => {
     );
   });
 
+  it("rejects missing doc selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(() => program.parseAsync(["node", "cli", "ralph", "run"]), {
+        stdin: false
+      })
+    ).rejects.toThrow(
+      "Ralph doc selection requires a doc path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": ["---", "iterations: 4", "---", "# Loop"].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing run iterations in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": ["---", "agent: codex", "---", "# Loop"].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph iteration selection requires --iterations, frontmatter iterations, or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
   it("shows frontmatter hints in the doc selection prompt", async () => {
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md");
 
@@ -2279,7 +2607,10 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "run"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "run"]),
+      { stdin: true }
+    );
 
     const call = selectMock.mock.calls[0]![0];
     expect(call.options[0].label).toContain("docs/plans/plan-a.md");
@@ -3050,6 +3381,63 @@ describe("ralph init command", () => {
     expect(parsed.body).toBe("# My Plan\n\nBody");
   });
 
+  it("does not follow a doc symlink inserted before config publish", async () => {
+    const docPath = "/repo/docs/loop.md";
+    const outsidePath = "/outside/loop.md";
+    const baseFs = createMemFs({
+      [docPath]: "# My Plan\n\nBody",
+      [outsidePath]: "outside-state\n"
+    });
+    const fs: FileSystem = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ): Promise<void> {
+        if (filePath === docPath) {
+          await replaceWithSymlink(baseFs, docPath, outsidePath);
+        }
+        await baseFs.writeFile(filePath, data, options);
+      },
+      async rename(oldPath: string, newPath: string): Promise<void> {
+        if (newPath === docPath) {
+          await replaceWithSymlink(baseFs, docPath, outsidePath);
+        }
+        await baseFs.rename(oldPath, newPath);
+      }
+    };
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "init",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--iterations",
+      "5"
+    ]);
+
+    expect(await fs.readFile(outsidePath, "utf8")).toBe("outside-state\n");
+    expect((await fs.lstat(docPath)).isSymbolicLink()).toBe(false);
+    const parsed = parseFrontmatter(await fs.readFile(docPath, "utf8"));
+    expect(parsed.data).toMatchObject({
+      agent: "codex",
+      iterations: 5
+    });
+    expect(parsed.body).toBe("# My Plan\n\nBody");
+  });
+
   it("errors when the doc does not exist", async () => {
     const container = createCliContainer({
       fs: createMemFs(),
@@ -3081,7 +3469,10 @@ describe("ralph init command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "ralph", "init"]);
+    await withMockedTerminal(
+      () => program.parseAsync(["node", "cli", "ralph", "init"]),
+      { stdin: true }
+    );
 
     const updated = await fs.readFile("/repo/docs/plans/plan-a.md", "utf8");
     const parsed = parseFrontmatter(updated);
@@ -3120,6 +3511,65 @@ describe("ralph init command", () => {
         iteration: 0
       }
     });
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () => program.parseAsync(["node", "cli", "ralph", "init", "docs/loop.md"]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing init iterations in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      withMockedTerminal(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "ralph",
+            "init",
+            "docs/loop.md",
+            "--agent",
+            "codex"
+          ]),
+        { stdin: false }
+      )
+    ).rejects.toThrow(
+      "Ralph iteration selection requires --iterations or --yes when running without an interactive TTY."
+    );
+
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
   });

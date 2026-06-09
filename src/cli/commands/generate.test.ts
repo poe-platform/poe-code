@@ -15,7 +15,7 @@ vi.mock("../../services/client-instance.js", () => ({
   initializeClient
 }));
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   intro: vi.fn(),
   outro: vi.fn(),
   withSpinner: vi.fn(async ({ fn }: { fn: () => Promise<unknown> }) => await fn())

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { redactSecretString, redactSecrets } from "../utils/redaction.js";
 
 type SyncFileSystem = {
   appendFileSync(file: string, data: string): void;
@@ -100,9 +101,9 @@ export class ErrorLogger {
     return {
       timestamp: this.now().toISOString(),
       level,
-      message: errorObj.message,
-      stack: errorObj.stack,
-      context
+      message: redactSecretString(errorObj.message),
+      stack: errorObj.stack === undefined ? undefined : redactSecretString(errorObj.stack),
+      context: redactSecrets(context) as ErrorContext | undefined
     };
   }
 
@@ -113,8 +114,8 @@ export class ErrorLogger {
     return {
       timestamp: this.now().toISOString(),
       level: "WARN",
-      message,
-      context
+      message: redactSecretString(message),
+      context: redactSecrets(context) as ErrorContext | undefined
     };
   }
 

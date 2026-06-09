@@ -1,6 +1,6 @@
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 import { registerLaunchCommand } from "./launch.js";
@@ -31,14 +31,16 @@ const {
   isCancelMock,
   promptTextMock,
   renderTableMock,
-  selectMock
+  selectMock,
+  withSpinnerMock
 } = vi.hoisted(() => ({
   cancelMock: vi.fn(),
   getThemeMock: vi.fn(() => "dark"),
   isCancelMock: vi.fn(() => false),
   promptTextMock: vi.fn(),
   renderTableMock: vi.fn(() => "rendered table"),
-  selectMock: vi.fn()
+  selectMock: vi.fn(),
+  withSpinnerMock: vi.fn(async <T>({ fn }: { fn: () => Promise<T> }) => await fn())
 }));
 
 vi.mock("../../sdk/launch.js", () => ({
@@ -52,8 +54,8 @@ vi.mock("../../sdk/launch.js", () => ({
   stopLaunch: stopLaunchMock
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     cancel: cancelMock,
@@ -61,12 +63,33 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     isCancel: isCancelMock,
     promptText: promptTextMock,
     renderTable: renderTableMock,
-    select: selectMock
+    select: selectMock,
+    withSpinner: withSpinnerMock
   };
 });
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 describe("launch command", () => {
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     vi.clearAllMocks();
     followLaunchLogsMock.mockReturnValue((async function* () {})());
     listLaunchesMock.mockResolvedValue([]);
@@ -76,6 +99,10 @@ describe("launch command", () => {
     restartLaunchMock.mockResolvedValue(undefined);
     removeLaunchMock.mockResolvedValue(undefined);
     runLaunchDaemonMock.mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("parses launch start flags and forwards a structured spec to the sdk", async () => {
@@ -148,6 +175,37 @@ describe("launch command", () => {
         }
       })
     );
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Starting managed process api; waiting for log readiness...",
+        fn: expect.any(Function),
+        stopMessage: expect.any(Function)
+      })
+    );
+  });
+
+  it("describes TCP readiness while launch start waits", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "launch",
+      "start",
+      "api",
+      "--ready-port",
+      "3000",
+      "--",
+      "node",
+      "server.js"
+    ]);
+
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Starting managed process api; waiting for TCP port 3000..."
+      })
+    );
   });
 
   it("preserves prototype-named launch environment entries", async () => {
@@ -163,7 +221,7 @@ describe("launch command", () => {
     expect(spec.env.__proto__).toBe("visible");
   });
 
-  it("prompts for missing start values and uses --yes defaults for runtime and restart", async () => {
+  it("prompts for missing start values in interactive launch start", async () => {
     promptTextMock
       .mockResolvedValueOnce("api")
       .mockResolvedValueOnce("npm run dev");
@@ -171,7 +229,7 @@ describe("launch command", () => {
     const program = createBaseProgram();
     registerLaunchCommand(program, createContainer());
 
-    await program.parseAsync(["node", "cli", "--yes", "launch", "start"]);
+    await program.parseAsync(["node", "cli", "launch", "start"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(startLaunchMock).toHaveBeenCalledWith(
@@ -184,6 +242,51 @@ describe("launch command", () => {
         })
       })
     );
+  });
+
+  it("rejects missing launch start values under --yes without prompting", async () => {
+    const missingIdProgram = createBaseProgram();
+    registerLaunchCommand(missingIdProgram, createContainer());
+
+    await expect(
+      missingIdProgram.parseAsync(["node", "cli", "--yes", "launch", "start"])
+    ).rejects.toThrow("Process ID is required.");
+
+    const missingCommandProgram = createBaseProgram();
+    registerLaunchCommand(missingCommandProgram, createContainer());
+
+    await expect(
+      missingCommandProgram.parseAsync(["node", "cli", "--yes", "launch", "start", "api"])
+    ).rejects.toThrow("Command to run is required.");
+
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(startLaunchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing launch start values in non-interactive mode without prompting", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+
+    try {
+      const missingIdProgram = createBaseProgram();
+      registerLaunchCommand(missingIdProgram, createContainer());
+
+      await expect(
+        missingIdProgram.parseAsync(["node", "cli", "launch", "start"])
+      ).rejects.toThrow("Process ID is required when running without an interactive TTY.");
+
+      const missingCommandProgram = createBaseProgram();
+      registerLaunchCommand(missingCommandProgram, createContainer());
+
+      await expect(
+        missingCommandProgram.parseAsync(["node", "cli", "launch", "start", "api"])
+      ).rejects.toThrow("Command to run is required when running without an interactive TTY.");
+    } finally {
+      restoreStdin();
+    }
+
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(startLaunchMock).not.toHaveBeenCalled();
   });
 
   it("infers the host runtime when a command is provided without a docker image", async () => {
@@ -228,6 +331,7 @@ describe("launch command", () => {
     ]);
 
     expect(startLaunchMock).not.toHaveBeenCalled();
+    expect(withSpinnerMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would start managed process api.");
   });
 
@@ -250,7 +354,24 @@ describe("launch command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "launch", "restart", "api"]);
 
     expect(restartLaunchMock).not.toHaveBeenCalled();
+    expect(withSpinnerMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would restart managed process api.");
+  });
+
+  it("wraps launch restart in a progress spinner", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync(["node", "cli", "launch", "restart", "api"]);
+
+    expect(restartLaunchMock).toHaveBeenCalledWith({ homeDir: "/home/test", id: "api" });
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Restarting managed process api...",
+        fn: expect.any(Function),
+        stopMessage: expect.any(Function)
+      })
+    );
   });
 
   it("previews launch rm without removing managed process data", async () => {

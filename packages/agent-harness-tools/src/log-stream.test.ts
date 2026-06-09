@@ -117,6 +117,16 @@ describe("streamLogFile", () => {
       "Managed job file must not be a symbolic link."
     );
   });
+
+  it("rejects a symlinked managed job directory before reading external logs", async () => {
+    const { fs, vol } = createMemFs({ "/outside/job-1.log": "external" });
+    vol.mkdirSync("/tmp", { recursive: true });
+    vol.symlinkSync("/outside", "/tmp/poe-jobs");
+
+    await expect(takeChunks(streamLogFile({ fs }, "job-1", {}), 1)).rejects.toThrow(
+      "Managed job directory must not be a symbolic link."
+    );
+  });
 });
 
 describe("waitForExit", () => {
@@ -166,6 +176,16 @@ describe("waitForExit", () => {
       "Managed job file must not be a symbolic link."
     );
   });
+
+  it("rejects a symlinked managed job directory before reading external status", async () => {
+    const { fs, vol } = createMemFs({ "/outside/job-1.exit": "7\n" });
+    vol.mkdirSync("/tmp", { recursive: true });
+    vol.symlinkSync("/outside", "/tmp/poe-jobs");
+
+    await expect(waitForExit({ fs }, "job-1")).rejects.toThrow(
+      "Managed job directory must not be a symbolic link."
+    );
+  });
 });
 
 describe("wrapForLogTee", () => {
@@ -178,6 +198,7 @@ describe("wrapForLogTee", () => {
     expect(argv[2]).toContain("'printf' 'hello '\\'' world'");
     expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; echo bad.log'");
     expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; echo bad.exit'");
+    expect(argv[2]).toContain("test ! -L '/tmp/poe-jobs'");
     expect(argv[2]).toContain("test ! -L '/tmp/poe-jobs/job'\\''1; echo bad.log'");
     expect(argv[2]).toContain("test ! -L '/tmp/poe-jobs/job'\\''1; echo bad.exit'");
     expect(argv[2]).not.toContain("/tmp/poe-jobs/job'1; echo bad.log");

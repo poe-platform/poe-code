@@ -373,13 +373,21 @@ async function replaceFileAtomically(
   filePath: string,
   content: string
 ): Promise<void> {
-  const temporaryPath = path.join(path.dirname(filePath), `.${path.basename(filePath)}.${randomUUID()}.tmp`);
+  const temporaryPath = path.join(
+    path.dirname(filePath),
+    `.${path.basename(filePath)}.${randomUUID()}.tmp`
+  );
+  let temporaryCreated = false;
 
   try {
     await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
+    temporaryCreated = false;
   } catch (error) {
-    await fs.unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

@@ -12,7 +12,7 @@ import {
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import type { ExecutionState } from "@poe-code/process-runner";
-import { withSpinner } from "@poe-code/design-system";
+import { withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";
@@ -174,10 +174,28 @@ async function requireRuntimeBuildPaths(
   if (!(await pathExists(container.fs, dockerfilePath))) {
     throw new Error(`${label} runtime requires a Dockerfile at ${dockerfilePath}.`);
   }
+  const buildContext = path.resolve(container.env.cwd, runtime.build_context ?? ".");
+  const canonicalCwd = await container.fs.realpath(container.env.cwd);
+  const canonicalDockerfilePath = await container.fs.realpath(dockerfilePath);
+  const canonicalBuildContext = await container.fs.realpath(buildContext);
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalDockerfilePath, "runtime.dockerfile");
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalBuildContext, "runtime.build_context");
+
   return {
-    dockerfilePath,
-    buildContext: path.resolve(container.env.cwd, runtime.build_context ?? ".")
+    dockerfilePath: canonicalDockerfilePath,
+    buildContext: canonicalBuildContext
   };
+}
+
+function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
+  if (!isPathInsideOrEqual(cwd, targetPath)) {
+    throw new Error(`${fieldName} must remain inside runtime cwd ${cwd}.`);
+  }
+}
+
+function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 async function loadE2bRunnerModule(): Promise<E2bRunnerModule> {

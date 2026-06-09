@@ -44,6 +44,7 @@ export function assertSafeRelPath(input: string): string {
 
 export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string): Promise<void> {
   const normalizedRelPath = assertSafeRelPath(relPath);
+  await assertMemoryRootIsNotSymlink(root);
   let currentPath = root;
 
   for (const segment of normalizedRelPath.split("/")) {
@@ -65,17 +66,25 @@ export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string)
 }
 
 export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<void> {
-  try {
-    const stat = await fs.lstat(root);
-    if (stat.isSymbolicLink()) {
-      throw new MemoryPathError(`Memory root "${root}" cannot be a symbolic link.`);
-    }
-  } catch (error) {
-    if (isMissing(error)) {
-      return;
-    }
+  const absoluteRoot = path.resolve(root);
+  const pathRoot = path.parse(absoluteRoot).root;
+  let currentPath = pathRoot;
 
-    throw error;
+  for (const segment of absoluteRoot.slice(pathRoot.length).split(path.sep).filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+
+    try {
+      const stat = await fs.lstat(currentPath);
+      if (stat.isSymbolicLink()) {
+        throw new MemoryPathError(`Memory root "${root}" cannot be a symbolic link.`);
+      }
+    } catch (error) {
+      if (isMissing(error)) {
+        return;
+      }
+
+      throw error;
+    }
   }
 }
 

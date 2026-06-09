@@ -1,0 +1,41 @@
+{
+  "name": "toolcraft-design",
+  "version": "0.0.2",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "postbuild": "node scripts/smoke-built-exports.cjs",
+    "lint": "cd ../.. && eslint packages/toolcraft-design --ext ts && tsc -p packages/toolcraft-design/tsconfig.json --noEmit",
+    "test": "cd ../.. && vitest run $(rg --files packages/toolcraft-design/src -g '*.test.ts' | sort | tr '\\n' ' ')",
+    "demo": "tsx scripts/demo.ts",
+    "generate:docs": "tsx scripts/generate-docs.ts all",
+    "generate:design-docs:markdown": "tsx scripts/generate-docs.ts markdown",
+    "generate:design-docs:json": "tsx scripts/generate-docs.ts json",
+    "generate:design-docs:all": "tsx scripts/generate-docs.ts all"
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "@clack/prompts": "^1.0.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/toolcraft-design"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

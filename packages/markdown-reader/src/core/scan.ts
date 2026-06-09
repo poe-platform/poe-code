@@ -1,4 +1,4 @@
-import { parse, type MdNode } from "@poe-code/design-system";
+import { parse, type MdNode } from "toolcraft-design";
 
 export interface Section {
   depth: number;

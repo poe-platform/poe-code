@@ -182,6 +182,46 @@ describe("process launcher manager", () => {
     expect(JSON.parse(metaContent)).toMatchObject({ daemonPid: 321 });
   });
 
+  it("preserves the existing spec when updated spec persistence fails", async () => {
+    const baseFs = createMemFs();
+    const baseDir = "/state/launch";
+    const originalSpec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(
+      baseFs,
+      baseDir,
+      originalSpec,
+      createState(originalSpec, { status: "stopped" }),
+      null
+    );
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content, options) {
+        if (filePath.includes("/spec.json")) {
+          await baseFs.writeFile(filePath, "{", options);
+          throw new Error("spec disk full");
+        }
+        await baseFs.writeFile(filePath, content, options);
+      }
+    };
+    const spawnDaemon = vi.fn(async () => 321);
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        spec: { ...originalSpec, command: "pnpm" },
+        spawnDaemon
+      })
+    ).rejects.toThrow("spec disk full");
+
+    await expect(fs.readFile(path.join(baseDir, "api", "spec.json"), "utf8")).resolves.toBe(
+      `${JSON.stringify(originalSpec)}\n`
+    );
+    const entries = await fs.readdir(path.join(baseDir, "api"));
+    expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+    expect(spawnDaemon).not.toHaveBeenCalled();
+  });
+
   it("persists stopped state when daemon spawning rejects", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -309,6 +349,146 @@ describe("process launcher manager", () => {
     });
   });
 
+  it("treats ESRCH while signaling a daemon as already stopped", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let signalAttempted = false;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(654);
+      expect(signal).toBe("SIGTERM");
+      signalAttempted = true;
+      throw createErrnoError("No such process", "ESRCH");
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => pid === 654 && !signalAttempted,
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
+  it("signals a live host child when its launcher daemon is stale", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let childRunning = true;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(123);
+      expect(signal).toBe("SIGTERM");
+      childRunning = false;
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => pid === 123 && childRunning,
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    const stateContent = await fs.readFile(path.join(baseDir, "api", "state.json"), "utf8");
+    expect(JSON.parse(stateContent)).toMatchObject({
+      pid: null,
+      status: "stopped"
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
+  it("falls back to a live host child when the daemon exits during stop signaling", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    let daemonSignalAttempted = false;
+    let childRunning = true;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(signal).toBe("SIGTERM");
+      if (pid === 654) {
+        daemonSignalAttempted = true;
+        throw createErrnoError("No such process", "ESRCH");
+      }
+      if (pid === 123) {
+        childRunning = false;
+        return;
+      }
+      throw new Error(`Unexpected pid ${pid}`);
+    });
+
+    const result = await stopManagedProcess({
+      baseDir,
+      fs,
+      id: "api",
+      isPidRunning: (pid) => {
+        if (pid === 654) {
+          return !daemonSignalAttempted;
+        }
+        if (pid === 123) {
+          return childRunning;
+        }
+        return false;
+      },
+      pollIntervalMs: 1,
+      signalProcess
+    });
+
+    expect(signalProcess).toHaveBeenCalledTimes(2);
+    expect(signalProcess).toHaveBeenNthCalledWith(1, 654, "SIGTERM");
+    expect(signalProcess).toHaveBeenNthCalledWith(2, 123, "SIGTERM");
+    expect(result).toMatchObject({
+      daemonPid: null,
+      state: {
+        pid: null,
+        status: "stopped"
+      }
+    });
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
   it("rejects a stop timeout without clearing a running daemon", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -366,14 +546,14 @@ describe("process launcher manager", () => {
     let metaWrites = 0;
     const fs = {
       ...baseFs,
-      writeFile: async (filePath: string, content: string) => {
-        if (filePath.endsWith("/meta.json")) {
+      writeFile: async (filePath: string, content: string, options) => {
+        if (filePath.includes("/meta.json")) {
           metaWrites += 1;
           if (metaWrites === 2) {
             throw new Error("meta failed");
           }
         }
-        await baseFs.writeFile(filePath, content);
+        await baseFs.writeFile(filePath, content, options);
       }
     } as LauncherFileSystem;
     const signalProcess = vi.fn();
@@ -541,6 +721,71 @@ describe("process launcher manager", () => {
     await expect(startManagedProcess({ baseDir, fs, spec, spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
   });
 
+  it("rejects starting through a symlinked launch root before persisting state", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    volume.mkdirSync("/outside/launch", { recursive: true });
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+    const spawnDaemon = vi.fn(async () => null);
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon
+      })
+    ).rejects.toThrow(/symbolic link/i);
+
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(rawFs.readFile("/outside/launch/api/spec.json", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects listing through a symlinked launch root", async () => {
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    const volume = Volume.fromJSON({
+      "/outside/launch/api/spec.json": `${JSON.stringify(spec)}\n`,
+      "/outside/launch/api/state.json": `${JSON.stringify(createState(spec, { status: "stopped" }))}\n`,
+      "/outside/launch/api/meta.json": `${JSON.stringify({ daemonPid: null })}\n`
+    }, "/");
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("rejects run, log, and removal operations through a symlinked launch root", async () => {
+    const spec: ProcessSpec = { id: "api", command: "__must_not_execute__", restart: "never" };
+    const volume = Volume.fromJSON({
+      "/outside/launch/api/logs/stdout.log": "external-log\n",
+      "/outside/launch/api/spec.json": `${JSON.stringify(spec)}\n`,
+      "/outside/launch/api/state.json": `${JSON.stringify(createState(spec, { status: "stopped" }))}\n`,
+      "/outside/launch/api/meta.json": `${JSON.stringify({ daemonPid: null })}\n`
+    }, "/");
+    volume.mkdirSync("/state", { recursive: true });
+    volume.symlinkSync("/outside/launch", "/state/launch");
+    const rawFs = createFsFromVolume(volume).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    const fs = {
+      ...baseFs,
+      writeFile: async (filePath: string, content: string) => {
+        if (filePath.startsWith("/state/launch/")) {
+          throw new Error("unexpected write through symlinked launch root");
+        }
+        await baseFs.writeFile(filePath, content);
+      }
+    } as LauncherFileSystem;
+
+    await expect(readManagedLogs({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(runManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(removeManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/launch/api/logs/stdout.log", "utf8")).resolves.toBe("external-log\n");
+  });
+
   it("rejects a symlinked managed process directory", async () => {
     const volume = Volume.fromJSON({
       "/outside/logs/stdout.log": "external-log\n",
@@ -650,6 +895,58 @@ describe("process launcher manager", () => {
     await iterator.return?.();
   });
 
+  it("follows appended output from a byte cursor instead of rereading the log", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    const logPath = "/state/launch/api/logs/stdout.log";
+    const seedLog = `${Array.from({ length: 1_000 }, (_entry, index) => `line-${index}`).join("\n")}\n`;
+    await baseFs.mkdir(path.dirname(logPath), { recursive: true });
+    await baseFs.writeFile(logPath, seedLog);
+    const wholeFileReads: string[] = [];
+    const byteReads: Array<{ filePath: string; start: number }> = [];
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      readFile: async (filePath, encoding) => {
+        wholeFileReads.push(filePath);
+        return await baseFs.readFile(filePath, encoding);
+      },
+      readFileBytes: async (filePath, start) => {
+        byteReads.push({ filePath, start });
+        const content = await rawFs.readFile(filePath) as Buffer;
+        return content.subarray(start);
+      }
+    };
+    const controller = new AbortController();
+    const iterator = followManagedLogs({
+      baseDir: "/state/launch",
+      fs,
+      id: "api",
+      pollIntervalMs: 1,
+      signal: controller.signal
+    })[Symbol.asyncIterator]();
+
+    const first = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.appendFile(logPath, "first\n");
+    await expect(first).resolves.toEqual({ done: false, value: "first" });
+
+    const second = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.appendFile(logPath, "second\n");
+    await expect(second).resolves.toEqual({ done: false, value: "second" });
+
+    const logReads = byteReads
+      .filter(read => read.filePath === logPath)
+      .map(read => read.start);
+    expect(wholeFileReads.filter(filePath => filePath === logPath)).toEqual([]);
+    expect(logReads).toContain(Buffer.byteLength(seedLog));
+    expect(logReads).toContain(Buffer.byteLength(`${seedLog}first\n`));
+
+    controller.abort();
+    await iterator.return?.();
+  });
+
   it("follows fresh output after current log rotation", async () => {
     const fs = createMemFs();
     const logDir = "/state/launch/api/logs";
@@ -702,6 +999,10 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
       await rawFs.mkdir(filePath, options);
     },
     readFile: async (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+    readFileBytes: async (filePath, start) => {
+      const content = await rawFs.readFile(filePath) as Buffer;
+      return content.subarray(start);
+    },
     readdir: async filePath => rawFs.readdir(filePath) as Promise<string[]>,
     rm: async (filePath, options) => {
       await rawFs.rm(filePath, options);
@@ -712,16 +1013,19 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
     stat: async filePath => {
       const stat = await rawFs.stat(filePath);
       return {
+        dev: Number(stat.dev),
+        ino: Number(stat.ino),
         isFile: () => stat.isFile(),
-        mtimeMs: Number(stat.mtimeMs)
+        mtimeMs: Number(stat.mtimeMs),
+        size: Number(stat.size)
       };
     },
     lstat: async filePath => {
       const stat = await rawFs.lstat(filePath);
       return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
-    writeFile: async (filePath, content) => {
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+    writeFile: async (filePath, content, options) => {
+      await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
     },
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);
@@ -760,4 +1064,10 @@ function createState(
     args: [...(spec.args ?? [])],
     ...overrides
   };
+}
+
+function createErrnoError(message: string, code: string): NodeJS.ErrnoException {
+  const error = new Error(message) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
 }

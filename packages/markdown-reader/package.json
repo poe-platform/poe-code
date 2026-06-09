@@ -22,6 +22,6 @@
   "dependencies": {
     "toolcraft": "*",
     "toolcraft-schema": "*",
-    "@poe-code/design-system": "*"
+    "toolcraft-design": "*"
   }
 }

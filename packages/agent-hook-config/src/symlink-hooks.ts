@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveHookPath, type AgentHookConfig } from "./configs.js";
+import { assertNoSymbolicLink } from "./path-safety.js";
 
 export interface SymlinkResult {
   /** Where the symlink was placed. */
@@ -157,8 +158,11 @@ export function symlinkHooks(
     sourceAgentId === targetAgentId && scope === "project" ? "user" : scope
   );
   const symlinkPath = resolveScopedPath(target, targetAgentId, cwd, homeDir, scope);
+  const symlinkParent = path.dirname(symlinkPath);
   let replaced: SymlinkResult["replaced"] = "none";
   let replacedContents: string | undefined;
+
+  assertNoSymbolicLink(symlinkParent);
 
   try {
     const existing = lstatSync(symlinkPath);
@@ -182,7 +186,8 @@ export function symlinkHooks(
     }
   }
 
-  mkdirSync(path.dirname(symlinkPath), { recursive: true });
+  mkdirSync(symlinkParent, { recursive: true });
+  assertNoSymbolicLink(symlinkParent);
   try {
     symlinkSync(targetPath, symlinkPath);
   } catch (error) {

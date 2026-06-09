@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn as spawnChildProcess } from "node:child_process";
 import * as nodeFs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -9,19 +9,25 @@ import {
   type RunSpec,
   type Runner
 } from "@poe-code/process-runner";
-import { resolveWorkspace } from "@poe-code/workspace-resolver";
+import { resolveWorkspace, type ExecResult } from "@poe-code/workspace-resolver";
 import { waitForReady } from "../health/health-check.js";
 import { createLogWriter } from "../logs/log-writer.js";
+import { assertValidManagedProcessId } from "../process-id.js";
 import { createStateStore } from "../state/state-store.js";
 import type { ProcessState, ReadyCheck, Supervisor, SupervisorOptions } from "../types.js";
 
 type LogListener = (line: string, stream: "stdout" | "stderr") => void;
 type SubscribableLog = LogListener & {
   subscribe(listener: LogListener): () => void;
+  publishPartial(line: string, stream: "stdout" | "stderr"): void;
 };
+
+const WORKSPACE_COMMAND_TIMEOUT_MS = 10 * 60_000;
+const WORKSPACE_COMMAND_KILL_GRACE_MS = 1_000;
 
 export function createSupervisor(options: SupervisorOptions): Supervisor {
   const { spec } = options;
+  assertValidManagedProcessId(spec.id);
   assertValidRestartConfig(spec);
   const runner = resolveRunner(options);
   const stateStore = createStateStore(options.stateDir, options.fs);
@@ -38,6 +44,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
   let startPromise: Promise<void> | null = null;
   let pendingRestart: symbol | null = null;
   let activeReadyController: AbortController | null = null;
+  let activeWorkspaceController: AbortController | null = null;
   let stableTimer: NodeJS.Timeout | null = null;
   let stopRequested = false;
   let workspacePromise: Promise<{ cwd?: string; cleanup?: () => Promise<void> }> | null = null;
@@ -78,17 +85,12 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     pendingRestart = null;
     activeReadyController?.abort();
     activeReadyController = null;
+    activeWorkspaceController?.abort(new Error("Workspace preparation stopped."));
 
     const activeHandle = handle;
 
     if (activeHandle !== null) {
-      activeHandle.kill("SIGTERM");
-
-      const exited = await waitForExit(activeHandle, 5_000);
-      if (!exited) {
-        activeHandle.kill("SIGKILL");
-        await activeHandle.result;
-      }
+      await terminateHandle(activeHandle);
     }
 
     clearStableTimer();
@@ -115,6 +117,11 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     const nextRunId = runId + 1;
     runId = nextRunId;
     const workspace = await ensureWorkspace();
+    if (stopRequested || options.signal?.aborted) {
+      await cleanupWorkspace();
+      return;
+    }
+
     let nextHandle: RunHandle;
     try {
       nextHandle = runner.exec(createRunSpec(spec, workspace.cwd));
@@ -149,7 +156,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
 
       if (!ready) {
         if (runId === nextRunId && handle === nextHandle) {
-          nextHandle.kill("SIGTERM");
+          await terminateHandle(nextHandle);
         }
 
         if (!isRestart) {
@@ -295,7 +302,15 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
       return await workspacePromise;
     }
 
-    workspacePromise = resolveProcessWorkspace(spec.cwd, options.stateDir);
+    const controller = new AbortController();
+    activeWorkspaceController = controller;
+    workspacePromise = resolveProcessWorkspace(spec.cwd, options.stateDir, () =>
+      activeWorkspaceController === controller ? controller.signal : undefined
+    ).finally(() => {
+      if (activeWorkspaceController === controller) {
+        activeWorkspaceController = null;
+      }
+    });
 
     try {
       return await workspacePromise;
@@ -310,7 +325,16 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
       return;
     }
 
-    const workspace = await workspacePromise;
+    let workspace: { cwd?: string; cleanup?: () => Promise<void> };
+    try {
+      workspace = await workspacePromise;
+    } catch (error) {
+      workspacePromise = null;
+      if (stopRequested || options.signal?.aborted) {
+        return;
+      }
+      throw error;
+    }
     if (!workspace.cleanup) {
       return;
     }
@@ -412,6 +436,16 @@ function delay(durationMs: number): Promise<void> {
   });
 }
 
+async function terminateHandle(activeHandle: RunHandle): Promise<void> {
+  activeHandle.kill("SIGTERM");
+
+  const exited = await waitForExit(activeHandle, 5_000);
+  if (!exited) {
+    activeHandle.kill("SIGKILL");
+    await activeHandle.result;
+  }
+}
+
 function waitForExit(activeHandle: RunHandle, timeoutMs: number): Promise<boolean> {
   return new Promise(resolve => {
     let finished = false;
@@ -439,12 +473,15 @@ function waitForExit(activeHandle: RunHandle, timeoutMs: number): Promise<boolea
 function createLogSource(onLog: SupervisorOptions["onLog"]): SubscribableLog {
   const listeners = new Set<LogListener>();
 
-  const log = ((line: string, stream: "stdout" | "stderr") => {
-    onLog?.(line, stream);
-
+  const notifySubscribers = (line: string, stream: "stdout" | "stderr") => {
     for (const listener of listeners) {
       listener(line, stream);
     }
+  };
+
+  const log = ((line: string, stream: "stdout" | "stderr") => {
+    onLog?.(line, stream);
+    notifySubscribers(line, stream);
   }) as SubscribableLog;
 
   log.subscribe = listener => {
@@ -454,6 +491,7 @@ function createLogSource(onLog: SupervisorOptions["onLog"]): SubscribableLog {
       listeners.delete(listener);
     };
   };
+  log.publishPartial = notifySubscribers;
 
   return log;
 }
@@ -462,7 +500,7 @@ function pipeOutput(
   stream: NodeJS.ReadableStream | null,
   output: "stdout" | "stderr",
   write: (line: string, stream: "stdout" | "stderr") => Promise<void>,
-  onLog: LogListener
+  logSource: SubscribableLog
 ): Promise<void> {
   if (stream === null) {
     return Promise.resolve();
@@ -486,17 +524,21 @@ function pipeOutput(
         const rawLine = remainder.slice(0, lineBreak);
         remainder = remainder.slice(lineBreak + 1);
         writes = writes.then(async () => {
-          const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
-          onLog(line, output);
+          const line = normalizeLogLine(rawLine);
+          logSource(line, output);
           await write(line, output);
         });
+      }
+
+      if (remainder.length > 0) {
+        logSource.publishPartial(normalizeLogLine(remainder), output);
       }
     });
     stream.once("end", () => {
       if (remainder.length > 0) {
-        const finalLine = remainder.endsWith("\r") ? remainder.slice(0, -1) : remainder;
+        const finalLine = normalizeLogLine(remainder);
         writes = writes.then(async () => {
-          onLog(finalLine, output);
+          logSource(finalLine, output);
           await write(finalLine, output);
         });
       }
@@ -509,9 +551,14 @@ function pipeOutput(
   });
 }
 
+function normalizeLogLine(line: string): string {
+  return line.endsWith("\r") ? line.slice(0, -1) : line;
+}
+
 async function resolveProcessWorkspace(
   cwd: string | undefined,
-  stateDir: string
+  stateDir: string,
+  commandSignal: () => AbortSignal | undefined = () => undefined
 ): Promise<{ cwd?: string; cleanup?: () => Promise<void> }> {
   if (!cwd) {
     return {};
@@ -521,7 +568,8 @@ async function resolveProcessWorkspace(
     baseDir: process.cwd(),
     homeDir: resolveWorkspaceHomeDir(stateDir),
     mode: "edit",
-    exec: async (command, args, options) => execWorkspaceCommand(command, args, options?.cwd),
+    exec: async (command, args, options) =>
+      execWorkspaceCommand(command, args, options?.cwd, commandSignal()),
     fs: {
       mkdir: async (target, options) => {
         await nodeFs.mkdir(target, options);
@@ -554,26 +602,123 @@ function resolveWorkspaceHomeDir(stateDir: string): string {
 function execWorkspaceCommand(
   command: string,
   args: string[],
-  cwd?: string
-): { stdout: string; stderr: string; exitCode: number } {
-  const result = spawnSync(command, args, {
-    cwd,
-    encoding: "utf8"
-  });
+  cwd?: string,
+  signal?: AbortSignal
+): Promise<ExecResult> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve({
+        stdout: "",
+        stderr: "Workspace command aborted.",
+        exitCode: 130
+      });
+      return;
+    }
 
-  if (result.error) {
-    return {
-      stdout: result.stdout ?? "",
-      stderr: result.error.message,
-      exitCode: typeof result.status === "number" ? result.status : 1
+    const child = spawnChildProcess(command, args, {
+      cwd,
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let timedOut = false;
+    let aborted = false;
+    let terminationMessage: string | undefined;
+    let timeout: NodeJS.Timeout | undefined = setTimeout(() => {
+      terminate("timeout");
+    }, WORKSPACE_COMMAND_TIMEOUT_MS);
+    let escalationTimeout: NodeJS.Timeout | undefined;
+
+    const cleanup = (): void => {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+        timeout = undefined;
+      }
+      if (escalationTimeout !== undefined) {
+        clearTimeout(escalationTimeout);
+        escalationTimeout = undefined;
+      }
+      signal?.removeEventListener("abort", abortCommand);
     };
-  }
 
-  return {
-    stdout: result.stdout ?? "",
-    stderr: result.stderr ?? "",
-    exitCode: typeof result.status === "number" ? result.status : 1
-  };
+    const finish = (result: ExecResult): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      resolve(result);
+    };
+
+    const terminate = (reason: "timeout" | "abort"): void => {
+      if (settled || timedOut || aborted) {
+        return;
+      }
+
+      timedOut = reason === "timeout";
+      aborted = reason === "abort";
+      terminationMessage =
+        reason === "timeout"
+          ? `Workspace command timed out after ${WORKSPACE_COMMAND_TIMEOUT_MS} ms.`
+          : "Workspace command aborted.";
+      child.kill("SIGTERM");
+      escalationTimeout = setTimeout(() => {
+        child.kill("SIGKILL");
+      }, WORKSPACE_COMMAND_KILL_GRACE_MS);
+    };
+
+    function abortCommand(): void {
+      terminate("abort");
+    }
+
+    signal?.addEventListener("abort", abortCommand, { once: true });
+
+    child.stdout?.setEncoding("utf8");
+    child.stdout?.on("data", (chunk: string | Buffer) => {
+      stdout += chunk.toString();
+    });
+
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", (chunk: string | Buffer) => {
+      stderr += chunk.toString();
+    });
+
+    child.once("error", (error: NodeJS.ErrnoException) => {
+      const exitCode =
+        typeof error.code === "number"
+          ? error.code
+          : typeof error.errno === "number"
+            ? error.errno
+            : 127;
+      finish({
+        stdout,
+        stderr: appendWorkspaceCommandMessage(stderr, error.message),
+        exitCode
+      });
+    });
+
+    child.once("close", (code, closeSignal) => {
+      const exitCode = timedOut ? 124 : aborted ? 130 : code ?? signalExitCode(closeSignal);
+      finish({
+        stdout,
+        stderr: appendWorkspaceCommandMessage(stderr, terminationMessage),
+        exitCode
+      });
+    });
+  });
+}
+
+function appendWorkspaceCommandMessage(stderr: string, message: string | undefined): string {
+  if (message === undefined) {
+    return stderr;
+  }
+  return stderr.length === 0 ? message : `${stderr}${message}`;
+}
+
+function signalExitCode(signal: NodeJS.Signals | null): number {
+  const signalNumber = signal ? os.constants.signals[signal] : undefined;
+  return typeof signalNumber === "number" ? 128 + signalNumber : 1;
 }
 
 function resolveReadyCheck(check: ReadyCheck, spec: SupervisorOptions["spec"]): ReadyCheck {

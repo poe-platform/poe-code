@@ -35,6 +35,11 @@ const taskListMocks = vi.hoisted(() => {
   };
 });
 
+const designSystemMocks = vi.hoisted(() => ({
+  confirm: vi.fn(),
+  isCancel: vi.fn(() => false)
+}));
+
 vi.mock("@poe-code/task-list", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/task-list")>();
   return {
@@ -44,6 +49,15 @@ vi.mock("@poe-code/task-list", async (importOriginal) => {
     resolveAuth: taskListMocks.resolveAuth,
     syncGhProject: taskListMocks.syncGhProject,
     verifyGhProject: taskListMocks.verifyGhProject
+  };
+});
+
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
+  return {
+    ...actual,
+    confirm: designSystemMocks.confirm,
+    isCancel: designSystemMocks.isCancel
   };
 });
 
@@ -187,6 +201,8 @@ describe("tasks command", () => {
     taskListMocks.syncGhProject.mockReset();
     taskListMocks.moveTasks.mockReset().mockResolvedValue({ created: 0, skipped: 0, errors: [] });
     taskListMocks.resolveAuth.mockReset().mockResolvedValue("fallback-token");
+    designSystemMocks.confirm.mockReset().mockResolvedValue(false);
+    designSystemMocks.isCancel.mockReset().mockReturnValue(false);
     process.exitCode = undefined;
   });
 
@@ -364,6 +380,39 @@ maestro:
     }
   });
 
+  it("prints sync --json missing-resource reports without prompting in non-interactive mode", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const report = createSyncReport({
+      ok: false,
+      missingStatusField: true,
+      missingOptions: ["queued", "done"]
+    });
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const restoreTTY = setStdinTTY(false);
+    taskListMocks.syncGhProject.mockResolvedValue(report);
+
+    try {
+      await runTasks(["sync", "acme/12", "--json"]);
+      expect(stdout).toHaveBeenCalledWith(`${JSON.stringify(report)}\n`);
+    } finally {
+      restoreTTY();
+      stdout.mockRestore();
+    }
+
+    expect(designSystemMocks.confirm).not.toHaveBeenCalled();
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ yes: false })
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
   it("sync refuses non-interactive runs without --yes", async () => {
     seedWorkflow(`
 maestro:
@@ -388,7 +437,7 @@ maestro:
     ]);
   });
 
-  it("sync permits interactive runs without --yes", async () => {
+  it("sync permits interactive runs without --yes when the project is already synced", async () => {
     seedWorkflow(`
 maestro:
   active_states:
@@ -406,9 +455,85 @@ maestro:
     }
 
     expect(process.exitCode).toBeUndefined();
+    expect(designSystemMocks.confirm).not.toHaveBeenCalled();
     expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
       expect.objectContaining({ yes: false })
     );
+  });
+
+  it("sync prompts before provisioning missing resources without --yes", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const missingReport = createSyncReport({
+      ok: false,
+      missingStatusField: true,
+      missingOptions: ["queued", "done"]
+    });
+    taskListMocks.syncGhProject
+      .mockResolvedValueOnce(missingReport)
+      .mockResolvedValueOnce(
+        createSyncReport({ created: ["field", "option:queued", "option:done"] })
+      );
+    designSystemMocks.confirm.mockResolvedValueOnce(true);
+    const restoreTTY = setStdinTTY(true);
+
+    try {
+      await runTasks(["sync", "acme/12"]);
+    } finally {
+      restoreTTY();
+    }
+
+    expect(designSystemMocks.confirm).toHaveBeenCalledWith({
+      message: "Create missing GitHub Project resources (Status field; status options: queued, done)?"
+    });
+    expect(taskListMocks.syncGhProject).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ yes: false })
+    );
+    expect(taskListMocks.syncGhProject).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ yes: true })
+    );
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("sync leaves missing resources untouched when interactive confirmation is declined", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    const logs: string[] = [];
+    taskListMocks.syncGhProject.mockResolvedValue(
+      createSyncReport({
+        ok: false,
+        missingProject: true,
+        missingStatusField: true,
+        missingOptions: ["queued", "done"]
+      })
+    );
+    designSystemMocks.confirm.mockResolvedValueOnce(false);
+    const restoreTTY = setStdinTTY(true);
+
+    try {
+      await runTasks(["sync", "acme/12"], logs);
+    } finally {
+      restoreTTY();
+    }
+
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledTimes(1);
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ yes: false })
+    );
+    expect(process.exitCode).toBe(1);
+    expect(logs).toContain("[error] GitHub Project sync did not complete.");
   });
 
   it("sync prints GhProjectSyncError op and target on failure", async () => {
@@ -690,7 +815,7 @@ states:
     expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
-  it("import builds a markdown-dir source from --from and forwards SDK flags", async () => {
+  it("import builds a markdown-dir source from --from and keeps source files by default", async () => {
     seedWorkflow(
       `
 tasks:
@@ -742,12 +867,38 @@ states:
           }
         }
       },
-      deleteSource: true,
       rate: 25,
       limit: 8,
       dryRun: true,
       onProgress: expect.any(Function)
     });
+  });
+
+  it("import deletes source files when --delete-source is passed", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "import",
+      "--from",
+      `${cwd}/source-dir`,
+      "--to",
+      `${cwd}/target.md`,
+      "--delete-source"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.objectContaining({ deleteSource: true })
+    );
   });
 
   it("import keeps source files when --keep is passed", async () => {
@@ -797,10 +948,44 @@ states:
         source: expect.objectContaining({
           type: "markdown-dir",
           path: `${cwd}/bugs-here`
-        }),
-        deleteSource: true
+        })
       })
     );
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.not.objectContaining({ deleteSource: expect.anything() })
+    );
+  });
+
+  it("import rejects conflicting source deletion flags", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+    const logs: string[] = [];
+
+    await runTasks(
+      [
+        "import",
+        "--from",
+        `${cwd}/source-dir`,
+        "--to",
+        `${cwd}/target.md`,
+        "--keep",
+        "--delete-source"
+      ],
+      logs
+    );
+
+    expect(logs).toEqual(["[error] Provide only one of --keep or --delete-source."]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
   it("import reports missing --from or --to clearly", async () => {
@@ -878,6 +1063,20 @@ states:
     expect(content).toContain("name: Renamed");
     expect(content).toContain("owner: agent");
     expect(content).toContain("Updated description");
+  });
+
+  it("set rejects empty updates without rewriting markdown tasks", async () => {
+    seedTaskWorkspace();
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["set", "plans/foo"], logs);
+
+    expect(process.exitCode).toBe(2);
+    expect(logs).toEqual([
+      "[error] Provide at least one of --name, --description, --description-file, or --metadata-json."
+    ]);
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
   });
 
   it("set rejects both --description-file and --description together", async () => {

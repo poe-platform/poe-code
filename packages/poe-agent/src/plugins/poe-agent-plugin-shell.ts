@@ -47,16 +47,16 @@ type SpawnedCommandOutcome = {
 };
 
 type SpawnedCommand = {
-  stdout: { value: string };
-  stderr: { value: string };
+  stdout: RetainedShellOutput;
+  stderr: RetainedShellOutput;
   terminate(): void;
   completion: Promise<SpawnedCommandOutcome>;
 };
 
 type BackgroundCommand = {
   handle: string;
-  stdout: { value: string };
-  stderr: { value: string };
+  stdout: RetainedShellOutput;
+  stderr: RetainedShellOutput;
   status: "running" | "exited";
   exitCode: number | null;
   exitSignal: NodeJS.Signals | null;
@@ -81,6 +81,12 @@ type ShellOutputNotification = {
 const defaultTimeoutSeconds = 120;
 const maxTimeoutSeconds = 600;
 const terminateGracePeriodMs = 1_000;
+const maxRetainedOutputChars = 128 * 1024;
+
+type RetainedShellOutput = {
+  value: string;
+  omittedChars: number;
+};
 
 const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
@@ -479,9 +485,7 @@ function getNestedReadOnlyCommand(
   }
 
   try {
-    const nestedEntries = parseShellCommand(wrappedCommand);
-    const nestedSegment = nestedEntries.filter((entry): entry is string => typeof entry === "string");
-    const nestedParts = stripLeadingAssignments(nestedSegment);
+    const nestedParts = parseSingleCommandParts(wrappedCommand);
     const nestedCommandName = nestedParts[0];
     if (!nestedCommandName) {
       return undefined;
@@ -491,6 +495,22 @@ function getNestedReadOnlyCommand(
   } catch {
     return undefined;
   }
+}
+
+function parseSingleCommandParts(command: string): string[] {
+  const entries = parseShellCommand(command);
+  const segment: string[] = [];
+
+  for (const entry of entries) {
+    if (typeof entry === "string") {
+      segment.push(entry);
+      continue;
+    }
+
+    throw new Error("Shell wrappers must contain exactly one simple command.");
+  }
+
+  return stripLeadingAssignments(segment);
 }
 
 function stripLeadingAssignments(tokens: string[]): string[] {
@@ -533,10 +553,6 @@ function isReadOnlyCommand(commandName: string, args: string[]): boolean {
     case "whereis":
     case "basename":
     case "dirname":
-    case "echo":
-    case "printf":
-    case "env":
-    case "printenv":
     case "true":
     case "false":
     case "test":
@@ -733,9 +749,9 @@ function formatBackgroundCommand(backgroundCommand: BackgroundCommand): string {
   }
 
   lines.push("STDOUT:");
-  lines.push(formatCapturedOutput(backgroundCommand.stdout.value));
+  lines.push(formatCapturedOutput(formatRetainedOutput(backgroundCommand.stdout)));
   lines.push("STDERR:");
-  lines.push(formatCapturedOutput(backgroundCommand.stderr.value));
+  lines.push(formatCapturedOutput(formatRetainedOutput(backgroundCommand.stderr)));
 
   return lines.join("\n");
 }
@@ -749,7 +765,13 @@ async function defaultRunCommand(
   const outcome = await spawned.completion;
 
   if (outcome.timedOut) {
-    throw new Error(`Command timed out after ${options.timeoutMs / 1_000} seconds`);
+    throw new Error(
+      getCommandTimeoutMessage(
+        formatRetainedOutput(spawned.stdout),
+        formatRetainedOutput(spawned.stderr),
+        options.timeoutMs
+      )
+    );
   }
 
   if (outcome.aborted) {
@@ -761,10 +783,19 @@ async function defaultRunCommand(
   }
 
   if (outcome.exitCode !== 0) {
-    throw new Error(getCommandFailureMessage(spawned.stdout.value, spawned.stderr.value, outcome));
+    throw new Error(
+      getCommandFailureMessage(
+        formatRetainedOutput(spawned.stdout),
+        formatRetainedOutput(spawned.stderr),
+        outcome
+      )
+    );
   }
 
-  const combinedOutput = combineOutput(spawned.stdout.value, spawned.stderr.value);
+  const combinedOutput = combineOutput(
+    formatRetainedOutput(spawned.stdout),
+    formatRetainedOutput(spawned.stderr)
+  );
   return combinedOutput || "Command completed with no output";
 }
 
@@ -779,9 +810,8 @@ function spawnShellCommand(
     handle?: string;
   }
 ): SpawnedCommand {
-  const stdout = { value: "" };
-  const stderr = { value: "" };
-  const pendingNotifications = new Set<Promise<void>>();
+  const stdout = createRetainedShellOutput();
+  const stderr = createRetainedShellOutput();
   let notificationError: Error | undefined;
   const child = spawn(command, {
     cwd,
@@ -791,47 +821,44 @@ function spawnShellCommand(
   });
 
   const notify = (stream: ShellOutputNotification["data"]["stream"], message: string): void => {
-    if (options.notify === undefined || message.length === 0) {
+    const notifyHook = options.notify;
+    if (notifyHook === undefined || message.length === 0) {
       return;
     }
 
-    const pending = Promise.resolve(
-      options.notify({
-        event: stream === "stdout" ? "shell.stdout" : "shell.stderr",
-        message,
-        data: {
-          background: options.background ?? false,
-          command,
-          cwd,
-          ...(options.handle === undefined ? {} : { handle: options.handle }),
-          stream
-        }
-      } satisfies ShellOutputNotification)
-    )
+    void Promise.resolve()
+      .then(() =>
+        notifyHook({
+          event: stream === "stdout" ? "shell.stdout" : "shell.stderr",
+          message,
+          data: {
+            background: options.background ?? false,
+            command,
+            cwd,
+            ...(options.handle === undefined ? {} : { handle: options.handle }),
+            stream
+          }
+        } satisfies ShellOutputNotification)
+      )
       .catch((error) => {
         if (notificationError === undefined) {
           notificationError = toError(error);
           terminate();
         }
-      })
-      .finally(() => {
-        pendingNotifications.delete(pending);
       });
-
-    pendingNotifications.add(pending);
   };
 
   child.stdout?.setEncoding("utf8");
   child.stdout?.on("data", (chunk: string | Buffer) => {
     const value = chunk.toString();
-    stdout.value += value;
+    appendRetainedOutput(stdout, value);
     notify("stdout", value);
   });
 
   child.stderr?.setEncoding("utf8");
   child.stderr?.on("data", (chunk: string | Buffer) => {
     const value = chunk.toString();
-    stderr.value += value;
+    appendRetainedOutput(stderr, value);
     notify("stderr", value);
   });
 
@@ -886,11 +913,9 @@ function spawnShellCommand(
 
   const completion = new Promise<SpawnedCommandOutcome>((resolve) => {
     const resolveOutcome = (outcome: SpawnedCommandOutcome): void => {
-      void Promise.allSettled(Array.from(pendingNotifications)).then(() => {
-        resolve({
-          ...outcome,
-          ...(outcome.error === undefined && notificationError ? { error: notificationError } : {})
-        });
+      resolve({
+        ...outcome,
+        ...(outcome.error === undefined && notificationError ? { error: notificationError } : {})
       });
     };
 
@@ -954,6 +979,43 @@ function toError(error: unknown): Error {
   return new Error(String(error));
 }
 
+function createRetainedShellOutput(): RetainedShellOutput {
+  return {
+    value: "",
+    omittedChars: 0
+  };
+}
+
+function appendRetainedOutput(output: RetainedShellOutput, chunk: string): void {
+  if (chunk.length === 0) {
+    return;
+  }
+
+  if (chunk.length >= maxRetainedOutputChars) {
+    output.omittedChars += output.value.length + chunk.length - maxRetainedOutputChars;
+    output.value = chunk.slice(-maxRetainedOutputChars);
+    return;
+  }
+
+  const combinedLength = output.value.length + chunk.length;
+  if (combinedLength <= maxRetainedOutputChars) {
+    output.value += chunk;
+    return;
+  }
+
+  const overflow = combinedLength - maxRetainedOutputChars;
+  output.omittedChars += overflow;
+  output.value = output.value.slice(overflow) + chunk;
+}
+
+function formatRetainedOutput(output: RetainedShellOutput): string {
+  if (output.omittedChars === 0) {
+    return output.value;
+  }
+
+  return `[output truncated: ${output.omittedChars} characters omitted]\n${output.value}`;
+}
+
 function combineOutput(stdout: string, stderr: string): string {
   return [stdout, stderr]
     .map((output) => output.trim())
@@ -985,6 +1047,12 @@ function getCommandFailureMessage(
   }
 
   return "Command failed";
+}
+
+function getCommandTimeoutMessage(stdout: string, stderr: string, timeoutMs: number): string {
+  const message = `Command timed out after ${timeoutMs / 1_000} seconds`;
+  const combinedOutput = combineOutput(stdout, stderr);
+  return combinedOutput.length > 0 ? `${message}: ${combinedOutput}` : message;
 }
 
 export default shellPlugin;

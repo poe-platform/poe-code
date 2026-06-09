@@ -124,13 +124,40 @@ describe("createHostRunner", () => {
         .mockImplementation((pid: number, signal?: NodeJS.Signals | number) => {
           return originalKill(pid, signal);
         });
-      const runner = createHostRunner({ detached: true });
-      const handle = runner.exec({ command: "sleep", args: ["60"] });
+      try {
+        const runner = createHostRunner({ detached: true });
+        const handle = runner.exec({ command: "sleep", args: ["60"] });
 
-      handle.kill("SIGKILL");
+        handle.kill("SIGKILL");
 
-      await expect(handle.result).resolves.toEqual({ exitCode: 1 });
-      expect(processKillSpy).toHaveBeenCalledWith(-(handle.pid as number), "SIGKILL");
+        await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+        expect(processKillSpy).toHaveBeenCalledWith(-(handle.pid as number), "SIGKILL");
+      } finally {
+        processKillSpy.mockRestore();
+      }
+    }
+  );
+
+  it.runIf(process.platform !== "win32")(
+    "uses process group kill when requested by the run spec on unix",
+    async () => {
+      const originalKill = process.kill.bind(process);
+      const processKillSpy = vi
+        .spyOn(process, "kill")
+        .mockImplementation((pid: number, signal?: NodeJS.Signals | number) => {
+          return originalKill(pid, signal);
+        });
+      try {
+        const runner = createHostRunner();
+        const handle = runner.exec({ command: "sleep", args: ["60"], killProcessGroup: true });
+
+        handle.kill("SIGKILL");
+
+        await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+        expect(processKillSpy).toHaveBeenCalledWith(-(handle.pid as number), "SIGKILL");
+      } finally {
+        processKillSpy.mockRestore();
+      }
     }
   );
 

@@ -50,7 +50,7 @@ export const coreConfigScope = defineScope("core", {
     type: "string",
     default: "",
     env: "POE_DEFAULT_AGENT",
-    doc: "Agent (or agent:model) used when no --agent flag is provided; skips the selection prompt"
+    doc: "Agent (or agent:model) used as the non-interactive --yes default when no --agent flag is provided"
   },
   poeBaseUrl: {
     type: "string",

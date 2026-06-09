@@ -31,9 +31,9 @@ const {
   cancelMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async () => {
+vi.mock("toolcraft-design", async () => {
   const actual = await vi.importActual<Record<string, unknown>>(
-    "@poe-code/design-system"
+    "toolcraft-design"
   );
   return {
     ...actual,
@@ -116,6 +116,25 @@ function createMcpMemfs(): FileSystem {
   volume.mkdirSync(mcpCwd, { recursive: true });
   volume.mkdirSync(`${mcpHomeDir}/.poe-code`, { recursive: true });
   return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
 }
 
 async function createMcpProgram(options?: {
@@ -254,9 +273,6 @@ describe("login command", () => {
       }
     });
 
-    const optsSpy = vi.spyOn(program, "optsWithGlobals");
-    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
-
     await program.parseAsync(["node", "cli", "login"]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
@@ -332,15 +348,36 @@ describe("login command", () => {
       }
     });
 
-    const optsSpy = vi.spyOn(program, "optsWithGlobals");
-    optsSpy.mockReturnValue({ yes: true, dryRun: false } as any);
-
     await program.parseAsync(["node", "cli", "login"]);
 
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBe(OAUTH_KEY);
     expect(prompts).not.toHaveBeenCalled();
     expect(logs.some((message) => message.includes("Logged in."))).toBe(true);
+  });
+
+  it("rejects --yes login without starting OAuth when no credential is available", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "login"])).rejects.toThrow(
+      "No API key found. Pass --api-key, set POE_API_KEY"
+    );
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
   });
 
   it("prefers --api-key flag over OAuth flow", async () => {
@@ -471,6 +508,7 @@ describe("mcp command", () => {
   let consoleSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     configureMock.mockReset();
     unconfigureMock.mockReset();
@@ -486,6 +524,7 @@ describe("mcp command", () => {
   });
 
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     consoleSpy.mockRestore();
   });
 
@@ -838,29 +877,50 @@ describe("mcp command", () => {
     expect(entry.config.args).not.toContain("--agent");
   });
 
-  it("uses core.defaultAgent for configure without prompting", async () => {
+  it("prompts for configure when core.defaultAgent is configured without --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
       `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
       "utf8"
     );
-    selectMock.mockImplementation(() => {
-      throw new Error("select should not be called");
-    });
+    selectMock.mockResolvedValue("codex");
 
     await program.parseAsync(["node", "cli", "mcp", "configure"]);
 
-    expect(selectMock).not.toHaveBeenCalled();
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to configure:",
+      options: [
+        { value: "claude-desktop", label: "claude-desktop" },
+        { value: "claude-code", label: "claude-code" },
+        { value: "codex", label: "codex" }
+      ]
+    });
     expect(configureMock).toHaveBeenCalledTimes(1);
     expect(configureMock).toHaveBeenCalledWith(
-      "claude-code",
+      "codex",
       expect.any(Object),
       expect.any(Object)
     );
   });
 
-  it("prefers core.defaultAgent over --yes for configure", async () => {
+  it("rejects non-interactive configure when agent selection would prompt", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { program } = await createMcpProgram();
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "mcp", "configure"])).rejects.toThrow(
+        "MCP agent selection requires an agent or --yes when running without an interactive TTY."
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("uses core.defaultAgent with --yes for configure", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -893,7 +953,7 @@ describe("mcp command", () => {
     expect(configureMock).toHaveBeenCalledWith("claude-code", expect.any(Object), expect.any(Object));
   });
 
-  it("drops the model portion of core.defaultAgent for configure", async () => {
+  it("drops the model portion of core.defaultAgent for configure with --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -908,7 +968,7 @@ describe("mcp command", () => {
       throw new Error("select should not be called");
     });
 
-    await program.parseAsync(["node", "cli", "mcp", "configure"]);
+    await program.parseAsync(["node", "cli", "mcp", "configure", "--yes"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(configureMock).toHaveBeenCalledWith(
@@ -918,7 +978,7 @@ describe("mcp command", () => {
     );
   });
 
-  it("throws for an invalid core.defaultAgent before prompting", async () => {
+  it("throws for an invalid core.defaultAgent with --yes", async () => {
     const { program, fs } = await createMcpProgram();
     await fs.writeFile(
       resolveConfigPath("/home/test"),
@@ -930,7 +990,7 @@ describe("mcp command", () => {
     });
 
     await expect(
-      program.parseAsync(["node", "cli", "mcp", "configure"])
+      program.parseAsync(["node", "cli", "mcp", "configure", "--yes"])
     ).rejects.toThrow('Invalid value for core.defaultAgent: "unknown-agent"');
 
     expect(selectMock).not.toHaveBeenCalled();

@@ -1,7 +1,14 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
-import { attachJob, createRuntimeState, parseSince, resolveJob, streamJobLog } from "./shared.js";
+import {
+  attachJob,
+  createLineBufferedLogWriter,
+  createRuntimeState,
+  parseSince,
+  resolveJob,
+  streamJobLog
+} from "./shared.js";
 
 export function registerRuntimeJobsLogsCommand(
   jobs: Command,
@@ -33,12 +40,16 @@ async function executeRuntimeJobsLogs(
     return;
   }
   const { handle } = await attachJob(entry);
+  const logWriter = createLineBufferedLogWriter((line) => {
+    resources.logger.info(line);
+  });
 
   await streamJobLog(handle, {
     since: parseSince(options.since),
     follow: false,
     write(chunk) {
-      resources.logger.info(chunk.trimEnd());
+      logWriter.write(chunk);
     }
   });
+  logWriter.flush();
 }

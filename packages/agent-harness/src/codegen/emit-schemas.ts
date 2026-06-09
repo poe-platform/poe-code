@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,13 +15,23 @@ interface HarnessSchemaFileSystem {
   writeFile(
     filePath: string,
     data: string,
-    options?: BufferEncoding | { encoding?: BufferEncoding }
+    options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
   ): Promise<unknown>;
 }
 
 interface RunHarnessCodegenOptions {
   fs?: HarnessSchemaFileSystem;
   repoRoot?: string;
+}
+
+interface HarnessSchemaDocument {
+  backupCreated: boolean;
+  backupPath: string;
+  created: boolean;
+  outputPath: string;
+  published: boolean;
+  serialized: string;
+  stagedPath: string;
 }
 
 type JsonValue =
@@ -42,7 +53,7 @@ export async function runHarnessCodegen(
   const outputDirectory = path.join(repoRoot, "docs", "schemas", "harnesses");
 
   await fs.mkdir(outputDirectory, { recursive: true });
-  const documents: Array<{ outputPath: string; stagedPath: string; serialized: string }> = [];
+  const documents: HarnessSchemaDocument[] = [];
 
   for (const template of await listBuiltinTemplateSchemaSources()) {
     const ajsSource = await nodeFs.readFile(template.ajsPath, "utf8");
@@ -59,13 +70,19 @@ export async function runHarnessCodegen(
       ...toJsonSchema(schema)
     };
     const outputPath = path.join(outputDirectory, fileName);
-    const stagedPath = path.join(outputDirectory, `.${fileName}.tmp`);
+    const backupPath = path.join(outputDirectory, `.${fileName}.${randomUUID()}.bak`);
+    const stagedPath = path.join(outputDirectory, `.${fileName}.${randomUUID()}.tmp`);
 
     await assertSafeSchemaOutput(repoRoot, outputPath, fs);
+    await assertSafeSchemaOutput(repoRoot, backupPath, fs);
     await assertSafeSchemaOutput(repoRoot, stagedPath, fs);
 
     documents.push({
+      backupCreated: false,
+      backupPath,
+      created: false,
       outputPath,
+      published: false,
       stagedPath,
       serialized: serializeJsonDocument(document)
     });
@@ -73,16 +90,82 @@ export async function runHarnessCodegen(
 
   try {
     for (const document of documents) {
-      await fs.writeFile(document.stagedPath, document.serialized, "utf8");
+      await fs.writeFile(document.stagedPath, document.serialized, {
+        encoding: "utf8",
+        flag: "wx"
+      });
+      document.created = true;
     }
+
+    for (const document of documents) {
+      await moveExistingSchemaAside(document, fs);
+      await fs.rename(document.stagedPath, document.outputPath);
+      document.created = false;
+      document.published = true;
+    }
+
+    await cleanupSchemaBackups(documents, fs);
   } catch (error) {
-    await Promise.all(documents.map((document) => unlinkIfExists(document.stagedPath, fs)));
+    await rollbackPublishedSchemas(documents, fs).catch(() => undefined);
+    await cleanupStagedSchemas(documents, fs).catch(() => undefined);
     throw error;
   }
+}
 
-  for (const document of documents) {
-    await fs.rename(document.stagedPath, document.outputPath);
+async function moveExistingSchemaAside(
+  document: HarnessSchemaDocument,
+  fs: HarnessSchemaFileSystem
+): Promise<void> {
+  try {
+    await fs.rename(document.outputPath, document.backupPath);
+    document.backupCreated = true;
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
   }
+}
+
+async function cleanupSchemaBackups(
+  documents: HarnessSchemaDocument[],
+  fs: HarnessSchemaFileSystem
+): Promise<void> {
+  await Promise.all(
+    documents
+      .filter((document) => document.backupCreated)
+      .map(async (document) => {
+        await unlinkIfExists(document.backupPath, fs);
+        document.backupCreated = false;
+      })
+  ).catch(() => undefined);
+}
+
+async function rollbackPublishedSchemas(
+  documents: HarnessSchemaDocument[],
+  fs: HarnessSchemaFileSystem
+): Promise<void> {
+  for (const document of [...documents].reverse()) {
+    if (document.published) {
+      await unlinkIfExists(document.outputPath, fs).catch(() => undefined);
+      document.published = false;
+    }
+
+    if (document.backupCreated) {
+      await fs.rename(document.backupPath, document.outputPath).catch(() => undefined);
+      document.backupCreated = false;
+    }
+  }
+}
+
+async function cleanupStagedSchemas(
+  documents: HarnessSchemaDocument[],
+  fs: HarnessSchemaFileSystem
+): Promise<void> {
+  await Promise.all(
+    documents
+      .filter((document) => document.created)
+      .map((document) => unlinkIfExists(document.stagedPath, fs))
+  );
 }
 
 async function unlinkIfExists(pathToRemove: string, fs: HarnessSchemaFileSystem): Promise<void> {

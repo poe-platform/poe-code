@@ -176,6 +176,53 @@ describe("poe-agent-plugin-shell", () => {
     await plugin.dispose?.();
   });
 
+  it("bounds retained foreground command output and marks truncation", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    const output = await callTool(plugin.tools, "run_command", {
+      command: createNodeCommand(
+        "process.stdout.write('x'.repeat(140_000)); process.stdout.write('tail-marker');"
+      )
+    });
+
+    expect(typeof output).toBe("string");
+    expect(String(output)).toContain("[output truncated:");
+    expect(String(output)).toContain("tail-marker");
+    expect(String(output).length).toBeLessThan(132_000);
+  });
+
+  it("bounds retained background command output and marks truncation", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    try {
+      const handle = await callTool(plugin.tools, "run_command", {
+        command: createNodeCommand(
+          "process.stdout.write('x'.repeat(140_000)); process.stdout.write('tail-marker'); setInterval(() => {}, 1_000);"
+        ),
+        run_in_background: true
+      });
+
+      await waitForBackgroundOutput(plugin.tools, String(handle), "tail-marker");
+      const output = await callTool(plugin.tools, "read_background", { handle });
+
+      expect(typeof output).toBe("string");
+      expect(String(output)).toContain("[output truncated:");
+      expect(String(output)).toContain("tail-marker");
+      expect(String(output).length).toBeLessThan(132_500);
+      await callTool(plugin.tools, "kill_background", { handle });
+    } finally {
+      await plugin.dispose?.();
+    }
+  });
+
   it("times out foreground commands", async () => {
     const cwd = process.cwd();
     const plugin = shellPlugin({
@@ -189,6 +236,30 @@ describe("poe-agent-plugin-shell", () => {
         timeout: 0.05
       })
     ).rejects.toThrow("Command timed out after 0.05 seconds");
+  });
+
+  it("includes captured output when a foreground command times out", async () => {
+    const cwd = process.cwd();
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+
+    let message = "";
+    try {
+      await callTool(plugin.tools, "run_command", {
+        command: createNodeCommand(
+          "process.stdout.write('partial stdout\\n'); process.stderr.write('partial stderr\\n'); setTimeout(() => {}, 5_000);"
+        ),
+        timeout: 0.5
+      });
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain("Command timed out after 0.5 seconds");
+    expect(message).toContain("partial stdout");
+    expect(message).toContain("partial stderr");
   });
 
   it("aborts foreground commands when the tool signal is aborted", async () => {
@@ -263,6 +334,60 @@ describe("poe-agent-plugin-shell", () => {
     expect(validate({ command: "bash -lc 'git status --short'" }, "read")).toBeUndefined();
   });
 
+  it("rejects shell wrappers with trailing commands in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "bash -lc 'git status --short; echo $POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'git status --short && mkdir tmp'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'pwd; printenv POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+  });
+
+  it("rejects environment dumps and env command wrappers in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "printenv" }, "read")).toBe(
+      'Command "printenv" is not allowed in read mode.',
+    );
+    expect(validate({ command: "env" }, "read")).toBe(
+      'Command "env" is not allowed in read mode.',
+    );
+    expect(validate({ command: "env sh -c 'mkdir tmp'" }, "read")).toBe(
+      'Command "env" is not allowed in read mode.',
+    );
+    expect(
+      validate(
+        { command: "env node -e 'require(\"fs\").writeFileSync(\"x\", \"y\")'" },
+        "read"
+      )
+    ).toBe('Command "env" is not allowed in read mode.');
+  });
+
+  it("rejects echo and printf shell expansion surfaces in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "echo $POE_API_KEY" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: 'printf %s "$POE_API_KEY"' }, "read")).toBe(
+      'Command "printf" is not allowed in read mode.',
+    );
+    expect(validate({ command: "echo `printenv POE_API_KEY`" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: "echo `mkdir tmp`" }, "read")).toBe(
+      'Command "echo" is not allowed in read mode.',
+    );
+    expect(validate({ command: "bash -lc 'echo $POE_API_KEY'" }, "read")).toBe(
+      'Command "bash" is not allowed in read mode.',
+    );
+  });
+
   it("emits notification events for shell output", async () => {
     const cwd = process.cwd();
     const notifications: Array<{ event: string; message?: string; data?: unknown }> = [];
@@ -311,5 +436,48 @@ describe("poe-agent-plugin-shell", () => {
         })
       }
     ]);
+  });
+
+  it("does not wait forever for unresolved shell output notifications", async () => {
+    const cwd = process.cwd();
+    const notify = vi.fn(() => new Promise<void>(() => undefined));
+    const plugin = shellPlugin({
+      cwd,
+      allowedPaths: [cwd]
+    });
+    let timeout: NodeJS.Timeout | undefined;
+
+    try {
+      const result = await Promise.race([
+        callTool(
+          plugin.tools,
+          "run_command",
+          {
+            command: createNodeCommand("process.stdout.write('ready\\n');")
+          },
+          new AbortController().signal,
+          {
+            notify
+          }
+        ),
+        new Promise<never>((_, reject) => {
+          timeout = setTimeout(() => {
+            reject(new Error("Timed out waiting for command completion"));
+          }, 1_000);
+        })
+      ]);
+
+      expect(result).toContain("ready");
+      expect(notify).toHaveBeenCalledWith(
+        expect.objectContaining({
+          event: "shell.stdout",
+          message: "ready\n"
+        })
+      );
+    } finally {
+      if (timeout !== undefined) {
+        clearTimeout(timeout);
+      }
+    }
   });
 });

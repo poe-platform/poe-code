@@ -8,7 +8,13 @@ const gates = vi.hoisted(() => ({
   firstRenamePending: undefined as undefined | Promise<void>,
   renameCalls: 0,
   cleanupFails: false,
-  lockedRenameFailures: 0
+  lockedRenameFailures: 0,
+  randomUUIDs: [] as string[],
+  randomUUIDCounter: 0
+}));
+
+vi.mock("node:crypto", () => ({
+  randomUUID: () => gates.randomUUIDs.shift() ?? `fallback-uuid-${gates.randomUUIDCounter += 1}`
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -45,6 +51,8 @@ describe("FileSnapshotBackend", () => {
     gates.renameCalls = 0;
     gates.cleanupFails = false;
     gates.lockedRenameFailures = 0;
+    gates.randomUUIDs = [];
+    gates.randomUUIDCounter = 0;
     gates.firstRenamePending = undefined;
     gates.firstRenameStarted = undefined;
     gates.releaseFirstRename = undefined;
@@ -153,6 +161,26 @@ describe("FileSnapshotBackend", () => {
     });
 
     await expect(backend.write({ sourceHash: "saved" })).resolves.toBeUndefined();
+    await expect(backend.read()).resolves.toMatchObject({ sourceHash: "saved" });
+  });
+
+  it("does not follow or remove a colliding temporary snapshot symlink", async () => {
+    vol.mkdirSync("/snapshots");
+    vol.mkdirSync("/outside");
+    const snapshotPath = "/snapshots/run.json";
+    const collisionPath = `${snapshotPath}.collision.tmp`;
+    vol.writeFileSync("/outside/secret.json", "outside-state\n");
+    vol.symlinkSync("/outside/secret.json", collisionPath);
+    gates.randomUUIDs = ["collision", "safe"];
+    const backend = new FileSnapshotBackend(snapshotPath, {
+      writeMaxAttempts: 2,
+      writeRetryDelayMs: 0
+    });
+
+    await backend.write({ sourceHash: "saved" });
+
+    expect(vol.readFileSync("/outside/secret.json", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(collisionPath).isSymbolicLink()).toBe(true);
     await expect(backend.read()).resolves.toMatchObject({ sourceHash: "saved" });
   });
 });

@@ -7,6 +7,7 @@ import {
   runTruffleHogPrScanCommand,
   uniqueTruffleHogFindings
 } from "./trufflehog-pr-scan.js";
+import { workflowSubprocessTimeoutMs } from "../subprocess-timeout.js";
 
 function env(values: Record<string, string>): { get(key: string): string | undefined } {
   return { get: (key) => values[key] };
@@ -158,6 +159,26 @@ describe("runTruffleHogPrScanCommand", () => {
     await expect(fs.readFile("/outside-stderr.log", "utf8")).resolves.toBe("original stderr");
   });
 
+  it("runs the Docker scan subprocess with the workflow timeout", async () => {
+    const { fs } = createTestFileSystem();
+    const runner = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" });
+
+    await runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+      cwd: "/repo",
+      fs,
+      runner
+    });
+
+    expect(runner).toHaveBeenCalledWith(
+      "docker",
+      expect.any(Array),
+      expect.objectContaining({
+        cwd: "/repo",
+        timeoutMs: workflowSubprocessTimeoutMs
+      })
+    );
+  });
+
   it("rejects symlinked advisory results without publishing external findings", async () => {
     const { volume, fs } = createTestFileSystem({ "/outside-results.jsonl": `${finding}\n` });
     volume.symlinkSync("/outside-results.jsonl", "/tmp/trufflehog-results.jsonl");
@@ -182,6 +203,25 @@ describe("runTruffleHogPrScanCommand", () => {
     ).rejects.toThrow("symbolic link");
 
     await expect(fs.readFile("/outside-output", "utf8")).resolves.toBe("original output");
+  });
+
+  it("runs GitHub API subprocesses with the workflow timeout", async () => {
+    const { fs } = createTestFileSystem({ "/tmp/trufflehog-results.jsonl": "" });
+    const runner = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "[]", stderr: "" });
+
+    await runTruffleHogPrScanCommand("report-advisory-result", env(advisoryEnv), {
+      fs,
+      runner
+    });
+
+    expect(runner).toHaveBeenCalledWith(
+      "gh",
+      expect.any(Array),
+      expect.objectContaining({
+        env: { GH_TOKEN: "token" },
+        timeoutMs: workflowSubprocessTimeoutMs
+      })
+    );
   });
 
   it("validates the step summary before posting an advisory comment", async () => {
@@ -232,11 +272,15 @@ describe("runTruffleHogPrScanCommand", () => {
     const { fs } = createTestFileSystem();
     const failingFs = {
       ...fs,
-      writeFile: vi.fn(async (path: string, content: string, encoding: BufferEncoding) => {
+      writeFile: vi.fn(async (
+        path: string,
+        content: string,
+        options: { encoding: BufferEncoding; flag?: string }
+      ) => {
         if (path.startsWith("/tmp/trufflehog-stderr.log.")) {
           throw new Error("injected stderr write failure");
         }
-        await fs.writeFile(path, content, encoding);
+        await fs.writeFile(path, content, options);
       })
     };
 
@@ -247,6 +291,40 @@ describe("runTruffleHogPrScanCommand", () => {
       })
     ).rejects.toThrow("injected stderr write failure");
 
+    await expect(fs.readFile("/tmp/trufflehog-results.jsonl", "utf8")).rejects.toThrow();
+    await expect(fs.readFile("/tmp/trufflehog-stderr.log", "utf8")).rejects.toThrow();
+  });
+
+  it("does not remove a colliding staged scan artifact symlink", async () => {
+    const { fs, volume } = createTestFileSystem({ "/outside-results.tmp": "outside-state\n" });
+    let temporaryPath: string | undefined;
+    const failingFs = {
+      ...fs,
+      writeFile: vi.fn(async (
+        path: string,
+        content: string,
+        options: { encoding: BufferEncoding; flag?: string }
+      ) => {
+        if (path.startsWith("/tmp/trufflehog-results.jsonl.") && path.endsWith(".tmp")) {
+          temporaryPath = path;
+          volume.symlinkSync("/outside-results.tmp", path);
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        }
+
+        await fs.writeFile(path, content, options);
+      })
+    };
+
+    await expect(
+      runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+        fs: failingFs,
+        runner: vi.fn().mockResolvedValue({ exitCode: 1, stdout: finding, stderr: "scanner stderr" })
+      })
+    ).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync("/outside-results.tmp", "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
     await expect(fs.readFile("/tmp/trufflehog-results.jsonl", "utf8")).rejects.toThrow();
     await expect(fs.readFile("/tmp/trufflehog-stderr.log", "utf8")).rejects.toThrow();
   });

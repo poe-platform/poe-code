@@ -839,6 +839,73 @@ describe("ErrorLogger (read-only environments)", () => {
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("ERROR: run command");
   });
 
+  it("redacts secret-like messages and context before writing logs", () => {
+    const syncFs = createSyncFs({ [logFile]: "" });
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+
+    logger.logError(
+      new Error("request failed with Authorization: Bearer logger-bearer-token"),
+      {
+        responseBody: JSON.stringify({
+          access_token: "logger-access-token",
+          nested: {
+            client_secret: "logger-client-secret"
+          }
+        }),
+        requestBody: "api_key=logger-api-key",
+        safe: "visible"
+      }
+    );
+
+    const logContent = syncFs.readFileSync(logFile, "utf8");
+    const contextLine = logContent
+      .split("\n")
+      .find((line: string) => line.startsWith("Context: "));
+    const loggedContext = JSON.parse(contextLine!.slice("Context: ".length)) as {
+      responseBody: string;
+      requestBody: string;
+      safe: string;
+    };
+
+    expect(logContent).toContain("Authorization: Bearer [redacted]");
+    expect(loggedContext.responseBody).toContain('"access_token":"[redacted]"');
+    expect(loggedContext.responseBody).toContain('"client_secret":"[redacted]"');
+    expect(loggedContext.requestBody).toBe("api_key=[redacted]");
+    expect(loggedContext.safe).toBe("visible");
+    expect(logContent).not.toContain("logger-bearer-token");
+    expect(logContent).not.toContain("logger-access-token");
+    expect(logContent).not.toContain("logger-client-secret");
+    expect(logContent).not.toContain("logger-api-key");
+  });
+
+  it("redacts bare token-shaped strings in messages, stacks, and context", () => {
+    const syncFs = createSyncFs({ [logFile]: "" });
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+    const error = new Error("provider rejected sk-live-1234567890");
+    error.stack = "Error: provider rejected sk-live-1234567890\n    at sk-proj-abcdefghijklmnopqrstuvwxyz";
+
+    logger.logError(error, {
+      detail: "Gateway echoed ghp_abcdefghijklmnopqrstuvwxyz1234 in detail"
+    });
+
+    const logContent = syncFs.readFileSync(logFile, "utf8");
+    expect(logContent).toContain("provider rejected [redacted]");
+    expect(logContent).toContain("Gateway echoed [redacted] in detail");
+    expect(logContent).not.toMatch(
+      /sk-live-1234567890|sk-proj-abcdefghijklmnopqrstuvwxyz|ghp_abcdefghijklmnopqrstuvwxyz1234/u
+    );
+  });
+
   it("does not write logs through a symlinked log directory", () => {
     const syncFs = createSyncFs({ "/outside/.keep": "" });
     syncFs.mkdirSync("/root/.poe-code", { recursive: true });
@@ -1406,6 +1473,37 @@ describe("option resolvers", () => {
 
     expect(prompts).not.toHaveBeenCalled();
     expect(confirmFn).not.toHaveBeenCalled();
+    expect(apiKeyStore.write).not.toHaveBeenCalled();
+  });
+
+  it("does not start OAuth or prompts when assumeYes has no credential", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn();
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const confirmFn = vi.fn();
+    const checkAuthFn = vi.fn();
+    const loginViaOAuth = vi.fn().mockResolvedValue(VALID_API_KEY);
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore,
+      confirm: confirmFn,
+      checkAuth: checkAuthFn,
+      loginViaOAuth
+    });
+
+    await expect(
+      resolvers.resolveApiKey({
+        dryRun: false,
+        assumeYes: true
+      })
+    ).rejects.toThrow("No API key found. Pass --api-key, set POE_API_KEY");
+
+    expect(loginViaOAuth).not.toHaveBeenCalled();
+    expect(prompts).not.toHaveBeenCalled();
     expect(apiKeyStore.write).not.toHaveBeenCalled();
   });
 

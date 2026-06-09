@@ -248,8 +248,12 @@ function createHandlerContext(
 function createFs(): HandlerFs {
   return {
     readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
-    writeFile: async (path: string, contents: string) => {
-      await writeFile(path, contents);
+    writeFile: async (
+      path: string,
+      contents: string,
+      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+    ) => {
+      await writeFile(path, contents, options);
     },
     exists: async (path: string) => {
       try {

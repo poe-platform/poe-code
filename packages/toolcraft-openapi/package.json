@@ -18,8 +18,8 @@
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/toolcraft-openapi/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system auth-store"
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design auth-store"
   },
   "files": [
     "dist"
@@ -30,7 +30,6 @@
   "dependencies": {
     "@clack/core": "^1.0.0",
     "@clack/prompts": "^1.0.0",
-    "@poe-code/design-system": "^0.0.2",
     "toolcraft": "^0.0.4",
     "auth-store": "^0.0.1",
     "yaml": "^2.8.2"
@@ -43,8 +42,11 @@
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/toolcraft-openapi"
   },
+  "optionalDependencies": {
+    "toolcraft-design": "^0.0.2"
+  },
   "bundleDependencies": [
-    "@poe-code/design-system",
+    "toolcraft-design",
     "auth-store"
   ]
 }

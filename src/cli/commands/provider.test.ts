@@ -372,6 +372,38 @@ describe("provider login", () => {
     await expect(container.providerRegistry.resolveCredential("cloudflare")).rejects.toThrow();
   });
 
+  it("does not rotate Poe credentials when provider endpoint storage fails", async () => {
+    const container = createContainer(fs);
+    await container.writeApiKey("sk-old");
+    vi.spyOn(container.options, "resolveApiKey").mockImplementation(async (input) => {
+      if (!input.dryRun) {
+        await container.writeApiKey("sk-new");
+      }
+      return "sk-new";
+    });
+    await fs.writeFile(`${homeDir}/.config`, "not a directory", { encoding: "utf8" });
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "provider",
+        "login",
+        "poe",
+        "--api-key",
+        "sk-new",
+        "--shape-base-url",
+        "anthropic-messages=https://example.test/anthropic"
+      ])
+    ).rejects.toThrow();
+
+    await expect(container.readApiKey()).resolves.toBe("sk-old");
+  });
+
   it("refreshes configured service credentials after provider key rotation", async () => {
     const container = createContainer(fs);
     const program = createBaseProgram();
@@ -674,6 +706,28 @@ describe("provider login", () => {
       ])
     ).rejects.toThrow('Invalid --shape-base-url value "anthropic-messages"');
     expect(loginSpy).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid shape base URLs before login or config writes", async () => {
+    const container = createContainer(fs);
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "provider",
+        "login",
+        "poe",
+        "--shape-base-url",
+        "anthropic-messages=not-a-url"
+      ])
+    ).rejects.toThrow('Provider "poe" base URL must be an http(s) URL.');
+    expect(loginSpy).not.toHaveBeenCalled();
+    await expect(fs.stat(resolveServicesConfigPath(homeDir))).rejects.toBeTruthy();
   });
 });
 

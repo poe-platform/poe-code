@@ -6,7 +6,7 @@ vi.mock("../configs/resolve-config.js", () => ({
   resolveConfig: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", () => {
+vi.mock("toolcraft-design", () => {
   const renderLog: unknown[] = [];
   (globalThis as any).__acpIntegrationRenderLog = renderLog;
 

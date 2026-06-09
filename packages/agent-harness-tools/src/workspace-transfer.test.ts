@@ -300,6 +300,43 @@ describe("workspace transfer", () => {
     await expect(env.fs.readFile("/repo/new.ts", "utf8")).resolves.toBe("new");
   });
 
+  it("does not write downloads through a preexisting temp symlink", async () => {
+    const env = createEnv({
+      "/repo/app.ts": "base",
+      "/outside/target.txt": "keep"
+    });
+    await uploadWorkspace(env, {});
+    await (env.fs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside/target.txt",
+      "/repo/out.txt.download-tmp"
+    );
+    await env.remoteFs.writeFile("/workspace/out.txt", "remote");
+
+    const result = await downloadWorkspace(env, { conflictPolicy: "refuse" });
+
+    expect(result.conflicts).toEqual([]);
+    await expect(env.fs.readFile("/repo/out.txt", "utf8")).resolves.toBe("remote");
+    await expect(env.fs.readFile("/outside/target.txt", "utf8")).resolves.toBe("keep");
+  });
+
+  it("rejects remote workspace symlinks during download", async () => {
+    const env = createEnv({
+      "/repo/app.ts": "base"
+    });
+    await uploadWorkspace(env, {});
+    await env.remoteFs.mkdir("/outside", { recursive: true });
+    await env.remoteFs.writeFile("/outside/secret.txt", "secret");
+    await (env.remoteFs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/workspace/leak"
+    );
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "Workspace download must not follow symbolic links."
+    );
+    await expect(env.fs.readFile("/repo/leak/secret.txt", "utf8")).rejects.toThrow();
+  });
+
   it("conflicts when remote adds a path that local also created after upload", async () => {
     const env = createEnv({
       "/repo/app.ts": "base"

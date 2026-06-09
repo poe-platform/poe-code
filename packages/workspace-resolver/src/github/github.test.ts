@@ -151,6 +151,20 @@ describe("github clone helpers", () => {
     expect(exec).not.toHaveBeenCalled();
   });
 
+  it("rejects symlinked workspace cache ancestors before cloning", async () => {
+    const volume = new Volume();
+    volume.mkdirSync("/home/test/.poe-code/workspaces", { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.symlinkSync("/outside", "/home/test/.poe-code/workspaces/github");
+    const fs = createFsFromVolume(volume).promises as unknown as ResolverFileSystem;
+    const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(cloneOrUpdate(locator, createOptions({ fs, exec }))).rejects.toThrow(
+      "must not be a symbolic link"
+    );
+    expect(exec).not.toHaveBeenCalled();
+  });
+
   it("rejects a failed update of a clean cached checkout", async () => {
     const fs = createFs();
     await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
@@ -284,6 +298,20 @@ describe("createWritableCheckout", () => {
       stat: vi.fn(async () => ({ isDirectory: () => true })),
       lstat: vi.fn(async () => ({ isSymbolicLink: () => true }))
     };
+    const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(createWritableCheckout(locator, "/cache", createOptions({ fs, exec }))).rejects.toThrow(
+      "must not be a symbolic link"
+    );
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked workspace checkout ancestors before adding worktrees", async () => {
+    const volume = new Volume();
+    volume.mkdirSync("/home/test/.poe-code/workspaces", { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.symlinkSync("/outside", "/home/test/.poe-code/workspaces/checkouts");
+    const fs = createFsFromVolume(volume).promises as unknown as ResolverFileSystem;
     const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
 
     await expect(createWritableCheckout(locator, "/cache", createOptions({ fs, exec }))).rejects.toThrow(

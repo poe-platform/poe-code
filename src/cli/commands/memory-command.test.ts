@@ -56,13 +56,32 @@ function createBaseProgram(): Command {
   return program;
 }
 
-function createContainer(): ReturnType<typeof createCliContainer> {
+function createContainer(logs: string[] = []): ReturnType<typeof createCliContainer> {
   const fs = memfs.promises as unknown as FileSystem;
   return createCliContainer({
     fs,
     prompts: vi.fn().mockResolvedValue({}),
     env: { cwd, homeDir },
-    logger: () => {}
+    logger: (message) => {
+      logs.push(message);
+    }
+  });
+}
+
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
   });
 }
 
@@ -128,6 +147,26 @@ describe("memory command", () => {
     await expect(memfs.promises.readdir(`${memoryRoot}/pages`)).resolves.toEqual([]);
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
+  });
+
+  it("rejects memory clear without --yes in non-interactive mode", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/one.md`]: "# One\n"
+    });
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "memory", "clear"]), false)
+    ).rejects.toThrow("memory clear requires --yes when running without an interactive TTY.");
+
+    await expect(memfs.promises.readFile(`${memoryRoot}/pages/one.md`, "utf8")).resolves.toBe(
+      "# One\n"
+    );
   });
 
   it("lists pages with descriptions", async () => {
@@ -325,15 +364,15 @@ describe("memory command", () => {
   });
 
   it("reports memory cache status", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
     vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
-    const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
     await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "status"]);
 
-    expect(log).toHaveBeenCalledWith("1 cache entry (3 bytes)");
+    expect(logs).toContain("1 cache entry (3 bytes)");
   });
 
   it("clears memory cache entries when confirmed", async () => {
@@ -345,5 +384,18 @@ describe("memory command", () => {
     await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "clear"]);
 
     await expect(memfs.promises.stat(`${memoryRoot}/.cache`)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("does not clear memory cache entries during dry-run", async () => {
+    const logs: string[] = [];
+    const container = createContainer(logs);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "cache", "clear"]);
+
+    await expect(memfs.promises.stat(`${memoryRoot}/.cache/ingest/one.json`)).resolves.toBeDefined();
+    expect(logs).toContain("Would clear all memory cache entries.");
   });
 });

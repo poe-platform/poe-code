@@ -14,7 +14,10 @@ const designSystemState = vi.hoisted(() => ({
 }));
 
 const fileSystemState = vi.hoisted(() => ({
-  failingWritePath: undefined as string | undefined
+  failingWritePath: undefined as string | undefined,
+  beforeFailingWrite: undefined as (() => void) | undefined,
+  symlinkRacePath: undefined as string | undefined,
+  symlinkRaceTarget: undefined as string | undefined
 }));
 
 vi.mock("@poe-code/agent-spawn", () => ({
@@ -22,8 +25,8 @@ vi.mock("@poe-code/agent-spawn", () => ({
   runCommand: spawnState.runCommand
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     getTemplatePartialNames: actual.getTemplatePartialNames,
     renderTemplate: actual.renderTemplate,
@@ -36,18 +39,59 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  async function replaceWithSymlink(path: string, target: string): Promise<void> {
+    try {
+      await fs.promises.unlink(path);
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    await fs.promises.symlink(target, path);
+  }
+
+  function isInjectedFailingWrite(targetPath: string): boolean {
+    return (
+      targetPath === fileSystemState.failingWritePath ||
+      (fileSystemState.failingWritePath !== undefined &&
+        targetPath.startsWith(`${fileSystemState.failingWritePath}.`) &&
+        targetPath.endsWith(".tmp"))
+    );
+  }
+
   return {
     ...fs.promises,
-    async writeFile(targetPath: string, content: string | Uint8Array, encoding?: BufferEncoding) {
-      if (targetPath === fileSystemState.failingWritePath) {
+    async writeFile(
+      targetPath: string,
+      content: string | Uint8Array,
+      options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
+    ) {
+      if (
+        targetPath === fileSystemState.symlinkRacePath &&
+        fileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(targetPath, fileSystemState.symlinkRaceTarget);
+      }
+      if (isInjectedFailingWrite(targetPath)) {
+        fileSystemState.beforeFailingWrite?.();
         throw new Error("injected workflow write failure");
       }
-      await fs.promises.writeFile(targetPath, content, encoding);
+      await fs.promises.writeFile(targetPath, content, options);
+    },
+    async rename(oldPath: string, newPath: string) {
+      if (
+        newPath === fileSystemState.symlinkRacePath &&
+        fileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(newPath, fileSystemState.symlinkRaceTarget);
+      }
+      await fs.promises.rename(oldPath, newPath);
     }
   };
 });
 
 const { ghGroup } = await import("./commands.js");
+const { workflowSubprocessTimeoutMs } = await import("./subprocess-timeout.js");
 
 const promptDir = fileURLToPath(new URL("./prompts", import.meta.url));
 const builtInDir = path.dirname(promptDir);
@@ -126,6 +170,9 @@ describe("ghGroup", () => {
     });
     vi.clearAllMocks();
     fileSystemState.failingWritePath = undefined;
+    fileSystemState.beforeFailingWrite = undefined;
+    fileSystemState.symlinkRacePath = undefined;
+    fileSystemState.symlinkRaceTarget = undefined;
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
     spawnState.spawn.mockResolvedValue({
       stdout: "ok",
@@ -582,6 +629,7 @@ describe("ghGroup", () => {
       ["-c", "gh api repos/acme/app/dependabot/alerts --jq '[.[]]'"],
       expect.objectContaining({
         cwd: "/repo",
+        timeoutMs: workflowSubprocessTimeoutMs,
         env: expect.objectContaining({
           GITHUB_REPOSITORY: "acme/app",
           GITHUB_TOKEN: "gh-token"
@@ -727,13 +775,13 @@ describe("ghGroup", () => {
       1,
       "poe-code",
       ["install", "claude-code", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
       ["configure", "claude-code", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
   });
 
@@ -753,13 +801,13 @@ describe("ghGroup", () => {
       1,
       "poe-code",
       ["install", "codex", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
     expect(spawnState.runCommand).toHaveBeenNthCalledWith(
       2,
       "poe-code",
       ["configure", "codex", "--yes"],
-      expect.objectContaining({ cwd: "/repo" })
+      expect.objectContaining({ cwd: "/repo", timeoutMs: workflowSubprocessTimeoutMs })
     );
   });
 
@@ -954,6 +1002,39 @@ describe("ghGroup", () => {
     expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
   });
 
+  it("does not follow a workflow destination symlink inserted before publish", async () => {
+    const workflowPath = "/repo/.github/workflows/poe-code-github-issue-opened.yml";
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo/.github/workflows", { recursive: true });
+    vol.writeFileSync("/outside-workflow.yml", "sentinel");
+    fileSystemState.symlinkRacePath = workflowPath;
+    fileSystemState.symlinkRaceTarget = "/outside-workflow.yml";
+
+    await getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }));
+
+    expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
+    expect(vol.lstatSync(workflowPath).isSymbolicLink()).toBe(false);
+    expect(readRepoFile(workflowPath)).toContain(
+      "poe-code github-workflows install github-issue-opened"
+    );
+  });
+
+  it("rejects a symlinked .github parent during workflow install", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.mkdirSync("/outside-github", { recursive: true });
+    vol.symlinkSync("/outside-github", "/repo/.github");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-github/workflows/variables.yaml")).toBe(false);
+    expect(vol.existsSync("/outside-github/workflows/README.md")).toBe(false);
+  });
+
   it("shows the default prompt in a note and suggests eject for customization", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
@@ -1119,6 +1200,20 @@ describe("ghGroup", () => {
     expect(readRepoFile("/outside-prompt.md")).toBe("sentinel");
   });
 
+  it("rejects a symlinked workflows parent during ejected install", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
+    vol.mkdirSync("/repo/.github", { recursive: true });
+    vol.mkdirSync("/outside-workflows", { recursive: true });
+    vol.symlinkSync("/outside-workflows", "/repo/.github/workflows");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened", eject: true }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-workflows/poe-code-github-issue-opened.md")).toBe(false);
+  });
+
   it("rejects symlinked workflow support destinations", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
@@ -1133,6 +1228,23 @@ describe("ghGroup", () => {
     ).rejects.toThrow(/symbolic link/i);
     expect(readRepoFile("/outside-variables.yaml")).toBe("sentinel variables");
     expect(readRepoFile("/outside-readme.md")).toBe("sentinel readme");
+  });
+
+  it("does not roll back through a symlinked workflows parent", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/outside-rollback", { recursive: true });
+    fileSystemState.failingWritePath = "/repo/.github/workflows/variables.yaml";
+    fileSystemState.beforeFailingWrite = () => {
+      vol.rmSync("/repo/.github/workflows", { recursive: true, force: true });
+      vol.symlinkSync("/outside-rollback", "/repo/.github/workflows");
+    };
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(vol.existsSync("/outside-rollback/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/outside-rollback/variables.yaml")).toBe(false);
   });
 
   it("fails to install automations that do not have install templates", async () => {

@@ -1,0 +1,147 @@
+export const CSS = String.raw`
+      :root {
+        --bg: #ffffff;
+        --bg-soft: #f7f7f8;
+        --code-bg: #f4f4f6;
+        --ink: #18181b;
+        --muted: #555560;
+        --faint: #666671;
+        --line: #8a8a94;
+        --line-strong: #8a8a94;
+        --accent: {{accent}};
+        --accent-soft: #f3e8ff;
+        --radius: 10px;
+        --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+      body { margin: 0; color: var(--ink); background: var(--bg); font-family: var(--sans); line-height: 1.55; }
+      a { color: var(--accent); }
+      a, button { border-radius: 4px; }
+      :is(a, button):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      .skip-link {
+        position: fixed;
+        z-index: 100;
+        top: 12px;
+        left: 12px;
+        padding: 10px 14px;
+        color: #ffffff;
+        background: var(--accent);
+        font-weight: 700;
+        transform: translateY(-160%);
+      }
+      .skip-link:focus-visible { transform: translateY(0); }
+      .wrap { width: min(100% - 40px, 1040px); margin-inline: auto; }
+      .nav { position: sticky; top: 0; z-index: 10; border-bottom: 1px solid var(--line); background: rgba(255,255,255,.96); }
+      .nav-inner { width: min(100% - 40px, 1040px); min-height: 60px; margin-inline: auto; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+      .brand { font-family: var(--mono); font-weight: 700; }
+      .nav-links { display: flex; flex-wrap: wrap; gap: 18px; }
+      .nav-links a { color: var(--muted); text-decoration-thickness: 1px; text-underline-offset: 4px; }
+      .hero { padding: 92px 0 72px; }
+      .eyebrow, .section-label { color: var(--faint); font-family: var(--mono); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+      .title { max-width: 760px; margin: 12px 0 18px; font-size: clamp(42px, 7vw, 72px); line-height: 1.02; letter-spacing: -.045em; }
+      .tagline, .section-intro, .cmd-desc, .group-desc, .surface p { color: var(--muted); }
+      .tagline { max-width: 720px; font-size: 20px; }
+      .install { display: inline-flex; max-width: 100%; margin-top: 22px; border: 1px solid var(--line-strong); border-radius: var(--radius); overflow: hidden; background: var(--code-bg); }
+      .install code { padding: 12px 16px; overflow-x: auto; font-family: var(--mono); white-space: nowrap; }
+      .copy { border: 0; border-left: 1px solid var(--line-strong); padding: 0 16px; color: var(--muted); background: transparent; cursor: pointer; font: inherit; }
+      .copy:hover, .copy[data-copied="true"] { color: var(--accent); background: var(--accent-soft); }
+      .surfaces-line { color: var(--faint); }
+      main section { padding: 64px 0; border-top: 1px solid var(--line); }
+      .section-title { margin: 6px 0 12px; font-size: clamp(30px, 5vw, 44px); line-height: 1.15; }
+      .section-intro { max-width: 680px; }
+      .surfaces { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 30px; }
+      .surface, .cmd { border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
+      pre, code { font-family: var(--mono); }
+      pre { max-width: 100%; overflow-x: auto; }
+      .group { margin-top: 44px; }
+      .group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+      .cmd { margin-bottom: 14px; }
+      .cmd-top { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+      .cmd-path { font-family: var(--mono); font-weight: 700; }
+      .cmd-path .ns { color: var(--faint); }
+      .cmd-path .leaf { color: var(--accent); }
+      .badges { display: flex; gap: 6px; margin-left: auto; }
+      .badge { padding: 3px 8px; border: 1px solid var(--line-strong); border-radius: 999px; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+      .params { width: 100%; border-collapse: collapse; font-size: 14px; }
+      .params-scroll { max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .params th, .params td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+      .params th { color: var(--faint); font-family: var(--mono); font-size: 12px; }
+      .secrets { color: var(--muted); }
+      .example { position: relative; margin-top: 16px; }
+      .example pre, .quickstart pre { margin: 0; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--code-bg); }
+      .example .copy { position: absolute; top: 8px; right: 8px; min-height: 34px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg); }
+      footer { padding: 40px 0 64px; border-top: 1px solid var(--line); color: var(--faint); }
+      footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #111113;
+          --bg-soft: #19191d;
+          --code-bg: #202026;
+          --ink: #f4f4f5;
+          --muted: #c4c4cc;
+          --faint: #a3a3ad;
+          --line: #3f3f48;
+          --line-strong: #5b5b66;
+          --accent: #d8a7ff;
+          --accent: color-mix(in srgb, {{accent}} 55%, white);
+          --accent-soft: rgba(216, 167, 255, .18);
+          --accent-soft: color-mix(in srgb, {{accent}} 24%, transparent);
+        }
+        .nav { background: rgba(17,17,19,.96); }
+      }
+      @media (max-width: 620px) {
+        .wrap, .nav-inner { width: min(100% - 28px, 1040px); }
+        .nav-inner, .group-head { align-items: flex-start; flex-direction: column; padding-block: 14px; }
+        .nav-inner { gap: 10px; }
+        .nav-links { width: 100%; gap: 8px; }
+        .nav-links a { min-height: 44px; display: inline-flex; align-items: center; padding: 8px 10px; border: 1px solid var(--line); }
+        .hero { padding-top: 64px; }
+        .install { width: 100%; flex-direction: column; }
+        .install code { width: 100%; }
+        .install .copy { min-height: 44px; border-top: 1px solid var(--line-strong); border-left: 0; }
+        .surface, .cmd { padding: 16px; }
+        .cmd-top { align-items: flex-start; flex-direction: column; }
+        .cmd-path { max-width: 100%; margin-bottom: 0; overflow-wrap: anywhere; }
+        .badges { margin-left: 0; flex-wrap: wrap; }
+        .params { min-width: 620px; }
+        .example pre { padding-right: 18px; }
+        .example .copy { position: static; width: 100%; min-height: 44px; margin-top: 8px; }
+      }
+      @media print {
+        :root {
+          --bg: #ffffff;
+          --bg-soft: #ffffff;
+          --code-bg: #ffffff;
+          --ink: #000000;
+          --muted: #333333;
+          --faint: #555555;
+          --line: #aaaaaa;
+          --line-strong: #777777;
+        }
+        html { scroll-padding-top: 0; }
+        body, .surface, .cmd, .example pre, .quickstart pre { background: transparent; }
+        .nav, .copy, .skip-link { display: none; }
+        .hero, main section, footer { padding-block: 24px; }
+        .surface, .cmd, .group, pre, table { break-inside: avoid; }
+        .install code, .params-scroll, pre, .example pre, .quickstart pre { overflow: visible; white-space: pre-wrap; }
+        .params { min-width: 0; table-layout: fixed; }
+        .params th, .params td { overflow-wrap: anywhere; }
+        a { color: inherit; text-decoration: underline; }
+      }
+`;

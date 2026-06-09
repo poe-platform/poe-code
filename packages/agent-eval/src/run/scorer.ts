@@ -8,6 +8,7 @@ import {
 } from "@poe-code/process-runner";
 import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
 import { assertCanonicalContainedPath, resolveContainedPath } from "../path-boundary.js";
+import { terminateRunHandle } from "./subprocess-termination.js";
 import { runVitest, type CaseResult } from "./vitest-runner.js";
 
 const defaultVitestTimeoutMs = 180_000;
@@ -103,7 +104,7 @@ async function runScorerCommand(
   const timedResult = await waitForResult(handle, input.timeoutMs);
 
   if (timedResult.timedOut) {
-    killQuietly(handle);
+    await terminateRunHandle(handle);
     return {
       exitCode: timedResult.exitCode,
       stdout: stdout.output(),
@@ -136,7 +137,8 @@ function createShellRunSpec(input: {
       env: input.env,
       stdout: "pipe",
       stderr: "pipe",
-      signal: input.signal
+      signal: input.signal,
+      killProcessGroup: true
     };
   }
 
@@ -147,7 +149,8 @@ function createShellRunSpec(input: {
     env: input.env,
     stdout: "pipe",
     stderr: "pipe",
-    signal: input.signal
+    signal: input.signal,
+    killProcessGroup: true
   };
 }
 
@@ -323,12 +326,4 @@ function formatUnknownError(error: unknown): string {
   }
 
   return String(error);
-}
-
-function killQuietly(handle: RunHandle): void {
-  try {
-    handle.kill("SIGTERM");
-  } catch {
-    // Best effort cleanup after the configured scorer timeout.
-  }
 }

@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { cloudflareProvider } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
 import { DEFAULT_CODEX_MODEL } from "../cli/constants.js";
 
@@ -50,8 +51,10 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
 });
 
 const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
+const ensurePoeApiKeyEnvMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./credentials.js", () => ({
+  ensurePoeApiKeyEnv: ensurePoeApiKeyEnvMock,
   getPoeApiKey: getPoeApiKeyMock
 }));
 
@@ -101,6 +104,14 @@ beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
   getPoeApiKeyMock.mockReset();
   getPoeApiKeyMock.mockResolvedValue("test-key");
+  ensurePoeApiKeyEnvMock.mockReset();
+  ensurePoeApiKeyEnvMock.mockImplementation(async () => {
+    const envKey = process.env.POE_API_KEY;
+    if (typeof envKey === "string" && envKey.trim().length > 0) {
+      return;
+    }
+    process.env.POE_API_KEY = await getPoeApiKeyMock();
+  });
   vi.mocked(spawnStreaming).mockReset();
   vi.mocked(spawnInteractive).mockReset();
   vi.mocked(agentSpawn).mockReset();
@@ -1089,6 +1100,155 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("resolves workspace locators before spawning ACP agents", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code/packages/auth",
+      locator: {
+        scheme: "github",
+        owner: "poe-platform",
+        repo: "poe-code",
+        ref: "main",
+        subdir: "packages/auth"
+      }
+    });
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("opencode", "inspect auth", {
+      cwd: "github://poe-platform/poe-code#main:packages/auth",
+      mode: "read"
+    });
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(resolveWorkspace).toHaveBeenCalledWith(
+      "github://poe-platform/poe-code#main:packages/auth",
+      expect.objectContaining({
+        mode: "read"
+      })
+    );
+    expect(createSdkContainer).toHaveBeenCalledWith({
+      cwd: "/tmp/workspaces/poe-code/packages/auth"
+    });
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "opencode",
+        prompt: "inspect auth",
+        cwd: "/tmp/workspaces/poe-code/packages/auth",
+        mode: "read"
+      })
+    );
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(applyMiddlewares).mock.calls[0][1]).toEqual(
+      expect.objectContaining({
+        agent: "opencode",
+        prompt: "inspect auth",
+        cwd: "/tmp/workspaces/poe-code/packages/auth",
+        mode: "read"
+      })
+    );
+  });
+
+  it("does not require Poe credentials before resolving a non-Poe ACP provider", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockRejectedValue(new Error("Poe key should not be read"));
+    const variables: Record<string, string> = {
+      CF_AIG_TOKEN: "cf-token",
+      CF_AIG_BASE_URL: "https://gateway.example.test"
+    };
+    const providerRegistry = {
+      forAgent: vi.fn(() => [cloudflareProvider]),
+      resolveCredential: vi.fn(async () => variables.CF_AIG_TOKEN)
+    };
+    const registry = {
+      get: vi.fn((name: string) =>
+        name === "opencode"
+          ? {
+              name: "opencode",
+              label: "OpenCode",
+              isolatedEnv: {
+                agentBinary: "opencode",
+                configProbe: { kind: "isolatedFile", relativePath: "config.json" },
+                env: {
+                  XDG_CONFIG_HOME: { kind: "isolatedDir", relativePath: ".config" }
+                }
+              }
+            }
+          : undefined
+      )
+    };
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        cwd: "/repo",
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables,
+        getVariable: (name: string) => variables[name],
+        resolveHomePath: (...segments: string[]) => [homeDir, ...segments].join("/")
+      },
+      registry,
+      providerRegistry
+    } as any);
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("opencode", "inspect auth");
+
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(ensurePoeApiKeyEnvMock).not.toHaveBeenCalled();
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
+    expect(providerRegistry.resolveCredential).toHaveBeenCalledWith(
+      "cloudflare",
+      undefined,
+      expect.objectContaining({ envVars: variables })
+    );
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "opencode",
+        env: expect.objectContaining({
+          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer cf-token",
+          XDG_CONFIG_HOME: "/home/test/.poe-code/opencode/.config"
+        })
+      })
+    );
+  });
+
   it("uses CLI streaming for ACP agents that do not support MCP over ACP", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",
@@ -1256,6 +1416,29 @@ describe("SDK spawn()", () => {
     expect(applyMiddlewares).toHaveBeenCalledTimes(1);
     const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
     expect(ctx.logDir).toBe("/repo/.poe-code/pipeline/plans/logs/task-1-implement.jsonl");
+  });
+
+  it("forwards logContent to middleware context in SDK streaming path", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      logContent: true
+    });
+
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledTimes(1);
+    const [, ctx] = vi.mocked(applyMiddlewares).mock.calls[0];
+    expect(ctx.logContent).toBe(true);
   });
 
   it("appends user middlewares after built-in streaming middlewares", async () => {
@@ -1803,6 +1986,9 @@ describe("spawn.autonomous()", () => {
 
   it("forwards tee and useStdin through autonomous spawns", async () => {
     const tee = {
+      stdout: {
+        write: vi.fn()
+      },
       stderr: {
         write: vi.fn()
       }

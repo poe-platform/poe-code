@@ -55,11 +55,11 @@ function createRunFs(files: Record<string, string>) {
     fs: {
       readFile: (filePath: string, encoding: BufferEncoding) =>
         rawFs.readFile(filePath, encoding) as Promise<string>,
-      writeFile: async (filePath: string, content: string) => {
+      writeFile: async (filePath: string, content: string, options?: { flag?: string; mode?: number }) => {
         await rawFs.mkdir(path.dirname(filePath), {
           recursive: true
         });
-        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+        await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
       },
       readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
       open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
@@ -1260,6 +1260,29 @@ describe("createRalphSimulation", () => {
     })).rejects.toThrow(/symbolic link/i);
     await expect(rawFs.readFile("/outside/external-ralph.md", "utf8"))
       .resolves.toContain("iteration: 4");
+  });
+
+  it("rejects status writes through a symlinked legacy temp sibling", async () => {
+    const targetPath = "/repo/docs/plans/plan.md";
+    const original = "---\nkind: ralph\nagent: codex\niterations: 1\nstatus:\n  state: open\n  iteration: 0\n---\n# Preserve this Ralph plan\n";
+    const { fs, rawFs } = createRunFs({
+      [targetPath]: original,
+      "/outside/target.md": "external"
+    });
+    await rawFs.symlink("/outside/target.md", `${targetPath}.tmp`);
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: targetPath,
+      fs,
+      runAgent: vi.fn(),
+      signal: controller.signal
+    })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/target.md", "utf8")).resolves.toBe("external");
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
   });
 
   it("rejects workflow configuration from a symlinked base directory", async () => {

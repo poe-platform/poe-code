@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>acme — define a command once, run it everywhere</title>
+    <meta
+      name="description"
+      content="acme is a toolcraft CLI: ship the same commands as a terminal CLI, an MCP server, and a typed SDK."
+    />
+    <style>
+      :root {
+        --ink: #16161a;
+        --muted: #555560;
+        --faint: #666671;
+        --bg: #ffffff;
+        --bg-soft: #fafafa;
+        --code-bg: #f6f6f7;
+        --line: #8a8a94;
+        --line-strong: #73737d;
+        --accent: #7a00c2;
+        --accent-soft: #f4e9ff;
+        --warn: #b4630b;
+        --warn-soft: #fbf0e2;
+        --ok: #2f7d32;
+        --radius: 10px;
+        --content: 760px;
+        --sans:
+          ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+        scroll-padding-top: 84px;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 16px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      :is(a, button):focus-visible {
+        outline: 3px solid var(--accent);
+        outline-offset: 3px;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 100;
+        top: 12px;
+        left: 12px;
+        padding: 10px 14px;
+        background: var(--accent);
+        color: #fff;
+        font-weight: 700;
+        transform: translateY(-160%);
+      }
+
+      .skip-link:focus-visible {
+        transform: translateY(0);
+      }
+
+      .wrap {
+        max-width: var(--content);
+        margin: 0 auto;
+        padding: 0 24px;
+      }
+
+      /* ---------- top nav ---------- */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: saturate(180%) blur(12px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-inner {
+        max-width: var(--content);
+        margin: 0 auto;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .brand {
+        font-family: var(--mono);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .brand .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: inline-block;
+      }
+      .nav-links {
+        margin-left: auto;
+        display: flex;
+        gap: 22px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .nav-links a:hover {
+        color: var(--ink);
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        padding: 96px 0 64px;
+        border-bottom: 1px solid var(--line);
+      }
+      .eyebrow {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin: 0 0 20px;
+      }
+      h1.title {
+        font-size: 56px;
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+        margin: 0 0 20px;
+        font-weight: 680;
+      }
+      .tagline {
+        font-size: 20px;
+        line-height: 1.5;
+        color: var(--muted);
+        max-width: 36ch;
+        margin: 0 0 36px;
+      }
+      .tagline strong {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      .install {
+        display: inline-flex;
+        align-items: stretch;
+        border: 1px solid var(--line-strong);
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--code-bg);
+        font-family: var(--mono);
+        font-size: 14px;
+        max-width: 100%;
+      }
+      .install code {
+        padding: 13px 16px;
+        white-space: nowrap;
+        overflow-x: auto;
+      }
+      .install code .prompt {
+        color: var(--faint);
+        user-select: none;
+      }
+      .copy {
+        border: none;
+        border-left: 1px solid var(--line-strong);
+        background: transparent;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 13px;
+        padding: 0 16px;
+        cursor: pointer;
+        transition:
+          background 0.12s ease,
+          color 0.12s ease;
+      }
+      .copy:hover {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+      .copy[data-copied="true"] {
+        color: var(--ok);
+      }
+
+      .surfaces-line {
+        margin-top: 28px;
+        font-size: 14px;
+        color: var(--faint);
+        font-family: var(--mono);
+      }
+      .surfaces-line b {
+        color: var(--ink);
+        font-weight: 600;
+      }
+
+      /* ---------- section scaffolding ---------- */
+      section {
+        padding: 64px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .section-label {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin: 0 0 10px;
+      }
+      h2.section-title {
+        font-size: 30px;
+        letter-spacing: -0.02em;
+        margin: 0 0 8px;
+        font-weight: 640;
+      }
+      .section-intro {
+        color: var(--muted);
+        margin: 0 0 36px;
+        max-width: 56ch;
+      }
+
+      /* ---------- surfaces grid ---------- */
+      .surfaces {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+      }
+      @media (max-width: 720px) {
+        .surfaces {
+          grid-template-columns: 1fr;
+        }
+      }
+      .surface {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px;
+        background: var(--bg-soft);
+      }
+      .surface h3 {
+        margin: 0 0 6px;
+        font-size: 15px;
+        font-family: var(--mono);
+        font-weight: 600;
+      }
+      .surface p {
+        margin: 0 0 16px;
+        font-size: 13.5px;
+        color: var(--muted);
+        min-height: 38px;
+      }
+      .surface pre {
+        max-width: 100%;
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        line-height: 1.55;
+        color: var(--ink);
+        background: var(--code-bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px 14px;
+        overflow-x: auto;
+      }
+      .tok-key {
+        color: var(--accent);
+      }
+      .tok-cmt {
+        color: var(--faint);
+      }
+
+      /* ---------- command groups ---------- */
+      .group {
+        margin-bottom: 40px;
+      }
+      .group:last-child {
+        margin-bottom: 0;
+      }
+      .group-head {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        padding-bottom: 12px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--line);
+      }
+      .group-head h3 {
+        font-family: var(--mono);
+        font-size: 18px;
+        margin: 0;
+        font-weight: 600;
+      }
+      .group-head .group-desc {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .cmd {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 22px 24px;
+        margin-bottom: 14px;
+        background: var(--bg);
+      }
+      .cmd-top {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 6px;
+      }
+      .cmd-path {
+        font-family: var(--mono);
+        font-size: 15.5px;
+        font-weight: 600;
+      }
+      .cmd-path .ns {
+        color: var(--faint);
+      }
+      .cmd-path .leaf {
+        color: var(--accent);
+      }
+      .cmd-desc {
+        color: var(--muted);
+        margin: 0 0 16px;
+        font-size: 14.5px;
+      }
+
+      .badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-left: auto;
+      }
+      .badge {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.02em;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid var(--line-strong);
+        color: var(--muted);
+        background: var(--bg-soft);
+        text-transform: lowercase;
+      }
+      .badge.scope {
+        color: var(--accent);
+        background: var(--accent-soft);
+        border-color: transparent;
+      }
+      .badge.approval {
+        color: var(--warn);
+        background: var(--warn-soft);
+        border-color: transparent;
+      }
+
+      table.params {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13.5px;
+        margin: 6px 0 0;
+      }
+      .params-scroll {
+        max-width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      table.params th {
+        text-align: left;
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 500;
+        padding: 0 12px 8px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      table.params td {
+        padding: 10px 12px 10px 0;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      table.params tr:last-child td {
+        border-bottom: none;
+      }
+      td.pname {
+        font-family: var(--mono);
+        color: var(--ink);
+        white-space: nowrap;
+      }
+      td.ptype {
+        font-family: var(--mono);
+        color: var(--accent);
+        white-space: nowrap;
+      }
+      .req {
+        color: var(--warn);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .opt {
+        color: var(--faint);
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      td.pdesc {
+        color: var(--muted);
+      }
+      td.pdesc .default {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--faint);
+      }
+
+      .secrets {
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .secrets .slabel {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--faint);
+        margin-right: 8px;
+      }
+      .secrets code {
+        font-family: var(--mono);
+        background: var(--code-bg);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 1px 6px;
+        font-size: 12px;
+      }
+
+      .example {
+        margin-top: 16px;
+        position: relative;
+      }
+      .example pre {
+        max-width: 100%;
+        margin: 0;
+        font-family: var(--mono);
+        font-size: 13px;
+        background: var(--code-bg);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 13px 16px;
+        overflow-x: auto;
+        color: var(--ink);
+      }
+      .example pre .prompt {
+        color: var(--faint);
+        user-select: none;
+      }
+      .example .copy {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        background: var(--bg);
+        padding: 4px 10px;
+        font-size: 12px;
+      }
+
+      /* ---------- quickstart ---------- */
+      .quickstart pre {
+        max-width: 100%;
+        font-family: var(--mono);
+        font-size: 13px;
+        line-height: 1.6;
+        background: var(--code-bg);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        padding: 20px 22px;
+        overflow-x: auto;
+        margin: 0;
+      }
+
+      /* ---------- footer ---------- */
+      footer {
+        padding: 40px 0 64px;
+        color: var(--faint);
+        font-size: 13px;
+      }
+      footer .wrap {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      footer code {
+        font-family: var(--mono);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ink: #f4f4f5;
+          --muted: #c4c4cc;
+          --faint: #a3a3ad;
+          --bg: #111113;
+          --bg-soft: #19191d;
+          --code-bg: #202026;
+          --line: #3f3f48;
+          --line-strong: #5b5b66;
+          --accent: #d8a7ff;
+          --accent: color-mix(in srgb, #7a00c2 55%, white);
+          --accent-soft: rgba(216, 167, 255, .18);
+          --accent-soft: color-mix(in srgb, #7a00c2 24%, transparent);
+          --warn: #f0a45d;
+          --warn-soft: #3b2818;
+          --ok: #7bcf80;
+        }
+        .nav {
+          background: rgba(17, 17, 19, 0.9);
+        }
+      }
+      @media (max-width: 620px) {
+        .wrap {
+          padding-inline: 14px;
+        }
+        .nav-inner {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 10px;
+          padding-inline: 14px;
+        }
+        .nav-links {
+          width: 100%;
+          margin-left: 0;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .nav-links a {
+          min-height: 44px;
+          display: inline-flex;
+          align-items: center;
+          padding: 8px 10px;
+          border: 1px solid var(--line);
+          border-radius: 6px;
+        }
+        .install {
+          width: 100%;
+          align-items: stretch;
+          flex-direction: column;
+        }
+        .install code {
+          width: 100%;
+        }
+        .install .copy {
+          min-height: 44px;
+          border-top: 1px solid var(--line-strong);
+          border-left: 0;
+        }
+        .group-head,
+        .cmd-top {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .cmd {
+          padding: 16px;
+        }
+        .cmd-path {
+          max-width: 100%;
+          overflow-wrap: anywhere;
+        }
+        .badges {
+          margin-left: 0;
+        }
+        table.params {
+          min-width: 620px;
+        }
+        .example pre {
+          padding-right: 16px;
+        }
+        .example .copy {
+          position: static;
+          width: 100%;
+          min-height: 44px;
+          margin-top: 8px;
+        }
+      }
+      @media print {
+        :root {
+          --ink: #000000;
+          --muted: #333333;
+          --faint: #555555;
+          --bg: #ffffff;
+          --bg-soft: #ffffff;
+          --code-bg: #ffffff;
+          --line: #aaaaaa;
+          --line-strong: #777777;
+        }
+        html {
+          scroll-padding-top: 0;
+        }
+        body,
+        .surface,
+        .cmd,
+        .example pre,
+        .quickstart pre {
+          background: transparent;
+        }
+        .nav,
+        .copy,
+        .skip-link {
+          display: none;
+        }
+        .hero,
+        section,
+        footer {
+          padding-block: 24px;
+        }
+        .surface,
+        .cmd,
+        .group,
+        pre,
+        table {
+          break-inside: avoid;
+        }
+        .install code,
+        .params-scroll,
+        pre,
+        .surface pre,
+        .example pre,
+        .quickstart pre {
+          overflow: visible;
+          white-space: pre-wrap;
+        }
+        table.params {
+          min-width: 0;
+          table-layout: fixed;
+        }
+        table.params th,
+        table.params td {
+          overflow-wrap: anywhere;
+        }
+        a {
+          color: inherit;
+          text-decoration: underline;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#commands">Skip to commands</a>
+    <header>
+      <nav class="nav" aria-label="Primary">
+        <div class="nav-inner">
+          <span class="brand"><span class="dot"></span>acme</span>
+          <span class="nav-links">
+            <a href="#surfaces">Surfaces</a>
+            <a href="#commands">Commands</a>
+            <a href="#quickstart">Quickstart</a>
+            <a href="https://github.com/acme/acme">GitHub</a>
+          </span>
+        </div>
+      </nav>
+
+      <div class="hero">
+        <div class="wrap">
+          <p class="eyebrow">acme · v1.4.0</p>
+          <h1 class="title">Define a command once. Run it everywhere.</h1>
+          <p class="tagline">
+            <strong>acme</strong> ships your operations as a terminal CLI, an MCP server, and a
+            typed SDK — from a single command tree.
+          </p>
+          <div class="install">
+            <code><span class="prompt">$ </span>npm install -g acme</code>
+            <button
+              class="copy"
+              type="button"
+              data-copy="npm install -g acme"
+              aria-label="Copy npm install -g acme"
+            >
+              Copy
+            </button>
+          </div>
+          <p class="surfaces-line"><b>3</b> surfaces · <b>6</b> commands · <b>2</b> groups</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="surfaces" aria-labelledby="surfaces-heading">
+        <div class="wrap">
+          <p class="section-label">One definition</p>
+          <h2 class="section-title" id="surfaces-heading">Every surface, no duplication</h2>
+          <p class="section-intro">
+            The same command tree powers all three runtimes. Schema, secrets, and approvals are
+            declared once and inherited everywhere.
+          </p>
+          <div class="surfaces">
+            <div class="surface">
+              <h3>CLI</h3>
+              <p>argv parsing, <code>--help</code>, exit codes.</p>
+              <pre><span class="tok-cmt"># terminal</span>
+acme deploy prod \
+  <span class="tok-key">--target</span> api</pre>
+            </div>
+            <div class="surface">
+              <h3>MCP</h3>
+              <p>JSON-RPC over stdio for agents.</p>
+              <pre><span class="tok-cmt"># claude desktop</span>
+acme mcp</pre>
+            </div>
+            <div class="surface">
+              <h3>SDK</h3>
+              <p>typed, in-process function calls.</p>
+              <pre><span class="tok-key">await</span> sdk.deploy
+  .prod({ target })</pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="commands" aria-labelledby="commands-heading">
+        <div class="wrap">
+          <p class="section-label">Reference</p>
+          <h2 class="section-title" id="commands-heading">Commands</h2>
+          <p class="section-intro">
+            Every command, its parameters, required secrets, and the surfaces it is exposed on —
+            derived directly from the command tree.
+          </p>
+
+          <!-- group: deploy -->
+          <div class="group">
+            <div class="group-head">
+              <h3>deploy</h3>
+              <span class="group-desc">Ship services to an environment.</span>
+            </div>
+
+            <article class="cmd">
+              <div class="cmd-top">
+                <span class="cmd-path"
+                  ><span class="ns">acme deploy </span><span class="leaf">prod</span></span
+                >
+                <span class="badges">
+                  <span class="badge approval">approval</span>
+                  <span class="badge scope">cli</span>
+                  <span class="badge scope">mcp</span>
+                  <span class="badge scope">sdk</span>
+                </span>
+              </div>
+              <p class="cmd-desc">Deploy a service to production. Gated on a human approval.</p>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">target</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Service name to deploy.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--wait</td>
+                      <td class="ptype">boolean</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Block until rollout is healthy. <span class="default">default: true</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="secrets">
+                <span class="slabel">secrets</span>
+                <code>DEPLOY_API_KEY</code> — required for the /deploy endpoint
+              </p>
+              <div class="example">
+                <pre><span class="prompt">$ </span>acme deploy prod api --no-wait</pre>
+                <button
+                  class="copy"
+                  type="button"
+                  data-copy="acme deploy prod api --no-wait"
+                  aria-label="Copy acme deploy prod api --no-wait"
+                >
+                  Copy
+                </button>
+              </div>
+            </article>
+
+            <article class="cmd">
+              <div class="cmd-top">
+                <span class="cmd-path"
+                  ><span class="ns">acme deploy </span><span class="leaf">preview</span></span
+                >
+                <span class="badges">
+                  <span class="badge scope">cli</span>
+                  <span class="badge scope">sdk</span>
+                </span>
+              </div>
+              <p class="cmd-desc">Spin up an ephemeral preview environment for a branch.</p>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">branch</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Git branch to preview.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--ttl</td>
+                      <td class="ptype">number</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Hours before teardown. <span class="default">default: 24</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="example">
+                <pre><span class="prompt">$ </span>acme deploy preview feature/login --ttl 48</pre>
+                <button
+                  class="copy"
+                  type="button"
+                  data-copy="acme deploy preview feature/login --ttl 48"
+                  aria-label="Copy acme deploy preview feature/login --ttl 48"
+                >
+                  Copy
+                </button>
+              </div>
+            </article>
+          </div>
+
+          <!-- group: issues -->
+          <div class="group">
+            <div class="group-head">
+              <h3>issues</h3>
+              <span class="group-desc">Read and triage the issue tracker.</span>
+            </div>
+
+            <article class="cmd">
+              <div class="cmd-top">
+                <span class="cmd-path"
+                  ><span class="ns">acme issues </span><span class="leaf">list</span></span
+                >
+                <span class="badges">
+                  <span class="badge scope">cli</span>
+                  <span class="badge scope">mcp</span>
+                  <span class="badge scope">sdk</span>
+                </span>
+              </div>
+              <p class="cmd-desc">List open issues, newest first.</p>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">--limit</td>
+                      <td class="ptype">number</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">
+                        Maximum issues to return. <span class="default">default: 20</span>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--label</td>
+                      <td class="ptype">string</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">Filter by label.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="example">
+                <pre><span class="prompt">$ </span>acme issues list --label bug --limit 5</pre>
+                <button
+                  class="copy"
+                  type="button"
+                  data-copy="acme issues list --label bug --limit 5"
+                  aria-label="Copy acme issues list --label bug --limit 5"
+                >
+                  Copy
+                </button>
+              </div>
+            </article>
+
+            <article class="cmd">
+              <div class="cmd-top">
+                <span class="cmd-path"
+                  ><span class="ns">acme issues </span><span class="leaf">create</span></span
+                >
+                <span class="badges">
+                  <span class="badge scope">cli</span>
+                  <span class="badge scope">mcp</span>
+                  <span class="badge scope">sdk</span>
+                </span>
+              </div>
+              <p class="cmd-desc">Open a new issue.</p>
+              <div class="params-scroll">
+                <table class="params">
+                  <thead>
+                    <tr>
+                      <th>Parameter</th>
+                      <th>Type</th>
+                      <th></th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="pname">title</td>
+                      <td class="ptype">string</td>
+                      <td><span class="req">required</span></td>
+                      <td class="pdesc">Issue title.</td>
+                    </tr>
+                    <tr>
+                      <td class="pname">--body</td>
+                      <td class="ptype">string</td>
+                      <td><span class="opt">optional</span></td>
+                      <td class="pdesc">Markdown body.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="secrets">
+                <span class="slabel">secrets</span>
+                <code>ACME_TOKEN</code> — API token with write scope
+              </p>
+              <div class="example">
+                <pre><span class="prompt">$ </span>acme issues create "Login is broken" --body "Steps to repro..."</pre>
+                <button
+                  class="copy"
+                  type="button"
+                  data-copy='acme issues create "Login is broken" --body "Steps to repro..."'
+                  aria-label='Copy acme issues create "Login is broken" --body "Steps to repro..."'
+                >
+                  Copy
+                </button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="quickstart" class="quickstart" aria-labelledby="quickstart-heading">
+        <div class="wrap">
+          <p class="section-label">Get started</p>
+          <h2 class="section-title" id="quickstart-heading">Quickstart</h2>
+          <p class="section-intro">
+            Install the binary, then call it from your terminal, wire it into an MCP client, or
+            import the SDK.
+          </p>
+          <pre><span class="tok-cmt"># install</span>
+npm install -g acme
+
+<span class="tok-cmt"># run a command</span>
+acme issues list --limit 5
+
+<span class="tok-cmt"># expose every mcp-scoped command to an agent</span>
+acme mcp
+
+<span class="tok-cmt"># call it from code</span>
+<span class="tok-key">import</span> { createSDK } <span class="tok-key">from</span> "acme/sdk";
+<span class="tok-key">const</span> sdk = createSDK(root);
+<span class="tok-key">await</span> sdk.deploy.preview({ branch: "main" });</pre>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>acme · v1.4.0 · Node 20+</span>
+        <span>generated by <code>toolcraft-landing-page</code></span>
+      </div>
+    </footer>
+
+    <div
+      class="visually-hidden"
+      id="copy-status"
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
+
+    <script>
+      const copyStatus = document.querySelector("#copy-status");
+      for (const button of document.querySelectorAll("[data-copy]")) {
+        button.addEventListener("click", async () => {
+          const command = button.dataset.copy;
+          try {
+            await navigator.clipboard.writeText(command);
+            button.textContent = "Copied";
+            button.dataset.copied = "true";
+            copyStatus.textContent = "";
+            window.requestAnimationFrame(() => {
+              copyStatus.textContent = command + " copied to clipboard";
+            });
+            setTimeout(() => {
+              button.textContent = "Copy";
+              button.dataset.copied = "false";
+            }, 1400);
+          } catch {
+            copyStatus.textContent = "";
+            window.requestAnimationFrame(() => {
+              copyStatus.textContent = "Could not copy " + command;
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

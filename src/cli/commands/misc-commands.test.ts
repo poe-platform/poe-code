@@ -358,16 +358,69 @@ describe("config command", () => {
     expect(output).toContain("Project config");
     expect(output).toContain("Environment variable overrides");
     expect(output).toContain("Resolved (merged)");
-    expect(output).toContain('"apiKey": "sk-global"');
+    expect(output).toContain('"apiKey": "<redacted>"');
     expect(output).toContain('"defaultAgent": "claude"');
-    expect(output).toContain('"apiKey": "sk-project"');
     expect(output).toContain('"defaultAgent": "codex:gpt-5.4"');
-    expect(output).toContain("POE_API_KEY = sk-env");
+    expect(output).toContain("POE_API_KEY = <redacted>");
     expect(output).toContain("POE_DEFAULT_AGENT = opencode:o4-mini");
-    expect(output).toContain('"apiKey": "sk-env"');
     expect(output).toContain('"defaultAgent": "opencode:o4-mini"');
     expect(output).toContain('"poeBaseUrl": "https://global.example.test"');
     expect(output).toContain('"default": "anthropic/claude-sonnet-4.5"');
+    expect(output).not.toContain("sk-global");
+    expect(output).not.toContain("sk-project");
+    expect(output).not.toContain("sk-env");
+  });
+
+  it("redacts secret-bearing plugin headers when showing config", async () => {
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify(
+        {
+          agent: {
+            plugins: [
+              {
+                name: "openai-responses",
+                options: {
+                  defaultHeaders: {
+                    Authorization: "Bearer sk-header-secret",
+                    "proxy-authorization": "Basic proxy-secret",
+                    "x-api-key": "sk-proxy-secret",
+                    "x-auth-token": "token-secret",
+                    "x-trace-id": "trace-123"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "utils", "config", "show"]);
+
+    const output = logs.join("\n");
+    expect(output).toContain('"Authorization": "<redacted>"');
+    expect(output).toContain('"proxy-authorization": "<redacted>"');
+    expect(output).toContain('"x-api-key": "<redacted>"');
+    expect(output).toContain('"x-auth-token": "<redacted>"');
+    expect(output).toContain('"x-trace-id": "trace-123"');
+    expect(output).not.toContain("sk-header-secret");
+    expect(output).not.toContain("proxy-secret");
+    expect(output).not.toContain("sk-proxy-secret");
+    expect(output).not.toContain("token-secret");
   });
 
   it("shows empty sections when config files are missing", async () => {

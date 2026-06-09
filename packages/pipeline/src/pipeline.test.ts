@@ -19,6 +19,7 @@ import type {
   AgentRunUsage,
   AgentRunInput,
   AgentRunResult,
+  PipelineFileSystem,
   PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
@@ -33,6 +34,32 @@ type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 function createFs(files: Record<string, string> = {}): TestFs {
   const volume = Volume.fromJSON(files, "/");
   return createFsFromVolume(volume).promises;
+}
+
+function createPipelineTestFs(rawFs: TestFs): PipelineFileSystem {
+  return {
+    readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+    writeFile: (filePath, data, options) =>
+      rawFs.writeFile(filePath, data, options) as Promise<void>,
+    readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
+    stat: async (filePath) => {
+      const stat = await rawFs.stat(filePath);
+      return {
+        isFile: () => stat.isFile(),
+        isDirectory: () => stat.isDirectory(),
+        mtimeMs: Number(stat.mtimeMs)
+      };
+    },
+    lstat: async (filePath) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
+    mkdir: (filePath, options) => rawFs.mkdir(filePath, options) as Promise<void>,
+    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
+    rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
+    rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>,
+    unlink: (filePath) => rawFs.unlink(filePath) as Promise<void>
+  } as PipelineFileSystem;
 }
 
 const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "tasks: []", "---", ""].join("\n");
@@ -1768,6 +1795,98 @@ describe("writeTaskStatus", () => {
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
   });
 
+  it("does not follow a preexisting legacy temp path symlink", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_234);
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const volume = Volume.fromJSON(
+      {
+        "/repo/plan.yaml": initial,
+        "/outside/target.yaml": "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const legacyTempPath = `/repo/plan.yaml.${process.pid}.1234.tmp`;
+    volume.symlinkSync("/outside/target.yaml", legacyTempPath);
+    const fs = createFsFromVolume(volume).promises;
+
+    await writeTaskStatus({
+      fs,
+      planPath: "/repo/plan.yaml",
+      taskId: "task-1",
+      status: "done"
+    });
+
+    await expect(fs.readFile("/outside/target.yaml", "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    const planStat = await fs.lstat("/repo/plan.yaml");
+    expect(planStat.isSymbolicLink()).toBe(false);
+    await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toContain("status: done");
+  });
+
+  it("does not remove a colliding status temp symlink", async () => {
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const volume = Volume.fromJSON(
+      {
+        "/repo/plan.yaml": initial,
+        "/outside/target.yaml": "outside stays unchanged\n"
+      },
+      "/"
+    );
+    const baseFs = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: Parameters<typeof baseFs.writeFile>[1],
+        options?: Parameters<typeof baseFs.writeFile>[2]
+      ) {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`/repo/plan.yaml.${process.pid}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync("/outside/target.yaml", filePath);
+          expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        }
+
+        await baseFs.writeFile(filePath, data, options);
+      }
+    };
+
+    await expect(
+      writeTaskStatus({
+        fs,
+        planPath: "/repo/plan.yaml",
+        taskId: "task-1",
+        status: "done"
+      })
+    ).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    await expect(baseFs.readFile("/outside/target.yaml", "utf8")).resolves.toBe(
+      "outside stays unchanged\n"
+    );
+    expect((await baseFs.lstat(temporaryPath as string)).isSymbolicLink()).toBe(true);
+    await expect(baseFs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [
@@ -2615,6 +2734,45 @@ describe("createPipelineSimulation", () => {
     expect(runs).toHaveLength(1);
     expect(runs[0]?.logDir).toBe("/home/test/.poe-code/logs/pipeline/plan");
     expect(runs[0]?.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-quick-fix\.jsonl$/);
+  });
+
+  it("rejects a symlinked default log root before running an agent", async () => {
+    const rawFs = createFs({
+      ["/repo/docs/plans/plan.md"]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    await rawFs.mkdir("/home/test/.poe-code", { recursive: true });
+    await rawFs.mkdir("/outside", { recursive: true });
+    await rawFs.symlink("/outside", "/home/test/.poe-code/logs");
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: "docs/plans/plan.md",
+        fs: createPipelineTestFs(rawFs),
+        runAgent
+      })
+    ).rejects.toThrow("Runner log directory resolves outside the poe-code state directory");
+
+    expect(runAgent).not.toHaveBeenCalled();
+    await expect(rawFs.readdir("/outside")).resolves.toEqual([]);
   });
 
   it("runs stepped tasks in order and marks each step done", async () => {

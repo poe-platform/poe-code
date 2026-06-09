@@ -166,6 +166,7 @@ export function createSpawnHealthCheck(
           "--hooks-from",
           options.hooks.from,
           ...(options.hooks.strategy ? ["--hooks-strategy", options.hooks.strategy] : []),
+          ...(options.hooks.scope ? ["--hooks-scope", options.hooks.scope] : []),
           ...(options.model ? ["--model", options.model] : []),
           "--mode",
           "yolo",

@@ -11,8 +11,9 @@ import {
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
 import { type CommandCheck } from "../../utils/command-checks.js";
-import { withSpinner } from "@poe-code/design-system";
+import { withSpinner } from "toolcraft-design";
 import { resolveProviderRuntimeEnv } from "../isolated-env.js";
+import type { HookBridgeOptions } from "@poe-code/agent-spawn";
 
 export function registerTestCommand(program: Command, container: CliContainer): Command {
   const serviceNames = container.registry
@@ -33,6 +34,13 @@ export function registerTestCommand(program: Command, container: CliContainer): 
         "transform"
       ])
     )
+    .addOption(
+      new Option("--hooks-scope <scope>", "Hook bridge scope (default: merged)").choices([
+        "project",
+        "user",
+        "merged"
+      ])
+    )
     .action(async function (this: Command, service: string | undefined) {
       const resolved = await resolveServiceArgument(program, container, service, {
         action: "test"
@@ -42,16 +50,25 @@ export function registerTestCommand(program: Command, container: CliContainer): 
         model?: string;
         hooksFrom?: string;
         hooksStrategy?: "auto" | "symlink" | "transform";
+        hooksScope?: HookBridgeOptions["scope"];
       }>();
       if (!opts.hooksFrom && opts.hooksStrategy) {
         this.outputHelp({ error: true });
         this.error("error: option '--hooks-strategy <strategy>' requires '--hooks-from <agentId>'");
       }
+      if (!opts.hooksFrom && opts.hooksScope) {
+        this.outputHelp({ error: true });
+        this.error("error: option '--hooks-scope <scope>' requires '--hooks-from <agentId>'");
+      }
       await executeTest(this, container, resolved, {
         isolated: Boolean(opts.isolated),
         model: opts.model,
         hooks: opts.hooksFrom
-          ? { from: opts.hooksFrom, strategy: opts.hooksStrategy ?? "auto" }
+          ? {
+              from: opts.hooksFrom,
+              strategy: opts.hooksStrategy ?? "auto",
+              ...(opts.hooksScope ? { scope: opts.hooksScope } : {})
+            }
           : undefined
       });
     });
@@ -64,7 +81,7 @@ export async function executeTest(
   options: {
     isolated?: boolean;
     model?: string;
-    hooks?: { from: string; strategy?: "auto" | "symlink" | "transform" };
+    hooks?: HookBridgeOptions;
   } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);

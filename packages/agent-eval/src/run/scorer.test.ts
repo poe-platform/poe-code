@@ -2,8 +2,9 @@ import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMockRunner } from "@poe-code/process-runner/testing";
-import type { Runner, RunSpec } from "@poe-code/process-runner";
+import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
 import type { EvalDef, ScorerSpec } from "../types.js";
+import { RUN_HANDLE_TERMINATION_GRACE_MS } from "./subprocess-termination.js";
 
 const mocks = vi.hoisted(() => ({
   createHostRunner: vi.fn(),
@@ -94,6 +95,7 @@ describe("runScorer", () => {
         CLONE_DIR: "/work/clone",
         ORACLE_DIR: "/work/eval/oracle"
       }),
+      killProcessGroup: true,
       stderr: "pipe",
       stdout: "pipe"
     });
@@ -387,6 +389,35 @@ describe("runScorer", () => {
     await expectation;
   });
 
+  it("escalates a timed-out custom scorer before reporting the timeout", async () => {
+    vi.useFakeTimers();
+    const runner = createStubbornRunner();
+    mocks.createHostRunner.mockReturnValue(runner);
+
+    const result = runScorer({
+      evalDef: createEvalDef({
+        scorer: createScorerSpec({
+          timeoutMs: 25
+        })
+      }),
+      evalDir: "/work/eval",
+      cloneDir: "/work/clone"
+    });
+    const settled = vi.fn();
+    void result.then(settled, settled);
+
+    await vi.advanceTimersByTimeAsync(25);
+    await Promise.resolve();
+
+    expect(runner.kills).toEqual(["SIGTERM"]);
+    expect(settled).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(RUN_HANDLE_TERMINATION_GRACE_MS);
+
+    await expect(result).rejects.toBeInstanceOf(ScorerTimeoutError);
+    expect(runner.kills).toEqual(["SIGTERM", "SIGKILL"]);
+  });
+
   it("rejects non-finite custom scorer result numbers", async () => {
     useMemfs({
       "/work/clone/score.json": '{"passed":1e309,"total":1e309,"cases":[{"name":"case","passed":true,"durationMs":1e309}]}'
@@ -472,6 +503,39 @@ function createRecordingRunner(
     exec(spec) {
       specs.push(spec);
       return runner.exec(spec);
+    }
+  };
+}
+
+function createStubbornRunner(): Runner & { specs: RunSpec[]; kills: NodeJS.Signals[] } {
+  const specs: RunSpec[] = [];
+  const kills: NodeJS.Signals[] = [];
+
+  return {
+    name: "stubborn",
+    specs,
+    kills,
+    exec(spec) {
+      specs.push(spec);
+      let resolveResult: ((result: { exitCode: number }) => void) | undefined;
+      const result = new Promise<{ exitCode: number }>((resolve) => {
+        resolveResult = resolve;
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin: null,
+        result,
+        kill(signal) {
+          if (typeof signal === "string") {
+            kills.push(signal);
+          }
+          if (signal === "SIGKILL") {
+            resolveResult?.({ exitCode: 1 });
+          }
+        }
+      } satisfies RunHandle;
     }
   };
 }

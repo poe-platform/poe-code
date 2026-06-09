@@ -35,9 +35,13 @@ function createFs(files: Record<string, string>): TestFs {
     fs: {
       readFile: (filePath: string, encoding: BufferEncoding) =>
         rawFs.readFile(filePath, encoding) as Promise<string>,
-      writeFile: async (filePath: string, content: string) => {
+      writeFile: async (
+        filePath: string,
+        content: string,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ) => {
         await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+        await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
       },
       readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
       stat: async (filePath: string) => {
@@ -51,12 +55,19 @@ function createFs(files: Record<string, string>): TestFs {
       mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
         await rawFs.mkdir(filePath, options);
       },
+      lstat: async (filePath: string) => {
+        const stat = await rawFs.lstat(filePath);
+        return { isSymbolicLink: () => stat.isSymbolicLink() };
+      },
       rmdir: async (filePath: string) => {
         await rawFs.rmdir(filePath);
       },
       rename: async (oldPath: string, newPath: string) => {
         await rawFs.mkdir(path.dirname(newPath), { recursive: true });
         await rawFs.rename(oldPath, newPath);
+      },
+      unlink: async (filePath: string) => {
+        await rawFs.unlink(filePath);
       }
     } as SuperintendentFileSystem
   };
@@ -388,6 +399,59 @@ describe("runLoop", () => {
       review_turn: 0
     });
   }, 15_000);
+
+  it("does not follow a document symlink inserted before status publish", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const outsidePath = "/outside/feature.md";
+    const { fs, rawFs } = createFs({
+      [docPath]: createDocument({ withInspectors: false }),
+      [outsidePath]: "outside-state\n"
+    });
+    const realWriteFile = fs.writeFile.bind(fs);
+    let plantedSymlink = false;
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      await realWriteFile(filePath, content, options);
+      if (
+        !plantedSymlink &&
+        filePath.startsWith(`/repo/docs/plans/.feature.md.${process.pid}.`) &&
+        filePath.endsWith(".tmp")
+      ) {
+        plantedSymlink = true;
+        await rawFs.unlink(docPath);
+        await rawFs.symlink(outsidePath, docPath);
+      }
+    });
+
+    runBuilderMock.mockResolvedValue({
+      summary: "Built",
+      log: "Built"
+    });
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Ready",
+      transition: {
+        action: "request_review",
+        summary: "Ready"
+      }
+    });
+    runOwnerReviewMock.mockResolvedValue({
+      transition: {
+        action: "approve_completion"
+      }
+    });
+
+    const result = await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners
+    });
+
+    expect(result.stopReason).toBe("completed");
+    expect(plantedSymlink).toBe(true);
+    expect((await rawFs.lstat(docPath)).isSymbolicLink()).toBe(false);
+    expect((await rawFs.readFile(outsidePath, "utf8")).toString()).toBe("outside-state\n");
+  });
 
   it("wraps each role execution through callbacks", async () => {
     const docPath = "/repo/docs/plans/plan.md";

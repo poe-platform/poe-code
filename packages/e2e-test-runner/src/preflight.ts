@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { access, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { color } from '@poe-code/design-system';
+import { color } from 'toolcraft-design';
 import { resolveBackend, type Backend } from './backend.js';
 import { hasApiKey } from './credentials.js';
 import { detectEngine } from './engine.js';

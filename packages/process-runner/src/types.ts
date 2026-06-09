@@ -23,6 +23,8 @@ export interface RunSpec {
   stderr?: "pipe" | "inherit";
   tty?: boolean;
   signal?: AbortSignal;
+  /** Start in a separate process group so kill() can signal the full group where supported. */
+  killProcessGroup?: boolean;
 }
 
 export interface Runner {
@@ -166,6 +168,7 @@ export interface DockerRunArgs {
   args: string[];
   cwd?: string;
   env?: Record<string, string>;
+  envFilePath?: string;
   mounts: DockerMount[];
   ports: DockerPortMapping[];
   network?: string;

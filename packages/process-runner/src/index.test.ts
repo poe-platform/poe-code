@@ -56,7 +56,8 @@ describe("@poe-code/process-runner public exports", () => {
       stdout: "pipe",
       stderr: "inherit",
       tty: true,
-      signal: new AbortController().signal
+      signal: new AbortController().signal,
+      killProcessGroup: true
     };
     const hostOptions: HostRunnerOptions = {
       detached: true

@@ -3,16 +3,14 @@ import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
+import { assertValidManagedProcessId } from "../process-id.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 function resolveProcessDir(stateDir: string, id: string): string {
-  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
-    throw new Error(`Invalid managed process id: ${id}`);
-  }
-
+  assertValidManagedProcessId(id);
   return path.join(stateDir, id);
 }
 
@@ -117,16 +115,25 @@ export function createStateStore(
   async function write(id: string, state: ProcessState): Promise<void> {
     const processDir = resolveProcessDir(stateDir, id);
     const statePath = path.join(processDir, "state.json");
-    const temporaryPath = `${statePath}.tmp`;
+    const temporaryPath = `${statePath}.${randomUUID()}.tmp`;
     await assertPathHasNoSymbolicLinks(fs, statePath);
     await fs.mkdir(processDir, { recursive: true });
     await assertPathHasNoSymbolicLinks(fs, statePath);
+    await assertPathHasNoSymbolicLinks(fs, temporaryPath);
 
+    let temporaryCreated = false;
     try {
-      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
+      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`, {
+        encoding: "utf8",
+        flag: "wx"
+      });
+      temporaryCreated = true;
+      await assertPathHasNoSymbolicLinks(fs, statePath);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
-      await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      if (temporaryCreated) {
+        await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      }
       throw error;
     }
   }

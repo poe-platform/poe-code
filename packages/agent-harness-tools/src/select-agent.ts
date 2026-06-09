@@ -1,7 +1,7 @@
 import { allAgents, parseAgentSpecifier, resolveAgentId } from "@poe-code/agent-defs";
 
-type Select = typeof import("@poe-code/design-system").select;
-type IsCancel = typeof import("@poe-code/design-system").isCancel;
+type Select = typeof import("toolcraft-design").select;
+type IsCancel = typeof import("toolcraft-design").isCancel;
 
 export interface ResolveLoopAgentInput {
   providedAgent?: string;
@@ -47,11 +47,11 @@ export async function resolveLoopAgent(
     return resolveSelectedAgent(input.frontmatterAgent);
   }
 
-  if (input.configuredDefaultAgent !== undefined && input.configuredDefaultAgent !== null) {
-    return resolveSelectedAgent(input.configuredDefaultAgent);
-  }
-
   if (input.assumeYes) {
+    if (input.configuredDefaultAgent !== undefined && input.configuredDefaultAgent !== null) {
+      return resolveSelectedAgent(input.configuredDefaultAgent);
+    }
+
     return resolveSelectedAgent(input.fallbackAgent);
   }
 

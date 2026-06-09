@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readdir, readFile } from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
+import { readdir, readFile, realpath } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
+import type { WorkspaceTransferFileSystem } from "../workspace-transfer.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
 
 const workspaceTransferMocks = vi.hoisted(() => ({
@@ -13,7 +15,8 @@ const workspaceTransferMocks = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
-  readdir: vi.fn()
+  readdir: vi.fn(),
+  realpath: vi.fn(async (filePath: string) => filePath)
 }));
 
 vi.mock("./engine.js", () => ({
@@ -45,6 +48,7 @@ describe("dockerExecutionEnvFactory", () => {
     vi.mocked(detectEngine).mockReturnValue("docker");
     vi.mocked(detectContext).mockReturnValue(null);
     vi.mocked(readdir).mockResolvedValue([]);
+    vi.mocked(realpath).mockImplementation(async (filePath) => String(filePath));
     workspaceTransferMocks.uploadWorkspace.mockResolvedValue({ files: 0, bytes: 0, skipped: [] });
     workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
   });
@@ -248,6 +252,39 @@ describe("dockerExecutionEnvFactory", () => {
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
+  it("rejects dockerfile template build contexts outside the runtime cwd", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0 }]);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+
+    await expect(
+      buildDockerRuntimeTemplate({
+        cwd: "/repo/project",
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: "..",
+          build_args: {}
+        },
+        runner
+      })
+    ).rejects.toThrow("runtime.build_context must remain inside runtime cwd /repo/project.");
+
+    await expect(
+      buildDockerRuntimeTemplate({
+        cwd: "/repo/project",
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: "/tmp/context",
+          build_args: {}
+        },
+        runner
+      })
+    ).rejects.toThrow("runtime.build_context must remain inside runtime cwd /repo/project.");
+    expect(readFile).not.toHaveBeenCalled();
+    expect(runner.specs).toEqual([]);
+  });
+
   it("builds and caches a dockerfile image on template cache miss with sorted build args", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0 },
@@ -371,13 +408,62 @@ describe("dockerExecutionEnvFactory", () => {
 
     expect(runner.specs[1]).toEqual({
       command: "docker",
-      args: ["exec", "-i", "-t", "-w", "/workspace", "-e", "A=1", "container-id", "printf", "ok"],
+      args: [
+        "exec",
+        "-i",
+        "-t",
+        "-w",
+        "/workspace",
+        "--env-file",
+        expect.stringMatching(/poe-docker-env-.+\/env$/),
+        "container-id",
+        "printf",
+        "ok"
+      ],
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
       tty: true
     });
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("keeps docker exec env values out of argv", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["ok\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+
+    const handle = env.exec({
+      command: "printf",
+      args: ["ok"],
+      env: { SECRET_TOKEN: "sk-secret" },
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+    const args = runner.specs[1]?.args ?? [];
+    const envFileIndex = args.indexOf("--env-file");
+    const envFilePath = args[envFileIndex + 1];
+
+    expect(envFileIndex).toBeGreaterThanOrEqual(0);
+    expect(args.join("\0")).not.toContain("sk-secret");
+    expect(envFilePath).toEqual(expect.stringMatching(/poe-docker-env-.+\/env$/));
+    expect(readFileSync(envFilePath ?? "", "utf8")).toBe("SECRET_TOKEN=sk-secret\n");
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(existsSync(envFilePath ?? "")).toBe(false);
   });
 
   it("forwards command cancellation signals to docker exec", async () => {
@@ -474,6 +560,43 @@ describe("dockerExecutionEnvFactory", () => {
       expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
       { conflictPolicy: "overwrite" }
     );
+  });
+
+  it("reports container workspace symlinks without following them", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["linked\tl\t0\n"] }
+    ]);
+    workspaceTransferMocks.downloadWorkspace.mockImplementationOnce(
+      async (transferEnv: { remoteFs: WorkspaceTransferFileSystem }) => {
+        const entries = await transferEnv.remoteFs.readdir("/repo", { withFileTypes: true });
+        expect(entries).toHaveLength(1);
+        expect(entries[0]?.name).toBe("linked");
+        expect(entries[0]?.isSymbolicLink?.()).toBe(true);
+        expect(entries[0]?.isDirectory()).toBe(false);
+        expect(entries[0]?.isFile()).toBe(false);
+        return { files: 0, bytes: 0, conflicts: [] };
+      }
+    );
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs[1]?.args?.at(-1)).toContain('[ -L "$item" ]');
   });
 
   it("skips workspace transfers when synchronization is disabled", async () => {
@@ -828,6 +951,45 @@ describe("dockerExecutionEnvFactory", () => {
       vi.useRealTimers();
     }
   });
+
+  it("preserves UTF-8 characters split across detached log polling reads", async () => {
+    vi.useFakeTimers();
+    const bytes = Buffer.from("🧪\n", "utf8");
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: [bytes.subarray(0, 2)] },
+      { exitCode: 0, stdout: [] },
+      { exitCode: 0, stdout: [bytes.subarray(2)] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    try {
+      const chunks: Array<{ byteOffset: number; data: string }> = [];
+      const reading = (async () => {
+        for await (const chunk of job.stream({ follow: true })) {
+          chunks.push(chunk);
+        }
+      })();
+      await vi.advanceTimersByTimeAsync(250);
+      await reading;
+
+      expect(chunks).toEqual([{ byteOffset: 0, data: "🧪\n" }]);
+      expect(runner.specs[2]?.args?.at(-1)).toContain("tail -c +3");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {
@@ -869,7 +1031,7 @@ function createState(template: unknown) {
 }
 
 function createCapturingRunner(
-  results: Array<{ exitCode: number; stdout?: string[]; stderr?: string[] }>
+  results: Array<{ exitCode: number; stdout?: Array<string | Uint8Array>; stderr?: Array<string | Uint8Array> }>
 ): Runner & { specs: RunSpec[] } {
   const specs: RunSpec[] = [];
   const runner: Runner & { specs: RunSpec[] } = {
@@ -891,8 +1053,8 @@ function createCapturingRunner(
 
 function createHandle(result: {
   exitCode: number;
-  stdout?: string[];
-  stderr?: string[];
+  stdout?: Array<string | Uint8Array>;
+  stderr?: Array<string | Uint8Array>;
 }): RunHandle {
   return {
     pid: 123,
@@ -904,6 +1066,6 @@ function createHandle(result: {
   };
 }
 
-function ReadableStreamFrom(chunks: string[]): NodeJS.ReadableStream {
+function ReadableStreamFrom(chunks: Array<string | Uint8Array>): NodeJS.ReadableStream {
   return Readable.from(chunks);
 }

@@ -136,7 +136,8 @@ export function createOpenedE2bEnv(input: {
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
-        tty: true
+        tty: true,
+        signal: shellSpec?.signal
       }, shellSpec === undefined ? undefined : shellCommand([command, ...(shellSpec.args ?? [])]));
     },
     async close() {
@@ -295,6 +296,10 @@ function ignoreAsyncFailure(value: unknown): void {
 }
 
 function runE2bPty(sandbox: E2bSandbox, spec: RunSpec, startupCommand?: string): RunHandle {
+  if (spec.signal?.aborted === true) {
+    return createCancelledRunHandle(spec);
+  }
+
   const stdout = new PassThrough();
   let handleRef: E2bCommandHandle | null = null;
   const stdin = new Writable({
@@ -320,6 +325,13 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec, startupCommand?: string):
       }
     }
   });
+  const cleanupAbort = bindAbortSignal(spec.signal, () => {
+    if (handleRef !== null) {
+      ignoreAsyncFailure(sandbox.pty.kill(handleRef.pid));
+      return;
+    }
+    void started.then((handle) => ignoreAsyncFailure(sandbox.pty.kill(handle.pid)), () => undefined);
+  });
   const cleanupInheritedStdin =
     spec.stdin === "inherit"
       ? bindInheritedStdin((chunk) => {
@@ -338,11 +350,13 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec, startupCommand?: string):
     })
     .then(
       (result) => {
+        cleanupAbort();
         cleanupInheritedStdin();
         stdout.end();
         return { exitCode: result.exitCode ?? 0 };
       },
       (error: unknown) => {
+        cleanupAbort();
         cleanupInheritedStdin();
         stdout.end();
         throw error;

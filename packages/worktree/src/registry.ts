@@ -38,13 +38,17 @@ export async function writeRegistry(
   await assertPathHasNoSymbolicLinks(registryFile, fs);
   const yaml = stringify(registry, { lineWidth: 0 });
   const temporaryFile = `${registryFile}.tmp-${randomUUID()}`;
+  let temporaryCreated = false;
   try {
     await assertPathHasNoSymbolicLinks(temporaryFile, fs);
-    await fs.writeFile(temporaryFile, yaml, { encoding: "utf8" });
+    await fs.writeFile(temporaryFile, yaml, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
     await assertPathHasNoSymbolicLinks(registryFile, fs);
     await fs.rename(temporaryFile, registryFile);
   } catch (error) {
-    await fs.unlink(temporaryFile).catch(() => undefined);
+    if (temporaryCreated) {
+      await fs.unlink(temporaryFile).catch(() => undefined);
+    }
     throw error;
   }
 }

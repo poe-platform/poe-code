@@ -1,6 +1,7 @@
 import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
 import { runCommand } from "@poe-code/agent-spawn";
 import { UserError } from "toolcraft";
+import { workflowSubprocessTimeoutMs } from "./subprocess-timeout.js";
 import type { AutomationDefinition } from "./types.js";
 
 function formatCommand(command: string, args: string[]): string {
@@ -34,7 +35,10 @@ async function runPoeCodeCommand(
   cwd: string,
   runner: CommandRunner
 ): Promise<void> {
-  const result = await runner("poe-code", args, { cwd });
+  const result = await runner("poe-code", args, {
+    cwd,
+    timeoutMs: workflowSubprocessTimeoutMs
+  });
   if (result.exitCode !== 0) {
     throw new UserError(formatCommandFailure("poe-code", args, result));
   }

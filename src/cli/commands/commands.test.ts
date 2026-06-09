@@ -455,7 +455,7 @@ describe("configure command", () => {
     ]);
   });
 
-  it("uses core.defaultAgent without prompting when no agent is provided", async () => {
+  it("prompts for an agent when core.defaultAgent is configured without --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -463,13 +463,19 @@ describe("configure command", () => {
       `${JSON.stringify({ core: { defaultAgent: "claude-code" } }, null, 2)}\n`,
       { encoding: "utf8" }
     );
+    prompts.mockImplementation(async (descriptor) => ({ [descriptor.name]: "codex" }));
 
     const program = createTestProgram();
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
-    ).resolves.toBe("claude-code");
-    expect(prompts).not.toHaveBeenCalled();
+    ).resolves.toBe("codex");
+    expect(prompts).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "serviceSelection",
+        message: "Pick a tool to configure:"
+      })
+    );
   });
 
   it("prefers an explicit agent over core.defaultAgent", async () => {
@@ -489,7 +495,7 @@ describe("configure command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("prefers core.defaultAgent over --yes", async () => {
+  it("uses core.defaultAgent with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -516,7 +522,7 @@ describe("configure command", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
-  it("throws a ValidationError for an invalid core.defaultAgent before prompting", async () => {
+  it("throws a ValidationError for an invalid core.defaultAgent with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -526,7 +532,7 @@ describe("configure command", () => {
     );
 
     const invokeSpy = vi.spyOn(container.registry, "invoke");
-    const program = createTestProgram();
+    const program = createTestProgram(["node", "cli", "--yes"]);
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
@@ -535,7 +541,7 @@ describe("configure command", () => {
     expect(invokeSpy).not.toHaveBeenCalled();
   });
 
-  it("drops the model portion of core.defaultAgent for configure", async () => {
+  it("drops the model portion of core.defaultAgent for configure with --yes", async () => {
     const { container, prompts } = createContainer();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -548,7 +554,7 @@ describe("configure command", () => {
       { encoding: "utf8" }
     );
 
-    const program = createTestProgram();
+    const program = createTestProgram(["node", "cli", "--yes"]);
 
     await expect(
       resolveServiceArgument(program, container, undefined, { action: "configure" })
@@ -807,6 +813,40 @@ describe("generate command", () => {
     nowSpy.mockRestore();
   });
 
+  it("sanitizes response MIME subtypes before generating default output paths", async () => {
+    const { program, fs } = createGenerateProgram();
+    await fs.mkdir("/outside", { recursive: true });
+    const client: LlmClient = {
+      text: vi.fn(async () => ({ content: "ok" })),
+      media: vi.fn(async () => ({
+        url: "https://example.com/image",
+        mimeType: "image/../../../outside/owned.png"
+      }))
+    };
+    setGlobalClient(client);
+
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(1737984000);
+
+    const fetchMock = vi.mocked(global.fetch as unknown as ReturnType<typeof vi.fn>);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      arrayBuffer: async () => new Uint8Array([4, 3, 2]).buffer
+    } as unknown as Response);
+
+    try {
+      await program.parseAsync(["node", "cli", "generate", "image", "A sunset"]);
+
+      const saved = await fs.readFile("/repo/image-1737984000.bin");
+      expect(saved).toEqual(Buffer.from([4, 3, 2]));
+      await expect(fs.readFile("/outside/owned.png")).rejects.toThrow();
+
+      const output = stdoutSpy.mock.calls.map((c: unknown[]) => c[0]).join("");
+      expect(output).toContain("./image-1737984000.bin");
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
   it("uses provided output path for image generation", async () => {
     const { program, fs } = createGenerateProgram();
     const client: LlmClient = {
@@ -1021,7 +1061,7 @@ describe("install command", () => {
     expect(install).toHaveBeenCalledOnce();
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -1043,7 +1083,7 @@ describe("install command", () => {
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "install"]);
+    await program.parseAsync(["node", "cli", "--yes", "install"]);
 
     expect(install).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();
@@ -1701,10 +1741,32 @@ describe("test command", () => {
       "--hooks-from",
       "claude-code",
       "--hooks-strategy",
-      "transform"
+      "transform",
+      "--hooks-scope",
+      "user"
     ]);
 
-    expect(receivedHooks).toEqual({ from: "claude-code", strategy: "transform" });
+    expect(receivedHooks).toEqual({ from: "claude-code", strategy: "transform", scope: "user" });
+  });
+
+  it("requires --hooks-from when --hooks-scope is provided to tests", async () => {
+    const container = createTestContainer();
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test() {}
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+    const testCommand = program.commands.find((command) => command.name() === "test");
+    testCommand?.configureOutput({ writeErr: () => {} });
+
+    await expect(
+      program.parseAsync(["node", "cli", "test", "demo-service", "--hooks-scope", "project"])
+    ).rejects.toThrow("--hooks-from");
   });
 
   it("model is undefined when --model is not provided", async () => {
@@ -1790,7 +1852,7 @@ describe("test command", () => {
     );
   });
 
-  it("uses core.defaultAgent for test without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for test with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(
@@ -1821,7 +1883,7 @@ describe("test command", () => {
     const program = createBaseProgram();
     registerTestCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "test"]);
+    await program.parseAsync(["node", "cli", "--yes", "test"]);
 
     expect(testFn).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();

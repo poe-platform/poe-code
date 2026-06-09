@@ -43,6 +43,7 @@
   - [generateVideo()](#generatevideo)
   - [generateAudio()](#generateaudio)
   - [getPoeApiKey()](#getpoeapikey)
+  - [getPoeAuthIdentity()](#getpoeauthidentity)
   - [Types](#sdk-types)
 - [Providers](#providers)
   - [Claude Code](#claude-code-provider)
@@ -162,7 +163,7 @@ poe-code configure [agent]
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`, `goose`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
+| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`, `goose`. Prompts if omitted. With `--yes`, uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set; otherwise uses `claude-code`. |
 
 **Options:**
 
@@ -175,7 +176,7 @@ poe-code configure [agent]
 
 **Behavior:**
 
-1. Resolves the agent (explicit arg > `core.defaultAgent` / `POE_DEFAULT_AGENT` > `--yes` fallback > prompt)
+1. Resolves the agent (explicit arg > prompt; with `--yes`, `core.defaultAgent` / `POE_DEFAULT_AGENT` > `claude-code` fallback)
 2. Resolves the provider (`--provider` → `POE_CODE_PROVIDER` → logged-in provider selection/prompt)
 3. Ensures the selected provider is logged in; if not, runs that provider's login flow using `--api-key`, the provider env var, or an interactive secret prompt
 4. Collects agent-specific options (model, reasoning effort) via prompts or flags
@@ -299,7 +300,7 @@ Running `poe-code auth` with no subcommand is the same as `poe-code auth status`
 |------------|-------------|
 | `status` | Show whether a stored Poe credential is valid and print the account name/handle. Honors `--dry-run` by skipping the `/whoami` request. |
 | `api-key` | Print the stored Poe API key only. Exits with code `1` when no key is stored. |
-| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout with a trailing newline. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
+| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
 | `login` | Store a Poe API key for reuse across commands. Same behavior as top-level `poe-code login`. |
 | `logout` | Remove all configuration and credentials. Same behavior as top-level `poe-code logout`. |
 
@@ -394,7 +395,10 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | `-C, --cwd <path>` | Current dir | Working directory for the agent. |
 | `--stdin` | `false` | Read the prompt from stdin. |
 | `-i, --interactive` | `false` | Launch in interactive TUI mode (inherits stdio). |
-| `--mode <mode>` | `yolo` | Permission mode: `yolo` (full access), `edit` (file edits only), `read` (read-only). |
+| `--mode <mode>` | Prompts (`--yes`: `yolo`) | Permission mode: `yolo` (full access), `edit` (file edits only), `read` (read-only). Non-TTY runs must pass `--mode` or `--yes`. |
+| `--resume-thread-id <id>` | None | Resume a prior provider thread/session before sending the prompt. |
+| `--log-dir <path>` | Default log dir | Directory override for ACP JSONL spawn logs. |
+| `--log-file-name <name>` | Generated | Filename override for the spawn log. Requires `--log-dir`. |
 | `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
 
 **Behavior:**
@@ -867,7 +871,7 @@ poe-code mcp configure [agent]
 
 | Option | Description |
 |--------|-------------|
-| `-y, --yes` | Skip prompt. Uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set; otherwise defaults to claude-code. |
+| `-y, --yes` | Skip agent prompt. Uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set; otherwise defaults to `claude-code`. Without `--yes`, an omitted agent always prompts and non-TTY runs must pass an agent. |
 
 **Supported agents and their MCP config locations:**
 
@@ -888,7 +892,7 @@ poe-code mcp configure [agent]
 poe-code mcp configure claude-code
 poe-code mcp configure codex
 poe-code mcp configure goose
-poe-code mcp configure --yes  # defaults to claude-code
+poe-code mcp configure --yes  # uses configured default, or claude-code when none is set
 ```
 
 #### `mcp unconfigure`
@@ -970,7 +974,7 @@ poe-code pipeline run [--plan <path> | --plans <paths...>]
 
 | Option | Description |
 |--------|-------------|
-| `--agent <name>` | Agent for pipeline steps. Resolution order: explicit flag → `core.defaultAgent` / `POE_DEFAULT_AGENT` → `--yes` fallback (`claude-code`) → prompt. |
+| `--agent <name>` | Agent for pipeline steps. Without `--yes`, omission prompts even when a default agent is configured. With `--yes`, omission uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set, otherwise `claude-code`. |
 | `--model <model>` | Model override passed to the selected agent. |
 | `--tui` / `--no-tui` | Enable or disable the live pipeline dashboard for this run. |
 | `--task <id>` | Run only a single task ID from the plan. |
@@ -1298,9 +1302,22 @@ const apiKey = await getPoeApiKey();
 **Resolution order:**
 
 1. `POE_API_KEY` environment variable
-2. `~/.poe-code/credentials.json` file
+2. `~/.poe-code/credentials.enc` file
 
 **Throws** `Error` if no credentials found. Error message: `"No API key found. Set POE_API_KEY or run 'poe-code login'."`
+
+### getPoeAuthIdentity()
+
+Fetch the authenticated Poe account identity using the resolved API key.
+
+```typescript
+import { getPoeAuthIdentity } from "poe-code";
+
+const identity = await getPoeAuthIdentity();
+console.log(identity.name, identity.handle);
+```
+
+Uses `POE_API_KEY` or the stored credential, honors `POE_BASE_URL`, and throws an API error when Poe rejects the credential.
 
 ### SDK Types
 
@@ -1331,6 +1348,18 @@ interface SpawnOptions {
   args?: string[];
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
+  /** Resume a prior provider thread/session before sending the prompt */
+  resumeThreadId?: string;
+  /** Directory override for ACP JSONL spawn logs */
+  logDir?: string;
+  /** Filename override for the spawn log. Requires logDir */
+  logFileName?: string;
+  /** Include message/tool content in ACP JSONL logs. Defaults to redacted logs */
+  logContent?: boolean;
+  /** Send the prompt over stdin when the provider supports it */
+  useStdin?: boolean;
+  /** Kill the process after this many milliseconds of stdout/stderr inactivity */
+  activityTimeoutMs?: number;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
 }
@@ -2105,11 +2134,17 @@ cat prompt.txt | poe-code spawn claude-code
 
 ### Resume Sessions
 
-After a spawn completes, if the agent returns a thread ID, a resume command is displayed:
+After a spawn completes, if the agent returns a thread ID, the CLI displays the native provider resume command. Poe Code callers can also resume through the normalized CLI flag or SDK option:
 
+```bash
+poe-code spawn claude-code --resume-thread-id abc123 "Continue from the last answer"
 ```
-To resume this session:
-  poe-code spawn claude-code -- --resume abc123
+
+```typescript
+const { result } = spawn("claude-code", {
+  prompt: "Continue from the last answer",
+  resumeThreadId: "abc123"
+});
 ```
 
 **Resume command format per agent:**
@@ -2696,6 +2731,7 @@ export { generateImage } from "poe-code";   // Image generation
 export { generateVideo } from "poe-code";   // Video generation
 export { generateAudio } from "poe-code";   // Audio generation
 export { getPoeApiKey } from "poe-code";    // API key resolution
+export { getPoeAuthIdentity } from "poe-code"; // Poe account identity
 export {
   agent,
   openaiChatCompletionsPlugin,

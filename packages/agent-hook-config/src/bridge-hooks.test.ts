@@ -302,6 +302,16 @@ describe("bridgeHooks", () => {
     expect(vol.existsSync("/outside/hooks.json")).toBe(false);
   });
 
+  it("rejects a symlinked same-format target parent directory", () => {
+    vol.mkdirSync("/outside", { recursive: true });
+    fs.symlinkSync("/outside", path.join(cwd, ".claude"));
+
+    expect(() => bridgeHooks("claude-code", "claude-code", cwd, homeDir, runId)).toThrow(
+      /symbolic link/
+    );
+    expect(vol.existsSync("/outside/settings.json")).toBe(false);
+  });
+
   it("preserves the hook file when cleanup rewrite fails", () => {
     vol.mkdirSync(path.dirname(targetPath), { recursive: true });
     vol.writeFileSync(targetPath, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user" }] }] } }));
@@ -318,6 +328,21 @@ describe("bridgeHooks", () => {
 
     expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup rename failed");
     expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
+  });
+
+  it("ignores a preexisting legacy cleanup temp symlink", () => {
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync("/outside/hooks.tmp", "outside-state\n");
+    const legacyTemporaryPath = `${targetPath}.cleanup-tmp`;
+    vol.symlinkSync("/outside/hooks.tmp", legacyTemporaryPath);
+
+    cleanupBridgedHooks(manifest);
+
+    expect(vol.readFileSync("/outside/hooks.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(legacyTemporaryPath).isSymbolicLink()).toBe(true);
+    expect(vol.existsSync(targetPath)).toBe(false);
   });
 
   it("removes a bridge symlink only while it still targets its source", () => {

@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import path from "node:path";
 
@@ -19,7 +20,6 @@ function defaultGitDirRunner(cwd: string): string | undefined {
 }
 
 let gitDirRunner: GitDirRunner = defaultGitDirRunner;
-let tempFileCounter = 0;
 
 export function setGitDirRunnerForTest(runner: GitDirRunner): () => void {
   const previous = gitDirRunner;
@@ -92,15 +92,20 @@ function writeExcludeFile(excludePath: string, content: string): void {
   assertNoSymbolicLink(excludePath);
   fs.mkdirSync(path.dirname(excludePath), { recursive: true });
   assertNoSymbolicLink(excludePath);
-  const tempPath = `${excludePath}.poe-code-${process.pid}-${tempFileCounter++}.tmp`;
+  const tempPath = `${excludePath}.poe-code-${process.pid}-${randomUUID()}.tmp`;
+  let tempCreated = false;
   try {
-    fs.writeFileSync(tempPath, content, "utf8");
+    assertNoSymbolicLink(tempPath);
+    fs.writeFileSync(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
     fs.renameSync(tempPath, excludePath);
   } catch (error) {
-    try {
-      fs.rmSync(tempPath, { force: true });
-    } catch (cleanupError) {
-      void cleanupError;
+    if (tempCreated) {
+      try {
+        fs.rmSync(tempPath, { force: true });
+      } catch (cleanupError) {
+        void cleanupError;
+      }
     }
     throw error;
   }

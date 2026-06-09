@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { allAgents, resolveAgentId, type AgentDefinition } from "@poe-code/agent-defs";
 import { createTimestamp, readFileIfExists, type FileSystem } from "@poe-code/config-mutations";
@@ -345,15 +346,52 @@ async function recoverInvalidConfig(
   filePath: string,
   content: string
 ): Promise<void> {
-  const backupPath = createInvalidBackupPath(filePath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
-  await fs.writeFile(filePath, EMPTY_DOCUMENT, { encoding: "utf8" });
+  await writeInvalidBackup(fs, filePath, content);
+  await writeFileAtomically(fs, filePath, EMPTY_DOCUMENT);
 }
 
 function createInvalidBackupPath(filePath: string): string {
   const directory = path.dirname(filePath);
   const baseName = path.basename(filePath);
   return path.join(directory, `${baseName}.invalid-${createTimestamp()}.json`);
+}
+
+async function writeInvalidBackup(fs: FileSystem, filePath: string, content: string): Promise<void> {
+  const backupPath = createInvalidBackupPath(filePath);
+  const backupStem = backupPath.slice(0, -".json".length);
+
+  for (let suffix = 0; ; suffix += 1) {
+    const candidate = suffix === 0 ? backupPath : `${backupStem}-${suffix}.json`;
+
+    try {
+      await fs.writeFile(candidate, content, { encoding: "utf8", flag: "wx" });
+      return;
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        throw error;
+      }
+    }
+  }
+}
+
+async function writeFileAtomically(fs: FileSystem, filePath: string, content: string): Promise<void> {
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let tempCreated = false;
+
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    if (tempCreated || !isAlreadyExists(error)) {
+      await fs.unlink(tempPath).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {

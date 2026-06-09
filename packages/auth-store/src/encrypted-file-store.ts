@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes, scrypt } from "node:crypto";
+import { createCipheriv, createDecipheriv, randomBytes, randomUUID, scrypt } from "node:crypto";
 import { promises as fs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
@@ -12,8 +12,6 @@ const ENCRYPTION_KEY_BYTES = 32;
 const ENCRYPTION_IV_BYTES = 12;
 const ENCRYPTION_AUTH_TAG_BYTES = 16;
 const ENCRYPTION_FILE_MODE = 0o600;
-
-let temporaryFileSequence = 0;
 
 interface EncryptedDocument {
   version: number;
@@ -55,6 +53,7 @@ export interface EncryptedFileStoreInput {
 export class EncryptedFileStore implements SecretStore {
   private readonly fs: EncryptedFileStoreFileSystem;
   private readonly filePath: string;
+  private readonly symbolicLinkCheckStartPath: string | null;
   private readonly salt: string;
   private readonly getMachineIdentity: () => MachineIdentity | Promise<MachineIdentity>;
   private readonly getRandomBytes: (size: number) => Buffer;
@@ -63,17 +62,28 @@ export class EncryptedFileStore implements SecretStore {
   constructor(input: EncryptedFileStoreInput) {
     this.fs = input.fs ?? fs;
     this.salt = input.salt;
-    this.filePath = input.filePath ?? path.join(
-      (input.getHomeDirectory ?? homedir)(),
-      input.defaultDirectory ?? ".auth-store",
-      input.defaultFileName ?? "credentials.enc"
-    );
+    if (input.filePath === undefined) {
+      const homeDirectory = (input.getHomeDirectory ?? homedir)();
+      const defaultDirectory = input.defaultDirectory ?? ".auth-store";
+      this.filePath = path.join(
+        homeDirectory,
+        defaultDirectory,
+        input.defaultFileName ?? "credentials.enc"
+      );
+      this.symbolicLinkCheckStartPath = resolveDefaultDirectoryCheckStart(
+        homeDirectory,
+        defaultDirectory
+      );
+    } else {
+      this.filePath = input.filePath;
+      this.symbolicLinkCheckStartPath = null;
+    }
     this.getMachineIdentity = input.getMachineIdentity ?? defaultMachineIdentity;
     this.getRandomBytes = input.getRandomBytes ?? randomBytes;
   }
 
   async get(): Promise<string | null> {
-    await this.assertRegularCredentialPath();
+    await this.assertCredentialPathHasNoSymbolicLinks(this.filePath);
     let rawDocument: string;
     try {
       rawDocument = await this.fs.readFile(this.filePath, "utf8");
@@ -113,7 +123,7 @@ export class EncryptedFileStore implements SecretStore {
   }
 
   async set(value: string): Promise<void> {
-    await this.assertRegularCredentialPath();
+    await this.assertCredentialPathHasNoSymbolicLinks(this.filePath);
     const key = await this.getEncryptionKey();
     const iv = this.getRandomBytes(ENCRYPTION_IV_BYTES);
     const cipher = createCipheriv(ENCRYPTION_ALGORITHM, key, iv);
@@ -131,19 +141,22 @@ export class EncryptedFileStore implements SecretStore {
     };
 
     await this.fs.mkdir(path.dirname(this.filePath), { recursive: true });
-    await this.assertRegularCredentialPath();
-    const temporaryPath = `${this.filePath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+    await this.assertCredentialPathHasNoSymbolicLinks(this.filePath);
+    const temporaryPath = `${this.filePath}.${process.pid}.${randomUUID()}.tmp`;
+    let temporaryCreated = false;
 
     try {
+      await this.assertCredentialPathHasNoSymbolicLinks(temporaryPath);
       await this.fs.writeFile(temporaryPath, JSON.stringify(document), {
         encoding: "utf8",
         flag: "wx",
         mode: ENCRYPTION_FILE_MODE
       });
+      temporaryCreated = true;
       await this.fs.chmod(temporaryPath, ENCRYPTION_FILE_MODE);
       await this.fs.rename(temporaryPath, this.filePath);
     } catch (error) {
-      if (!isAlreadyExistsError(error)) {
+      if (temporaryCreated) {
         await removeIfPresent(this.fs, temporaryPath).catch(() => undefined);
       }
       throw error;
@@ -151,7 +164,7 @@ export class EncryptedFileStore implements SecretStore {
   }
 
   async delete(): Promise<void> {
-    await this.assertRegularCredentialPath();
+    await this.assertCredentialPathHasNoSymbolicLinks(this.filePath);
     try {
       await this.fs.unlink(this.filePath);
     } catch (error) {
@@ -161,9 +174,12 @@ export class EncryptedFileStore implements SecretStore {
     }
   }
 
-  private async assertRegularCredentialPath(): Promise<void> {
-    const resolvedPath = path.resolve(this.filePath);
-    const protectedPaths = [path.dirname(resolvedPath), resolvedPath];
+  private async assertCredentialPathHasNoSymbolicLinks(targetPath: string): Promise<void> {
+    const resolvedPath = path.resolve(targetPath);
+    const protectedPaths = getProtectedCredentialPaths(
+      resolvedPath,
+      this.symbolicLinkCheckStartPath
+    );
 
     for (const currentPath of protectedPaths) {
       try {
@@ -194,6 +210,41 @@ export class EncryptedFileStore implements SecretStore {
   }
 }
 
+function resolveDefaultDirectoryCheckStart(
+  homeDirectory: string,
+  defaultDirectory: string
+): string {
+  const [firstSegment] = defaultDirectory.split(/[\\/]+/).filter(Boolean);
+  return path.resolve(homeDirectory, firstSegment ?? ".");
+}
+
+function getProtectedCredentialPaths(
+  resolvedPath: string,
+  symbolicLinkCheckStartPath: string | null
+): string[] {
+  if (symbolicLinkCheckStartPath === null) {
+    return [path.dirname(resolvedPath), resolvedPath];
+  }
+
+  const resolvedStartPath = path.resolve(symbolicLinkCheckStartPath);
+  if (!isPathInsideOrEqual(resolvedPath, resolvedStartPath)) {
+    return [path.dirname(resolvedPath), resolvedPath];
+  }
+
+  const protectedPaths = [resolvedStartPath];
+  let currentPath = resolvedStartPath;
+  for (const segment of path.relative(resolvedStartPath, resolvedPath).split(path.sep).filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+    protectedPaths.push(currentPath);
+  }
+  return protectedPaths;
+}
+
+function isPathInsideOrEqual(childPath: string, parentPath: string): boolean {
+  const relativePath = path.relative(parentPath, childPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
+}
+
 async function removeIfPresent(fileSystem: EncryptedFileStoreFileSystem, filePath: string): Promise<void> {
   try {
     await fileSystem.unlink(filePath);
@@ -202,15 +253,6 @@ async function removeIfPresent(fileSystem: EncryptedFileStoreFileSystem, filePat
       throw error;
     }
   }
-}
-
-function isAlreadyExistsError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
 }
 
 function defaultMachineIdentity(): MachineIdentity {

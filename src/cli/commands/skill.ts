@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { select, isCancel, cancel } from "@poe-code/design-system";
+import { select, isCancel, cancel } from "toolcraft-design";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import {
@@ -14,6 +14,44 @@ import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
 
 const DEFAULT_SKILL_AGENT = "claude-code";
+
+async function resolveSkillAgent(input: {
+  agentArg: string | undefined;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  promptMessage: string;
+}): Promise<string | undefined> {
+  if (input.agentArg) {
+    return input.agentArg;
+  }
+
+  if (input.flags.assumeYes) {
+    const fromConfig = await resolveDefaultAgent(input.container, { readOnly: input.flags.dryRun });
+    return fromConfig !== null
+      ? parseAgentSpecifier(fromConfig).agent
+      : DEFAULT_SKILL_AGENT;
+  }
+
+  assertInteractivePromptAvailable(
+    "Skill agent selection requires an agent or --yes when running without an interactive TTY."
+  );
+
+  const selected = await select({
+    message: input.promptMessage,
+    options: supportedAgents.map((agent) => ({ value: agent, label: agent }))
+  });
+  if (isCancel(selected)) {
+    cancel("Operation cancelled");
+    return undefined;
+  }
+  return selected as string;
+}
+
+function assertInteractivePromptAvailable(message: string): void {
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(message);
+  }
+}
 
 export function registerSkillCommand(program: Command, container: CliContainer): void {
   const skill = program
@@ -48,24 +86,14 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         throw new ValidationError("Use either --local or --global, not both.");
       }
 
-      let agent: string | undefined = agentArg;
+      const agent = await resolveSkillAgent({
+        agentArg,
+        container,
+        flags,
+        promptMessage: "Select agent to configure:"
+      });
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-        if (fromConfig !== null) {
-          agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (flags.assumeYes) {
-          agent = DEFAULT_SKILL_AGENT;
-        } else {
-          const selected = await select({
-            message: "Select agent to configure:",
-            options: supportedAgents.map((a) => ({ value: a, label: a }))
-          });
-          if (isCancel(selected)) {
-            cancel("Operation cancelled");
-            return;
-          }
-          agent = selected as string;
-        }
+        return;
       }
 
       const support = resolveAgentSupport(agent);
@@ -87,6 +115,9 @@ export function registerSkillCommand(program: Command, container: CliContainer):
       } else if (flags.assumeYes) {
         scope = "global";
       } else {
+        assertInteractivePromptAvailable(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        );
         const selected = await select({
           message: "Select scope:",
           options: [
@@ -152,24 +183,14 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         throw new ValidationError("Use either --local or --global, not both.");
       }
 
-      let agent: string | undefined = agentArg;
+      const agent = await resolveSkillAgent({
+        agentArg,
+        container,
+        flags,
+        promptMessage: "Select agent to unconfigure:"
+      });
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-        if (fromConfig !== null) {
-          agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (flags.assumeYes) {
-          agent = DEFAULT_SKILL_AGENT;
-        } else {
-          const selected = await select({
-            message: "Select agent to unconfigure:",
-            options: supportedAgents.map((a) => ({ value: a, label: a }))
-          });
-          if (isCancel(selected)) {
-            cancel("Operation cancelled");
-            return;
-          }
-          agent = selected as string;
-        }
+        return;
       }
 
       const support = resolveAgentSupport(agent);
@@ -188,7 +209,12 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         scope = "local";
       } else if (options.global) {
         scope = "global";
+      } else if (flags.assumeYes) {
+        scope = "global";
       } else {
+        assertInteractivePromptAvailable(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        );
         const selected = await select({
           message: "Select scope:",
           options: [

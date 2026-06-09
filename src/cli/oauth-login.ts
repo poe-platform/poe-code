@@ -2,7 +2,7 @@ import { exec } from "node:child_process";
 import readline from "node:readline";
 import type { Readable } from "node:stream";
 import { createOAuthClient } from "poe-oauth";
-import { text, log, spinner } from "@poe-code/design-system";
+import { text, log, spinner } from "toolcraft-design";
 
 export interface OAuthLoginOptions {
   tokenEndpoint?: string;

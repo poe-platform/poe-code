@@ -28,8 +28,8 @@ const { editPlanMock } = vi.hoisted(() => ({
   editPlanMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     intro: introMock,
@@ -68,6 +68,23 @@ function createBaseProgram(): Command {
   program.exitOverride();
   program.name("poe-code").option("-y, --yes").option("--dry-run").option("--verbose");
   return program;
+}
+
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
 }
 
 describe("plan command", () => {
@@ -352,6 +369,27 @@ describe("plan command", () => {
     );
   });
 
+  it("rejects plan selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan-a.md": "# Plan"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "view"]), false)
+    ).rejects.toThrow(
+      "Plan selection requires a path or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
   it("archives the first matching plan with --yes", async () => {
     const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
     const fs = createMemFs({
@@ -470,16 +508,26 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "plan",
-      "archive",
-      "docs/plans/plan-a.md"
-    ]);
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "archive",
+          "docs/plans/plan-a.md"
+        ]),
+      true
+    );
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
     expect(output).toBe("");
+    expect(confirmOrCancelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: false,
+        message: "Archive plan-a.md?"
+      })
+    );
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
     await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
   });
@@ -500,16 +548,131 @@ describe("plan command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
+    await withMockedStdin(
+      () =>
+        program.parseAsync([
+          "node",
+          "cli",
+          "plan",
+          "delete",
+          "docs/plans/plan-a.md"
+        ]),
+      true
+    );
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(output).toBe("");
+    expect(confirmOrCancelMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        initialValue: false,
+        message: "Permanently delete plan-a.md?"
+      })
+    );
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+  });
+
+  it("rejects archive confirmation in non-interactive mode", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(
+        () =>
+          program.parseAsync([
+            "node",
+            "cli",
+            "plan",
+            "archive",
+            "docs/plans/plan-a.md"
+          ]),
+        false
+      )
+    ).rejects.toThrow("plan archive requires --yes when running without an interactive TTY.");
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+  });
+
+  it("returns parseable JSON instead of prompting for archive confirmation", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "plan",
+      "archive",
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
+    ]);
+
+    const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
+    expect(JSON.parse(output)).toEqual({
+      action: "archive",
+      path: "docs/plans/plan-a.md",
+      confirmationRequired: true,
+      skipped: true
+    });
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
+    await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan-a.md", "utf8")).rejects.toThrow();
+  });
+
+  it("returns parseable JSON instead of prompting for delete confirmation", async () => {
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const fs = createMemFs({
+      "/repo/docs/plans/plan-a.md": "# Plan"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
     await program.parseAsync([
       "node",
       "cli",
       "plan",
       "delete",
-      "docs/plans/plan-a.md"
+      "docs/plans/plan-a.md",
+      "--output",
+      "json"
     ]);
 
     const output = writeSpy.mock.calls.map(([chunk]) => String(chunk)).join("");
-    expect(output).toBe("");
+    expect(JSON.parse(output)).toEqual({
+      action: "delete",
+      path: "docs/plans/plan-a.md",
+      confirmationRequired: true,
+      skipped: true
+    });
+    expect(confirmOrCancelMock).not.toHaveBeenCalled();
     await expect(fs.readFile("/repo/docs/plans/plan-a.md", "utf8")).resolves.toBe("# Plan");
   });
 

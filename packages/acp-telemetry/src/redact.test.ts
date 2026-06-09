@@ -58,6 +58,68 @@ describe("redact", () => {
     expect(redact(input)).not.toBe(input);
   });
 
+  it("redacts sensitive keys in nested env and header objects", () => {
+    expect(redact({
+      env: {
+        PATH: "/usr/bin",
+        OPENAI_API_KEY: "sk-env",
+        sessionToken: "session-token",
+      },
+      headers: {
+        Accept: "application/json",
+        Authorization: "Bearer header-token",
+        "x-api-key": "header-key",
+      },
+      apiKey: "direct-key",
+      token: "direct-token",
+      secret: "direct-secret",
+      prompt_tokens: 12,
+      toolCallId: "tc-1",
+    })).toEqual({
+      env: {
+        PATH: "/usr/bin",
+        OPENAI_API_KEY: "[redacted]",
+        sessionToken: "[redacted]",
+      },
+      headers: {
+        Accept: "application/json",
+        Authorization: "[redacted]",
+        "x-api-key": "[redacted]",
+      },
+      apiKey: "[redacted]",
+      token: "[redacted]",
+      secret: "[redacted]",
+      prompt_tokens: 12,
+      toolCallId: "tc-1",
+    });
+  });
+
+  it("redacts bearer tokens and assigned API-key strings without dropping surrounding text", () => {
+    expect(
+      redact("curl -H 'Authorization: Bearer abc.def' https://x.test api_key=sk-test token: tok123"),
+    ).toBe(
+      "curl -H 'Authorization: Bearer [redacted]' https://x.test api_key=[redacted] token: [redacted]",
+    );
+  });
+
+  it("redacts env-style and quoted assigned secret strings", () => {
+    const input = [
+      "OPENAI_API_KEY=sk-live",
+      "OPENAI_API_KEY=\"sk-quoted\"",
+      "token: \"tok123\"",
+      "password=\"pw123\"",
+      "prompt_tokens=12",
+    ].join(" ");
+
+    expect(redact(input)).toBe([
+      "OPENAI_API_KEY=[redacted]",
+      "OPENAI_API_KEY=\"[redacted]\"",
+      "token: \"[redacted]\"",
+      "password=\"[redacted]\"",
+      "prompt_tokens=12",
+    ].join(" "));
+  });
+
   it("replaces cyclic references without throwing", () => {
     const value: Record<string, unknown> = { output: "ok" };
     value.self = value;

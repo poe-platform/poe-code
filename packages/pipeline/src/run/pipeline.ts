@@ -3,8 +3,8 @@ import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import {
   archivePlan as archivePlanShared,
-  makeRunLogFileName,
-  resolveRunLogDir
+  ensureSafeRunLogDir,
+  makeRunLogFileName
 } from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
@@ -52,7 +52,8 @@ function createDefaultFs(): PipelineFileSystem {
     },
     rmdir: fsPromises.rmdir,
     rename: fsPromises.rename,
-    unlink: fsPromises.unlink
+    unlink: fsPromises.unlink,
+    realpath: fsPromises.realpath
   };
 
   return fs as PipelineFileSystem;
@@ -151,10 +152,11 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const runLogDir =
     options.logDir ??
-    resolveRunLogDir({
+    await ensureSafeRunLogDir({
       planPath: absolutePlanPath,
       runner: "pipeline",
-      homeDir
+      homeDir,
+      fs
     });
   if (options.onPlanResolved) {
     const content = await fs.readFile(absolutePlanPath, "utf8");

@@ -1,4 +1,4 @@
-import type { RenderTableOptions, TableColumn } from "@poe-code/design-system";
+import type { RenderTableOptions, TableColumn } from "toolcraft-design";
 import type {
   AggregateStats,
   AggregatedCell,

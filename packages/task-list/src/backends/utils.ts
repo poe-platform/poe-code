@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { ListFilter, Task, TaskListFs } from "../types.js";
 
@@ -27,8 +28,6 @@ export function applyOrder(entries: OrderedEntry[], order: ListFilter["order"]):
   }
   return entries.map((entry) => entry.task);
 }
-
-let tmpFileCounter = 0;
 
 export function hasErrorCode(error: unknown, code: string): boolean {
   return (
@@ -107,20 +106,24 @@ export async function rejectSymbolicLinkComponents(
 }
 
 export async function writeAtomically(fs: TaskListFs, filePath: string, content: string): Promise<void> {
-  const tempPath = `${filePath}.tmp-${process.pid}-${tmpFileCounter}`;
-  tmpFileCounter += 1;
+  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let tempCreated = false;
 
   await fs.mkdir(path.dirname(filePath), { recursive: true });
 
   try {
     await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
     await fs.rename(tempPath, filePath);
+    tempCreated = false;
   } catch (error) {
-    try {
-      await fs.unlink(tempPath);
-    } catch (unlinkError) {
-      if (!hasErrorCode(unlinkError, "ENOENT")) {
-        throw unlinkError;
+    if (tempCreated) {
+      try {
+        await fs.unlink(tempPath);
+      } catch (unlinkError) {
+        if (!hasErrorCode(unlinkError, "ENOENT")) {
+          throw unlinkError;
+        }
       }
     }
 

@@ -74,6 +74,48 @@ describe("readCacheEntry and writeCacheEntry", () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toEqual(baseEntry);
   });
 
+  it("rejects writes through symlinked memory root ancestors", async () => {
+    vol.fromJSON({
+      "/repo/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code");
+
+    await expect(writeCacheEntry("/repo/.poe-code/memory", baseEntry)).rejects.toThrow(
+      /symbolic link/i
+    );
+    await expect(vol.promises.stat("/outside/memory/.cache/ingest/abc123.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("rejects reads through a symlinked cache directory", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.keep": "",
+      "/outside/ingest/abc123.json": JSON.stringify(baseEntry)
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/.cache");
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).rejects.toThrow(
+      /symbolic link/i
+    );
+  });
+
+  it("rejects writes through a symlinked ingest cache directory", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/.cache/ingest");
+
+    await expect(writeCacheEntry("/repo/.poe-code/memory", baseEntry)).rejects.toThrow(
+      /symbolic link/i
+    );
+    await expect(vol.promises.stat("/outside/abc123.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("returns null when the cache entry does not exist", async () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "missing")).resolves.toBeNull();
   });
@@ -200,6 +242,26 @@ describe("clearCache", () => {
     );
   });
 
+  it("rejects filtered cleanup through a symlinked ingest cache directory", async () => {
+    const externalEntry = JSON.stringify({
+      ...baseEntry,
+      key: "old",
+      ingestedAt: "2026-04-19T09:00:00.000Z"
+    });
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/.keep": "",
+      "/outside/old.json": externalEntry
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/.cache/ingest");
+
+    await expect(
+      clearCache("/repo/.poe-code/memory", { olderThanMs: 60 * 60 * 1000 })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/old.json", "utf8")).resolves.toBe(
+      externalEntry
+    );
+  });
+
   it("restores earlier expired entries when a later filtered removal fails", async () => {
     const root = "/repo/.poe-code/memory";
     vol.fromJSON({
@@ -236,5 +298,15 @@ describe("cacheStatus", () => {
     });
 
     await expect(cacheStatus("/repo/.poe-code/memory")).resolves.toEqual({ entries: 2, bytes: 8 });
+  });
+
+  it("rejects status through a symlinked ingest cache directory", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/.keep": "",
+      "/outside/a.json": "abc"
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory/.cache/ingest");
+
+    await expect(cacheStatus("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
   });
 });

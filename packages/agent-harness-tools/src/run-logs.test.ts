@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { makeRunLogFileName, resolveRunLogDir, slugifyPlanPath } from "./run-logs.js";
+import { mkdir, mkdtemp, readdir, rm, symlink } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import {
+  ensureSafeRunLogDir,
+  makeRunLogFileName,
+  resolveRunLogDir,
+  slugifyPlanPath
+} from "./run-logs.js";
 
 describe("slugifyPlanPath", () => {
   it("lowercases, strips the extension, and dasherizes the basename", () => {
@@ -42,6 +50,69 @@ describe("resolveRunLogDir", () => {
         homeDir: "/home/test"
       })
     ).toThrow("Runner must remain within the log root");
+  });
+});
+
+describe("ensureSafeRunLogDir", () => {
+  it("creates a default runner log directory inside the poe-code state directory", async () => {
+    const homeDir = await mkdtemp(path.join(os.tmpdir(), "poe-run-logs-"));
+    try {
+      const logDir = await ensureSafeRunLogDir({
+        planPath: "/repo/docs/plans/My Feature.md",
+        runner: "pipeline",
+        homeDir
+      });
+
+      expect(logDir).toBe(path.join(homeDir, ".poe-code/logs/pipeline/my-feature"));
+      await expect(readdir(logDir)).resolves.toEqual([]);
+    } finally {
+      await rm(homeDir, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a symlinked logs ancestor outside the poe-code state directory", async () => {
+    const homeDir = await mkdtemp(path.join(os.tmpdir(), "poe-run-logs-"));
+    try {
+      const stateDir = path.join(homeDir, ".poe-code");
+      const outsideDir = path.join(homeDir, "outside");
+      await mkdir(stateDir, { recursive: true });
+      await mkdir(outsideDir, { recursive: true });
+      await symlink(outsideDir, path.join(stateDir, "logs"));
+
+      await expect(
+        ensureSafeRunLogDir({
+          planPath: "/repo/docs/plans/review.md",
+          runner: "pipeline",
+          homeDir
+        })
+      ).rejects.toThrow("Runner log directory resolves outside the poe-code state directory");
+      await expect(readdir(outsideDir)).resolves.toEqual([]);
+    } finally {
+      await rm(homeDir, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a symlinked runner ancestor outside the poe-code state directory", async () => {
+    const homeDir = await mkdtemp(path.join(os.tmpdir(), "poe-run-logs-"));
+    try {
+      const stateDir = path.join(homeDir, ".poe-code");
+      const logRoot = path.join(stateDir, "logs");
+      const outsideDir = path.join(homeDir, "outside");
+      await mkdir(logRoot, { recursive: true });
+      await mkdir(outsideDir, { recursive: true });
+      await symlink(outsideDir, path.join(logRoot, "pipeline"));
+
+      await expect(
+        ensureSafeRunLogDir({
+          planPath: "/repo/docs/plans/review.md",
+          runner: "pipeline",
+          homeDir
+        })
+      ).rejects.toThrow("Runner log directory resolves outside the poe-code state directory");
+      await expect(readdir(outsideDir)).resolves.toEqual([]);
+    } finally {
+      await rm(homeDir, { recursive: true, force: true });
+    }
   });
 });
 

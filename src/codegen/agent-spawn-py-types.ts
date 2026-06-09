@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -30,7 +31,10 @@ interface RunAgentSpawnPythonTypeCodegenOptions {
   repoRoot?: string;
   project?: Project;
   spawnConfigs?: readonly SpawnConfigLike[];
-  fileSystem?: Pick<typeof fs, "mkdir" | "readFile" | "realpath" | "writeFile">;
+  fileSystem?: Pick<
+    typeof fs,
+    "mkdir" | "readFile" | "realpath" | "rename" | "unlink" | "writeFile"
+  >;
 }
 
 interface PythonField {
@@ -112,6 +116,12 @@ export async function runAgentSpawnPythonTypeCodegen(
   })}\n`;
   const outputPath = path.join(repoRoot, ...GENERATED_TYPES_OUTPUT_PATH);
   const fileSystem = options.fileSystem ?? fs;
+
+  if (!options.check) {
+    await fileSystem.mkdir(path.dirname(outputPath), { recursive: true });
+  }
+
+  await assertOutputInsideRepo(outputPath, repoRoot, fileSystem);
   const existing = await readFileIfExists(outputPath, fileSystem);
 
   if (options.check) {
@@ -123,9 +133,7 @@ export async function runAgentSpawnPythonTypeCodegen(
     return;
   }
 
-  await fileSystem.mkdir(path.dirname(outputPath), { recursive: true });
-  await assertOutputInsideRepo(outputPath, repoRoot, fileSystem);
-  await fileSystem.writeFile(outputPath, generated, "utf8");
+  await atomicWriteOutput(outputPath, repoRoot, generated, fileSystem);
 }
 
 async function assertOutputInsideRepo(
@@ -135,12 +143,7 @@ async function assertOutputInsideRepo(
 ): Promise<void> {
   const [canonicalRepoRoot, canonicalOutputPath] = await Promise.all([
     fileSystem.realpath(repoRoot),
-    fileSystem.realpath(outputPath).catch(async (error: NodeJS.ErrnoException) => {
-      if (error.code !== "ENOENT") {
-        throw error;
-      }
-      return path.join(await fileSystem.realpath(path.dirname(outputPath)), path.basename(outputPath));
-    })
+    realpathNearestExisting(outputPath, fileSystem)
   ]);
   const relativeOutputPath = path.relative(canonicalRepoRoot, canonicalOutputPath);
   if (
@@ -149,6 +152,57 @@ async function assertOutputInsideRepo(
     path.isAbsolute(relativeOutputPath)
   ) {
     throw new Error("Generated Python types output resolves outside the repository.");
+  }
+}
+
+async function realpathNearestExisting(
+  targetPath: string,
+  fileSystem: Pick<typeof fs, "realpath">
+): Promise<string> {
+  let currentPath = targetPath;
+
+  while (true) {
+    try {
+      return await fileSystem.realpath(currentPath);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+
+      const parentPath = path.dirname(currentPath);
+      if (parentPath === currentPath) {
+        throw error;
+      }
+      currentPath = parentPath;
+    }
+  }
+}
+
+async function atomicWriteOutput(
+  outputPath: string,
+  repoRoot: string,
+  content: string,
+  fileSystem: Pick<typeof fs, "realpath" | "rename" | "unlink" | "writeFile">
+): Promise<void> {
+  const tempPath = path.join(
+    path.dirname(outputPath),
+    `.${path.basename(outputPath)}.${randomUUID()}.tmp`
+  );
+  let tempCreated = false;
+
+  try {
+    await assertOutputInsideRepo(tempPath, repoRoot, fileSystem);
+    await fileSystem.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await assertOutputInsideRepo(outputPath, repoRoot, fileSystem);
+    await fileSystem.rename(tempPath, outputPath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated) {
+      await fileSystem.unlink(tempPath).catch(() => undefined);
+    }
+
+    throw error;
   }
 }
 

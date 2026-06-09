@@ -530,6 +530,100 @@ describe("createOpenedE2bEnv", () => {
     );
   });
 
+  it("does not open a PTY when the interactive shell signal is already aborted", async () => {
+    const sandbox = createSandboxMock();
+    const controller = new AbortController();
+    controller.abort();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: {
+        ...createSpec(),
+        shellSpec: { command: "bash", signal: controller.signal }
+      }
+    });
+
+    const handle = env.shell();
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+    expect(sandbox.pty.create).not.toHaveBeenCalled();
+  });
+
+  it("kills an in-flight PTY when the interactive shell signal aborts", async () => {
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      ),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    sandbox.pty.kill.mockResolvedValue(undefined);
+    const controller = new AbortController();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: {
+        ...createSpec(),
+        shellSpec: { command: "bash", signal: controller.signal }
+      }
+    });
+
+    const handle = env.shell();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    controller.abort();
+
+    expect(sandbox.pty.kill).toHaveBeenCalledWith(12);
+    resolveWait({ exitCode: 1 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
+  it("kills the PTY if the interactive shell signal aborts before PTY creation resolves", async () => {
+    let resolveCreate!: (handle: { pid: number; wait: () => Promise<{ exitCode: number }> }) => void;
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      )
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCreate = resolve;
+      })
+    );
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    sandbox.pty.kill.mockResolvedValue(undefined);
+    const controller = new AbortController();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: {
+        ...createSpec(),
+        shellSpec: { command: "bash", signal: controller.signal }
+      }
+    });
+
+    const handle = env.shell();
+    controller.abort();
+    expect(sandbox.pty.kill).not.toHaveBeenCalled();
+
+    resolveCreate(ptyHandle);
+    await vi.waitFor(() => {
+      expect(sandbox.pty.kill).toHaveBeenCalledWith(12);
+    });
+    resolveWait({ exitCode: 1 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
   it("forwards inherited stdin to an E2B PTY and cleans up listeners", async () => {
     let resolveWait!: (result: { exitCode: number }) => void;
     const ptyHandle = {

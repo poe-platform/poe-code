@@ -10,8 +10,8 @@ import { storeTestApiKey } from "../../../tests/test-helpers.js";
 const spinnerStopMessages: string[] = [];
 const spinnerMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     spinner: spinnerMock
@@ -406,7 +406,8 @@ describe("auth command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "auth", "whoami"]);
 
     expect(httpClient).not.toHaveBeenCalled();
-    expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining("Dry run"));
+    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would fetch identity from Poe API.");
     stdoutSpy.mockRestore();
   });
 
@@ -471,6 +472,40 @@ describe("auth command", () => {
       expect.stringContaining("/whoami"),
       expect.objectContaining({
         headers: expect.objectContaining({ Authorization: "Bearer env-only-key" })
+      })
+    );
+    stdoutSpy.mockRestore();
+  });
+
+  it("uses configured Poe API base URL for whoami", async () => {
+    await storeApiKey(fs, "stored-key");
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Proxy User", handle: "proxy" })
+    });
+
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: {
+        cwd,
+        homeDir,
+        variables: { POE_BASE_URL: "https://proxy.example.com" }
+      },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "auth", "whoami"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://proxy.example.com/v1/whoami",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer stored-key" })
       })
     );
     stdoutSpy.mockRestore();

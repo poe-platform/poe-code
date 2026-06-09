@@ -795,6 +795,31 @@ describe('createContainer', () => {
     }
   });
 
+  it('rejects a symlinked snapshots root before auto-creating snapshot directories', async () => {
+    const originalMiss = process.env.POE_SNAPSHOT_MISS;
+    process.env.POE_SNAPSHOT_MISS = 'record';
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo', { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.symlinkSync('/outside', '/workspace/repo/.snapshots');
+
+    try {
+      const { createContainer } = await import('./persistent-container.js');
+      await expect(createContainer({
+        image: 'poe-code-e2e:abc123',
+        testName: 'new-test',
+        useSnapshots: true,
+      })).rejects.toThrow('symbolic link');
+      expect(vol.existsSync('/outside/new-test')).toBe(false);
+    } finally {
+      if (originalMiss === undefined) {
+        delete process.env.POE_SNAPSHOT_MISS;
+      } else {
+        process.env.POE_SNAPSHOT_MISS = originalMiss;
+      }
+    }
+  });
+
   it('does not auto-create snapshot directory without recording env vars', async () => {
     const originalMiss = process.env.POE_SNAPSHOT_MISS;
     const originalMode = process.env.POE_SNAPSHOT_MODE;

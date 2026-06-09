@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { Command } from "commander";
+import { confirm, isCancel } from "toolcraft-design";
 import {
   GhProjectSyncError,
   MalformedTaskError,
@@ -100,6 +101,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .description("Import markdown task files into a workflow-configured backend.")
     .option("--from <dir>", "Source directory of markdown task files.")
     .option("--to <workflow.md>", "Target workflow file path.")
+    .option("--delete-source", "Delete source files after successful creation.")
     .option("--keep", "Keep source files after successful creation.")
     .option("--rate <number>", "Maximum task creates per minute.")
     .option("--limit <number>", "Maximum tasks to import.")
@@ -209,7 +211,7 @@ async function runSync(
 ): Promise<void> {
   const logger = container.loggerFactory.create({ scope: "tasks:sync" });
 
-  if (!options.yes && process.stdin.isTTY !== true) {
+  if (!options.yes && options.json !== true && process.stdin.isTTY !== true) {
     const message = "tasks sync requires --yes when running without an interactive TTY.";
     writeError(message, logger, options.json);
     process.exitCode = 1;
@@ -219,14 +221,25 @@ async function runSync(
   try {
     const resolved = await resolveTasksOptions(list, options);
     const auth = resolved.auth ?? { token: await resolveAuth({}) };
-    const report = await syncGhProject({
+    const syncOptions = {
       ...resolved,
       auth,
       ...(options.title !== undefined && options.title.trim() !== ""
         ? { title: options.title.trim() }
         : {}),
       yes: options.yes === true
-    });
+    };
+    let report = await syncGhProject(syncOptions);
+
+    if (!report.ok && options.yes !== true && options.json !== true) {
+      const shouldProvision = await confirm({
+        message: `Create missing GitHub Project resources (${formatMissingSyncResources(report)})?`
+      });
+
+      if (!isCancel(shouldProvision) && shouldProvision === true) {
+        report = await syncGhProject({ ...syncOptions, yes: true });
+      }
+    }
 
     if (options.json) {
       writeJson(report);
@@ -291,6 +304,9 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
     if (options.to === undefined || options.to.trim() === "") {
       throw new TasksCommandUsageError("tasks import requires --to <workflow.md>.");
     }
+    if (options.keep === true && options.deleteSource === true) {
+      throw new TasksCommandUsageError("Provide only one of --keep or --delete-source.");
+    }
 
     const rate =
       options.rate === undefined ? undefined : parsePositiveNumber(options.rate, "--rate");
@@ -307,7 +323,7 @@ async function runImport(options: TasksCommandOptions, container: CliContainer):
     await moveTasks({
       source,
       target: await resolveWorkflowMoveTargetOptions(options.to),
-      ...(options.keep === true ? {} : { deleteSource: true }),
+      ...(options.deleteSource === true ? { deleteSource: true } : {}),
       ...(rate !== undefined ? { rate } : {}),
       ...(limit !== undefined ? { limit } : {}),
       ...(options.dryRun === true ? { dryRun: true } : {}),
@@ -368,6 +384,17 @@ async function runSet(
       options.description,
       "Provide exactly one of --description-file or --description when updating description."
     );
+    if (
+      options.name === undefined &&
+      options.description === undefined &&
+      options.descriptionFile === undefined &&
+      options.metadataJson === undefined
+    ) {
+      throw new TasksCommandUsageError(
+        "Provide at least one of --name, --description, --description-file, or --metadata-json."
+      );
+    }
+
     const { taskList } = await openConfiguredTaskList(options, container);
     const { task, tasks } = await resolveTaskView(taskList, id);
     const description =
@@ -603,6 +630,21 @@ function logSyncReport(logger: ScopedLogger, report: SyncGhProjectReport): void 
   }
 
   logger.error("[error] GitHub Project sync did not complete.");
+}
+
+function formatMissingSyncResources(report: SyncGhProjectReport): string {
+  const missing: string[] = [];
+  if (report.missingProject) {
+    missing.push("project");
+  }
+  if (report.missingStatusField) {
+    missing.push("Status field");
+  }
+  if (report.missingOptions.length > 0) {
+    missing.push(`status options: ${report.missingOptions.join(", ")}`);
+  }
+
+  return missing.length === 0 ? "missing resources" : missing.join("; ");
 }
 
 function formatProject(report: VerifyGhProjectReport): string {

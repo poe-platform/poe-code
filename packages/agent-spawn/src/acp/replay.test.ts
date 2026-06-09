@@ -3,7 +3,7 @@ import { homedir } from "node:os";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   acp: {
     renderAgentMessage: vi.fn(),
     renderToolStart: vi.fn(),
@@ -23,11 +23,12 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-import { acp } from "@poe-code/design-system";
+import { acp } from "toolcraft-design";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import {
   findLatestLog,
   listSpawnLogs,
+  type MalformedSpawnLogRecord,
   pickRandomLog,
   readSpawnLog,
   replaySpawnLog
@@ -104,6 +105,76 @@ describe("acp/replay", () => {
     ]);
   });
 
+  it("readSpawnLog skips malformed JSONL records and reports their location", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    const observed = await collect(readSpawnLog(filePath, { onMalformedRecord }));
+
+    expect(observed).toEqual([
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } },
+      { sessionUpdate: "usage_update", used: 1, size: 3 }
+    ]);
+    expect(onMalformedRecord).toHaveBeenCalledWith({
+      filePath,
+      lineNumber: 2,
+      message: expect.any(String)
+    });
+    expect(onMalformedRecord.mock.calls[0]?.[0].message.length).toBeGreaterThan(0);
+  });
+
+  it("readSpawnLog rejects malformed JSONL records in strict mode with path and line context", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    await expect(
+      collect(readSpawnLog(filePath, { strict: true, onMalformedRecord }))
+    ).rejects.toThrow(`Malformed spawn log record at ${filePath}:2`);
+    expect(onMalformedRecord).not.toHaveBeenCalled();
+  });
+
+  it("readSpawnLog writes contextual warnings for malformed JSONL records by default", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const stderrChunks: string[] = [];
+    const originalStderrWrite = process.stderr.write.bind(process.stderr);
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    process.stderr.write = ((chunk: unknown, ...rest: unknown[]) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : Buffer.from(chunk as Uint8Array).toString("utf8"));
+      const callback = typeof rest.at(-1) === "function" ? (rest.at(-1) as (() => void)) : undefined;
+      callback?.();
+      return true;
+    }) as typeof process.stderr.write;
+
+    try {
+      await collect(readSpawnLog(filePath));
+    } finally {
+      process.stderr.write = originalStderrWrite;
+    }
+
+    expect(stderrChunks.join("")).toContain(`Skipping malformed spawn log record at ${filePath}:2:`);
+  });
+
   it("listSpawnLogs returns sorted log entries", async () => {
     vol.fromJSON({
       [createLogFile("20260320-123456-789-codex.jsonl")]: "",
@@ -151,7 +222,21 @@ describe("acp/replay", () => {
     vol.symlinkSync(outsideDir, logDir);
     vol.writeFileSync(path.join(outsideDir, "20260320-123456-789-codex.jsonl"), "secret");
 
-    await expect(listSpawnLogs()).rejects.toThrow("outside the poe-code state directory");
+    await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
+  });
+
+  it("listSpawnLogs rejects a symlinked default state root", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const outsideDir = path.join(homedir(), "outside-state");
+    vol.mkdirSync(homedir(), { recursive: true });
+    vol.mkdirSync(path.join(outsideDir, "spawn-logs"), { recursive: true });
+    vol.symlinkSync(outsideDir, stateDir);
+    vol.writeFileSync(
+      path.join(outsideDir, "spawn-logs", "20260320-123456-789-codex.jsonl"),
+      "external"
+    );
+
+    await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
   });
 
   it("listSpawnLogs keeps jsonl files even when metadata cannot be derived", async () => {
@@ -218,6 +303,15 @@ describe("acp/replay", () => {
     expect(await findLatestLog("codex")).toBe(createLogFile("20260321-123456-789-codex.jsonl"));
   });
 
+  it("findLatestLog prefers newer timestamped logs over custom filenames", async () => {
+    vol.fromJSON({
+      [createLogFile("manual.jsonl")]: "",
+      [createLogFile("20260322-123456-789-codex.jsonl")]: ""
+    });
+
+    expect(await findLatestLog()).toBe(createLogFile("20260322-123456-789-codex.jsonl"));
+  });
+
   it("findLatestLog returns undefined when there is no matching log", async () => {
     vol.fromJSON({
       [createLogFile("20260320-123456-789-codex.jsonl")]: ""
@@ -272,5 +366,27 @@ describe("acp/replay", () => {
       output: 0,
       cached: 5
     });
+  });
+
+  it("replaySpawnLog renders valid records around malformed JSONL records", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "hello" } }),
+        "{not valid json",
+        JSON.stringify({ sessionUpdate: "usage_update", used: 3, size: 8 })
+      ].join("\n")
+    });
+
+    await replaySpawnLog(filePath, { onMalformedRecord });
+
+    expect(acp.renderAgentMessage).toHaveBeenCalledWith("hello");
+    expect(acp.renderUsage).toHaveBeenCalledWith({
+      input: 3,
+      output: 0,
+      cached: 5
+    });
+    expect(onMalformedRecord).toHaveBeenCalledWith(expect.objectContaining({ filePath, lineNumber: 2 }));
   });
 });

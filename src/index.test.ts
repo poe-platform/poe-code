@@ -12,6 +12,7 @@ import {
   discoverCodeReviewProfiles,
   ghGroup,
   getPoeApiKey,
+  getPoeAuthIdentity,
   ingestCodeReviewProfile,
   installCodeReviewAssets,
   isCliInvocation,
@@ -57,6 +58,24 @@ describe("entrypoint module", () => {
         delete process.env.POE_API_KEY;
       }
     }
+  });
+
+  it("re-exports getPoeAuthIdentity", async () => {
+    const httpClient = async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        user_id: 1,
+        handle: "sdk",
+        name: "SDK User",
+        profile_picture: ""
+      })
+    });
+
+    await expect(getPoeAuthIdentity({ apiKey: "sdk-key", httpClient })).resolves.toMatchObject({
+      handle: "sdk",
+      name: "SDK User"
+    });
   });
 
   it("detects direct invocation path", () => {

@@ -4,7 +4,10 @@ Optional Braintrust observability for poe-code's agent-running surfaces: standal
 
 ## Setup
 
-`braintrust` is an optional peer dependency. Install it in the workspace or project that runs poe-code:
+Published `poe-code` installs include `braintrust` as an optional dependency, so normal
+`npm` and `npx` installs can enable the integration without extra setup. If optional
+dependencies were omitted, or you are running from a source checkout without installed
+workspace dependencies, install it in the same environment that runs poe-code:
 
 ```sh
 npm i braintrust
@@ -91,7 +94,7 @@ spawn:<name>
 
 ## Failure Modes
 
-- Missing peer dependency: when `enabled` is `true` but `braintrust` is not installed, bootstrap fails with `Braintrust integration is enabled but the 'braintrust' package is not installed. Run: npm i braintrust`.
+- Missing optional dependency: when `enabled` is `true` but `braintrust` is not installed, the first SDK load records a status error and Braintrust logging is skipped.
 - Missing `apiKey`: when `enabled` is `true` and `apiKey` is empty or absent, bootstrap fails with `Braintrust integration is enabled but apiKey is missing`.
 - Missing `project`: when `enabled` is `true` and `project` is empty or absent, bootstrap fails with `Braintrust integration is enabled but project is missing`.
 - Network or SDK errors: SDK initialization, logging, and flush failures are recorded in integration status and swallowed so the orchestrator can continue.
@@ -104,4 +107,4 @@ Use the CLI status command to inspect the resolved integration state:
 poe-code braintrust status
 ```
 
-It reports disabled configuration, missing fields, missing peer dependency, or the enabled project with the latest recorded Braintrust error count.
+It reports disabled configuration, missing fields, or the enabled project with the latest recorded Braintrust error count.

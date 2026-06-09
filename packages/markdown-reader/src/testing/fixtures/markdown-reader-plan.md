@@ -29,7 +29,7 @@ Resolved decisions:
 - **Section addressing** accepts two forms, both resolving to the same section: numeric path (`1.2`) and full heading text (`"2. User-facing shape"`). Numbers cover programmatic use; heading text covers human/copy-paste use. No slugs.
 - **Command surface:** three sibling subcommands under the existing `plan` group — `plan markdown-read`, `plan markdown-read-section`, and `plan markdown-reader-mcp`. The first two are one-shot CLI commands. `markdown-reader-mcp` starts a standalone stdio MCP server exposing the two tools, mirroring the `terminal-pilot-mcp` shape. **Not** wired into the central `poe-code mcp serve`; this is a standalone server per user requirement.
 - **Package layout:** core parsing / walking / orchestrator logic lives in a new `packages/markdown-reader`. The CLI and MCP entry points live in [src/cli/commands/plan.ts](src/cli/commands/plan.ts) (commander subcommands) and import from the package. This keeps the `plan` group's commander style intact while isolating the testable guts.
-- **AST parser:** extend `@poe-code/design-system`'s `terminal-markdown/parser` with source positions (details in §3), rather than duplicating a scanner. One parser in the monorepo.
+- **AST parser:** extend `toolcraft-design`'s `terminal-markdown/parser` with source positions (details in §3), rather than duplicating a scanner. One parser in the monorepo.
 
 ## 2. User-facing shape
 
@@ -195,12 +195,12 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
 
 ### Parsing strategy — extend the shared AST with source positions
 
-Section 1's direction stands: reuse `@poe-code/design-system`'s parser. The only thing missing is **source positions on AST nodes** ([packages/design-system/src/terminal-markdown/ast.ts](packages/design-system/src/terminal-markdown/ast.ts)). Rather than duplicate a scanner here, the plan extends the shared parser so every node carries a byte range. This benefits any future caller that needs round-trip source slicing (doc-lint, superintendent tooling, alternate renderers) and keeps exactly one markdown parser in the monorepo.
+Section 1's direction stands: reuse `toolcraft-design`'s parser. The only thing missing is **source positions on AST nodes** ([packages/toolcraft-design/src/terminal-markdown/ast.ts](packages/toolcraft-design/src/terminal-markdown/ast.ts)). Rather than duplicate a scanner here, the plan extends the shared parser so every node carries a byte range. This benefits any future caller that needs round-trip source slicing (doc-lint, superintendent tooling, alternate renderers) and keeps exactly one markdown parser in the monorepo.
 
-Changes to `@poe-code/design-system` (in the same PR as `packages/markdown-reader`, since this is the motivating consumer):
+Changes to `toolcraft-design` (in the same PR as `packages/markdown-reader`, since this is the motivating consumer):
 
 1. Add an optional `range: { start: number; end: number }` field to `MdNode`. Offsets are byte indices into the input passed to `parse()`. `end` is exclusive. BOM is preserved in the input so offsets line up with the file buffer.
-2. Capture offsets in `parser/block.ts`. The parser already threads a `state.position` cursor and a `readLine` helper that returns `{ start, nextPosition }` ([packages/design-system/src/terminal-markdown/parser/block.ts](packages/design-system/src/terminal-markdown/parser/block.ts)). Every block rule:
+2. Capture offsets in `parser/block.ts`. The parser already threads a `state.position` cursor and a `readLine` helper that returns `{ start, nextPosition }` ([packages/toolcraft-design/src/terminal-markdown/parser/block.ts](packages/toolcraft-design/src/terminal-markdown/parser/block.ts)). Every block rule:
    - Records `rangeStart = state.position` **before** consuming input.
    - Sets `node.range = { start: rangeStart, end: state.position }` **after** advancing.
 3. `parser/frontmatter.ts` — the frontmatter node gets a `range` covering the opening `---` through the closing fence (inclusive of its trailing newline).
@@ -217,7 +217,7 @@ In `packages/markdown-reader`, `src/core/scan.ts` is then a ~30-line AST walker:
 - `headingStart` = `heading.range.start`. `bodyStart` = `heading.range.end` (first char after the heading line — the parser consumes the trailing newline).
 - `bodyEnd` (with children) = start of the next heading with `depth <= this.depth`, or `source.length`.
 - `bodyEndNoChildren` = start of the next heading at any depth, or `source.length`.
-- Setext headings are supported automatically — [parser/block.ts:347 parseSetextHeading](packages/design-system/src/terminal-markdown/parser/block.ts#L347) already emits a `heading` node for them.
+- Setext headings are supported automatically — [parser/block.ts:347 parseSetextHeading](packages/toolcraft-design/src/terminal-markdown/parser/block.ts#L347) already emits a `heading` node for them.
 
 ### Numbering rule
 
@@ -344,7 +344,7 @@ The commander subcommands in `plan.ts` do **not** go through toolcraft; they cal
 
 All tests are vitest, colocated, run under the package's `npm test` script that uses the repo-root vitest (mirrors [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json)). File I/O in tests uses `memfs` per CLAUDE.md.
 
-- `@poe-code/design-system` — new tests in `packages/design-system/src/terminal-markdown/terminal-markdown.test.ts` (or a new `parser-range.test.ts` if the existing file is large): assert `range.start` / `range.end` on heading, paragraph, code block, list, and frontmatter nodes across representative fixtures. These lock the new position invariant so future parser changes do not silently break consumers.
+- `toolcraft-design` — new tests in `packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts` (or a new `parser-range.test.ts` if the existing file is large): assert `range.start` / `range.end` on heading, paragraph, code block, list, and frontmatter nodes across representative fixtures. These lock the new position invariant so future parser changes do not silently break consumers.
 - `scan.test.ts` (covers the walker + numbering only — fence / CRLF / BOM / ATX-vs-Setext are the shared parser's responsibility):
   - Fresh scan of the plan itself (fixture) — asserts the exact TOC produced and that body slices round-trip source byte-for-byte.
   - Leading h1 title + h2 body → baseline 2, title numbered `null`.
@@ -391,8 +391,8 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 - **Decisions already locked**: package name, command names, parser strategy (extend design-system AST with `range` and walk it — no parallel scanner), numbering rule, ATX and Setext both supported (inherited), resolver precedence (numeric then title — no slugs), output defaults, no caching, standalone MCP server (not in `poe-code mcp serve`).
 - **Decisions the agent may make alone**: internal file splits, private helper names, snapshot formatting, whether to break `scan.ts` into multiple files if it grows, test helper utilities.
 - **Stop and escalate when**:
-  - Adding `range` to `MdNode` forces a visible change to `@poe-code/design-system`'s public `parse()` signature or breaks the terminal renderer's snapshots. (Additive is the whole point; if it cannot be additive, surface the tradeoff.)
-  - `@poe-code/design-system`'s `parse()` throws on frontmatter that previously worked (regression outside this package's scope).
+  - Adding `range` to `MdNode` forces a visible change to `toolcraft-design`'s public `parse()` signature or breaks the terminal renderer's snapshots. (Additive is the whole point; if it cannot be additive, surface the tradeoff.)
+  - `toolcraft-design`'s `parse()` throws on frontmatter that previously worked (regression outside this package's scope).
   - The top-level CLI registration pattern changes mid-flight (e.g. `ROOT_HELP_COMMAND_SPECS` is refactored).
   - A name collision surfaces during `npm install` (e.g. another package declares `@poe-code/markdown-reader`).
 
@@ -400,7 +400,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### New files
 
-- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `@poe-code/design-system`. Scripts mirror [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json) (`build`, `test`, `test:unit`).
+- `packages/markdown-reader/package.json` — name `@poe-code/markdown-reader`, `private: true`, type `module`, deps `toolcraft`, `toolcraft-schema`, `toolcraft-design`. Scripts mirror [packages/toolcraft-openapi/package.json](packages/toolcraft-openapi/package.json) (`build`, `test`, `test:unit`).
 - `packages/markdown-reader/tsconfig.json` — extends workspace base, `outDir: dist`.
 - `packages/markdown-reader/README.md` — per CLAUDE.md package rule ("Package must have own readme"). Sections: overview, SDK usage, MCP tool names, standalone server invocation (`poe-code plan markdown-reader-mcp`), example agent config. No env vars, no config.
 - `packages/markdown-reader/src/index.ts` — exports `readMarkdown`, `readSection`, `markdownGroup`, `runMarkdownReaderMcp`.
@@ -417,11 +417,11 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
 
 ### Files to change
 
-- [packages/design-system/src/terminal-markdown/ast.ts](packages/design-system/src/terminal-markdown/ast.ts): add optional `range?: { start: number; end: number }` to the `MdNode` union. Export the range type so consumers can narrow.
-- [packages/design-system/src/terminal-markdown/parser/block.ts](packages/design-system/src/terminal-markdown/parser/block.ts): capture `state.position` before each block rule runs and attach `range` to every node it returns. One touch per `parseAtxHeading`, `parseSetextHeading`, `parseParagraph`, `parseCodeBlock`, `parseList`, `parseBlockquote`, `parseTable`, `parseHtmlBlock`, `parseThematicBreak`, `parseAlert`, `parseFootnoteDefinition`.
-- [packages/design-system/src/terminal-markdown/parser/frontmatter.ts](packages/design-system/src/terminal-markdown/parser/frontmatter.ts): return the byte range of the frontmatter block alongside the existing payload; `parser.ts` attaches it to the synthesized frontmatter node.
-- [packages/design-system/src/terminal-markdown/parser/inline.ts](packages/design-system/src/terminal-markdown/parser/inline.ts): same treatment for inline nodes. Lowest priority; include in this PR because the plumbing is already there.
-- [packages/design-system/src/terminal-markdown/terminal-markdown.test.ts](packages/design-system/src/terminal-markdown/terminal-markdown.test.ts): add positional assertions across a representative fixture.
+- [packages/toolcraft-design/src/terminal-markdown/ast.ts](packages/toolcraft-design/src/terminal-markdown/ast.ts): add optional `range?: { start: number; end: number }` to the `MdNode` union. Export the range type so consumers can narrow.
+- [packages/toolcraft-design/src/terminal-markdown/parser/block.ts](packages/toolcraft-design/src/terminal-markdown/parser/block.ts): capture `state.position` before each block rule runs and attach `range` to every node it returns. One touch per `parseAtxHeading`, `parseSetextHeading`, `parseParagraph`, `parseCodeBlock`, `parseList`, `parseBlockquote`, `parseTable`, `parseHtmlBlock`, `parseThematicBreak`, `parseAlert`, `parseFootnoteDefinition`.
+- [packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts](packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts): return the byte range of the frontmatter block alongside the existing payload; `parser.ts` attaches it to the synthesized frontmatter node.
+- [packages/toolcraft-design/src/terminal-markdown/parser/inline.ts](packages/toolcraft-design/src/terminal-markdown/parser/inline.ts): same treatment for inline nodes. Lowest priority; include in this PR because the plumbing is already there.
+- [packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts](packages/toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts): add positional assertions across a representative fixture.
 - [src/cli/commands/plan.ts](src/cli/commands/plan.ts):
   - Add `import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";` at the top.
   - Inside `registerPlanCommand`, add three `plan.command(...)` blocks alongside the existing `browse` / `view` / `edit` / `archive` / `delete` / `install` / `list` subcommands:
@@ -453,7 +453,7 @@ export function runMarkdownReaderMcp(): Promise<void>;
 
 ### Build order (keeps the branch green at every step)
 
-1. **Extend the shared AST first.** In `@poe-code/design-system`: add `range` to `MdNode`, thread offset capture through `parser/block.ts` + `parser/frontmatter.ts` + `parser/inline.ts`, add positional assertions to `terminal-markdown.test.ts`. Run `npm run build` + `npm test --workspace=@poe-code/design-system` — green, terminal-markdown renderer snapshots unchanged.
+1. **Extend the shared AST first.** In `toolcraft-design`: add `range` to `MdNode`, thread offset capture through `parser/block.ts` + `parser/frontmatter.ts` + `parser/inline.ts`, add positional assertions to `terminal-markdown.test.ts`. Run `npm run build` + `npm test --workspace=toolcraft-design` — green, terminal-markdown renderer snapshots unchanged.
 2. Scaffold `packages/markdown-reader`: `package.json` + `tsconfig.json` + empty `src/index.ts`. Run `npm install` and `npm run build` — green.
 3. `src/core/scan.ts` + `scan.test.ts` with fixtures. Green. The walker is small; complexity now lives in the shared parser.
 4. `src/core/resolve.ts` + `resolve.test.ts`. Green.

@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { dirname, join, parse, resolve, sep } from "node:path";
@@ -65,6 +65,7 @@ export type RunHarnessPairOptions = {
   snapshotBackend?: SnapshotBackend;
   snapshotIntervalMs?: number;
   snapshotPath?: string;
+  snapshotPathIsDefault?: boolean;
 };
 
 export class LintError extends Error {
@@ -104,7 +105,9 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
-    if (options.snapshotPath === undefined) {
+    const guardDefaultSnapshotPath =
+      options.snapshotPath === undefined || options.snapshotPathIsDefault === true;
+    if (guardDefaultSnapshotPath) {
       await assertDefaultSnapshotPathIsRegular(snapshotPath);
     }
     const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
@@ -138,7 +141,7 @@ export async function runHarnessPair(
               snapshot: runtimeRandom.snapshot
             }
           })
-    });
+    }, { guardDefaultSnapshotPath });
     const modules = hostCallReplay.wrapModules(
       withBuiltinModules(
         options.modulesFor(validated, meta),
@@ -164,7 +167,7 @@ export async function runHarnessPair(
     if (!Array.isArray(lintDiagnostics)) {
       executableSource = lintDiagnostics.fixed;
       if (executableSource !== ajsSource) {
-        await writeFile(pair.ajsPath, executableSource, { encoding: "utf8" });
+        await writeTextFileAtomically(pair.ajsPath, executableSource);
       }
     }
 
@@ -410,9 +413,13 @@ type StatefulHostBinding = {
 
 async function createHostCallReplay(
   snapshotPath: string,
-  statefulBindings: Record<string, StatefulHostBinding> = {}
+  statefulBindings: Record<string, StatefulHostBinding> = {},
+  opts: { guardDefaultSnapshotPath?: boolean } = {}
 ): Promise<HostCallReplay> {
   const storePath = hostCallStorePath(snapshotPath);
+  if (opts.guardDefaultSnapshotPath === true) {
+    await assertDefaultSnapshotPathIsRegular(storePath);
+  }
   const records = await readHostCallRecords(storePath);
   const pendingWrites = new Set<Promise<void>>();
   let writeQueue = Promise.resolve();
@@ -538,12 +545,20 @@ async function writeHostCallRecords(
   }
 
   await mkdir(dirname(storePath), { recursive: true });
-  const temporaryPath = `${storePath}.tmp`;
+  await writeTextFileAtomically(storePath, serialized);
+}
+
+async function writeTextFileAtomically(filePath: string, content: string): Promise<void> {
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
   try {
-    await writeFile(temporaryPath, serialized);
-    await rename(temporaryPath, storePath);
+    await writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await rename(temporaryPath, filePath);
   } catch (error) {
-    await unlinkIfExists(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await unlinkIfExists(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
 }

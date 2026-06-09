@@ -16,7 +16,7 @@ export interface LoginContext {
   }) => Promise<string>;
 }
 
-export type ProviderStoreFactory = (providerId: string) => SecretStore;
+export type ProviderStoreFactory = (provider: AuthProvider) => SecretStore;
 
 export interface ProviderRegistryOptions {
   envVars?: Record<string, string | undefined>;
@@ -73,14 +73,14 @@ export class ProviderRegistry {
         return true;
       }
     }
-    const store = this.requireStore(id);
+    const store = this.requireStore(provider);
     const credential = await store.get({ readOnly: options.readOnly });
     return typeof credential === "string" && credential.trim().length > 0;
   }
 
   async login(id: string, options: ApiKeyLoginOptions, context?: LoginContext): Promise<void> {
     const provider = this.requireProvider(id);
-    const store = context?.store ?? this.requireStore(id);
+    const store = context?.store ?? this.requireStore(provider);
     if (provider.auth.kind !== "api-key") {
       throw new Error(`Provider "${id}" does not use api-key auth.`);
     }
@@ -125,7 +125,7 @@ export class ProviderRegistry {
       return envApiKey.trim();
     }
 
-    const store = this.requireStore(id);
+    const store = this.requireStore(provider);
     return apiKeyAuthStrategy.resolveCredential(provider, {
       secretStore: store,
       readOnly: context?.readOnly
@@ -133,8 +133,8 @@ export class ProviderRegistry {
   }
 
   async logout(id: string, options: { store?: SecretStore } = {}): Promise<void> {
-    this.requireProvider(id);
-    const store = options.store ?? this.requireStore(id);
+    const provider = this.requireProvider(id);
+    const store = options.store ?? this.requireStore(provider);
     await store.delete();
   }
 
@@ -146,11 +146,11 @@ export class ProviderRegistry {
     return provider;
   }
 
-  private requireStore(id: string): SecretStore {
+  private requireStore(provider: AuthProvider): SecretStore {
     if (!this.storeFactory) {
       throw new Error(`No store factory configured for ProviderRegistry.`);
     }
-    return this.storeFactory(id);
+    return this.storeFactory(provider);
   }
 }
 

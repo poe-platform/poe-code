@@ -1,10 +1,10 @@
-import type { Command } from "commander";
+import { Option, type Command } from "commander";
 import parseDuration from "parse-duration";
 import { stringify as yamlStringify } from "yaml";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, ValidationError } from "../errors.js";
-import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
+import { getTheme, renderTable, withSpinner } from "toolcraft-design";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 interface ModelParameter {
@@ -52,6 +52,9 @@ interface PreprocessedModelEntry extends ModelEntry {
   normalized_supported_endpoints: string[];
 }
 
+const modelViewNames = ["capabilities", "pricing", "parameters", "raw"] as const;
+type ModelViewName = typeof modelViewNames[number];
+
 interface ModelsCommandOptions {
   provider?: string;
   model?: string;
@@ -62,7 +65,7 @@ interface ModelsCommandOptions {
   output?: string;
   tools?: boolean;
   since?: string;
-  view: string;
+  view: ModelViewName;
 }
 
 function formatTokenCount(tokens: number): string {
@@ -176,6 +179,52 @@ function hasActiveFilters(options: ModelsCommandOptions): boolean {
     options.since !== undefined;
 }
 
+function parseSinceDuration(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const duration = parseDuration(value);
+  if (duration == null || !Number.isFinite(duration) || duration <= 0) {
+    throw new ValidationError(
+      `Invalid --since duration "${value}". Use a positive duration such as 7d, 2w, 3mo, or 1y.`
+    );
+  }
+  return duration;
+}
+
+async function fetchModels(
+  container: CliContainer,
+  headers: Record<string, string>
+): Promise<{ object: string; data: ModelEntry[] }> {
+  const response = await container.httpClient(
+    `${container.env.poeBaseUrl}/v1/models`,
+    {
+      method: "GET",
+      headers
+    }
+  );
+
+  if (!response.ok) {
+    throw new ApiError(
+      `Failed to fetch models (HTTP ${response.status})`,
+      {
+        httpStatus: response.status,
+        endpoint: "/v1/models"
+      }
+    );
+  }
+
+  return (await response.json()) as {
+    object: string;
+    data: ModelEntry[];
+  };
+}
+
+function writeYaml(value: unknown): void {
+  const output = yamlStringify(value);
+  process.stdout.write(output.endsWith("\n") ? output : `${output}\n`);
+}
+
 export function registerModelsCommand(
   program: Command,
   container: CliContainer
@@ -193,7 +242,12 @@ export function registerModelsCommand(
     .option("--output <modalities>", "Filter by output modalities (e.g. text)")
     .option("--tools", "Show only models with tool support")
     .option("--since <duration>", "Show models added within duration (e.g. 7d, 2w, 3mo)")
-    .option("--view <name>", "Table view: capabilities, pricing, parameters, or raw", "capabilities")
+    .addOption(
+      new Option(
+        "--view <name>",
+        "Table view: capabilities, pricing, parameters, or raw"
+      ).choices(Array.from(modelViewNames)).default("capabilities")
+    )
     .addHelpText("after", [
       "",
       "Filters:",
@@ -230,10 +284,14 @@ export function registerModelsCommand(
         "models"
       );
       const commandOptions = this.opts<ModelsCommandOptions>();
+      const rawView = commandOptions.view === "raw";
 
-      resources.logger.intro("models");
+      if (!rawView) {
+        resources.logger.intro("models");
+      }
 
       try {
+        const sinceDuration = parseSinceDuration(commandOptions.since);
         let apiKey: string | null = null;
         try {
           apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
@@ -256,38 +314,17 @@ export function registerModelsCommand(
           headers.Authorization = `Bearer ${apiKey}`;
         }
 
-        const result = await withSpinner<{ object: string; data: ModelEntry[] }>({
-          message: "Fetching models...",
-          fn: async () => {
-            const response = await container.httpClient(
-              `${container.env.poeBaseUrl}/v1/models`,
-              {
-                method: "GET",
-                headers
-              }
-            );
-
-            if (!response.ok) {
-              throw new ApiError(
-                `Failed to fetch models (HTTP ${response.status})`,
-                {
-                  httpStatus: response.status,
-                  endpoint: "/v1/models"
-                }
-              );
-            }
-
-            return (await response.json()) as {
-              object: string;
-              data: ModelEntry[];
-            };
-          },
-          stopMessage: (r) => `${r.data.length} models fetched`
-        });
+        const result = rawView
+          ? await fetchModels(container, headers)
+          : await withSpinner<{ object: string; data: ModelEntry[] }>({
+            message: "Fetching models...",
+            fn: () => fetchModels(container, headers),
+            stopMessage: (r) => `${r.data.length} models fetched`
+          });
 
         const { models: allModels, availableEndpoints } = preprocessModels(result.data);
 
-        if (allModels.length === 0) {
+        if (!rawView && allModels.length === 0) {
           resources.logger.info("No models found.");
           return;
         }
@@ -347,31 +384,28 @@ export function registerModelsCommand(
             return required.every((r) => modalities.includes(r));
           });
         }
-        if (commandOptions.since) {
-          const duration = parseDuration(commandOptions.since);
-          if (duration != null) {
-            const cutoff = Date.now() - duration;
-            filtered = filtered.filter((m) => m.created >= cutoff);
-          }
+        if (sinceDuration !== undefined) {
+          const cutoff = Date.now() - sinceDuration;
+          filtered = filtered.filter((m) => m.created >= cutoff);
         }
 
-        if (hasActiveFilters(commandOptions)) {
+        if (!rawView && hasActiveFilters(commandOptions)) {
           resources.logger.info(`${filtered.length}/${allModels.length} models`);
         }
 
-        if (filtered.length === 0) {
+        if (!rawView && filtered.length === 0) {
           resources.logger.info("No models match the given filters.");
           return;
         }
 
         filtered.sort((a, b) => b.created - a.created);
 
-        const theme = getTheme();
-
-        if (commandOptions.view === "raw") {
-          resources.logger.info(yamlStringify(filtered.map(toRawModel)));
+        if (rawView) {
+          writeYaml(filtered.map(toRawModel));
           return;
         }
+
+        const theme = getTheme();
 
         let columns;
         let rows;

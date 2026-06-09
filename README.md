@@ -204,10 +204,13 @@ npx poe-code@latest mcp unconfigure claude-code
 Use `poe-code` programmatically in your own code:
 
 ```typescript
-import { spawn, getPoeApiKey } from "poe-code";
+import { spawn, getPoeApiKey, getPoeAuthIdentity } from "poe-code";
 
 // Get stored API key
 const apiKey = await getPoeApiKey();
+
+// Fetch the authenticated Poe account identity
+const identity = await getPoeAuthIdentity();
 
 // Run a prompt through a provider
 const result = await spawn("claude-code", {
@@ -273,9 +276,22 @@ Returns `Promise<{ stdout, stderr, exitCode }>`.
 Reads the Poe API key with the following priority:
 
 1. `POE_API_KEY` environment variable
-2. Credentials file (`~/.poe-code/credentials.json`)
+2. Credentials file (`~/.poe-code/credentials.enc`)
 
 Throws if no credentials found.
+
+### `getPoeAuthIdentity()`
+
+Fetches the Poe account identity for the resolved API key.
+
+```typescript
+import { getPoeAuthIdentity } from "poe-code";
+
+const identity = await getPoeAuthIdentity();
+console.log(identity.name, identity.handle);
+```
+
+Uses `POE_API_KEY` or the stored credential and honors `POE_BASE_URL`. Throws an API error when Poe rejects the credential.
 
 ## Research Preview
 

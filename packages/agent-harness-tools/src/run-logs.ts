@@ -1,4 +1,5 @@
 import path from "node:path";
+import { mkdir, realpath } from "node:fs/promises";
 import { assertContainedPath } from "./path-boundary.js";
 
 export interface ResolveRunLogDirOptions {
@@ -7,11 +8,34 @@ export interface ResolveRunLogDirOptions {
   homeDir: string;
 }
 
+export interface RunLogFileSystem {
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
+  realpath?(path: string): Promise<string>;
+}
+
 export function resolveRunLogDir(options: ResolveRunLogDirOptions): string {
   const slug = slugifyPlanPath(options.planPath);
   const logRoot = path.join(options.homeDir, ".poe-code", "logs");
   const runLogDir = path.join(logRoot, options.runner, slug);
   assertContainedPath(logRoot, runLogDir, "Runner must remain within the log root");
+  return runLogDir;
+}
+
+export async function ensureSafeRunLogDir(
+  options: ResolveRunLogDirOptions & { fs?: RunLogFileSystem }
+): Promise<string> {
+  const stateDir = path.join(options.homeDir, ".poe-code");
+  const logRoot = path.join(stateDir, "logs");
+  const runLogDir = resolveRunLogDir(options);
+  const fs = options.fs ?? defaultRunLogFs;
+
+  await fs.mkdir(stateDir, { recursive: true });
+  await fs.mkdir(logRoot, { recursive: true });
+  await assertExistingPathContained(fs, stateDir, logRoot);
+  await assertExistingRunLogAncestorsContained(fs, stateDir, logRoot, runLogDir);
+  await fs.mkdir(runLogDir, { recursive: true });
+  await assertExistingPathContained(fs, stateDir, runLogDir);
+
   return runLogDir;
 }
 
@@ -50,6 +74,73 @@ function slugifyLabel(value: string): string {
   }
 
   return collapseDashes(out).replace(/^-+|-+$/g, "");
+}
+
+async function assertExistingRunLogAncestorsContained(
+  fs: RunLogFileSystem,
+  stateDir: string,
+  logRoot: string,
+  runLogDir: string
+): Promise<void> {
+  const relativeRunLogDir = path.relative(logRoot, runLogDir);
+  const segments = relativeRunLogDir.split(path.sep).filter(Boolean);
+  let currentPath = logRoot;
+
+  for (const segment of segments) {
+    currentPath = path.join(currentPath, segment);
+    const exists = await assertExistingPathContained(fs, stateDir, currentPath, {
+      ignoreMissing: true
+    });
+    if (!exists) {
+      return;
+    }
+  }
+}
+
+async function assertExistingPathContained(
+  fs: RunLogFileSystem,
+  stateDir: string,
+  candidatePath: string,
+  opts: { ignoreMissing?: boolean } = {}
+): Promise<boolean> {
+  try {
+    const resolveRealpath = fs.realpath ?? resolveLexicalRealpath;
+    const [canonicalStateDir, canonicalCandidatePath] = await Promise.all([
+      resolveRealpath(stateDir),
+      resolveRealpath(candidatePath)
+    ]);
+    assertContainedPath(
+      canonicalStateDir,
+      canonicalCandidatePath,
+      "Runner log directory resolves outside the poe-code state directory"
+    );
+    return true;
+  } catch (error) {
+    if (opts.ignoreMissing && isNotFoundError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "ENOENT"
+  );
+}
+
+const defaultRunLogFs: RunLogFileSystem = {
+  mkdir: async (target, options) => {
+    await mkdir(target, options);
+  },
+  realpath: async (target) => realpath(target)
+};
+
+async function resolveLexicalRealpath(target: string): Promise<string> {
+  return path.resolve(target);
 }
 
 function collapseDashes(value: string): string {

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import path from "node:path";
 import { appendExcludeBlock, removeExcludeBlock } from "@poe-code/agent-skill-config";
@@ -8,6 +9,7 @@ import {
   type AgentHookConfig
 } from "./configs.js";
 import { readClaudeHooks } from "./read-hooks.js";
+import { assertNoSymbolicLink } from "./path-safety.js";
 import { symlinkHooks } from "./symlink-hooks.js";
 import { transformHooks, type HookDrop } from "./transform-hooks.js";
 import { writeCodexHooks } from "./write-hooks.js";
@@ -89,27 +91,6 @@ function collectMissingParents(targetPath: string): string[] {
   return parents.reverse();
 }
 
-function assertNoSymbolicLink(targetPath: string): void {
-  const parsed = path.parse(path.resolve(targetPath));
-  let current = parsed.root;
-  for (const segment of path.resolve(targetPath).slice(parsed.root.length).split(path.sep)) {
-    if (segment.length === 0) {
-      continue;
-    }
-    current = path.join(current, segment);
-    try {
-      if (fs.lstatSync(current).isSymbolicLink()) {
-        throw new Error(`Hook bridge path must not traverse a symbolic link: ${current}`);
-      }
-    } catch (error) {
-      if (isNodeError(error) && error.code === "ENOENT") {
-        return;
-      }
-      throw error;
-    }
-  }
-}
-
 function removeDirectoryIfEmpty(targetPath: string): void {
   try {
     fs.rmdirSync(targetPath);
@@ -167,8 +148,12 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 }
 
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
-  const temporaryPath = `${targetPath}.cleanup-tmp`;
-  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, { flag: "wx" });
+  const temporaryPath = `${targetPath}.cleanup-${process.pid}-${randomUUID()}.tmp`;
+  assertNoSymbolicLink(temporaryPath);
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
+    encoding: "utf8",
+    flag: "wx"
+  });
   try {
     fs.renameSync(temporaryPath, targetPath);
   } catch (error) {
@@ -241,6 +226,7 @@ export function bridgeHooks(
 
   if (strategy === "symlink") {
     const symlinkPath = requireTargetPath(target.id, target.config, cwd, homeDir);
+    assertNoSymbolicLink(path.dirname(symlinkPath));
     manifest.createdParents = collectMissingParents(symlinkPath);
     const result = symlinkHooks(source.id, target.id, cwd, homeDir, "project");
     manifest.symlinkPath = result.symlinkPath;

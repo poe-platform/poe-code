@@ -9,7 +9,7 @@ import {
   resolveEditTarget,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
-import { text } from "@poe-code/design-system";
+import { text } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { knownConfigScopes } from "../../services/config.js";
 import {
@@ -23,6 +23,25 @@ interface ConfigEditCommandOptions {
   global?: boolean;
   project?: boolean;
 }
+
+const REDACTED_CONFIG_VALUE = "<redacted>";
+const SENSITIVE_CONFIG_KEY_NAMES = new Set([
+  "apikey",
+  "authorization",
+  "proxyauthorization",
+  "secret",
+  "token",
+  "password"
+]);
+const SENSITIVE_CONFIG_KEY_SUFFIXES = [
+  "apikey",
+  "apitoken",
+  "authtoken",
+  "accesstoken",
+  "secret",
+  "password"
+];
+const SENSITIVE_ENV_VARS = new Set(["POE_API_KEY"]);
 
 export function registerConfigCommand(program: Command, container: CliContainer): void {
   const config = program
@@ -155,15 +174,57 @@ function formatDocumentSection(
   document: ConfigDocument
 ): string {
   const headingText = filePath ? `${title} (${filePath})` : title;
+  const displayDocument = redactConfigDocument(document);
   const body = Object.keys(document).length === 0
     ? text.muted("(empty)")
-    : JSON.stringify(document, null, 2);
+    : JSON.stringify(displayDocument, null, 2);
   return `${text.heading(`── ${headingText} ──`)}\n${body}`;
 }
 
 function formatEnvSection(entries: string[]): string {
-  const body = entries.length > 0 ? entries.join("\n") : text.muted("(empty)");
+  const body = entries.length > 0 ? entries.map(redactEnvEntry).join("\n") : text.muted("(empty)");
   return `${text.heading("── Environment variable overrides ──")}\n${body}`;
+}
+
+function redactConfigDocument(document: ConfigDocument): ConfigDocument {
+  return redactConfigValue(document) as ConfigDocument;
+}
+
+function redactConfigValue(value: unknown, key?: string): unknown {
+  if (key !== undefined && isSensitiveConfigKey(key)) {
+    return REDACTED_CONFIG_VALUE;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => redactConfigValue(entry));
+  }
+
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([entryKey, entryValue]) => [
+        entryKey,
+        redactConfigValue(entryValue, entryKey)
+      ])
+    );
+  }
+
+  return value;
+}
+
+function isSensitiveConfigKey(key: string): boolean {
+  const normalized = key.toLowerCase().replace(/[-_\s]/g, "");
+  return SENSITIVE_CONFIG_KEY_NAMES.has(normalized)
+    || SENSITIVE_CONFIG_KEY_SUFFIXES.some(suffix => normalized.endsWith(suffix));
+}
+
+function redactEnvEntry(entry: string): string {
+  const match = entry.match(/^(\s*([A-Z0-9_]+)\s*=\s*).*/);
+  if (!match) {
+    return entry;
+  }
+
+  const [, prefix, name] = match;
+  return SENSITIVE_ENV_VARS.has(name) ? `${prefix}${REDACTED_CONFIG_VALUE}` : entry;
 }
 
 function resolveEditor(container: CliContainer): string {

@@ -9,6 +9,7 @@ import {
   type Runner,
   type RunSpec
 } from "@poe-code/process-runner";
+import { terminateRunHandle } from "./subprocess-termination.js";
 
 const require = createRequire(import.meta.url);
 const defaultTimeoutMs = 180_000;
@@ -81,7 +82,6 @@ async function runVitestWithRunner(
     }
     throw error;
   } finally {
-    killQuietly(handle);
     await unlink(outputFile).catch(() => undefined);
   }
 }
@@ -110,7 +110,8 @@ function createVitestRunSpec(
     env: createVitestEnv(path.resolve(input.cloneDir), path.resolve(input.oracleDir)),
     stdout: "pipe",
     stderr: "pipe",
-    signal: input.signal
+    signal: input.signal,
+    killProcessGroup: true
   };
 }
 
@@ -135,44 +136,74 @@ async function waitForVitest(
   signal: AbortSignal | undefined
 ): Promise<{ exitCode: number }> {
   if (signal?.aborted) {
-    killQuietly(handle);
+    await terminateRunHandle(handle);
     throw abortReason(signal);
   }
 
-  let timeout: NodeJS.Timeout | null = null;
-  let removeAbortListener: (() => void) | undefined;
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let cancelling = false;
+    let timeout: NodeJS.Timeout | null = null;
 
-  const timeoutPromise = new Promise<never>((_resolve, reject) => {
-    timeout = setTimeout(() => {
-      killQuietly(handle);
-      reject(new VitestTimeoutError(`Vitest timed out after ${timeoutMs}ms`));
-    }, timeoutMs);
-  });
+    const cleanup = (): void => {
+      if (timeout !== null) {
+        clearTimeout(timeout);
+        timeout = null;
+      }
+      signal?.removeEventListener("abort", onAbort);
+    };
 
-  const abortPromise =
-    signal === undefined
-      ? undefined
-      : new Promise<never>((_resolve, reject) => {
-          const onAbort = () => {
-            killQuietly(handle);
-            reject(abortReason(signal));
-          };
-          signal.addEventListener("abort", onAbort, { once: true });
-          removeAbortListener = () => signal.removeEventListener("abort", onAbort);
-        });
+    const finish = (callback: () => void): void => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      callback();
+    };
 
-  try {
-    return await Promise.race([
-      handle.result.then((result) => ({ exitCode: result.exitCode })),
-      timeoutPromise,
-      ...(abortPromise === undefined ? [] : [abortPromise])
-    ]);
-  } finally {
-    if (timeout !== null) {
-      clearTimeout(timeout);
+    const cancel = (reason: Error): void => {
+      if (settled || cancelling) {
+        return;
+      }
+      cancelling = true;
+      void terminateRunHandle(handle).then(
+        () => {
+          finish(() => reject(reason));
+        },
+        () => {
+          finish(() => reject(reason));
+        }
+      );
+    };
+
+    function onAbort(): void {
+      if (signal === undefined) {
+        return;
+      }
+      cancel(abortReason(signal));
     }
-    removeAbortListener?.();
-  }
+
+    timeout = setTimeout(() => {
+      cancel(new VitestTimeoutError(`Vitest timed out after ${timeoutMs}ms`));
+    }, timeoutMs);
+    signal?.addEventListener("abort", onAbort, { once: true });
+
+    void handle.result.then(
+      (result) => {
+        if (cancelling) {
+          return;
+        }
+        finish(() => resolve({ exitCode: result.exitCode }));
+      },
+      (error: unknown) => {
+        if (cancelling) {
+          return;
+        }
+        finish(() => reject(error));
+      }
+    );
+  });
 }
 
 function mapVitestCases(parsed: unknown, testsDir: string): CaseResult[] {
@@ -274,13 +305,6 @@ function abortReason(signal: AbortSignal): Error {
   return signal.reason instanceof Error ? signal.reason : new Error("Vitest run aborted");
 }
 
-function killQuietly(handle: RunHandle): void {
-  try {
-    handle.kill("SIGTERM");
-  } catch {
-    // Best effort cleanup after a timeout or abort.
-  }
-}
 
 interface VitestJson {
   testResults: VitestFileResult[];

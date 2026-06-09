@@ -1,5 +1,6 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { renderTemplate } from "@poe-code/design-system";
+import { renderTemplate } from "toolcraft-design";
 import type {
   Mutation,
   MutationContext,
@@ -11,6 +12,7 @@ import type {
   FileSystem
 } from "../types.js";
 import { getConfigFormat, detectFormat } from "../formats/index.js";
+import { cloneConfigObject, setConfigEntry } from "../formats/object.js";
 import { resolvePath } from "./path-utils.js";
 import {
   isNotFound,
@@ -99,28 +101,35 @@ async function writeAtomically(
   content: string
 ): Promise<void> {
   await assertRegularWriteTarget(context, targetPath);
-  let attempt = 0;
-  while (true) {
-    const tempPath = `${targetPath}.mutation-tmp-${attempt}`;
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = `${targetPath}.mutation-tmp-${process.pid}-${randomUUID()}`;
+    let tempCreated = false;
     try {
+      await assertRegularWriteTarget(context, tempPath);
       await context.fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
       await context.fs.rename(tempPath, targetPath);
+      tempCreated = false;
       return;
     } catch (error) {
       if (isAlreadyExists(error)) {
-        attempt += 1;
         continue;
       }
-      try {
-        await context.fs.unlink(tempPath);
-      } catch (cleanupError) {
-        if (!isNotFound(cleanupError)) {
-          void cleanupError;
+
+      if (tempCreated) {
+        try {
+          await context.fs.unlink(tempPath);
+        } catch (cleanupError) {
+          if (!isNotFound(cleanupError)) {
+            void cleanupError;
+          }
         }
       }
       throw error;
     }
   }
+
+  throw new Error(`Unable to create temporary mutation file for ${targetPath}.`);
 }
 
 function describeMutation(kind: string, targetPath?: string): string {
@@ -158,7 +167,7 @@ function pruneKeysByPrefix(
   const result: ConfigObject = {};
   for (const [key, value] of Object.entries(table)) {
     if (!key.startsWith(prefix)) {
-      result[key] = value;
+      setConfigEntry(result, key, value);
     }
   }
   return result;
@@ -173,29 +182,55 @@ function mergeWithPruneByPrefix(
   patch: ConfigObject,
   pruneByPrefix?: Record<string, string>
 ): ConfigObject {
-  const result: ConfigObject = { ...base };
+  const result = cloneConfigObject(base);
   const prefixMap = pruneByPrefix ?? {};
 
   for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      continue;
+    }
+
     const current = result[key];
     const prefix = prefixMap[key];
 
     if (isConfigObject(current) && isConfigObject(value)) {
       if (prefix) {
         const pruned = pruneKeysByPrefix(current, prefix);
-        result[key] = { ...pruned, ...value };
+        setConfigEntry(result, key, mergePrunedConfigObject(pruned, value));
       } else {
-        result[key] = mergeWithPruneByPrefix(
-          current,
-          value as ConfigObject,
-          prefixMap
-        );
+        setConfigEntry(result, key, mergeWithPruneByPrefix(current, value, prefixMap));
       }
       continue;
     }
-    result[key] = value;
+    setConfigEntry(result, key, value);
   }
   return result;
+}
+
+function mergePrunedConfigObject(base: ConfigObject, patch: ConfigObject): ConfigObject {
+  const result = cloneConfigObject(base);
+
+  for (const [key, value] of Object.entries(patch)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    setConfigEntry(result, key, value);
+  }
+
+  return result;
+}
+
+function serializeConfigUpdate(
+  format: ReturnType<typeof getConfigFormat>,
+  rawContent: string | null,
+  current: ConfigObject,
+  next: ConfigObject
+): string {
+  if (rawContent !== null && format.serializeUpdate) {
+    return format.serializeUpdate(rawContent, current, next);
+  }
+  return format.serialize(next);
 }
 
 // ============================================================================
@@ -610,6 +645,7 @@ async function applyConfigMerge(
   const format = getConfigFormat(formatName);
 
   const rawContent = await readFileIfExists(context.fs, targetPath);
+  let preserveContent = rawContent;
   let current: ConfigObject;
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
@@ -619,11 +655,12 @@ async function applyConfigMerge(
       await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
+    preserveContent = null;
   }
 
   const value = resolveValue(mutation.value, options);
 
-  // Use mergeWithPruneByPrefix for TOML files with pruneByPrefix option
+  // Keep prefix pruning on the same proto-safe object-write path as normal merges.
   let merged: ConfigObject;
   if (mutation.pruneByPrefix) {
     merged = mergeWithPruneByPrefix(current, value, mutation.pruneByPrefix);
@@ -631,7 +668,7 @@ async function applyConfigMerge(
     merged = format.merge(current, value);
   }
 
-  const serialized = format.serialize(merged);
+  const serialized = serializeConfigUpdate(format, preserveContent, current, merged);
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
@@ -718,7 +755,7 @@ async function applyConfigPrune(
     };
   }
 
-  const serialized = format.serialize(result);
+  const serialized = serializeConfigUpdate(format, rawContent, current, result);
   if (!context.dryRun) {
     await writeAtomically(context, targetPath, serialized);
   }
@@ -752,6 +789,7 @@ async function applyConfigTransform(
   const format = getConfigFormat(formatName);
 
   const rawContent = await readFileIfExists(context.fs, targetPath);
+  let preserveContent = rawContent;
   let current: ConfigObject;
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
@@ -760,6 +798,7 @@ async function applyConfigTransform(
       await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
+    preserveContent = null;
   }
 
   const { content: transformed, changed } = mutation.transform(current, options);
@@ -788,7 +827,7 @@ async function applyConfigTransform(
     };
   }
 
-  const serialized = format.serialize(transformed);
+  const serialized = serializeConfigUpdate(format, preserveContent, current, transformed);
   if (!context.dryRun) {
     await writeAtomically(context, targetPath, serialized);
   }

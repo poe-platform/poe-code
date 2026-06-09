@@ -1266,6 +1266,33 @@ describe("store", () => {
 
     await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow("config scope disk full");
     await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+    const entries = await base.readdir(path.dirname(configPath));
+    expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+  });
+
+  it("does not remove a colliding temporary config file it did not create", async () => {
+    const original = '{"core":{"apiKey":"old"}}\n';
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    let tempPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${configPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          base.files[targetPath] = "preexisting-temp\n";
+        }
+
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+    expect(base.getContent(tempPath as string)).toBe("preexisting-temp\n");
   });
 
   it("preserves a stored __proto__ key inside a normal scope", async () => {

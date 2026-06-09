@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import path from "node:path";
+import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "./file-system.js";
 import { createBackup, restoreLatestBackup } from "./backup.js";
 import { createMockFs } from "@poe-code/config-mutations/testing";
@@ -46,6 +47,24 @@ describe("backup utilities", () => {
     expect(backupPath).toBe(`${filePath}.backup.20240101T010101`);
     const backupContent = await fs.readFile(backupPath!, "utf8");
     expect(backupContent).toBe("export FOO=bar");
+  });
+
+  it("does not write a backup through a preexisting symlink", async () => {
+    const backupPath = `${filePath}.backup.20240101T010101`;
+    const volume = Volume.fromJSON({
+      [filePath]: "export FOO=bar",
+      "/outside.backup": "outside-state\n"
+    });
+    volume.symlinkSync("/outside.backup", backupPath);
+    fs = {
+      ...(createFsFromVolume(volume).promises as unknown as FileSystem),
+      copyFile: undefined
+    };
+
+    await expect(createBackup(fs, filePath, () => "20240101T010101")).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+    await expect(fs.readFile("/outside.backup", "utf8")).resolves.toBe("outside-state\n");
   });
 
   it("skips backup when file is missing", async () => {
@@ -99,6 +118,36 @@ describe("backup utilities", () => {
     };
 
     await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow("replacement write failed");
+    await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
+  });
+
+  it("does not remove a colliding restore temp symlink", async () => {
+    const volume = Volume.fromJSON({
+      [filePath]: "current valid content",
+      [`${filePath}.backup.20240101T010101`]: "restored content",
+      "/outside.tmp": "outside-state\n"
+    });
+    const baseFs = createFsFromVolume(volume).promises as unknown as FileSystem;
+    let temporaryPath: string | undefined;
+    fs = {
+      ...baseFs,
+      copyFile: undefined,
+      async writeFile(target, data, options) {
+        if (temporaryPath === undefined && target.includes(".restore-")) {
+          temporaryPath = target;
+          volume.symlinkSync("/outside.tmp", target);
+          expect(options).toEqual({ flag: "wx" });
+        }
+
+        await baseFs.writeFile(target, data, options);
+      }
+    };
+
+    await expect(restoreLatestBackup(fs, filePath)).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync("/outside.tmp", "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
     await expect(baseFs.readFile(filePath, "utf8")).resolves.toBe("current valid content");
   });
 });
@@ -428,7 +477,7 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("codex", {
       model: "test-model",
       expectedOutput: "CODEX_OK",
-      hooks: { from: "claude-code", strategy: "transform" }
+      hooks: { from: "claude-code", strategy: "transform", scope: "project" }
     });
     await check.run({ isDryRun: false, runCommand, logWarning });
 
@@ -438,6 +487,8 @@ describe("createSpawnHealthCheck", () => {
       "claude-code",
       "--hooks-strategy",
       "transform",
+      "--hooks-scope",
+      "project",
       "--model",
       "test-model",
       "--mode",

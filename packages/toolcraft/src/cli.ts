@@ -16,6 +16,7 @@ import type {
 } from "toolcraft-schema";
 import {
   cancel,
+  configureTheme,
   confirm,
   createLogger,
   formatCommandList,
@@ -29,7 +30,7 @@ import {
   resetOutputFormatCache,
   select,
   text
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import type {
   Command,
   CommandRequirementOptions,
@@ -55,12 +56,17 @@ import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-l
 import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
+import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { renderSourceSnippet } from "./source-snippet.js";
 import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+
+configureTheme({ brand: "blue", label: "Toolcraft" });
+
+export { configureTheme };
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -852,9 +858,7 @@ function getNumericProperty(value: unknown, key: string): number | null {
 
   const propertyValue = (value as Record<string, unknown>)[key];
 
-  return typeof propertyValue === "number" && Number.isFinite(propertyValue)
-    ? propertyValue
-    : null;
+  return typeof propertyValue === "number" && Number.isFinite(propertyValue) ? propertyValue : null;
 }
 
 function getJsonParseMessagePosition(message: string): number | null {
@@ -1575,10 +1579,7 @@ function formatCommandRows<TServices extends object>(
   }));
 }
 
-function formatGlobalOptionsLine(ctx: {
-  showVersion: boolean;
-  presetsEnabled: boolean;
-}): string {
+function formatGlobalOptionsLine(ctx: { showVersion: boolean; presetsEnabled: boolean }): string {
   const flags: string[] = [];
 
   if (ctx.presetsEnabled) {
@@ -1641,13 +1642,13 @@ function renderHelpSections(sections: string[]): string {
 }
 
 function formatHelpCommandList(rows: HelpCommandRow[]): string {
-  return process.stdout.isTTY === false
+  return process.stdout.isTTY !== true
     ? helpFormatterPlain.formatCommandList(rows)
     : formatCommandList(rows);
 }
 
 function formatHelpOptionList(rows: HelpOptionRow[]): string {
-  return process.stdout.isTTY === false
+  return process.stdout.isTTY !== true
     ? helpFormatterPlain.formatOptionList(rows)
     : formatOptionList(rows);
 }
@@ -2164,8 +2165,12 @@ async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Pr
 function createFs(): HandlerFs {
   return {
     readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
-    writeFile: async (path: string, contents: string) => {
-      await writeFile(path, contents);
+    writeFile: async (
+      path: string,
+      contents: string,
+      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+    ) => {
+      await writeFile(path, contents, options);
     },
     exists: async (path: string) => {
       try {
@@ -3945,7 +3950,7 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
 }
 
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
-  return process.stdout.isTTY === false ? value : style(value);
+  return process.stdout.isTTY !== true ? value : style(value);
 }
 
 function formatHttpErrorStatus(value: string): string {
@@ -3997,20 +4002,22 @@ function formatGraphQLErrorEnvelopeBody(body: GraphQLErrorEnvelopeLike): string 
 }
 
 function formatHttpErrorBody(body: unknown): string {
-  if (typeof body === "string") {
-    return body;
+  const redactedBody = redactHttpBody(body);
+
+  if (typeof redactedBody === "string") {
+    return redactedBody;
   }
 
-  if (isProblemDetailsLike(body)) {
-    return formatProblemDetailsBody(body);
+  if (isProblemDetailsLike(redactedBody)) {
+    return formatProblemDetailsBody(redactedBody);
   }
 
-  if (isGraphQLErrorEnvelopeLike(body)) {
-    return formatGraphQLErrorEnvelopeBody(body);
+  if (isGraphQLErrorEnvelopeLike(redactedBody)) {
+    return formatGraphQLErrorEnvelopeBody(redactedBody);
   }
 
-  const serialized = JSON.stringify(body, null, 2);
-  return serialized === undefined ? String(body) : serialized;
+  const serialized = JSON.stringify(redactedBody, null, 2);
+  return serialized === undefined ? String(redactedBody) : serialized;
 }
 
 function indentHttpErrorBlock(value: string): string {
@@ -4021,7 +4028,7 @@ function indentHttpErrorBlock(value: string): string {
 }
 
 function formatHttpHeaderValue(name: string, value: string): string {
-  return name.toLowerCase() === "authorization" ? "Bearer ****" : value;
+  return redactHttpHeaderValue(name, value);
 }
 
 function formatHttpErrorHeaders(headers: Record<string, string>): string[] {
@@ -4047,7 +4054,11 @@ function renderHttpError(
     lines.push("", "Request headers:", ...formatHttpErrorHeaders(error.request.headers), "");
 
     if (error.request.body !== undefined) {
-      lines.push("Request body:", indentHttpErrorBlock(formatHttpErrorBody(error.request.body)), "");
+      lines.push(
+        "Request body:",
+        indentHttpErrorBlock(formatHttpErrorBody(error.request.body)),
+        ""
+      );
     }
   }
 

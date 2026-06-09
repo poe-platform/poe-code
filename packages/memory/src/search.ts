@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { collectMarkdownRelPaths } from "./pages.js";
+import { assertNoSymlinkSegments } from "./paths.js";
 import type { MemoryRoot, SearchHit } from "./types.js";
 
 export async function searchMemory(root: MemoryRoot, query: string): Promise<SearchHit[]> {
@@ -13,6 +14,7 @@ export async function searchMemory(root: MemoryRoot, query: string): Promise<Sea
   const hits: SearchHit[] = [];
 
   for (const relPath of relPaths) {
+    await assertNoSymlinkSegments(root, relPath);
     const content = await fs.readFile(path.join(root, relPath), "utf8");
     if (content.length === 0) {
       continue;

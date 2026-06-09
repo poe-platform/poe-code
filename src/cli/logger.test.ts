@@ -10,7 +10,7 @@ const introFn = vi.hoisted(() => vi.fn());
 const introPlainFn = vi.hoisted(() => vi.fn());
 const outroFn = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
   log: {
     message: logMessage,
     warn: logWarn,

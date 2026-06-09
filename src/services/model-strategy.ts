@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -244,12 +245,15 @@ export class StrategyConfigManager {
       fs.mkdirSync(this.CONFIG_DIR, { recursive: true });
     }
     this.assertSafeStatePath();
-    const temporaryFile = `${this.CONFIG_FILE}.tmp`;
+    const temporaryFile = `${this.CONFIG_FILE}.${process.pid}.${randomUUID()}.tmp`;
+    let temporaryCreated = false;
     try {
-      fs.writeFileSync(temporaryFile, JSON.stringify(config, null, 2));
+      fs.writeFileSync(temporaryFile, JSON.stringify(config, null, 2), { flag: "wx" });
+      temporaryCreated = true;
       fs.renameSync(temporaryFile, this.CONFIG_FILE);
+      temporaryCreated = false;
     } catch (error) {
-      if (fs.existsSync(temporaryFile)) {
+      if (temporaryCreated) {
         fs.unlinkSync(temporaryFile);
       }
       throw error;

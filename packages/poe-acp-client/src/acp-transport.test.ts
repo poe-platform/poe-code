@@ -32,6 +32,7 @@ afterEach(() => {
   while (cleanup.length > 0) {
     cleanup.pop()?.();
   }
+  vi.useRealTimers();
   vi.clearAllMocks();
 });
 
@@ -425,7 +426,8 @@ describe("AcpTransport", () => {
 
     transport.dispose();
 
-    expect(mock.kill).toHaveBeenCalledTimes(1);
+    expect(mock.kill).toHaveBeenCalledOnce();
+    expect(mock.kill).toHaveBeenCalledWith("SIGTERM");
     expect(mock.stdin.writableEnded).toBe(true);
     await expect(transport.closed).resolves.toMatchObject({
       signal: "SIGTERM",
@@ -436,17 +438,101 @@ describe("AcpTransport", () => {
     });
   });
 
-  it("settles disposal even when a killed child never emits close", async () => {
+  it("caps stderr diagnostics at 64 KiB while keeping the tail", async () => {
+    const mock = createMockChildProcess();
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const transport = new AcpTransport({ command: "poe-agent" });
+    cleanup.push(() => {
+      mock.stdin.destroy();
+      mock.stdout.destroy();
+      mock.stderr.destroy();
+    });
+
+    const firstChunk = "x".repeat(40_000);
+    const secondChunk = "y".repeat(40_000);
+    const expectedTail = (firstChunk + secondChunk).slice(-65_536);
+
+    mock.stderr.write(firstChunk);
+    mock.stderr.write(secondChunk);
+
+    expect(transport.getStderrOutput()).toHaveLength(65_536);
+    expect(transport.getStderrOutput()).toBe(expectedTail);
+
+    mock.emitClose(1, null);
+
+    await expect(transport.closed).resolves.toMatchObject({
+      code: 1,
+      stderr: expectedTail,
+    });
+  });
+
+  it("waits for child close before settling disposal", async () => {
+    vi.useFakeTimers();
     const mock = createMockChildProcess();
     mock.kill.mockImplementation(() => true);
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
     const transport = new AcpTransport({ command: "poe-agent" });
     const reason = new Error("stop now");
+    cleanup.push(() => {
+      transport.dispose();
+      mock.stdin.destroy();
+      mock.stdout.destroy();
+      mock.stderr.destroy();
+    });
+
+    const closed = vi.fn();
+    void transport.closed.then(closed);
+
+    transport.dispose(reason);
+    await Promise.resolve();
+
+    expect(mock.kill).toHaveBeenCalledOnce();
+    expect(mock.kill).toHaveBeenNthCalledWith(1, "SIGTERM");
+    expect(closed).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(mock.kill).toHaveBeenCalledOnce();
+    expect(closed).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(mock.kill).toHaveBeenCalledTimes(2);
+    expect(mock.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
+    expect(closed).not.toHaveBeenCalled();
+
+    mock.emitClose(null, "SIGKILL");
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason,
+      signal: "SIGKILL",
+    });
+    expect(closed).toHaveBeenCalledOnce();
+  });
+
+  it("force-settles disposal if an escalated child never emits close", async () => {
+    vi.useFakeTimers();
+    const mock = createMockChildProcess();
+    mock.kill.mockImplementation(() => true);
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const transport = new AcpTransport({ command: "poe-agent" });
+    const reason = new Error("stop now");
+    cleanup.push(() => {
+      transport.dispose();
+      mock.stdin.destroy();
+      mock.stdout.destroy();
+      mock.stderr.destroy();
+    });
 
     transport.dispose(reason);
 
-    await expect(transport.closed).resolves.toMatchObject({ reason });
-    expect(mock.kill).toHaveBeenCalledOnce();
+    await vi.advanceTimersByTimeAsync(2_000);
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason,
+      signal: "SIGKILL",
+    });
+    expect(mock.kill).toHaveBeenCalledTimes(2);
+    expect(mock.kill).toHaveBeenNthCalledWith(1, "SIGTERM");
+    expect(mock.kill).toHaveBeenNthCalledWith(2, "SIGKILL");
   });
 
   it("rejects pending requests when the process errors", async () => {

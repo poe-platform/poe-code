@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, symlink } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
@@ -36,10 +36,42 @@ vi.mock("./clone.js", () => ({
 }));
 
 const { runEval } = await import("./run.js");
+const { cloneTarget } = await import("./clone.js");
+const mockedCloneTarget = vi.mocked(cloneTarget);
 
 registerRunIntegrationCleanup();
 
 describe("runEval plan integration", () => {
+  it("rejects target plan destinations through symlinked clone ancestors", async () => {
+    const outDir = await createRunOutDir();
+    const outsideDir = path.join(path.dirname(outDir), "outside-plan-target");
+    await mkdir(outsideDir, { recursive: true });
+    mockedAgentSpawn.spawnStreaming.mockClear();
+    mockedCloneTarget.mockImplementationOnce(async (input) => {
+      await copyFixtureClone(input.dest);
+      await mkdir(path.join(input.dest, "docs"), { recursive: true });
+      await symlink(outsideDir, path.join(input.dest, "docs", "plans"));
+      return { resolvedSha: "fixture-sha" };
+    });
+
+    await expect(
+      runEval({
+        sourceDir: sourceFixture("plan"),
+        evalId: "task",
+        agent: "codex",
+        model: "openai/gpt-5",
+        outDir,
+        judge: "off",
+        verifyOracle: false
+      })
+    ).rejects.toThrow("target.plan_dest must stay within the canonical clone directory.");
+
+    expect(mockedAgentSpawn.spawnStreaming).not.toHaveBeenCalled();
+    await expect(readFile(path.join(outsideDir, "eval-task.md"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("records direct agent ACP events for budget and anti-cheat consumers", async () => {
     const outDir = await createRunOutDir();
     const outsidePath = "/private/agent-eval-plan-cheat.txt";

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -22,8 +23,6 @@ type RalphResultWithFailure = Omit<RalphRunResult, "stopReason"> & {
 type RalphAgentRunInput = AgentRunInput & {
   mode?: import("@poe-code/agent-spawn").SpawnMode;
 };
-
-let planPublicationSequence = 0;
 
 export function createRalphDriver(options: { runRalph?: RalphRunner } = {}): WorkflowDriver {
   const runner = options.runRalph ?? runRalph;
@@ -50,7 +49,7 @@ async function runRalphDriver(
 
   try {
     await fs.mkdir(ctx.workspaceDir, { recursive: true });
-    await fs.copyFile(ctx.planPath, workspaceDocPath);
+    await copyPlanToWorkspace(ctx.planPath, workspaceDocPath);
   } catch (error) {
     return fail("step_failed", errorMessage(error));
   }
@@ -133,20 +132,47 @@ async function runAgent(
   };
 }
 
+async function copyPlanToWorkspace(planPath: string, workspaceDocPath: string): Promise<void> {
+  const content = await fs.readFile(planPath, "utf8");
+  await writeFileAtomically(workspaceDocPath, content);
+}
+
 async function persistPlan(workspaceDocPath: string, planPath: string): Promise<void> {
   const updatedDocPath = await resolveUpdatedDocPath(workspaceDocPath);
   const content = await fs.readFile(updatedDocPath, "utf8");
-  const tempPath = path.join(
-    path.dirname(planPath),
-    `.${path.basename(planPath)}.${process.pid}.${planPublicationSequence += 1}.tmp`
-  );
 
   if (updatedDocPath !== workspaceDocPath) {
-    await fs.writeFile(workspaceDocPath, content, "utf8");
+    await writeFileAtomically(workspaceDocPath, content);
   }
 
-  await fs.writeFile(tempPath, content, "utf8");
-  await fs.rename(tempPath, planPath);
+  await writeFileAtomically(planPath, content);
+}
+
+async function writeFileAtomically(targetPath: string, content: string): Promise<void> {
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const tempPath = path.join(
+      path.dirname(targetPath),
+      `.${path.basename(targetPath)}.${process.pid}.${randomUUID()}.tmp`
+    );
+    let tempCreated = false;
+    try {
+      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      tempCreated = true;
+      await fs.rename(tempPath, targetPath);
+      tempCreated = false;
+      return;
+    } catch (error) {
+      if (isAlreadyExists(error) && !tempCreated) {
+        continue;
+      }
+      if (tempCreated) {
+        await fs.rm(tempPath, { force: true }).catch(() => undefined);
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to create temporary file for ${targetPath}.`);
 }
 
 async function resolveUpdatedDocPath(workspaceDocPath: string): Promise<string> {
@@ -166,9 +192,16 @@ async function resolveUpdatedDocPath(workspaceDocPath: string): Promise<string> 
   return workspaceDocPath;
 }
 
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(
+    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
+  );
+}
+
 async function fileExists(filePath: string): Promise<boolean> {
   try {
-    return (await fs.stat(filePath)).isFile();
+    const stats = await fs.lstat(filePath);
+    return !stats.isSymbolicLink() && stats.isFile();
   } catch (error) {
     if (isMissingPathError(error)) {
       return false;

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import { Volume, createFsFromVolume } from "memfs";
 import type { RunLoopOptions, SuperintendentFileSystem } from "../runtime/loop.js";
-import type { Dashboard } from "@poe-code/design-system";
+import type { Dashboard } from "toolcraft-design";
 
 function createDoc(builderAgent: string): string {
   return [
@@ -74,9 +74,13 @@ function createFs(files: Record<string, string>): TestFs {
   return {
     readFile: (filePath: string, encoding: BufferEncoding) =>
       rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: async (filePath: string, content: string) => {
+    writeFile: async (
+      filePath: string,
+      content: string,
+      options?: { encoding?: BufferEncoding; flag?: string }
+    ) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
     },
     readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
     stat: async (filePath: string) => {
@@ -100,6 +104,9 @@ function createFs(files: Record<string, string>): TestFs {
     rename: async (oldPath: string, newPath: string) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
       await rawFs.rename(oldPath, newPath);
+    },
+    unlink: async (filePath: string) => {
+      await rawFs.unlink(filePath);
     }
   } as SuperintendentFileSystem;
 }
@@ -389,9 +396,9 @@ describe("superintendent run command", () => {
     const selectPrompt = vi.fn(async () => cancelled);
     const runLoopMock = vi.fn();
     vi.resetModules();
-    vi.doMock("@poe-code/design-system", async () => {
-      const actual = await vi.importActual<typeof import("@poe-code/design-system")>(
-        "@poe-code/design-system"
+    vi.doMock("toolcraft-design", async () => {
+      const actual = await vi.importActual<typeof import("toolcraft-design")>(
+        "toolcraft-design"
       );
       return {
         ...actual,
@@ -420,12 +427,12 @@ describe("superintendent run command", () => {
 
       expect(runLoopMock).not.toHaveBeenCalled();
     } finally {
-      vi.doUnmock("@poe-code/design-system");
+      vi.doUnmock("toolcraft-design");
       vi.resetModules();
     }
   });
 
-  it("uses the configured default builder agent when flag and frontmatter are empty", async () => {
+  it("uses the configured default builder agent with --yes when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
         "  prompt: |",
@@ -448,6 +455,7 @@ describe("superintendent run command", () => {
       homeDir: "/home/test",
       docPath: "/repo/docs/plans/plan.md",
       configuredDefaultAgent: "codex",
+      assumeYes: true,
       interactive: false,
       useDashboard: false,
       fs,
@@ -460,6 +468,47 @@ describe("superintendent run command", () => {
 
     expect(selectPrompt).not.toHaveBeenCalled();
     expect(result.builderAgent).toBe("codex");
+  });
+
+  it("prompts for the builder agent when core.defaultAgent exists without --yes", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn(async () => "goose");
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      configuredDefaultAgent: "codex",
+      interactive: true,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select agent to run Superintendent builder with:"
+      })
+    );
+    expect(result.builderAgent).toBe("goose");
   });
 
   it("falls back to claude-code with --yes when no builder agent is configured", async () => {

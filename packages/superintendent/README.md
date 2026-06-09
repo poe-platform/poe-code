@@ -41,7 +41,7 @@ npx tsx packages/superintendent/src/cli.ts inspector run <doc> [name]
 
 Behavior notes:
 
-- `run` starts the full loop and uses the live dashboard in terminal output. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
+- `run` starts the full loop and uses the live dashboard in terminal output. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter. If both are omitted, non-`--yes` runs prompt even when a default agent is configured; `--yes` uses the configured default agent when set, otherwise the `claude-code` fallback.
 - `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
 - `builder run` executes only the builder role.
@@ -213,7 +213,7 @@ status:
 
 The `builder`, each `inspectors.<name>`, `superintendent`, and `owner` blocks support:
 
-- `agent` — optional agent id. Parsed roles default to `claude-code`; `superintendent run` resolves an omitted builder agent from `--agent`, configured defaults, the `--yes` fallback, or an interactive prompt.
+- `agent` — optional agent id. Parsed roles default to `claude-code`; `superintendent run` resolves the builder agent from `--agent`, explicit frontmatter, an interactive prompt, or—when `--yes` is set—the configured default agent followed by the `claude-code` fallback.
 - `mode` — optional spawn mode
 - `prompt` — required prompt template
 - `tools.mcp` — optional list of MCP server names declared under the root `mcp` map

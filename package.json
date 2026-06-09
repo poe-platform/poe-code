@@ -34,6 +34,7 @@
     "dev:bundle": "npm run build && node dist/bin.cjs",
     "test": "turbo run test:unit --concurrency=1 --",
     "test:unit": "vitest run",
+    "test:postinstall-lifecycle": "vitest run --config vitest.postinstall.config.ts",
     "typecheck": "npm run lint:types",
     "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
@@ -44,8 +45,8 @@
     "labels:generate": "tsx scripts/generate-labels.ts",
     "screenshot": "tsx scripts/screenshot.ts",
     "screenshot-poe-code": "tsx scripts/screenshot.ts --poe-code",
-    "generate:design-docs": "turbo run generate:docs --filter=@poe-code/design-system",
-    "generate:design-docs:all": "npm run generate:design-docs:all -w @poe-code/design-system",
+    "generate:design-docs": "turbo run generate:docs --filter=toolcraft-design",
+    "generate:design-docs:all": "npm run generate:design-docs:all -w toolcraft-design",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
     "watch:diff": "tsx local_scripts/watch-diff.ts",
@@ -74,8 +75,8 @@
     "smoke:verbose": "tsx scripts/smoke-test.ts --verbose",
     "metric:test_count": "node scripts/metric-test-count.mjs",
     "metric:test_duration": "node scripts/metric-test-duration.mjs",
-    "demo:dashboard": "tsx packages/design-system/src/dashboard/demo.ts",
-    "demo:explorer": "tsx packages/design-system/src/explorer/demo.ts",
+    "demo:dashboard": "tsx packages/toolcraft-design/src/dashboard/demo.ts",
+    "demo:explorer": "tsx packages/toolcraft-design/src/explorer/demo.ts",
     "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
     "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
     "codegen:harness-schemas": "tsx scripts/generate-harness-schemas.ts",
@@ -100,11 +101,13 @@
     "packages/agent-mcp-config/dist",
     "packages/agent-skill-config/dist",
     "packages/config-mutations/dist",
-    "packages/design-system/dist",
+    "packages/toolcraft-design/dist",
     "packages/memory/dist",
     "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
-    "packages/tiny-stdio-mcp-server/dist"
+    "packages/tiny-oauth-test-server/package.json",
+    "packages/tiny-stdio-mcp-server/dist",
+    "packages/tiny-stdio-mcp-test-server/package.json"
   ],
   "engines": {
     "node": ">=20"
@@ -135,6 +138,9 @@
     "uri-template-lite": "^23.4.0",
     "yaml": "^2.8.2"
   },
+  "optionalDependencies": {
+    "braintrust": "^3.10.0"
+  },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
@@ -157,7 +163,7 @@
     "@poe-code/cached-resource": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "@poe-code/e2e-test-runner": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/github-workflows": "*",
@@ -207,6 +213,7 @@
     "tokenfill": "*",
     "toolcraft": "*",
     "toolcraft-codemode": "*",
+    "toolcraft-landing-page": "*",
     "toolcraft-openapi": "*",
     "toolcraft-schema": "*",
     "ts-morph": "^27.0.2",

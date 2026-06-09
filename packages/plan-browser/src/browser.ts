@@ -2,7 +2,7 @@ import {
   renderMarkdown,
   runExplorer,
   type ExplorerConfig
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { discoverAllPlans } from "./discovery.js";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
@@ -46,7 +46,7 @@ export async function runPlanBrowser(options: {
     return;
   }
 
-  if (options.assumeYes || process.stdin.isTTY === false) {
+  if (options.assumeYes || process.stdin.isTTY !== true) {
     await renderPlanPreview(plans[0]!);
     return;
   }

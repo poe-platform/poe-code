@@ -41,6 +41,8 @@ export interface SpawnOptions {
   logDir?: string;
   /** Filename override for the spawn log. Requires `logDir`. */
   logFileName?: string;
+  /** Include message/tool content in ACP JSONL spawn logs. Defaults to redacted logs. */
+  logContent?: boolean;
   /** Additional ACP middlewares appended to the spawn capture chain. */
   middlewares?: AcpMiddleware[];
   /** Launch the agent in interactive (TUI) mode with inherited stdio */

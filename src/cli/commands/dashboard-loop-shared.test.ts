@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { withOutputFormat } from "@poe-code/design-system";
+import { withOutputFormat } from "toolcraft-design";
 
 import {
   createDashboardLineBuffer,

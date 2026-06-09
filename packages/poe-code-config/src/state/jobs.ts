@@ -1,5 +1,11 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
+import {
+  assertPathHasNoSymbolicLinks,
+  defaultStateFs,
+  isNotFoundError,
+  type StateFileSystem
+} from "./fs.js";
 
 export type JobStatus = "pending" | "running" | "exited" | "killed" | "lost";
 
@@ -46,24 +52,26 @@ export function createJobRegistry(
   }
 
   async function assertSafeJobsDir(): Promise<void> {
-    if (fs.lstat === undefined) {
-      return;
-    }
-    try {
-      if ((await fs.lstat(jobsDir)).isSymbolicLink()) {
-        throw new Error(`Refusing runtime job state access through symbolic link: ${jobsDir}`);
-      }
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-    }
+    await assertPathHasNoSymbolicLinks(
+      fs,
+      jobsDir,
+      "Refusing runtime job state access through symbolic link"
+    );
+  }
+
+  async function assertSafeJobPath(filePath: string): Promise<void> {
+    await assertPathHasNoSymbolicLinks(
+      fs,
+      filePath,
+      "Refusing runtime job state access through symbolic link"
+    );
   }
 
   async function get(id: string): Promise<JobEntry | null> {
-    await assertSafeJobsDir();
+    const filePath = jobPath(id);
+    await assertSafeJobPath(filePath);
     try {
-      return parseJobEntry(await fs.readFile(jobPath(id), "utf8"), id);
+      return parseJobEntry(await fs.readFile(filePath, "utf8"), id);
     } catch (error) {
       if (isNotFoundError(error)) {
         return null;
@@ -77,6 +85,7 @@ export function createJobRegistry(
     assertJobEntry(entry);
     const filePath = jobPath(entry.id);
     await mutate(async () => {
+      await assertSafeJobsDir();
       await fs.mkdir(jobsDir, { recursive: true });
       await assertSafeJobsDir();
       await writeJobAtomically(filePath, entry);
@@ -86,6 +95,7 @@ export function createJobRegistry(
   async function update(id: string, patch: Partial<JobEntry>): Promise<JobEntry | null> {
     const filePath = jobPath(id);
     return mutate(async () => {
+      await assertSafeJobsDir();
       await fs.mkdir(jobsDir, { recursive: true });
       await assertSafeJobsDir();
       const current = await get(id);
@@ -125,6 +135,7 @@ export function createJobRegistry(
       }
 
       const filePath = path.join(jobsDir, entry);
+      await assertSafeJobPath(filePath);
       const stat = await fs.stat(filePath);
       if (!stat.isFile()) {
         continue;
@@ -156,6 +167,7 @@ export function createJobRegistry(
       }
 
       try {
+        await assertSafeJobPath(filePath);
         await fs.unlink(filePath);
       } catch (error) {
         if (!isNotFoundError(error)) {
@@ -175,18 +187,24 @@ export function createJobRegistry(
   }
 
   async function writeJobAtomically(filePath: string, entry: JobEntry): Promise<void> {
+    await assertSafeJobPath(filePath);
     await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
-      .toString(36)
-      .slice(2)}.tmp`;
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+    let tempCreated = false;
 
     try {
+      await assertSafeJobPath(tempPath);
       await fs.writeFile(tempPath, `${JSON.stringify(entry, null, 2)}\n`, {
-        encoding: "utf8"
+        encoding: "utf8",
+        flag: "wx"
       });
+      tempCreated = true;
+      await assertSafeJobPath(filePath);
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      await removeTempFile(tempPath).catch(() => undefined);
+      if (tempCreated) {
+        await removeTempFile(tempPath).catch(() => undefined);
+      }
       throw error;
     }
   }

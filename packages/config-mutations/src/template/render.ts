@@ -1,4 +1,4 @@
-import { renderTemplate as renderDesignTemplate } from "@poe-code/design-system";
+import { renderTemplate as renderDesignTemplate } from "toolcraft-design";
 
 export type TemplateVariables = Record<string, string | number | boolean | string[]>;
 

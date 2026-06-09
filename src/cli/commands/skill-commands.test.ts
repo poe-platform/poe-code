@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 import { ValidationError } from "../errors.js";
@@ -10,8 +10,8 @@ const { selectMock, cancelMock } = vi.hoisted(() => {
   };
 });
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+vi.mock("toolcraft-design", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("toolcraft-design");
   return {
     ...actual,
     select: selectMock,
@@ -33,12 +33,36 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
+
 // ---------------------------------------------------------------------------
 // skill-unconfigure-command.test.ts
 // ---------------------------------------------------------------------------
 
 describe("skill unconfigure command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     vi.restoreAllMocks();
     selectMock.mockReset();
     cancelMock.mockReset();
@@ -79,7 +103,43 @@ describe("skill unconfigure command", () => {
     ).rejects.toEqual(new ValidationError("Use either --local or --global, not both."));
   });
 
-  it("uses core.defaultAgent for unconfigure without prompting and drops the model portion", async () => {
+  it("prompts for unconfigure agent despite core.defaultAgent when --yes is absent", async () => {
+    const { fs, vol } = createMemFs();
+    const logs: string[] = [];
+
+    vol.mkdirSync(`${homeDir}/.codex/skills`, { recursive: true });
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    selectMock.mockResolvedValueOnce("claude-code");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "unconfigure", "--global", "--force"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Select agent to unconfigure:" })
+    );
+    expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
+    await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+    await expect(fs.stat(`${homeDir}/.codex/skills`)).resolves.toBeDefined();
+  });
+
+  it("uses core.defaultAgent for --yes unconfigure and drops the model portion", async () => {
     const { fs, vol } = createMemFs();
     const logs: string[] = [];
 
@@ -102,7 +162,7 @@ describe("skill unconfigure command", () => {
       "utf8"
     );
 
-    await program.parseAsync(["node", "cli", "skill", "unconfigure", "--global", "--force"]);
+    await program.parseAsync(["node", "cli", "--yes", "skill", "unconfigure", "--global", "--force"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Removed skill directory for codex at ~/.codex/skills");
@@ -130,7 +190,7 @@ describe("skill unconfigure command", () => {
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
-  it("uses the default agent for root --yes unconfigure", async () => {
+  it("uses default agent and scope for root --yes unconfigure", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -142,10 +202,10 @@ describe("skill unconfigure command", () => {
       suppressCommanderOutput: true
     });
 
-    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure"]);
 
     expect(selectMock).not.toHaveBeenCalled();
-    expect(logs).toContain("Would remove skill directory for claude-code at .claude/skills");
+    expect(logs).toContain("Would remove skill directory for claude-code at ~/.claude/skills");
   });
 
   it("warns when directory has files and --force is not set", async () => {
@@ -228,6 +288,33 @@ describe("skill unconfigure command", () => {
     expect(logs).toContain("Removed skill directory for claude-code at ~/.claude/skills");
     await expect(fs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
   });
+
+  it("rejects non-interactive unconfigure when scope must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(
+        program.parseAsync(["node", "cli", "skill", "unconfigure", "claude-code", "--force"])
+      ).rejects.toEqual(
+        new ValidationError(
+          "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+        )
+      );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -235,7 +322,12 @@ describe("skill unconfigure command", () => {
 // ---------------------------------------------------------------------------
 
 describe("skill configure command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
   afterEach(() => {
+    restoreProcessStdinIsTTY();
     vi.restoreAllMocks();
     selectMock.mockReset();
     cancelMock.mockReset();
@@ -335,7 +427,92 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 
-  it("uses core.defaultAgent for configure without prompting and drops the model portion", async () => {
+  it("rejects non-interactive configure when agent must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "skill", "configure", "--local"]))
+        .rejects.toEqual(
+          new ValidationError(
+            "Skill agent selection requires an agent or --yes when running without an interactive TTY."
+          )
+        );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-interactive configure when scope must be selected", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    const { fs } = createMemFs();
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    try {
+      await expect(program.parseAsync(["node", "cli", "skill", "configure", "claude-code"]))
+        .rejects.toEqual(
+          new ValidationError(
+            "Skill scope selection requires --local, --global, or --yes when running without an interactive TTY."
+          )
+        );
+    } finally {
+      restoreStdin();
+    }
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("prompts for configure agent despite core.defaultAgent when --yes is absent", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+    selectMock.mockResolvedValueOnce("claude-code");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      `${homeDir}/.poe-code/config.json`,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      "utf8"
+    );
+
+    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith(
+      expect.objectContaining({ message: "Select agent to configure:" })
+    );
+    expect(logs).toContain("Configured skills for claude-code at ./.claude/skills");
+    await expect(fs.stat(`${cwd}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
+    await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+  });
+
+  it("uses core.defaultAgent for --yes configure and drops the model portion", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
 
@@ -356,7 +533,7 @@ describe("skill configure command", () => {
       "utf8"
     );
 
-    await program.parseAsync(["node", "cli", "skill", "configure", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "skill", "configure", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Configured skills for codex at ./.codex/skills");

@@ -1,11 +1,12 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
-import { readdir, readFile, writeFile } from "node:fs/promises";
+import { readdir, readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { buildDockerRunArgs } from "./args.js";
+import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
+import { createDockerEnvFile } from "./env-file.js";
 import { createHostRunner } from "../host/host-runner.js";
 import {
   downloadWorkspace as downloadTransferredWorkspace,
@@ -21,6 +22,7 @@ import type {
   OpenSpec,
   OpenedEnv,
   Runner,
+  RunHandle,
   RunSpec
 } from "../types.js";
 
@@ -180,25 +182,32 @@ function createDockerEnv(input: {
       return downloadTransferredWorkspace(workspaceTransferEnv, opts);
     },
     exec(spec) {
-      return input.runner.exec({
-        command: input.engine,
-        args: [
-          ...buildContextArgs(input.engine, input.context),
-          "exec",
-          ...(spec.stdin === "pipe" || spec.stdin === "inherit" ? ["-i"] : []),
-          ...(spec.tty === true ? ["-t"] : []),
-          ...(spec.cwd !== undefined ? ["-w", spec.cwd] : []),
-          ...buildEnvArgs(spec.env),
-          containerRef,
-          spec.command,
-          ...(spec.args ?? [])
-        ],
-        stdin: spec.stdin,
-        stdout: spec.stdout,
-        stderr: spec.stderr,
-        tty: spec.tty,
-        signal: spec.signal
-      });
+      const envFile = createDockerEnvFile(spec.env);
+      try {
+        return cleanUpEnvFileAfterRun(input.runner.exec({
+          command: input.engine,
+          args: [
+            ...buildContextArgs(input.engine, input.context),
+            "exec",
+            ...(spec.stdin === "pipe" || spec.stdin === "inherit" ? ["-i"] : []),
+            ...(spec.tty === true ? ["-t"] : []),
+            ...(spec.cwd !== undefined ? ["-w", spec.cwd] : []),
+            ...buildDockerEnvArgs({ env: spec.env, envFilePath: envFile?.path }),
+            containerRef,
+            spec.command,
+            ...(spec.args ?? [])
+          ],
+          stdin: spec.stdin,
+          stdout: spec.stdout,
+          stderr: spec.stderr,
+          tty: spec.tty,
+          signal: spec.signal,
+          killProcessGroup: spec.killProcessGroup
+        }), envFile?.cleanup);
+      } catch (error) {
+        envFile?.cleanup();
+        throw error;
+      }
     },
     async detach() {
       return createContainerJob(
@@ -219,7 +228,8 @@ function createDockerEnv(input: {
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
-        tty: true
+        tty: true,
+        signal: shellSpec?.signal
       });
     },
     async close() {
@@ -273,11 +283,7 @@ export async function buildDockerRuntimeTemplate(
   const runner = input.runner ?? createHostRunner();
   const engine = input.runtime.engine ?? detectEngine();
   const context = detectContext();
-  const dockerfilePath = path.resolve(
-    input.cwd,
-    input.runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
-  );
-  const buildContext = path.resolve(input.cwd, input.runtime.build_context ?? ".");
+  const { dockerfilePath, buildContext } = await resolveRuntimeBuildPaths(input.cwd, input.runtime);
   const dockerfileBytes = await readFile(dockerfilePath);
   const buildContextFiles = await readBuildContextFiles(buildContext);
   const hash = hashDockerTemplate(
@@ -321,6 +327,39 @@ export async function buildDockerRuntimeTemplate(
     image,
     cached: false
   };
+}
+
+async function resolveRuntimeBuildPaths(
+  cwd: string,
+  runtime: DockerRuntime
+): Promise<{ dockerfilePath: string; buildContext: string }> {
+  const dockerfilePath = path.resolve(
+    cwd,
+    runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
+  );
+  const buildContext = path.resolve(cwd, runtime.build_context ?? ".");
+  const canonicalCwd = await realpath(cwd);
+  const canonicalDockerfilePath = await realpath(dockerfilePath);
+  const canonicalBuildContext = await realpath(buildContext);
+
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalDockerfilePath, "runtime.dockerfile");
+  assertRuntimePathInsideCwd(canonicalCwd, canonicalBuildContext, "runtime.build_context");
+
+  return {
+    dockerfilePath: canonicalDockerfilePath,
+    buildContext: canonicalBuildContext
+  };
+}
+
+function assertRuntimePathInsideCwd(cwd: string, targetPath: string, fieldName: string): void {
+  if (!isPathInsideOrEqual(cwd, targetPath)) {
+    throw new Error(`${fieldName} must remain inside runtime cwd ${cwd}.`);
+  }
+}
+
+function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
+  const relativePath = path.relative(rootPath, targetPath);
+  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
 }
 
 function hashDockerTemplate(
@@ -455,8 +494,54 @@ async function runAndRead(runner: Runner, spec: RunSpec): Promise<string> {
   return output;
 }
 
+async function runAndReadBytes(runner: Runner, spec: RunSpec): Promise<Buffer> {
+  const handle = runner.exec(spec);
+  const stdout = readStreamBytes(handle.stdout);
+  const stderr = readStream(handle.stderr);
+  const result = await handle.result;
+  const output = await stdout;
+  if (result.exitCode !== 0) {
+    const errorOutput = await stderr;
+    throw new Error(
+      `Command failed with exit code ${result.exitCode}: ${spec.command} ${(spec.args ?? []).join(" ")}${errorOutput ? `\n${errorOutput}` : ""}`
+    );
+  }
+  return output;
+}
+
 async function runOrThrow(runner: Runner, spec: RunSpec): Promise<void> {
   await runAndRead(runner, spec);
+}
+
+function cleanUpEnvFileAfterRun(handle: RunHandle, cleanup: (() => void) | undefined): RunHandle {
+  if (cleanup === undefined) {
+    return handle;
+  }
+
+  let cleanedUp = false;
+  const cleanupOnce = () => {
+    if (cleanedUp) {
+      return;
+    }
+
+    cleanedUp = true;
+    try {
+      cleanup();
+    } catch {
+      // Cleanup is best effort; preserve the command result.
+    }
+  };
+
+  return {
+    pid: handle.pid,
+    stdin: handle.stdin,
+    stdout: handle.stdout,
+    stderr: handle.stderr,
+    result: handle.result.finally(cleanupOnce),
+    kill(signal) {
+      handle.kill(signal);
+    }
+  };
 }
 
 async function readStream(stream: NodeJS.ReadableStream | null): Promise<string> {
@@ -472,16 +557,20 @@ async function readStream(stream: NodeJS.ReadableStream | null): Promise<string>
   return chunks.join("");
 }
 
-function sortedBuildArgs(buildArgs: Record<string, string>): Array<[string, string]> {
-  return Object.entries(buildArgs).sort(([left], [right]) => left.localeCompare(right));
-}
-
-function buildEnvArgs(env: RunSpec["env"]): string[] {
-  if (env === undefined) {
-    return [];
+async function readStreamBytes(stream: NodeJS.ReadableStream | null): Promise<Buffer> {
+  if (stream === null) {
+    return Buffer.alloc(0);
   }
 
-  return Object.entries(env).flatMap(([key, value]) => ["-e", `${key}=${value}`]);
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream) {
+    chunks.push(typeof chunk === "string" ? Buffer.from(chunk, "utf8") : Buffer.from(chunk as Uint8Array));
+  }
+  return Buffer.concat(chunks);
+}
+
+function sortedBuildArgs(buildArgs: Record<string, string>): Array<[string, string]> {
+  return Object.entries(buildArgs).sort(([left], [right]) => left.localeCompare(right));
 }
 
 function createContainerName(): string {
@@ -549,10 +638,25 @@ function createContainerWorkspaceFileSystem(input: {
       await execShell(`mkdir -p ${shellQuote(targetPath)}`);
     },
     async readdir(targetPath) {
-      const output = await execShell(`for item in ${shellQuote(targetPath)}/* ${shellQuote(targetPath)}/.[!.]* ${shellQuote(targetPath)}/..?*; do [ -e "$item" ] || continue; if [ -d "$item" ]; then kind=d; size=0; else kind=f; size=$(wc -c < "$item"); fi; printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size"; done`);
+      const quotedTargetPath = shellQuote(targetPath);
+      const output = await execShell([
+        `for item in ${quotedTargetPath}/* ${quotedTargetPath}/.[!.]* ${quotedTargetPath}/..?*; do`,
+        `[ -e "$item" ] || [ -L "$item" ] || continue;`,
+        `if [ -L "$item" ]; then kind=l; size=0;`,
+        `elif [ -d "$item" ]; then kind=d; size=0;`,
+        `elif [ -f "$item" ]; then kind=f; size=$(wc -c < "$item");`,
+        `else continue; fi;`,
+        `printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size";`,
+        `done`
+      ].join(" "));
       return output.split("\n").filter(Boolean).map((line) => {
         const [name = "", kind = "f"] = line.split("\t");
-        return { name, isFile: () => kind === "f", isDirectory: () => kind === "d" };
+        return {
+          name,
+          isFile: () => kind === "f",
+          isDirectory: () => kind === "d",
+          isSymbolicLink: () => kind === "l"
+        };
       });
     },
     readFile: readFileFromContainer,
@@ -635,8 +739,10 @@ function createContainerJob(
               opts.since.getTime() / 1000
             )}`;
       let byteOffset = opts?.sinceByte ?? 0;
+      let pendingBytes: Buffer<ArrayBufferLike> = Buffer.alloc(0);
+      let pendingByteOffset = byteOffset;
       while (true) {
-        const stdout = await runAndRead(runner, {
+        const stdout = await runAndReadBytes(runner, {
           command: engine,
           args: [
             ...buildContextArgs(engine, context),
@@ -649,9 +755,18 @@ function createContainerJob(
           stdout: "pipe",
           stderr: "pipe"
         });
-        if (stdout.length > 0) {
-          yield { byteOffset, data: stdout };
-          byteOffset += Buffer.byteLength(stdout);
+        if (stdout.byteLength > 0) {
+          const combined = pendingBytes.byteLength === 0
+            ? stdout
+            : Buffer.concat([pendingBytes, stdout]);
+          const completeLength = completeUtf8PrefixLength(combined);
+          byteOffset += stdout.byteLength;
+          pendingBytes = combined.subarray(completeLength);
+          const data = combined.subarray(0, completeLength).toString("utf8");
+          if (data.length > 0) {
+            yield { byteOffset: pendingByteOffset, data };
+            pendingByteOffset += completeLength;
+          }
         }
         if (opts?.follow !== true || (await this.status()) !== "running") {
           return;
@@ -694,6 +809,46 @@ function createContainerJob(
       });
     }
   };
+}
+
+function completeUtf8PrefixLength(contents: Buffer): number {
+  if (contents.length === 0) {
+    return 0;
+  }
+
+  let leadIndex = contents.length - 1;
+  while (leadIndex >= 0 && isUtf8ContinuationByte(contents[leadIndex]!)) {
+    leadIndex -= 1;
+  }
+
+  if (leadIndex < 0) {
+    return contents.length;
+  }
+
+  const expectedLength = utf8SequenceLength(contents[leadIndex]!);
+  if (expectedLength === 0) {
+    return contents.length;
+  }
+
+  const availableLength = contents.length - leadIndex;
+  return availableLength < expectedLength ? leadIndex : contents.length;
+}
+
+function isUtf8ContinuationByte(byte: number): boolean {
+  return byte >= 0x80 && byte <= 0xbf;
+}
+
+function utf8SequenceLength(byte: number): number {
+  if (byte >= 0xc2 && byte <= 0xdf) {
+    return 2;
+  }
+  if (byte >= 0xe0 && byte <= 0xef) {
+    return 3;
+  }
+  if (byte >= 0xf0 && byte <= 0xf4) {
+    return 4;
+  }
+  return 0;
 }
 
 async function readDetachedExitCode(

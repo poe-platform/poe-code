@@ -219,6 +219,64 @@ describe("createStateStore", () => {
     await expect(fs.readFile("/outside/state.json", "utf8")).resolves.toBe(`${JSON.stringify(outside)}\n`);
   });
 
+  it("does not follow a preexisting legacy temporary state symlink", async () => {
+    const fs = createMemFs();
+    const updated = createProcessState("alpha", { status: "running", pid: 123 });
+    await fs.mkdir("/state/alpha", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/state.json.tmp", "outside-state\n");
+    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside/state.json.tmp",
+      "/state/alpha/state.json.tmp"
+    );
+    const store = createStateStore("/state", fs);
+
+    await store.write("alpha", updated);
+    await expect(fs.readFile("/outside/state.json.tmp", "utf8")).resolves.toBe("outside-state\n");
+    await expect(store.read("alpha")).resolves.toEqual(updated);
+  });
+
+  it("does not remove a colliding temporary state symlink it did not create", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const base = rawFs as unknown as LauncherFileSystem;
+    const statePath = "/state/alpha/state.json";
+    const updated = createProcessState("alpha", { status: "running", pid: 123 });
+    let temporaryPath: string | undefined;
+    await base.mkdir("/state/alpha", { recursive: true });
+    await base.mkdir("/outside", { recursive: true });
+    await base.writeFile("/outside/state.json.tmp", "outside-state\n");
+    const fs = {
+      ...base,
+      writeFile: async (
+        filePath: string,
+        content: string,
+        options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+      ) => {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${statePath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync("/outside/state.json.tmp", filePath);
+        }
+
+        await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
+      }
+    } as LauncherFileSystem;
+
+    await expect(createStateStore("/state", fs).write(updated.id, updated)).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile("/outside/state.json.tmp", "utf8")).resolves.toBe("outside-state\n");
+    const tempStat = await base.lstat(temporaryPath as string);
+    expect(tempStat.isSymbolicLink()).toBe(true);
+    await expect(createStateStore("/state", base).read("alpha")).resolves.toBeNull();
+  });
+
   it("rejects removals through a symlinked process directory", async () => {
     const fs = createMemFs();
     await fs.mkdir("/outside/alpha", { recursive: true });
@@ -268,13 +326,17 @@ describe("createStateStore", () => {
     await store.write(initial.id, initial);
     const fs = {
       ...base,
-      writeFile: async (filePath: string, content: string) => {
-        if (filePath === `${statePath}.tmp`) {
-          await rawFs.writeFile(filePath, "{", { encoding: "utf8" });
+      writeFile: async (
+        filePath: string,
+        content: string,
+        options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+      ) => {
+        if (filePath.startsWith(`${statePath}.`) && filePath.endsWith(".tmp")) {
+          await rawFs.writeFile(filePath, "{", options ?? { encoding: "utf8" });
           throw new Error("state disk full");
         }
 
-        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+        await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
       }
     } as LauncherFileSystem;
 

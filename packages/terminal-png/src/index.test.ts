@@ -96,7 +96,7 @@ describe("renderTerminalPng", () => {
     expect(png).toEqual(Buffer.from("png"));
   });
 
-  it("does not replace an existing output when temporary publication fails", async () => {
+  it("does not remove a temporary path it did not create", async () => {
     writeFileMock.mockRejectedValueOnce(new Error("disk full"));
 
     await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
@@ -104,7 +104,7 @@ describe("renderTerminalPng", () => {
     );
 
     expect(renameMock).not.toHaveBeenCalled();
-    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
+    expect(rmMock).not.toHaveBeenCalled();
   });
 
   it("does not hide publication failure when temporary cleanup also fails", async () => {
@@ -114,6 +114,7 @@ describe("renderTerminalPng", () => {
     await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
       "publish failed"
     );
+    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
   });
 
   it("rejects negative SDK padding before rendering", async () => {

@@ -53,6 +53,7 @@ import {
   parseSessionUpdate,
   saveRunReport,
   type RunReport,
+  type RunReportFileSystem,
   type ToolCallSummary,
 } from "./index.js";
 
@@ -3166,6 +3167,131 @@ describe("saveRunReport", () => {
     expect(summaryOnDisk).toContain("Error count: 1");
   });
 
+  it("redacts raw tool content from saved JSON reports by default", async () => {
+    const vol = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(vol).promises;
+    const report: RunReport = {
+      runId: "run-raw",
+      startTime: "2026-02-24T06:00:00.000Z",
+      endTime: "2026-02-24T06:00:10.000Z",
+      exitStatus: "failed",
+      toolCalls: [
+        {
+          toolCallId: "tool-1",
+          title: "Run command",
+          kind: "execute",
+          status: "failed",
+          rawInput: { command: "curl -H 'Authorization: Bearer report-input-secret'" },
+          rawOutput: "POE_API_KEY=report-output-secret",
+        },
+      ],
+      usage: { used: 150, size: 195, updates: 2 },
+      errors: [{ message: "POE_API_KEY=report-output-secret", toolCallId: "tool-1" }],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      now: () => new Date("2026-02-24T07:08:09.456Z"),
+    });
+    const rawJson = await fs.readFile(output.jsonPath, "utf8");
+    const jsonOnDisk = JSON.parse(rawJson) as RunReport;
+
+    expect(jsonOnDisk.toolCalls[0]).toMatchObject({
+      toolCallId: "tool-1",
+      title: "Run command",
+      kind: "execute",
+      status: "failed",
+      rawInput: "[redacted]",
+      rawOutput: "[redacted]",
+    });
+    expect(jsonOnDisk.errors).toEqual([
+      { message: "[redacted]", toolCallId: "tool-1" },
+    ]);
+    expect(rawJson).not.toMatch(/report-input-secret|report-output-secret/u);
+  });
+
+  it("does not follow a report file symlink inserted before JSON publish", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/report.json": "outside-state\n",
+    });
+    const baseFs = createFsFromVolume(volume).promises;
+    const jsonPath = "/home/test/.poe-code/reports/20260525-010203-004-run-1.json";
+    const outsidePath = "/outside/report.json";
+    let plantedSymlink = false;
+    const fs: RunReportFileSystem = {
+      mkdir: (path, options) => baseFs.mkdir(path, options),
+      writeFile: async (path, data, options) => {
+        await baseFs.writeFile(path, data, options);
+        if (
+          !plantedSymlink &&
+          path.startsWith("/home/test/.poe-code/reports/.20260525-010203-004-run-1.json.") &&
+          path.endsWith(".tmp")
+        ) {
+          plantedSymlink = true;
+          await baseFs.symlink(outsidePath, jsonPath);
+        }
+      },
+      rm: (path, options) => baseFs.rm(path, options),
+      rename: (oldPath, newPath) => baseFs.rename(oldPath, newPath),
+      realpath: (path) => baseFs.realpath(path) as Promise<string>,
+    };
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      now: () => new Date("2026-05-25T01:02:03.004Z"),
+    });
+
+    expect(output.jsonPath).toBe(jsonPath);
+    expect(plantedSymlink).toBe(true);
+    expect((await baseFs.lstat(jsonPath)).isSymbolicLink()).toBe(false);
+    await expect(baseFs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+    expect(JSON.parse(await baseFs.readFile(jsonPath, "utf8"))).toMatchObject({
+      runId: "run-1",
+    });
+  });
+
+  it("preserves raw tool content when explicitly requested", async () => {
+    const vol = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(vol).promises;
+    const report: RunReport = {
+      runId: "run-raw",
+      startTime: "2026-02-24T06:00:00.000Z",
+      endTime: "2026-02-24T06:00:10.000Z",
+      exitStatus: "failed",
+      toolCalls: [
+        {
+          toolCallId: "tool-1",
+          title: "Run command",
+          status: "failed",
+          rawInput: { command: "curl -H 'Authorization: Bearer report-input-secret'" },
+          rawOutput: "POE_API_KEY=report-output-secret",
+        },
+      ],
+      usage: { used: 150, size: 195, updates: 2 },
+      errors: [{ message: "POE_API_KEY=report-output-secret", toolCallId: "tool-1" }],
+    };
+
+    const output = await saveRunReport(report, {
+      fs,
+      homeDir: "/home/test",
+      includeRawContent: true,
+      now: () => new Date("2026-02-24T07:08:09.456Z"),
+    });
+
+    expect(JSON.parse(await fs.readFile(output.jsonPath, "utf8"))).toEqual(report);
+  });
+
   it("removes a written report artifact when the companion write fails", async () => {
     const written = new Set<string>();
     const remove = vi.fn(async (path: string) => {
@@ -3202,6 +3328,50 @@ describe("saveRunReport", () => {
     expect(remove).toHaveBeenCalledWith(
       "/home/test/.poe-code/reports/20260525-010203-004-run-1.json"
     );
+  });
+
+  it("cleans a partial JSON report temp file when the temp write fails", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const baseFs = createFsFromVolume(volume).promises;
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+    const fs: RunReportFileSystem = {
+      mkdir: (path, options) => baseFs.mkdir(path, options),
+      writeFile: async (path, data, options) => {
+        if (
+          path.startsWith("/home/test/.poe-code/reports/.20260525-010203-004-run-1.json.") &&
+          path.endsWith(".tmp")
+        ) {
+          await baseFs.writeFile(path, "partial\n", options);
+          throw new Error("json report disk full");
+        }
+        await baseFs.writeFile(path, data, options);
+      },
+      rm: (path, options) => baseFs.rm(path, options),
+      rename: (oldPath, newPath) => baseFs.rename(oldPath, newPath),
+      realpath: (path) => baseFs.realpath(path) as Promise<string>,
+    };
+
+    await expect(
+      saveRunReport(report, {
+        fs,
+        homeDir: "/home/test",
+        now: () => new Date("2026-05-25T01:02:03.004Z"),
+      })
+    ).rejects.toThrow("json report disk full");
+
+    const entries = await baseFs.readdir("/home/test/.poe-code/reports");
+    expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);
+    await expect(
+      baseFs.readFile("/home/test/.poe-code/reports/20260525-010203-004-run-1.json", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("uses distinct file paths for run ids that sanitize identically", async () => {

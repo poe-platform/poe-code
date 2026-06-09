@@ -10,7 +10,7 @@ import {
   isCancel,
   renderTable,
   select
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   resolveAgentId,
   parseAgentSpecifier,
@@ -34,7 +34,12 @@ import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import {
   runExperiment as sdkRunExperiment,
   readExperimentJournal as sdkReadExperimentJournal,
@@ -557,6 +562,10 @@ async function resolveDocPath(options: {
     return docs[0]!.path;
   }
 
+  requireInteractiveStdin(
+    "Experiment doc selection requires a doc path or --yes when running without an interactive TTY."
+  );
+
   const selected = await select({
     message: options.selectMessage,
     options: docs.map((doc) => ({
@@ -614,6 +623,16 @@ async function resolveRunAgent(options: {
   }
 
   const flags = resolveCommandFlags(options.program);
+  if (
+    !flags.assumeYes &&
+    options.providedAgent === undefined &&
+    typeof options.frontmatterAgent !== "string"
+  ) {
+    requireInteractiveStdin(
+      "Experiment agent selection requires --agent, frontmatter agent, or --yes when running without an interactive TTY."
+    );
+  }
+
   try {
     const selectedAgent = await resolveLoopAgent({
       providedAgent: options.providedAgent,
@@ -1047,6 +1066,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
           } else if (flags.assumeYes) {
             agent = DEFAULT_EXPERIMENT_AGENT;
           } else {
+            requireInteractiveStdin(
+              "Experiment install agent selection requires --agent or --yes when running without an interactive TTY."
+            );
+
             const selected = await select({
               message: "Select agent to install the Experiment skill for:",
               options: supportedAgents.map((value) => ({
@@ -1075,6 +1098,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
         } else if (flags.assumeYes) {
           scope = DEFAULT_EXPERIMENT_SCOPE;
         } else {
+          requireInteractiveStdin(
+            "Experiment install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+          );
+
           const selected = await select({
             message: "Select install scope:",
             options: [
@@ -1124,7 +1151,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
             if (flags.dryRun) {
               resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
             } else {
-              await container.fs.writeFile(runYamlPath, templates.runYaml);
+              await container.fs.writeFile(runYamlPath, templates.runYaml, {
+                encoding: "utf8",
+                flag: "wx"
+              });
               createdRunYaml = true;
               resources.logger.info(`Create: ${runYamlDisplayPath}`);
             }

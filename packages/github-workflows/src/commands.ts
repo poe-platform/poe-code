@@ -1,4 +1,5 @@
-import { access, lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { access, lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { McpSpawnConfig, SpawnResult } from "@poe-code/agent-spawn";
@@ -6,13 +7,14 @@ import { runCommand, spawn } from "@poe-code/agent-spawn";
 import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "toolcraft";
 import type { Group } from "toolcraft";
-import { cancel, isCancel, renderTemplate, select } from "@poe-code/design-system";
+import { cancel, isCancel, renderTemplate, select } from "toolcraft-design";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import { runTruffleHogPrScanCommand } from "./exec/trufflehog-pr-scan.js";
 import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
+import { workflowSubprocessTimeoutMs } from "./subprocess-timeout.js";
 import type { AutomationDefinition } from "./types.js";
 import { generateProjectVariablesFile, loadVariableStatuses, loadVariables } from "./variables.js";
 
@@ -63,6 +65,7 @@ interface InstallCommandResult {
 }
 
 interface WrittenFileSnapshot {
+  rootPath: string;
   filePath: string;
   previousContent?: string;
 }
@@ -165,7 +168,8 @@ const runCommandDef = defineCommand({
 
     const sourceResult = await runCommand("sh", ["-c", resolveSourceCommand(automation.source, env)], {
       cwd,
-      env: buildCommandEnv(env, secrets)
+      env: buildCommandEnv(env, secrets),
+      timeoutMs: workflowSubprocessTimeoutMs
     });
 
     if (sourceResult.exitCode !== 0) {
@@ -867,15 +871,13 @@ async function installAutomation(
   const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
 
   if (!dryRun) {
-    await mkdir(path.dirname(workflowPath), { recursive: true });
-    await assertWritableWorkflowDestination(workflowPath);
-    await writeTrackedFile(workflowPath, workflowTemplate, writtenFiles);
+    await ensureWorkflowOutputDirectory(cwd, path.dirname(workflowPath));
+    await writeTrackedFile(cwd, workflowPath, workflowTemplate, writtenFiles);
   }
 
   if (promptPath !== undefined && !dryRun) {
-    await mkdir(path.dirname(promptPath), { recursive: true });
-    await assertWritableWorkflowDestination(promptPath);
-    await writeTrackedFile(promptPath, addPromptHeader(rawPrompt, name), writtenFiles);
+    await ensureWorkflowOutputDirectory(cwd, path.dirname(promptPath));
+    await writeTrackedFile(cwd, promptPath, addPromptHeader(rawPrompt, name), writtenFiles);
   }
 
   return {
@@ -904,31 +906,45 @@ async function ensureProjectSupportFiles(
   const variablesPath = path.join(projectDir, "variables.yaml");
   const readmePath = path.join(projectDir, "README.md");
 
-  await mkdir(projectDir, { recursive: true });
-  await assertWritableWorkflowDestination(variablesPath);
-  await assertWritableWorkflowDestination(readmePath);
+  await ensureWorkflowOutputDirectory(cwd, projectDir);
+  await assertWritableWorkflowDestination(cwd, variablesPath);
+  await assertWritableWorkflowDestination(cwd, readmePath);
+  const existingVariables = await readOptionalFile(variablesPath);
   await writeTrackedFile(
+    cwd,
     variablesPath,
-    generateProjectVariablesFile(builtInVariables, await readOptionalFile(variablesPath)),
-    writtenFiles
+    generateProjectVariablesFile(builtInVariables, existingVariables),
+    writtenFiles,
+    { previousContent: existingVariables }
   );
-  await writeTrackedFile(readmePath, renderProjectReadme(), writtenFiles);
+  await writeTrackedFile(cwd, readmePath, renderProjectReadme(), writtenFiles);
 
   return { readmePath, variablesPath };
 }
 
+async function ensureWorkflowOutputDirectory(rootPath: string, directoryPath: string): Promise<void> {
+  await assertWorkflowPathHasNoSymlinkComponents(rootPath, directoryPath);
+  await mkdir(directoryPath, { recursive: true });
+  await assertWorkflowPathHasNoSymlinkComponents(rootPath, directoryPath);
+}
+
 async function writeTrackedFile(
+  rootPath: string,
   filePath: string,
   content: string,
-  writtenFiles: WrittenFileSnapshot[]
+  writtenFiles: WrittenFileSnapshot[],
+  opts?: { previousContent: string | undefined }
 ): Promise<void> {
-  writtenFiles.push({ filePath, previousContent: await readOptionalFile(filePath) });
-  await writeFile(filePath, content, "utf8");
+  await assertWritableWorkflowDestination(rootPath, filePath);
+  const previousContent = opts === undefined ? await readOptionalFile(filePath) : opts.previousContent;
+  writtenFiles.push({ rootPath, filePath, previousContent });
+  await writeWorkflowFileAtomically(rootPath, filePath, content);
 }
 
 async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promise<void> {
   for (const file of writtenFiles.reverse()) {
     if (file.previousContent === undefined) {
+      await assertWritableWorkflowDestination(file.rootPath, file.filePath);
       try {
         await unlink(file.filePath);
       } catch (error) {
@@ -939,11 +955,65 @@ async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promis
       continue;
     }
 
-    await writeFile(file.filePath, file.previousContent, "utf8");
+    await assertWritableWorkflowDestination(file.rootPath, file.filePath);
+    await writeWorkflowFileAtomically(file.rootPath, file.filePath, file.previousContent);
   }
 }
 
-async function assertWritableWorkflowDestination(filePath: string): Promise<void> {
+async function assertWritableWorkflowDestination(rootPath: string, filePath: string): Promise<void> {
+  await assertWorkflowPathHasNoSymlinkComponents(rootPath, filePath);
+}
+
+async function writeWorkflowFileAtomically(
+  rootPath: string,
+  filePath: string,
+  content: string
+): Promise<void> {
+  await assertWritableWorkflowDestination(rootPath, filePath);
+  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
+  try {
+    await assertWritableWorkflowDestination(rootPath, temporaryPath);
+    await writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await assertWritableWorkflowDestination(rootPath, temporaryPath);
+    await assertWritableWorkflowDestination(rootPath, filePath);
+    await rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await unlinkWorkflowTemporaryFile(rootPath, temporaryPath).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+async function unlinkWorkflowTemporaryFile(rootPath: string, temporaryPath: string): Promise<void> {
+  await assertWritableWorkflowDestination(rootPath, temporaryPath);
+  try {
+    await unlink(temporaryPath);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
+  }
+}
+
+async function assertWorkflowPathHasNoSymlinkComponents(rootPath: string, targetPath: string): Promise<void> {
+  const root = path.resolve(rootPath);
+  const target = path.resolve(targetPath);
+  const relativePath = path.relative(root, target);
+  if (relativePath.startsWith("..") || path.isAbsolute(relativePath)) {
+    throw new UserError(`Refusing to write GitHub workflow file outside repository: ${targetPath}`);
+  }
+
+  let current = root;
+  for (const segment of relativePath.split(path.sep).filter(Boolean)) {
+    current = path.join(current, segment);
+    await assertWorkflowPathComponentNotSymlink(current);
+  }
+}
+
+async function assertWorkflowPathComponentNotSymlink(filePath: string): Promise<void> {
   try {
     const destination = await lstat(filePath);
     if (destination.isSymbolicLink()) {

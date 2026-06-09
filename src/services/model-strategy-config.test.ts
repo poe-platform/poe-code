@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 
-async function loadManager(volume: Volume, overrideWrite?: (filePath: string, data: string) => void) {
+async function loadManager(
+  volume: Volume,
+  overrideWrite?: (filePath: string, data: string, options?: unknown) => void
+) {
   const syncFs = createFsFromVolume(volume) as unknown as typeof import("fs");
   vi.resetModules();
   vi.doMock("fs", () => ({
@@ -43,6 +46,36 @@ describe("StrategyConfigManager", () => {
 
     expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
       .toThrow("strategy disk full");
+    expect(manager.loadConfig()).toEqual({ type: "fixed", fixedModel: "gpt-5.4" });
+  });
+
+  it("does not remove a colliding strategy config temp symlink", async () => {
+    const previous = JSON.stringify({ type: "fixed", fixedModel: "gpt-5.4" });
+    const volume = Volume.fromJSON({
+      "/home/user/.poe-code/strategy-config.json": previous,
+      "/outside.tmp": "outside-state\n"
+    });
+    let temporaryPath: string | undefined;
+    const manager = await loadManager(volume, (filePath, data, options) => {
+      if (
+        temporaryPath === undefined &&
+        filePath.includes("strategy-config.json.") &&
+        filePath.endsWith(".tmp")
+      ) {
+        temporaryPath = filePath;
+        volume.symlinkSync("/outside.tmp", filePath);
+        expect(options).toEqual({ flag: "wx" });
+      }
+
+      volume.writeFileSync(filePath, String(data), options as never);
+    });
+
+    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
+      .toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync("/outside.tmp", "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
     expect(manager.loadConfig()).toEqual({ type: "fixed", fixedModel: "gpt-5.4" });
   });
 

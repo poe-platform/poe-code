@@ -8,6 +8,7 @@ import {
 import { loadEval } from "../source/registry.js";
 import type { EvalSource } from "../types.js";
 import { assertCanonicalContainedPath } from "../path-boundary.js";
+import { terminateRunHandle } from "./subprocess-termination.js";
 
 export async function verifyOracle(
   source: EvalSource,
@@ -53,7 +54,7 @@ async function runVerifyCommand(
   const timedResult = await waitForResult(handle, input.timeoutMs);
 
   if (timedResult.timedOut) {
-    killQuietly(handle);
+    await terminateRunHandle(handle);
     return {
       exitCode: timedResult.exitCode,
       output: appendTimeoutNote(
@@ -85,7 +86,8 @@ function createShellRunSpec(input: {
       cwd: input.cwd,
       env: input.env,
       stdout: "pipe",
-      stderr: "pipe"
+      stderr: "pipe",
+      killProcessGroup: true
     };
   }
 
@@ -95,7 +97,8 @@ function createShellRunSpec(input: {
     cwd: input.cwd,
     env: input.env,
     stdout: "pipe",
-    stderr: "pipe"
+    stderr: "pipe",
+    killProcessGroup: true
   };
 }
 
@@ -173,12 +176,4 @@ function appendTimeoutNote(output: string, note: string | undefined): string {
   }
 
   return output.endsWith("\n") ? `${output}${note}` : `${output}\n${note}`;
-}
-
-function killQuietly(handle: RunHandle): void {
-  try {
-    handle.kill("SIGTERM");
-  } catch {
-    // Best effort cleanup after the configured verification timeout.
-  }
 }

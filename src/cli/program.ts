@@ -15,7 +15,7 @@ import {
 } from "@poe-code/agent-maestro";
 import { runMaestroTui } from "@poe-code/maestro-tui";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
-import { text } from "@poe-code/design-system";
+import { text } from "toolcraft-design";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
 import { registerSpawnCommand } from "./commands/spawn.js";

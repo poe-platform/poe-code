@@ -3,8 +3,8 @@ import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
 import {
   discoverPlans,
+  ensureSafeRunLogDir,
   resolveLoopAgent,
-  resolveRunLogDir,
   resolveWorkflowPath,
   type RuntimeOverrideOptions
 } from "@poe-code/agent-harness-tools";
@@ -32,7 +32,7 @@ import {
   shouldUseInteractiveDashboard,
   text,
   type Dashboard
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import {
   planConfigScope,
   mergeLoopCallbacks,
@@ -425,10 +425,11 @@ export async function runSuperintendentCommand(
     fs,
     selectPrompt
   });
-  const runLogDir = resolveRunLogDir({
+  const runLogDir = await ensureSafeRunLogDir({
     planPath: selectedDocPath,
     runner: "superintendent",
-    homeDir: options.homeDir
+    homeDir: options.homeDir,
+    fs
   });
   const documentContent = await fs.readFile(selectedDocPath, "utf8");
   const document = parseSuperintendentDoc(selectedDocPath, documentContent);
@@ -1312,7 +1313,11 @@ function createDefaultFs(): SuperintendentFileSystem {
     },
     rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
-    }
+    },
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
+    realpath: fsPromises.realpath
   };
 
   return fs as SuperintendentFileSystem;

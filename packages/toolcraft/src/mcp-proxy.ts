@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
-import { lstat, mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createHash, randomUUID } from "node:crypto";
-import { createLogger } from "@poe-code/design-system";
+import { createLogger } from "toolcraft-design";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
 import type { Tool } from "tiny-mcp-client";
@@ -286,15 +286,30 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
 async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void> {
   const directory = path.dirname(cachePath);
   const tempPath = `${cachePath}.tmp-${randomUUID()}`;
+  let tempCreated = false;
 
   await assertCachePathHasNoSymlinks(cachePath);
   await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
   await assertCachePathHasNoSymlinks(directory);
-  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`);
-  await assertCachePathHasNoSymlinks(tempPath);
-  await assertCachePathHasNoSymlinks(cachePath);
-  await rename(tempPath, cachePath);
+  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
+    encoding: "utf8",
+    flag: "wx"
+  });
+  tempCreated = true;
+
+  try {
+    await assertCachePathHasNoSymlinks(tempPath);
+    await assertCachePathHasNoSymlinks(cachePath);
+    await rename(tempPath, cachePath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated) {
+      await unlink(tempPath).catch(() => undefined);
+    }
+
+    throw error;
+  }
 }
 
 async function fetchCache(

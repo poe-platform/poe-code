@@ -63,4 +63,25 @@ describe("searchMemory", () => {
   it("rejects an empty query", async () => {
     await expect(searchMemory("/repo/.poe-code/memory", "   ")).rejects.toThrow(/query/i);
   });
+
+  it("rejects a symlinked memory root before reading external markdown", async () => {
+    vol.fromJSON({
+      "/outside/memory/INDEX.md": "external needle\n",
+      "/outside/memory/pages/secret.md": "needle outside\n"
+    });
+    vol.mkdirSync("/repo/.poe-code", { recursive: true });
+    await vol.promises.symlink("/outside/memory", "/repo/.poe-code/memory");
+
+    await expect(searchMemory("/repo/.poe-code/memory", "needle")).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("rejects a symlinked pages directory before scanning", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Index\n",
+      "/outside/pages/secret.md": "needle outside\n"
+    });
+    await vol.promises.symlink("/outside/pages", "/repo/.poe-code/memory/pages");
+
+    await expect(searchMemory("/repo/.poe-code/memory", "needle")).rejects.toThrow(/symbolic link/i);
+  });
 });

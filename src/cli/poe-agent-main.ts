@@ -3,7 +3,7 @@ import path from "node:path";
 import fsPromises from "node:fs/promises";
 import { Command } from "commander";
 import { renderAcpStream, type McpSpawnConfig } from "@poe-code/agent-spawn";
-import { log } from "@poe-code/design-system";
+import { log } from "toolcraft-design";
 import { createConfigStore, resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import { agentConfigScope } from "../services/config.js";

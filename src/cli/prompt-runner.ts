@@ -4,7 +4,7 @@ import {
   password,
   select,
   promptText as text
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { OperationCancelledError } from "./errors.js";
 import type { PromptDescriptor } from "./prompts.js";
 import type { PromptFn } from "./types.js";

@@ -24,7 +24,7 @@ export interface OpenSpec {
   hostRunner?: Runner;
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
-  jobLabel: { tool: string; argv: string[] };
+  jobLabel: { tool: string; argv: string[]; displayArgv?: string[] };
   execution?: {
     wrapForLogTee?: boolean;
     stdin?: RunSpec["stdin"];
@@ -35,6 +35,7 @@ export interface OpenSpec {
     input?: string | Buffer;
     captureOutput?: boolean;
     activityTimeoutMs?: number;
+    activityTimeoutSource?: "all" | "stdout";
     onStdout?(chunk: string): void;
     onStderr?(chunk: string): void;
   };

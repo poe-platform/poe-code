@@ -2,8 +2,7 @@ import { createBinaryExistsCheck, createSpawnHealthCheck } from "../utils/comman
 import {
   configMutation,
   fileMutation,
-  isConfigObject,
-  type ConfigObject
+  isConfigObject
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { DEFAULT_GEMINI_MODEL } from "../cli/constants.js";
@@ -149,7 +148,7 @@ export const geminiCliService = createProvider<
             return { changed: false, content: document };
           }
 
-          const content = document as ConfigObject;
+          const content = { ...document };
           let changed = false;
           if ("selectedAuthType" in content) {
             delete content.selectedAuthType;
@@ -183,7 +182,7 @@ export const geminiCliService = createProvider<
             return { changed: false, content: document };
           }
 
-          const content = document as ConfigObject;
+          const content = { ...document };
           const security = isConfigObject(content.security) ? content.security : undefined;
           const auth = security && isConfigObject(security.auth) ? security.auth : undefined;
           const hasManagedAuth = auth?.selectedType === "gemini-api-key";
@@ -196,21 +195,30 @@ export const geminiCliService = createProvider<
             delete content.selectedAuthType;
           }
           if (hasManagedAuth) {
-            delete auth!.selectedType;
-            if (Object.keys(auth!).length === 0) {
-              delete security!.auth;
+            const nextSecurity = { ...security! };
+            const nextAuth = { ...auth! };
+            delete nextAuth.selectedType;
+            if (Object.keys(nextAuth).length === 0) {
+              delete nextSecurity.auth;
+            } else {
+              nextSecurity.auth = nextAuth;
             }
-            if (Object.keys(security!).length === 0) {
+            if (Object.keys(nextSecurity).length === 0) {
               delete content.security;
+            } else {
+              content.security = nextSecurity;
             }
           }
           if (hasLegacyManagedAuth && typeof content.model === "string") {
             delete content.model;
           }
           if (hasManagedAuth && isConfigObject(content.model)) {
-            delete content.model.name;
-            if (Object.keys(content.model).length === 0) {
+            const nextModel = { ...content.model };
+            delete nextModel.name;
+            if (Object.keys(nextModel).length === 0) {
               delete content.model;
+            } else {
+              content.model = nextModel;
             }
           }
           if (isConfigObject(content.mcpServers) && Object.keys(content.mcpServers).length === 0) {

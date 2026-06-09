@@ -1,8 +1,9 @@
 import { EventEmitter } from "node:events";
 import { PassThrough } from "node:stream";
 import { randomBytes } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { spawn } from "node:child_process";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ChildProcess } from "node:child_process";
 import { buildDockerRunArgs } from "./args.js";
 import { detectContext } from "./context.js";
@@ -44,6 +45,10 @@ describe("createDockerRunner", () => {
     vi.mocked(randomBytes).mockReturnValue(Buffer.from("abcdef", "hex"));
     vi.mocked(detectEngine).mockReturnValue("docker");
     vi.mocked(detectContext).mockReturnValue(null);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("calls docker run in foreground and exposes streams in piped mode", async () => {
@@ -137,6 +142,7 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["stop", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(stopChild.unref).toHaveBeenCalledTimes(1);
   });
 
   it("kill with SIGKILL spawns docker kill", async () => {
@@ -152,6 +158,7 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["kill", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(killChild.unref).toHaveBeenCalledTimes(1);
   });
 
   it("parses exit code from the docker process close event", async () => {
@@ -260,16 +267,27 @@ describe("createDockerRunner", () => {
     vi.mocked(spawn).mockReturnValue(child);
     const { createDockerRunner } = await import("./docker-runner.js");
 
-    createDockerRunner({ image: "node:22" }).exec({
+    const handle = createDockerRunner({ image: "node:22" }).exec({
       command: "node",
       env: { FOO: "bar" }
     });
+    const args = vi.mocked(spawn).mock.calls[0]?.[1] ?? [];
+    const envFileIndex = args.indexOf("--env-file");
+    const envFilePath = args[envFileIndex + 1];
 
     expect(buildDockerRunArgs).toHaveBeenCalledWith(
       expect.objectContaining({
-        env: { FOO: "bar" }
+        env: { FOO: "bar" },
+        envFilePath: expect.stringMatching(/poe-docker-env-.+\/env$/)
       })
     );
+    expect(envFileIndex).toBeGreaterThanOrEqual(0);
+    expect(args.join("\0")).not.toContain("bar");
+    expect(readFileSync(envFilePath ?? "", "utf8")).toBe("FOO=bar\n");
+
+    child.emit("close", 0);
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(existsSync(envFilePath ?? "")).toBe(false);
   });
 
   it("aborting the run triggers docker stop", async () => {
@@ -286,6 +304,62 @@ describe("createDockerRunner", () => {
     expect(vi.mocked(spawn)).toHaveBeenNthCalledWith(2, "docker", ["stop", "poe-run-node-abcdef"], {
       stdio: "ignore"
     });
+    expect(stopChild.unref).toHaveBeenCalledTimes(1);
+  });
+
+  it("waits for the docker run child to close before resolving an aborted run", async () => {
+    const child = createMockChildProcess({ stdout: true, stderr: true, stdin: true });
+    const stopChild = createMockChildProcess({ stdout: false, stderr: false, stdin: false });
+    vi.mocked(spawn).mockReturnValueOnce(child).mockReturnValueOnce(stopChild);
+    const { createDockerRunner } = await import("./docker-runner.js");
+    const controller = new AbortController();
+    const handle = createDockerRunner({ image: "node:22" }).exec({
+      command: "node",
+      signal: controller.signal
+    });
+    let settled = false;
+    void handle.result.then(() => {
+      settled = true;
+    });
+
+    controller.abort();
+    await Promise.resolve();
+
+    expect(settled).toBe(false);
+
+    child.emit("close", 0);
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+    expect(settled).toBe(true);
+  });
+
+  it("terminates the host docker process if abort does not close the child", async () => {
+    vi.useFakeTimers();
+    const child = createMockChildProcess({ stdout: true, stderr: true, stdin: true });
+    const stopChild = createMockChildProcess({ stdout: false, stderr: false, stdin: false });
+    vi.mocked(spawn).mockReturnValueOnce(child).mockReturnValueOnce(stopChild);
+    const { createDockerRunner } = await import("./docker-runner.js");
+    const controller = new AbortController();
+    const handle = createDockerRunner({ image: "node:22" }).exec({
+      command: "node",
+      signal: controller.signal
+    });
+
+    controller.abort();
+    await vi.advanceTimersByTimeAsync(9_999);
+    expect(child.kill).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(child.kill).toHaveBeenCalledWith("SIGTERM");
+
+    await vi.advanceTimersByTimeAsync(4_999);
+    expect(child.kill).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(child.kill).toHaveBeenLastCalledWith("SIGKILL");
+
+    child.emit("close", null);
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
   });
 
   it("does not spawn a container command when already aborted", async () => {
@@ -354,6 +428,7 @@ describe("createDockerRunner", () => {
     ], {
       stdio: "ignore"
     });
+    expect(killChild.unref).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -369,7 +444,8 @@ function createMockChildProcess(options: {
     stdout: options.stdout ? new PassThrough() : null,
     stderr: options.stderr ? new PassThrough() : null,
     stdin: options.stdin ? new PassThrough() : null,
-    kill: vi.fn()
+    kill: vi.fn(),
+    unref: vi.fn()
   });
 
   return child;

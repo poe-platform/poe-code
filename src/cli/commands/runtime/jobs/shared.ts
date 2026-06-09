@@ -120,8 +120,7 @@ export async function streamJobLog(
 ): Promise<void> {
   let detaching = false;
   const iterator = handle.stream({
-    sinceByte: 0,
-    ...(opts.since ? { since: opts.since } : {}),
+    ...(opts.since === undefined ? { sinceByte: 0 } : { since: opts.since }),
     follow: opts.follow
   })[Symbol.asyncIterator]();
   const onSigint = opts.onDetach
@@ -181,15 +180,51 @@ export async function streamJobLog(
   }
 }
 
+export function createLineBufferedLogWriter(writeLine: (line: string) => void): {
+  flush(): void;
+  write(chunk: string): void;
+} {
+  let pending = "";
+
+  return {
+    write(chunk) {
+      if (chunk.length === 0) {
+        return;
+      }
+
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        writeLine(pending.slice(0, newlineIndex));
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    flush() {
+      if (pending.length === 0) {
+        return;
+      }
+      writeLine(pending);
+      pending = "";
+    }
+  };
+}
+
 export async function waitForGracefulStop(
   handle: JobHandle,
   graceMs = 30_000
 ): Promise<void> {
-  await handle.kill("SIGTERM");
-  const result = await Promise.race([handle.wait().then(() => "exited" as const), sleep(graceMs)]);
+  const waitForExit = handle.wait().then(() => "exited" as const);
+  const sigtermFailure = handle.kill("SIGTERM").then<never>(
+    () => pendingForever(),
+    (error: unknown) => {
+      throw error;
+    }
+  );
+  const result = await Promise.race([waitForExit, sleep(graceMs), sigtermFailure]);
   if (result !== "exited") {
     await handle.kill("SIGKILL");
-    await handle.wait().catch(() => undefined);
+    await waitForExit.catch(() => undefined);
   }
 }
 
@@ -200,5 +235,11 @@ function compareLatestFirst(left: JobEntry, right: JobEntry): number {
 function sleep(ms: number): Promise<"timeout"> {
   return new Promise((resolve) => {
     setTimeout(() => resolve("timeout"), ms);
+  });
+}
+
+function pendingForever(): Promise<never> {
+  return new Promise<never>(() => {
+    // Successful signal delivery should not settle the graceful-stop race.
   });
 }

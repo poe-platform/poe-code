@@ -76,7 +76,8 @@ class MockMcpClient {
   }
 }
 
-vi.mock("@poe-code/design-system", () => ({
+vi.mock("toolcraft-design", () => ({
+  configureTheme: vi.fn(),
   createLogger: (emitter?: (message: string) => void) => ({
     info: (message: string) => emitter?.(message),
     success: vi.fn(),
@@ -102,6 +103,12 @@ vi.mock("@poe-code/design-system", () => ({
     commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
   formatOptionList: (options: Array<{ flags: string; description: string }>) =>
     options.map((option) => `  ${option.flags}  ${option.description}`).join("\n"),
+  helpFormatterPlain: {
+    formatCommandList: (commands: Array<{ name: string; description: string }>) =>
+      commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
+    formatOptionList: (options: Array<{ flags: string; description: string }>) =>
+      options.map((option) => `  ${option.flags}  ${option.description}`).join("\n")
+  },
   promptText: vi.fn(),
   select: vi.fn(),
   confirm: vi.fn(),

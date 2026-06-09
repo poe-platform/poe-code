@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import type { Command } from "commander";
-import { cancel, isCancel, select } from "@poe-code/design-system";
+import { cancel, isCancel, select } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { resolveCommandFlags } from "./shared.js";
@@ -66,6 +66,14 @@ export function registerUtilsSymlinkSkillsCommand(
       } else if (flags.assumeYes) {
         scope = "global";
       } else {
+        if (process.stdin.isTTY !== true) {
+          logger.error(
+            "utils symlink skills requires --local, --global, or --yes when running without an interactive TTY."
+          );
+          process.exitCode = 1;
+          return;
+        }
+
         const selected = await select({
           message: "Select scope:",
           options: [
@@ -186,4 +194,3 @@ export async function planSkillsSymlink(
     }
   ];
 }
-

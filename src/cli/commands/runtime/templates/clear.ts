@@ -1,4 +1,4 @@
-import { cancel as dsCancel, confirm as dsConfirm, isCancel } from "@poe-code/design-system";
+import { cancel as dsCancel, confirm as dsConfirm, isCancel } from "toolcraft-design";
 import { createStateManager, type TemplateBackend } from "@poe-code/poe-code-config";
 import type { Command } from "commander";
 import { OperationCancelledError } from "../../../errors.js";

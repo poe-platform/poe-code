@@ -1,5 +1,6 @@
 import type { HttpClient, HttpResponse } from "../cli/http.js";
 import { ApiError } from "../cli/errors.js";
+import { redactHttpBodyText } from "../utils/redaction.js";
 
 export interface LlmRequest {
   model: string;
@@ -78,11 +79,15 @@ async function requestCompletion(
 
   if (!response.ok) {
     const detail = await readErrorBody(response);
-    const message = detail ? `Poe API error (${response.status}): ${detail}` : `Poe API error (${response.status})`;
+    const redactedDetail = detail === undefined ? undefined : redactHttpBodyText(detail);
+    const message =
+      redactedDetail === undefined
+        ? `Poe API error (${response.status})`
+        : `Poe API error (${response.status}): ${redactedDetail}`;
     throw new ApiError(message, {
       httpStatus: response.status,
       endpoint: "chat/completions",
-      context: detail ? { responseBody: detail } : undefined
+      context: redactedDetail === undefined ? undefined : { responseBody: redactedDetail }
     });
   }
 

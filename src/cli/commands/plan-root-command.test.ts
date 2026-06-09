@@ -5,11 +5,12 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerPlanCommand } from "./plan.js";
 
-const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, isCancelMock, spawnResult } = vi.hoisted(
+const { runPlanBrowserMock, sdkSpawnMock, promptTextMock, selectMock, isCancelMock, spawnResult } = vi.hoisted(
   () => ({
     runPlanBrowserMock: vi.fn().mockResolvedValue(undefined),
     sdkSpawnMock: vi.fn(),
     promptTextMock: vi.fn(),
+    selectMock: vi.fn(),
     isCancelMock: vi.fn(() => false),
     spawnResult: { stdout: "", stderr: "", exitCode: 0 }
   })
@@ -23,13 +24,14 @@ vi.mock("@poe-code/plan-browser", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     intro: vi.fn(),
     isCancel: isCancelMock,
-    promptText: promptTextMock
+    promptText: promptTextMock,
+    select: selectMock
   };
 });
 
@@ -54,12 +56,30 @@ function createBaseProgram(): Command {
   return program;
 }
 
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
+}
+
 describe("plan root and browse commands", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.clearAllMocks();
     sdkSpawnMock.mockReset();
     promptTextMock.mockReset();
+    selectMock.mockReset();
     isCancelMock.mockReset();
     isCancelMock.mockReturnValue(false);
   });
@@ -78,7 +98,7 @@ describe("plan root and browse commands", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "Design a todo CLI"]);
 
     expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
@@ -137,6 +157,7 @@ describe("plan root and browse commands", () => {
       result: Promise.resolve(spawnResult)
     });
     promptTextMock.mockResolvedValue("Draft plan from browser");
+    selectMock.mockResolvedValue("codex");
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -158,12 +179,61 @@ describe("plan root and browse commands", () => {
     expect(sdkSpawnMock).not.toHaveBeenCalled();
 
     const browserOptions = runPlanBrowserMock.mock.calls[0]![0];
-    await browserOptions.onCreatePlan!();
+    await withMockedStdin(() => browserOptions.onCreatePlan!(), true);
 
     expect(promptTextMock).toHaveBeenCalledWith({
       message: "What do you want to plan?"
     });
-    expect(sdkSpawnMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to draft the plan with:",
+      options: expect.arrayContaining([{ value: "codex", label: "codex" }])
+    });
+    expect(sdkSpawnMock).toHaveBeenCalledWith(
+      "codex",
+      expect.any(String),
+      expect.objectContaining({ interactive: true })
+    );
+  });
+
+  it("rejects browser-created plan question prompts in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "plan"]);
+
+    const browserOptions = runPlanBrowserMock.mock.calls[0]![0];
+    await expect(withMockedStdin(() => browserOptions.onCreatePlan!(), false)).rejects.toThrow(
+      "Plan question prompt requires a question when running without an interactive TTY."
+    );
+
+    expect(promptTextMock).not.toHaveBeenCalled();
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing session agent selection in non-interactive mode", async () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "Design a todo CLI"]), false)
+    ).rejects.toThrow(
+      "Plan session agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
   });
 
   it("rejects an invalid root --kind value", async () => {

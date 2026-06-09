@@ -7,8 +7,8 @@ const { selectMock, cancelMock } = vi.hoisted(() => ({
   cancelMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+vi.mock("toolcraft-design", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("toolcraft-design");
   return {
     ...actual,
     select: selectMock,
@@ -400,7 +400,7 @@ describe("utils symlink skills command", () => {
     });
     Object.defineProperty(process.stdin, "isTTY", {
       configurable: true,
-      value: false
+      value: true
     });
 
     try {
@@ -434,6 +434,36 @@ describe("utils symlink skills command", () => {
         Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
       }
     }
+  });
+
+  it("refuses to prompt for scope in non-interactive mode", async () => {
+    const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: false
+    });
+
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const lstatSpy = vi.spyOn(fs, "lstat");
+    const program = createCliProgram(fs, logs);
+
+    try {
+      await program.parseAsync(["node", "cli", "utils", "symlink", "skills"]);
+    } finally {
+      if (stdinDescriptor) {
+        Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+      } else {
+        Reflect.deleteProperty(process.stdin, "isTTY");
+      }
+    }
+
+    expect(logs).toContain(
+      "utils symlink skills requires --local, --global, or --yes when running without an interactive TTY."
+    );
+    expect(process.exitCode).toBe(1);
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(lstatSpy).not.toHaveBeenCalled();
   });
 });
 

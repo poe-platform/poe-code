@@ -1,5 +1,5 @@
 import type { Command } from "commander";
-import { select, isCancel, cancel } from "@poe-code/design-system";
+import { select, isCancel, cancel } from "toolcraft-design";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import { initializeClient } from "../../services/client-instance.js";
@@ -23,6 +23,7 @@ import {
   toMcpServerCommand
 } from "../../utils/execution-context.js";
 import { POE_PROVIDER_ID } from "@poe-code/providers";
+import { ValidationError } from "../errors.js";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
@@ -99,12 +100,15 @@ export function registerMcpCommand(
 
       let agent = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
-        if (fromConfig !== null) {
-          agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (flags.assumeYes || options.yes) {
-          agent = DEFAULT_MCP_AGENT;
+        if (flags.assumeYes || options.yes) {
+          const fromConfig = await resolveDefaultAgent(container);
+          agent = fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_MCP_AGENT;
         } else {
+          if (process.stdin.isTTY !== true) {
+            throw new ValidationError(
+              "MCP agent selection requires an agent or --yes when running without an interactive TTY."
+            );
+          }
           const selected = await select({
             message: "Select agent to configure:",
             options: supportedAgents.map((a) => ({ value: a, label: a }))

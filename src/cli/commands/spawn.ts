@@ -8,6 +8,7 @@ import {
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
+  type HookBridgeOptions,
   type McpSpawnConfig,
   type SpawnMode
 } from "@poe-code/agent-spawn";
@@ -15,10 +16,11 @@ import { resolveAgentId } from "@poe-code/agent-defs";
 import {
   text,
   confirm,
+  select,
   isCancel,
   resolveOutputFormat,
   renderMarkdown
-} from "@poe-code/design-system";
+} from "toolcraft-design";
 import { loadConfiguredServices } from "../../services/config.js";
 import {
   createExecutionResources,
@@ -35,6 +37,7 @@ import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
+import { ensurePoeApiKeyEnv } from "../../sdk/credentials.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
@@ -43,6 +46,8 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
+
+const SPAWN_MODES = ["yolo", "edit", "read"] as const;
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -79,7 +84,8 @@ export function registerSpawnCommand(
     .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
-    .option("--mode <mode>", "Permission mode: yolo | edit | read (default: yolo)")
+    .option("--mode <mode>", "Permission mode: yolo | edit | read (prompted; --yes uses yolo)")
+    .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
       "--mcp-servers <json|@file>",
       "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
@@ -99,9 +105,18 @@ export function registerSpawnCommand(
       ])
     )
     .addOption(
+      new Option("--hooks-scope <scope>", "Hook bridge scope (default: merged)").choices([
+        "project",
+        "user",
+        "merged"
+      ])
+    )
+    .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
+    .option("--log-file-name <name>", "Filename override for the spawn log")
+    .option("--log-content", "Include message and tool content in ACP JSONL spawn logs")
     .option(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
@@ -135,7 +150,11 @@ export function registerSpawnCommand(
           skills?: string[] | boolean;
           hooksFrom?: string;
           hooksStrategy?: "auto" | "symlink" | "transform";
+          hooksScope?: "project" | "user" | "merged";
+          resumeThreadId?: string;
           logDir?: string;
+          logFileName?: string;
+          logContent?: boolean;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
@@ -144,6 +163,7 @@ export function registerSpawnCommand(
       const hooks = resolveHookOptions(
         commandOptions.hooksFrom,
         commandOptions.hooksStrategy,
+        commandOptions.hooksScope,
         this
       );
       let integrations: Integrations | null = null;
@@ -184,11 +204,12 @@ export function registerSpawnCommand(
         throw new Error("No prompt provided via argument or stdin");
       }
       const prompt = promptText ?? "";
+      const mode = await resolveSpawnMode(commandOptions.mode, flags);
 
       const workspace = await resolveSpawnWorkspace(commandOptions.cwd, {
         baseDir: container.env.cwd,
         homeDir: container.env.homeDir,
-        mode: commandOptions.mode as SpawnMode | undefined,
+        mode,
         resolveRemoteLocators: !flags.dryRun,
         fs: container.fs,
         exec: container.commandRunner
@@ -218,13 +239,17 @@ export function registerSpawnCommand(
             commandOptions.model,
             { readOnly: flags.dryRun }
           );
+          await ensurePoeApiKeyEnv();
           const result = await spawnInteractive(canonicalService, {
             prompt,
             args: forwardedArgs,
             model,
-            mode: commandOptions.mode as SpawnMode | undefined,
+            mode,
             ...(skills ? { skills } : {}),
             ...(hooks ? { hooks } : {}),
+            ...(commandOptions.resumeThreadId !== undefined
+              ? { resumeThreadId: commandOptions.resumeThreadId }
+              : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -238,12 +263,19 @@ export function registerSpawnCommand(
           prompt,
           args: forwardedArgs,
           model: commandOptions.model,
-          mode: commandOptions.mode as SpawnMode | undefined,
+          mode,
           mcpServers,
           ...(skills ? { skills } : {}),
           ...(hooks ? { hooks } : {}),
           cwd: cwdOverride,
+          ...(commandOptions.resumeThreadId !== undefined
+            ? { resumeThreadId: commandOptions.resumeThreadId }
+            : {}),
           logDir: commandOptions.logDir,
+          ...(commandOptions.logFileName !== undefined
+            ? { logFileName: commandOptions.logFileName }
+            : {}),
+          ...(commandOptions.logContent ? { logContent: true } : {}),
           activityTimeoutMs: commandOptions.activityTimeoutMs,
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
@@ -344,11 +376,18 @@ export function registerSpawnCommand(
               ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
               ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
               ...(spawnOptions.hooks ? { hooks: spawnOptions.hooks } : {}),
+              ...(spawnOptions.resumeThreadId !== undefined
+                ? { resumeThreadId: spawnOptions.resumeThreadId }
+                : {}),
               ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+              ...(spawnOptions.logFileName !== undefined
+                ? { logFileName: spawnOptions.logFileName }
+                : {}),
+              ...(spawnOptions.logContent ? { logContent: true } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
-              ...(spawnOptions.middlewares ? { middlewares: spawnOptions.middlewares } : {}),
+              ...(spawnOptions.useStdin ? { useStdin: spawnOptions.useStdin } : {}),
               runtimeConfigCwd: container.env.cwd,
               ...runtimeOptions
             })
@@ -424,6 +463,54 @@ async function traceSpawnRun<T>(
   return integrations?.traceRun("spawn", name, run) ?? run();
 }
 
+async function resolveSpawnMode(input: string | undefined, flags: CommandFlags): Promise<SpawnMode> {
+  const explicitMode = parseSpawnMode(input);
+  if (explicitMode) {
+    return explicitMode;
+  }
+
+  if (flags.assumeYes) {
+    return "yolo";
+  }
+
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      "spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode edit, or --mode read; or pass --yes to use yolo."
+    );
+  }
+
+  const selected = await select<SpawnMode>({
+    message: "Select permission mode:",
+    initialValue: "edit",
+    options: [
+      { value: "edit", label: "Edit", hint: "Allow edits, keep provider permission prompts" },
+      { value: "read", label: "Read only", hint: "Inspect without editing" },
+      { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
+    ]
+  });
+  if (isCancel(selected)) {
+    throw new OperationCancelledError();
+  }
+
+  return selected as SpawnMode;
+}
+
+function parseSpawnMode(input: string | undefined): SpawnMode | undefined {
+  if (input === undefined) {
+    return undefined;
+  }
+
+  if (isSpawnMode(input)) {
+    return input;
+  }
+
+  throw new ValidationError(`Invalid --mode "${input}". Expected yolo, edit, or read.`);
+}
+
+function isSpawnMode(input: string): input is SpawnMode {
+  return SPAWN_MODES.includes(input as SpawnMode);
+}
+
 function formatDetachedJob(detached: { jobId: string; envId: string }): string {
   return `job started: ${detached.jobId}\nsandbox: ${detached.envId}\ndetached.`;
 }
@@ -474,6 +561,12 @@ async function confirmUnconfiguredService(
 
   if (flags.assumeYes) {
     return true;
+  }
+
+  if (process.stdin.isTTY !== true) {
+    throw new ValidationError(
+      `${label} is not configured via poe. Pass --yes to proceed without prompting.`
+    );
   }
 
   const shouldProceed = await confirm({
@@ -687,6 +780,7 @@ function resolveSkillOptions(
 function resolveHookOptions(
   from: string | undefined,
   strategy: "auto" | "symlink" | "transform" | undefined,
+  scope: HookBridgeOptions["scope"] | undefined,
   command: Command
 ): NonNullable<SpawnCommandOptions["hooks"]> | undefined {
   if (!from) {
@@ -696,10 +790,20 @@ function resolveHookOptions(
         "error: option '--hooks-strategy <strategy>' requires '--hooks-from <agentId>'"
       );
     }
+    if (scope) {
+      command.outputHelp({ error: true });
+      command.error(
+        "error: option '--hooks-scope <scope>' requires '--hooks-from <agentId>'"
+      );
+    }
     return undefined;
   }
 
-  return { from, strategy: strategy ?? "auto" };
+  return {
+    from,
+    strategy: strategy ?? "auto",
+    ...(scope ? { scope } : {})
+  };
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

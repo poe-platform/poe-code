@@ -14,6 +14,8 @@ import type { HookBridgeOptions } from "./types.js";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
+const REDACTED_PROMPT_ARG = "[prompt redacted]";
+
 export interface SpawnCoreOptions {
   /** The prompt to send to the provider */
   prompt: string;
@@ -163,7 +165,7 @@ function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): 
   const details: string[] = [];
   const promptDetail = options.useStdin
     ? `(stdin, ${options.prompt.length} chars)`
-    : formatQuoted(options.prompt);
+    : `${REDACTED_PROMPT_ARG} (${options.prompt.length} chars)`;
   details.push(`${chalk.dim("Prompt:")} ${chalk.cyan(promptDetail)}`);
 
   if (options.args && options.args.length > 0) {
@@ -188,8 +190,4 @@ function formatSpawnArg(arg: string): string {
     return arg;
   }
   return `"${arg.split('"').join('\\"')}"`;
-}
-
-function formatQuoted(value: string): string {
-  return JSON.stringify(value);
 }

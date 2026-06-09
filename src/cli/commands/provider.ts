@@ -13,7 +13,7 @@ import {
   resolveServiceAdapter,
   resolveShapeBaseUrl
 } from "./shared.js";
-import { getTheme, renderTable } from "@poe-code/design-system";
+import { getTheme, renderTable } from "toolcraft-design";
 import type { AuthProvider } from "@poe-code/providers";
 import { createConfigurePayload } from "./configure-payload.js";
 import { createOverlayFileSystem, type ConfigureCommandOptions } from "./configure.js";
@@ -228,6 +228,12 @@ function validateProviderLoginBaseUrlOptions(input: {
   flags: ReturnType<typeof resolveCommandFlags>;
   parsedShapeBaseUrls: Partial<Record<ApiShapeId, string>>;
 }): void {
+  for (const baseUrl of Object.values(input.parsedShapeBaseUrls)) {
+    if (baseUrl !== undefined) {
+      assertHttpBaseUrl(input.provider.id, baseUrl);
+    }
+  }
+
   const explicitBaseUrl = resolveNonEmpty(input.options.baseUrl);
   if (explicitBaseUrl !== undefined) {
     assertHttpBaseUrl(input.provider.id, explicitBaseUrl);
@@ -429,7 +435,7 @@ async function stageProviderLogin(input: {
       input.container.options.resolveApiKey({
         value: preferred.apiKey,
         envValue: preferred.envValue,
-        dryRun: false,
+        dryRun: true,
         assumeYes: input.flags.assumeYes,
         allowStored: false
       })

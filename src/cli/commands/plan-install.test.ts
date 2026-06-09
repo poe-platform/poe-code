@@ -11,8 +11,8 @@ const { selectMock, cancelMock } = vi.hoisted(() => ({
   cancelMock: vi.fn()
 }));
 
-vi.mock("@poe-code/design-system", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/design-system");
+vi.mock("toolcraft-design", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("toolcraft-design");
   return {
     ...actual,
     select: selectMock,
@@ -36,6 +36,23 @@ function createBaseProgram(): Command {
   program.exitOverride();
   program.name("poe-code").option("-y, --yes").option("--dry-run").option("--verbose");
   return program;
+}
+
+function withMockedStdin<T>(run: () => Promise<T>, isTTY: boolean): Promise<T> {
+  const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value: isTTY
+  });
+
+  return run().finally(() => {
+    if (stdinDescriptor) {
+      Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    } else {
+      Reflect.deleteProperty(process.stdin, "isTTY");
+    }
+  });
 }
 
 describe("plan install command", () => {
@@ -116,7 +133,7 @@ describe("plan install command", () => {
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
-  it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
+  it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     const container = createCliContainer({
       fs,
@@ -134,11 +151,87 @@ describe("plan install command", () => {
     const program = createBaseProgram();
     registerPlanCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "plan", "install", "--local"]);
+    await program.parseAsync(["node", "cli", "--yes", "plan", "install", "--local"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     await expect(fs.readFile("/repo/.codex/skills/poe-code-plan/SKILL.md", "utf8")).resolves.toBe(
       planSkillTemplate
+    );
+  });
+
+  it("prompts for the install agent when core.defaultAgent exists without --yes", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    selectMock.mockResolvedValueOnce("claude-code");
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      `${JSON.stringify({ core: { defaultAgent: "codex:openai/gpt-5.4" } }, null, 2)}
+`,
+      { encoding: "utf8" }
+    );
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await withMockedStdin(
+      () => program.parseAsync(["node", "cli", "plan", "install", "--local"]),
+      true
+    );
+
+    expect(selectMock).toHaveBeenCalledTimes(1);
+    expect(selectMock).toHaveBeenCalledWith({
+      message: "Select agent to install the plan skill for:",
+      options: expect.arrayContaining([expect.objectContaining({ value: "claude-code" })])
+    });
+    await expect(fs.readFile("/repo/.claude/skills/poe-code-plan/SKILL.md", "utf8")).resolves.toBe(
+      planSkillTemplate
+    );
+    await expect(fs.stat("/repo/.codex/skills/poe-code-plan/SKILL.md")).rejects.toThrow("ENOENT");
+  });
+
+  it("rejects missing install agent selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(() => program.parseAsync(["node", "cli", "plan", "install"]), false)
+    ).rejects.toThrow(
+      "Plan install agent selection requires --agent or --yes when running without an interactive TTY."
+    );
+
+    expect(selectMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects missing install scope selection in non-interactive mode", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      withMockedStdin(
+        () => program.parseAsync(["node", "cli", "plan", "install", "--agent", "claude-code"]),
+        false
+      )
+    ).rejects.toThrow(
+      "Plan install scope selection requires --local, --global, or --yes when running without an interactive TTY."
     );
   });
 

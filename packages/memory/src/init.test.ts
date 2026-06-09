@@ -63,6 +63,22 @@ describe("initMemory", () => {
     await expect(vol.promises.stat("/outside/LOG.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("rejects a symlinked memory root ancestor before writing scaffold files", async () => {
+    vol.fromJSON({
+      "/repo/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code");
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.stat("/outside/memory/INDEX.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(vol.promises.stat("/outside/memory/LOG.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("removes newly created scaffold artifacts when initialization fails", async () => {
     vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
       if (String(filePath).endsWith("/LOG.md")) {

@@ -7,10 +7,29 @@ import { vol } from "memfs";
 import { lint, makeAgentModule } from "@poe-code/agent-script";
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
-const mockedFileSystemState = vi.hoisted(() => ({ failingWritePath: undefined as string | undefined }));
+const mockedFileSystemState = vi.hoisted(() => ({
+  failingWritePath: undefined as string | undefined,
+  failingWritePathPrefix: undefined as string | undefined,
+  collidingWritePathPrefix: undefined as string | undefined,
+  collidingWriteTarget: undefined as string | undefined,
+  collidingWritePath: undefined as string | undefined,
+  symlinkRacePath: undefined as string | undefined,
+  symlinkRaceTarget: undefined as string | undefined
+}));
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  async function replaceWithSymlink(path: string, target: string): Promise<void> {
+    try {
+      await fs.promises.unlink(path);
+    } catch (error) {
+      if ((error as { code?: unknown }).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    await fs.promises.symlink(target, path);
+  }
+
   return {
     ...fs.promises,
     async writeFile(
@@ -18,12 +37,49 @@ vi.mock("node:fs/promises", async () => {
       data: Parameters<typeof fs.promises.writeFile>[1],
       options?: Parameters<typeof fs.promises.writeFile>[2]
     ) {
-      if (path === mockedFileSystemState.failingWritePath) {
+      const pathText = String(path);
+      if (
+        pathText === mockedFileSystemState.symlinkRacePath &&
+        mockedFileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(pathText, mockedFileSystemState.symlinkRaceTarget);
+      }
+
+      if (
+        path === mockedFileSystemState.failingWritePath ||
+        (mockedFileSystemState.failingWritePathPrefix !== undefined &&
+          pathText.startsWith(mockedFileSystemState.failingWritePathPrefix) &&
+          pathText.endsWith(".tmp"))
+      ) {
         await fs.promises.writeFile(path, "[", options);
         throw new Error("host call disk full");
       }
 
+      if (
+        mockedFileSystemState.collidingWritePathPrefix !== undefined &&
+        mockedFileSystemState.collidingWriteTarget !== undefined &&
+        pathText.startsWith(mockedFileSystemState.collidingWritePathPrefix) &&
+        pathText.endsWith(".tmp")
+      ) {
+        mockedFileSystemState.collidingWritePath = pathText;
+        await fs.promises.symlink(mockedFileSystemState.collidingWriteTarget, pathText);
+      }
+
       return fs.promises.writeFile(path, data, options);
+    },
+    async rename(
+      oldPath: Parameters<typeof fs.promises.rename>[0],
+      newPath: Parameters<typeof fs.promises.rename>[1]
+    ) {
+      const newPathText = String(newPath);
+      if (
+        newPathText === mockedFileSystemState.symlinkRacePath &&
+        mockedFileSystemState.symlinkRaceTarget !== undefined
+      ) {
+        await replaceWithSymlink(newPathText, mockedFileSystemState.symlinkRaceTarget);
+      }
+
+      return fs.promises.rename(oldPath, newPath);
     },
     default: fs.promises
   };
@@ -51,6 +107,12 @@ describe("runHarnessPair", () => {
   beforeEach(() => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;
+    mockedFileSystemState.failingWritePathPrefix = undefined;
+    mockedFileSystemState.collidingWritePathPrefix = undefined;
+    mockedFileSystemState.collidingWriteTarget = undefined;
+    mockedFileSystemState.collidingWritePath = undefined;
+    mockedFileSystemState.symlinkRacePath = undefined;
+    mockedFileSystemState.symlinkRaceTarget = undefined;
   });
 
   afterEach(() => {
@@ -215,7 +277,7 @@ describe("runHarnessPair", () => {
       ].join("\n"),
       [storePath]: priorRecords
     });
-    mockedFileSystemState.failingWritePath = `${storePath}.tmp`;
+    mockedFileSystemState.failingWritePathPrefix = `${storePath}.`;
 
     await expect(
       runHarnessPair(mdPath, {
@@ -225,6 +287,66 @@ describe("runHarnessPair", () => {
     ).rejects.toThrow("host call disk full");
 
     expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
+  });
+
+  it("does not follow a preexisting legacy host-call temp path symlink", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      "/outside/host-calls.tmp": "outside-state\n"
+    });
+    vol.mkdirSync(dirname(storePath), { recursive: true });
+    vol.symlinkSync("/outside/host-calls.tmp", `${storePath}.tmp`);
+
+    await runHarnessPair(mdPath, {
+      modulesFor: () => ({ host: { async step() { return "new"; } } }),
+      snapshotPath,
+      preserveSnapshotOnSuccess: true
+    });
+
+    expect(vol.readFileSync("/outside/host-calls.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(storePath).isSymbolicLink()).toBe(false);
+    expect(JSON.parse(vol.readFileSync(storePath, "utf8") as string)).toEqual([
+      { key: "host.step", args: ["new"], result: "new" }
+    ]);
+  });
+
+  it("does not remove a colliding host-call temp symlink it did not create", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      "/outside/host-calls.tmp": "outside-state\n"
+    });
+    vol.mkdirSync(dirname(storePath), { recursive: true });
+    mockedFileSystemState.collidingWritePathPrefix = `${storePath}.`;
+    mockedFileSystemState.collidingWriteTarget = "/outside/host-calls.tmp";
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        snapshotPath,
+        preserveSnapshotOnSuccess: true
+      })
+    ).rejects.toThrow("EEXIST");
+
+    expect(mockedFileSystemState.collidingWritePath).toBeDefined();
+    expect(vol.readFileSync("/outside/host-calls.tmp", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(mockedFileSystemState.collidingWritePath as string).isSymbolicLink()).toBe(
+      true
+    );
+    expect(vol.existsSync(storePath)).toBe(false);
   });
 
   it("lints the coverage demo .ajs without diagnostics", () => {
@@ -568,6 +690,36 @@ describe("runHarnessPair", () => {
       returnValue: true
     });
 
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
+  });
+
+  it("does not follow a harness script symlink inserted before fixed source publish", async () => {
+    const mdPath = "/repo/harness/fix-race.md";
+    const ajsPath = "/repo/harness/fix-race.ajs";
+    vol.fromJSON({
+      [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# Fix race"].join("\n"),
+      [ajsPath]: ['import { log } from "log";', "export default () => true;", ""].join("\n"),
+      "/outside/fix-race.ajs": "outside-state\n"
+    });
+    mockedFileSystemState.symlinkRacePath = ajsPath;
+    mockedFileSystemState.symlinkRaceTarget = "/outside/fix-race.ajs";
+
+    await expect(
+      runHarnessPair(mdPath, {
+        fix: true,
+        modulesFor: () => ({
+          log: {
+            log: vi.fn()
+          }
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+
+    expect(vol.readFileSync("/outside/fix-race.ajs", "utf8")).toBe("outside-state\n");
+    expect(vol.lstatSync(ajsPath).isSymbolicLink()).toBe(false);
     expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
   });
 
@@ -1137,6 +1289,49 @@ describe("runHarnessPair", () => {
     await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
       "Default harness snapshot path must not contain symbolic links."
     );
+  });
+
+  it("rejects an explicit CLI default snapshot path through a symlinked parent", async () => {
+    const mdPath = "/repo/harness/probe.md";
+    const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/sentinel.txt": "untouched"
+    });
+    vol.mkdirSync("/repo/.poe-code/harnesses", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/.poe-code/harnesses/probe");
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        snapshotPath,
+        snapshotPathIsDefault: true
+      })
+    ).rejects.toThrow("Default harness snapshot path must not contain symbolic links.");
+    expect(vol.existsSync("/outside/snapshot.json")).toBe(false);
+  });
+
+  it("rejects a symlinked default host-call replay sidecar before reading it", async () => {
+    const mdPath = "/repo/harness/probe.md";
+    const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/host-calls.json": JSON.stringify([
+        { key: "host.read", args: [], result: "stale" }
+      ])
+    });
+    vol.mkdirSync(dirname(snapshotPath), { recursive: true });
+    vol.symlinkSync("/outside/host-calls.json", `${snapshotPath}.host-calls.json`);
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        snapshotPath,
+        snapshotPathIsDefault: true
+      })
+    ).rejects.toThrow("Default harness snapshot path must not contain symbolic links.");
   });
 
   it("deep-merges frontmatterOverrides into the validated frontmatter before invoking the default export", async () => {

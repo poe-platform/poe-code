@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import path from "node:path";
 import { createSecretStore } from "./index.js";
 import type { EncryptedFileStoreFileSystem } from "./encrypted-file-store.js";
 import {
@@ -293,6 +294,29 @@ describe("EncryptedFileStore", () => {
     await expect(fs.readFile("/outside/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("rejects credentials beneath a symlinked default directory ancestor", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/home/test", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/home/test/.poe-code"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      defaultDirectory: ".poe-code/mcp-oauth",
+      defaultFileName: "credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getHomeDirectory: () => "/home/test",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(store.get()).rejects.toThrow(/symbolic link/i);
+    await expect(store.delete()).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/mcp-oauth/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("allows credentials beneath a symlinked operating-system path ancestor", async () => {
     const fs = createStatMemFs();
     await fs.mkdir("/private/var/tmp/home/.app", { recursive: true });
@@ -338,6 +362,42 @@ describe("EncryptedFileStore", () => {
     await expect(store.set("secret")).rejects.toThrow("chmod denied");
     await expect(store.get()).resolves.toBeNull();
     expect(fs.unlink).toHaveBeenCalledWith(expect.stringMatching(/^\/credentials\.enc\..+\.tmp$/));
+  });
+
+  it("does not follow or remove a colliding temporary credential symlink", async () => {
+    const baseFs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    await baseFs.mkdir(path.dirname(filePath), { recursive: true });
+    await baseFs.mkdir("/outside", { recursive: true });
+    await baseFs.writeFile("/outside/credentials.tmp", "outside-state\n", { encoding: "utf8" });
+    let temporaryPath: string | undefined;
+    const fs: EncryptedFileStoreFileSystem = {
+      ...baseFs,
+      async writeFile(targetPath, data, options) {
+        if (targetPath.startsWith(`${filePath}.`) && targetPath.endsWith(".tmp")) {
+          temporaryPath = targetPath;
+          await (baseFs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+            "/outside/credentials.tmp",
+            targetPath
+          );
+        }
+
+        await baseFs.writeFile(targetPath, data, options);
+      }
+    };
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host", username: "user" })
+    });
+
+    await expect(store.set("secret")).rejects.toThrow();
+
+    expect(temporaryPath).toBeDefined();
+    await expect(baseFs.readFile("/outside/credentials.tmp", "utf8")).resolves.toBe("outside-state\n");
+    expect((await baseFs.lstat(temporaryPath as string)).isSymbolicLink()).toBe(true);
+    await expect(baseFs.readFile(filePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("preserves the previous credential when a rotation write fails", async () => {

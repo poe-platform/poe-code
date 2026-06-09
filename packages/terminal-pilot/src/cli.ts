@@ -3,14 +3,17 @@ import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCLI } from "toolcraft/cli";
+import { configureTheme } from "toolcraft-design";
 import { createTerminalPilotGroup } from "./commands/index.js";
+
+configureTheme({ brand: "green", label: "Terminal Pilot" });
 
 function normalizeArgv(argv: string[]): string[] {
   if (
     argv.includes("--json") &&
     !argv.some((argument) => argument === "--output" || argument.startsWith("--output="))
   ) {
-    return argv.flatMap((argument) => argument === "--json" ? ["--output", "json"] : [argument]);
+    return argv.flatMap((argument) => (argument === "--json" ? ["--output", "json"] : [argument]));
   }
 
   return argv;

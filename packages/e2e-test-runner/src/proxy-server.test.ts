@@ -7,7 +7,7 @@ import { vol } from 'memfs';
 
 const fsHooks = vi.hoisted(() => ({
   appendFile: undefined as undefined | (() => Promise<void>),
-  writeFile: undefined as undefined | ((targetPath: string) => Promise<void>),
+  writeFile: undefined as undefined | ((targetPath: string, options?: unknown) => Promise<void>),
 }));
 
 vi.mock('node:fs/promises', async () => {
@@ -22,7 +22,7 @@ vi.mock('node:fs/promises', async () => {
     },
     writeFile: async (...args: Parameters<typeof fs.promises.writeFile>) => {
       if (fsHooks.writeFile) {
-        await fsHooks.writeFile(String(args[0]));
+        await fsHooks.writeFile(String(args[0]), args[2]);
       }
       return await fs.promises.writeFile(...args);
     },
@@ -554,11 +554,16 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     });
     closeHandles.push(proxy.close);
 
-    await fetch(`${proxy.url}/v1/chat/completions`, {
+    await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         authorization: 'Bearer test-token',
+        'proxy-authorization': 'Basic proxy-secret',
         'content-type': 'application/json',
+        cookie: 'session=secret-cookie',
+        'x-api-key': 'api-key-secret',
+        'x-session-token': 'session-token-secret',
+        'x-safe-header': 'safe-value',
       },
       body: JSON.stringify({
         model: 'dummy-model',
@@ -568,7 +573,26 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
 
     const request = upstream.getLastRequest();
     expect(request?.headers.authorization).toBe('Bearer test-token');
+    expect(request?.headers['proxy-authorization']).toBe('Basic proxy-secret');
+    expect(request?.headers.cookie).toBe('session=secret-cookie');
+    expect(request?.headers['x-api-key']).toBe('api-key-secret');
+    expect(request?.headers['x-session-token']).toBe('session-token-secret');
     expect(request?.headers['content-type']).toBe('application/json');
+    expect(request?.headers['x-safe-header']).toBe('safe-value');
+
+    const captureContent = vol.readFileSync(captureFile, 'utf8') as string;
+    const captured = JSON.parse(captureContent.trim()) as CapturedExchange;
+    expect(captured.request.headers.authorization).toBe('[redacted]');
+    expect(captured.request.headers['proxy-authorization']).toBe('[redacted]');
+    expect(captured.request.headers.cookie).toBe('[redacted]');
+    expect(captured.request.headers['x-api-key']).toBe('[redacted]');
+    expect(captured.request.headers['x-session-token']).toBe('[redacted]');
+    expect(captured.request.headers['content-type']).toBe('application/json');
+    expect(captured.request.headers['x-safe-header']).toBe('safe-value');
+    expect(JSON.stringify(captured)).not.toContain('test-token');
+    expect(JSON.stringify(captured)).not.toContain('proxy-secret');
+    expect(JSON.stringify(captured)).not.toContain('api-key-secret');
+    expect(JSON.stringify(captured)).not.toContain('session-token-secret');
   });
 
   it('uses the first matching route when multiple route prefixes match', async () => {
@@ -692,6 +716,8 @@ describe('startProxyServer record mode', () => {
   const closeHandles: Array<() => Promise<void>> = [];
 
   beforeEach(() => {
+    fsHooks.appendFile = undefined;
+    fsHooks.writeFile = undefined;
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
@@ -776,6 +802,50 @@ describe('startProxyServer record mode', () => {
       },
     });
     expect(Number.isNaN(Date.parse(snapshot.metadata.recordedAt))).toBe(false);
+  });
+
+  it('does not follow a preexisting legacy snapshot temp symlink', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'legacy temp path' }],
+    };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    const legacyTemporaryPath = `${snapshotPath}.${process.pid}.1234.tmp`;
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.writeFileSync('/outside/snapshot-tmp.json', 'outside-state\n');
+    vol.symlinkSync('/outside/snapshot-tmp.json', legacyTemporaryPath);
+    const dateNowSpy = vi.spyOn(Date, 'now').mockReturnValue(1234);
+
+    try {
+      const proxy = await startProxyServer({
+        port: 0,
+        captureFile,
+        onMiss: 'error',
+        routes: [
+          { path: '/v1', target: upstream.url, mode: 'record', snapshotDir },
+        ],
+      });
+      closeHandles.push(proxy.close);
+
+      const response = await fetch(`${proxy.url}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const responseBody = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(vol.readFileSync('/outside/snapshot-tmp.json', 'utf8')).toBe('outside-state\n');
+      expect(vol.lstatSync(legacyTemporaryPath).isSymbolicLink()).toBe(true);
+      expect(vol.lstatSync(snapshotPath).isSymbolicLink()).toBe(false);
+      expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual(responseBody);
+    } finally {
+      dateNowSpy.mockRestore();
+    }
   });
 
   it('uses the generated snapshot key as the file name', async () => {

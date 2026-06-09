@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -9,6 +9,9 @@ import { storeTestApiKey } from "../../../tests/test-helpers.js";
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const getThemeMock = vi.hoisted(() => vi.fn());
+const withSpinnerMock = vi.hoisted(() =>
+  vi.fn(async <T>({ fn }: { fn: () => Promise<T> | T }) => await fn())
+);
 const typographyMock = vi.hoisted(() => ({
   bold: vi.fn((t: string) => t),
   dim: vi.fn((t: string) => t),
@@ -16,6 +19,25 @@ const typographyMock = vi.hoisted(() => ({
   underline: vi.fn((t: string) => t),
   strikethrough: vi.fn((t: string) => t)
 }));
+
+const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function setProcessStdinIsTTY(value: boolean): () => void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    value,
+    configurable: true
+  });
+
+  return restoreProcessStdinIsTTY;
+}
+
+function restoreProcessStdinIsTTY(): void {
+  if (stdinIsTTYDescriptor) {
+    Object.defineProperty(process.stdin, "isTTY", stdinIsTTYDescriptor);
+  } else {
+    Reflect.deleteProperty(process.stdin, "isTTY");
+  }
+}
 
 function createIdentityTheme() {
   return {
@@ -35,13 +57,14 @@ function createIdentityTheme() {
   };
 }
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     confirm: confirmMock,
     isCancel: isCancelMock,
     getTheme: getThemeMock,
+    withSpinner: withSpinnerMock,
     typography: typographyMock
   };
 });
@@ -133,6 +156,7 @@ describe("usage balance command", () => {
     logs = [];
     httpClient = vi.fn();
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
   });
 
   it("fetches and displays current balance", async () => {
@@ -146,7 +170,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -165,6 +189,16 @@ describe("usage balance command", () => {
         })
       })
     );
+    expect(withSpinnerMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Fetching usage balance...",
+        stopMessage: expect.any(Function)
+      })
+    );
+    const balanceSpinnerOptions = withSpinnerMock.mock.calls[0]?.[0] as
+      | { stopMessage?: () => string }
+      | undefined;
+    expect(balanceSpinnerOptions?.stopMessage?.()).toBe("Usage balance fetched");
     expect(
       logs.some((message) => message.includes("Balance:") && message.includes("1,500 pts"))
     ).toBe(true);
@@ -184,7 +218,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -268,7 +302,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -296,7 +330,7 @@ describe("usage balance command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -318,6 +352,7 @@ describe("usage balance styling", () => {
     logs = [];
     httpClient = vi.fn();
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
     typographyMock.bold.mockReset().mockImplementation((t: string) => t);
   });
 
@@ -335,7 +370,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -357,7 +392,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -386,7 +421,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -417,7 +452,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -444,7 +479,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -478,7 +513,7 @@ describe("usage balance styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -497,12 +532,18 @@ describe("usage list command", () => {
   let httpClient: HttpClient;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     fs = createMemfs(homeDir);
     logs = [];
     httpClient = vi.fn();
     confirmMock.mockReset();
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("fetches and displays usage history from GET /usage/points_history with limit=20", async () => {
@@ -547,7 +588,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -611,7 +652,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message),
       exitOverride: true
@@ -649,7 +690,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -671,6 +712,41 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Sonnet-4.5");
     expect(output).toContain("gpt-5.2");
     expect(output).toContain("Claude-Opus");
+  });
+
+  it("stops after the first page without prompting in non-interactive mode", async () => {
+    const restoreStdin = setProcessStdinIsTTY(false);
+    fs = await createConfigVolume("test-key");
+    const page1Entries = [
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 }
+    ];
+
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      json: async () => ({ has_more: true, data: page1Entries })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+    try {
+      await program.parseAsync(["node", "cli", "usage", "list"]);
+    } finally {
+      restoreStdin();
+    }
+
+    expect(confirmMock).not.toHaveBeenCalled();
+    expect(httpClient).toHaveBeenCalledTimes(1);
+    expect(logs.join("\n")).toContain("Claude-Sonnet-4.5");
   });
 
   it("loads all available usage pages without prompting when --yes is set", async () => {
@@ -695,7 +771,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -728,7 +804,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -764,7 +840,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -805,7 +881,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -817,12 +893,47 @@ describe("usage list command", () => {
 
     expect(confirmMock).not.toHaveBeenCalled();
     expect(httpClient).toHaveBeenCalledTimes(2);
+    expect(withSpinnerMock).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        message: "Fetching usage history page 1..."
+      })
+    );
+    expect(withSpinnerMock).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        message: "Fetching usage history page 2..."
+      })
+    );
 
     const output = logs.join("\n");
     expect(output).toContain("Claude-Sonnet-4.5");
     expect(output).toContain("gpt-5.2");
     expect(output).toContain("Claude-Opus");
   });
+
+  it.each(["abc", "0", "-1", "1abc", "1.5"])(
+    "rejects invalid --pages value %s before fetching usage",
+    async (value) => {
+      const program = createProgram({
+        fs,
+        prompts: vi.fn(),
+        env: { cwd, homeDir, variables: {} },
+        httpClient,
+        logger: (message) => logs.push(message)
+      });
+
+      const optsSpy = vi.spyOn(program, "optsWithGlobals");
+      optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+      await expect(
+        program.parseAsync(["node", "cli", "usage", "list", "--pages", value])
+      ).rejects.toThrow("Expected a positive integer.");
+
+      expect(httpClient).not.toHaveBeenCalled();
+      expect(confirmMock).not.toHaveBeenCalled();
+    }
+  );
 
   it("stops after reaching --pages limit", async () => {
     fs = await createConfigVolume("test-key");
@@ -840,7 +951,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -873,7 +984,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -905,7 +1016,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -931,7 +1042,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -961,7 +1072,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1004,7 +1115,7 @@ describe("usage list command", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1029,12 +1140,18 @@ describe("usage list table styling", () => {
   let httpClient: HttpClient;
 
   beforeEach(() => {
+    setProcessStdinIsTTY(true);
     fs = createMemfs(homeDir);
     logs = [];
     httpClient = vi.fn();
     confirmMock.mockReset();
     isCancelMock.mockReset().mockReturnValue(false);
     getThemeMock.mockReset().mockReturnValue(createIdentityTheme());
+    withSpinnerMock.mockClear();
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
   });
 
   it("styles column headers with theme.header", async () => {
@@ -1054,7 +1171,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1087,7 +1204,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1118,7 +1235,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1147,7 +1264,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1178,7 +1295,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1216,7 +1333,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1249,7 +1366,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1275,7 +1392,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });
@@ -1305,7 +1422,7 @@ describe("usage list table styling", () => {
     const program = createProgram({
       fs,
       prompts: vi.fn(),
-      env: { cwd, homeDir },
+      env: { cwd, homeDir, variables: {} },
       httpClient,
       logger: (message) => logs.push(message)
     });

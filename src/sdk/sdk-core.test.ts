@@ -533,11 +533,12 @@ describe("spawnCore", () => {
   it("handles dry run mode", async () => {
     const { container, logs } = createContainerWithDependencies({ fs });
     await ensureIsolatedConfig("opencode");
+    const prompt = "investigate token=sk-dry-run-secret";
 
     const result = await spawnCore(
       container,
       "codex",
-      { prompt: "test prompt" },
+      { prompt },
       { dryRun: true, verbose: false }
     );
 
@@ -546,7 +547,10 @@ describe("spawnCore", () => {
       stderr: "",
       exitCode: 0
     });
-    expect(logs.some((log) => log.includes("Dry run"))).toBe(true);
+    const joinedLogs = logs.join("\n");
+    expect(joinedLogs).toContain("Dry run");
+    expect(joinedLogs).toContain("[prompt redacted]");
+    expect(joinedLogs).not.toContain("sk-dry-run-secret");
   });
 
   it("does not resolve workspace locators during dry run", async () => {

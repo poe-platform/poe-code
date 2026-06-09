@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { Command } from "commander";
-import { executeConfigure, registerConfigureCommand } from "./configure.js";
+import { createOverlayFileSystem, executeConfigure, registerConfigureCommand } from "./configure.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { loadConfiguredServices } from "../../services/config.js";
@@ -156,6 +156,24 @@ function stubInvokeAndCaptureProvider(container: ReturnType<typeof createContain
   };
 }
 
+function withRenameOverride(fs: FileSystem, rename: FileSystem["rename"]): FileSystem {
+  return new Proxy(fs, {
+    get(target, property, receiver) {
+      if (property === "rename") {
+        return rename;
+      }
+      const value = Reflect.get(target, property, receiver) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) as FileSystem;
+}
+
+function createTestFsError(code: string, filePath: string): NodeJS.ErrnoException {
+  const error = new Error(`${code}: test failure, '${filePath}'`) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
+}
+
 describe("configure provider resolution", () => {
   let fs: FileSystem;
 
@@ -188,6 +206,36 @@ describe("configure provider resolution", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services.codex?.provider).toBe(PROVIDER_NAME);
+  });
+
+  it.each([
+    ["root", ["node", "cli", "--yes", "configure", "codex"]],
+    ["command-local", ["node", "cli", "configure", "codex", "--yes"]]
+  ])("honors %s --yes while configuring defaults", async (_label, argv) => {
+    const prompts = vi.fn().mockRejectedValue(new Error("prompt should not be called"));
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" }, prompts);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockImplementation(
+      async (_id, options) => options?.apiKey ?? "sk-test"
+    );
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const resolveModelSpy = vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    stubInvoke(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync(argv);
+
+    expect(resolveModelSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        assumeDefault: true
+      })
+    );
+    expect(prompts).not.toHaveBeenCalled();
   });
 
   it("keeps claude-code on Poe with --yes when only POE_API_KEY is set", async () => {
@@ -986,6 +1034,21 @@ describe("configure provider resolution", () => {
     });
   });
 
+  it("derives Poe OpenAI URLs from the provider default root", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://api.poe.com/v1",
+      agentBaseUrl: "https://api.poe.com"
+    });
+  });
+
   it("rejects unknown configure --shape-base-url shape ids before writing", async () => {
     const container = createContainer(fs);
     mockOptions(container);
@@ -1049,5 +1112,75 @@ describe("configure provider resolution", () => {
 
     expect(writeSpy).not.toHaveBeenCalled();
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe(before);
+  });
+
+  it("keeps overlay symlinks staged until commit", async () => {
+    const linkPath = `${homeDir}/links/current`;
+    const targetPath = `${homeDir}/target`;
+    const transaction = createOverlayFileSystem(fs);
+
+    await fs.mkdir(path.dirname(linkPath), { recursive: true });
+    await fs.writeFile(targetPath, "target", { encoding: "utf8" });
+    await transaction.fs.symlink("../target", linkPath);
+
+    await expect(fs.lstat(linkPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(transaction.fs.readlink(linkPath)).resolves.toBe("../target");
+    await expect(transaction.hasMaterialChange()).resolves.toBe(true);
+
+    await transaction.commit();
+
+    expect((await fs.lstat(linkPath)).isSymbolicLink()).toBe(true);
+    await expect(fs.readlink(linkPath)).resolves.toBe("../target");
+  });
+
+  it("replaces symlinked overlay targets without writing through them", async () => {
+    const outsidePath = "/outside/config.toml";
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const transaction = createOverlayFileSystem(fs);
+
+    await fs.mkdir(path.dirname(outsidePath), { recursive: true });
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(outsidePath, "outside", { encoding: "utf8" });
+    await fs.symlink(outsidePath, configFile);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+    await transaction.commit();
+
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
+    expect((await fs.lstat(configFile)).isSymbolicLink()).toBe(false);
+    await expect(fs.readFile(configFile, "utf8")).resolves.toBe("inside");
+  });
+
+  it("restores original symlinks and removes staged temps when overlay commit fails", async () => {
+    const outsidePath = "/outside/config.toml";
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const laterFile = `${homeDir}/.poe-code/later.toml`;
+    const failedRenames: string[] = [];
+    const failingFs = withRenameOverride(fs, async (from, to) => {
+      if (to === laterFile) {
+        failedRenames.push(from);
+        throw createTestFsError("EIO", to);
+      }
+      await fs.rename(from, to);
+    });
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await fs.mkdir(path.dirname(outsidePath), { recursive: true });
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(outsidePath, "outside", { encoding: "utf8" });
+    await fs.symlink(outsidePath, configFile);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+    await transaction.fs.writeFile(laterFile, "later", { encoding: "utf8" });
+
+    await expect(transaction.commit()).rejects.toThrow("EIO");
+
+    expect((await fs.lstat(configFile)).isSymbolicLink()).toBe(true);
+    await expect(fs.readlink(configFile)).resolves.toBe(outsidePath);
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
+    await expect(fs.lstat(laterFile)).rejects.toMatchObject({ code: "ENOENT" });
+    for (const failedRename of failedRenames) {
+      await expect(fs.lstat(failedRename)).rejects.toMatchObject({ code: "ENOENT" });
+    }
   });
 });

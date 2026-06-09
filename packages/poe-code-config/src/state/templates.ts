@@ -1,5 +1,11 @@
+import { randomUUID } from "node:crypto";
 import path from "node:path";
-import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
+import {
+  assertPathHasNoSymbolicLinks,
+  defaultStateFs,
+  isNotFoundError,
+  type StateFileSystem
+} from "./fs.js";
 
 export type TemplateBackend = "docker" | "e2b";
 
@@ -44,24 +50,31 @@ export function createTemplateRegistry(
 
   async function writeState(state: TemplateState): Promise<void> {
     await assertSafeStateFile();
-    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
-      .toString(36)
-      .slice(2)}.tmp`;
+    const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+    let tempCreated = false;
 
     try {
+      await assertSafeStatePath(tempPath);
       await fs.writeFile(tempPath, `${JSON.stringify(state, null, 2)}\n`, {
-        encoding: "utf8"
+        encoding: "utf8",
+        flag: "wx"
       });
+      tempCreated = true;
+      await assertSafeStateFile();
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      await fs.unlink(tempPath).catch(() => undefined);
+      if (tempCreated) {
+        await fs.unlink(tempPath).catch(() => undefined);
+      }
       throw error;
     }
   }
 
   async function updateState(mutator: (state: TemplateState) => void): Promise<void> {
     const update = pendingUpdate.then(async () => {
+      await assertSafeStateFile();
       await fs.mkdir(path.dirname(filePath), { recursive: true });
+      await assertSafeStateFile();
       const state = await readState();
       mutator(state);
       await writeState(state);
@@ -71,18 +84,15 @@ export function createTemplateRegistry(
   }
 
   async function assertSafeStateFile(): Promise<void> {
-    if (fs.lstat === undefined) {
-      return;
-    }
-    try {
-      if ((await fs.lstat(filePath)).isSymbolicLink()) {
-        throw new Error(`Refusing template state access through symbolic link: ${filePath}`);
-      }
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-    }
+    await assertSafeStatePath(filePath);
+  }
+
+  async function assertSafeStatePath(statePath: string): Promise<void> {
+    await assertPathHasNoSymbolicLinks(
+      fs,
+      statePath,
+      "Refusing template state access through symbolic link"
+    );
   }
 
   async function get(backend: TemplateBackend, hash: string): Promise<TemplateEntry | null> {

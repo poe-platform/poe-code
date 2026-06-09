@@ -43,4 +43,50 @@ describe("downloadToFile", () => {
 
     expect(await base.readFile(outputPath, "utf8")).toBe("old-image");
   });
+
+  it("does not remove a colliding media temp symlink", async () => {
+    const outputPath = "/repo/generated/image.png";
+    const outsidePath = "/outside.tmp";
+    const volume = Volume.fromJSON({
+      [outputPath]: Buffer.from("old-image"),
+      [outsidePath]: "outside-state\n"
+    });
+    const base = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...base,
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { flag?: string }
+      ): Promise<void> {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${outputPath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          volume.symlinkSync(outsidePath, filePath);
+          expect(options).toEqual({ flag: "wx" });
+        }
+
+        await base.writeFile(filePath, data, options);
+      }
+    } as unknown as FileSystem;
+
+    await expect(downloadToFile({
+      url: "https://cdn.example.test/generated.png",
+      outputPath,
+      fs,
+      fetcher: async () => ({
+        ok: true,
+        arrayBuffer: async () => Buffer.from("new-image").buffer
+      } as Response)
+    })).rejects.toBeInstanceOf(MediaDownloadError);
+
+    expect(temporaryPath).toBeDefined();
+    expect(volume.readFileSync(outsidePath, "utf8")).toBe("outside-state\n");
+    expect(volume.lstatSync(temporaryPath as string).isSymbolicLink()).toBe(true);
+    expect(await base.readFile(outputPath, "utf8")).toBe("old-image");
+  });
 });

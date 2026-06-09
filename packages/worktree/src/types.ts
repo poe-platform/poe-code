@@ -23,7 +23,7 @@ export type WorktreeFileSystem = {
   writeFile(
     path: string,
     data: string,
-    options?: { encoding?: BufferEncoding }
+    options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;

@@ -55,6 +55,10 @@ function merge(base: ConfigObject, patch: ConfigObject): ConfigObject {
   return result;
 }
 
+function configValuesEqual(left: ConfigValue | undefined, right: ConfigValue | undefined): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
 function prune(
   obj: ConfigObject,
   shape: ConfigObject
@@ -147,16 +151,8 @@ function mergePreservingComments(
   content: string,
   patch: ConfigObject
 ): string {
-  let result = content || "{}";
-
-  for (const [key, value] of Object.entries(patch)) {
-    if (value === undefined) {
-      continue;
-    }
-    result = modifyAtPath(result, [key], value);
-  }
-
-  return result;
+  const current = parse(content);
+  return serializeUpdate(content || "{}", current, merge(current, patch));
 }
 
 /**
@@ -170,11 +166,65 @@ function removeAtPath(content: string, path: (string | number)[]): string {
   return modifyAtPath(content, path, undefined);
 }
 
-export { detectIndent, modifyAtPath, mergePreservingComments, removeAtPath };
+function serializeUpdate(
+  content: string,
+  current: ConfigObject,
+  next: ConfigObject
+): string {
+  let result = content || "{}";
+  result = applyObjectUpdate(result, [], current, next);
+
+  if (!result.endsWith("\n")) {
+    result += "\n";
+  }
+
+  return result;
+}
+
+function applyObjectUpdate(
+  content: string,
+  path: (string | number)[],
+  current: ConfigObject,
+  next: ConfigObject
+): string {
+  let result = content;
+
+  for (const key of Object.keys(current)) {
+    if (!hasConfigEntry(next, key)) {
+      result = removeAtPath(result, [...path, key]);
+    }
+  }
+
+  for (const [key, nextValue] of Object.entries(next)) {
+    const nextPath = [...path, key];
+    const hasCurrent = hasConfigEntry(current, key);
+    const currentValue = hasCurrent ? current[key] : undefined;
+
+    if (hasCurrent && isConfigObject(currentValue) && isConfigObject(nextValue)) {
+      result = applyObjectUpdate(result, nextPath, currentValue, nextValue);
+      continue;
+    }
+
+    if (!hasCurrent || !configValuesEqual(currentValue, nextValue)) {
+      result = modifyAtPath(result, nextPath, nextValue as ConfigValue);
+    }
+  }
+
+  return result;
+}
+
+export {
+  detectIndent,
+  modifyAtPath,
+  mergePreservingComments,
+  removeAtPath,
+  serializeUpdate
+};
 
 export const jsonFormat: ConfigFormat = {
   parse,
   serialize,
+  serializeUpdate,
   merge,
   prune
 };

@@ -98,14 +98,20 @@ function createNamedSecretStore(
   defaults: { salt: string; directory: string; service: string; accountPrefix: string }
 ): SecretStore {
   const hash = crypto.createHash("sha256").update(key).digest("hex");
-  const parsedFilePath =
-    options.fileStore?.filePath === undefined ? null : path.parse(options.fileStore.filePath);
+  const configuredFilePath = options.fileStore?.filePath;
+  const parsedFilePath = configuredFilePath === undefined ? null : path.parse(configuredFilePath);
 
   const fileStore = {
     ...options.fileStore,
+    filePath:
+      parsedFilePath === null
+        ? undefined
+        : path.join(
+          parsedFilePath.dir,
+          `${parsedFilePath.name}-${hash}${parsedFilePath.ext || ".enc"}`
+        ),
     salt: options.fileStore?.salt ?? defaults.salt,
     defaultDirectory:
-      parsedFilePath?.dir ||
       options.fileStore?.defaultDirectory ||
       defaults.directory,
     defaultFileName:

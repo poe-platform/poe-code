@@ -12,6 +12,8 @@ export interface SpawnCommandOptions {
   hooks?: HookBridgeOptions;
   resumeThreadId?: string;
   logDir?: string;
+  logFileName?: string;
+  logContent?: boolean;
   activityTimeoutMs?: number;
   middlewares?: AcpMiddleware[];
   cwd?: string;

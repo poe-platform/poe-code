@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
-import type { ActionContext, Row } from "@poe-code/design-system";
+import type { ActionContext, Row } from "toolcraft-design";
 import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { runPlanBrowser } from "./browser.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
@@ -182,6 +182,31 @@ describe("plan browser", () => {
     const runExplorerImpl = vi.fn(async () => null);
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     setStdinTTY(false);
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).not.toHaveBeenCalled();
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+  });
+
+  it("previews the first plan when stdin TTY status is undefined", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
+    });
+    const runExplorerImpl = vi.fn(async () => null);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    Object.defineProperty(process.stdin, "isTTY", {
+      configurable: true,
+      value: undefined
+    });
 
     await runPlanBrowser({
       cwd,

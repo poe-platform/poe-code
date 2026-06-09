@@ -2,9 +2,10 @@ import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { execSync } from "node:child_process";
 import type { DockerRunArgs } from "../types.js";
-import { buildDockerRunArgs } from "./args.js";
+import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
 import { detectEngine, isEngineAvailable } from "./engine.js";
 import { buildContextArgs, detectContext } from "./context.js";
+import { serializeDockerEnvFile } from "./env-file.js";
 
 vi.mock("node:child_process", () => ({
   execSync: vi.fn()
@@ -144,12 +145,46 @@ describe("buildDockerRunArgs", () => {
       "--name",
       "process-runner-test",
       "-e",
-      "FOO=bar",
+      "FOO",
       "-e",
-      "HELLO=world",
+      "HELLO",
       "node:22",
       "node"
     ]);
+  });
+
+  it("uses an env file when the caller provides one", () => {
+    expect(
+      buildDockerRunArgs({
+        ...baseInput,
+        env: {
+          SECRET_TOKEN: "sk-secret"
+        },
+        envFilePath: "/tmp/poe-docker-env/env"
+      })
+    ).toEqual([
+      "docker",
+      "run",
+      "--rm",
+      "--name",
+      "process-runner-test",
+      "--env-file",
+      "/tmp/poe-docker-env/env",
+      "node:22",
+      "node"
+    ]);
+  });
+
+  it("keeps env values out of docker run argv", () => {
+    const args = buildDockerRunArgs({
+      ...baseInput,
+      env: {
+        SECRET_TOKEN: "sk-secret"
+      }
+    });
+
+    expect(args).toContain("SECRET_TOKEN");
+    expect(args.join("\0")).not.toContain("sk-secret");
   });
 
   it("adds network args when configured", () => {
@@ -406,7 +441,7 @@ describe("buildDockerRunArgs", () => {
       "-w",
       "/workspace",
       "-e",
-      "FOO=bar",
+      "FOO",
       "-v",
       `${path.resolve("./workspace")}:/app:ro`,
       "-p",
@@ -446,6 +481,30 @@ describe("buildDockerRunArgs", () => {
     buildDockerRunArgs(input);
 
     expect(input).toEqual(snapshot);
+  });
+});
+
+describe("buildDockerEnvArgs", () => {
+  it("returns no args when no environment is configured", () => {
+    expect(buildDockerEnvArgs({ env: undefined })).toEqual([]);
+    expect(buildDockerEnvArgs({ env: {} })).toEqual([]);
+  });
+});
+
+describe("serializeDockerEnvFile", () => {
+  it("writes Docker env-file entries", () => {
+    expect(serializeDockerEnvFile([["FOO", "bar"], ["HELLO", "world"]])).toBe(
+      "FOO=bar\nHELLO=world\n"
+    );
+  });
+
+  it("rejects entries that cannot be represented safely in Docker env files", () => {
+    expect(() => serializeDockerEnvFile([["BAD=KEY", "value"]])).toThrow(
+      "Invalid Docker environment variable name"
+    );
+    expect(() => serializeDockerEnvFile([["SECRET", "line one\nline two"]])).toThrow(
+      "Docker env-file values cannot contain newline characters."
+    );
   });
 });
 

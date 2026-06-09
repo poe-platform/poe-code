@@ -14,8 +14,8 @@ vi.mock("node:child_process", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+vi.mock("toolcraft-design", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     confirm: vi.fn().mockResolvedValue(true),
@@ -139,7 +139,10 @@ describe("CLI spawn streaming integration", () => {
       await program.parseAsync([
         "node",
         "cli",
+        "--yes",
         "spawn",
+        "--mode",
+        "yolo",
         "codex",
         "hello"
       ]);

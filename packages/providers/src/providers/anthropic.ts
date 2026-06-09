@@ -16,8 +16,7 @@ export const anthropicProvider = defineProvider({
   },
   apiShapes: [
     {
-      id: "anthropic-messages",
-      defaultBaseUrl: "https://api.anthropic.com"
+      id: "anthropic-messages"
     }
   ]
 });

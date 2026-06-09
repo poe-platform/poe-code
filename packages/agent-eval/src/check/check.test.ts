@@ -196,6 +196,34 @@ describe("evalCheck", () => {
     expect(mocks.runScorer).not.toHaveBeenCalled();
   });
 
+  it("rejects symlinked oracle paths before copying solution files", async () => {
+    const files = createSourceFiles();
+    delete files["/repo/evals/smoke/oracle/solution/answer.txt"];
+    const volume = Volume.fromJSON(
+      {
+        ...files,
+        "/outside/solution/answer.txt": "external\n"
+      },
+      "/"
+    );
+    volume.symlinkSync("/outside", "/repo/evals/smoke/oracle");
+    mocks.fs = createFsFromVolume(volume).promises;
+    let clonedDir: string | undefined;
+    mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
+      clonedDir = dest;
+      await mocks.fs.mkdir(dest, { recursive: true });
+    });
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.path must stay within the canonical eval directory."
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+    expect(clonedDir).toBeDefined();
+    await expect(mocks.fs.readFile(path.join(clonedDir!, "patched", "answer.txt"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("rejects symlinked solution destinations that escape the clone root", async () => {
     mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
       await mocks.fs.mkdir(dest, { recursive: true });

@@ -13,6 +13,7 @@ import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "../midd
 import { sessionCapture } from "./session-capture.js";
 import { spawnLog } from "./spawn-log.js";
 import { usageCapture } from "./usage-capture.js";
+import { adaptCodex } from "../../adapters/codex.js";
 import type { AcpEvent } from "../types.js";
 
 async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
@@ -232,6 +233,7 @@ describe("acp/middlewares/spawnLog", () => {
     const ctx = createContext({
       agent: "codex",
       logDir: "/tmp/spawn-logs",
+      logContent: true,
       startedAt: new Date("2026-03-20T12:34:56.789Z")
     });
 
@@ -277,6 +279,141 @@ describe("acp/middlewares/spawnLog", () => {
     const files = await fs.readdir("/tmp/spawn-logs");
     expect(files).toEqual(["20260320-123456-789-builder.jsonl"]);
     expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-builder.jsonl");
+  });
+
+  it("logs transformed events without raw ACP payload metadata", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield {
+          event: "agent_message",
+          text: "secret text",
+          _meta: {
+            raw: {
+              sessionUpdate: "agent_message_chunk",
+              content: { type: "text", text: "secret text" }
+            },
+            ts: 123
+          }
+        } as AcpEvent;
+      })();
+    };
+    const redact: AcpMiddleware = async (ctx, next) => {
+      await next();
+      const sourceStream = ctx.eventStream;
+      ctx.eventStream = (async function* () {
+        for await (const event of sourceStream ?? []) {
+          if (event.event === "agent_message") {
+            yield { ...event, text: "<redacted>" };
+          } else {
+            yield event;
+          }
+        }
+      })();
+    };
+    const ctx = createContext({
+      logPath: "/tmp/redacted-log/session.jsonl",
+      logContent: true
+    });
+
+    await applyMiddlewares([spawnLog, redact, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toHaveLength(1);
+    expect(observed[0]).toMatchObject({ event: "agent_message", text: "<redacted>" });
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).toContain("<redacted>");
+    expect(content).not.toContain("secret text");
+    expect(JSON.parse(content)).toEqual({
+      event: "agent_message",
+      text: "<redacted>",
+      _meta: { ts: 123 }
+    });
+  });
+
+  it("redacts message and tool content from spawn logs by default", async () => {
+    const token = "sk-test-token-123";
+    const sourceEvents: AcpEvent[] = [
+      { event: "agent_message", text: `answer ${token}` },
+      { event: "reasoning", text: `thought ${token}` },
+      {
+        event: "tool_start",
+        id: "tool-1",
+        kind: "exec",
+        title: "run command",
+        input: { command: `echo ${token}` }
+      } as AcpEvent,
+      { event: "tool_complete", id: "tool-1", kind: "exec", path: `stdout ${token}` }
+    ];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+    const ctx = createContext({
+      logPath: "/tmp/default-redacted-log/session.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual(sourceEvents);
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).not.toContain(token);
+    expect(content.trim().split("\n").map((line) => JSON.parse(line))).toEqual([
+      { event: "agent_message", text: "[redacted]" },
+      { event: "reasoning", text: "[redacted]" },
+      {
+        event: "tool_start",
+        id: "tool-1",
+        kind: "exec",
+        title: "[redacted]",
+        input: "[redacted]"
+      },
+      { event: "tool_complete", id: "tool-1", kind: "exec", path: "[redacted]" }
+    ]);
+  });
+
+  it("redacts adapter-produced command titles from spawn logs by default", async () => {
+    const token = "sk-title-token-456";
+    const command = `curl -H "Authorization: Bearer ${token}" https://example.test`;
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = adaptCodex((async function* () {
+        yield JSON.stringify({
+          type: "item.started",
+          item: {
+            id: "cmd-1",
+            type: "command_execution",
+            command
+          }
+        });
+      })());
+    };
+    const ctx = createContext({
+      logPath: "/tmp/default-redacted-log/command-title.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual([
+      {
+        event: "tool_start",
+        id: "cmd-1",
+        kind: "exec",
+        title: command
+      }
+    ]);
+    const content = await fs.readFile(ctx.logFile!, "utf8");
+    expect(content).not.toContain(token);
+    expect(JSON.parse(content)).toEqual({
+      event: "tool_start",
+      id: "cmd-1",
+      kind: "exec",
+      title: "[redacted]"
+    });
   });
 
   it("does not allow ctx.logFileName to escape ctx.logDir", async () => {
@@ -331,6 +468,23 @@ describe("acp/middlewares/spawnLog", () => {
 
     const ctx = createContext({
       events: [{ event: "agent_message", text: "external log probe" }],
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog], ctx);
+
+    await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+  });
+
+  it("does not write default logs through a symlinked state root", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const outsideDir = path.join(homedir(), "outside-state");
+    await fs.mkdir(homedir(), { recursive: true });
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.symlink(outsideDir, stateDir);
+
+    const ctx = createContext({
+      events: [{ event: "agent_message", text: "external state root probe" }],
       startedAt: new Date("2026-03-20T12:34:56.789Z")
     });
 
@@ -480,6 +634,7 @@ describe("acp/middlewares/spawnLog", () => {
     const ctx = createContext({
       agent: "codex",
       logDir: "/tmp/preloaded-logs",
+      logContent: true,
       startedAt: new Date("2026-03-20T12:34:56.789Z"),
       events: [
         { event: "session_start", threadId: "thread-preloaded" },

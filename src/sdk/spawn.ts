@@ -1,6 +1,6 @@
 import * as nodeFs from "node:fs/promises";
 import os from "node:os";
-import { getPoeApiKey } from "./credentials.js";
+import { ensurePoeApiKeyEnv } from "./credentials.js";
 import { resolveConfiguredModel, spawnCore } from "./spawn-core.js";
 import { createSdkContainer } from "./container.js";
 import { spawnAutonomous, type AutonomousSpawnOptions } from "./autonomous.js";
@@ -125,13 +125,6 @@ export function spawn(
       const acpSpawnConfig = getAcpSpawnConfig(service);
       const spawnConfig = getSpawnConfig(service);
       const registeredService = container.registry.get(service);
-      const supportsInteractive = spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined;
-      const canSpawn = options.interactive
-        ? supportsInteractive
-        : acpSpawnConfig !== undefined || spawnConfig !== undefined || registeredService !== undefined;
-      if (canSpawn && (!process.env.POE_API_KEY || process.env.POE_API_KEY.trim().length === 0)) {
-        process.env.POE_API_KEY = await getPoeApiKey();
-      }
 
       integrations = await loadIntegrations(await resolveMergedDocument(container));
       const middlewares = [
@@ -151,6 +144,9 @@ export function spawn(
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
+        if (spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined) {
+          await ensurePoeApiKeyEnv();
+        }
         const interactiveResult = await spawnInteractive(service, {
           prompt: options.prompt,
           cwd,
@@ -188,10 +184,13 @@ export function spawn(
               activeProvider
             ).then((details) => ({ ...activeProvider?.extraEnv, ...details.env }))
           : undefined;
+        if (activeProvider === undefined || activeProvider.id === "poe") {
+          await ensurePoeApiKeyEnv();
+        }
         const acpSpawn = spawnAcp({
           agentId: service,
           prompt: options.prompt,
-          cwd: options.cwd,
+          cwd,
           model,
           mode: options.mode,
           mcpServers: options.mcpServers,
@@ -211,6 +210,7 @@ export function spawn(
           agent: service,
           logDir: options.logDir,
           logFileName: options.logFileName,
+          ...(options.logContent ? { logContent: true } : {}),
           events: [],
           usage: {
             inputTokens: 0,
@@ -220,7 +220,7 @@ export function spawn(
           prompt: options.prompt,
           model,
           mode: options.mode,
-          cwd: options.cwd,
+          cwd,
           startedAt: new Date()
         };
 
@@ -250,6 +250,7 @@ export function spawn(
 
       if (supportsStreaming) {
         const model = await resolveModel();
+        await ensurePoeApiKeyEnv();
         const { events: rawEvents, done } = spawnStreaming({
           agentId: service,
           prompt: options.prompt,
@@ -277,6 +278,7 @@ export function spawn(
           agent: service,
           logDir: options.logDir,
           logFileName: options.logFileName,
+          ...(options.logContent ? { logContent: true } : {}),
           events: [],
           usage: {
             inputTokens: 0,
@@ -313,6 +315,7 @@ export function spawn(
       if (spawnConfig && spawnConfig.kind === "cli") {
         resolveEventsOnce(emptyEvents);
         const model = await resolveModel();
+        await ensurePoeApiKeyEnv();
         return spawnNonStreaming(service, {
           prompt: options.prompt,
           cwd,

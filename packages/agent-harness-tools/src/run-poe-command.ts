@@ -8,6 +8,7 @@ import type { DownloadResult, ExecutionEnvFactory, OpenedEnv, OpenSpec } from ".
 import { waitForExit, wrapForLogTee, type LogStreamEnv } from "./log-stream.js";
 
 const ULID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+const WRAPPED_COMMAND_FORCE_KILL_GRACE_MS = 250;
 
 export async function runPoeCommand(opts: {
   factory: ExecutionEnvFactory;
@@ -29,18 +30,20 @@ export async function runPoeCommand(opts: {
   const jobId = createUlid();
   const execution = opts.openSpec.execution;
   const wrapCommand = execution?.wrapForLogTee !== false;
+  const displayArgv = getDisplayArgv(opts.openSpec);
   const pendingJob = opts.state.jobs.put({
     id: jobId,
     env_id: "",
     env_kind: opts.factory.type,
     tool: opts.openSpec.jobLabel.tool,
-    argv: opts.openSpec.jobLabel.argv,
+    argv: displayArgv,
     cwd: opts.openSpec.cwd,
     started_at: "",
     status: "pending"
   });
 
   let env: OpenedEnv | null = null;
+  let handle: RunHandle | null = null;
   let jobPhase: "pending" | "running" | "terminal" = "pending";
   let shouldClose = false;
 
@@ -58,7 +61,7 @@ export async function runPoeCommand(opts: {
     const argv = wrapCommand
       ? wrapForLogTee(opts.openSpec.jobLabel.argv, jobId)
       : opts.openSpec.jobLabel.argv;
-    const handle = execution?.tty
+    handle = execution?.tty
       ? env.shell()
       : env.exec({
           command: argv[0],
@@ -68,7 +71,8 @@ export async function runPoeCommand(opts: {
           stdin: execution?.stdin ?? "inherit",
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
-          signal: opts.signal
+          signal: opts.signal,
+          killProcessGroup: wrapCommand ? true : undefined
         });
     const running = opts.detach
       ? undefined
@@ -100,7 +104,7 @@ export async function runPoeCommand(opts: {
       setDetachedJobContext(env, {
         id: jobId,
         tool: opts.openSpec.jobLabel.tool,
-        argv: opts.openSpec.jobLabel.argv
+        argv: displayArgv
       });
       await env.detach();
       shouldClose = false;
@@ -129,6 +133,9 @@ export async function runPoeCommand(opts: {
   } catch (error) {
     await pendingJob.catch(() => undefined);
     if (jobPhase === "pending") {
+      if (handle !== null) {
+        tryKill(handle, "SIGTERM");
+      }
       await opts.state.jobs.remove(jobId).catch(() => undefined);
     } else if (jobPhase === "running") {
       await opts.state.jobs.update(jobId, {
@@ -189,12 +196,13 @@ export function createPoeCommandSession(opts: {
     async run(openSpec, signal) {
       validateActivityTimeout(openSpec.execution?.activityTimeoutMs);
       const jobId = createUlid();
+      const displayArgv = getDisplayArgv(openSpec);
       const pendingJob = opts.state.jobs.put({
         id: jobId,
         env_id: "",
         env_kind: opts.factory.type,
         tool: openSpec.jobLabel.tool,
-        argv: openSpec.jobLabel.argv,
+        argv: displayArgv,
         cwd: openSpec.cwd,
         started_at: "",
         status: "pending"
@@ -220,7 +228,8 @@ export function createPoeCommandSession(opts: {
             stdin: openSpec.execution?.stdin ?? "inherit",
             stdout: openSpec.execution?.stdout ?? "pipe",
             stderr: openSpec.execution?.stderr ?? "pipe",
-            signal
+            signal,
+            killProcessGroup: wrapCommand ? true : undefined
           });
       const running = settleRunSync(runSync({
         env: currentEnv,
@@ -266,6 +275,10 @@ export function createPoeCommandSession(opts: {
       await (env ?? openedEnv)?.close();
     }
   };
+}
+
+function getDisplayArgv(openSpec: OpenSpec): string[] {
+  return openSpec.jobLabel.displayArgv ?? openSpec.jobLabel.argv;
 }
 
 function validateActivityTimeout(activityTimeoutMs: number | undefined): void {
@@ -403,16 +416,21 @@ async function runSync(opts: {
 }): Promise<{ exitCode: number; download: DownloadResult; stdout?: string; stderr?: string }> {
   const execution = opts.openSpec.execution;
   const capture = execution?.captureOutput === true;
-  const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs);
+  const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs, {
+    forceKillAfterMs: opts.wrapCommand ? WRAPPED_COMMAND_FORCE_KILL_GRACE_MS : undefined
+  });
   const streamState = capture
     ? captureRunStreams(opts.handle, execution, abort.resetActivityTimer)
-    : pipeRunStreams(opts.handle);
+    : pipeRunStreams(opts.handle, abort.resetActivityTimer);
   abort.resetActivityTimer();
 
   try {
     const { exitCode } = opts.wrapCommand
       ? await abort.waitForExit(opts.env, opts.jobId)
       : await abort.waitForHandle();
+    if (capture) {
+      await abort.waitForDrain(streamState.drained());
+    }
     const download = await opts.env.downloadWorkspace({
       conflictPolicy: opts.openSpec.runner?.download_conflict ?? "refuse"
     });
@@ -450,17 +468,39 @@ function unwrapSettledRun(result: SettledSyncRun): SyncRunResult {
   return result.value;
 }
 
-function pipeRunStreams(handle: RunHandle): {
+function pipeRunStreams(
+  handle: RunHandle,
+  onActivity: () => void
+): {
   stdout(): string;
   stderr(): string;
+  drained(): Promise<void>;
   dispose(): void;
 } {
+  const listeners: Array<() => void> = [];
+  const bindActivity = (stream: Readable | null): void => {
+    if (!stream) return;
+    const listener = () => {
+      onActivity();
+    };
+    stream.on("data", listener);
+    listeners.push(() => {
+      stream.off("data", listener);
+    });
+  };
+
+  bindActivity(handle.stdout);
+  bindActivity(handle.stderr);
   handle.stdout?.pipe(process.stdout, { end: false });
   handle.stderr?.pipe(process.stderr, { end: false });
   return {
     stdout: () => "",
     stderr: () => "",
+    drained: () => Promise.resolve(),
     dispose() {
+      for (const remove of listeners) {
+        remove();
+      }
       handle.stdout?.unpipe(process.stdout);
       handle.stderr?.unpipe(process.stderr);
     }
@@ -474,37 +514,68 @@ function captureRunStreams(
 ): {
   stdout(): string;
   stderr(): string;
+  drained(): Promise<void>;
   dispose(): void;
 } {
   let stdout = "";
   let stderr = "";
   const listeners: Array<() => void> = [];
+  const drainPromises: Array<Promise<void>> = [];
 
-  const bind = (stream: Readable | null, onChunk: (chunk: string) => void): void => {
+  const bind = (
+    stream: Readable | null,
+    onChunk: (chunk: string) => void,
+    countsAsActivity: boolean
+  ): void => {
     if (!stream) return;
     stream.setEncoding("utf8");
+    let settled = false;
+    let settleDrain = () => {};
     const listener = (chunk: string | Buffer) => {
-      onActivity();
+      if (countsAsActivity) {
+        onActivity();
+      }
       onChunk(chunk.toString());
     };
+    const drainPromise = new Promise<void>((resolve) => {
+      settleDrain = () => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        stream.off("end", settleDrain);
+        stream.off("close", settleDrain);
+        stream.off("error", settleDrain);
+        resolve();
+      };
+    });
     stream.on("data", listener);
+    stream.once("end", settleDrain);
+    stream.once("close", settleDrain);
+    stream.once("error", settleDrain);
+    drainPromises.push(drainPromise);
     listeners.push(() => {
       stream.off("data", listener);
+      settleDrain();
     });
   };
 
   bind(handle.stdout, (chunk) => {
     stdout += chunk;
     execution?.onStdout?.(chunk);
-  });
+  }, true);
   bind(handle.stderr, (chunk) => {
     stderr += chunk;
     execution?.onStderr?.(chunk);
-  });
+  }, execution?.activityTimeoutSource !== "stdout");
 
   return {
     stdout: () => stdout,
     stderr: () => stderr,
+    drained: async () => {
+      await Promise.all(drainPromises);
+    },
     dispose() {
       for (const remove of listeners) {
         remove();
@@ -516,14 +587,17 @@ function captureRunStreams(
 function createAbortSync(
   signal: AbortSignal | undefined,
   handle: RunHandle,
-  activityTimeoutMs: number | undefined
+  activityTimeoutMs: number | undefined,
+  opts: { forceKillAfterMs?: number } = {}
 ): {
   waitForExit(env: OpenedEnv, jobId: string): Promise<{ exitCode: number }>;
   waitForHandle(): Promise<{ exitCode: number }>;
+  waitForDrain(drain: Promise<void>): Promise<void>;
   resetActivityTimer(): void;
   dispose(): void;
 } {
   let activityTimer: ReturnType<typeof setTimeout> | undefined;
+  let forceKillTimer: ReturnType<typeof setTimeout> | undefined;
   let terminationError: Error | undefined;
   let notifyTermination: (() => void) | undefined;
   const terminationPromise = new Promise<void>((resolve) => {
@@ -534,7 +608,13 @@ function createAbortSync(
     if (terminationError !== undefined) return;
     terminationError = error;
     notifyTermination?.();
-    handle.kill("SIGTERM");
+    tryKill(handle, "SIGTERM");
+    if (opts.forceKillAfterMs !== undefined) {
+      forceKillTimer = setTimeout(() => {
+        tryKill(handle, "SIGKILL");
+      }, opts.forceKillAfterMs);
+      forceKillTimer.unref?.();
+    }
   };
   const resetActivityTimer = activityTimeoutMs
     ? () => {
@@ -592,13 +672,36 @@ function createAbortSync(
 
       throw terminationError!;
     },
+    async waitForDrain(drain) {
+      if (terminationError !== undefined) throw terminationError;
+
+      const result = await Promise.race([
+        drain.then(() => ({ kind: "drained" as const })),
+        terminationPromise.then(() => ({ kind: "terminate" as const }))
+      ]);
+
+      if (result.kind === "drained") {
+        return;
+      }
+
+      throw terminationError!;
+    },
     resetActivityTimer,
     dispose() {
       if (activityTimer) clearTimeout(activityTimer);
+      if (terminationError === undefined && forceKillTimer) clearTimeout(forceKillTimer);
       exitWaitController.abort();
       signal?.removeEventListener("abort", abort);
     }
   };
+}
+
+function tryKill(handle: RunHandle, signal: NodeJS.Signals): void {
+  try {
+    handle.kill(signal);
+  } catch {
+    return;
+  }
 }
 
 function toLogStreamEnv(env: OpenedEnv): LogStreamEnv {

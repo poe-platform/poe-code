@@ -1,4 +1,5 @@
 import path from "node:path";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import type { ParsedLocator, WorkspaceResolverOptions } from "../types.js";
 
 export function buildCachePath(
@@ -23,16 +24,17 @@ export async function cloneOrUpdate(
   options: WorkspaceResolverOptions
 ): Promise<string> {
   const cacheDir = buildCachePath(options.homeDir, locator);
+  await assertPathHasNoSymbolicLinks(options.fs, cacheDir);
   const exists = await pathExists(options.fs, cacheDir);
 
   if (!exists) {
     await options.fs.mkdir(path.dirname(cacheDir), { recursive: true });
+    await assertPathHasNoSymbolicLinks(options.fs, cacheDir);
     await assertExecSuccess(
       await options.exec("git", ["clone", "--depth", "1", buildCloneUrl(locator), cacheDir]),
       "git clone failed"
     );
   } else {
-    await assertNotSymbolicLink(options, cacheDir);
     const statusResult = await options.exec("git", ["status", "--porcelain"], { cwd: cacheDir });
     assertExecSuccess(statusResult, "git status failed");
     if (statusResult.exitCode === 0 && statusResult.stdout.trim().length === 0) {
@@ -55,13 +57,6 @@ export async function cloneOrUpdate(
   }
 
   return cacheDir;
-}
-
-async function assertNotSymbolicLink(options: WorkspaceResolverOptions, target: string): Promise<void> {
-  const stats = await options.fs.lstat(target);
-  if (stats.isSymbolicLink()) {
-    throw new Error(`Workspace cache path "${target}" must not be a symbolic link.`);
-  }
 }
 
 async function pathExists(

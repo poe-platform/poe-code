@@ -1,14 +1,10 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { deepMergeDocuments } from "./merge.js";
 import { parseRunner, parseRuntime, resolveRuntime, runtimeConfigScope } from "./runtime.js";
 import { resolveScope } from "./resolve.js";
-
-const existsSyncMock = vi.hoisted(() => vi.fn<(filePath: string) => boolean>());
-
-vi.mock("node:fs", () => ({
-  existsSync: existsSyncMock
-}));
 
 describe("runtime config", () => {
   it("defaults to the host runtime", () => {
@@ -228,63 +224,106 @@ describe("runtime config", () => {
   });
 
   it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", () => {
-    existsSyncMock.mockReturnValueOnce(true);
-    const cwd = "/repo";
+    withTempProject(({ cwd }) => {
+      const dockerfilePath = path.join(cwd, ".poe-code", "Dockerfile");
+      mkdirSync(path.dirname(dockerfilePath), { recursive: true });
+      writeFileSync(dockerfilePath, "FROM scratch\n");
 
-    expect(resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
-      runtime: {
-        type: "docker",
-        build_args: {},
-        mounts: []
-      },
-      runner: "docker",
-      dockerfilePath: path.join(cwd, ".poe-code", "Dockerfile"),
-      buildContext: cwd
+      expect(resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
+        runtime: {
+          type: "docker",
+          build_args: {},
+          mounts: []
+        },
+        runner: "docker",
+        dockerfilePath,
+        buildContext: cwd
+      });
     });
-    expect(existsSyncMock).toHaveBeenCalledWith(path.join(cwd, ".poe-code", "Dockerfile"));
   });
 
-  it("resolves custom dockerfile and build context paths", () => {
-    existsSyncMock.mockReturnValueOnce(true).mockReturnValueOnce(true);
+  it("resolves custom dockerfile and build context paths inside the runtime cwd", () => {
+    withTempProject(({ cwd }) => {
+      const dockerfilePath = path.join(cwd, "containers", "Dockerfile");
+      const e2bDockerfilePath = path.join(cwd, "runtimes", "e2b", "Dockerfile");
+      mkdirSync(path.dirname(dockerfilePath), { recursive: true });
+      mkdirSync(path.dirname(e2bDockerfilePath), { recursive: true });
+      writeFileSync(dockerfilePath, "FROM scratch\n");
+      writeFileSync(e2bDockerfilePath, "FROM scratch\n");
 
-    expect(
-      resolveRuntime({
-        cwd: "/repo",
-        config: {
-          runtime: parseRuntime({
-            type: "docker",
-            dockerfile: "containers/Dockerfile",
-            build_context: "containers"
-          })
-        }
-      })
-    ).toMatchObject({
-      runner: "docker",
-      dockerfilePath: "/repo/containers/Dockerfile",
-      buildContext: "/repo/containers"
+      expect(
+        resolveRuntime({
+          cwd,
+          config: {
+            runtime: parseRuntime({
+              type: "docker",
+              dockerfile: "containers/Dockerfile",
+              build_context: "containers"
+            })
+          }
+        })
+      ).toMatchObject({
+        runner: "docker",
+        dockerfilePath,
+        buildContext: path.join(cwd, "containers")
+      });
+
+      expect(
+        resolveRuntime({
+          cwd,
+          config: {
+            runtime: parseRuntime({
+              type: "e2b",
+              dockerfile: "runtimes/e2b/Dockerfile",
+              build_context: "runtimes/e2b"
+            })
+          }
+        })
+      ).toMatchObject({
+        runner: "e2b",
+        dockerfilePath: e2bDockerfilePath,
+        buildContext: path.join(cwd, "runtimes", "e2b")
+      });
     });
+  });
 
-    expect(
-      resolveRuntime({
-        cwd: "/repo",
-        config: {
-          runtime: parseRuntime({
-            type: "e2b",
-            dockerfile: "/tmp/runtime.Dockerfile",
-            build_context: "/tmp/context"
-          })
-        }
-      })
-    ).toMatchObject({
-      runner: "e2b",
-      dockerfilePath: "/tmp/runtime.Dockerfile",
-      buildContext: "/tmp/context"
+  it("rejects docker build paths that escape the runtime cwd", () => {
+    withTempProject(({ root, cwd }) => {
+      const dockerfilePath = path.join(cwd, "Dockerfile");
+      const outsideDockerfilePath = path.join(root, "outside", "Dockerfile");
+      mkdirSync(path.dirname(outsideDockerfilePath), { recursive: true });
+      writeFileSync(dockerfilePath, "FROM scratch\n");
+      writeFileSync(outsideDockerfilePath, "FROM scratch\n");
+
+      expect(() =>
+        resolveRuntime({
+          cwd,
+          config: {
+            runtime: parseRuntime({
+              type: "docker",
+              dockerfile: "Dockerfile",
+              build_context: ".."
+            })
+          }
+        })
+      ).toThrow(`runtime.build_context must remain inside runtime cwd ${cwd}.`);
+
+      expect(() =>
+        resolveRuntime({
+          cwd,
+          config: {
+            runtime: parseRuntime({
+              type: "docker",
+              dockerfile: outsideDockerfilePath,
+              build_context: "."
+            })
+          }
+        })
+      ).toThrow(`runtime.dockerfile must remain inside runtime cwd ${cwd}.`);
     });
   });
 
   it("uses prebuilt docker and e2b artifacts without requiring a Dockerfile", () => {
-    existsSyncMock.mockReturnValue(false);
-
     expect(
       resolveRuntime({
         cwd: "/repo",
@@ -309,15 +348,19 @@ describe("runtime config", () => {
   });
 
   it("hard-errors when docker or e2b has neither a prebuilt artifact nor Dockerfile", () => {
-    existsSyncMock.mockReturnValue(false);
+    withTempProject(({ cwd }) => {
+      expect(() =>
+        resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })
+      ).toThrow(
+        `Docker runtime requires image or a Dockerfile at ${path.join(cwd, ".poe-code", "Dockerfile")}.`
+      );
 
-    expect(() =>
-      resolveRuntime({ cwd: "/repo", config: { runtime: parseRuntime({ type: "docker" }) } })
-    ).toThrow("Docker runtime requires image or a Dockerfile at /repo/.poe-code/Dockerfile.");
-
-    expect(() =>
-      resolveRuntime({ cwd: "/repo", config: { runtime: parseRuntime({ type: "e2b" }) } })
-    ).toThrow("E2B runtime requires template_id or a Dockerfile at /repo/.poe-code/Dockerfile.");
+      expect(() =>
+        resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "e2b" }) } })
+      ).toThrow(
+        `E2B runtime requires template_id or a Dockerfile at ${path.join(cwd, ".poe-code", "Dockerfile")}.`
+      );
+    });
   });
 
   it("exposes a runtime scope with direct runtime fields", () => {
@@ -452,3 +495,15 @@ describe("runtime config", () => {
     });
   });
 });
+
+function withTempProject(fn: (project: { root: string; cwd: string }) => void): void {
+  const root = mkdtempSync(path.join(tmpdir(), "poe-runtime-config-"));
+  const cwd = path.join(root, "project");
+  mkdirSync(cwd, { recursive: true });
+
+  try {
+    fn({ root, cwd });
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+}

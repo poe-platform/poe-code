@@ -25,9 +25,9 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   };
 });
 
-vi.mock("@poe-code/design-system", async (importOriginal) => {
+vi.mock("toolcraft-design", async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import("@poe-code/design-system")>();
+    await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     log: {

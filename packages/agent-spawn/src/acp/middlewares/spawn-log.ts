@@ -5,6 +5,8 @@ import { ensureSafeDefaultSpawnLogDir, getDefaultSpawnLogDir } from "../spawn-lo
 import type { AcpEvent } from "../types.js";
 import type { AcpMiddleware, SpawnContext } from "../middleware.js";
 
+const REDACTED_LOG_CONTENT = "[redacted]";
+
 function pad(value: number, width: number): string {
   return String(value).padStart(width, "0");
 }
@@ -84,10 +86,13 @@ class SpawnLogWriter {
 
   private readonly usesDefaultLogDir: boolean;
 
+  private readonly includeContent: boolean;
+
   constructor(ctx: SpawnContext) {
     this.filePath = resolveLogFilePath(ctx);
     this.logDirPath = this.filePath ? path.dirname(this.filePath) : "";
     this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
+    this.includeContent = ctx.logContent === true;
   }
 
   async writeEvent(event: AcpEvent): Promise<void> {
@@ -106,10 +111,9 @@ class SpawnLogWriter {
         return;
       }
 
-      const meta = (event as { _meta?: Record<string, unknown> })._meta;
-      const toLog = meta?.raw ?? event;
+      const eventForLog = prepareEventForLog(event, this.includeContent);
       previousSize = (await this.fileHandle.stat()).size;
-      await this.fileHandle.appendFile(`${JSON.stringify(toLog)}\n`, "utf8");
+      await this.fileHandle.appendFile(`${JSON.stringify(eventForLog)}\n`, "utf8");
     } catch {
       this.isDisabled = true;
       if (this.fileHandle && previousSize !== undefined) {
@@ -154,6 +158,54 @@ class SpawnLogWriter {
     } catch {
       this.isDisabled = true;
     }
+  }
+}
+
+function stripRawMeta(event: AcpEvent): AcpEvent {
+  const meta = event._meta;
+  if (!meta || !Object.hasOwn(meta, "raw")) {
+    return event;
+  }
+
+  const metaWithoutRaw = Object.fromEntries(
+    Object.entries(meta).filter(([key]) => key !== "raw")
+  );
+  const eventWithoutRaw = { ...event };
+  if (Object.keys(metaWithoutRaw).length > 0) {
+    eventWithoutRaw._meta = metaWithoutRaw;
+  } else {
+    delete eventWithoutRaw._meta;
+  }
+  return eventWithoutRaw;
+}
+
+function prepareEventForLog(event: AcpEvent, includeContent: boolean): AcpEvent {
+  const eventWithoutRaw = stripRawMeta(event);
+  if (includeContent) {
+    return eventWithoutRaw;
+  }
+
+  const redacted = { ...eventWithoutRaw } as Record<string, unknown>;
+
+  if (redacted.event === "agent_message" || redacted.event === "reasoning") {
+    redactField(redacted, "text");
+  }
+
+  if (redacted.event === "tool_start") {
+    redactField(redacted, "title");
+    redactField(redacted, "input");
+  }
+
+  if (redacted.event === "tool_complete") {
+    redactField(redacted, "path");
+  }
+
+  return redacted as AcpEvent;
+}
+
+function redactField(event: Record<string, unknown>, key: string): void {
+  if (Object.hasOwn(event, key)) {
+    event[key] = REDACTED_LOG_CONTENT;
   }
 }
 

@@ -36,18 +36,15 @@ describe("poeProvider", () => {
     expect(poeProvider.apiShapes).toEqual([
       {
         id: "openai-chat-completions",
-        envBaseUrlPath: "v1",
-        defaultBaseUrl: "https://api.poe.com/v1"
+        envBaseUrlPath: "v1"
       },
       {
         id: "openai-responses",
-        envBaseUrlPath: "v1",
-        defaultBaseUrl: "https://api.poe.com/v1"
+        envBaseUrlPath: "v1"
       },
       {
         id: "anthropic-messages",
-        envBaseUrlPath: "anthropic",
-        defaultBaseUrl: "https://api.poe.com/anthropic"
+        envBaseUrlPath: "anthropic"
       }
     ]);
   });

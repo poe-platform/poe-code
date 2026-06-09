@@ -21,7 +21,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
-    "@poe-code/design-system": "*",
+    "toolcraft-design": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/process-runner": "*",
     "@poe-code/task-list": "*"

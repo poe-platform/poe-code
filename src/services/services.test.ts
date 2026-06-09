@@ -61,7 +61,7 @@ describe("config store", () => {
       type: "string",
       default: "",
       env: "POE_DEFAULT_AGENT",
-      doc: "Agent (or agent:model) used when no --agent flag is provided; skips the selection prompt"
+      doc: "Agent (or agent:model) used as the non-interactive --yes default when no --agent flag is provided"
     });
   });
 
@@ -642,7 +642,7 @@ describe("createPoeClient", () => {
     expect(response).toEqual({ content: "Sorry, I cannot generate images." });
   });
 
-  it("includes status and body in API errors", async () => {
+  it("includes status and redacted body in API errors", async () => {
     const httpClient: HttpClient = vi.fn(async () => ({
       ok: false,
       status: 401,
@@ -662,6 +662,61 @@ describe("createPoeClient", () => {
       message: "Poe API error (401): Invalid API key",
       httpStatus: 401
     });
+  });
+
+  it("redacts secret-like Poe API error response bodies", async () => {
+    const bareToken = "sk-live-1234567890";
+    const projectToken = "sk-proj-abcdefghijklmnopqrstuvwxyz";
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: false,
+      status: 401,
+      json: async () => ({ error: "Invalid API key" }),
+      text: async () =>
+        JSON.stringify({
+          error: `invalid ${bareToken}`,
+          access_token: "poe-access-token",
+          nested: {
+            client_secret: "poe-client-secret",
+            detail: `Gateway echoed token ${projectToken} in detail`
+          },
+          detail: "Authorization: Bearer poe-bearer-token"
+        })
+    }));
+
+    const client = createPoeClient({
+      apiKey: "secret",
+      baseUrl,
+      httpClient
+    });
+
+    let thrown: unknown;
+    try {
+      await client.text({ model: "Text-Model", prompt: "Hello" });
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toMatchObject({
+      context: {
+        httpStatus: 401,
+        apiEndpoint: "chat/completions"
+      }
+    });
+
+    const apiError = thrown as { context?: { responseBody?: string } };
+    const responseBody = apiError.context?.responseBody ?? "";
+    const serialized = JSON.stringify(thrown);
+    expect(thrown).toMatchObject({
+      message: expect.stringContaining('"access_token":"[redacted]"')
+    });
+    expect(thrown).toMatchObject({
+      message: expect.stringContaining('"error":"invalid [redacted]"')
+    });
+    expect(responseBody).toContain('"client_secret":"[redacted]"');
+    expect(responseBody).toContain('"detail":"Gateway echoed token [redacted] in detail"');
+    expect(serialized).not.toMatch(
+      /poe-access-token|poe-client-secret|poe-bearer-token|sk-live-1234567890|sk-proj-abcdefghijklmnopqrstuvwxyz/u
+    );
   });
 });
 

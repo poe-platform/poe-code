@@ -68,6 +68,16 @@ describe("listPages", () => {
       { relPath: "pages/local.md", body: "# Local\n" }
     ]);
   });
+
+  it("rejects a symlinked top-level pages directory", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Index\n",
+      "/outside/pages/secret.md": "# Outside\nsecret text\n"
+    });
+    await vol.promises.symlink("/outside/pages", "/repo/.poe-code/memory/pages");
+
+    await expect(listPages("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+  });
 });
 
 describe("readPage", () => {

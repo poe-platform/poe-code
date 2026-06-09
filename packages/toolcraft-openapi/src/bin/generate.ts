@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import { realpathSync } from "node:fs";
 import path from "node:path";
@@ -9,13 +9,19 @@ import { generate, type GeneratedFile } from "../generate.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
 interface GenerateCliFileSystem {
+  lstat(targetPath: string): Promise<{ isDirectory(): boolean; isSymbolicLink(): boolean }>;
   mkdir(directoryPath: string, options?: { recursive?: boolean }): Promise<unknown>;
   readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
   readdir(directoryPath: string): Promise<string[]>;
+  rename(oldPath: string, newPath: string): Promise<unknown>;
   rm(targetPath: string, options?: { force?: boolean }): Promise<void>;
   realpath(targetPath: string): Promise<string>;
-  stat(targetPath: string): Promise<{ isDirectory(): boolean }>;
-  writeFile(filePath: string, contents: string, encoding: BufferEncoding): Promise<void>;
+  unlink(targetPath: string): Promise<void>;
+  writeFile(
+    filePath: string,
+    contents: string,
+    options: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
+  ): Promise<void>;
 }
 
 interface GenerateCliWriter {
@@ -142,7 +148,7 @@ export async function syncGeneratedClient(
   if (!options.check && drifted) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
-      await deleteGeneratedFiles(services.fs, deletedFiles);
+      await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);
     } catch (error) {
       await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
       throw error;
@@ -254,17 +260,27 @@ function tryParseUrl(input: string | URL): URL | null {
 }
 
 async function readGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "readdir" | "readFile" | "stat">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "readdir" | "readFile">,
   directoryPath: string
 ): Promise<Map<string, string>> {
   const files = new Map<string, string>();
 
   try {
+    const directoryStats = await fs.lstat(directoryPath);
+
+    if (directoryStats.isSymbolicLink()) {
+      throw new Error("Generated output must remain inside the output directory.");
+    }
+
     const entries = await fs.readdir(directoryPath);
 
     for (const entry of entries) {
       const entryPath = path.resolve(directoryPath, entry);
-      const stats = await fs.stat(entryPath);
+      const stats = await fs.lstat(entryPath);
+
+      if (stats.isSymbolicLink()) {
+        throw new Error("Generated output must remain inside the output directory.");
+      }
 
       if (stats.isDirectory()) {
         for (const [nestedPath, nestedContents] of await readGeneratedFiles(fs, entryPath)) {
@@ -319,19 +335,22 @@ function collectDeletedFiles(
 }
 
 async function writeGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "mkdir" | "realpath" | "writeFile">,
+  fs: Pick<
+    GenerateCliFileSystem,
+    "lstat" | "mkdir" | "realpath" | "rename" | "unlink" | "writeFile"
+  >,
   outputDir: string,
   filesToWrite: ReadonlyArray<GeneratedFile>
 ): Promise<void> {
   for (const file of filesToWrite) {
     await fs.mkdir(path.dirname(file.path), { recursive: true });
     await assertSafeOutputPath(fs, outputDir, file.path);
-    await fs.writeFile(file.path, file.contents, "utf8");
+    await atomicWriteGeneratedFile(fs, outputDir, file.path, file.contents);
   }
 }
 
 async function assertSafeOutputPath(
-  fs: Pick<GenerateCliFileSystem, "realpath">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "realpath">,
   outputDir: string,
   filePath: string
 ): Promise<void> {
@@ -347,19 +366,62 @@ async function assertSafeOutputPath(
   ) {
     throw new Error("Generated output must remain inside the output directory.");
   }
+
+  try {
+    if ((await fs.lstat(filePath)).isSymbolicLink()) {
+      throw new Error("Generated output must remain inside the output directory.");
+    }
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
+}
+
+async function atomicWriteGeneratedFile(
+  fs: Pick<GenerateCliFileSystem, "lstat" | "realpath" | "rename" | "unlink" | "writeFile">,
+  outputDir: string,
+  filePath: string,
+  contents: string
+): Promise<void> {
+  const tempPath = path.join(
+    path.dirname(filePath),
+    `.${path.basename(filePath)}.${randomUUID()}.tmp`
+  );
+  let tempCreated = false;
+
+  try {
+    await assertSafeOutputPath(fs, outputDir, tempPath);
+    await fs.writeFile(tempPath, contents, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await assertSafeOutputPath(fs, outputDir, filePath);
+    await fs.rename(tempPath, filePath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated) {
+      await fs.unlink(tempPath).catch(() => undefined);
+    }
+
+    throw error;
+  }
 }
 
 async function deleteGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "rm">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "realpath" | "rm">,
+  outputDir: string,
   filePaths: ReadonlyArray<string>
 ): Promise<void> {
   for (const filePath of filePaths) {
+    await assertSafeOutputPath(fs, outputDir, filePath);
     await fs.rm(filePath, { force: true });
   }
 }
 
 async function restoreGeneratedFiles(
-  fs: Pick<GenerateCliFileSystem, "mkdir" | "realpath" | "rm" | "writeFile">,
+  fs: Pick<
+    GenerateCliFileSystem,
+    "lstat" | "mkdir" | "realpath" | "rename" | "rm" | "unlink" | "writeFile"
+  >,
   outputDir: string,
   currentFiles: ReadonlyMap<string, string>,
   updatedFiles: ReadonlyArray<GeneratedFile>,
@@ -369,13 +431,14 @@ async function restoreGeneratedFiles(
     const previousContents = currentFiles.get(file.path);
 
     if (previousContents === undefined) {
+      await assertSafeOutputPath(fs, outputDir, file.path);
       await fs.rm(file.path, { force: true });
       continue;
     }
 
     await fs.mkdir(path.dirname(file.path), { recursive: true });
     await assertSafeOutputPath(fs, outputDir, file.path);
-    await fs.writeFile(file.path, previousContents, "utf8");
+    await atomicWriteGeneratedFile(fs, outputDir, file.path, previousContents);
   }
 
   for (const filePath of deletedFiles) {
@@ -387,7 +450,7 @@ async function restoreGeneratedFiles(
 
     await fs.mkdir(path.dirname(filePath), { recursive: true });
     await assertSafeOutputPath(fs, outputDir, filePath);
-    await fs.writeFile(filePath, previousContents, "utf8");
+    await atomicWriteGeneratedFile(fs, outputDir, filePath, previousContents);
   }
 }
 

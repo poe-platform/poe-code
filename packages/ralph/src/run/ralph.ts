@@ -1,9 +1,10 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import * as fsPromises from "node:fs/promises";
 import {
   archivePlan as archivePlanShared,
+  ensureSafeRunLogDir,
   makeRunLogFileName,
-  resolveRunLogDir,
   resolveWorkflowPath,
   runDocumentWorkflow
 } from "@poe-code/agent-harness-tools";
@@ -41,10 +42,11 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   await rejectSymbolicLink(absoluteDocPath, fs);
   const planDirectory = path.dirname(options.docPath);
-  const runLogDir = resolveRunLogDir({
+  const runLogDir = await ensureSafeRunLogDir({
     planPath: absoluteDocPath,
     runner: "ralph",
-    homeDir: options.homeDir
+    homeDir: options.homeDir,
+    fs
   });
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
   let currentConfig = config;
@@ -367,8 +369,8 @@ function createWorkflowFrontmatter(
 function createDefaultFs(): RalphFileSystem {
   const fs = {
     readFile: fsPromises.readFile as RalphFileSystem["readFile"],
-    writeFile: (filePath: string, content: string) =>
-      fsPromises.writeFile(filePath, content, "utf8"),
+    writeFile: (filePath: string, content: string, options?: { flag?: string; mode?: number }) =>
+      fsPromises.writeFile(filePath, content, { encoding: "utf8", ...options }),
     readdir: fsPromises.readdir,
     open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     lstat: async (filePath: string) => {
@@ -394,7 +396,8 @@ function createDefaultFs(): RalphFileSystem {
     },
     rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
-    }
+    },
+    realpath: fsPromises.realpath
   };
 
   return fs as RalphFileSystem;
@@ -512,12 +515,30 @@ async function updateFrontmatter(
     },
     currentBody
   );
-  const temporaryPath = `${absoluteDocPath}.tmp`;
+  const legacyTemporaryPath = `${absoluteDocPath}.tmp`;
+  const temporaryPath = `${absoluteDocPath}.${randomUUID()}.tmp`;
+  let temporaryCreated = false;
   try {
-    await fs.writeFile(temporaryPath, content);
+    await rejectSymbolicLinkIfPresent(legacyTemporaryPath, fs);
+    await rejectSymbolicLinkIfPresent(temporaryPath, fs);
+    try {
+      await fs.writeFile(temporaryPath, content, { flag: "wx", mode: 0o600 });
+      temporaryCreated = true;
+    } catch (error) {
+      if (!isAlreadyExistsError(error)) {
+        await fs.unlink(temporaryPath).catch(() => undefined);
+      }
+      throw error;
+    }
     await fs.rename(temporaryPath, absoluteDocPath);
   } catch (error) {
-    await fs.unlink(temporaryPath).catch(() => undefined);
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
     throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
 }

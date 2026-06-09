@@ -1,5 +1,5 @@
 import YAML from "yaml";
-import { renderDetailCard } from "@poe-code/design-system";
+import { renderDetailCard } from "toolcraft-design";
 import type { Command, RenderPrimitives } from "./index.js";
 
 export type OutputMode = "rich" | "md" | "json";

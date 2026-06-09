@@ -449,10 +449,19 @@ export class McpClient {
 
     try {
       let requestId: RequestId | undefined;
+      let cancellationSent = false;
+      const sendCancellationNotification = () => {
+        if (requestId === undefined || cancellationSent) {
+          return;
+        }
+        cancellationSent = true;
+        messageLayer.sendNotification("notifications/cancelled", { requestId });
+      };
       const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
         onRequestId: (nextRequestId) => {
           requestId = nextRequestId;
         },
+        onTimeout: sendCancellationNotification,
       }).then((result) => {
         if (!isCallToolResult(result)) {
           throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
@@ -468,8 +477,9 @@ export class McpClient {
       let abortListener: (() => void) | undefined;
       const abortPromise = new Promise<CallToolResult>((_, reject) => {
         const rejectWithAbortReason = () => {
+          sendCancellationNotification();
           if (requestId !== undefined) {
-            messageLayer.sendNotification("notifications/cancelled", { requestId });
+            messageLayer.cancelRequest(requestId, signal.reason);
           }
           reject(signal.reason);
         };
@@ -2343,11 +2353,16 @@ export class StdioTransport implements McpTransport {
 
     this.readable = child.stdout;
     this.writable = child.stdin;
+    const stderrDecoder = new TextDecoder();
     child.stderr.on("data", (chunk: unknown) => {
-      this.stderrOutput += chunkToString(chunk);
-      if (this.stderrOutput.length > StdioTransport.STDERR_MAX_LENGTH) {
-        this.stderrOutput = this.stderrOutput.slice(-StdioTransport.STDERR_MAX_LENGTH);
-      }
+      const decoded =
+        chunk instanceof Uint8Array
+          ? stderrDecoder.decode(chunk, { stream: true })
+          : `${stderrDecoder.decode()}${String(chunk)}`;
+      this.appendStderrOutput(decoded);
+    });
+    child.stderr.once("end", () => {
+      this.appendStderrOutput(stderrDecoder.decode());
     });
     this.closed = new Promise((resolve) => {
       let settled = false;
@@ -2396,6 +2411,17 @@ export class StdioTransport implements McpTransport {
 
   getStderrOutput(): string {
     return this.stderrOutput;
+  }
+
+  private appendStderrOutput(chunk: string): void {
+    if (chunk.length === 0) {
+      return;
+    }
+
+    this.stderrOutput += chunk;
+    if (this.stderrOutput.length > StdioTransport.STDERR_MAX_LENGTH) {
+      this.stderrOutput = this.stderrOutput.slice(-StdioTransport.STDERR_MAX_LENGTH);
+    }
   }
 
   dispose(reason = new Error("Stdio transport disposed")): void {
@@ -2958,18 +2984,6 @@ export function serializeJsonRpcMessage(message: JsonRpcMessage): string {
   return `${JSON.stringify(message)}\n`;
 }
 
-function chunkToString(chunk: unknown): string {
-  if (typeof chunk === "string") {
-    return chunk;
-  }
-
-  if (chunk instanceof Uint8Array) {
-    return Buffer.from(chunk).toString("utf8");
-  }
-
-  return String(chunk);
-}
-
 function normalizeLine(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
@@ -3134,6 +3148,7 @@ interface ActiveIncomingRequest {
 export interface JsonRpcRequestOptions {
   timeoutMs?: number;
   onRequestId?: (requestId: RequestId) => void;
+  onTimeout?: (requestId: RequestId) => void;
 }
 
 interface JsonRpcRequestContext {
@@ -3242,6 +3257,7 @@ export class JsonRpcMessageLayer {
     return new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         this.pendingRequests.delete(id);
+        options.onTimeout?.(id);
         reject(new Error(`JSON-RPC request "${method}" timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 
@@ -3255,6 +3271,18 @@ export class JsonRpcMessageLayer {
         reject(error);
       }
     });
+  }
+
+  cancelRequest(requestId: RequestId, reason: unknown): boolean {
+    const pending = this.pendingRequests.get(requestId);
+    if (pending === undefined) {
+      return false;
+    }
+
+    this.pendingRequests.delete(requestId);
+    clearTimeout(pending.timeout);
+    pending.reject(reason);
+    return true;
   }
 
   dispose(reason = new Error("JSON-RPC message layer disposed")): void {

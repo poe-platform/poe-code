@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import path from "node:path";
 import type { Stats } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import { resolveApiShape, type ApiShapeId, type AuthProvider } from "@poe-code/providers";
@@ -38,6 +39,17 @@ const apiShapeLabels: Record<ApiShapeId, string> = {
   "google-generations": "generations"
 };
 
+type OverlayEntry =
+  | { kind: "file"; content: string }
+  | { kind: "delete" }
+  | { kind: "symlink"; target: string };
+
+type BaseEntry =
+  | { kind: "missing" }
+  | { kind: "file"; content: string }
+  | { kind: "symlink"; target: string }
+  | { kind: "other" };
+
 export interface ConfigureCommandOptions {
   apiKey?: string;
   baseUrl?: string;
@@ -68,11 +80,15 @@ export function registerConfigureCommand(program: Command, container: CliContain
       collectRepeatedOption
     )
     .option("--skip-if-configured", "Exit without writes when current config already matches")
-    .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
-      const resolved = await resolveServiceArgument(program, container, service, {
+    .action(async (
+      service: string | undefined,
+      options: ConfigureCommandOptions,
+      command: Command
+    ) => {
+      const resolved = await resolveServiceArgument(command, container, service, {
         action: "configure"
       });
-      await executeConfigure(program, container, resolved, options);
+      await executeConfigure(command, container, resolved, options);
     });
 
   return configureCommand;
@@ -321,19 +337,41 @@ export function createOverlayFileSystem(base: FileSystem): {
   hasMaterialChange(): Promise<boolean>;
   commit(): Promise<void>;
 } {
-  const writes = new Map<string, string | null>();
+  const writes = new Map<string, OverlayEntry>();
   const directories = new Set<string>();
   const modes = new Map<string, number>();
 
-  const readOverlayText = async (filePath: string): Promise<string> => {
+  const readOverlayText = async (filePath: string, seen = new Set<string>()): Promise<string> => {
     if (writes.has(filePath)) {
       const value = writes.get(filePath);
-      if (value === null) {
+      if (!value || value.kind === "delete") {
         throw createNotFoundError(filePath);
       }
-      return value ?? "";
+      if (value.kind === "file") {
+        return value.content;
+      }
+      if (seen.has(filePath)) {
+        throw createFsError("ELOOP", filePath);
+      }
+      seen.add(filePath);
+      return readOverlayText(resolveSymlinkTarget(filePath, value.target), seen);
     }
     return base.readFile(filePath, "utf8");
+  };
+
+  const readOverlayEntry = async (filePath: string): Promise<OverlayEntry> => {
+    const value = writes.get(filePath);
+    if (value) {
+      if (value.kind === "delete") {
+        throw createNotFoundError(filePath);
+      }
+      return { ...value };
+    }
+    const stats = await base.lstat(filePath);
+    if (stats.isSymbolicLink()) {
+      return { kind: "symlink", target: await base.readlink(filePath) };
+    }
+    return { kind: "file", content: await base.readFile(filePath, "utf8") };
   };
 
   async function readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
@@ -350,7 +388,7 @@ export function createOverlayFileSystem(base: FileSystem): {
       if (options?.flag === "wx" && (await overlayPathExists(filePath))) {
         throw createFsError("EEXIST", filePath);
       }
-      writes.set(filePath, stringifyFileContent(content));
+      writes.set(filePath, { kind: "file", content: stringifyFileContent(content) });
     },
     async mkdir(directoryPath, options) {
       if (await overlayPathExists(directoryPath)) {
@@ -380,31 +418,52 @@ export function createOverlayFileSystem(base: FileSystem): {
       if (!(await overlayPathExists(filePath))) {
         throw createNotFoundError(filePath);
       }
-      writes.set(filePath, null);
+      writes.set(filePath, { kind: "delete" });
     },
     async stat(filePath) {
       if (directories.has(filePath)) {
         return createOverlayStats(true);
       }
-      if (writes.has(filePath)) {
-        if (writes.get(filePath) === null) {
+      const value = writes.get(filePath);
+      if (value) {
+        if (value.kind === "delete") {
           throw createNotFoundError(filePath);
         }
-        return createOverlayStats(false);
+        if (value.kind === "file") {
+          return createOverlayStats(false);
+        }
+        return fs.stat(resolveSymlinkTarget(filePath, value.target));
       }
       return base.stat(filePath);
     },
     async lstat(filePath) {
-      if (directories.has(filePath) || writes.has(filePath)) {
-        return fs.stat(filePath);
+      if (directories.has(filePath)) {
+        return createOverlayStats(true);
+      }
+      const value = writes.get(filePath);
+      if (value) {
+        if (value.kind === "delete") {
+          throw createNotFoundError(filePath);
+        }
+        return createOverlayStats(false, value.kind === "symlink");
       }
       return base.lstat(filePath);
     },
     async symlink(target, filePath) {
       await assertOverlayParentDirectory(filePath);
-      await base.symlink(target, filePath);
+      if (await overlayPathExists(filePath)) {
+        throw createFsError("EEXIST", filePath);
+      }
+      writes.set(filePath, { kind: "symlink", target });
     },
     async readlink(filePath) {
+      const value = writes.get(filePath);
+      if (value) {
+        if (value.kind === "symlink") {
+          return value.target;
+        }
+        throw createFsError(value.kind === "delete" ? "ENOENT" : "EINVAL", filePath);
+      }
       return base.readlink(filePath);
     },
     async realpath(filePath) {
@@ -412,8 +471,8 @@ export function createOverlayFileSystem(base: FileSystem): {
     },
     async rename(from, to) {
       await assertOverlayParentDirectory(to);
-      writes.set(to, await readOverlayText(from));
-      writes.set(from, null);
+      writes.set(to, await readOverlayEntry(from));
+      writes.set(from, { kind: "delete" });
       const mode = modes.get(from);
       if (mode !== undefined) {
         modes.set(to, mode);
@@ -436,7 +495,7 @@ export function createOverlayFileSystem(base: FileSystem): {
         if (path.dirname(filePath) !== directoryPath) {
           continue;
         }
-        if (content === null) {
+        if (content.kind === "delete") {
           entries.delete(path.basename(filePath));
         } else {
           entries.add(path.basename(filePath));
@@ -445,7 +504,7 @@ export function createOverlayFileSystem(base: FileSystem): {
       return [...entries];
     },
     async rm(filePath) {
-      writes.set(filePath, null);
+      writes.set(filePath, { kind: "delete" });
     },
     async chmod(filePath, mode) {
       modes.set(filePath, mode);
@@ -454,7 +513,7 @@ export function createOverlayFileSystem(base: FileSystem): {
 
   const overlayPathExists = async (filePath: string): Promise<boolean> => {
     try {
-      await fs.stat(filePath);
+      await fs.lstat(filePath);
       return true;
     } catch (error) {
       if (isNotFoundError(error)) {
@@ -504,14 +563,14 @@ export function createOverlayFileSystem(base: FileSystem): {
         if (isBackupPath(filePath)) {
           continue;
         }
-        const current = await readBaseText(base, filePath);
-        if (content === null) {
-          if (current !== null) {
+        const current = await readBaseEntry(base, filePath);
+        if (content.kind === "delete") {
+          if (current.kind !== "missing") {
             return true;
           }
           continue;
         }
-        if (current !== content) {
+        if (!baseEntryMatchesOverlay(current, content)) {
           return true;
         }
       }
@@ -522,7 +581,7 @@ export function createOverlayFileSystem(base: FileSystem): {
         (left, right) => left.split(path.sep).length - right.split(path.sep).length
       );
       const createdDirectories: string[] = [];
-      const originals = new Map<string, string | null>();
+      const originals = new Map<string, BaseEntry>();
       const originalModes = new Map<string, number>();
       try {
         for (const directoryPath of sortedDirectories) {
@@ -532,18 +591,20 @@ export function createOverlayFileSystem(base: FileSystem): {
           await base.mkdir(directoryPath, { recursive: true });
         }
         for (const [filePath, content] of writes) {
-          if (filePath.includes(".mutation-tmp-") && content === null) {
+          if (filePath.includes(".mutation-tmp-") && content.kind === "delete") {
             continue;
           }
-          originals.set(filePath, await readBaseText(base, filePath));
-          if (content === null) {
+          originals.set(filePath, await readBaseEntry(base, filePath));
+          if (content.kind === "delete") {
             await base.unlink(filePath).catch((error) => {
               if (!isNotFoundError(error)) {
                 throw error;
               }
             });
+          } else if (content.kind === "file") {
+            await writeBaseTextAtomically(base, filePath, content.content);
           } else {
-            await base.writeFile(filePath, content, { encoding: "utf8" });
+            await replaceBaseWithSymlink(base, filePath, content.target);
           }
         }
         for (const [filePath, mode] of modes) {
@@ -555,11 +616,7 @@ export function createOverlayFileSystem(base: FileSystem): {
           await base.chmod?.(filePath, mode).catch(() => undefined);
         }
         for (const [filePath, original] of [...originals].reverse()) {
-          if (original === null) {
-            await base.unlink(filePath).catch(() => undefined);
-          } else {
-            await base.writeFile(filePath, original, { encoding: "utf8" }).catch(() => undefined);
-          }
+          await restoreBaseEntry(base, filePath, original).catch(() => undefined);
         }
         for (const directoryPath of createdDirectories.reverse()) {
           await base.rm?.(directoryPath, { recursive: true, force: true }).catch(() => undefined);
@@ -577,13 +634,150 @@ function stringifyFileContent(content: string | NodeJS.ArrayBufferView): string 
   return Buffer.from(content.buffer, content.byteOffset, content.byteLength).toString("utf8");
 }
 
-function createOverlayStats(directory: boolean): Stats {
+function resolveSymlinkTarget(linkPath: string, target: string): string {
+  return path.isAbsolute(target) ? target : path.resolve(path.dirname(linkPath), target);
+}
+
+async function readBaseEntry(fs: FileSystem, filePath: string): Promise<BaseEntry> {
+  try {
+    const stats = await fs.lstat(filePath);
+    if (stats.isSymbolicLink()) {
+      return { kind: "symlink", target: await fs.readlink(filePath) };
+    }
+    if (!stats.isFile()) {
+      return { kind: "other" };
+    }
+    return { kind: "file", content: await fs.readFile(filePath, "utf8") };
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return { kind: "missing" };
+    }
+    throw error;
+  }
+}
+
+function baseEntryMatchesOverlay(baseEntry: BaseEntry, overlayEntry: OverlayEntry): boolean {
+  if (overlayEntry.kind === "file") {
+    return baseEntry.kind === "file" && baseEntry.content === overlayEntry.content;
+  }
+  if (overlayEntry.kind === "symlink") {
+    return baseEntry.kind === "symlink" && baseEntry.target === overlayEntry.target;
+  }
+  return baseEntry.kind === "missing";
+}
+
+async function writeBaseTextAtomically(
+  fs: FileSystem,
+  filePath: string,
+  content: string
+): Promise<void> {
+  await replaceBasePathAtomically(fs, filePath, async (temporaryPath) => {
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+  });
+}
+
+async function replaceBaseWithSymlink(
+  fs: FileSystem,
+  filePath: string,
+  target: string
+): Promise<void> {
+  const parentPath = path.dirname(filePath);
+  const parentRealPath = await fs.realpath(parentPath);
+  await assertStableParentDirectory(fs, parentPath, parentRealPath);
+  await removeBasePathIfPresent(fs, filePath);
+  await assertStableParentDirectory(fs, parentPath, parentRealPath);
+  await fs.symlink(target, filePath);
+}
+
+async function replaceBasePathAtomically(
+  fs: FileSystem,
+  filePath: string,
+  createTemporaryPath: (temporaryPath: string) => Promise<void>
+): Promise<void> {
+  const parentPath = path.dirname(filePath);
+  const parentRealPath = await fs.realpath(parentPath);
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const temporaryPath = createOverlayTempPath(filePath);
+    let temporaryCreated = false;
+    try {
+      await createTemporaryPath(temporaryPath);
+      temporaryCreated = true;
+      await assertStableParentDirectory(fs, parentPath, parentRealPath);
+      await fs.rename(temporaryPath, filePath);
+      temporaryCreated = false;
+      return;
+    } catch (error) {
+      if (isAlreadyExistsError(error) && !temporaryCreated) {
+        continue;
+      }
+      if (temporaryCreated) {
+        await fs.unlink(temporaryPath).catch((cleanupError) => {
+          if (!isNotFoundError(cleanupError)) {
+            throw cleanupError;
+          }
+        });
+      }
+      throw error;
+    }
+  }
+
+  throw new Error(`Unable to create temporary overlay file for ${filePath}.`);
+}
+
+function createOverlayTempPath(filePath: string): string {
+  return `${filePath}.overlay-tmp-${process.pid}-${randomUUID()}`;
+}
+
+async function assertStableParentDirectory(
+  fs: FileSystem,
+  parentPath: string,
+  expectedRealPath: string
+): Promise<void> {
+  const currentRealPath = await fs.realpath(parentPath);
+  if (currentRealPath !== expectedRealPath) {
+    throw new Error(`Refusing overlay commit after parent directory changed: ${parentPath}`);
+  }
+}
+
+async function restoreBaseEntry(
+  fs: FileSystem,
+  filePath: string,
+  entry: BaseEntry
+): Promise<void> {
+  if (entry.kind === "missing") {
+    await removeBasePathIfPresent(fs, filePath);
+    return;
+  }
+  if (entry.kind === "file") {
+    await writeBaseTextAtomically(fs, filePath, entry.content);
+    return;
+  }
+  if (entry.kind === "symlink") {
+    await replaceBaseWithSymlink(fs, filePath, entry.target);
+  }
+}
+
+async function removeBasePathIfPresent(fs: FileSystem, filePath: string): Promise<void> {
+  await fs.unlink(filePath).catch((error) => {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  });
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return Boolean(
+    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
+  );
+}
+
+function createOverlayStats(directory: boolean, symbolicLink = false): Stats {
   return {
-    isFile: () => !directory,
+    isFile: () => !directory && !symbolicLink,
     isDirectory: () => directory,
     isBlockDevice: () => false,
     isCharacterDevice: () => false,
-    isSymbolicLink: () => false,
+    isSymbolicLink: () => symbolicLink,
     isFIFO: () => false,
     isSocket: () => false
   } as Stats;
@@ -602,17 +796,6 @@ async function pathExists(fs: FileSystem, filePath: string): Promise<boolean> {
   } catch (error) {
     if (isNotFoundError(error)) {
       return false;
-    }
-    throw error;
-  }
-}
-
-async function readBaseText(fs: FileSystem, filePath: string): Promise<string | null> {
-  try {
-    return await fs.readFile(filePath, "utf8");
-  } catch (error) {
-    if (isNotFoundError(error)) {
-      return null;
     }
     throw error;
   }
@@ -823,17 +1006,14 @@ export async function resolveServiceArgument(
     return provided;
   }
   const flags = resolveCommandFlags(program);
-  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
-  if (fromConfig !== null) {
-    return parseAgentSpecifier(fromConfig).agent;
-  }
   const services = container.registry.list();
   const action = selectionContext?.action ?? "configure";
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }
   if (flags.assumeYes) {
-    return DEFAULT_SERVICE_AGENT;
+    const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
+    return fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_SERVICE_AGENT;
   }
   const selectionLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,

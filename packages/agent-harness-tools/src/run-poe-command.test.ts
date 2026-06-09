@@ -1,3 +1,6 @@
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { PassThrough } from "node:stream";
 import {
   createStateManager,
@@ -5,7 +8,12 @@ import {
   type StateFileSystem,
   type StateManager
 } from "@poe-code/poe-code-config";
-import type { RunHandle, RunResult, RunSpec } from "@poe-code/process-runner";
+import {
+  hostExecutionEnvFactory,
+  type RunHandle,
+  type RunResult,
+  type RunSpec
+} from "@poe-code/process-runner";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import type {
@@ -215,6 +223,41 @@ function deferred<T>(): {
   return { promise, resolve };
 }
 
+function processEnv(): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replace(/'/g, `'\\''`)}'`;
+}
+
+async function waitForProcessExit(pid: number, timeoutMs: number): Promise<boolean> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!isProcessAlive(pid)) {
+      return true;
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 25));
+  }
+  return !isProcessAlive(pid);
+}
+
+function isProcessAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return !(
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "ESRCH"
+    );
+  }
+}
+
 describe("runPoeCommand", () => {
   it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
     "rejects invalid activity timeout %s before opening an environment",
@@ -271,7 +314,81 @@ describe("runPoeCommand", () => {
       env: { NODE_ENV: "test" },
       stdin: "inherit",
       stdout: "pipe",
-      stderr: "pipe"
+      stderr: "pipe",
+      killProcessGroup: true
+    });
+  });
+
+  it("waits for captured wrapped stdio to drain after the exit marker", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      if (spec.command !== "sh" || spec.args?.[0] !== "-c") {
+        throw new Error("Expected wrapped shell command");
+      }
+
+      const stdout = new PassThrough();
+      const stderr = new PassThrough();
+      void writeExitFile(env.fs.promises, spec, 0).then(() => {
+        setImmediate(() => {
+          stdout.write("late stdout\n");
+          stderr.write("late stderr\n");
+          stdout.end();
+          stderr.end();
+        });
+      });
+
+      return {
+        pid: 123,
+        stdout,
+        stderr,
+        stdin: null,
+        result: Promise.resolve({ exitCode: 0 }),
+        kill() {}
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({ execution: { captureOutput: true } }),
+        detach: false,
+        state
+      })
+    ).resolves.toMatchObject({
+      kind: "sync",
+      exitCode: 0,
+      stdout: "late stdout\n",
+      stderr: "late stderr\n"
+    });
+  });
+
+  it("persists display argv while executing the original argv", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    await runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: {
+          tool: "claude-code",
+          argv: ["claude", "-p", "prompt with sk-secret"],
+          displayArgv: ["claude", "-p", "[prompt redacted]"]
+        },
+        execution: { wrapForLogTee: false }
+      }),
+      detach: false,
+      state
+    });
+
+    const [job] = await state.jobs.list();
+    expect(job.argv).toEqual(["claude", "-p", "[prompt redacted]"]);
+    expect(JSON.stringify(job)).not.toContain("sk-secret");
+    expect(env.execSpecs[0]).toMatchObject({
+      command: "claude",
+      args: ["-p", "prompt with sk-secret"]
     });
   });
 
@@ -391,6 +508,42 @@ describe("runPoeCommand", () => {
     expect(env.downloads).toEqual([]);
     await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
       reattach_context: { engine: "podman", context: null }
+    });
+  });
+
+  it("uses display argv in detached job context", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const result = await runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: {
+          tool: "codex",
+          argv: ["codex", "exec", "prompt with bearer-token"],
+          displayArgv: ["codex", "exec", "[prompt redacted]"]
+        },
+        execution: { wrapForLogTee: false }
+      }),
+      detach: true,
+      state
+    });
+
+    if (result.kind !== "detached") {
+      throw new Error("Expected detached result.");
+    }
+
+    expect(env.detachedJobContext).toEqual({
+      id: result.jobId,
+      tool: "codex",
+      argv: ["codex", "exec", "[prompt redacted]"]
+    });
+    await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
+      argv: ["codex", "exec", "[prompt redacted]"]
+    });
+    expect(JSON.stringify(env.detachedJobContext)).not.toContain("bearer-token");
+    expect(env.execSpecs[0]).toMatchObject({
+      command: "codex",
+      args: ["exec", "prompt with bearer-token"]
     });
   });
 
@@ -829,6 +982,7 @@ describe("runPoeCommand", () => {
   it("does not fail when command stdin closes before execution input is written", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
+    const kill = vi.fn();
 
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
@@ -842,7 +996,7 @@ describe("runPoeCommand", () => {
         stderr: null,
         stdin,
         result: Promise.resolve({ exitCode: 0 }),
-        kill() {}
+        kill
       };
     };
 
@@ -856,11 +1010,13 @@ describe("runPoeCommand", () => {
         state
       })
     ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    expect(kill).not.toHaveBeenCalled();
   });
 
   it("rejects when execution input cannot be delivered", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv({ result: new Promise(() => {}) });
+    const kill = vi.fn();
 
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
@@ -874,7 +1030,7 @@ describe("runPoeCommand", () => {
         stderr: null,
         stdin,
         result: new Promise(() => {}),
-        kill() {}
+        kill
       };
     };
 
@@ -888,6 +1044,7 @@ describe("runPoeCommand", () => {
         state
       })
     ).rejects.toThrow("send stdin offline");
+    expect(kill).toHaveBeenCalledWith("SIGTERM");
   });
 
   it("rejects a wrapped synchronous run when its abort signal fires", async () => {
@@ -964,6 +1121,108 @@ describe("runPoeCommand", () => {
     expect(killed).toBe(true);
     expect(env.closed).toBe(true);
   });
+
+  it("resets the activity timeout when non-captured output is piped", async () => {
+    vi.useFakeTimers();
+    const stdoutWrite = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementation(() => true);
+    const stderrWrite = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation(() => true);
+    const { state } = createRecordingState();
+    const stdout = new PassThrough();
+    const runStarted = deferred<void>();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    let killed = false;
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      runStarted.resolve();
+      return {
+        pid: 123,
+        stdout,
+        stderr: null,
+        stdin: null,
+        result: new Promise(() => {}),
+        kill() {
+          killed = true;
+        }
+      };
+    };
+
+    try {
+      const result = runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({
+          execution: { wrapForLogTee: false, activityTimeoutMs: 100 }
+        }),
+        detach: false,
+        state
+      });
+      const rejection = result.catch((error: unknown) => error);
+
+      await runStarted.promise;
+      await vi.advanceTimersByTimeAsync(90);
+      stdout.write("progress\n");
+      await vi.advanceTimersByTimeAsync(99);
+      expect(killed).toBe(false);
+
+      await vi.advanceTimersByTimeAsync(1);
+      await expect(rejection).resolves.toMatchObject({ name: "ActivityTimeoutError" });
+      expect(killed).toBe(true);
+      expect(env.closed).toBe(true);
+    } finally {
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+      vi.useRealTimers();
+    }
+  });
+
+  it.runIf(process.platform !== "win32")(
+    "terminates the full wrapped host command process group on inactivity timeout",
+    async () => {
+      const { state } = createRecordingState();
+      const tempDir = await mkdtemp(path.join(os.tmpdir(), "poe-wrapped-timeout-"));
+      const pidFile = path.join(tempDir, "inner.pid");
+      let innerPid: number | undefined;
+
+      try {
+        await expect(
+          runPoeCommand({
+            factory: hostExecutionEnvFactory as unknown as ExecutionEnvFactory,
+            openSpec: createOpenSpec({
+              cwd: tempDir,
+              env: processEnv(),
+              jobLabel: {
+                tool: "sh",
+                argv: [
+                  "sh",
+                  "-c",
+                  `trap '' TERM; sleep 30 & echo $! > ${shellQuote(pidFile)}; wait`
+                ]
+              },
+              execution: { activityTimeoutMs: 100 }
+            }),
+            detach: false,
+            state
+          })
+        ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
+
+        innerPid = Number((await readFile(pidFile, "utf8")).trim());
+        expect(Number.isInteger(innerPid)).toBe(true);
+        await expect(waitForProcessExit(innerPid, 2_000)).resolves.toBe(true);
+      } finally {
+        if (innerPid !== undefined && isProcessAlive(innerPid)) {
+          try {
+            process.kill(innerPid, "SIGKILL");
+          } catch {
+            // Best-effort cleanup for a process that may have exited between checks.
+          }
+        }
+        await rm(tempDir, { recursive: true, force: true });
+      }
+    }
+  );
 
   it("rejects a wrapped synchronous timeout when an abort signal is present", async () => {
     const { state } = createRecordingState();

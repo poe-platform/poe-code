@@ -5,7 +5,11 @@ import type { CachedData, CacheConfig } from "./types.js";
 
 export interface DiskCacheFs {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(path: string, data: string): Promise<void>;
+  writeFile(
+    path: string,
+    data: string,
+    options?: { encoding?: BufferEncoding; flag?: string },
+  ): Promise<void>;
   rename(from: string, to: string): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   unlink(path: string): Promise<void>;
@@ -20,6 +24,8 @@ interface ResolveCacheDirDeps {
   env?: Record<string, string | undefined>;
   homedir?: () => string;
 }
+
+const TEMP_WRITE_MAX_ATTEMPTS = 3;
 
 export async function loadFromDisk<T>(
   config: Pick<CacheConfig, "cacheDir" | "cacheName" | "staleTtl">,
@@ -53,7 +59,6 @@ export async function persist<T>(
   config: Pick<CacheConfig, "cacheDir" | "cacheName">,
   deps: DiskCacheDeps,
 ): Promise<void> {
-  let temporaryPath: string | undefined;
   try {
     await deps.fs.mkdir(config.cacheDir, { recursive: true });
     const filePath = await resolveCachePath(config, deps.fs);
@@ -61,13 +66,10 @@ export async function persist<T>(
       data,
       timestamp: Date.now(),
     };
-    temporaryPath = `${filePath}.${randomUUID()}.tmp`;
-    await deps.fs.writeFile(temporaryPath, JSON.stringify(cached));
-    await deps.fs.rename(temporaryPath, filePath);
+    await writeCacheFile(filePath, JSON.stringify(cached), deps.fs);
   } catch {
-    if (temporaryPath !== undefined) {
-      await deps.fs.unlink(temporaryPath).catch(() => undefined);
-    }
+    // Disk cache writes are best-effort; callers can still use memory or bundled data.
+    return;
   }
 }
 
@@ -128,6 +130,44 @@ async function resolveCachePath(
       }
       existingPath = parentPath;
     }
+  }
+}
+
+async function writeCacheFile(
+  filePath: string,
+  content: string,
+  fs: DiskCacheFs,
+): Promise<void> {
+  for (let attempt = 1; attempt <= TEMP_WRITE_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      await writeCacheFileOnce(`${filePath}.${randomUUID()}.tmp`, filePath, content, fs);
+      return;
+    } catch (error) {
+      if (hasCode(error, "EEXIST") && attempt < TEMP_WRITE_MAX_ATTEMPTS) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+}
+
+async function writeCacheFileOnce(
+  temporaryPath: string,
+  filePath: string,
+  content: string,
+  fs: DiskCacheFs,
+): Promise<void> {
+  let temporaryCreated = false;
+  try {
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    temporaryCreated = true;
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    if (temporaryCreated) {
+      await fs.unlink(temporaryPath).catch(() => undefined);
+    }
+    throw error;
   }
 }
 

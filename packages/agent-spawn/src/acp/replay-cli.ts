@@ -2,7 +2,7 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { getTheme, renderTable } from "@poe-code/design-system";
+import { getTheme, renderTable } from "toolcraft-design";
 import { findLatestLog, listSpawnLogs, pickRandomLog, replaySpawnLog } from "./replay.js";
 
 type ReplayCommand =

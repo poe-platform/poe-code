@@ -30,7 +30,7 @@ const skillBridgeMock = vi.hoisted(() => ({
 
 const acpLaunchOrder = vi.hoisted(() => [] as string[]);
 
-vi.mock("@poe-code/design-system", () => {
+vi.mock("toolcraft-design", () => {
   return {
     logger: {
       warn: vi.fn()
@@ -268,6 +268,15 @@ describe("acp/readLines", () => {
     await expect(collect(readLines(stream))).resolves.toEqual(["hello", "world", "x"]);
   });
 
+  it("preserves multibyte UTF-8 characters split across chunks", async () => {
+    const stream = Readable.from([
+      Buffer.from([0x6f, 0x6b, 0x20, 0xf0, 0x9f]),
+      Buffer.from([0xa7, 0xaa, 0x0a])
+    ]);
+
+    await expect(collect(readLines(stream))).resolves.toEqual(["ok 🧪"]);
+  });
+
   it("throws if the stream errors", async () => {
     const stream = new PassThrough();
     const collected = collect(readLines(stream));
@@ -437,7 +446,7 @@ describe("acp/renderer", () => {
 
   it("ignores session_start events (no output)", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     const output = captureStdout(() => renderAcpEvent({ event: "session_start" } as any));
 
@@ -452,7 +461,7 @@ describe("acp/renderer", () => {
 
   it("renders agent_message via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "agent_message", text: "hello" } as any);
 
@@ -461,7 +470,7 @@ describe("acp/renderer", () => {
 
   it("renders tool_start via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "tool_start", kind: "read", title: "README.md" } as any);
 
@@ -470,7 +479,7 @@ describe("acp/renderer", () => {
 
   it("renders tool_complete via design-system (kind only, no output)", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "tool_complete", kind: "read", path: "README.md" } as any);
 
@@ -479,7 +488,7 @@ describe("acp/renderer", () => {
 
   it("renders reasoning via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "reasoning", text: "thinking..." } as any);
 
@@ -488,7 +497,7 @@ describe("acp/renderer", () => {
 
   it("renders usage via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({
       event: "usage",
@@ -508,7 +517,7 @@ describe("acp/renderer", () => {
 
   it("renders error via design-system", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "error", message: "nope" } as any);
 
@@ -517,7 +526,7 @@ describe("acp/renderer", () => {
 
   it("includes stack trace when present on error events", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     renderAcpEvent({ event: "error", message: "nope", stack: "stack line 1" } as any);
 
@@ -526,7 +535,7 @@ describe("acp/renderer", () => {
 
   it("renders unknown event types as muted text showing the type", async () => {
     const { renderAcpEvent } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     const output = captureStdout(() => renderAcpEvent({ event: "some_future_event" } as any));
 
@@ -562,7 +571,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream buffers consecutive agent_message events and flushes at end", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -581,7 +590,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream buffers consecutive reasoning events and flushes at end", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -601,7 +610,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream flushes reasoning buffer when non-reasoning event arrives", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -624,7 +633,7 @@ describe("acp/renderer", () => {
 
   it("renderAcpStream flushes buffer when non-agent_message event arrives", async () => {
     const { renderAcpStream } = await import("./renderer.js");
-    const { acp } = await import("@poe-code/design-system");
+    const { acp } = await import("toolcraft-design");
 
     async function* fromArray<T>(items: T[]): AsyncIterable<T> {
       for (const item of items) yield item;
@@ -978,29 +987,44 @@ describe("acp/spawnStreaming", () => {
   });
 
   it("streams OpenCode JSON events via the opencode adapter", async () => {
+    const stdoutLines = [
+      JSON.stringify({
+        type: "text",
+        sessionID: "ses_abc",
+        part: { type: "text", messageID: "msg_1", text: "hi" }
+      }),
+      JSON.stringify({
+        type: "step_finish",
+        sessionID: "ses_abc",
+        part: { tokens: { input: 1, output: 2, cache: { read: 3, write: 0 } } }
+      })
+    ];
     const mock = createMockChildProcess({
-      stdoutLines: [
-        JSON.stringify({
-          type: "text",
-          sessionID: "ses_abc",
-          part: { type: "text", messageID: "msg_1", text: "hi" }
-        }),
-        JSON.stringify({
-          type: "step_finish",
-          sessionID: "ses_abc",
-          part: { tokens: { input: 1, output: 2, cache: { read: 3, write: 0 } } }
-        })
-      ],
+      stdoutLines,
       stderr: "warn\n",
       exitCode: 0
     });
+    let teeStdout = "";
+    let teeStderr = "";
 
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
       prompt: "hello",
-      cwd: "/tmp"
+      cwd: "/tmp",
+      tee: {
+        stdout: {
+          write: (chunk: string) => {
+            teeStdout += chunk;
+          }
+        },
+        stderr: {
+          write: (chunk: string) => {
+            teeStderr += chunk;
+          }
+        }
+      }
     });
 
     await expect(collect(events).then(stripMeta)).resolves.toEqual([
@@ -1014,6 +1038,8 @@ describe("acp/spawnStreaming", () => {
       stderr: "warn\n",
       exitCode: 0
     });
+    expect(teeStdout).toBe(`${stdoutLines.join("\n")}\n`);
+    expect(teeStderr).toBe("warn\n");
 
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0];
@@ -1337,7 +1363,7 @@ describe("acp/spawnStreaming", () => {
 
     const { events, done } = spawnStreaming({
       agentId: "opencode",
-      prompt: "hello",
+      prompt: "inspect api_key=sk-secret",
       cwd: "/tmp",
       runtime: "docker",
       runtimeImage: "poe-code:test",
@@ -1364,8 +1390,12 @@ describe("acp/spawnStreaming", () => {
       target: "/usr/local/lib/poe-code",
       readonly: true
     });
+    expect(capturedOpenSpec?.jobLabel.argv).toContain("inspect api_key=sk-secret");
+    expect(capturedOpenSpec?.jobLabel.displayArgv).toContain("[prompt redacted]");
+    expect(JSON.stringify(capturedOpenSpec?.jobLabel.displayArgv)).not.toContain("sk-secret");
     expect(capturedRunSpec).toMatchObject({
       command: "opencode",
+      args: expect.arrayContaining(["inspect api_key=sk-secret"]),
       cwd: "/tmp",
       stdin: "pipe",
       stdout: "pipe",
@@ -1781,6 +1811,31 @@ describe("acp/spawnStreaming", () => {
       await doneRejection;
       const collected = await eventsPromise;
       expect(stripMeta(collected)).toEqual([{ event: "session_start", threadId: "t1" }]);
+    });
+
+    it("does not reset timeout when only stderr data is received", async () => {
+      const mock = createMockChildProcess({ autoClose: false });
+      const killSpy = vi.spyOn(mock.child, "kill");
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+      const { events, done } = spawnStreaming({
+        agentId: "codex",
+        prompt: "hello",
+        activityTimeoutMs: 5000
+      });
+
+      const eventsPromise = collect(events);
+      const doneRejection = expect(done).rejects.toMatchObject({
+        name: "ActivityTimeoutError"
+      });
+
+      await vi.advanceTimersByTimeAsync(4000);
+      mock.child.stderr.write("diagnostic noise\n");
+      await vi.advanceTimersByTimeAsync(1000);
+
+      await doneRejection;
+      expect(killSpy).toHaveBeenCalledWith("SIGTERM");
+      await expect(eventsPromise).resolves.toEqual([]);
     });
 
     it("clears timeout when process exits normally", async () => {

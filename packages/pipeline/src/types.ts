@@ -72,7 +72,11 @@ export interface PipelineFileStat {
 
 export interface PipelineFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
+  writeFile(
+    path: string,
+    data: string,
+    options?: { encoding?: BufferEncoding; flag?: string }
+  ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<PipelineFileStat>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;

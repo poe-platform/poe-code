@@ -9,6 +9,28 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function withObjectPrototypeProperty<T>(
+  key: string,
+  value: unknown,
+  callback: () => Promise<T>
+): Promise<T> {
+  const original = Object.getOwnPropertyDescriptor(Object.prototype, key);
+  Object.defineProperty(Object.prototype, key, {
+    configurable: true,
+    value
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (original === undefined) {
+      delete (Object.prototype as Record<string, unknown>)[key];
+    } else {
+      Object.defineProperty(Object.prototype, key, original);
+    }
+  }
+}
+
 describe("resolve", () => {
   it("throws when the chain does not contain a document layer", async () => {
     const fs = createMemFs();
@@ -117,6 +139,26 @@ describe("resolve", () => {
         prompt: "fallback"
       },
       chain: ["/workspace/review.yaml"]
+    });
+  });
+
+  it("ignores inherited prompt values during composition", async () => {
+    const fs = createMemFs();
+
+    await withObjectPrototypeProperty("prompt", "Polluted prompt", async () => {
+      const result = await resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.yaml",
+            content: "title: Document"
+          }
+        ],
+        { fs }
+      );
+
+      expect(result.data).toEqual({ title: "Document" });
+      expect(Object.hasOwn(result.sources, "prompt")).toBe(false);
     });
   });
 

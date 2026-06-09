@@ -69,8 +69,8 @@ export async function resolvePromptDocument(
     view: input.variables ?? {},
     validate: input.validate ?? true
   });
-  const template = requirePrompt(composed.data.prompt, filePath);
-  const prompt = requirePrompt(rendered.data.prompt, filePath);
+  const template = requirePrompt(getOwnEntry(composed.data, "prompt"), filePath);
+  const prompt = requirePrompt(getOwnEntry(rendered.data, "prompt"), filePath);
   const { prompt: _ignored, ...metadata } = rendered.data;
   void _ignored;
   return {
@@ -168,6 +168,10 @@ function requirePrompt(value: unknown, filePath: string): string {
     throw new Error(`Prompt document does not resolve to a Markdown prompt: ${filePath}`);
   }
   return value;
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {

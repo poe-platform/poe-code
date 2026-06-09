@@ -293,7 +293,7 @@ export function registerSpawnCommand(
           useStdin: shouldReadFromStdin
         };
 
-        const directHandler = options.handlers?.[service];
+        const directHandler = getCustomSpawnHandler(options.handlers, service);
         if (directHandler) {
           const resources = createExecutionResources(container, flags, `spawn:${service}`);
           if (shouldEmitUiOutput) {
@@ -329,7 +329,7 @@ export function registerSpawnCommand(
         if (shouldEmitUiOutput) {
           resources.logger.intro(`spawn ${canonicalService}`);
         }
-        const canonicalHandler = options.handlers?.[canonicalService];
+        const canonicalHandler = getCustomSpawnHandler(options.handlers, canonicalService);
         if (canonicalHandler) {
           try {
             await canonicalHandler({
@@ -641,6 +641,15 @@ async function resolveMcpSpawnInput(
       `--mcp-servers could not read file "${filePath}": ${(error as Error).message}`
     );
   }
+}
+
+function getCustomSpawnHandler(
+  handlers: Record<string, CustomSpawnHandler> | undefined,
+  service: string
+): CustomSpawnHandler | undefined {
+  return handlers !== undefined && Object.prototype.hasOwnProperty.call(handlers, service)
+    ? handlers[service]
+    : undefined;
 }
 
 function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {

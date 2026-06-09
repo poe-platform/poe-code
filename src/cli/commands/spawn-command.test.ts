@@ -745,6 +745,23 @@ describe("spawn command", () => {
     );
   });
 
+  it("does not invoke inherited custom handler names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "constructor", "hello"])
+    ).rejects.toThrow('Unknown agent "constructor".');
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(spawnPoeAgentWithAcpMock).not.toHaveBeenCalled();
+  });
+
   it("honors --dry-run for spawn poe-agent", async () => {
     spawnPoeAgentWithAcpMock.mockClear();
     const logs: string[] = [];

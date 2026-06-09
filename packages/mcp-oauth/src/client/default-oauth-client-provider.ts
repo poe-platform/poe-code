@@ -163,7 +163,11 @@ export function createDefaultOAuthClientProvider(
         while (true) {
           try {
             refreshedTokens = await refreshAccessToken({
-              tokenEndpoint: discovery.authorizationServerMetadata.token_endpoint,
+              tokenEndpoint: requireOwnString(
+                discovery.authorizationServerMetadata,
+                "token_endpoint",
+                "Authorization server metadata"
+              ),
               clientId: session.client.clientId,
               clientSecret: session.client.clientSecret,
               refreshToken: session.tokens.refreshToken,
@@ -268,7 +272,11 @@ export function createDefaultOAuthClientProvider(
           });
           const code = await loopback.waitForCode(authorizationUrl);
           const tokens = await exchangeAuthorizationCode({
-            tokenEndpoint: discovery.authorizationServerMetadata.token_endpoint,
+            tokenEndpoint: requireOwnString(
+              discovery.authorizationServerMetadata,
+              "token_endpoint",
+              "Authorization server metadata"
+            ),
             clientId: resolvedClient.client.clientId,
             clientSecret: resolvedClient.client.clientSecret,
             code,
@@ -335,7 +343,10 @@ export function createDefaultOAuthClientProvider(
       };
     }
 
-    const registrationEndpoint = discovery.authorizationServerMetadata.registration_endpoint;
+    const registrationEndpoint = getOwnString(
+      discovery.authorizationServerMetadata,
+      "registration_endpoint"
+    );
     if (registrationEndpoint === undefined && options.client.clientId !== undefined) {
       return {
         kind: "static",
@@ -396,19 +407,21 @@ export function createDefaultOAuthClientProvider(
       body: JSON.stringify(registrationBody),
     });
     const payload = await readOAuthJsonObjectResponse(response);
+    const clientId = getOwnString(payload, "client_id");
 
     if (
-      typeof payload.client_id !== "string" ||
-      payload.client_id.trim().length === 0
+      clientId === undefined ||
+      clientId.trim().length === 0
     ) {
       throw new Error("OAuth client registration response missing client_id");
     }
 
+    const clientSecret = getOwnString(payload, "client_secret");
     const registeredClient = {
-      clientId: payload.client_id,
+      clientId,
       clientSecret:
-        typeof payload.client_secret === "string" && payload.client_secret.length > 0
-          ? payload.client_secret
+        clientSecret !== undefined && clientSecret.length > 0
+          ? clientSecret
           : undefined,
     };
     await saveRegisteredClient(discovery.authorizationServer, registeredClient);
@@ -474,7 +487,7 @@ export function createDefaultOAuthClientProvider(
 function isProviderOptions(
   options: OAuthClientProviderOptions
 ): options is { provider: OAuthClientProvider } {
-  return "provider" in options;
+  return Object.prototype.hasOwnProperty.call(options, "provider");
 }
 
 function isExpired(tokens: StoredOAuthTokens, now: () => number): boolean {
@@ -497,12 +510,19 @@ function resolveDiscovery(
   }
 
   const metadata = session.discovery.authorizationServerMetadata;
+  const issuer = getOwnString(metadata, "issuer");
+  const authorizationEndpoint = getOwnString(metadata, "authorization_endpoint");
+  const tokenEndpoint = getOwnString(metadata, "token_endpoint");
+  const codeChallengeMethodsSupported = getOwnStringArray(
+    metadata,
+    "code_challenge_methods_supported"
+  );
   if (
-    typeof metadata.issuer !== "string" ||
-    typeof metadata.authorization_endpoint !== "string" ||
-    typeof metadata.token_endpoint !== "string" ||
-    !Array.isArray(metadata.code_challenge_methods_supported) ||
-    !metadata.code_challenge_methods_supported.includes("S256")
+    issuer === undefined ||
+    authorizationEndpoint === undefined ||
+    tokenEndpoint === undefined ||
+    codeChallengeMethodsSupported === undefined ||
+    !codeChallengeMethodsSupported.includes("S256")
   ) {
     return undefined;
   }
@@ -577,6 +597,40 @@ function getClientMetadata(
   return client.metadata;
 }
 
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
+}
+
+function getOwnString(record: object, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
+}
+
+function requireOwnString(
+  record: object,
+  key: string,
+  label: string
+): string {
+  const value = getOwnString(record, key);
+  if (value === undefined) {
+    throw new Error(`${label} is missing ${key}`);
+  }
+
+  return value;
+}
+
+function getOwnStringArray(
+  record: object,
+  key: string
+): string[] | undefined {
+  const value = getOwnEntry(record, key);
+  return Array.isArray(value) && value.every((entry) => typeof entry === "string")
+    ? value
+    : undefined;
+}
+
 function buildAuthorizationUrl(input: {
   metadata: OAuthAuthorizationServerMetadata;
   resource: string;
@@ -585,11 +639,22 @@ function buildAuthorizationUrl(input: {
   codeChallenge: string;
   clientMetadata: OAuthClientMetadata | undefined;
 }): string {
-  const url = new URL(input.metadata.authorization_endpoint);
+  const authorizationEndpoint = requireOwnString(
+    input.metadata,
+    "authorization_endpoint",
+    "Authorization server metadata"
+  );
+  const issuer = requireOwnString(
+    input.metadata,
+    "issuer",
+    "Authorization server metadata"
+  );
+  const url = new URL(authorizationEndpoint);
   const resource = canonicalizeResourceIndicator(input.resource);
   const state = createAuthorizationState({
-    issuer: input.metadata.issuer,
-    requireIssuer: input.metadata.authorization_response_iss_parameter_supported === true,
+    issuer,
+    requireIssuer:
+      getOwnEntry(input.metadata, "authorization_response_iss_parameter_supported") === true,
   });
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", input.clientId);
@@ -607,7 +672,7 @@ function buildAuthorizationUrl(input: {
 }
 
 function assertS256PkceSupport(metadata: OAuthAuthorizationServerMetadata): void {
-  if (!metadata.code_challenge_methods_supported.includes("S256")) {
+  if (!getOwnStringArray(metadata, "code_challenge_methods_supported")?.includes("S256")) {
     throw new Error(
       "Authorization server metadata must advertise code_challenge_methods_supported including S256"
     );
@@ -639,14 +704,26 @@ function assertSecureUrl(value: string, label: string): void {
 }
 
 function assertSecureOAuthFlowEndpoints(metadata: OAuthAuthorizationServerMetadata): void {
-  assertNoAccessTokenInUrl(metadata.authorization_endpoint, "Authorization endpoint");
-  assertNoAccessTokenInUrl(metadata.token_endpoint, "Token endpoint");
-  assertSecureUrl(metadata.authorization_endpoint, "Authorization endpoint");
-  assertSecureUrl(metadata.token_endpoint, "Token endpoint");
+  const authorizationEndpoint = requireOwnString(
+    metadata,
+    "authorization_endpoint",
+    "Authorization server metadata"
+  );
+  const tokenEndpoint = requireOwnString(
+    metadata,
+    "token_endpoint",
+    "Authorization server metadata"
+  );
+  const registrationEndpoint = getOwnString(metadata, "registration_endpoint");
 
-  if (metadata.registration_endpoint !== undefined) {
-    assertNoAccessTokenInUrl(metadata.registration_endpoint, "Registration endpoint");
-    assertSecureUrl(metadata.registration_endpoint, "Registration endpoint");
+  assertNoAccessTokenInUrl(authorizationEndpoint, "Authorization endpoint");
+  assertNoAccessTokenInUrl(tokenEndpoint, "Token endpoint");
+  assertSecureUrl(authorizationEndpoint, "Authorization endpoint");
+  assertSecureUrl(tokenEndpoint, "Token endpoint");
+
+  if (registrationEndpoint !== undefined) {
+    assertNoAccessTokenInUrl(registrationEndpoint, "Registration endpoint");
+    assertSecureUrl(registrationEndpoint, "Registration endpoint");
   }
 }
 
@@ -675,21 +752,27 @@ function buildClientRegistrationBody(
     response_types: ["code"],
     token_endpoint_auth_method: "none",
   };
+  const clientName = metadata === undefined ? undefined : getOwnString(metadata, "clientName");
+  const scope = metadata === undefined ? undefined : getOwnString(metadata, "scope");
+  const softwareId = metadata === undefined ? undefined : getOwnString(metadata, "softwareId");
+  const softwareVersion = metadata === undefined
+    ? undefined
+    : getOwnString(metadata, "softwareVersion");
 
-  if (metadata?.clientName !== undefined && metadata.clientName.length > 0) {
-    body.client_name = metadata.clientName;
+  if (clientName !== undefined && clientName.length > 0) {
+    body.client_name = clientName;
   }
 
-  if (metadata?.scope !== undefined && metadata.scope.length > 0) {
-    body.scope = metadata.scope;
+  if (scope !== undefined && scope.length > 0) {
+    body.scope = scope;
   }
 
-  if (metadata?.softwareId !== undefined && metadata.softwareId.length > 0) {
-    body.software_id = metadata.softwareId;
+  if (softwareId !== undefined && softwareId.length > 0) {
+    body.software_id = softwareId;
   }
 
-  if (metadata?.softwareVersion !== undefined && metadata.softwareVersion.length > 0) {
-    body.software_version = metadata.softwareVersion;
+  if (softwareVersion !== undefined && softwareVersion.length > 0) {
+    body.software_version = softwareVersion;
   }
 
   return body;

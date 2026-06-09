@@ -146,6 +146,33 @@ function createCallbackResponse(code: string): Response {
   });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createOAuthPair(options: {
   includeRegistrationEndpoint?: boolean;
   authorizationResponseIssParameterSupported?: boolean;
@@ -1311,6 +1338,52 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("ignores inherited stored authorization server metadata fields", async () => {
+    const sessionStore = createMemorySessionStore();
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: {
+          response_types_supported: ["code"],
+        },
+      },
+      tokens: {
+        accessToken: "expired-access",
+        refreshToken: "refresh-polluted",
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    });
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
+      access_token: "refreshed-access",
+      token_type: "Bearer",
+      expires_in: 3600,
+    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+      now: () => 10_000,
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        issuer: AUTHORIZATION_SERVER,
+        authorization_endpoint: AUTHORIZATION_ENDPOINT,
+        token_endpoint: TOKEN_ENDPOINT,
+        code_challenge_methods_supported: ["S256"],
+      },
+      async () => {
+        expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBeNull();
+      }
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("reauthorizes after an invalid token challenge when no refresh credential exists", async () => {
     const pair = createOAuthPair();
     const sessionStore = createMemorySessionStore();
@@ -1870,6 +1943,51 @@ describe("createDefaultOAuthClientProvider", () => {
     if (result.action === "fail") {
       expect(result.error?.message).toBe("OAuth client registration response missing client_id");
     }
+    expect(pair.authorizationRequests).toHaveLength(0);
+  });
+
+  it("ignores inherited dynamic client registration identifiers", async () => {
+    const pair = createOAuthPair();
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        return new Response(JSON.stringify({}), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return pair.fetchMock(input, init);
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: { clientName: "poe-code test" },
+      },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        client_id: "polluted-client",
+        client_secret: "polluted-secret",
+      },
+      async () => {
+        const result = await provider.handleUnauthorized({
+          requestUrl: new URL(RESOURCE_URL),
+          response: new Response(null, { status: 401 }),
+          challenge: null,
+          discovery: createDiscoveryResult(),
+          fetch: fetchMock as typeof fetch,
+        });
+
+        expect(result.action).toBe("fail");
+        if (result.action === "fail") {
+          expect(result.error?.message).toBe("OAuth client registration response missing client_id");
+        }
+      }
+    );
     expect(pair.authorizationRequests).toHaveLength(0);
   });
 

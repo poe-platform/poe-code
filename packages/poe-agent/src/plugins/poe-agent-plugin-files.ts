@@ -385,7 +385,7 @@ async function replaceFileAtomically(
     await fs.rename(temporaryPath, filePath);
     temporaryCreated = false;
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;

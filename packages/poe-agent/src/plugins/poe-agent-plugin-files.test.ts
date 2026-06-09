@@ -224,12 +224,17 @@ describe("poe-agent-plugin-files", () => {
     const originalContent = "export const value = 'old';\n";
     const nextContent = "export const value = 'new';\n";
     const base = createFsFromVolume(Volume.fromJSON({ [filePath]: originalContent }, "/")).promises;
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       async writeFile(targetPath: string, data: Parameters<typeof base.writeFile>[1], options?: Parameters<typeof base.writeFile>[2]) {
         if (String(data) === nextContent) {
-          if (targetPath === filePath) {
-            await base.writeFile(targetPath, "partial", "utf8");
+          if (
+            targetPath.startsWith("/workspace/project/src/.app.ts.") &&
+            targetPath.endsWith(".tmp")
+          ) {
+            temporaryPath = targetPath;
+            await base.writeFile(targetPath, "partial", options);
           }
           throw new Error("write failed");
         }
@@ -247,6 +252,10 @@ describe("poe-agent-plugin-files", () => {
       })
     ).rejects.toThrow("write failed");
     await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not remove a colliding atomic edit temp symlink", async () => {

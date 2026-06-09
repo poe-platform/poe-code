@@ -2,6 +2,33 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { streamLogFile, waitForExit, wrapForLogTee } from "./log-stream.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("streamLogFile", () => {
   it("replays a log file from offset 0", async () => {
     const { fs } = createMemFs({
@@ -116,6 +143,32 @@ describe("streamLogFile", () => {
     await expect(takeChunks(streamLogFile({ fs }, "job-1", {}), 1)).rejects.toThrow(
       "Managed job file must not be a symbolic link."
     );
+  });
+
+  it("does not treat inherited lstat error codes as missing log files", async () => {
+    const { fs } = createMemFs({
+      "/tmp/poe-jobs/job-1.log": "external\n"
+    });
+    const env = {
+      fs: {
+        promises: {
+          readFile: fs.promises.readFile,
+          lstat: async (filePath: string) => {
+            if (filePath === "/tmp/poe-jobs/job-1.log") {
+              throw new Error("log lstat denied");
+            }
+
+            return fs.promises.lstat(filePath);
+          }
+        }
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(takeChunks(streamLogFile(env, "job-1", {}), 1)).rejects.toThrow(
+        "log lstat denied"
+      );
+    });
   });
 
   it("rejects a symlinked managed job directory before reading external logs", async () => {

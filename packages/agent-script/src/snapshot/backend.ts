@@ -156,8 +156,15 @@ async function writeSnapshotOnce(
   let temporaryCreated = false;
   let renamed = false;
   try {
-    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
-    temporaryCreated = true;
+    try {
+      await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
+      temporaryCreated = true;
+    } catch (error) {
+      if (!hasErrorCode(error, "EEXIST")) {
+        await removeTemporarySnapshot(temporaryPath).catch(() => undefined);
+      }
+      throw error;
+    }
     await rename(temporaryPath, snapshotPath);
     renamed = true;
   } finally {

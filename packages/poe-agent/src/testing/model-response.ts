@@ -41,7 +41,7 @@ export type LegacyAcpModelResponse = {
 export function toAcpModelResponse(
   response: LegacyAcpModelResponse | AcpModelResponse
 ): AcpModelResponse {
-  if ("events" in response) {
+  if (Object.prototype.hasOwnProperty.call(response, "events")) {
     return response;
   }
 

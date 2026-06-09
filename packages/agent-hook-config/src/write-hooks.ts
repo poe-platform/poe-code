@@ -147,6 +147,11 @@ function writeTemporaryFile(targetPath: string, runId: string, content: string):
       return temporaryPath;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        try {
+          unlinkSync(temporaryPath);
+        } catch (cleanupError) {
+          void cleanupError;
+        }
         throw error;
       }
     }

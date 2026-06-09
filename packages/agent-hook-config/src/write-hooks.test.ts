@@ -284,6 +284,26 @@ describe("writeCodexHooks", () => {
     expect(vol.readFileSync("/outside/hooks.json", "utf8")).toBe("outside");
   });
 
+  it("removes a partially written temporary file when creation fails", () => {
+    writeHooks({ hooks: {} });
+    const temporaryPath = `${targetPath}.tmp-current-0`;
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      if (String(filePath) === temporaryPath) {
+        originalWriteFileSync(filePath, "partial", options);
+        throw new Error("hooks disk full");
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    expect(() => writeCodexHooks(targetPath, [generatedEntry("Stop", "notify")], "current")).toThrow(
+      "hooks disk full"
+    );
+    expect(vol.existsSync(temporaryPath)).toBe(false);
+    expect(readHooks()).toEqual({ hooks: {} });
+  });
+
   it("cleans stale handlers with empty input while preserving existing empty event arrays", () => {
     writeHooks({
       hooks: {

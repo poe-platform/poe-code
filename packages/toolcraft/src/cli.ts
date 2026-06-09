@@ -837,7 +837,7 @@ function getJsonParseErrorLocation(
 }
 
 function getJsonParseCauseLocation(error: unknown): { line: number; column: number } | null {
-  if (typeof error !== "object" || error === null || !("cause" in error)) {
+  if (typeof error !== "object" || error === null || !hasOwnProperty(error, "cause")) {
     return null;
   }
 
@@ -853,11 +853,11 @@ function getJsonParseCauseLocation(error: unknown): { line: number; column: numb
 }
 
 function getNumericProperty(value: unknown, key: string): number | null {
-  if (typeof value !== "object" || value === null || !(key in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, key)) {
     return null;
   }
 
-  const propertyValue = (value as Record<string, unknown>)[key];
+  const propertyValue = value[key];
 
   return typeof propertyValue === "number" && Number.isFinite(propertyValue) ? propertyValue : null;
 }

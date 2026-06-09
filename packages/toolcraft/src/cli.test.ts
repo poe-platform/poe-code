@@ -1473,6 +1473,51 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("ignores inherited JSON parse location fields for preset errors", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String()
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    vol.fromJSON({
+      "/presets/invalid-json.json": "{\n,"
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        cause: { line: 99, column: 88 },
+        position: 123
+      },
+      async () => {
+        process.argv = [
+          "node",
+          "toolcraft",
+          "deploy",
+          "--preset",
+          "/presets/invalid-json.json",
+          "--yes"
+        ];
+
+        await runCLI(root, { presets: true });
+      }
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error[0]).toContain("line 2 column 1");
+    expect(loggerState.error[0]).not.toContain("line 99 column 88");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("reports read errors other than file-not-found without masking them", async () => {
     const handler = vi.fn(async () => null);
 

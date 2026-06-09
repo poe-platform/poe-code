@@ -8,6 +8,7 @@ import {
   type ServerResponse,
 } from 'node:http';
 import { dirname, join } from 'node:path';
+import { hasOwnErrorCode } from './error-codes.js';
 import type { CapturedExchange, ProxyConfig, ProxyRoute } from './proxy-types.js';
 
 export interface ProxyServer {
@@ -172,21 +173,11 @@ async function writeSnapshot(
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: string }).code === 'EEXIST'
-  );
+  return hasOwnErrorCode(error, 'EEXIST');
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: string }).code === 'ENOENT'
-  );
+  return hasOwnErrorCode(error, 'ENOENT');
 }
 
 async function readSnapshotResponse(route: ProxyRoute, key: string): Promise<unknown> {

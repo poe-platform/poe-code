@@ -196,6 +196,24 @@ function parseBody(body: string): unknown {
   }
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const originalDescriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'code');
+  Object.defineProperty(Object.prototype, 'code', {
+    configurable: true,
+    value: code,
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (originalDescriptor) {
+      Object.defineProperty(Object.prototype, 'code', originalDescriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function listen(server: Server, port = 0): Promise<number> {
   await new Promise<void>((resolve, reject) => {
     server.once('error', reject);
@@ -989,11 +1007,13 @@ describe('startProxyServer record mode', () => {
     });
     closeHandles.push(proxy.close);
 
-    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+    const response = await withObjectPrototypeCode('EEXIST', async () =>
+      makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+    );
 
     expect(response.status).toBe(502);
     expect(JSON.parse(vol.readFileSync(snapshotPath, 'utf8') as string).response).toEqual({
@@ -1175,6 +1195,45 @@ describe('startProxyServer playback mode', () => {
     expect(response.status).toBe(404);
     await expect(response.json()).resolves.toEqual({
       error: `Snapshot not found for key ${key}`,
+    });
+  });
+
+  it('does not treat inherited ENOENT as a missing malformed snapshot', async () => {
+    const payload = {
+      model: 'Claude-Sonnet-4.5',
+      messages: [{ role: 'user', content: 'malformed snapshot' }],
+    };
+    const key = generateSnapshotKey(payload);
+    const snapshotPath = join(snapshotDir, `${key}.json`);
+    vol.mkdirSync(snapshotDir, { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify({ key, request: payload }));
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'error',
+      routes: [
+        {
+          path: '/v1',
+          target: 'http://127.0.0.1:1',
+          mode: 'playback',
+          snapshotDir,
+        },
+      ],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await withObjectPrototypeCode('ENOENT', async () =>
+      fetch(`${proxy.url}/v1/chat/completions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+    );
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: `Snapshot ${snapshotPath} is missing response.`,
     });
   });
 

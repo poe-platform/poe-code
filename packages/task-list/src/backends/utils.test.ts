@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { TaskListFs } from "../types.js";
 import { createFs } from "./test-helpers.js";
-import { writeAtomically } from "./utils.js";
+import { withFileLock, writeAtomically } from "./utils.js";
 
 describe("backend utilities", () => {
   it("does not remove a colliding atomic write temp symlink", async () => {
@@ -67,5 +67,32 @@ describe("backend utilities", () => {
       code: "ENOENT"
     });
     await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toBe("old state\n");
+  });
+
+  it("removes a partial lock file when lock creation fails", async () => {
+    const { rawFs } = createFs({});
+    const lockPath = "/repo/tasks.yaml.lock";
+    const fs = {
+      ...rawFs,
+      async writeFile(
+        filePath: Parameters<typeof rawFs.writeFile>[0],
+        data: Parameters<typeof rawFs.writeFile>[1],
+        options?: Parameters<typeof rawFs.writeFile>[2]
+      ) {
+        if (String(filePath) === lockPath) {
+          await rawFs.writeFile(filePath, "partial-lock", options);
+          throw new Error("lock disk full");
+        }
+
+        return rawFs.writeFile(filePath, data, options);
+      }
+    } as TaskListFs;
+
+    await expect(withFileLock(fs, lockPath, async () => undefined)).rejects.toThrow(
+      "lock disk full"
+    );
+    await expect(rawFs.readFile(lockPath, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });

@@ -144,6 +144,7 @@ export async function withFileLock<T>(
       break;
     } catch (error) {
       if (!hasErrorCode(error, "EEXIST")) {
+        await fs.unlink(lockPath).catch(() => undefined);
         throw error;
       }
 

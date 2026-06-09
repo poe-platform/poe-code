@@ -462,6 +462,25 @@ describe("createSpawnHealthCheck", () => {
     );
   });
 
+  it("allows health checks to use a prompt that differs from the expected output", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: '{"type":"step_start"}\n',
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("opencode", {
+      prompt: "Output exactly: OPEN_CODE_OK",
+      expectedOutput: '"type":"step_start"'
+    });
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "opencode",
+      expect.arrayContaining(["run", "Output exactly: OPEN_CODE_OK"])
+    );
+  });
+
   it("runs hook-enabled health checks through poe-code spawn", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: [

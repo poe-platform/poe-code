@@ -149,6 +149,7 @@ export function createSpawnHealthCheck(
   agentId: string,
   options: {
     model?: string;
+    prompt?: string;
     expectedOutput: string;
     hooks?: HookBridgeOptions;
     invocation?: { command: string; args: string[]; env?: Record<string, string> };
@@ -171,7 +172,7 @@ export function createSpawnHealthCheck(
           "--mode",
           "yolo",
           agentId,
-          `Output exactly: ${options.expectedOutput}`
+          options.prompt ?? `Output exactly: ${options.expectedOutput}`
         ],
         env: undefined
       }
@@ -182,7 +183,7 @@ export function createSpawnHealthCheck(
           env: options.invocation.env
         }
       : buildSpawnArgs(agentId, {
-          prompt: `Output exactly: ${options.expectedOutput}`,
+          prompt: options.prompt ?? `Output exactly: ${options.expectedOutput}`,
           model: options.model,
           mode: "yolo"
         });

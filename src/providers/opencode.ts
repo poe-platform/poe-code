@@ -148,7 +148,8 @@ export const openCodeService = createProvider({
     return context.runCheck(
       createSpawnHealthCheck("opencode", {
         model: context.model,
-        expectedOutput: "OPEN_CODE_OK"
+        prompt: "Output exactly: OPEN_CODE_OK",
+        expectedOutput: '"type":"step_start"'
       })
     );
   },

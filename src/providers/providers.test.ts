@@ -1707,7 +1707,7 @@ describe("opencode service", () => {
 
   it("runs the OpenCode health check via runCommand when test is invoked", async () => {
     const runCommand = vi.fn().mockResolvedValue({
-      stdout: '{"type":"text","text":"OPEN_CODE_OK"}\n',
+      stdout: '{"type":"step_start"}\n',
       stderr: "",
       exitCode: 0
     });
@@ -1751,7 +1751,7 @@ describe("opencode service", () => {
     });
     const { context } = createProviderTestContext(runCommand);
 
-    await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(/OPEN_CODE_OK/);
+    await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(/step_start/);
   });
 });
 

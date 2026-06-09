@@ -383,7 +383,7 @@ function extractExample(
 
   if (media.examples !== undefined) {
     for (const value of Object.values(media.examples)) {
-      if (value !== undefined && "value" in value) {
+      if (value !== undefined && Object.prototype.hasOwnProperty.call(value, "value")) {
         return value.value;
       }
     }

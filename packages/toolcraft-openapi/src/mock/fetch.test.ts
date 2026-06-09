@@ -89,23 +89,35 @@ function createSetOfficialSpec(): OpenApiDocument {
   };
 }
 
-async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
-  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
-  Object.defineProperty(Object.prototype, "code", {
-    configurable: true,
-    value: code,
-    writable: true
-  });
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
 
   try {
     return await callback();
   } finally {
-    if (descriptor) {
-      Object.defineProperty(Object.prototype, "code", descriptor);
-    } else {
-      delete (Object.prototype as { code?: unknown }).code;
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
     }
   }
+}
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  return withObjectPrototypeProperties({ code }, callback);
 }
 
 describe("mockFetch", () => {
@@ -160,6 +172,35 @@ describe("mockFetch", () => {
     const response = await fetch("https://api.example.com/v1/whoami");
 
     await expect(response.json()).resolves.toEqual({ handle: "named-example" });
+  });
+
+  it("ignores inherited named example values", async () => {
+    const spec = createWhoamiSpec();
+    spec.paths!["/v1/whoami"]!.get!.responses!["200"] = {
+      description: "OK",
+      content: {
+        "application/json": {
+          schema: { type: "object" },
+          examples: {
+            primary: {}
+          }
+        } as any
+      }
+    };
+
+    let caught: unknown;
+    await withObjectPrototypeProperties({ value: { handle: "polluted-example" } }, async () => {
+      const { fetch } = await mockFetch({ spec });
+
+      try {
+        await fetch("https://api.example.com/v1/whoami");
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).toMatch(/unmocked/i);
   });
 
   it("throws synchronously when no fixture and no example exist (default onUnmocked)", async () => {

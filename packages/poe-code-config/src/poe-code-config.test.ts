@@ -903,6 +903,38 @@ describe("models config", () => {
     await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
   });
 
+  it("ignores inherited model scope values while loading and saving", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": "{}\n"
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        models: {
+          codex: "polluted/agent-model",
+          default: "polluted/default-model"
+        },
+        codex: "polluted/nested-agent-model",
+        default: "polluted/nested-default-model"
+      },
+      async () => {
+        await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
+        await expect(loadDefaultModel({ fs, filePath: configPath })).resolves.toBeNull();
+
+        await saveAgentModel({ fs, filePath: configPath }, "codex", "openai/gpt-5.4");
+      }
+    );
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      models: {
+        codex: "openai/gpt-5.4"
+      }
+    });
+  });
+
   it("returns the stored agent-specific model", async () => {
     const fs = createMockFs(
       {

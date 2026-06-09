@@ -15,7 +15,7 @@ export async function loadAgentModel(
   agentId: string
 ): Promise<string | null> {
   const models = await readModelsScope(options);
-  const value = models[agentId];
+  const value = getOwnEntry(models, agentId);
   return typeof value === "string" ? value : null;
 }
 
@@ -23,7 +23,7 @@ export async function loadDefaultModel(
   options: ModelsConfigOptions
 ): Promise<string | null> {
   const models = await readModelsScope(options);
-  const value = models[DEFAULT_KEY];
+  const value = getOwnEntry(models, DEFAULT_KEY);
   return typeof value === "string" ? value : null;
 }
 
@@ -60,7 +60,20 @@ export async function saveDefaultModel(
 async function readModelsScope(
   options: ModelsConfigOptions
 ): Promise<Record<string, unknown>> {
-  const readConfigDocument = options.readOnly ? readDocumentReadonly : readDocument;
+  const readConfigDocument = getOwnEntry(options as unknown as Record<string, unknown>, "readOnly")
+    ? readDocumentReadonly
+    : readDocument;
   const document = await readConfigDocument(options.fs, options.filePath);
-  return document[SCOPE] ?? {};
+  return getOwnRecordEntry(document, SCOPE);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = getOwnEntry(record, key);
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }

@@ -344,16 +344,31 @@ async function publishFiles(fs: TruffleHogFileSystem, files: Array<{ path: strin
   }));
 
   try {
-    await Promise.all(stagedFiles.map(async (file) => {
-      await fs.writeFile(file.stagedPath, file.content, { encoding: "utf8", flag: "wx" });
-      file.created = true;
+    const stageResults = await Promise.allSettled(stagedFiles.map(async (file) => {
+      try {
+        await fs.writeFile(file.stagedPath, file.content, { encoding: "utf8", flag: "wx" });
+        file.created = true;
+      } catch (error) {
+        if (!isAlreadyExistsError(error)) {
+          await fs.rm(file.stagedPath, { force: true }).catch(() => undefined);
+        }
+        throw error;
+      }
     }));
+    const failedStage = stageResults.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failedStage !== undefined) {
+      throw failedStage.reason;
+    }
     for (const file of stagedFiles) {
       await fs.rename(file.stagedPath, file.path);
     }
   } finally {
     await Promise.all(stagedFiles.filter((file) => file.created).map((file) => fs.rm(file.stagedPath, { force: true })));
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 async function assertNotSymbolicLinkIfSet(fs: TruffleHogFileSystem, path: string | undefined): Promise<void> {

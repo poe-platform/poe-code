@@ -270,6 +270,7 @@ describe("runTruffleHogPrScanCommand", () => {
 
   it("does not publish one scan artifact when staging the other fails", async () => {
     const { fs } = createTestFileSystem();
+    let temporaryPath: string | undefined;
     const failingFs = {
       ...fs,
       writeFile: vi.fn(async (
@@ -278,6 +279,8 @@ describe("runTruffleHogPrScanCommand", () => {
         options: { encoding: BufferEncoding; flag?: string }
       ) => {
         if (path.startsWith("/tmp/trufflehog-stderr.log.")) {
+          temporaryPath = path;
+          await fs.writeFile(path, "partial stderr\n", options);
           throw new Error("injected stderr write failure");
         }
         await fs.writeFile(path, content, options);
@@ -293,6 +296,8 @@ describe("runTruffleHogPrScanCommand", () => {
 
     await expect(fs.readFile("/tmp/trufflehog-results.jsonl", "utf8")).rejects.toThrow();
     await expect(fs.readFile("/tmp/trufflehog-stderr.log", "utf8")).rejects.toThrow();
+    expect(temporaryPath).toMatch(/^\/tmp\/trufflehog-stderr\.log\..+\.tmp$/);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toThrow();
   });
 
   it("does not remove a colliding staged scan artifact symlink", async () => {

@@ -147,9 +147,9 @@ describe("createLogWriter", () => {
     });
     const fs: LauncherFileSystem = {
       ...baseFs,
-      async writeFile(filePath, content) {
-        await baseFs.writeFile(filePath, content);
-        if (filePath === "/logs/stdout.1.log") {
+      async rename(sourcePath, destinationPath) {
+        await baseFs.rename(sourcePath, destinationPath);
+        if (destinationPath === "/logs/stdout.1.log") {
           copiedCurrent();
           await gate;
         }
@@ -183,11 +183,11 @@ describe("createLogWriter", () => {
     await baseFs.writeFile("/logs/stdout.1.log", "retained\n");
     const fs: LauncherFileSystem = {
       ...baseFs,
-      async rm(filePath, options) {
-        if (filePath === "/logs/stdout.log") {
+      async rename(sourcePath, destinationPath) {
+        if (sourcePath === "/logs/stdout.log" && destinationPath === "/logs/stdout.1.log") {
           throw new Error("injected rotation failure");
         }
-        await baseFs.rm(filePath, options);
+        await baseFs.rename(sourcePath, destinationPath);
       }
     };
 

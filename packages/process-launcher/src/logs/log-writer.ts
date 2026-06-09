@@ -46,9 +46,7 @@ async function moveIfExists(
   }
 
   await assertPathHasNoSymbolicLinks(fs, destinationPath);
-  const content = await fs.readFile(sourcePath, "utf8");
-  await fs.writeFile(destinationPath, content);
-  await fs.rm(sourcePath, { force: true });
+  await fs.rename(sourcePath, destinationPath);
 }
 
 function getRotatedLogIndex(fileName: string, stream: "stdout" | "stderr"): number | null {

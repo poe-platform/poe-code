@@ -8,6 +8,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { auditClaims } = await import("./audit.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("auditClaims", () => {
   beforeEach(() => {
     vol.reset();
@@ -41,6 +68,31 @@ describe("auditClaims", () => {
         expect.stringContaining('frontmatter sources are missing "docs/missing.md#L1"')
       ])
     );
+  });
+
+  it("does not treat inherited source error codes as missing files", async () => {
+    vol.fromJSON({
+      "/repo/docs/spec.md": "line 1\n",
+      "/repo/.poe-code/memory/pages/architecture.md": [
+        "<!-- memory:extracted source=docs/spec.md#L1 -->",
+        "The architecture note cites the current spec.",
+        ""
+      ].join("\n")
+    });
+    const realpath = vol.promises.realpath.bind(vol.promises);
+    vi.spyOn(vol.promises, "realpath").mockImplementation(async (targetPath, options) => {
+      if (String(targetPath) === "/repo/docs/spec.md") {
+        throw new Error("source realpath denied");
+      }
+
+      return realpath(targetPath, options);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(auditClaims("/repo/.poe-code/memory", "/repo")).rejects.toThrow(
+        "source realpath denied"
+      );
+    });
   });
 
   it("flags inferred claims below the minimum confidence threshold", async () => {

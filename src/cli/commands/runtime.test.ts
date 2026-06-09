@@ -281,6 +281,28 @@ describe("runtime command", () => {
     await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
   });
 
+  it("cleans a partial default Dockerfile when creation fails", async () => {
+    const fs = createMemFs();
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === dockerfilePath) {
+        await writeFile(filePath, "partial Dockerfile\n", options);
+        throw new Error("Dockerfile disk full");
+      }
+
+      await writeFile(filePath, data, options);
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "runtime", "init"])).rejects.toThrow(
+      "Dockerfile disk full"
+    );
+
+    await expect(fs.readFile(dockerfilePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("deep-merges only runtime.type on an initialized project", async () => {
     const fs = createMemFs({
       [projectConfigPath]: `${JSON.stringify(

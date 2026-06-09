@@ -82,10 +82,17 @@ export async function writeDefaultDockerfileIfNeeded(input: {
   }
 
   await input.container.fs.mkdir(path.dirname(dockerfilePath), { recursive: true });
-  await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, {
-    encoding: "utf8",
-    flag: "wx"
-  });
+  try {
+    await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      await input.container.fs.unlink(dockerfilePath).catch(() => undefined);
+    }
+    throw error;
+  }
   return true;
 }
 
@@ -98,4 +105,8 @@ export function parseRuntimeType(value: string): RuntimeType {
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }

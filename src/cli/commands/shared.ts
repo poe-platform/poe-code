@@ -369,14 +369,24 @@ export function requireInteractiveStdin(message: string): void {
 export function createExecutionResources(
   container: CliContainer,
   flags: CommandFlags,
-  scope: string
+  scope: string,
+  env?: Record<string, string>
 ): ExecutionResources {
   const baseLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,
     verbose: flags.verbose,
     scope
   });
-  const runner = createLoggingCommandRunner(container.commandRunner, baseLogger);
+  const runner = createLoggingCommandRunner(
+    env
+      ? (command, args, options) =>
+          container.commandRunner(command, args, {
+            ...options,
+            env: { ...(options?.env ?? {}), ...env }
+          })
+      : container.commandRunner,
+    baseLogger
+  );
   const context = container.contextFactory.create({
     dryRun: flags.dryRun,
     logger: baseLogger,

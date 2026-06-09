@@ -568,6 +568,22 @@ describe("spawnCore", () => {
     expect(lastCall.args).toContain("arg");
   });
 
+  it("passes per-invocation environment overrides to providers", async () => {
+    const { runner, calls } = createCommandRunnerStub();
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test prompt",
+      env: { WORKSPACE_ID: "workspace-1" }
+    });
+
+    expect(calls.at(-1)?.options?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
+  });
+
   it("handles dry run mode", async () => {
     const { container, logs } = createContainerWithDependencies({ fs });
     await ensureIsolatedConfig("opencode");

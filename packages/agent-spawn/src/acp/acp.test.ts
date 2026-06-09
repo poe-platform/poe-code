@@ -837,6 +837,23 @@ describe("spawnAcp", () => {
     });
   });
 
+  it("lets caller environment override ACP config and MCP-derived environment", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "goose",
+      prompt: "test",
+      cwd: "/tmp/test",
+      env: { GOOSE_DISABLE_KEYRING: "caller", WORKSPACE_ID: "workspace-1" }
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.env).toMatchObject({
+      GOOSE_DISABLE_KEYRING: "caller",
+      WORKSPACE_ID: "workspace-1"
+    });
+  });
+
   it("bridges active skills before constructing the ACP client", async () => {
     skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
       acpLaunchOrder.push("bridge");
@@ -1482,6 +1499,7 @@ describe("acp/spawnStreaming", () => {
       agentId: "opencode",
       prompt: "inspect api_key=sk-secret",
       cwd: "/tmp",
+      env: { WORKSPACE_ID: "workspace-1" },
       runtime: "docker",
       runtimeImage: "poe-code:test",
       mountPoeCode: true
@@ -1518,6 +1536,8 @@ describe("acp/spawnStreaming", () => {
       stdout: "pipe",
       stderr: "pipe"
     });
+    expect(capturedOpenSpec?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
+    expect(capturedRunSpec?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
   });
 
   it("passes through multiple usage events without accumulating into done", async () => {

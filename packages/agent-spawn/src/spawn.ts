@@ -248,7 +248,9 @@ async function runSpawn(
     const logFilePath = resolveSpawnLogPath(options);
     logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
 
-    const processEnv = modeEnv ? { ...process.env, ...modeEnv } : undefined;
+    const envOverrides = { ...(modeEnv ?? {}), ...(options.env ?? {}) };
+    const processEnv =
+      Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
     const argv = [binaryName, ...spawnArgs];
     const displayArgv = [binaryName, ...displaySpawnArgs];
     const execution = resolveSpawnExecution({

@@ -327,6 +327,24 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("forwards per-invocation environment overrides to streaming spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("codex", "test prompt", { env: { WORKSPACE_ID: "workspace-1" } }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ env: { WORKSPACE_ID: "workspace-1" } })
+    );
+  });
+
   it("passes resumeThreadId through to streaming agent spawns", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -1236,6 +1254,58 @@ describe("SDK spawn()", () => {
         prompt: "inspect auth",
         cwd: "/tmp/workspaces/poe-code/packages/auth",
         mode: "read"
+      })
+    );
+  });
+
+  it("merges caller environment over isolated ACP environment", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        cwd: "/repo",
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {},
+        getVariable: () => undefined,
+        resolveHomePath: (...segments: string[]) => [homeDir, ...segments].join("/")
+      },
+      registry: {
+        get: vi.fn(() => ({
+          name: "gemini-cli",
+          isolatedEnv: {
+            agentBinary: "gemini",
+            requiresConfig: false,
+            env: { GEMINI_CLI_HOME: { kind: "isolatedDir" } }
+          }
+        }))
+      },
+      providerRegistry: {
+        forAgent: vi.fn(() => []),
+        isLoggedIn: vi.fn(async () => false)
+      }
+    } as any);
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "gemini-cli",
+      acpArgs: ["--acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("gemini-cli", "test", {
+      env: { GEMINI_CLI_HOME: "/caller/home", WORKSPACE_ID: "workspace-1" }
+    }).result;
+
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        env: expect.objectContaining({
+          GEMINI_CLI_HOME: "/caller/home",
+          WORKSPACE_ID: "workspace-1"
+        })
       })
     );
   });

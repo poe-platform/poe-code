@@ -307,6 +307,30 @@ describe("spawnInteractive", () => {
     ]);
   });
 
+  it("merges per-invocation environment overrides without mutating the parent", async () => {
+    const inheritedValue = process.env.POE_CODE_INTERACTIVE_ENV_TEST;
+    process.env.POE_CODE_INTERACTIVE_ENV_TEST = "parent";
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockInheritProcess(0));
+
+    try {
+      await spawnInteractive("codex", {
+        prompt: "test",
+        env: { POE_CODE_INTERACTIVE_ENV_TEST: "child", INVOCATION_ONLY: "1" }
+      });
+
+      expect(spawnMock.mock.calls[0]?.[2]?.env).toMatchObject({
+        POE_CODE_INTERACTIVE_ENV_TEST: "child",
+        INVOCATION_ONLY: "1"
+      });
+      expect(process.env.POE_CODE_INTERACTIVE_ENV_TEST).toBe("parent");
+    } finally {
+      if (inheritedValue === undefined) delete process.env.POE_CODE_INTERACTIVE_ENV_TEST;
+      else process.env.POE_CODE_INTERACTIVE_ENV_TEST = inheritedValue;
+    }
+  });
+
   it("throws clear error for interactive MCP on unsupported agents", () => {
     const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
     expect(() =>

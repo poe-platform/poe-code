@@ -86,7 +86,9 @@ export async function spawnInteractive(
     args.push(...options.args);
   }
 
-  const processEnv = modeResolved.env ? { ...process.env, ...modeResolved.env } : undefined;
+  const envOverrides = { ...(modeResolved.env ?? {}), ...(options.env ?? {}) };
+  const processEnv =
+    Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const executionEnv = processEnv as Record<string, string> | undefined;
   const cwd = options.cwd ?? process.cwd();
   const argv = [resolved.binaryName, ...args];

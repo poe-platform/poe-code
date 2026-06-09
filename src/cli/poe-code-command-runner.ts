@@ -98,10 +98,10 @@ export function createPoeCodeCommandRunner(input: {
     }
 
     const mergedEnv = {
-      ...(options?.env ?? {}),
       ...(activeProvider?.extraEnv ?? {}),
       ...details.env,
-      ...runtimeEnv
+      ...runtimeEnv,
+      ...(options?.env ?? {})
     };
 
     const runOptions: CommandRunnerOptions = { env: mergedEnv };

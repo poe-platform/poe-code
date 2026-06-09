@@ -7,6 +7,7 @@ export interface SpawnCommandOptions {
   args?: string[];
   model?: string;
   mode?: SpawnMode;
+  env?: Record<string, string>;
   mcpServers?: McpSpawnConfig;
   skills?: string[];
   hooks?: HookBridgeOptions;

@@ -912,6 +912,38 @@ describe("spawn", () => {
     expect(child.__capturedStdin()).toBe("hi");
   });
 
+  it("isolates per-invocation environment overrides across parallel spawns", async () => {
+    const inheritedValue = process.env.POE_CODE_PARALLEL_ENV_TEST;
+    process.env.POE_CODE_PARALLEL_ENV_TEST = "parent";
+    vi.mocked(spawnChildProcess).mockImplementation(() =>
+      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
+    );
+
+    try {
+      await Promise.all([
+        spawn("codex", {
+          prompt: "first",
+          env: { POE_CODE_PARALLEL_ENV_TEST: "first", FIRST_ONLY: "1" }
+        }),
+        spawn("codex", {
+          prompt: "second",
+          env: { POE_CODE_PARALLEL_ENV_TEST: "second", SECOND_ONLY: "1" }
+        })
+      ]);
+
+      const firstEnv = vi.mocked(spawnChildProcess).mock.calls[0]?.[2]?.env;
+      const secondEnv = vi.mocked(spawnChildProcess).mock.calls[1]?.[2]?.env;
+      expect(firstEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "first", FIRST_ONLY: "1" });
+      expect(firstEnv).not.toHaveProperty("SECOND_ONLY");
+      expect(secondEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "second", SECOND_ONLY: "1" });
+      expect(secondEnv).not.toHaveProperty("FIRST_ONLY");
+      expect(process.env.POE_CODE_PARALLEL_ENV_TEST).toBe("parent");
+    } finally {
+      if (inheritedValue === undefined) delete process.env.POE_CODE_PARALLEL_ENV_TEST;
+      else process.env.POE_CODE_PARALLEL_ENV_TEST = inheritedValue;
+    }
+  });
+
   it("forwards output to tee streams when provided", async () => {
     vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "agent output", stderr: "agent progress", exitCode: 0 })

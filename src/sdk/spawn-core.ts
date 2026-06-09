@@ -27,6 +27,8 @@ export interface SpawnCoreOptions {
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
+  /** Environment overrides applied only to this spawned run. */
+  env?: Record<string, string>;
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
   /** Skill references to bridge into the spawned agent for this run. */
@@ -76,6 +78,7 @@ export async function spawnCore(
       args: options.args,
       model,
       mode: options.mode,
+      env: options.env,
       mcpServers: options.mcpServers,
       skills: options.skills,
       hooks: options.hooks,
@@ -85,7 +88,7 @@ export async function spawnCore(
     };
 
     const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
-    const resources = createExecutionResources(container, commandFlags, `spawn:${service}`);
+    const resources = createExecutionResources(container, commandFlags, `spawn:${service}`, options.env);
 
     if (flags.dryRun) {
       const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);

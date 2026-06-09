@@ -163,6 +163,7 @@ export function spawn(
           signal: options.signal,
           otelSink: options.otelSink,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
@@ -208,7 +209,9 @@ export function spawn(
           signal: options.signal,
           otelSink: options.otelSink,
           ...(nativeCaptureMiddlewares ? { middlewares: nativeCaptureMiddlewares } : {}),
-          ...(resolvedAcpEnv ? { env: resolvedAcpEnv } : {}),
+          ...(resolvedAcpEnv || options.env
+            ? { env: { ...(resolvedAcpEnv ?? {}), ...(options.env ?? {}) } }
+            : {}),
           ...runtimeOverrides
         });
         const { events: rawEvents, done } = acpSpawn;
@@ -267,6 +270,7 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
@@ -334,6 +338,7 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
@@ -365,6 +370,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
+        ...(options.env ? { env: options.env } : {}),
         ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
         ...(options.hooks ? { hooks: options.hooks } : {}),
         resumeThreadId: options.resumeThreadId,

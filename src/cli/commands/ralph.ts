@@ -33,6 +33,7 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent
 } from "./shared.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
   runRalph as sdkRunRalph,
   type RalphRunOptions,
@@ -380,7 +381,7 @@ async function writeTextFileAtomically(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function resolveDocPath(options: {

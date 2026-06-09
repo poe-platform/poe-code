@@ -55,7 +55,7 @@ describe.each(agents)('spawn --mcp-config: $name', ({ name, expectSpawnSuccess, 
     const extraArgs = spawnArgs
       ? ` -- ${spawnArgs.map((arg) => shellQuote(arg)).join(' ')}`
       : '';
-    const command = `poe-code spawn --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`;
+    const command = `poe-code spawn --mode yolo --mcp-config ${mcpConfig} ${name} ${shellQuote(prompt)}${extraArgs}`;
     const spawnResult = await container.exec(command);
 
     if (!expectSpawnSuccess) {

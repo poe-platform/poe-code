@@ -67,7 +67,7 @@ describe('goose', () => {
     expect(configureResult).toHaveExitCode(0);
 
     const prompt = `Create a file called ${container.workspace}/spawn-test.txt with the exact content: hello`;
-    const spawnResult = await container.exec(`poe-code spawn goose "${prompt}"`);
+    const spawnResult = await container.exec(`poe-code spawn --mode yolo goose "${prompt}"`);
     expect(spawnResult).toHaveExitCode(0);
 
     await expect(container).toHaveFile(`${container.workspace}/spawn-test.txt`);

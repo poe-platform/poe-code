@@ -1439,6 +1439,29 @@ describe("opencode service", () => {
     });
   }
 
+  function createOpenCodeHealthRunner(response: {
+    stdout?: string;
+    stderr?: string;
+    exitCode: number;
+  }): ReturnType<typeof vi.fn> {
+    return vi.fn(async (command: string, args: string[]) => {
+      if (command === "git" && args.includes("rev-parse")) {
+        return { stdout: "", stderr: "", exitCode: 1 };
+      }
+      if (command === "git" && args.includes("init")) {
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+      if (command === "opencode") {
+        return {
+          stdout: response.stdout ?? "",
+          stderr: response.stderr ?? "",
+          exitCode: response.exitCode
+        };
+      }
+      throw new Error(`Unexpected command: ${command} ${args.join(" ")}`);
+    });
+  }
+
   it("creates the opencode config and auth files", async () => {
     await configureOpenCode();
 
@@ -1706,19 +1729,34 @@ describe("opencode service", () => {
   });
 
   it("runs the OpenCode health check via runCommand when test is invoked", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
+    const runCommand = createOpenCodeHealthRunner({
       stdout: '{"type":"text","text":"OPEN_CODE_OK"}\n',
       stderr: "",
       exitCode: 0
     });
     const { context } = createProviderTestContext(runCommand);
+    const healthDir = path.join(homeDir, ".poe-code", "opencode-health");
 
     await opencodeService.openCodeService.test?.(context);
 
-    expect(runCommand).toHaveBeenCalledWith(
-      "opencode",
-      expect.arrayContaining(["run", "Output exactly: OPEN_CODE_OK"])
-    );
+    expect(runCommand).toHaveBeenCalledWith("git", [
+      "-C",
+      healthDir,
+      "rev-parse",
+      "--is-inside-work-tree"
+    ]);
+    expect(runCommand).toHaveBeenCalledWith("git", ["-C", healthDir, "init", "-q"]);
+    expect(runCommand).toHaveBeenCalledWith("opencode", [
+      "run",
+      "Output exactly: OPEN_CODE_OK",
+      "--pure",
+      "--format",
+      "json",
+      "--model",
+      DEFAULT_PROVIDER_MODEL,
+      "--dir",
+      healthDir
+    ]);
   });
 
   it("skips the OpenCode health check during dry runs", async () => {
@@ -1731,7 +1769,7 @@ describe("opencode service", () => {
   });
 
   it("includes stdout and stderr when the OpenCode health check command fails", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
+    const runCommand = createOpenCodeHealthRunner({
       stdout: "OPEN_FAIL_STDOUT\n",
       stderr: "OPEN_FAIL_STDERR\n",
       exitCode: 1
@@ -1744,7 +1782,7 @@ describe("opencode service", () => {
   });
 
   it("includes stdout and stderr when the OpenCode health check output is unexpected", async () => {
-    const runCommand = vi.fn().mockResolvedValue({
+    const runCommand = createOpenCodeHealthRunner({
       stdout: "MISCONFIG\n",
       stderr: "ALERT\n",
       exitCode: 0

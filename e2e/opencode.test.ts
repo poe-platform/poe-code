@@ -39,7 +39,7 @@ describe('opencode', () => {
     expect(configResult).toHaveExitCode(0);
 
     const prompt = `Create a file called ${container.workspace}/spawn-test.txt with the exact content: hello`;
-    const spawnResult = await container.exec(`poe-code spawn opencode "${prompt}"`);
+    const spawnResult = await container.exec(`poe-code spawn --mode yolo opencode "${prompt}"`);
     expect(spawnResult).toHaveExitCode(0);
 
     await expect(container).toHaveFile(`${container.workspace}/spawn-test.txt`);
@@ -52,7 +52,7 @@ describe('opencode', () => {
     expect(configResult).toHaveExitCode(0);
 
     const prompt = `Create a file called ${container.workspace}/spawn-gpt-test.txt with the exact content: hello`;
-    const spawnResult = await container.exec(`poe-code spawn opencode "${prompt}" --model openai/gpt-5.2`);
+    const spawnResult = await container.exec(`poe-code spawn --mode yolo --model openai/gpt-5.2 opencode "${prompt}"`);
     expect(spawnResult).toHaveExitCode(0);
 
     await expect(container).toHaveFile(`${container.workspace}/spawn-gpt-test.txt`);

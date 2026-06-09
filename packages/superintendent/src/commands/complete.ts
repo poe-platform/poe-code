@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { S, UserError, defineCommand } from "toolcraft";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { setStatusReason, transitionState } from "../document/write.js";
 
 const completeParams = S.Object({
@@ -105,5 +106,5 @@ async function writeDocumentAtomically(
 }
 
 function hasCode(error: unknown, code: string): error is { code: string } {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+  return hasOwnErrorCode(error, code);
 }

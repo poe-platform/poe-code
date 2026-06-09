@@ -1,5 +1,6 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "toolcraft-design";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import {
@@ -310,7 +311,7 @@ function readErrorMessage(error: unknown): string {
 }
 
 function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+  return hasOwnErrorCode(error, code);
 }
 
 function capitalize(value: string): string {

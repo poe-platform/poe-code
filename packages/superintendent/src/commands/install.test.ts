@@ -20,6 +20,25 @@ const renderPrimitives = {
   note: vi.fn()
 };
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("superintendent install command", () => {
   it("ships canonical superintendent frontmatter instructions in the skill template", async () => {
     const template = await readFile(new URL("../templates/SKILL_superintendent.md", import.meta.url), "utf8");
@@ -144,14 +163,16 @@ describe("superintendent install command", () => {
 
   it("does not create a missing plan directory during dry run", async () => {
     const mkdir = vi.fn(async () => undefined);
-    const result = await ensurePlanDirectory("/repo/docs/plans", {
-      lstat: async () => {
-        const error = new Error("missing") as Error & { code?: string };
-        error.code = "ENOENT";
-        throw error;
-      },
-      mkdir
-    }, true);
+    const result = await withObjectPrototypeCode("ENOENT", () =>
+      ensurePlanDirectory("/repo/docs/plans", {
+        lstat: async () => {
+          const error = new Error("missing") as Error & { code?: string };
+          error.code = "ENOENT";
+          throw error;
+        },
+        mkdir
+      }, true)
+    );
 
     expect(result).toBe(true);
     expect(mkdir).not.toHaveBeenCalled();

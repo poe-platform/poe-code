@@ -21,6 +21,25 @@ const runners: LoopRunners = {
   ownerReview: runOwnerReviewMock as unknown as typeof runOwnerReview
 };
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 type TestFs = {
   rawFs: ReturnType<typeof createFsFromVolume>["promises"];
   fs: SuperintendentFileSystem;
@@ -478,15 +497,17 @@ describe("runLoop", () => {
       log: "Built"
     });
 
-    await expect(
-      runLoop({
-        docPath,
-        cwd: "/repo",
-        homeDir: "/home/test",
-        fs,
-        runners
-      })
-    ).rejects.toThrow("status write failed");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        runLoop({
+          docPath,
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs,
+          runners
+        })
+      ).rejects.toThrow("status write failed");
+    });
 
     expect(runBuilderMock).not.toHaveBeenCalled();
     expect(partialTempPath).toBeDefined();

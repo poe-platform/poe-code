@@ -552,7 +552,7 @@ function addRuntimeTaskOptions(
   container: CliContainer
 ): OpenTaskListOptions {
   const options = resolved.taskListOptions;
-  if (!("path" in options)) {
+  if (!hasOwnProperty(options, "path")) {
     return options;
   }
 
@@ -666,7 +666,7 @@ function writeJson(value: VerifyGhProjectReport | SyncGhProjectReport | Task): v
 }
 
 function writeField(task: Task, field: string): void {
-  if (!Object.prototype.hasOwnProperty.call(task, field)) {
+  if (!hasOwnProperty(task, field)) {
     throw new TasksCommandUsageError(`Task field "${field}" does not exist.`);
   }
 
@@ -782,6 +782,10 @@ function readCommentMethod(
   return typeof candidate === "function"
     ? (candidate as (id: string, body: string) => Promise<void>)
     : undefined;
+}
+
+function hasOwnProperty(value: object, key: PropertyKey): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 class TasksCommandUsageError extends Error {

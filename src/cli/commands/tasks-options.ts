@@ -138,7 +138,7 @@ function readTaskListOptions(
   frontmatter: Record<string, unknown>,
   workflowPath: string
 ): OpenTaskListOptions {
-  const tasks = asRecord(frontmatter.tasks);
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
   if (tasks === undefined) {
     throw new TasksOptionsError(
       "missing_tasks_config",
@@ -147,7 +147,7 @@ function readTaskListOptions(
   }
 
   const resolved = resolveStringValues(tasks);
-  if (typeof resolved.path === "string") {
+  if (hasOwnEntry(resolved, "path") && typeof resolved.path === "string") {
     resolved.path = resolveWorkflowRelativePath(resolved.path, workflowPath);
   }
 
@@ -219,7 +219,7 @@ function resolveRequiredStates(
 }
 
 function readWorkflowStates(frontmatter: Record<string, unknown>): string[] {
-  const declaredStates = readDeclaredStates(frontmatter.states);
+  const declaredStates = readDeclaredStates(getOwnEntry(frontmatter, "states"));
   if (declaredStates.length > 0) {
     return declaredStates;
   }
@@ -240,21 +240,21 @@ function parseStatesCsv(value: string): string[] {
 }
 
 function readMaestroStates(frontmatter: Record<string, unknown>): string[] {
-  const maestro = asRecord(frontmatter.maestro);
+  const maestro = asRecord(getOwnEntry(frontmatter, "maestro"));
   if (maestro === undefined) {
     return [];
   }
 
   return unique([
-    ...readStringArray(maestro.active_states),
-    ...readStringArray(maestro.terminal_states)
+    ...readStringArray(getOwnEntry(maestro, "active_states")),
+    ...readStringArray(getOwnEntry(maestro, "terminal_states"))
   ]);
 }
 
 function readLegacyTopLevelStates(frontmatter: Record<string, unknown>): string[] {
   return unique([
-    ...readStringArray(frontmatter.active_states),
-    ...readStringArray(frontmatter.terminal_states)
+    ...readStringArray(getOwnEntry(frontmatter, "active_states")),
+    ...readStringArray(getOwnEntry(frontmatter, "terminal_states"))
   ]);
 }
 
@@ -264,19 +264,20 @@ function readDeclaredStates(value: unknown): string[] {
 }
 
 function readTasksRepo(frontmatter: Record<string, unknown>): string | undefined {
-  const tasks = asRecord(frontmatter.tasks);
-  return typeof tasks?.repo === "string" && tasks.repo.trim().length > 0
-    ? tasks.repo.trim()
-    : undefined;
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
+  const repo = tasks === undefined ? undefined : getOwnEntry(tasks, "repo");
+  return typeof repo === "string" && repo.trim().length > 0 ? repo.trim() : undefined;
 }
 
 function readTasksAuthToken(frontmatter: Record<string, unknown>): string | undefined {
-  const auth = asRecord(asRecord(frontmatter.tasks)?.auth);
-  if (auth === undefined || typeof auth.token !== "string") {
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
+  const auth = tasks === undefined ? undefined : asRecord(getOwnEntry(tasks, "auth"));
+  const rawToken = auth === undefined ? undefined : getOwnEntry(auth, "token");
+  if (typeof rawToken !== "string") {
     return undefined;
   }
 
-  const token = resolveStringValue(auth.token).trim();
+  const token = resolveStringValue(rawToken).trim();
   return token.length > 0 && !token.startsWith("$") ? token : undefined;
 }
 
@@ -362,6 +363,14 @@ function resolveWorkflowRelativePath(value: string, workflowPath: string): strin
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return isPlainRecord(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+function hasOwnEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return hasOwnEntry(record, key) ? record[key] : undefined;
 }
 
 function isPlainRecord(value: unknown): value is Record<string, unknown> {

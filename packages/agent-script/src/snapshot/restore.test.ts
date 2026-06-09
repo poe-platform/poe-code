@@ -6,6 +6,33 @@ import { parseModule, type Module, type ParseResult } from "../parse/parser.js";
 import { hashSource } from "../parse/hash.js";
 import { restore } from "./restore.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("snapshot restore", () => {
   it("rebuilds scopes, call stack, modules, and the saved code pointer", async () => {
     const source = [
@@ -274,6 +301,45 @@ describe("snapshot restore", () => {
     }
 
     expect(Object.getPrototypeOf(value.value)).toBeNull();
+  });
+
+  it("ignores inherited serialized value kind tags during restoration", () => {
+    const source = "return value";
+
+    withObjectPrototypeProperties(
+      {
+        kind: "undefined"
+      },
+      () => {
+        const restored = restore(
+          {
+            sourceHash: hashSource(source),
+            currentAstNodeId: getNodeIdByType(parseModule(source), "Identifier"),
+            scopeChain: [
+              {
+                id: "root",
+                bindings: {
+                  value: {}
+                }
+              }
+            ],
+            callStack: [],
+            pendingPromises: [],
+            moduleBindings: {}
+          },
+          {
+            source,
+            budget: new Budget()
+          }
+        );
+
+        const value = restored.currentScope.lookup("value");
+        expect(value.found).toBe(true);
+        expect(value.value).not.toBeUndefined();
+        expect(value.value).toEqual({});
+        expect(Object.getPrototypeOf(value.value as object)).toBeNull();
+      }
+    );
   });
 
   it("reuses the same runtime promise for every restored reference to a pending promise", () => {

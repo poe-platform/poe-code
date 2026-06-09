@@ -538,26 +538,61 @@ function isSerializedUndefinedValue(
   value: SerializedSnapshotValue
 ): value is { kind: "undefined" } {
   return (
-    typeof value === "object" && value !== null && "kind" in value && value.kind === "undefined"
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "undefined"
   );
 }
 
 function isSerializedNonFiniteNumberValue(
   value: SerializedSnapshotValue
 ): value is { kind: "number"; value: "-Infinity" | "Infinity" | "NaN" } {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "number";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "number" &&
+    hasOwnProperty(value, "value")
+  );
 }
 
 function isSerializedReferenceValue(
   value: SerializedSnapshotValue
 ): value is SerializedReferenceValue {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "ref";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "ref" &&
+    hasOwnProperty(value, "id")
+  );
 }
 
 function isSerializedPromiseValue(value: SerializedSnapshotValue): value is SerializedPromiseValue {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "promise";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "promise" &&
+    hasOwnProperty(value, "id")
+  );
 }
 
 function isSerializedClosureValue(value: SerializedSnapshotValue): value is SerializedClosureValue {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "fn";
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "fn" &&
+    hasOwnProperty(value, "astNodeId") &&
+    hasOwnProperty(value, "capturedScopeId")
+  );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

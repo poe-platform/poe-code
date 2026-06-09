@@ -5,6 +5,14 @@ export interface CodeReviewHumanGateConfig extends Record<string, unknown> {
   provider: "none";
 }
 
+function hasOwnEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return hasOwnEntry(record, key) ? record[key] : undefined;
+}
+
 function parseHumanGate(value: unknown): CodeReviewHumanGateConfig {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error("humanGate must be an object");
@@ -16,7 +24,7 @@ function parseHumanGate(value: unknown): CodeReviewHumanGateConfig {
       throw new Error(`humanGate.${key} is not supported`);
     }
   }
-  const provider = config.provider ?? "none";
+  const provider = getOwnEntry(config, "provider") ?? "none";
   if (provider !== "none") {
     throw new Error('humanGate.provider must be "none"');
   }
@@ -50,19 +58,23 @@ export function parseCodeReviewConfigDocument(value: unknown): {
       throw new Error(`codeReview.${key} is not supported`);
     }
   }
-  if (config.agent !== undefined && typeof config.agent !== "string") {
+  const agent = getOwnEntry(config, "agent");
+  if (agent !== undefined && typeof agent !== "string") {
     throw new Error("codeReview.agent must be a string");
   }
-  if (config.draftStore !== undefined && typeof config.draftStore !== "string") {
+  const draftStore = getOwnEntry(config, "draftStore");
+  if (draftStore !== undefined && typeof draftStore !== "string") {
     throw new Error("codeReview.draftStore must be a string");
   }
+  const humanGate = getOwnEntry(config, "humanGate");
+  const profileDirectories = getOwnEntry(config, "profileDirectories");
   return {
-    ...(config.agent === undefined ? {} : { agent: config.agent }),
-    ...(config.draftStore === undefined ? {} : { draftStore: config.draftStore }),
-    ...(config.humanGate === undefined ? {} : { humanGate: parseHumanGate(config.humanGate) }),
-    ...(config.profileDirectories === undefined
+    ...(agent === undefined ? {} : { agent }),
+    ...(draftStore === undefined ? {} : { draftStore }),
+    ...(humanGate === undefined ? {} : { humanGate: parseHumanGate(humanGate) }),
+    ...(profileDirectories === undefined
       ? {}
-      : { profileDirectories: parseCodeReviewProfileDirectories(config.profileDirectories) })
+      : { profileDirectories: parseCodeReviewProfileDirectories(profileDirectories) })
   };
 }
 

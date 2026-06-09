@@ -26,7 +26,7 @@ export function createConfigStore(options: ConfigStoreOptions): ConfigStore {
 
         async set<K extends keyof S & string>(key: K, value: InferConfig<S>[K]) {
           const document = await readDocument(options.fs, options.filePath);
-          const currentValues = document[definition.scope] ?? {};
+          const currentValues = getOwnRecordEntry(document, definition.scope);
           await writeScope(options.fs, options.filePath, definition.scope, {
             ...currentValues,
             [key]: value
@@ -43,5 +43,12 @@ async function resolveScopedValues<S extends ScopeSchema>(
   env: Record<string, string | undefined>
 ): Promise<InferConfig<S>> {
   const document = await readMergedDocument(options.fs, options.filePath, options.projectFilePath);
-  return resolveScope(definition.schema, document[definition.scope], env);
+  return resolveScope(definition.schema, getOwnRecordEntry(document, definition.scope), env);
+}
+
+function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }

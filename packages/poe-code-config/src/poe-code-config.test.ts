@@ -21,6 +21,33 @@ import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope 
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createConfigStore", () => {
   const projectConfigPath = `${homeDir}/workspace/.poe-code/config.json`;
 
@@ -131,6 +158,43 @@ describe("createConfigStore", () => {
 
     await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
       mode: "safe"
+    });
+  });
+
+  it("does not resolve or persist scope values inherited from Object.prototype", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": "{}\n"
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      },
+      enabled: {
+        type: "boolean" as const,
+        default: false,
+        doc: "Feature enabled"
+      }
+    });
+
+    await withObjectPrototypeProperties({ feature: { mode: "attacker" } }, async () => {
+      const feature = createConfigStore({ fs, filePath: configPath }).scope(featureScope);
+      await expect(feature.getAll()).resolves.toEqual({
+        mode: "safe",
+        enabled: false
+      });
+
+      await feature.set("enabled", true);
+    });
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      feature: {
+        enabled: true
+      }
     });
   });
 

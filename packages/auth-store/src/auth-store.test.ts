@@ -37,6 +37,33 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createSecretStore", () => {
   it("creates file backend store by default", async () => {
     const filePath = "/home/test/.app/credentials.enc";
@@ -195,6 +222,27 @@ describe("EncryptedFileStore", () => {
 
     expect(secondPayload).not.toBe(firstPayload);
     await expect(store.get()).resolves.toBe("secret-value");
+  });
+
+  it("ignores inherited encrypted document fields", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("secret-value");
+    const encryptedDocument = JSON.parse(
+      await fs.readFile(filePath, "utf8")
+    ) as Record<string, unknown>;
+    await fs.writeFile(filePath, "{}", { encoding: "utf8" });
+
+    await withObjectPrototypeProperties(encryptedDocument, async () => {
+      await expect(store.get()).resolves.toBeNull();
+    });
   });
 
   it("derives machine-bound key using hostname and username", async () => {

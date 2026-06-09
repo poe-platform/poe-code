@@ -47,6 +47,33 @@ async function readSortedDirectory(rawFs: TestFs, directory: string): Promise<st
   return (await rawFs.readdir(directory)).sort();
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("plans", () => {
   it("discoverPlans returns plans with kind from frontmatter and metadata", async () => {
     const { fs } = createFs({
@@ -229,6 +256,31 @@ No frontmatter here.
         fs
       })
     ).resolves.toEqual([]);
+  });
+
+  it("does not treat inherited stat error codes as missing plan directories", async () => {
+    const { fs: rawFs } = createFs();
+    const fs: TaskListFs = {
+      ...rawFs,
+      stat: async (filePath) => {
+        if (filePath === resolvedPlanDirectory) {
+          throw new Error("stat denied");
+        }
+
+        return rawFs.stat(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        discoverPlans({
+          cwd,
+          homeDir,
+          planDirectory,
+          fs
+        })
+      ).rejects.toThrow("stat denied");
+    });
   });
 
   it("discoverPlans ignores archive and non-plan subdirectories", async () => {

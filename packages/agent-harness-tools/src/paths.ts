@@ -26,9 +26,9 @@ export interface DiscoverDocsOptions {
 
 function isMissingDirectory(error: unknown): boolean {
   return (
-    !!error &&
     typeof error === "object" &&
-    "code" in error &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     ((error as { code?: unknown }).code === "ENOENT" ||
       (error as { code?: unknown }).code === "ENOTDIR")
   );

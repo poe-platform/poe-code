@@ -32,11 +32,20 @@ function createDefaultFs(): DiscoveryFs {
 
 function isNotFound(error: unknown): boolean {
   return (
-    !!error &&
     typeof error === "object" &&
-    "code" in error &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as { code?: unknown }).code === "ENOENT"
   );
+}
+
+function getOwnValue(
+  record: Record<string, string | undefined> | undefined,
+  key: string
+): string | undefined {
+  return record !== undefined && Object.prototype.hasOwnProperty.call(record, key)
+    ? record[key]
+    : undefined;
 }
 
 function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {
@@ -86,7 +95,7 @@ async function resolveSharedPlanDirectory(options: {
   projectConfigPath: string;
   variables?: Record<string, string | undefined>;
 }): Promise<string> {
-  const envValue = options.variables?.POE_PLAN_DIRECTORY?.trim();
+  const envValue = getOwnValue(options.variables, "POE_PLAN_DIRECTORY")?.trim();
   if (envValue) {
     return envValue;
   }

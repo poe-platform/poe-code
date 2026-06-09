@@ -14,6 +14,33 @@ function createMemFs(files: Record<string, string>): DiscoveryFs {
   return createFsFromVolume(volume).promises as unknown as DiscoveryFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("discoverAllPlans", () => {
   it("scans the shared plan directory and classifies docs by frontmatter kind", async () => {
     const fs = createMemFs({
@@ -254,6 +281,83 @@ describe("discoverAllPlans", () => {
         kind: "plan"
       })
     ]);
+  });
+
+  it("ignores inherited POE_PLAN_DIRECTORY overrides", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/configured.md": "# Configured plan\n",
+      "/repo/override/plans/polluted.md": "# Polluted plan\n"
+    });
+
+    await withObjectPrototypeProperties({ POE_PLAN_DIRECTORY: "override/plans" }, async () => {
+      await expect(
+        discoverAllPlans({
+          cwd,
+          homeDir,
+          fs,
+          configPath: resolveConfigPath(homeDir),
+          projectConfigPath: resolveProjectConfigPath(cwd),
+          variables: {}
+        })
+      ).resolves.toEqual([
+        expect.objectContaining({
+          path: "docs/plans/configured.md",
+          kind: "plan"
+        })
+      ]);
+    });
+  });
+
+  it("does not treat inherited realpath error codes as missing plan directories", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Plan\n" });
+    const fs: DiscoveryFs = {
+      ...raw,
+      realpath: async (filePath) => {
+        if (filePath === "/repo/docs/plans") {
+          throw new Error("realpath denied");
+        }
+
+        return raw.realpath(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        discoverAllPlans({
+          cwd,
+          homeDir,
+          fs,
+          configPath: resolveConfigPath(homeDir),
+          projectConfigPath: resolveProjectConfigPath(cwd)
+        })
+      ).rejects.toThrow("realpath denied");
+    });
+  });
+
+  it("does not treat inherited readdir error codes as missing plan directories", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Plan\n" });
+    const fs: DiscoveryFs = {
+      ...raw,
+      readdir: async (filePath) => {
+        if (filePath === "/repo/docs/plans") {
+          throw new Error("readdir denied");
+        }
+
+        return raw.readdir(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        discoverAllPlans({
+          cwd,
+          homeDir,
+          fs,
+          configPath: resolveConfigPath(homeDir),
+          projectConfigPath: resolveProjectConfigPath(cwd)
+        })
+      ).rejects.toThrow("readdir denied");
+    });
   });
 
   it("does not repair invalid project configuration while discovering plans", async () => {

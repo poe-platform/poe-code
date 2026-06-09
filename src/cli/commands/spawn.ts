@@ -673,7 +673,9 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   }
 
   const source =
-    "mcpServers" in parsed && isObjectRecord(parsed.mcpServers) ? parsed.mcpServers : parsed;
+    hasOwnProperty(parsed, "mcpServers") && isObjectRecord(parsed.mcpServers)
+      ? parsed.mcpServers
+      : parsed;
 
   const servers = Object.create(null) as McpSpawnConfig;
   for (const [name, value] of Object.entries(source)) {
@@ -683,7 +685,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       );
     }
 
-    const command = value.command;
+    const command = hasOwnProperty(value, "command") ? value.command : undefined;
     if (typeof command !== "string" || command.trim().length === 0) {
       throw new ValidationError(
         `--mcp-servers entry "${name}" must include a non-empty string "command"`
@@ -691,7 +693,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let args: string[] | undefined;
-    if ("args" in value && value.args !== undefined) {
+    if (hasOwnProperty(value, "args") && value.args !== undefined) {
       if (!Array.isArray(value.args)) {
         throw new ValidationError(`--mcp-servers entry "${name}".args must be an array of strings`);
       }
@@ -708,7 +710,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let env: Record<string, string> | undefined;
-    if ("env" in value && value.env !== undefined) {
+    if (hasOwnProperty(value, "env") && value.env !== undefined) {
       if (!isObjectRecord(value.env)) {
         throw new ValidationError(
           `--mcp-servers entry "${name}".env must be an object of string values`
@@ -726,7 +728,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let timeout: number | undefined;
-    if ("timeout" in value && value.timeout !== undefined) {
+    if (hasOwnProperty(value, "timeout") && value.timeout !== undefined) {
       if (typeof value.timeout !== "number" || !Number.isFinite(value.timeout) || value.timeout <= 0) {
         throw new ValidationError(
           `--mcp-servers entry "${name}".timeout must be a positive number (seconds)`
@@ -736,7 +738,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let autoApprove: boolean | undefined;
-    if ("autoApprove" in value && value.autoApprove !== undefined) {
+    if (hasOwnProperty(value, "autoApprove") && value.autoApprove !== undefined) {
       if (typeof value.autoApprove !== "boolean") {
         throw new ValidationError(`--mcp-servers entry "${name}".autoApprove must be a boolean`);
       }
@@ -859,4 +861,8 @@ function assertInteractiveSupport(label: string, service: string): void {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwnProperty(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

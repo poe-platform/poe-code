@@ -458,7 +458,7 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as NodeJS.ErrnoException).code === "ENOENT"
   );
 }
@@ -467,7 +467,7 @@ function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as NodeJS.ErrnoException).code === "EEXIST"
   );
 }

@@ -53,6 +53,33 @@ async function withLegacyTempName<Result>(operation: () => Promise<Result>): Pro
   }
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("state manager", () => {
   it("loads template and job registries for the home directory", async () => {
     const fs = createMemFs();
@@ -138,6 +165,57 @@ describe("TemplateRegistry", () => {
     await expect(
       createTemplateRegistry("/home/tester", base).get("docker", "alpha")
     ).resolves.toEqual(original);
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("does not treat inherited lstat error codes as missing template state paths", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const base = createMemFs();
+    await base.mkdir(path.dirname(templatesPath), { recursive: true });
+    const fs: StateFileSystem = {
+      ...base,
+      async lstat(targetPath) {
+        if (targetPath === templatesPath) {
+          throw new Error("template state lstat denied");
+        }
+
+        return base.lstat!(targetPath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(createTemplateRegistry("/home/tester", fs).list()).rejects.toThrow(
+        "template state lstat denied"
+      );
+    });
+  });
+
+  it("removes partial template temp files after inherited existing-path errors", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const base = createMemFs();
+    let tempPath: string | undefined;
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (targetPath.startsWith(`${templatesPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("template temp exists");
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        createTemplateRegistry("/home/tester", fs).put("docker", createTemplate("bravo"))
+      ).rejects.toThrow("template temp exists");
+    });
+
     expect(tempPath).toBeDefined();
     await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
@@ -358,6 +436,36 @@ describe("JobRegistry", () => {
     })).rejects.toThrow("jobs disk full");
 
     await expect(createJobRegistry("/home/tester", base).get("job-1")).resolves.toEqual(job);
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("removes partial job temp files after inherited existing-path errors", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const jobPath = path.join(jobsDir, "job-1.json");
+    const base = createMemFs();
+    let tempPath: string | undefined;
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (targetPath.startsWith(`${jobPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("job temp exists");
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(createJobRegistry("/home/tester", fs).put(createJob("job-1"))).rejects.toThrow(
+        "job temp exists"
+      );
+    });
+
     expect(tempPath).toBeDefined();
     await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
       code: "ENOENT"

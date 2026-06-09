@@ -24,7 +24,11 @@ export interface StateFileSystem {
 export const defaultStateFs = nodeFs as unknown as StateFileSystem;
 
 export function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return (
+    error instanceof Error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "ENOENT"
+  );
 }
 
 export async function assertPathHasNoSymbolicLinks(

@@ -211,7 +211,7 @@ function assertExtensionMethod(method: string): asserts method is ExtensionMetho
 function isInjectedTransportOptions(
   options: AcpClientOptions
 ): options is AcpClientInjectedTransportOptions {
-  return "transport" in options;
+  return Object.prototype.hasOwnProperty.call(options, "transport");
 }
 
 function createAsyncQueue<T>(): AsyncQueue<T> {

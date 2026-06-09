@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { EventEmitter } from "node:events";
 import type { AcpTransport } from "./acp-transport.js";
 import { AcpClient } from "./acp-client.js";
 import {
@@ -450,7 +452,67 @@ function createTransportMock(): TransportMock {
   };
 }
 
+function createMockChildProcess(): ChildProcessWithoutNullStreams {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const child = new EventEmitter() as unknown as ChildProcessWithoutNullStreams & {
+    killed: boolean;
+    exitCode: number | null;
+    signalCode: NodeJS.Signals | null;
+    kill: (signal?: NodeJS.Signals | number) => boolean;
+  };
+
+  let closed = false;
+  const emitClose = (code: number | null = 0, signal: NodeJS.Signals | null = null) => {
+    if (closed) {
+      return;
+    }
+    closed = true;
+    child.exitCode = code;
+    child.signalCode = signal;
+    child.emit("close", code, signal);
+  };
+
+  child.stdin = stdin;
+  child.stdout = stdout;
+  child.stderr = stderr;
+  child.killed = false;
+  child.exitCode = null;
+  child.signalCode = null;
+  child.kill = vi.fn<(signal?: NodeJS.Signals | number) => boolean>((signal) => {
+    child.killed = true;
+    emitClose(null, typeof signal === "string" ? signal : "SIGTERM");
+    return true;
+  });
+
+  return child;
+}
+
 describe("AcpClient", () => {
+  it("ignores inherited transports when process options provide a command", async () => {
+    const inherited = createTransportMock();
+    const child = createMockChildProcess();
+    const spawn = vi.fn(() => child);
+
+    const client = withObjectPrototypeProperties({ transport: inherited.transport }, () =>
+      new AcpClient({
+        command: "poe-agent",
+        spawn
+      })
+    );
+
+    await client.dispose();
+
+    expect(spawn).toHaveBeenCalledWith(
+      "poe-agent",
+      [],
+      expect.objectContaining({ stdio: ["pipe", "pipe", "pipe"] })
+    );
+    expect(inherited.onRequestMock).not.toHaveBeenCalled();
+    expect(inherited.onNotificationMock).not.toHaveBeenCalled();
+  });
+
   it("sends initialize with client details and stores agent metadata", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     const initializeResponse: InitializeResponse = {

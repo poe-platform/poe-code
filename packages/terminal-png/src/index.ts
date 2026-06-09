@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { rename, rm, writeFile } from "node:fs/promises";
 import { parseAnsi } from "./ansi-parser.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { renderPng } from "./png-renderer.js";
 import { renderSvg } from "./svg-renderer.js";
 
@@ -48,11 +49,7 @@ export async function renderTerminalPng(
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    error instanceof Error &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return error instanceof Error && hasOwnErrorCode(error, "EEXIST");
 }
 
 export * from "./ansi-parser.js";

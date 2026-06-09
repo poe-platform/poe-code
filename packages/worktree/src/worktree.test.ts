@@ -32,6 +32,33 @@ function createMockExec(): ExecFn {
   return vi.fn<ExecFn>().mockResolvedValue({ stdout: "", stderr: "" });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function makeEntry(overrides: Partial<Worktree> = {}): Worktree {
   return {
     name: "test-worktree",
@@ -352,6 +379,20 @@ describe("readRegistry", () => {
     const fs = createMemFs();
     const registry = await readRegistry(REGISTRY, fs);
     expect(registry).toEqual({ worktrees: [] });
+  });
+
+  it("does not treat inherited lstat error codes as missing registries", async () => {
+    const baseFs = createMemFs({ [REGISTRY]: "worktrees: []\n" });
+    const fs = {
+      ...baseFs,
+      lstat: vi.fn(async () => {
+        throw new Error("registry lstat denied");
+      })
+    } as WorktreeFileSystem;
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow("registry lstat denied");
+    });
   });
 
   it("parses existing registry YAML", async () => {

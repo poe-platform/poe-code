@@ -298,6 +298,7 @@ describe("superintendent complete command", () => {
     const targetPath = "/repo/docs/plans/feature.md";
     const volume = Volume.fromJSON({ [targetPath]: document }, "/");
     const rawFs = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
 
     await expect(completeCommand.handler({
       params: { path: targetPath },
@@ -309,8 +310,13 @@ describe("superintendent complete command", () => {
           const stat = await rawFs.lstat(filePath);
           return { isSymbolicLink: () => stat.isSymbolicLink() };
         },
-        writeFile: async (filePath: string, content: string) => {
-          await rawFs.writeFile(filePath, content.slice(0, 12));
+        writeFile: async (
+          filePath: string,
+          content: string,
+          options?: { encoding?: BufferEncoding; flag?: string }
+        ) => {
+          temporaryPath = filePath;
+          await rawFs.writeFile(filePath, content.slice(0, 12), options);
           throw new Error("disk full");
         },
         rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
@@ -321,5 +327,10 @@ describe("superintendent complete command", () => {
       progress: vi.fn()
     })).rejects.toThrow("disk full");
     await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
+    expect(temporaryPath?.startsWith(`${targetPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(rawFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });

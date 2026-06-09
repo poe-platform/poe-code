@@ -346,9 +346,12 @@ describe("ralphDriver", () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": original
     });
+    let tempPath: string | undefined;
     const realWriteFile = fs.writeFile.bind(fs);
     vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
       if (String(filePath).startsWith(`/repo/docs/plans/.ralph-plan.md.${process.pid}.`)) {
+        tempPath = String(filePath);
+        await realWriteFile(filePath, "partial\n", options);
         throw new Error("disk full");
       }
 
@@ -368,6 +371,8 @@ describe("ralphDriver", () => {
       error: "disk full"
     });
     await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(original);
+    expect(tempPath).toBeDefined();
+    await expect(fs.readFile(tempPath as string, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("does not follow a temp symlink inserted before plan publication", async () => {

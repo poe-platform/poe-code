@@ -845,10 +845,12 @@ describe("runMutations", () => {
     it("does not corrupt an existing document when replacement write fails", async () => {
       const targetPath = `${homeDir}/.config.json`;
       const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"existing":true}\n' })).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
       const fs: FileSystem = {
         ...base,
         async writeFile(filePath, data, options) {
           if (filePath.includes(".mutation-tmp-")) {
+            tempPath = filePath;
             await base.writeFile(filePath, "{", options);
             throw new Error("config disk full");
           }
@@ -860,6 +862,10 @@ describe("runMutations", () => {
         runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
       ).rejects.toThrow("config disk full");
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+      expect(tempPath).toBeDefined();
+      await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+        code: "ENOENT"
+      });
     });
 
     it("does not remove a colliding mutation temp symlink", async () => {

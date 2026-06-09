@@ -112,11 +112,8 @@ async function writeAtomically(
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error)) {
-        continue;
-      }
-
-      if (tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (tempCreated || !alreadyExists) {
         try {
           await context.fs.unlink(tempPath);
         } catch (cleanupError) {
@@ -125,6 +122,11 @@ async function writeAtomically(
           }
         }
       }
+
+      if (alreadyExists) {
+        continue;
+      }
+
       throw error;
     }
   }

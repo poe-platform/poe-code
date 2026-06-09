@@ -30,23 +30,39 @@ export function parseAuthorizationState(
 
   try {
     const decoded = Buffer.from(value, "base64url").toString("utf8");
-    const parsed = JSON.parse(decoded) as Partial<AuthorizationStatePayload>;
+    const parsed = JSON.parse(decoded) as unknown;
+    if (!isObjectRecord(parsed)) {
+      return null;
+    }
+
+    const version = getOwnEntry(parsed, "v");
+    const nonce = getOwnEntry(parsed, "n");
+    const issuer = getOwnEntry(parsed, "i");
+    const requireIssuer = getOwnEntry(parsed, "r");
     if (
-      parsed.v !== 1
-      || typeof parsed.n !== "string"
-      || parsed.n.length === 0
-      || typeof parsed.i !== "string"
-      || parsed.i.length === 0
-      || typeof parsed.r !== "boolean"
+      version !== 1
+      || typeof nonce !== "string"
+      || nonce.length === 0
+      || typeof issuer !== "string"
+      || issuer.length === 0
+      || typeof requireIssuer !== "boolean"
     ) {
       return null;
     }
 
     return {
-      issuer: parsed.i,
-      requireIssuer: parsed.r,
+      issuer,
+      requireIssuer,
     };
   } catch {
     return null;
   }
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }

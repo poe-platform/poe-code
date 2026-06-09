@@ -3008,6 +3008,25 @@ describe("parseSessionUpdate", () => {
 // run-report.test.ts
 // ---------------------------------------------------------------------------
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true,
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("generateRunReportFromSessionUpdateStream", () => {
   it("builds a run report with tool calls, usage, and errors", async () => {
     const streamItems = [
@@ -3359,13 +3378,15 @@ describe("saveRunReport", () => {
       realpath: (path) => baseFs.realpath(path) as Promise<string>,
     };
 
-    await expect(
-      saveRunReport(report, {
-        fs,
-        homeDir: "/home/test",
-        now: () => new Date("2026-05-25T01:02:03.004Z"),
-      })
-    ).rejects.toThrow("json report disk full");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        saveRunReport(report, {
+          fs,
+          homeDir: "/home/test",
+          now: () => new Date("2026-05-25T01:02:03.004Z"),
+        })
+      ).rejects.toThrow("json report disk full");
+    });
 
     const entries = await baseFs.readdir("/home/test/.poe-code/reports");
     expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);

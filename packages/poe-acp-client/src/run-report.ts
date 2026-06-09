@@ -209,8 +209,11 @@ async function writeReportFile(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "EEXIST"
   );
 }
 

@@ -22,9 +22,22 @@ describe("downloadToFile", () => {
     const outputPath = "/repo/generated/image.png";
     const volume = Volume.fromJSON({ [outputPath]: Buffer.from("old-image") });
     const base = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
     const fs = {
-      async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView): Promise<void> {
-        await base.writeFile(filePath, filePath === outputPath ? Buffer.from("new") : data);
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { flag?: string }
+      ): Promise<void> {
+        if (filePath.startsWith(`${outputPath}.`) && filePath.endsWith(".tmp")) {
+          temporaryPath = filePath;
+        }
+
+        await base.writeFile(
+          filePath,
+          filePath === outputPath ? Buffer.from("new") : data,
+          options
+        );
         throw new Error("media disk full");
       },
       rename: (oldPath: string, newPath: string) => base.rename(oldPath, newPath),
@@ -42,6 +55,10 @@ describe("downloadToFile", () => {
     })).rejects.toBeInstanceOf(MediaDownloadError);
 
     expect(await base.readFile(outputPath, "utf8")).toBe("old-image");
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not remove a colliding media temp symlink", async () => {

@@ -60,8 +60,8 @@ export async function downloadToFile(options: {
     temporaryCreated = true;
     await options.fs.rename(temporaryPath, options.outputPath);
     temporaryCreated = false;
-  } catch {
-    if (temporaryCreated) {
+  } catch (error) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await options.fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw new MediaDownloadError("Failed to write media", {
@@ -70,4 +70,8 @@ export async function downloadToFile(options: {
       outputPath: options.outputPath
     });
   }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }

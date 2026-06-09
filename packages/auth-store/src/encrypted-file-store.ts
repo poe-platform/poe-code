@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes, randomUUID, scrypt } fro
 import { promises as fs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { SecretStore } from "./types.js";
 
 const derivedKeyCache = new Map<string, Promise<Buffer>>();
@@ -334,19 +335,9 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 }
 
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as NodeJS.ErrnoException).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as NodeJS.ErrnoException).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }

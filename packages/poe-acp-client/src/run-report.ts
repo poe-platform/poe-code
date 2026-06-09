@@ -194,10 +194,11 @@ async function writeReportFile(
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error) && !tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (alreadyExists && !tempCreated) {
         continue;
       }
-      if (tempCreated) {
+      if (tempCreated || !alreadyExists) {
         await fs.rm(tempPath, { force: true }).catch(() => undefined);
       }
       throw error;

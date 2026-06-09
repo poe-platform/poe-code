@@ -3330,6 +3330,50 @@ describe("saveRunReport", () => {
     );
   });
 
+  it("cleans a partial JSON report temp file when the temp write fails", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const baseFs = createFsFromVolume(volume).promises;
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+    const fs: RunReportFileSystem = {
+      mkdir: (path, options) => baseFs.mkdir(path, options),
+      writeFile: async (path, data, options) => {
+        if (
+          path.startsWith("/home/test/.poe-code/reports/.20260525-010203-004-run-1.json.") &&
+          path.endsWith(".tmp")
+        ) {
+          await baseFs.writeFile(path, "partial\n", options);
+          throw new Error("json report disk full");
+        }
+        await baseFs.writeFile(path, data, options);
+      },
+      rm: (path, options) => baseFs.rm(path, options),
+      rename: (oldPath, newPath) => baseFs.rename(oldPath, newPath),
+      realpath: (path) => baseFs.realpath(path) as Promise<string>,
+    };
+
+    await expect(
+      saveRunReport(report, {
+        fs,
+        homeDir: "/home/test",
+        now: () => new Date("2026-05-25T01:02:03.004Z"),
+      })
+    ).rejects.toThrow("json report disk full");
+
+    const entries = await baseFs.readdir("/home/test/.poe-code/reports");
+    expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);
+    await expect(
+      baseFs.readFile("/home/test/.poe-code/reports/20260525-010203-004-run-1.json", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("uses distinct file paths for run ids that sanitize identically", async () => {
     const volume = new Volume();
     const fs = createFsFromVolume(volume).promises;

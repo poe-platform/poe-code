@@ -50,24 +50,29 @@ async function resolveMemoryConfig(
   options: MemoryConfigOptions
 ): Promise<ResolvedMemoryConfig> {
   const document = await readMergedDocument(options.fs, options.filePath, options.projectFilePath);
-  const memory = asRecord(document.memory);
-  const cache = asRecord(memory?.cache);
-  const mcp = asRecord(memory?.mcp);
-  const query = asRecord(memory?.query);
+  const memory = getOwnRecordEntry(document, "memory");
+  const cache = getOwnRecordEntry(memory, "cache");
+  const mcp = getOwnRecordEntry(memory, "mcp");
+  const query = getOwnRecordEntry(memory, "query");
 
   return {
-    root: readString(memory?.root),
-    ingestAgent: readString(memory?.ingestAgent),
-    ingestTimeoutMs: readNumber(memory?.ingestTimeoutMs) ?? 300_000,
-    cacheEnabled: readBoolean(cache?.enabled) ?? true,
-    mcpWritesAllowed: readBoolean(mcp?.allowWrites) ?? false,
-    defaultQueryBudget: readNumber(query?.defaultBudgetTokens) ?? 4_096
+    root: readString(getOwnEntry(memory, "root")),
+    ingestAgent: readString(getOwnEntry(memory, "ingestAgent")),
+    ingestTimeoutMs: readNumber(getOwnEntry(memory, "ingestTimeoutMs")) ?? 300_000,
+    cacheEnabled: readBoolean(getOwnEntry(cache, "enabled")) ?? true,
+    mcpWritesAllowed: readBoolean(getOwnEntry(mcp, "allowWrites")) ?? false,
+    defaultQueryBudget: readNumber(getOwnEntry(query, "defaultBudgetTokens")) ?? 4_096
   };
 }
 
-function asRecord(value: unknown): Record<string, unknown> | undefined {
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = getOwnEntry(record, key);
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
+    return {};
   }
 
   return value as Record<string, unknown>;

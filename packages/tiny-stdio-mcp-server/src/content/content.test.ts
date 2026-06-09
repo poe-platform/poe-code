@@ -4,6 +4,33 @@ import { toContentBlocks, type ContentBlock, type TextContent } from "./convert.
 import { Image } from "./image.js";
 import { File } from "./file.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 // --- Audio ---
 
 describe("Audio", () => {
@@ -640,6 +667,20 @@ describe("toContentBlocks", () => {
         { type: "text", text: "raw" },
         { type: "text", text: "string" }
       ]);
+    });
+
+    it("does not pass through objects with inherited content block fields", () => {
+      withObjectPrototypeProperties({ type: "text" }, () => {
+        expect(toContentBlocks({ text: "raw" } as never)).toEqual([
+          { type: "text", text: '{"text":"raw"}' }
+        ]);
+      });
+
+      withObjectPrototypeProperties({ text: "polluted" }, () => {
+        expect(toContentBlocks({ type: "text" } as never)).toEqual([
+          { type: "text", text: '{"type":"text"}' }
+        ]);
+      });
     });
   });
 

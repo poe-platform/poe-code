@@ -486,12 +486,12 @@ function isStatusOption(value: unknown): value is StatusOption {
   return (
     typeof value === "object" &&
     value !== null &&
-    "id" in value &&
+    hasOwnProperty(value, "id") &&
     typeof value.id === "string" &&
-    "name" in value &&
+    hasOwnProperty(value, "name") &&
     typeof value.name === "string" &&
-    (!("color" in value) || typeof value.color === "string") &&
-    (!("description" in value) || typeof value.description === "string")
+    (!hasOwnProperty(value, "color") || typeof value.color === "string") &&
+    (!hasOwnProperty(value, "description") || typeof value.description === "string")
   );
 }
 
@@ -499,11 +499,18 @@ function isStatusField(value: unknown): value is StatusField {
   return (
     typeof value === "object" &&
     value !== null &&
-    "id" in value &&
+    hasOwnProperty(value, "id") &&
     typeof value.id === "string" &&
-    (!("name" in value) || typeof value.name === "string") &&
-    "options" in value &&
+    (!hasOwnProperty(value, "name") || typeof value.name === "string") &&
+    hasOwnProperty(value, "options") &&
     Array.isArray(value.options) &&
     value.options.every(isStatusOption)
   );
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

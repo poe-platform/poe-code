@@ -2,6 +2,7 @@ import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script";
 import { defineCommand, type Group, type Scope } from "toolcraft";
 import { S } from "toolcraft-schema";
 
+import { getOwnErrorCode } from "./error-codes.js";
 import { buildHostModules } from "./host-modules.js";
 import type { CommandEntryList } from "./tree.js";
 
@@ -65,16 +66,7 @@ function createBudget(options: ExecuteBudgetOptions | undefined): Budget {
 }
 
 function readErrorCode(error: unknown): string | undefined {
-  if (
-    typeof error !== "object" ||
-    error === null ||
-    !Object.prototype.hasOwnProperty.call(error, "code")
-  ) {
-    return undefined;
-  }
-
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
+  return getOwnErrorCode(error);
 }
 
 function readStringProperty(error: unknown, name: "message" | "stack"): string | undefined {

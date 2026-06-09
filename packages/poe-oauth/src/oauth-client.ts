@@ -163,42 +163,64 @@ async function exchangeCodeForApiKey(params: {
     throw new Error("Token response must be a JSON object");
   }
   const data = value as Record<string, unknown>;
+  const apiKey = getOwnString(data, "api_key");
+  const apiKeyExpiresIn = getOwnEntry(data, "api_key_expires_in");
 
-  if (typeof data.api_key !== "string" || data.api_key.trim().length === 0) {
+  if (apiKey === undefined || apiKey.trim().length === 0) {
     throw new Error("Token response missing api_key field");
   }
 
   if (
-    "api_key_expires_in" in data
+    apiKeyExpiresIn !== undefined
     && (
-      typeof data.api_key_expires_in !== "number"
-      || !Number.isFinite(data.api_key_expires_in)
-      || data.api_key_expires_in < 0
+      typeof apiKeyExpiresIn !== "number"
+      || !Number.isFinite(apiKeyExpiresIn)
+      || apiKeyExpiresIn < 0
     )
   ) {
     throw new Error("Token response invalid api_key_expires_in field");
   }
 
   return {
-    apiKey: data.api_key,
+    apiKey,
     expiresIn:
-      typeof data.api_key_expires_in === "number"
-        ? data.api_key_expires_in
+      typeof apiKeyExpiresIn === "number"
+        ? apiKeyExpiresIn
         : null
   };
 }
 
 function parseErrorDescription(text: string): string | null {
   try {
-    const data = JSON.parse(text) as Record<string, unknown>;
-    if (typeof data.error_description === "string") {
-      return data.error_description;
+    const data = JSON.parse(text) as unknown;
+    if (!isObjectRecord(data)) {
+      return null;
     }
-    if (typeof data.error === "string") {
-      return data.error;
+
+    const errorDescription = getOwnString(data, "error_description");
+    if (errorDescription !== undefined) {
+      return errorDescription;
+    }
+
+    const error = getOwnString(data, "error");
+    if (error !== undefined) {
+      return error;
     }
   } catch {
     // not JSON
   }
   return null;
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnString(record: Record<string, unknown>, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
 }

@@ -40,8 +40,8 @@ export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity
     }
 
     return {
-      email: typeof data.email === "string" && data.email.length > 0 ? data.email : null,
-      balance: typeof data.current_point_balance === "number" ? data.current_point_balance : null
+      email: getOwnString(data, "email") ?? null,
+      balance: getOwnNumber(data, "current_point_balance") ?? null
     };
   } catch {
     return null;
@@ -60,14 +60,32 @@ function isCurrentBalanceResponse(value: unknown): value is CurrentBalanceRespon
     return false;
   }
 
-  const data = value as CurrentBalanceResponse;
-  const hasEmail = typeof data.email === "string" && data.email.length > 0;
-  const hasBalance = data.current_point_balance !== undefined;
+  const data = value as Record<string, unknown>;
+  const email = getOwnString(data, "email");
+  const balance = getOwnEntry(data, "current_point_balance");
+  const hasEmail = email !== undefined && email.length > 0;
+  const hasBalance = balance !== undefined;
   if (!hasEmail && !hasBalance) {
     return false;
   }
 
-  return data.current_point_balance === undefined
-    || data.current_point_balance === null
-    || (typeof data.current_point_balance === "number" && Number.isFinite(data.current_point_balance));
+  return balance === undefined
+    || balance === null
+    || (typeof balance === "number" && Number.isFinite(balance));
+}
+
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
+}
+
+function getOwnString(record: object, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function getOwnNumber(record: object, key: string): number | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "number" ? value : undefined;
 }

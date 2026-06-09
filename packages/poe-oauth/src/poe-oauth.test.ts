@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import http from "node:http";
+import {
+  createAuthorizationState,
+  parseAuthorizationState,
+} from "./authorization-state.js";
 import { checkAuth } from "./check-auth.js";
 import { createOAuthClient } from "./oauth-client.js";
 import type { OAuthClientConfig } from "./oauth-client.js";
@@ -103,6 +107,37 @@ function createCallbackPath(authorizationUrl: string, code: string): string {
     callback.searchParams.set("state", state);
   }
   return `${callback.pathname}${callback.search}`;
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
+function encodeStatePayload(payload: unknown): string {
+  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
 }
 
 describe("checkAuth", () => {
@@ -241,6 +276,22 @@ describe("checkAuth", () => {
     await expect(
       checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
     ).resolves.toBeNull();
+  });
+
+  it("ignores inherited identity response fields", async () => {
+    const fetchMock = vi.fn(async () => new Response("{}", { status: 200 }));
+
+    await withObjectPrototypeProperties(
+      {
+        email: "polluted@example.com",
+        current_point_balance: 42
+      },
+      async () => {
+        await expect(
+          checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
+        ).resolves.toBeNull();
+      }
+    );
   });
 
   it("returns null when a successful response contains a non-finite balance", async () => {
@@ -424,6 +475,38 @@ describe("OAuthClient", () => {
     );
   });
 
+  it("ignores inherited token endpoint error fields", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({}), {
+        status: 400,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    const config = createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "bad-code"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        error_description: "polluted description",
+        error: "polluted_error"
+      },
+      async () => {
+        const client = createOAuthClient(config);
+        const authorization = await client.authorize();
+        await expect(authorization.waitForResult()).rejects.toThrow(
+          "Token exchange failed (400): {}"
+        );
+      }
+    );
+  });
+
   it("throws error code when token endpoint returns error without description", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () =>
@@ -466,6 +549,35 @@ describe("OAuthClient", () => {
     const client = createOAuthClient(config);
     const authorization = await client.authorize();
     await expect(authorization.waitForResult()).rejects.toThrow("api_key");
+  });
+
+  it("ignores inherited token response fields", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+    const config = createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "code"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        api_key: "sk-polluted",
+        api_key_expires_in: 3600
+      },
+      async () => {
+        const client = createOAuthClient(config);
+        const authorization = await client.authorize();
+        await expect(authorization.waitForResult()).rejects.toThrow("api_key");
+      }
+    );
   });
 
   it("throws when token response api_key contains only whitespace", async () => {
@@ -772,4 +884,32 @@ describe("OAuthClient", () => {
     await expect(authorization.waitForResult()).resolves.toEqual({ apiKey: "sk-key", expiresIn: null });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   }, 100);
+});
+
+describe("authorization state", () => {
+  it("round-trips generated authorization state", () => {
+    const state = createAuthorizationState({
+      issuer: "https://poe.com",
+      requireIssuer: false,
+    });
+
+    expect(parseAuthorizationState(state)).toEqual({
+      issuer: "https://poe.com",
+      requireIssuer: false,
+    });
+  });
+
+  it("ignores inherited decoded authorization state fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        v: 1,
+        n: "polluted-nonce",
+        i: "https://polluted.example.com",
+        r: true,
+      },
+      async () => {
+        expect(parseAuthorizationState(encodeStatePayload({}))).toBeNull();
+      }
+    );
+  });
 });

@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import type { Command, Group } from "./index.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { defineGroup } from "./index.js";
 import { runCLI } from "./cli.js";
 import { resolveMcpProxies } from "./mcp-proxy.js";
@@ -297,7 +298,7 @@ async function readNumberFile(filePath: string): Promise<number> {
     const value = (await readFile(filePath, "utf8")).trim();
     return value.length === 0 ? 0 : Number.parseInt(value, 10);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return 0;
     }
 
@@ -313,7 +314,7 @@ async function readLinesFile(filePath: string): Promise<string[]> {
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return [];
     }
 
@@ -325,7 +326,7 @@ async function removeFileIfPresent(filePath: string): Promise<void> {
   try {
     await unlink(filePath);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
@@ -344,7 +345,7 @@ async function pathExists(filePath: string): Promise<boolean> {
     await stat(filePath);
     return true;
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
 
@@ -375,7 +376,7 @@ async function waitForProcessExit(pid: number, timeoutMs = 5000): Promise<void> 
       process.kill(pid, 0);
       return false;
     } catch (error) {
-      return (error as NodeJS.ErrnoException).code === "ESRCH";
+      return hasOwnErrorCode(error, "ESRCH");
     }
   }, timeoutMs);
 }
@@ -390,7 +391,7 @@ async function killWrapper(harness: ProxyHarness): Promise<void> {
   try {
     process.kill(pidValue, "SIGTERM");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ESRCH") {
+    if (!hasOwnErrorCode(error, "ESRCH")) {
       throw error;
     }
   }

@@ -12,6 +12,7 @@ const result = await spawn("codex", {
   cwd: process.cwd(),
   mode: "edit",
   model: "openai/gpt-5.5",
+  env: { WORKSPACE_ID: "workspace-1" },
   mcpServers: {
     fs: { command: "node", args: ["./mcp/fs.js"], timeout: 30 }
   }
@@ -82,6 +83,7 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
 | `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
 | `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
+| `env`                                | `Record<string, string>`         | Per-invocation child environment overrides. Caller values take precedence.              |
 | `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
 | `captureOtel`                        | `boolean`                        | Capture native agent OTLP/HTTP JSON on host-runtime spawns. |
 | `captureOtelContent`                 | `boolean`                        | Opt in to native prompt/tool content capture. |
@@ -95,4 +97,4 @@ Native capture sets a per-spawn `poe.code.spawn.id` resource attribute and store
 
 ## Environment variables
 
-This package does not expose public environment variables. It inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes, `GOOSE_DISABLE_KEYRING=1` for Goose file-backed credentials, or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection.
+This package does not expose public environment variables. It inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes, `GOOSE_DISABLE_KEYRING=1` for Goose file-backed credentials, or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection. Per-invocation `env` values override inherited and agent-specific values without mutating `process.env`.

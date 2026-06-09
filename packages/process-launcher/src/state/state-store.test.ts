@@ -324,6 +324,7 @@ describe("createStateStore", () => {
     const updated = createProcessState("alpha", { pid: null, status: "crashed", lastExitCode: 1 });
     const store = createStateStore("/state", base);
     await store.write(initial.id, initial);
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       writeFile: async (
@@ -332,6 +333,7 @@ describe("createStateStore", () => {
         options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
       ) => {
         if (filePath.startsWith(`${statePath}.`) && filePath.endsWith(".tmp")) {
+          temporaryPath = filePath;
           await rawFs.writeFile(filePath, "{", options ?? { encoding: "utf8" });
           throw new Error("state disk full");
         }
@@ -342,5 +344,9 @@ describe("createStateStore", () => {
 
     await expect(createStateStore("/state", fs).write(updated.id, updated)).rejects.toThrow("state disk full");
     await expect(store.read(initial.id)).resolves.toEqual(initial);
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });

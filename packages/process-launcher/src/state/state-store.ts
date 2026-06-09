@@ -9,6 +9,10 @@ function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
+function isAlreadyExistsError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
+}
+
 function resolveProcessDir(stateDir: string, id: string): string {
   assertValidManagedProcessId(id);
   return path.join(stateDir, id);
@@ -131,7 +135,7 @@ export function createStateStore(
       await assertPathHasNoSymbolicLinks(fs, statePath);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
       }
       throw error;

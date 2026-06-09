@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { constants } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 const TERMINATION_GRACE_MS = 1_000;
 const PROCESS_GROUP_POLL_MS = 25;
@@ -148,9 +149,12 @@ export function runCommand(
     });
 
     child.on("error", (error: NodeJS.ErrnoException) => {
+      const ownCode = Object.prototype.hasOwnProperty.call(error, "code")
+        ? error.code
+        : undefined;
       const exitCode =
-        typeof error.code === "number"
-          ? error.code
+        typeof ownCode === "number"
+          ? ownCode
           : typeof error.errno === "number"
             ? error.errno
             : 127;
@@ -210,12 +214,7 @@ function isProcessGroupAlive(pid: number): boolean {
 }
 
 function isNoSuchProcess(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ESRCH"
-  );
+  return hasOwnErrorCode(error, "ESRCH");
 }
 
 function signalExitCode(signal: NodeJS.Signals | null): number {

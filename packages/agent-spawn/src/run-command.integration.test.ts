@@ -63,9 +63,8 @@ function killIfAlive(pid: number): void {
 
 function isNoSuchProcess(error: unknown): boolean {
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ESRCH"
+    error instanceof Error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === "ESRCH"
   );
 }

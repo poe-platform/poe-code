@@ -1,6 +1,7 @@
 import path from "node:path";
 import { homedir } from "node:os";
 import { lstat, mkdir, realpath } from "node:fs/promises";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 export function getDefaultSpawnLogDir(): string {
   return path.join(homedir(), ".poe-code", "spawn-logs");
@@ -45,7 +46,7 @@ async function assertNotSymbolicLink(targetPath: string): Promise<void> {
       throw new Error(`Default spawn log path may not contain symbolic links: ${targetPath}`);
     }
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return;
     }
     throw error;

@@ -20,6 +20,33 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
   return { fs: fsMem, vol };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function normalizeNewlines(value: string): string {
   return value.replaceAll("\r\n", "\n");
 }
@@ -261,6 +288,27 @@ describe("configure", () => {
 
     await expect(configure("claude-code", { fs: memFs, homeDir, cwd })).rejects.toThrow("already exists");
     await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe("user skill");
+  });
+
+  it("does not treat inherited stat error codes as missing bundled skills", async () => {
+    const targetPath = `${homeDir}/.claude/skills/poe-generate.md`;
+    let denied = false;
+    const fsWithDeniedStat: FileSystem = {
+      ...memFs,
+      stat: async (filePath) => {
+        if (filePath === targetPath && !denied) {
+          denied = true;
+          throw new Error("stat denied");
+        }
+
+        return memFs.stat(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(configure("claude-code", { fs: fsWithDeniedStat, homeDir, cwd }))
+        .rejects.toThrow("stat denied");
+    });
   });
 
   it("is idempotent when the bundled skill is already installed", async () => {

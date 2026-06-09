@@ -29,7 +29,12 @@ async function pathExists(fs: ApplyOptions["fs"], targetPath: string): Promise<b
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      Object.prototype.hasOwnProperty.call(error, "code") &&
+      (error as { code?: unknown }).code === "ENOENT"
+    ) {
       return false;
     }
     throw error;

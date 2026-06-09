@@ -1028,11 +1028,15 @@ describe("persist", () => {
     const fs = createMemFs({
       "/cache/test.json": JSON.stringify({ data: "prior", timestamp: 1 }),
     });
-    fs.writeFile = async (path, data) => {
+    const writeFile = fs.writeFile.bind(fs);
+    let temporaryPath: string | undefined;
+    fs.writeFile = async (path, data, options) => {
       if (path === "/cache/test.json") {
         await Promise.reject(new Error("unexpected direct overwrite"));
       }
       if (path.includes(".tmp")) {
+        temporaryPath = path;
+        await writeFile(path, `partial: ${data}`, options);
         throw new Error(`disk full: ${data}`);
       }
     };
@@ -1041,6 +1045,10 @@ describe("persist", () => {
       persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs }),
     ).resolves.not.toThrow();
     await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("prior");
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow or remove a colliding temporary cache symlink", async () => {

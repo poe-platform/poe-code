@@ -164,7 +164,7 @@ async function writeCacheFileOnce(
     temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !hasCode(error, "EEXIST")) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;

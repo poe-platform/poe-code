@@ -43,8 +43,8 @@ export class KeychainStore implements SecretStore {
       "read secret from macOS Keychain"
     );
 
-    if (result.exitCode === 0) {
-      return stripTrailingLineBreak(result.stdout);
+    if (getCommandExitCode(result) === 0) {
+      return stripTrailingLineBreak(getCommandOutput(result, "stdout"));
     }
 
     if (isKeychainEntryNotFound(result)) {
@@ -73,7 +73,7 @@ export class KeychainStore implements SecretStore {
       { stdin: value }
     );
 
-    if (result.exitCode !== 0) {
+    if (getCommandExitCode(result) !== 0) {
       throw createSecurityCliFailure("store secret in macOS Keychain", result);
     }
   }
@@ -84,7 +84,7 @@ export class KeychainStore implements SecretStore {
       "delete secret from macOS Keychain"
     );
 
-    if (result.exitCode === 0 || isKeychainEntryNotFound(result)) {
+    if (getCommandExitCode(result) === 0 || isKeychainEntryNotFound(result)) {
       return;
     }
 
@@ -188,19 +188,41 @@ function stripTrailingLineBreak(value: string): string {
 }
 
 function isKeychainEntryNotFound(result: KeychainCommandResult): boolean {
-  return result.exitCode === KEYCHAIN_ITEM_NOT_FOUND_EXIT_CODE;
+  return getCommandExitCode(result) === KEYCHAIN_ITEM_NOT_FOUND_EXIT_CODE;
 }
 
 function createSecurityCliFailure(
   operation: string,
   result: KeychainCommandResult
 ): Error {
-  const details = result.stderr.trim() || result.stdout.trim();
+  const exitCode = getCommandExitCode(result);
+  const details =
+    getCommandOutput(result, "stderr").trim()
+    || getCommandOutput(result, "stdout").trim();
   if (details) {
     return new Error(
-      `Failed to ${operation}: security exited with code ${result.exitCode}: ${details}`
+      `Failed to ${operation}: security exited with code ${exitCode}: ${details}`
     );
   }
 
-  return new Error(`Failed to ${operation}: security exited with code ${result.exitCode}`);
+  return new Error(`Failed to ${operation}: security exited with code ${exitCode}`);
+}
+
+function getCommandExitCode(result: KeychainCommandResult): number {
+  const value = getOwnEntry(result, "exitCode");
+  return typeof value === "number" && Number.isInteger(value) ? value : 1;
+}
+
+function getCommandOutput(
+  result: KeychainCommandResult,
+  key: "stdout" | "stderr"
+): string {
+  const value = getOwnEntry(result, key);
+  return typeof value === "string" ? value : "";
+}
+
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
 }

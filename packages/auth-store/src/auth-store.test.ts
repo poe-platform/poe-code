@@ -653,6 +653,20 @@ describe("KeychainStore", () => {
     ]);
   });
 
+  it("does not read inherited keychain command result fields", async () => {
+    const inheritedResult = Object.create({
+      stdout: "polluted-secret\n",
+      stderr: "",
+      exitCode: 0
+    }) as { stdout: string; stderr: string; exitCode: number };
+    const runCommand = vi.fn(async () => inheritedResult);
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.get()).rejects.toThrow(
+      "Failed to read secret from macOS Keychain: security exited with code 1"
+    );
+  });
+
   it("rejects secrets with trailing line breaks before writing", async () => {
     const runCommand = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
     const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });

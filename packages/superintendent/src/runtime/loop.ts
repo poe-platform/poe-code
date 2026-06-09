@@ -537,10 +537,11 @@ async function writeDocumentContent(
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error) && !tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (alreadyExists && !tempCreated) {
         continue;
       }
-      if (tempCreated) {
+      if (tempCreated || !alreadyExists) {
         await fs.unlink?.(tempPath).catch(() => undefined);
       }
       throw error;

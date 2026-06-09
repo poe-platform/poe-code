@@ -33,7 +33,7 @@ export function hasErrorCode(error: unknown, code: string): boolean {
   return (
     !!error &&
     typeof error === "object" &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as { code?: unknown }).code === code
   );
 }

@@ -1,9 +1,56 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { TaskListFs } from "../types.js";
 import { createFs } from "./test-helpers.js";
-import { withFileLock, writeAtomically } from "./utils.js";
+import { hasErrorCode, statIfExists, withFileLock, writeAtomically } from "./utils.js";
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("backend utilities", () => {
+  it("does not match inherited filesystem error codes", async () => {
+    await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+      expect(hasErrorCode(new Error("permission denied"), "ENOENT")).toBe(false);
+    });
+  });
+
+  it("does not hide stat errors with inherited missing-file codes", async () => {
+    const { rawFs } = createFs({});
+    const fs = {
+      ...rawFs,
+      stat: vi.fn(async () => {
+        throw new Error("task stat denied");
+      })
+    } as TaskListFs;
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(statIfExists(fs, "/repo/tasks.yaml")).rejects.toThrow("task stat denied");
+    });
+  });
+
   it("does not remove a colliding atomic write temp symlink", async () => {
     const { rawFs, volume } = createFs({
       "/outside.tmp": "outside-state\n"

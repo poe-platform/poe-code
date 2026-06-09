@@ -28,6 +28,33 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { syml
   } as EvalFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("loadSourceConfig", () => {
   const source: EvalSource = { rootDir: "/repo/evals" };
 
@@ -103,6 +130,26 @@ describe("loadSourceConfig", () => {
     await expect(loadSourceConfig(source, fs)).rejects.toThrow(
       "Failed to parse /repo/evals/.poe-code-eval.json:"
     );
+  });
+
+  it("does not treat inherited read error codes as missing source config", async () => {
+    const raw = memfs({
+      "/repo/evals/.poe-code-eval.json": JSON.stringify({ out: "runs" })
+    });
+    const fs: EvalFs = {
+      ...raw,
+      readFile: async (filePath, encoding) => {
+        if (filePath === "/repo/evals/.poe-code-eval.json") {
+          throw new Error("config read denied");
+        }
+
+        return raw.readFile(filePath, encoding);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(loadSourceConfig(source, fs)).rejects.toThrow("config read denied");
+    });
   });
 
   it("rejects config files symlinked outside the source directory", async () => {

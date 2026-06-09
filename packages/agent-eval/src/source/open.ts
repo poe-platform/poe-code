@@ -46,7 +46,8 @@ function isMissingPath(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    ((error as { code?: unknown }).code === "ENOENT" ||
+      (error as { code?: unknown }).code === "ENOTDIR")
   );
 }

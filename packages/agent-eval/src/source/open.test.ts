@@ -25,6 +25,33 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
   } as EvalFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("openSource", () => {
   it("rejects a directory without any first-level eval.yaml", async () => {
     const fs = memfs({
@@ -58,6 +85,26 @@ describe("openSource", () => {
     await expect(openSource("/repo/evals", fs)).rejects.toThrow(
       'Eval source "/repo/evals" is not a directory.'
     );
+  });
+
+  it("does not treat inherited stat error codes as missing source directories", async () => {
+    const raw = memfs({
+      "/repo/evals/smoke/eval.yaml": "id: smoke"
+    });
+    const fs: EvalFs = {
+      ...raw,
+      stat: async (filePath) => {
+        if (filePath === "/repo/evals") {
+          throw new Error("source stat denied");
+        }
+
+        return raw.stat(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(openSource("/repo/evals", fs)).rejects.toThrow("source stat denied");
+    });
   });
 
   it("returns EvalSource for an absolute existing directory with at least one eval", async () => {

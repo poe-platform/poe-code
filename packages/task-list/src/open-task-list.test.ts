@@ -49,6 +49,33 @@ function createTaskList(): TaskList {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 afterEach(() => {
   vi.restoreAllMocks();
 });
@@ -313,6 +340,42 @@ describe("openTaskList", () => {
         create: true
       })
     );
+  });
+
+  it("does not pass inherited create to file backends", async () => {
+    const taskList = createTaskList();
+    const { fs } = createFs();
+    const spy = vi.spyOn(backendFactories, "markdown-dir").mockResolvedValue(taskList);
+
+    await withObjectPrototypeProperties({ create: true }, async () => {
+      await openTaskList({
+        type: "markdown-dir",
+        path: "/repo/tasks",
+        fs
+      });
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        create: false
+      })
+    );
+  });
+
+  it("does not route options whose backend type is only inherited", async () => {
+    const taskList = createTaskList();
+    const { fs } = createFs();
+    const spy = vi.spyOn(backendFactories, "markdown-dir").mockResolvedValue(taskList);
+    const options = Object.create({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      fs
+    }) as OpenTaskListOptions;
+
+    await expect(openTaskList(options)).rejects.toThrow(
+      'Unknown task list backend type "undefined".'
+    );
+    expect(spy).not.toHaveBeenCalled();
   });
 
   it("opens markdown-dir in single-list passthrough-frontmatter mode", async () => {

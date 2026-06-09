@@ -3442,6 +3442,33 @@ describe("saveRunReport", () => {
 // stream-helpers.test.ts
 // ---------------------------------------------------------------------------
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("extractMessagesFromSessionUpdateStream", () => {
   it("extracts user, agent, and thought chunks from mixed stream items", async () => {
     const updates: SessionUpdate[] = [
@@ -3738,6 +3765,51 @@ describe("mapLegacyEventToSessionUpdates", () => {
         output: "command failed",
       })
     ).toEqual([]);
+  });
+
+  it("ignores inherited legacy tool payload aliases", () => {
+    withObjectPrototypeProperties(
+      {
+        input: { command: "polluted" },
+        output: "polluted output",
+        path: "polluted path",
+        rawInput: { command: "polluted raw" },
+        rawOutput: "polluted raw output",
+      },
+      () => {
+        expect(
+          mapLegacyEventToSessionUpdates({
+            event: "tool_start",
+            id: "tool-1",
+          })
+        ).toEqual([
+          {
+            sessionUpdate: "tool_call",
+            toolCallId: "tool-1",
+            title: "tool-1",
+            status: "pending",
+          },
+          {
+            sessionUpdate: "tool_call_update",
+            toolCallId: "tool-1",
+            status: "in_progress",
+          },
+        ]);
+
+        expect(
+          mapLegacyEventToSessionUpdates({
+            event: "tool_complete",
+            id: "tool-1",
+          })
+        ).toEqual([
+          {
+            sessionUpdate: "tool_call_update",
+            toolCallId: "tool-1",
+            status: "completed",
+          },
+        ]);
+      }
+    );
   });
 
   it("drops legacy usage events containing non-finite metrics", () => {

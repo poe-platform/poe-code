@@ -10,6 +10,7 @@ import {
   resolveApiShape,
   type ApiShapeId
 } from "@poe-code/providers";
+import { hasOwnErrorCode } from "./errors.js";
 import { readDocument, readMergedDocument, readMergedDocumentReadonly, writeScope } from "./store.js";
 
 export interface ConfigStoreOptions {
@@ -406,12 +407,7 @@ async function writeFileAtomically(fs: FileSystem, filePath: string, content: st
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      Object.prototype.hasOwnProperty.call(error, "code") &&
-      (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {

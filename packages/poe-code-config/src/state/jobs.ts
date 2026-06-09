@@ -6,6 +6,7 @@ import {
   isNotFoundError,
   type StateFileSystem
 } from "./fs.js";
+import { hasOwnErrorCode } from "../errors.js";
 
 export type JobStatus = "pending" | "running" | "exited" | "killed" | "lost";
 
@@ -243,12 +244,7 @@ function assertSafeJobId(id: string): void {
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      Object.prototype.hasOwnProperty.call(error, "code") &&
-      (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function assertJobEntry(entry: JobEntry): void {

@@ -6,6 +6,7 @@ import {
   isNotFoundError,
   type StateFileSystem
 } from "./fs.js";
+import { hasOwnErrorCode } from "../errors.js";
 
 export type TemplateBackend = "docker" | "e2b";
 
@@ -175,12 +176,7 @@ function isTemplateEntry(value: unknown): value is TemplateEntry {
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      Object.prototype.hasOwnProperty.call(error, "code") &&
-      (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

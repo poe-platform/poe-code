@@ -1,5 +1,6 @@
 import path from "node:path";
 import { pathExists, type FileSystem } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "./errors.js";
 import { assertConfigPathSafe } from "./store.js";
 import type { ConfigDocument, ConfigFieldType, ScopeDefinition, ScopeSchema } from "./types.js";
 
@@ -79,12 +80,7 @@ export async function initProjectConfig(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      Object.prototype.hasOwnProperty.call(error, "code") &&
-      (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function collectScopeEnvOverrides<S extends ScopeSchema>(

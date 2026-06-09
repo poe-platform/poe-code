@@ -218,7 +218,7 @@ function isLockedFileError(error: unknown): boolean {
 function getErrorCode(error: unknown): string | undefined {
   return typeof error === "object" &&
     error !== null &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     typeof (error as { code?: unknown }).code === "string"
     ? (error as { code: string }).code
     : undefined;

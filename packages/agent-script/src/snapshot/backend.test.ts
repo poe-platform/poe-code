@@ -10,6 +10,7 @@ const gates = vi.hoisted(() => ({
   cleanupFails: false,
   partialWriteFailurePath: undefined as string | undefined,
   partialWritePath: undefined as string | undefined,
+  readFailurePath: undefined as string | undefined,
   lockedRenameFailures: 0,
   randomUUIDs: [] as string[],
   randomUUIDCounter: 0
@@ -23,6 +24,17 @@ vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return {
     ...fs.promises,
+    readFile: async (
+      filePath: Parameters<typeof fs.promises.readFile>[0],
+      options?: Parameters<typeof fs.promises.readFile>[1]
+    ) => {
+      const pathText = String(filePath);
+      if (pathText === gates.readFailurePath) {
+        throw new Error("snapshot read denied");
+      }
+
+      return fs.promises.readFile(filePath, options);
+    },
     writeFile: async (
       filePath: Parameters<typeof fs.promises.writeFile>[0],
       data: Parameters<typeof fs.promises.writeFile>[1],
@@ -68,6 +80,7 @@ describe("FileSnapshotBackend", () => {
     gates.cleanupFails = false;
     gates.partialWriteFailurePath = undefined;
     gates.partialWritePath = undefined;
+    gates.readFailurePath = undefined;
     gates.lockedRenameFailures = 0;
     gates.randomUUIDs = [];
     gates.randomUUIDCounter = 0;
@@ -103,6 +116,15 @@ describe("FileSnapshotBackend", () => {
     const backend = new FileSnapshotBackend("/snapshots/missing.json");
 
     await expect(backend.read()).resolves.toBeUndefined();
+  });
+
+  it("does not treat inherited read error codes as missing snapshots", async () => {
+    gates.readFailurePath = "/snapshots/denied.json";
+    const backend = new FileSnapshotBackend("/snapshots/denied.json");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(backend.read()).rejects.toThrow("snapshot read denied");
+    });
   });
 
   it("throws a clear parse error when the snapshot file is truncated", async () => {
@@ -215,6 +237,33 @@ describe("FileSnapshotBackend", () => {
     await expect(backend.read()).resolves.toMatchObject({ sourceHash: "saved" });
   });
 });
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 function deferred(): { promise: Promise<void>; resolve(): void } {
   let resolve = () => undefined;

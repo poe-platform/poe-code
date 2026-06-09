@@ -35,13 +35,13 @@ export function validateMachine(machine: StateMachineDef): void {
     throw new TypeError("State machine must be an object.");
   }
 
-  if (!isStateList(machine.states)) {
+  if (!hasOwnRecordField(machine, "states") || !isStateList(machine.states)) {
     throw new TypeError("State machine states must be a string array.");
   }
 
   const states = new Set(machine.states);
 
-  if (typeof machine.initial !== "string") {
+  if (!hasOwnRecordField(machine, "initial") || typeof machine.initial !== "string") {
     throw new TypeError("State machine initial must be a string.");
   }
 
@@ -49,7 +49,7 @@ export function validateMachine(machine: StateMachineDef): void {
     throw new Error(`Initial state "${machine.initial}" is not declared.`);
   }
 
-  if (!isRecord(machine.events)) {
+  if (!hasOwnRecordField(machine, "events") || !isRecord(machine.events)) {
     throw new TypeError("State machine events must be an object.");
   }
 
@@ -58,11 +58,11 @@ export function validateMachine(machine: StateMachineDef): void {
       throw new TypeError(`Event "${eventName}" must be an object.`);
     }
 
-    if (event.from !== "*" && !isStateList(event.from)) {
+    if (!hasOwnRecordField(event, "from") || (event.from !== "*" && !isStateList(event.from))) {
       throw new TypeError(`Event "${eventName}" has an invalid "from" definition.`);
     }
 
-    if (typeof event.to !== "string") {
+    if (!hasOwnRecordField(event, "to") || typeof event.to !== "string") {
       throw new TypeError(`Event "${eventName}" target state must be a string.`);
     }
 
@@ -78,6 +78,10 @@ export function validateMachine(machine: StateMachineDef): void {
       }
     }
   }
+}
+
+function hasOwnRecordField(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
 }
 
 export function eventsFromState<TState extends string, TEvent extends string>(

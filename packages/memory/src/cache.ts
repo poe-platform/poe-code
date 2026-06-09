@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
+import { hasOwnErrorCode } from "./errors.js";
 import {
   assertNoSymlinkSegments,
   assertSafeRelPath,
@@ -234,10 +235,5 @@ async function removeEmptyDirectory(directoryPath: string): Promise<void> {
 }
 
 function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }

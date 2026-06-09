@@ -25,9 +25,37 @@ vi.mock("@poe-code/poe-code-config", () => ({
 
 const { explainPage } = await import("./explain.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("explainPage", () => {
   beforeEach(() => {
     vol.reset();
+    vi.restoreAllMocks();
     resolveAgent.mockReset();
     resolveAgent.mockResolvedValue("claude-code");
     mockedAgentSpawn.spawnMock!.spawn.mockReset();
@@ -53,6 +81,32 @@ describe("explainPage", () => {
       inboundPages: [],
       outboundSources: []
     });
+  });
+
+  it("does not hide target page read errors with inherited missing codes", async () => {
+    const pagePath = "/repo/.poe-code/memory/pages/packages/superintendent.md";
+    vol.fromJSON({
+      [pagePath]: "# Superintendent\n"
+    });
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (...args) => {
+      if (String(args[0]) === pagePath) {
+        throw new Error("explain read denied");
+      }
+
+      return readFile(...args);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        explainPage("/repo/.poe-code/memory", {
+          relPath: "pages/packages/superintendent.md",
+          budget: 4096
+        })
+      ).rejects.toThrow("explain read denied");
+    });
+
+    expect(mockedAgentSpawn.spawnMock!.spawn).not.toHaveBeenCalled();
   });
 
   it("includes inbound and outbound memory pages in the explain prompt", async () => {

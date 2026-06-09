@@ -8,6 +8,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { appendToPage, clearMemory, writePage } = await import("./write.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("clearMemory", () => {
   beforeEach(() => {
     vol.reset();
@@ -212,6 +239,34 @@ describe("writePage", () => {
       writePage(root, "pages/linked/new.md", "# New outside\n", { reason: "write" })
     ).rejects.toThrow(/symbolic link/i);
     await expect(vol.promises.stat("/outside/new.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("does not treat inherited not-found codes as a missing original page", async () => {
+    const root = "/repo/.poe-code/memory";
+    const pagePath = `${root}/pages/new.md`;
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: ""
+    });
+
+    let deniedInitialRead = false;
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (...args) => {
+      if (!deniedInitialRead && String(args[0]) === pagePath) {
+        deniedInitialRead = true;
+        throw new Error("page read denied");
+      }
+
+      return readFile(...args);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        writePage(root, "pages/new.md", "# New memory\n", { reason: "write" })
+      ).rejects.toThrow("page read denied");
+    });
+
+    expect(deniedInitialRead).toBe(true);
   });
 });
 

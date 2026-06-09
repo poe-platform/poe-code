@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import type { MemoryRoot } from "./types.js";
 
 export const MEMORY_INDEX_RELPATH = "INDEX.md";
@@ -89,10 +90,5 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
 }
 
 function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }

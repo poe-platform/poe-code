@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
 import {
@@ -105,7 +106,7 @@ async function readMarkdownIfPresent(filePath: string): Promise<string | undefin
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
 

@@ -202,7 +202,11 @@ function normalizeProtocolBatchResults(
 }
 
 function normalizeProtocolBatchResult(value: unknown, index: number): McpModuleToolBatchResult {
-  const ok = isRecord(value) ? getOwnProperty(value, "ok") : undefined;
+  if (!isRecord(value)) {
+    throw new Error(`MCP callToolBatch()[${index}] must be a result envelope.`);
+  }
+
+  const ok = getOwnProperty(value, "ok");
   if (typeof ok !== "boolean") {
     throw new Error(`MCP callToolBatch()[${index}] must be a result envelope.`);
   }

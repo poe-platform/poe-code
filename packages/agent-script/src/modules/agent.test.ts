@@ -93,6 +93,108 @@ describe("makeAgentModule", () => {
     });
   });
 
+  it("requires own fields for agent definitions, spawn options, and mcp servers", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "done",
+      durationMs: 1
+    }));
+    const agent = makeAgentModule(spawnAgent);
+
+    await expect(
+      agent.spawn(Object.create({ agent: "codex" }) as never, { prompt: "Inspect." })
+    ).rejects.toThrow("Agent definition must define a non-empty agent.");
+    await expect(
+      agent.spawn("codex", Object.create({ prompt: "Inspect." }) as never)
+    ).rejects.toThrow("Agent spawn options must define a non-empty prompt.");
+    await expect(
+      agent.spawn(
+        {
+          agent: "codex",
+          mcp: {
+            search: Object.create({ command: "mcp-search" })
+          }
+        } as never,
+        { prompt: "Inspect." }
+      )
+    ).rejects.toThrow("Agent definition mcp.search.command must be a non-empty string.");
+
+    const inheritedMcpServer = Object.assign(
+      Object.create({
+        args: ["--polluted"],
+        env: {
+          TOKEN: "polluted"
+        },
+        timeout: 1
+      }),
+      {
+        command: "mcp-search"
+      }
+    );
+
+    await agent.spawn(
+      {
+        agent: "codex",
+        mcp: {
+          search: inheritedMcpServer
+        }
+      } as never,
+      {
+        prompt: "Inspect.",
+        model: "openai/gpt-5.4"
+      }
+    );
+
+    expect(spawnAgent).toHaveBeenCalledTimes(1);
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Inspect.",
+      model: "openai/gpt-5.4",
+      mcp: {
+        search: {
+          command: "mcp-search"
+        }
+      }
+    });
+  });
+
+  it("requires own fields for spawn results and retry options", async () => {
+    const inheritedResultField = makeAgentModule(
+      vi.fn(async () =>
+        Object.assign(Object.create({ durationMs: 1 }), {
+          exitCode: 0,
+          stdout: "",
+          stderr: "",
+          summary: "done"
+        })
+      )
+    );
+
+    await expect(
+      inheritedResultField.spawn("codex", { prompt: "Inspect." })
+    ).rejects.toThrow("spawnAgent result durationMs must be a finite number.");
+
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "done",
+      durationMs: 1
+    }));
+    const agent = makeAgentModule(spawnAgent);
+
+    await expect(
+      agent.spawn.retry(
+        "codex",
+        { prompt: "Inspect." },
+        Object.create({ maxAttempts: 1, backoffMs: 0 }) as never
+      )
+    ).rejects.toThrow("Agent spawn retry maxAttempts must be a finite number.");
+    expect(spawnAgent).not.toHaveBeenCalled();
+  });
+
   it("throws when the injected spawn returns a non-zero exit code", async () => {
     const spawnAgent = vi.fn(async () => ({
       exitCode: 7,

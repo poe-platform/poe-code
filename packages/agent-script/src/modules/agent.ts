@@ -275,23 +275,26 @@ function normalizeRetryOptions(
     throw new Error("Agent spawn retry options must be an object.");
   }
 
-  const maxAttempts = readFiniteNumber(retryOptions.maxAttempts, "Agent spawn retry maxAttempts");
+  const maxAttempts = readFiniteNumber(
+    getOwnProperty(retryOptions, "maxAttempts"),
+    "Agent spawn retry maxAttempts"
+  );
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
     throw new Error("Agent spawn retry maxAttempts must be an integer greater than or equal to 1.");
   }
 
   const backoffMs = readNonNegativeFiniteNumber(
-    retryOptions.backoffMs,
+    getOwnProperty(retryOptions, "backoffMs"),
     "Agent spawn retry backoffMs"
   );
 
-  if (retryOptions.isRetryable !== undefined && typeof retryOptions.isRetryable !== "function") {
+  const isRetryableValue = getOwnProperty(retryOptions, "isRetryable");
+  if (isRetryableValue !== undefined && typeof isRetryableValue !== "function") {
     throw new Error("Agent spawn retry isRetryable must be a function.");
   }
-  const isRetryable =
-    retryOptions.isRetryable === undefined
-      ? defaultIsRetryable
-      : (retryOptions.isRetryable as (result: SpawnAgentResult) => boolean);
+  const isRetryable = isRetryableValue === undefined
+    ? defaultIsRetryable
+    : (isRetryableValue as (result: SpawnAgentResult) => boolean);
 
   return {
     maxAttempts,
@@ -385,23 +388,27 @@ function normalizeAgentDefinition(
     throw new Error("Agent definition must be a string or object.");
   }
 
+  const prompt = getOwnProperty(agentDef, "prompt");
+  const model = getOwnProperty(agentDef, "model");
+  const mode = getOwnProperty(agentDef, "mode");
+  const cwd = getOwnProperty(agentDef, "cwd");
+  const mcp = getOwnProperty(agentDef, "mcp");
+
   return {
-    agent: readRequiredAgent(agentDef.agent),
-    ...(agentDef.prompt === undefined
+    agent: readRequiredAgent(getOwnProperty(agentDef, "agent")),
+    ...(prompt === undefined
       ? {}
-      : { prompt: readOptionalString(agentDef.prompt, "Agent definition prompt") }),
-    ...(agentDef.model === undefined
+      : { prompt: readOptionalString(prompt, "Agent definition prompt") }),
+    ...(model === undefined
       ? {}
-      : { model: readOptionalString(agentDef.model, "Agent definition model") }),
-    ...(agentDef.mode === undefined
+      : { model: readOptionalString(model, "Agent definition model") }),
+    ...(mode === undefined
       ? {}
-      : { mode: readSpawnMode(agentDef.mode, "Agent definition mode") }),
-    ...(agentDef.cwd === undefined
+      : { mode: readSpawnMode(mode, "Agent definition mode") }),
+    ...(cwd === undefined
       ? {}
-      : { cwd: readOptionalString(agentDef.cwd, "Agent definition cwd") }),
-    ...(agentDef.mcp === undefined
-      ? {}
-      : { mcp: readMcpConfig(agentDef.mcp, "Agent definition mcp") })
+      : { cwd: readOptionalString(cwd, "Agent definition cwd") }),
+    ...(mcp === undefined ? {} : { mcp: readMcpConfig(mcp, "Agent definition mcp") })
   };
 }
 
@@ -412,29 +419,31 @@ function normalizeSpawnOptions(
     throw new Error("Agent spawn options must be an object.");
   }
 
+  const model = getOwnProperty(options, "model");
+  const mode = getOwnProperty(options, "mode");
+  const cwd = getOwnProperty(options, "cwd");
+  const otelSink = getOwnProperty(options, "otelSink");
+  const mcp = getOwnProperty(options, "mcp");
+  const timeoutMs = getOwnProperty(options, "timeoutMs");
+  const signal = getOwnProperty(options, "signal");
+
   return {
-    prompt: readRequiredPrompt(options.prompt),
-    ...(options.model === undefined
+    prompt: readRequiredPrompt(getOwnProperty(options, "prompt")),
+    ...(model === undefined
       ? {}
-      : { model: readOptionalString(options.model, "Agent spawn options model") }),
-    ...(options.mode === undefined
+      : { model: readOptionalString(model, "Agent spawn options model") }),
+    ...(mode === undefined ? {} : { mode: readSpawnMode(mode, "Agent spawn options mode") }),
+    ...(cwd === undefined
       ? {}
-      : { mode: readSpawnMode(options.mode, "Agent spawn options mode") }),
-    ...(options.cwd === undefined
-      ? {}
-      : { cwd: readOptionalString(options.cwd, "Agent spawn options cwd") }),
-    ...(options.otelSink === undefined ? {} : { otelSink: readOtelSink(options.otelSink) }),
-    ...(options.mcp === undefined
-      ? {}
-      : { mcp: readMcpConfig(options.mcp, "Agent spawn options mcp") }),
-    ...(options.timeoutMs === undefined
+      : { cwd: readOptionalString(cwd, "Agent spawn options cwd") }),
+    ...(otelSink === undefined ? {} : { otelSink: readOtelSink(otelSink) }),
+    ...(mcp === undefined ? {} : { mcp: readMcpConfig(mcp, "Agent spawn options mcp") }),
+    ...(timeoutMs === undefined
       ? {}
       : {
-          timeoutMs: readNonNegativeFiniteNumber(options.timeoutMs, "Agent spawn options timeoutMs")
+          timeoutMs: readNonNegativeFiniteNumber(timeoutMs, "Agent spawn options timeoutMs")
         }),
-    ...(options.signal === undefined
-      ? {}
-      : { signal: readAbortSignal(options.signal, "Agent spawn options signal") })
+    ...(signal === undefined ? {} : { signal: readAbortSignal(signal, "Agent spawn options signal") })
   };
 }
 
@@ -443,13 +452,18 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
     throw new Error("spawnAgent must resolve to an object result.");
   }
 
+  const usage = getOwnProperty(result, "usage");
+
   return {
-    exitCode: readFiniteNumber(result.exitCode, "spawnAgent result exitCode"),
-    stdout: readOptionalString(result.stdout, "spawnAgent result stdout") ?? "",
-    stderr: readOptionalString(result.stderr, "spawnAgent result stderr") ?? "",
-    summary: readOptionalString(result.summary, "spawnAgent result summary") ?? "",
-    durationMs: readNonNegativeFiniteNumber(result.durationMs, "spawnAgent result durationMs"),
-    ...(result.usage === undefined ? {} : { usage: readSpawnUsage(result.usage) })
+    exitCode: readFiniteNumber(getOwnProperty(result, "exitCode"), "spawnAgent result exitCode"),
+    stdout: readOptionalString(getOwnProperty(result, "stdout"), "spawnAgent result stdout") ?? "",
+    stderr: readOptionalString(getOwnProperty(result, "stderr"), "spawnAgent result stderr") ?? "",
+    summary: readOptionalString(getOwnProperty(result, "summary"), "spawnAgent result summary") ?? "",
+    durationMs: readNonNegativeFiniteNumber(
+      getOwnProperty(result, "durationMs"),
+      "spawnAgent result durationMs"
+    ),
+    ...(usage === undefined ? {} : { usage: readSpawnUsage(usage) })
   };
 }
 
@@ -462,27 +476,30 @@ function readSpawnUsage(value: unknown): SpawnUsage {
     throw new Error("spawnAgent result usage must be an object.");
   }
 
+  const cachedTokens = getOwnProperty(value, "cachedTokens");
+  const costUsd = getOwnProperty(value, "costUsd");
+
   return {
     inputTokens: readNonNegativeFiniteNumber(
-      value.inputTokens,
+      getOwnProperty(value, "inputTokens"),
       "spawnAgent result usage inputTokens"
     ),
     outputTokens: readNonNegativeFiniteNumber(
-      value.outputTokens,
+      getOwnProperty(value, "outputTokens"),
       "spawnAgent result usage outputTokens"
     ),
-    ...(value.cachedTokens === undefined
+    ...(cachedTokens === undefined
       ? {}
       : {
           cachedTokens: readNonNegativeFiniteNumber(
-            value.cachedTokens,
+            cachedTokens,
             "spawnAgent result usage cachedTokens"
           )
         }),
-    ...(value.costUsd === undefined
+    ...(costUsd === undefined
       ? {}
       : {
-          costUsd: readNonNegativeFiniteNumber(value.costUsd, "spawnAgent result usage costUsd")
+          costUsd: readNonNegativeFiniteNumber(costUsd, "spawnAgent result usage costUsd")
         })
   };
 }
@@ -549,13 +566,17 @@ function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
     throw new Error(`${label} must be an object.`);
   }
 
+  const args = getOwnProperty(value, "args");
+  const env = getOwnProperty(value, "env");
+  const timeout = getOwnProperty(value, "timeout");
+
   return {
-    command: readNonEmptyString(value.command, `${label}.command`),
-    ...(value.args === undefined ? {} : { args: readStringArray(value.args, `${label}.args`) }),
-    ...(value.env === undefined ? {} : { env: readStringRecord(value.env, `${label}.env`) }),
-    ...(value.timeout === undefined
+    command: readNonEmptyString(getOwnProperty(value, "command"), `${label}.command`),
+    ...(args === undefined ? {} : { args: readStringArray(args, `${label}.args`) }),
+    ...(env === undefined ? {} : { env: readStringRecord(env, `${label}.env`) }),
+    ...(timeout === undefined
       ? {}
-      : { timeout: readPositiveFiniteNumber(value.timeout, `${label}.timeout`) })
+      : { timeout: readPositiveFiniteNumber(timeout, `${label}.timeout`) })
   };
 }
 
@@ -655,6 +676,20 @@ function readOtelSink(value: unknown): OtelSink {
   }
 
   return value as unknown as OtelSink;
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

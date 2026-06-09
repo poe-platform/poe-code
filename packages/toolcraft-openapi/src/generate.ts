@@ -1598,7 +1598,22 @@ function resolveSchema(
     );
   }
 
-  return schema;
+  return cloneOwnSchemaObject(schema);
+}
+
+function cloneOwnSchemaObject(schema: OpenApiSchemaObject): OpenApiSchemaObject {
+  const clone = Object.create(null) as OpenApiSchemaObject;
+
+  for (const [key, value] of Object.entries(schema)) {
+    Object.defineProperty(clone, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  return clone;
 }
 
 function normalizeNullableSchema(

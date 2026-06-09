@@ -4803,6 +4803,34 @@ describe("generate", () => {
     );
   });
 
+  it("ignores inherited schema fields", () => {
+    const inheritedSchema = Object.assign(
+      Object.create({
+        default: "prototype-default"
+      }),
+      { type: "string" }
+    ) as never;
+
+    const files = generate(
+      createDocument({
+        "/search": {
+          get: {
+            tags: ["search"],
+            operationId: "search",
+            parameters: [{ name: "term", in: "query", schema: inheritedSchema }],
+            responses: { "200": { description: "Searched." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "search/list.ts");
+
+    expect(commandFile?.contents).toContain("term: S.Optional(S.String())");
+    expect(commandFile?.contents).not.toContain("prototype-default");
+  });
+
   it("rejects inherited scalar schema type names with a user-facing error", () => {
     expect(() =>
       generate(

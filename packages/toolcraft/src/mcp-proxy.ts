@@ -292,24 +292,32 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
   await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
   await assertCachePathHasNoSymlinks(directory);
-  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
-    encoding: "utf8",
-    flag: "wx"
-  });
-  tempCreated = true;
 
   try {
+    await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+    tempCreated = true;
     await assertCachePathHasNoSymlinks(tempPath);
     await assertCachePathHasNoSymlinks(cachePath);
     await rename(tempPath, cachePath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExistsError(error)) {
       await unlink(tempPath).catch(() => undefined);
     }
 
     throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return Boolean(
+    error &&
+    typeof error === "object" &&
+    (error as NodeJS.ErrnoException).code === "EEXIST"
+  );
 }
 
 async function fetchCache(

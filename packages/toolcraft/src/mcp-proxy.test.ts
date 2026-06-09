@@ -890,6 +890,37 @@ describe("resolveMcpProxies", () => {
     expect(vol.existsSync(getCachePath())).toBe(false);
   });
 
+  it("removes a partial cache file when atomic write fails", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({
+      name: "root",
+      children: [group],
+    });
+    let stagedPath: string | undefined;
+    const originalWriteFile = mockFsPromises.writeFile.bind(mockFsPromises);
+
+    setClientPlans({
+      pages: [{ tools: [tool("create_issue")] }],
+    });
+
+    vi.spyOn(mockFsPromises, "writeFile").mockImplementation(async (...args) => {
+      const targetPath = String(args[0]);
+      if (targetPath.startsWith(`${getCachePath()}.tmp-`)) {
+        stagedPath = targetPath;
+        await originalWriteFile(args[0] as string, "partial\n", args[2] as never);
+        throw Object.assign(new Error("disk full"), { code: "ENOSPC" });
+      }
+
+      return originalWriteFile(...args);
+    });
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/couldn't discover MCP github: disk full/);
+
+    expect(stagedPath).toMatch(new RegExp(`^${getCachePath().replaceAll(".", "\\.")}\\.tmp-`));
+    expect(vol.existsSync(stagedPath ?? "")).toBe(false);
+    expect(vol.existsSync(getCachePath())).toBe(false);
+  });
+
   it("does not follow cache temp symlinks inserted before write", async () => {
     const group = createProxyGroup({});
     const root = defineGroup({

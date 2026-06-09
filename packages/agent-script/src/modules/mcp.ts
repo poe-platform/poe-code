@@ -90,10 +90,10 @@ export function makeMcpModule(connectMcp: ConnectMcp): {
         },
 
         async tool(name, args) {
-          return connection.callTool({
+          return connection.callTool(createNullRecord({
             name: readNonEmptyTrimmedString(name, "MCP tool name"),
             ...(args === undefined ? {} : { arguments: readToolArguments(args) })
-          });
+          }));
         },
 
         async toolBatch(calls) {
@@ -120,7 +120,7 @@ async function executeToolBatch(
       );
     } catch (error) {
       const batchError = normalizeToolBatchError(error);
-      return calls.map(() => ({
+      return calls.map(() => createNullRecord({
         ok: false,
         error: batchError
       }));
@@ -151,32 +151,32 @@ async function executeToolBatchWithConcurrency(
       }
 
       if (!call.ok) {
-        results[index] = {
+        results[index] = createNullRecord({
           ok: false,
           error: call.error
-        };
+        });
         continue;
       }
 
       if (disconnectError !== undefined) {
-        results[index] = {
+        results[index] = createNullRecord({
           ok: false,
           error: disconnectError
-        };
+        });
         continue;
       }
 
       try {
-        results[index] = {
+        results[index] = createNullRecord({
           ok: true,
           value: await connection.callTool(call.request)
-        };
+        });
       } catch (error) {
         const toolError = normalizeToolBatchError(error);
-        results[index] = {
+        results[index] = createNullRecord({
           ok: false,
           error: toolError
-        };
+        });
 
         if (isMcpDisconnectError(toolError)) {
           disconnectError = toolError;
@@ -212,16 +212,16 @@ function normalizeProtocolBatchResult(value: unknown, index: number): McpModuleT
   }
 
   if (ok === true) {
-    return {
+    return createNullRecord({
       ok: true,
       value: getOwnProperty(value, "value")
-    };
+    });
   }
 
-  return {
+  return createNullRecord({
     ok: false,
     error: normalizeToolBatchError(getOwnProperty(value, "error"))
-  };
+  });
 }
 
 function normalizeServerHandle(value: unknown): McpModuleServerHandle {
@@ -233,11 +233,11 @@ function normalizeServerHandle(value: unknown): McpModuleServerHandle {
   const args = getOwnProperty(value, "args");
   const env = getOwnProperty(value, "env");
 
-  return {
+  return createNullRecord({
     command: readNonEmptyTrimmedString(command, "MCP server command"),
     ...(args === undefined ? {} : { args: readStringArray(args, "MCP server args") }),
     ...(env === undefined ? {} : { env: readStringRecord(env, "MCP server env") })
-  };
+  });
 }
 
 function validateConnection(value: unknown): McpConnection {
@@ -249,16 +249,18 @@ function validateConnection(value: unknown): McpConnection {
     throw new Error("connectMcp must resolve to an object with listTools() and callTool().");
   }
 
-  return {
+  const callToolBatch = getOwnProperty(value, "callToolBatch");
+
+  return createNullRecord({
     listTools: () => (value.listTools as McpConnection["listTools"])(),
     callTool: (params) => (value.callTool as McpConnection["callTool"])(params),
-    ...(typeof value.callToolBatch === "function"
+    ...(typeof callToolBatch === "function"
       ? {
           callToolBatch: (params: McpToolRequest[]) =>
-            (value.callToolBatch as NonNullable<McpConnection["callToolBatch"]>)(params)
+            (callToolBatch as NonNullable<McpConnection["callToolBatch"]>)(params)
         }
       : {})
-  };
+  });
 }
 
 function normalizeToolsResult(value: unknown): McpModuleTool[] {
@@ -278,13 +280,13 @@ function normalizeTool(value: unknown, index: number): McpModuleTool {
   const description = getOwnProperty(value, "description");
   const inputSchema = getOwnProperty(value, "inputSchema");
 
-  return {
+  return createNullRecord({
     name: readNonEmptyString(getOwnProperty(value, "name"), `MCP tool[${index}] name`),
     ...(description === undefined
       ? {}
       : { description: readOptionalString(description, `MCP tool[${index}] description`) }),
     ...(inputSchema === undefined ? {} : { schema: inputSchema })
-  };
+  });
 }
 
 function readStringArray(value: unknown, label: string): string[] {
@@ -306,7 +308,7 @@ function readStringRecord(value: unknown, label: string): Record<string, string>
     throw new Error(`${label} must be a string record.`);
   }
 
-  return Object.fromEntries(entries) as Record<string, string>;
+  return createNullRecord(Object.fromEntries(entries) as Record<string, string>);
 }
 
 function readOptionalString(value: unknown, label: string): string | undefined {
@@ -340,7 +342,7 @@ function readToolArguments(value: unknown): Record<string, unknown> {
     throw new Error("MCP tool arguments must be an object.");
   }
 
-  return value;
+  return createNullRecord(Object.fromEntries(Object.entries(value)) as Record<string, unknown>);
 }
 
 function readToolBatchCalls(value: unknown): NormalizedToolBatchCall[] {
@@ -359,30 +361,30 @@ function normalizeToolBatchCall(value: unknown, index: number): NormalizedToolBa
 
     const args = getOwnProperty(value, "args");
 
-    return {
+    return createNullRecord({
       ok: true,
-      request: {
+      request: createNullRecord({
         name: readNonEmptyTrimmedString(
           getOwnProperty(value, "name"),
           `MCP toolBatch call[${index}] name`
         ),
         ...(args === undefined ? {} : { arguments: readToolArguments(args) })
-      }
-    };
+      })
+    });
   } catch (error) {
-    return {
+    return createNullRecord({
       ok: false,
       error: normalizeToolBatchError(error)
-    };
+    });
   }
 }
 
 function normalizeToolBatchError(error: unknown): McpModuleToolBatchError {
   if (error instanceof Error) {
-    return {
+    return createNullRecord({
       name: error.name.length === 0 ? "Error" : error.name,
       message: error.message
-    };
+    });
   }
 
   if (isRecord(error)) {
@@ -395,16 +397,16 @@ function normalizeToolBatchError(error: unknown): McpModuleToolBatchError {
       ? messageValue
       : String(error);
 
-    return {
+    return createNullRecord({
       name,
       message
-    };
+    });
   }
 
-  return {
+  return createNullRecord({
     name: "Error",
     message: error === undefined ? "" : String(error)
-  };
+  });
 }
 
 function isMcpDisconnectError(error: McpModuleToolBatchError): boolean {
@@ -435,6 +437,10 @@ function hasOwnProperty<Name extends PropertyKey>(
   name: Name
 ): value is Record<Name, unknown> {
   return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }
 
 function isPlainObjectRecord(value: unknown): value is Record<string, unknown> {

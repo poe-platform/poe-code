@@ -36,6 +36,32 @@ function createFs(files: Record<string, string> = {}): TestFs {
   return createFsFromVolume(volume).promises;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createPipelineTestFs(rawFs: TestFs): PipelineFileSystem {
   return {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
@@ -847,6 +873,20 @@ describe("loadPipelineConfig", () => {
     });
   });
 
+  it("ignores inherited plan_directory values", async () => {
+    await withObjectPrototypeProperties({ plan_directory: 123 }, async () => {
+      const config = await loadPipelineConfig({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/config.yaml": "{}\n"
+        })
+      });
+
+      expect(config).toEqual({});
+    });
+  });
+
   it("rejects a symlinked global pipeline configuration directory", async () => {
     const volume = Volume.fromJSON({
       "/repo/.poe-code/pipeline/config.yaml": "extends: true\n",
@@ -1590,6 +1630,38 @@ describe("parsePlan", () => {
         { availableSteps: {} }
       )
     ).toThrow(/unknown step "constructor"/i);
+  });
+
+  it("does not accept inherited top-level plan fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        extends: "fast",
+        tasks: []
+      },
+      () => {
+        expect(() => parsePlan("name: Missing tasks\n")).toThrow(/expected "tasks" to be an array/i);
+
+        const plan = parsePlan("tasks: []\n");
+        expect(plan).toEqual({
+          extends: "default",
+          tasks: []
+        });
+      }
+    );
+  });
+
+  it("does not accept inherited task fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        id: "polluted",
+        title: "Polluted",
+        prompt: "Polluted",
+        status: "open"
+      },
+      () => {
+        expect(() => parsePlan(["tasks:", "  - {}", ""].join("\n"))).toThrow(/tasks\[0\]\.id/);
+      }
+    );
   });
 
   it("accepts an empty tasks array", () => {

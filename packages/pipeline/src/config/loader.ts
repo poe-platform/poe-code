@@ -323,7 +323,10 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
   const config = { ...document } as PipelineConfig;
   delete config.extends;
 
-  if (config.plan_directory !== undefined && typeof config.plan_directory !== "string") {
+  const planDirectory = Object.prototype.hasOwnProperty.call(config, "plan_directory")
+    ? config.plan_directory
+    : undefined;
+  if (planDirectory !== undefined && typeof planDirectory !== "string") {
     throw new Error(`Invalid pipeline config in "${filePath}": "plan_directory" must be a string.`);
   }
 

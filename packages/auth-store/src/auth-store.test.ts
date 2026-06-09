@@ -539,6 +539,32 @@ describe("EncryptedFileStore", () => {
     await expect(store.get()).resolves.toBeNull();
   });
 
+  it("does not treat inherited filesystem error codes as missing files", async () => {
+    const fs: EncryptedFileStoreFileSystem = {
+      readFile: vi.fn(async () => {
+        throw new Error("read permission denied");
+      }),
+      writeFile: vi.fn(async () => undefined),
+      mkdir: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
+      lstat: vi.fn(async () => {
+        throw Object.assign(new Error("missing"), { code: "ENOENT" });
+      }),
+      unlink: vi.fn(async () => undefined),
+      chmod: vi.fn(async () => undefined)
+    };
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(store.get()).rejects.toThrow("read permission denied");
+    });
+  });
+
   it("deletes encrypted file", async () => {
     const fs = createStatMemFs();
     const filePath = "/home/test/.app/credentials.enc";

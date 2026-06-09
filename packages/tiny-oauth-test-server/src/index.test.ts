@@ -75,6 +75,33 @@ async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<R
   });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 async function verifyToken(input: {
   issuer: string;
   resource: string;
@@ -600,6 +627,30 @@ describe("tiny-oauth-test-server", () => {
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toMatchObject({ error: "invalid_client_metadata" });
     }
+  });
+
+  it("rejects inherited dynamic registration metadata fields", async () => {
+    const { server } = await listenServer();
+
+    await withObjectPrototypeProperties(
+      {
+        redirect_uris: ["http://127.0.0.1:43141/callback"],
+        grant_types: ["authorization_code", "refresh_token"],
+        response_types: ["code"]
+      },
+      async () => {
+        const response = await nodeFetch(`${server.issuer}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toMatchObject({
+          error: "invalid_redirect_uri"
+        });
+      }
+    );
   });
 
   it("rejects dynamic registrations with non-loopback redirects", async () => {

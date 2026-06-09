@@ -168,6 +168,33 @@ function readRepoFile(filePath: string): string {
   return vol.readFileSync(filePath, "utf8") as string;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("ghGroup", () => {
   beforeEach(() => {
     vol.reset();
@@ -1118,6 +1145,33 @@ describe("ghGroup", () => {
     expect(partialTempPath).toMatch(new RegExp(`^${failingPath.replaceAll(".", "\\.")}\\.`));
     expect(vol.existsSync(partialTempPath ?? "")).toBe(false);
     expect(vol.existsSync("/repo/.github/workflows/poe-code-fix-vulnerabilities.yml")).toBe(false);
+  });
+
+  it("removes partial workflow temp files when write errors only inherit existing-path codes", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    const failingPath = "/repo/.github/workflows/poe-code-github-issue-opened.yml";
+    let partialTempPath: string | undefined;
+    fileSystemState.failingWritePath = failingPath;
+    fileSystemState.beforeFailingWrite = (targetPath, content, options) => {
+      if (targetPath.startsWith(`${failingPath}.`) && targetPath.endsWith(".tmp")) {
+        partialTempPath = targetPath;
+        vol.writeFileSync(
+          targetPath,
+          typeof content === "string" ? content.slice(0, 16) : Buffer.from(content).subarray(0, 16),
+          options
+        );
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+      ).rejects.toThrow("injected workflow write failure");
+    });
+
+    expect(partialTempPath).toMatch(new RegExp(`^${failingPath.replaceAll(".", "\\.")}\\.`));
+    expect(vol.existsSync(partialTempPath ?? "")).toBe(false);
   });
 
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {

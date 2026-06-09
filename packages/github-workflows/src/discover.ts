@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { resolve } from "@poe-code/config-extends";
+import { hasOwnErrorCode } from "./errors.js";
 import type { AutomationDefinition } from "./types.js";
 
 const VALID_AUTHOR_ASSOCIATIONS = new Set([
@@ -291,11 +292,7 @@ function readOptionalMcp(
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

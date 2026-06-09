@@ -99,6 +99,20 @@ describe("discoverAutomations", () => {
       }
     ]);
   });
+
+  it("does not ignore directory read failures with inherited missing-path codes", async () => {
+    writeMarkdown("/built-in", "triage.md", "# Built-in triage");
+    fsState.readdirErrors.set(
+      "/project",
+      new Error("project directory read denied") as NodeJS.ErrnoException
+    );
+
+    await withObjectPrototypeProperties({ code: "ENOTDIR" }, async () => {
+      await expect(discoverAutomations("/built-in", "/project")).rejects.toThrow(
+        "project directory read denied"
+      );
+    });
+  });
 });
 
 describe("loadAutomation", () => {

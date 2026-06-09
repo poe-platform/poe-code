@@ -56,6 +56,26 @@ describe("variables", () => {
     });
   });
 
+  it("does not hide project variables read failures with inherited missing-file codes", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": ["response_style: |", "  Be direct.", ""].join("\n")
+    });
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (...args) => {
+      if (String(args[0]) === "/repo/.github/workflows/variables.yaml") {
+        throw new Error("project variables read denied");
+      }
+
+      return readFile(...args);
+    });
+
+    await withObjectPrototypeProperty("code", "ENOENT", async () => {
+      await expect(loadVariables("/built-in", "/repo/.github/workflows")).rejects.toThrow(
+        "project variables read denied"
+      );
+    });
+  });
+
   it("ignores commented-out project defaults", async () => {
     vol.fromJSON({
       "/built-in/variables.yaml": [

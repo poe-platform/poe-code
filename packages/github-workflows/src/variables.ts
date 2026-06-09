@@ -2,6 +2,7 @@ import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { resolve } from "@poe-code/config-extends";
 import { isMap, parseDocument, stringify } from "yaml";
+import { hasOwnErrorCode } from "./errors.js";
 
 const VARIABLES_FILE_NAME = "variables.yaml";
 const EXTENDS_FIELD_NAME = "extends";
@@ -149,7 +150,7 @@ async function readOptionalVariablesContent(filePath: string): Promise<string | 
   try {
     return await readFile(filePath, "utf8");
   } catch (error) {
-    if (error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
     throw error;

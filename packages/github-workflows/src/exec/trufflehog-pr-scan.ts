@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { UserError } from "toolcraft";
 import type { CommandRunner } from "@poe-code/agent-spawn";
 import { runCommand } from "@poe-code/agent-spawn";
+import { hasOwnErrorCode } from "../errors.js";
 import { workflowSubprocessTimeoutMs } from "../subprocess-timeout.js";
 
 const DEFAULT_RESULTS_FILE = "/tmp/trufflehog-results.jsonl";
@@ -368,7 +369,7 @@ async function publishFiles(fs: TruffleHogFileSystem, files: Array<{ path: strin
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function assertNotSymbolicLinkIfSet(fs: TruffleHogFileSystem, path: string | undefined): Promise<void> {
@@ -391,7 +392,7 @@ async function assertNotSymbolicLink(fs: TruffleHogFileSystem, path: string): Pr
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function renderLocation(

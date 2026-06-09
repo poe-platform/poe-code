@@ -1,6 +1,7 @@
 import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import { readOptionalString, rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
 import type { PluginSpec } from "./registry.js";
@@ -247,11 +248,7 @@ function assertPathContained(filePath: string, trustedDirectory: string, label: 
 }
 
 function isMissingFileError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) {
-    return false;
-  }
-
-  return (error as NodeJS.ErrnoException).code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 export default memoryPlugin;

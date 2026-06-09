@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import fastGlob from "fast-glob";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import {
   readOptionalString,
@@ -394,12 +395,7 @@ async function replaceFileAtomically(
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function countOccurrences(text: string, search: string): number {

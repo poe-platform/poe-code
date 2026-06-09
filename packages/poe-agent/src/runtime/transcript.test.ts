@@ -28,6 +28,25 @@ function createMemfs(): {
   };
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("mapAcpEventToSessionUpdates", () => {
   it("maps message.delta to agent_message_chunk", () => {
     expect(mapAcpEventToSessionUpdates({ type: "message.delta", content: "hello" })).toEqual([
@@ -325,6 +344,27 @@ describe("createTranscriptWriter", () => {
     );
 
     await expect(memfs.readdir("/outside")).resolves.toEqual([]);
+  });
+
+  it("does not treat inherited lstat codes as missing transcript paths", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    const lstatError = new Error("lstat denied");
+    transcriptFs.lstat = async (filePath: string) => {
+      if (filePath === "/logs") {
+        throw lstatError;
+      }
+      return memfs.lstat(filePath);
+    };
+    const writer = createTranscriptWriter({
+      logPath: "/logs/round.jsonl",
+      fs: transcriptFs
+    });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(writer.write({ type: "message.delta", content: "hi" })).rejects.toBe(
+        lstatError
+      );
+    });
   });
 
   it("surfaces an event that cannot be serialized without disabling later writes", async () => {

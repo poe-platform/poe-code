@@ -1641,7 +1641,10 @@ function getCompositionKeyword(
   schema: OpenApiSchemaObject
 ): "allOf" | "anyOf" | "oneOf" | undefined {
   for (const keyword of ["allOf", "anyOf", "oneOf"] as const) {
-    if (schema[keyword] !== undefined) {
+    if (
+      Object.prototype.hasOwnProperty.call(schema, keyword) &&
+      schema[keyword] !== undefined
+    ) {
       return keyword;
     }
   }

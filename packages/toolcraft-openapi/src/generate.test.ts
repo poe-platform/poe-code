@@ -2527,6 +2527,43 @@ describe("generate", () => {
     );
   });
 
+  it("ignores inherited schema composition keywords", () => {
+    const inheritedSchema = Object.assign(
+      Object.create({
+        anyOf: [{ type: "integer" }, { type: "null" }]
+      }),
+      { type: "string" }
+    ) as never;
+
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "filter",
+                in: "query",
+                schema: inheritedSchema
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Listed."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain("filter: S.Optional(S.String())");
+  });
+
   it("makes required nullable scalar body fields CLI-optional while keeping MCP and SDK required", () => {
     const files = generate(
       createDocument({

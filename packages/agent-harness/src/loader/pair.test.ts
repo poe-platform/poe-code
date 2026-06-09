@@ -21,6 +21,33 @@ function memfs(files: Record<string, string | null>, cwd = "/"): HarnessFs {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("resolvePair", () => {
   it("is re-exported from the package entrypoint", () => {
     expect(api.resolvePair).toBe(resolvePair);
@@ -85,6 +112,20 @@ describe("resolvePair", () => {
       name: "MissingPairError",
       side: "md",
       path: "/repo/harness/review.md"
+    });
+  });
+
+  it("does not rewrite stat failures with inherited missing-file codes", async () => {
+    const fs: HarnessFs = {
+      stat: async () => {
+        throw new Error("pair stat denied");
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(resolvePair("/repo/harness/review.md", fs)).rejects.toThrow(
+        "pair stat denied"
+      );
     });
   });
 

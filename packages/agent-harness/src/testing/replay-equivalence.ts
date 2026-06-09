@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from "node:util";
 
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { runHarnessPair, type RunHarnessPairOptions, type RunResult } from "../loader/run.js";
 
 type ModulesFor = RunHarnessPairOptions["modulesFor"];
@@ -146,10 +147,5 @@ function formatValue(value: unknown): string {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }

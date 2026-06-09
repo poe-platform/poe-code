@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 
 import { toJsonSchema } from "toolcraft-schema";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { extractSchema } from "../loader/extract-schema.js";
 
 interface HarnessSchemaFileSystem {
@@ -223,11 +224,11 @@ async function assertSafeSchemaOutput(
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function resolveRepoRoot(): string {

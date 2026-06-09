@@ -23,6 +23,7 @@ import {
 } from "@poe-code/agent-script";
 import type { AnySchema } from "toolcraft-schema";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { makeSchemaModule } from "../modules/schema.js";
 import { extractSchema } from "./extract-schema.js";
 import { resolvePair } from "./pair.js";
@@ -581,7 +582,7 @@ async function unlinkIfExists(path: string): Promise<void> {
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function hostCallStorePath(snapshotPath: string): string {
@@ -678,12 +679,7 @@ function readNumber(value: unknown): number | undefined {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 function deepMergeFrontmatter(

@@ -24,7 +24,13 @@ vi.mock("node:fs/promises", async () => {
     try {
       await fs.promises.unlink(path);
     } catch (error) {
-      if ((error as { code?: unknown }).code !== "ENOENT") {
+      if (
+        !(
+          error instanceof Error &&
+          Object.prototype.hasOwnProperty.call(error, "code") &&
+          (error as { code?: unknown }).code === "ENOENT"
+        )
+      ) {
         throw error;
       }
     }

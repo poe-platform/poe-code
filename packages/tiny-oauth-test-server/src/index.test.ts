@@ -1518,6 +1518,32 @@ describe("tiny-oauth-test-server", () => {
     }
   });
 
+  it("rejects inherited HTTP direct-token fields", async () => {
+    const { server } = await listenServer();
+
+    await withObjectPrototypeProperties(
+      {
+        client_id: "direct-client",
+        resource: "https://resource.example.com/direct",
+        scopes: ["mcp.read"],
+        ttl_seconds: 120
+      },
+      async () => {
+        const response = await nodeFetch(`${server.issuer}/testing/issue-token`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({})
+        });
+
+        expect(response.status).toBe(400);
+        await expect(response.json()).resolves.toMatchObject({
+          error: "invalid_request",
+          error_description: "client_id is required"
+        });
+      }
+    );
+  });
+
   it("accepts IPv6 loopback redirect URIs", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://[::1]:43128/callback";

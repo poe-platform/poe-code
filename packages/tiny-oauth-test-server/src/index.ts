@@ -1260,10 +1260,10 @@ export function createOAuthTestServer(
   }
 
   async function handleIssueToken(payload: ObjectRecord): Promise<ObjectRecord> {
-    const clientId = payload.client_id;
-    const resource = payload.resource;
-    const ttlSeconds = payload.ttl_seconds;
-    const scopes = payload.scopes;
+    const clientId = getOwnEntry(payload, "client_id");
+    const resource = getOwnEntry(payload, "resource");
+    const ttlSeconds = getOwnEntry(payload, "ttl_seconds");
+    const scopes = getOwnEntry(payload, "scopes");
 
     if (typeof clientId !== "string" || clientId.length === 0) {
       throw new OAuthRequestError(400, "invalid_request", "client_id is required");

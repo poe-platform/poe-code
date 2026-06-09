@@ -7,21 +7,32 @@ import { loadEval } from "../source/registry.js";
 
 const mocks = vi.hoisted(() => ({
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
+  failedLstatTarget: undefined as string | undefined,
+  failedMkdirTarget: undefined as string | undefined,
   failedWriteSuffix: undefined as string | undefined,
   racedWriteSuffix: undefined as string | undefined
 }));
 
-vi.mock("node:fs/promises", () => ({
-  default: {
-    lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
-    mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
-    writeFile: (...args: unknown[]) =>
-      mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>))
-  },
-  lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
-  mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
-  rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
-  writeFile: async (...args: unknown[]) => {
+vi.mock("node:fs/promises", () => {
+  const lstat = (...args: unknown[]) => {
+    const [target] = args as Parameters<typeof mocks.fs.lstat>;
+    if (String(target) === mocks.failedLstatTarget) {
+      throw new Error("source lstat denied");
+    }
+
+    return mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>));
+  };
+
+  const mkdir = (...args: unknown[]) => {
+    const [target] = args as Parameters<typeof mocks.fs.mkdir>;
+    if (String(target) === mocks.failedMkdirTarget) {
+      throw new Error("mkdir denied");
+    }
+
+    return mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>));
+  };
+
+  const writeFile = async (...args: unknown[]) => {
     const [filePath] = args as Parameters<typeof mocks.fs.writeFile>;
     if (mocks.racedWriteSuffix !== undefined && String(filePath).endsWith(mocks.racedWriteSuffix)) {
       mocks.racedWriteSuffix = undefined;
@@ -31,14 +42,55 @@ vi.mock("node:fs/promises", () => ({
       throw new Error("scaffold write failed");
     }
     await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
-  }
-}));
+  };
+
+  return {
+    default: {
+      lstat,
+      mkdir,
+      writeFile
+    },
+    lstat,
+    mkdir,
+    rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
+    writeFile
+  };
+});
 
 const { evalInit, validateInitName } = await import("./init.js");
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("evalInit", () => {
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
+    mocks.failedLstatTarget = undefined;
+    mocks.failedMkdirTarget = undefined;
     mocks.failedWriteSuffix = undefined;
     mocks.racedWriteSuffix = undefined;
   });
@@ -148,6 +200,16 @@ describe("evalInit", () => {
     ).rejects.toThrow("Eval folder already exists: /repo/evals/existing-task");
   });
 
+  it("does not treat inherited mkdir error codes as existing eval folders", async () => {
+    mocks.failedMkdirTarget = "/repo/evals/blocked-task";
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        evalInit({ sourceDir: "/repo/evals", name: "blocked-task", kind: "plan" })
+      ).rejects.toThrow("mkdir denied");
+    });
+  });
+
   it("removes an incomplete scaffold so initialization can be retried", async () => {
     mocks.failedWriteSuffix = "/plan.md";
 
@@ -160,6 +222,20 @@ describe("evalInit", () => {
     await expect(
       evalInit({ sourceDir: "/repo/evals", name: "partial-task", kind: "plan" })
     ).resolves.toMatchObject({ evalDir: "/repo/evals/partial-task" });
+  });
+
+  it("does not treat inherited lstat error codes as missing source directories", async () => {
+    mocks.failedLstatTarget = "/repo/evals";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        evalInit({ sourceDir: "/repo/evals", name: "denied-task", kind: "plan" })
+      ).rejects.toThrow("source lstat denied");
+    });
+
+    await expect(mocks.fs.stat("/repo/evals/denied-task")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("rejects a source directory symlink before writing scaffold files", async () => {

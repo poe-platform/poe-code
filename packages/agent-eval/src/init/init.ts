@@ -236,8 +236,9 @@ function isPathAlreadyPresent(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
-    (error.code === "EEXIST" || error.code === "ENOTEMPTY")
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    ((error as { code?: unknown }).code === "EEXIST" ||
+      (error as { code?: unknown }).code === "ENOTEMPTY")
   );
 }
 
@@ -245,7 +246,7 @@ function isMissingPath(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     ((error as { code?: unknown }).code === "ENOENT" ||
       (error as { code?: unknown }).code === "ENOTDIR")
   );

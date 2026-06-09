@@ -201,7 +201,7 @@ async function writeTempThenRename(tempPath: string, filePath: string, content: 
     tempCreated = true;
     await rename(tempPath, filePath);
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isExistingPath(error)) {
       await rm(tempPath, { force: true }).catch(() => undefined);
     }
     throw error;

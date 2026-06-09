@@ -23,6 +23,7 @@ vi.mock("node:fs/promises", () => ({
   writeFile: async (...args: unknown[]) => {
     const [targetPath] = args as Parameters<typeof mocks.fs.writeFile>;
     if (mocks.failAggregates && String(targetPath).includes("aggregate-")) {
+      await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
       throw new Error("aggregate publication failed");
     }
     await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
@@ -50,6 +51,10 @@ describe("runMatrix publication", () => {
     const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
 
     await expect(iterator.next()).rejects.toThrow("aggregate publication failed");
+
+    const [matrixId] = (await mocks.fs.readdir("/runs")).filter((name) => name !== ".keep");
+    const files = await mocks.fs.readdir(`/runs/${String(matrixId)}`);
+    expect(files.filter((name) => String(name).includes(".tmp"))).toEqual([]);
   });
 
   it("cleans staged aggregate files when publication commit fails", async () => {

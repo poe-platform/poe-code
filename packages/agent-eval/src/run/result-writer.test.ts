@@ -5,6 +5,7 @@ import type { NormalizedTrace } from "./trace/types.js";
 
 const mocks = vi.hoisted(() => ({
   failedRenameTarget: undefined as string | undefined,
+  failedWriteTarget: undefined as string | undefined,
   randomUUIDs: [] as string[],
   randomUUIDCounter: 0
 }));
@@ -26,7 +27,13 @@ vi.mock("node:fs/promises", () => {
       await fs.rename(sourcePath, targetPath);
     },
     rm: fs.rm.bind(fs),
-    writeFile: fs.writeFile.bind(fs)
+    writeFile: async (targetPath: string, data: string, options: Parameters<typeof fs.writeFile>[2]) => {
+      if (targetPath === mocks.failedWriteTarget) {
+        await fs.writeFile(targetPath, "partial\n", options);
+        throw new Error("simulated temp write failure");
+      }
+      await fs.writeFile(targetPath, data, options);
+    }
   };
 });
 
@@ -38,6 +45,7 @@ describe("writeRunArtifacts", () => {
   beforeEach(() => {
     vol.reset();
     mocks.failedRenameTarget = undefined;
+    mocks.failedWriteTarget = undefined;
     mocks.randomUUIDs = [];
     mocks.randomUUIDCounter = 0;
   });
@@ -207,6 +215,21 @@ describe("writeRunArtifacts", () => {
     expect(await readText("/outside/result-tmp.json")).toBe("outside-state\n");
     expect((await fs.promises.lstat(collisionPath)).isSymbolicLink()).toBe(true);
     expect(JSON.parse(await readText("/runs/run-1/result.json"))).toEqual(createResult());
+  });
+
+  it("cleans a partial result temp file when the temp write fails", async () => {
+    const { fs } = await import("memfs");
+    const tempPath = `/runs/run-1/.result.json.${process.pid}.partial.tmp`;
+    await fs.promises.mkdir("/runs/run-1", { recursive: true });
+    mocks.randomUUIDs = ["partial"];
+    mocks.failedWriteTarget = tempPath;
+
+    await expect(writeRunResult("/runs/run-1", createResult())).rejects.toThrow(
+      "simulated temp write failure"
+    );
+
+    await expect(readText(tempPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(readText("/runs/run-1/result.json")).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
 

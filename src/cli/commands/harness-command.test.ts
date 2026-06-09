@@ -548,6 +548,7 @@ describe("harness command", () => {
       ...(memfs.promises as unknown as FileSystem),
       async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView, options?: { encoding?: BufferEncoding; flag?: string }) {
         if (filePath.endsWith("example.ajs")) {
+          await memfs.promises.writeFile(filePath, "partial script", options);
           throw new Error("script write failed");
         }
         await memfs.promises.writeFile(filePath, data, options);
@@ -574,7 +575,7 @@ describe("harness command", () => {
     ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("does not follow a scaffold file symlink inserted after the existence check", async () => {
+  it("does not follow or remove a scaffold file symlink inserted after the existence check", async () => {
     const mdPath = "/repo/.poe-code/harnesses/example/example.md";
     const ajsPath = "/repo/.poe-code/harnesses/example/example.ajs";
     const outsidePath = "/outside/example.md";
@@ -611,7 +612,9 @@ describe("harness command", () => {
     ).rejects.toMatchObject({ code: "EEXIST" });
 
     await expect(memfs.promises.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
-    await expect(memfs.promises.lstat(mdPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(memfs.promises.lstat(mdPath)).resolves.toSatisfy((stats) =>
+      stats.isSymbolicLink()
+    );
     await expect(memfs.promises.lstat(ajsPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 

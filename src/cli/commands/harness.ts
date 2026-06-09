@@ -368,24 +368,14 @@ async function executeHarnessNew(
   ]);
 
   await container.fs.mkdir(resolvedDir, { recursive: true });
+  const createdPaths: string[] = [];
   try {
-    await Promise.all([
-      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8", flag: "wx" }),
-      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8", flag: "wx" })
-    ]);
+    await writeHarnessScaffoldFile(container.fs, mdPath, mdSource);
+    createdPaths.push(mdPath);
+    await writeHarnessScaffoldFile(container.fs, ajsPath, ajsSource);
+    createdPaths.push(ajsPath);
   } catch (error) {
-    await Promise.all([
-      container.fs.unlink(mdPath).catch((cleanupError) => {
-        if (!hasErrorCode(cleanupError, "ENOENT")) {
-          throw cleanupError;
-        }
-      }),
-      container.fs.unlink(ajsPath).catch((cleanupError) => {
-        if (!hasErrorCode(cleanupError, "ENOENT")) {
-          throw cleanupError;
-        }
-      })
-    ]).catch(() => undefined);
+    await cleanupHarnessScaffoldFiles(container.fs, createdPaths);
     throw error;
   }
 
@@ -394,6 +384,35 @@ async function executeHarnessNew(
     dry: `Would create harness pair at ${formatDisplayPath(container, resolvedDir)}`
   });
   resources.context.finalize();
+}
+
+async function writeHarnessScaffoldFile(
+  fs: CliContainer["fs"],
+  filePath: string,
+  source: string
+): Promise<void> {
+  try {
+    await fs.writeFile(filePath, source, { encoding: "utf8", flag: "wx" });
+  } catch (error) {
+    if (!hasErrorCode(error, "EEXIST")) {
+      await tryUnlinkHarnessScaffoldFile(fs, filePath);
+    }
+    throw error;
+  }
+}
+
+async function cleanupHarnessScaffoldFiles(
+  fs: CliContainer["fs"],
+  filePaths: string[]
+): Promise<void> {
+  await Promise.all(filePaths.map((filePath) => tryUnlinkHarnessScaffoldFile(fs, filePath)));
+}
+
+async function tryUnlinkHarnessScaffoldFile(
+  fs: CliContainer["fs"],
+  filePath: string
+): Promise<void> {
+  await fs.unlink(filePath).catch(() => undefined);
 }
 
 async function executeHarnessList(program: Command, container: CliContainer): Promise<void> {

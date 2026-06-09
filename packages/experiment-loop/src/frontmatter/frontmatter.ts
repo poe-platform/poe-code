@@ -2,6 +2,7 @@ import matter from "gray-matter";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { stringify } from "yaml";
+import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -174,7 +175,7 @@ export async function writeExperimentFrontmatter(
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { dirname, join, parse, resolve, sep } from "node:path";
+import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
 const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
@@ -271,9 +272,9 @@ function formatOutput(output: string): string {
 }
 
 function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isFileAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

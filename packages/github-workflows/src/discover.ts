@@ -109,7 +109,7 @@ async function readAutomation(
 
   return {
     name,
-    prompt: readPrompt(resolved.data.prompt, fileName),
+    prompt: readPrompt(getOwnEntry(resolved.data, "prompt"), fileName),
     ...readAutomationFields(resolved.data, fileName)
   };
 }
@@ -130,12 +130,12 @@ function readAutomationFields(
   frontmatter: Record<string, unknown>,
   fileName: string
 ): Omit<AutomationDefinition, "name" | "prompt"> {
-  const label = readOptionalString(frontmatter.label, "label", fileName);
-  const source = readOptionalString(frontmatter.source, "source", fileName);
-  const agent = readOptionalString(frontmatter.agent, "agent", fileName);
-  const mcp = readOptionalMcp(frontmatter.mcp, fileName);
-  const allow = readOptionalStringArray(frontmatter.allow, "allow", fileName);
-  const prefix = readOptionalPrefix(frontmatter.prefix, fileName);
+  const label = readOptionalString(getOwnEntry(frontmatter, "label"), "label", fileName);
+  const source = readOptionalString(getOwnEntry(frontmatter, "source"), "source", fileName);
+  const agent = readOptionalString(getOwnEntry(frontmatter, "agent"), "agent", fileName);
+  const mcp = readOptionalMcp(getOwnEntry(frontmatter, "mcp"), fileName);
+  const allow = readOptionalStringArray(getOwnEntry(frontmatter, "allow"), "allow", fileName);
+  const prefix = readOptionalPrefix(getOwnEntry(frontmatter, "prefix"), fileName);
 
   return {
     ...(label === undefined ? {} : { label }),
@@ -259,32 +259,32 @@ function readOptionalMcp(
       );
     }
 
-    const command = serverValue.command;
+    const command = getOwnEntry(serverValue, "command");
     if (typeof command !== "string") {
       throw new Error(
         `Automation "${fileName}" has invalid "mcp.${serverName}.command" frontmatter. Expected a string.`
       );
     }
 
-    const args = serverValue.args;
+    const args = getOwnEntry(serverValue, "args");
     if (args !== undefined && (!Array.isArray(args) || args.some((item) => typeof item !== "string"))) {
       throw new Error(
         `Automation "${fileName}" has invalid "mcp.${serverName}.args" frontmatter. Expected an array of strings.`
       );
     }
 
-    const env = serverValue.env;
+    const env = getOwnEntry(serverValue, "env");
     if (env !== undefined && !isStringRecord(env)) {
       throw new Error(
         `Automation "${fileName}" has invalid "mcp.${serverName}.env" frontmatter. Expected an object of strings.`
       );
     }
 
-    mcp[serverName] = {
+    defineDataProperty(mcp, serverName, {
       command,
       ...(args === undefined ? {} : { args }),
       ...(env === undefined ? {} : { env })
-    };
+    });
   }
 
   return mcp;
@@ -300,6 +300,19 @@ function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isStringRecord(value: unknown): value is Record<string, string> {

@@ -253,8 +253,8 @@ export class StrategyConfigManager {
       fs.renameSync(temporaryFile, this.CONFIG_FILE);
       temporaryCreated = false;
     } catch (error) {
-      if (temporaryCreated) {
-        fs.unlinkSync(temporaryFile);
+      if (temporaryCreated || !isAlreadyExists(error)) {
+        tryUnlinkSync(temporaryFile);
       }
       throw error;
     }
@@ -287,6 +287,18 @@ export class StrategyConfigManager {
         throw new Error(`Strategy config path cannot be a symbolic link: ${candidate}`);
       }
     }
+  }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
+}
+
+function tryUnlinkSync(filePath: string): void {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    return;
   }
 }
 

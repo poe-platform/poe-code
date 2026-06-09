@@ -20,6 +20,7 @@ import {
   pathExists,
   createTimestamp
 } from "../fs-utils.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 // ============================================================================
 // Helper Functions
@@ -64,12 +65,7 @@ async function backupInvalidDocument(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function assertRegularWriteTarget(

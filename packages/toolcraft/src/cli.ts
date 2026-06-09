@@ -2050,13 +2050,23 @@ function fieldPromptLabel(field: FieldDefinition): string {
   return field.positionalIndex === undefined ? field.optionFlag : `<${field.displayPath}>`;
 }
 
+function enumOptionLabel(schema: Extract<FieldSchema, { kind: "enum" }>, value: unknown): string {
+  const key = String(value);
+
+  if (schema.labels === undefined || !Object.prototype.hasOwnProperty.call(schema.labels, key)) {
+    return key;
+  }
+
+  return schema.labels[key] ?? key;
+}
+
 async function promptForField(field: FieldDefinition): Promise<unknown> {
   const schema = field.schema;
   if (schema.kind === "enum") {
     const options = schema.loadOptions
       ? await schema.loadOptions()
       : schema.values.map((value) => ({
-          label: schema.labels?.[String(value)] ?? String(value),
+          label: enumOptionLabel(schema, value),
           value
         }));
     const selected = await select({

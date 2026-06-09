@@ -1029,6 +1029,40 @@ describe("runCLI", () => {
     });
   });
 
+  it("does not inherit enum option labels for prototype-named values", async () => {
+    const handler = vi.fn(
+      async (ctx: { params: { mode: "constructor" | "safe" } }) => ctx.params
+    );
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["constructor", "safe"] as const, {
+          labels: { safe: "Safe" }
+        })
+      }),
+      handler
+    });
+
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
+
+    promptState.select.mockResolvedValueOnce("constructor");
+
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(promptState.select).toHaveBeenCalledWith({
+      message: "--mode",
+      options: [
+        { label: "constructor", value: "constructor" },
+        { label: "Safe", value: "safe" }
+      ],
+      initialValue: undefined
+    });
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ mode: "constructor" });
+  });
+
   it("merges preset values before CLI flags and only prompts for still-missing required params", async () => {
     const handler = vi.fn(
       async (ctx: {

@@ -66,7 +66,7 @@ interface ResolvedBridgeSource {
 }
 
 function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
+  return error instanceof Error && Object.prototype.hasOwnProperty.call(error, "code");
 }
 
 function pathExists(targetPath: string): boolean {

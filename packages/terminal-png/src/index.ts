@@ -33,7 +33,7 @@ export async function renderTerminalPng(
       temporaryCreated = true;
       await rename(temporaryPath, options.output);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         try {
           await rm(temporaryPath, { force: true });
         } catch (cleanupError) {
@@ -45,6 +45,10 @@ export async function renderTerminalPng(
   }
 
   return png;
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 export * from "./ansi-parser.js";

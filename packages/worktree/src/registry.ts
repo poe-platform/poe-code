@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type {
   Worktree,
   WorktreeRegistry,
@@ -54,21 +55,11 @@ export async function writeRegistry(
 }
 
 function isNotFound(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function assertPathHasNoSymbolicLinks(

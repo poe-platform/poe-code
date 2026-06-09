@@ -5,6 +5,7 @@ import {
   resolveTemplatePartials
 } from "toolcraft-design";
 import { findBase } from "./discover.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { mergeLayers } from "./merge.js";
 import { parseDocument } from "./parse.js";
 import type {
@@ -366,7 +367,7 @@ async function findPartial(
     try {
       return { content: await fs.readFile(filePath, "utf8"), filePath };
     } catch (error) {
-      if (hasCode(error, "ENOENT")) {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         continue;
       }
       throw error;
@@ -389,15 +390,6 @@ function assertInsideDirectory(name: string, directory: string, filePath: string
 
 function unique(values: string[]): string[] {
   return [...new Set(values)];
-}
-
-function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === code
-  );
 }
 
 function assertValidYieldCount(prompt: string): void {

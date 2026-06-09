@@ -186,17 +186,18 @@ export function parseRunner(raw: unknown): RunnerScope {
   }
 
   const uploadMaxFileMb =
-    parseOptionalNumber(record.upload_max_file_mb, "runner.upload_max_file_mb") ?? 100;
+    parseOptionalNumber(getOwnEntry(record, "upload_max_file_mb"), "runner.upload_max_file_mb") ??
+    100;
   if (uploadMaxFileMb <= 0) {
     throw new Error("runner.upload_max_file_mb: expected a positive finite number.");
   }
 
   return omitUndefined({
-    detach: parseOptionalBoolean(record.detach, "runner.detach") ?? false,
+    detach: parseOptionalBoolean(getOwnEntry(record, "detach"), "runner.detach") ?? false,
     upload_max_file_mb: uploadMaxFileMb,
-    download_conflict: parseDownloadConflict(record.download_conflict),
-    sync: parseRunnerSync(record.sync),
-    workspace: parseRunnerWorkspace(record.workspace)
+    download_conflict: parseDownloadConflict(getOwnEntry(record, "download_conflict")),
+    sync: parseRunnerSync(getOwnEntry(record, "sync")),
+    workspace: parseRunnerWorkspace(getOwnEntry(record, "workspace"))
   });
 }
 
@@ -212,36 +213,37 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
   if (record === undefined) {
     throw new Error("runtime: expected an object.");
   }
-  const type = parseRuntimeType(record.type);
+  const type = parseRuntimeType(getOwnEntry(record, "type"));
   const shared = parseSharedRuntimeFields(record);
 
   if (type === "docker") {
     return omitUndefined({
       ...shared,
       type,
-      image: parseOptionalString(record.image),
-      dockerfile: parseOptionalString(record.dockerfile),
-      build_context: parseOptionalString(record.build_context),
-      engine: parseEngine(record.engine),
-      network: parseOptionalString(record.network),
-      extra_args: parseOptionalStringArray(record.extra_args)
+      image: parseOptionalString(getOwnEntry(record, "image")),
+      dockerfile: parseOptionalString(getOwnEntry(record, "dockerfile")),
+      build_context: parseOptionalString(getOwnEntry(record, "build_context")),
+      engine: parseEngine(getOwnEntry(record, "engine")),
+      network: parseOptionalString(getOwnEntry(record, "network")),
+      extra_args: parseOptionalStringArray(getOwnEntry(record, "extra_args"))
     });
   }
 
   if (type === "e2b") {
-    const preserveAfterExitHours = parseOptionalNumber(record.preserve_after_exit_hours) ?? 24;
+    const preserveAfterExitHours =
+      parseOptionalNumber(getOwnEntry(record, "preserve_after_exit_hours")) ?? 24;
     if (preserveAfterExitHours < 0 || preserveAfterExitHours > 168) {
       throw new Error("preserve_after_exit_hours: expected a number from 0 to 168.");
     }
-    const cpu = parseOptionalNumber(record.cpu);
+    const cpu = parseOptionalNumber(getOwnEntry(record, "cpu"));
     if (cpu !== undefined && cpu <= 0) {
       throw new Error("cpu: expected a positive finite number.");
     }
-    const memoryMb = parseOptionalNumber(record.memory_mb);
+    const memoryMb = parseOptionalNumber(getOwnEntry(record, "memory_mb"));
     if (memoryMb !== undefined && memoryMb <= 0) {
       throw new Error("memory_mb: expected a positive finite number.");
     }
-    const timeoutMinutes = parseOptionalNumber(record.timeout_minutes);
+    const timeoutMinutes = parseOptionalNumber(getOwnEntry(record, "timeout_minutes"));
     if (timeoutMinutes !== undefined && timeoutMinutes < 0) {
       throw new Error("timeout_minutes: expected a non-negative finite number.");
     }
@@ -249,11 +251,11 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
     return omitUndefined({
       ...shared,
       type,
-      template_id: parseOptionalString(record.template_id),
-      from_template: parseOptionalString(record.from_template),
-      dockerfile: parseOptionalString(record.dockerfile),
-      build_context: parseOptionalString(record.build_context),
-      workspace_dir: parseWorkspaceDir(record.workspace_dir),
+      template_id: parseOptionalString(getOwnEntry(record, "template_id")),
+      from_template: parseOptionalString(getOwnEntry(record, "from_template")),
+      dockerfile: parseOptionalString(getOwnEntry(record, "dockerfile")),
+      build_context: parseOptionalString(getOwnEntry(record, "build_context")),
+      workspace_dir: parseWorkspaceDir(getOwnEntry(record, "workspace_dir")),
       cpu,
       memory_mb: memoryMb,
       timeout_minutes: timeoutMinutes,
@@ -274,8 +276,12 @@ export function resolveRuntime({
   cwd: string;
   config: Pick<ResolvedConfig, "runtime">;
 }): RuntimeResolveResult {
-  const runtime = config.runtime;
-  return runtimeResolvers[runtime.type]({ cwd, runtime });
+  const runtime = getOwnEntry(config as unknown as Record<string, unknown>, "runtime");
+  if (!isRuntimeConfig(runtime)) {
+    throw new Error("runtime config is required.");
+  }
+  const type = getRuntimeType(runtime);
+  return runtimeResolvers[type]({ cwd, runtime });
 }
 
 const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
@@ -289,7 +295,7 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
   },
   docker({ cwd, runtime }) {
     const dockerRuntime = runtime as DockerRuntime;
-    if (dockerRuntime.image !== undefined) {
+    if (getOptionalRuntimeString(dockerRuntime, "image") !== undefined) {
       return {
         runtime: dockerRuntime,
         runner: "docker",
@@ -313,7 +319,7 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
   },
   e2b({ cwd, runtime }) {
     const e2bRuntime = runtime as E2bRuntime;
-    if (e2bRuntime.template_id !== undefined) {
+    if (getOptionalRuntimeString(e2bRuntime, "template_id") !== undefined) {
       return {
         runtime: e2bRuntime,
         runner: "e2b",
@@ -342,8 +348,11 @@ function resolveRuntimeBuildPaths(
   runtime: DockerRuntime | E2bRuntime
 ): { dockerfilePath: string; buildContext: string } {
   return {
-    dockerfilePath: path.resolve(cwd, runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")),
-    buildContext: path.resolve(cwd, runtime.build_context ?? ".")
+    dockerfilePath: path.resolve(
+      cwd,
+      getOptionalRuntimeString(runtime, "dockerfile") ?? path.join(".poe-code", "Dockerfile")
+    ),
+    buildContext: path.resolve(cwd, getOptionalRuntimeString(runtime, "build_context") ?? ".")
   };
 }
 
@@ -362,9 +371,9 @@ function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
 
 function parseSharedRuntimeFields(record: Record<string, unknown>): SharedRuntimeFields {
   return omitUndefined({
-    build_args: parseBuildArgs(record.build_args),
-    mounts: parseMounts(record.mounts),
-    link: parseOptionalString(record.link)
+    build_args: parseBuildArgs(getOwnEntry(record, "build_args")),
+    mounts: parseMounts(getOwnEntry(record, "mounts")),
+    link: parseOptionalString(getOwnEntry(record, "link"))
   });
 }
 
@@ -414,9 +423,8 @@ function parseRunnerWorkspace(value: unknown): RunnerScope["workspace"] {
   }
 
   return {
-    exclude: parseOptionalStringArray(record.exclude, "runner.workspace.exclude") ?? [
-      ...defaultWorkspaceExclude
-    ]
+    exclude: parseOptionalStringArray(getOwnEntry(record, "exclude"), "runner.workspace.exclude") ??
+      [...defaultWorkspaceExclude]
   };
 }
 
@@ -472,8 +480,8 @@ function parseMounts(value: unknown): RuntimeMount[] {
     if (record === undefined) {
       throw new Error(`mounts[${index}]: expected an object.`);
     }
-    const source = record.source;
-    const target = record.target;
+    const source = getOwnEntry(record, "source");
+    const target = getOwnEntry(record, "target");
     if (typeof source !== "string") {
       throw new Error(`mounts[${index}].source: expected a string.`);
     }
@@ -487,7 +495,7 @@ function parseMounts(value: unknown): RuntimeMount[] {
     return omitUndefined({
       source,
       target,
-      readonly: parseOptionalBoolean(record.readonly, `mounts[${index}].readonly`)
+      readonly: parseOptionalBoolean(getOwnEntry(record, "readonly"), `mounts[${index}].readonly`)
     });
   });
 }
@@ -574,6 +582,30 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
     return undefined;
   }
   return value as Record<string, unknown>;
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function isRuntimeConfig(value: unknown): value is RuntimeConfig {
+  return asRecord(value) !== undefined;
+}
+
+function getRuntimeType(runtime: RuntimeConfig): RuntimeConfig["type"] {
+  const type = getOwnEntry(runtime as unknown as Record<string, unknown>, "type");
+  if (type === "host" || type === "docker" || type === "e2b") {
+    return type;
+  }
+  throw new Error('runtime.type: expected "host", "docker", or "e2b".');
+}
+
+function getOptionalRuntimeString(
+  runtime: DockerRuntime | E2bRuntime,
+  key: "build_context" | "dockerfile" | "image" | "template_id"
+): string | undefined {
+  const value = getOwnEntry(runtime as unknown as Record<string, unknown>, key);
+  return typeof value === "string" ? value : undefined;
 }
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {

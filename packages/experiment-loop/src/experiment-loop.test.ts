@@ -32,6 +32,32 @@ function createFs(files: Record<string, string> = {}): ExperimentFileSystem {
   return createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createEvalExec(
   responses: Array<{
     stdout: string;
@@ -649,6 +675,23 @@ describe("parseExperimentFrontmatter", () => {
     });
   });
 
+  it("does not accept inherited metric fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        name: "polluted",
+        script: "npm test",
+        direction: "maximize"
+      },
+      () => {
+        const content = ["---", "metric: {}", "baseline: null", "---", "Body"].join("\n");
+
+        const result = parseExperimentFrontmatter(content);
+
+        expect(result.frontmatter.metric).toBeUndefined();
+      }
+    );
+  });
+
   it("parses metric_timeout from frontmatter", () => {
     const content = ["---", "metric_timeout: 120", "baseline: null", "---", "Body"].join("\n");
 
@@ -679,6 +722,25 @@ describe("parseExperimentFrontmatter", () => {
     const result = parseExperimentFrontmatter(content);
 
     expect(result.frontmatter.extends).toBe(true);
+  });
+
+  it("ignores inherited frontmatter fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        agent: "polluted-agent",
+        extends: true,
+        baseline: { tests: 1 },
+        max_experiments: 9,
+        metric_timeout: 30
+      },
+      () => {
+        const content = ["---", "{}", "---", "Body"].join("\n");
+
+        const result = parseExperimentFrontmatter(content);
+
+        expect(result.frontmatter).toEqual({ baseline: null });
+      }
+    );
   });
 
   it("parses agent as a single string", () => {

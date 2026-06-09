@@ -42,6 +42,32 @@ function createFs(files: Record<string, string>) {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function discoveryDoc(name: string): string {
   return ["---", "kind: ralph", `name: ${name}`, "---", `# ${name}`].join("\n");
 }
@@ -399,6 +425,14 @@ describe("parseFrontmatter", () => {
     });
   });
 
+  it("does not accept inherited hook fields", async () => {
+    await withObjectPrototypeProperties({ from: "polluted" }, () => {
+      const doc = ["---", "hooks: {}", "---", "Body"].join("\n");
+
+      expect(() => parseFrontmatter(doc)).toThrow('"hooks.from" must be a non-empty string');
+    });
+  });
+
   it.each([
     {
       name: "missing from",
@@ -550,6 +584,27 @@ describe("parseFrontmatter", () => {
         iteration: 0
       }
     });
+  });
+
+  it("ignores inherited frontmatter fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        agent: "polluted-agent",
+        extends: true,
+        iterations: 9,
+        status: { state: "in_progress", iteration: 4 }
+      },
+      () => {
+        const result = parseFrontmatter(["---", "{}", "---", "Body"].join("\n"));
+
+        expect(result.data).toEqual({
+          status: {
+            state: "open",
+            iteration: 0
+          }
+        });
+      }
+    );
   });
 
   it("handles empty document", () => {

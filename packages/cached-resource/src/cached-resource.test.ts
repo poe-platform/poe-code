@@ -986,6 +986,16 @@ describe("loadFromDisk", () => {
     }
   });
 
+  it("returns null when required cache fields are inherited", async () => {
+    const fs = createMemFs({ "/cache/test.json": JSON.stringify({ data: ["a"] }) });
+
+    await withObjectPrototypeProperties({ timestamp: Date.now() }, async () => {
+      await expect(
+        loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "test", staleTtl: 60_000 }, { fs }),
+      ).resolves.toBeNull();
+    });
+  });
+
   it("does not read cache names outside the cache directory", async () => {
     const fs = createMemFs({
       "/victim/secret.json": JSON.stringify({ data: ["secret"], timestamp: Date.now() }),
@@ -1198,6 +1208,17 @@ describe("resolveCacheDir", () => {
     });
 
     expect(result).toBe("/home/user/.cache/myapp");
+  });
+
+  it("ignores inherited XDG_CACHE_HOME values", async () => {
+    await withObjectPrototypeProperties({ XDG_CACHE_HOME: "/polluted/cache" }, () => {
+      const result = resolveCacheDir("myapp", {
+        env: {},
+        homedir: () => "/home/user",
+      });
+
+      expect(result).toBe("/home/user/.cache/myapp");
+    });
   });
 
   it("rejects application names that leave the cache root", () => {

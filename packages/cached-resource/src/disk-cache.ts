@@ -94,7 +94,7 @@ export function resolveCacheDir(
   appName: string,
   deps?: ResolveCacheDirDeps,
 ): string {
-  const xdgCacheHome = (deps?.env ?? process.env).XDG_CACHE_HOME;
+  const xdgCacheHome = getOwnEnvValue(deps?.env ?? process.env, "XDG_CACHE_HOME");
   const home = deps?.homedir ? deps.homedir() : os.homedir();
   const cacheRoot = xdgCacheHome ?? join(home, ".cache");
   const cacheDir = join(cacheRoot, appName);
@@ -183,14 +183,24 @@ function pathSeparator(): string {
 }
 
 function isCachedData<T>(value: unknown): value is CachedData<T> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const record = value as Record<string, unknown>;
   return (
-    typeof value === "object" &&
-    value !== null &&
-    Object.hasOwn(value, "data") &&
-    "timestamp" in value &&
-    typeof value.timestamp === "number" &&
-    Number.isFinite(value.timestamp)
+    Object.hasOwn(record, "data") &&
+    Object.hasOwn(record, "timestamp") &&
+    typeof record.timestamp === "number" &&
+    Number.isFinite(record.timestamp)
   );
+}
+
+function getOwnEnvValue(
+  env: Record<string, string | undefined>,
+  key: string,
+): string | undefined {
+  return Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
 }
 
 function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {

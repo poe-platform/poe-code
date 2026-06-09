@@ -5,26 +5,40 @@ import type { CaseResult } from "../run/vitest-runner.js";
 
 const mocks = vi.hoisted(() => ({
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
+  failedStatTarget: undefined as string | undefined,
   cloneTarget: vi.fn(),
   runScorer: vi.fn()
 }));
 
-vi.mock("node:fs/promises", () => ({
-  default: {
+vi.mock("node:fs/promises", () => {
+  const stat = (...args: unknown[]) => {
+    const [target] = args as Parameters<typeof mocks.fs.stat>;
+    if (String(target) === mocks.failedStatTarget) {
+      throw new Error("starter stat denied");
+    }
+
+    return mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>));
+  };
+
+  return {
+    default: {
+      cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
+      mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
+      readFile: (...args: unknown[]) =>
+        mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>)),
+      readdir: (...args: unknown[]) =>
+        mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
+      stat,
+      realpath: (...args: unknown[]) =>
+        mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
+    },
     cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
     mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
-    readFile: (...args: unknown[]) =>
-      mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>)),
-    readdir: (...args: unknown[]) =>
-      mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
-    stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
-    ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
-  },
-  cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
-  mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
-  stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
-  ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
-}));
+    stat,
+    realpath: (...args: unknown[]) =>
+      mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
+  };
+});
 
 vi.mock("../run/clone.js", () => ({
   cloneTarget: mocks.cloneTarget
@@ -36,11 +50,39 @@ vi.mock("../run/scorer.js", () => ({
 
 const { evalCheck } = await import("./check.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("evalCheck", () => {
   const cases: CaseResult[] = [{ name: "copies solution", passed: true, durationMs: 12 }];
 
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON(createSourceFiles(), "/")).promises;
+    mocks.failedStatTarget = undefined;
     mocks.cloneTarget.mockReset();
     mocks.runScorer.mockReset();
     mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
@@ -126,6 +168,18 @@ describe("evalCheck", () => {
     const result = await evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" });
 
     expect(result.cloneDir).toMatch(/^\/repo\/evals\/runs\/\.check\/smoke\/[^/]+\/clone$/);
+  });
+
+  it("does not treat inherited starter stat error codes as missing starter directories", async () => {
+    mocks.failedStatTarget = "/repo/evals/smoke/starter";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+        "starter stat denied"
+      );
+    });
+
+    expect(mocks.runScorer).not.toHaveBeenCalled();
   });
 
   it("does not create output for an already aborted check", async () => {

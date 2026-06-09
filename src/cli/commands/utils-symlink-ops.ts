@@ -81,7 +81,17 @@ export async function applySymlinkOps(
       }
     }
   } catch (error) {
-    await rollbackSymlinkOps(fs, appliedOps);
+    try {
+      await rollbackSymlinkOps(fs, appliedOps);
+    } catch (rollbackError) {
+      throw new AggregateError(
+        [error, rollbackError],
+        [
+          `Symlink operation failed: ${formatUnknownError(error)}`,
+          `Rollback failed: ${formatUnknownError(rollbackError)}`
+        ].join(" ")
+      );
+    }
     throw error;
   }
 
@@ -100,6 +110,14 @@ async function rollbackSymlinkOps(
 
     await fs.rename(op.to, op.from);
   }
+}
+
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return String(error);
 }
 
 export async function isSymlinkPointingTo(

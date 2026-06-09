@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import type { Stats } from "node:fs";
 import path from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { appendWorkspaceKeyHash, sanitizeWorkspaceKey } from "../runtime/sanitize.js";
 
 export interface EnsureWorkspaceResult {
@@ -202,14 +203,10 @@ async function lstatIfExists(filePath: string): Promise<Stats | undefined> {
   try {
     return await fs.lstat(filePath);
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
 
     throw error;
   }
-}
-
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
 }

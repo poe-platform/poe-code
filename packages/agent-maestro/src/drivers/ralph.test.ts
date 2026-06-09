@@ -19,6 +19,25 @@ vi.mock("node:fs/promises", async () => {
   };
 });
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("ralphDriver", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -375,6 +394,46 @@ describe("ralphDriver", () => {
     await expect(fs.readFile(tempPath as string, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("cleans temp writes that only inherit existing-path codes", async () => {
+    const original = planDoc("Keep original");
+    const updated = planDoc("Updated", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": original
+    });
+    const tempPaths: string[] = [];
+    const realWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.startsWith(`/repo/docs/plans/.ralph-plan.md.${process.pid}.`)) {
+        tempPaths.push(targetPath);
+        await realWriteFile(filePath, "partial\n", options);
+        throw new Error("disk full");
+      }
+
+      return realWriteFile(filePath, content, options);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await realWriteFile(options.docPath, updated, "utf8");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+        reason: "abnormal",
+        failure: "step_failed",
+        failedStep: "ralph",
+        error: "disk full"
+      });
+    });
+
+    expect(tempPaths).toHaveLength(1);
+    await expect(fs.readFile(tempPaths[0] as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("does not follow a temp symlink inserted before plan publication", async () => {
     const original = planDoc("Keep original");
     const updated = planDoc("Updated", { status: "completed", iteration: 1 });
@@ -432,6 +491,33 @@ describe("ralphDriver", () => {
       failure: "step_failed",
       failedStep: "ralph",
       error: "stat denied"
+    });
+  });
+
+  it("returns step_failed when archive fallback probing only inherits missing-path codes", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Stat failure")
+    });
+    const realLstat = fs.lstat.bind(fs);
+    const statError = new Error("stat failed");
+    vi.spyOn(fs, "lstat").mockImplementation(async (filePath) => {
+      if (filePath === "/repo/workspaces/task-1/ralph-plan.md") {
+        throw statError;
+      }
+
+      return realLstat(filePath);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => result(options.docPath, "completed")
+    });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+        reason: "abnormal",
+        failure: "step_failed",
+        failedStep: "ralph",
+        error: "stat failed"
+      });
     });
   });
 

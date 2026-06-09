@@ -49,6 +49,7 @@ registerRunIntegrationCleanup();
 
 describe("runEval pipeline integration", () => {
   beforeEach(() => {
+    mockedAgentSpawn.spawnStreaming.mockReset();
     mockedPipeline.runPipeline.mockReset().mockResolvedValue({ stopReason: "completed" });
   });
   it("records nested agent ACP events through the pipeline boundary", async () => {
@@ -82,6 +83,65 @@ describe("runEval pipeline integration", () => {
     });
 
     await assertObservedNestedEvents({ outDir, result, expectedPath: outsidePath });
+  });
+
+  it("ignores inherited nested agent spawn options", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    mockedPipeline.runPipeline.mockImplementationOnce(
+      async (options: { runAgent: (input: object) => Promise<unknown> }) => {
+        const nestedInput = Object.assign(
+          Object.create({
+            logDir: "/tmp/polluted-log",
+            logFileName: "polluted.log",
+            logPath: "/tmp/polluted.log",
+            mcpServers: { polluted: { command: "polluted" } },
+            mode: "yolo",
+            model: "polluted-model",
+            signal: new AbortController().signal,
+            skills: ["polluted"]
+          }),
+          { agent: "codex", prompt: "nested", cwd: "/tmp" }
+        );
+        await options.runAgent(nestedInput);
+        return { stopReason: "completed" };
+      }
+    );
+
+    await runEval({
+      sourceDir: sourceFixture("pipeline"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    const spawned = mockedAgentSpawn.spawnStreaming.mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(spawned).toMatchObject({
+      agentId: "codex",
+      cwd: "/tmp",
+      prompt: "nested"
+    });
+    for (const key of [
+      "logDir",
+      "logFileName",
+      "logPath",
+      "mcpServers",
+      "mode",
+      "model",
+      "signal",
+      "skills"
+    ]) {
+      expect(Object.hasOwn(spawned, key)).toBe(false);
+    }
   });
 
   it("zeroes correctness for outside-clone writes in orchestrated runs", async () => {

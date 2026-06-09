@@ -189,11 +189,13 @@ function normalizeCommitOptions(options: GitCommitOptions | unknown): GitCommitO
     throw new Error("Git commit options must be an object.");
   }
 
+  const files = getOwnProperty(options, "files");
+
   return {
-    message: readNonEmptyString(options.message, "Git commit options message"),
-    ...(options.files === undefined
-      ? {}
-      : { files: readNonEmptyStringArray(options.files, "Git commit options files") })
+    message: readNonEmptyString(getOwnProperty(options, "message"), "Git commit options message"),
+    files: files === undefined
+      ? undefined
+      : readNonEmptyStringArray(files, "Git commit options files")
   };
 }
 
@@ -202,17 +204,18 @@ function normalizeSavepoint(savepoint: GitSavepoint | unknown): GitSavepoint {
     throw new Error("Git savepoint must be an object.");
   }
 
+  const stashRefValue = getOwnProperty(savepoint, "stashRef");
   const stashRef =
-    savepoint.stashRef === undefined
+    stashRefValue === undefined
       ? undefined
-      : readNonEmptyString(savepoint.stashRef, "Git savepoint stashRef");
+      : readNonEmptyString(stashRefValue, "Git savepoint stashRef");
   if (stashRef !== undefined && !stashRef.startsWith(SAVEPOINT_REF_PREFIX)) {
     throw new Error("Git savepoint stashRef must be a Poe checkpoint ref.");
   }
 
   return {
-    head: readNonEmptyString(savepoint.head, "Git savepoint head"),
-    ...(stashRef === undefined ? {} : { stashRef })
+    head: readNonEmptyString(getOwnProperty(savepoint, "head"), "Git savepoint head"),
+    stashRef
   };
 }
 
@@ -231,14 +234,17 @@ function normalizeWorktreeCreateOptions(
     throw new Error("Git worktree create options must be an object.");
   }
 
+  const base = getOwnProperty(options, "base");
+  const path = getOwnProperty(options, "path");
+
   return {
     base:
-      options.base === undefined
+      base === undefined
         ? "HEAD"
-        : readNonEmptyString(options.base, "Git worktree create options base"),
-    ...(options.path === undefined
-      ? {}
-      : { path: readNonEmptyString(options.path, "Git worktree create options path") })
+        : readNonEmptyString(base, "Git worktree create options base"),
+    path: path === undefined
+      ? undefined
+      : readNonEmptyString(path, "Git worktree create options path")
   };
 }
 
@@ -464,4 +470,18 @@ function readNonEmptyStringArray(value: unknown, label: string): string[] {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

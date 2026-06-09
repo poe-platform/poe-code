@@ -235,6 +235,61 @@ describe("makeGitModule", () => {
     });
   });
 
+  it("ignores inherited git option fields", async () => {
+    const execFileMock = mockExecFileSequence([
+      (call) => {
+        expect(call.args).toEqual(["add", "--all"]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["commit", "--message", "save progress"]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "new-head\n" }),
+      (call) => {
+        expect(call.args).toEqual(["reset", "--hard", "base-head"]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["clean", "--force", "-d"]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      (call) => {
+        expect(call.args).toEqual([
+          "worktree",
+          "add",
+          "-b",
+          "feature/inherited",
+          "/repo/.poe-code/worktrees/feature%2Finherited",
+          "HEAD"
+        ]);
+        return { stdout: "" };
+      }
+    ]);
+    const git = makeGitModule("/repo");
+
+    await withObjectPrototypeProperties(
+      {
+        base: "origin/polluted",
+        files: ["polluted.ts"],
+        path: "/tmp/outside",
+        stashRef: "refs/heads/main"
+      },
+      async () => {
+        await expect(git.commit({ message: "save progress" })).resolves.toBe("new-head");
+        await expect(git.revert({ head: "base-head" })).resolves.toBeUndefined();
+        await expect(git.worktreeCreate("feature/inherited", {})).resolves.toEqual({
+          branch: "feature/inherited",
+          path: "/repo/.poe-code/worktrees/feature%2Finherited"
+        });
+      }
+    );
+
+    expect(execFileMock).toHaveBeenCalledTimes(8);
+  });
+
   it("cleans up the temporary savepoint ref when checkpoint restoration fails", async () => {
     vi.spyOn(Date, "now").mockReturnValue(123456789);
     vi.spyOn(Math, "random").mockReturnValue(0.123456789);

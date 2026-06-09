@@ -24,6 +24,28 @@ constraints. Do not put executable JavaScript in Markdown.
 an exported default async function for runtime logic. Spawn agents from the
 default function, not from schema initializers. Return a serializable summary.
 
+## Spawning Agents
+
+`spawn(definition, options)` resolves to `{ exitCode, stdout, stderr, summary,
+durationMs, usage? }`. Read `summary` for the agent's response. Real harness
+runs show a numbered lifecycle line for every spawn, so sequential loop spawns
+remain easy to follow.
+
+Set `options.label` when the prompt is generated, verbose, or sensitive. The
+label is used only for lifecycle output and is not sent to the agent:
+
+```js
+await spawn(frontmatter.agent, { label: `Review ${target}`, prompt });
+```
+
+`poe-code harness run` retries transient spawn failures up to five attempts with
+exponential backoff. The CLI shows every failed attempt, the next delay, and a
+prominent final error. Permanent configuration and authentication failures stop
+immediately. Tuple calls passed to `spawn.parallel` use the same lifecycle and
+default retry behavior. Use `spawn.retry(definition, options, retryOptions)` only
+when a particular script needs a different retry policy; `maxAttempts` is always
+capped at five.
+
 ## Supported JavaScript
 
 Agent-script is smaller than project TypeScript. Supported after the runtime

@@ -24,7 +24,19 @@ export {
   makeAgentModule,
   runWithSpawnUsageAccumulator
 } from "./modules/agent.js";
-export type { SpawnUsageAccumulator, SpawnUsageTotal } from "./modules/agent.js";
+export type {
+  AgentModuleDefinition,
+  AgentModuleOptions,
+  AgentModuleParallelCall,
+  AgentModuleRetryOptions,
+  AgentModuleSpawnOptions,
+  AgentSpawnEvent,
+  SpawnAgent,
+  SpawnAgentInput,
+  SpawnAgentResult,
+  SpawnUsageAccumulator,
+  SpawnUsageTotal
+} from "./modules/agent.js";
 export { makeEnvModule } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";
 export { makeGitModule } from "./modules/git.js";

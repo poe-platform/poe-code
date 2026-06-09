@@ -33,6 +33,12 @@ export class SilentError extends CliError {
   }
 }
 
+export class ReportedError extends CliError {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 /**
  * API-related errors (network, HTTP status, API responses)
  */
@@ -171,6 +177,13 @@ export function isSilentError(error: unknown): boolean {
     error.name === "SilentError" ||
     error.name === "OperationCancelledError"
   );
+}
+
+export function isReportedError(error: unknown): boolean {
+  if (error instanceof ReportedError) {
+    return true;
+  }
+  return error instanceof Error && error.name === "ReportedError";
 }
 
 /**

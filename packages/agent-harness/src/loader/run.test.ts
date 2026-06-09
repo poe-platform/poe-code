@@ -522,6 +522,113 @@ describe("runHarnessPair", () => {
     });
   });
 
+  it("counts retries as attempts without inflating logical spawn count", async () => {
+    const mdPath = "/repo/harness/retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ...createSpawnResult({ inputTokens: 2, outputTokens: 1 }),
+        exitCode: 1,
+        stderr: "temporary"
+      })
+      .mockResolvedValueOnce(createSpawnResult({ inputTokens: 3, outputTokens: 2 }));
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(spawnAgent, { defaultRetry: { maxAttempts: 2, backoffMs: 0 } })
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 5,
+        outputTokens: 3,
+        cachedTokens: 0,
+        spawnCount: 1,
+        attemptCount: 2
+      }
+    });
+  });
+
+  it("counts thrown transport retries as attempts", async () => {
+    const mdPath = "/repo/harness/thrown-retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/thrown-retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("transport unavailable"))
+      .mockResolvedValueOnce(createSpawnResult({ inputTokens: 3, outputTokens: 2 }));
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(spawnAgent, { defaultRetry: { maxAttempts: 2, backoffMs: 0 } })
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 3,
+        outputTokens: 2,
+        cachedTokens: 0,
+        spawnCount: 1,
+        attemptCount: 2
+      }
+    });
+  });
+
+  it("does not count invalid retry policies as logical spawns", async () => {
+    const mdPath = "/repo/harness/invalid-retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/invalid-retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        "  try {",
+        '    await spawn.retry("codex", { prompt: "one" }, { maxAttempts: 6, backoffMs: 0 });',
+        "  } catch ({ message }) {",
+        "    return message;",
+        "  }",
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi.fn();
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({ agent: makeAgentModule(spawnAgent) })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        cachedTokens: 0,
+        spawnCount: 0
+      }
+    });
+    expect(spawnAgent).not.toHaveBeenCalled();
+  });
+
   it("leaves cost undefined when no spawn reports cost and sums cost when any spawn reports it", async () => {
     const mdPath = "/repo/harness/cost-optional.md";
     vol.fromJSON({

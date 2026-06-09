@@ -35,7 +35,11 @@ export interface SpawnStreamingResult {
 }
 
 function isAcpEvent(value: unknown): value is AcpEvent {
-  return !!value && typeof value === "object" && "event" in value;
+  return (
+    !!value &&
+    typeof value === "object" &&
+    Object.prototype.hasOwnProperty.call(value, "event")
+  );
 }
 
 function accumulateUsage(ctx: SpawnContext, event: AcpEvent): void {

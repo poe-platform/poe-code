@@ -76,6 +76,33 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return items;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("acp/spawnStreaming integration", () => {
   const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
   const mockAgentScriptPath = fileURLToPath(new URL("./__fixtures__/mock-agent.mjs", import.meta.url));
@@ -214,6 +241,45 @@ describe("acp/spawnStreaming integration", () => {
     for (let i = 0; i < normalizedExpected.length; i++) {
       expect(actualEvents[i]).toMatchObject(normalizedExpected[i]);
     }
+  });
+
+  it("ignores adapter outputs whose event field is only inherited", async () => {
+    const { resolveConfig } = await import("../configs/resolve-config.js");
+    vi.mocked(resolveConfig).mockImplementation((agentId: string) => {
+      if (agentId !== "native-empty") {
+        throw new Error(`unexpected agentId: ${agentId}`);
+      }
+      return {
+        agentId: "native-empty",
+        binaryName: process.execPath,
+        spawnConfig: {
+          kind: "cli",
+          agentId: "native-empty",
+          adapter: "native",
+          promptFlag: mockAgentScriptPath,
+          defaultArgs: [],
+          modes: { yolo: [], edit: [], read: [] }
+        }
+      };
+    });
+
+    const { spawnStreaming } = await import("./spawn.js");
+    let actualEvents: unknown[] = [];
+    let result: unknown;
+
+    await withObjectPrototypeProperties({ event: "polluted" }, async () => {
+      const { events, done } = spawnStreaming({
+        agentId: "native-empty",
+        prompt: "native-empty",
+        cwd: repoRoot
+      });
+
+      actualEvents = await collect(events);
+      result = await done;
+    });
+
+    expect(actualEvents).toEqual([]);
+    expect(result).toMatchObject({ exitCode: 0 });
   });
 
   it("full pipeline: spawnStreaming → renderAcpStream", async () => {

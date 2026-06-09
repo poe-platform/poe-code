@@ -32,6 +32,8 @@ const lines =
     ? fixtures.codexSession
     : mode === "claude"
       ? fixtures.claudeSession
+      : mode === "native-empty"
+        ? ["{}"]
       : undefined;
 
 if (!Array.isArray(lines) || !lines.every((line) => typeof line === "string")) {

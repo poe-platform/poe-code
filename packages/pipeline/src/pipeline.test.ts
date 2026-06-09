@@ -1990,14 +1990,16 @@ describe("writeTaskStatus", () => {
       return fs.writeFile(filePath, data, options);
     });
 
-    await expect(
-      writeTaskStatus({
-        fs: { ...fs, writeFile },
-        planPath: "/repo/plan.yaml",
-        taskId: "task-1",
-        status: "done"
-      })
-    ).rejects.toThrow("status write failed");
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        writeTaskStatus({
+          fs: { ...fs, writeFile },
+          planPath: "/repo/plan.yaml",
+          taskId: "task-1",
+          status: "done"
+        })
+      ).rejects.toThrow("status write failed");
+    });
 
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
     expect(temporaryPath).toBeDefined();

@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
 
@@ -246,10 +247,5 @@ export async function writeTaskStatus(options: {
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }

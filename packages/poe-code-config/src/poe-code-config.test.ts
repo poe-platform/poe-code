@@ -708,6 +708,25 @@ describe("initProjectConfig", () => {
     await expect(initProjectConfig(fs, projectConfigPath)).resolves.toBe("already-exists");
     expect(fs.getContent(projectConfigPath)).toBe('{"core":{"apiKey":"concurrent-value"}}\n');
   });
+
+  it("removes a partially written config when initialization fails", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    const originalWriteFile = fs.writeFile.bind(fs);
+    fs.writeFile = async (filePath, content, options) => {
+      if (filePath === projectConfigPath) {
+        fs.files[filePath] = "{\n";
+        throw new Error("project config disk full");
+      }
+
+      await originalWriteFile(filePath, content, options);
+    };
+
+    await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow(
+      "project config disk full"
+    );
+    expect(fs.getContent(projectConfigPath)).toBeUndefined();
+  });
 });
 
 describe("deepMergeDocuments", () => {

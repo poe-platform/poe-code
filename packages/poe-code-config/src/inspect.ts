@@ -73,6 +73,7 @@ export async function initProjectConfig(
     if (isAlreadyExists(error)) {
       return "already-exists";
     }
+    await fs.unlink(targetPath).catch(() => undefined);
     throw error;
   }
 }

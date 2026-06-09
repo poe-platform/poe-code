@@ -5,6 +5,7 @@ import { realpathSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { UserError } from "toolcraft";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { generate, type GeneratedFile } from "../generate.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
@@ -455,21 +456,11 @@ async function restoreGeneratedFiles(
 }
 
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as NodeJS.ErrnoException).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as NodeJS.ErrnoException).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isDirectExecution(moduleUrl: string, argv: string[]): boolean {

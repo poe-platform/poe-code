@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { UserError } from "toolcraft";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type {
   OpenApiDocument,
   OpenApiMediaTypeObject,
@@ -749,11 +750,7 @@ function formatList(values: readonly string[]): string {
 }
 
 function isNotFoundError(error: unknown): boolean {
-  if (typeof error !== "object" || error === null) {
-    return false;
-  }
-  const code = (error as { code?: unknown }).code;
-  return code === "ENOENT" || code === "ENOTDIR";
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 export type { OpenApiSourceFileSystem };

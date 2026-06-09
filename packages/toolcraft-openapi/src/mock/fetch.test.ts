@@ -89,6 +89,25 @@ function createSetOfficialSpec(): OpenApiDocument {
   };
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("mockFetch", () => {
   it("returns the fixture body when one matches the operationId", async () => {
     const { fetch } = await mockFetch({
@@ -777,6 +796,25 @@ describe("mockFetch", () => {
         }
       })
     ).rejects.toThrow(/fabricated_op/);
+  });
+
+  it("does not treat inherited directory fixture error codes as missing fixtures", async () => {
+    const readdirError = new Error("fixtures readdir denied");
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        mockFetch({
+          spec: createWhoamiSpec(),
+          fixtures: "/fixtures",
+          fs: {
+            readFile: async () => "",
+            readdir: async () => {
+              throw readdirError;
+            }
+          }
+        })
+      ).rejects.toBe(readdirError);
+    });
   });
 
   it("accepts null for a nullable request-body field", async () => {

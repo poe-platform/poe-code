@@ -1,4 +1,4 @@
-import { Template, Sandbox, TemplateBase } from "e2b";
+import type { TemplateBase } from "e2b";
 import type { Readable } from "node:stream";
 
 export interface E2bSandbox {
@@ -29,7 +29,9 @@ export interface E2bFiles {
   read(path: string, opts: { format: "bytes" }): Promise<Uint8Array>;
   read(path: string): Promise<string>;
   write(path: string, data: string | ArrayBuffer | Blob | ReadableStream): Promise<unknown>;
-  list(path: string): Promise<Array<{ name: string; path: string; type?: "file" | "dir"; size: number }>>;
+  list(
+    path: string
+  ): Promise<Array<{ name: string; path: string; type?: "file" | "dir"; size: number }>>;
   makeDir(path: string): Promise<boolean>;
   rename(oldPath: string, newPath: string): Promise<unknown>;
   remove(path: string): Promise<void>;
@@ -117,6 +119,7 @@ export interface SandboxInfo {
 }
 
 export async function createSandbox(opts: CreateSandboxOptions): Promise<E2bSandbox> {
+  const { Sandbox } = await import("e2b");
   return Sandbox.create(opts.templateId, {
     apiKey: opts.apiKey,
     envs: opts.env,
@@ -125,10 +128,12 @@ export async function createSandbox(opts: CreateSandboxOptions): Promise<E2bSand
 }
 
 export async function connectSandbox(id: string, apiKey?: string): Promise<E2bSandbox> {
+  const { Sandbox } = await import("e2b");
   return Sandbox.connect(id, apiKey === undefined ? undefined : { apiKey }) as Promise<E2bSandbox>;
 }
 
 export async function buildTemplate(opts: BuildTemplateOptions): Promise<BuildTemplateResult> {
+  const { Template } = await import("e2b");
   const template = Template({ fileContextPath: opts.buildContext }).fromDockerfile(
     opts.dockerfilePath
   );
@@ -145,6 +150,7 @@ export async function buildTemplate(opts: BuildTemplateOptions): Promise<BuildTe
 }
 
 export async function listSandboxes(apiKey?: string): Promise<SandboxInfo[]> {
+  const { Sandbox } = await import("e2b");
   const paginator = Sandbox.list(apiKey === undefined ? undefined : { apiKey });
   const sandboxes: SandboxInfo[] = [];
   while (paginator.hasNext) {

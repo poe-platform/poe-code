@@ -1,4 +1,4 @@
-import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script";
+import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script/core";
 import { defineCommand, type Group, type Scope } from "toolcraft";
 import { S } from "toolcraft-schema";
 
@@ -145,15 +145,17 @@ function toLintResult(error: unknown): ExecuteResult | undefined {
   return {
     ok: false,
     kind: "lint",
-    diagnostics: [{
-      code: "AS001",
-      severity: "error",
-      message: parseError.message,
-      filename: parseError.filename,
-      line: parseError.line,
-      column: parseError.column,
-      span: parseError.span
-    }]
+    diagnostics: [
+      {
+        code: "AS001",
+        severity: "error",
+        message: parseError.message,
+        filename: parseError.filename,
+        line: parseError.line,
+        column: parseError.column,
+        span: parseError.span
+      }
+    ]
   };
 }
 

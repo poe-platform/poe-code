@@ -1,4 +1,4 @@
-import { lint, run } from "@poe-code/agent-script";
+import { lint, run } from "@poe-code/agent-script/core";
 import type { HumanInLoopProvider } from "toolcraft/human-in-loop";
 import { createSDK } from "toolcraft/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -183,12 +183,27 @@ describe("buildHostModules", () => {
     const root = defineGroup({
       name: "constructor",
       children: [
-        defineCommand({ name: "__proto__", scope: ["sdk"], params: S.Object({}), handler: async () => "proto" }),
-        defineCommand({ name: "constructor", scope: ["sdk"], params: S.Object({}), handler: async () => "constructor" }),
+        defineCommand({
+          name: "__proto__",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "proto"
+        }),
+        defineCommand({
+          name: "constructor",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "constructor"
+        }),
         defineGroup({
           name: "a.b",
           children: [
-            defineCommand({ name: "read.secret", scope: ["sdk"], params: S.Object({}), handler: async () => "dotted" })
+            defineCommand({
+              name: "read.secret",
+              scope: ["sdk"],
+              params: S.Object({}),
+              handler: async () => "dotted"
+            })
           ]
         })
       ]

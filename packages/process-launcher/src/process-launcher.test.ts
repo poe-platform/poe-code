@@ -28,6 +28,33 @@ import {
   type SupervisorOptions
 } from "@poe-code/process-launcher";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("@poe-code/process-launcher public exports", () => {
   it("exports SDK helpers and types", () => {
     const restart: RestartPolicy = "always";
@@ -387,6 +414,42 @@ describe("process launcher manager", () => {
     });
     await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
+  it("does not treat inherited ESRCH codes as missing process signals", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = {
+      id: "api",
+      command: "npm",
+      args: ["run", "dev"],
+      restart: "on-failure"
+    };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(654);
+      expect(signal).toBe("SIGTERM");
+      throw new Error("signal denied");
+    });
+
+    await withObjectPrototypeProperties({ code: "ESRCH" }, async () => {
+      await expect(
+        stopManagedProcess({
+          baseDir,
+          fs,
+          id: "api",
+          isPidRunning: (pid) => pid === 654,
+          pollIntervalMs: 1,
+          signalProcess
+        })
+      ).rejects.toThrow("signal denied");
+    });
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain(
+      '"daemonPid":654'
+    );
   });
 
   it("signals a live host child when its launcher daemon is stale", async () => {

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import path from "node:path";
 import { TextDecoder } from "node:util";
+import { hasOwnErrorCode } from "./errors.js";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
 import { assertValidManagedProcessId } from "./process-id.js";
@@ -927,12 +928,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isExistingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {
@@ -961,7 +957,7 @@ function resolveCurrentLogPath(baseDir: string, id: string, stream: "stdout" | "
 }
 
 function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function signalProcessIfPresent(
@@ -981,7 +977,7 @@ function signalProcessIfPresent(
 }
 
 function isMissingProcessSignalError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ESRCH";
+  return hasOwnErrorCode(error, "ESRCH");
 }
 
 function defaultFs(): LauncherFileSystem {

@@ -7,6 +7,7 @@ import {
   type OAuthTestStaticClient,
   type OAuthTestServer,
 } from "tiny-oauth-test-server";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export interface McpOAuthTestServerOptions {
   mcpPath?: string;
@@ -383,9 +384,5 @@ export function createMcpOAuthTestServer(
 }
 
 function isAddressInUseError(error: unknown): boolean {
-  return Boolean(
-    error &&
-      typeof error === "object" &&
-      (error as { code?: unknown }).code === "EADDRINUSE"
-  );
+  return hasOwnErrorCode(error, "EADDRINUSE");
 }

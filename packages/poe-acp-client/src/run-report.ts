@@ -7,6 +7,7 @@ import {
   extractUsageFromSessionUpdateStream,
   type ToolCallSummary,
 } from "./stream-helpers.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { Cost, SessionUpdate, SessionUpdateNotification, UsageUpdate } from "./types.js";
 
 type SessionUpdateStreamItem = SessionUpdateNotification | SessionUpdate;
@@ -209,12 +210,7 @@ async function writeReportFile(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    Object.prototype.hasOwnProperty.call(error, "code") &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function redactRunReport(report: RunReport): RunReport {

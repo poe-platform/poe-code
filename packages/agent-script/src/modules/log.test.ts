@@ -2,6 +2,33 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { makeLogModule } from "./log.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("makeLogModule", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -143,6 +170,26 @@ describe("makeLogModule", () => {
       }
     });
   });
+
+  it("ignores inherited Error causes when serializing default-sink records", () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const log = makeLogModule();
+
+    withObjectPrototypeProperties({ cause: new Error("polluted") }, () => {
+      log.error(new Error("stderr"));
+    });
+
+    const errorEntry = JSON.parse(String(stdoutWrite.mock.calls[0]?.[0])) as {
+      args: Array<Record<string, unknown>>;
+    };
+
+    expect(errorEntry.args[0]).toMatchObject({
+      message: "stderr",
+      name: "Error"
+    });
+    expect(errorEntry.args[0]).not.toHaveProperty("cause");
+  });
+
   it("serializes own __proto__ event payload fields to JSONL", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const log = makeLogModule();

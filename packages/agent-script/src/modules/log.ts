@@ -113,7 +113,7 @@ function toJsonValue(value: unknown, seen: WeakSet<object>): unknown {
       serializedError.stack = value.stack;
     }
 
-    if ("cause" in value) {
+    if (Object.prototype.hasOwnProperty.call(value, "cause")) {
       serializedError.cause = toJsonValue(value.cause, seen);
     }
 

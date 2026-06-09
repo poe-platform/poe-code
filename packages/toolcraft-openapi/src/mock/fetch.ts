@@ -421,7 +421,7 @@ function isReference(value: unknown): value is OpenApiReferenceObject {
   return (
     typeof value === "object" &&
     value !== null &&
-    "$ref" in value &&
+    Object.prototype.hasOwnProperty.call(value, "$ref") &&
     typeof (value as { $ref?: unknown }).$ref === "string"
   );
 }
@@ -440,6 +440,9 @@ function resolveReference<T>(reference: OpenApiReferenceObject, document: OpenAp
   let current: unknown = document;
   for (const segment of segments) {
     if (current === null || typeof current !== "object") {
+      throw new UserError(`mockFetch: failed to resolve $ref ${JSON.stringify(ref)}.`);
+    }
+    if (!Object.prototype.hasOwnProperty.call(current, segment)) {
       throw new UserError(`mockFetch: failed to resolve $ref ${JSON.stringify(ref)}.`);
     }
     current = (current as Record<string, unknown>)[segment];

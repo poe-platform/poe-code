@@ -552,6 +552,104 @@ describe("mockFetch", () => {
     expect(good.status).toBe(200);
   });
 
+  it("ignores inherited $ref request schema markers when validating", async () => {
+    const schema = Object.assign(
+      Object.create({ $ref: "#/components/schemas/Widget" }),
+      {
+        type: "object",
+        required: ["name"],
+        properties: { name: { type: "string" } }
+      }
+    ) as never;
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/v1/widgets": {
+          post: {
+            operationId: "create_widget",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: { "application/json": { schema: { type: "object" } } }
+              }
+            }
+          }
+        }
+      },
+      components: {
+        schemas: {
+          Widget: {
+            type: "object",
+            required: ["sku"],
+            properties: { sku: { type: "string" } }
+          }
+        }
+      }
+    };
+
+    const { fetch } = await mockFetch({
+      spec,
+      fixtures: { create_widget: { body: {} } }
+    });
+
+    const response = await fetch("https://api.example.com/v1/widgets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "abc" })
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it("does not resolve missing request schema refs through inherited prototype properties", async () => {
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/v1/widgets": {
+          post: {
+            operationId: "create_widget",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/__proto__" }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: { "application/json": { schema: { type: "object" } } }
+              }
+            }
+          }
+        }
+      },
+      components: {
+        schemas: {}
+      }
+    };
+
+    await expect(
+      mockFetch({
+        spec,
+        fixtures: { create_widget: { body: {} } }
+      })
+    ).rejects.toThrow(
+      new UserError('mockFetch: failed to resolve $ref "#/components/schemas/__proto__".')
+    );
+  });
+
   it("disables body validation when the request schema accepts any object", async () => {
     const spec: OpenApiDocument = {
       openapi: "3.1.0",

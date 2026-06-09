@@ -45,7 +45,8 @@ async function withObjectPrototypeProperties<T>(
     originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
-      value
+      value,
+      writable: true
     });
   }
 
@@ -324,6 +325,27 @@ describe("loadResolvedSteps", () => {
     expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
     expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
     expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
+  });
+
+  it("ignores inherited step config sections", async () => {
+    await withObjectPrototypeProperties(
+      {
+        steps: { implement: { prompt: "Polluted step" } },
+        setup: { prompt: "Polluted setup" },
+        teardown: { prompt: "Polluted teardown" }
+      },
+      async () => {
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": "{}\n"
+          })
+        });
+
+        expect(config).toEqual({ steps: {} });
+      }
+    );
   });
 
   it("rejects traversal in named step configuration names", async () => {
@@ -607,6 +629,74 @@ describe("loadResolvedSteps", () => {
     ).rejects.toThrow(/missing prompt/i);
   });
 
+  it("does not accept inherited step definition fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        prompt: "Polluted prompt",
+        agent: "polluted-agent",
+        model: "polluted-model",
+        mode: "read",
+        skills: ["polluted"],
+        hooks: { from: "polluted" }
+      },
+      async () => {
+        await expect(
+          loadResolvedSteps({
+            cwd: "/repo",
+            homeDir: "/home/test",
+            fs: createFs({
+              "/repo/.poe-code/pipeline/steps/default.yaml": [
+                "steps:",
+                "  implement: {}",
+                ""
+              ].join("\n")
+            })
+          })
+        ).rejects.toThrow(/missing prompt for step "implement"/i);
+
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    prompt: Implement",
+              ""
+            ].join("\n")
+          })
+        });
+
+        expect(config.steps).toEqual({
+          implement: {
+            mode: "yolo",
+            prompt: "Implement"
+          }
+        });
+      }
+    );
+  });
+
+  it("does not accept inherited step hook fields", async () => {
+    await withObjectPrototypeProperties({ from: "polluted" }, async () => {
+      await expect(
+        loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    prompt: Implement",
+              "    hooks: {}",
+              ""
+            ].join("\n")
+          })
+        })
+      ).rejects.toThrow(/invalid hooks from for step "implement"/i);
+    });
+  });
+
   it("parses per-step agent and model overrides", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
@@ -824,6 +914,48 @@ describe("loadResolvedSteps", () => {
 
     expect(config.setup).toEqual({ mode: "yolo", prompt: "Project setup" });
     expect(config.teardown).toBeUndefined();
+  });
+
+  it("ignores inherited inline step override fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        prompt: "Polluted prompt",
+        agent: "polluted-agent",
+        model: "polluted-model",
+        mode: "read",
+        skills: ["polluted"],
+        hooks: { from: "polluted" }
+      },
+      async () => {
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    mode: edit",
+              "    prompt: Base implement",
+              "    agent: codex",
+              "    model: o3",
+              ""
+            ].join("\n")
+          }),
+          stepOverrides: {
+            implement: {}
+          } as Parameters<typeof loadResolvedSteps>[0]["stepOverrides"]
+        });
+
+        expect(config.steps).toEqual({
+          implement: {
+            mode: "edit",
+            prompt: "Base implement",
+            agent: "codex",
+            model: "o3"
+          }
+        });
+      }
+    );
   });
 
   it("requires instruction for setup and teardown", async () => {

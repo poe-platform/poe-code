@@ -1776,8 +1776,11 @@ describe("writeTaskStatus", () => {
       ""
     ].join("\n");
     const fs = createFs({ "/repo/plan.yaml": initial });
+    let temporaryPath: string | undefined;
     const writeFile = vi.fn(fs.writeFile.bind(fs)).mockImplementation(async (filePath, data, options) => {
       if (filePath !== "/repo/plan.yaml") {
+        temporaryPath = String(filePath);
+        await fs.writeFile(filePath, "partial\n", options);
         throw new Error("status write failed");
       }
       return fs.writeFile(filePath, data, options);
@@ -1793,6 +1796,10 @@ describe("writeTaskStatus", () => {
     ).rejects.toThrow("status write failed");
 
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow a preexisting legacy temp path symlink", async () => {

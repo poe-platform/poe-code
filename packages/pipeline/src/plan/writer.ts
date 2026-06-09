@@ -238,9 +238,18 @@ export async function writeTaskStatus(options: {
     await options.fs.rename(tempPath, options.planPath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExists(error)) {
       await options.fs.unlink(tempPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }

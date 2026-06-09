@@ -107,7 +107,7 @@ export class ExperimentJournal {
       await this.assertRegularPath();
       await this.fs.rename(temporaryPath, this.journalPath);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isFileAlreadyExistsError(error)) {
         await this.fs.unlink(temporaryPath).catch(() => undefined);
       }
       throw error;
@@ -272,4 +272,8 @@ function formatOutput(output: string): string {
 
 function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+function isFileAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }

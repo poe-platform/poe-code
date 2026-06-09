@@ -1016,14 +1016,21 @@ describe("writeExperimentFrontmatter", () => {
     const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
     const fs = createFs({ [docPath]: original });
     const writeFile = fs.writeFile.bind(fs);
-    fs.writeFile = async (filePath: string, content: string) => {
-      await writeFile(filePath, content.slice(0, 9));
+    let temporaryPath: string | undefined;
+    fs.writeFile = async (filePath: string, content: string, options) => {
+      temporaryPath = filePath;
+      await writeFile(filePath, content.slice(0, 9), options);
       throw new Error("plan disk full");
     };
 
     await expect(writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs))
       .rejects.toThrow("plan disk full");
     await expect(fs.readFile(docPath, "utf8")).resolves.toBe(original);
+    expect(temporaryPath?.startsWith(`${docPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });
 
@@ -1431,10 +1438,12 @@ describe("ExperimentJournal", () => {
     const baseFs = createFs({
       [journalPath]: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`
     });
+    let temporaryPath: string | undefined;
     const fs: ExperimentFileSystem = {
       ...baseFs,
-      async writeFile(filePath, _content) {
-        await baseFs.writeFile(filePath, "{");
+      async writeFile(filePath, _content, options) {
+        temporaryPath = filePath;
+        await baseFs.writeFile(filePath, "{", options);
         throw new Error("journal disk full");
       }
     };
@@ -1447,6 +1456,11 @@ describe("ExperimentJournal", () => {
       first,
       second
     ]);
+    expect(temporaryPath?.startsWith(`${journalPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(baseFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("updateLast returns null on empty journal", async () => {

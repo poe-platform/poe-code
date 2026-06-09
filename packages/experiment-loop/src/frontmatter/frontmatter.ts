@@ -166,11 +166,15 @@ export async function writeExperimentFrontmatter(
     temporaryCreated = true;
     await fs.rename(temporaryPath, docPath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "EEXIST";
 }
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {

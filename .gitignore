@@ -52,6 +52,7 @@ openspec
 .e2e-logs/
 .colima-logs/
 .playwright-cli/
+output/playwright/
 .turbo
 *.tsbuildinfo
 

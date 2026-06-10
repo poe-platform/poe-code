@@ -13,6 +13,46 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it("converts host Map and Set results into sandbox collections", () => {
+    const shared = { id: 1 };
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        load() {
+          return new Map([[shared, new Set([shared])]]);
+        }
+      },
+      { budget: new Budget() }
+    ).load as SandboxClosure;
+
+    const result = wrapped.call([]) as import("./values.js").SandboxMap;
+    expect(result).toMatchObject({ kind: "map" });
+    const [key, value] = [...result.entries][0] ?? [];
+    expect(value).toMatchObject({ kind: "set" });
+    expect([...(value as import("./values.js").SandboxSet).values][0]).toBe(key);
+  });
+
+  it("preserves cycles while converting host Map and Set results", () => {
+    const hostMap = new Map<unknown, unknown>();
+    const hostSet = new Set<unknown>();
+    hostMap.set("self", hostMap);
+    hostMap.set("set", hostSet);
+    hostSet.add(hostMap);
+
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        load() {
+          return hostMap;
+        }
+      },
+      { budget: new Budget() }
+    ).load as SandboxClosure;
+
+    const result = wrapped.call([]) as import("./values.js").SandboxMap;
+    const set = result.entries.get("set") as import("./values.js").SandboxSet;
+    expect(result.entries.get("self")).toBe(result);
+    expect([...set.values]).toEqual([result]);
+  });
+
   it("deep-copies sandbox arguments into host values and copies host returns back", () => {
     const observedArgs: unknown[] = [];
     const host = vi.fn((input: { nested: { value: number } }, items: number[]) => {

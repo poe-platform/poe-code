@@ -3,6 +3,7 @@ import {
   type ArrayExpression,
   type ArrayPattern,
   type ArrowFunctionExpression,
+  type FunctionExpression,
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
@@ -13,6 +14,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -108,6 +110,7 @@ class ASAsyncNotNeededScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -178,7 +181,7 @@ class ASAsyncNotNeededScanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -237,6 +240,9 @@ class ASAsyncNotNeededScanner {
     switch (node.type) {
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node, false);
+        return;
+      case "FunctionExpression":
+        this.visitFunctionExpression(node);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -299,6 +305,17 @@ class ASAsyncNotNeededScanner {
     }
 
     this.visitExpression(node.body);
+  }
+
+  private visitFunctionExpression(node: FunctionExpression): void {
+    if (node.async && !bodyContainsAwait(node.body)) {
+      this.report(createAsyncKeywordSpan(node.span));
+    }
+
+    for (const param of node.params) {
+      this.visitBindingElement(param);
+    }
+    this.visitBlockStatement(node.body);
   }
 
   private visitArrayExpression(node: ArrayExpression): void {
@@ -515,6 +532,7 @@ function statementContainsAwait(node: Statement): boolean {
         (node.update !== undefined && expressionContainsAwait(node.update)) ||
         statementContainsAwait(node.body)
       );
+    case "ForInStatement":
     case "ForOfStatement":
       return (
         (node.left.type === "VariableDeclaration" && variableDeclarationContainsAwait(node.left)) ||
@@ -531,6 +549,15 @@ function statementContainsAwait(node: Statement): boolean {
         (node.handler !== undefined && catchClauseContainsAwait(node.handler)) ||
         (node.finalizer !== undefined && statementListContainsAwait(node.finalizer.body))
       );
+    case "SwitchStatement":
+      return (
+        expressionContainsAwait(node.discriminant) ||
+        node.cases.some(
+          (switchCase) =>
+            (switchCase.test !== undefined && expressionContainsAwait(switchCase.test)) ||
+            statementListContainsAwait(switchCase.consequent)
+        )
+      );
     case "VariableDeclaration":
       return variableDeclarationContainsAwait(node);
     case "ReturnStatement":
@@ -542,6 +569,7 @@ function statementContainsAwait(node: Statement): boolean {
     case "ExportDefaultDeclaration":
       return expressionContainsAwait(node.declaration);
     case "ImportDeclaration":
+    case "FunctionDeclaration":
     case "BreakStatement":
     case "ContinueStatement":
     case "EmptyStatement":
@@ -569,7 +597,10 @@ function expressionContainsAwait(node: Expression): boolean {
   switch (node.type) {
     case "AwaitExpression":
       return true;
+    case "YieldExpression":
+      return node.argument !== undefined && expressionContainsAwait(node.argument);
     case "ArrowFunctionExpression":
+    case "FunctionExpression":
       return false;
     case "ArrayExpression":
       return node.elements.some((element) => {
@@ -601,6 +632,7 @@ function expressionContainsAwait(node: Expression): boolean {
     case "AssignmentExpression":
       return assignmentTargetContainsAwait(node.left) || expressionContainsAwait(node.right);
     case "CallExpression":
+    case "NewExpression":
       return (
         expressionContainsAwait(node.callee) ||
         node.arguments.some((argument) => {
@@ -620,6 +652,7 @@ function expressionContainsAwait(node: Expression): boolean {
     case "NumericLiteral":
     case "RegexLiteral":
     case "StringLiteral":
+    case "ThisExpression":
     case "UndefinedLiteral":
       return false;
   }

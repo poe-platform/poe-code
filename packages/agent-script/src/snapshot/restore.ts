@@ -4,15 +4,23 @@ import { Scope } from "../interp/interpreter.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import {
   createSandboxClosure,
+  createSandboxGenerator,
+  createSandboxMap,
   createSandboxPromise,
+  createSandboxRegex,
+  createSandboxSet,
   type SandboxClosure,
+  type SandboxGenerator,
   type SandboxPromise,
   type SandboxValue
 } from "../interp/values.js";
+import { createGeneratorChannel } from "../interp/generator.js";
 import { hashSource } from "../parse/hash.js";
 import {
   parseModule,
   type ArrowFunctionExpression,
+  type FunctionDeclaration,
+  type FunctionExpression,
   type Module,
   type ParseResult
 } from "../parse/parser.js";
@@ -22,12 +30,14 @@ import {
   type ModuleRegistry
 } from "../modules/registry.js";
 import { interpret } from "../interp/interpreter.js";
+import { bindPattern } from "../interp/patterns.js";
 import { resolvePendingHostCallResumePolicy } from "./policy.js";
 import type {
   RuntimeCallFrame,
   RuntimePendingPromise,
   RuntimeScopeFrame,
   SerializedClosureValue,
+  SerializedGeneratorValue,
   SerializedHeapValue,
   SerializedPromiseValue,
   SerializedReferenceValue,
@@ -331,12 +341,74 @@ function deserializeValue(
     return restoreClosureValue(value.astNodeId, value.capturedScopeId, state);
   }
 
+  if (isSerializedGeneratorValue(value)) {
+    return restoreGeneratorValue(value, state);
+  }
+
+  if (isSerializedRegexValue(value)) {
+    return createSandboxRegex(value.source, value.flags, value.lastIndex);
+  }
+
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
   for (const [key, entry] of Object.entries(value)) {
     object[key] = deserializeValue(entry, state);
   }
 
   return object;
+}
+
+function restoreGeneratorValue(
+  value: SerializedGeneratorValue,
+  state: RestoreState
+): SandboxGenerator {
+  if (value.state === "done") {
+    const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    generator.state = "done";
+    return generator;
+  }
+
+  const node = state.nodeById.get(value.astNodeId);
+  if (node?.type !== "FunctionDeclaration" && node?.type !== "FunctionExpression") {
+    throw new Error(`Snapshot references unknown generator AST node ${value.astNodeId}.`);
+  }
+  if (!node.generator) {
+    throw new Error(`Snapshot references non-generator AST node ${value.astNodeId}.`);
+  }
+
+  const channel = createGeneratorChannel(async (generatorYield) => {
+    const capturedScope =
+      state.scopeById.get(value.capturedScopeId) ?? restoreParentScope(value.capturedScopeId, state);
+    const result = await interpret(node.body, {
+      budget: state.budget,
+      generatorYield,
+      scope: capturedScope,
+      useScopeDirectly: true
+    });
+    if (!result.ok) {
+      throw new Error(result.error.message);
+    }
+    return result.returnValue;
+  });
+
+  return createSandboxGenerator(channel, {
+    astNodeId: value.astNodeId,
+    capturedScopeId: value.capturedScopeId
+  });
+}
+
+function isSerializedRegexValue(
+  value: SerializedSnapshotValue
+): value is { kind: "regex"; source: string; flags: string; lastIndex: number } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.hasOwn(value, "kind") &&
+    value.kind === "regex" &&
+    typeof value.source === "string" &&
+    typeof value.flags === "string" &&
+    typeof value.lastIndex === "number"
+  );
 }
 
 function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue {
@@ -361,6 +433,27 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
     return array;
   }
 
+  if (serialized.kind === "map") {
+    const map = createSandboxMap();
+    state.heapValueById.set(id, map);
+    for (const [key, entry] of serialized.entries) {
+      map.entries.set(
+        deserializeValue(key, state) as SandboxValue,
+        deserializeValue(entry, state) as SandboxValue
+      );
+    }
+    return map;
+  }
+
+  if (serialized.kind === "set") {
+    const set = createSandboxSet();
+    state.heapValueById.set(id, set);
+    for (const entry of serialized.values) {
+      set.values.add(deserializeValue(entry, state) as SandboxValue);
+    }
+    return set;
+  }
+
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
   state.heapValueById.set(id, object);
 
@@ -380,16 +473,51 @@ function restoreClosureValue(
   capturedScopeId: SnapshotId;
 } {
   const node = state.nodeById.get(astNodeId);
-  if (node?.type !== "ArrowFunctionExpression") {
+  if (
+    node?.type !== "ArrowFunctionExpression" &&
+    node?.type !== "FunctionDeclaration" &&
+    node?.type !== "FunctionExpression"
+  ) {
     throw new Error(`Snapshot references unknown closure AST node ${astNodeId}.`);
   }
 
   const baseClosure = createSandboxClosure({
     async: true,
-    call: (args) => createSandboxPromise(executeRestoredClosure(node, capturedScopeId, args, state))
+    ...(node.type !== "ArrowFunctionExpression" &&
+    !(node.type === "FunctionExpression" && node.method === true) &&
+    !node.async
+      ? {
+          construct: async (args: readonly SandboxValue[]) => {
+            const thisValue = {};
+            const result = await executeRestoredClosure(
+              node,
+              capturedScopeId,
+              restoredClosure,
+              args,
+              thisValue,
+              state
+            );
+            return typeof result === "object" && result !== null ? result : thisValue;
+          }
+        }
+      : {}),
+    call: (args, callContext) =>
+      createSandboxPromise(
+        executeRestoredClosure(
+          node,
+          capturedScopeId,
+          restoredClosure,
+          args,
+          callContext?.thisValue,
+          state
+        )
+      )
   });
 
-  return Object.defineProperties(Object.create(baseClosure), {
+  const restoredClosure: SandboxClosure & {
+    astNodeId: number;
+    capturedScopeId: SnapshotId;
+  } = Object.defineProperties(Object.create(baseClosure), {
     astNodeId: {
       enumerable: true,
       value: astNodeId
@@ -406,25 +534,87 @@ function restoreClosureValue(
     astNodeId: number;
     capturedScopeId: SnapshotId;
   };
+  return restoredClosure;
 }
 
 async function executeRestoredClosure(
-  node: ArrowFunctionExpression,
+  node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
   capturedScopeId: SnapshotId,
+  closure: SandboxClosure,
   args: readonly SandboxValue[],
+  thisValue: SandboxValue,
   state: RestoreState
 ): Promise<SandboxValue> {
   const capturedScope =
     state.scopeById.get(capturedScopeId) ?? restoreParentScope(capturedScopeId, state);
-  const scope = capturedScope.child();
+  const wrapperScope =
+    node.type === "FunctionExpression" && node.id !== undefined
+      ? capturedScope.child()
+      : capturedScope;
+  const scope = wrapperScope.child();
+
+  if (node.type === "FunctionExpression" && node.id !== undefined) {
+    wrapperScope.declare(node.id.name, "const", closure);
+  }
+  if (node.type !== "ArrowFunctionExpression") {
+    scope.declare("this", "const", thisValue);
+  }
 
   for (let index = 0; index < node.params.length; index += 1) {
     const param = node.params[index];
-    if (param.type !== "Identifier") {
-      throw new TypeError(`Unsupported async arrow parameter pattern '${param.type}'.`);
+    if (param.type === "RestElement") {
+      const rest = args.slice(index);
+      state.budget.allocateArrayLength(rest.length);
+      const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+        evaluate: async (defaultNode) => {
+          const result = await interpret(defaultNode, {
+            budget: state.budget,
+            scope,
+            useScopeDirectly: true
+          });
+          return result.ok
+            ? {
+                kind: "normal",
+                hasValue: "returnValue" in result,
+                value: result.returnValue
+              }
+            : { kind: "error", error: result.error };
+        }
+      });
+      if (!binding.ok) {
+        if (binding.result.kind === "error") {
+          throw binding.result.error;
+        }
+        if (binding.result.kind === "throw") {
+          throw binding.result.value;
+        }
+      }
+      break;
     }
-
-    scope.declare(param.name, "const", args[index]);
+    const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
+      evaluate: async (defaultNode) => {
+        const result = await interpret(defaultNode, {
+          budget: state.budget,
+          scope,
+          useScopeDirectly: true
+        });
+        return result.ok
+          ? {
+              kind: "normal",
+              hasValue: "returnValue" in result,
+              value: result.returnValue
+            }
+          : { kind: "error", error: result.error };
+      }
+    });
+    if (!binding.ok) {
+      if (binding.result.kind === "error") {
+        throw binding.result.error;
+      }
+      if (binding.result.kind === "throw") {
+        throw binding.result.value;
+      }
+    }
   }
 
   const result = await interpret(node.body, {
@@ -587,6 +777,25 @@ function isSerializedClosureValue(value: SerializedSnapshotValue): value is Seri
     value.kind === "fn" &&
     hasOwnProperty(value, "astNodeId") &&
     hasOwnProperty(value, "capturedScopeId")
+  );
+}
+
+function isSerializedGeneratorValue(
+  value: SerializedSnapshotValue
+): value is SerializedGeneratorValue {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    hasOwnProperty(value, "kind") &&
+    value.kind === "generator" &&
+    hasOwnProperty(value, "state") &&
+    (value.state === "done" ||
+      (value.state === "start" &&
+        hasOwnProperty(value, "astNodeId") &&
+        typeof value.astNodeId === "number" &&
+        hasOwnProperty(value, "capturedScopeId") &&
+        (typeof value.capturedScopeId === "number" ||
+          typeof value.capturedScopeId === "string")))
   );
 }
 

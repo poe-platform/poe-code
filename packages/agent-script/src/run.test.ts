@@ -41,6 +41,29 @@ describe("run", () => {
     });
   });
 
+  it("registers structuredClone and coercing numeric globals by default", async () => {
+    const result = await run(
+      [
+        "const source = { nested: ['value'] };",
+        "const clone = structuredClone(source);",
+        "clone.nested.push('clone');",
+        "return JSON.stringify([",
+        "  source.nested.length,",
+        "  clone.nested.length,",
+        "  parseInt('11px', 2),",
+        "  parseFloat('3.5px'),",
+        "  isNaN('not-a-number'),",
+        "  isFinite('12')",
+        "]);"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([1, 2, 3, 3.5, true, true])
+    });
+  });
+
   it("keeps caught circular JSON.stringify failures from failing final snapshotting", async () => {
     await expect(
       run(
@@ -772,6 +795,29 @@ describe("run", () => {
     ]);
   });
 
+  it("registers structured clone and coercing numeric globals by default", async () => {
+    const result = await run(`
+      const source = { nested: ["value"] };
+      const clone = structuredClone(source);
+      return JSON.stringify([
+        clone,
+        clone === source,
+        clone.nested === source.nested,
+        parseInt("12px", 10),
+        parseFloat("3.5px"),
+        isNaN("not-a-number"),
+        isFinite("12"),
+        Number.isNaN("not-a-number"),
+        Number.isFinite("12")
+      ]);
+    `);
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: '[{"nested":["value"]},false,false,12,3.5,true,true,false,false]'
+    });
+  });
+
   it("registers subset Promise helpers by default", async () => {
     const result = await run(`return JSON.stringify(Array.of(
       await Promise.resolve('ready'),
@@ -1397,17 +1443,16 @@ try {
     expect(JSON.parse(result.returnValue as string)).toEqual([[], [], [], { ok: true }]);
   });
 
-  it("rejects unsupported regex and function string method arguments at runtime", async () => {
-    await expect(run("return 'abba'.replace('a', () => 'b')")).rejects.toThrow(
-      "String#replace does not support function replacers or regex search values."
-    );
+  it("supports string replacer closures and rejects other function string arguments", async () => {
+    await expect(run("return 'abba'.replace('a', () => 'b')")).resolves.toMatchObject({
+      ok: true,
+      returnValue: "bbba"
+    });
     await expect(
       run("return 'abba'.replaceAll('a', replacer)", {
         bindings: { replacer: createSandboxClosure({ call: () => "b" }) }
       })
-    ).rejects.toThrow(
-      "String#replaceAll does not support function replacers or regex search values."
-    );
+    ).resolves.toMatchObject({ ok: true, returnValue: "bbbb" });
     await expect(
       run("return 'a,b'.split(',', limit)", {
         bindings: { limit: createSandboxClosure({ call: () => 1 }) }
@@ -1478,5 +1523,21 @@ try {
 
     expect(result.ok).toBe(true);
     expect(result.snapshot.random).toBeUndefined();
+  });
+
+  it("evaluates regex literals and constructable RegExp globals", async () => {
+    const result = await run(
+      [
+        "const literal = /a+/g;",
+        "const dynamic = new RegExp('(b+)', 'g');",
+        "literal.lastIndex = 1;",
+        "return [literal.test('baac'), literal.lastIndex, dynamic.exec('abbc'), 'a1a2'.replaceAll(/a(.)/g, (match, capture, offset, input) => `${capture}:${offset}:${input.length}`)];"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: [true, 3, Object.assign(["bb", "bb"], { index: 1, input: "abbc" }), "1:0:42:2:4"]
+    });
   });
 });

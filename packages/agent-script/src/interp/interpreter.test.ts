@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parse, type ParseResult, type Statement } from "../parse.js";
+import { parse, parseModule, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createErrorGlobals } from "./globals/error.js";
@@ -11,6 +11,110 @@ import { interpret, Scope } from "./interpreter.js";
 import { createSandboxClosure, createSandboxPromise, isSandboxPromise } from "./values.js";
 
 describe("interpret", () => {
+  describe("new expressions", () => {
+    it("constructs user functions with a fresh this object", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("function Person(name) { this.name = name; }"),
+            parse("const person = new Person('Ada')"),
+            parse("return person")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: { name: "Ada" } });
+    });
+
+    it("supports member callees and object return overrides", async () => {
+      await expect(
+        interpret(
+          block(
+            parse(
+              "const constructors = { Person: function(name) { this.name = 'ignored'; return { name }; } }"
+            ),
+            parse("return new constructors.Person('Ada')")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: { name: "Ada" } });
+    });
+
+    it("ignores primitive constructor returns", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("function Person() { this.name = 'Ada'; return 123; }"),
+            parse("return new Person()")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: { name: "Ada" } });
+    });
+
+    it("creates a fresh this object for every construction and supports spread arguments", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("function Pair(left, right) { this.values = [left, right]; }"),
+            parse("const first = new Pair(...[1, 2])"),
+            parse("const second = new Pair(...[3, 4])"),
+            parse("return [first !== second, first.values, second.values]")
+          )
+        )
+      ).resolves.toMatchObject({
+        ok: true,
+        returnValue: [true, [1, 2], [3, 4]]
+      });
+    });
+
+    it.each([
+      ["arrow", "const value = () => {}"],
+      ["async function", "async function value() {}"],
+      ["non-function", "const value = 1"]
+    ])("rejects %s constructors", async (_name, declaration) => {
+      await expect(
+        interpret(block(parse(declaration), parse("return new value()")))
+      ).rejects.toThrowError("value is not a constructor.");
+    });
+
+    it("rejects object method shorthand constructors", async () => {
+      await expect(
+        interpret(block(parse("const value = { make() {} }"), parse("return new value.make()")))
+      ).rejects.toThrowError("make is not a constructor.");
+    });
+
+    it("rejects builtin method constructors", async () => {
+      await expect(interpret(parse("new [].map()"))).rejects.toThrowError(
+        "map is not a constructor."
+      );
+    });
+
+    it("uses a computed member name in constructor errors", async () => {
+      await expect(
+        interpret(
+          block(parse("const values = { make: 1 }"), parse("return new values['make']()"))
+        )
+      ).rejects.toThrowError("make is not a constructor.");
+    });
+
+    it("does not expose prototypes and rejects instanceof for user constructors", async () => {
+      await expect(
+        interpret(
+          block(parse("function Person() {}"), parse("return Person.prototype"))
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: undefined });
+
+      await expect(
+        interpret(
+          block(
+            parse("function Person() {}"),
+            parse("const person = new Person()"),
+            parse("return person instanceof Person")
+          )
+        )
+      ).rejects.toThrowError(
+        "Constructor prototypes are not supported; check a brand property instead."
+      );
+    });
+  });
+
   it("evaluates primitive literals and returns stats plus a snapshot", async () => {
     await expect(interpret(parse("'hello'"))).resolves.toEqual({
       ok: true,
@@ -1098,6 +1202,43 @@ describe("interpret", () => {
     });
   });
 
+  it("evaluates typeof for undeclared identifiers without resolving them", async () => {
+    await expect(interpret(parse("return typeof missing"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: "undefined"
+    });
+
+    await expect(
+      interpret(parse("return typeof value"), { bindings: { value: 42 } })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "number"
+    });
+
+    await expect(interpret(parse("return missing"))).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER"
+      }
+    });
+  });
+
+  it("keeps normal identifier resolution semantics for other typeof operands", async () => {
+    await expect(
+      interpret(block(parse("return typeof value"), parse("let value = 42")))
+    ).rejects.toMatchObject({
+      message: "Cannot access 'value' before initialization.",
+      name: "ReferenceError"
+    });
+
+    await expect(interpret(parse("return typeof missing.value"))).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER"
+      }
+    });
+  });
+
   it("unwraps return statements by evaluating their argument", async () => {
     await expect(interpret(parse("return answer"), { bindings: { answer: 42 } })).resolves.toEqual({
       ok: true,
@@ -1257,7 +1398,7 @@ describe("interpret", () => {
     expect(sink.error).not.toHaveBeenCalled();
   });
 
-  it("rejects regex separators for intercepted string methods before generic expression evaluation", async () => {
+  it("evaluates regex literal separators for intercepted string methods", async () => {
     const splitCall = parse("return value.split(separator)") as any;
     splitCall.argument.arguments[0] = {
       type: "RegexLiteral",
@@ -1272,10 +1413,10 @@ describe("interpret", () => {
           separator: "b"
         }
       })
-    ).rejects.toThrow("String#split does not support regex separator values.");
+    ).resolves.toMatchObject({ ok: true, returnValue: ["a", "a"] });
   });
 
-  it("rejects regex values passed through bindings for split, replace, and replaceAll", async () => {
+  it("rejects unbranded host regex values passed through bindings", async () => {
     await expect(
       interpret(parse("return value.split(separator)"), {
         bindings: {
@@ -1283,7 +1424,7 @@ describe("interpret", () => {
           separator: /b+/ as never
         }
       })
-    ).rejects.toThrow("String#split does not support regex separator values.");
+    ).rejects.toThrow("String#split only supports string separator values.");
 
     await expect(
       interpret(parse("return value.replace(search, replacement)"), {
@@ -1293,7 +1434,9 @@ describe("interpret", () => {
           replacement: "x"
         }
       })
-    ).rejects.toThrow("String#replace does not support function replacers or regex search values.");
+    ).rejects.toThrow(
+      "String#replace only supports string or regex search values and string or function replacements."
+    );
 
     await expect(
       interpret(parse("return value.replaceAll(search, replacement)"), {
@@ -1304,7 +1447,7 @@ describe("interpret", () => {
         }
       })
     ).rejects.toThrow(
-      "String#replaceAll does not support function replacers or regex search values."
+      "String#replaceAll only supports string or regex search values and string or function replacements."
     );
   });
 
@@ -1573,6 +1716,227 @@ describe("interpret", () => {
     });
   });
 
+  it("evaluates anonymous function expressions", async () => {
+    await expect(
+      interpret(parse("(function (left, right) { return left + right; })(2, 3)"))
+    ).resolves.toMatchObject({ ok: true, returnValue: 5 });
+  });
+
+  it("binds a named function expression only inside its body", async () => {
+    await expect(
+      interpret(parse("(function check(n) { return n <= 1 ? 1 : n * check(n - 1); })(5)"))
+    ).resolves.toMatchObject({ ok: true, returnValue: 120 });
+
+    await expect(interpret(parse("check"))).resolves.toMatchObject({
+      ok: false,
+      error: { message: "Identifier 'check' is not defined." }
+    });
+  });
+
+  it("keeps a named function expression binding separate from an outer binding", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const check = 7"),
+          parse("const factorial = function check(n) { return n <= 1 ? 1 : n * check(n - 1); }"),
+          parse("return factorial(5) + check")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: 127 });
+  });
+
+  it("allows parameters to shadow a named function expression binding", async () => {
+    await expect(
+      interpret(parse("(function check(check) { return check + 1; })(4)"))
+    ).resolves.toMatchObject({ ok: true, returnValue: 5 });
+  });
+
+  it("evaluates async anonymous function expressions", async () => {
+    await expect(
+      interpret(parse("await (async function (value) { return value + 1; })(4)"))
+    ).resolves.toMatchObject({ ok: true, returnValue: 5 });
+  });
+
+  it("evaluates object method shorthand closures", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const offset = 4"),
+          parse(
+            "const service = { reset() { return offset + 1; }, async load() { return offset + 2; } }"
+          ),
+          parse("return service.reset() + await service.load()")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: 11 });
+  });
+
+  it("evaluates computed and keyword-named shorthand methods", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const methodName = 'load'"),
+          parse(
+            "const service = { default() { return 1; }, [methodName](value = 2) { return value + 1; } }"
+          ),
+          parse("return service.default() + service.load()")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: 4 });
+  });
+
+  describe("this bindings", () => {
+    it("returns undefined at module top level and in bare function calls", async () => {
+      await expect(interpret(parse("this"))).resolves.toMatchObject({
+        ok: true,
+        returnValue: undefined
+      });
+
+      await expect(
+        interpret(
+          block(
+            parse("function readThis() { return this; }"),
+            parse("return readThis();")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: undefined });
+    });
+
+    it("binds member-call receivers for declarations, expressions, and shorthand methods", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("function read() { return this.value; }"),
+            parse("const declared = { value: 2, read }"),
+            parse("const expressed = { value: 3, read: function () { return this.value; } }"),
+            parse("const shorthand = { value: 4, read() { return this.value; } }"),
+            parse("return declared.read() + expressed.read() + shorthand.read();")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: 9 });
+    });
+
+    it("captures this lexically in arrows without rebinding it", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("const service = { value: 7, makeReader() { return () => this.value; } }"),
+            parse("const reader = service.makeReader()"),
+            parse("return ({ value: 99, reader }).reader();")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: 7 });
+    });
+
+    it("uses undefined for detached and nested bare function calls", async () => {
+      await expect(
+        interpret(
+          block(
+            parse(
+              "const service = { value: 7, read() { return this; }, compare() { function nested() { return this; } return [this.value, nested()]; } }"
+            ),
+            parse("const detached = service.read"),
+            parse("return [detached(), service.compare()]")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: [undefined, [7, undefined]] });
+    });
+
+    it("preserves the receiver for optional calls and evaluates member access once", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("let reads = 0"),
+            parse("const holder = { value: 5, method() { return this.value; } }"),
+            parse("const result = holder[(reads += 1, 'method')]?.()"),
+            parse("return [result, reads]")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: [5, 1] });
+    });
+
+    it("short-circuits optional member calls without evaluating properties or arguments", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("let effects = 0"),
+            parse("const missing = undefined"),
+            parse("const result = missing?.[(effects += 1, 'method')]((effects += 10))"),
+            parse("return [result, effects]")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: [undefined, 0] });
+    });
+
+    it("evaluates the receiver once and preserves it through parenthesized member calls", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("let creations = 0"),
+            parse(
+              "function create() { creations += 1; return { value: 6, read() { return this.value; } }; }"
+            ),
+            parse("const result = (create().read)()"),
+            parse("return [result, creations]")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: [6, 1] });
+    });
+
+    it("binds this for async function forms", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("const service = { value: 8, async read() { return this.value; } }"),
+            parse("return await service.read()")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: 8 });
+    });
+
+    it("supports this in assignment, compound assignment, and delete targets", async () => {
+      await expect(
+        interpret(
+          block(
+            parse(
+              "const service = { n: 1, flags: { old: true }, update() { this.value = 3; this.n += 2; delete this.flags.old; return [this.value, this.n, this.flags.old]; } }"
+            ),
+            parse("return service.update();")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: [3, 3, undefined] });
+    });
+
+    it("passes undefined this to array-method callbacks", async () => {
+      await expect(
+        interpret(
+          block(
+            parse("function readThis() { return this; }"),
+            parse("return [1].map(readThis)[0];")
+          )
+        )
+      ).resolves.toMatchObject({ ok: true, returnValue: undefined });
+    });
+
+    it("rejects declarations named this", () => {
+      expect(() => parse("const this = 1")).toThrow();
+      expect(() => parse("function this() {}" )).toThrow();
+      expect(() => parse("function work(this) {}" )).toThrow();
+    });
+
+    it("rejects assignment to this as an invalid assignment target", () => {
+      expect(() => parse("function replace() { this = undefined; }")).toThrow(
+        "Invalid assignment target"
+      );
+    });
+  });
+
+  it("prevents assignment to a named function expression binding", async () => {
+    await expect(interpret(parse("(function check() { check = 1; })()"))).rejects.toThrow(
+      "Cannot assign to const 'check'"
+    );
+  });
+
   it("evaluates mutually recursive arrows assigned through let declarations", async () => {
     await expect(
       interpret(
@@ -1607,6 +1971,51 @@ describe("interpret", () => {
     );
   });
 
+  it.each(["typeof [1].entries", "typeof 1..valueOf"])(
+    "does not expose host prototypes through %s",
+    async (source) => {
+      await expect(interpret(parse(`return ${source}`))).resolves.toMatchObject({
+        ok: true,
+        returnValue: "undefined"
+      });
+    }
+  );
+
+  it("does not expose custom or inherited properties from host arrays", async () => {
+    const inherited = Object.assign(Object.create(Array.prototype), { inherited: "host value" });
+    const value = Object.assign(["element"], { custom: "host value" });
+    Object.setPrototypeOf(value, inherited);
+
+    await expect(
+      interpret(parse('return [value[0], typeof value.custom, typeof value.inherited]'), {
+        bindings: { value }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["element", "undefined", "undefined"]
+    });
+  });
+
+  it("resolves only array and string indices plus length outside method tables", async () => {
+    await expect(
+      interpret(parse('return [["first"][0], ["first"]["0"], "value"[1], "value"["1"], [1].length]'))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["first", "first", "a", "a", 1]
+    });
+  });
+
+  it.each([
+    ["[1].shuffle()", "Array#shuffle is not a supported method."],
+    ['"value".shuffle()', "String#shuffle is not a supported method."],
+    ["1..shuffle()", "Number#shuffle is not a supported method."]
+  ])("reports unsupported member calls for %s", async (source, message) => {
+    await expect(interpret(parse(`return ${source}`))).rejects.toMatchObject({
+      name: "TypeError",
+      message
+    });
+  });
+
   it.each(["(1)()", "null()", "undefined()"])(
     "throws TypeError for non-function calls %s",
     async (source) => {
@@ -1629,6 +2038,47 @@ describe("interpret", () => {
       ok: true,
       returnValue: [7, null, 7]
     });
+  });
+
+  it.each([
+    [
+      "sync arrow",
+      "const invoke = (value) => (({ type, payload: { value: nested = type }, ...meta }, [first, ...rest], { fallback = first } = {}) => { nested = nested + rest.length; return [nested, meta.extra, fallback]; })(value, [2, 3, 4])"
+    ],
+    [
+      "async arrow",
+      "const invoke = async (value) => await (async ({ type, payload: { value: nested = type }, ...meta }, [first, ...rest], { fallback = first } = {}) => { nested = nested + rest.length; return [nested, meta.extra, fallback]; })(value, [2, 3, 4])"
+    ],
+    [
+      "function expression",
+      "const invoke = (value) => (function ({ type, payload: { value: nested = type }, ...meta }, [first, ...rest], { fallback = first } = {}) { nested = nested + rest.length; return [nested, meta.extra, fallback]; })(value, [2, 3, 4])"
+    ],
+    [
+      "function declaration",
+      "function invoke(value) { function collect({ type, payload: { value: nested = type }, ...meta }, [first, ...rest], { fallback = first } = {}) { nested = nested + rest.length; return [nested, meta.extra, fallback]; } return collect(value, [2, 3, 4]); }"
+    ]
+  ])("binds destructured parameters in %s", async (_label, declaration) => {
+    await expect(
+      interpret(
+        block(parse(declaration), parse("return await invoke({ type: 5, payload: {}, extra: 9 })"))
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [7, 9, 2]
+    });
+  });
+
+  it("evaluates parameter defaults against earlier parameters", async () => {
+    await expect(interpret(parse("return ((a, b = a + 1) => b)(4)"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: 5
+    });
+  });
+
+  it("binds parameters as reassignable let bindings", async () => {
+    await expect(
+      interpret(parse("return ((value) => { value = value + 1; return value; })(4)"))
+    ).resolves.toMatchObject({ ok: true, returnValue: 5 });
   });
 
   it("ignores extra call arguments after evaluating them", async () => {
@@ -2060,6 +2510,73 @@ describe("interpret", () => {
     });
   });
 
+  it("binds destructured catch parameters", async () => {
+    await expect(
+      interpret(
+        parse(
+          "try { throw { code: 7, detail: ['boom'] }; } catch ({ code, detail: [message] }) { return [code, message]; }"
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [7, "boom"]
+    });
+  });
+
+  it("evaluates destructuring assignment expressions", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let a = 1"),
+          parse("let b = 2"),
+          parse("[a, b] = [b, a]"),
+          parse("let x = 0"),
+          parse("const source = { x: 3 }"),
+          parse("({ x } = source)"),
+          parse("return [a, b, x]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [2, 1, 3]
+    });
+  });
+
+  it("returns the right-hand value from destructuring assignments", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let first = 0"),
+          parse("let remaining = []"),
+          parse("const assigned = ([first, ...remaining] = [1, 2, 3])"),
+          parse("return [assigned, first, remaining]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [[1, 2, 3], 1, [2, 3]]
+    });
+  });
+
+  it("assigns destructured values to member targets", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const target = { x: 0, y: 0 }"),
+          parse("[target.x, target.y] = [4, 5]"),
+          parse("return [target.x, target.y]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [4, 5]
+    });
+  });
+
+  it("keeps unparenthesized object assignment invalid in statement position", () => {
+    expect(() => parseModule("{ x } = source")).toThrow();
+  });
+
   it("rejects uncaught host errors as subset sandbox values", async () => {
     await expect(
       interpret(parse("return explode()"), {
@@ -2330,12 +2847,6 @@ describe("interpret", () => {
     );
   });
 
-  it("documents switch as unsupported syntax", () => {
-    expect(() => parse("switch (value) { case 1: break; }")).toThrowError(
-      "Disallowed syntax 'switch'"
-    );
-  });
-
   it("evaluates for...of over sandbox arrays", async () => {
     await expect(
       interpret(
@@ -2348,6 +2859,80 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [1, 2, 3]
+    });
+  });
+
+  it("evaluates for...of over strings by code point", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse('for (const character of "A😀B") { out.push(character); }'),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["A", "😀", "B"]
+    });
+  });
+
+  it("supports empty strings and assignment targets in for...of", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("let character"),
+          parse('for (character of "") { out.push(character); }'),
+          parse('for (character of "ab") { out.push(character); }'),
+          parse("return [out, character]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [["a", "b"], "b"]
+    });
+  });
+
+  it("binds destructuring declarations in for...of heads", async () => {
+    const budget = new Budget();
+
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("const source = { first: 1, second: 2 }"),
+          parse("for (const [key, value] of Object.entries(source)) { out.push(key, value); }"),
+          parse("return out")
+        ),
+        {
+          bindings: createObjectArrayGlobals({ budget }),
+          budget
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["first", 1, "second", 2]
+    });
+  });
+
+  it("binds nested defaults and rest values in for...of heads", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "for (const { value: [first = 9, ...rest], ...meta } of [{ value: [] }, { value: [1, 2], label: 'item' }]) { out.push([first, rest, meta.label]); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [
+        [9, [], undefined],
+        [1, [2], "item"]
+      ]
     });
   });
 
@@ -2553,11 +3138,99 @@ describe("interpret", () => {
     });
   });
 
-  it("throws a TypeError-shaped sandbox error for unsupported for...of iterables", async () => {
-    await expect(interpret(parse('for (const x of "abc") { return x; }'))).rejects.toMatchObject({
-      name: "TypeError",
-      message: "abc is not a supported iterable"
-    });
+  it("iterates own enumerable string keys with for...in ordering", async () => {
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) seen.push(key); return seen; })()"
+        ),
+        { bindings: { value: { later: true, 10: true, 2: true, first: true } } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: ["2", "10", "later", "first"] });
+  });
+
+  it.each([
+    { value: Object.assign(["a", "b", "c"], { 1: undefined }), expected: ["0", "1", "2"] },
+    { value: "abc", expected: ["0", "1", "2"] },
+    { value: null, expected: [] },
+    { value: undefined, expected: [] },
+    { value: new Map([["key", 1]]), expected: [] },
+    { value: new Set([1]), expected: [] },
+    { value: /x/, expected: [] },
+    { value: () => 1, expected: [] }
+  ])("iterates supported for...in keys for $value", async ({ value, expected }) => {
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) seen.push(key); return seen; })()"
+        ),
+        { bindings: { value: value as never } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: expected });
+  });
+
+  it("skips array holes and length", async () => {
+    const value = ["a", "b", "c"];
+    delete value[1];
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) seen.push(key); return seen; })()"
+        ),
+        { bindings: { value } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: ["0", "2"] });
+  });
+
+  it("iterates only present array indices", async () => {
+    const value = Object.assign(["a", "b"], { extra: true });
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) seen.push(key); return seen; })()"
+        ),
+        { bindings: { value } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: ["0", "1"] });
+  });
+
+  it.each([
+    Object.assign(new Map(), { extra: true }),
+    Object.assign(new Set(), { extra: true }),
+    Object.assign(/x/, { extra: true }),
+    Object.assign(() => 1, { extra: true })
+  ])("does not iterate custom properties on unsupported for...in values", async (value) => {
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) seen.push(key); return seen; })()"
+        ),
+        { bindings: { value: value as never } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: [] });
+  });
+
+  it("snapshots for...in keys, skips deleted keys, and ignores added keys", async () => {
+    await expect(
+      interpret(
+        parse(
+          "return (() => { const seen = []; for (const key in value) { seen.push(key); if (key === 'a') { delete value.b; value.c = 3; } } return seen; })()"
+        ),
+        { bindings: { value: { a: 1, b: 2 } } }
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: ["a"] });
+  });
+
+  it("hoists var for...in heads to the function boundary", async () => {
+    await expect(
+      interpret(parse("return (() => { for (var key in { a: 1 }) {} return key; })()"))
+    ).resolves.toMatchObject({ ok: true, returnValue: "a" });
+  });
+
+  it("assigns bare identifier for...in heads", async () => {
+    await expect(
+      interpret(parse("return (() => { let key; for (key in { a: 1 }) {} return key; })()"))
+    ).resolves.toMatchObject({ ok: true, returnValue: "a" });
   });
 
   it.each(["null", "undefined"])(
@@ -3338,6 +4011,249 @@ describe("interpret", () => {
       stats: {
         nodeVisits: 5
       }
+    });
+  });
+
+  it("hoists initialized function declarations within their block", async () => {
+    await expect(
+      interpret(
+        parse("if (true) { return add(2, 3); function add(left, right) { return left + right; } }")
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 5
+    });
+  });
+
+  it("evaluates a standalone function declaration as an initialized binding", async () => {
+    const scope = new Scope();
+
+    await expect(
+      interpret(parse("function identity(value) { return value; }"), {
+        scope,
+        useScopeDirectly: true
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    const identity = scope.lookup("identity");
+    expect(identity.found).toBe(true);
+    if (!identity.found || identity.value.kind !== "fn") {
+      return;
+    }
+
+    await expect(identity.value.call([7])).resolves.toBe(7);
+  });
+
+  it("supports recursive function declarations", async () => {
+    await expect(
+      interpret(
+        parse(
+          "if (true) { function factorial(value) { return value <= 1 ? 1 : value * factorial(value - 1); } return factorial(5); }"
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 120
+    });
+  });
+
+  it("keeps function declarations scoped to their enclosing block", async () => {
+    await expect(
+      interpret(
+        block(parse("if (true) { function hidden() { return 1; } }"), parse("return hidden();"))
+      )
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER"
+      }
+    });
+  });
+
+  it("supports defaults and rest parameters in function declarations", async () => {
+    await expect(
+      interpret(
+        parse(
+          "if (true) { function collect(first = 1, ...rest) { return [first, rest.length]; } return collect(undefined, 2, 3); }"
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2]
+    });
+  });
+
+  it("executes async function declarations through closure machinery", async () => {
+    await expect(
+      interpret(
+        parse("if (true) { async function load() { return await task(); } return await load(); }"),
+        {
+          bindings: {
+            task: createSandboxClosure({
+              async: true,
+              call: () => createSandboxPromise(Promise.resolve(42))
+            })
+          }
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 42
+    });
+  });
+
+  it("rejects function and variable redeclarations in one block", () => {
+    expect(() => parse("if (true) { function work() {} const work = 1; }")).toThrowError(
+      "Cannot redeclare binding 'work'"
+    );
+  });
+
+  it("hoists var without a temporal dead zone and escapes blocks", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const before = value"),
+          parse("if (true) { var value = 5; }"),
+          parse("return [before, value]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [undefined, 5],
+      snapshot: {
+        bindings: {
+          value: 5
+        }
+      }
+    });
+  });
+
+  it("stops var hoisting at nested function boundaries", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const run = () => { var local = 3; return local; }"),
+          parse("run()"),
+          parse("return local")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'local' is not defined."
+      }
+    });
+  });
+
+  it("hoists var from unexecuted catch bodies without a temporal dead zone", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("try { var completed = true; } catch (error) { var failure = error; }"),
+          parse("return [completed, failure]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [true, undefined]
+    });
+  });
+
+  it("uses one function-scoped binding for for-var closures", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const readers = []"),
+          parse("for (var index = 0; index < 3; index++) { readers.push(() => index); }"),
+          parse("return [readers[0](), readers[1](), readers[2]()]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [3, 3, 3]
+    });
+  });
+
+  it("allows var redeclaration and rejects same-frame lexical collisions", async () => {
+    await expect(
+      interpret(block(parse("var value = 1"), parse("var value = 2"), parse("return value")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+    await expect(
+      interpret(block(parse("let value = 1"), parse("var value = 2")))
+    ).rejects.toThrowError("Cannot redeclare binding 'value' in the same scope.");
+    await expect(
+      interpret(block(parse("const run = (value) => { var value = 2; }"), parse("run(1)")))
+    ).rejects.toThrowError("Cannot redeclare binding 'value' in the same scope.");
+  });
+
+  it("matches switch cases strictly and falls through", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const output = []"),
+          parse(
+            'switch (value) { case "1": output.push("string"); break; case 1: output.push("one"); default: output.push("default"); case 2: output.push("two"); }'
+          ),
+          parse("return output")
+        ),
+        { bindings: { value: 1 } }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["one", "default", "two"]
+    });
+  });
+
+  it("uses default only after every case misses", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let output = ''"),
+          parse('switch (2) { default: output += "default"; break; case 2: output += "matched"; }'),
+          parse("return output")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: "matched" });
+  });
+
+  it("shares one lexical scope across unbraced switch cases", async () => {
+    expect(() =>
+      parse("switch (1) { case 1: const value = 1; break; case 2: const value = 2; }")
+    ).toThrowError("Cannot redeclare binding 'value'");
+
+    await expect(
+      interpret(
+        block(
+          parse("let output = 0"),
+          parse(
+            "switch (1) { case 1: { const value = 1; output = value; } break; case 2: { const value = 2; output = value; } }"
+          ),
+          parse("return output")
+        )
+      )
+    ).resolves.toMatchObject({ ok: true, returnValue: 1 });
+  });
+
+  it("routes break and continue through nested switches and loops", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const output = []"),
+          parse(
+            'outer: for (let index = 0; index < 3; index++) { switch (index) { case 0: output.push("switch-break"); break; case 1: continue; case 2: break outer; } output.push(index); }'
+          ),
+          parse("return output")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["switch-break", 0]
     });
   });
 });

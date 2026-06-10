@@ -1,9 +1,14 @@
 import type { Budget } from "../budget.js";
+import { getSandboxIterator } from "../iteration.js";
 import {
+  allocateProducedSandboxValue,
   createSandboxClosure,
   deepCopyToSandbox,
   isSandboxClosure,
+  isSandboxMap,
   isSandboxPromise,
+  isSandboxRegex,
+  isSandboxSet,
   type SandboxArray,
   type SandboxClosure,
   type SandboxObject,
@@ -32,6 +37,10 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
       entries: createSandboxClosure({
         call: ([value]) => budgetSandboxValue(getOwnEnumerableEntries(value), options.budget),
         name: "entries"
+      }),
+      hasOwn: createSandboxClosure({
+        call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [value, key]),
+        name: "hasOwn"
       }),
       fromEntries: createSandboxClosure({
         call: ([value]) =>
@@ -79,6 +88,16 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         raw: createSandboxClosure({
           call: (args) => stringRaw(args, options.budget),
           name: "raw"
+        }),
+        fromCharCode: createSandboxClosure({
+          call: (args) =>
+            options.budget.allocateString(Reflect.apply(String.fromCharCode, String, [...args])),
+          name: "fromCharCode"
+        }),
+        fromCodePoint: createSandboxClosure({
+          call: (args) =>
+            options.budget.allocateString(Reflect.apply(String.fromCodePoint, String, [...args])),
+          name: "fromCodePoint"
         })
       }
     }),
@@ -97,7 +116,24 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         isInteger: createSandboxClosure({
           call: ([value]) => typeof value === "number" && Number.isInteger(value),
           name: "isInteger"
-        })
+        }),
+        parseInt: createSandboxClosure({
+          call: (args) => Reflect.apply(Number.parseInt, Number, [...args]),
+          name: "parseInt"
+        }),
+        parseFloat: createSandboxClosure({
+          call: (args) => Reflect.apply(Number.parseFloat, Number, [...args]),
+          name: "parseFloat"
+        }),
+        isSafeInteger: createSandboxClosure({
+          call: ([value]) => typeof value === "number" && Number.isSafeInteger(value),
+          name: "isSafeInteger"
+        }),
+        MAX_SAFE_INTEGER: Number.MAX_SAFE_INTEGER,
+        MIN_SAFE_INTEGER: Number.MIN_SAFE_INTEGER,
+        EPSILON: Number.EPSILON,
+        MAX_VALUE: Number.MAX_VALUE,
+        MIN_VALUE: Number.MIN_VALUE
       }
     }),
     Boolean: createSandboxClosure({
@@ -122,7 +158,7 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
     }
 
     for (const [key, value] of getOwnEnumerableEntries(source)) {
-      target[key] = value;
+      (target as Record<string, SandboxValue>)[key] = value;
     }
   }
 
@@ -138,7 +174,10 @@ function isAssignableSandboxTarget(
     typeof value === "object" &&
     value !== null &&
     !isSandboxClosure(value) &&
-    !isSandboxPromise(value)
+    !isSandboxMap(value) &&
+    !isSandboxSet(value) &&
+    !isSandboxPromise(value) &&
+    !isSandboxRegex(value)
   );
 }
 
@@ -148,11 +187,17 @@ async function arrayFromSandboxValues(
 ): Promise<SandboxValue> {
   const [items, mapFn] = args;
 
-  if (mapFn === undefined || !isSandboxClosure(mapFn)) {
+  const iterator = getSandboxIterator(items);
+  if (iterator?.generator !== true && (mapFn === undefined || !isSandboxClosure(mapFn))) {
     return budgetSandboxValue(Reflect.apply(Array.from, Array, [...args]), budget);
   }
-
-  const values = Reflect.apply(Array.from, Array, [items]) as SandboxValue[];
+  const values =
+    iterator?.generator === true
+      ? await collectIteratorValues(iterator)
+      : (Reflect.apply(Array.from, Array, [items]) as SandboxValue[]);
+  if (mapFn === undefined || !isSandboxClosure(mapFn)) {
+    return budgetSandboxValue(values, budget);
+  }
   const mappedValues: SandboxValue[] = [];
 
   for (const [index, value] of values.entries()) {
@@ -161,6 +206,17 @@ async function arrayFromSandboxValues(
   }
 
   return budgetSandboxValue(mappedValues, budget);
+}
+
+async function collectIteratorValues(
+  iterator: NonNullable<ReturnType<typeof getSandboxIterator>>
+): Promise<SandboxValue[]> {
+  const values: SandboxValue[] = [];
+  while (true) {
+    const result = await iterator.next();
+    if (result.done) return values;
+    values.push(result.value);
+  }
 }
 
 function getOwnEnumerableKeys(value: SandboxValue): string[] {
@@ -176,7 +232,13 @@ function getOwnEnumerableEntries(value: SandboxValue): Array<[string, SandboxVal
     throw new TypeError("Cannot convert undefined or null to object.");
   }
 
-  if (isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (
+    isSandboxClosure(value) ||
+    isSandboxMap(value) ||
+    isSandboxSet(value) ||
+    isSandboxPromise(value) ||
+    isSandboxRegex(value)
+  ) {
     return [];
   }
 
@@ -186,8 +248,7 @@ function getOwnEnumerableEntries(value: SandboxValue): Array<[string, SandboxVal
 function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
   const sandboxValue = deepCopyToSandbox(value);
 
-  allocateSandboxValue(sandboxValue, budget, new WeakSet());
-  return sandboxValue;
+  return allocateProducedSandboxValue(sandboxValue, budget);
 }
 
 function stringRaw(args: readonly SandboxValue[], budget: Budget): string {
@@ -222,44 +283,4 @@ function getTemplateRawParts(template: SandboxValue): SandboxArray {
   }
 
   return raw;
-}
-
-function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
-  if (typeof value === "string") {
-    budget.allocateString(value);
-    return;
-  }
-
-  if (Array.isArray(value)) {
-    budget.allocateArrayLength(value.length);
-
-    if (seen.has(value)) {
-      return;
-    }
-
-    seen.add(value);
-    for (const entry of value) {
-      allocateSandboxValue(entry, budget, seen);
-    }
-
-    return;
-  }
-
-  if (
-    typeof value !== "object" ||
-    value === null ||
-    isSandboxClosure(value) ||
-    isSandboxPromise(value)
-  ) {
-    return;
-  }
-
-  if (seen.has(value)) {
-    return;
-  }
-
-  seen.add(value);
-  for (const entry of Object.values(value)) {
-    allocateSandboxValue(entry, budget, seen);
-  }
 }

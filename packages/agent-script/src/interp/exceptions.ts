@@ -481,7 +481,7 @@ function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
   const names = new Set<string>();
 
   for (const statement of node.body) {
-    if (statement.type !== "VariableDeclaration") {
+    if (statement.type !== "VariableDeclaration" || statement.kind === "var") {
       continue;
     }
 

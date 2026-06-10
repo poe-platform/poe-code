@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { createGeneratorChannel } from "../interp/generator.js";
+import { createSandboxGenerator } from "../interp/values.js";
 import { hashSource } from "../parse/hash.js";
-import { serialize } from "./serialize.js";
+import { serialize, UnsnapshotableValueError } from "./serialize.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -31,6 +33,63 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("serialize", () => {
+  it("serializes generators in start and done states", () => {
+    const start = createSandboxGenerator(createGeneratorChannel(async () => undefined), {
+      astNodeId: 7,
+      capturedScopeId: "generator-scope"
+    });
+    const done = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    done.state = "done";
+
+    const snapshot = serialize({
+      source: "await task()",
+      currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { start, done } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    expect(snapshot.scopeChain[0]?.bindings).toMatchObject({
+      start: {
+        kind: "generator",
+        state: "start",
+        astNodeId: 7,
+        capturedScopeId: "generator-scope"
+      },
+      done: {
+        kind: "generator",
+        state: "done"
+      }
+    });
+  });
+
+  it.each(["running", "suspended"] as const)(
+    "rejects a %s generator with its value path",
+    (generatorState) => {
+      const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+      generator.state = generatorState;
+
+      expect(() =>
+        serialize({
+          source: "await task()",
+          currentAstNodeId: 1,
+          scopeChain: [{ id: 1, bindings: { nested: { generator } } }],
+          callStack: [],
+          pendingPromises: [],
+          moduleBindings: {}
+        })
+      ).toThrowError(
+        expect.objectContaining({
+          name: "UnsnapshotableValueError",
+          path: "scopeChain[0].bindings.nested.generator",
+          message:
+            "Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary."
+        }) satisfies Partial<UnsnapshotableValueError>
+      );
+    }
+  );
+
   it("serializes resumable interpreter state without host references", () => {
     const source = "await task()";
     const hostPromise = Promise.resolve("done");

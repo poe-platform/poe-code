@@ -10,6 +10,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -40,9 +41,15 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-const MESSAGE = "Unbounded loop has no static exit with break, return, or throw.";
+const MESSAGE =
+  "Unbounded loop or generator source has no static exit with break, return, or throw.";
 
-type LoopStatement = DoWhileStatement | ForOfStatement | ForStatement | WhileStatement;
+type LoopStatement =
+  | DoWhileStatement
+  | ForInStatement
+  | ForOfStatement
+  | ForStatement
+  | WhileStatement;
 type UnboundedLoopStatement = DoWhileStatement | ForStatement | WhileStatement;
 
 export function AS_UNBOUNDED_LOOP(
@@ -83,6 +90,7 @@ class ASUnboundedLoopScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -153,7 +161,7 @@ class ASUnboundedLoopScanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     }
@@ -413,6 +421,7 @@ function bodyHasExit(
           bodyHasExit(node.alternate, exitingLabels, allowUnlabeledBreak))
       );
     case "ForStatement":
+    case "ForInStatement":
     case "ForOfStatement":
     case "WhileStatement":
     case "DoWhileStatement":
@@ -425,6 +434,10 @@ function bodyHasExit(
         (node.finalizer !== undefined &&
           bodyHasExit(node.finalizer, exitingLabels, allowUnlabeledBreak))
       );
+    case "SwitchStatement":
+      return node.cases.some((switchCase) =>
+        switchCase.consequent.some((statement) => bodyHasExit(statement, exitingLabels, false))
+      );
     case "ReturnStatement":
     case "ThrowStatement":
       return true;
@@ -435,6 +448,7 @@ function bodyHasExit(
     case "ExportDefaultDeclaration":
     case "ExpressionStatement":
     case "ImportDeclaration":
+    case "FunctionDeclaration":
     case "ContinueStatement":
     case "EmptyStatement":
     case "VariableDeclaration":

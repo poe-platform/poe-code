@@ -153,20 +153,7 @@ describe("AS001", () => {
       }
     ]);
 
-    expect(AS001("/value+/gi")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: regex literal.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 11, offset: 10 }
-        }
-      }
-    ]);
+    expect(AS001("/value+/gi")).toEqual([]);
 
     expect(AS001("eval(value)")).toEqual([
       {
@@ -336,9 +323,7 @@ describe("AS001", () => {
   });
 
   it("reports disallowed syntax inside array binding defaults and computed pattern keys", () => {
-    expect(messages("const [value = /fallback/] = input;")).toEqual([
-      "Disallowed syntax: regex literal."
-    ]);
+    expect(messages("const [value = /fallback/] = input;")).toEqual([]);
     expect(messages("const { [Function('return key')]: value } = input;")).toEqual([
       "Disallowed syntax: Function."
     ]);

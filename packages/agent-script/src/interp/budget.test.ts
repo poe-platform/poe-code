@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { Budget, SandboxError } from "./budget.js";
+import { allocateRegexSteps, Budget, REGEX_STEP_LIMIT, SandboxError } from "./budget.js";
 
 function expectSandboxError(action: () => unknown, expected: Partial<SandboxError>): void {
   try {
@@ -71,6 +71,19 @@ describe("Budget", () => {
     });
 
     expectSandboxError(() => budget.allocateArrayLength(3), {
+      budget: "arrayLength",
+      current: 3,
+      limit: 2
+    });
+  });
+
+  it("checks collection allocations against the configured array budget", () => {
+    const budget = new Budget({
+      arrayLength: 2
+    });
+
+    expect(() => budget.allocateCollectionEntries(2)).not.toThrow();
+    expectSandboxError(() => budget.allocateCollectionEntries(3), {
       budget: "arrayLength",
       current: 3,
       limit: 2
@@ -154,5 +167,16 @@ describe("Budget", () => {
 
     expect(budget.currentCallDepth).toBe(0);
     expect(() => budget.enterCall()).not.toThrow();
+  });
+});
+
+describe("allocateRegexSteps", () => {
+  it("enforces the hard regex step limit", () => {
+    expect(() => allocateRegexSteps(REGEX_STEP_LIMIT)).not.toThrow();
+    expectSandboxError(() => allocateRegexSteps(REGEX_STEP_LIMIT + 1), {
+      budget: "steps",
+      current: REGEX_STEP_LIMIT + 1,
+      limit: REGEX_STEP_LIMIT
+    });
   });
 });

@@ -1,7 +1,15 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import type { Budget } from "./budget.js";
+import type { GeneratorChannel } from "./generator.js";
+import { parseRegex, type RegexPattern } from "./regex/parse.js";
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
+const sandboxGeneratorBrand = Symbol("SandboxGenerator");
+const sandboxMapBrand = Symbol("SandboxMap");
 const sandboxPromiseBrand = Symbol("SandboxPromise");
+const sandboxRegexBrand = Symbol("SandboxRegex");
+const sandboxRegexPattern = Symbol("SandboxRegexPattern");
+const sandboxSetBrand = Symbol("SandboxSet");
 
 export type SandboxPrimitive = string | number | boolean | null | undefined;
 
@@ -10,13 +18,38 @@ export type SandboxValue =
   | SandboxObject
   | SandboxArray
   | SandboxClosure
-  | SandboxPromise;
+  | SandboxGenerator
+  | SandboxMap
+  | SandboxSet
+  | SandboxPromise
+  | SandboxRegex;
 
 export type SandboxObject = {
   [key: string]: SandboxValue;
 };
 
 export type SandboxArray = SandboxValue[];
+
+export type SandboxMap = {
+  readonly kind: "map";
+  readonly entries: Map<SandboxValue, SandboxValue>;
+  readonly [sandboxMapBrand]: true;
+};
+
+export type SandboxSet = {
+  readonly kind: "set";
+  readonly values: Set<SandboxValue>;
+  readonly [sandboxSetBrand]: true;
+};
+
+export type SandboxRegex = {
+  readonly kind: "regex";
+  readonly source: string;
+  readonly flags: string;
+  lastIndex: number;
+  readonly [sandboxRegexBrand]: true;
+  readonly [sandboxRegexPattern]: RegexPattern;
+};
 
 export type SandboxCallContext = {
   readonly span?: {
@@ -32,6 +65,7 @@ export type SandboxCallContext = {
     };
   };
   readonly stack: readonly string[];
+  readonly thisValue: SandboxValue;
 };
 
 export type SandboxClosure = {
@@ -43,6 +77,10 @@ export type SandboxClosure = {
     args: readonly SandboxValue[],
     context?: SandboxCallContext
   ) => SandboxValue | Promise<SandboxValue>;
+  readonly construct?: (
+    args: readonly SandboxValue[],
+    context?: SandboxCallContext
+  ) => SandboxValue | Promise<SandboxValue>;
   readonly [sandboxClosureBrand]: true;
 };
 
@@ -51,6 +89,15 @@ export type SandboxPromise = {
   readonly promise: Promise<SandboxValue>;
   readonly span?: SandboxCallContext["span"];
   readonly [sandboxPromiseBrand]: true;
+};
+
+export type SandboxGenerator = {
+  readonly kind: "generator";
+  state: "start" | "running" | "suspended" | "done";
+  readonly channel: GeneratorChannel;
+  readonly astNodeId?: number;
+  readonly capturedScopeId?: number | string;
+  readonly [sandboxGeneratorBrand]: true;
 };
 
 type CopyFromSandboxOptions = {
@@ -67,6 +114,10 @@ export function createSandboxClosure(input: {
     args: readonly SandboxValue[],
     context?: SandboxCallContext
   ) => SandboxValue | Promise<SandboxValue>;
+  construct?: (
+    args: readonly SandboxValue[],
+    context?: SandboxCallContext
+  ) => SandboxValue | Promise<SandboxValue>;
   name?: string;
   properties?: SandboxObject;
 }): SandboxClosure {
@@ -74,6 +125,7 @@ export function createSandboxClosure(input: {
     kind: "fn" as const,
     call: input.call,
     name: input.name,
+    ...(input.construct === undefined ? {} : { construct: input.construct }),
     ...(input.async === true ? { async: true as const } : {})
   } as SandboxClosure;
 
@@ -115,18 +167,113 @@ export function createSandboxPromise(
   return Object.freeze(sandboxPromise);
 }
 
+export function createSandboxGenerator(
+  channel: GeneratorChannel,
+  metadata: { astNodeId: number; capturedScopeId: number | string } | undefined = undefined
+): SandboxGenerator {
+  const generator = {
+    kind: "generator" as const,
+    state: "start" as const,
+    channel,
+    ...metadata
+  } as SandboxGenerator;
+
+  Object.defineProperty(generator, sandboxGeneratorBrand, {
+    enumerable: false,
+    value: true
+  });
+
+  return generator;
+}
+
+export function createSandboxMap(
+  entries: Iterable<readonly [SandboxValue, SandboxValue]> = []
+): SandboxMap {
+  const map = {} as SandboxMap;
+
+  Object.defineProperties(map, {
+    kind: {
+      value: "map"
+    },
+    entries: {
+      value: new Map(entries)
+    }
+  });
+
+  Object.defineProperty(map, sandboxMapBrand, {
+    enumerable: false,
+    value: true
+  });
+
+  return Object.freeze(map);
+}
+
+export function createSandboxSet(values: Iterable<SandboxValue> = []): SandboxSet {
+  const set = {} as SandboxSet;
+
+  Object.defineProperties(set, {
+    kind: {
+      value: "set"
+    },
+    values: {
+      value: new Set(values)
+    }
+  });
+
+  Object.defineProperty(set, sandboxSetBrand, {
+    enumerable: false,
+    value: true
+  });
+
+  return Object.freeze(set);
+}
+
+export function createSandboxRegex(source: string, flags = "", lastIndex = 0): SandboxRegex {
+  const regex = { kind: "regex", source, flags, lastIndex } as SandboxRegex;
+  Object.defineProperties(regex, {
+    [sandboxRegexBrand]: { value: true },
+    [sandboxRegexPattern]: { value: parseRegex(source, flags) }
+  });
+  return Object.seal(regex);
+}
+
+export function getSandboxRegexPattern(regex: SandboxRegex): RegexPattern {
+  return regex[sandboxRegexPattern];
+}
+
 export function isSandboxClosure(value: unknown): value is SandboxClosure {
   return typeof value === "object" && value !== null && sandboxClosureBrand in value;
+}
+
+export function isSandboxMap(value: unknown): value is SandboxMap {
+  return typeof value === "object" && value !== null && sandboxMapBrand in value;
 }
 
 export function isSandboxPromise(value: unknown): value is SandboxPromise {
   return typeof value === "object" && value !== null && sandboxPromiseBrand in value;
 }
 
+export function isSandboxSet(value: unknown): value is SandboxSet {
+  return typeof value === "object" && value !== null && sandboxSetBrand in value;
+}
+
+export function isSandboxGenerator(value: unknown): value is SandboxGenerator {
+  return typeof value === "object" && value !== null && sandboxGeneratorBrand in value;
+}
+
+export function isSandboxRegex(value: unknown): value is SandboxRegex {
+  return typeof value === "object" && value !== null && sandboxRegexBrand in value;
+}
+
 export function deepCopyToSandbox(value: unknown): SandboxValue {
   return copyToSandbox(value, {
     seen: new WeakMap()
   });
+}
+
+export function allocateProducedSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
+  allocateSandboxValue(value, budget, new WeakSet());
+  return value;
 }
 
 export function deepCopyFromSandbox(
@@ -157,7 +304,14 @@ function copyToSandbox(
     return value;
   }
 
-  if (isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (
+    isSandboxClosure(value) ||
+    isSandboxGenerator(value) ||
+    isSandboxMap(value) ||
+    isSandboxSet(value) ||
+    isSandboxRegex(value) ||
+    isSandboxPromise(value)
+  ) {
     return value;
   }
 
@@ -173,6 +327,37 @@ function copyToSandbox(
       bindOtelSpan(sandboxPromise, span);
     }
     return sandboxPromise;
+  }
+
+  if (value instanceof Map) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = createSandboxMap();
+    state.seen.set(value, copy);
+    for (const [key, entry] of value) {
+      copy.entries.set(
+        copyToSandbox(key, state, `${path}.<key>`),
+        copyToSandbox(entry, state, `${path}.<value>`)
+      );
+    }
+    return copy;
+  }
+
+  if (value instanceof Set) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = createSandboxSet();
+    state.seen.set(value, copy);
+    for (const entry of value) {
+      copy.values.add(copyToSandbox(entry, state, `${path}.<value>`));
+    }
+    return copy;
   }
 
   if (isPlainArray(value)) {
@@ -253,6 +438,47 @@ function copyFromSandbox(
     );
   }
 
+  if (isSandboxGenerator(value)) {
+    throw new TypeError("Sandbox generators cannot cross into host values.");
+  }
+
+  if (isSandboxRegex(value)) {
+    const regex = new RegExp(value.source, value.flags);
+    regex.lastIndex = value.lastIndex;
+    return regex;
+  }
+
+  if (isSandboxMap(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = new Map<unknown, unknown>();
+    state.seen.set(value, copy);
+    for (const [key, entry] of value.entries) {
+      copy.set(
+        copyFromSandbox(key, state, `${path}.<key>`, options),
+        copyFromSandbox(entry, state, `${path}.<value>`, options)
+      );
+    }
+    return copy;
+  }
+
+  if (isSandboxSet(value)) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = new Set<unknown>();
+    state.seen.set(value, copy);
+    for (const entry of value.values) {
+      copy.add(copyFromSandbox(entry, state, `${path}.<value>`, options));
+    }
+    return copy;
+  }
+
   if (isPlainArray(value)) {
     const existing = state.seen.get(value);
     if (existing !== undefined) {
@@ -311,6 +537,74 @@ function isSandboxPrimitive(value: unknown): value is SandboxPrimitive {
 
 function isHostPromise(value: unknown): value is Promise<unknown> {
   return value instanceof Promise;
+}
+
+function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
+  if (typeof value === "string") {
+    budget.allocateString(value);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    if (seen.has(value)) {
+      return;
+    }
+
+    seen.add(value);
+    budget.allocateArrayLength(value.length);
+    for (const entry of value) {
+      allocateSandboxValue(entry, budget, seen);
+    }
+
+    return;
+  }
+
+  if (isSandboxMap(value)) {
+    if (seen.has(value)) {
+      return;
+    }
+
+    seen.add(value);
+    budget.allocateCollectionEntries(value.entries.size);
+    for (const [key, entry] of value.entries) {
+      allocateSandboxValue(key, budget, seen);
+      allocateSandboxValue(entry, budget, seen);
+    }
+    return;
+  }
+
+  if (isSandboxSet(value)) {
+    if (seen.has(value)) {
+      return;
+    }
+
+    seen.add(value);
+    budget.allocateCollectionEntries(value.values.size);
+    for (const entry of value.values) {
+      allocateSandboxValue(entry, budget, seen);
+    }
+    return;
+  }
+
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    isSandboxClosure(value) ||
+    isSandboxMap(value) ||
+    isSandboxSet(value) ||
+    isSandboxPromise(value)
+  ) {
+    return;
+  }
+
+  if (seen.has(value)) {
+    return;
+  }
+
+  seen.add(value);
+  for (const entry of Object.values(value)) {
+    allocateSandboxValue(entry, budget, seen);
+  }
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

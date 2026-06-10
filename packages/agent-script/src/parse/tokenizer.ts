@@ -48,8 +48,10 @@ const KEYWORDS = new Set([
   "catch",
   "finally",
   "throw",
+  "function",
   "async",
   "await",
+  "yield",
   "import",
   "from",
   "as",
@@ -60,6 +62,7 @@ const KEYWORDS = new Set([
   "typeof",
   "void",
   "delete",
+  "this",
   "instanceof",
   "in",
   "of"

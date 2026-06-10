@@ -8,6 +8,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -50,7 +51,9 @@ export function AS_EXPORT_IMPORT_META(
   source: string,
   options: { allowedExportNames?: readonly string[]; filename?: string } = {}
 ): Diagnostic[] {
-  return new Scanner(options.filename ?? "<input>", new Set(options.allowedExportNames ?? [])).scan(source);
+  return new Scanner(options.filename ?? "<input>", new Set(options.allowedExportNames ?? [])).scan(
+    source
+  );
 }
 
 class Scanner {
@@ -67,7 +70,9 @@ class Scanner {
   }
 
   private visitModule(node: Module): void {
-    const defaultExports = node.body.filter((statement) => statement.type === "ExportDefaultDeclaration");
+    const defaultExports = node.body.filter(
+      (statement) => statement.type === "ExportDefaultDeclaration"
+    );
     const hasDefaultExport = defaultExports.length > 0;
 
     for (const [index, statement] of defaultExports.entries()) {
@@ -125,6 +130,7 @@ class Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -192,7 +198,7 @@ class Scanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -352,7 +358,9 @@ class Scanner {
     this.visitExpression(node.right);
   }
 
-  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
@@ -437,7 +445,9 @@ function isImportMetaReference(node: AssignmentExpression["left"] | Expression):
   );
 }
 
-function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): boolean {
+function isImportMetaAssignmentTarget(
+  node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+): boolean {
   switch (node.type) {
     case "MetaProperty":
       return true;
@@ -448,7 +458,9 @@ function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | Assig
     case "RestElement":
       return isImportMetaAssignmentTarget(node.argument);
     case "ArrayPattern":
-      return node.elements.some((element) => element !== null && isImportMetaAssignmentTarget(element));
+      return node.elements.some(
+        (element) => element !== null && isImportMetaAssignmentTarget(element)
+      );
     case "ObjectPattern":
       return node.properties.some((property) =>
         isImportMetaAssignmentTarget(property.type === "RestElement" ? property : property.value)

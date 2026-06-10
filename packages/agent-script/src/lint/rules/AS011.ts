@@ -7,6 +7,7 @@ import {
   type CallExpression,
   type ConditionalExpression,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -75,6 +76,7 @@ class AS011Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -133,7 +135,7 @@ class AS011Scanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -281,7 +283,9 @@ class AS011Scanner {
     this.visitExpression(node.argument);
   }
 
-  private visitBinaryLikeExpression(node: LogicalExpression | import("../../parse/parser.js").BinaryExpression): void {
+  private visitBinaryLikeExpression(
+    node: LogicalExpression | import("../../parse/parser.js").BinaryExpression
+  ): void {
     this.visitExpression(node.left);
     this.visitExpression(node.right);
   }
@@ -324,9 +328,10 @@ class AS011Scanner {
   }
 
   private visitAssignmentTarget(
-    node: AssignmentExpression["left"] |
-      import("../../parse/parser.js").AssignmentPattern |
-      import("../../parse/parser.js").RestElement
+    node:
+      | AssignmentExpression["left"]
+      | import("../../parse/parser.js").AssignmentPattern
+      | import("../../parse/parser.js").RestElement
   ): void {
     switch (node.type) {
       case "Identifier":
@@ -366,12 +371,13 @@ class AS011Scanner {
   }
 
   private visitBindingTarget(
-    node: import("../../parse/parser.js").ArrayPattern |
-      import("../../parse/parser.js").AssignmentPattern |
-      import("../../parse/parser.js").Identifier |
-      MemberExpression |
-      import("../../parse/parser.js").ObjectPattern |
-      import("../../parse/parser.js").RestElement
+    node:
+      | import("../../parse/parser.js").ArrayPattern
+      | import("../../parse/parser.js").AssignmentPattern
+      | import("../../parse/parser.js").Identifier
+      | MemberExpression
+      | import("../../parse/parser.js").ObjectPattern
+      | import("../../parse/parser.js").RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
@@ -389,10 +395,14 @@ class AS011Scanner {
 
   private isForbiddenMemberProperty(node: MemberExpression): boolean {
     if (!node.computed) {
-      return node.property.type === "Identifier" && FORBIDDEN_PROPERTY_NAMES.has(node.property.name);
+      return (
+        node.property.type === "Identifier" && FORBIDDEN_PROPERTY_NAMES.has(node.property.name)
+      );
     }
 
-    return node.property.type === "StringLiteral" && FORBIDDEN_PROPERTY_NAMES.has(node.property.value);
+    return (
+      node.property.type === "StringLiteral" && FORBIDDEN_PROPERTY_NAMES.has(node.property.value)
+    );
   }
 
   private report(span: SourceSpan): void {

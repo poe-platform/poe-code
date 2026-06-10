@@ -14,6 +14,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -118,6 +119,7 @@ class AS010Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -169,7 +171,10 @@ class AS010Scanner {
   }
 
   private visitForStatement(node: ForStatement): void {
-    const scope = node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : new Map();
+    const scope =
+      node.init?.type === "VariableDeclaration"
+        ? this.collectDeclarationBindings(node.init)
+        : new Map();
 
     this.withScope(scope, () => {
       if (node.init !== undefined) {
@@ -189,8 +194,11 @@ class AS010Scanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
-    const scope = node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : new Map();
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
+    const scope =
+      node.left.type === "VariableDeclaration"
+        ? this.collectDeclarationBindings(node.left)
+        : new Map();
 
     this.withScope(scope, () => {
       if (node.left.type === "VariableDeclaration") {
@@ -409,14 +417,23 @@ class AS010Scanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitBindingPattern(node.left);
-        this.withIgnoredReads(this.resolveCandidates(this.collectPatternBindingNames(node.left)), () => {
-          this.visitExpression(node.right);
-        });
+        this.withIgnoredReads(
+          this.resolveCandidates(this.collectPatternBindingNames(node.left)),
+          () => {
+            this.visitExpression(node.right);
+          }
+        );
         return;
       case "RestElement":
         this.visitBindingPattern(node.argument);
@@ -427,7 +444,9 @@ class AS010Scanner {
     }
   }
 
-  private visitBindingPattern(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitBindingPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         return;
@@ -460,7 +479,9 @@ class AS010Scanner {
     this.visitBindingElement(node.value);
   }
 
-  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
@@ -642,7 +663,13 @@ class AS010Scanner {
   }
 
   private collectBindingNamesFromElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     scope: Scope
   ): void {
     switch (node.type) {
@@ -687,14 +714,22 @@ class AS010Scanner {
     }
   }
 
-  private collectPatternBindingNames(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): string[] {
+  private collectPatternBindingNames(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): string[] {
     const names: string[] = [];
     this.collectBindingNames(node, names);
     return names;
   }
 
   private collectBindingNames(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     names: string[]
   ): void {
     switch (node.type) {
@@ -718,7 +753,10 @@ class AS010Scanner {
         return;
       case "ObjectPattern":
         for (const property of node.properties) {
-          this.collectBindingNames(property.type === "RestElement" ? property.argument : property.value, names);
+          this.collectBindingNames(
+            property.type === "RestElement" ? property.argument : property.value,
+            names
+          );
         }
         return;
     }

@@ -154,6 +154,39 @@ describe("Scope", () => {
     );
   });
 
+  it("declares var bindings on the nearest function boundary", () => {
+    const root = new Scope({}, undefined, undefined, { functionBoundary: true });
+    const block = root.child();
+
+    block.declareVar("count");
+
+    expect(root.lookup("count")).toEqual({ found: true, kind: "var", value: undefined });
+    expect(block.hasOwnBinding("count")).toBe(false);
+  });
+
+  it("allows var redeclaration but rejects lexical collisions", () => {
+    const scope = new Scope({}, undefined, undefined, { functionBoundary: true });
+
+    scope.declareVar("count");
+    scope.declareVar("count");
+    expect(() => scope.declare("count", "let", 1)).toThrowError(
+      "Cannot redeclare binding 'count' in the same scope."
+    );
+  });
+
+  it("does not copy var bindings into iteration children", () => {
+    const scope = new Scope({}, undefined, undefined, { functionBoundary: true });
+    const loopScope = scope.child();
+    scope.declareVar("index");
+    scope.assign("index", 1);
+
+    const iteration = loopScope.iterationChild(["index"]);
+
+    expect(iteration.hasOwnBinding("index")).toBe(false);
+    iteration.assign("index", 2);
+    expect(scope.lookup("index")).toEqual({ found: true, kind: "var", value: 2 });
+  });
+
   it("snapshots inherited and local bindings", () => {
     const parent = new Scope();
     parent.declare("agentName", "const", "planner");

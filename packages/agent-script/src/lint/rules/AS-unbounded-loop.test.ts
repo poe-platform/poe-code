@@ -43,6 +43,10 @@ describe("AS_UNBOUNDED_LOOP", () => {
     expect(codes("while (i < n) { x = x + 1; }")).toEqual([]);
   });
 
+  it("treats for...in loops as bounded", () => {
+    expect(codes("for (const key in value) { x = x + 1; }")).toEqual([]);
+  });
+
   it("does not count exits inside nested functions", () => {
     expect(codes("while (true) { const later = () => { return; }; }")).toEqual([
       "AS-UNBOUNDED-LOOP"

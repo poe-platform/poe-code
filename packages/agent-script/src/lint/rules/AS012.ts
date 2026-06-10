@@ -10,6 +10,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -42,11 +43,20 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-const SPLIT_MESSAGE = "String#split does not support regex separator values.";
-const REPLACE_MESSAGE = "String#replace does not support function replacers or regex search values.";
-const REPLACE_ALL_MESSAGE = "String#replaceAll does not support function replacers or regex search values.";
 const SORT_MESSAGE = "Array#sort only supports comparators that are arrows returning a number.";
-const NUMBER_RETURNING_BINARY_OPERATORS = new Set(["%", "*", "**", "-", "/", "<<", ">>", ">>>", "&", "^", "|"]);
+const NUMBER_RETURNING_BINARY_OPERATORS = new Set([
+  "%",
+  "*",
+  "**",
+  "-",
+  "/",
+  "<<",
+  ">>",
+  ">>>",
+  "&",
+  "^",
+  "|"
+]);
 
 export function AS012(source: string, options: { filename?: string } = {}): Diagnostic[] {
   return new AS012Scanner(options.filename ?? "<input>").scan(source);
@@ -84,6 +94,7 @@ class AS012Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -141,7 +152,7 @@ class AS012Scanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -338,9 +349,7 @@ class AS012Scanner {
     }
   }
 
-  private visitPattern(
-    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
-  ): void {
+  private visitPattern(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
     switch (node.type) {
       case "Identifier":
       case "MetaProperty":
@@ -385,21 +394,6 @@ class AS012Scanner {
       return;
     }
 
-    if (methodName === "split") {
-      this.reportRegexLiteral(node.arguments[0], SPLIT_MESSAGE);
-      return;
-    }
-
-    if (methodName === "replace" || methodName === "replaceAll") {
-      this.reportRegexLiteral(node.arguments[0], methodName === "replace" ? REPLACE_MESSAGE : REPLACE_ALL_MESSAGE);
-
-      const replacement = node.arguments[1];
-      if (replacement !== undefined && replacement.type === "ArrowFunctionExpression") {
-        this.report(replacement.span, methodName === "replace" ? REPLACE_MESSAGE : REPLACE_ALL_MESSAGE);
-      }
-      return;
-    }
-
     if (methodName !== "sort") {
       return;
     }
@@ -424,16 +418,6 @@ class AS012Scanner {
       column: span.start.column,
       span
     });
-  }
-
-  private reportRegexLiteral(node: Expression | SpreadElement | undefined, message: string): void {
-    if (node === undefined || node.type === "SpreadElement") {
-      return;
-    }
-
-    if (node.type === "RegexLiteral") {
-      this.report(node.span, message);
-    }
   }
 }
 
@@ -472,11 +456,16 @@ function isClearlyNumberExpression(node: Expression): boolean {
     case "RegexLiteral":
       return false;
     case "UnaryExpression":
-      return (node.operator === "+" || node.operator === "-" || node.operator === "~") && isClearlyNumberExpression(node.argument);
+      return (
+        (node.operator === "+" || node.operator === "-" || node.operator === "~") &&
+        isClearlyNumberExpression(node.argument)
+      );
     case "BinaryExpression":
       return NUMBER_RETURNING_BINARY_OPERATORS.has(node.operator);
     case "ConditionalExpression":
-      return isClearlyNumberExpression(node.consequent) && isClearlyNumberExpression(node.alternate);
+      return (
+        isClearlyNumberExpression(node.consequent) && isClearlyNumberExpression(node.alternate)
+      );
     case "CallExpression":
       return isLocaleCompareCall(node);
     default:

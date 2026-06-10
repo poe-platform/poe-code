@@ -1,22 +1,27 @@
 import type {
-  AssignmentPattern,
   ArrowFunctionExpression,
   AwaitExpression,
-  Identifier,
+  BlockStatement,
+  FunctionDeclaration,
+  FunctionExpression,
   ParseResult,
-  RestElement,
   SourceSpan
 } from "../parse.js";
+import { createGeneratorChannel, type GeneratorCompletion } from "./generator.js";
 import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
 import type { InterpreterError, InterpreterSnapshot } from "./interpreter.js";
+import { bindPattern } from "./patterns.js";
 import { resolveSandboxValue } from "./promise.js";
 import type { Scope } from "./scope.js";
+import { hoistVarDeclarations } from "./var-hoist.js";
 import {
   createSandboxClosure,
+  createSandboxGenerator,
   createSandboxPromise,
   isSandboxPromise,
+  type SandboxCallContext,
   type SandboxValue
 } from "./values.js";
 
@@ -41,6 +46,7 @@ export type AsyncEvaluationContext = {
   stats: {
     nodeVisits: number;
   };
+  generatorYield?: (value?: SandboxValue) => Promise<GeneratorCompletion>;
 };
 
 export type EvaluateAsyncNode = (
@@ -56,35 +62,141 @@ export async function evaluateArrowFunctionExpression(
   return {
     kind: "normal",
     hasValue: true,
-    value: createSandboxClosure({
-      ...(node.async ? { async: true } : {}),
-      call: (args, callContext) =>
-        node.async
-          ? createSandboxPromise(
-              resolveSandboxValue(
-                executeArrow(
-                  node,
-                  args,
-                  {
-                    ...context,
-                    callStack: [...(callContext?.stack ?? context.callStack)]
-                  },
-                  evaluateNode
-                ),
-                { budget: context.budget }
-              )
-            )
-          : executeArrow(
-              node,
-              args,
-              {
-                ...context,
-                callStack: [...(callContext?.stack ?? context.callStack)]
-              },
-              evaluateNode
-            )
-    })
+    value: createInterpretedClosure(node, context, evaluateNode)
   };
+}
+
+export async function evaluateFunctionExpression(
+  node: FunctionExpression,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<AsyncEvaluationResult> {
+  if (node.id === undefined) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: createInterpretedClosure(node, context, evaluateNode)
+    };
+  }
+
+  const wrapperScope = context.scope.child();
+  const closure = createInterpretedClosure(node, { ...context, scope: wrapperScope }, evaluateNode);
+  wrapperScope.declare(node.id.name, "const", closure);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: closure
+  };
+}
+
+export function createInterpretedClosure(
+  node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+) {
+  if (node.type !== "ArrowFunctionExpression" && node.generator) {
+    return createGeneratorClosure(node, context, evaluateNode);
+  }
+
+  const construct =
+    node.type !== "ArrowFunctionExpression" &&
+    !(node.type === "FunctionExpression" && node.method === true) &&
+    !node.async
+      ? async (args: readonly SandboxValue[], callContext?: SandboxCallContext) => {
+          const thisValue = {};
+          const result = await executeClosure(
+            node,
+            args,
+            thisValue,
+            {
+              ...context,
+              callStack: [...(callContext?.stack ?? context.callStack)]
+            },
+            evaluateNode
+          );
+          return isConstructResult(result) ? result : thisValue;
+        }
+      : undefined;
+
+  return createSandboxClosure({
+    ...(node.async ? { async: true } : {}),
+    ...(node.type === "FunctionDeclaration" || node.type === "FunctionExpression"
+      ? node.id === undefined
+        ? {}
+        : { name: node.id.name }
+      : {}),
+    ...(construct === undefined ? {} : { construct }),
+    call: (args, callContext) =>
+      node.async
+        ? createSandboxPromise(
+            resolveSandboxValue(
+              executeClosure(
+                node,
+                args,
+                callContext?.thisValue,
+                {
+                  ...context,
+                  callStack: [...(callContext?.stack ?? context.callStack)]
+                },
+                evaluateNode
+              ),
+              { budget: context.budget }
+            )
+          )
+        : executeClosure(
+            node,
+            args,
+            callContext?.thisValue,
+            {
+              ...context,
+              callStack: [...(callContext?.stack ?? context.callStack)]
+            },
+            evaluateNode
+          )
+  });
+}
+
+function createGeneratorClosure(
+  node: FunctionDeclaration | FunctionExpression,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+) {
+  return createSandboxClosure({
+    ...(node.id === undefined ? {} : { name: node.id.name }),
+    call: async (args, callContext) => {
+      const closureContext = {
+        ...context,
+        callStack: [...(callContext?.stack ?? context.callStack)]
+      };
+      const scope = await createClosureScope(
+        node,
+        args,
+        callContext?.thisValue,
+        closureContext,
+        evaluateNode
+      );
+      const channel = createGeneratorChannel(async (generatorYield) => {
+        const result = await evaluateNode(node.body, {
+          ...closureContext,
+          generatorYield,
+          scope
+        });
+        if (result.kind === "error") {
+          throw result.error;
+        }
+        if (result.kind === "throw") {
+          throw result.value;
+        }
+        return result.hasValue ? result.value : undefined;
+      });
+      return createSandboxGenerator(channel);
+    }
+  });
+}
+
+function isConstructResult(value: SandboxValue): boolean {
+  return typeof value === "object" && value !== null;
 }
 
 export async function evaluateAwaitExpression(
@@ -120,14 +232,14 @@ export async function evaluateAwaitExpression(
   }
 }
 
-async function executeArrow(
-  node: ArrowFunctionExpression,
+async function executeClosure(
+  node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
   args: readonly SandboxValue[],
+  thisValue: SandboxValue,
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<SandboxValue> {
-  const scope = context.scope.child();
-  await bindArrowParameters(node.params, args, scope, context, evaluateNode);
+  const scope = await createClosureScope(node, args, thisValue, context, evaluateNode);
 
   const result = await evaluateNode(node.body, {
     ...context,
@@ -142,14 +254,36 @@ async function executeArrow(
     throw result.value;
   }
 
-  if (node.body.type === "BlockStatement") {
+  if (isBlockBody(node.body)) {
     return result.hasValue ? result.value : undefined;
   }
 
   return result.value;
 }
 
-async function bindArrowParameters(
+async function createClosureScope(
+  node: ArrowFunctionExpression | FunctionDeclaration | FunctionExpression,
+  args: readonly SandboxValue[],
+  thisValue: SandboxValue,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<Scope> {
+  const scope = context.scope.child({}, { functionBoundary: true });
+  if (node.type !== "ArrowFunctionExpression") {
+    scope.declare("this", "const", thisValue);
+  }
+  await bindParameters(node.params, args, scope, context, evaluateNode);
+  hoistVarDeclarations(node.body, scope);
+  return scope;
+}
+
+function isBlockBody(
+  body: BlockStatement | ArrowFunctionExpression["body"]
+): body is BlockStatement {
+  return body.type === "BlockStatement";
+}
+
+async function bindParameters(
   params: ArrowFunctionExpression["params"],
   args: readonly SandboxValue[],
   scope: Scope,
@@ -159,90 +293,34 @@ async function bindArrowParameters(
   for (let index = 0; index < params.length; index += 1) {
     const param = params[index];
     if (param.type === "RestElement") {
-      bindRestParameter(param, args, index, scope, context.budget);
+      const rest = args.slice(index);
+      context.budget.allocateArrayLength(rest.length);
+      const binding = await bindPattern(param, rest, { kind: "let" }, scope, {
+        evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
+      });
+      if (!binding.ok) {
+        if (binding.result.kind === "error") {
+          throw binding.result.error;
+        }
+        if (binding.result.kind === "throw") {
+          throw binding.result.value;
+        }
+      }
       return;
     }
 
-    await bindArrowParameter(param, args[index], scope, context, evaluateNode);
+    const binding = await bindPattern(param, args[index], { kind: "let" }, scope, {
+      evaluate: (defaultNode) => evaluateNode(defaultNode, { ...context, scope })
+    });
+    if (!binding.ok) {
+      if (binding.result.kind === "error") {
+        throw binding.result.error;
+      }
+      if (binding.result.kind === "throw") {
+        throw binding.result.value;
+      }
+    }
   }
-}
-
-async function bindArrowParameter(
-  param: Exclude<ArrowFunctionExpression["params"][number], RestElement>,
-  arg: SandboxValue,
-  scope: Scope,
-  context: AsyncEvaluationContext,
-  evaluateNode: EvaluateAsyncNode
-): Promise<void> {
-  if (param.type === "AssignmentPattern") {
-    await bindAssignmentParameter(param, arg, scope, context, evaluateNode);
-    return;
-  }
-
-  if (param.type !== "Identifier") {
-    throw new TypeError(`Unsupported async arrow parameter pattern '${param.type}'.`);
-  }
-
-  declareIdentifier(scope, param, arg);
-}
-
-async function bindAssignmentParameter(
-  param: AssignmentPattern,
-  arg: SandboxValue,
-  scope: Scope,
-  context: AsyncEvaluationContext,
-  evaluateNode: EvaluateAsyncNode
-): Promise<void> {
-  const value =
-    arg === undefined ? await evaluateParameterDefault(param, scope, context, evaluateNode) : arg;
-
-  if (param.left.type !== "Identifier") {
-    throw new TypeError(`Unsupported async arrow parameter pattern '${param.left.type}'.`);
-  }
-
-  declareIdentifier(scope, param.left, value);
-}
-
-async function evaluateParameterDefault(
-  param: AssignmentPattern,
-  scope: Scope,
-  context: AsyncEvaluationContext,
-  evaluateNode: EvaluateAsyncNode
-): Promise<SandboxValue> {
-  const result = await evaluateNode(param.right, {
-    ...context,
-    scope
-  });
-
-  if (result.kind === "error") {
-    throw result.error;
-  }
-
-  if (result.kind === "throw") {
-    throw result.value;
-  }
-
-  return result.hasValue ? result.value : undefined;
-}
-
-function bindRestParameter(
-  param: RestElement,
-  args: readonly SandboxValue[],
-  index: number,
-  scope: Scope,
-  budget: Budget
-): void {
-  if (param.argument.type !== "Identifier") {
-    throw new TypeError(`Unsupported async arrow rest parameter pattern '${param.argument.type}'.`);
-  }
-
-  const rest = args.slice(index);
-  budget.allocateArrayLength(rest.length);
-  declareIdentifier(scope, param.argument, rest);
-}
-
-function declareIdentifier(scope: Scope, param: Identifier, value: SandboxValue): void {
-  scope.declare(param.name, "const", value);
 }
 
 export function normalizeClosureResult(

@@ -431,6 +431,7 @@ function collectStatementSpan(statement: Statement, spans: SourceSpan[]): void {
       }
       return;
     case "DoWhileStatement":
+    case "ForInStatement":
     case "ForOfStatement":
     case "ForStatement":
     case "WhileStatement":

@@ -10,6 +10,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
@@ -20,6 +21,7 @@ import {
   type Property,
   type SourceSpan,
   type Statement,
+  type SwitchStatement,
   type TaggedTemplateExpression,
   type TemplateLiteral,
   type ThrowStatement,
@@ -89,6 +91,7 @@ class ASUnreachableScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return false;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return false;
@@ -98,6 +101,9 @@ class ASUnreachableScanner {
         return false;
       case "TryStatement":
         return this.visitTryStatement(node);
+      case "SwitchStatement":
+        this.visitSwitchStatement(node);
+        return false;
       case "VariableDeclaration":
         this.visitVariableDeclaration(node);
         return false;
@@ -119,6 +125,7 @@ class ASUnreachableScanner {
         this.visitExpression(node.declaration);
         return false;
       case "ImportDeclaration":
+      case "FunctionDeclaration":
       case "EmptyStatement":
         return false;
     }
@@ -157,7 +164,7 @@ class ASUnreachableScanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     }
@@ -186,6 +193,16 @@ class ASUnreachableScanner {
     }
 
     return tryTerminates && catchTerminates;
+  }
+
+  private visitSwitchStatement(node: SwitchStatement): void {
+    this.visitExpression(node.discriminant);
+    for (const switchCase of node.cases) {
+      if (switchCase.test !== undefined) {
+        this.visitExpression(switchCase.test);
+      }
+      this.visitStatements(switchCase.consequent);
+    }
   }
 
   private visitCatchClause(node: CatchClause): boolean {

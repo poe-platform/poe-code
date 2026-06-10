@@ -18,13 +18,20 @@ type ScopeLookupResult =
 
 const uninitialized = Symbol("uninitialized");
 
+type ScopeOptions = {
+  functionBoundary?: boolean;
+};
+
 export class Scope {
   readonly #bindings = new Map<string, ScopeBinding>();
 
   constructor(
     bindings: Record<string, InterpreterValue> = {},
     private readonly parent?: Scope,
-    private readonly importMeta?: InterpreterValue
+    private readonly importMeta?: InterpreterValue,
+    private readonly options: ScopeOptions = {
+      functionBoundary: parent === undefined
+    }
   ) {
     for (const [name, value] of Object.entries(bindings)) {
       this.#bindings.set(name, {
@@ -34,12 +41,16 @@ export class Scope {
     }
   }
 
-  child(bindings: Record<string, InterpreterValue> = {}): Scope {
-    return new Scope(bindings, this);
+  child(bindings: Record<string, InterpreterValue> = {}, options: ScopeOptions = {}): Scope {
+    return new Scope(bindings, this, undefined, options);
   }
 
   hasOwnBinding(name: string): boolean {
     return this.#bindings.has(name);
+  }
+
+  isFunctionBoundary(): boolean {
+    return this.options.functionBoundary === true;
   }
 
   iterationChild(names: readonly string[]): Scope {
@@ -47,6 +58,9 @@ export class Scope {
 
     for (const name of names) {
       const binding = this.requireInitializedBinding(name);
+      if (binding.kind === "var") {
+        continue;
+      }
       scope.declare(name, binding.kind, binding.value);
     }
 
@@ -77,6 +91,30 @@ export class Scope {
     this.#bindings.set(name, {
       kind,
       value
+    });
+  }
+
+  declareVar(name: string): void {
+    const boundary = this.options.functionBoundary === true ? this : this.parent;
+    if (boundary === undefined) {
+      throw new Error("Cannot declare var without a function boundary.");
+    }
+    if (boundary !== this) {
+      boundary.declareVar(name);
+      return;
+    }
+
+    const existing = this.#bindings.get(name);
+    if (existing?.kind === "var") {
+      return;
+    }
+    if (existing !== undefined) {
+      throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+    }
+
+    this.#bindings.set(name, {
+      kind: "var",
+      value: undefined
     });
   }
 

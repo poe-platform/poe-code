@@ -14,6 +14,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -53,7 +54,7 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-type BindingKind = "const" | "import" | "let" | "param";
+type BindingKind = "const" | "import" | "let" | "param" | "var";
 
 type Binding = {
   code?: DiagnosticCode;
@@ -117,6 +118,7 @@ class AS006007Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -162,7 +164,8 @@ class AS006007Scanner {
   }
 
   private visitForStatement(node: ForStatement): void {
-    const bindings = node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
+    const bindings =
+      node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
 
     this.withScope(bindings, () => {
       if (node.init !== undefined) {
@@ -182,8 +185,9 @@ class AS006007Scanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
-    const bindings = node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
+    const bindings =
+      node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
 
     this.withScope(bindings, () => {
       if (node.left.type === "VariableDeclaration") {
@@ -394,14 +398,23 @@ class AS006007Scanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitBindingPattern(node.left);
-        this.withIgnoredReads(this.resolveBindings(this.collectPatternBindingNames(node.left)), () => {
-          this.visitExpression(node.right);
-        });
+        this.withIgnoredReads(
+          this.resolveBindings(this.collectPatternBindingNames(node.left)),
+          () => {
+            this.visitExpression(node.right);
+          }
+        );
         return;
       case "RestElement":
         this.visitBindingPattern(node.argument);
@@ -412,7 +425,9 @@ class AS006007Scanner {
     }
   }
 
-  private visitBindingPattern(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitBindingPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         return;
@@ -445,7 +460,9 @@ class AS006007Scanner {
     this.visitBindingElement(node.value);
   }
 
-  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
@@ -611,7 +628,9 @@ class AS006007Scanner {
     return node.specifiers.map((specifier) => this.createImportBinding(specifier));
   }
 
-  private createImportBinding(specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier): Binding {
+  private createImportBinding(
+    specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier
+  ): Binding {
     return {
       kind: "import",
       message: `Import '${specifier.local.name}' is never referenced.`,
@@ -622,7 +641,13 @@ class AS006007Scanner {
   }
 
   private collectBindingNamesFromElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     kind: BindingKind,
     bindings: Binding[]
   ): void {
@@ -680,14 +705,22 @@ class AS006007Scanner {
     };
   }
 
-  private collectPatternBindingNames(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): string[] {
+  private collectPatternBindingNames(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): string[] {
     const names: string[] = [];
     this.collectBindingNames(node, names);
     return names;
   }
 
   private collectBindingNames(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     names: string[]
   ): void {
     switch (node.type) {
@@ -711,7 +744,10 @@ class AS006007Scanner {
         return;
       case "ObjectPattern":
         for (const property of node.properties) {
-          this.collectBindingNames(property.type === "RestElement" ? property.argument : property.value, names);
+          this.collectBindingNames(
+            property.type === "RestElement" ? property.argument : property.value,
+            names
+          );
         }
         return;
     }

@@ -1,4 +1,14 @@
 import { hashSource } from "../parse/hash.js";
+import {
+  isSandboxGenerator,
+  isSandboxMap,
+  isSandboxRegex,
+  isSandboxSet,
+  type SandboxMap,
+  type SandboxGenerator,
+  type SandboxRegex,
+  type SandboxSet
+} from "../interp/values.js";
 
 type SnapshotId = number | string;
 
@@ -16,6 +26,18 @@ export type SerializedClosureValue = {
   astNodeId: number;
   capturedScopeId: SnapshotId;
 };
+
+export type SerializedGeneratorValue =
+  | {
+      kind: "generator";
+      state: "start";
+      astNodeId: number;
+      capturedScopeId: SnapshotId;
+    }
+  | {
+      kind: "generator";
+      state: "done";
+    };
 
 export type SerializedPromiseValue = {
   kind: "promise";
@@ -35,6 +57,14 @@ export type SerializedHeapValue =
   | {
       kind: "object";
       entries: Record<string, SerializedSnapshotValue>;
+    }
+  | {
+      kind: "map";
+      entries: Array<[SerializedSnapshotValue, SerializedSnapshotValue]>;
+    }
+  | {
+      kind: "set";
+      values: SerializedSnapshotValue[];
     };
 
 export type SerializedSnapshotValue =
@@ -43,10 +73,12 @@ export type SerializedSnapshotValue =
   | number
   | string
   | SerializedClosureValue
+  | SerializedGeneratorValue
   | SerializedNonFiniteNumber
   | SerializedPromiseValue
   | SerializedReferenceValue
   | SerializedUndefinedValue
+  | { kind: "regex"; source: string; flags: string; lastIndex: number }
   | SerializedSnapshotValue[]
   | {
       [key: string]: SerializedSnapshotValue;
@@ -72,7 +104,11 @@ export type RuntimeSnapshotValue =
   | string
   | undefined
   | RuntimeClosureValue
+  | SandboxGenerator
   | RuntimePromiseValue
+  | SandboxMap
+  | SandboxRegex
+  | SandboxSet
   | RuntimeSnapshotValue[]
   | {
       [key: string]: RuntimeSnapshotValue;
@@ -134,6 +170,18 @@ type SerializationState = {
   heapIds: WeakMap<object, number>;
   serializedHeapIds: Set<number>;
 };
+
+export class UnsnapshotableValueError extends Error {
+  readonly path: string;
+
+  constructor(path: string) {
+    super(
+      "Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary."
+    );
+    this.name = "UnsnapshotableValueError";
+    this.path = path;
+  }
+}
 
 export function serialize(input: SerializeInput): SerializedSnapshot {
   const state: SerializationState = {
@@ -231,8 +279,11 @@ function serializeValue(
 
     return {
       kind: "number",
-      value:
-        Number.isNaN(value) ? "NaN" : value === Number.POSITIVE_INFINITY ? "Infinity" : "-Infinity"
+      value: Number.isNaN(value)
+        ? "NaN"
+        : value === Number.POSITIVE_INFINITY
+          ? "Infinity"
+          : "-Infinity"
     };
   }
 
@@ -255,11 +306,47 @@ function serializeValue(
     };
   }
 
+  if (isSandboxGenerator(value)) {
+    if (value.state === "running" || value.state === "suspended") {
+      throw new UnsnapshotableValueError(path);
+    }
+
+    if (value.state === "done") {
+      return {
+        kind: "generator",
+        state: "done"
+      };
+    }
+
+    if (value.astNodeId === undefined || value.capturedScopeId === undefined) {
+      throw new TypeError(`Cannot serialize unstarted generator without origin metadata at ${path}.`);
+    }
+
+    return {
+      kind: "generator",
+      state: "start",
+      astNodeId: value.astNodeId,
+      capturedScopeId: value.capturedScopeId
+    };
+  }
+
   if (isRuntimePromiseValue(value)) {
     return {
       kind: "promise",
       id: value.id
     };
+  }
+
+  if (isSandboxRegex(value)) {
+    return { kind: "regex", source: value.source, flags: value.flags, lastIndex: value.lastIndex };
+  }
+
+  if (isSandboxMap(value) || isSandboxSet(value)) {
+    const reference = serializeHeapReference(value, path, state);
+    if (reference === undefined) {
+      throw new TypeError(`Cannot serialize collection without a heap reference at ${path}.`);
+    }
+    return reference;
   }
 
   if (!isPlainObject(value)) {
@@ -283,7 +370,7 @@ function serializeValue(
 }
 
 function serializeHeapReference(
-  value: RuntimeSnapshotValue[] | Record<string, RuntimeSnapshotValue>,
+  value: RuntimeSnapshotValue[] | Record<string, RuntimeSnapshotValue> | SandboxMap | SandboxSet,
   path: string,
   state: SerializationState
 ): SerializedReferenceValue | undefined {
@@ -295,7 +382,22 @@ function serializeHeapReference(
   if (!state.serializedHeapIds.has(id)) {
     state.serializedHeapIds.add(id);
 
-    if (Array.isArray(value)) {
+    if (isSandboxMap(value)) {
+      state.heap[String(id)] = {
+        kind: "map",
+        entries: [...value.entries].map(([key, entry], index) => [
+          serializeValue(key as RuntimeSnapshotValue, `${path}.entries[${index}][0]`, state),
+          serializeValue(entry as RuntimeSnapshotValue, `${path}.entries[${index}][1]`, state)
+        ])
+      };
+    } else if (isSandboxSet(value)) {
+      state.heap[String(id)] = {
+        kind: "set",
+        values: [...value.values].map((entry, index) =>
+          serializeValue(entry as RuntimeSnapshotValue, `${path}.values[${index}]`, state)
+        )
+      };
+    } else if (Array.isArray(value)) {
       state.heap[String(id)] = {
         kind: "array",
         items: value.map((entry, index) => serializeValue(entry, `${path}[${index}]`, state))
@@ -404,7 +506,7 @@ function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
   const heapIds = new WeakMap<object, number>();
   let nextId = 1;
   for (const [value, stat] of stats.entries()) {
-    if (stat.count > 1 || stat.cyclic) {
+    if (stat.count > 1 || stat.cyclic || isSandboxMap(value) || isSandboxSet(value)) {
       heapIds.set(value, nextId);
       nextId += 1;
     }
@@ -422,12 +524,18 @@ function collectContainerStats(
     value === null ||
     typeof value !== "object" ||
     isRuntimeClosureValue(value) ||
-    isRuntimePromiseValue(value)
+    isRuntimePromiseValue(value) ||
+    isSandboxGenerator(value)
   ) {
     return;
   }
 
-  if (!Array.isArray(value) && !isPlainObject(value)) {
+  if (
+    !Array.isArray(value) &&
+    !isPlainObject(value) &&
+    !isSandboxMap(value) &&
+    !isSandboxSet(value)
+  ) {
     return;
   }
 
@@ -455,9 +563,15 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = Array.isArray(value) ? value : Object.values(value);
+  const entries = isSandboxMap(value)
+    ? [...value.entries].flatMap(([key, entry]) => [key, entry])
+    : isSandboxSet(value)
+      ? [...value.values]
+      : Array.isArray(value)
+        ? value
+        : Object.values(value);
   for (const entry of entries) {
-    collectContainerStats(entry, stats, ancestors);
+    collectContainerStats(entry as RuntimeSnapshotValue, stats, ancestors);
   }
 
   ancestors.delete(value);

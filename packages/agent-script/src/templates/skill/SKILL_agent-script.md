@@ -48,15 +48,14 @@ capped at five.
 
 ## Supported JavaScript
 
-Agent-script is smaller than project TypeScript. Supported after the runtime
-fixes: arrow functions, `async`/`await`, `const`/`let`, destructuring, spread,
-optional chaining, nullish coalescing, template literals, binary operators,
-logical operators, conditional operators, `if`/`else`, `for`, `for...of`,
-`while`, `try`/`catch`/`finally`, `throw`, and `return`.
+Supported: functions and arrows, closures over mutable outer bindings,
+`async`/`await`, generators, regexes, `const`/`let`/`var`, destructuring,
+spread, optional chaining, nullish coalescing, template literals, member
+assignment, `new`, `this`, `if`/`else`, `switch`, `for`, `for...in`,
+`for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
+and `return`.
 
-Not supported: regex literals, classes, `new`, `this`, `var`, generators,
-`do...while`, `switch`, labels, and mutable member-target assignment such as
-`obj.x = value` or `items[i] = value`. Build replacement objects/arrays instead.
+Not supported: class syntax and async generators.
 
 ## Schema Initializers
 
@@ -68,14 +67,15 @@ or rely on runtime imports during schema extraction.
 
 ## Common Pitfalls
 
-- Bare `String(x)` and `Math.PI` are lint-clean after lint-known-globals; older
-  branches may still reject known globals at lint time.
-- Do not pass regex args to `String#split` or `String#replace`; regex literals
-  and `new RegExp(...)` are unsupported.
-- Async arrows still cannot close over outer `let`. Use `const`, pass
-  parameters, or keep async code in the default function body.
-- `for...of` only works on arrays, not strings, maps, sets, or generic
-  iterables.
+- `Map` and `Set` `keys()`, `values()`, and `entries()` return eager arrays.
+- Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
+  with a user constructor throws. Use an explicit brand property.
+- `Function#bind` is unsupported. Use an arrow that calls the function.
+- `for...in` rejects destructuring in the loop head. Destructure in the body.
+- Bare function calls set `this` to `undefined` (strict semantics).
+- Generators cannot `await`.
+- A generator suspended mid-iteration cannot be snapshotted. Drain or discard
+  it before an await boundary.
 - Schema extraction only sees `schema`; runtime imports are irrelevant there.
 
 ## Local Validation

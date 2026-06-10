@@ -193,7 +193,6 @@ class AS001Scanner {
         shouldRejectRegexLiteral(previousToken, lastClosedControlParenthesis)
       ) {
         token = this.readRegexLiteral(start);
-        this.report("regex literal", token.start, token.end);
       } else {
         token = this.readPunctuator(start);
       }
@@ -298,12 +297,16 @@ class AS001Scanner {
       case "eval":
       case "function":
       case "Function":
-      case "new":
       case "switch":
       case "this":
       case "var":
       case "with":
         this.report(token.value, token.start, token.end);
+        return;
+      case "new":
+        if (!this.source.slice(this.skipTriviaFrom(token.end.offset)).startsWith("RegExp")) {
+          this.report(token.value, token.start, token.end);
+        }
         return;
       default:
         return;

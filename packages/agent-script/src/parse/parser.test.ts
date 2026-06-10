@@ -362,6 +362,91 @@ describe("parse", () => {
     });
   });
 
+  it("parses object method shorthand as function-valued properties", () => {
+    const result = parse("{ reset() { return 1; }, async load(value) { return value; } }");
+
+    expect(result).toMatchObject({
+      type: "ObjectExpression",
+      properties: [
+        {
+          type: "Property",
+          computed: false,
+          shorthand: false,
+          key: { type: "Identifier", name: "reset" },
+          value: {
+            type: "FunctionExpression",
+            async: false,
+            generator: false,
+            id: undefined,
+            params: [],
+            body: { type: "BlockStatement" }
+          }
+        },
+        {
+          type: "Property",
+          computed: false,
+          shorthand: false,
+          key: { type: "Identifier", name: "load" },
+          value: {
+            type: "FunctionExpression",
+            async: true,
+            generator: false,
+            id: undefined,
+            params: [{ type: "Identifier", name: "value" }],
+            body: { type: "BlockStatement" }
+          }
+        }
+      ]
+    });
+  });
+
+  it("parses shorthand methods with all supported property name forms", () => {
+    const result = parse(
+      "{ default() { return 1; }, async() { return 2; }, ['load']() { return 3; }, 4() { return 4; } }"
+    );
+
+    expect(result).toMatchObject({
+      type: "ObjectExpression",
+      properties: [
+        {
+          computed: false,
+          key: { type: "Identifier", name: "default" },
+          value: { type: "FunctionExpression", async: false }
+        },
+        {
+          computed: false,
+          key: { type: "Identifier", name: "async" },
+          value: { type: "FunctionExpression", async: false }
+        },
+        {
+          computed: true,
+          key: { type: "StringLiteral", value: "load" },
+          value: { type: "FunctionExpression", async: false }
+        },
+        {
+          computed: false,
+          key: { type: "NumericLiteral", value: 4 },
+          value: { type: "FunctionExpression", async: false }
+        }
+      ]
+    });
+  });
+
+  it("does not parse async method shorthand across a line break", () => {
+    expect(() => parse("{ async\nload() {} }")).toThrow();
+  });
+
+  it.each([
+    ["generator", "{ *gen() {} }", "Generator shorthand methods are not supported"],
+    ["async generator", "{ async *gen() {} }", "Generator shorthand methods are not supported"],
+    ["getter", "{ get value() { return 1; } }", "Getter shorthand methods are not supported"],
+    ["computed getter", "{ get [value]() {} }", "Getter shorthand methods are not supported"],
+    ["setter", "{ set value(next) {} }", "Setter shorthand methods are not supported"],
+    ["literal setter", "{ set 'value'(next) {} }", "Setter shorthand methods are not supported"]
+  ])("rejects %s object method shorthand clearly", (_syntax, source, message) => {
+    expect(() => parse(source)).toThrowError(message);
+  });
+
   it("parses template literals with nested expressions and exact spans", () => {
     expect(parse("`Hello ${user}, ${['x', data]}`")).toEqual({
       type: "TemplateLiteral",
@@ -3036,7 +3121,7 @@ describe("parse", () => {
 
   it("keeps unsupported function syntaxes rejected", () => {
     expect(() => parse("function (value) { return value; }")).toThrowError(
-      "Unexpected token '{' at line 1, column 18."
+      "Unexpected token '(' at line 1, column 10."
     );
     expect(() => parse("*value => value")).toThrowError(
       "Unexpected token '*' at line 1, column 1."
@@ -3171,16 +3256,24 @@ describe("parse", () => {
     );
   });
 
-  it("rejects disallowed syntax for new", () => {
-    expect(() => parse("new Service()")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("new Service()")).toThrowError(
-      "Disallowed syntax 'new' at line 1, column 1."
-    );
+  it("parses new expressions with identifier and member callees", () => {
+    expect(parse("new Service(1)")).toMatchObject({
+      type: "NewExpression",
+      callee: { type: "Identifier", name: "Service" },
+      arguments: [{ type: "NumericLiteral", value: 1 }]
+    });
 
-    expect(() => parse("`${new Service()}`")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("`${new Service()}`")).toThrowError(
-      "Disallowed syntax 'new' at line 1, column 4."
-    );
+    expect(parse("new services.Service()")).toMatchObject({
+      type: "NewExpression",
+      callee: {
+        type: "MemberExpression",
+        object: { type: "Identifier", name: "services" },
+        property: { type: "Identifier", name: "Service" }
+      },
+      arguments: []
+    });
+
+    expect(() => parse("new.target")).toThrowError(DisallowedSyntaxError);
 
     expect(parse("service.this")).toMatchObject({
       type: "MemberExpression",
@@ -3195,17 +3288,15 @@ describe("parse", () => {
     });
   });
 
-  it("parses this as a lexical identifier reference", () => {
+  it("parses this as a dedicated expression node", () => {
     expect(parse("this")).toMatchObject({
-      type: "Identifier",
-      name: "this"
+      type: "ThisExpression"
     });
 
     expect(parse("this.value")).toMatchObject({
       type: "MemberExpression",
       object: {
-        type: "Identifier",
-        name: "this"
+        type: "ThisExpression"
       },
       property: {
         type: "Identifier",
@@ -3217,8 +3308,7 @@ describe("parse", () => {
       type: "TemplateLiteral",
       expressions: [
         {
-          type: "Identifier",
-          name: "this"
+          type: "ThisExpression"
         }
       ]
     });
@@ -3240,49 +3330,48 @@ describe("parse", () => {
   });
 
   it("rejects disallowed statement syntax", () => {
-    expect(() => parse("() => { switch (value) {} }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { switch (value) {} }")).toThrowError(
-      "Disallowed syntax 'switch' at line 1, column 9."
-    );
+    expect(parse("() => { switch (value) { case 1: break; default: return value; } }")).toMatchObject({
+      expression: false,
+      body: {
+        body: [{ type: "SwitchStatement" }]
+      }
+    });
 
-    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(
-      DisallowedSyntaxError
-    );
-    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(
-      "Disallowed syntax 'for...in' at line 1, column 19."
-    );
+    expect(parse("() => { for (item in items) work(item); }")).toMatchObject({
+      expression: false,
+      body: {
+        body: [{ type: "ForInStatement", left: { type: "Identifier", name: "item" } }]
+      }
+    });
 
     expect(() => parse("() => { label: work(); }")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("() => { label: work(); }")).toThrowError(
       "Disallowed syntax 'label' at line 1, column 9."
     );
 
-    expect(() => parse("var value = 1")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("var value = 1")).toThrowError(
-      "Disallowed syntax 'var' at line 1, column 1."
-    );
+    expect(parseModule("for (const x in obj) {}")).toMatchObject({
+      body: [
+        {
+          type: "ForInStatement",
+          left: {
+            type: "VariableDeclaration",
+            kind: "const",
+            declarations: [{ id: { type: "Identifier", name: "x" } }]
+          },
+          right: { type: "Identifier", name: "obj" }
+        }
+      ]
+    });
 
-    expect(() =>
-      parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")
-    ).toThrowError(DisallowedSyntaxError);
-    expect(() =>
-      parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")
-    ).toThrowError("Disallowed syntax 'var' at line 1, column 14.");
-
-    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
-      DisallowedSyntaxError
+    expect(() => parseModule("for (const [key] in obj) {}")).toThrowError(
+      "for...in keys are strings; destructure inside the body"
     );
-    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
-      "Disallowed syntax 'var' at line 1, column 14."
-    );
-
-    expect(() => parseModule("for (const x in obj) {}")).toThrowError(DisallowedSyntaxError);
-    expect(() => parseModule("for (const x in obj) {}")).toThrowError(
-      "Disallowed syntax 'for...in' at line 1, column 14."
+    expect(() => parseModule("for ({ key } in obj) {}")).toThrowError(
+      "for...in keys are strings; destructure inside the body"
     );
 
     expect(() => parseModule("break;")).toThrowError(
-      "Illegal break statement outside a loop at line 1, column 1."
+      "Illegal break statement outside a loop or switch at line 1, column 1."
     );
     expect(() => parseModule("continue;")).toThrowError(
       "Illegal continue statement outside a loop at line 1, column 1."
@@ -3383,5 +3472,113 @@ describe("parse", () => {
         caret: "  |      ^"
       });
     }
+  });
+
+  it("parses sync and async function declarations", () => {
+    expect(parse("function add(value = 1, ...rest) { return value + rest.length; }")).toMatchObject(
+      {
+        type: "FunctionDeclaration",
+        async: false,
+        generator: false,
+        id: {
+          type: "Identifier",
+          name: "add"
+        },
+        params: [
+          {
+            type: "AssignmentPattern",
+            left: {
+              type: "Identifier",
+              name: "value"
+            }
+          },
+          {
+            type: "RestElement",
+            argument: {
+              type: "Identifier",
+              name: "rest"
+            }
+          }
+        ],
+        body: {
+          type: "BlockStatement"
+        }
+      }
+    );
+
+    expect(parse("async function load() { return await task(); }")).toMatchObject({
+      type: "FunctionDeclaration",
+      async: true,
+      generator: false,
+      id: {
+        name: "load"
+      }
+    });
+  });
+
+  it("parses anonymous and named function expressions", () => {
+    expect(parse("const f = function () {};")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          init: {
+            type: "FunctionExpression",
+            async: false,
+            generator: false,
+            id: undefined,
+            params: [],
+            body: { type: "BlockStatement" }
+          }
+        }
+      ]
+    });
+
+    expect(parse("const f = async function check(n) { return check(n - 1); };")).toMatchObject({
+      declarations: [
+        {
+          init: {
+            type: "FunctionExpression",
+            async: true,
+            generator: false,
+            id: { type: "Identifier", name: "check" },
+            params: [{ type: "Identifier", name: "n" }]
+          }
+        }
+      ]
+    });
+  });
+
+  it("rejects duplicate function declarations in one scope", () => {
+    expect(() => parse("if (true) { function work() {} function work() {} }")).toThrowError(
+      "Cannot redeclare binding 'work'"
+    );
+  });
+
+  it("parses sync generator declarations and rejects async generators", () => {
+    expect(parse("function* values() {}")).toMatchObject({
+      type: "FunctionDeclaration",
+      async: false,
+      generator: true
+    });
+    expect(() => parse("async function* values() {}")).toThrowError(
+      "async function* is not supported"
+    );
+  });
+
+  it("does not treat async followed by a line break as an async function declaration", () => {
+    expect(() => parse("async\nfunction load() {}")).toThrow();
+  });
+  it("parses var declarations in statements and loops", () => {
+    expect(parse("var value = 1")).toMatchObject({
+      type: "VariableDeclaration",
+      kind: "var"
+    });
+    expect(parse("for (var index = 0; index < 1; index++) {}")).toMatchObject({
+      type: "ForStatement",
+      init: {
+        type: "VariableDeclaration",
+        kind: "var"
+      }
+    });
   });
 });

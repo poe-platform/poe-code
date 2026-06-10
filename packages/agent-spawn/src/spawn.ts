@@ -3,7 +3,7 @@ import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
 import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
-import { getMcpArgs } from "./mcp-args.js";
+import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { observeAgentSpawn } from "./observability/otel.js";
 import { createSpawnParallel } from "./parallel.js";
@@ -248,7 +248,11 @@ async function runSpawn(
     const logFilePath = resolveSpawnLogPath(options);
     logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
 
-    const envOverrides = { ...(modeEnv ?? {}), ...(options.env ?? {}) };
+    const envOverrides = {
+      ...(modeEnv ?? {}),
+      ...getMcpEnv(spawnConfig, options.mcpServers),
+      ...(options.env ?? {})
+    };
     const processEnv =
       Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
     const argv = [binaryName, ...spawnArgs];

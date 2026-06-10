@@ -45,6 +45,84 @@ async function collectEvents(events: AsyncIterable<AcpEvent>): Promise<AcpEvent[
 }
 
 describe("acp-core event stream", () => {
+  it("keeps the compiled system prompt alongside compaction summaries", async () => {
+    const runContext = createRunContext();
+    runContext.messages.push({
+      role: "system",
+      name: "compaction",
+      content: "Compacted context summary:\nEarlier work"
+    });
+    const model = createModel([[{ type: "stop", reason: "end_turn" }]]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "Continue",
+        baseSystemPrompt: "Follow the system instructions",
+        runContext,
+        host: createHost(),
+        model
+      })
+    );
+
+    expect(model.complete).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messages: expect.arrayContaining([
+          { role: "system", content: "Follow the system instructions" },
+          {
+            role: "system",
+            name: "compaction",
+            content: "Compacted context summary:\nEarlier work"
+          }
+        ])
+      })
+    );
+  });
+
+  it.each(["error", "max_tokens"] as const)(
+    "reports %s model stops as session errors",
+    async (reason) => {
+      const events = await collectEvents(
+        runAcpCore({
+          prompt: "Continue",
+          runContext: createRunContext(),
+          host: createHost(),
+          model: createModel([[{ type: "stop", reason }]])
+        })
+      );
+
+      expect(events.at(-1)?.type).toBe("session.error");
+    }
+  );
+
+  it("aborts the run when a stream consumer returns early", async () => {
+    const runContext = createRunContext();
+    const model: AcpModel = {
+      complete: vi.fn(async ({ signal }) => ({
+        events: {
+          async *[Symbol.asyncIterator]() {
+            yield { type: "text", text: "first" } as const;
+            await new Promise<void>((resolve) => {
+              signal.addEventListener("abort", () => resolve(), { once: true });
+            });
+            yield { type: "stop", reason: "end_turn" } as const;
+          }
+        }
+      }))
+    };
+
+    for await (const event of runAcpCore({
+      prompt: "Continue",
+      runContext,
+      host: createHost(),
+      model
+    })) {
+      expect(event.type).toBe("message.delta");
+      break;
+    }
+
+    expect(runContext.abortController.signal.aborted).toBe(true);
+  });
+
   it("reconstructs final assistant text from text events", async () => {
     const runContext = createRunContext();
     const events = await collectEvents(

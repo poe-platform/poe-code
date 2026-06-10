@@ -139,6 +139,8 @@ class AsyncEventQueue<T> implements AsyncIterableIterator<T> {
   readonly #resolvers: AsyncResolver<T>[] = [];
   #closed = false;
 
+  constructor(readonly onReturn: () => void) {}
+
   push(item: T): void {
     if (this.#closed) {
       return;
@@ -183,13 +185,21 @@ class AsyncEventQueue<T> implements AsyncIterableIterator<T> {
     });
   }
 
+  async return(): Promise<IteratorResult<T>> {
+    this.onReturn();
+    this.close();
+    return { done: true, value: undefined as never };
+  }
+
   [Symbol.asyncIterator](): AsyncIterableIterator<T> {
     return this;
   }
 }
 
 export function runAcpCore(options: RunAcpCoreOptions): AsyncIterable<AcpEvent> {
-  const events = new AsyncEventQueue<AcpEvent>();
+  const events = new AsyncEventQueue<AcpEvent>(() => {
+    options.runContext.abortController.abort();
+  });
 
   void execute(options, events);
 
@@ -224,6 +234,7 @@ async function execute(
 
     events.push(event);
   };
+  options.host.setEmit?.(emit);
 
   const emitTerminal = (event: AcpEvent): void => {
     if (terminalEmitted) {
@@ -426,6 +437,13 @@ async function runLoop(
       response,
       emit: options.emit
     });
+
+    if (collectedResponse.stopReason === "error") {
+      throw new Error("Model response failed.");
+    }
+    if (collectedResponse.stopReason === "max_tokens") {
+      throw new Error("Model response exceeded the maximum token limit.");
+    }
 
     if (collectedResponse.usage) {
       options.emit({
@@ -1051,7 +1069,7 @@ function toModelRequestMessages(
 
 function hasSystemMessage(messages: ChatMessage[]): boolean {
   for (const message of messages) {
-    if (message.role === "system") {
+    if (message.role === "system" && message.name !== "compaction") {
       return true;
     }
   }

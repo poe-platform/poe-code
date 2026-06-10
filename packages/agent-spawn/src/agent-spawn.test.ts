@@ -809,6 +809,26 @@ describe("spawn", () => {
     ]);
   });
 
+  it("serializes opencode MCP servers into the spawned environment", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("opencode", {
+      prompt: "hello",
+      mcpServers: {
+        test: { command: "tiny-stdio-mcp-test-server", args: ["serve"] }
+      }
+    });
+
+    const options = spawnMock.mock.calls[0]?.[2];
+    expect(options?.env).toEqual(
+      expect.objectContaining({
+        OPENCODE_CONFIG_CONTENT: expect.stringContaining("tiny-stdio-mcp-test-server")
+      })
+    );
+  });
+
   it("throws a clear error when MCP servers are passed to unsupported agents", () => {
     const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
     expect(() =>

@@ -119,6 +119,7 @@ export type AcpEvent =
   | { type: "session.error"; error: Error };
 
 export type AcpHost = {
+  setEmit?(emit: (event: AcpEvent) => void): void;
   handle(intent: ToolIntent): Promise<ToolAckResult>;
   fork(request: ForkRequest): Promise<ForkResult>;
   spawn(prompt: string): Promise<RunOutput>;

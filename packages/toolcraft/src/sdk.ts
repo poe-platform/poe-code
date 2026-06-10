@@ -434,6 +434,57 @@ function validateSchemaValue(
 
     case "object":
       return validateObjectSchema(unwrappedSchema, value, label, errors);
+
+    case "json":
+      return value;
+
+    case "record": {
+      if (!isPlainObject(value)) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [
+          key,
+          validateSchemaValue(unwrappedSchema.value, item, `${label}.${key}`, errors)
+        ])
+      );
+    }
+
+    case "oneOf": {
+      if (!isPlainObject(value)) {
+        return value;
+      }
+      const discriminator = value[unwrappedSchema.discriminator];
+      const branch =
+        typeof discriminator === "string" ? unwrappedSchema.branches[discriminator] : undefined;
+      if (branch === undefined) {
+        return value;
+      }
+      const { [unwrappedSchema.discriminator]: ignoredDiscriminator, ...branchValue } = value;
+      void ignoredDiscriminator;
+      return {
+        [unwrappedSchema.discriminator]: discriminator,
+        ...validateObjectSchema(branch, branchValue, label, errors)
+      };
+    }
+
+    case "union": {
+      if (!isPlainObject(value)) {
+        return value;
+      }
+      const branch = unwrappedSchema.branches.find((candidate) =>
+        Object.keys(candidate.shape).every(
+          (key) =>
+            candidate.shape[key]?.kind === "optional" ||
+            Object.prototype.hasOwnProperty.call(value, formatSegment(key))
+        )
+      );
+      return branch === undefined ? value : validateObjectSchema(branch, value, label, errors);
+    }
   }
 }
 
@@ -460,6 +511,15 @@ function validateObjectSchema(
 
   for (const key of Object.keys(value)) {
     if (!expectedKeys.has(key)) {
+      if (schema.additionalProperties === true) {
+        Object.defineProperty(result, key, {
+          value: value[key],
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+        continue;
+      }
       const fieldLabel = label.length === 0 ? key : `${label}.${key}`;
       errors.push({
         path: fieldLabel,
@@ -614,9 +674,13 @@ function createResolvedSDK(
             }
           };
 
-          await assertCommandRequirements(node, { ...baseContext, params: undefined }, {
-            apiVersion: options.apiVersion
-          });
+          await assertCommandRequirements(
+            node,
+            { ...baseContext, params: undefined },
+            {
+              apiVersion: options.apiVersion
+            }
+          );
 
           const paramsSchema = filterSchemaForScope(node.params, "sdk");
 

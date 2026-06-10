@@ -1,5 +1,6 @@
 import { renderTemplate } from "toolcraft-design";
 
+import { highlight } from "./highlight.js";
 import { SCRIPT } from "./script.js";
 import { CSS } from "./styles.js";
 import { TEMPLATE } from "./template.js";
@@ -10,32 +11,24 @@ interface SurfaceView {
   example: string;
 }
 
-interface ParamView {
-  name: string;
-  type: string;
-  requirement: string;
+interface UseCaseView {
+  title: string;
   description: string;
 }
 
-interface SecretView {
+interface ExampleSurfaceView {
   name: string;
-  description: string;
+  code: string;
 }
 
-interface CommandView {
-  pathPrefix: string;
-  name: string;
-  description: string;
-  badges: string[];
-  params: ParamView[];
-  secrets: SecretView[];
-  example: string;
+interface ExampleView {
+  source: string;
+  surfaces: ExampleSurfaceView[];
 }
 
-interface GroupView {
+interface FeatureView {
   name: string;
   description: string;
-  commands: CommandView[];
 }
 
 export interface LandingPageView {
@@ -49,24 +42,35 @@ export interface LandingPageView {
   version?: string;
   repoUrl?: string;
   surfaceCount: number;
-  commandCount: number;
-  groupCount: number;
+  useCaseCount: number;
   surfaces: SurfaceView[];
-  groups: GroupView[];
+  useCases: UseCaseView[];
+  example: ExampleView;
+  features: FeatureView[];
   quickstart: string;
   includeJs: boolean;
 }
 
 export function renderLandingPage(page: LandingPageView): string {
-  const groups = page.groups.map((group) => ({
-    ...group,
-    commands: group.commands.map((command) => ({
-      ...command,
-      hasParams: command.params.length > 0,
-      hasSecrets: command.secrets.length > 0
-    }))
-  }));
-
   const styles = renderTemplate(CSS, { accent: page.accent });
-  return renderTemplate(TEMPLATE, { ...page, groups, styles, script: SCRIPT });
+  const view = {
+    ...page,
+    installHtml: page.install === undefined ? undefined : highlight(page.install),
+    surfaces: page.surfaces.map((surface) => ({
+      ...surface,
+      exampleHtml: highlight(surface.example)
+    })),
+    exampleSourceHtml: highlight(page.example.source),
+    example: {
+      ...page.example,
+      surfaces: page.example.surfaces.map((surface) => ({
+        ...surface,
+        codeHtml: highlight(surface.code)
+      }))
+    },
+    quickstartHtml: highlight(page.quickstart),
+    styles,
+    script: SCRIPT
+  };
+  return renderTemplate(TEMPLATE, view);
 }

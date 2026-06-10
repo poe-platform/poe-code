@@ -2,37 +2,37 @@ import { describe, expect, it } from "vitest";
 import { renderLandingPage } from "./render.js";
 
 const page = {
-  title: "acme",
-  description: "Acme command reference",
-  name: "acme",
-  headline: "Define once. Run everywhere.",
-  tagline: "One command tree for every surface.",
-  accent: "#7a00c2",
-  install: "npm install -g acme",
-  version: "1.4.0",
-  repoUrl: "https://github.com/acme/acme",
-  surfaceCount: 1,
-  commandCount: 1,
-  groupCount: 1,
-  surfaces: [{ name: "CLI", description: "Terminal commands.", example: "acme deploy" }],
-  groups: [
-    {
-      name: "deploy",
-      description: "Ship applications.",
-      commands: [
-        {
-          pathPrefix: "acme deploy ",
-          name: "prod",
-          description: "Deploy to production.",
-          badges: ["cli"],
-          params: [],
-          secrets: [],
-          example: "acme deploy prod api"
-        }
-      ]
-    }
+  title: "toolcraft — tools for agents and humans",
+  description: "Define a command once. Get a typed CLI, an MCP server, and a typed SDK.",
+  name: "toolcraft",
+  headline: "Define a command once. Run it everywhere.",
+  tagline: "One definition becomes a typed CLI, an MCP server, and a typed SDK.",
+  accent: "#a200ff",
+  install: "npm install toolcraft toolcraft-schema",
+  version: "0.0.4",
+  repoUrl: "https://github.com/poe-platform/poe-code",
+  surfaceCount: 2,
+  useCaseCount: 2,
+  surfaces: [
+    { name: "CLI", description: "Terminal commands.", example: "mytool greet --name world" },
+    { name: "SDK", description: "Typed calls.", example: "await sdk.greet({ name: 'world' })" }
   ],
-  quickstart: "npm install -g acme\nacme deploy prod api",
+  useCases: [
+    { title: "Consolidate scripts", description: "One tree from a folder of scripts." },
+    { title: "Give agents tools", description: "Safe commands as MCP tools." }
+  ],
+  example: {
+    source: "export const greet = defineCommand({ name: 'greet' });",
+    surfaces: [
+      { name: "CLI", code: "mytool greet --name world" },
+      { name: "SDK", code: "await sdk.greet({ name: 'world' })" }
+    ]
+  },
+  features: [
+    { name: "Typed params", description: "One schema, every surface." },
+    { name: "Declared secrets", description: "Env-backed, validated up front." }
+  ],
+  quickstart: "npm install toolcraft toolcraft-schema",
   includeJs: true
 };
 
@@ -40,18 +40,70 @@ describe("renderLandingPage", () => {
   it("renders the accessible document structure", () => {
     const html = renderLandingPage(page);
 
-    expect(html).toMatch(/<body>\s*<a class="skip-link" href="#commands">Skip to commands<\/a>/);
+    expect(html).toMatch(/<body>\s*<a class="skip-link" href="#example">Skip to example<\/a>/);
     expect(html).toContain("<header");
     expect(html).toContain('<nav class="nav" aria-label="Primary">');
     expect(html).toContain("<main>");
-    expect(html).toContain('<section id="commands" aria-labelledby="commands-heading">');
+    expect(html).toContain('<section id="how-it-works" aria-labelledby="how-it-works-heading">');
+    expect(html).toContain('<section id="use-cases" aria-labelledby="use-cases-heading">');
+    expect(html).toContain('<section id="example" aria-labelledby="example-heading">');
+    expect(html).toContain('<section id="features" aria-labelledby="features-heading">');
+    expect(html).toContain('<section id="docs" aria-labelledby="docs-heading">');
     expect(html).toContain("</main>");
     expect(html).toContain("<footer");
-    expect(html).toContain('aria-label="Copy npm install -g acme"');
-    expect(html).toContain('aria-label="Copy acme deploy prod api"');
+    expect(html).toContain('aria-label="Copy npm install toolcraft toolcraft-schema"');
+    expect(html).toContain('aria-label="Copy mytool greet --name world"');
     expect(html).toContain(
       '<div class="visually-hidden" id="copy-status" role="status" aria-live="polite" aria-atomic="true"></div>'
     );
+  });
+
+  it("renders clear hero actions and architectural proof", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain('<a class="button button-primary" href="#quickstart">Get started</a>');
+    expect(html).toContain(
+      '<a class="button button-secondary" href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code">View on GitHub</a>'
+    );
+    expect(html).toContain('<ul class="proof" aria-label="Toolcraft guarantees">');
+    expect(html).toContain("One handler");
+    expect(html).toContain("Typed surfaces");
+    expect(html).toContain("Static site");
+    expect(html).toContain("Node 20+");
+  });
+
+  it("explains the mental model before task-oriented documentation", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain("Define the contract");
+    expect(html).toContain("Expose the surfaces");
+    expect(html).toContain("Govern the risky parts");
+    expect(html).toContain("Start with one command");
+    expect(html).toContain("Choose a runtime");
+    expect(html).toContain("Add safety controls");
+    expect(html).toContain("Migrate existing scripts");
+    expect(html).toContain('href="docs/"');
+  });
+
+  it("renders the use cases and counts", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain("<b>2</b> use cases · <b>2</b> surfaces");
+    expect(html).toContain('<div class="use-cases">');
+    expect(html).toContain("<h3>Consolidate scripts</h3>");
+    expect(html).toContain("Safe commands as MCP tools.");
+  });
+
+  it("renders the worked example and feature cards", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain('<pre class="flow-source">');
+    expect(html).toContain("defineCommand");
+    // the worked-example source is syntax-highlighted (keywords wrapped)
+    expect(html).toContain('<span class="tok-kw">const</span>');
+    expect(html).toContain('<span class="flow-surface-name">CLI</span>');
+    expect(html).toContain('<div class="features">');
+    expect(html).toContain("Typed params");
   });
 
   it("renders accessible focus, contrast, and motion styles", () => {
@@ -88,5 +140,7 @@ describe("renderLandingPage", () => {
     expect(html).toContain(".nav-links { width: 100%; gap: 8px; }");
     expect(html).toContain(".params-scroll { max-width: 100%; overflow-x: auto;");
     expect(html).toContain("-webkit-overflow-scrolling: touch;");
+    expect(html).toContain(".flow > * { min-width: 0; }");
+    expect(html).toContain(".hero-actions { align-items: stretch; flex-direction: column; }");
   });
 });

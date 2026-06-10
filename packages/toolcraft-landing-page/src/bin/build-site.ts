@@ -4,7 +4,8 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { hasOwnErrorCode } from "../error-codes.js";
-import { ACME_LANDING_PAGE } from "../examples/acme.js";
+import { DOCS_HTML } from "../docs.js";
+import { TOOLCRAFT_LANDING_PAGE } from "../examples/toolcraft.js";
 import { renderLandingPage } from "../render.js";
 
 interface BuildSiteFileSystem {
@@ -29,11 +30,13 @@ const TEMP_WRITE_MAX_ATTEMPTS = 3;
 export async function buildSite(options: BuildSiteOptions = {}): Promise<void> {
   const fileSystem = options.fs ?? fs;
   const outputDirectory = options.outputDirectory ?? path.join(packageRoot, "dist-site");
-  const html = renderLandingPage(ACME_LANDING_PAGE);
+  const html = renderLandingPage(TOOLCRAFT_LANDING_PAGE);
 
   await fileSystem.mkdir(outputDirectory, { recursive: true });
+  await fileSystem.mkdir(path.join(outputDirectory, "docs"), { recursive: true });
   await Promise.all([
     writeFileAtomically(fileSystem, path.join(outputDirectory, "index.html"), html),
+    writeFileAtomically(fileSystem, path.join(outputDirectory, "docs", "index.html"), DOCS_HTML),
     writeFileAtomically(fileSystem, path.join(outputDirectory, ".nojekyll"), "")
   ]);
 }

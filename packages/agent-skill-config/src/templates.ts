@@ -2,6 +2,7 @@ import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { TemplateLoader } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 const TEMPLATE_IDS = ["poe-generate.md", "terminal-pilot.md"] as const;
 type TemplateId = (typeof TEMPLATE_IDS)[number];
@@ -13,7 +14,7 @@ async function pathExists(target: string): Promise<boolean> {
     await stat(target);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;

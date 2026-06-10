@@ -8,6 +8,11 @@ export const claudeCodeAgent: AgentDefinition = {
   aliases: ["claude"],
   binaryName: "claude",
   apiShapes: ["anthropic-messages"],
+  otelCapture: {
+    env: {
+      CLAUDE_CODE_ENABLE_TELEMETRY: "1"
+    }
+  },
   configPath: "~/.claude/settings.json",
   branding: {
     colors: {

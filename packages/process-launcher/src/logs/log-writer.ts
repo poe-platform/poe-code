@@ -1,10 +1,11 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
+import { hasOwnErrorCode } from "../errors.js";
 import type { LauncherFileSystem, LogWriter } from "../types.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 
 function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function getCurrentLogPath(logDir: string, stream: "stdout" | "stderr"): string {

@@ -3,6 +3,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { ACME_LANDING_PAGE } from "../examples/acme.js";
 import { renderLandingPage } from "../render.js";
 
@@ -78,12 +79,7 @@ async function writeTempThenRename(
 }
 
 function isExistingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 if (

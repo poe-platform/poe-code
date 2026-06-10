@@ -268,6 +268,23 @@ tasks:
     );
   });
 
+  it("verify falls back to gh auth token when none is configured", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    taskListMocks.verifyGhProject.mockResolvedValue(createVerifyReport());
+
+    await runTasks(["verify", "acme/12"]);
+
+    expect(taskListMocks.verifyGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: { token: "fallback-token" } })
+    );
+  });
+
   it("sync passes merged frontmatter and flags to the SDK call", async () => {
     seedWorkflow(`
 maestro:
@@ -1201,6 +1218,54 @@ states:
     expect(logs).toEqual([
       "[error] current state is not declared in WORKFLOW.md; declared states: queued, done"
     ]);
+  });
+
+  const gateWorkflow = `
+tasks:
+  type: markdown-dir
+  path: ${cwd}/tasks
+states:
+  idea:
+    prompt: Plan
+  awaiting-build:
+    gate: true
+  build:
+    prompt: Build
+  done:
+    terminal: true
+`;
+
+  it("next refuses to advance out of a gate state", async () => {
+    seedTaskWorkspace({ state: "awaiting-build", workflowFrontmatter: gateWorkflow });
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["next", "plans/foo"], logs);
+
+    expect(process.exitCode).toBe(2);
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+    expect(logs.some((line) => line.includes("awaiting-build") && line.includes("gate"))).toBe(true);
+  });
+
+  it("next --force advances out of a gate state", async () => {
+    seedTaskWorkspace({ state: "awaiting-build", workflowFrontmatter: gateWorkflow });
+
+    await runTasks(["next", "plans/foo", "--force"]);
+
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toContain("state: build");
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("set-state refuses to skip over a gate state", async () => {
+    seedTaskWorkspace({ state: "idea", workflowFrontmatter: gateWorkflow });
+    const before = vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8");
+    const logs: string[] = [];
+
+    await runTasks(["set-state", "plans/foo", "build"], logs);
+
+    expect(process.exitCode).toBe(2);
+    expect(vol.readFileSync(`${cwd}/tasks/plans/foo.md`, "utf8")).toBe(before);
+    expect(logs.some((line) => line.includes("awaiting-build") && line.includes("gate"))).toBe(true);
   });
 
   it("comment against markdown-dir exits 2 with the documented message", async () => {

@@ -47,6 +47,7 @@ import {
 } from "../../sdk/experiment.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { experimentConfigScope, planConfigScope } from "../../services/config.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
   mergeExperimentCallbacks,
   readMergedDocument,
@@ -110,7 +111,7 @@ async function pathExistsOnDisk(targetPath: string): Promise<boolean> {
     await stat(targetPath);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -166,7 +167,7 @@ async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<b
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -1151,10 +1152,17 @@ export function registerExperimentCommand(program: Command, container: CliContai
             if (flags.dryRun) {
               resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
             } else {
-              await container.fs.writeFile(runYamlPath, templates.runYaml, {
-                encoding: "utf8",
-                flag: "wx"
-              });
+              try {
+                await container.fs.writeFile(runYamlPath, templates.runYaml, {
+                  encoding: "utf8",
+                  flag: "wx"
+                });
+              } catch (error) {
+                if (!isAlreadyExists(error)) {
+                  await container.fs.unlink(runYamlPath).catch(() => undefined);
+                }
+                throw error;
+              }
               createdRunYaml = true;
               resources.logger.info(`Create: ${runYamlDisplayPath}`);
             }
@@ -1202,4 +1210,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.context.finalize();
       }
     });
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }

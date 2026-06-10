@@ -58,6 +58,33 @@ async function runExecute(
   return command.handler({ params: { source } } as never);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
+
 describe("makeExecuteCommand", () => {
   it("returns a value computed from two host calls", async () => {
     const result = await runExecute(
@@ -127,6 +154,71 @@ describe("makeExecuteCommand", () => {
       }
     });
     expect(fail).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not report inherited runtime error codes", async () => {
+    const fail = vi.fn(async () => {
+      throw new Error("host exploded");
+    });
+
+    await withObjectPrototypeProperties({ code: "EACCES" }, async () => {
+      const result = await runExecute(
+        ['import { fail } from "math_tools";', "return await fail({});"].join("\n"),
+        { fail }
+      );
+
+      expect(result).toMatchObject({
+        ok: false,
+        kind: "runtime",
+        error: {
+          message: "host exploded",
+          code: undefined
+        }
+      });
+    });
+  });
+
+  it("does not report inherited runtime error message or stack", async () => {
+    const actualAgentScript = await vi.importActual<typeof import("@poe-code/agent-script/core")>(
+      "@poe-code/agent-script/core"
+    );
+    vi.resetModules();
+    vi.doMock("@poe-code/agent-script/core", () => ({
+      ...actualAgentScript,
+      run: vi.fn(async () => {
+        throw {};
+      })
+    }));
+
+    try {
+      const { makeExecuteCommand: makeMockedExecuteCommand } = await import("./execute.js");
+      const root = fixtureRoot();
+      const command = makeMockedExecuteCommand({
+        root,
+        sdk: createSDK(root)
+      });
+
+      await withObjectPrototypeProperties(
+        { message: "polluted message", stack: "polluted stack" },
+        async () => {
+          const result = await command.handler({
+            params: { source: "return 1;" }
+          } as never);
+
+          expect(result).toMatchObject({
+            ok: false,
+            kind: "runtime",
+            error: {
+              message: "[object Object]",
+              stack: undefined
+            }
+          });
+        }
+      );
+    } finally {
+      vi.doUnmock("@poe-code/agent-script/core");
+      vi.resetModules();
+    }
   });
 
   it("returns a runtime budget error when maxSteps is exceeded", async () => {

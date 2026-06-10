@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:events";
 
-import { vol } from "memfs";
+import { fs, vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("node:fs/promises", async () => {
@@ -23,6 +23,33 @@ function createSink(): {
       chunks.push(chunk);
     }
   };
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
 }
 
 describe("agent-script CLI", () => {
@@ -78,6 +105,27 @@ describe("agent-script CLI", () => {
     expect(exitCode).not.toBe(0);
     expect(stdout.output()).toBe("");
     expect(stderr.output()).toContain("File not found: missing.md");
+  });
+
+  it("does not treat inherited stat error codes as missing harness files", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      const exitCode = await runCli(["script.md"], {
+        cwd: "/repo",
+        stat: async () => {
+          throw new Error("stat denied");
+        },
+        stdout,
+        stderr
+      });
+
+      expect(exitCode).not.toBe(0);
+      expect(stdout.output()).toBe("");
+      expect(stderr.output()).toContain("stat denied");
+      expect(stderr.output()).not.toContain("File not found");
+    });
   });
 
   it("reports a clear error when the path is a directory", async () => {
@@ -147,6 +195,32 @@ describe("agent-script CLI", () => {
     expect(restoredExitCode).toBe(0);
     expect(badExitCode).not.toBe(0);
     expect(badStderr.output()).toContain("source changed since snapshot was taken");
+  });
+
+  it("does not treat inherited snapshot read error codes as missing restore files", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync("/repo/script.md", ["```js", "return 1;", "```"].join("\n"));
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      const exitCode = await runCli(["--restore", "snapshots/run.json", "script.md"], {
+        cwd: "/repo",
+        readFile: async (filePath, encoding) => {
+          if (filePath === "/repo/snapshots/run.json") {
+            throw new Error("snapshot read denied");
+          }
+
+          return fs.promises.readFile(filePath, encoding);
+        },
+        stdout,
+        stderr
+      });
+
+      expect(exitCode).not.toBe(0);
+      expect(stdout.output()).toBe("");
+      expect(stderr.output()).toContain("snapshot read denied");
+      expect(stderr.output()).not.toContain("Snapshot not found");
+    });
   });
 
   it("enforces --max-steps and exits with the budget message when exceeded", async () => {
@@ -274,6 +348,14 @@ describe("agent-script CLI", () => {
     await expectRunExitCode(["parse.ajs"], 2);
     await expectRunExitCode(["runtime.ajs"], 1);
     await expectRunExitCode(["--max-steps", "20", "budget.ajs"], 3);
+  });
+
+  it("does not treat inherited error names as parse failures", async () => {
+    vol.writeFileSync("/repo/runtime.ajs", "throw {};");
+
+    await withObjectPrototypeProperties({ name: "ParseError" }, async () => {
+      await expectRunExitCode(["runtime.ajs"], 1);
+    });
   });
 });
 

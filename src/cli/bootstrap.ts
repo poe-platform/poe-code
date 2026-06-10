@@ -9,7 +9,7 @@ import chalk from "chalk";
 import type { Command } from "commander";
 import type { FileSystem } from "../utils/file-system.js";
 import { ErrorLogger } from "./error-logger.js";
-import { CliError, isSilentError } from "./errors.js";
+import { CliError, isReportedError, isSilentError } from "./errors.js";
 import type { CliDependencies } from "./program.js";
 import { createPromptRunner } from "./prompt-runner.js";
 
@@ -53,20 +53,25 @@ export function createCliMain(
       if (isSilentError(error)) {
         return;
       }
-      if (error instanceof Error) {
+      if (isReportedError(error)) {
+        process.exit(1);
+      }
+      const normalizedError = normalizeThrownError(error);
+      if (normalizedError !== undefined) {
         const isDryRun = Boolean(program.optsWithGlobals().dryRun);
         if (!isDryRun) {
-          errorLogger.logErrorWithStackTrace(error, "CLI execution", {
+          errorLogger.logErrorWithStackTrace(normalizedError, "CLI execution", {
             component: "main",
             argv: redactSensitiveArgv(process.argv)
           });
         }
 
         // Display user-friendly message
-        if (error instanceof CliError && error.isUserError) {
-          log.error(error.message);
+        const displayMessage = formatTerminalError(normalizedError.message);
+        if (normalizedError instanceof CliError && normalizedError.isUserError) {
+          log.error(displayMessage);
         } else {
-          log.error(`Error: ${error.message}`);
+          log.error(`Error: ${displayMessage}`);
           if (!isDryRun) {
             log.message(
               `See logs at ${join(logDir, "errors.log")} for more details.`,
@@ -80,6 +85,37 @@ export function createCliMain(
       throw error;
     }
   };
+}
+
+function formatTerminalError(value: string): string {
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    sanitized += code >= 32 && code !== 127 ? character : " ";
+  }
+  const compact = sanitized.split(" ").filter((part) => part.length > 0).join(" ");
+  return compact.length > 400 ? `${compact.slice(0, 399)}…` : compact;
+}
+
+function normalizeThrownError(value: unknown): Error | undefined {
+  if (value instanceof Error) {
+    return value;
+  }
+  if (typeof value !== "object" || value === null || !("message" in value)) {
+    return undefined;
+  }
+  const message = typeof value.message === "string" ? value.message : String(value.message);
+  const error = new Error(message.length > 0 ? message : "Unknown error");
+  if ("name" in value && typeof value.name === "string" && value.name.length > 0) {
+    error.name = value.name;
+  }
+  if ("stack" in value && typeof value.stack === "string" && value.stack.length > 0) {
+    error.stack = value.stack;
+  }
+  if ("cause" in value) {
+    error.cause = value.cause;
+  }
+  return error;
 }
 
 export function redactSensitiveArgv(argv: readonly string[]): string[] {

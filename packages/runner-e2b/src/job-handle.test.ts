@@ -44,6 +44,24 @@ function createJob(sandbox: E2bSandbox) {
   });
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("createE2bJobHandle", () => {
   it("rejects an empty exit marker instead of reporting completion", async () => {
     const sandbox = createSandbox();
@@ -59,6 +77,17 @@ describe("createE2bJobHandle", () => {
     vi.mocked(sandbox.files.read).mockRejectedValueOnce(new Error("temporary file API outage"));
 
     await expect(createJob(sandbox).status()).rejects.toThrow("temporary file API outage");
+  });
+
+  it("surfaces exit-marker read failures with inherited missing-file codes", async () => {
+    const sandbox = createSandbox();
+    const readError = new Error("temporary file API outage");
+    vi.mocked(sandbox.files.read).mockRejectedValueOnce(readError);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(createJob(sandbox).status()).rejects.toBe(readError);
+    });
+    expect(sandbox.commands.list).not.toHaveBeenCalled();
   });
 
   it("sends the requested stop signal to detached processes", async () => {

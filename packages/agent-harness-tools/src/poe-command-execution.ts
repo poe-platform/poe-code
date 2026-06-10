@@ -90,10 +90,9 @@ export function applyRuntimeOverrides(
     return { runtime: config.runtime, runner: config.runner };
   }
 
-  const base: Record<string, unknown> =
-    "rawScope" in config && config.rawScope
-      ? { ...config.rawScope }
-      : { ...(config.runtime as unknown as Record<string, unknown>) };
+  const base: Record<string, unknown> = isLoadedRuntimeConfig(config)
+    ? { ...config.rawScope }
+    : { ...(config.runtime as unknown as Record<string, unknown>) };
 
   const runtime = parseRuntime({
     ...base,
@@ -115,6 +114,10 @@ export function applyRuntimeOverrides(
       ...(overrides.runnerSync !== undefined ? { sync: overrides.runnerSync } : {})
     }
   };
+}
+
+function isLoadedRuntimeConfig(config: ResolvedConfig | LoadedRuntimeConfig): config is LoadedRuntimeConfig {
+  return Object.hasOwn(config, "rawScope");
 }
 
 function createPoeCodeMount(cwd: string): { source: string; target: string; readonly: boolean } {

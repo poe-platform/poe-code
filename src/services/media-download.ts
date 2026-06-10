@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 import type { FileSystem } from "../utils/file-system.js";
 
 export class MediaDownloadError extends Error {
@@ -60,8 +61,8 @@ export async function downloadToFile(options: {
     temporaryCreated = true;
     await options.fs.rename(temporaryPath, options.outputPath);
     temporaryCreated = false;
-  } catch {
-    if (temporaryCreated) {
+  } catch (error) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await options.fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw new MediaDownloadError("Failed to write media", {
@@ -70,4 +71,8 @@ export async function downloadToFile(options: {
       outputPath: options.outputPath
     });
   }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }

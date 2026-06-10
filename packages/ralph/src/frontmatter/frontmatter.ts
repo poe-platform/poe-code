@@ -195,24 +195,26 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
   if (parsed !== undefined) {
     rejectUnknownKeys(parsed, ["$schema", "kind", "version", "name", "state", "agent", "extends", "iterations", "skills", "hooks", "status", "iteration", "prompt"], "frontmatter");
-    if (parsed.kind !== undefined && parsed.kind !== "ralph") {
+    const kind = getOwnEntry(parsed, "kind");
+    if (kind !== undefined && kind !== "ralph") {
       throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');
     }
   }
-  const parsedStatus = isRecord(parsed?.status) ? parsed.status : undefined;
+  const statusValue = parsed ? getOwnEntry(parsed, "status") : undefined;
+  const parsedStatus = isRecord(statusValue) ? statusValue : undefined;
   const state =
-    parsePlanStatus(parsedStatus?.state) ??
-    parseLegacyStatus(parsed?.status) ??
+    parsePlanStatus(parsedStatus ? getOwnEntry(parsedStatus, "state") : undefined) ??
+    parseLegacyStatus(statusValue) ??
     defaults.status.state;
   const iteration =
-    parseNonNegativeInteger(parsedStatus?.iteration) ??
-    parseNonNegativeInteger(parsed?.iteration) ??
+    parseNonNegativeInteger(parsedStatus ? getOwnEntry(parsedStatus, "iteration") : undefined) ??
+    parseNonNegativeInteger(parsed ? getOwnEntry(parsed, "iteration") : undefined) ??
     defaults.status.iteration;
-  const agent = parseAgent(parsed?.agent);
-  const extendsValue = parseBoolean(parsed?.extends);
-  const iterations = parsePositiveInteger(parsed?.iterations);
-  const skills = parseSkills(parsed?.skills);
-  const hooks = parseHooks(parsed?.hooks);
+  const agent = parseAgent(parsed ? getOwnEntry(parsed, "agent") : undefined);
+  const extendsValue = parseBoolean(parsed ? getOwnEntry(parsed, "extends") : undefined);
+  const iterations = parsePositiveInteger(parsed ? getOwnEntry(parsed, "iterations") : undefined);
+  const skills = parseSkills(parsed ? getOwnEntry(parsed, "skills") : undefined);
+  const hooks = parseHooks(parsed ? getOwnEntry(parsed, "hooks") : undefined);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
@@ -297,15 +299,19 @@ function parseHooks(value: unknown): RalphHooks | undefined {
 
   rejectUnknownKeys(value, ["from", "strategy", "scope"], "hooks");
 
-  if (typeof value.from !== "string" || value.from.trim().length === 0) {
+  const from = getOwnEntry(value, "from");
+  const strategy = getOwnEntry(value, "strategy");
+  const scope = getOwnEntry(value, "scope");
+
+  if (typeof from !== "string" || from.trim().length === 0) {
     throw new Error('Invalid Ralph frontmatter: "hooks.from" must be a non-empty string.');
   }
 
   if (
-    value.strategy !== undefined &&
-    value.strategy !== "auto" &&
-    value.strategy !== "symlink" &&
-    value.strategy !== "transform"
+    strategy !== undefined &&
+    strategy !== "auto" &&
+    strategy !== "symlink" &&
+    strategy !== "transform"
   ) {
     throw new Error(
       'Invalid Ralph frontmatter: "hooks.strategy" must be "auto", "symlink", or "transform".'
@@ -313,10 +319,10 @@ function parseHooks(value: unknown): RalphHooks | undefined {
   }
 
   if (
-    value.scope !== undefined &&
-    value.scope !== "project" &&
-    value.scope !== "user" &&
-    value.scope !== "merged"
+    scope !== undefined &&
+    scope !== "project" &&
+    scope !== "user" &&
+    scope !== "merged"
   ) {
     throw new Error(
       'Invalid Ralph frontmatter: "hooks.scope" must be "project", "user", or "merged".'
@@ -324,9 +330,9 @@ function parseHooks(value: unknown): RalphHooks | undefined {
   }
 
   return {
-    from: value.from.trim(),
-    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
-    ...(value.scope !== undefined ? { scope: value.scope } : {})
+    from: from.trim(),
+    ...(strategy !== undefined ? { strategy } : {}),
+    ...(scope !== undefined ? { scope } : {})
   };
 }
 
@@ -380,4 +386,8 @@ function parseBoolean(value: unknown): boolean | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }

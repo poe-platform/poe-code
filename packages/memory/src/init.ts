@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import {
   assertMemoryRootIsNotSymlink,
   MEMORY_INDEX_RELPATH,
@@ -46,7 +47,8 @@ async function writeFileIfMissing(filePath: string, content: string): Promise<bo
     await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
     return true;
   } catch (error) {
-    if (!hasErrorCode(error, "EEXIST")) {
+    if (!hasOwnErrorCode(error, "EEXIST")) {
+      await fs.unlink(filePath).catch(() => undefined);
       throw error;
     }
 
@@ -59,19 +61,10 @@ async function pathExists(targetPath: string): Promise<boolean> {
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
 
     throw error;
   }
-}
-
-function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === code
-  );
 }

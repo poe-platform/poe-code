@@ -36,6 +36,33 @@ function createVolFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 // --- formats/index.test.ts ---
 
 describe("getConfigFormat", () => {
@@ -117,6 +144,20 @@ describe.each([
 
     expect(Object.prototype.hasOwnProperty.call(result, "__proto__")).toBe(true);
     expect((result as any).polluted).toBeUndefined();
+  });
+
+  it("does not deep merge with inherited base entries", () => {
+    Object.defineProperty(Object.prototype, "inheritedMergeTarget", {
+      value: { polluted: true },
+      configurable: true
+    });
+    try {
+      expect(format.merge({}, { inheritedMergeTarget: { safe: true } })).toEqual({
+        inheritedMergeTarget: { safe: true }
+      });
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).inheritedMergeTarget;
+    }
   });
 
   it("ignores inherited and incompatible nested prune targets", () => {
@@ -845,10 +886,12 @@ describe("runMutations", () => {
     it("does not corrupt an existing document when replacement write fails", async () => {
       const targetPath = `${homeDir}/.config.json`;
       const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"existing":true}\n' })).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
       const fs: FileSystem = {
         ...base,
         async writeFile(filePath, data, options) {
           if (filePath.includes(".mutation-tmp-")) {
+            tempPath = filePath;
             await base.writeFile(filePath, "{", options);
             throw new Error("config disk full");
           }
@@ -860,6 +903,41 @@ describe("runMutations", () => {
         runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
       ).rejects.toThrow("config disk full");
       await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+      expect(tempPath).toBeDefined();
+      await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+        code: "ENOENT"
+      });
+    });
+
+    it("cleans partial mutation temp files when write errors only inherit existing-path codes", async () => {
+      const targetPath = `${homeDir}/.config.json`;
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: '{"existing":true}\n' })).promises as unknown as FileSystem;
+      let tempPath: string | undefined;
+      let injected = false;
+      const fs: FileSystem = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (!injected && filePath.includes(".mutation-tmp-")) {
+            injected = true;
+            tempPath = filePath;
+            await base.writeFile(filePath, "{", options);
+            throw new Error("config temp denied");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+        await expect(
+          runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+        ).rejects.toThrow("config temp denied");
+      });
+
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe('{"existing":true}\n');
+      expect(tempPath).toBeDefined();
+      await expect(base.readFile(tempPath ?? "", "utf8")).rejects.toMatchObject({
+        code: "ENOENT"
+      });
     });
 
     it("does not remove a colliding mutation temp symlink", async () => {
@@ -969,6 +1047,28 @@ describe("runMutations", () => {
       const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".invalid-"));
       expect(backups).toHaveLength(2);
       expect(backups.map((filePath) => fs.files[filePath])).toEqual(["{ first", "{ second"]);
+    });
+
+    it("cleans a partial invalid-document backup when backup creation fails", async () => {
+      const fs = createMockFs({ "~/.config.json": "{ broken" }, homeDir);
+      const originalWriteFile = fs.writeFile.bind(fs);
+      let backupPath: string | undefined;
+      fs.writeFile = async (filePath, content, options) => {
+        if (filePath.includes(".invalid-")) {
+          backupPath = filePath;
+          await originalWriteFile(filePath, "partial backup", options);
+          throw new Error("invalid backup disk full");
+        }
+
+        await originalWriteFile(filePath, content, options);
+      };
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("invalid backup disk full");
+      expect(backupPath).toBeDefined();
+      expect(fs.getContent(backupPath ?? "")).toBeUndefined();
+      expect(fs.getContent("~/.config.json")).toBe("{ broken");
     });
   });
 
@@ -1255,6 +1355,28 @@ describe("runMutations", () => {
       const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".backup-"));
       expect(backups).toHaveLength(2);
       expect(backups.map((filePath) => fs.files[filePath])).toEqual(["first", "second"]);
+    });
+
+    it("cleans a partial generated backup when backup creation fails", async () => {
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+      const originalWriteFile = fs.writeFile.bind(fs);
+      let backupPath: string | undefined;
+      fs.writeFile = async (filePath, content, options) => {
+        if (filePath.includes(".backup-")) {
+          backupPath = filePath;
+          await originalWriteFile(filePath, "partial backup", options);
+          throw new Error("generated backup disk full");
+        }
+
+        await originalWriteFile(filePath, content, options);
+      };
+
+      await expect(
+        runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir })
+      ).rejects.toThrow("generated backup disk full");
+      expect(backupPath).toBeDefined();
+      expect(fs.getContent(backupPath ?? "")).toBeUndefined();
+      expect(fs.getContent("~/.settings.json")).toBe("original");
     });
 
     it("restores and consumes the latest generated backup atomically", async () => {

@@ -6,6 +6,7 @@ import {
   type Runner,
   type RunSpec
 } from "@poe-code/process-runner";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
 import { assertCanonicalContainedPath, resolveContainedPath } from "../path-boundary.js";
 import { terminateRunHandle } from "./subprocess-termination.js";
@@ -312,12 +313,7 @@ function captureStream(stream: NodeJS.ReadableStream | null): {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function formatUnknownError(error: unknown): string {

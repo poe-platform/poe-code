@@ -33,7 +33,7 @@ export function hasErrorCode(error: unknown, code: string): boolean {
   return (
     !!error &&
     typeof error === "object" &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as { code?: unknown }).code === code
   );
 }
@@ -117,7 +117,7 @@ export async function writeAtomically(fs: TaskListFs, filePath: string, content:
     await fs.rename(tempPath, filePath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !hasErrorCode(error, "EEXIST")) {
       try {
         await fs.unlink(tempPath);
       } catch (unlinkError) {
@@ -144,6 +144,7 @@ export async function withFileLock<T>(
       break;
     } catch (error) {
       if (!hasErrorCode(error, "EEXIST")) {
+        await fs.unlink(lockPath).catch(() => undefined);
         throw error;
       }
 

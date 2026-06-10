@@ -44,7 +44,9 @@ class PipelineDriverRun {
     }
 
     const stateName = task.state;
-    const state = this.ctx.cfg.states[stateName];
+    const state = hasOwnState(this.ctx.cfg.states, stateName)
+      ? this.ctx.cfg.states[stateName]
+      : undefined;
     if (state === undefined) {
       this.warnUnconfiguredState(task, stateName);
       this.ctx.emit({
@@ -233,6 +235,10 @@ class PipelineDriverRun {
 
 function isRunningPhase(phase: AttemptPhase): boolean {
   return phase === "running-step";
+}
+
+function hasOwnState(states: Record<string, unknown>, state: string): boolean {
+  return Object.prototype.hasOwnProperty.call(states, state);
 }
 
 function isAbortError(error: unknown): boolean {

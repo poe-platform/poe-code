@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
+import { hasOwnErrorCode } from "./errors.js";
 import {
   assertNoSymlinkSegments,
   assertSafeRelPath,
@@ -142,16 +143,19 @@ function parseCacheEntry(value: unknown, _key: string): IngestCacheEntry {
   const object = expectRecord(value);
 
   return {
-    key: expectString(object.key, "key"),
-    ingestedAt: expectString(object.ingestedAt, "ingestedAt"),
-    sourceLabel: expectString(object.sourceLabel, "sourceLabel"),
-    diff: parseMemoryDiff(object.diff),
-    exitCode: expectNumber(object.exitCode, "exitCode"),
-    durationMs: expectNumber(object.durationMs, "durationMs"),
-    memoryTokens: expectNumber(object.memoryTokens, "memoryTokens"),
-    sourceTokens: expectNumber(object.sourceTokens, "sourceTokens"),
-    promptTemplateVersion: expectString(object.promptTemplateVersion, "promptTemplateVersion"),
-    agentId: expectString(object.agentId, "agentId")
+    key: expectString(getOwnEntry(object, "key"), "key"),
+    ingestedAt: expectString(getOwnEntry(object, "ingestedAt"), "ingestedAt"),
+    sourceLabel: expectString(getOwnEntry(object, "sourceLabel"), "sourceLabel"),
+    diff: parseMemoryDiff(getOwnEntry(object, "diff")),
+    exitCode: expectNumber(getOwnEntry(object, "exitCode"), "exitCode"),
+    durationMs: expectNumber(getOwnEntry(object, "durationMs"), "durationMs"),
+    memoryTokens: expectNumber(getOwnEntry(object, "memoryTokens"), "memoryTokens"),
+    sourceTokens: expectNumber(getOwnEntry(object, "sourceTokens"), "sourceTokens"),
+    promptTemplateVersion: expectString(
+      getOwnEntry(object, "promptTemplateVersion"),
+      "promptTemplateVersion"
+    ),
+    agentId: expectString(getOwnEntry(object, "agentId"), "agentId")
   };
 }
 
@@ -159,9 +163,9 @@ function parseMemoryDiff(value: unknown): IngestCacheEntry["diff"] {
   const object = expectRecord(value);
 
   return {
-    created: expectStringArray(object.created, "diff.created"),
-    updated: expectStringArray(object.updated, "diff.updated"),
-    deleted: expectStringArray(object.deleted, "diff.deleted")
+    created: expectStringArray(getOwnEntry(object, "created"), "diff.created"),
+    updated: expectStringArray(getOwnEntry(object, "updated"), "diff.updated"),
+    deleted: expectStringArray(getOwnEntry(object, "deleted"), "diff.deleted")
   };
 }
 
@@ -197,6 +201,10 @@ function expectStringArray(value: unknown, field: string): string[] {
   return value;
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 async function readCacheFileNames(ingestDir: string): Promise<string[]> {
   try {
     return (await fs.readdir(ingestDir))
@@ -227,10 +235,5 @@ async function removeEmptyDirectory(directoryPath: string): Promise<void> {
 }
 
 function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }

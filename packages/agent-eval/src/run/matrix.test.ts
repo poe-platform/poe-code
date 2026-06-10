@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
   failAggregates: false,
   failAggregateRenames: false,
+  failAggregateTempExistsOnce: false,
   runEval: vi.fn<[EvalRunOptions], Promise<EvalRunResult>>()
 }));
 
@@ -22,6 +23,14 @@ vi.mock("node:fs/promises", () => ({
   rm: (...args: unknown[]) => mocks.fs.rm(...(args as Parameters<typeof mocks.fs.rm>)),
   writeFile: async (...args: unknown[]) => {
     const [targetPath] = args as Parameters<typeof mocks.fs.writeFile>;
+    if (
+      mocks.failAggregateTempExistsOnce &&
+      String(targetPath).includes("aggregate-") &&
+      String(targetPath).endsWith(".tmp")
+    ) {
+      mocks.failAggregateTempExistsOnce = false;
+      throw new Error("aggregate temp exists");
+    }
     if (mocks.failAggregates && String(targetPath).includes("aggregate-")) {
       await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
       throw new Error("aggregate publication failed");
@@ -38,11 +47,39 @@ vi.mock("../source/registry.js", () => ({
 
 const { runMatrix } = await import("./matrix.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("runMatrix publication", () => {
   beforeEach(() => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/runs/.keep": "" }, "/")).promises;
     mocks.failAggregates = false;
     mocks.failAggregateRenames = false;
+    mocks.failAggregateTempExistsOnce = false;
     mocks.runEval.mockReset().mockImplementation(async (opts) => result(opts));
   });
 
@@ -67,6 +104,15 @@ describe("runMatrix publication", () => {
     const files = await mocks.fs.readdir(`/runs/${String(matrixId)}`);
     expect(files.filter((name) => String(name).includes(".tmp"))).toEqual([]);
     expect(files.filter((name) => String(name).startsWith("aggregate-"))).toEqual([]);
+  });
+
+  it("does not retry aggregate writes for inherited existing-path error codes", async () => {
+    mocks.failAggregateTempExistsOnce = true;
+    const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(iterator.next()).rejects.toThrow("aggregate temp exists");
+    });
   });
 
   it("rejects source-relative symlinked output parents before running cells", async () => {

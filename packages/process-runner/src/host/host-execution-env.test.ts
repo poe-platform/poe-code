@@ -132,6 +132,56 @@ describe("hostExecutionEnvFactory", () => {
       vi.resetModules();
     }
   });
+
+  it("ignores inherited shell spec fields", async () => {
+    const exec = vi.fn(() => createCompletedHandle());
+    const createHostRunner = vi.fn(() => ({
+      name: "host",
+      exec
+    }));
+    const controller = new AbortController();
+    controller.abort();
+    const inheritedShellSpec = Object.create({
+      command: "/polluted-shell",
+      args: ["--polluted"],
+      cwd: "/polluted",
+      env: { POLLUTED: "1" },
+      signal: controller.signal
+    }) as OpenSpec["shellSpec"];
+
+    vi.resetModules();
+    vi.doMock("./host-runner.js", () => ({
+      createHostRunner
+    }));
+
+    try {
+      const { hostExecutionEnvFactory: mockedFactory } = await import("./host-execution-env.js");
+      const openSpec = createOpenSpec({
+        cwd: "/workspace/project",
+        env: {
+          PATH: "/bin",
+          SHELL: "/bin/custom-shell"
+        },
+        shellSpec: inheritedShellSpec
+      });
+
+      const env = await mockedFactory.open(openSpec);
+      env.shell();
+
+      expect(exec).toHaveBeenCalledWith({
+        command: "/bin/custom-shell",
+        cwd: "/workspace/project",
+        env: openSpec.env,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+        tty: true
+      });
+    } finally {
+      vi.doUnmock("./host-runner.js");
+      vi.resetModules();
+    }
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {

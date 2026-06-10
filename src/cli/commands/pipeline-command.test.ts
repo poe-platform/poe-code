@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerPipelineCommand } from "./pipeline.js";
 import { ValidationError } from "../errors.js";
@@ -94,6 +95,25 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function replaceWithSymlink(
   fs: Pick<FileSystem, "symlink" | "unlink">,
   path: string,
@@ -102,7 +122,7 @@ async function replaceWithSymlink(
   try {
     await fs.unlink(path);
   } catch (error) {
-    if ((error as { code?: unknown }).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
@@ -2367,6 +2387,40 @@ describe("pipeline install command", () => {
     );
   });
 
+  it("does not treat inherited stat codes as missing pipeline install paths", async () => {
+    const fs = createMemFs();
+    const statError = new Error("pipeline stat denied");
+    const originalStat = fs.stat.bind(fs);
+    vi.spyOn(fs, "stat").mockImplementation(async (filePath) => {
+      if (String(filePath) === "/repo/.poe-code/pipeline/plans") {
+        throw statError;
+      }
+      return originalStat(filePath);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local"
+        ])
+      ).rejects.toBe(statError);
+    });
+  });
+
   it("uses core.defaultAgent for install with --yes and drops the model portion", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
@@ -2516,6 +2570,102 @@ describe("pipeline install command", () => {
     await expect(fs.readFile("/repo/.poe-code/pipeline/steps.yaml", "utf8")).resolves.toBe(
       pipelineStepsTemplate
     );
+  });
+
+  it("cleans a partial steps.yaml when initial scaffold creation fails", async () => {
+    const stepsPath = "/repo/.poe-code/pipeline/steps.yaml";
+    const fs = createMemFs();
+    const originalWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath) === stepsPath) {
+        await originalWriteFile(filePath, "partial steps\n", options);
+        throw new Error("injected partial steps write failure");
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local"
+        ])
+      ).rejects.toThrow("injected partial steps write failure");
+    });
+
+    await expect(fs.readFile(stepsPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
+  });
+
+  it("cleans a partial forced steps temp file and restores the prior steps.yaml", async () => {
+    const stepsPath = "/repo/.poe-code/pipeline/steps.yaml";
+    const fs = createMemFs({
+      [stepsPath]: "EXISTING_STEPS"
+    });
+    const originalWriteFile = fs.writeFile.bind(fs);
+    let temporaryPath: string | undefined;
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      const filePathText = String(filePath);
+      if (
+        temporaryPath === undefined &&
+        filePathText.startsWith(`${stepsPath}.${process.pid}.`) &&
+        filePathText.endsWith(".tmp")
+      ) {
+        temporaryPath = filePathText;
+        await originalWriteFile(filePath, "partial forced steps\n", options);
+        throw new Error("injected forced steps write failure");
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "pipeline",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local",
+          "--force"
+        ])
+      ).rejects.toThrow("injected forced steps write failure");
+    });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(stepsPath, "utf8")).resolves.toBe("EXISTING_STEPS");
+    await expect(fs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
   });
 
   it("does not install the skill or plans directory when steps creation fails", async () => {

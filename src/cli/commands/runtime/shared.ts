@@ -4,6 +4,7 @@ import { pathExists } from "@poe-code/config-mutations";
 import { cancel as dsCancel, isCancel, select as dsSelect } from "toolcraft-design";
 import { OperationCancelledError } from "../../errors.js";
 import type { CliContainer } from "../../container.js";
+import { hasOwnErrorCode } from "../../../utils/error-codes.js";
 
 export const runtimeTypes = ["host", "docker", "e2b"] as const;
 export type RuntimeType = (typeof runtimeTypes)[number];
@@ -82,10 +83,17 @@ export async function writeDefaultDockerfileIfNeeded(input: {
   }
 
   await input.container.fs.mkdir(path.dirname(dockerfilePath), { recursive: true });
-  await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, {
-    encoding: "utf8",
-    flag: "wx"
-  });
+  try {
+    await input.container.fs.writeFile(dockerfilePath, defaultDockerfile, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      await input.container.fs.unlink(dockerfilePath).catch(() => undefined);
+    }
+    throw error;
+  }
   return true;
 }
 
@@ -98,4 +106,8 @@ export function parseRuntimeType(value: string): RuntimeType {
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }

@@ -6,6 +6,7 @@ import {
   isNotFoundError,
   type StateFileSystem
 } from "./fs.js";
+import { hasOwnErrorCode } from "../errors.js";
 
 export type TemplateBackend = "docker" | "e2b";
 
@@ -63,7 +64,7 @@ export function createTemplateRegistry(
       await assertSafeStateFile();
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      if (tempCreated) {
+      if (tempCreated || !isAlreadyExistsError(error)) {
         await fs.unlink(tempPath).catch(() => undefined);
       }
       throw error;
@@ -172,6 +173,10 @@ function isTemplateEntry(value: unknown): value is TemplateEntry {
     (value.template_id === undefined || typeof value.template_id === "string") &&
     (value.image === undefined || typeof value.image === "string")
   );
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

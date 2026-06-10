@@ -1,6 +1,6 @@
 import { mkdir, readFile, symlink } from "node:fs/promises";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import {
   assertObservedNestedEvents,
@@ -12,10 +12,29 @@ import {
   sourceFixture
 } from "./run.integration-helper.js";
 
+const mockedFs = vi.hoisted(() => ({
+  failedStatTarget: undefined as string | undefined
+}));
+
 const mockedAgentSpawn = vi.hoisted(() => ({
   spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined,
   spawnStreaming: vi.fn()
 }));
+
+vi.mock("node:fs/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:fs/promises")>();
+  return {
+    ...actual,
+    stat: async (...args: Parameters<typeof actual.stat>) => {
+      const [target] = args;
+      if (String(target) === mockedFs.failedStatTarget) {
+        throw new Error("starter stat denied");
+      }
+
+      return actual.stat(...args);
+    }
+  };
+});
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
@@ -40,6 +59,37 @@ const { cloneTarget } = await import("./clone.js");
 const mockedCloneTarget = vi.mocked(cloneTarget);
 
 registerRunIntegrationCleanup();
+
+afterEach(() => {
+  mockedFs.failedStatTarget = undefined;
+});
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("runEval plan integration", () => {
   it("rejects target plan destinations through symlinked clone ancestors", async () => {
@@ -70,6 +120,28 @@ describe("runEval plan integration", () => {
     await expect(readFile(path.join(outsideDir, "eval-task.md"), "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
+  });
+
+  it("does not treat inherited starter stat error codes as missing starter directories", async () => {
+    const outDir = await createRunOutDir();
+    mockedFs.failedStatTarget = path.join(sourceFixture("plan"), "task", "starter");
+    mockedAgentSpawn.spawnStreaming.mockClear();
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        runEval({
+          sourceDir: sourceFixture("plan"),
+          evalId: "task",
+          agent: "codex",
+          model: "openai/gpt-5",
+          outDir,
+          judge: "off",
+          verifyOracle: false
+        })
+      ).rejects.toThrow("starter stat denied");
+    });
+
+    expect(mockedAgentSpawn.spawnStreaming).not.toHaveBeenCalled();
   });
 
   it("records direct agent ACP events for budget and anti-cheat consumers", async () => {

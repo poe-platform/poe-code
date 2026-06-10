@@ -1,6 +1,7 @@
 import nodeFs from "node:fs/promises";
 import { isAbsolute } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { listEvals } from "./registry.js";
 import type { EvalFs } from "../types.js";
 
@@ -43,10 +44,5 @@ export async function openSource(
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

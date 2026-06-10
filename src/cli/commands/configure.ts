@@ -28,6 +28,7 @@ import type { MutationObservers } from "@poe-code/config-mutations";
 import type { CommandContext } from "../context.js";
 import { createConfigurePayload } from "./configure-payload.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
 const serviceSelectionPrompt = (action: string) => `Pick a tool to ${action}:`;
@@ -710,7 +711,7 @@ async function replaceBasePathAtomically(
       if (isAlreadyExistsError(error) && !temporaryCreated) {
         continue;
       }
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await fs.unlink(temporaryPath).catch((cleanupError) => {
           if (!isNotFoundError(cleanupError)) {
             throw cleanupError;
@@ -766,9 +767,7 @@ async function removeBasePathIfPresent(fs: FileSystem, filePath: string): Promis
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function createOverlayStats(directory: boolean, symbolicLink = false): Stats {
@@ -814,9 +813,7 @@ function createNotFoundError(filePath: string): NodeJS.ErrnoException {
 }
 
 function isNotFoundError(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 async function resolveProvider(

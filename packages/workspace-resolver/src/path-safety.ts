@@ -1,4 +1,5 @@
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { ResolverFileSystem } from "./types.js";
 
 export async function assertPathHasNoSymbolicLinks(
@@ -25,5 +26,5 @@ export async function assertPathHasNoSymbolicLinks(
 }
 
 function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

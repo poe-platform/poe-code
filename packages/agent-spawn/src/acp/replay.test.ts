@@ -46,6 +46,33 @@ function createLogFile(filename: string): string {
   return path.join(homedir(), ".poe-code", "spawn-logs", filename);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("acp/replay", () => {
   beforeEach(() => {
     vol.reset();
@@ -223,6 +250,18 @@ describe("acp/replay", () => {
     vol.writeFileSync(path.join(outsideDir, "20260320-123456-789-codex.jsonl"), "secret");
 
     await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
+  });
+
+  it("does not ignore default log directory symlinks with inherited missing-path codes", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const logDir = path.join(stateDir, "spawn-logs");
+    const realLogDir = path.join(stateDir, "real-logs");
+    vol.mkdirSync(realLogDir, { recursive: true });
+    vol.symlinkSync(realLogDir, logDir);
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(listSpawnLogs()).rejects.toThrow("symbolic links");
+    });
   });
 
   it("listSpawnLogs rejects a symlinked default state root", async () => {

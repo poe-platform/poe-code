@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { runCommand } from "./run-command.js";
 
 const spawnedPids = new Set<number>();
@@ -62,10 +63,5 @@ function killIfAlive(pid: number): void {
 }
 
 function isNoSuchProcess(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ESRCH"
-  );
+  return hasOwnErrorCode(error, "ESRCH");
 }

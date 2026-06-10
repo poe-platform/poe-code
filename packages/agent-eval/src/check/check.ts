@@ -1,5 +1,6 @@
 import { cp, mkdir, stat } from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { loadSourceConfig } from "../source/config.js";
 import { openSource } from "../source/open.js";
 import { loadEval } from "../source/registry.js";
@@ -126,10 +127,5 @@ function resolveCloneRelativePath(cloneDir: string, relativePath: string): strin
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

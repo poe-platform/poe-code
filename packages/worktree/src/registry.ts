@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type {
   Worktree,
   WorktreeRegistry,
@@ -46,7 +47,7 @@ export async function writeRegistry(
     await assertPathHasNoSymbolicLinks(registryFile, fs);
     await fs.rename(temporaryFile, registryFile);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await fs.unlink(temporaryFile).catch(() => undefined);
     }
     throw error;
@@ -54,7 +55,11 @@ export async function writeRegistry(
 }
 
 function isNotFound(error: unknown): boolean {
-  return Boolean(error && typeof error === "object" && "code" in error && error.code === "ENOENT");
+  return hasOwnErrorCode(error, "ENOENT");
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function assertPathHasNoSymbolicLinks(
@@ -79,30 +84,50 @@ async function assertPathHasNoSymbolicLinks(
 }
 
 function isWorktreeRegistry(value: unknown): value is WorktreeRegistry {
-  if (typeof value !== "object" || value === null || !Array.isArray((value as { worktrees?: unknown }).worktrees)) {
+  if (typeof value !== "object" || value === null) {
     return false;
   }
-  return (value as { worktrees: unknown[] }).worktrees.every(isWorktree);
+  const worktrees = getOwnEntry(value, "worktrees");
+  if (!Array.isArray(worktrees)) {
+    return false;
+  }
+  return worktrees.every(isWorktree);
 }
 
 function isWorktree(value: unknown): value is Worktree {
   if (typeof value !== "object" || value === null) {
     return false;
   }
-  const entry = value as Partial<Worktree>;
+  const name = getOwnEntry(value, "name");
+  const path = getOwnEntry(value, "path");
+  const branch = getOwnEntry(value, "branch");
+  const baseBranch = getOwnEntry(value, "baseBranch");
+  const createdAt = getOwnEntry(value, "createdAt");
+  const source = getOwnEntry(value, "source");
+  const agent = getOwnEntry(value, "agent");
+  const status = getOwnEntry(value, "status");
+  const storyId = getOwnEntry(value, "storyId");
+  const planPath = getOwnEntry(value, "planPath");
+  const prompt = getOwnEntry(value, "prompt");
   return (
-    typeof entry.name === "string" &&
-    typeof entry.path === "string" &&
-    typeof entry.branch === "string" &&
-    typeof entry.baseBranch === "string" &&
-    typeof entry.createdAt === "string" &&
-    typeof entry.source === "string" &&
-    typeof entry.agent === "string" &&
-    (entry.status === "active" || entry.status === "done" || entry.status === "failed" || entry.status === "removing") &&
-    (entry.storyId === undefined || typeof entry.storyId === "string") &&
-    (entry.planPath === undefined || typeof entry.planPath === "string") &&
-    (entry.prompt === undefined || typeof entry.prompt === "string")
+    typeof name === "string" &&
+    typeof path === "string" &&
+    typeof branch === "string" &&
+    typeof baseBranch === "string" &&
+    typeof createdAt === "string" &&
+    typeof source === "string" &&
+    typeof agent === "string" &&
+    (status === "active" || status === "done" || status === "failed" || status === "removing") &&
+    (storyId === undefined || typeof storyId === "string") &&
+    (planPath === undefined || typeof planPath === "string") &&
+    (prompt === undefined || typeof prompt === "string")
   );
+}
+
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
 }
 
 export async function addWorktreeEntry(

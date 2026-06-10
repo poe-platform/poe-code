@@ -1,6 +1,7 @@
 import nodeFs from "node:fs/promises";
 import { join } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { EvalFs, EvalSource, SourceConfig } from "../types.js";
 import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 
@@ -103,12 +104,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 function getErrorMessage(error: unknown): string {

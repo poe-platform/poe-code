@@ -42,6 +42,24 @@ describe("convertJsonSchema", () => {
     );
   });
 
+  it("preserves object schema properties named __proto__", async () => {
+    const schema = await loadSchema(
+      JSON.parse(
+        '{"type":"object","properties":{"__proto__":{"type":"string"}},"required":["__proto__"],"additionalProperties":false}'
+      ) as JsonSchema
+    );
+    const converted = convertJsonSchema(schema);
+
+    expect(converted.kind).toBe("object");
+    if (converted.kind !== "object") {
+      throw new Error("Expected object schema.");
+    }
+
+    expect(Object.hasOwn(converted.shape, "__proto__")).toBe(true);
+    expect(converted.shape["__proto__"]).toEqual(S.String());
+    expect(converted.additionalProperties).toBe(false);
+  });
+
   it("converts strings and carries pattern metadata", async () => {
     const schema = await loadSchema({
       type: "string",
@@ -375,6 +393,16 @@ describe("convertJsonSchema", () => {
 
     expect(() => convertJsonSchema(schema)).toThrow(
       'JSON Schema "#/properties/payload" uses "$ref": https://example.com/schema.json. toolcraft only supports internal refs like "#/components/schemas/Foo".'
+    );
+  });
+
+  it("does not resolve missing refs through inherited prototype properties", async () => {
+    const schema = await loadSchema({
+      $ref: "#/__proto__"
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#" uses "$ref": #/__proto__. toolcraft only supports internal refs like "#/components/schemas/Foo".'
     );
   });
 });

@@ -21,6 +21,7 @@ import {
   parseCodeReviewPromptMarkdown,
   requireSafeDocumentSegment
 } from "./document-schemas.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { parseCodeReviewProfileDirectories } from "./config-scope.js";
 
 export type CodeReviewAssetReader = (filePath: string, encoding: BufferEncoding) => Promise<string>;
@@ -363,13 +364,13 @@ function validateProfileFilters(
 async function createAssetUnlessPresent(filePath: string, content: string): Promise<boolean> {
   for (;;) {
     const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
+    if (await pathExists(temporaryPath)) {
+      continue;
+    }
     let temporary: Awaited<ReturnType<typeof open>> | undefined;
     let temporaryCreated = false;
     try {
-      temporary = await open(
-        temporaryPath,
-        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
-      );
+      temporary = await open(temporaryPath, "wx");
       temporaryCreated = true;
       try {
         await temporary.writeFile(content, "utf8");
@@ -424,13 +425,13 @@ async function assertInstallTargetIsFileOrMissing(filePath: string): Promise<boo
 
 async function overwriteAssetAtomically(filePath: string, content: string): Promise<void> {
   const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
+  if (await pathExists(temporaryPath)) {
+    throw new Error(`Code review asset temporary path already exists: ${temporaryPath}`);
+  }
   let temporary: Awaited<ReturnType<typeof open>> | undefined;
   let temporaryCreated = false;
   try {
-    temporary = await open(
-      temporaryPath,
-      constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
-    );
+    temporary = await open(temporaryPath, "wx");
     temporaryCreated = true;
     await temporary.writeFile(content, "utf8");
     await temporary.sync();
@@ -444,6 +445,16 @@ async function overwriteAssetAtomically(filePath: string, content: string): Prom
     if (temporaryCreated) {
       await unlink(temporaryPath).catch(() => undefined);
     }
+    throw error;
+  }
+}
+
+async function pathExists(filePath: string): Promise<boolean> {
+  try {
+    await lstat(filePath);
+    return true;
+  } catch (error) {
+    if (isMissingFileError(error)) return false;
     throw error;
   }
 }
@@ -474,9 +485,9 @@ function invalidInstallTargetError(filePath: string): Error {
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

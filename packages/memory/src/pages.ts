@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter } from "./frontmatter.js";
 import {
   assertMemoryRootIsNotSymlink,
@@ -125,5 +126,5 @@ function isMarkdownPath(relPath: string): boolean {
 }
 
 function isMissing(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

@@ -2,6 +2,25 @@ import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 import memoryPlugin, { spec as memoryPluginSpec } from "./poe-agent-plugin-memory.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("poe-agent-plugin-memory", () => {
   it("validates config options with its plugin spec", () => {
     expect(
@@ -137,5 +156,32 @@ describe("poe-agent-plugin-memory", () => {
     };
 
     await expect(plugin.prompt?.(context)).resolves.toEqual(context);
+  });
+
+  it("does not treat inherited lstat codes as missing AGENTS files", async () => {
+    const base = createFsFromVolume(
+      Volume.fromJSON({ "/workspace/project/AGENTS.md": "Project memory" }, "/"),
+    ).promises;
+    const lstatError = new Error("lstat denied");
+    const fs = {
+      ...base,
+      async lstat(filePath: string) {
+        if (filePath === "/workspace/project/AGENTS.md") {
+          throw lstatError;
+        }
+        return base.lstat(filePath);
+      },
+    };
+    const plugin = memoryPlugin({
+      cwd: "/workspace/project",
+      homeDir: "/home/test",
+      fs,
+    });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(plugin.prompt?.({ userPrompt: "Fix", system: "base" })).rejects.toBe(
+        lstatError,
+      );
+    });
   });
 });

@@ -2,6 +2,7 @@ import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { resolve } from "@poe-code/config-extends";
 import { isMap, parseDocument, stringify } from "yaml";
+import { hasOwnErrorCode } from "./errors.js";
 
 const VARIABLES_FILE_NAME = "variables.yaml";
 const EXTENDS_FIELD_NAME = "extends";
@@ -17,6 +18,10 @@ const PROJECT_VARIABLES_HEADER = [
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function getErrorMessage(error: unknown): string {
@@ -83,9 +88,10 @@ function parseProjectVariables(
   content: string
 ): { extendsBuiltIns: boolean; variables: Record<string, string> } {
   const parsed = parseVariablesDocument(filePath, content).toJS();
+  const extendsValue = isRecord(parsed) ? getOwnEntry(parsed, EXTENDS_FIELD_NAME) : undefined;
 
   return {
-    extendsBuiltIns: !isRecord(parsed) || parsed[EXTENDS_FIELD_NAME] !== false,
+    extendsBuiltIns: extendsValue !== false,
     variables: normalizeVariables(filePath, parsed, { allowExtends: true })
   };
 }
@@ -118,7 +124,7 @@ function extractUserOverrideBlocks(
 
     const start = item.key.range?.[0];
     const nextStart = items[index + 1]?.key?.range?.[0];
-    const parsedValue = isRecord(parsed) ? parsed[key] : undefined;
+    const parsedValue = isRecord(parsed) ? getOwnEntry(parsed, key) : undefined;
     const block =
       typeof start === "number"
         ? content.slice(start, typeof nextStart === "number" ? nextStart : content.length).trimEnd()
@@ -144,7 +150,7 @@ async function readOptionalVariablesContent(filePath: string): Promise<string | 
   try {
     return await readFile(filePath, "utf8");
   } catch (error) {
-    if (error instanceof Error && (error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
     throw error;

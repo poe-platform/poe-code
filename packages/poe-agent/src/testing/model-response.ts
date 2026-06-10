@@ -41,13 +41,19 @@ export type LegacyAcpModelResponse = {
 export function toAcpModelResponse(
   response: LegacyAcpModelResponse | AcpModelResponse
 ): AcpModelResponse {
-  if ("events" in response) {
+  if (hasOwnEvents(response)) {
     return response;
   }
 
   return {
     events: legacyResponseToEvents(response)
   };
+}
+
+function hasOwnEvents(
+  response: LegacyAcpModelResponse | AcpModelResponse
+): response is AcpModelResponse {
+  return Object.hasOwn(response, "events");
 }
 
 export async function collectProviderEvents(

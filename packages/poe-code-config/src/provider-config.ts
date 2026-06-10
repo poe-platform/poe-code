@@ -20,17 +20,13 @@ export async function loadProviderShapeBaseUrls(
   options: LoadProviderShapeBaseUrlsOptions
 ): Promise<Partial<Record<ApiShapeId, string>>> {
   const document = await readDocument(options.fs, options.filePath);
-  const providers = document[providersScope];
-  if (!isRecord(providers)) {
+  const providers = getOwnRecordEntry(document, providersScope);
+  const providerConfig = getOwnRecordEntry(providers, options.providerId);
+  if (Object.keys(providerConfig).length === 0) {
     return {};
   }
 
-  const providerConfig = providers[options.providerId];
-  if (!isRecord(providerConfig)) {
-    return {};
-  }
-
-  return normalizeShapeBaseUrls(providerConfig.shapeBaseUrls);
+  return normalizeShapeBaseUrls(getOwnEntry(providerConfig, "shapeBaseUrls"));
 }
 
 export async function saveProviderShapeBaseUrls(
@@ -42,12 +38,11 @@ export async function saveProviderShapeBaseUrls(
   }
 
   const document = await readDocument(options.fs, options.filePath);
-  const providers = isRecord(document[providersScope]) ? document[providersScope] : {};
-  const rawProviderConfig = providers[options.providerId];
-  const providerConfig: Record<string, unknown> = isRecord(rawProviderConfig)
-    ? rawProviderConfig
-    : {};
-  const existingShapeBaseUrls = normalizeShapeBaseUrls(providerConfig.shapeBaseUrls);
+  const providers = getOwnRecordEntry(document, providersScope);
+  const providerConfig = getOwnRecordEntry(providers, options.providerId);
+  const existingShapeBaseUrls = normalizeShapeBaseUrls(
+    getOwnEntry(providerConfig, "shapeBaseUrls")
+  );
 
   await writeScope(options.fs, options.filePath, providersScope, {
     ...providers,
@@ -73,6 +68,15 @@ function normalizeShapeBaseUrls(value: unknown): Partial<Record<ApiShapeId, stri
     }
   }
   return entries;
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record<string, unknown> {
+  const value = getOwnEntry(record, key);
+  return isRecord(value) ? value : {};
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

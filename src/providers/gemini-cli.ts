@@ -133,7 +133,7 @@ export const geminiCliService = createProvider<
       mcpServers: options.mcpServers,
       resumeThreadId: options.resumeThreadId,
       signal: options.signal,
-      env: { ...activeProvider.extraEnv, ...details.env }
+      env: { ...activeProvider.extraEnv, ...details.env, ...(options.env ?? {}) }
     });
     return done;
   },

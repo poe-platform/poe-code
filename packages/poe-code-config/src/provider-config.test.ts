@@ -10,6 +10,33 @@ import {
 const homeDir = "/home/test";
 const servicesConfigPath = resolveServicesConfigPath(homeDir);
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("provider config", () => {
   it("treats a missing providers section as an empty map", async () => {
     const fs = createMockFs(undefined, homeDir);
@@ -88,6 +115,83 @@ describe("provider config", () => {
       "anthropic-messages": "https://example/anth",
       "openai-responses": "https://example/openai"
     });
+  });
+
+  it("ignores inherited provider metadata while loading and saving", async () => {
+    const fs = createMockFs(
+      {
+        "~/.config/poe-code/services.json": "{}\n"
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        providers: {
+          poe: {
+            shapeBaseUrls: {
+              "openai-responses": "https://polluted.example/openai"
+            }
+          }
+        }
+      },
+      async () => {
+        await expect(
+          loadProviderShapeBaseUrls({
+            fs,
+            filePath: servicesConfigPath,
+            providerId: "poe"
+          })
+        ).resolves.toEqual({});
+
+        await saveProviderShapeBaseUrls({
+          fs,
+          filePath: servicesConfigPath,
+          providerId: "poe",
+          shapeBaseUrls: {
+            "anthropic-messages": "https://example/anth"
+          }
+        });
+      }
+    );
+
+    expect(JSON.parse(fs.getContent("~/.config/poe-code/services.json") as string)).toEqual({
+      providers: {
+        poe: {
+          shapeBaseUrls: {
+            "anthropic-messages": "https://example/anth"
+          }
+        }
+      }
+    });
+  });
+
+  it("ignores inherited provider entries in an own providers scope", async () => {
+    const fs = createMockFs(
+      {
+        "~/.config/poe-code/services.json": '{"providers":{}}\n'
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        poe: {
+          shapeBaseUrls: {
+            "openai-responses": "https://polluted.example/openai"
+          }
+        }
+      },
+      async () => {
+        await expect(
+          loadProviderShapeBaseUrls({
+            fs,
+            filePath: servicesConfigPath,
+            providerId: "poe"
+          })
+        ).resolves.toEqual({});
+      }
+    );
   });
 
   it("rejects provider metadata reads through a symlinked services directory", async () => {

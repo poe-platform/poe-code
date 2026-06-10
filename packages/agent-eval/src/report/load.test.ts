@@ -2,16 +2,60 @@ import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { AggregatedCell, EvalRunResult } from "../types.js";
 
+const mocks = vi.hoisted(() => ({
+  failedReaddirTarget: undefined as string | undefined
+}));
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
-  return fs.promises;
+  return {
+    ...fs.promises,
+    readdir: async (
+      targetPath: Parameters<typeof fs.promises.readdir>[0],
+      options?: Parameters<typeof fs.promises.readdir>[1]
+    ) => {
+      if (String(targetPath) === mocks.failedReaddirTarget) {
+        throw new Error("readdir denied");
+      }
+
+      return fs.promises.readdir(targetPath, options);
+    }
+  };
 });
 
 const { listRuns, loadLatestMatrix, loadRunResult } = await import("./load.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("report loaders", () => {
   beforeEach(() => {
     vol.reset();
+    mocks.failedReaddirTarget = undefined;
   });
 
   it("loads a run result by id from the runs directory", async () => {
@@ -215,6 +259,14 @@ describe("report loaders", () => {
     await expect(loadLatestMatrix("/missing")).rejects.toThrow(
       "Runs directory not found: /missing"
     );
+  });
+
+  it("does not treat inherited readdir error codes as missing runs directories", async () => {
+    mocks.failedReaddirTarget = "/runs";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(listRuns("/runs")).rejects.toThrow("readdir denied");
+    });
   });
 
   it("throws a clear error when no matrix aggregate exists", async () => {

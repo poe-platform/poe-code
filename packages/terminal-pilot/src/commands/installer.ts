@@ -8,6 +8,7 @@ import {
   resolveAgentSupport as resolveSkillAgentSupport,
   supportedAgents as skillSupportedAgents
 } from "@poe-code/agent-skill-config";
+import { hasOwnErrorCode } from "../errors.js";
 
 export type TerminalPilotInstallerFileSystem = {
   readFile(path: string, encoding: "utf8"): Promise<string>;
@@ -45,12 +46,7 @@ export type TerminalPilotInstallerServices = {
 };
 
 function isNotFoundError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 export function resolveInstallerServices(

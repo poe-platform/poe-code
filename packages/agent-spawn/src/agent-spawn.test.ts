@@ -600,6 +600,8 @@ describe("buildSpawnArgs", () => {
       "-c",
       'mcp_servers.test.command="tiny-stdio-mcp-test-server"',
       "-c",
+      'mcp_servers.test.default_tools_approval_mode="approve"',
+      "-c",
       'mcp_servers.test.args=["serve", "word-of-the-day"]',
       "-c",
       'mcp_servers.test.env={"MCP_LOG_LEVEL"="debug"}',
@@ -795,6 +797,8 @@ describe("spawn", () => {
       "-c",
       'mcp_servers.test.command="tiny-stdio-mcp-test-server"',
       "-c",
+      'mcp_servers.test.default_tools_approval_mode="approve"',
+      "-c",
       'mcp_servers.test.args=["serve", "word-of-the-day"]',
       "-c",
       'mcp_servers.test.env={"MCP_LOG_LEVEL"="debug"}',
@@ -906,6 +910,38 @@ describe("spawn", () => {
 
     const child = spawnMock.mock.results[0]?.value as any;
     expect(child.__capturedStdin()).toBe("hi");
+  });
+
+  it("isolates per-invocation environment overrides across parallel spawns", async () => {
+    const inheritedValue = process.env.POE_CODE_PARALLEL_ENV_TEST;
+    process.env.POE_CODE_PARALLEL_ENV_TEST = "parent";
+    vi.mocked(spawnChildProcess).mockImplementation(() =>
+      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
+    );
+
+    try {
+      await Promise.all([
+        spawn("codex", {
+          prompt: "first",
+          env: { POE_CODE_PARALLEL_ENV_TEST: "first", FIRST_ONLY: "1" }
+        }),
+        spawn("codex", {
+          prompt: "second",
+          env: { POE_CODE_PARALLEL_ENV_TEST: "second", SECOND_ONLY: "1" }
+        })
+      ]);
+
+      const firstEnv = vi.mocked(spawnChildProcess).mock.calls[0]?.[2]?.env;
+      const secondEnv = vi.mocked(spawnChildProcess).mock.calls[1]?.[2]?.env;
+      expect(firstEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "first", FIRST_ONLY: "1" });
+      expect(firstEnv).not.toHaveProperty("SECOND_ONLY");
+      expect(secondEnv).toMatchObject({ POE_CODE_PARALLEL_ENV_TEST: "second", SECOND_ONLY: "1" });
+      expect(secondEnv).not.toHaveProperty("FIRST_ONLY");
+      expect(process.env.POE_CODE_PARALLEL_ENV_TEST).toBe("parent");
+    } finally {
+      if (inheritedValue === undefined) delete process.env.POE_CODE_PARALLEL_ENV_TEST;
+      else process.env.POE_CODE_PARALLEL_ENV_TEST = inheritedValue;
+    }
   });
 
   it("forwards output to tee streams when provided", async () => {

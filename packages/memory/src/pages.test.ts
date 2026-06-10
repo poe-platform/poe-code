@@ -8,6 +8,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { listPages, readPage } = await import("./pages.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("listPages", () => {
   beforeEach(() => {
     vol.reset();
@@ -77,6 +104,42 @@ describe("listPages", () => {
     await vol.promises.symlink("/outside/pages", "/repo/.poe-code/memory/pages");
 
     await expect(listPages("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+  });
+
+  it("does not treat inherited lstat error codes as missing path segments", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/pages/local.md": "# Local\n"
+    });
+    const lstat = vol.promises.lstat.bind(vol.promises);
+    vi.spyOn(vol.promises, "lstat").mockImplementation(async (targetPath) => {
+      if (String(targetPath) === "/repo/.poe-code/memory/pages") {
+        throw new Error("page lstat denied");
+      }
+
+      return lstat(targetPath);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(listPages("/repo/.poe-code/memory")).rejects.toThrow("page lstat denied");
+    });
+  });
+
+  it("does not treat inherited readdir error codes as missing page directories", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/pages/local.md": "# Local\n"
+    });
+    const readdir = vol.promises.readdir.bind(vol.promises);
+    vi.spyOn(vol.promises, "readdir").mockImplementation(async (targetPath, options) => {
+      if (String(targetPath) === "/repo/.poe-code/memory/pages") {
+        throw new Error("page scan denied");
+      }
+
+      return readdir(targetPath, options);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(listPages("/repo/.poe-code/memory")).rejects.toThrow("page scan denied");
+    });
   });
 });
 

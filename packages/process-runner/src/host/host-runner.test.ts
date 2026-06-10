@@ -2,6 +2,33 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createHostRunner } from "./host-runner.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createHostRunner", () => {
   it("spawns in piped mode and exposes streams on the run handle", async () => {
     const runner = createHostRunner();
@@ -113,6 +140,61 @@ describe("createHostRunner", () => {
 
     vi.doUnmock("node:child_process");
     vi.resetModules();
+  });
+
+  it("ignores inherited host runner and run spec fields", async () => {
+    const child = {
+      pid: 123,
+      stdin: null,
+      stdout: null,
+      stderr: null,
+      kill: vi.fn(),
+      once: vi.fn(),
+      unref: vi.fn()
+    };
+    const spawnMock = vi.fn(() => child);
+    const controller = new AbortController();
+    controller.abort();
+
+    vi.resetModules();
+    vi.doMock("node:child_process", () => ({
+      spawn: spawnMock
+    }));
+
+    try {
+      const { createHostRunner: createMockedHostRunner } = await import("./host-runner.js");
+
+      await withObjectPrototypeProperties(
+        {
+          args: ["--polluted"],
+          cwd: "/polluted",
+          detached: true,
+          env: { POLLUTED: "1" },
+          killProcessGroup: true,
+          signal: controller.signal,
+          stdin: "pipe",
+          stdout: "inherit",
+          stderr: "inherit"
+        },
+        async () => {
+          createMockedHostRunner().exec({ command: "node" });
+        }
+      );
+
+      const [command, args, options] = spawnMock.mock.calls[0]!;
+      expect(command).toBe("node");
+      expect(args).toEqual([]);
+      expect(options).toMatchObject({
+        cwd: undefined,
+        env: undefined,
+        stdio: ["ignore", "pipe", "pipe"]
+      });
+      expect(Object.getPrototypeOf(options)).toBeNull();
+      expect(child.unref).not.toHaveBeenCalled();
+    } finally {
+      vi.doUnmock("node:child_process");
+      vi.resetModules();
+    }
   });
 
   it.runIf(process.platform !== "win32")(

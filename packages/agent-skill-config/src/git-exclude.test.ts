@@ -14,6 +14,33 @@ const cwd = "/repo";
 const gitDir = "/repo/.git";
 const excludePath = path.join(gitDir, "info/exclude");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function stubGitRepo(): () => void {
   return setGitDirRunnerForTest(() => gitDir);
 }
@@ -255,6 +282,28 @@ describe("git exclude blocks", () => {
     expect(vol.readFileSync("/outside/exclude", "utf8")).toBe("# outside\n");
   });
 
+  it("does not treat inherited lstat error codes as missing exclude paths", async () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    const originalLstatSync = fs.lstatSync.bind(fs);
+    const lstat = vi.spyOn(fs, "lstatSync").mockImplementation((filePath, options) => {
+      if (String(filePath) === excludePath) {
+        throw new Error("exclude lstat denied");
+      }
+
+      return originalLstatSync(filePath, options);
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+        expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+          "exclude lstat denied"
+        );
+      });
+    } finally {
+      lstat.mockRestore();
+    }
+  });
+
   it("does not follow or remove a colliding temporary exclude symlink", () => {
     vol.mkdirSync(path.dirname(excludePath), { recursive: true });
     vol.mkdirSync("/outside", { recursive: true });
@@ -282,6 +331,36 @@ describe("git exclude blocks", () => {
     }
   });
 
+  it("removes a partially written temporary exclude file after inherited existing-path errors", async () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.writeFileSync(excludePath, "# user ignore\n");
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    let tempPath: string | undefined;
+    const writeFile = vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.includes(".poe-code-") && targetPath.endsWith(".tmp")) {
+        tempPath = targetPath;
+        originalWriteFileSync(filePath, "# partial\n", options);
+        throw new Error("exclude temp exists");
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+        expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+          "exclude temp exists"
+        );
+      });
+      expect(tempPath).toBeDefined();
+      expect(vol.existsSync(tempPath as string)).toBe(false);
+      expect(vol.readFileSync(excludePath, "utf8")).toBe("# user ignore\n");
+    } finally {
+      writeFile.mockRestore();
+    }
+  });
+
   it("preserves prior exclude content when atomic replacement fails", () => {
     vol.mkdirSync(path.dirname(excludePath), { recursive: true });
     vol.writeFileSync(excludePath, "# user ignore\n");
@@ -295,6 +374,34 @@ describe("git exclude blocks", () => {
     expect(vol.readFileSync(excludePath, "utf8")).toBe("# user ignore\n");
 
     rename.mockRestore();
+  });
+
+  it("removes a partially written temporary exclude file when creation fails", () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.writeFileSync(excludePath, "# user ignore\n");
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    let tempPath: string | undefined;
+    const writeFile = vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      const targetPath = String(filePath);
+      if (targetPath.includes(".poe-code-") && targetPath.endsWith(".tmp")) {
+        tempPath = targetPath;
+        originalWriteFileSync(filePath, "# partial\n", options);
+        throw new Error("exclude disk full");
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    try {
+      expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+        "exclude disk full"
+      );
+      expect(tempPath).toBeDefined();
+      expect(vol.existsSync(tempPath as string)).toBe(false);
+      expect(vol.readFileSync(excludePath, "utf8")).toBe("# user ignore\n");
+    } finally {
+      writeFile.mockRestore();
+    }
   });
 
   it("silently no-ops outside a git repo", () => {

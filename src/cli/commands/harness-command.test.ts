@@ -190,9 +190,9 @@ describe("harness command", () => {
       agentModule = modules.agent;
       const spawn = agentModule?.get("spawn") as (
         agentDef: string,
-        spawnOptions: { prompt: string }
+        spawnOptions: { prompt: string; timeoutMs?: number }
       ) => Promise<unknown>;
-      await spawn("codex", { prompt: "Build it" });
+      await spawn("codex", { prompt: "Build it", timeoutMs: 12_345 });
       return { ok: true, returnValue: "done" };
     });
 
@@ -204,8 +204,534 @@ describe("harness command", () => {
     );
     expect(harnessMocks.spawnMock).toHaveBeenCalledWith(
       "codex",
-      expect.objectContaining({ cwd: "/repo", prompt: "Build it" })
+      expect.objectContaining({
+        activityTimeoutMs: 12_345,
+        cwd: "/repo",
+        prompt: "Build it"
+      })
     );
+  });
+
+  it("numbers sequential loop spawns so progress remains easy to follow", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "First" });
+      await spawn("codex", { prompt: "Second" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Spawn #1 codex — First started");
+    expect(logs.join("\n")).toContain("Spawn #1 codex — First completed (");
+    expect(logs.join("\n")).toContain("Spawn #2 codex — Second started");
+    expect(logs.join("\n")).toContain("Spawn #2 codex — Second completed (");
+    expect(logs.join("\n")).not.toContain("completed on attempt 1/5");
+  });
+
+  it("keeps larger sequential loops numbered and compact", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { label: string; prompt: string }
+      ) => Promise<unknown>;
+      for (let index = 1; index <= 12; index += 1) {
+        await spawn("codex", { label: `Review item ${index}`, prompt: `Generated ${index}` });
+      }
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Spawn #1 codex — Review item 1 started");
+    expect(output).toContain("Spawn #12 codex — Review item 12 completed (");
+    expect(output).not.toContain("Generated 12");
+    expect(Math.max(...logs.map((line) => line.length))).toBeLessThan(120);
+  });
+
+  it("renders explicit spawn labels for generated loop prompts", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { label: string; prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { label: "Review auth", prompt: "Generated prompt with details" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Review auth started");
+    expect(harnessMocks.spawnMock).toHaveBeenCalledWith(
+      "codex",
+      expect.not.objectContaining({ label: expect.anything() })
+    );
+  });
+
+  it("fails permanent configuration errors immediately without retry backoff", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject(new Error('Unknown service "missing".'))
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("missing", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toThrow(
+      'Unknown service "missing".'
+    );
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
+    expect(logs.join("\n")).toContain("Spawn #1 missing — Build it failed after 1 attempt");
+    expect(logs.join("\n")).not.toContain("Retrying in");
+  });
+
+  it("sanitizes and deduplicates long permanent spawn errors", async () => {
+    const logs: string[] = [];
+    const message = `Unknown service "missing".\n\u001b[31m${"detail ".repeat(100)}`;
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject(new Error(message))
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("missing", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "ReportedError"
+    });
+
+    const output = logs.join("\n");
+    expect(output).toContain('Unknown service "missing". [31m');
+    expect(output).not.toContain("\u001b");
+    expect(output.length).toBeLessThan(600);
+  });
+
+  it("fails permanent non-zero setup results immediately without retry backoff", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.resolve({ exitCode: 1, stdout: "", stderr: "No API key found." })
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toThrow(
+      "No API key found."
+    );
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
+    expect(logs.join("\n")).not.toContain("Retrying in");
+  });
+
+  it.each([
+    "API key rejected.",
+    'No API key available for provider "anthropic".',
+    "Missing Poe API key. Provide apiKey or run 'poe-code login'.",
+    "Poe API key expired. Run `opencode providers login` again.",
+    'Agent "codex" has no spawn config.',
+    'Agent "codex" has no binaryName.',
+    'Agent "codex" does not support ACP spawn.',
+    'Agent "codex" does not support MCP servers over ACP spawn.',
+    'Agent "codex" does not support CLI spawn.',
+    "Gemini CLI spawn requires an active configured provider.",
+    "codex CLI binary not found on PATH.",
+    "Unauthorized: invalid credentials.",
+    "Request failed: HTTP 401 Unauthorized.",
+    "Forbidden: insufficient permissions.",
+    "Authentication failed for configured provider.",
+    "Invalid API key."
+  ])("fails the permanent setup error %s immediately", async (message) => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject(new Error(message))
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toThrow(
+      message
+    );
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
+    expect(logs.join("\n")).not.toContain("Retrying in");
+  });
+
+  it("fails malformed provider results immediately without retry backoff", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.resolve({ stdout: "missing exit code", stderr: "" })
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toThrow(
+      "spawnAgent result exitCode must be a finite number."
+    );
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledOnce();
+    expect(logs.join("\n")).not.toContain("Retrying in");
+  });
+
+  it("renders cancelled spawns without treating them as final failures", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject({ name: "AbortError", message: "cancelled by parent" })
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Review feature" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "AbortError"
+    });
+
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Review feature cancelled");
+    expect(logs.join("\n")).not.toContain("failed after");
+  });
+
+  it("renders loop spawn progress and retries transient spawn failures up to five attempts", async () => {
+    vi.useFakeTimers();
+    const logs: string[] = [];
+    harnessMocks.spawnMock
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.reject(new Error("sandbox unavailable"))
+      }))
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.resolve({ exitCode: 0, stdout: "done", stderr: "" })
+      }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    const run = runHarnessCommand(["harness", "run", "harness.md"], logs);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await run;
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledTimes(2);
+    expect(logs.join("\n")).toContain(
+      "Spawn #1 codex — Build it failed (attempt 1/5): sandbox unavailable"
+    );
+    expect(logs.join("\n")).toContain("Retrying in 1s");
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Build it attempt 2/5 started");
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Build it completed on attempt 2/5");
+    vi.useRealTimers();
+  });
+
+  it("renders concise provider details for non-zero retry results", async () => {
+    vi.useFakeTimers();
+    const logs: string[] = [];
+    harnessMocks.spawnMock
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.resolve({ exitCode: 1, stdout: "", stderr: "sandbox unavailable" })
+      }))
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.resolve({ exitCode: 0, stdout: "done", stderr: "" })
+      }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    const run = runHarnessCommand(["harness", "run", "harness.md"], logs);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await run;
+
+    expect(logs.join("\n")).toContain("failed (attempt 1/5): sandbox unavailable (exit 1)");
+    expect(logs.join("\n")).not.toContain("failed (attempt 1/5): Agent spawn failed");
+    vi.useRealTimers();
+  });
+
+  it("formats fractional-second retry delays cleanly", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as {
+        retry: (
+          agentDef: string,
+          spawnOptions: { prompt: string },
+          retryOptions: { maxAttempts: number; backoffMs: number }
+        ) => Promise<unknown>;
+      };
+      await spawn.retry("codex", { prompt: "Build it" }, { maxAttempts: 2, backoffMs: 1_500 });
+      return { ok: true, returnValue: "done" };
+    });
+    harnessMocks.spawnMock
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.reject(new Error("temporary"))
+      }))
+      .mockImplementationOnce(() => ({
+        events: (async function* () {})(),
+        result: Promise.resolve({ exitCode: 0, stdout: "done", stderr: "" })
+      }));
+
+    vi.useFakeTimers();
+    const run = runHarnessCommand(["harness", "run", "harness.md"], logs);
+    await vi.advanceTimersByTimeAsync(1_500);
+    await run;
+
+    expect(logs.join("\n")).toContain("Retrying in 1.5s");
+    vi.useRealTimers();
+  });
+
+  it.each(["Request failed: HTTP 500.", "network connection reset", "sandbox unavailable"])(
+    "still retries the transient spawn error %s",
+    async (message) => {
+      vi.useFakeTimers();
+      harnessMocks.spawnMock
+        .mockImplementationOnce(() => ({
+          events: (async function* () {})(),
+          result: Promise.reject(new Error(message))
+        }))
+        .mockImplementationOnce(() => ({
+          events: (async function* () {})(),
+          result: Promise.resolve({ exitCode: 0, stdout: "done", stderr: "" })
+        }));
+      harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+        const modules = options.modulesFor(
+          { kind: "test", version: 1 },
+          { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+        );
+        const spawn = modules.agent.get("spawn") as (
+          agentDef: string,
+          spawnOptions: { prompt: string }
+        ) => Promise<unknown>;
+        await spawn("codex", { prompt: "Build it" });
+        return { ok: true, returnValue: "done" };
+      });
+
+      const run = runHarnessCommand(["harness", "run", "harness.md"]);
+      await vi.advanceTimersByTimeAsync(1_000);
+      await run;
+
+      expect(harnessMocks.spawnMock).toHaveBeenCalledTimes(2);
+      vi.useRealTimers();
+    }
+  );
+
+  it("renders a prominent final spawn error after five failures", async () => {
+    vi.useFakeTimers();
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject(new Error("sandbox unavailable"))
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("codex", { prompt: "Build it" });
+      return { ok: true, returnValue: "done" };
+    });
+
+    const run = runHarnessCommand(["harness", "run", "harness.md"], logs);
+    const rejection = expect(run).rejects.toThrow("sandbox unavailable");
+    await vi.advanceTimersByTimeAsync(15_000);
+    await rejection;
+
+    expect(harnessMocks.spawnMock).toHaveBeenCalledTimes(5);
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Build it failed after 5 attempts");
+    expect(logs.join("\n")).toContain("sandbox unavailable");
+    vi.useRealTimers();
+  });
+
+  it("does not hide an unrelated harness error after a caught spawn failure", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.reject(new Error('Unknown service "missing".'))
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as (
+        agentDef: string,
+        spawnOptions: { prompt: string }
+      ) => Promise<unknown>;
+      await spawn("missing", { prompt: "Try optional review" }).catch(() => undefined);
+      throw new Error("later harness failure");
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "Error",
+      message: "later harness failure"
+    });
+
+    expect(logs.join("\n")).toContain('Unknown service "missing".');
+  });
+
+  it("suppresses the generic parallel wrapper after rendering the underlying final spawn error", async () => {
+    const logs: string[] = [];
+    harnessMocks.spawnMock.mockImplementation(() => ({
+      events: (async function* () {})(),
+      result: Promise.resolve({ exitCode: 2, stdout: "", stderr: "review failed" })
+    }));
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as {
+        parallel: (
+          calls: Array<[string, { prompt: string }]>,
+          options?: { failFast?: boolean }
+        ) => Promise<unknown>;
+      };
+      await spawn.parallel([["codex", { prompt: "Review feature" }]]);
+      return { ok: true, returnValue: "done" };
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "ReportedError"
+    });
+
+    expect(logs.join("\n")).toContain("Spawn #1 codex — Review feature failed after 1 attempt");
+    expect(logs.join("\n")).not.toContain("spawn.parallel call 0 failed");
+  });
+
+  it("renders numbered lifecycle lines for successful parallel tuple spawns", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      const modules = options.modulesFor(
+        { kind: "test", version: 1 },
+        { kind: "test", version: 1, filename: "/repo/harness.md", dirname: "/repo", body: "" }
+      );
+      const spawn = modules.agent.get("spawn") as {
+        parallel: (
+          calls: Array<[string, { label: string; prompt: string }]>,
+          options?: { maxConcurrent?: number }
+        ) => Promise<unknown>;
+      };
+      await spawn.parallel(
+        [
+          ["codex", { label: "Review auth", prompt: "Generated auth" }],
+          ["codex", { label: "Review billing", prompt: "Generated billing" }]
+        ],
+        { maxConcurrent: 2 }
+      );
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Spawn #1 codex — Review auth started");
+    expect(output).toContain("Spawn #2 codex — Review billing started");
+    expect(output).toContain("Spawn #1 codex — Review auth completed (");
+    expect(output).toContain("Spawn #2 codex — Review billing completed (");
+    expect(output).not.toContain("Generated auth");
   });
 
   it("passes --fix through to the harness runner explicitly", async () => {
@@ -310,6 +836,156 @@ describe("harness command", () => {
     await runHarnessCommand(["harness", "run", "harness.md"], logs);
 
     expect(logs.join("\n")).toContain("Total cost: $0.13");
+  });
+
+  it("prints a concise harness result without dumping snapshots or internal agent stderr", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: { reviewed: 2 },
+      snapshot: { bindings: { secret: "internal snapshot" } },
+      usage: {
+        inputTokens: 120,
+        outputTokens: 30,
+        cachedTokens: 20,
+        spawnCount: 2
+      }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Result: object · reviewed");
+    expect(output).toContain("Usage: 2 spawns · 120 input · 30 output · 20 cached");
+    expect(output).not.toContain("internal snapshot");
+    expect(output).not.toContain('"snapshot"');
+  });
+
+  it("summarizes returned objects without exposing embedded agent output", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: {
+        first: "agent warning with sensitive details",
+        second: "another long agent response"
+      },
+      usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, spawnCount: 2 }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Result: object · first, second");
+    expect(output).toContain("Usage: 2 spawns");
+    expect(output).not.toContain("0 input");
+    expect(output).not.toContain("sensitive details");
+    expect(output).not.toContain("another long agent response");
+  });
+
+  it("distinguishes logical spawns from retry attempts in usage output", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: "done",
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        cachedTokens: 0,
+        spawnCount: 1,
+        attemptCount: 2
+      }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Usage: 1 spawn · 2 attempts");
+  });
+
+  it("sanitizes and truncates returned object keys", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: {
+        [`reviewed\n\u001b[31m-${"detail".repeat(60)}`]: true
+      }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Result: object · reviewed [31m-");
+    expect(output).not.toContain("\u001b");
+    expect(output.length).toBeLessThan(400);
+  });
+
+  it("caps the total structural result summary width", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: Object.fromEntries(
+        Array.from({ length: 6 }, (_, index) => [`key-${index}-${"detail".repeat(60)}`, true])
+      )
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    const resultLine = logs.find((line) => line.startsWith("Result:"));
+    expect(resultLine).toBeDefined();
+    expect(resultLine!.length).toBeLessThanOrEqual(248);
+    expect(resultLine).toContain("…");
+  });
+
+  it("sanitizes control characters in scalar harness results", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: true,
+      returnValue: "done\u001b[31m\nnext",
+      usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, spawnCount: 0 }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Result: done [31m next");
+    expect(logs.join("\n")).not.toContain("\u001b");
+  });
+
+  it("exits as a reported failure when the interpreter returns an unsuccessful result", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: false,
+      error: { name: "Error", message: "sandbox failed", stack: "sandbox stack" },
+      usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, spawnCount: 0 }
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "ReportedError",
+      message: "sandbox failed"
+    });
+
+    expect(logs.join("\n")).toContain("Harness failed: sandbox failed");
+    expect(logs.join("\n")).not.toContain("sandbox stack");
+  });
+
+  it("sanitizes and truncates unsuccessful interpreter errors", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValue({
+      ok: false,
+      error: {
+        name: "Error",
+        message: `sandbox failed\n\u001b[31m${"detail ".repeat(100)}`,
+        stack: "sandbox stack"
+      },
+      usage: { inputTokens: 0, outputTokens: 0, cachedTokens: 0, spawnCount: 0 }
+    });
+
+    await expect(runHarnessCommand(["harness", "run", "harness.md"], logs)).rejects.toMatchObject({
+      name: "ReportedError"
+    });
+
+    const output = logs.join("\n");
+    expect(output).toContain("Harness failed: sandbox failed [31m");
+    expect(output).not.toContain("\u001b");
+    expect(output.length).toBeLessThan(600);
   });
 
   it("passes an explicit snapshot path and writes checkpoints while running", async () => {
@@ -548,6 +1224,7 @@ describe("harness command", () => {
       ...(memfs.promises as unknown as FileSystem),
       async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView, options?: { encoding?: BufferEncoding; flag?: string }) {
         if (filePath.endsWith("example.ajs")) {
+          await memfs.promises.writeFile(filePath, "partial script", options);
           throw new Error("script write failed");
         }
         await memfs.promises.writeFile(filePath, data, options);
@@ -574,7 +1251,7 @@ describe("harness command", () => {
     ).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("does not follow a scaffold file symlink inserted after the existence check", async () => {
+  it("does not follow or remove a scaffold file symlink inserted after the existence check", async () => {
     const mdPath = "/repo/.poe-code/harnesses/example/example.md";
     const ajsPath = "/repo/.poe-code/harnesses/example/example.ajs";
     const outsidePath = "/outside/example.md";
@@ -611,7 +1288,9 @@ describe("harness command", () => {
     ).rejects.toMatchObject({ code: "EEXIST" });
 
     await expect(memfs.promises.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
-    await expect(memfs.promises.lstat(mdPath)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(memfs.promises.lstat(mdPath)).resolves.toSatisfy((stats) =>
+      stats.isSymbolicLink()
+    );
     await expect(memfs.promises.lstat(ajsPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 

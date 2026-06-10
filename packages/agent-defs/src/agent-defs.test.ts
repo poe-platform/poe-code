@@ -38,6 +38,33 @@ const expectedProviderAgentApiShapes = new Map<string, NonNullable<AgentDefiniti
 
 const normalizeKey = (value: string): string => value.toLowerCase();
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("agent-defs package", () => {
   it("exports all agents", () => {
     expect(claudeCodeAgent).toBeDefined();
@@ -165,6 +192,15 @@ describe("parseAgentSpecifier", () => {
     });
   });
 
+  it("does not add inherited model fields to agent-only specifiers", async () => {
+    await withObjectPrototypeProperties({ model: "polluted-model" }, () => {
+      const specifier = parseAgentSpecifier("claude-code");
+
+      expect(Object.hasOwn(specifier, "model")).toBe(false);
+      expect(formatAgentSpecifier(specifier)).toBe("claude-code");
+    });
+  });
+
   it("trims whitespace from agent and model", () => {
     expect(parseAgentSpecifier("  claude-code : anthropic/claude-opus-4.6  ")).toEqual({
       agent: "claude-code",
@@ -194,6 +230,12 @@ describe("normalizeAgentId", () => {
   it("returns unknown agents unchanged apart from trimming", () => {
     expect(normalizeAgentId("  custom-agent  ")).toBe("custom-agent");
   });
+
+  it("does not append inherited models", async () => {
+    await withObjectPrototypeProperties({ model: "polluted-model" }, () => {
+      expect(normalizeAgentId("CLAUDE")).toBe("claude-code");
+    });
+  });
 });
 
 describe("formatAgentSpecifier", () => {
@@ -209,5 +251,11 @@ describe("formatAgentSpecifier", () => {
 
   it("formats agent when model is undefined", () => {
     expect(formatAgentSpecifier({ agent: "codex", model: undefined })).toBe("codex");
+  });
+
+  it("formats agent-only specifiers without inherited models", async () => {
+    await withObjectPrototypeProperties({ model: "polluted-model" }, () => {
+      expect(formatAgentSpecifier({ agent: "codex" })).toBe("codex");
+    });
   });
 });

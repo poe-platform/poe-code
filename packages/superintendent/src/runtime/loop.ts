@@ -12,6 +12,7 @@ import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
 import { runSuperintendent, type SuperintendentResult } from "./run-superintendent.js";
 import { collectReferencedInspectors } from "./templates.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 export type SuperintendentStopReason =
   | "completed"
@@ -537,10 +538,11 @@ async function writeDocumentContent(
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error) && !tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (alreadyExists && !tempCreated) {
         continue;
       }
-      if (tempCreated) {
+      if (tempCreated || !alreadyExists) {
         await fs.unlink?.(tempPath).catch(() => undefined);
       }
       throw error;
@@ -558,9 +560,7 @@ function createDocumentTempPath(docPath: string): string {
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function rollbackRoundStatus(

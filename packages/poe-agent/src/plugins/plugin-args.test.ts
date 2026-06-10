@@ -1,9 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
+  assertNoSymbolicLinkPath,
   getOptionalBoolean,
   getOptionalNonNegativeInteger,
   getOptionalNumber,
 } from "./plugin-args.js";
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
 
 describe("plugin-args", () => {
   it("parses optional booleans", () => {
@@ -41,5 +61,21 @@ describe("plugin-args", () => {
     expect(() => getOptionalNonNegativeInteger({ offset: 1.5 }, "offset")).toThrow(
       'Tool argument "offset" must be a non-negative integer',
     );
+  });
+
+  it("does not treat inherited lstat codes as missing path ancestors", async () => {
+    const lstatError = new Error("lstat denied");
+    const fs = {
+      async lstat(filePath: string) {
+        if (filePath === "/workspace") {
+          throw lstatError;
+        }
+        return { isSymbolicLink: () => false };
+      }
+    };
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(assertNoSymbolicLinkPath(fs, "/workspace/file.txt")).rejects.toBe(lstatError);
+    });
   });
 });

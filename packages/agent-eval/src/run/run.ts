@@ -12,6 +12,7 @@ import {
   type SpawnResult
 } from "@poe-code/agent-spawn";
 import { runPipeline, type AgentRunInput as PipelineAgentRunInput } from "@poe-code/pipeline";
+import { hasOwnErrorCode } from "../error-codes.js";
 import {
   runLoop,
   type AgentRunInput as SuperintendentAgentRunInput
@@ -397,17 +398,25 @@ async function runNestedAgent(
   onEvent: (event: SpawnEvent) => void
 ): Promise<SpawnResult & { sessionResult?: unknown; toolCalls?: unknown[] }> {
   let context: AcpSpawnContext | undefined;
+  const model = getOwnProperty(input, "model");
+  const signal = getOwnProperty(input, "signal");
+  const mode = getOwnProperty(input, "mode");
+  const skills = getOwnProperty(input, "skills");
+  const mcpServers = getOwnProperty(input, "mcpServers");
+  const logDir = getOwnProperty(input, "logDir");
+  const logFileName = getOwnProperty(input, "logFileName");
+  const logPath = getOwnProperty(input, "logPath");
   const options: SpawnOptions = {
     prompt: input.prompt,
     cwd: input.cwd,
-    ...("model" in input && input.model ? { model: input.model } : {}),
-    ...(input.signal ? { signal: input.signal } : {}),
-    ...("mode" in input && input.mode ? { mode: input.mode as SpawnOptions["mode"] } : {}),
-    ...("skills" in input && input.skills ? { skills: input.skills } : {}),
-    ...("mcpServers" in input && input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...("logDir" in input && input.logDir ? { logDir: input.logDir } : {}),
-    ...("logFileName" in input && input.logFileName ? { logFileName: input.logFileName } : {}),
-    ...("logPath" in input && input.logPath ? { logPath: input.logPath } : {})
+    ...(model ? { model: model as SpawnOptions["model"] } : {}),
+    ...(signal ? { signal: signal as AbortSignal } : {}),
+    ...(mode ? { mode: mode as SpawnOptions["mode"] } : {}),
+    ...(skills ? { skills: skills as SpawnOptions["skills"] } : {}),
+    ...(mcpServers ? { mcpServers: mcpServers as SpawnOptions["mcpServers"] } : {}),
+    ...(logDir ? { logDir: logDir as SpawnOptions["logDir"] } : {}),
+    ...(logFileName ? { logFileName: logFileName as SpawnOptions["logFileName"] } : {}),
+    ...(logPath ? { logPath: logPath as SpawnOptions["logPath"] } : {})
   };
   const result = await spawnAutonomous(
     (agent, spawnOptions) => {
@@ -448,6 +457,12 @@ async function runNestedAgent(
       ? { toolCalls: context.sessionResult.toolCalls }
       : {})
   };
+}
+
+function getOwnProperty(value: object, key: PropertyKey): unknown {
+  return Object.prototype.hasOwnProperty.call(value, key)
+    ? (value as Record<PropertyKey, unknown>)[key]
+    : undefined;
 }
 
 async function* observeEvents(
@@ -696,12 +711,7 @@ function mergeJudgeSpec(base: JudgeSpec, override: JudgeSpec | JudgeOverrideSpec
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 function formatUnknownError(error: unknown): string {

@@ -15,6 +15,7 @@ import { tmpdir } from 'node:os';
 import { basename, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { getWorkspaceDir } from './runtime.js';
 import { getApiKey } from './credentials.js';
+import { hasOwnErrorCode } from './error-codes.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
 import { startProxyServer, type ProxyServer } from './proxy-server.js';
 import type { CapturedExchange, SnapshotMissBehavior, SnapshotMode } from './proxy-types.js';
@@ -43,11 +44,7 @@ export interface HostExecCommandContext {
 export type HostExecCommandBuilder = (context: HostExecCommandContext) => HostExecCommand;
 
 function isRetryableRemoveError(error: unknown): boolean {
-  if (typeof error !== 'object' || error === null || !('code' in error)) {
-    return false;
-  }
-
-  return error.code === 'ENOTEMPTY' || error.code === 'EBUSY';
+  return hasOwnErrorCode(error, 'ENOTEMPTY') || hasOwnErrorCode(error, 'EBUSY');
 }
 
 function killProcessesUsingHome(home: string): void {
@@ -270,7 +267,7 @@ async function assertSnapshotPathHasNoSymlink(repoDir: string, snapshotDir: stri
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
-  return typeof error === 'object' && error !== null && 'code' in error && error.code === 'ENOENT';
+  return hasOwnErrorCode(error, 'ENOENT');
 }
 
 async function runPreflight(home: string, repoDir: string): Promise<string> {
@@ -285,12 +282,7 @@ async function runPreflight(home: string, repoDir: string): Promise<string> {
     await access(join(home, '.config'));
     throw new Error('Expected fresh HOME to have no agent config directories yet.');
   } catch (error) {
-    if (
-      typeof error !== 'object' ||
-      error === null ||
-      !('code' in error) ||
-      error.code !== 'ENOENT'
-    ) {
+    if (!hasOwnErrorCode(error, 'ENOENT')) {
       throw error;
     }
   }

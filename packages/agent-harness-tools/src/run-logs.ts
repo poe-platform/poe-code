@@ -1,5 +1,6 @@
 import path from "node:path";
 import { mkdir, realpath } from "node:fs/promises";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { assertContainedPath } from "./path-boundary.js";
 
 export interface ResolveRunLogDirOptions {
@@ -124,12 +125,7 @@ async function assertExistingPathContained(
 }
 
 function isNotFoundError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 const defaultRunLogFs: RunLogFileSystem = {

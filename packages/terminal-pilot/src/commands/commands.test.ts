@@ -703,6 +703,33 @@ function createMemFs(): { fs: FileSystem; vol: Volume } {
   return { fs, vol };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("terminal-pilot install/uninstall commands", () => {
   function createCommandContext(fileSystem: FileSystem) {
     return {
@@ -894,6 +921,57 @@ describe("terminal-pilot install/uninstall commands", () => {
     ).resolves.toEqual({
       agent: "codex",
       removedSkillPaths: []
+    });
+  });
+
+  it("does not hide uninstall path check errors with inherited missing-file codes", async () => {
+    const { fs: rawFs, vol } = createMemFs();
+    vol.mkdirSync(HOME_DIR, { recursive: true });
+    vol.mkdirSync(CWD, { recursive: true });
+    const fs = {
+      ...rawFs,
+      lstat: async (folderPath: string) => {
+        if (folderPath.includes("terminal-pilot")) {
+          throw new Error("skill lstat denied");
+        }
+
+        return await rawFs.lstat(folderPath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        uninstall.handler({
+          ...createCommandContext(fs),
+          params: { agent: "codex" }
+        })
+      ).rejects.toThrow("skill lstat denied");
+    });
+  });
+
+  it("does not hide uninstall folder stat errors with inherited missing-file codes", async () => {
+    const { fs: rawFs, vol } = createMemFs();
+    vol.mkdirSync(HOME_DIR, { recursive: true });
+    vol.mkdirSync(CWD, { recursive: true });
+    const localSkill = path.join(CWD, ".codex/skills/terminal-pilot");
+    const fs = {
+      ...rawFs,
+      stat: async (folderPath: string) => {
+        if (folderPath === localSkill) {
+          throw new Error("skill stat denied");
+        }
+
+        return await rawFs.stat(folderPath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        uninstall.handler({
+          ...createCommandContext(fs),
+          params: { agent: "codex" }
+        })
+      ).rejects.toThrow("skill stat denied");
     });
   });
 

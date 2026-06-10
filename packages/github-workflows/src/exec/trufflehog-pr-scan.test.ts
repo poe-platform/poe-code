@@ -20,6 +20,33 @@ function createTestFileSystem(files: Record<string, string> = {}) {
   return { volume, fs: createFsFromVolume(volume).promises };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 const finding = JSON.stringify({
   DetectorName: "OpenAI",
   SourceMetadata: { Data: { Git: { file: "src/config.ts", line: 12 } } }
@@ -270,6 +297,7 @@ describe("runTruffleHogPrScanCommand", () => {
 
   it("does not publish one scan artifact when staging the other fails", async () => {
     const { fs } = createTestFileSystem();
+    let temporaryPath: string | undefined;
     const failingFs = {
       ...fs,
       writeFile: vi.fn(async (
@@ -278,6 +306,8 @@ describe("runTruffleHogPrScanCommand", () => {
         options: { encoding: BufferEncoding; flag?: string }
       ) => {
         if (path.startsWith("/tmp/trufflehog-stderr.log.")) {
+          temporaryPath = path;
+          await fs.writeFile(path, "partial stderr\n", options);
           throw new Error("injected stderr write failure");
         }
         await fs.writeFile(path, content, options);
@@ -293,6 +323,63 @@ describe("runTruffleHogPrScanCommand", () => {
 
     await expect(fs.readFile("/tmp/trufflehog-results.jsonl", "utf8")).rejects.toThrow();
     await expect(fs.readFile("/tmp/trufflehog-stderr.log", "utf8")).rejects.toThrow();
+    expect(temporaryPath).toMatch(/^\/tmp\/trufflehog-stderr\.log\..+\.tmp$/);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toThrow();
+  });
+
+  it("removes partial staged scan artifacts when write errors only inherit existing-path codes", async () => {
+    const { fs } = createTestFileSystem();
+    let temporaryPath: string | undefined;
+    const failingFs = {
+      ...fs,
+      writeFile: vi.fn(async (
+        path: string,
+        content: string,
+        options: { encoding: BufferEncoding; flag?: string }
+      ) => {
+        if (path.startsWith("/tmp/trufflehog-stderr.log.")) {
+          temporaryPath = path;
+          await fs.writeFile(path, "partial stderr\n", options);
+          throw new Error("injected stderr write failure");
+        }
+        await fs.writeFile(path, content, options);
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        runTruffleHogPrScanCommand("scan-for-secrets", env(scanEnv), {
+          fs: failingFs,
+          runner: vi.fn().mockResolvedValue({ exitCode: 1, stdout: finding, stderr: "scanner stderr" })
+        })
+      ).rejects.toThrow("injected stderr write failure");
+    });
+
+    expect(temporaryPath).toMatch(/^\/tmp\/trufflehog-stderr\.log\..+\.tmp$/);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toThrow();
+  });
+
+  it("does not hide symbolic-link check failures with inherited missing-file codes", async () => {
+    const { fs } = createTestFileSystem({ "/github/output": "" });
+    const failingFs = {
+      ...fs,
+      lstat: vi.fn(async (path: string) => {
+        if (path === "/github/output") {
+          throw new Error("output lstat denied");
+        }
+
+        return await fs.lstat(path);
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        runTruffleHogPrScanCommand("scan-for-secrets", env({ ...scanEnv, GITHUB_OUTPUT: "/github/output" }), {
+          fs: failingFs,
+          runner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+        })
+      ).rejects.toThrow("output lstat denied");
+    });
   });
 
   it("does not remove a colliding staged scan artifact symlink", async () => {

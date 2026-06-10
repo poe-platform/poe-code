@@ -11,6 +11,7 @@ import {
 } from "@poe-code/ralph";
 
 import type { AttemptOutcome } from "../agent/runner.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { AttemptPhase, FailureCategory } from "../runtime/phases.js";
 import type { WorkflowDriver, WorkflowDriverContext } from "./types.js";
 
@@ -162,10 +163,11 @@ async function writeFileAtomically(targetPath: string, content: string): Promise
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error) && !tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (alreadyExists && !tempCreated) {
         continue;
       }
-      if (tempCreated) {
+      if (tempCreated || !alreadyExists) {
         await fs.rm(tempPath, { force: true }).catch(() => undefined);
       }
       throw error;
@@ -193,9 +195,7 @@ async function resolveUpdatedDocPath(workspaceDocPath: string): Promise<string> 
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(
-    error && typeof error === "object" && (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function fileExists(filePath: string): Promise<boolean> {
@@ -270,12 +270,7 @@ function isAbortError(error: unknown): boolean {
 }
 
 function isMissingPathError(error: unknown): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function errorMessage(error: unknown): string {

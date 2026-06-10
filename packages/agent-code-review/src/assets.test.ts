@@ -7,6 +7,33 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("discoverCodeReviewProfiles", () => {
   beforeEach(() => vol.reset());
 
@@ -78,6 +105,16 @@ describe("discoverCodeReviewProfiles", () => {
     await expect(
       discoverCodeReviewProfiles({ cwd: "/repo", profileDirectories: ["/catalog"] })
     ).rejects.toThrow("not a regular directory");
+  });
+
+  it("does not ignore invalid profile entries with inherited missing-file codes", async () => {
+    vol.mkdirSync("/repo/.poe-code/code-review/profiles/security.md", { recursive: true });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(discoverCodeReviewProfiles({ cwd: "/repo" })).rejects.toThrow(
+        "Code review asset path is not a regular file"
+      );
+    });
   });
 
   it("rejects relative external catalog paths from direct SDK calls", async () => {

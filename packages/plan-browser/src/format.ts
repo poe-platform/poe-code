@@ -67,6 +67,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 function stripBom(content: string): string {
   return content.startsWith("\uFEFF") ? content.slice(1) : content;
 }
@@ -170,12 +174,15 @@ function formatStateLabel(value: string): string {
 }
 
 export function formatSuperintendentDetail(frontmatter: Record<string, unknown>): string {
-  const status = isRecord(frontmatter.status) ? frontmatter.status : undefined;
-  const state = typeof status?.state === "string" ? status.state.trim() : "";
+  const statusValue = getOwnEntry(frontmatter, "status");
+  const status = isRecord(statusValue) ? statusValue : undefined;
+  const stateValue = status === undefined ? undefined : getOwnEntry(status, "state");
+  const state = typeof stateValue === "string" ? stateValue.trim() : "";
 
   if (state === "review") {
-    return typeof status?.review_turn === "number"
-      ? `review ${status.review_turn}`
+    const reviewTurn = status === undefined ? undefined : getOwnEntry(status, "review_turn");
+    return typeof reviewTurn === "number"
+      ? `review ${reviewTurn}`
       : "review";
   }
 
@@ -194,9 +201,10 @@ export function getLastExperimentState(journalContent: string): string {
 
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     try {
-      const parsed = JSON.parse(lines[index]!) as { status?: string };
-      if (parsed.status === "keep" || parsed.status === "discard") {
-        return parsed.status;
+      const parsed = JSON.parse(lines[index]!) as unknown;
+      const status = isRecord(parsed) ? getOwnEntry(parsed, "status") : undefined;
+      if (status === "keep" || status === "discard") {
+        return status;
       }
     } catch {
       continue;
@@ -285,7 +293,8 @@ export async function readExperimentState(
     const content = await fs.readFile(resolveExperimentJournalPath(absolutePath), "utf8");
     return getLastExperimentState(content);
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    const code = isRecord(error) ? getOwnEntry(error, "code") : undefined;
+    if (code === "ENOENT") {
       return "open";
     }
     throw error;

@@ -69,6 +69,15 @@ import {
   nodeFetch,
 } from "./testing.js";
 
+function hasOwnErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
+    (error as { code?: unknown }).code === code
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Shared helpers
 // ---------------------------------------------------------------------------
@@ -2743,7 +2752,7 @@ describe("HttpServer integration", () => {
           expect(response.status).toBe(200);
           return;
         } catch (error) {
-          if ((error as { code?: unknown }).code !== "EADDRINUSE" || attempt === 4) {
+          if (!hasOwnErrorCode(error, "EADDRINUSE") || attempt === 4) {
             throw error;
           }
         }

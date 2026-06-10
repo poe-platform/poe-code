@@ -73,6 +73,9 @@ export function serializeCodexMcpArgs(servers: McpSpawnConfig): string[] {
   for (const [name, server] of Object.entries(servers)) {
     const prefix = `mcp_servers.${name}`;
     args.push("-c", `${prefix}.command=${toTomlString(server.command)}`);
+    if (server.autoApprove !== false) {
+      args.push("-c", `${prefix}.default_tools_approval_mode=${toTomlString("approve")}`);
+    }
 
     if (server.args && server.args.length > 0) {
       args.push("-c", `${prefix}.args=${toTomlArray(server.args)}`);

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { assertContainedPath } from "./path-boundary.js";
 
 export function resolveWorkflowPath(inputPath: string, cwd: string, homeDir: string): string {
@@ -25,13 +26,7 @@ export interface DiscoverDocsOptions {
 }
 
 function isMissingDirectory(error: unknown): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 function defaultGlobForSubDirectory(subDirectory: string): string {

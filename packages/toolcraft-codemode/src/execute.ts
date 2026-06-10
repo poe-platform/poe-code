@@ -1,7 +1,8 @@
-import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script";
+import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script/core";
 import { defineCommand, type Group, type Scope } from "toolcraft";
 import { S } from "toolcraft-schema";
 
+import { getOwnErrorCode } from "./error-codes.js";
 import { buildHostModules } from "./host-modules.js";
 import type { CommandEntryList } from "./tree.js";
 
@@ -65,20 +66,22 @@ function createBudget(options: ExecuteBudgetOptions | undefined): Budget {
 }
 
 function readErrorCode(error: unknown): string | undefined {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return undefined;
-  }
+  return getOwnErrorCode(error);
+}
 
-  const code = (error as { code?: unknown }).code;
-  return typeof code === "string" ? code : undefined;
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }
 
 function readStringProperty(error: unknown, name: "message" | "stack"): string | undefined {
-  if (typeof error !== "object" || error === null || !(name in error)) {
+  if (typeof error !== "object" || error === null || !hasOwnProperty(error, name)) {
     return undefined;
   }
 
-  const value = (error as Record<typeof name, unknown>)[name];
+  const value = error[name];
   return typeof value === "string" ? value : undefined;
 }
 
@@ -116,17 +119,17 @@ function toLintResult(error: unknown): ExecuteResult | undefined {
   if (
     typeof error !== "object" ||
     error === null ||
-    !("kind" in error) ||
+    !hasOwnProperty(error, "kind") ||
     error.kind !== "ParseError" ||
-    !("message" in error) ||
+    !hasOwnProperty(error, "message") ||
     typeof error.message !== "string" ||
-    !("filename" in error) ||
+    !hasOwnProperty(error, "filename") ||
     typeof error.filename !== "string" ||
-    !("line" in error) ||
+    !hasOwnProperty(error, "line") ||
     typeof error.line !== "number" ||
-    !("column" in error) ||
+    !hasOwnProperty(error, "column") ||
     typeof error.column !== "number" ||
-    !("span" in error)
+    !hasOwnProperty(error, "span")
   ) {
     return undefined;
   }
@@ -142,15 +145,17 @@ function toLintResult(error: unknown): ExecuteResult | undefined {
   return {
     ok: false,
     kind: "lint",
-    diagnostics: [{
-      code: "AS001",
-      severity: "error",
-      message: parseError.message,
-      filename: parseError.filename,
-      line: parseError.line,
-      column: parseError.column,
-      span: parseError.span
-    }]
+    diagnostics: [
+      {
+        code: "AS001",
+        severity: "error",
+        message: parseError.message,
+        filename: parseError.filename,
+        line: parseError.line,
+        column: parseError.column,
+        span: parseError.span
+      }
+    ]
   };
 }
 

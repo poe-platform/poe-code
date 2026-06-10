@@ -36,6 +36,33 @@ function createFs(files: Record<string, string> = {}): TestFs {
   return createFsFromVolume(volume).promises;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createPipelineTestFs(rawFs: TestFs): PipelineFileSystem {
   return {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
@@ -298,6 +325,27 @@ describe("loadResolvedSteps", () => {
     expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
     expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
     expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
+  });
+
+  it("ignores inherited step config sections", async () => {
+    await withObjectPrototypeProperties(
+      {
+        steps: { implement: { prompt: "Polluted step" } },
+        setup: { prompt: "Polluted setup" },
+        teardown: { prompt: "Polluted teardown" }
+      },
+      async () => {
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": "{}\n"
+          })
+        });
+
+        expect(config).toEqual({ steps: {} });
+      }
+    );
   });
 
   it("rejects traversal in named step configuration names", async () => {
@@ -581,6 +629,74 @@ describe("loadResolvedSteps", () => {
     ).rejects.toThrow(/missing prompt/i);
   });
 
+  it("does not accept inherited step definition fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        prompt: "Polluted prompt",
+        agent: "polluted-agent",
+        model: "polluted-model",
+        mode: "read",
+        skills: ["polluted"],
+        hooks: { from: "polluted" }
+      },
+      async () => {
+        await expect(
+          loadResolvedSteps({
+            cwd: "/repo",
+            homeDir: "/home/test",
+            fs: createFs({
+              "/repo/.poe-code/pipeline/steps/default.yaml": [
+                "steps:",
+                "  implement: {}",
+                ""
+              ].join("\n")
+            })
+          })
+        ).rejects.toThrow(/missing prompt for step "implement"/i);
+
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    prompt: Implement",
+              ""
+            ].join("\n")
+          })
+        });
+
+        expect(config.steps).toEqual({
+          implement: {
+            mode: "yolo",
+            prompt: "Implement"
+          }
+        });
+      }
+    );
+  });
+
+  it("does not accept inherited step hook fields", async () => {
+    await withObjectPrototypeProperties({ from: "polluted" }, async () => {
+      await expect(
+        loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    prompt: Implement",
+              "    hooks: {}",
+              ""
+            ].join("\n")
+          })
+        })
+      ).rejects.toThrow(/invalid hooks from for step "implement"/i);
+    });
+  });
+
   it("parses per-step agent and model overrides", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
@@ -800,6 +916,48 @@ describe("loadResolvedSteps", () => {
     expect(config.teardown).toBeUndefined();
   });
 
+  it("ignores inherited inline step override fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        prompt: "Polluted prompt",
+        agent: "polluted-agent",
+        model: "polluted-model",
+        mode: "read",
+        skills: ["polluted"],
+        hooks: { from: "polluted" }
+      },
+      async () => {
+        const config = await loadResolvedSteps({
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs: createFs({
+            "/repo/.poe-code/pipeline/steps/default.yaml": [
+              "steps:",
+              "  implement:",
+              "    mode: edit",
+              "    prompt: Base implement",
+              "    agent: codex",
+              "    model: o3",
+              ""
+            ].join("\n")
+          }),
+          stepOverrides: {
+            implement: {}
+          } as Parameters<typeof loadResolvedSteps>[0]["stepOverrides"]
+        });
+
+        expect(config.steps).toEqual({
+          implement: {
+            mode: "edit",
+            prompt: "Base implement",
+            agent: "codex",
+            model: "o3"
+          }
+        });
+      }
+    );
+  });
+
   it("requires instruction for setup and teardown", async () => {
     await expect(
       loadResolvedSteps({
@@ -844,6 +1002,20 @@ describe("loadPipelineConfig", () => {
           retries: 3
         }
       }
+    });
+  });
+
+  it("ignores inherited plan_directory values", async () => {
+    await withObjectPrototypeProperties({ plan_directory: 123 }, async () => {
+      const config = await loadPipelineConfig({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/config.yaml": "{}\n"
+        })
+      });
+
+      expect(config).toEqual({});
     });
   });
 
@@ -1592,6 +1764,38 @@ describe("parsePlan", () => {
     ).toThrow(/unknown step "constructor"/i);
   });
 
+  it("does not accept inherited top-level plan fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        extends: "fast",
+        tasks: []
+      },
+      () => {
+        expect(() => parsePlan("name: Missing tasks\n")).toThrow(/expected "tasks" to be an array/i);
+
+        const plan = parsePlan("tasks: []\n");
+        expect(plan).toEqual({
+          extends: "default",
+          tasks: []
+        });
+      }
+    );
+  });
+
+  it("does not accept inherited task fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        id: "polluted",
+        title: "Polluted",
+        prompt: "Polluted",
+        status: "open"
+      },
+      () => {
+        expect(() => parsePlan(["tasks:", "  - {}", ""].join("\n"))).toThrow(/tasks\[0\]\.id/);
+      }
+    );
+  });
+
   it("accepts an empty tasks array", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.tasks).toEqual([]);
@@ -1776,23 +1980,32 @@ describe("writeTaskStatus", () => {
       ""
     ].join("\n");
     const fs = createFs({ "/repo/plan.yaml": initial });
+    let temporaryPath: string | undefined;
     const writeFile = vi.fn(fs.writeFile.bind(fs)).mockImplementation(async (filePath, data, options) => {
       if (filePath !== "/repo/plan.yaml") {
+        temporaryPath = String(filePath);
+        await fs.writeFile(filePath, "partial\n", options);
         throw new Error("status write failed");
       }
       return fs.writeFile(filePath, data, options);
     });
 
-    await expect(
-      writeTaskStatus({
-        fs: { ...fs, writeFile },
-        planPath: "/repo/plan.yaml",
-        taskId: "task-1",
-        status: "done"
-      })
-    ).rejects.toThrow("status write failed");
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        writeTaskStatus({
+          fs: { ...fs, writeFile },
+          planPath: "/repo/plan.yaml",
+          taskId: "task-1",
+          status: "done"
+        })
+      ).rejects.toThrow("status write failed");
+    });
 
     await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow a preexisting legacy temp path symlink", async () => {

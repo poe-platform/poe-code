@@ -1,5 +1,6 @@
 import { lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export interface SourceHookEntry {
   event: string;
@@ -47,7 +48,7 @@ function readSettingsFile(filePath: string): ClaudeSettings | undefined {
     }
     content = readFileSync(filePath, "utf8");
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
 

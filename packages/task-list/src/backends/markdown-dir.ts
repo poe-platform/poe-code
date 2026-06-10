@@ -233,15 +233,15 @@ function assertValidTaskRecord(
   filePath: string,
   validStates: ReadonlySet<string>
 ): void {
-  if ("$schema" in frontmatter && frontmatter.$schema !== TASK_SCHEMA_ID) {
+  if (hasOwnTaskField(frontmatter, "$schema") && frontmatter.$schema !== TASK_SCHEMA_ID) {
     throw malformedTask(filePath, "$schema");
   }
 
-  if ("kind" in frontmatter && frontmatter.kind !== TASK_KIND) {
+  if (hasOwnTaskField(frontmatter, "kind") && frontmatter.kind !== TASK_KIND) {
     throw malformedTask(filePath, "kind");
   }
 
-  if ("version" in frontmatter) {
+  if (hasOwnTaskField(frontmatter, "version")) {
     if (
       typeof frontmatter.version !== "number" ||
       !Number.isInteger(frontmatter.version) ||
@@ -251,17 +251,29 @@ function assertValidTaskRecord(
     }
   }
 
-  if (typeof frontmatter.name !== "string" || frontmatter.name.length === 0) {
+  if (
+    !hasOwnTaskField(frontmatter, "name") ||
+    typeof frontmatter.name !== "string" ||
+    frontmatter.name.length === 0
+  ) {
     throw malformedTask(filePath, "name");
   }
 
-  if (typeof frontmatter.state !== "string" || !validStates.has(frontmatter.state)) {
+  if (
+    !hasOwnTaskField(frontmatter, "state") ||
+    typeof frontmatter.state !== "string" ||
+    !validStates.has(frontmatter.state)
+  ) {
     throw malformedTask(filePath, "state");
   }
 
-  if ("description" in frontmatter && typeof frontmatter.description !== "string") {
+  if (hasOwnTaskField(frontmatter, "description") && typeof frontmatter.description !== "string") {
     throw malformedTask(filePath, "description");
   }
+}
+
+function hasOwnTaskField(frontmatter: TaskRecord, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(frontmatter, key);
 }
 
 function reservedFrontmatterKeys(mode: BackendDeps["frontmatterMode"]): ReadonlySet<string> {

@@ -4,6 +4,7 @@ import type { EvalRunResult } from "../types.js";
 import type { NormalizedTrace } from "./trace/types.js";
 
 const mocks = vi.hoisted(() => ({
+  failedReadTarget: undefined as string | undefined,
   failedRenameTarget: undefined as string | undefined,
   failedWriteTarget: undefined as string | undefined,
   randomUUIDs: [] as string[],
@@ -19,7 +20,13 @@ vi.mock("node:fs/promises", () => {
   return {
     lstat: fs.lstat.bind(fs),
     mkdir: fs.mkdir.bind(fs),
-    readFile: fs.readFile.bind(fs),
+    readFile: async (targetPath: string, encoding: BufferEncoding) => {
+      if (targetPath === mocks.failedReadTarget) {
+        throw new Error("simulated read failure");
+      }
+
+      return fs.readFile(targetPath, encoding);
+    },
     rename: async (sourcePath: string, targetPath: string) => {
       if (targetPath === mocks.failedRenameTarget) {
         throw new Error("simulated commit failure");
@@ -44,6 +51,7 @@ const { writeRunArtifacts, writeRunCompletion, writeRunEvidence, writeRunResult 
 describe("writeRunArtifacts", () => {
   beforeEach(() => {
     vol.reset();
+    mocks.failedReadTarget = undefined;
     mocks.failedRenameTarget = undefined;
     mocks.failedWriteTarget = undefined;
     mocks.randomUUIDs = [];
@@ -147,6 +155,22 @@ describe("writeRunArtifacts", () => {
     }
   });
 
+  it("does not treat inherited read error codes as missing prior artifacts", async () => {
+    mocks.failedReadTarget = "/runs/run-1/events.jsonl";
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        writeRunEvidence("/runs/run-1", {
+          events: [{ sessionUpdate: "tool_call", toolCall: "read" }],
+          trace: createTrace(),
+          cheatReport: { cheated: false, violations: [] },
+          planMd: "# Plan\n",
+          evalYaml: "id: task\n"
+        })
+      ).rejects.toThrow("simulated read failure");
+    });
+  });
+
   it("preserves the prior completion pair when a replacement commit fails", async () => {
     const { fs } = await import("memfs");
     await fs.promises.mkdir("/runs/run-1", { recursive: true });
@@ -232,6 +256,33 @@ describe("writeRunArtifacts", () => {
     await expect(readText("/runs/run-1/result.json")).rejects.toMatchObject({ code: "ENOENT" });
   });
 });
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 async function readText(path: string): Promise<string> {
   const { fs } = await import("memfs");

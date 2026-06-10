@@ -21,6 +21,33 @@ import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope 
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createConfigStore", () => {
   const projectConfigPath = `${homeDir}/workspace/.poe-code/config.json`;
 
@@ -131,6 +158,43 @@ describe("createConfigStore", () => {
 
     await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
       mode: "safe"
+    });
+  });
+
+  it("does not resolve or persist scope values inherited from Object.prototype", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": "{}\n"
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      },
+      enabled: {
+        type: "boolean" as const,
+        default: false,
+        doc: "Feature enabled"
+      }
+    });
+
+    await withObjectPrototypeProperties({ feature: { mode: "attacker" } }, async () => {
+      const feature = createConfigStore({ fs, filePath: configPath }).scope(featureScope);
+      await expect(feature.getAll()).resolves.toEqual({
+        mode: "safe",
+        enabled: false
+      });
+
+      await feature.set("enabled", true);
+    });
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      feature: {
+        enabled: true
+      }
     });
   });
 
@@ -708,6 +772,43 @@ describe("initProjectConfig", () => {
     await expect(initProjectConfig(fs, projectConfigPath)).resolves.toBe("already-exists");
     expect(fs.getContent(projectConfigPath)).toBe('{"core":{"apiKey":"concurrent-value"}}\n');
   });
+
+  it("does not treat inherited write error codes as concurrent project config creation", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    fs.writeFile = async (filePath) => {
+      if (filePath === projectConfigPath) {
+        throw new Error("project config create denied");
+      }
+
+      throw new Error(`Unexpected write: ${filePath}`);
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow(
+        "project config create denied"
+      );
+    });
+  });
+
+  it("removes a partially written config when initialization fails", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    const originalWriteFile = fs.writeFile.bind(fs);
+    fs.writeFile = async (filePath, content, options) => {
+      if (filePath === projectConfigPath) {
+        fs.files[filePath] = "{\n";
+        throw new Error("project config disk full");
+      }
+
+      await originalWriteFile(filePath, content, options);
+    };
+
+    await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow(
+      "project config disk full"
+    );
+    expect(fs.getContent(projectConfigPath)).toBeUndefined();
+  });
 });
 
 describe("deepMergeDocuments", () => {
@@ -787,6 +888,23 @@ describe("deepMergeDocuments", () => {
     });
   });
 
+  it("preserves proto-named scopes and runtime keys as data", () => {
+    const base = JSON.parse(
+      '{"__proto__":{"base":true},"runtime":{"build_args":{"__proto__":"base-value"}}}'
+    ) as ConfigDocument;
+    const override = JSON.parse(
+      '{"__proto__":{"override":true},"runtime":{"build_args":{"PACKAGE_MANAGER":"npm"}}}'
+    ) as ConfigDocument;
+
+    const result = deepMergeDocuments(base, override);
+    const runtime = result.runtime as Record<string, Record<string, unknown>>;
+
+    expect(Object.hasOwn(result, "__proto__")).toBe(true);
+    expect(result.__proto__).toEqual({ base: true, override: true });
+    expect(Object.hasOwn(runtime.build_args, "__proto__")).toBe(true);
+    expect(runtime.build_args.__proto__).toBe("base-value");
+  });
+
   it("returns the base document unchanged when override scope is empty", () => {
     const base = {
       core: { apiKey: "global-key" }
@@ -801,6 +919,38 @@ describe("models config", () => {
     const fs = createMockFs(undefined, homeDir);
 
     await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
+  });
+
+  it("ignores inherited model scope values while loading and saving", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": "{}\n"
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        models: {
+          codex: "polluted/agent-model",
+          default: "polluted/default-model"
+        },
+        codex: "polluted/nested-agent-model",
+        default: "polluted/nested-default-model"
+      },
+      async () => {
+        await expect(loadAgentModel({ fs, filePath: configPath }, "codex")).resolves.toBeNull();
+        await expect(loadDefaultModel({ fs, filePath: configPath })).resolves.toBeNull();
+
+        await saveAgentModel({ fs, filePath: configPath }, "codex", "openai/gpt-5.4");
+      }
+    );
+
+    expect(JSON.parse(fs.getContent("~/.poe-code/config.json") as string)).toEqual({
+      models: {
+        codex: "openai/gpt-5.4"
+      }
+    });
   });
 
   it("returns the stored agent-specific model", async () => {
@@ -1088,6 +1238,34 @@ describe("resolveScope", () => {
     });
   });
 
+  it("ignores inherited file values", () => {
+    const inherited = Object.create({
+      apiKey: "inherited-key",
+      timeout: 45,
+      enabled: true
+    }) as Record<string, unknown>;
+
+    expect(resolveScope(schema, inherited)).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
+  it("ignores inherited environment values", () => {
+    const inherited = Object.create({
+      POE_API_KEY: "inherited-key",
+      POE_TIMEOUT: "45",
+      POE_ENABLED: "true"
+    }) as Record<string, string | undefined>;
+
+    expect(resolveScope(schema, undefined, inherited)).toEqual({
+      apiKey: "",
+      timeout: 30,
+      enabled: false
+    });
+  });
+
   it("parses json values from file and env", () => {
     const jsonSchema = {
       plugins: {
@@ -1217,6 +1395,28 @@ describe("store", () => {
     );
   });
 
+  it("cleans a partial invalid config backup when recovery fails", async () => {
+    const original = "not json\n";
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    let backupPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.includes(".invalid-")) {
+          backupPath = targetPath;
+          await base.writeFile(targetPath, "partial backup\n", options);
+          throw new Error("config backup disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(readDocument(fs, configPath)).rejects.toThrow("config backup disk full");
+    expect(backupPath).toBeDefined();
+    expect(base.getContent(backupPath ?? "")).toBeUndefined();
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
   it("writes a scope while preserving unrelated scopes", async () => {
     const fs = createMockFs(
       {
@@ -1268,6 +1468,34 @@ describe("store", () => {
     await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
     const entries = await base.readdir(path.dirname(configPath));
     expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+  });
+
+  it("removes partial temporary config files after inherited existing-path errors", async () => {
+    const original = '{"core":{"apiKey":"old"}}\n';
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    let tempPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${configPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "partial temp\n", options);
+          throw new Error("config temp exists");
+        }
+
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow(
+        "config temp exists"
+      );
+    });
+
+    expect(tempPath).toBeDefined();
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
+    expect(base.getContent(tempPath as string)).toBeUndefined();
   });
 
   it("does not remove a colliding temporary config file it did not create", async () => {

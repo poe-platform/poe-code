@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { UserError } from "toolcraft";
 import {
   deriveNoun,
   deriveVerb,
@@ -19,18 +18,40 @@ describe("naming", () => {
     expect(deriveNoun({}, "/api/v1/chat/completions", "createChatCompletion")).toBe("chat");
   });
 
-  it("throws when tags[0] is missing and the path has no usable noun segment", () => {
-    expect(() => deriveNoun({}, "/{botHandle}", "viewBot")).toThrowError(
-      new UserError(
-        'Operation "viewBot" must define tags[0] or a static resource segment in the path to derive a command noun.'
-      )
+  it("falls back to the operation ID when the path has no usable noun segment", () => {
+    expect(deriveNoun({}, "/{botHandle}", "viewBot")).toBe("view-bot");
+    expect(deriveNoun({}, "/", "OPTIONS /")).toBe("options");
+  });
+
+  it("normalizes punctuation-heavy nouns", () => {
+    expect(deriveNoun({ tags: ["Product [identifier]"] }, "/products", "listProducts")).toBe(
+      "product-identifier"
     );
+    expect(
+      deriveNoun({}, "/#X-Amz-Target=AWSMigrationHub.AssociateCreatedArtifact", "associate")
+    ).toBe("x-amz-target-aws-migration-hub-associate-created-artifact");
   });
 
   it("uses delete as the default delete verb", () => {
     expect(
       deriveVerb("delete", "/bots/{handle}", { operationId: "deleteBot" }, "deleteBot", "bots")
     ).toBe("delete");
+  });
+
+  it("derives stable create and update verbs when operationId is absent", () => {
+    expect(deriveVerb("post", "/bots", {}, "POST /bots", "bots")).toBe("create");
+    expect(deriveVerb("post", "/bots/search", {}, "POST /bots/search", "bots")).toBe(
+      "create-search"
+    );
+    expect(deriveVerb("put", "/bots/{id}", {}, "PUT /bots/{id}", "bots")).toBe("update");
+    expect(deriveVerb("put", "/bots/{id}/roles", {}, "PUT /bots/{id}/roles", "bots")).toBe(
+      "update-roles"
+    );
+  });
+
+  it("uses stable defaults for HEAD and OPTIONS", () => {
+    expect(deriveVerb("head", "/bots/{id}", {}, "HEAD /bots/{id}", "bots")).toBe("check");
+    expect(deriveVerb("options", "/bots", {}, "OPTIONS /bots", "bots")).toBe("options");
   });
 
   it("uses the operationId for singleton GET endpoints", () => {

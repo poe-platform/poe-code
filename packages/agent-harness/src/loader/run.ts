@@ -23,6 +23,7 @@ import {
 } from "@poe-code/agent-script";
 import type { AnySchema } from "toolcraft-schema";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { makeSchemaModule } from "../modules/schema.js";
 import { extractSchema } from "./extract-schema.js";
 import { resolvePair } from "./pair.js";
@@ -283,8 +284,9 @@ function createReplayableClock(input: {
   now: (() => number) | undefined;
   snapshot: RunClockSnapshot | undefined;
 }): ReplayableClock {
-  let next = input.snapshot?.next;
-  let replaying = input.snapshot !== undefined;
+  const snapshot = isClockState(input.snapshot) ? input.snapshot : undefined;
+  let next = snapshot?.next;
+  let replaying = snapshot !== undefined;
   const hostNow = input.now ?? Date.now;
 
   return {
@@ -385,13 +387,15 @@ function restoreRandomState(random: ReplayableRandom): (state: unknown) => void 
 }
 
 function isClockState(value: unknown): value is RunClockSnapshot {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "next" in value &&
-    typeof value.next === "number" &&
-    Number.isFinite(value.next)
-  );
+  if (!hasOwnProperty(value, "next")) return false;
+  return typeof value.next === "number" && Number.isFinite(value.next);
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: unknown,
+  name: Name
+): value is Record<Name, unknown> {
+  return typeof value === "object" && value !== null && Object.hasOwn(value, name);
 }
 
 type HostCallRecord = {
@@ -556,7 +560,7 @@ async function writeTextFileAtomically(filePath: string, content: string): Promi
     temporaryCreated = true;
     await rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await unlinkIfExists(temporaryPath).catch(() => undefined);
     }
     throw error;
@@ -578,6 +582,10 @@ async function unlinkIfExists(path: string): Promise<void> {
       throw error;
     }
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function hostCallStorePath(snapshotPath: string): string {
@@ -674,12 +682,7 @@ function readNumber(value: unknown): number | undefined {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 function deepMergeFrontmatter(

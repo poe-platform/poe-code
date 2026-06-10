@@ -1,6 +1,6 @@
 import { UserError } from "toolcraft";
 
-export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+export type HttpMethod = "get" | "post" | "put" | "patch" | "delete" | "head" | "options";
 
 type MethodDefaults = {
   collection: string;
@@ -21,7 +21,9 @@ export const METHOD_DEFAULTS: Partial<Record<HttpMethod, MethodDefaults>> = {
     resource: "view",
     genericVerbs: ["get", "list", "view"],
     preferOperationIdWhenPathTailIsGeneric: true
-  }
+  },
+  head: { collection: "check", resource: "check" },
+  options: { collection: "options", resource: "options" }
 };
 
 export function deriveNoun(
@@ -32,18 +34,16 @@ export function deriveNoun(
   const noun = operation.tags?.[0];
 
   if (typeof noun !== "string" || noun.length === 0) {
-    const fallbackNoun = deriveNounFromPath(path);
-
-    if (fallbackNoun === undefined) {
-      throw new UserError(
-        `Operation ${JSON.stringify(operationId)} must define tags[0] or a static resource segment in the path to derive a command noun.`
-      );
-    }
-
-    return fallbackNoun;
+    return normalizeNoun(deriveNounFromPath(path) ?? operationId);
   }
 
-  return toKebabCase(noun);
+  return normalizeNoun(noun);
+}
+
+export function normalizeNoun(value: string): string {
+  return toKebabCase(
+    [...value].map((character) => (isNounWordCharacter(character) ? character : " ")).join("")
+  );
 }
 
 export function deriveVerb(
@@ -86,9 +86,74 @@ export function deriveVerb(
     return derived;
   }
 
+  const fallback = deriveVerbFromPath(method, segments, noun);
+  if (fallback !== undefined) {
+    return fallback;
+  }
+
   throw new UserError(
     `Operation ${JSON.stringify(operationId)} is missing an operationId, so toolcraft-openapi cannot derive a stable command verb.`
   );
+}
+
+function deriveVerbFromPath(
+  method: HttpMethod,
+  segments: string[],
+  noun: string
+): string | undefined {
+  const action = method === "post" ? "create" : method === "put" || method === "patch" ? "update" : undefined;
+  if (action === undefined) {
+    return undefined;
+  }
+
+  const staticSegments = segments
+    .filter((segment) => !isPathTemplateSegment(segment) && segment !== "api" && !isVersionWord(segment))
+    .map((segment) => toKebabCase(segment));
+  const nounIndex = staticSegments.indexOf(noun);
+  const qualifiers = nounIndex === -1 ? staticSegments.slice(1) : staticSegments.slice(nounIndex + 1);
+
+  return qualifiers.length === 0 ? action : `${action}-${qualifiers.join("-")}`;
+}
+
+export function deriveDisambiguatedVerb(operationId: string, noun: string): string {
+  const words = trimLeadingWords(splitWords(operationId).filter((word) => !isVersionWord(word)), splitWords(noun));
+  const withoutGenericVerb = stripLeadingGenericVerb(words, ["create", "delete", "get", "list", "patch", "post", "put", "remove", "update", "view"]);
+  const candidate = withoutGenericVerb.length === 0 ? words : withoutGenericVerb;
+
+  return candidate.map(normalizeNoun).filter((word) => word.length > 0).join("-");
+}
+
+export function derivePathDisambiguatedVerb(
+  method: HttpMethod,
+  path: string,
+  noun: string,
+  verb: string,
+  includeTemplateQualifiers = false,
+  includeParentQualifiers = false
+): string {
+  const segments = splitPathSegments(path);
+  const nounIndex = segments.findIndex((segment) => toKebabCase(segment) === noun);
+  const relevantSegments =
+    includeParentQualifiers || nounIndex === -1 ? segments : segments.slice(nounIndex + 1);
+  const staticQualifiers = relevantSegments
+    .flatMap(readStaticPathSegmentWords)
+    .filter((word) => word !== "api" && !isVersionWord(word));
+  const templateQualifiers = relevantSegments.flatMap(readPathTemplateWords);
+  const qualifiers = includeTemplateQualifiers
+    ? [...staticQualifiers, ...templateQualifiers]
+    : staticQualifiers.length > 0
+      ? staticQualifiers
+      : templateQualifiers;
+
+  if (qualifiers.length === 0) {
+    return verb;
+  }
+
+  const defaultVerb =
+    METHOD_DEFAULTS[method]?.resource ??
+    METHOD_DEFAULTS[method]?.collection ??
+    (method === "post" ? "create" : method === "put" || method === "patch" ? "update" : verb);
+  return `${defaultVerb}-${qualifiers.join("-")}`;
 }
 
 export function normalizeParamName(name: string): string {
@@ -147,8 +212,63 @@ function deriveNounFromPath(path: string): string | undefined {
     .find((segment) => segment.length > 0);
 }
 
+function isNounWordCharacter(character: string): boolean {
+  return (
+    (character >= "a" && character <= "z") ||
+    (character >= "A" && character <= "Z") ||
+    (character >= "0" && character <= "9") ||
+    character === "-" ||
+    character === "_"
+  );
+}
+
 function isPathTemplateSegment(segment: string | undefined): boolean {
   return segment !== undefined && segment.startsWith("{") && segment.endsWith("}");
+}
+
+function readStaticPathSegmentWords(segment: string): string[] {
+  let depth = 0;
+  let staticText = "";
+
+  for (const character of segment) {
+    if (character === "{") {
+      depth += 1;
+      staticText += " ";
+      continue;
+    }
+
+    if (character === "}") {
+      depth = Math.max(0, depth - 1);
+      staticText += " ";
+      continue;
+    }
+
+    staticText += depth === 0 ? character : " ";
+  }
+
+  return splitWords(staticText.replaceAll(":", " "));
+}
+
+function readPathTemplateWords(segment: string): string[] {
+  let depth = 0;
+  let templateText = "";
+
+  for (const character of segment) {
+    if (character === "{") {
+      depth += 1;
+      continue;
+    }
+
+    if (character === "}") {
+      depth = Math.max(0, depth - 1);
+      templateText += " ";
+      continue;
+    }
+
+    templateText += depth > 0 ? character : " ";
+  }
+
+  return splitWords(templateText.replaceAll(":", " "));
 }
 
 function deriveVerbFromOperationId(

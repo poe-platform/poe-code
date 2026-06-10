@@ -43,6 +43,32 @@ function writeMarkdown(directory: string, fileName: string, content: string): vo
   fsState.files.set(`${directory}/${fileName}`, content);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("discoverAutomations", () => {
   beforeEach(() => {
     fsState.directories.clear();
@@ -72,6 +98,20 @@ describe("discoverAutomations", () => {
         allow: ["OWNER"]
       }
     ]);
+  });
+
+  it("does not ignore directory read failures with inherited missing-path codes", async () => {
+    writeMarkdown("/built-in", "triage.md", "# Built-in triage");
+    fsState.readdirErrors.set(
+      "/project",
+      new Error("project directory read denied") as NodeJS.ErrnoException
+    );
+
+    await withObjectPrototypeProperties({ code: "ENOTDIR" }, async () => {
+      await expect(discoverAutomations("/built-in", "/project")).rejects.toThrow(
+        "project directory read denied"
+      );
+    });
   });
 });
 
@@ -126,6 +166,40 @@ describe("loadAutomation", () => {
       name: "triage",
       prompt: "# Built-in triage",
       agent: "codex"
+    });
+  });
+
+  it("ignores inherited automation fields", async () => {
+    writeMarkdown("/built-in", "triage.md", ["---", "{}", "---"].join("\n"));
+
+    await withObjectPrototypeProperties(
+      {
+        prompt: "Polluted prompt",
+        agent: "polluted-agent",
+        allow: ["OWNER"],
+        prefix: "/poe"
+      },
+      async () => {
+        await expect(loadAutomation("triage", ["/built-in"])).resolves.toEqual({
+          name: "triage",
+          prompt: "",
+          agent: "codex"
+        });
+      }
+    );
+  });
+
+  it("does not accept inherited mcp server fields", async () => {
+    writeMarkdown(
+      "/built-in",
+      "triage.md",
+      ["---", "mcp:", "  server: {}", "---", "Prompt"].join("\n")
+    );
+
+    await withObjectPrototypeProperties({ command: "polluted-command" }, async () => {
+      await expect(loadAutomation("triage", ["/built-in"])).rejects.toThrow(
+        'Automation "triage.md" has invalid "mcp.server.command" frontmatter. Expected a string.'
+      );
     });
   });
 

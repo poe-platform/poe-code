@@ -10,6 +10,7 @@ import {
   resolveApiShape,
   type ApiShapeId
 } from "@poe-code/providers";
+import { hasOwnErrorCode } from "./errors.js";
 import { readDocument, readMergedDocument, readMergedDocumentReadonly, writeScope } from "./store.js";
 
 export interface ConfigStoreOptions {
@@ -59,7 +60,7 @@ export async function loadConfiguredServices(
 
   const readConfig = options.readOnly ? readMergedDocumentReadonly : readMergedDocument;
   const document = await readConfig(fs, filePath, projectFilePath);
-  return normalizeConfiguredServices(document[configuredServicesScope]);
+  return normalizeConfiguredServices(getOwnEntry(document, configuredServicesScope));
 }
 
 export async function saveConfiguredService(options: SaveConfiguredServiceOptions): Promise<void> {
@@ -68,7 +69,7 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
   await migrateConfiguredServicesIfNeeded(options, filePath);
 
   const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(document[configuredServicesScope]);
+  const services = normalizeConfiguredServices(getOwnEntry(document, configuredServicesScope));
   const registry = options.providerRegistry ?? defaultProviderRegistry;
   defineDataProperty(services, service, normalizeConfiguredServiceMetadata({
     ...metadata,
@@ -90,7 +91,7 @@ export async function unconfigureService(options: UnconfigureServiceOptions): Pr
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
 
   const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(document[configuredServicesScope]);
+  const services = normalizeConfiguredServices(getOwnEntry(document, configuredServicesScope));
 
   if (!Object.hasOwn(services, service)) {
     return false;
@@ -144,7 +145,7 @@ async function prepareConfiguredServicesMigration(
   filePath: string
 ): Promise<ConfiguredServicesMigration | undefined> {
   const document = await readDocument(options.fs, filePath);
-  const rawServices = document[configuredServicesScope];
+  const rawServices = getOwnEntry(document, configuredServicesScope);
   if (!isRecord(rawServices)) {
     return undefined;
   }
@@ -158,17 +159,20 @@ async function prepareConfiguredServicesMigration(
       continue;
     }
 
-    const provider = typeof entry.provider === "string" ? entry.provider : "poe";
-    const normalizedEntry: Record<string, unknown> = {
-      ...entry,
-      provider
-    };
+    const providerValue = getOwnEntry(entry, "provider");
+    const provider = typeof providerValue === "string" ? providerValue : "poe";
+    const normalizedEntry: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(entry)) {
+      defineDataProperty(normalizedEntry, key, value);
+    }
+    defineDataProperty(normalizedEntry, "provider", provider);
 
-    if (typeof entry.provider !== "string") {
+    if (typeof providerValue !== "string") {
       needsMigration = true;
     }
 
-    if (!isApiShape(entry.apiShape)) {
+    const apiShapeValue = getOwnEntry(entry, "apiShape");
+    if (!isApiShape(apiShapeValue)) {
       const apiShape = deriveApiShape({
         service,
         provider,
@@ -176,7 +180,7 @@ async function prepareConfiguredServicesMigration(
         warn: options.warn ?? console.warn
       });
       if (apiShape) {
-        normalizedEntry.apiShape = apiShape;
+        defineDataProperty(normalizedEntry, "apiShape", apiShape);
         needsMigration = true;
       }
     }
@@ -228,14 +232,22 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       continue;
     }
 
+    const providerValue = getOwnEntry(entry, "provider");
+    const apiShapeValue = getOwnEntry(entry, "apiShape");
+    const filesValue = getOwnEntry(entry, "files");
+    const modelValue = getOwnEntry(entry, "model");
+    const reasoningEffortValue = getOwnEntry(entry, "reasoningEffort");
+    const baseUrlValue = getOwnEntry(entry, "baseUrl");
+    const shapeBaseUrlValue = getOwnEntry(entry, "shapeBaseUrl");
+
     defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
-      provider: typeof entry.provider === "string" ? entry.provider : "poe",
-      apiShape: isApiShape(entry.apiShape) ? entry.apiShape : undefined,
-      files: Array.isArray(entry.files) ? entry.files : [],
-      model: typeof entry.model === "string" ? entry.model : undefined,
-      reasoningEffort: typeof entry.reasoningEffort === "string" ? entry.reasoningEffort : undefined,
-      baseUrl: typeof entry.baseUrl === "string" ? entry.baseUrl : undefined,
-      shapeBaseUrl: Array.isArray(entry.shapeBaseUrl) ? entry.shapeBaseUrl : undefined
+      provider: typeof providerValue === "string" ? providerValue : "poe",
+      apiShape: isApiShape(apiShapeValue) ? apiShapeValue : undefined,
+      files: Array.isArray(filesValue) ? filesValue : [],
+      model: typeof modelValue === "string" ? modelValue : undefined,
+      reasoningEffort: typeof reasoningEffortValue === "string" ? reasoningEffortValue : undefined,
+      baseUrl: typeof baseUrlValue === "string" ? baseUrlValue : undefined,
+      shapeBaseUrl: Array.isArray(shapeBaseUrlValue) ? shapeBaseUrlValue : undefined
     }));
   }
 
@@ -310,13 +322,15 @@ async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string):
     throw error;
   }
 
-  if (legacyDocument.configured_services) {
-    await writeScope(fs, configPath, configuredServicesScope, legacyDocument.configured_services);
+  const configuredServices = getOwnEntry(legacyDocument, "configured_services");
+  if (isRecord(configuredServices)) {
+    await writeScope(fs, configPath, configuredServicesScope, configuredServices);
   }
 
-  if (legacyDocument.apiKey) {
+  const apiKey = getOwnEntry(legacyDocument, "apiKey");
+  if (typeof apiKey === "string" && apiKey.length > 0) {
     await writeScope(fs, configPath, CORE_SCOPE, {
-      apiKey: legacyDocument.apiKey
+      apiKey
     });
   }
 
@@ -328,12 +342,13 @@ function normalizeLegacyConfigDocument(value: unknown): LegacyConfigDocument {
     return {};
   }
 
-  const document: LegacyConfigDocument = {};
-  if (typeof value.apiKey === "string" && value.apiKey.length > 0) {
-    document.apiKey = value.apiKey;
+  const document = Object.create(null) as LegacyConfigDocument;
+  const apiKey = getOwnEntry(value, "apiKey");
+  if (typeof apiKey === "string" && apiKey.length > 0) {
+    document.apiKey = apiKey;
   }
 
-  const services = normalizeConfiguredServices(value.configured_services);
+  const services = normalizeConfiguredServices(getOwnEntry(value, "configured_services"));
   if (Object.keys(services).length > 0) {
     document.configured_services = services;
   }
@@ -368,6 +383,7 @@ async function writeInvalidBackup(fs: FileSystem, filePath: string, content: str
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
+        await fs.unlink(candidate).catch(() => undefined);
         throw error;
       }
     }
@@ -391,7 +407,7 @@ async function writeFileAtomically(fs: FileSystem, filePath: string, content: st
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {
@@ -405,6 +421,12 @@ function isApiShape(value: unknown): value is ApiShapeId {
     value === "anthropic-messages" ||
     value === "google-generations"
   );
+}
+
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
 }
 
 function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {

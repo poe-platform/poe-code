@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rename, rm, writeFile as nodeWriteFile } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { RunResult } from "../run.js";
 import { dumpCurrent } from "../snapshot/dump.js";
 
@@ -62,7 +63,7 @@ export function attachSignalDumpHandler(
           tempCreated = true;
           await rename(tempPath, options.dumpPath);
         } catch (error) {
-          if (tempCreated) {
+          if (tempCreated || !isAlreadyExistsError(error)) {
             await rm(tempPath, { force: true }).catch(() => undefined);
           }
           throw error;
@@ -74,6 +75,10 @@ export function attachSignalDumpHandler(
       stderr.write(`Failed to write ${signal} dump to ${options.dumpPath ?? "<memory>"}: ${readErrorMessage(error)}\n`);
     }
   }
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && hasOwnErrorCode(error, "EEXIST");
 }
 
 function readErrorMessage(error: unknown): string {

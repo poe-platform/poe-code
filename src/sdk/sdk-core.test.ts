@@ -120,6 +120,25 @@ import { generate, generateAudio, generateImage, generateVideo } from "./generat
 import { setGlobalClient } from "../services/client-instance.js";
 import type { LlmClient } from "../services/llm-client.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 const originalEnv = { ...process.env };
 afterEach(() => {
   process.env = { ...originalEnv };
@@ -329,6 +348,25 @@ describe("launch sdk", () => {
     expect(killSpy).toHaveBeenNthCalledWith(1, -123, "SIGTERM");
     expect(killSpy).toHaveBeenNthCalledWith(2, 123, "SIGTERM");
   });
+
+  it("does not fall back when process group errors only inherit ESRCH", async () => {
+    await stopLaunch({ homeDir: "/home/test", id: "api" });
+
+    const stopOptions = stopManagedProcessMock.mock.calls[0]?.[0];
+    expect(stopOptions?.signalProcess).toBeTypeOf("function");
+
+    const error = new Error("kill denied");
+    const killSpy = vi.spyOn(process, "kill").mockImplementationOnce(() => {
+      throw error;
+    });
+
+    await withObjectPrototypeCode("ESRCH", async () => {
+      expect(() => stopOptions.signalProcess(123, "SIGTERM")).toThrow(error);
+    });
+
+    expect(killSpy).toHaveBeenCalledOnce();
+    expect(killSpy).toHaveBeenCalledWith(-123, "SIGTERM");
+  });
 });
 
 // ─── spawn-core.test.ts ───────────────────────────────────────────────────────
@@ -528,6 +566,22 @@ describe("spawnCore", () => {
     expect(lastCall.args).toContain("fix the bug");
     expect(lastCall.args).toContain("--extra");
     expect(lastCall.args).toContain("arg");
+  });
+
+  it("passes per-invocation environment overrides to providers", async () => {
+    const { runner, calls } = createCommandRunnerStub();
+    const { container } = createContainerWithDependencies({
+      fs,
+      commandRunner: runner
+    });
+    await ensureIsolatedConfig("opencode");
+
+    await spawnCore(container, "opencode", {
+      prompt: "test prompt",
+      env: { WORKSPACE_ID: "workspace-1" }
+    });
+
+    expect(calls.at(-1)?.options?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
   });
 
   it("handles dry run mode", async () => {

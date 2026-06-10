@@ -168,10 +168,41 @@ function withRenameOverride(fs: FileSystem, rename: FileSystem["rename"]): FileS
   }) as FileSystem;
 }
 
+function withWriteFileOverride(fs: FileSystem, writeFile: FileSystem["writeFile"]): FileSystem {
+  return new Proxy(fs, {
+    get(target, property, receiver) {
+      if (property === "writeFile") {
+        return writeFile;
+      }
+      const value = Reflect.get(target, property, receiver) as unknown;
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  }) as FileSystem;
+}
+
 function createTestFsError(code: string, filePath: string): NodeJS.ErrnoException {
   const error = new Error(`${code}: test failure, '${filePath}'`) as NodeJS.ErrnoException;
   error.code = code;
   return error;
+}
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
 }
 
 describe("configure provider resolution", () => {
@@ -1151,6 +1182,35 @@ describe("configure provider resolution", () => {
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe("inside");
   });
 
+  it("removes partial overlay temps when base file writes fail", async () => {
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const partialTemps: string[] = [];
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(configFile, "original", { encoding: "utf8" });
+    const failingFs = withWriteFileOverride(fs, async (filePath, data, options) => {
+      const filePathText = String(filePath);
+      if (filePathText.startsWith(`${configFile}.overlay-tmp-${process.pid}-`)) {
+        partialTemps.push(filePathText);
+        await fs.writeFile(filePath, "partial", options);
+        throw new Error("overlay write failed");
+      }
+      await fs.writeFile(filePath, data, options);
+    });
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(transaction.commit()).rejects.toThrow("overlay write failed");
+    });
+
+    expect(partialTemps.length).toBeGreaterThan(0);
+    await expect(fs.readFile(configFile, "utf8")).resolves.toBe("original");
+    for (const partialTemp of partialTemps) {
+      await expect(fs.lstat(partialTemp)).rejects.toMatchObject({ code: "ENOENT" });
+    }
+  });
+
   it("restores original symlinks and removes staged temps when overlay commit fails", async () => {
     const outsidePath = "/outside/config.toml";
     const configFile = `${homeDir}/.poe-code/config.toml`;
@@ -1182,5 +1242,33 @@ describe("configure provider resolution", () => {
     for (const failedRename of failedRenames) {
       await expect(fs.lstat(failedRename)).rejects.toMatchObject({ code: "ENOENT" });
     }
+  });
+
+  it("does not treat inherited lstat codes as missing overlay base entries", async () => {
+    const configFile = `${homeDir}/.poe-code/config.toml`;
+    const lstatError = new Error("overlay lstat denied");
+    await fs.mkdir(path.dirname(configFile), { recursive: true });
+    await fs.writeFile(configFile, "original", { encoding: "utf8" });
+    const failingFs = new Proxy(fs, {
+      get(target, property, receiver) {
+        if (property === "lstat") {
+          return async (filePath: string) => {
+            if (filePath === configFile) {
+              throw lstatError;
+            }
+            return target.lstat(filePath);
+          };
+        }
+        const value = Reflect.get(target, property, receiver) as unknown;
+        return typeof value === "function" ? value.bind(target) : value;
+      }
+    }) as FileSystem;
+    const transaction = createOverlayFileSystem(failingFs);
+
+    await transaction.fs.writeFile(configFile, "inside", { encoding: "utf8" });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(transaction.hasMaterialChange()).rejects.toBe(lstatError);
+    });
   });
 });

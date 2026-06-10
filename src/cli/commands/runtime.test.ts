@@ -11,6 +11,7 @@ import {
 } from "@poe-code/agent-harness-tools";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import { createCliContainer } from "../container.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerRuntimeCommand } from "./runtime/index.js";
 
@@ -49,6 +50,25 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function replaceWithSymlink(
   fs: Pick<FileSystem, "symlink" | "unlink">,
   filePath: string,
@@ -57,7 +77,7 @@ async function replaceWithSymlink(
   try {
     await fs.unlink(filePath);
   } catch (error) {
-    if ((error as { code?: unknown }).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
@@ -279,6 +299,30 @@ describe("runtime command", () => {
     });
 
     await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside-state\n");
+  });
+
+  it("cleans a partial default Dockerfile when creation fails", async () => {
+    const fs = createMemFs();
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === dockerfilePath) {
+        await writeFile(filePath, "partial Dockerfile\n", options);
+        throw new Error("Dockerfile disk full");
+      }
+
+      await writeFile(filePath, data, options);
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync(["node", "cli", "--yes", "runtime", "init"])
+      ).rejects.toThrow("Dockerfile disk full");
+    });
+
+    await expect(fs.readFile(dockerfilePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("deep-merges only runtime.type on an initialized project", async () => {

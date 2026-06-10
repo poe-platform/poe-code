@@ -8,6 +8,7 @@ import {
   type ServerResponse,
 } from 'node:http';
 import { dirname, join } from 'node:path';
+import { hasOwnErrorCode } from './error-codes.js';
 import type { CapturedExchange, ProxyConfig, ProxyRoute } from './proxy-types.js';
 
 export interface ProxyServer {
@@ -164,20 +165,19 @@ async function writeSnapshot(
     temporaryCreated = true;
     await rename(temporaryPath, snapshotPath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await rm(temporaryPath, { force: true }).catch(() => undefined);
     }
     throw error;
   }
 }
 
+function isAlreadyExistsError(error: unknown): boolean {
+  return hasOwnErrorCode(error, 'EEXIST');
+}
+
 function isMissingFileError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: string }).code === 'ENOENT'
-  );
+  return hasOwnErrorCode(error, 'ENOENT');
 }
 
 async function readSnapshotResponse(route: ProxyRoute, key: string): Promise<unknown> {
@@ -188,7 +188,11 @@ async function readSnapshotResponse(route: ProxyRoute, key: string): Promise<unk
   const snapshotPath = join(route.snapshotDir, `${key}.json`);
   const snapshotRaw = await readFile(snapshotPath, 'utf8');
   const snapshot = parseBody(snapshotRaw);
-  if (snapshot === null || typeof snapshot !== 'object' || !('response' in snapshot)) {
+  if (
+    snapshot === null ||
+    typeof snapshot !== 'object' ||
+    !Object.prototype.hasOwnProperty.call(snapshot, 'response')
+  ) {
     throw new Error(`Snapshot ${snapshotPath} is missing response.`);
   }
 

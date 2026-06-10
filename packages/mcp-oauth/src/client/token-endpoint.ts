@@ -124,38 +124,42 @@ async function requestTokens(input: {
     body: body.toString(),
   });
   const payload = await readOAuthJsonObjectResponse(response);
+  const accessToken = getOwnEntry(payload, "access_token");
 
-  if (typeof payload.access_token !== "string" || payload.access_token.trim().length === 0) {
+  if (typeof accessToken !== "string" || accessToken.trim().length === 0) {
     throw new Error("OAuth token response missing access_token");
   }
 
-  const tokenType = normalizeBearerTokenType(payload.token_type);
+  const tokenType = normalizeBearerTokenType(getOwnEntry(payload, "token_type"));
   if (tokenType === null) {
     throw new Error("OAuth token response missing token_type=Bearer");
   }
 
+  const expiresIn = getOwnEntry(payload, "expires_in");
   if (
-    typeof payload.expires_in === "number"
-    && Number.isFinite(payload.expires_in)
-    && payload.expires_in < 0
+    typeof expiresIn === "number"
+    && Number.isFinite(expiresIn)
+    && expiresIn < 0
   ) {
     throw new Error("OAuth token response has invalid expires_in");
   }
 
+  const refreshToken = getOwnEntry(payload, "refresh_token");
+  const scope = getOwnEntry(payload, "scope");
   return {
-    accessToken: payload.access_token,
+    accessToken,
     refreshToken:
-      typeof payload.refresh_token === "string" && payload.refresh_token.length > 0
-        ? payload.refresh_token
+      typeof refreshToken === "string" && refreshToken.length > 0
+        ? refreshToken
         : undefined,
     tokenType,
     expiresAt:
-      typeof payload.expires_in === "number" && Number.isFinite(payload.expires_in)
-        ? input.now() + (payload.expires_in * 1000)
+      typeof expiresIn === "number" && Number.isFinite(expiresIn)
+        ? input.now() + (expiresIn * 1000)
         : null,
     scope:
-      typeof payload.scope === "string" && payload.scope.length > 0
-        ? payload.scope
+      typeof scope === "string" && scope.length > 0
+        ? scope
         : undefined,
   };
 }
@@ -194,17 +198,24 @@ function readOAuthError(
   payload: Record<string, unknown>,
   fallbackError = "server_error"
 ): OAuthErrorShape {
+  const error = getOwnEntry(payload, "error");
+  const errorDescription = getOwnEntry(payload, "error_description");
+  const errorUri = getOwnEntry(payload, "error_uri");
   return {
-    error: typeof payload.error === "string" ? payload.error : fallbackError,
+    error: typeof error === "string" ? error : fallbackError,
     error_description:
-      typeof payload.error_description === "string"
-        ? payload.error_description
+      typeof errorDescription === "string"
+        ? errorDescription
         : undefined,
     error_uri:
-      typeof payload.error_uri === "string"
-        ? payload.error_uri
+      typeof errorUri === "string"
+        ? errorUri
         : undefined,
   };
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function createFallbackOAuthError(status: number): OAuthError {

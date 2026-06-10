@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
-import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn";
-import type { SpawnUsage } from "@poe-code/agent-spawn";
+import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn/parallel";
+import type { SpawnUsage } from "@poe-code/agent-spawn/types";
 import {
   bindOtelSpan,
   activateOtelSpan,
@@ -37,6 +37,7 @@ export type AgentModuleDefinition =
 
 export type AgentModuleSpawnOptions = {
   prompt: string;
+  label?: string;
   mcp?: AgentModuleMcpConfig;
   model?: string;
   mode?: AgentSpawnMode;
@@ -46,9 +47,11 @@ export type AgentModuleSpawnOptions = {
   signal?: AbortSignal;
 };
 
-export type SpawnAgentInput = AgentModuleSpawnOptions & {
+export type SpawnAgentInput = Omit<AgentModuleSpawnOptions, "label"> & {
   agent: string;
 };
+
+type ResolvedSpawnAgentInput = SpawnAgentInput & { label?: string };
 
 export type SpawnAgentResult = {
   exitCode: number;
@@ -62,8 +65,59 @@ export type SpawnAgentResult = {
 export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
 
 export type AgentModuleOptions = {
+  defaultRetry?: AgentModuleRetryOptions;
+  onEvent?: (event: AgentSpawnEvent) => void | Promise<void>;
   otelSink?: OtelSink;
 };
+
+export type AgentSpawnEvent =
+  | {
+      type: "spawn.started";
+      spawnId: number;
+      agent: string;
+      task: string;
+      attempt: number;
+      maxAttempts: number;
+    }
+  | {
+      type: "spawn.retry";
+      spawnId: number;
+      agent: string;
+      task: string;
+      attempt: number;
+      maxAttempts: number;
+      delayMs: number;
+      error: string;
+    }
+  | {
+      type: "spawn.succeeded";
+      spawnId: number;
+      agent: string;
+      task: string;
+      attempt: number;
+      maxAttempts: number;
+      durationMs: number;
+    }
+  | {
+      type: "spawn.failed";
+      spawnId: number;
+      agent: string;
+      task: string;
+      attempt: number;
+      maxAttempts: number;
+      durationMs: number;
+      error: string;
+    }
+  | {
+      type: "spawn.cancelled";
+      spawnId: number;
+      agent: string;
+      task: string;
+      attempt: number;
+      maxAttempts: number;
+      durationMs: number;
+      reason: string;
+    };
 
 export type SpawnUsageTotal = {
   inputTokens: number;
@@ -71,9 +125,12 @@ export type SpawnUsageTotal = {
   cachedTokens: number;
   costUsd?: number;
   spawnCount: number;
+  attemptCount?: number;
 };
 
 export type SpawnUsageAccumulator = {
+  beginAttempt?(): void;
+  beginSpawn?(): void;
   record(usage: SpawnUsage | undefined): void;
   reset(): void;
   snapshot(): SpawnUsageTotal;
@@ -87,11 +144,16 @@ export function createSpawnUsageAccumulator(): SpawnUsageAccumulator {
   let cachedTokens = 0;
   let costUsd: number | undefined;
   let spawnCount = 0;
+  let attemptCount = 0;
 
   return {
-    record(usage) {
+    beginAttempt() {
+      attemptCount += 1;
+    },
+    beginSpawn() {
       spawnCount += 1;
-
+    },
+    record(usage) {
       if (usage === undefined) {
         return;
       }
@@ -110,6 +172,7 @@ export function createSpawnUsageAccumulator(): SpawnUsageAccumulator {
       cachedTokens = 0;
       costUsd = undefined;
       spawnCount = 0;
+      attemptCount = 0;
     },
     snapshot() {
       return {
@@ -117,7 +180,8 @@ export function createSpawnUsageAccumulator(): SpawnUsageAccumulator {
         outputTokens,
         cachedTokens,
         ...(costUsd === undefined ? {} : { costUsd }),
-        spawnCount
+        spawnCount,
+        ...(attemptCount === spawnCount ? {} : { attemptCount })
       };
     }
   };
@@ -134,6 +198,7 @@ export async function runWithSpawnUsageAccumulator<TResult>(
 export type AgentModuleRetryOptions = {
   maxAttempts: number;
   backoffMs: number;
+  isErrorRetryable?: (error: unknown) => boolean;
   isRetryable?: (result: SpawnAgentResult) => boolean;
 };
 
@@ -163,20 +228,24 @@ export function makeAgentModule(
 ): {
   spawn: AgentModuleSpawn;
 } {
+  const defaultRetry =
+    moduleOptions.defaultRetry === undefined
+      ? undefined
+      : normalizeRetryOptions(moduleOptions.defaultRetry);
+  let nextSpawnId = 1;
+
   const spawnOnce = async (
     agentDef: AgentModuleDefinition,
     options: AgentModuleSpawnOptions
   ): Promise<SpawnAgentResult> => {
     const input = resolveSpawnInput(agentDef, options);
+    const spawnId = nextSpawnId;
+    nextSpawnId += 1;
+    recordActiveSpawnStart();
     return runObservedSpawn(moduleOptions.otelSink, input, async () => {
-      const result = validateSpawnResult(await spawnAgent(input));
-      recordActiveSpawnUsage(result.usage);
-
-      if (result.exitCode !== 0) {
-        throw new Error(createSpawnFailureMessage(result));
-      }
-
-      return result;
+      return defaultRetry === undefined
+        ? runSpawnAttempt(spawnAgent, input, moduleOptions.onEvent, spawnId)
+        : runSpawnRetry(spawnAgent, input, defaultRetry, moduleOptions.onEvent, spawnId);
     });
   };
 
@@ -188,8 +257,17 @@ export function makeAgentModule(
         retryOptions: AgentModuleRetryOptions
       ) {
         const input = resolveSpawnInput(agentDef, options);
+        const spawnId = nextSpawnId;
+        nextSpawnId += 1;
+        recordActiveSpawnStart();
         return await runObservedSpawn(moduleOptions.otelSink, input, () =>
-          runSpawnRetry(spawnAgent, input, normalizeRetryOptions(retryOptions))
+          runSpawnRetry(
+            spawnAgent,
+            input,
+            normalizeRetryOptions(retryOptions),
+            moduleOptions.onEvent,
+            spawnId
+          )
         );
       },
       parallel: createSpawnParallel<
@@ -200,20 +278,90 @@ export function makeAgentModule(
         events: (async function* () {})(),
         result: (() => {
           const input = resolveSpawnInput(agentDef, options);
-          return runObservedSpawn(moduleOptions.otelSink, input, async () => {
-            const result = validateSpawnResult(await spawnAgent(input));
-            recordActiveSpawnUsage(result.usage);
-            return result;
-          });
+          const spawnId = nextSpawnId;
+          nextSpawnId += 1;
+          recordActiveSpawnStart();
+          return runObservedSpawn(moduleOptions.otelSink, input, () =>
+            runSpawnRetry(
+              spawnAgent,
+              input,
+              defaultRetry ?? oneAttemptRetryOptions,
+              moduleOptions.onEvent,
+              spawnId,
+              false
+            )
+          );
         })()
       }))
     })
   };
 }
 
+async function runSpawnAttempt(
+  spawnAgent: SpawnAgent,
+  input: ResolvedSpawnAgentInput,
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number
+): Promise<SpawnAgentResult> {
+  const task = resolveTaskLabel(input);
+  const startedAt = Date.now();
+  try {
+    throwIfAborted(input.signal);
+  } catch (error) {
+    emitSpawnCancelled(onEvent, spawnId, input.agent, task, 1, 1, Date.now() - startedAt, error);
+    throw error;
+  }
+  emitSpawnEvent(onEvent, {
+    type: "spawn.started",
+    spawnId,
+    agent: input.agent,
+    task,
+    attempt: 1,
+    maxAttempts: 1
+  });
+
+  try {
+    recordActiveSpawnAttempt();
+    const result = validateSpawnResult(await spawnAgent(toProviderSpawnInput(input)));
+    throwIfAborted(input.signal);
+    recordActiveSpawnUsage(result.usage);
+
+    if (result.exitCode !== 0) {
+      throw new Error(createSpawnFailureMessage(result));
+    }
+
+    emitSpawnEvent(onEvent, {
+      type: "spawn.succeeded",
+      spawnId,
+      agent: input.agent,
+      task,
+      attempt: 1,
+      maxAttempts: 1,
+      durationMs: result.durationMs
+    });
+    return result;
+  } catch (error) {
+    if (isAbortError(error)) {
+      emitSpawnCancelled(onEvent, spawnId, input.agent, task, 1, 1, Date.now() - startedAt, error);
+      throw error;
+    }
+    emitSpawnEvent(onEvent, {
+      type: "spawn.failed",
+      spawnId,
+      agent: input.agent,
+      task,
+      attempt: 1,
+      maxAttempts: 1,
+      durationMs: Date.now() - startedAt,
+      error: formatSpawnError(error)
+    });
+    throw error;
+  }
+}
+
 function runObservedSpawn(
   moduleSink: OtelSink | undefined,
-  input: SpawnAgentInput,
+  input: ResolvedSpawnAgentInput,
   operation: () => Promise<SpawnAgentResult>
 ): Promise<SpawnAgentResult> {
   const otelSink = input.otelSink ?? moduleSink ?? getActiveOtelSink();
@@ -249,23 +397,389 @@ function runObservedSpawn(
 
 async function runSpawnRetry(
   spawnAgent: SpawnAgent,
-  input: SpawnAgentInput,
-  retryOptions: Required<AgentModuleRetryOptions>
+  input: ResolvedSpawnAgentInput,
+  retryOptions: Required<AgentModuleRetryOptions>,
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number,
+  throwOnResultFailure = true
 ): Promise<SpawnAgentResult> {
+  const task = resolveTaskLabel(input);
+  const startedAt = Date.now();
   for (let attempt = 1; attempt <= retryOptions.maxAttempts; attempt += 1) {
-    throwIfAborted(input.signal);
-    const result = validateSpawnResult(await spawnAgent(input));
-    recordActiveSpawnUsage(result.usage);
-    const isLastAttempt = attempt >= retryOptions.maxAttempts;
+    try {
+      throwIfAborted(input.signal);
+    } catch (error) {
+      emitSpawnCancelled(
+        onEvent,
+        spawnId,
+        input.agent,
+        task,
+        attempt,
+        retryOptions.maxAttempts,
+        Date.now() - startedAt,
+        error
+      );
+      throw error;
+    }
+    emitSpawnEvent(onEvent, {
+      type: "spawn.started",
+      spawnId,
+      agent: input.agent,
+      task,
+      attempt,
+      maxAttempts: retryOptions.maxAttempts
+    });
 
-    if (result.exitCode === 0 || isLastAttempt || !retryOptions.isRetryable(result)) {
+    let result: SpawnAgentResult;
+    try {
+      recordActiveSpawnAttempt();
+      result = validateSpawnResult(await spawnAgent(toProviderSpawnInput(input)));
+      throwIfAborted(input.signal);
+    } catch (error) {
+      if (isAbortError(error)) {
+        emitSpawnCancelled(
+          onEvent,
+          spawnId,
+          input.agent,
+          task,
+          attempt,
+          retryOptions.maxAttempts,
+          Date.now() - startedAt,
+          error
+        );
+        throw error;
+      }
+
+      if (attempt >= retryOptions.maxAttempts) {
+        emitFinalSpawnFailure(
+          onEvent,
+          spawnId,
+          input.agent,
+          task,
+          attempt,
+          retryOptions.maxAttempts,
+          Date.now() - startedAt,
+          error
+        );
+        throw error;
+      }
+
+      let retryable: boolean;
+      try {
+        retryable = retryOptions.isErrorRetryable(error);
+      } catch (classifierError) {
+        emitFinalSpawnFailure(
+          onEvent,
+          spawnId,
+          input.agent,
+          task,
+          attempt,
+          retryOptions.maxAttempts,
+          Date.now() - startedAt,
+          classifierError
+        );
+        throw classifierError;
+      }
+
+      if (!retryable) {
+        emitFinalSpawnFailure(
+          onEvent,
+          spawnId,
+          input.agent,
+          task,
+          attempt,
+          retryOptions.maxAttempts,
+          Date.now() - startedAt,
+          error
+        );
+        throw error;
+      }
+
+      try {
+        await retryOrThrow(
+          error,
+          input,
+          retryOptions,
+          onEvent,
+          spawnId,
+          task,
+          attempt,
+          Date.now() - startedAt
+        );
+      } catch (retryError) {
+        if (isAbortError(retryError)) {
+          emitSpawnCancelled(
+            onEvent,
+            spawnId,
+            input.agent,
+            task,
+            attempt,
+            retryOptions.maxAttempts,
+            Date.now() - startedAt,
+            retryError
+          );
+        }
+        throw retryError;
+      }
+      continue;
+    }
+
+    recordActiveSpawnUsage(result.usage);
+    if (result.exitCode === 0) {
+      emitSpawnEvent(onEvent, {
+        type: "spawn.succeeded",
+        spawnId,
+        agent: input.agent,
+        task,
+        attempt,
+        maxAttempts: retryOptions.maxAttempts,
+        durationMs: Date.now() - startedAt
+      });
       return result;
     }
 
-    await sleep(calculateBackoffMs(retryOptions.backoffMs, attempt), input.signal);
+    const error = new Error(createSpawnFailureMessage(result));
+    if (attempt >= retryOptions.maxAttempts) {
+      emitFinalSpawnFailure(
+        onEvent,
+        spawnId,
+        input.agent,
+        task,
+        attempt,
+        retryOptions.maxAttempts,
+        Date.now() - startedAt,
+        error
+      );
+      if (throwOnResultFailure) {
+        throw error;
+      }
+      return result;
+    }
+
+    let retryable: boolean;
+    try {
+      retryable = retryOptions.isRetryable(result);
+    } catch (classifierError) {
+      emitFinalSpawnFailure(
+        onEvent,
+        spawnId,
+        input.agent,
+        task,
+        attempt,
+        retryOptions.maxAttempts,
+        Date.now() - startedAt,
+        classifierError
+      );
+      throw classifierError;
+    }
+
+    if (!retryable) {
+      emitFinalSpawnFailure(
+        onEvent,
+        spawnId,
+        input.agent,
+        task,
+        attempt,
+        retryOptions.maxAttempts,
+        Date.now() - startedAt,
+        error
+      );
+      if (throwOnResultFailure) {
+        throw error;
+      }
+      return result;
+    }
+
+    try {
+      await scheduleRetry(error, input, retryOptions, onEvent, spawnId, task, attempt);
+    } catch (retryError) {
+      if (isAbortError(retryError)) {
+        emitSpawnCancelled(
+          onEvent,
+          spawnId,
+          input.agent,
+          task,
+          attempt,
+          retryOptions.maxAttempts,
+          Date.now() - startedAt,
+          retryError
+        );
+      }
+      throw retryError;
+    }
   }
 
   throw new Error("agent.spawn.retry reached an unreachable retry state.");
+}
+
+function emitSpawnCancelled(
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number,
+  agent: string,
+  task: string,
+  attempt: number,
+  maxAttempts: number,
+  durationMs: number,
+  error: unknown
+): void {
+  emitSpawnEvent(onEvent, {
+    type: "spawn.cancelled",
+    spawnId,
+    agent,
+    task,
+    attempt,
+    maxAttempts,
+    durationMs,
+    reason: formatSpawnError(error)
+  });
+}
+
+async function retryOrThrow(
+  error: unknown,
+  input: ResolvedSpawnAgentInput,
+  retryOptions: Required<AgentModuleRetryOptions>,
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number,
+  task: string,
+  attempt: number,
+  durationMs: number
+): Promise<void> {
+  if (attempt >= retryOptions.maxAttempts) {
+    emitFinalSpawnFailure(
+      onEvent,
+      spawnId,
+      input.agent,
+      task,
+      attempt,
+      retryOptions.maxAttempts,
+      durationMs,
+      error
+    );
+    throw error;
+  }
+
+  await scheduleRetry(error, input, retryOptions, onEvent, spawnId, task, attempt);
+}
+
+async function scheduleRetry(
+  error: unknown,
+  input: ResolvedSpawnAgentInput,
+  retryOptions: Required<AgentModuleRetryOptions>,
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number,
+  task: string,
+  attempt: number
+): Promise<void> {
+  const delayMs = calculateBackoffMs(retryOptions.backoffMs, attempt);
+  emitSpawnEvent(onEvent, {
+    type: "spawn.retry",
+    spawnId,
+    agent: input.agent,
+    task,
+    attempt,
+    maxAttempts: retryOptions.maxAttempts,
+    delayMs,
+    error: formatSpawnError(error)
+  });
+  await sleep(delayMs, input.signal);
+}
+
+function emitFinalSpawnFailure(
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  spawnId: number,
+  agent: string,
+  task: string,
+  attempt: number,
+  maxAttempts: number,
+  durationMs: number,
+  error: unknown
+): void {
+  emitSpawnEvent(onEvent, {
+    type: "spawn.failed",
+    spawnId,
+    agent,
+    task,
+    attempt,
+    maxAttempts,
+    durationMs,
+    error: formatSpawnError(error)
+  });
+}
+
+function emitSpawnEvent(
+  onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
+  event: AgentSpawnEvent
+): void {
+  try {
+    const agent = sanitizeLifecycleText(event.agent, 48) || "agent";
+    const result = onEvent?.({ ...event, agent });
+    if (isPromiseLike(result)) {
+      void result.catch((error) => warnSpawnEventObserverFailure(error));
+    }
+  } catch (error) {
+    warnSpawnEventObserverFailure(error);
+  }
+}
+
+function isPromiseLike(value: unknown): value is Promise<void> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "catch" in value &&
+    typeof value.catch === "function"
+  );
+}
+
+function warnSpawnEventObserverFailure(error: unknown): void {
+  console.warn(`Agent spawn event observer failed: ${formatSpawnError(error)}`);
+}
+
+function createTaskLabel(prompt: string): string {
+  const lines = prompt.split("\n").map((line) => line.trim());
+  const taskHeadingIndex = lines.indexOf("# Task");
+  const relevantLines = taskHeadingIndex < 0 ? lines : lines.slice(taskHeadingIndex + 1);
+  const firstLine = sanitizeLifecycleText(
+    relevantLines.find((line) => line.length > 0) ?? "agent task",
+    72
+  );
+  if (firstLine.length === 0) {
+    return "agent task";
+  }
+  return firstLine.length > 72 ? `${firstLine.slice(0, 71)}…` : firstLine;
+}
+
+function resolveTaskLabel(input: ResolvedSpawnAgentInput): string {
+  return input.label ?? createTaskLabel(input.prompt);
+}
+
+function isAbortError(error: unknown): boolean {
+  return readErrorField(error, "name") === "AbortError";
+}
+
+function formatSpawnError(error: unknown): string {
+  return sanitizeLifecycleText(readErrorField(error, "message") ?? String(error), 400);
+}
+
+function sanitizeLifecycleText(value: string, maxLength: number): string {
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (character === "\n" || character === "\r" || character === "\t" || code < 32 || code === 127) {
+      sanitized += " ";
+    } else {
+      sanitized += character;
+    }
+  }
+  const compact = sanitized.split(" ").filter((part) => part.length > 0).join(" ");
+  return compact.length > maxLength ? `${compact.slice(0, maxLength - 1)}…` : compact;
+}
+
+function readErrorField(error: unknown, field: "message" | "name"): string | undefined {
+  if (typeof error !== "object" || error === null || !(field in error)) {
+    return undefined;
+  }
+  const value = (error as Record<string, unknown>)[field];
+  return typeof value === "string" ? value : undefined;
 }
 
 function normalizeRetryOptions(
@@ -275,29 +789,45 @@ function normalizeRetryOptions(
     throw new Error("Agent spawn retry options must be an object.");
   }
 
-  const maxAttempts = readFiniteNumber(retryOptions.maxAttempts, "Agent spawn retry maxAttempts");
+  const maxAttempts = readFiniteNumber(
+    getOwnProperty(retryOptions, "maxAttempts"),
+    "Agent spawn retry maxAttempts"
+  );
   if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
     throw new Error("Agent spawn retry maxAttempts must be an integer greater than or equal to 1.");
   }
+  if (maxAttempts > 5) {
+    throw new Error("Agent spawn retry maxAttempts must not exceed 5.");
+  }
 
   const backoffMs = readNonNegativeFiniteNumber(
-    retryOptions.backoffMs,
+    getOwnProperty(retryOptions, "backoffMs"),
     "Agent spawn retry backoffMs"
   );
 
-  if (retryOptions.isRetryable !== undefined && typeof retryOptions.isRetryable !== "function") {
+  const isRetryableValue = getOwnProperty(retryOptions, "isRetryable");
+  if (isRetryableValue !== undefined && typeof isRetryableValue !== "function") {
     throw new Error("Agent spawn retry isRetryable must be a function.");
   }
   const isRetryable =
-    retryOptions.isRetryable === undefined
+    isRetryableValue === undefined
       ? defaultIsRetryable
-      : (retryOptions.isRetryable as (result: SpawnAgentResult) => boolean);
+      : (isRetryableValue as (result: SpawnAgentResult) => boolean);
 
-  return {
+  const isErrorRetryableValue = getOwnProperty(retryOptions, "isErrorRetryable");
+  if (isErrorRetryableValue !== undefined && typeof isErrorRetryableValue !== "function") {
+    throw new Error("Agent spawn retry isErrorRetryable must be a function.");
+  }
+
+  return createNullRecord({
     maxAttempts,
     backoffMs,
+    isErrorRetryable:
+      isErrorRetryableValue === undefined
+        ? () => true
+        : (isErrorRetryableValue as (error: unknown) => boolean),
     isRetryable
-  };
+  });
 }
 
 function defaultIsRetryable(result: SpawnAgentResult): boolean {
@@ -308,6 +838,13 @@ function defaultIsRetryable(result: SpawnAgentResult): boolean {
     result.exitCode === 137
   );
 }
+
+const oneAttemptRetryOptions: Required<AgentModuleRetryOptions> = {
+  maxAttempts: 1,
+  backoffMs: 0,
+  isErrorRetryable: () => false,
+  isRetryable: () => false
+};
 
 function calculateBackoffMs(baseBackoffMs: number, completedAttempt: number): number {
   return Math.min(baseBackoffMs * 2 ** (completedAttempt - 1), 30_000);
@@ -345,13 +882,14 @@ function createAbortError(): Error {
 function resolveSpawnInput(
   agentDef: AgentModuleDefinition,
   options: AgentModuleSpawnOptions
-): SpawnAgentInput {
+): ResolvedSpawnAgentInput {
   const definition = normalizeAgentDefinition(agentDef);
   const normalizedOptions = normalizeSpawnOptions(options);
 
-  return {
+  return createNullRecord({
     agent: definition.agent,
     prompt: prependSystemPrompt(definition.prompt, normalizedOptions.prompt),
+    ...(normalizedOptions.label !== undefined ? { label: normalizedOptions.label } : {}),
     ...((normalizedOptions.model ?? definition.model)
       ? { model: normalizedOptions.model ?? definition.model }
       : {}),
@@ -369,40 +907,44 @@ function resolveSpawnInput(
       ? { timeoutMs: normalizedOptions.timeoutMs }
       : {}),
     ...(normalizedOptions.signal !== undefined ? { signal: normalizedOptions.signal } : {})
-  };
+  });
 }
 
 function normalizeAgentDefinition(
   agentDef: AgentModuleDefinition | unknown
 ): Exclude<AgentModuleDefinition, string> {
   if (typeof agentDef === "string") {
-    return {
+    return createNullRecord({
       agent: readRequiredAgent(agentDef)
-    };
+    });
   }
 
   if (!isRecord(agentDef)) {
     throw new Error("Agent definition must be a string or object.");
   }
 
-  return {
-    agent: readRequiredAgent(agentDef.agent),
-    ...(agentDef.prompt === undefined
+  const prompt = getOwnProperty(agentDef, "prompt");
+  const model = getOwnProperty(agentDef, "model");
+  const mode = getOwnProperty(agentDef, "mode");
+  const cwd = getOwnProperty(agentDef, "cwd");
+  const mcp = getOwnProperty(agentDef, "mcp");
+
+  return createNullRecord({
+    agent: readRequiredAgent(getOwnProperty(agentDef, "agent")),
+    ...(prompt === undefined
       ? {}
-      : { prompt: readOptionalString(agentDef.prompt, "Agent definition prompt") }),
-    ...(agentDef.model === undefined
+      : { prompt: readOptionalString(prompt, "Agent definition prompt") }),
+    ...(model === undefined
       ? {}
-      : { model: readOptionalString(agentDef.model, "Agent definition model") }),
-    ...(agentDef.mode === undefined
+      : { model: readOptionalString(model, "Agent definition model") }),
+    ...(mode === undefined
       ? {}
-      : { mode: readSpawnMode(agentDef.mode, "Agent definition mode") }),
-    ...(agentDef.cwd === undefined
+      : { mode: readSpawnMode(mode, "Agent definition mode") }),
+    ...(cwd === undefined
       ? {}
-      : { cwd: readOptionalString(agentDef.cwd, "Agent definition cwd") }),
-    ...(agentDef.mcp === undefined
-      ? {}
-      : { mcp: readMcpConfig(agentDef.mcp, "Agent definition mcp") })
-  };
+      : { cwd: readOptionalString(cwd, "Agent definition cwd") }),
+    ...(mcp === undefined ? {} : { mcp: readMcpConfig(mcp, "Agent definition mcp") })
+  });
 }
 
 function normalizeSpawnOptions(
@@ -412,30 +954,42 @@ function normalizeSpawnOptions(
     throw new Error("Agent spawn options must be an object.");
   }
 
-  return {
-    prompt: readRequiredPrompt(options.prompt),
-    ...(options.model === undefined
+  const label = getOwnProperty(options, "label");
+  const model = getOwnProperty(options, "model");
+  const mode = getOwnProperty(options, "mode");
+  const cwd = getOwnProperty(options, "cwd");
+  const otelSink = getOwnProperty(options, "otelSink");
+  const mcp = getOwnProperty(options, "mcp");
+  const timeoutMs = getOwnProperty(options, "timeoutMs");
+  const signal = getOwnProperty(options, "signal");
+
+  return createNullRecord({
+    prompt: readRequiredPrompt(getOwnProperty(options, "prompt")),
+    ...(label === undefined
       ? {}
-      : { model: readOptionalString(options.model, "Agent spawn options model") }),
-    ...(options.mode === undefined
+      : { label: readRequiredString(label, "Agent spawn options label") }),
+    ...(model === undefined
       ? {}
-      : { mode: readSpawnMode(options.mode, "Agent spawn options mode") }),
-    ...(options.cwd === undefined
+      : { model: readOptionalString(model, "Agent spawn options model") }),
+    ...(mode === undefined ? {} : { mode: readSpawnMode(mode, "Agent spawn options mode") }),
+    ...(cwd === undefined
       ? {}
-      : { cwd: readOptionalString(options.cwd, "Agent spawn options cwd") }),
-    ...(options.otelSink === undefined ? {} : { otelSink: readOtelSink(options.otelSink) }),
-    ...(options.mcp === undefined
-      ? {}
-      : { mcp: readMcpConfig(options.mcp, "Agent spawn options mcp") }),
-    ...(options.timeoutMs === undefined
+      : { cwd: readOptionalString(cwd, "Agent spawn options cwd") }),
+    ...(otelSink === undefined ? {} : { otelSink: readOtelSink(otelSink) }),
+    ...(mcp === undefined ? {} : { mcp: readMcpConfig(mcp, "Agent spawn options mcp") }),
+    ...(timeoutMs === undefined
       ? {}
       : {
-          timeoutMs: readNonNegativeFiniteNumber(options.timeoutMs, "Agent spawn options timeoutMs")
+          timeoutMs: readNonNegativeFiniteNumber(timeoutMs, "Agent spawn options timeoutMs")
         }),
-    ...(options.signal === undefined
-      ? {}
-      : { signal: readAbortSignal(options.signal, "Agent spawn options signal") })
-  };
+    ...(signal === undefined ? {} : { signal: readAbortSignal(signal, "Agent spawn options signal") })
+  });
+}
+
+function toProviderSpawnInput(input: ResolvedSpawnAgentInput): SpawnAgentInput {
+  const { label: ignoredLabel, ...providerInput } = input;
+  void ignoredLabel;
+  return providerInput;
 }
 
 function validateSpawnResult(result: unknown): SpawnAgentResult {
@@ -443,18 +997,31 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
     throw new Error("spawnAgent must resolve to an object result.");
   }
 
-  return {
-    exitCode: readFiniteNumber(result.exitCode, "spawnAgent result exitCode"),
-    stdout: readOptionalString(result.stdout, "spawnAgent result stdout") ?? "",
-    stderr: readOptionalString(result.stderr, "spawnAgent result stderr") ?? "",
-    summary: readOptionalString(result.summary, "spawnAgent result summary") ?? "",
-    durationMs: readNonNegativeFiniteNumber(result.durationMs, "spawnAgent result durationMs"),
-    ...(result.usage === undefined ? {} : { usage: readSpawnUsage(result.usage) })
-  };
+  const usage = getOwnProperty(result, "usage");
+
+  return createNullRecord({
+    exitCode: readFiniteNumber(getOwnProperty(result, "exitCode"), "spawnAgent result exitCode"),
+    stdout: readOptionalString(getOwnProperty(result, "stdout"), "spawnAgent result stdout") ?? "",
+    stderr: readOptionalString(getOwnProperty(result, "stderr"), "spawnAgent result stderr") ?? "",
+    summary: readOptionalString(getOwnProperty(result, "summary"), "spawnAgent result summary") ?? "",
+    durationMs: readNonNegativeFiniteNumber(
+      getOwnProperty(result, "durationMs"),
+      "spawnAgent result durationMs"
+    ),
+    ...(usage === undefined ? {} : { usage: readSpawnUsage(usage) })
+  });
 }
 
 function recordActiveSpawnUsage(usage: SpawnUsage | undefined): void {
   activeUsageAccumulator.getStore()?.record(usage);
+}
+
+function recordActiveSpawnAttempt(): void {
+  activeUsageAccumulator.getStore()?.beginAttempt?.();
+}
+
+function recordActiveSpawnStart(): void {
+  activeUsageAccumulator.getStore()?.beginSpawn?.();
 }
 
 function readSpawnUsage(value: unknown): SpawnUsage {
@@ -462,29 +1029,32 @@ function readSpawnUsage(value: unknown): SpawnUsage {
     throw new Error("spawnAgent result usage must be an object.");
   }
 
-  return {
+  const cachedTokens = getOwnProperty(value, "cachedTokens");
+  const costUsd = getOwnProperty(value, "costUsd");
+
+  return createNullRecord({
     inputTokens: readNonNegativeFiniteNumber(
-      value.inputTokens,
+      getOwnProperty(value, "inputTokens"),
       "spawnAgent result usage inputTokens"
     ),
     outputTokens: readNonNegativeFiniteNumber(
-      value.outputTokens,
+      getOwnProperty(value, "outputTokens"),
       "spawnAgent result usage outputTokens"
     ),
-    ...(value.cachedTokens === undefined
+    ...(cachedTokens === undefined
       ? {}
       : {
           cachedTokens: readNonNegativeFiniteNumber(
-            value.cachedTokens,
+            cachedTokens,
             "spawnAgent result usage cachedTokens"
           )
         }),
-    ...(value.costUsd === undefined
+    ...(costUsd === undefined
       ? {}
       : {
-          costUsd: readNonNegativeFiniteNumber(value.costUsd, "spawnAgent result usage costUsd")
+          costUsd: readNonNegativeFiniteNumber(costUsd, "spawnAgent result usage costUsd")
         })
-  };
+  });
 }
 
 function prependSystemPrompt(systemPrompt: string | undefined, userPrompt: string): string {
@@ -515,6 +1085,14 @@ function readRequiredAgent(value: unknown): string {
   return agent;
 }
 
+function readRequiredString(value: unknown, label: string): string {
+  const text = readOptionalString(value, label)?.trim();
+  if (text === undefined || text.length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return text;
+}
+
 function readRequiredPrompt(value: unknown): string {
   const prompt = readOptionalString(value, "Agent spawn options prompt");
 
@@ -541,7 +1119,7 @@ function readMcpConfig(value: unknown, label: string): AgentModuleMcpConfig {
   const entries = Object.entries(value).map(
     ([name, server]) => [name, readMcpServer(server, `${label}.${name}`)] as const
   );
-  return Object.fromEntries(entries) as AgentModuleMcpConfig;
+  return createNullRecord(Object.fromEntries(entries) as AgentModuleMcpConfig);
 }
 
 function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
@@ -549,14 +1127,18 @@ function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
     throw new Error(`${label} must be an object.`);
   }
 
-  return {
-    command: readNonEmptyString(value.command, `${label}.command`),
-    ...(value.args === undefined ? {} : { args: readStringArray(value.args, `${label}.args`) }),
-    ...(value.env === undefined ? {} : { env: readStringRecord(value.env, `${label}.env`) }),
-    ...(value.timeout === undefined
+  const args = getOwnProperty(value, "args");
+  const env = getOwnProperty(value, "env");
+  const timeout = getOwnProperty(value, "timeout");
+
+  return createNullRecord({
+    command: readNonEmptyString(getOwnProperty(value, "command"), `${label}.command`),
+    ...(args === undefined ? {} : { args: readStringArray(args, `${label}.args`) }),
+    ...(env === undefined ? {} : { env: readStringRecord(env, `${label}.env`) }),
+    ...(timeout === undefined
       ? {}
-      : { timeout: readPositiveFiniteNumber(value.timeout, `${label}.timeout`) })
-  };
+      : { timeout: readPositiveFiniteNumber(timeout, `${label}.timeout`) })
+  });
 }
 
 function readStringArray(value: unknown, label: string): string[] {
@@ -655,6 +1237,24 @@ function readOtelSink(value: unknown): OtelSink {
   }
 
   return value as unknown as OtelSink;
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

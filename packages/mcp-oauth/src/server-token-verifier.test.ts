@@ -5,6 +5,33 @@ import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { createOAuthTestServer } from "tiny-oauth-test-server";
 import { createJwksTokenVerifier } from "./index.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createJwksTokenVerifier", () => {
   const cleanups = new Set<() => Promise<void>>();
 
@@ -173,6 +200,102 @@ describe("createJwksTokenVerifier", () => {
       errorDescription: "insufficient scope",
       scope: ["mcp.read"],
     });
+  });
+
+  it("ignores inherited token scope claims", async () => {
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () =>
+        new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }),
+    });
+    const token = await new SignJWT({
+      client_id: "demo-client",
+    })
+      .setProtectedHeader({
+        alg: "ES256",
+        typ: "JWT",
+      })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setSubject("demo-client")
+      .setIssuedAt(Math.floor(Date.now() / 1_000))
+      .setExpirationTime("2m")
+      .sign(privateKey);
+
+    await withObjectPrototypeProperties(
+      {
+        scope: "mcp.read",
+      },
+      async () => {
+        await expect(
+          verifier.verify({
+            token,
+            resource: "https://resource.example.com/mcp",
+            authorizationServers: ["https://auth.example.com"],
+            requiredScopes: ["mcp.read"],
+          })
+        ).rejects.toMatchObject({
+          error: "insufficient_scope",
+          errorDescription: "insufficient scope",
+          scope: ["mcp.read"],
+        });
+      }
+    );
+  });
+
+  it("rejects JWKS documents with inherited key sets", async () => {
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () =>
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }),
+    });
+    const token = await new SignJWT({
+      client_id: "demo-client",
+      scope: "mcp.read",
+    })
+      .setProtectedHeader({
+        alg: "ES256",
+        typ: "JWT",
+      })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setSubject("demo-client")
+      .setIssuedAt(Math.floor(Date.now() / 1_000))
+      .setExpirationTime("2m")
+      .sign(privateKey);
+
+    await withObjectPrototypeProperties(
+      {
+        keys: [{ ...publicJwk, alg: "ES256", use: "sig" }],
+      },
+      async () => {
+        await expect(
+          verifier.verify({
+            token,
+            resource: "https://resource.example.com/mcp",
+            authorizationServers: ["https://auth.example.com"],
+            requiredScopes: ["mcp.read"],
+          })
+        ).rejects.toMatchObject({
+          error: "invalid_token",
+          errorDescription: "invalid JWKS document",
+        });
+      }
+    );
   });
 
   it("rejects tokens missing any required scope", async () => {

@@ -49,6 +49,7 @@ import {
   getCommandSourcePath,
   resolveCommandSecrets
 } from "./index.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
@@ -836,7 +837,7 @@ function getJsonParseErrorLocation(
 }
 
 function getJsonParseCauseLocation(error: unknown): { line: number; column: number } | null {
-  if (typeof error !== "object" || error === null || !("cause" in error)) {
+  if (typeof error !== "object" || error === null || !hasOwnProperty(error, "cause")) {
     return null;
   }
 
@@ -852,11 +853,11 @@ function getJsonParseCauseLocation(error: unknown): { line: number; column: numb
 }
 
 function getNumericProperty(value: unknown, key: string): number | null {
-  if (typeof value !== "object" || value === null || !(key in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, key)) {
     return null;
   }
 
-  const propertyValue = (value as Record<string, unknown>)[key];
+  const propertyValue = value[key];
 
   return typeof propertyValue === "number" && Number.isFinite(propertyValue) ? propertyValue : null;
 }
@@ -2050,13 +2051,23 @@ function fieldPromptLabel(field: FieldDefinition): string {
   return field.positionalIndex === undefined ? field.optionFlag : `<${field.displayPath}>`;
 }
 
+function enumOptionLabel(schema: Extract<FieldSchema, { kind: "enum" }>, value: unknown): string {
+  const key = String(value);
+
+  if (schema.labels === undefined || !Object.prototype.hasOwnProperty.call(schema.labels, key)) {
+    return key;
+  }
+
+  return schema.labels[key] ?? key;
+}
+
 async function promptForField(field: FieldDefinition): Promise<unknown> {
   const schema = field.schema;
   if (schema.kind === "enum") {
     const options = schema.loadOptions
       ? await schema.loadOptions()
       : schema.values.map((value) => ({
-          label: schema.labels?.[String(value)] ?? String(value),
+          label: enumOptionLabel(schema, value),
           value
         }));
     const selected = await select({
@@ -2320,7 +2331,7 @@ async function loadPresetValues(
       encoding: "utf8"
     });
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       throw new UserError(`Preset file "${presetPath}" was not found.`);
     }
 
@@ -3871,7 +3882,7 @@ function isHttpErrorLike(error: unknown): error is HttpErrorLike {
     typeof response.status === "number" &&
     typeof response.statusText === "string" &&
     isStringRecord(response.headers) &&
-    "body" in response
+    hasOwnProperty(response, "body")
   );
 }
 
@@ -3880,7 +3891,7 @@ function hasTypedOptionalField(
   field: string,
   type: "number" | "string"
 ): boolean {
-  return !(field in value) || typeof value[field] === type;
+  return !hasOwnProperty(value, field) || typeof value[field] === type;
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -3912,7 +3923,7 @@ function isProblemDetailsLike(body: unknown): body is ProblemDetailsLike {
     return false;
   }
 
-  return isNonEmptyString(body.title) || isNonEmptyString(body.detail);
+  return hasOwnNonEmptyString(body, "title") || hasOwnNonEmptyString(body, "detail");
 }
 
 function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelopeLike {
@@ -3925,7 +3936,7 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
       return false;
     }
 
-    if ("path" in error) {
+    if (hasOwnProperty(error, "path")) {
       const pathValue = error.path;
       if (
         !Array.isArray(pathValue) ||
@@ -3935,18 +3946,32 @@ function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelope
       }
     }
 
-    if ("extensions" in error) {
+    if (hasOwnProperty(error, "extensions")) {
       if (!isPlainObject(error.extensions)) {
         return false;
       }
 
-      if ("code" in error.extensions && typeof error.extensions.code !== "string") {
+      if (hasOwnProperty(error.extensions, "code") && typeof error.extensions.code !== "string") {
         return false;
       }
     }
 
     return true;
   });
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function hasOwnNonEmptyString<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, string> {
+  return hasOwnProperty(value, name) && isNonEmptyString(value[name]);
 }
 
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
@@ -3960,23 +3985,23 @@ function formatHttpErrorStatus(value: string): string {
 function formatProblemDetailsBody(body: ProblemDetailsLike): string {
   const lines: string[] = [];
 
-  if (isNonEmptyString(body.title)) {
+  if (hasOwnNonEmptyString(body, "title")) {
     lines.push(`Problem: ${body.title}`);
   }
 
-  if (isNonEmptyString(body.detail)) {
+  if (hasOwnNonEmptyString(body, "detail")) {
     lines.push(`Detail:  ${body.detail}`);
   }
 
-  if (body.type !== undefined) {
+  if (hasOwnProperty(body, "type") && body.type !== undefined) {
     lines.push(`Type:    ${body.type}`);
   }
 
-  if (body.instance !== undefined) {
+  if (hasOwnProperty(body, "instance") && body.instance !== undefined) {
     lines.push(`Instance: ${body.instance}`);
   }
 
-  if (body.status !== undefined) {
+  if (hasOwnProperty(body, "status") && body.status !== undefined) {
     lines.push(`Status:  ${body.status}`);
   }
 
@@ -3988,11 +4013,16 @@ function formatGraphQLErrorEnvelopeBody(body: GraphQLErrorEnvelopeLike): string 
     .map((error) => {
       const lines = [`GraphQL error: ${error.message}`];
 
-      if (error.path !== undefined) {
+      if (hasOwnProperty(error, "path") && error.path !== undefined) {
         lines.push(`  at path: ${error.path.join(".")}`);
       }
 
-      if (error.extensions?.code !== undefined) {
+      if (
+        hasOwnProperty(error, "extensions") &&
+        error.extensions !== undefined &&
+        hasOwnProperty(error.extensions, "code") &&
+        error.extensions.code !== undefined
+      ) {
         lines.push(`  code:    ${error.extensions.code}`);
       }
 

@@ -237,9 +237,9 @@ function mapToolStart(event: LegacyInternalEvent): SessionUpdate[] {
     toolCallUpdate.kind = kind;
   }
 
-  if ("input" in event) {
+  if (hasOwnProperty(event, "input")) {
     toolCall.rawInput = event.input;
-  } else if ("rawInput" in event) {
+  } else if (hasOwnProperty(event, "rawInput")) {
     toolCall.rawInput = event.rawInput;
   }
 
@@ -268,11 +268,11 @@ function mapToolComplete(event: LegacyInternalEvent): ToolCallUpdate[] {
     toolCallUpdate.kind = kind;
   }
 
-  if ("output" in event) {
+  if (hasOwnProperty(event, "output")) {
     toolCallUpdate.rawOutput = event.output;
-  } else if ("path" in event) {
+  } else if (hasOwnProperty(event, "path")) {
     toolCallUpdate.rawOutput = event.path;
-  } else if ("rawOutput" in event) {
+  } else if (hasOwnProperty(event, "rawOutput")) {
     toolCallUpdate.rawOutput = event.rawOutput;
   }
 
@@ -362,4 +362,11 @@ function readFiniteNumber(value: unknown): number | undefined {
 
 function readString(value: unknown): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

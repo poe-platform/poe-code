@@ -3,6 +3,7 @@ import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
+import { hasOwnErrorCode } from "./errors.js";
 import { readPage } from "./pages.js";
 import { selectQueryContext } from "./query.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
@@ -128,7 +129,7 @@ async function readPageIfPresent(root: MemoryRoot, relPath: string): Promise<Mem
   try {
     return await readPage(root, relPath);
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
 

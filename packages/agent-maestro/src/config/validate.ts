@@ -1,4 +1,4 @@
-import { verifyGhProject, type TaskList } from "@poe-code/task-list";
+import { verifyGhProject, type TaskList, type VerifyGhProjectOptions } from "@poe-code/task-list";
 import type { ResolvedConfig, StateMode } from "./schema.js";
 
 type JsonRecord = Record<string, unknown>;
@@ -52,9 +52,13 @@ export async function validateDispatch(
   cfg: ResolvedConfig,
   taskList: Pick<TaskList, "lists">
 ): Promise<DispatchValidationResult> {
-  if (cfg.tasks === undefined || hasEmptyStringValue(cfg.tasks) || hasMissingTaskField(cfg.tasks)) {
+  const cfgRecord = cfg as unknown as JsonRecord;
+  const tasks = getOwnEntry(cfgRecord, "tasks");
+  if (tasks === undefined || hasEmptyStringValue(tasks) || hasMissingTaskField(tasks)) {
     return { ok: false, code: "missing_tasks_config" };
   }
+  const tasksConfig = tasks as ResolvedConfig["tasks"];
+  const tasksRecord = tasksConfig as unknown as JsonRecord;
 
   if (cfg.activeStateNames.length === 0) {
     return { ok: false, code: "no_active_states" };
@@ -66,13 +70,18 @@ export async function validateDispatch(
 
   const initialState = cfg.stateOrder[0];
 
-  if (initialState === undefined || cfg.states[initialState] === undefined) {
+  if (
+    initialState === undefined ||
+    !hasOwnState(cfg.states, initialState) ||
+    cfg.states[initialState] === undefined
+  ) {
     return { ok: false, code: "unknown_initial_state", state: initialState ?? "" };
   }
 
-  const list = cfg.agent.list;
+  const agent = getOwnEntry(cfgRecord, "agent");
+  const list = isRecord(agent) ? getOwnEntry(agent, "list") : undefined;
 
-  if (list === undefined) {
+  if (typeof list !== "string") {
     return { ok: false, code: "list_not_found", list: "" };
   }
 
@@ -86,13 +95,17 @@ export async function validateDispatch(
     return { ok: false, code: "list_not_found", list };
   }
 
-  if (cfg.tasks.type === "gh-issues" && cfg.tasks.project !== undefined) {
+  const taskType = getOwnEntry(tasksRecord, "type");
+  const project = getOwnEntry(tasksRecord, "project");
+  if (taskType === "gh-issues" && isRecord(project)) {
+    const auth = getOwnEntry(tasksRecord, "auth") as VerifyGhProjectOptions["auth"] | undefined;
+    const fetch = getOwnEntry(tasksRecord, "fetch") as VerifyGhProjectOptions["fetch"] | undefined;
     const report = await verifyGhProject({
-      owner: cfg.tasks.project.owner,
-      number: cfg.tasks.project.number,
+      owner: getOwnEntry(project, "owner") as string,
+      number: getOwnEntry(project, "number") as number,
       requiredStates: unique([...cfg.activeStateNames, ...cfg.terminalStateNames]),
-      ...("auth" in cfg.tasks && cfg.tasks.auth ? { auth: cfg.tasks.auth } : {}),
-      ...("fetch" in cfg.tasks && cfg.tasks.fetch ? { fetch: cfg.tasks.fetch } : {})
+      ...(auth ? { auth } : {}),
+      ...(fetch ? { fetch } : {})
     });
 
     if (!report.ok) {
@@ -112,30 +125,35 @@ async function readLists(taskList: Pick<TaskList, "lists">): Promise<string[] | 
 }
 
 function validateStateDefinition(name: string, definition: JsonRecord): void {
-  const hasPrompt = definition.prompt !== undefined;
-  const isTerminal = definition.terminal === true;
+  const prompt = getOwnEntry(definition, "prompt");
+  const terminal = getOwnEntry(definition, "terminal");
+  const agent = getOwnEntry(definition, "agent");
+  const model = getOwnEntry(definition, "model");
+  const mode = getOwnEntry(definition, "mode");
+  const hasPrompt = prompt !== undefined;
+  const isTerminal = terminal === true;
 
   if (hasPrompt && isTerminal) {
     throw new Error(`State "${name}" must define exactly one of prompt or terminal: true.`);
   }
 
-  if (definition.prompt !== undefined && typeof definition.prompt !== "string") {
+  if (prompt !== undefined && typeof prompt !== "string") {
     throw new Error(`State "${name}" prompt must be a string.`);
   }
 
-  if (definition.terminal !== undefined && typeof definition.terminal !== "boolean") {
+  if (terminal !== undefined && typeof terminal !== "boolean") {
     throw new Error(`State "${name}" terminal must be a boolean.`);
   }
 
-  if (definition.agent !== undefined && typeof definition.agent !== "string") {
+  if (agent !== undefined && typeof agent !== "string") {
     throw new Error(`State "${name}" agent must be a string.`);
   }
 
-  if (definition.model !== undefined && typeof definition.model !== "string") {
+  if (model !== undefined && typeof model !== "string") {
     throw new Error(`State "${name}" model must be a string.`);
   }
 
-  if (definition.mode !== undefined && !isStateMode(definition.mode)) {
+  if (mode !== undefined && !isStateMode(mode)) {
     throw new Error(`State "${name}" mode must be "yolo", "edit", or "read".`);
   }
 }
@@ -149,22 +167,38 @@ function isStateMode(value: unknown): value is StateMode {
 }
 
 const taskFieldValidators: Record<string, (value: JsonRecord) => boolean> = {
-  "markdown-dir": (value) => isNonEmptyString(value.path),
-  "yaml-file": (value) => isNonEmptyString(value.path),
-  "gh-issues": (value) =>
-    isNonEmptyString(value.repo) &&
-    ((isRecord(value.project) &&
-      isNonEmptyString(value.project.owner) &&
-      isFiniteNumber(value.project.number)) ||
-      (isRecord(value.state) && isNonEmptyString(value.state.labelPrefix)))
+  "markdown-dir": (value) => isNonEmptyString(getOwnEntry(value, "path")),
+  "yaml-file": (value) => isNonEmptyString(getOwnEntry(value, "path")),
+  "gh-issues": hasGhIssuesTaskFields
 };
 
 function hasMissingTaskField(value: unknown): boolean {
-  if (!isRecord(value) || typeof value.type !== "string") {
+  if (!isRecord(value) || typeof getOwnEntry(value, "type") !== "string") {
     return true;
   }
 
-  return taskFieldValidators[value.type]?.(value) !== true;
+  return taskFieldValidators[getOwnEntry(value, "type") as string]?.(value) !== true;
+}
+
+function hasGhIssuesTaskFields(value: JsonRecord): boolean {
+  const project = getOwnEntry(value, "project");
+  const state = getOwnEntry(value, "state");
+  return (
+    isNonEmptyString(getOwnEntry(value, "repo")) &&
+    (hasGhIssuesProjectFields(project) || hasGhIssuesStateFields(state))
+  );
+}
+
+function hasGhIssuesProjectFields(value: unknown): boolean {
+  return (
+    isRecord(value) &&
+    isNonEmptyString(getOwnEntry(value, "owner")) &&
+    isFiniteNumber(getOwnEntry(value, "number"))
+  );
+}
+
+function hasGhIssuesStateFields(value: unknown): boolean {
+  return isRecord(value) && isNonEmptyString(getOwnEntry(value, "labelPrefix"));
 }
 
 function unique(values: readonly string[]): string[] {
@@ -197,6 +231,14 @@ function hasEmptyStringValue(value: unknown): boolean {
   }
 
   return Object.values(value).some((entry) => hasEmptyStringValue(entry));
+}
+
+function hasOwnState(states: Record<string, unknown>, state: string): boolean {
+  return Object.prototype.hasOwnProperty.call(states, state);
+}
+
+function getOwnEntry(record: JsonRecord, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function isRecord(value: unknown): value is JsonRecord {

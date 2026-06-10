@@ -13,6 +13,7 @@ import {
   parseCodeReviewConfigDocument,
   parseCodeReviewProfileDirectories
 } from "./config-scope.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveCodeReviewStoreDirectory } from "./review-store.js";
 
 export interface CodeReviewConfig {
@@ -61,16 +62,26 @@ const nativeConfigFs: ConfigStoreOptions["fs"] = {
   readdir
 };
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 export async function loadCodeReviewConfig(options: ConfigStoreOptions): Promise<CodeReviewConfig> {
   await validatePersistedCodeReviewConfig(options);
   const config = await createConfigStore(options).scope(codeReviewConfigScope).getAll();
-  const agent = optionalNonEmptyString(config.agent);
-  const draftStore = requireNonEmptyString(config.draftStore, "codeReview.draftStore");
+  const configRecord = config as unknown as Record<string, unknown>;
+  const agent = optionalNonEmptyString(getOwnEntry(configRecord, "agent"));
+  const draftStore = requireNonEmptyString(
+    getOwnEntry(configRecord, "draftStore"),
+    "codeReview.draftStore"
+  );
+  const humanGate = getOwnEntry(configRecord, "humanGate") as CodeReviewHumanGateConfig;
+  const profileDirectories = getOwnEntry(configRecord, "profileDirectories") as string[];
   return {
     ...(agent ? { agent } : {}),
     draftStore,
-    humanGate: config.humanGate,
-    profileDirectories: config.profileDirectories
+    humanGate,
+    profileDirectories
   };
 }
 
@@ -95,7 +106,7 @@ async function validatePersistedCodeReviewConfig(options: ConfigStoreOptions): P
     if (typeof document !== "object" || document === null || Array.isArray(document)) {
       throw new Error(`${filePath}: config must be an object.`);
     }
-    const codeReview = (document as Record<string, unknown>).codeReview;
+    const codeReview = getOwnEntry(document as Record<string, unknown>, "codeReview");
     if (codeReview === undefined) continue;
     try {
       parseCodeReviewConfigDocument(codeReview);
@@ -110,38 +121,64 @@ export async function resolveCodeReviewRunOptions(
   configOptions: ConfigStoreOptions
 ): Promise<CodeReviewRunOptions> {
   const config = await loadCodeReviewConfig(configOptions);
+  const configRecord = config as unknown as Record<string, unknown>;
+  const inputRecord = input as unknown as Record<string, unknown>;
+  const inputPrUrl = getOwnEntry(inputRecord, "prUrl");
+  const inputCwd = getOwnEntry(inputRecord, "cwd");
+  const inputAgent = getOwnEntry(inputRecord, "agent");
+  const inputDraftStore = getOwnEntry(inputRecord, "draftStore");
+  const inputSessionId = getOwnEntry(inputRecord, "sessionId");
+  const inputHumanGate = getOwnEntry(inputRecord, "humanGate") as
+    | CodeReviewHumanGateConfig
+    | undefined;
+  const inputProfileDirectories = getOwnEntry(inputRecord, "profileDirectories") as
+    | string[]
+    | undefined;
+  const inputProfilePath = getOwnEntry(inputRecord, "profilePath");
+  const inputPromptPath = getOwnEntry(inputRecord, "promptPath");
+  const inputProfiles = getOwnEntry(inputRecord, "profiles");
+  const inputAdditionalFeedback = getOwnEntry(inputRecord, "additionalFeedback");
   const agent =
-    input.agent === undefined ? config.agent : requireNonEmptyString(input.agent, "agent");
+    inputAgent === undefined
+      ? optionalNonEmptyString(getOwnEntry(configRecord, "agent"))
+      : requireNonEmptyString(inputAgent, "agent");
   const draftStore =
-    input.draftStore === undefined
-      ? config.draftStore
-      : requireNonEmptyString(input.draftStore, "draftStore");
-  resolveCodeReviewStoreDirectory(input.cwd, draftStore);
+    inputDraftStore === undefined
+      ? requireNonEmptyString(getOwnEntry(configRecord, "draftStore"), "codeReview.draftStore")
+      : requireNonEmptyString(inputDraftStore, "draftStore");
+  const configHumanGate = getOwnEntry(configRecord, "humanGate") as CodeReviewHumanGateConfig;
+  const configProfileDirectories = getOwnEntry(configRecord, "profileDirectories") as string[];
+  const cwd = requireNonEmptyString(inputCwd, "cwd");
+  resolveCodeReviewStoreDirectory(cwd, draftStore);
   return {
-    prUrl: requireNonEmptyString(input.prUrl, "prUrl"),
-    cwd: requireNonEmptyString(input.cwd, "cwd"),
-    ...(input.sessionId === undefined
+    prUrl: requireNonEmptyString(inputPrUrl, "prUrl"),
+    cwd,
+    ...(inputSessionId === undefined
       ? {}
-      : { sessionId: requireNonEmptyString(input.sessionId, "sessionId") }),
+      : { sessionId: requireNonEmptyString(inputSessionId, "sessionId") }),
     ...(agent ? { agent } : {}),
     draftStore,
-    humanGate: input.humanGate ?? config.humanGate,
+    humanGate: inputHumanGate ?? configHumanGate,
     profileDirectories: parseCodeReviewProfileDirectories(
-      input.profileDirectories ?? config.profileDirectories
+      inputProfileDirectories ?? configProfileDirectories
     ),
-    ...(input.profilePath === undefined ? {} : { profilePath: input.profilePath }),
-    ...(input.promptPath === undefined ? {} : { promptPath: input.promptPath }),
-    ...(input.profiles === undefined ? {} : { profiles: input.profiles }),
-    ...(input.additionalFeedback === undefined
+    ...(inputProfilePath === undefined ? {} : { profilePath: inputProfilePath as string }),
+    ...(inputPromptPath === undefined ? {} : { promptPath: inputPromptPath as string }),
+    ...(inputProfiles === undefined ? {} : { profiles: inputProfiles as string[] }),
+    ...(inputAdditionalFeedback === undefined
       ? {}
-      : { additionalFeedback: input.additionalFeedback })
+      : { additionalFeedback: inputAdditionalFeedback as string })
   };
 }
 
 export async function resolveCodeReviewRuntimeOptions(
   input: CodeReviewRunInput
 ): Promise<CodeReviewRunOptions> {
-  return resolveCodeReviewRunOptions(input, runtimeConfigOptions(input.cwd));
+  const cwd = requireNonEmptyString(
+    getOwnEntry(input as unknown as Record<string, unknown>, "cwd"),
+    "cwd"
+  );
+  return resolveCodeReviewRunOptions(input, runtimeConfigOptions(cwd));
 }
 
 export async function loadCodeReviewRuntimeConfig(cwd: string): Promise<CodeReviewConfig> {
@@ -163,23 +200,34 @@ export async function loadDefaultPoeCodeAgent(input: {
   env?: Record<string, string | undefined>;
   fs?: ConfigStoreOptions["fs"];
 }): Promise<string | undefined> {
+  const inputRecord = input as unknown as Record<string, unknown>;
+  const cwd = requireNonEmptyString(getOwnEntry(inputRecord, "cwd"), "cwd");
+  const home = getOwnEntry(inputRecord, "homeDir");
+  const env = getOwnEntry(inputRecord, "env") as Record<string, string | undefined> | undefined;
+  const fs = getOwnEntry(inputRecord, "fs") as ConfigStoreOptions["fs"] | undefined;
   const agent = await createConfigStore({
-    fs: input.fs ?? nativeConfigFs,
-    filePath: resolveConfigPath(input.homeDir ?? homedir()),
-    projectFilePath: resolveProjectConfigPath(input.cwd),
-    env: input.env ?? process.env
+    fs: fs ?? nativeConfigFs,
+    filePath: resolveConfigPath(typeof home === "string" ? home : homedir()),
+    projectFilePath: resolveProjectConfigPath(cwd),
+    env: env ?? process.env
   })
     .scope(poeCoreAgentScope)
     .get("defaultAgent");
   return agent.trim() || undefined;
 }
 
-function optionalNonEmptyString(value: string): string | undefined {
+function optionalNonEmptyString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
   const normalized = value.trim();
   return normalized.length > 0 ? normalized : undefined;
 }
 
-function requireNonEmptyString(value: string, field: string): string {
+function requireNonEmptyString(value: unknown, field: string): string {
+  if (typeof value !== "string") {
+    throw new Error(`${field} must be a non-empty string.`);
+  }
   const normalized = value.trim();
   if (!normalized) {
     throw new Error(`${field} must be a non-empty string.`);
@@ -188,5 +236,5 @@ function requireNonEmptyString(value: string, field: string): string {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

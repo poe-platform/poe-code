@@ -1,15 +1,11 @@
 import type { FileSystem } from "./types.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 /**
  * Check if an error is a "file not found" (ENOENT) error.
  */
 export function isNotFound(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: string }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 /**

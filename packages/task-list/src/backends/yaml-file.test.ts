@@ -2,7 +2,7 @@ import path from "node:path";
 import { parseDocument } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
-import { MalformedTaskError } from "../types.js";
+import { MalformedTaskError, TaskNotFoundError } from "../types.js";
 import { yamlFileBackend } from "./yaml-file.js";
 import { createFs } from "./test-helpers.js";
 
@@ -10,6 +10,33 @@ function parseYaml(content: string): Record<string, unknown> {
   const document = parseDocument(content);
 
   return document.toJS() as Record<string, unknown>;
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
 }
 
 describe("yamlFileBackend", () => {
@@ -76,6 +103,96 @@ describe("yamlFileBackend", () => {
     ).resolves.toBeDefined();
 
     await expect(existingStore.rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toBe(before);
+  });
+
+  it("rejects stores that only inherit required top-level fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": "{}\n"
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        $schema: "https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        kind: "task-store",
+        version: 1,
+        lists: {}
+      },
+      async () => {
+        const taskList = await yamlFileBackend({
+          path: "/repo/tasks.yaml",
+          defaults: { metadata: {} },
+          create: false,
+          fs
+        });
+
+        await expect(taskList.lists()).rejects.toBeInstanceOf(MalformedTaskError);
+      }
+    );
+  });
+
+  it("ignores inherited list records", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists: {}",
+        ""
+      ].join("\n")
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        planning: {
+          polluted: {
+            name: "Polluted",
+            state: "draft"
+          }
+        }
+      },
+      async () => {
+        const taskList = await yamlFileBackend({
+          path: "/repo/tasks.yaml",
+          defaults: { metadata: {} },
+          create: false,
+          fs
+        });
+
+        await expect(taskList.lists()).resolves.toEqual([]);
+        await expect(taskList.list("planning").get("polluted")).rejects.toBeInstanceOf(
+          TaskNotFoundError
+        );
+      }
+    );
+  });
+
+  it("ignores inherited optional task descriptions", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    ship:",
+        "      name: Ship it",
+        "      state: draft",
+        ""
+      ].join("\n")
+    });
+
+    await withObjectPrototypeProperties({ description: "Polluted description" }, async () => {
+      const taskList = await yamlFileBackend({
+        path: "/repo/tasks.yaml",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      });
+
+      await expect(taskList.list("planning").get("ship")).resolves.toMatchObject({
+        description: ""
+      });
+    });
   });
 
   it("preserves unknown top-level keys during updates", async () => {
@@ -189,6 +306,40 @@ describe("yamlFileBackend", () => {
       expect(Object.getPrototypeOf(task.metadata)).toBeNull();
     }
     await expect(rawFs.readFile("/repo/tasks.yaml", "utf8")).resolves.toContain("__proto__:");
+  });
+
+  it("does not accept inherited task state fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    inherited:",
+        "      name: Inherited",
+        ""
+      ].join("\n")
+    });
+
+    Object.defineProperty(Object.prototype, "state", {
+      value: "draft",
+      configurable: true
+    });
+    try {
+      const taskList = await yamlFileBackend({
+        path: "/repo/tasks.yaml",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      });
+
+      await expect(taskList.list("planning").get("inherited")).rejects.toThrow(
+        new MalformedTaskError('Malformed task "planning/inherited": invalid "state".')
+      );
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).state;
+    }
   });
 
   it("sets an absolute sourcePath when reading tasks", async () => {

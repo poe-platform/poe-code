@@ -2,6 +2,7 @@ import { createCipheriv, createDecipheriv, randomBytes, randomUUID, scrypt } fro
 import { promises as fs } from "node:fs";
 import { homedir, hostname, userInfo } from "node:os";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { SecretStore } from "./types.js";
 
 const derivedKeyCache = new Map<string, Promise<Buffer>>();
@@ -156,7 +157,7 @@ export class EncryptedFileStore implements SecretStore {
       await this.fs.chmod(temporaryPath, ENCRYPTION_FILE_MODE);
       await this.fs.rename(temporaryPath, this.filePath);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await removeIfPresent(this.fs, temporaryPath).catch(() => undefined);
       }
       throw error;
@@ -300,36 +301,43 @@ function parseEncryptedDocument(raw: string): EncryptedDocument | null {
     if (!isRecord(parsed)) {
       return null;
     }
-    if (parsed.version !== ENCRYPTION_VERSION) {
+    const version = getOwnEntry(parsed, "version");
+    const iv = getOwnEntry(parsed, "iv");
+    const authTag = getOwnEntry(parsed, "authTag");
+    const ciphertext = getOwnEntry(parsed, "ciphertext");
+    if (version !== ENCRYPTION_VERSION) {
       return null;
     }
     if (
-      typeof parsed.iv !== "string" ||
-      typeof parsed.authTag !== "string" ||
-      typeof parsed.ciphertext !== "string"
+      typeof iv !== "string" ||
+      typeof authTag !== "string" ||
+      typeof ciphertext !== "string"
     ) {
       return null;
     }
     return {
-      version: parsed.version,
-      iv: parsed.iv,
-      authTag: parsed.authTag,
-      ciphertext: parsed.ciphertext
+      version,
+      iv,
+      authTag,
+      ciphertext
     };
   } catch {
     return null;
   }
 }
 
-function isRecord(value: unknown): value is Record<string, any> {
+function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as NodeJS.ErrnoException).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }

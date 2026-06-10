@@ -24,6 +24,33 @@ function createFs(files: Record<string, string>, directories: string[] = [], lin
   return createFsFromVolume(volume).promises as unknown as TestFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("resolveWorkflowPath", () => {
   it("returns absolute paths as-is", () => {
     expect(resolveWorkflowPath("/tmp/workflow.md", cwd, homeDir)).toBe("/tmp/workflow.md");
@@ -146,6 +173,33 @@ describe("discoverWorkflowDocs", () => {
         fs: createFs({})
       })
     ).resolves.toEqual([]);
+  });
+
+  it("does not treat inherited lstat error codes as missing directories", async () => {
+    const raw = createFs({
+      "/repo/.poe-code/experiments/alpha.md": "# alpha"
+    });
+    const fs: TestFs = {
+      ...raw,
+      lstat: async (filePath) => {
+        if (filePath === "/repo/.poe-code/experiments") {
+          throw new Error("lstat denied");
+        }
+
+        return raw.lstat(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        discoverWorkflowDocs({
+          cwd,
+          homeDir,
+          subDirectory: "experiments",
+          fs
+        })
+      ).rejects.toThrow("lstat denied");
+    });
   });
 
   it("returns empty arrays when a workflow path points to a file instead of a directory", async () => {

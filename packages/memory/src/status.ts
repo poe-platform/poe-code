@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import {
   assertMemoryRootIsNotSymlink,
   assertNoSymlinkSegments,
@@ -60,12 +61,7 @@ async function pathExists(targetPath: string): Promise<boolean> {
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
 

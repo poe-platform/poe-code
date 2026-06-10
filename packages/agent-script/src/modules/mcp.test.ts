@@ -115,6 +115,163 @@ describe("makeMcpModule", () => {
     });
   });
 
+  it("requires own fields for MCP data payloads and server handles", async () => {
+    const callTool = vi.fn(async (params: unknown) => params);
+    const connectMcp = vi.fn(async () => ({
+      async listTools() {
+        return {
+          tools: [
+            Object.assign(
+              Object.create({
+                description: "polluted description",
+                inputSchema: {
+                  type: "object"
+                }
+              }),
+              {
+                name: "search"
+              }
+            )
+          ]
+        };
+      },
+      callTool
+    }));
+    const mcp = makeMcpModule(connectMcp);
+    const inheritedHandle = Object.assign(
+      Object.create({
+        args: ["--polluted"],
+        env: {
+          TOKEN: "polluted"
+        }
+      }),
+      {
+        command: "mcp-server"
+      }
+    );
+
+    expect(() => mcp.server(Object.create({ command: "mcp-server" }) as never)).toThrow(
+      "MCP server command must be a non-empty string."
+    );
+
+    const client = await mcp.client(inheritedHandle as never);
+
+    expect(connectMcp).toHaveBeenCalledWith({
+      command: "mcp-server"
+    });
+    await expect(client.tools()).resolves.toEqual([
+      {
+        name: "search"
+      }
+    ]);
+    const inheritedBatchCall = Object.assign(
+      Object.create({
+        args: {
+          polluted: true
+        }
+      }),
+      {
+        name: "search"
+      }
+    );
+
+    await expect(
+      client.toolBatch([inheritedBatchCall])
+    ).resolves.toEqual([
+      {
+        ok: true,
+        value: {
+          name: "search"
+        }
+      }
+    ]);
+    expect(callTool).toHaveBeenCalledWith({
+      name: "search"
+    });
+
+    const inheritedToolsEnvelope = makeMcpModule(async () => ({
+      async listTools() {
+        return Object.create({
+          tools: []
+        });
+      },
+      async callTool() {
+        return {};
+      }
+    }));
+
+    await expect(
+      (await inheritedToolsEnvelope.client({ command: "mcp-server" })).tools()
+    ).rejects.toThrow("MCP listTools() must resolve to an object with a tools array.");
+  });
+
+  it("does not let Object.prototype fields leak into normalized MCP records", async () => {
+    const seenServerArgs: unknown[] = [];
+    const callTool = vi.fn(async (params: { arguments?: unknown }) => params.arguments);
+    const mcp = makeMcpModule(async (server) => {
+      seenServerArgs.push((server as { args?: unknown }).args);
+      return {
+        async listTools() {
+          return {
+            tools: [
+              {
+                name: "search"
+              }
+            ]
+          };
+        },
+        callTool
+      };
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        args: ["--polluted"],
+        arguments: {
+          polluted: true
+        },
+        callToolBatch: async () => [
+          {
+            ok: true,
+            value: "polluted batch"
+          }
+        ],
+        description: "polluted description",
+        env: {
+          TOKEN: "polluted"
+        }
+      },
+      async () => {
+        const handle = mcp.server({
+          command: "mcp-server"
+        });
+        expect(Object.getPrototypeOf(handle)).toBeNull();
+        expect((handle as { args?: unknown }).args).toBeUndefined();
+
+        const client = await mcp.client(handle);
+        expect(seenServerArgs).toEqual([undefined]);
+
+        const tools = await client.tools();
+        expect(Object.getPrototypeOf(tools[0])).toBeNull();
+        expect((tools[0] as { description?: unknown }).description).toBeUndefined();
+
+        await expect(client.tool("search")).resolves.toBeUndefined();
+        const directParams = callTool.mock.calls.at(-1)?.[0];
+        expect(Object.getPrototypeOf(directParams)).toBeNull();
+        expect(directParams).toMatchObject({
+          name: "search"
+        });
+        expect((directParams as { arguments?: unknown }).arguments).toBeUndefined();
+
+        const batch = await client.toolBatch([{ name: "search" }]);
+        expect(batch[0]).toMatchObject({
+          ok: true
+        });
+        expect((batch[0] as { value?: unknown }).value).toBeUndefined();
+      }
+    );
+  });
+
   it("rejects non-object tool arguments before calling the injected client", async () => {
     const callTool = vi.fn(async () => ({}));
     const mcp = makeMcpModule(async () => ({
@@ -597,3 +754,30 @@ describe("makeMcpModule", () => {
     ).rejects.toThrow("connectMcp must resolve to an object with listTools() and callTool().");
   });
 });
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}

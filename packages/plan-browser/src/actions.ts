@@ -1,11 +1,15 @@
 import path from "node:path";
 import { spawnSync as nodeSpawnSync } from "node:child_process";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { ActionFs } from "./types.js";
 
 export function resolveEditor(
   env: Record<string, string | undefined> = process.env
 ): string {
-  const editor = env.EDITOR?.trim() || env.VISUAL?.trim() || "vi";
+  const editor =
+    getOwnEnvValue(env, "EDITOR")?.trim() ||
+    getOwnEnvValue(env, "VISUAL")?.trim() ||
+    "vi";
   return editor.length > 0 ? editor : "vi";
 }
 
@@ -47,7 +51,7 @@ async function archiveSelectedPlan(
     await fs.readFile(archivedPath, "utf8");
     throw new Error(`Archive destination already exists: ${archivedPath}`);
   } catch (error) {
-    if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) {
+    if (!hasErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
@@ -71,11 +75,22 @@ async function rejectSymbolicLink(targetPath: string, fs: Pick<ActionFs, "lstat"
       throw new Error(`Refusing to archive plan through symbolic link: ${targetPath}`);
     }
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasErrorCode(error, "ENOENT")) {
       return;
     }
     throw error;
   }
+}
+
+function getOwnEnvValue(
+  env: Record<string, string | undefined>,
+  key: string
+): string | undefined {
+  return Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
+}
+
+function hasErrorCode(error: unknown, code: string): boolean {
+  return hasOwnErrorCode(error, code);
 }
 
 function parseEditorCommand(command: string): string[] {

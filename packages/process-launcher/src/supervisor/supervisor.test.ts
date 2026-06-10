@@ -37,6 +37,32 @@ afterEach(() => {
   spawnMock.mockReset();
 });
 
+async function withObjectPrototypeProperties(
+  properties: Record<string, unknown>,
+  callback: () => Promise<void>
+): Promise<void> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createSupervisor", () => {
   it("is exported from the package entrypoint", () => {
     expect(createSupervisorFromIndex).toBe(createSupervisor);
@@ -996,6 +1022,32 @@ describe("createSupervisor", () => {
     });
 
     await expect(supervisor.start()).rejects.toThrow("workspace preparation failed");
+    expect(runner.exec).not.toHaveBeenCalled();
+  });
+
+  it("ignores inherited numeric workspace command error codes", async () => {
+    const child = createWorkspaceCommandChild();
+    spawnMock.mockReturnValue(child);
+    queueMicrotask(() => {
+      child.emit("error", new Error("spawn failed"));
+    });
+    resolveWorkspaceMock.mockImplementation(async (_locator: string, options: { exec: (command: string, args: string[]) => Promise<{ exitCode: number }> }) => {
+      const result = await options.exec("git", ["clone"]);
+      throw new Error(`workspace preparation failed with ${result.exitCode}`);
+    });
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+    const supervisor = createSupervisor({
+      runner,
+      spec: createSpec({ cwd: "github://poe-platform/poe-code" }),
+      stateDir: "/home/test/.poe-code/launch"
+    });
+
+    await withObjectPrototypeProperties({ code: 0, errno: 0 }, async () => {
+      await expect(supervisor.start()).rejects.toThrow("workspace preparation failed with 127");
+    });
     expect(runner.exec).not.toHaveBeenCalled();
   });
 

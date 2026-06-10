@@ -5,7 +5,8 @@ import {
 } from "../cli/constants.js";
 import {
   createBinaryExistsCheck,
-  createSpawnHealthCheck
+  createSpawnHealthCheck,
+  formatCommandRunnerResult
 } from "../utils/command-checks.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
@@ -18,6 +19,7 @@ import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { openCodeAgent } from "@poe-code/agent-defs";
 import { serializeOpenCodeMcpEnv } from "@poe-code/agent-spawn";
 import type { ActiveProvider } from "../cli/commands/shared.js";
+import type { ProviderContext } from "../cli/service-registry.js";
 
 function providerModel(model?: string): string {
   const value = model ?? DEFAULT_FRONTIER_MODEL;
@@ -45,6 +47,33 @@ export const OPEN_CODE_INSTALL_DEFINITION: ServiceInstallDefinition = {
 
 function getModelArgs(model?: string): string[] {
   return ["--model", providerModel(model)];
+}
+
+async function ensureHealthWorkspace(context: ProviderContext): Promise<string> {
+  const dir = context.env.resolveHomePath(".poe-code", "opencode-health");
+  await context.command.fs.mkdir(dir, { recursive: true });
+
+  const check = await context.command.runCommand("git", [
+    "-C",
+    dir,
+    "rev-parse",
+    "--is-inside-work-tree"
+  ]);
+  if (check.exitCode === 0 && check.stdout.trim() === "true") {
+    return dir;
+  }
+
+  const init = await context.command.runCommand("git", ["-C", dir, "init", "-q"]);
+  if (init.exitCode !== 0) {
+    throw new Error(
+      [
+        "Failed to initialize OpenCode health check workspace.",
+        formatCommandRunnerResult(init)
+      ].join("\n")
+    );
+  }
+
+  return dir;
 }
 
 
@@ -144,12 +173,28 @@ export const openCodeService = createProvider({
     ]
   },
   install: OPEN_CODE_INSTALL_DEFINITION,
-  test(context) {
+  async test(context) {
+    const healthDir = context.logger.context.dryRun
+      ? context.env.resolveHomePath(".poe-code", "opencode-health")
+      : await ensureHealthWorkspace(context);
+
     return context.runCheck(
       createSpawnHealthCheck("opencode", {
-        model: context.model,
-        prompt: "Output exactly: OPEN_CODE_OK",
-        expectedOutput: '"type":"step_start"'
+        expectedOutput: "OPEN_CODE_OK",
+        invocation: {
+          command: "opencode",
+          args: [
+            "run",
+            "Output exactly: OPEN_CODE_OK",
+            "--pure",
+            "--format",
+            "json",
+            "--model",
+            providerModel(context.model),
+            "--dir",
+            healthDir
+          ]
+        }
       })
     );
   },

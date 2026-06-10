@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import * as nodePty from "node-pty";
 import { stripAnsi } from "./ansi.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { TerminalBuffer } from "./terminal-buffer.js";
 import { keyToSequence, type TerminalKey } from "./keys.js";
 import { TerminalScreen } from "./terminal-screen.js";
@@ -354,11 +355,7 @@ function ensureSpawnHelperExecutable(): void {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  return "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function matchPattern(buffer: string, pattern: string | RegExp): string | null {

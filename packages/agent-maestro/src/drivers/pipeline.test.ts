@@ -444,6 +444,38 @@ describe("pipelineDriver", () => {
     ]);
   });
 
+  it("does not run inherited prompts for prototype-named task states", async () => {
+    const originalPrompt = Object.getOwnPropertyDescriptor(Object.prototype, "prompt");
+    Object.defineProperty(Object.prototype, "prompt", {
+      configurable: true,
+      value: "Polluted {{ task.id }}"
+    });
+    const mockSpawn = createMockSpawn(successScript());
+    const events: AttemptEvent[] = [];
+    const ctx = createDriverContext({
+      events,
+      task: createTask({ state: "constructor" }),
+      spawn: mockSpawn.spawn
+    });
+
+    try {
+      const outcome = await pipelineDriver.run(ctx);
+
+      expect(outcome).toEqual({ reason: "skip", skipReason: "unconfigured_state" });
+      expect(mockSpawn.calls).toEqual([]);
+      expect(events).toEqual([
+        phase(null, "preparing-workspace"),
+        { type: "unconfigured_state", task_id: "tasks/task-1", state: "constructor" }
+      ]);
+    } finally {
+      if (originalPrompt === undefined) {
+        delete (Object.prototype as Record<string, unknown>).prompt;
+      } else {
+        Object.defineProperty(Object.prototype, "prompt", originalPrompt);
+      }
+    }
+  });
+
   it("emits unconfigured_state and skips when a configured state has no runnable prompt", async () => {
     const mockSpawn = createMockSpawn(successScript());
     const events: AttemptEvent[] = [];

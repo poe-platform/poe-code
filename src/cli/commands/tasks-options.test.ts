@@ -1,12 +1,45 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { vol } from "memfs";
+import { fs as memfs, vol } from "memfs";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return fs.promises;
 });
 
-const { resolveTasksOptions, TasksOptionsError } = await import("./tasks-options.js");
+const { resolveTasksOptions, resolveWorkflowTasksOptions, TasksOptionsError } = await import(
+  "./tasks-options.js"
+);
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  return withObjectPrototypeProperties({ code }, callback);
+}
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
 
 function seedWorkflow(frontmatter: string): void {
   vol.fromJSON(
@@ -117,6 +150,98 @@ maestro:
       })
     ).rejects.toMatchObject({
       code: "missing_workflow"
+    });
+  });
+
+  it("does not treat inherited workflow read codes as missing workflows", async () => {
+    const readError = new Error("workflow read denied");
+    vi.spyOn(memfs.promises, "readFile").mockRejectedValueOnce(readError);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        resolveTasksOptions("acme/12", {
+          workflow: "/repo/WORKFLOW.md"
+        })
+      ).rejects.toBe(readError);
+    });
+  });
+
+  it("does not read inherited top-level tasks configuration", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+
+    await withObjectPrototypeProperties(
+      {
+        tasks: {
+          repo: "polluted/repo",
+          auth: { token: "polluted-token" }
+        }
+      },
+      async () => {
+        await expect(
+          resolveTasksOptions("acme/12", {
+            workflow: "/repo/WORKFLOW.md"
+          })
+        ).resolves.toEqual({
+          owner: "acme",
+          number: 12,
+          requiredStates: ["queued", "done"],
+          workflowPath: "/repo/WORKFLOW.md"
+        });
+      }
+    );
+  });
+
+  it("does not read inherited legacy workflow states", async () => {
+    seedWorkflow(`
+tasks:
+  repo: frontmatter/repo
+`);
+
+    await withObjectPrototypeProperties(
+      {
+        active_states: ["polluted"],
+        terminal_states: ["done"]
+      },
+      async () => {
+        await expect(
+          resolveTasksOptions("acme/12", {
+            workflow: "/repo/WORKFLOW.md"
+          })
+        ).rejects.toMatchObject({
+          code: "missing_required_states"
+        });
+      }
+    );
+  });
+
+  it("does not resolve inherited task backend paths", async () => {
+    seedWorkflow(`
+tasks:
+  type: gh-issues
+  repo: octo/repo
+states:
+  Todo:
+    prompt: Run it
+  Done:
+    terminal: true
+`);
+
+    await withObjectPrototypeProperties({ path: "./polluted.yml" }, async () => {
+      const resolved = await resolveWorkflowTasksOptions({
+        workflow: "/repo/WORKFLOW.md"
+      });
+
+      expect(resolved.taskListOptions).toEqual({
+        type: "gh-issues",
+        repo: "octo/repo"
+      });
+      expect(Object.hasOwn(resolved.taskListOptions, "path")).toBe(false);
     });
   });
 

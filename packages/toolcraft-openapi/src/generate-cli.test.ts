@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { stripAnsi } from "toolcraft-design";
 import { generate, type OpenApiDocument } from "./generate.js";
 import { runGenerateCli } from "./bin/generate.js";
 
@@ -85,6 +86,25 @@ function computeSpecSha(specText: string): string {
   return `sha256:${createHash("sha256").update(specText).digest("hex")}`;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 function createExpectedFiles(
   specText: string,
   options?: { includeDownloadedSpec?: boolean; includeInputFile?: boolean }
@@ -126,6 +146,43 @@ async function readRepoFiles(
 }
 
 describe("runGenerateCli", () => {
+  it("inspects every route without writing generated files", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    const originalNoColor = process.env.NO_COLOR;
+    process.env.NO_COLOR = "1";
+
+    try {
+      const exitCode = await runGenerateCli(["node", "generate", "--inspect"], harness.services);
+
+      expect(exitCode).toBe(0);
+      expect(stripAnsi(harness.stdout())).toContain("Internal Agent API  v1.0.0");
+      expect(stripAnsi(harness.stdout())).toContain("1 operation · 1 supported · 0 unsupported");
+      expect(await readRepoFiles(harness.fs, "/repo")).toEqual({ "openapi.json": specText });
+    } finally {
+      if (originalNoColor === undefined) delete process.env.NO_COLOR;
+      else process.env.NO_COLOR = originalNoColor;
+    }
+  });
+
+  it("renders complete JSON inspection output", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+
+    const exitCode = await runGenerateCli(
+      ["node", "generate", "--inspect", "--output-format", "json"],
+      harness.services
+    );
+
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(harness.stdout())).toMatchObject({
+      operationCount: 1,
+      supportedCount: 1,
+      unsupportedCount: 0,
+      operations: [{ operationId: "listBots", status: "supported" }]
+    });
+  });
+
   it("writes an explicit empty module when the spec has no operations", async () => {
     const specText = createEmptySpec();
     const harness = createCliHarness({ "/repo/openapi.json": specText });
@@ -297,6 +354,23 @@ describe("runGenerateCli", () => {
     ]);
   });
 
+  it("rethrows output directory stat failures with inherited missing-path codes", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    const statError = new Error("stat failed");
+    const lstat = harness.services.fs.lstat.bind(harness.services.fs);
+    vi.spyOn(harness.services.fs, "lstat").mockImplementation(async (targetPath) => {
+      if (String(targetPath) === "/repo/src/generated") {
+        throw statError;
+      }
+      return lstat(targetPath);
+    });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toBe(statError);
+    });
+  });
+
   it("returns an internal-invariant error for ToolcraftBugError-like failures", async () => {
     const specText = createEmptySpec();
     const harness = createCliHarness({ "/repo/openapi.json": specText });
@@ -326,6 +400,36 @@ describe("runGenerateCli", () => {
     expect(harness.stderr()).toBe("");
   });
 
+  it("cleans up temp files for write failures with inherited existing-path codes", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    const writeError = new Error("disk full");
+    const writeFile = harness.services.fs.writeFile.bind(harness.services.fs);
+    const unlink = vi.spyOn(harness.services.fs, "unlink");
+    let stagedPath: string | undefined;
+    vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
+      async (filePath, contents, encoding) => {
+        const pathText = String(filePath);
+        if (
+          pathText.startsWith("/repo/src/generated/.index.ts.") &&
+          pathText.endsWith(".tmp")
+        ) {
+          stagedPath = pathText;
+          throw writeError;
+        }
+
+        return writeFile(filePath, contents, encoding);
+      }
+    );
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toBe(writeError);
+    });
+
+    expect(stagedPath).toBeDefined();
+    expect(unlink).toHaveBeenCalledWith(stagedPath);
+  });
+
   it("restores the previous generated client when a later output write fails", async () => {
     const originalSpec = createEmptySpec();
     const updatedSpec = createSpec("List bots.");
@@ -337,6 +441,7 @@ describe("runGenerateCli", () => {
 
     const writeFile = harness.services.fs.writeFile.bind(harness.services.fs);
     let indexWriteFailed = false;
+    let stagedPath: string | undefined;
     vi.spyOn(harness.services.fs, "writeFile").mockImplementation(
       async (filePath, contents, encoding) => {
         const pathText = String(filePath);
@@ -346,6 +451,8 @@ describe("runGenerateCli", () => {
           !indexWriteFailed
         ) {
           indexWriteFailed = true;
+          stagedPath = pathText;
+          await writeFile(filePath, String(contents).slice(0, 12), encoding);
           throw new Error("disk full during index write");
         }
 
@@ -361,6 +468,8 @@ describe("runGenerateCli", () => {
       ...before,
       "openapi.json": updatedSpec
     });
+    expect(stagedPath).toBeDefined();
+    await expect(harness.fs.lstat(stagedPath as string)).rejects.toThrow("ENOENT");
   });
 
   it("rejects a symlinked generated output directory", async () => {
@@ -405,9 +514,7 @@ describe("runGenerateCli", () => {
     );
 
     expect(stagedPath).toBeDefined();
-    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).resolves.toBe(
-      "outside-state\n"
-    );
+    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).resolves.toBe("outside-state\n");
     await expect(harness.fs.lstat(stagedPath as string)).rejects.toThrow("ENOENT");
     expect((await harness.fs.lstat("/repo/src/generated/index.ts")).isSymbolicLink()).toBe(true);
   });

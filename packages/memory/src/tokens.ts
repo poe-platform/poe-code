@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { countTokens } from "tokenfill";
+import { hasOwnErrorCode } from "./errors.js";
 import { listPages } from "./pages.js";
 import type { MemoryRoot, TokenStats } from "./types.js";
 
@@ -93,12 +94,7 @@ async function pathExists(targetPath: string): Promise<boolean> {
 }
 
 function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isUrlLike(value: string): boolean {

@@ -29,6 +29,7 @@ import {
   parseCodeReviewState,
   serializeCodeReviewState
 } from "./review-state.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export const DEFAULT_CODE_REVIEW_REVIEWS_DIRECTORY = ".poe-code/code-review/reviews";
 export const CODE_REVIEW_DIRECTORY = ".poe-code/code-review";
@@ -207,7 +208,7 @@ export class CodeReviewYamlStore {
   ): Promise<CodeReviewState> {
     return this.#updateActive(prUrl, (state) => {
       const key = requireActor(actor);
-      if (state.rawReviews[key] !== undefined) {
+      if (hasOwnRecordEntry(state.rawReviews, key)) {
         throw new Error(`Raw review is immutable after creation: ${key}`);
       }
       return {
@@ -235,7 +236,7 @@ export class CodeReviewYamlStore {
   ): Promise<CodeReviewState> {
     return this.#updateActive(prUrl, (state) => {
       const key = requireActor(actor);
-      if (state.subagents[key] !== undefined) {
+      if (hasOwnRecordEntry(state.subagents, key)) {
         throw new Error(`Code review profile was already spawned in this session: ${key}`);
       }
       return {
@@ -542,6 +543,10 @@ function hasUnresolvedPublicationClaim(state: CodeReviewState): boolean {
   return false;
 }
 
+function hasOwnRecordEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
 async function withFileLock<T>(
   lockPath: string,
   lockTimeoutMs: number,
@@ -596,12 +601,7 @@ function isRunningProcess(processId: number): boolean {
     process.kill(processId, 0);
     return true;
   } catch (error) {
-    return !(
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ESRCH"
-    );
+    return !hasOwnErrorCode(error, "ESRCH");
   }
 }
 
@@ -744,9 +744,9 @@ function safeFilePart(part: string): string {
 }
 
 function isMissingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isExistingFileError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+  return hasOwnErrorCode(error, "EEXIST");
 }

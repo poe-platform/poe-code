@@ -6,6 +6,7 @@ import {
   DEFAULT_CLAUDE_CODE_MODEL,
   DEFAULT_CODEX_MODEL
 } from "../cli/constants.js";
+import { hasOwnErrorCode } from "../utils/error-codes.js";
 
 const CLAUDE_DEFAULT_MODEL = DEFAULT_CLAUDE_CODE_MODEL;
 
@@ -253,8 +254,8 @@ export class StrategyConfigManager {
       fs.renameSync(temporaryFile, this.CONFIG_FILE);
       temporaryCreated = false;
     } catch (error) {
-      if (temporaryCreated) {
-        fs.unlinkSync(temporaryFile);
+      if (temporaryCreated || !isAlreadyExists(error)) {
+        tryUnlinkSync(temporaryFile);
       }
       throw error;
     }
@@ -287,6 +288,18 @@ export class StrategyConfigManager {
         throw new Error(`Strategy config path cannot be a symbolic link: ${candidate}`);
       }
     }
+  }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
+}
+
+function tryUnlinkSync(filePath: string): void {
+  try {
+    fs.unlinkSync(filePath);
+  } catch {
+    return;
   }
 }
 

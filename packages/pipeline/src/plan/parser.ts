@@ -294,6 +294,10 @@ function rejectUnknownProperties(
   }
 }
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
 function parseTaskStatus(
   value: unknown,
   availableSteps: ResolvedStepDefinitions | undefined,
@@ -364,33 +368,37 @@ function parseHooks(value: unknown, label: string): StepHooks | undefined {
     throw new Error(`Invalid plan YAML: "${label}.hooks" must be an object.`);
   }
   rejectUnknownProperties(value, ["from", "strategy", "scope"], `${label}.hooks.`);
-  if (typeof value.from !== "string" || value.from.length === 0) {
+  const from = getOwnEntry(value, "from");
+  const strategy = getOwnEntry(value, "strategy");
+  const scope = getOwnEntry(value, "scope");
+
+  if (typeof from !== "string" || from.length === 0) {
     throw new Error(`Invalid plan YAML: "${label}.hooks.from" must be a non-empty string.`);
   }
   if (
-    value.strategy !== undefined &&
-    value.strategy !== "auto" &&
-    value.strategy !== "symlink" &&
-    value.strategy !== "transform"
+    strategy !== undefined &&
+    strategy !== "auto" &&
+    strategy !== "symlink" &&
+    strategy !== "transform"
   ) {
     throw new Error(
       `Invalid plan YAML: "${label}.hooks.strategy" must be "auto", "symlink", or "transform".`
     );
   }
   if (
-    value.scope !== undefined &&
-    value.scope !== "project" &&
-    value.scope !== "user" &&
-    value.scope !== "merged"
+    scope !== undefined &&
+    scope !== "project" &&
+    scope !== "user" &&
+    scope !== "merged"
   ) {
     throw new Error(
       `Invalid plan YAML: "${label}.hooks.scope" must be "project", "user", or "merged".`
     );
   }
   return {
-    from: value.from,
-    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
-    ...(value.scope !== undefined ? { scope: value.scope } : {})
+    from,
+    ...(strategy !== undefined ? { strategy } : {}),
+    ...(scope !== undefined ? { scope } : {})
   };
 }
 
@@ -400,26 +408,28 @@ function parseOptionalStepFields(
 ): Pick<StepDefinitionOverride, "agent" | "model" | "skills" | "hooks"> {
   const result: Pick<StepDefinitionOverride, "agent" | "model" | "skills" | "hooks"> = {};
 
-  if (value.agent !== undefined) {
-    if (typeof value.agent !== "string" || value.agent.length === 0) {
+  const agent = getOwnEntry(value, "agent");
+  if (agent !== undefined) {
+    if (typeof agent !== "string" || agent.length === 0) {
       throw new Error(`Invalid plan YAML: "${label}.agent" must be a non-empty string.`);
     }
-    result.agent = value.agent;
+    result.agent = agent;
   }
 
-  if (value.model !== undefined) {
-    if (typeof value.model !== "string" || value.model.length === 0) {
+  const model = getOwnEntry(value, "model");
+  if (model !== undefined) {
+    if (typeof model !== "string" || model.length === 0) {
       throw new Error(`Invalid plan YAML: "${label}.model" must be a non-empty string.`);
     }
-    result.model = value.model;
+    result.model = model;
   }
 
-  const skills = parseSkills(value.skills, label);
+  const skills = parseSkills(getOwnEntry(value, "skills"), label);
   if (skills !== undefined) {
     result.skills = skills;
   }
 
-  const hooks = parseHooks(value.hooks, label);
+  const hooks = parseHooks(getOwnEntry(value, "hooks"), label);
   if (hooks !== undefined) {
     result.hooks = hooks;
   }
@@ -437,16 +447,17 @@ function parseStepOverride(value: unknown, label: string): StepDefinitionOverrid
     ...parseOptionalStepFields(value, label)
   };
 
-  const mode = parseStepMode(value.mode, label);
+  const mode = parseStepMode(getOwnEntry(value, "mode"), label);
   if (mode !== undefined) {
     result.mode = mode;
   }
 
-  if (value.prompt !== undefined) {
-    if (typeof value.prompt !== "string" || value.prompt.length === 0) {
+  const prompt = getOwnEntry(value, "prompt");
+  if (prompt !== undefined) {
+    if (typeof prompt !== "string" || prompt.length === 0) {
       throw new Error(`Invalid plan YAML: "${label}.prompt" must be a non-empty string.`);
     }
-    result.prompt = value.prompt;
+    result.prompt = prompt;
   }
 
   return result;
@@ -478,21 +489,24 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
       throw new Error(`Invalid plan YAML: mcp["${name}"] must be an object.`);
     }
     rejectUnknownProperties(entry, ["command", "args", "env"], `mcp.${name}.`);
-    if (typeof entry.command !== "string" || entry.command.length === 0) {
+    const command = getOwnEntry(entry, "command");
+    if (typeof command !== "string" || command.length === 0) {
       throw new Error(`Invalid plan YAML: mcp["${name}"].command must be a non-empty string.`);
     }
-    const server: McpSpawnServer = { command: entry.command };
-    if (entry.args !== undefined) {
-      if (!Array.isArray(entry.args) || !entry.args.every((a) => typeof a === "string")) {
+    const server: McpSpawnServer = { command };
+    const args = getOwnEntry(entry, "args");
+    if (args !== undefined) {
+      if (!Array.isArray(args) || !args.every((a) => typeof a === "string")) {
         throw new Error(`Invalid plan YAML: mcp["${name}"].args must be an array of strings.`);
       }
-      server.args = entry.args as string[];
+      server.args = args;
     }
-    if (entry.env !== undefined) {
-      if (!isRecord(entry.env) || !Object.values(entry.env).every((v) => typeof v === "string")) {
+    const env = getOwnEntry(entry, "env");
+    if (env !== undefined) {
+      if (!isRecord(env) || !Object.values(env).every((v) => typeof v === "string")) {
         throw new Error(`Invalid plan YAML: mcp["${name}"].env must be a string record.`);
       }
-      server.env = entry.env as Record<string, string>;
+      server.env = env as Record<string, string>;
     }
     defineRecordEntry(result, name, server);
   }
@@ -529,34 +543,38 @@ export function parsePlan(
     "teardown",
     "mcp"
   ]);
-  if (document.kind !== undefined && document.kind !== "pipeline") {
+  const kind = getOwnEntry(document, "kind");
+  if (kind !== undefined && kind !== "pipeline") {
     throw new Error('Invalid plan YAML: "kind" must be "pipeline".');
   }
-  if (document.version !== undefined && document.version !== 1) {
+  const version = getOwnEntry(document, "version");
+  if (version !== undefined && version !== 1) {
     throw new Error('Invalid plan YAML: "version" must be 1.');
   }
 
   let extendsName = "default";
-  if (document.extends !== undefined) {
-    if (typeof document.extends !== "string" || document.extends.trim().length === 0) {
+  const extendsValue = getOwnEntry(document, "extends");
+  if (extendsValue !== undefined) {
+    if (typeof extendsValue !== "string" || extendsValue.trim().length === 0) {
       throw new Error('Invalid plan YAML: "extends" must be a non-empty string.');
     }
-    extendsName = document.extends.trim();
+    extendsName = extendsValue.trim();
   }
 
   let stepOverrides: StepDefinitionOverrides | undefined;
-  if (document.steps !== undefined) {
-    if (!isRecord(document.steps)) {
+  const stepsValue = getOwnEntry(document, "steps");
+  if (stepsValue !== undefined) {
+    if (!isRecord(stepsValue)) {
       throw new Error('Invalid plan YAML: "steps" must be an object.');
     }
 
     stepOverrides = {};
-    for (const [stepName, value] of Object.entries(document.steps)) {
+    for (const [stepName, value] of Object.entries(stepsValue)) {
       defineRecordEntry(stepOverrides, stepName, parseStepOverride(value, `steps.${stepName}`));
     }
   }
 
-  const tasksValue = document.tasks;
+  const tasksValue = getOwnEntry(document, "tasks");
   if (!Array.isArray(tasksValue)) {
     throw new Error('Invalid plan YAML: expected "tasks" to be an array.');
   }
@@ -567,7 +585,7 @@ export function parsePlan(
       throw new Error(`Invalid tasks[${index}]: expected an object.`);
     }
 
-    const id = asRequiredString(value.id, `tasks[${index}].id`);
+    const id = asRequiredString(getOwnEntry(value, "id"), `tasks[${index}].id`);
     if (ids.has(id)) {
       throw new Error(`Duplicate task id "${id}".`);
     }
@@ -575,35 +593,38 @@ export function parsePlan(
 
     return {
       id,
-      title: asRequiredString(value.title, `tasks[${index}].title`),
-      prompt: asRequiredString(value.prompt, `tasks[${index}].prompt`),
-      status: parseTaskStatus(value.status, options.availableSteps, id)
+      title: asRequiredString(getOwnEntry(value, "title"), `tasks[${index}].title`),
+      prompt: asRequiredString(getOwnEntry(value, "prompt"), `tasks[${index}].prompt`),
+      status: parseTaskStatus(getOwnEntry(value, "status"), options.availableSteps, id)
     } satisfies PipelineTask;
   });
 
+  const setupValue = getOwnEntry(document, "setup");
   const setup =
-    document.setup === false || document.setup === null
+    setupValue === false || setupValue === null
       ? null
-      : document.setup !== undefined
-        ? parseStepDef(document.setup, "setup")
+      : setupValue !== undefined
+        ? parseStepDef(setupValue, "setup")
         : undefined;
+  const teardownValue = getOwnEntry(document, "teardown");
   const teardown =
-    document.teardown === false || document.teardown === null
+    teardownValue === false || teardownValue === null
       ? null
-      : document.teardown !== undefined
-        ? parseStepDef(document.teardown, "teardown")
+      : teardownValue !== undefined
+        ? parseStepDef(teardownValue, "teardown")
         : undefined;
 
-  const mcpValue = document.mcp;
+  const mcpValue = getOwnEntry(document, "mcp");
   const mcp = mcpValue !== undefined ? parseMcpConfig(mcpValue) : undefined;
 
   let vars: Record<string, string> | undefined;
-  if (document.vars !== undefined) {
-    if (!isRecord(document.vars)) {
+  const varsValue = getOwnEntry(document, "vars");
+  if (varsValue !== undefined) {
+    if (!isRecord(varsValue)) {
       throw new Error('Invalid plan YAML: "vars" must be an object.');
     }
     vars = {};
-    for (const [key, val] of Object.entries(document.vars)) {
+    for (const [key, val] of Object.entries(varsValue)) {
       if (typeof val !== "string") {
         throw new Error(`Invalid plan YAML: vars["${key}"] must be a string.`);
       }

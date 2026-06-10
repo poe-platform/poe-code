@@ -791,7 +791,7 @@ function isCallToolResult(value: unknown): value is CallToolResult {
 }
 
 function isGetPromptResult(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !("messages" in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "messages")) {
     return false;
   }
 
@@ -799,15 +799,15 @@ function isGetPromptResult(value: unknown): boolean {
     && value.messages.every((message) =>
       typeof message === "object"
       && message !== null
-      && "role" in message
+      && hasOwnProperty(message, "role")
       && (message.role === "user" || message.role === "assistant")
-      && "content" in message
+      && hasOwnProperty(message, "content")
       && isPromptContentItem(message.content)
     );
 }
 
 function isReadResourceResult(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !("contents" in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "contents")) {
     return false;
   }
 
@@ -815,45 +815,59 @@ function isReadResourceResult(value: unknown): boolean {
     && value.contents.every((content) =>
       typeof content === "object"
       && content !== null
-      && "uri" in content
+      && hasOwnProperty(content, "uri")
       && typeof content.uri === "string"
       && isValidUri(content.uri)
-      && (("text" in content && typeof content.text === "string")
-        || ("blob" in content && typeof content.blob === "string" && isBase64(content.blob)))
+      && ((hasOwnProperty(content, "text") && typeof content.text === "string")
+        || (hasOwnProperty(content, "blob") && typeof content.blob === "string" && isBase64(content.blob)))
     );
 }
 
 function hasContentArray(value: unknown): value is { content: unknown[] } {
-  return typeof value === "object" && value !== null && "content" in value
+  return typeof value === "object" && value !== null && hasOwnProperty(value, "content")
     && Array.isArray((value as { content: unknown }).content);
 }
 
 function isContentItem(value: unknown): boolean {
-  if (typeof value !== "object" || value === null || !("type" in value)) {
+  if (typeof value !== "object" || value === null || !hasOwnProperty(value, "type")) {
     return false;
   }
 
   const block = value as Record<string, unknown>;
   if (block.type === "text") {
-    return typeof block.text === "string";
+    return hasOwnProperty(block, "text") && typeof block.text === "string";
   }
 
   if (block.type === "image" || block.type === "audio") {
-    return typeof block.data === "string" && isBase64(block.data) && typeof block.mimeType === "string";
+    return hasOwnProperty(block, "data")
+      && typeof block.data === "string"
+      && isBase64(block.data)
+      && hasOwnProperty(block, "mimeType")
+      && typeof block.mimeType === "string";
   }
 
   if (block.type === "resource_link") {
-    return typeof block.uri === "string" && typeof block.name === "string";
+    return hasOwnProperty(block, "uri")
+      && typeof block.uri === "string"
+      && hasOwnProperty(block, "name")
+      && typeof block.name === "string";
   }
 
-  if (block.type !== "resource" || typeof block.resource !== "object" || block.resource === null) {
+  if (
+    block.type !== "resource"
+    || !hasOwnProperty(block, "resource")
+    || typeof block.resource !== "object"
+    || block.resource === null
+  ) {
     return false;
   }
 
   const resource = block.resource as Record<string, unknown>;
-  return typeof resource.uri === "string"
-    && (resource.mimeType === undefined || typeof resource.mimeType === "string")
-    && (typeof resource.text === "string" || (typeof resource.blob === "string" && isBase64(resource.blob)));
+  return hasOwnProperty(resource, "uri")
+    && typeof resource.uri === "string"
+    && (!hasOwnProperty(resource, "mimeType") || typeof resource.mimeType === "string")
+    && ((hasOwnProperty(resource, "text") && typeof resource.text === "string")
+      || (hasOwnProperty(resource, "blob") && typeof resource.blob === "string" && isBase64(resource.blob)));
 }
 
 function isBase64(value: string): boolean {
@@ -884,5 +898,12 @@ function isPromptContentItem(value: unknown): boolean {
     return false;
   }
 
-  return !(typeof value === "object" && value !== null && "type" in value && value.type === "resource_link");
+  return !(typeof value === "object" && value !== null && hasOwnProperty(value, "type") && value.type === "resource_link");
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

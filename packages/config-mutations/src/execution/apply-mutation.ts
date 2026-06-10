@@ -20,6 +20,7 @@ import {
   pathExists,
   createTimestamp
 } from "../fs-utils.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 // ============================================================================
 // Helper Functions
@@ -55,6 +56,7 @@ async function backupInvalidDocument(
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
+        await context.fs.unlink(backupPath).catch(() => undefined);
         throw error;
       }
       attempt += 1;
@@ -63,7 +65,7 @@ async function backupInvalidDocument(
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function assertRegularWriteTarget(
@@ -112,11 +114,8 @@ async function writeAtomically(
       tempCreated = false;
       return;
     } catch (error) {
-      if (isAlreadyExists(error)) {
-        continue;
-      }
-
-      if (tempCreated) {
+      const alreadyExists = isAlreadyExists(error);
+      if (tempCreated || !alreadyExists) {
         try {
           await context.fs.unlink(tempPath);
         } catch (cleanupError) {
@@ -125,6 +124,11 @@ async function writeAtomically(
           }
         }
       }
+
+      if (alreadyExists) {
+        continue;
+      }
+
       throw error;
     }
   }
@@ -512,6 +516,7 @@ async function applyBackup(
         break;
       } catch (error) {
         if (!isAlreadyExists(error)) {
+          await context.fs.unlink(backupPath).catch(() => undefined);
           throw error;
         }
         attempt += 1;

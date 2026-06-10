@@ -93,6 +93,10 @@ Options:
   --log-file-name <name>       Filename override for the spawn log
   --log-content                Include message and tool content in ACP JSONL
                                spawn logs
+  --capture-otel               Capture native OpenTelemetry emitted by the
+                               spawned agent
+  --capture-otel-content       Include prompt and tool content in native
+                               OpenTelemetry
   --activity-timeout-ms <ms>   Kill the agent after N ms of inactivity
   --runtime <runtime>          Override runtime backend: host | docker | e2b
                                (choices: "host", "docker", "e2b")

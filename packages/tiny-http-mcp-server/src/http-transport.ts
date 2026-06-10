@@ -41,7 +41,7 @@ export class StreamableHttpTransport {
     ) => callback()
   ) {
     this.sessionIdGenerator =
-      "sessionIdGenerator" in options
+      hasOwnProperty(options, "sessionIdGenerator")
         ? options.sessionIdGenerator
         : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;
@@ -496,4 +496,8 @@ export class StreamableHttpTransport {
       [MCP_SESSION_ID_HEADER]: sessionId,
     };
   }
+}
+
+function hasOwnProperty(value: object, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

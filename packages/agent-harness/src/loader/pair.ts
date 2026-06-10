@@ -1,6 +1,8 @@
 import nodeFs from "node:fs/promises";
 import { basename as pathBasename, dirname, extname, join } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
+
 export type HarnessPair = {
   ajsPath: string;
   mdPath: string;
@@ -72,7 +74,7 @@ export async function resolvePair(inputPath: string, fs: HarnessFs = nodeFs): Pr
     try {
       stat = await fs.stat(check.path);
     } catch (error) {
-      if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         throw new MissingPairError(check.side, check.path);
       }
 

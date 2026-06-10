@@ -33,6 +33,18 @@ export type RunHarnessExecutionErrorResult = {
 
 export type RunHarnessResult = RunResult | RunHarnessExecutionErrorResult;
 
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function createHarnessMeta(filepath: string, frontmatter: Record<string, unknown>): HarnessMeta {
+  return {
+    filepath,
+    kind: getOwnEntry(frontmatter, "kind"),
+    version: getOwnEntry(frontmatter, "version")
+  };
+}
+
 export class LintError extends Error {
   readonly diagnostics: readonly Diagnostic[];
 
@@ -49,11 +61,7 @@ export async function runHarness(
 ): Promise<RunHarnessResult> {
   const rawSource = stripByteOrderMark(await readHarnessFile(filepath));
   const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
-  const meta = {
-    filepath,
-    kind: frontmatter.kind,
-    version: frontmatter.version
-  };
+  const meta = createHarnessMeta(filepath, frontmatter);
   const modules = excludeHarnessModule(options.modulesFor(frontmatter, meta), isRawScript);
   const diagnostics = lint(executableSource, {
     filename: filepath,
@@ -87,11 +95,7 @@ export async function runHarnessPair(
   ]);
   const { frontmatter, body } = splitFrontmatter(stripByteOrderMark(rawMarkdown));
   const executableSource = stripByteOrderMark(rawScript);
-  const meta = {
-    filepath: pair.markdownPath,
-    kind: frontmatter.kind,
-    version: frontmatter.version
-  };
+  const meta = createHarnessMeta(pair.markdownPath, frontmatter);
   const modules = options.modulesFor(frontmatter, meta);
   const diagnostics = lint(executableSource, {
     allowedExportNames: ["schema"],
@@ -111,8 +115,8 @@ export async function runHarnessPair(
     importMeta: {
       body,
       filepath: pair.markdownPath,
-      kind: frontmatter.kind,
-      version: frontmatter.version
+      kind: meta.kind,
+      version: meta.version
     },
     modules,
     otelSink: options.otelSink,
@@ -209,10 +213,14 @@ function isSetupError(error: unknown): boolean {
 }
 
 function isAbortError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.name === "AbortError";
+  }
+
   return (
     typeof error === "object" &&
     error !== null &&
-    "name" in error &&
+    Object.prototype.hasOwnProperty.call(error, "name") &&
     (error as { name?: unknown }).name === "AbortError"
   );
 }

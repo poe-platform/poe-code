@@ -144,6 +144,15 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function getOwnEntry(record: ObjectRecord, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnString(record: ObjectRecord, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
+}
+
 function nowInSeconds(): number {
   return Math.floor(Date.now() / 1_000);
 }
@@ -958,7 +967,8 @@ export function createOAuthTestServer(
   }
 
   function handleRegister(payload: ObjectRecord): ObjectRecord {
-    const redirectUris = isStringArray(payload.redirect_uris) ? payload.redirect_uris : null;
+    const redirectUrisValue = getOwnEntry(payload, "redirect_uris");
+    const redirectUris = isStringArray(redirectUrisValue) ? redirectUrisValue : null;
     if (redirectUris === null || redirectUris.length === 0) {
       throw new OAuthRequestError(
         400,
@@ -978,18 +988,19 @@ export function createOAuthTestServer(
       );
     }
     const grantTypes = normalizeRegistrationStringArray(
-      payload.grant_types,
+      getOwnEntry(payload, "grant_types"),
       "grant_types",
       ["authorization_code", "refresh_token"]
     );
     const responseTypes = normalizeRegistrationStringArray(
-      payload.response_types,
+      getOwnEntry(payload, "response_types"),
       "response_types",
       ["code"]
     );
+    const tokenEndpointAuthMethodValue = getOwnEntry(payload, "token_endpoint_auth_method");
     if (
-      payload.token_endpoint_auth_method !== undefined
-      && typeof payload.token_endpoint_auth_method !== "string"
+      tokenEndpointAuthMethodValue !== undefined
+      && typeof tokenEndpointAuthMethodValue !== "string"
     ) {
       throw new OAuthRequestError(
         400,
@@ -997,7 +1008,8 @@ export function createOAuthTestServer(
         "token_endpoint_auth_method must be a string"
       );
     }
-    const tokenEndpointAuthMethod = payload.token_endpoint_auth_method ?? "none";
+    const tokenEndpointAuthMethod =
+      typeof tokenEndpointAuthMethodValue === "string" ? tokenEndpointAuthMethodValue : "none";
     if (tokenEndpointAuthMethod !== "none") {
       throw new OAuthRequestError(
         400,
@@ -1026,21 +1038,21 @@ export function createOAuthTestServer(
       }
     }
 
-    if (payload.scope !== undefined && typeof payload.scope !== "string") {
+    const scopeValue = getOwnEntry(payload, "scope");
+    if (scopeValue !== undefined && typeof scopeValue !== "string") {
       throw new OAuthRequestError(400, "invalid_client_metadata", "scope must be a string");
     }
-    const scope = payload.scope === undefined ? undefined : parseScope(payload.scope);
+    const scope = scopeValue === undefined ? undefined : parseScope(scopeValue);
+    const rawClientName = getOwnString(payload, "client_name");
+    const rawSoftwareId = getOwnString(payload, "software_id");
+    const rawSoftwareVersion = getOwnString(payload, "software_version");
     const clientName =
-      typeof payload.client_name === "string" && payload.client_name.length > 0
-        ? payload.client_name
-        : undefined;
+      rawClientName !== undefined && rawClientName.length > 0 ? rawClientName : undefined;
     const softwareId =
-      typeof payload.software_id === "string" && payload.software_id.length > 0
-        ? payload.software_id
-        : undefined;
+      rawSoftwareId !== undefined && rawSoftwareId.length > 0 ? rawSoftwareId : undefined;
     const softwareVersion =
-      typeof payload.software_version === "string" && payload.software_version.length > 0
-        ? payload.software_version
+      rawSoftwareVersion !== undefined && rawSoftwareVersion.length > 0
+        ? rawSoftwareVersion
         : undefined;
     const clientId = `client_${nextClientId.toString().padStart(6, "0")}`;
     const clientIdIssuedAt = nowInSeconds();
@@ -1248,10 +1260,10 @@ export function createOAuthTestServer(
   }
 
   async function handleIssueToken(payload: ObjectRecord): Promise<ObjectRecord> {
-    const clientId = payload.client_id;
-    const resource = payload.resource;
-    const ttlSeconds = payload.ttl_seconds;
-    const scopes = payload.scopes;
+    const clientId = getOwnEntry(payload, "client_id");
+    const resource = getOwnEntry(payload, "resource");
+    const ttlSeconds = getOwnEntry(payload, "ttl_seconds");
+    const scopes = getOwnEntry(payload, "scopes");
 
     if (typeof clientId !== "string" || clientId.length === 0) {
       throw new OAuthRequestError(400, "invalid_request", "client_id is required");

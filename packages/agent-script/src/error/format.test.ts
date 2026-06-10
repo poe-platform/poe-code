@@ -4,6 +4,33 @@ import { SandboxError } from "../interp/budget.js";
 import { formatParseError } from "../parse/format-error.js";
 import { formatInterpreterError } from "./format.js";
 
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("formatInterpreterError", () => {
   it("renders a parser syntax error with a source excerpt and aligned caret", () => {
     const source = ["const alpha = 1;", "const beta = );", "const gamma = 3;"].join("\n");
@@ -104,6 +131,12 @@ describe("formatInterpreterError", () => {
     expect(formatInterpreterError(error)).toBe(
       ["Error: top", "", "Caused by: TypeError: middle", "Caused by: RangeError: bottom"].join("\n")
     );
+  });
+
+  it("ignores inherited causes when rendering cause chains", () => {
+    withObjectPrototypeProperties({ cause: new Error("polluted") }, () => {
+      expect(formatInterpreterError(new Error("top"))).toBe("Error: top");
+    });
   });
 
   it("wraps an error from a host call with the host call name", () => {

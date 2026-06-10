@@ -1,5 +1,6 @@
 import path from "node:path";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { AcpEvent } from "./types.js";
 
 export function mapAcpEventToSessionUpdates(event: AcpEvent): SessionUpdate[] {
@@ -132,7 +133,7 @@ async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string): 
         throw new Error(`Transcript log path may not contain symbolic links: ${filePath}`);
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         return;
       }
       throw error;

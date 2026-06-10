@@ -12,6 +12,24 @@ vi.mock("node:child_process", () => ({
 import { buildScript } from "./osascript-script.js";
 import { osascriptProvider } from "./osascript.js";
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("osascriptProvider", () => {
   beforeEach(() => {
     execFileAsyncMock.mockReset();
@@ -124,6 +142,17 @@ describe("osascriptProvider", () => {
     await expect(provider.requestApproval({ message: "continue?" })).rejects.toThrowError(
       "osascript not found"
     );
+  });
+
+  it("wraps spawn failures that only inherit missing-binary codes", async () => {
+    execFileAsyncMock.mockRejectedValue(new Error("spawn EACCES"));
+    const provider = osascriptProvider({ binary: "/fake/osascript" });
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(provider.requestApproval({ message: "continue?" })).rejects.toThrowError(
+        "osascript failed: Error: spawn EACCES"
+      );
+    });
   });
 
   it("treats a dismissed first dialog as a declined result", async () => {

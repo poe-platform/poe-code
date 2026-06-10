@@ -140,7 +140,7 @@ function readUnboundIdentifierName(error: unknown): string | undefined {
   if (
     typeof error !== "object" ||
     error === null ||
-    !("code" in error) ||
+    !hasOwnProperty(error, "code") ||
     error.code !== "UNBOUND_IDENTIFIER"
   ) {
     return undefined;
@@ -164,11 +164,18 @@ function readErrorMessage(error: unknown): string {
   if (
     typeof error === "object" &&
     error !== null &&
-    "message" in error &&
+    hasOwnProperty(error, "message") &&
     typeof error.message === "string"
   ) {
     return error.message;
   }
 
   return String(error);
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

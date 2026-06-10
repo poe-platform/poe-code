@@ -47,7 +47,7 @@ export function createSecretStore(
 function resolveBackend(input: CreateSecretStoreInput): StoreBackend {
   const envVar = input.backendEnvVar ?? DEFAULT_BACKEND_ENV_VAR;
   const configuredBackend =
-    input.backend ?? input.env?.[envVar] ?? process.env[envVar];
+    input.backend ?? getOwnEnvValue(input.env, envVar) ?? getOwnEnvValue(process.env, envVar);
 
   if (configuredBackend === "keychain") {
     return "keychain";
@@ -58,4 +58,13 @@ function resolveBackend(input: CreateSecretStoreInput): StoreBackend {
   }
 
   throw new Error(`Unsupported auth store backend: ${configuredBackend}`);
+}
+
+function getOwnEnvValue(
+  env: NodeJS.ProcessEnv | undefined,
+  key: string
+): string | undefined {
+  return env !== undefined && Object.prototype.hasOwnProperty.call(env, key)
+    ? env[key]
+    : undefined;
 }

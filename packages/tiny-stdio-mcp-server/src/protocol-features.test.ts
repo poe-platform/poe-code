@@ -9,6 +9,33 @@ import { describe, expect, it, vi } from "vitest";
 import { createServer } from "./index.js";
 import { defineSchema } from "./schema.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("prompts and resources protocol conformance", () => {
   async function connect() {
     const server = createServer({ name: "features", version: "1.0.0" })
@@ -218,6 +245,69 @@ describe("prompts and resources protocol conformance", () => {
 
     await expect(server.handleMessage("prompts/get", { name: "link" })).resolves.toMatchObject({ error: { code: -32603, message: "Invalid prompt result" } });
     await expect(server.handleMessage("resources/read", { uri: "memory://bad" })).resolves.toMatchObject({ error: { code: -32603, message: "Invalid resource result" } });
+  });
+
+  it("ignores inherited protocol result containers", async () => {
+    const server = createServer({ name: "polluted-results", version: "1.0.0" })
+      .registerTool({ name: "tool", inputSchema: defineSchema({}) }, () => ({} as never))
+      .prompt({ name: "prompt" }, () => ({} as never))
+      .resource({ uri: "memory://item", name: "item" }, () => ({} as never));
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    await withObjectPrototypeProperties(
+      {
+        content: [{ type: "text", text: "polluted tool content" }],
+        contents: [{ uri: "memory://item", text: "polluted resource content" }],
+        messages: [{ role: "user", content: { type: "text", text: "polluted prompt content" } }],
+      },
+      async () => {
+        await expect(server.handleMessage("tools/call", { name: "tool", arguments: {} })).resolves.toMatchObject({
+          result: { content: [{ type: "text", text: "{}" }] },
+        });
+        await expect(server.handleMessage("prompts/get", { name: "prompt" })).resolves.toMatchObject({
+          error: { code: -32603, message: "Invalid prompt result" },
+        });
+        await expect(server.handleMessage("resources/read", { uri: "memory://item" })).resolves.toMatchObject({
+          error: { code: -32603, message: "Invalid resource result" },
+        });
+      }
+    );
+  });
+
+  it("rejects inherited nested protocol content fields", async () => {
+    const server = createServer({
+      name: "polluted-content",
+      validateToolArguments: false,
+      version: "1.0.0",
+    })
+      .registerTool({ name: "tool", inputSchema: defineSchema({}) }, () => ({ content: [{}] } as never))
+      .prompt({ name: "prompt" }, () => ({ messages: [{}] } as never))
+      .resource({ uri: "memory://item", name: "item" }, () => ({ contents: [{}] } as never));
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    await withObjectPrototypeProperties(
+      {
+        content: { type: "text", text: "polluted prompt content" },
+        role: "user",
+        text: "polluted text",
+        type: "text",
+        uri: "memory://item",
+      },
+      async () => {
+        await expect(server.handleMessage("tools/call", { name: "tool", arguments: {} })).resolves.toMatchObject({
+          result: {
+            content: [{ type: "text", text: "Error: Invalid tool result" }],
+            isError: true,
+          },
+        });
+        await expect(server.handleMessage("prompts/get", { name: "prompt" })).resolves.toMatchObject({
+          error: { code: -32603, message: "Invalid prompt result" },
+        });
+        await expect(server.handleMessage("resources/read", { uri: "memory://item" })).resolves.toMatchObject({
+          error: { code: -32603, message: "Invalid resource result" },
+        });
+      }
+    );
   });
 
   it("rejects non-base64 binary protocol content returned by handlers", async () => {

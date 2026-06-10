@@ -37,6 +37,33 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("createSecretStore", () => {
   it("creates file backend store by default", async () => {
     const filePath = "/home/test/.app/credentials.enc";
@@ -108,6 +135,29 @@ describe("createSecretStore", () => {
       "-U",
       "-w"
     ], { stdin: "keychain-secret" });
+  });
+
+  it("ignores inherited backend environment values", async () => {
+    const filePath = "/home/test/.app/credentials.enc";
+    const fs = createMemFs();
+
+    await withObjectPrototypeProperties({ INHERITED_AUTH_BACKEND: "keychain" }, async () => {
+      const result = createSecretStore({
+        backendEnvVar: "INHERITED_AUTH_BACKEND",
+        env: {},
+        platform: "linux",
+        fileStore: {
+          fs,
+          filePath,
+          salt: "test-app:store:v1",
+          getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+        }
+      });
+
+      expect(result.backend).toBe("file");
+      await result.store.set("test-secret");
+      expect(await result.store.get()).toBe("test-secret");
+    });
   });
 
   it("throws when keychain backend is requested on non-macOS", () => {
@@ -195,6 +245,27 @@ describe("EncryptedFileStore", () => {
 
     expect(secondPayload).not.toBe(firstPayload);
     await expect(store.get()).resolves.toBe("secret-value");
+  });
+
+  it("ignores inherited encrypted document fields", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("secret-value");
+    const encryptedDocument = JSON.parse(
+      await fs.readFile(filePath, "utf8")
+    ) as Record<string, unknown>;
+    await fs.writeFile(filePath, "{}", { encoding: "utf8" });
+
+    await withObjectPrototypeProperties(encryptedDocument, async () => {
+      await expect(store.get()).resolves.toBeNull();
+    });
   });
 
   it("derives machine-bound key using hostname and username", async () => {
@@ -413,9 +484,11 @@ describe("EncryptedFileStore", () => {
 
     await original.set("old-secret");
 
+    let temporaryPath: string | undefined;
     const fs: EncryptedFileStoreFileSystem = {
       ...baseFs,
       async writeFile(targetPath, _data, options) {
+        temporaryPath = targetPath;
         await baseFs.writeFile(targetPath, "{", options);
         throw new Error("credential disk full");
       }
@@ -424,6 +497,11 @@ describe("EncryptedFileStore", () => {
 
     await expect(rotating.set("new-secret")).rejects.toThrow("credential disk full");
     await expect(original.get()).resolves.toBe("old-secret");
+    expect(temporaryPath?.startsWith(`${filePath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(baseFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not share cached keys between ambiguous identity tuples", async () => {
@@ -482,6 +560,32 @@ describe("EncryptedFileStore", () => {
     );
 
     await expect(store.get()).resolves.toBeNull();
+  });
+
+  it("does not treat inherited filesystem error codes as missing files", async () => {
+    const fs: EncryptedFileStoreFileSystem = {
+      readFile: vi.fn(async () => {
+        throw new Error("read permission denied");
+      }),
+      writeFile: vi.fn(async () => undefined),
+      mkdir: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
+      lstat: vi.fn(async () => {
+        throw Object.assign(new Error("missing"), { code: "ENOENT" });
+      }),
+      unlink: vi.fn(async () => undefined),
+      chmod: vi.fn(async () => undefined)
+    };
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(store.get()).rejects.toThrow("read permission denied");
+    });
   });
 
   it("deletes encrypted file", async () => {
@@ -547,6 +651,20 @@ describe("KeychainStore", () => {
       "secret",
       "-w"
     ]);
+  });
+
+  it("does not read inherited keychain command result fields", async () => {
+    const inheritedResult = Object.create({
+      stdout: "polluted-secret\n",
+      stderr: "",
+      exitCode: 0
+    }) as { stdout: string; stderr: string; exitCode: number };
+    const runCommand = vi.fn(async () => inheritedResult);
+    const store = new KeychainStore({ runCommand, service: "my-app", account: "secret" });
+
+    await expect(store.get()).rejects.toThrow(
+      "Failed to read secret from macOS Keychain: security exited with code 1"
+    );
   });
 
   it("rejects secrets with trailing line breaks before writing", async () => {

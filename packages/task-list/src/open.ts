@@ -28,32 +28,46 @@ function createDefaultFs(): TaskListFs {
 }
 
 export async function openTaskList(options: OpenTaskListOptions): Promise<TaskList> {
-  switch (options.type) {
+  const type = getOwnProperty(options, "type");
+  switch (type) {
     case "markdown-dir":
     case "yaml-file":
-      return openFileBackend(options);
+      return openFileBackend(options as FileBackendOptions);
     case "gh-issues":
-      return openGhIssuesBackend(options);
+      return openGhIssuesBackend(options as OpenGhIssuesOptions);
     default:
-      throw new Error(`Unknown task list backend type "${(options as { type: string }).type}".`);
+      throw new Error(`Unknown task list backend type "${String(type)}".`);
   }
 }
 
 async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
-  const factory = backendFactories[options.type];
-  const stateMachine = resolveStateMachine(options.stateMachine);
+  const type = getOwnProperty(options, "type") as FileBackendOptions["type"];
+  const factory = backendFactories[type];
+  const stateMachine = resolveStateMachine(
+    getOwnProperty(options, "stateMachine") as FileBackendOptions["stateMachine"]
+  );
   validateMachine(stateMachine);
-  const markdownOptions = options.type === "markdown-dir" ? options : undefined;
+  const markdownOptions = type === "markdown-dir" ? (options as OpenMarkdownDirOptions) : undefined;
+  const defaults = getOwnProperty(options, "defaults") as FileBackendOptions["defaults"];
 
   const deps: BackendDeps = {
-    path: options.path,
+    path: getOwnProperty(options, "path") as string,
     defaults: {
-      metadata: { ...(options.defaults?.metadata ?? {}) }
+      metadata: readDefaultMetadata(defaults)
     },
-    singleList: markdownOptions?.singleList,
-    frontmatterMode: markdownOptions?.frontmatterMode ?? "strict",
-    create: options.create ?? false,
-    fs: options.fs ?? createDefaultFs(),
+    singleList:
+      markdownOptions === undefined
+        ? undefined
+        : (getOwnProperty(markdownOptions, "singleList") as OpenMarkdownDirOptions["singleList"]),
+    frontmatterMode:
+      markdownOptions === undefined
+        ? "strict"
+        : ((getOwnProperty(
+            markdownOptions,
+            "frontmatterMode"
+          ) as OpenMarkdownDirOptions["frontmatterMode"]) ?? "strict"),
+    create: (getOwnProperty(options, "create") as boolean | undefined) ?? false,
+    fs: (getOwnProperty(options, "fs") as TaskListFs | undefined) ?? createDefaultFs(),
     stateMachine
   };
 
@@ -61,20 +75,46 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
 }
 
 async function openGhIssuesBackend(options: OpenGhIssuesOptions): Promise<TaskList> {
-  const token = await resolveAuth({ explicitToken: options.auth?.token });
+  const auth = getOwnProperty(options, "auth") as OpenGhIssuesOptions["auth"];
+  const explicitToken =
+    auth && hasOwnProperty(auth, "token") ? (auth.token as string | undefined) : undefined;
   const endpoint = resolveEndpoint();
+  const defaults = getOwnProperty(options, "defaults") as OpenGhIssuesOptions["defaults"];
 
   return ghIssuesBackend({
-    repo: options.repo,
-    project: options.project,
-    filter: options.filter,
-    state: options.state,
-    stateMachine: options.stateMachine,
+    repo: getOwnProperty(options, "repo") as OpenGhIssuesOptions["repo"],
+    project: getOwnProperty(options, "project") as OpenGhIssuesOptions["project"],
+    filter: getOwnProperty(options, "filter") as OpenGhIssuesOptions["filter"],
+    state: getOwnProperty(options, "state") as OpenGhIssuesOptions["state"],
+    stateMachine: getOwnProperty(options, "stateMachine") as OpenGhIssuesOptions["stateMachine"],
     defaults: {
-      metadata: { ...(options.defaults?.metadata ?? {}) }
+      metadata: readDefaultMetadata(defaults)
     },
-    token,
+    token: await resolveAuth({ explicitToken }),
     endpoint,
-    fetch: options.fetch
+    fetch: getOwnProperty(options, "fetch") as OpenGhIssuesOptions["fetch"]
   });
+}
+
+function readDefaultMetadata(defaults: { metadata?: Record<string, unknown> } | undefined) {
+  const metadata = defaults === undefined ? undefined : getOwnProperty(defaults, "metadata");
+  return isRecord(metadata) ? { ...metadata } : {};
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): Record<Name, unknown>[Name] | undefined {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

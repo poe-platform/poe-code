@@ -228,6 +228,48 @@ for (const pkg of ["agent-mcp-config", "agent-skill-config"]) {
   });
 }
 
+await rewriteWorkspaceDts(path.join(rootDir, "dist"), packageJsons);
+for (const { dir } of packageJsons) {
+  await rewriteWorkspaceDts(path.join(rootDir, "packages", dir, "dist"), packageJsons);
+}
+
+async function rewriteWorkspaceDts(dir, workspaces) {
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+  await Promise.all(
+    entries.map(async (entry) => {
+      const abs = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        await rewriteWorkspaceDts(abs, workspaces);
+        return;
+      }
+      if (!entry.name.endsWith(".d.ts")) return;
+
+      let content = await readFile(abs, "utf8");
+      let changed = false;
+      for (const { dir: workspaceDir, pkg } of workspaces) {
+        const escapedName = pkg.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const pattern = new RegExp(`(["'])${escapedName}(?:/([^"']+))?\\1`, "g");
+        content = content.replace(pattern, (_match, quote, subpath) => {
+          changed = true;
+          const target = path.join(
+            rootDir,
+            "packages",
+            workspaceDir,
+            "dist",
+            subpath ? `${subpath}.js` : "index.js"
+          );
+          let relative = path.relative(path.dirname(abs), target).split(path.sep).join("/");
+          if (!relative.startsWith(".")) relative = `./${relative}`;
+          return `${quote}${relative}${quote}`;
+        });
+      }
+      if (changed) {
+        await writeFile(abs, content);
+      }
+    })
+  );
+}
+
 // tokenfill is inlined into memory's bundle and resolves its corpus via
 // import.meta.url, so the corpus must sit next to packages/memory/dist/index.js.
 await cp(

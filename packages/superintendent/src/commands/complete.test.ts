@@ -59,6 +59,25 @@ status:
 - [x] Already done
 `;
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function runComplete(options: { content?: string; reason?: string } = {}): Promise<{
   result: unknown;
   updatedContent: string;
@@ -298,28 +317,41 @@ describe("superintendent complete command", () => {
     const targetPath = "/repo/docs/plans/feature.md";
     const volume = Volume.fromJSON({ [targetPath]: document }, "/");
     const rawFs = createFsFromVolume(volume).promises;
+    let temporaryPath: string | undefined;
 
-    await expect(completeCommand.handler({
-      params: { path: targetPath },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: {
-        readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-        lstat: async (filePath: string) => {
-          const stat = await rawFs.lstat(filePath);
-          return { isSymbolicLink: () => stat.isSymbolicLink() };
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(completeCommand.handler({
+        params: { path: targetPath },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: {
+          readFile: (filePath: string, encoding?: BufferEncoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
+          lstat: async (filePath: string) => {
+            const stat = await rawFs.lstat(filePath);
+            return { isSymbolicLink: () => stat.isSymbolicLink() };
+          },
+          writeFile: async (
+            filePath: string,
+            content: string,
+            options?: { encoding?: BufferEncoding; flag?: string }
+          ) => {
+            temporaryPath = filePath;
+            await rawFs.writeFile(filePath, content.slice(0, 12), options);
+            throw new Error("disk full");
+          },
+          rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
+          unlink: (filePath: string) => rawFs.unlink(filePath),
+          exists: vi.fn(async () => true)
         },
-        writeFile: async (filePath: string, content: string) => {
-          await rawFs.writeFile(filePath, content.slice(0, 12));
-          throw new Error("disk full");
-        },
-        rename: (fromPath: string, toPath: string) => rawFs.rename(fromPath, toPath),
-        unlink: (filePath: string) => rawFs.unlink(filePath),
-        exists: vi.fn(async () => true)
-      },
-      env: { get: vi.fn(() => undefined) },
-      progress: vi.fn()
-    })).rejects.toThrow("disk full");
+        env: { get: vi.fn(() => undefined) },
+        progress: vi.fn()
+      })).rejects.toThrow("disk full");
+    });
     await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(document);
+    expect(temporaryPath?.startsWith(`${targetPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(rawFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });

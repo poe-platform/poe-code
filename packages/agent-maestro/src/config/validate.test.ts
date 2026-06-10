@@ -50,6 +50,33 @@ function taskList(lists: readonly string[] = ["backlog"]) {
   return createMockTaskList({ lists });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 const coveredPreflightCodes: Record<DispatchPreflightCode, true> = {
   missing_tasks_config: true,
   tasks_unreachable: true,
@@ -90,6 +117,17 @@ describe("validateDispatch", () => {
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
   });
 
+  it("does not accept inherited markdown-dir task fields", async () => {
+    await withObjectPrototypeProperties({ path: "/polluted/tasks" }, async () => {
+      await expect(
+        validateDispatch(
+          cfg({ tasks: { type: "markdown-dir" } as ResolvedConfig["tasks"] }),
+          taskList()
+        )
+      ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
+    });
+  });
+
   it("fails when yaml-file tasks config is missing its path", async () => {
     await expect(
       validateDispatch(cfg({ tasks: { type: "yaml-file" } as ResolvedConfig["tasks"] }), taskList())
@@ -113,6 +151,29 @@ describe("validateDispatch", () => {
     expect(verifyGhProject).not.toHaveBeenCalled();
   });
 
+  it("does not accept inherited gh-issues project fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        project: { owner: "octo", number: 7 }
+      },
+      async () => {
+        await expect(
+          validateDispatch(
+            cfg({
+              tasks: {
+                type: "gh-issues",
+                repo: "octo/repo"
+              } as ResolvedConfig["tasks"]
+            }),
+            taskList()
+          )
+        ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
+
+        expect(verifyGhProject).not.toHaveBeenCalled();
+      }
+    );
+  });
+
   it("fails when the configured task list does not exist", async () => {
     expect(coveredPreflightCodes.list_not_found).toBe(true);
 
@@ -120,6 +181,29 @@ describe("validateDispatch", () => {
       ok: false,
       code: "list_not_found",
       list: "backlog"
+    });
+  });
+
+  it("does not use an inherited agent list", async () => {
+    const base = cfg();
+
+    await withObjectPrototypeProperties({ list: "backlog" }, async () => {
+      await expect(
+        validateDispatch(
+          cfg({
+            agent: {
+              service: base.agent.service,
+              maxConcurrentAgents: base.agent.maxConcurrentAgents,
+              maxRetryBackoffMs: base.agent.maxRetryBackoffMs
+            }
+          }),
+          taskList()
+        )
+      ).resolves.toEqual({
+        ok: false,
+        code: "list_not_found",
+        list: ""
+      });
     });
   });
 
@@ -207,6 +291,22 @@ describe("validateDispatch", () => {
       ok: false,
       code: "unknown_initial_state",
       state: "missing"
+    });
+  });
+
+  it("does not treat inherited prototype names as declared initial states", async () => {
+    await expect(
+      validateDispatch(
+        cfg({
+          activeStateNames: ["constructor"],
+          stateOrder: ["constructor", "done"]
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "unknown_initial_state",
+      state: "constructor"
     });
   });
 

@@ -1,5 +1,6 @@
 import * as nodeFs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "../errors.js";
 
 export interface StateFileSystem {
   mkdir(path: string, options: { recursive: true }): Promise<unknown>;
@@ -24,7 +25,7 @@ export interface StateFileSystem {
 export const defaultStateFs = nodeFs as unknown as StateFileSystem;
 
 export function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 export async function assertPathHasNoSymbolicLinks(

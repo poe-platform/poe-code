@@ -150,7 +150,7 @@ async function applyState(tasks: Tasks, created: Task, events: readonly string[]
 }
 
 function readOnlySourceOptions<TOptions extends TaskListOptions>(options: TOptions): TOptions {
-  if (!("create" in options)) {
+  if (!hasOwnProperty(options, "create")) {
     return options;
   }
 
@@ -273,4 +273,8 @@ function createTokenBucket(rate: number): () => Promise<void> {
 
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function hasOwnProperty(value: object, key: PropertyKey): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

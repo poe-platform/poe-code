@@ -189,7 +189,9 @@ function formatCause(cause: unknown, maxMessageLength: number): string {
 }
 
 function readCause(value: object): unknown {
-  return "cause" in value ? (value as { cause?: unknown }).cause : undefined;
+  return Object.prototype.hasOwnProperty.call(value, "cause")
+    ? (value as { cause?: unknown }).cause
+    : undefined;
 }
 
 function wrapHostCall(formatted: string, hostCallName: string): string {

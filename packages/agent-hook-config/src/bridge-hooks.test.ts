@@ -50,6 +50,33 @@ function readTarget(): { hooks: Record<string, Array<{ matcher?: string; hooks: 
   return JSON.parse(vol.readFileSync(targetPath, "utf8") as string);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("bridgeHooks", () => {
   let restoreRunner: (() => void) | undefined;
 
@@ -258,6 +285,29 @@ describe("bridgeHooks", () => {
     expect(vol.existsSync(targetPath)).toBe(false);
   });
 
+  it("does not treat inherited read error codes as missing target hook files", async () => {
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    vol.mkdirSync(path.dirname(targetPath), { recursive: true });
+    const readFileSync = fs.readFileSync.bind(fs);
+    const readFile = vi.spyOn(fs, "readFileSync").mockImplementation((filePath, options) => {
+      if (String(filePath) === targetPath) {
+        throw new Error("target hook read denied");
+      }
+
+      return readFileSync(filePath, options);
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+        expect(() =>
+          bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" })
+        ).toThrow("target hook read denied");
+      });
+    } finally {
+      readFile.mockRestore();
+    }
+  });
+
   it("keeps live transformed hooks when a duplicate caller run id is cleaned", () => {
     sourceHooks({ SessionEnd: [{ hooks: [{ type: "command", command: "dropped" }] }] });
     const first = bridgeHooks("claude-code", "codex", cwd, homeDir, "same-run", {
@@ -327,6 +377,30 @@ describe("bridgeHooks", () => {
     });
 
     expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup rename failed");
+    expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
+  });
+
+  it("removes a partial cleanup temp file when cleanup rewrite creation fails", () => {
+    vol.mkdirSync(path.dirname(targetPath), { recursive: true });
+    vol.writeFileSync(targetPath, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user" }] }] } }));
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });
+    const original = vol.readFileSync(targetPath, "utf8") as string;
+    const writeFileSync = fs.writeFileSync.bind(fs);
+    let temporaryPath: string | undefined;
+    vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      if (String(filePath).startsWith(`${targetPath}.cleanup-`) && String(filePath).endsWith(".tmp")) {
+        temporaryPath = String(filePath);
+        writeFileSync(filePath, "partial cleanup\n", options);
+        throw new Error("cleanup disk full");
+      }
+
+      return writeFileSync(filePath, data, options);
+    });
+
+    expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup disk full");
+    expect(temporaryPath).toBeDefined();
+    expect(vol.existsSync(temporaryPath as string)).toBe(false);
     expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
   });
 

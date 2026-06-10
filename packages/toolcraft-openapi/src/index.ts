@@ -2,6 +2,11 @@ export { defineApiCommand } from "./api-command.js";
 export { defineClient } from "./define-client.js";
 export { generate } from "./generate.js";
 export type { GenerateOptions, GeneratedFile, OpenApiDocument } from "./generate.js";
+export { inspectOpenApiDocument } from "./inspect.js";
+export type { OpenApiInspectionOperation, OpenApiInspectionReport } from "./inspect.js";
+export { inspectOpenApiSource } from "./inspect-source.js";
+export type { InspectOpenApiSourceOptions, OpenApiInspectionSource } from "./inspect-source.js";
+export { renderOpenApiInspection } from "./render-inspection.js";
 export { commandsFromSpec, defineClientFromSpec } from "./runtime.js";
 export type {
   CommandsFromSpecOptions,
@@ -14,6 +19,7 @@ export { bearerTokenAuth } from "./auth/bearer-token-auth.js";
 export type { BearerTokenAuthOptions } from "./auth/bearer-token-auth.js";
 export { HttpError, requestJson } from "./http.js";
 export type {
+  BinaryHttpResponse,
   HttpErrorRequest,
   HttpErrorResponse,
   HttpRequestOptions,

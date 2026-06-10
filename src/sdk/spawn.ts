@@ -18,13 +18,19 @@ import {
   usageCapture,
   spawnLog,
   runCommand,
-  type AcpSpawnContext,
-  type AcpEvent
+  type AcpSpawnContext as InternalAcpSpawnContext
 } from "@poe-code/agent-spawn";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
+import { createTraceSinkMiddleware } from "./trace.js";
 import { resolveActiveProviderForService, resolveMergedDocument } from "../cli/commands/shared.js";
 import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
-import type { SpawnOptions, SpawnResult, SpawnRetryOptions, SpawnUsage } from "./types.js";
+import type {
+  AcpEvent,
+  SpawnOptions,
+  SpawnResult,
+  SpawnRetryOptions,
+  SpawnUsage
+} from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
 /**
@@ -64,6 +70,9 @@ export function spawn(
       ? { ...maybeOptions, prompt: promptOrOptions }
       : promptOrOptions;
   const resolvedMcpServers = options.mcpServers ?? options.mcpConfig;
+  const captureOtel = options.captureOtel ?? process.env.POE_CODE_CAPTURE_OTEL === "1";
+  const captureOtelContent =
+    options.captureOtelContent ?? process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1";
 
   const emptyEvents: AsyncIterable<AcpEvent> = (async function* () {})();
 
@@ -127,13 +136,18 @@ export function spawn(
       const registeredService = container.registry.get(service);
 
       integrations = await loadIntegrations(await resolveMergedDocument(container));
+      const consumerMiddlewares = [
+        ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : []),
+        ...(options.middlewares ?? []),
+        ...(options.traceSink ? [createTraceSinkMiddleware(options.traceSink)] : [])
+      ];
       const middlewares = [
         sessionCapture,
         usageCapture,
         spawnLog,
-        ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : []),
-        ...(options.middlewares ?? [])
+        ...(!captureOtel ? consumerMiddlewares : [])
       ];
+      const nativeCaptureMiddlewares = captureOtel ? consumerMiddlewares : undefined;
       const resolveModel = async () =>
         options.model ?? (await resolveConfiguredModel(container, service));
       const runtimeOverrides = pickRuntimeOverrides(options);
@@ -155,6 +169,7 @@ export function spawn(
           signal: options.signal,
           otelSink: options.otelSink,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
@@ -170,7 +185,7 @@ export function spawn(
         };
       }
 
-      if (acpSpawnConfig && !hasRuntimeOverrides && canUseAcpWithMcpServers) {
+      if (acpSpawnConfig && !hasRuntimeOverrides && canUseAcpWithMcpServers && !captureOtel) {
         const model = await resolveModel();
         const adapter = registeredService;
         const activeProvider = adapter?.isolatedEnv
@@ -199,13 +214,16 @@ export function spawn(
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           otelSink: options.otelSink,
-          ...(resolvedAcpEnv ? { env: resolvedAcpEnv } : {}),
+          ...(nativeCaptureMiddlewares ? { middlewares: nativeCaptureMiddlewares } : {}),
+          ...(resolvedAcpEnv || options.env
+            ? { env: { ...(resolvedAcpEnv ?? {}), ...(options.env ?? {}) } }
+            : {}),
           ...runtimeOverrides
         });
         const { events: rawEvents, done } = acpSpawn;
         setSessionModel = acpSpawn.unstable_setSessionModel;
 
-        const middlewareContext: AcpSpawnContext = {
+        const middlewareContext: InternalAcpSpawnContext = {
           sessionId: "unknown",
           agent: service,
           logDir: options.logDir,
@@ -258,11 +276,15 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           otelSink: options.otelSink,
+          captureOtel,
+          captureOtelContent,
+          ...(nativeCaptureMiddlewares ? { middlewares: nativeCaptureMiddlewares } : {}),
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
@@ -273,7 +295,7 @@ export function spawn(
           useStdin: options.useStdin ?? false
         });
 
-        const middlewareContext: AcpSpawnContext = {
+        const middlewareContext: InternalAcpSpawnContext = {
           sessionId: "unknown",
           agent: service,
           logDir: options.logDir,
@@ -322,6 +344,7 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          ...(options.env ? { env: options.env } : {}),
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,
@@ -353,6 +376,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
+        ...(options.env ? { env: options.env } : {}),
         ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
         ...(options.hooks ? { hooks: options.hooks } : {}),
         resumeThreadId: options.resumeThreadId,

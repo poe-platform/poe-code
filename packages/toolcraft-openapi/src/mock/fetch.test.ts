@@ -89,6 +89,37 @@ function createSetOfficialSpec(): OpenApiDocument {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  return withObjectPrototypeProperties({ code }, callback);
+}
+
 describe("mockFetch", () => {
   it("returns the fixture body when one matches the operationId", async () => {
     const { fetch } = await mockFetch({
@@ -141,6 +172,35 @@ describe("mockFetch", () => {
     const response = await fetch("https://api.example.com/v1/whoami");
 
     await expect(response.json()).resolves.toEqual({ handle: "named-example" });
+  });
+
+  it("ignores inherited named example values", async () => {
+    const spec = createWhoamiSpec();
+    spec.paths!["/v1/whoami"]!.get!.responses!["200"] = {
+      description: "OK",
+      content: {
+        "application/json": {
+          schema: { type: "object" },
+          examples: {
+            primary: {}
+          }
+        } as any
+      }
+    };
+
+    let caught: unknown;
+    await withObjectPrototypeProperties({ value: { handle: "polluted-example" } }, async () => {
+      const { fetch } = await mockFetch({ spec });
+
+      try {
+        await fetch("https://api.example.com/v1/whoami");
+      } catch (error) {
+        caught = error;
+      }
+    });
+
+    expect(caught).toBeInstanceOf(Error);
+    expect((caught as Error).message).toMatch(/unmocked/i);
   });
 
   it("throws synchronously when no fixture and no example exist (default onUnmocked)", async () => {
@@ -552,6 +612,104 @@ describe("mockFetch", () => {
     expect(good.status).toBe(200);
   });
 
+  it("ignores inherited $ref request schema markers when validating", async () => {
+    const schema = Object.assign(
+      Object.create({ $ref: "#/components/schemas/Widget" }),
+      {
+        type: "object",
+        required: ["name"],
+        properties: { name: { type: "string" } }
+      }
+    ) as never;
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/v1/widgets": {
+          post: {
+            operationId: "create_widget",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: { "application/json": { schema: { type: "object" } } }
+              }
+            }
+          }
+        }
+      },
+      components: {
+        schemas: {
+          Widget: {
+            type: "object",
+            required: ["sku"],
+            properties: { sku: { type: "string" } }
+          }
+        }
+      }
+    };
+
+    const { fetch } = await mockFetch({
+      spec,
+      fixtures: { create_widget: { body: {} } }
+    });
+
+    const response = await fetch("https://api.example.com/v1/widgets", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "abc" })
+    });
+
+    expect(response.status).toBe(200);
+  });
+
+  it("does not resolve missing request schema refs through inherited prototype properties", async () => {
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/v1/widgets": {
+          post: {
+            operationId: "create_widget",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/__proto__" }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: { "application/json": { schema: { type: "object" } } }
+              }
+            }
+          }
+        }
+      },
+      components: {
+        schemas: {}
+      }
+    };
+
+    await expect(
+      mockFetch({
+        spec,
+        fixtures: { create_widget: { body: {} } }
+      })
+    ).rejects.toThrow(
+      new UserError('mockFetch: failed to resolve $ref "#/components/schemas/__proto__".')
+    );
+  });
+
   it("disables body validation when the request schema accepts any object", async () => {
     const spec: OpenApiDocument = {
       openapi: "3.1.0",
@@ -679,6 +837,25 @@ describe("mockFetch", () => {
         }
       })
     ).rejects.toThrow(/fabricated_op/);
+  });
+
+  it("does not treat inherited directory fixture error codes as missing fixtures", async () => {
+    const readdirError = new Error("fixtures readdir denied");
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        mockFetch({
+          spec: createWhoamiSpec(),
+          fixtures: "/fixtures",
+          fs: {
+            readFile: async () => "",
+            readdir: async () => {
+              throw readdirError;
+            }
+          }
+        })
+      ).rejects.toBe(readdirError);
+    });
   });
 
   it("accepts null for a nullable request-body field", async () => {

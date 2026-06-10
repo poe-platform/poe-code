@@ -10,6 +10,33 @@ const { createSandboxClosure, createSandboxPromise } = await import("../interp/v
 const { makeHarnessModule } = await import("../modules/harness.js");
 const { runHarness, runHarnessPair } = await import("./run-harness.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("runHarness", () => {
   beforeEach(() => {
     vol.reset();
@@ -76,6 +103,45 @@ describe("runHarness", () => {
       ok: true,
       returnValue: `inspect|codex|pipeline|1|${filepath}`
     });
+  });
+
+  it("ignores inherited frontmatter metadata for markdown harnesses", async () => {
+    const filepath = "/repo/docs/plans/no-frontmatter.md";
+    vol.fromJSON({
+      [filepath]: [
+        "```js",
+        'import { meta } from "harness";',
+        "return [meta.kind, meta.version, meta.filepath].join('|');",
+        "```"
+      ].join("\n")
+    });
+
+    const modulesFor = vi.fn((frontmatter, meta) => ({
+      harness: makeHarnessModule(frontmatter, meta)
+    }));
+
+    await withObjectPrototypeProperties(
+      {
+        kind: "polluted-kind",
+        version: 99
+      },
+      async () => {
+        const result = await runHarness(filepath, { modulesFor });
+
+        expect(modulesFor).toHaveBeenCalledWith(
+          {},
+          {
+            filepath,
+            kind: undefined,
+            version: undefined
+          }
+        );
+        expect(result).toMatchObject({
+          ok: true,
+          returnValue: `||${filepath}`
+        });
+      }
+    );
   });
 
   it("surfaces ENOENT with the missing path in the message", async () => {
@@ -617,6 +683,44 @@ describe("runHarness", () => {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("does not mark inherited error names as aborted", async () => {
+    const filepath = "/repo/docs/plans/inherited-abort.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'import { fail } from "api";',
+        "return fail();",
+        "```"
+      ].join("\n")
+    });
+
+    await withObjectPrototypeProperties({ name: "AbortError" }, async () => {
+      const result = await runHarness(filepath, {
+        modulesFor: () => ({
+          api: {
+            fail: createSandboxClosure({
+              call: () => {
+                throw {};
+              },
+              name: "fail"
+            })
+          }
+        })
+      });
+
+      expect(result).toMatchObject({
+        ok: false
+      });
+      expect(result).not.toHaveProperty("aborted");
+    });
+  });
+
   it("checkpoints the running script to snapshotPath", async () => {
     vol.mkdirSync("/checkpoints");
     vi.useFakeTimers();
@@ -689,6 +793,44 @@ describe("runHarnessPair", () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+  });
+
+  it("ignores inherited frontmatter metadata for harness pairs", async () => {
+    const mdPath = "/repo/harnesses/no-frontmatter.md";
+    const ajsPath = "/repo/harnesses/no-frontmatter.ajs";
+
+    vol.fromJSON({
+      [mdPath]: "Body",
+      [ajsPath]: [
+        "export default async () =>",
+        "  [import.meta.kind, import.meta.version, import.meta.filepath].join('|');"
+      ].join("\n")
+    });
+
+    const modulesFor = vi.fn(() => ({}));
+
+    await withObjectPrototypeProperties(
+      {
+        kind: "polluted-kind",
+        version: 99
+      },
+      async () => {
+        const result = await runHarnessPair(mdPath, { modulesFor });
+
+        expect(modulesFor).toHaveBeenCalledWith(
+          {},
+          {
+            filepath: mdPath,
+            kind: undefined,
+            version: undefined
+          }
+        );
+        expect(result).toMatchObject({
+          ok: true,
+          returnValue: `||${mdPath}`
+        });
+      }
+    );
   });
 
   it("keeps concurrent runs against the same pair independent", async () => {

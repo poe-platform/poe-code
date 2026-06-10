@@ -7,6 +7,7 @@ import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
 import type { Tool } from "tiny-mcp-client";
 import type { Command, Group, Scope } from "./index.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { convertJsonSchema } from "./json-schema-converter.js";
 import type { ObjectSchema } from "toolcraft-schema";
 
@@ -273,9 +274,7 @@ async function readCache(cachePath: string): Promise<McpProxyCache | undefined> 
       version: parsed.version === 1 ? 1 : 1,
     };
   } catch (error) {
-    const code = (error as NodeJS.ErrnoException).code;
-
-    if (code === "ENOENT" || error instanceof SyntaxError) {
+    if (hasOwnErrorCode(error, "ENOENT") || error instanceof SyntaxError) {
       return undefined;
     }
 
@@ -292,24 +291,28 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
   await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
   await assertCachePathHasNoSymlinks(directory);
-  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
-    encoding: "utf8",
-    flag: "wx"
-  });
-  tempCreated = true;
 
   try {
+    await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+    tempCreated = true;
     await assertCachePathHasNoSymlinks(tempPath);
     await assertCachePathHasNoSymlinks(cachePath);
     await rename(tempPath, cachePath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExistsError(error)) {
       await unlink(tempPath).catch(() => undefined);
     }
 
     throw error;
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function fetchCache(
@@ -581,7 +584,7 @@ async function assertCachePathHasNoSymlinks(filePath: string): Promise<void> {
         throw new Error(`MCP cache path must not contain symbolic links: ${currentPath}.`);
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

@@ -1,6 +1,8 @@
 import { spawn } from "node:child_process";
+import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { constants } from "node:os";
 import { setTimeout as delay } from "node:timers/promises";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 const TERMINATION_GRACE_MS = 1_000;
 const PROCESS_GROUP_POLL_MS = 25;
@@ -31,9 +33,11 @@ export type CommandRunner = (
 export function runCommand(
   command: string,
   args: string[],
-  options?: CommandRunnerOptions
+  inputOptions?: CommandRunnerOptions
 ): Promise<CommandRunnerResult> {
   return new Promise((resolve) => {
+    const options = normalizeCommandRunnerOptions(inputOptions);
+
     if (options?.signal?.aborted === true) {
       resolve({
         stdout: "",
@@ -49,17 +53,21 @@ export function runCommand(
     const hasTimeout = typeof timeoutMs === "number" && timeoutMs > 0;
     const canAbort = options?.signal !== undefined;
     const killProcessGroup = process.platform !== "win32" && (hasTimeout || canAbort);
-    const child = spawn(command, args, {
-      stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
-      cwd: options?.cwd,
-      env: options?.env
-        ? {
-            ...(process.env as Record<string, string | undefined>),
-            ...options.env
-          }
-        : undefined,
-      ...(killProcessGroup ? { detached: true } : {})
-    });
+    const child: ChildProcess = spawn(
+      command,
+      args,
+      createNullRecord<SpawnOptions>({
+        stdio: [hasStdin ? "pipe" : "ignore", "pipe", "pipe"],
+        cwd: options?.cwd,
+        env: options?.env
+          ? {
+              ...(process.env as Record<string, string | undefined>),
+              ...options.env
+            }
+          : undefined,
+        ...(killProcessGroup ? { detached: true } : {})
+      })
+    );
     if (killProcessGroup) {
       child.unref();
     }
@@ -148,9 +156,12 @@ export function runCommand(
     });
 
     child.on("error", (error: NodeJS.ErrnoException) => {
+      const ownCode = Object.prototype.hasOwnProperty.call(error, "code")
+        ? error.code
+        : undefined;
       const exitCode =
-        typeof error.code === "number"
-          ? error.code
+        typeof ownCode === "number"
+          ? ownCode
           : typeof error.errno === "number"
             ? error.errno
             : 127;
@@ -188,6 +199,48 @@ export function runCommand(
   });
 }
 
+function normalizeCommandRunnerOptions(
+  options: CommandRunnerOptions | undefined
+): CommandRunnerOptions {
+  if (options === undefined) {
+    return createNullRecord({});
+  }
+
+  return createNullRecord({
+    ...optionalOwnProperty(options, "cwd"),
+    ...optionalOwnProperty(options, "env"),
+    ...optionalOwnProperty(options, "stdin"),
+    ...optionalOwnProperty(options, "timeoutMs"),
+    ...optionalOwnProperty(options, "signal")
+  });
+}
+
+function optionalOwnProperty<Name extends keyof CommandRunnerOptions>(
+  options: CommandRunnerOptions,
+  name: Name
+): Pick<CommandRunnerOptions, Name> | Record<string, never> {
+  const value = getOwnProperty(options, name);
+  return value === undefined ? {} : ({ [name]: value } as Pick<CommandRunnerOptions, Name>);
+}
+
+function getOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): unknown {
+  return hasOwnProperty(value, name) ? value[name] : undefined;
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
+}
+
 async function waitForProcessGroupExit(pid: number): Promise<void> {
   const deadline = Date.now() + TERMINATION_GRACE_MS + PROCESS_GROUP_FINAL_WAIT_MS;
 
@@ -210,12 +263,7 @@ function isProcessGroupAlive(pid: number): boolean {
 }
 
 function isNoSuchProcess(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ESRCH"
-  );
+  return hasOwnErrorCode(error, "ESRCH");
 }
 
 function signalExitCode(signal: NodeJS.Signals | null): number {

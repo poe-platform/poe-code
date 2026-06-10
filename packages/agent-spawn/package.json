@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./parallel": {
+      "types": "./dist/parallel.d.ts",
+      "import": "./dist/parallel.js"
+    },
     "./register-factories": {
       "types": "./dist/register-factories.d.ts",
       "import": "./dist/register-factories.js"
@@ -17,6 +21,10 @@
     "./testing": {
       "import": "./dist/testing.js",
       "types": "./dist/testing.d.ts"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
     }
   },
   "scripts": {

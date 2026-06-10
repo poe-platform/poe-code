@@ -1,5 +1,6 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 type CanonicalFs = { realpath(targetPath: string): Promise<string> };
 
@@ -95,11 +96,5 @@ function fieldRootDescription(field: string): string {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

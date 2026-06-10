@@ -8,6 +8,33 @@ const DEFAULT_OPTIONS = {
   requiredStates: ["Todo", "Doing", "Done"]
 };
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("verifyGhProject", () => {
   it("reports a missing project", async () => {
     const client = new MockGhClient([
@@ -86,6 +113,35 @@ describe("verifyGhProject", () => {
       missingStatusField: false,
       missingOptions: []
     });
+  });
+
+  it("ignores inherited Status field and option fields", async () => {
+    const client = new MockGhClient([
+      projectResponse({
+        organization: {
+          projectV2: project({
+            field: {} as never
+          })
+        },
+        user: null
+      })
+    ]);
+
+    await withObjectPrototypeProperties(
+      {
+        id: "polluted-id",
+        name: "Status",
+        options: [{ id: "polluted-option", name: "Todo" }]
+      },
+      async () => {
+        await expect(verifyGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toMatchObject({
+          ok: false,
+          statusField: null,
+          missingStatusField: true,
+          missingOptions: DEFAULT_OPTIONS.requiredStates
+        });
+      }
+    );
   });
 
   it("treats lowercase status as a missing Status field", async () => {

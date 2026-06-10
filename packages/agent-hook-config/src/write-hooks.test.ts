@@ -37,6 +37,33 @@ function readHooks(): unknown {
   return JSON.parse(vol.readFileSync(targetPath, "utf8") as string);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("writeCodexHooks", () => {
   beforeEach(() => {
     vol.reset();
@@ -64,6 +91,23 @@ describe("writeCodexHooks", () => {
       }
     });
     expect(vol.readFileSync(targetPath, "utf8")).toMatch(/\n$/);
+  });
+
+  it("does not create hooks when read errors have inherited missing-file codes", async () => {
+    const readFile = vi.spyOn(fs, "readFileSync").mockImplementation(() => {
+      throw new Error("hook read denied");
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+        expect(() =>
+          writeCodexHooks(targetPath, [generatedEntry("Stop", "notify", "")], "current")
+        ).toThrow("hook read denied");
+      });
+      expect(vol.existsSync(targetPath)).toBe(false);
+    } finally {
+      readFile.mockRestore();
+    }
   });
 
   it("creates an absent target without inventing event keys for empty input", () => {
@@ -282,6 +326,26 @@ describe("writeCodexHooks", () => {
 
     expect(() => writeCodexHooks(targetPath, [generatedEntry("Stop", "notify")], "current")).not.toThrow();
     expect(vol.readFileSync("/outside/hooks.json", "utf8")).toBe("outside");
+  });
+
+  it("removes a partially written temporary file when creation fails", () => {
+    writeHooks({ hooks: {} });
+    const temporaryPath = `${targetPath}.tmp-current-0`;
+    const originalWriteFileSync = fs.writeFileSync.bind(fs);
+    vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      if (String(filePath) === temporaryPath) {
+        originalWriteFileSync(filePath, "partial", options);
+        throw new Error("hooks disk full");
+      }
+
+      return originalWriteFileSync(filePath, data, options);
+    });
+
+    expect(() => writeCodexHooks(targetPath, [generatedEntry("Stop", "notify")], "current")).toThrow(
+      "hooks disk full"
+    );
+    expect(vol.existsSync(temporaryPath)).toBe(false);
+    expect(readHooks()).toEqual({ hooks: {} });
   });
 
   it("cleans stale handlers with empty input while preserving existing empty event arrays", () => {

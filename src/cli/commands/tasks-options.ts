@@ -2,6 +2,7 @@ import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "@poe-code/github-workflows";
 import type { OpenTaskListOptions, StateMachineDef } from "@poe-code/task-list";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 
 const DEFAULT_WORKFLOW_PATH = "./WORKFLOW.md";
 const MAESTRO_TASK_STATE_MACHINE_STATES = [
@@ -49,6 +50,7 @@ export interface ResolvedWorkflowTasksOptions {
   taskListOptions: OpenTaskListOptions;
   stateOrder: string[];
   stateMachine: StateMachineDef;
+  gateStates: string[];
   workflowPath: string;
 }
 
@@ -106,13 +108,26 @@ export async function resolveWorkflowTasksOptions(
   const taskListOptions = readTaskListOptions(frontmatter, workflowPath);
   const stateOrder = resolveRequiredStates(undefined, frontmatter);
   const stateMachine = createAnyToAnyStateMachine(stateOrder);
+  const gateStates = readGateStates(frontmatter);
 
   return {
     taskListOptions,
     stateOrder,
     stateMachine,
+    gateStates,
     workflowPath
   };
+}
+
+function readGateStates(frontmatter: Record<string, unknown>): string[] {
+  const states = asRecord(frontmatter.states);
+  if (states === undefined) {
+    return [];
+  }
+
+  return Object.entries(states)
+    .filter(([, definition]) => asRecord(definition)?.gate === true)
+    .map(([name]) => name);
 }
 
 async function readWorkflowFrontmatter(workflowPath: string): Promise<Record<string, unknown>> {
@@ -137,7 +152,7 @@ function readTaskListOptions(
   frontmatter: Record<string, unknown>,
   workflowPath: string
 ): OpenTaskListOptions {
-  const tasks = asRecord(frontmatter.tasks);
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
   if (tasks === undefined) {
     throw new TasksOptionsError(
       "missing_tasks_config",
@@ -146,7 +161,7 @@ function readTaskListOptions(
   }
 
   const resolved = resolveStringValues(tasks);
-  if (typeof resolved.path === "string") {
+  if (hasOwnEntry(resolved, "path") && typeof resolved.path === "string") {
     resolved.path = resolveWorkflowRelativePath(resolved.path, workflowPath);
   }
 
@@ -218,7 +233,7 @@ function resolveRequiredStates(
 }
 
 function readWorkflowStates(frontmatter: Record<string, unknown>): string[] {
-  const declaredStates = readDeclaredStates(frontmatter.states);
+  const declaredStates = readDeclaredStates(getOwnEntry(frontmatter, "states"));
   if (declaredStates.length > 0) {
     return declaredStates;
   }
@@ -239,21 +254,21 @@ function parseStatesCsv(value: string): string[] {
 }
 
 function readMaestroStates(frontmatter: Record<string, unknown>): string[] {
-  const maestro = asRecord(frontmatter.maestro);
+  const maestro = asRecord(getOwnEntry(frontmatter, "maestro"));
   if (maestro === undefined) {
     return [];
   }
 
   return unique([
-    ...readStringArray(maestro.active_states),
-    ...readStringArray(maestro.terminal_states)
+    ...readStringArray(getOwnEntry(maestro, "active_states")),
+    ...readStringArray(getOwnEntry(maestro, "terminal_states"))
   ]);
 }
 
 function readLegacyTopLevelStates(frontmatter: Record<string, unknown>): string[] {
   return unique([
-    ...readStringArray(frontmatter.active_states),
-    ...readStringArray(frontmatter.terminal_states)
+    ...readStringArray(getOwnEntry(frontmatter, "active_states")),
+    ...readStringArray(getOwnEntry(frontmatter, "terminal_states"))
   ]);
 }
 
@@ -263,19 +278,20 @@ function readDeclaredStates(value: unknown): string[] {
 }
 
 function readTasksRepo(frontmatter: Record<string, unknown>): string | undefined {
-  const tasks = asRecord(frontmatter.tasks);
-  return typeof tasks?.repo === "string" && tasks.repo.trim().length > 0
-    ? tasks.repo.trim()
-    : undefined;
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
+  const repo = tasks === undefined ? undefined : getOwnEntry(tasks, "repo");
+  return typeof repo === "string" && repo.trim().length > 0 ? repo.trim() : undefined;
 }
 
 function readTasksAuthToken(frontmatter: Record<string, unknown>): string | undefined {
-  const auth = asRecord(asRecord(frontmatter.tasks)?.auth);
-  if (auth === undefined || typeof auth.token !== "string") {
+  const tasks = asRecord(getOwnEntry(frontmatter, "tasks"));
+  const auth = tasks === undefined ? undefined : asRecord(getOwnEntry(tasks, "auth"));
+  const rawToken = auth === undefined ? undefined : getOwnEntry(auth, "token");
+  if (typeof rawToken !== "string") {
     return undefined;
   }
 
-  const token = resolveStringValue(auth.token).trim();
+  const token = resolveStringValue(rawToken).trim();
   return token.length > 0 && !token.startsWith("$") ? token : undefined;
 }
 
@@ -363,10 +379,18 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
   return isPlainRecord(value) ? (value as Record<string, unknown>) : undefined;
 }
 
+function hasOwnEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return hasOwnEntry(record, key) ? record[key] : undefined;
+}
+
 function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isFileNotFoundError(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

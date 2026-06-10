@@ -63,6 +63,33 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { syml
   } as EvalFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("eval source registry", () => {
   const source: EvalSource = { rootDir: "/repo/evals" };
 
@@ -83,6 +110,26 @@ describe("eval source registry", () => {
     });
 
     await expect(listEvals(source, fs)).resolves.toEqual([]);
+  });
+
+  it("does not treat inherited stat error codes as missing eval files", async () => {
+    const raw = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml
+    });
+    const fs: EvalFs = {
+      ...raw,
+      stat: async (filePath) => {
+        if (filePath === "/repo/evals/smoke/eval.yaml") {
+          throw new Error("eval stat denied");
+        }
+
+        return raw.stat(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(listEvals(source, fs)).rejects.toThrow("eval stat denied");
+    });
   });
 
   it("loads eval.yaml and plan.md frontmatter", async () => {

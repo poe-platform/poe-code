@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
 
@@ -238,9 +239,13 @@ export async function writeTaskStatus(options: {
     await options.fs.rename(tempPath, options.planPath);
     tempCreated = false;
   } catch (error) {
-    if (tempCreated) {
+    if (tempCreated || !isAlreadyExists(error)) {
       await options.fs.unlink(tempPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }

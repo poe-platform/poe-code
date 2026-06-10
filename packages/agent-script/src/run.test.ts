@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
-import { makeAgentModule } from "./modules/agent.js";
+import { makeAgentModule, type AgentSpawnEvent } from "./modules/agent.js";
 import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeMcpModule } from "./modules/mcp.js";
@@ -317,6 +317,116 @@ describe("run", () => {
     });
   });
 
+  it("keeps sandbox spawn labels in lifecycle events and out of provider input", async () => {
+    const events: AgentSpawnEvent[] = [];
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "reviewed",
+      stderr: "",
+      summary: "done",
+      durationMs: 4
+    }));
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        'const response = await spawn("codex", {',
+        '  label: "Review authentication",',
+        '  prompt: "Review generated sensitive implementation details."',
+        "});",
+        "return response.summary;"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent, { onEvent: (event) => events.push(event) })
+        }
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: "done" });
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Review generated sensitive implementation details."
+    });
+    expect(events).toEqual([
+      expect.objectContaining({
+        type: "spawn.started",
+        spawnId: 1,
+        task: "Review authentication"
+      }),
+      expect.objectContaining({
+        type: "spawn.succeeded",
+        spawnId: 1,
+        task: "Review authentication"
+      })
+    ]);
+  });
+
+  it("runs explicit sandbox retries with lifecycle events", async () => {
+    const events: AgentSpawnEvent[] = [];
+    const spawnAgent = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("sandbox temporarily unavailable"))
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "reviewed",
+        stderr: "",
+        summary: "done",
+        durationMs: 4
+      });
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        'const response = await spawn.retry("codex", { label: "Review auth", prompt: "Generated details" }, {',
+        "  maxAttempts: 2,",
+        "  backoffMs: 0",
+        "});",
+        "return response.summary;"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent, { onEvent: (event) => events.push(event) })
+        }
+      }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: "done" });
+    expect(spawnAgent).toHaveBeenCalledTimes(2);
+    expect(events).toEqual([
+      expect.objectContaining({ type: "spawn.started", spawnId: 1, attempt: 1 }),
+      expect.objectContaining({ type: "spawn.retry", spawnId: 1, attempt: 1 }),
+      expect.objectContaining({ type: "spawn.started", spawnId: 1, attempt: 2 }),
+      expect.objectContaining({ type: "spawn.succeeded", spawnId: 1, attempt: 2 })
+    ]);
+  });
+
+  it("rejects explicit sandbox retry policies above five attempts", async () => {
+    const spawnAgent = vi.fn();
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        "try {",
+        '  await spawn.retry("codex", { prompt: "Generated details" }, { maxAttempts: 6, backoffMs: 0 });',
+        "} catch ({ message }) {",
+        "  return message;",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "Agent spawn retry maxAttempts must not exceed 5."
+    });
+    expect(spawnAgent).not.toHaveBeenCalled();
+  });
+
   it("runs agent.spawn.parallel through the injected module", async () => {
     const spawnAgent = vi.fn(async (input: { prompt: string }) => ({
       exitCode: input.prompt.includes("Fail") ? 5 : 0,
@@ -347,6 +457,70 @@ describe("run", () => {
       returnValue: JSON.stringify([0, 5])
     });
     expect(spawnAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it("applies numbered lifecycle events and default retries to sandbox parallel spawns", async () => {
+    const events: AgentSpawnEvent[] = [];
+    const spawnAgent = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("sandbox temporarily unavailable"))
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "built",
+        stderr: "",
+        summary: "built",
+        durationMs: 2
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "reviewed",
+        stderr: "",
+        summary: "reviewed",
+        durationMs: 3
+      });
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        "const results = await spawn.parallel([",
+        '  ["codex", { label: "Build feature", prompt: "Generated build details" }],',
+        '  ["codex", { label: "Review feature", prompt: "Generated review details" }]',
+        "], { maxConcurrent: 1 });",
+        "return JSON.stringify(results.map((response) => response.summary));"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent, {
+            defaultRetry: { maxAttempts: 2, backoffMs: 0 },
+            onEvent: (event) => events.push(event)
+          })
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["built", "reviewed"])
+    });
+    expect(spawnAgent).toHaveBeenCalledTimes(3);
+    expect(spawnAgent).toHaveBeenNthCalledWith(1, {
+      agent: "codex",
+      prompt: "Generated build details",
+      signal: expect.objectContaining({ aborted: false })
+    });
+    expect(spawnAgent).toHaveBeenNthCalledWith(3, {
+      agent: "codex",
+      prompt: "Generated review details",
+      signal: expect.objectContaining({ aborted: false })
+    });
+    expect(events).toEqual([
+      expect.objectContaining({ type: "spawn.started", spawnId: 1, task: "Build feature" }),
+      expect.objectContaining({ type: "spawn.retry", spawnId: 1, task: "Build feature" }),
+      expect.objectContaining({ type: "spawn.started", spawnId: 1, attempt: 2 }),
+      expect.objectContaining({ type: "spawn.succeeded", spawnId: 1, attempt: 2 }),
+      expect.objectContaining({ type: "spawn.started", spawnId: 2, task: "Review feature" }),
+      expect.objectContaining({ type: "spawn.succeeded", spawnId: 2, task: "Review feature" })
+    ]);
   });
 
   it("surfaces agent spawn failures as catchable sandbox errors", async () => {

@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { registerExperimentCommand } from "./experiment.js";
 import { registerRalphCommand } from "./ralph.js";
@@ -82,6 +83,25 @@ function createMemFs(files: Record<string, string> = {}): FileSystem {
   return createFsFromVolume(volume).promises as unknown as FileSystem;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function replaceWithSymlink(
   fs: Pick<FileSystem, "symlink" | "unlink">,
   path: string,
@@ -90,7 +110,7 @@ async function replaceWithSymlink(
   try {
     await fs.unlink(path);
   } catch (error) {
-    if ((error as { code?: unknown }).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
@@ -1813,6 +1833,40 @@ describe("experiment install command", () => {
     );
   });
 
+  it("does not treat inherited stat codes as missing experiment install paths", async () => {
+    const fs = createMemFs();
+    const statError = new Error("experiment stat denied");
+    const originalStat = fs.stat.bind(fs);
+    vi.spyOn(fs, "stat").mockImplementation(async (filePath) => {
+      if (String(filePath) === "/repo/.poe-code/experiments") {
+        throw statError;
+      }
+      return originalStat(filePath);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "experiment",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local"
+        ])
+      ).rejects.toBe(statError);
+    });
+  });
+
   it("does not install the skill when run.yaml scaffolding fails", async () => {
     const fs = createMemFs();
     const writeFile = fs.writeFile.bind(fs);
@@ -1831,22 +1885,67 @@ describe("experiment install command", () => {
     const program = createBaseProgram();
     registerExperimentCommand(program, container);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "experiment",
-        "install",
-        "--agent",
-        "claude-code",
-        "--local"
-      ])
-    ).rejects.toThrow("run.yaml write failed");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "experiment",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local"
+        ])
+      ).rejects.toThrow("run.yaml write failed");
+    });
 
     await expect(
       fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
     ).rejects.toThrow();
     await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
+  });
+
+  it("cleans a partial run.yaml when scaffolding fails in an existing experiments directory", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/experiments/existing.md": "# Existing\n"
+    });
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === "/repo/.poe-code/experiments/run.yaml") {
+        await writeFile(filePath, "partial run yaml\n", options);
+        throw new Error("run.yaml write failed");
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "experiment",
+          "install",
+          "--agent",
+          "claude-code",
+          "--local"
+        ])
+      ).rejects.toThrow("run.yaml write failed");
+    });
+
+    await expect(fs.readFile("/repo/.poe-code/experiments/existing.md", "utf8")).resolves.toBe(
+      "# Existing\n"
+    );
+    await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).rejects.toMatchObject(
+      { code: "ENOENT" }
+    );
   });
 
   it("does not follow a run.yaml symlink inserted before experiment scaffolding", async () => {
@@ -3436,6 +3535,64 @@ describe("ralph init command", () => {
       iterations: 5
     });
     expect(parsed.body).toBe("# My Plan\n\nBody");
+  });
+
+  it("cleans a partial doc temp file when config publish fails", async () => {
+    const docPath = "/repo/docs/loop.md";
+    const initial = "# My Plan\n\nBody";
+    const baseFs = createMemFs({
+      [docPath]: initial
+    });
+    let temporaryPath: string | undefined;
+    const fs: FileSystem = {
+      ...baseFs,
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ): Promise<void> {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${docPath}.${process.pid}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          await baseFs.writeFile(filePath, "partial doc config\n", options);
+          throw new Error("doc config write failed");
+        }
+        await baseFs.writeFile(filePath, data, options);
+      }
+    };
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "ralph",
+          "init",
+          "docs/loop.md",
+          "--agent",
+          "codex",
+          "--iterations",
+          "5"
+        ])
+      ).rejects.toThrow("doc config write failed");
+    });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(docPath, "utf8")).resolves.toBe(initial);
+    await expect(fs.readFile(temporaryPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("errors when the doc does not exist", async () => {

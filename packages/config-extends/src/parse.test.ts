@@ -95,6 +95,26 @@ describe("parseDocument", () => {
     expect(parseDocument("title: Hello", "/tmp/config.yaml").extends).toBe(false);
   });
 
+  it("ignores inherited extends values when the field is missing", () => {
+    Object.defineProperty(Object.prototype, "extends", {
+      configurable: true,
+      value: true
+    });
+
+    try {
+      expect(parseDocument("title: Hello", "/tmp/config.yaml")).toEqual({
+        data: {
+          title: "Hello"
+        },
+        format: "yaml",
+        extends: false,
+        hasExtendsField: false
+      });
+    } finally {
+      delete (Object.prototype as Record<string, unknown>).extends;
+    }
+  });
+
   it("marks extends as missing when the field is absent", () => {
     expect(parseDocument("title: Hello", "/tmp/config.yaml").hasExtendsField).toBe(false);
   });

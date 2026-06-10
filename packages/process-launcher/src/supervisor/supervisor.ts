@@ -686,11 +686,9 @@ function execWorkspaceCommand(
 
     child.once("error", (error: NodeJS.ErrnoException) => {
       const exitCode =
-        typeof error.code === "number"
-          ? error.code
-          : typeof error.errno === "number"
-            ? error.errno
-            : 127;
+        getOwnNumericErrorProperty(error, "code") ??
+        getOwnNumericErrorProperty(error, "errno") ??
+        127;
       finish({
         stdout,
         stderr: appendWorkspaceCommandMessage(stderr, error.message),
@@ -707,6 +705,18 @@ function execWorkspaceCommand(
       });
     });
   });
+}
+
+function getOwnNumericErrorProperty(
+  error: NodeJS.ErrnoException,
+  property: "code" | "errno"
+): number | undefined {
+  if (!Object.prototype.hasOwnProperty.call(error, property)) {
+    return undefined;
+  }
+
+  const value = error[property];
+  return typeof value === "number" ? value : undefined;
 }
 
 function appendWorkspaceCommandMessage(stderr: string, message: string | undefined): string {

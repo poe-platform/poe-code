@@ -33,6 +33,7 @@ export interface SpawnContext {
   cwd?: string;
   startedAt?: Date;
   logFile?: string;
+  metadata?: Record<string, unknown>;
 }
 
 export type AcpMiddleware = (ctx: SpawnContext, next: () => Promise<void>) => Promise<void>;

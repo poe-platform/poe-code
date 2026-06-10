@@ -1,4 +1,4 @@
-export type { AgentDefinition, ApiShapeId } from "./types.js";
+export type { AgentDefinition, ApiShapeId, OtelCaptureDefinition } from "./types.js";
 export type { AgentSpecifier } from "./specifier.js";
 export {
   claudeCodeAgent,

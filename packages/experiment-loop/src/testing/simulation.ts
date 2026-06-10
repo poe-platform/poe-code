@@ -2,6 +2,7 @@ import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { stringify } from "yaml";
+import { hasOwnErrorCode } from "../errors.js";
 import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
 import { runExperimentLoop } from "../run/loop.js";
 import {
@@ -376,7 +377,7 @@ async function applyFileChanges(
 }
 
 function isFileNotFoundError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function scoresPassBaseline(

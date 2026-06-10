@@ -1,4 +1,5 @@
 import type { PipelineFileSystem } from "./types.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -14,12 +15,7 @@ export function defineRecordEntry<T>(record: Record<string, T>, key: string, val
 }
 
 export function isNotFound(error: unknown): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 export async function readOptionalFile(

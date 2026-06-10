@@ -2,6 +2,7 @@ import matter from "gray-matter";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { stringify } from "yaml";
+import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -166,28 +167,38 @@ export async function writeExperimentFrontmatter(
     temporaryCreated = true;
     await fs.rename(temporaryPath, docPath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
   }
 }
 
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
+}
+
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
   validateFrontmatterFields(parsed);
-  validateDocumentKind(parsed?.kind);
-  const agent = parseAgent(parsed?.agent);
-  const extendsValue = parseBoolean(parsed?.extends);
-  const metric = parseMetric(parsed?.metric);
-  const max_experiments = parseOptionalNonNegativeInteger(parsed?.max_experiments, "max_experiments");
-  const metric_timeout = parseOptionalNonNegativeInteger(parsed?.metric_timeout, "metric_timeout");
+  validateDocumentKind(parsed ? getOwnEntry(parsed, "kind") : undefined);
+  const agent = parseAgent(parsed ? getOwnEntry(parsed, "agent") : undefined);
+  const extendsValue = parseBoolean(parsed ? getOwnEntry(parsed, "extends") : undefined);
+  const metric = parseMetric(parsed ? getOwnEntry(parsed, "metric") : undefined);
+  const max_experiments = parseOptionalNonNegativeInteger(
+    parsed ? getOwnEntry(parsed, "max_experiments") : undefined,
+    "max_experiments"
+  );
+  const metric_timeout = parseOptionalNonNegativeInteger(
+    parsed ? getOwnEntry(parsed, "metric_timeout") : undefined,
+    "metric_timeout"
+  );
 
   return {
     ...(agent !== undefined ? { agent } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(metric !== undefined ? { metric } : {}),
-    baseline: parseBaseline(parsed?.baseline),
+    baseline: parseBaseline(parsed ? getOwnEntry(parsed, "baseline") : undefined),
     ...(max_experiments !== undefined ? { max_experiments } : {}),
     ...(metric_timeout !== undefined ? { metric_timeout } : {})
   };
@@ -227,17 +238,18 @@ function parseMetric(value: unknown): MetricDef | MetricDef[] | undefined {
 
 function parseMetricDefinition(value: unknown): MetricDef | undefined {
   const parsed = isRecord(value) ? value : undefined;
-  const name = parseString(parsed?.name);
-  const script = parseString(parsed?.script);
-  const direction = parseMetricDirection(parsed?.direction);
+  const name = parseString(parsed ? getOwnEntry(parsed, "name") : undefined);
+  const script = parseString(parsed ? getOwnEntry(parsed, "script") : undefined);
+  const direction = parseMetricDirection(parsed ? getOwnEntry(parsed, "direction") : undefined);
 
   if (name === undefined || script === undefined || direction === undefined) {
     return undefined;
   }
 
+  const deltaValue = parsed ? getOwnEntry(parsed, "delta") : undefined;
   const delta =
-    typeof parsed?.delta === "number" && Number.isFinite(parsed.delta) && parsed.delta >= 0
-      ? parsed.delta
+    typeof deltaValue === "number" && Number.isFinite(deltaValue) && deltaValue >= 0
+      ? deltaValue
       : undefined;
 
   return {
@@ -324,6 +336,10 @@ function parseBoolean(value: unknown): boolean | undefined {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function validateDocumentKind(value: unknown): void {

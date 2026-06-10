@@ -55,7 +55,7 @@ function resolveKey(
   const objectLayers: DataLayer[] = [];
 
   for (const layer of layers) {
-    const candidate = layer.data[key];
+    const candidate = getOwnEntry(layer.data, key);
 
     if (!isWinningCandidate(key, candidate)) {
       continue;
@@ -119,6 +119,10 @@ function isWinningCandidate(key: string, value: unknown): boolean {
   }
 
   return true;
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function buildPath(path: string[], key: string): string {

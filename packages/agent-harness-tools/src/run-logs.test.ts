@@ -6,8 +6,36 @@ import {
   ensureSafeRunLogDir,
   makeRunLogFileName,
   resolveRunLogDir,
-  slugifyPlanPath
+  slugifyPlanPath,
+  type RunLogFileSystem
 } from "./run-logs.js";
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("slugifyPlanPath", () => {
   it("lowercases, strips the extension, and dasherizes the basename", () => {
@@ -113,6 +141,34 @@ describe("ensureSafeRunLogDir", () => {
     } finally {
       await rm(homeDir, { recursive: true, force: true });
     }
+  });
+
+  it("does not treat inherited realpath error codes as missing ancestors", async () => {
+    const homeDir = "/home/test";
+    const stateDir = path.join(homeDir, ".poe-code");
+    const logRoot = path.join(stateDir, "logs");
+    const runnerDir = path.join(logRoot, "pipeline");
+    const fs: RunLogFileSystem = {
+      mkdir: async () => {},
+      realpath: async (target) => {
+        if (target === runnerDir) {
+          throw new Error("runner realpath denied");
+        }
+
+        return path.resolve(target);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        ensureSafeRunLogDir({
+          planPath: "/repo/docs/plans/review.md",
+          runner: "pipeline",
+          homeDir,
+          fs
+        })
+      ).rejects.toThrow("runner realpath denied");
+    });
   });
 });
 

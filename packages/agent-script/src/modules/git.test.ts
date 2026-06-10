@@ -68,6 +68,33 @@ function mockExecFileSequence(
   return execFileMock;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("makeGitModule", () => {
   beforeEach(() => {
     vi.resetAllMocks();
@@ -206,6 +233,61 @@ describe("makeGitModule", () => {
       message: "partial commit",
       files: ["src/a.ts", "docs/notes.md"]
     });
+  });
+
+  it("ignores inherited git option fields", async () => {
+    const execFileMock = mockExecFileSequence([
+      (call) => {
+        expect(call.args).toEqual(["add", "--all"]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["commit", "--message", "save progress"]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "new-head\n" }),
+      (call) => {
+        expect(call.args).toEqual(["reset", "--hard", "base-head"]);
+        return { stdout: "" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["clean", "--force", "-d"]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      (call) => {
+        expect(call.args).toEqual([
+          "worktree",
+          "add",
+          "-b",
+          "feature/inherited",
+          "/repo/.poe-code/worktrees/feature%2Finherited",
+          "HEAD"
+        ]);
+        return { stdout: "" };
+      }
+    ]);
+    const git = makeGitModule("/repo");
+
+    await withObjectPrototypeProperties(
+      {
+        base: "origin/polluted",
+        files: ["polluted.ts"],
+        path: "/tmp/outside",
+        stashRef: "refs/heads/main"
+      },
+      async () => {
+        await expect(git.commit({ message: "save progress" })).resolves.toBe("new-head");
+        await expect(git.revert({ head: "base-head" })).resolves.toBeUndefined();
+        await expect(git.worktreeCreate("feature/inherited", {})).resolves.toEqual({
+          branch: "feature/inherited",
+          path: "/repo/.poe-code/worktrees/feature%2Finherited"
+        });
+      }
+    );
+
+    expect(execFileMock).toHaveBeenCalledTimes(8);
   });
 
   it("cleans up the temporary savepoint ref when checkpoint restoration fails", async () => {
@@ -652,6 +734,28 @@ describe("makeGitModule", () => {
       path: "/private/var/tmp/repo/worktrees/feature",
       branch: "feature/symlink-root"
     });
+  });
+
+  it("does not treat inherited realpath error codes as missing worktree ancestors", async () => {
+    vi.mocked(realpath).mockImplementation(async (path) => {
+      if (String(path) === "/repo/worktrees/feature") {
+        throw new Error("realpath denied");
+      }
+
+      return String(path);
+    });
+    mockExecFileSequence([() => ({ stdout: "/repo\n" })]);
+
+    const git = makeGitModule("/repo");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        git.worktreeCreate("feature/denied", {
+          path: "/repo/worktrees/feature"
+        })
+      ).rejects.toThrow("realpath denied");
+    });
+    expect(mkdir).not.toHaveBeenCalled();
   });
 
   it("rejects worktree paths whose existing parent resolves outside the repository", async () => {

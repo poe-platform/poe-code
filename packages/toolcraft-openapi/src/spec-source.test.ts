@@ -2,6 +2,32 @@ import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { parseOpenApiDocument, readOpenApiSourceText } from "./spec-source.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
+
 describe("readOpenApiSourceText", () => {
   it("includes status, status text, content-type, and an HTML snippet for 404 responses", async () => {
     const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
@@ -107,5 +133,35 @@ describe("parseOpenApiDocument", () => {
     ).toThrowError(
       /Failed to parse OpenAPI document "openapi\.yaml": [\s\S]*\(at line 3 column 10\)/
     );
+  });
+
+  it("ignores inherited YAML parse positions", async () => {
+    vi.resetModules();
+    vi.doMock("yaml", () => ({
+      parse: () => {
+        throw {};
+      }
+    }));
+
+    try {
+      const { parseOpenApiDocument: parseWithMockedYaml } = await import("./spec-source.js");
+
+      await withObjectPrototypeProperties(
+        {
+          line: 99,
+          linePos: [{ line: 99, col: 88 }],
+          col: 88,
+          pos: [5]
+        },
+        async () => {
+          expect(() => parseWithMockedYaml("openapi: [", "openapi.yaml")).toThrowError(
+            'Failed to parse OpenAPI document "openapi.yaml": [object Object]'
+          );
+        }
+      );
+    } finally {
+      vi.doUnmock("yaml");
+      vi.resetModules();
+    }
   });
 });

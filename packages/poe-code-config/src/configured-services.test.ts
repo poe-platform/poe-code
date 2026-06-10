@@ -6,6 +6,33 @@ import { loadConfiguredServices, saveConfiguredService, unconfigureService } fro
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("configured services", () => {
   it("derives apiShape when saving a new service entry", async () => {
     const fs = createMockFs(undefined, homeDir);
@@ -84,6 +111,57 @@ describe("configured services", () => {
       provider: "poe",
       files: ["/tmp/proto.toml"]
     });
+  });
+
+  it("ignores inherited legacy credential document fields", async () => {
+    const fs = createMockFs({ "~/.poe-code/credentials.json": "{}\n" }, homeDir);
+
+    await withObjectPrototypeProperties(
+      {
+        apiKey: "polluted-key",
+        configured_services: {
+          codex: {
+            provider: "poe",
+            files: ["/polluted"]
+          }
+        }
+      },
+      async () => {
+        await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toEqual({});
+      }
+    );
+
+    expect(fs.getContent("~/.poe-code/config.json")).toBeUndefined();
+    expect(fs.getContent("~/.poe-code/credentials.json")).toBeUndefined();
+  });
+
+  it("ignores inherited configured service metadata fields", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"configured_services":{"codex":{}}}\n'
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        provider: "cloudflare",
+        apiShape: "google-generations",
+        files: ["/polluted"],
+        model: "polluted-model",
+        reasoningEffort: "high",
+        baseUrl: "https://polluted.example.test",
+        shapeBaseUrl: ["openai-responses=https://polluted.example.test"]
+      },
+      async () => {
+        await expect(loadConfiguredServices({ fs, filePath: configPath, readOnly: true })).resolves.toEqual({
+          codex: {
+            provider: "poe",
+            files: []
+          }
+        });
+      }
+    );
   });
 
   it("does not unconfigure an absent inherited constructor service", async () => {
@@ -267,6 +345,59 @@ describe("configured services", () => {
 
     const entries = await base.readdir(`${homeDir}/.poe-code`);
     expect(entries.some((entry) => entry.includes(".tmp"))).toBe(false);
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
+  });
+
+  it("cleans partial legacy credential reset temps after inherited existing-path errors", async () => {
+    const legacyPath = `${homeDir}/.poe-code/credentials.json`;
+    const base = createMockFs({ "~/.poe-code/credentials.json": "not json\n" }, homeDir);
+    let tempPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.startsWith(`${legacyPath}.`) && targetPath.endsWith(".tmp")) {
+          tempPath = targetPath;
+          await base.writeFile(targetPath, "partial\n", options);
+          throw new Error("legacy reset temp exists");
+        }
+
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(loadConfiguredServices({ fs, filePath: configPath })).rejects.toThrow(
+        "legacy reset temp exists"
+      );
+    });
+
+    expect(tempPath).toBeDefined();
+    expect(base.getContent(tempPath ?? "")).toBeUndefined();
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
+  });
+
+  it("cleans a partial invalid legacy credential backup when recovery fails", async () => {
+    const legacyPath = `${homeDir}/.poe-code/credentials.json`;
+    const base = createMockFs({ "~/.poe-code/credentials.json": "not json\n" }, homeDir);
+    let backupPath: string | undefined;
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath.includes(".invalid-")) {
+          backupPath = targetPath;
+          await base.writeFile(targetPath, "partial backup\n", options);
+          throw new Error("legacy backup disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).rejects.toThrow(
+      "legacy backup disk full"
+    );
+
+    expect(backupPath).toBeDefined();
+    expect(base.getContent(backupPath ?? "")).toBeUndefined();
     await expect(base.readFile(legacyPath, "utf8")).resolves.toBe("not json\n");
   });
 

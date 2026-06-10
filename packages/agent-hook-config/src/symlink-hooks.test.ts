@@ -51,6 +51,33 @@ function generatedSettings(statusMessage = "[generated:poe-code:bridge-run] runn
   });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("symlinkHooks", () => {
   beforeEach(() => {
     vol.reset();
@@ -122,6 +149,50 @@ describe("symlinkHooks", () => {
     expect(readFileSync(targetPath, "utf8")).toBe(contents);
   });
 
+  it("restores a generated regular file when parent preparation fails", () => {
+    const contents = generatedSettings();
+    vol.fromJSON({ [targetPath]: contents }, "/");
+    const mkdirSync = fs.mkdirSync.bind(fs);
+    vi.spyOn(fs, "mkdirSync").mockImplementation((directoryPath, options) => {
+      if (String(directoryPath) === path.dirname(targetPath)) {
+        throw new Error("parent preparation denied");
+      }
+
+      return mkdirSync(directoryPath, options);
+    });
+
+    expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+      "parent preparation denied"
+    );
+    expect(readFileSync(targetPath, "utf8")).toBe(contents);
+  });
+
+  it("does not overwrite a hook path recreated before generated file restore", () => {
+    const contents = generatedSettings();
+    vol.fromJSON({ [targetPath]: contents }, "/");
+    vi.spyOn(fs, "symlinkSync").mockImplementation(() => {
+      vol.writeFileSync(targetPath, "new occupant", "utf8");
+      const error = new Error("hook path recreated") as NodeJS.ErrnoException;
+      error.code = "EEXIST";
+      throw error;
+    });
+
+    let failure: unknown;
+    try {
+      symlinkHooks("source", "target", cwd, homeDir, "project");
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors[0]).toMatchObject({
+      code: "EEXIST",
+      message: "hook path recreated"
+    });
+    expect((failure as AggregateError).errors[1]).toMatchObject({ code: "EEXIST" });
+    expect(readFileSync(targetPath, "utf8")).toBe("new occupant");
+  });
+
   it("refuses to replace a regular file containing a user-authored hook", () => {
     const contents = generatedSettings("user-authored");
     vol.fromJSON({ [targetPath]: contents }, "/");
@@ -129,6 +200,19 @@ describe("symlinkHooks", () => {
     expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
       /refuse.*user-authored/i
     );
+    expect(readFileSync(targetPath, "utf8")).toBe(contents);
+    expect(lstatSync(targetPath).isSymbolicLink()).toBe(false);
+  });
+
+  it("does not ignore user-authored targets with inherited missing-file codes", async () => {
+    const contents = generatedSettings("user-authored");
+    vol.fromJSON({ [targetPath]: contents }, "/");
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, () => {
+      expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+        /refuse.*user-authored/i
+      );
+    });
     expect(readFileSync(targetPath, "utf8")).toBe(contents);
     expect(lstatSync(targetPath).isSymbolicLink()).toBe(false);
   });

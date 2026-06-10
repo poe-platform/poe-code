@@ -117,6 +117,8 @@ export function registerSpawnCommand(
     .option("--log-dir <path>", "Directory override for ACP JSONL spawn logs")
     .option("--log-file-name <name>", "Filename override for the spawn log")
     .option("--log-content", "Include message and tool content in ACP JSONL spawn logs")
+    .option("--capture-otel", "Capture native OpenTelemetry emitted by the spawned agent")
+    .option("--capture-otel-content", "Include prompt and tool content in native OpenTelemetry")
     .option(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
@@ -155,6 +157,8 @@ export function registerSpawnCommand(
           logDir?: string;
           logFileName?: string;
           logContent?: boolean;
+          captureOtel?: boolean;
+          captureOtelContent?: boolean;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
@@ -276,6 +280,12 @@ export function registerSpawnCommand(
             ? { logFileName: commandOptions.logFileName }
             : {}),
           ...(commandOptions.logContent ? { logContent: true } : {}),
+          ...(commandOptions.captureOtel || commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL === "1" || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
+            ? { captureOtel: true }
+            : {}),
+          ...(commandOptions.captureOtelContent || process.env.POE_CODE_CAPTURE_OTEL_CONTENT === "1"
+            ? { captureOtelContent: true }
+            : {}),
           activityTimeoutMs: commandOptions.activityTimeoutMs,
           ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
@@ -283,7 +293,7 @@ export function registerSpawnCommand(
           useStdin: shouldReadFromStdin
         };
 
-        const directHandler = options.handlers?.[service];
+        const directHandler = getCustomSpawnHandler(options.handlers, service);
         if (directHandler) {
           const resources = createExecutionResources(container, flags, `spawn:${service}`);
           if (shouldEmitUiOutput) {
@@ -319,7 +329,7 @@ export function registerSpawnCommand(
         if (shouldEmitUiOutput) {
           resources.logger.intro(`spawn ${canonicalService}`);
         }
-        const canonicalHandler = options.handlers?.[canonicalService];
+        const canonicalHandler = getCustomSpawnHandler(options.handlers, canonicalService);
         if (canonicalHandler) {
           try {
             await canonicalHandler({
@@ -384,6 +394,8 @@ export function registerSpawnCommand(
                 ? { logFileName: spawnOptions.logFileName }
                 : {}),
               ...(spawnOptions.logContent ? { logContent: true } : {}),
+              ...(spawnOptions.captureOtel ? { captureOtel: true } : {}),
+              ...(spawnOptions.captureOtelContent ? { captureOtelContent: true } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
@@ -631,6 +643,15 @@ async function resolveMcpSpawnInput(
   }
 }
 
+function getCustomSpawnHandler(
+  handlers: Record<string, CustomSpawnHandler> | undefined,
+  service: string
+): CustomSpawnHandler | undefined {
+  return handlers !== undefined && Object.prototype.hasOwnProperty.call(handlers, service)
+    ? handlers[service]
+    : undefined;
+}
+
 function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   if (!input) {
     return undefined;
@@ -652,7 +673,9 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   }
 
   const source =
-    "mcpServers" in parsed && isObjectRecord(parsed.mcpServers) ? parsed.mcpServers : parsed;
+    hasOwnProperty(parsed, "mcpServers") && isObjectRecord(parsed.mcpServers)
+      ? parsed.mcpServers
+      : parsed;
 
   const servers = Object.create(null) as McpSpawnConfig;
   for (const [name, value] of Object.entries(source)) {
@@ -662,7 +685,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       );
     }
 
-    const command = value.command;
+    const command = hasOwnProperty(value, "command") ? value.command : undefined;
     if (typeof command !== "string" || command.trim().length === 0) {
       throw new ValidationError(
         `--mcp-servers entry "${name}" must include a non-empty string "command"`
@@ -670,7 +693,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let args: string[] | undefined;
-    if ("args" in value && value.args !== undefined) {
+    if (hasOwnProperty(value, "args") && value.args !== undefined) {
       if (!Array.isArray(value.args)) {
         throw new ValidationError(`--mcp-servers entry "${name}".args must be an array of strings`);
       }
@@ -687,7 +710,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let env: Record<string, string> | undefined;
-    if ("env" in value && value.env !== undefined) {
+    if (hasOwnProperty(value, "env") && value.env !== undefined) {
       if (!isObjectRecord(value.env)) {
         throw new ValidationError(
           `--mcp-servers entry "${name}".env must be an object of string values`
@@ -705,7 +728,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     }
 
     let timeout: number | undefined;
-    if ("timeout" in value && value.timeout !== undefined) {
+    if (hasOwnProperty(value, "timeout") && value.timeout !== undefined) {
       if (typeof value.timeout !== "number" || !Number.isFinite(value.timeout) || value.timeout <= 0) {
         throw new ValidationError(
           `--mcp-servers entry "${name}".timeout must be a positive number (seconds)`
@@ -714,10 +737,19 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       timeout = value.timeout;
     }
 
+    let autoApprove: boolean | undefined;
+    if (hasOwnProperty(value, "autoApprove") && value.autoApprove !== undefined) {
+      if (typeof value.autoApprove !== "boolean") {
+        throw new ValidationError(`--mcp-servers entry "${name}".autoApprove must be a boolean`);
+      }
+      autoApprove = value.autoApprove;
+    }
+
     servers[name] = {
       command,
       ...(args ? { args } : {}),
       ...(env ? { env } : {}),
+      ...(autoApprove !== undefined ? { autoApprove } : {}),
       ...(timeout !== undefined ? { timeout } : {})
     };
   }
@@ -829,4 +861,8 @@ function assertInteractiveSupport(label: string, service: string): void {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwnProperty(value: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }

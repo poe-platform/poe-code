@@ -83,8 +83,27 @@ describe("requestJson", () => {
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/status",
       expect.objectContaining({
-        headers: {}
+        headers: { Accept: "application/json" }
       })
+    );
+  });
+
+  it("allows explicit Authorization headers when managed auth is disabled", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/tokens",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      headers: { Authorization: "Basic Zm9yZ2V5YXJk" }
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/tokens",
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Basic Zm9yZ2V5YXJk" }) })
     );
   });
 
@@ -276,6 +295,25 @@ describe("requestJson", () => {
     );
   });
 
+  it("serializes deep-object arrays with indexed bracket keys", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/preview",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      query: { lines: [{ amount: 100 }, { amount: 200 }] }
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/preview?lines%5B0%5D%5Bamount%5D=100&lines%5B1%5D%5Bamount%5D=200",
+      expect.any(Object)
+    );
+  });
+
   it("keeps false and zero query values when serializing scalars and arrays", async () => {
     const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
 
@@ -295,6 +333,32 @@ describe("requestJson", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/bots?enabled=false&limit=0&flags=false&flags=0",
+      expect.any(Object)
+    );
+  });
+
+  it("serializes deep-object query values with bracketed keys", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: fetchMock,
+      query: {
+        filter: {
+          owner: "alice",
+          active: false,
+          range: { minimum: 0 },
+          tags: ["one", "two"]
+        }
+      }
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/bots?filter%5Bowner%5D=alice&filter%5Bactive%5D=false&filter%5Brange%5D%5Bminimum%5D=0&filter%5Btags%5D=one&filter%5Btags%5D=two",
       expect.any(Object)
     );
   });
@@ -319,6 +383,153 @@ describe("requestJson", () => {
         headers: expect.objectContaining({
           "Content-Type": "application/json"
         })
+      })
+    );
+  });
+
+  it("serializes URL-encoded form bodies", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/tokens",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      bodyMode: "form",
+      body: { username: "alice", password: "hello world", scopes: ["read", "write"] }
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/tokens",
+      expect.objectContaining({
+        body: "username=alice&password=hello+world&scopes=read&scopes=write",
+        headers: expect.objectContaining({
+          "Content-Type": "application/x-www-form-urlencoded"
+        })
+      })
+    );
+  });
+
+  it("sends raw text bodies with their declared content type", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/imports",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      bodyMode: "raw",
+      contentType: "text/xml",
+      body: "<Import><Name>forgeyard</Name></Import>"
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/imports",
+      expect.objectContaining({
+        body: "<Import><Name>forgeyard</Name></Import>",
+        headers: expect.objectContaining({ "Content-Type": "text/xml" })
+      })
+    );
+  });
+
+  it("decodes base64 request bodies before sending binary content", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/imports",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      bodyMode: "base64",
+      contentType: "application/zip",
+      body: "AAEC/w=="
+    });
+
+    const [, request] = fetchMock.mock.calls[0] ?? [];
+    expect(request).toMatchObject({
+      headers: expect.objectContaining({ "Content-Type": "application/zip" })
+    });
+    expect(Buffer.from(request?.body as Uint8Array)).toEqual(Buffer.from([0, 1, 2, 255]));
+  });
+
+  it("serializes multipart forms with base64 file fields and native scalars", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/uploads",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      bodyMode: "multipart",
+      multipartBinaryFields: ["file"],
+      body: { file: "AAEC/w==", description: "Forgeyard", placement: 2 }
+    });
+
+    const [, request] = fetchMock.mock.calls[0] ?? [];
+    expect(request?.body).toBeInstanceOf(FormData);
+    const form = request?.body as FormData;
+    expect(form.get("description")).toBe("Forgeyard");
+    expect(form.get("placement")).toBe("2");
+    const file = form.get("file");
+    expect(file).toBeInstanceOf(Blob);
+    expect(Buffer.from(await (file as Blob).arrayBuffer())).toEqual(Buffer.from([0, 1, 2, 255]));
+  });
+
+  it("requests a JSON response representation", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/bots",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Accept: "application/json" })
+      })
+    );
+  });
+
+  it("serializes custom scalar request headers", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      headers: {
+        "x-trace-id": "trace-123",
+        "x-attempt": 2,
+        "x-enabled": false,
+        "x-omitted": undefined
+      }
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/bots",
+      expect.objectContaining({
+        headers: {
+          Accept: "application/json",
+          "x-attempt": "2",
+          "x-enabled": "false",
+          "x-trace-id": "trace-123"
+        }
       })
     );
   });
@@ -559,6 +770,63 @@ describe("requestJson", () => {
     });
   });
 
+  it("returns successful text responses when text mode is requested", async () => {
+    const fetchMock = vi.fn(async () => createTextResponse("ok", 200));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots/export",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        responseMode: "text",
+        accept: "text/plain"
+      })
+    ).resolves.toBe("ok");
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/bots/export",
+      expect.objectContaining({ headers: expect.objectContaining({ Accept: "text/plain" }) })
+    );
+  });
+
+  it("returns successful binary responses as portable base64 payloads", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(new Uint8Array([0, 1, 2, 255]), {
+          status: 200,
+          headers: { "content-type": "application/octet-stream" }
+        })
+    );
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots/export",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        responseMode: "binary",
+        accept: "application/octet-stream"
+      })
+    ).resolves.toEqual({
+      contentType: "application/octet-stream",
+      encoding: "base64",
+      byteLength: 4,
+      data: "AAEC/w=="
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.example.com/bots/export",
+      expect.objectContaining({
+        headers: expect.objectContaining({ Accept: "application/octet-stream" })
+      })
+    );
+  });
+
   it("redacts the bearer token in HttpError request headers", async () => {
     let error: unknown;
 
@@ -654,7 +922,7 @@ describe("requestJson", () => {
     });
 
     expect(stdout).toHaveBeenCalledWith(
-      'POST https://api.example.com/bots/my-bot\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{"official":true}\n'
+      'POST https://api.example.com/bots/my-bot\nAccept: application/json\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{"official":true}\n'
     );
   });
 
@@ -677,7 +945,7 @@ describe("requestJson", () => {
     });
 
     expect(stdout).toHaveBeenCalledWith(
-      "GET https://api.example.com/bots?api_key=****&page=2\n\n"
+      "GET https://api.example.com/bots?api_key=****&page=2\nAccept: application/json\n\n"
     );
   });
 
@@ -727,6 +995,7 @@ describe("requestJson", () => {
     expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toBe(
       [
         "→ POST https://api.example.com/bots",
+        "    Accept: application/json",
         "    Authorization: Bearer ****",
         "    Content-Type: application/json",
         "    {",

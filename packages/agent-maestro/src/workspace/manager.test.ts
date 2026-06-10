@@ -10,6 +10,25 @@ vi.mock("node:fs/promises", async () => {
   };
 });
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("workspace manager", () => {
   beforeEach(() => {
     vol.reset();
@@ -125,6 +144,17 @@ describe("workspace manager", () => {
     });
     expect(vol.existsSync("/repo/workspaces")).toBe(true);
     expect(vol.existsSync("/repo/workspaces/ENG-412")).toBe(true);
+  });
+
+  it("surfaces ancestor stat failures that only inherit missing-path codes", async () => {
+    const fs = (await import("node:fs/promises")).default;
+    const { ensureWorkspace } = await import("./manager.js");
+    const statError = new Error("stat failed");
+    vi.spyOn(fs, "lstat").mockRejectedValueOnce(statError);
+
+    await withObjectPrototypeCode("ENOENT", async () => {
+      await expect(ensureWorkspace("/repo/workspaces", "ENG-412")).rejects.toBe(statError);
+    });
   });
 
   it("throws when the workspace root exists as a file", async () => {

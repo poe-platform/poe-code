@@ -1,17 +1,68 @@
-import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
-import type {
-  AcpMiddleware,
-  McpSpawnConfig,
-  OtelSink,
-  SessionResult,
-  SpawnMode
-} from "@poe-code/agent-spawn";
+export type SpawnMode = "yolo" | "edit" | "read";
+export type Runtime = "host" | "docker" | "e2b";
+export type RunnerSync = "both" | "upload" | "none";
+
+export interface McpSpawnServer {
+  command: string;
+  args?: string[];
+  env?: Record<string, string>;
+  autoApprove?: boolean;
+  timeout?: number;
+}
+
+export type McpSpawnConfig = Record<string, McpSpawnServer>;
+
+export type AcpEvent = any;
+
+export interface SessionToolCall {
+  id?: string;
+  kind?: string;
+  title?: string;
+  input?: unknown;
+  path?: string;
+}
+
+export interface SessionResult {
+  output: string;
+  messages: string[];
+  toolCalls: SessionToolCall[];
+}
+
+export interface AcpSpawnContext {
+  sessionId: string;
+  agent: string;
+  events: AcpEvent[];
+  usage: SpawnUsage;
+  eventStream?: AsyncIterable<AcpEvent>;
+  prompt?: string;
+  model?: string;
+  mode?: SpawnMode;
+  cwd?: string;
+  threadId?: string;
+  metadata?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
+export type AcpMiddleware = (...args: any[]) => Promise<void>;
+
+export type OtelSpan = {
+  setAttribute(key: string, value: unknown): void;
+  addEvent(name: string, attrs: Record<string, unknown>): void;
+  end(): void;
+};
+
+export interface OtelSink {
+  startSpan(name: string, attrs: Record<string, unknown>): OtelSpan;
+  recordException(span: ReturnType<OtelSink["startSpan"]>, error: unknown): void;
+}
 
 export interface HookBridgeOptions {
   from: string;
   strategy?: "auto" | "symlink" | "transform";
   scope?: "project" | "user" | "merged";
 }
+
+import type { TraceSink } from "./trace.js";
 
 /**
  * Options for spawning a provider CLI.
@@ -27,6 +78,8 @@ export interface SpawnOptions {
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
+  /** Environment overrides applied only to this spawned run. */
+  env?: Record<string, string>;
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
   /** @deprecated Use mcpServers instead. */
@@ -45,12 +98,18 @@ export interface SpawnOptions {
   logContent?: boolean;
   /** Additional ACP middlewares appended to the spawn capture chain. */
   middlewares?: AcpMiddleware[];
+  /** Receive the completed backend-neutral ACP trace exactly once. */
+  traceSink?: TraceSink;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */
   signal?: AbortSignal;
   /** OpenTelemetry-compatible sink supplied by the consumer */
   otelSink?: OtelSink;
+  /** Capture native OTLP telemetry emitted internally by the spawned agent. */
+  captureOtel?: boolean;
+  /** Include prompt and tool content in native OTLP telemetry. */
+  captureOtelContent?: boolean;
   /** Send the prompt over stdin when the provider supports it */
   useStdin?: boolean;
   /** Mirror spawned stdout/stderr chunks to additional writers while preserving the final result */
@@ -64,7 +123,7 @@ export interface SpawnOptions {
    */
   activityTimeoutMs?: number;
   /** Runtime backend override: host, docker, or e2b */
-  runtime?: RuntimeOverrideOptions["runtime"];
+  runtime?: Runtime;
   /** Docker image override for docker runtime */
   runtimeImage?: string;
   /** E2B template id override for e2b runtime */
@@ -76,7 +135,7 @@ export interface SpawnOptions {
   /** Mount the local poe-code checkout into the runtime for development */
   mountPoeCode?: boolean;
   /** Runner workspace sync override: both, upload, or none */
-  runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  runnerSync?: RunnerSync;
 }
 
 /**

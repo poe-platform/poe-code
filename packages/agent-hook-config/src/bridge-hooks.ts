@@ -8,6 +8,7 @@ import {
   supportedHookAgents,
   type AgentHookConfig
 } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { readClaudeHooks } from "./read-hooks.js";
 import { assertNoSymbolicLink } from "./path-safety.js";
 import { symlinkHooks } from "./symlink-hooks.js";
@@ -59,16 +60,12 @@ interface BridgeState {
 const bridgeStates = new WeakMap<BridgeHookManifest, BridgeState>();
 const liveTransformOwners = new Map<string, Set<string>>();
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}
-
 function pathExists(targetPath: string): boolean {
   try {
     fs.lstatSync(targetPath);
     return true;
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -96,8 +93,9 @@ function removeDirectoryIfEmpty(targetPath: string): void {
     fs.rmdirSync(targetPath);
   } catch (error) {
     if (
-      isNodeError(error) &&
-      (error.code === "ENOENT" || error.code === "ENOTEMPTY" || error.code === "EEXIST")
+      hasOwnErrorCode(error, "ENOENT") ||
+      hasOwnErrorCode(error, "ENOTEMPTY") ||
+      hasOwnErrorCode(error, "EEXIST")
     ) {
       return;
     }
@@ -134,7 +132,7 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
   try {
     content = fs.readFileSync(targetPath, "utf8");
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
     throw error;
@@ -150,10 +148,21 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
   const temporaryPath = `${targetPath}.cleanup-${process.pid}-${randomUUID()}.tmp`;
   assertNoSymbolicLink(temporaryPath);
-  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
-    encoding: "utf8",
-    flag: "wx"
-  });
+  try {
+    fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, {
+      encoding: "utf8",
+      flag: "wx"
+    });
+  } catch (error) {
+    if (!hasOwnErrorCode(error, "EEXIST")) {
+      try {
+        fs.unlinkSync(temporaryPath);
+      } catch (cleanupError) {
+        void cleanupError;
+      }
+    }
+    throw error;
+  }
   try {
     fs.renameSync(temporaryPath, targetPath);
   } catch (error) {
@@ -320,7 +329,7 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
         fs.unlinkSync(manifest.symlinkPath);
       }
     } catch (error) {
-      if (!isNodeError(error) || error.code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }

@@ -8,6 +8,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { statusOf } = await import("./status.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("statusOf", () => {
   beforeEach(() => {
     vol.reset();
@@ -34,6 +61,22 @@ describe("statusOf", () => {
       totalBytes: 0,
       lastWriteAt: null,
       initialized: false
+    });
+  });
+
+  it("does not report uninitialized status for stat errors with inherited missing codes", async () => {
+    const root = "/repo/.poe-code/memory";
+    const stat = vol.promises.stat.bind(vol.promises);
+    vi.spyOn(vol.promises, "stat").mockImplementation(async (...args) => {
+      if (String(args[0]) === root) {
+        throw new Error("status stat denied");
+      }
+
+      return stat(...args);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(statusOf(root)).rejects.toThrow("status stat denied");
     });
   });
 

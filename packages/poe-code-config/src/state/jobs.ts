@@ -6,6 +6,7 @@ import {
   isNotFoundError,
   type StateFileSystem
 } from "./fs.js";
+import { hasOwnErrorCode } from "../errors.js";
 
 export type JobStatus = "pending" | "running" | "exited" | "killed" | "lost";
 
@@ -202,7 +203,7 @@ export function createJobRegistry(
       await assertSafeJobPath(filePath);
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      if (tempCreated) {
+      if (tempCreated || !isAlreadyExistsError(error)) {
         await removeTempFile(tempPath).catch(() => undefined);
       }
       throw error;
@@ -240,6 +241,10 @@ function assertSafeJobId(id: string): void {
   ) {
     throw new Error("Invalid job id.");
   }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function assertJobEntry(entry: JobEntry): void {

@@ -163,7 +163,13 @@ export function dump(result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult
     return Promise.resolve(serializeRunSnapshot(result.snapshot));
   }
 
-  return Promise.resolve(result).then(({ snapshot }) => serializeRunSnapshot(snapshot));
+  return Promise.resolve(result).then((resolved) => {
+    if (!hasSnapshot(resolved)) {
+      throw new Error("Run completed without producing a snapshot.");
+    }
+
+    return serializeRunSnapshot(resolved.snapshot);
+  });
 }
 
 export function dumpCurrent(
@@ -183,7 +189,11 @@ export function serializeRunSnapshot(snapshot: RunSnapshot): string {
 }
 
 function hasSnapshot(value: unknown): value is Pick<RunResult, "snapshot"> {
-  return typeof value === "object" && value !== null && "snapshot" in value;
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Object.prototype.hasOwnProperty.call(value, "snapshot")
+  );
 }
 
 function readDumpController(value: unknown): DumpController | undefined {

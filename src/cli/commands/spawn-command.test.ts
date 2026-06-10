@@ -170,6 +170,33 @@ function fromArray<T>(items: readonly T[]): AsyncIterable<T> {
   })();
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 const stdinIsTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 
 function setProcessStdinIsTTY(value: boolean): void {
@@ -743,6 +770,23 @@ describe("spawn command", () => {
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
       expect.objectContaining({ prompt: "Explain the change" })
     );
+  });
+
+  it("does not invoke inherited custom handler names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "constructor", "hello"])
+    ).rejects.toThrow('Unknown agent "constructor".');
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(spawnPoeAgentWithAcpMock).not.toHaveBeenCalled();
   });
 
   it("honors --dry-run for spawn poe-agent", async () => {
@@ -1447,6 +1491,91 @@ describe("spawn command", () => {
     expect(options?.mcpServers?.["__proto__"]?.command).toBe("server");
   });
 
+  it("ignores inherited MCP server wrapper fields", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await withObjectPrototypeProperties(
+      { mcpServers: { polluted: { command: "polluted-server" } } },
+      async () => {
+        await program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "--mcp-servers",
+          '{"test":{"command":"server"}}',
+          "codex",
+          "hello"
+        ]);
+      }
+    );
+
+    const options = vi.mocked(sdkSpawn).mock.calls.at(-1)?.[1];
+    expect(options?.mcpServers).toEqual({ test: { command: "server" } });
+  });
+
+  it("requires MCP server commands to be own properties", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await withObjectPrototypeProperties({ command: "polluted-server" }, async () => {
+      await expect(
+        program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "--mcp-servers",
+          '{"test":{}}',
+          "codex",
+          "hello"
+        ])
+      ).rejects.toThrow('--mcp-servers entry "test" must include a non-empty string "command"');
+    });
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("ignores inherited optional MCP server fields", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await withObjectPrototypeProperties(
+      { args: ["polluted"], autoApprove: true, timeout: 5 },
+      async () => {
+        await program.parseAsync([
+          "node",
+          "cli",
+          "spawn",
+          "--mcp-servers",
+          '{"test":{"command":"server"}}',
+          "codex",
+          "hello"
+        ]);
+      }
+    );
+
+    const options = vi.mocked(sdkSpawn).mock.calls.at(-1)?.[1];
+    expect(options?.mcpServers).toEqual({ test: { command: "server" } });
+  });
+
   it("reads --mcp-servers from an absolute @file path", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({
@@ -1722,6 +1851,32 @@ describe("spawn command", () => {
       activityTimeoutMs: 1500,
       runtimeConfigCwd: cwd
     });
+  });
+
+  it("passes native OTel capture options to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--capture-otel",
+      "--capture-otel-content",
+      "codex",
+      "hello"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({ captureOtel: true, captureOtelContent: true })
+    );
   });
 
   it("rejects invalid --mcp-servers JSON", async () => {

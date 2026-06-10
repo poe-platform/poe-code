@@ -31,7 +31,7 @@ function merge(base: ConfigObject, patch: ConfigObject): ConfigObject {
     if (value === undefined) {
       continue;
     }
-    const existing = result[key];
+    const existing = hasConfigEntry(result, key) ? result[key] : undefined;
     if (isConfigObject(existing) && isConfigObject(value)) {
       setConfigEntry(result, key, merge(existing, value));
       continue;

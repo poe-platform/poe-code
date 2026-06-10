@@ -5,6 +5,33 @@ import { createLogWriter } from "./log-writer.js";
 import { createLogWriter as createLogWriterFromIndex } from "../index.js";
 import type { LauncherFileSystem } from "../types.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createMemFs(): LauncherFileSystem {
   const volume = new Volume();
   return createFsFromVolume(volume).promises as unknown as LauncherFileSystem;
@@ -275,6 +302,25 @@ describe("createLogWriter", () => {
     const writer = createLogWriter("/logs", 3, createMemFs());
 
     await expect(writer.tail("stdout", 10)).resolves.toEqual([]);
+  });
+
+  it("does not hide tail read errors with inherited missing codes", async () => {
+    const baseFs = createMemFs();
+    const fs = {
+      ...baseFs,
+      readFile: async (filePath: string, encoding: BufferEncoding) => {
+        if (filePath === "/logs/stdout.log") {
+          throw new Error("log read denied");
+        }
+
+        return await baseFs.readFile(filePath, encoding);
+      }
+    } as LauncherFileSystem;
+    const writer = createLogWriter("/logs", 3, fs);
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(writer.tail("stdout", 10)).rejects.toThrow("log read denied");
+    });
   });
 
   it("tail() defaults to 50 lines", async () => {

@@ -4,6 +4,7 @@ import { parse as parseYaml } from "yaml";
 
 import { EvalYamlValidationError, validateEvalYaml, type EvalYaml } from "../schema.js";
 import type { EvalFs } from "../types.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 import { assertSafeEvalId } from "../source/registry.js";
 
@@ -366,10 +367,5 @@ function getErrorMessage(error: unknown): string {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

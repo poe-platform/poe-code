@@ -1,8 +1,9 @@
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import type { LauncherFileSystem } from "./types.js";
 
 function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 export async function assertPathHasNoSymbolicLinks(

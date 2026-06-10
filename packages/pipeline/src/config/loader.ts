@@ -100,35 +100,38 @@ function parseHooks(value: unknown, context: string, filePath: string): StepHook
   if (!isRecord(value)) {
     throw new Error(`Invalid hooks for ${context} in "${filePath}": expected an object.`);
   }
-  if (typeof value.from !== "string" || value.from.length === 0) {
+  const from = getOwnEntry(value, "from");
+  if (typeof from !== "string" || from.length === 0) {
     throw new Error(
       `Invalid hooks from for ${context} in "${filePath}": expected a non-empty string.`
     );
   }
+  const strategy = getOwnEntry(value, "strategy");
   if (
-    value.strategy !== undefined &&
-    value.strategy !== "auto" &&
-    value.strategy !== "symlink" &&
-    value.strategy !== "transform"
+    strategy !== undefined &&
+    strategy !== "auto" &&
+    strategy !== "symlink" &&
+    strategy !== "transform"
   ) {
     throw new Error(
       `Invalid hooks strategy for ${context} in "${filePath}": expected "auto", "symlink", or "transform".`
     );
   }
+  const scope = getOwnEntry(value, "scope");
   if (
-    value.scope !== undefined &&
-    value.scope !== "project" &&
-    value.scope !== "user" &&
-    value.scope !== "merged"
+    scope !== undefined &&
+    scope !== "project" &&
+    scope !== "user" &&
+    scope !== "merged"
   ) {
     throw new Error(
       `Invalid hooks scope for ${context} in "${filePath}": expected "project", "user", or "merged".`
     );
   }
   return {
-    from: value.from,
-    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
-    ...(value.scope !== undefined ? { scope: value.scope } : {})
+    from,
+    ...(strategy !== undefined ? { strategy } : {}),
+    ...(scope !== undefined ? { scope } : {})
   };
 }
 
@@ -153,23 +156,25 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
     if (!isRecord(value)) {
       throw new Error(`Invalid ${context} in "${filePath}": expected an object.`);
     }
-    const prompt = value.prompt;
+    const prompt = getOwnEntry(value, "prompt");
     if (typeof prompt !== "string" || prompt.length === 0) {
       throw new Error(`Missing prompt for ${context} in "${filePath}".`);
     }
+    const agent = getOwnEntry(value, "agent");
+    const model = getOwnEntry(value, "model");
+    const skills = getOwnEntry(value, "skills");
+    const hooks = getOwnEntry(value, "hooks");
     return {
-      mode: asStepMode(value.mode),
+      mode: asStepMode(getOwnEntry(value, "mode")),
       prompt,
-      ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
-      ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {}),
-      ...(value.skills !== undefined
-        ? { skills: parseSkills(value.skills, context, filePath) }
-        : {}),
-      ...(value.hooks !== undefined ? { hooks: parseHooks(value.hooks, context, filePath) } : {})
+      ...(typeof agent === "string" && agent.length > 0 ? { agent } : {}),
+      ...(typeof model === "string" && model.length > 0 ? { model } : {}),
+      ...(skills !== undefined ? { skills: parseSkills(skills, context, filePath) } : {}),
+      ...(hooks !== undefined ? { hooks: parseHooks(hooks, context, filePath) } : {})
     };
   }
 
-  const stepsValue = document.steps;
+  const stepsValue = getOwnEntry(document, "steps");
   const steps: ResolvedStepDefinitions = {};
   if (stepsValue !== undefined && stepsValue !== null) {
     if (!isRecord(stepsValue)) {
@@ -181,11 +186,13 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
   }
 
   const result: ResolvedStepsConfig = { steps };
-  if (document.setup !== undefined && document.setup !== null) {
-    result.setup = parseDef(document.setup, "setup");
+  const setup = getOwnEntry(document, "setup");
+  if (setup !== undefined && setup !== null) {
+    result.setup = parseDef(setup, "setup");
   }
-  if (document.teardown !== undefined && document.teardown !== null) {
-    result.teardown = parseDef(document.teardown, "teardown");
+  const teardown = getOwnEntry(document, "teardown");
+  if (teardown !== undefined && teardown !== null) {
+    result.teardown = parseDef(teardown, "teardown");
   }
 
   return result;
@@ -196,24 +203,40 @@ function mergeStepDefinition(
   override: StepDefinitionOverride,
   context: string
 ): StepDefinition {
-  const prompt = override.prompt ?? base?.prompt;
+  const baseRecord = base as Record<string, unknown> | undefined;
+  const overrideRecord = override as Record<string, unknown>;
+  const prompt = getOwnEntry(overrideRecord, "prompt") ?? getOwnOptionalEntry(baseRecord, "prompt");
   if (typeof prompt !== "string" || prompt.length === 0) {
     throw new Error(`Missing prompt for ${context}.`);
   }
 
-  const agent = override.agent ?? base?.agent;
-  const model = override.model ?? base?.model;
-  const skills = override.skills ?? base?.skills;
-  const hooks = override.hooks ?? base?.hooks;
+  const agent = getOwnEntry(overrideRecord, "agent") ?? getOwnOptionalEntry(baseRecord, "agent");
+  const model = getOwnEntry(overrideRecord, "model") ?? getOwnOptionalEntry(baseRecord, "model");
+  const skills = getOwnEntry(overrideRecord, "skills") ?? getOwnOptionalEntry(baseRecord, "skills");
+  const hooks = getOwnEntry(overrideRecord, "hooks") ?? getOwnOptionalEntry(baseRecord, "hooks");
 
   return {
-    mode: override.mode ?? base?.mode ?? "yolo",
+    mode:
+      (getOwnEntry(overrideRecord, "mode") as StepMode | undefined) ??
+      (getOwnOptionalEntry(baseRecord, "mode") as StepMode | undefined) ??
+      "yolo",
     prompt,
-    ...(agent ? { agent } : {}),
-    ...(model ? { model } : {}),
-    ...(skills ? { skills } : {}),
-    ...(hooks ? { hooks } : {})
+    ...(typeof agent === "string" && agent.length > 0 ? { agent } : {}),
+    ...(typeof model === "string" && model.length > 0 ? { model } : {}),
+    ...(skills ? { skills: skills as string[] } : {}),
+    ...(hooks ? { hooks: hooks as StepHooks } : {})
   };
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+}
+
+function getOwnOptionalEntry(
+  record: Record<string, unknown> | undefined,
+  key: string
+): unknown {
+  return record === undefined ? undefined : getOwnEntry(record, key);
 }
 
 function applyStepOverrides(
@@ -323,7 +346,10 @@ function parseConfigData(filePath: string, document: unknown): PipelineConfig {
   const config = { ...document } as PipelineConfig;
   delete config.extends;
 
-  if (config.plan_directory !== undefined && typeof config.plan_directory !== "string") {
+  const planDirectory = Object.prototype.hasOwnProperty.call(config, "plan_directory")
+    ? config.plan_directory
+    : undefined;
+  if (planDirectory !== undefined && typeof planDirectory !== "string") {
     throw new Error(`Invalid pipeline config in "${filePath}": "plan_directory" must be a string.`);
   }
 

@@ -7,6 +7,7 @@ import {
   resolveSkillDir,
   supportedAgents
 } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { appendExcludeBlock, removeExcludeBlock } from "./git-exclude.js";
 import { resolveSkillReference, type SkillResolutionFailure } from "./resolve-skill-reference.js";
 
@@ -65,16 +66,12 @@ interface ResolvedBridgeSource {
   globalTargetPath: string;
 }
 
-function isNodeError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error;
-}
-
 function pathExists(targetPath: string): boolean {
   try {
     fs.statSync(targetPath);
     return true;
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -95,7 +92,7 @@ function assertNoSymbolicLink(targetPath: string): void {
         throw new Error(`Refusing to bridge skills through symbolic link: ${current}`);
       }
     } catch (error) {
-      if (isNodeError(error) && error.code === "ENOENT") {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         return;
       }
       throw error;
@@ -107,7 +104,7 @@ function isDirectory(targetPath: string): boolean {
   try {
     return fs.statSync(targetPath).isDirectory();
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -209,7 +206,7 @@ function hasOwnershipToken(targetPath: string, token: string): boolean {
   try {
     return fs.readFileSync(ownershipPath(targetPath), "utf8") === token;
   } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -237,8 +234,9 @@ function removeDirectoryIfEmpty(targetPath: string): void {
     fs.rmdirSync(targetPath);
   } catch (error) {
     if (
-      isNodeError(error) &&
-      (error.code === "ENOENT" || error.code === "ENOTEMPTY" || error.code === "EEXIST")
+      hasOwnErrorCode(error, "ENOENT") ||
+      hasOwnErrorCode(error, "ENOTEMPTY") ||
+      hasOwnErrorCode(error, "EEXIST")
     ) {
       return;
     }

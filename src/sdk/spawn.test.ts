@@ -194,6 +194,81 @@ async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]>
 }
 
 describe("SDK spawn()", () => {
+  it("forwards native OTel capture and trace sink middleware to streaming spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const traceSink = vi.fn();
+    await spawn("codex", "test prompt", {
+      captureOtel: true,
+      captureOtelContent: true,
+      traceSink
+    }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        captureOtel: true,
+        captureOtelContent: true,
+        middlewares: [expect.any(Function)]
+      })
+    );
+  });
+
+  it("runs integration and user middleware inside native capture", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+    const integrationMiddleware = vi.fn();
+    const userMiddleware = vi.fn();
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: integrationMiddleware,
+      shutdown: vi.fn().mockResolvedValue(undefined)
+    });
+
+    await spawn("codex", "test prompt", {
+      captureOtel: true,
+      middlewares: [userMiddleware]
+    }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ middlewares: [integrationMiddleware, userMiddleware] })
+    );
+    expect(applyMiddlewares).toHaveBeenCalledWith(
+      [sessionCapture, usageCapture, spawnLog],
+      expect.any(Object)
+    );
+  });
+
+  it("enables native OTel capture from the SDK environment", async () => {
+    process.env.POE_CODE_CAPTURE_OTEL = "1";
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("codex", "test prompt").result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(expect.objectContaining({ captureOtel: true }));
+  });
+
   it("returns events and result from spawnStreaming() when supported", async () => {
     const event = { event: "agent_message", text: "hello" };
 
@@ -250,6 +325,24 @@ describe("SDK spawn()", () => {
     );
     expect(agentSpawn).not.toHaveBeenCalled();
     expect(spawnCore).not.toHaveBeenCalled();
+  });
+
+  it("forwards per-invocation environment overrides to streaming spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("codex", "test prompt", { env: { WORKSPACE_ID: "workspace-1" } }).result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({ env: { WORKSPACE_ID: "workspace-1" } })
+    );
   });
 
   it("passes resumeThreadId through to streaming agent spawns", async () => {
@@ -1161,6 +1254,58 @@ describe("SDK spawn()", () => {
         prompt: "inspect auth",
         cwd: "/tmp/workspaces/poe-code/packages/auth",
         mode: "read"
+      })
+    );
+  });
+
+  it("merges caller environment over isolated ACP environment", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        cwd: "/repo",
+        homeDir,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {},
+        getVariable: () => undefined,
+        resolveHomePath: (...segments: string[]) => [homeDir, ...segments].join("/")
+      },
+      registry: {
+        get: vi.fn(() => ({
+          name: "gemini-cli",
+          isolatedEnv: {
+            agentBinary: "gemini",
+            requiresConfig: false,
+            env: { GEMINI_CLI_HOME: { kind: "isolatedDir" } }
+          }
+        }))
+      },
+      providerRegistry: {
+        forAgent: vi.fn(() => []),
+        isLoggedIn: vi.fn(async () => false)
+      }
+    } as any);
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "gemini-cli",
+      acpArgs: ["--acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    await spawn("gemini-cli", "test", {
+      env: { GEMINI_CLI_HOME: "/caller/home", WORKSPACE_ID: "workspace-1" }
+    }).result;
+
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        env: expect.objectContaining({
+          GEMINI_CLI_HOME: "/caller/home",
+          WORKSPACE_ID: "workspace-1"
+        })
       })
     );
   });

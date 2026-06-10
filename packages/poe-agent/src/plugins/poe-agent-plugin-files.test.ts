@@ -20,6 +20,25 @@ type TestTool = {
   call: (args: unknown, ctx: ToolContext) => unknown | Promise<unknown>;
 };
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 async function callTool(tools: TestTool[] | undefined, name: string, args: unknown): Promise<unknown> {
   const tool = tools?.find(candidate => candidate.name === name);
   if (!tool) {
@@ -218,18 +237,54 @@ describe("poe-agent-plugin-files", () => {
     await expect(base.readFile(filePath, "utf8")).resolves.toBe("created by another actor\n");
   });
 
+  it("removes a partially written file when create persistence fails", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/new.ts";
+    const base = createFsFromVolume(Volume.fromJSON({}, "/")).promises;
+    const fs = {
+      ...base,
+      async writeFile(
+        targetPath: string,
+        data: Parameters<typeof base.writeFile>[1],
+        options?: Parameters<typeof base.writeFile>[2]
+      ) {
+        if (targetPath === filePath) {
+          await base.writeFile(targetPath, "partial\n", options);
+          throw new Error("create disk full");
+        }
+
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "create",
+        path: "src/new.ts",
+        file_text: "created by agent\n"
+      })
+    ).rejects.toThrow("create disk full");
+    await expect(base.readFile(filePath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("preserves prior content when a str_replace persistence write fails", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const filePath = "/workspace/project/src/app.ts";
     const originalContent = "export const value = 'old';\n";
     const nextContent = "export const value = 'new';\n";
     const base = createFsFromVolume(Volume.fromJSON({ [filePath]: originalContent }, "/")).promises;
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       async writeFile(targetPath: string, data: Parameters<typeof base.writeFile>[1], options?: Parameters<typeof base.writeFile>[2]) {
         if (String(data) === nextContent) {
-          if (targetPath === filePath) {
-            await base.writeFile(targetPath, "partial", "utf8");
+          if (
+            targetPath.startsWith("/workspace/project/src/.app.ts.") &&
+            targetPath.endsWith(".tmp")
+          ) {
+            temporaryPath = targetPath;
+            await base.writeFile(targetPath, "partial", options);
           }
           throw new Error("write failed");
         }
@@ -247,6 +302,57 @@ describe("poe-agent-plugin-files", () => {
       })
     ).rejects.toThrow("write failed");
     await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("cleans failed atomic edit temps that only inherit existing-path codes", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/app.ts";
+    const originalContent = "export const value = 'old';\n";
+    const nextContent = "export const value = 'new';\n";
+    const base = createFsFromVolume(Volume.fromJSON({ [filePath]: originalContent }, "/")).promises;
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...base,
+      async writeFile(
+        targetPath: string,
+        data: Parameters<typeof base.writeFile>[1],
+        options?: Parameters<typeof base.writeFile>[2]
+      ) {
+        if (String(data) === nextContent) {
+          if (
+            targetPath.startsWith("/workspace/project/src/.app.ts.") &&
+            targetPath.endsWith(".tmp")
+          ) {
+            temporaryPath = targetPath;
+            await base.writeFile(targetPath, "partial", options);
+          }
+          throw new Error("write failed");
+        }
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        callTool(plugin.tools, "edit_file", {
+          command: "str_replace",
+          path: "src/app.ts",
+          old_str: "'old'",
+          new_str: "'new'"
+        })
+      ).rejects.toThrow("write failed");
+    });
+
+    await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not remove a colliding atomic edit temp symlink", async () => {

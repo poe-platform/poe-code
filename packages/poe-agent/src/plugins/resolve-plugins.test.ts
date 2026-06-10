@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getResolvedPluginOptions } from "../runtime/provider-metadata.js";
 import { resolvePluginsFromConfig } from "./resolve-plugins.js";
 
 describe("resolvePluginsFromConfig", () => {
@@ -36,5 +37,22 @@ describe("resolvePluginsFromConfig", () => {
     expect(() =>
       resolvePluginsFromConfig([{ name: "compaction", options: { threshold: "20" } }]),
     ).toThrow("agent.plugins[0].options.threshold");
+  });
+
+  it("requires plugin names to be own properties", () => {
+    const entry = Object.create({ name: "web" }) as { name: string };
+
+    expect(() => resolvePluginsFromConfig([entry])).toThrow(
+      "agent.plugins[0].name: must be a non-empty string.",
+    );
+  });
+
+  it("ignores plugin options that are only inherited", () => {
+    const entry = Object.create({ options: { cwd: "/polluted" } }) as { name: string };
+    entry.name = "shell";
+
+    const [plugin] = resolvePluginsFromConfig([entry]);
+
+    expect(getResolvedPluginOptions(plugin!)).toEqual({});
   });
 });

@@ -9,6 +9,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { appendLogEntries, reconcile, snapshot } = await import("./reconcile.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("snapshot", () => {
   beforeEach(() => {
     vol.reset();
@@ -16,6 +43,7 @@ describe("snapshot", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("hashes only markdown pages under pages/", async () => {
@@ -50,6 +78,7 @@ describe("reconcile", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("stamps changed pages, denormalizes sources, rewrites the index, and appends one log line per diff", async () => {
@@ -205,6 +234,30 @@ describe("reconcile", () => {
       )
     );
     await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
+  });
+
+  it("does not treat inherited read error codes as missing generated files", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/page.md`]: "# Page\n"
+    });
+    const before = await snapshot(root);
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (filePath, options) => {
+      if (String(filePath) === `${root}/INDEX.md`) {
+        throw new Error("index read denied");
+      }
+
+      return readFile(filePath, options);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(reconcile(root, before, "lint", "probe")).rejects.toThrow(
+        "index read denied"
+      );
+    });
   });
 
   it("rejects a symlinked generated index before overwriting external content", async () => {

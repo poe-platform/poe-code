@@ -32,6 +32,33 @@ function createMockExec(): ExecFn {
   return vi.fn<ExecFn>().mockResolvedValue({ stdout: "", stderr: "" });
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function makeEntry(overrides: Partial<Worktree> = {}): Worktree {
   return {
     name: "test-worktree",
@@ -354,6 +381,36 @@ describe("readRegistry", () => {
     expect(registry).toEqual({ worktrees: [] });
   });
 
+  it("does not treat inherited lstat error codes as missing registries", async () => {
+    const baseFs = createMemFs({ [REGISTRY]: "worktrees: []\n" });
+    const fs = {
+      ...baseFs,
+      lstat: vi.fn(async () => {
+        throw new Error("registry lstat denied");
+      })
+    } as WorktreeFileSystem;
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow("registry lstat denied");
+    });
+  });
+
+  it("rejects inherited top-level registry fields", async () => {
+    const fs = createMemFs({ [REGISTRY]: "{}\n" });
+
+    await withObjectPrototypeProperties({ worktrees: [makeEntry()] }, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+    });
+  });
+
+  it("rejects inherited worktree entry fields", async () => {
+    const fs = createMemFs({ [REGISTRY]: "worktrees:\n  - {}\n" });
+
+    await withObjectPrototypeProperties(makeEntry() as unknown as Record<string, unknown>, async () => {
+      await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+    });
+  });
+
   it("parses existing registry YAML", async () => {
     const fs = createMemFs({
       [REGISTRY]:
@@ -416,6 +473,7 @@ describe("writeRegistry", () => {
   it("preserves the live registry when a staged write fails", async () => {
     const initial = { worktrees: [makeEntry({ name: "existing" })] };
     const base = createMemFs({ [REGISTRY]: stringify(initial, { lineWidth: 0 }) }) as ExtendedWorktreeFileSystem;
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       writeFile: async (
@@ -424,6 +482,7 @@ describe("writeRegistry", () => {
         options?: { encoding?: BufferEncoding; flag?: string }
       ) => {
         if (filePath !== REGISTRY) {
+          temporaryPath = filePath;
           await base.writeFile(filePath, "partial", options);
           throw new Error("disk full");
         }
@@ -433,6 +492,10 @@ describe("writeRegistry", () => {
 
     await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry({ name: "new" })] }, fs)).rejects.toThrow("disk full");
     await expect(readRegistry(REGISTRY, base)).resolves.toEqual(initial);
+    expect(temporaryPath?.startsWith(`${REGISTRY}.tmp-`)).toBe(true);
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow or remove a colliding temporary registry symlink", async () => {

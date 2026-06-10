@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
+import { EventEmitter } from "node:events";
 import type { AcpTransport } from "./acp-transport.js";
 import { AcpClient } from "./acp-client.js";
 import {
@@ -450,7 +452,67 @@ function createTransportMock(): TransportMock {
   };
 }
 
+function createMockChildProcess(): ChildProcessWithoutNullStreams {
+  const stdin = new PassThrough();
+  const stdout = new PassThrough();
+  const stderr = new PassThrough();
+  const child = new EventEmitter() as unknown as ChildProcessWithoutNullStreams & {
+    killed: boolean;
+    exitCode: number | null;
+    signalCode: NodeJS.Signals | null;
+    kill: (signal?: NodeJS.Signals | number) => boolean;
+  };
+
+  let closed = false;
+  const emitClose = (code: number | null = 0, signal: NodeJS.Signals | null = null) => {
+    if (closed) {
+      return;
+    }
+    closed = true;
+    child.exitCode = code;
+    child.signalCode = signal;
+    child.emit("close", code, signal);
+  };
+
+  child.stdin = stdin;
+  child.stdout = stdout;
+  child.stderr = stderr;
+  child.killed = false;
+  child.exitCode = null;
+  child.signalCode = null;
+  child.kill = vi.fn<(signal?: NodeJS.Signals | number) => boolean>((signal) => {
+    child.killed = true;
+    emitClose(null, typeof signal === "string" ? signal : "SIGTERM");
+    return true;
+  });
+
+  return child;
+}
+
 describe("AcpClient", () => {
+  it("ignores inherited transports when process options provide a command", async () => {
+    const inherited = createTransportMock();
+    const child = createMockChildProcess();
+    const spawn = vi.fn(() => child);
+
+    const client = withObjectPrototypeProperties({ transport: inherited.transport }, () =>
+      new AcpClient({
+        command: "poe-agent",
+        spawn
+      })
+    );
+
+    await client.dispose();
+
+    expect(spawn).toHaveBeenCalledWith(
+      "poe-agent",
+      [],
+      expect.objectContaining({ stdio: ["pipe", "pipe", "pipe"] })
+    );
+    expect(inherited.onRequestMock).not.toHaveBeenCalled();
+    expect(inherited.onNotificationMock).not.toHaveBeenCalled();
+  });
+
   it("sends initialize with client details and stores agent metadata", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     const initializeResponse: InitializeResponse = {
@@ -3008,6 +3070,25 @@ describe("parseSessionUpdate", () => {
 // run-report.test.ts
 // ---------------------------------------------------------------------------
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true,
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe("generateRunReportFromSessionUpdateStream", () => {
   it("builds a run report with tool calls, usage, and errors", async () => {
     const streamItems = [
@@ -3359,13 +3440,15 @@ describe("saveRunReport", () => {
       realpath: (path) => baseFs.realpath(path) as Promise<string>,
     };
 
-    await expect(
-      saveRunReport(report, {
-        fs,
-        homeDir: "/home/test",
-        now: () => new Date("2026-05-25T01:02:03.004Z"),
-      })
-    ).rejects.toThrow("json report disk full");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        saveRunReport(report, {
+          fs,
+          homeDir: "/home/test",
+          now: () => new Date("2026-05-25T01:02:03.004Z"),
+        })
+      ).rejects.toThrow("json report disk full");
+    });
 
     const entries = await baseFs.readdir("/home/test/.poe-code/reports");
     expect(entries.some((entry) => String(entry).includes(".tmp"))).toBe(false);
@@ -3420,6 +3503,33 @@ describe("saveRunReport", () => {
 // ---------------------------------------------------------------------------
 // stream-helpers.test.ts
 // ---------------------------------------------------------------------------
+
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("extractMessagesFromSessionUpdateStream", () => {
   it("extracts user, agent, and thought chunks from mixed stream items", async () => {
@@ -3717,6 +3827,51 @@ describe("mapLegacyEventToSessionUpdates", () => {
         output: "command failed",
       })
     ).toEqual([]);
+  });
+
+  it("ignores inherited legacy tool payload aliases", () => {
+    withObjectPrototypeProperties(
+      {
+        input: { command: "polluted" },
+        output: "polluted output",
+        path: "polluted path",
+        rawInput: { command: "polluted raw" },
+        rawOutput: "polluted raw output",
+      },
+      () => {
+        expect(
+          mapLegacyEventToSessionUpdates({
+            event: "tool_start",
+            id: "tool-1",
+          })
+        ).toEqual([
+          {
+            sessionUpdate: "tool_call",
+            toolCallId: "tool-1",
+            title: "tool-1",
+            status: "pending",
+          },
+          {
+            sessionUpdate: "tool_call_update",
+            toolCallId: "tool-1",
+            status: "in_progress",
+          },
+        ]);
+
+        expect(
+          mapLegacyEventToSessionUpdates({
+            event: "tool_complete",
+            id: "tool-1",
+          })
+        ).toEqual([
+          {
+            sessionUpdate: "tool_call_update",
+            toolCallId: "tool-1",
+            status: "completed",
+          },
+        ]);
+      }
+    );
   });
 
   it("drops legacy usage events containing non-finite metrics", () => {

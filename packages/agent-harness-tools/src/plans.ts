@@ -1,6 +1,7 @@
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { openTaskList, type TaskList, type TaskListFs } from "@poe-code/task-list";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveWorkflowPath } from "./paths.js";
 
 const PLAN_LIST_NAME = "plans";
@@ -41,20 +42,11 @@ function defaultFs(): TaskListFs {
   return fsPromises as unknown as TaskListFs;
 }
 
-function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
-}
-
 async function directoryExists(fs: TaskListFs, directoryPath: string): Promise<boolean> {
   try {
     return (await fs.stat(directoryPath)).isDirectory();
   } catch (error) {
-    if (hasErrorCode(error, "ENOENT") || hasErrorCode(error, "ENOTDIR")) {
+    if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
       return false;
     }
 

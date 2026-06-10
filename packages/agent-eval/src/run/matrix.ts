@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { rename, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { aggregateRuns } from "../aggregate.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { openSource } from "../source/open.js";
 import { listEvals, loadEval } from "../source/registry.js";
 import type {
@@ -253,10 +254,5 @@ function getErrorMessage(error: unknown): string {
 }
 
 function isExistingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }

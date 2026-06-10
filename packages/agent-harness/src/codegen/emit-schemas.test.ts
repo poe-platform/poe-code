@@ -3,6 +3,33 @@ import { describe, expect, it } from "vitest";
 
 import { runHarnessCodegen } from "./emit-schemas.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("harness schema codegen", () => {
   it("writes all built-in harness schema files into docs/schemas/harnesses", async () => {
     const volume = new Volume();
@@ -90,6 +117,27 @@ describe("harness schema codegen", () => {
     await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("{\"external\":true}\n");
   });
 
+  it("does not ignore schema realpath errors with inherited missing-path codes", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = {
+      ...rawFs,
+      async realpath(filePath: Parameters<typeof rawFs.realpath>[0]) {
+        if (String(filePath).endsWith("/coverage-demo.schema.json")) {
+          throw new Error("schema realpath denied");
+        }
+
+        return rawFs.realpath(filePath);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+        "schema realpath denied"
+      );
+    });
+  });
+
   it("does not remove a colliding staged schema symlink", async () => {
     const volume = Volume.fromJSON({
       "/outside.tmp": "outside-state\n"
@@ -133,6 +181,7 @@ describe("harness schema codegen", () => {
     });
     const rawFs = createFsFromVolume(volume).promises;
     let writeCount = 0;
+    let partialStagedPath: string | undefined;
     const fs = {
       ...rawFs,
       async writeFile(
@@ -142,6 +191,8 @@ describe("harness schema codegen", () => {
       ) {
         writeCount += 1;
         if (writeCount === 2) {
+          partialStagedPath = String(filePath);
+          await rawFs.writeFile(filePath, "partial schema\n", options);
           throw new Error("simulated later schema failure");
         }
 
@@ -156,6 +207,10 @@ describe("harness schema codegen", () => {
       .resolves.toBe("old coverage schema\n");
     await expect(fs.readFile("/repo/docs/schemas/harnesses/experiment-demo.schema.json", "utf8"))
       .resolves.toBe("old experiment schema\n");
+    expect(partialStagedPath).toMatch(
+      /^\/repo\/docs\/schemas\/harnesses\/\..+\.schema\.json\..+\.tmp$/
+    );
+    await expect(fs.readFile(partialStagedPath ?? "", "utf8")).rejects.toThrow();
   });
 
   it("restores previously published schemas when a later publish rename fails", async () => {

@@ -19,6 +19,7 @@ import memorySkillTemplate from "../../../packages/memory/src/templates/SKILL_me
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
   createExecutionResources,
   requireInteractiveStdin,
@@ -225,12 +226,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
         const content = await fs.readFile(absPath, "utf8");
         process.stdout.write(content.endsWith("\n") ? content : `${content}\n`);
       } catch (error) {
-        if (
-          typeof error === "object" &&
-          error !== null &&
-          "code" in error &&
-          error.code === "ENOENT"
-        ) {
+        if (hasOwnErrorCode(error, "ENOENT")) {
           throw new ValidationError(`Page not found: ${displayPageRelPath(relPath)}`);
         }
         throw error;

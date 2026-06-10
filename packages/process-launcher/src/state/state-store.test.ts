@@ -4,6 +4,33 @@ import path from "node:path";
 import { createStateStore } from "./state-store.js";
 import type { LauncherFileSystem, ProcessState } from "../types.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createMemFs(): LauncherFileSystem {
   const volume = new Volume();
   return createFsFromVolume(volume).promises as unknown as LauncherFileSystem;
@@ -89,6 +116,26 @@ describe("createStateStore", () => {
     const store = createStateStore("/state", fs);
 
     await expect(store.list()).resolves.toEqual([]);
+  });
+
+  it("does not treat inherited not-found codes as missing state directories", async () => {
+    const baseFs = createMemFs();
+    const fs = {
+      ...baseFs,
+      readdir: async (directoryPath: string) => {
+        if (directoryPath === "/state") {
+          throw new Error("state directory read denied");
+        }
+
+        return await baseFs.readdir(directoryPath);
+      }
+    } as LauncherFileSystem;
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(createStateStore("/state", fs).list()).rejects.toThrow(
+        "state directory read denied"
+      );
+    });
   });
 
   it("list() skips directories without state.json", async () => {
@@ -277,6 +324,46 @@ describe("createStateStore", () => {
     await expect(createStateStore("/state", base).read("alpha")).resolves.toBeNull();
   });
 
+  it("removes partial temporary state files when write errors only inherit existing-path codes", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const base = rawFs as unknown as LauncherFileSystem;
+    const statePath = "/state/alpha/state.json";
+    const updated = createProcessState("alpha", { status: "running", pid: 123 });
+    let temporaryPath: string | undefined;
+    const fs = {
+      ...base,
+      writeFile: async (
+        filePath: string,
+        content: string,
+        options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+      ) => {
+        if (
+          temporaryPath === undefined &&
+          filePath.startsWith(`${statePath}.`) &&
+          filePath.endsWith(".tmp")
+        ) {
+          temporaryPath = filePath;
+          await rawFs.writeFile(filePath, "{", options ?? { encoding: "utf8" });
+          throw new Error("state temp denied");
+        }
+
+        await rawFs.writeFile(filePath, content, options ?? { encoding: "utf8" });
+      }
+    } as LauncherFileSystem;
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(createStateStore("/state", fs).write(updated.id, updated)).rejects.toThrow(
+        "state temp denied"
+      );
+    });
+
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("rejects removals through a symlinked process directory", async () => {
     const fs = createMemFs();
     await fs.mkdir("/outside/alpha", { recursive: true });
@@ -324,6 +411,7 @@ describe("createStateStore", () => {
     const updated = createProcessState("alpha", { pid: null, status: "crashed", lastExitCode: 1 });
     const store = createStateStore("/state", base);
     await store.write(initial.id, initial);
+    let temporaryPath: string | undefined;
     const fs = {
       ...base,
       writeFile: async (
@@ -332,6 +420,7 @@ describe("createStateStore", () => {
         options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
       ) => {
         if (filePath.startsWith(`${statePath}.`) && filePath.endsWith(".tmp")) {
+          temporaryPath = filePath;
           await rawFs.writeFile(filePath, "{", options ?? { encoding: "utf8" });
           throw new Error("state disk full");
         }
@@ -342,5 +431,9 @@ describe("createStateStore", () => {
 
     await expect(createStateStore("/state", fs).write(updated.id, updated)).rejects.toThrow("state disk full");
     await expect(store.read(initial.id)).resolves.toEqual(initial);
+    expect(temporaryPath).toBeDefined();
+    await expect(base.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });

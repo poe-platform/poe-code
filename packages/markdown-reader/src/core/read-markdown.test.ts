@@ -15,6 +15,33 @@ function createMemFs(files: Record<string, string>): ReadOnlyFs {
   return createFsFromVolume(volume).promises as unknown as ReadOnlyFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("readMarkdown", () => {
   it("reads a markdown fixture into the SDK JSON shape", async () => {
     const readMarkdown = createReadMarkdown({
@@ -164,6 +191,23 @@ describe("readMarkdown", () => {
     await expect(readMarkdown({ file: "docs/secret.md" })).rejects.toThrowError(
       new UserError("EACCES: permission denied, open '/repo/docs/secret.md'")
     );
+  });
+
+  it("does not treat inherited read error codes as missing files", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: {
+        async readFile() {
+          throw new Error("plain read failure");
+        }
+      },
+      cwd: "/repo"
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(readMarkdown({ file: "docs/plain.md" })).rejects.toThrowError(
+        new UserError("plain read failure")
+      );
+    });
   });
 
   it("preserves existing UserError instances from the filesystem dependency", async () => {

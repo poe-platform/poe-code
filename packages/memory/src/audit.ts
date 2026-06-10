@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseClaims } from "./confidence.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { serializeSourceRef } from "./frontmatter.js";
 import { listPages } from "./pages.js";
 import type { MemoryRoot, SourceRef } from "./types.js";
@@ -201,7 +202,7 @@ function formatError(error: unknown): string {
 }
 
 function isMissing(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isUrlLike(value: string): boolean {

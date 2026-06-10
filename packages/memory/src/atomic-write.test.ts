@@ -8,6 +8,33 @@ vi.mock("node:fs/promises", async () => {
 
 const { writeFileAtomically } = await import("./atomic-write.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("writeFileAtomically", () => {
   beforeEach(() => {
     vol.reset();
@@ -71,6 +98,42 @@ describe("writeFileAtomically", () => {
     });
 
     await expect(writeFileAtomically(filePath, "# Updated\n")).rejects.toThrow("disk full");
+
+    expect(tempPath).toBeDefined();
+    await expect(vol.promises.readFile(tempPath as string, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(vol.promises.readFile(filePath, "utf8")).resolves.toBe("# Existing\n");
+  });
+
+  it("removes a partial temporary file when the write error only inherits an existing-path code", async () => {
+    const filePath = "/repo/.poe-code/memory/pages/page.md";
+    vol.fromJSON({
+      [filePath]: "# Existing\n"
+    });
+
+    let tempPath: string | undefined;
+    const writeFile = vol.promises.writeFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (targetPath, data, options) => {
+      const pathText = String(targetPath);
+      if (
+        tempPath === undefined &&
+        pathText.startsWith(`${filePath}.`) &&
+        pathText.endsWith(".tmp")
+      ) {
+        tempPath = pathText;
+        await writeFile(targetPath, "partial\n", options);
+        throw new Error("temp write denied");
+      }
+
+      await writeFile(targetPath, data, options);
+    });
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(writeFileAtomically(filePath, "# Updated\n")).rejects.toThrow(
+        "temp write denied"
+      );
+    });
 
     expect(tempPath).toBeDefined();
     await expect(vol.promises.readFile(tempPath as string, "utf8")).rejects.toMatchObject({

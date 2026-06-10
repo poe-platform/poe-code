@@ -4,6 +4,7 @@ import { open, readdir } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import { mapLegacyEventToSessionUpdates } from "@poe-code/poe-acp-client";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { renderSessionUpdateStream } from "./renderer.js";
 import { ensureSafeDefaultSpawnLogDir } from "./spawn-log-path.js";
 import type { AcpEvent } from "./types.js";
@@ -192,7 +193,7 @@ export async function listSpawnLogs(options: ListSpawnLogsOptions = {}): Promise
   try {
     logDir = await ensureSafeDefaultSpawnLogDir(false);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    if (hasOwnErrorCode(error, "ENOENT")) return [];
     throw error;
   }
 
@@ -200,7 +201,7 @@ export async function listSpawnLogs(options: ListSpawnLogsOptions = {}): Promise
   try {
     entries = await readdir(logDir, { withFileTypes: true });
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    if (hasOwnErrorCode(error, "ENOENT")) return [];
     throw error;
   }
 

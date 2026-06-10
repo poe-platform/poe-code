@@ -19,5 +19,6 @@ describe("toolcraft-openapi package exports", () => {
 
   it("does not leak mockFetch into the bare entrypoint", () => {
     expect(Object.keys(bareEntrypoint)).not.toContain("mockFetch");
+    expect(Object.keys(bareEntrypoint)).not.toContain("createForgeyardSpec");
   });
 });

@@ -33,6 +33,33 @@ function getOAuthMethod(hooks: Hooks): OAuthMethod {
   return method;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("PoeAuthPlugin", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -63,6 +90,20 @@ describe("PoeAuthPlugin", () => {
 
     await expect(loader(async () => ({ type: "api", key: "   " }), {} as never)).rejects.toThrow(
       "Poe API key is missing"
+    );
+  });
+
+  it("loader ignores inherited api auth fields", async () => {
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await withObjectPrototypeProperties(
+      {
+        type: "api",
+        key: "sk-polluted"
+      },
+      async () => {
+        await expect(loader(async () => ({} as never), {} as never)).resolves.toEqual({});
+      }
     );
   });
 
@@ -240,6 +281,30 @@ describe("PoeAuthPlugin", () => {
       refresh: "sk-poe",
       expires: Number.MAX_SAFE_INTEGER
     });
+  });
+
+  it("authorize callback ignores inherited oauth result fields", async () => {
+    vi.mocked(createOAuthClient).mockReturnValue({
+      authorize: vi.fn(async () => ({
+        authorizationUrl: "https://poe.com/oauth/authorize?client_id=test",
+        waitForResult: vi.fn(async () => ({} as never))
+      }))
+    });
+
+    const grant = await getOAuthMethod(await PoeAuthPlugin({} as never)).authorize();
+    if (grant.method !== "auto") {
+      throw new Error("Expected auto oauth grant");
+    }
+
+    await withObjectPrototypeProperties(
+      {
+        apiKey: "sk-polluted",
+        expiresIn: 60
+      },
+      async () => {
+        await expect(grant.callback()).rejects.toThrow("Poe API key is missing");
+      }
+    );
   });
 
   it.each([-60, Infinity])("rejects invalid oauth expiry duration %s", async (expiresIn) => {

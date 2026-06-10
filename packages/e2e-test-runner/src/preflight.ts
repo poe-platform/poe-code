@@ -6,6 +6,7 @@ import { color } from 'toolcraft-design';
 import { resolveBackend, type Backend } from './backend.js';
 import { hasApiKey } from './credentials.js';
 import { detectEngine } from './engine.js';
+import { hasOwnErrorCode } from './error-codes.js';
 import { getWorkspaceDir } from './runtime.js';
 import type { Engine } from './types.js';
 
@@ -239,7 +240,7 @@ async function checkAgentNotConfigured(home: string): Promise<CheckResult> {
       fix: 'Use a fresh HOME directory for env and sandbox backends.',
     };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+    if (hasOwnErrorCode(error, 'ENOENT')) {
       return { name: 'Agent not configured', passed: true };
     }
 

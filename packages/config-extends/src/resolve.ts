@@ -5,6 +5,7 @@ import {
   resolveTemplatePartials
 } from "toolcraft-design";
 import { findBase } from "./discover.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { mergeLayers } from "./merge.js";
 import { parseDocument } from "./parse.js";
 import type {
@@ -77,7 +78,7 @@ export async function resolve(
 
   if (
     composedPrompt !== undefined &&
-    merged.sources.prompt === documentLayer.source &&
+    getOwnEntry(merged.sources, "prompt") === documentLayer.source &&
     composedPrompt.source !== undefined
   ) {
     merged.sources.prompt = composedPrompt.source;
@@ -216,7 +217,7 @@ function composePromptChain(
   documentLayer: DataLayer,
   baseLayers: DataLayer[]
 ): ComposedPromptResult | undefined {
-  const documentPrompt = documentLayer.data.prompt;
+  const documentPrompt = getOwnEntry(documentLayer.data, "prompt");
 
   if (documentPrompt !== undefined && typeof documentPrompt !== "string") {
     return undefined;
@@ -231,7 +232,7 @@ function composePromptChain(
   const consumedBaseIndexes = new Set<number>();
 
   for (const [index, layer] of baseLayers.entries()) {
-    const candidate = layer.data.prompt;
+    const candidate = getOwnEntry(layer.data, "prompt");
 
     if (candidate === undefined) {
       continue;
@@ -310,7 +311,7 @@ async function expandPromptPartials(
 
   const promptLayers = [documentLayer, ...baseLayers];
   for (const layer of promptLayers) {
-    const prompt = layer.data.prompt;
+    const prompt = getOwnEntry(layer.data, "prompt");
     if (typeof prompt !== "string") {
       continue;
     }
@@ -329,7 +330,7 @@ async function expandPromptPartials(
 }
 
 function withExpandedPrompt(layer: DataLayer, partials: Record<string, string>): DataLayer {
-  const prompt = layer.data.prompt;
+  const prompt = getOwnEntry(layer.data, "prompt");
   if (typeof prompt !== "string") {
     return layer;
   }
@@ -366,7 +367,7 @@ async function findPartial(
     try {
       return { content: await fs.readFile(filePath, "utf8"), filePath };
     } catch (error) {
-      if (hasCode(error, "ENOENT")) {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         continue;
       }
       throw error;
@@ -389,10 +390,6 @@ function assertInsideDirectory(name: string, directory: string, filePath: string
 
 function unique(values: string[]): string[] {
   return [...new Set(values)];
-}
-
-function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
 }
 
 function assertValidYieldCount(prompt: string): void {
@@ -424,7 +421,7 @@ function stripResolvedBasePrompts(
   consumedBaseIndexes: Set<number>
 ): DataLayer[] {
   return layers.map((layer, index) => {
-    if (!consumedBaseIndexes.has(index) || typeof layer.data.prompt !== "string") {
+    if (!consumedBaseIndexes.has(index) || typeof getOwnEntry(layer.data, "prompt") !== "string") {
       return layer;
     }
 
@@ -448,6 +445,10 @@ function shouldResolveBase(
   autoExtend: boolean | undefined
 ): boolean {
   return parsedDocument.extends || (autoExtend === true && !parsedDocument.hasExtendsField);
+}
+
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
 function isBaseNotFoundError(error: unknown): error is Error {

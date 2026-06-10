@@ -8,6 +8,33 @@ function createMemFs(files: Record<string, string> = {}): ActionFs {
   return createFsFromVolume(volume).promises as unknown as ActionFs;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("plan actions", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -98,6 +125,12 @@ describe("plan actions", () => {
     expect(resolveEditor({})).toBe("vi");
   });
 
+  it("ignores inherited editor env values", async () => {
+    await withObjectPrototypeProperties({ EDITOR: "polluted-editor" }, () => {
+      expect(resolveEditor({})).toBe("vi");
+    });
+  });
+
   it("does not overwrite an existing archived plan", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/plan.md": "# Current",
@@ -107,6 +140,25 @@ describe("plan actions", () => {
     await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
       .rejects.toThrow("Archive destination already exists");
     await expect(fs.readFile("/repo/docs/plans/archive/plan.md", "utf8")).resolves.toBe("# Historic");
+  });
+
+  it("does not treat inherited archive read error codes as missing destinations", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Current" });
+    const fs: ActionFs = {
+      ...raw,
+      readFile: vi.fn(async (filePath, encoding) => {
+        if (filePath === "/repo/docs/plans/archive/plan.md") {
+          throw new Error("archive read denied");
+        }
+
+        return raw.readFile(filePath, encoding);
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+        .rejects.toThrow("archive read denied");
+    });
   });
 
   it("rejects a symlinked archive directory", async () => {
@@ -121,6 +173,25 @@ describe("plan actions", () => {
       .rejects.toThrow(/symbolic link/i);
     await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toBe("# Current");
     await expect(fs.readFile("/outside/plan.md", "utf8")).rejects.toThrow();
+  });
+
+  it("does not treat inherited archive lstat error codes as missing directories", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Current" });
+    const fs: ActionFs = {
+      ...raw,
+      lstat: vi.fn(async (filePath) => {
+        if (filePath === "/repo/docs/plans/archive") {
+          throw new Error("archive lstat denied");
+        }
+
+        return raw.lstat(filePath);
+      })
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+        .rejects.toThrow("archive lstat denied");
+    });
   });
 
   it("removes a newly created archive directory when moving fails", async () => {

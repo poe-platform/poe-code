@@ -1,5 +1,6 @@
 import { dirname } from "node:path";
 import { isNotFound } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import type { FileSystem } from "../../utils/file-system.js";
 
 export async function tryLstat(fs: FileSystem, path: string) {
@@ -23,11 +24,7 @@ export function formatLoggedPath(
 }
 
 export function isPermissionError(error: unknown): error is NodeJS.ErrnoException {
-  return (
-    error instanceof Error &&
-    "code" in error &&
-    (error.code === "EACCES" || error.code === "EPERM")
-  );
+  return hasOwnErrorCode(error, "EACCES") || hasOwnErrorCode(error, "EPERM");
 }
 
 export type SymlinkOp =
@@ -81,7 +78,17 @@ export async function applySymlinkOps(
       }
     }
   } catch (error) {
-    await rollbackSymlinkOps(fs, appliedOps);
+    try {
+      await rollbackSymlinkOps(fs, appliedOps);
+    } catch (rollbackError) {
+      throw new AggregateError(
+        [error, rollbackError],
+        [
+          `Symlink operation failed: ${formatUnknownError(error)}`,
+          `Rollback failed: ${formatUnknownError(rollbackError)}`
+        ].join(" ")
+      );
+    }
     throw error;
   }
 
@@ -100,6 +107,14 @@ async function rollbackSymlinkOps(
 
     await fs.rename(op.to, op.from);
   }
+}
+
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return String(error);
 }
 
 export async function isSymlinkPointingTo(

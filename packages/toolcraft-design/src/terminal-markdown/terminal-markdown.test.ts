@@ -1174,6 +1174,63 @@ describe("extractFrontmatter", () => {
     });
   });
 
+  it("parses a literal block scalar with clip chomping (|)", () => {
+    expect(
+      extractFrontmatter(
+        ["---", "prompt: |", "  line one", "", "  line two", "---", "Body"].join("\n")
+      )
+    ).toEqual({
+      frontmatter: { prompt: "line one\n\nline two\n" },
+      body: "Body"
+    });
+  });
+
+  it("parses a literal block scalar with strip chomping (|-)", () => {
+    expect(
+      extractFrontmatter(["---", "prompt: |-", "  alpha", "  beta", "---", "Body"].join("\n"))
+    ).toEqual({
+      frontmatter: { prompt: "alpha\nbeta" },
+      body: "Body"
+    });
+  });
+
+  it("parses a literal block scalar with keep chomping (|+)", () => {
+    expect(
+      extractFrontmatter(["---", "prompt: |+", "  alpha", "", "", "---", "Body"].join("\n"))
+    ).toEqual({
+      frontmatter: { prompt: "alpha\n\n\n" },
+      body: "Body"
+    });
+  });
+
+  it("parses a block scalar nested in a mapping and preserves relative indentation", () => {
+    expect(
+      extractFrontmatter(
+        [
+          "---",
+          "states:",
+          "  queued:",
+          "    prompt: |",
+          "      do x",
+          "        nested",
+          "      then y",
+          "  done:",
+          "    terminal: true",
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toEqual({
+      frontmatter: {
+        states: {
+          queued: { prompt: "do x\n  nested\nthen y\n" },
+          done: { terminal: true }
+        }
+      },
+      body: "Body"
+    });
+  });
+
   it("preserves __proto__ frontmatter as own metadata without prototype mutation", () => {
     const { frontmatter } = extractFrontmatter(
       ["---", "__proto__:", "  owner: attacker", "---", "Body"].join("\n")

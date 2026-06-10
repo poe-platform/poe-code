@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { rename, rm, writeFile } from "node:fs/promises";
 import { parseAnsi } from "./ansi-parser.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { renderPng } from "./png-renderer.js";
 import { renderSvg } from "./svg-renderer.js";
 
@@ -33,7 +34,7 @@ export async function renderTerminalPng(
       temporaryCreated = true;
       await rename(temporaryPath, options.output);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         try {
           await rm(temporaryPath, { force: true });
         } catch (cleanupError) {
@@ -45,6 +46,10 @@ export async function renderTerminalPng(
   }
 
   return png;
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && hasOwnErrorCode(error, "EEXIST");
 }
 
 export * from "./ansi-parser.js";

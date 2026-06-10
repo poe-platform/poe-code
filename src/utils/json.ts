@@ -13,17 +13,17 @@ export function deepMergeJson(
   target: JsonObject,
   source: JsonObject
 ): JsonObject {
-  const result: JsonObject = { ...target };
+  const result = cloneJsonObject(target);
   for (const [key, value] of Object.entries(source)) {
     if (value === undefined) {
       continue;
     }
-    const existing = result[key];
+    const existing = hasOwnJsonValue(result, key) ? result[key] : undefined;
     if (isJsonObject(existing) && isJsonObject(value)) {
-      result[key] = deepMergeJson(existing, value);
+      setOwnJsonValue(result, key, deepMergeJson(existing, value));
       continue;
     }
-    result[key] = value;
+    setOwnJsonValue(result, key, value);
   }
   return result;
 }
@@ -33,10 +33,10 @@ export function pruneJsonByShape(
   shape: JsonObject
 ): { changed: boolean; result: JsonObject } {
   let changed = false;
-  const result: JsonObject = { ...target };
+  const result = cloneJsonObject(target);
 
   for (const [key, pattern] of Object.entries(shape)) {
-    if (!(key in result)) {
+    if (!hasOwnJsonValue(result, key)) {
       continue;
     }
 
@@ -53,7 +53,7 @@ export function pruneJsonByShape(
       if (Object.keys(childResult).length === 0) {
         delete result[key];
       } else {
-        result[key] = childResult;
+        setOwnJsonValue(result, key, childResult);
       }
       continue;
     }
@@ -63,4 +63,27 @@ export function pruneJsonByShape(
   }
 
   return { changed, result };
+}
+
+function cloneJsonObject(value: JsonObject): JsonObject {
+  const result: JsonObject = {};
+
+  for (const [key, item] of Object.entries(value)) {
+    setOwnJsonValue(result, key, item);
+  }
+
+  return result;
+}
+
+function hasOwnJsonValue(value: JsonObject, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
+}
+
+function setOwnJsonValue(target: JsonObject, key: string, value: JsonValue): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value
+  });
 }

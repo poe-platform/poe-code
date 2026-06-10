@@ -36,6 +36,27 @@ describe("validateMachine", () => {
     expect(() => validateMachine(machine)).toThrow('Initial state "unknown" is not declared.');
   });
 
+  it("rejects inherited top-level machine fields", () => {
+    const machine = Object.create(defaultShapedMachine) as StateMachineDef;
+
+    expect(() => validateMachine(machine)).toThrow(
+      "State machine states must be a string array."
+    );
+  });
+
+  it("rejects inherited event transition fields", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      events: {
+        plan: Object.create(defaultShapedMachine.events.plan)
+      }
+    } as StateMachineDef;
+
+    expect(() => validateMachine(machine)).toThrow(
+      'Event "plan" has an invalid "from" definition.'
+    );
+  });
+
   it("rejects when an event source state is not declared", () => {
     const machine = {
       ...defaultShapedMachine,

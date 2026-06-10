@@ -32,6 +32,33 @@ function createFs(files: Record<string, string> = {}): ExperimentFileSystem {
   return createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createEvalExec(
   responses: Array<{
     stdout: string;
@@ -275,6 +302,42 @@ describe("loadRunConfig", () => {
     await expect(loadRunConfig({ cwd: "/repo", homeDir: "/home/test", fs })).rejects.toThrow(
       "Experiment run config must not contain symbolic links."
     );
+  });
+
+  it("does not hide project config read failures with inherited missing-path codes", async () => {
+    const baseFs = createFs();
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async readFile(filePath, encoding) {
+        if (filePath === "/repo/.poe-code/experiments/run.yaml") {
+          throw new Error("project config read denied");
+        }
+
+        return await baseFs.readFile(filePath, encoding);
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(loadRunConfig({ cwd: "/repo", homeDir: "/home/test", fs })).rejects.toThrow(
+        "project config read denied"
+      );
+    });
+  });
+
+  it("does not ignore config path check failures with inherited missing-path codes", async () => {
+    const baseFs = createFs();
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async lstat() {
+        throw new Error("config lstat denied");
+      }
+    };
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(loadRunConfig({ cwd: "/repo", homeDir: "/home/test", fs })).rejects.toThrow(
+        "config lstat denied"
+      );
+    });
   });
 
   it("returns default when run.yaml is comment-only", async () => {
@@ -649,6 +712,23 @@ describe("parseExperimentFrontmatter", () => {
     });
   });
 
+  it("does not accept inherited metric fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        name: "polluted",
+        script: "npm test",
+        direction: "maximize"
+      },
+      () => {
+        const content = ["---", "metric: {}", "baseline: null", "---", "Body"].join("\n");
+
+        const result = parseExperimentFrontmatter(content);
+
+        expect(result.frontmatter.metric).toBeUndefined();
+      }
+    );
+  });
+
   it("parses metric_timeout from frontmatter", () => {
     const content = ["---", "metric_timeout: 120", "baseline: null", "---", "Body"].join("\n");
 
@@ -679,6 +759,25 @@ describe("parseExperimentFrontmatter", () => {
     const result = parseExperimentFrontmatter(content);
 
     expect(result.frontmatter.extends).toBe(true);
+  });
+
+  it("ignores inherited frontmatter fields", async () => {
+    await withObjectPrototypeProperties(
+      {
+        agent: "polluted-agent",
+        extends: true,
+        baseline: { tests: 1 },
+        max_experiments: 9,
+        metric_timeout: 30
+      },
+      () => {
+        const content = ["---", "{}", "---", "Body"].join("\n");
+
+        const result = parseExperimentFrontmatter(content);
+
+        expect(result.frontmatter).toEqual({ baseline: null });
+      }
+    );
   });
 
   it("parses agent as a single string", () => {
@@ -1016,14 +1115,47 @@ describe("writeExperimentFrontmatter", () => {
     const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
     const fs = createFs({ [docPath]: original });
     const writeFile = fs.writeFile.bind(fs);
-    fs.writeFile = async (filePath: string, content: string) => {
-      await writeFile(filePath, content.slice(0, 9));
+    let temporaryPath: string | undefined;
+    fs.writeFile = async (filePath: string, content: string, options) => {
+      temporaryPath = filePath;
+      await writeFile(filePath, content.slice(0, 9), options);
       throw new Error("plan disk full");
     };
 
     await expect(writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs))
       .rejects.toThrow("plan disk full");
     await expect(fs.readFile(docPath, "utf8")).resolves.toBe(original);
+    expect(temporaryPath?.startsWith(`${docPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("removes partial frontmatter temp files when write errors only inherit existing-path codes", async () => {
+    const docPath = "/repo/experiment.md";
+    const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
+    const fs = createFs({ [docPath]: original });
+    const writeFile = fs.writeFile.bind(fs);
+    let temporaryPath: string | undefined;
+    fs.writeFile = async (filePath: string, content: string, options) => {
+      temporaryPath = filePath;
+      await writeFile(filePath, content.slice(0, 9), options);
+      throw new Error("frontmatter temp denied");
+    };
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(
+        writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs)
+      ).rejects.toThrow("frontmatter temp denied");
+    });
+
+    await expect(fs.readFile(docPath, "utf8")).resolves.toBe(original);
+    expect(temporaryPath?.startsWith(`${docPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });
 
@@ -1257,6 +1389,25 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([]);
   });
 
+  it("does not hide journal read failures with inherited missing-path codes", async () => {
+    const baseFs = createFs();
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async readFile(filePath, encoding) {
+        if (filePath === "/repo/missing.journal.jsonl") {
+          throw new Error("journal read denied");
+        }
+
+        return await baseFs.readFile(filePath, encoding);
+      }
+    };
+    const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(journal.readAll()).rejects.toThrow("journal read denied");
+    });
+  });
+
   it("formats entries as a readable TSV table", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
@@ -1431,10 +1582,12 @@ describe("ExperimentJournal", () => {
     const baseFs = createFs({
       [journalPath]: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`
     });
+    let temporaryPath: string | undefined;
     const fs: ExperimentFileSystem = {
       ...baseFs,
-      async writeFile(filePath, _content) {
-        await baseFs.writeFile(filePath, "{");
+      async writeFile(filePath, _content, options) {
+        temporaryPath = filePath;
+        await baseFs.writeFile(filePath, "{", options);
         throw new Error("journal disk full");
       }
     };
@@ -1447,6 +1600,46 @@ describe("ExperimentJournal", () => {
       first,
       second
     ]);
+    expect(temporaryPath?.startsWith(`${journalPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(baseFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("removes partial journal temp files when write errors only inherit existing-path codes", async () => {
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const first = createJournalEntry({ commit: "aaa1111" });
+    const second = createJournalEntry({ commit: "bbb2222", scores: undefined });
+    const baseFs = createFs({
+      [journalPath]: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`
+    });
+    let temporaryPath: string | undefined;
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, _content, options) {
+        temporaryPath = filePath;
+        await baseFs.writeFile(filePath, "{", options);
+        throw new Error("journal temp denied");
+      }
+    };
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(journal.updateLast({ scores: { tests: 42 } })).rejects.toThrow(
+        "journal temp denied"
+      );
+    });
+
+    await expect(new ExperimentJournal(journalPath, baseFs).readAll()).resolves.toEqual([
+      first,
+      second
+    ]);
+    expect(temporaryPath?.startsWith(`${journalPath}.`)).toBe(true);
+    expect(temporaryPath?.endsWith(".tmp")).toBe(true);
+    await expect(baseFs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("updateLast returns null on empty journal", async () => {

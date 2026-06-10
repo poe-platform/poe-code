@@ -64,14 +64,38 @@ export function toContentBlocks(result: ToolReturn): ContentBlock[] {
 }
 
 function isContentBlock(value: object): value is ContentBlock {
-  if (!("type" in value) || typeof value.type !== "string") {
+  if (!hasOwnProperty(value, "type") || typeof value.type !== "string") {
     return false;
   }
 
-  return (
-    value.type === "text" ||
-    value.type === "image" ||
-    value.type === "audio" ||
-    value.type === "resource"
-  );
+  if (value.type === "text") {
+    return hasOwnProperty(value, "text") && typeof value.text === "string";
+  }
+
+  if (value.type === "image" || value.type === "audio") {
+    return hasOwnProperty(value, "data")
+      && typeof value.data === "string"
+      && hasOwnProperty(value, "mimeType")
+      && typeof value.mimeType === "string";
+  }
+
+  if (value.type !== "resource" || !hasOwnProperty(value, "resource")) {
+    return false;
+  }
+
+  const resource = value.resource;
+  return typeof resource === "object"
+    && resource !== null
+    && hasOwnProperty(resource, "uri")
+    && typeof resource.uri === "string"
+    && (!hasOwnProperty(resource, "mimeType") || typeof resource.mimeType === "string")
+    && ((hasOwnProperty(resource, "text") && typeof resource.text === "string")
+      || (hasOwnProperty(resource, "blob") && typeof resource.blob === "string"));
+}
+
+function hasOwnProperty<Name extends PropertyKey>(
+  value: object,
+  name: Name
+): value is Record<Name, unknown> {
+  return Object.prototype.hasOwnProperty.call(value, name);
 }

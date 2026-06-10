@@ -74,4 +74,36 @@ describe("poe-code-command-runner credential resolution", () => {
       expect.objectContaining({ credential: "sk-stored-key" })
     );
   });
+
+  it("keeps caller environment overrides above isolated environment", async () => {
+    vi.mocked(isolatedEnv.resolveIsolatedEnvDetails).mockResolvedValueOnce({
+      agentBinary: "demo-agent",
+      env: { WORKSPACE_ID: "isolated", ISOLATED_ONLY: "1" },
+      configProbePath: "/home/test/.poe-code/test-service/probe.txt"
+    });
+    const baseRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-from-env" } },
+      logger: () => {}
+    });
+    const runner = createPoeCodeCommandRunner({ getContainer: () => container, baseRunner });
+
+    await runner("poe-code", ["wrap", "claude-code"], {
+      env: { WORKSPACE_ID: "caller", CALLER_ONLY: "1" }
+    });
+
+    expect(baseRunner).toHaveBeenCalledWith(
+      "demo-agent",
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          WORKSPACE_ID: "caller",
+          ISOLATED_ONLY: "1",
+          CALLER_ONLY: "1"
+        })
+      })
+    );
+  });
 });

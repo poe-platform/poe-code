@@ -8,6 +8,28 @@ vi.mock("node:fs/promises", async () => {
 
 const { generateProjectVariablesFile, loadVariableStatuses, loadVariables } = await import("./variables.js");
 
+async function withObjectPrototypeProperty<T>(
+  key: string,
+  value: unknown,
+  callback: () => Promise<T>
+): Promise<T> {
+  const original = Object.getOwnPropertyDescriptor(Object.prototype, key);
+  Object.defineProperty(Object.prototype, key, {
+    configurable: true,
+    value
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (original === undefined) {
+      delete (Object.prototype as Record<string, unknown>)[key];
+    } else {
+      Object.defineProperty(Object.prototype, key, original);
+    }
+  }
+}
+
 describe("variables", () => {
   beforeEach(() => {
     vol.reset();
@@ -31,6 +53,26 @@ describe("variables", () => {
     await expect(loadVariables("/built-in", "/repo/.github/workflows")).resolves.toEqual({
       response_style: "- Start with a direct answer.\n",
       verify_before_responding: "Verify against the repo.\n"
+    });
+  });
+
+  it("does not hide project variables read failures with inherited missing-file codes", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": ["response_style: |", "  Be direct.", ""].join("\n")
+    });
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (...args) => {
+      if (String(args[0]) === "/repo/.github/workflows/variables.yaml") {
+        throw new Error("project variables read denied");
+      }
+
+      return readFile(...args);
+    });
+
+    await withObjectPrototypeProperty("code", "ENOENT", async () => {
+      await expect(loadVariables("/built-in", "/repo/.github/workflows")).rejects.toThrow(
+        "project variables read denied"
+      );
     });
   });
 
@@ -214,6 +256,19 @@ describe("variables", () => {
         status: "custom"
       }
     ]);
+  });
+
+  it("ignores inherited extends flags when reporting project variable statuses", async () => {
+    vol.fromJSON({
+      "/built-in/variables.yaml": ["response_style: |", "  Be direct.", ""].join("\n"),
+      "/repo/.github/workflows/variables.yaml": "{}\n"
+    });
+
+    await withObjectPrototypeProperty("extends", false, async () => {
+      await expect(loadVariableStatuses("/built-in", "/repo/.github/workflows")).resolves.toEqual([
+        { name: "response_style", source: "built-in", status: "default" }
+      ]);
+    });
   });
 
   it("generates a fully commented project file when no existing content is provided", () => {

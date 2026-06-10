@@ -35,6 +35,33 @@ const formatterState = {
   plainOptionListCalls: 0
 };
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
+
 vi.mock("toolcraft-design", () => ({
   configureTheme: vi.fn(),
   createLogger: () => ({
@@ -1029,6 +1056,40 @@ describe("runCLI", () => {
     });
   });
 
+  it("does not inherit enum option labels for prototype-named values", async () => {
+    const handler = vi.fn(
+      async (ctx: { params: { mode: "constructor" | "safe" } }) => ctx.params
+    );
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["constructor", "safe"] as const, {
+          labels: { safe: "Safe" }
+        })
+      }),
+      handler
+    });
+
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
+
+    promptState.select.mockResolvedValueOnce("constructor");
+
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(promptState.select).toHaveBeenCalledWith({
+      message: "--mode",
+      options: [
+        { label: "constructor", value: "constructor" },
+        { label: "Safe", value: "safe" }
+      ],
+      initialValue: undefined
+    });
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ mode: "constructor" });
+  });
+
   it("merges preset values before CLI flags and only prompts for still-missing required params", async () => {
     const handler = vi.fn(
       async (ctx: {
@@ -1409,6 +1470,51 @@ describe("runCLI", () => {
     expect(loggerState.error[0]).toContain("--> /presets/invalid-json.json:2:1");
     expect(loggerState.error[0]).toContain("2 | ,");
     expect(loggerState.error[0]).toContain("| ^");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("ignores inherited JSON parse location fields for preset errors", async () => {
+    const handler = vi.fn(async () => null);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String()
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    vol.fromJSON({
+      "/presets/invalid-json.json": "{\n,"
+    });
+
+    await withObjectPrototypeProperties(
+      {
+        cause: { line: 99, column: 88 },
+        position: 123
+      },
+      async () => {
+        process.argv = [
+          "node",
+          "toolcraft",
+          "deploy",
+          "--preset",
+          "/presets/invalid-json.json",
+          "--yes"
+        ];
+
+        await runCLI(root, { presets: true });
+      }
+    );
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error[0]).toContain("line 2 column 1");
+    expect(loggerState.error[0]).not.toContain("line 99 column 88");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2281,6 +2387,47 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("ignores inherited RFC 7807 problem detail response fields", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {}
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties(
+      {
+        detail: "polluted detail",
+        status: 400,
+        title: "Polluted Problem",
+        type: "https://example.com/polluted"
+      },
+      async () => {
+        process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+        await runCLI(root);
+      }
+    );
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  {}");
+    expect(output).not.toContain("Polluted Problem");
+    expect(output).not.toContain("polluted detail");
+    expect(output).not.toContain("https://example.com/polluted");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("falls back to JSON when problem detail text is blank", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -2346,6 +2493,50 @@ describe("runCLI", () => {
     expect(readStderr(stderrWrite)).toContain(
       "Response body:\n  GraphQL error: Unauthorized\n    at path: viewer"
     );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("ignores inherited GraphQL error metadata fields", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              errors: [
+                {
+                  message: "Unauthorized"
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties(
+      {
+        extensions: { code: "POLLUTED" },
+        path: ["polluted"]
+      },
+      async () => {
+        process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+        await runCLI(root);
+      }
+    );
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  GraphQL error: Unauthorized");
+    expect(output).not.toContain("at path: polluted");
+    expect(output).not.toContain("POLLUTED");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2463,6 +2654,41 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(readStderr(stderrWrite)).toContain('Response body:\n  {\n    "foo": 1\n  }');
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not treat inherited response bodies as HttpError details", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        const error = createHttpErrorLike();
+        error.response = {
+          headers: {
+            "content-type": "application/json"
+          },
+          status: 500,
+          statusText: "Internal Server Error"
+        } as typeof error.response;
+        throw error;
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await withObjectPrototypeProperties({ body: { title: "Polluted Problem" } }, async () => {
+      process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+      await runCLI(root);
+    });
+
+    const output = readStderr(stderrWrite);
+    expect(output).not.toContain("Response body:");
+    expect(output).not.toContain("Polluted Problem");
     expect(process.exitCode).toBe(1);
   });
 

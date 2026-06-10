@@ -47,6 +47,33 @@ function expectNoExcludeFile(): void {
   expect(vol.existsSync(excludePath)).toBe(false);
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("bridgeActiveSkills", () => {
   let restoreRunner: () => void;
 
@@ -178,6 +205,31 @@ describe("bridgeActiveSkills", () => {
     ]);
     expect(readText(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe("# local\n");
     expect(readText(path.join(cwd, ".opencode/skills/bar/SKILL.md"))).toBe("# bar\n");
+  });
+
+  it("does not treat inherited stat error codes as missing bridge targets", async () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    const targetPath = path.join(cwd, ".opencode/skills/foo");
+    const originalStatSync = fs.statSync.bind(fs);
+    const stat = vi.spyOn(fs, "statSync").mockImplementation((filePath, options) => {
+      if (String(filePath) === targetPath) {
+        throw new Error("bridge target stat denied");
+      }
+
+      return originalStatSync(filePath, options);
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+        expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+          "bridge target stat denied"
+        );
+      });
+      expect(vol.existsSync(targetPath)).toBe(false);
+      expectNoExcludeFile();
+    } finally {
+      stat.mockRestore();
+    }
   });
 
   it("warns and skips global target collisions", () => {
@@ -403,6 +455,28 @@ describe("bridgeActiveSkills", () => {
     expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo"))).toBe(false);
     expect(readText(path.join(cwd, ".opencode/skills/manual.md"))).toBe("# manual\n");
     expect(vol.existsSync(path.join(cwd, ".opencode/skills"))).toBe(true);
+  });
+
+  it("does not treat inherited rmdir error codes as empty created parents", async () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    const manifest = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId);
+    const parentPath = path.join(cwd, ".opencode/skills");
+    const originalRmdirSync = fs.rmdirSync.bind(fs);
+    const rmdir = vi.spyOn(fs, "rmdirSync").mockImplementation((targetPath, options) => {
+      if (String(targetPath) === parentPath) {
+        throw new Error("parent cleanup denied");
+      }
+
+      return originalRmdirSync(targetPath, options);
+    });
+
+    try {
+      await withObjectPrototypeProperties({ code: "ENOTEMPTY" }, async () => {
+        expect(() => cleanupBridgedSkills(manifest)).toThrow("parent cleanup denied");
+      });
+    } finally {
+      rmdir.mockRestore();
+    }
   });
 
   it("cleanup preserves a user replacement at a prior bridge target", () => {

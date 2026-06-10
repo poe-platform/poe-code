@@ -12,6 +12,7 @@ import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import { runTruffleHogPrScanCommand } from "./exec/trufflehog-pr-scan.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
 import { workflowSubprocessTimeoutMs } from "./subprocess-timeout.js";
@@ -980,7 +981,7 @@ async function writeWorkflowFileAtomically(
     await assertWritableWorkflowDestination(rootPath, filePath);
     await rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await unlinkWorkflowTemporaryFile(rootPath, temporaryPath).catch(() => undefined);
     }
     throw error;
@@ -1062,7 +1063,11 @@ function renderProjectReadme(): string {
 }
 
 function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
+}
+
+function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 async function selectAutomationName(message: string, automations: AutomationDefinition[]): Promise<string> {

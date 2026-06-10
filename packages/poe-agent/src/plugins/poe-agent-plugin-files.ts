@@ -4,6 +4,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import fastGlob from "fast-glob";
+import { hasOwnErrorCode } from "../error-codes.js";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import {
   readOptionalString,
@@ -204,6 +205,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
           if (isAlreadyExistsError(error)) {
             throw new Error("File already exists — use str_replace to edit");
           }
+          await fs.unlink(filePath).catch(() => undefined);
           throw error;
         }
         return `Created file: ${displayedPath}`;
@@ -385,7 +387,7 @@ async function replaceFileAtomically(
     await fs.rename(temporaryPath, filePath);
     temporaryCreated = false;
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExistsError(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
@@ -393,12 +395,7 @@ async function replaceFileAtomically(
 }
 
 function isAlreadyExistsError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "EEXIST"
-  );
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function countOccurrences(text: string, search: string): number {

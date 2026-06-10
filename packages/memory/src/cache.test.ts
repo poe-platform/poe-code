@@ -25,6 +25,33 @@ const baseEntry = {
   agentId: "claude-code@1.2.3"
 } as const;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("computeIngestKey", () => {
   it("is deterministic and separates each cache-key component", () => {
     const left = computeIngestKey({
@@ -120,6 +147,26 @@ describe("readCacheEntry and writeCacheEntry", () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "missing")).resolves.toBeNull();
   });
 
+  it("does not treat inherited filesystem error codes as missing cache entries", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/.keep": ""
+    });
+    const readFile = vol.promises.readFile.bind(vol.promises);
+    vi.spyOn(vol.promises, "readFile").mockImplementation(async (filePath, options) => {
+      if (String(filePath).endsWith("/abc123.json")) {
+        throw new Error("cache permission denied");
+      }
+
+      return readFile(filePath, options);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).rejects.toThrow(
+        "cache permission denied"
+      );
+    });
+  });
+
   it("returns null and warns when the cache entry JSON is malformed", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -145,6 +192,21 @@ describe("readCacheEntry and writeCacheEntry", () => {
     await expect(readCacheEntry("/repo/.poe-code/memory", "bad-shape")).resolves.toBeNull();
     expect(warn).toHaveBeenCalledWith(
       'Ignoring ingest cache entry "bad-shape": Expected string at "ingestedAt".'
+    );
+  });
+
+  it("returns null and warns when cache entry fields are inherited", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/abc123.json": "{}"
+    });
+
+    await withObjectPrototypeProperties(baseEntry as unknown as Record<string, unknown>, async () => {
+      await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toBeNull();
+    });
+    expect(warn).toHaveBeenCalledWith(
+      'Ignoring ingest cache entry "abc123": Expected string at "key".'
     );
   });
 

@@ -16,6 +16,7 @@ import {
   makeLogModule,
   makeMetricModule,
   restore,
+  type AgentSpawnEvent,
   type Diagnostic
 } from "@poe-code/agent-script";
 import {
@@ -28,9 +29,14 @@ import {
   withSpinner
 } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
-import { ValidationError } from "../errors.js";
+import { ReportedError, ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import {
+  isHarnessSpawnErrorRetryable,
+  isHarnessSpawnResultRetryable
+} from "./harness-spawn-retry.js";
 
 type HarnessRunOptions = {
   agent?: string;
@@ -128,29 +134,173 @@ async function executeHarnessRun(
   const progress = createSnapshotProgressReader(container, snapshotPath);
   const lintDiagnostics: Diagnostic[] = [];
   const frontmatterOverrides = buildAgentFrontmatterOverrides(options);
-  const result = await withSpinner({
-    message: () => formatRunMessage(baseMessage, progress.current()),
-    fn: () =>
-      runHarnessPair(selectedPath, {
-        modulesFor: (frontmatter, meta) => createHarnessModules(container, frontmatter, meta),
-        onDiagnostics: (diagnostics) => {
-          lintDiagnostics.push(...diagnostics);
-        },
-        fix: Boolean(options.fix),
-        resume: Boolean(options.resume),
-        snapshotPath,
-        ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
-        ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
-      }),
-    stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
-  });
+  const reportedSpawnFailures = new Set<string>();
+  let result: Awaited<ReturnType<typeof runHarnessPair>>;
+  try {
+    result = await withSpinner({
+      message: () => formatRunMessage(baseMessage, progress.current()),
+      fn: () =>
+        runHarnessPair(selectedPath, {
+          modulesFor: (frontmatter, meta) =>
+            createHarnessModules(container, resources.logger, frontmatter, meta, (error) => {
+              reportedSpawnFailures.add(error);
+            }),
+          onDiagnostics: (diagnostics) => {
+            lintDiagnostics.push(...diagnostics);
+          },
+          fix: Boolean(options.fix),
+          resume: Boolean(options.resume),
+          snapshotPath,
+          ...(snapshotPathIsDefault ? { snapshotPathIsDefault: true } : {}),
+          ...(frontmatterOverrides === undefined ? {} : { frontmatterOverrides })
+        }),
+      stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
+    });
+  } catch (error) {
+    const message = formatUnknownError(error);
+    if (isAlreadyReportedSpawnFailure(error, reportedSpawnFailures)) {
+      throw new ReportedError(message);
+    }
+    throw error;
+  }
 
   logNonErrorLintDiagnostics(resources.logger, lintDiagnostics);
-  resources.logger.info(JSON.stringify(result, null, 2));
+  logHarnessResult(resources.logger, result);
   const costLine = formatTotalCostLine(result);
   if (costLine !== undefined) {
     resources.logger.info(costLine);
   }
+  if (!result.ok) {
+    throw new ReportedError(formatSpawnFailureText(formatUnknownError(result.error)));
+  }
+}
+
+function logHarnessResult(
+  logger: ReturnType<typeof createExecutionResources>["logger"],
+  result: Awaited<ReturnType<typeof runHarnessPair>>
+): void {
+  if (result.ok) {
+    logger.success(`Result: ${formatResultValue(result.returnValue)}`);
+  } else {
+    logger.error(`Harness failed: ${formatSpawnFailureText(formatUnknownError(result.error))}`);
+  }
+
+  const usage = result.usage;
+  if (usage !== undefined) {
+    logger.info(formatHarnessUsage(usage));
+  }
+}
+
+function formatResultValue(value: unknown): string {
+  if (value === undefined) {
+    return "completed";
+  }
+  if (typeof value === "string") {
+    return truncateResultValue(sanitizeTerminalText(value));
+  }
+  if (typeof value === "number" || typeof value === "boolean" || value === null) {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return `array · ${value.length} ${value.length === 1 ? "item" : "items"}`;
+  }
+  if (typeof value === "object") {
+    const keys = Object.keys(value as Record<string, unknown>).map((key) =>
+      truncateResultValue(sanitizeTerminalText(key))
+    );
+    const keySummary = keys.slice(0, 5).join(", ");
+    const summary = keys.length === 0
+      ? "object"
+      : `object · ${keySummary}${keys.length > 5 ? `, +${keys.length - 5} more` : ""}`;
+    return truncateResultValue(summary);
+  }
+  return typeof value;
+}
+
+function truncateResultValue(value: string): string {
+  return value.length > 240 ? `${value.slice(0, 239)}…` : value;
+}
+
+function sanitizeTerminalText(value: string): string {
+  let sanitized = "";
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (character === "\n" || character === "\r" || character === "\t") {
+      sanitized += " ";
+    } else if (code >= 32 && code !== 127) {
+      sanitized += character;
+    } else {
+      sanitized += " ";
+    }
+  }
+  return sanitized.split(" ").filter((part) => part.length > 0).join(" ");
+}
+
+function formatHarnessUsage(usage: {
+  attemptCount?: number;
+  cachedTokens: number;
+  inputTokens: number;
+  outputTokens: number;
+  spawnCount: number;
+}): string {
+  const parts = [`${usage.spawnCount} ${usage.spawnCount === 1 ? "spawn" : "spawns"}`];
+  if (usage.attemptCount !== undefined && usage.attemptCount !== usage.spawnCount) {
+    parts.push(`${usage.attemptCount} ${usage.attemptCount === 1 ? "attempt" : "attempts"}`);
+  }
+  if (usage.inputTokens > 0) {
+    parts.push(`${usage.inputTokens} input`);
+  }
+  if (usage.outputTokens > 0) {
+    parts.push(`${usage.outputTokens} output`);
+  }
+  if (usage.cachedTokens > 0) {
+    parts.push(`${usage.cachedTokens} cached`);
+  }
+  return `Usage: ${parts.join(" · ")}`;
+}
+
+function isAlreadyReportedSpawnFailure(error: unknown, reported: ReadonlySet<string>): boolean {
+  const message = formatSpawnFailureText(formatUnknownError(error));
+  if (reported.has(message)) {
+    return true;
+  }
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+  if ("result" in error) {
+    const resultMessage = formatSpawnResultFailure(error.result);
+    if (resultMessage !== undefined && reported.has(resultMessage)) {
+      return true;
+    }
+  }
+  if ("errors" in error && Array.isArray(error.errors) && error.errors.length > 0) {
+    return error.errors.every((nestedError) => isAlreadyReportedSpawnFailure(nestedError, reported));
+  }
+  return false;
+}
+
+function formatSpawnFailureText(value: string): string {
+  const sanitized = sanitizeTerminalText(value);
+  return sanitized.length > 400 ? `${sanitized.slice(0, 399)}…` : sanitized;
+}
+
+function formatSpawnResultFailure(result: unknown): string | undefined {
+  if (typeof result !== "object" || result === null || !("exitCode" in result)) {
+    return undefined;
+  }
+  const exitCode = result.exitCode;
+  if (typeof exitCode !== "number") {
+    return undefined;
+  }
+  const stderr = "stderr" in result && typeof result.stderr === "string" ? result.stderr.trim() : "";
+  const summary =
+    "summary" in result && typeof result.summary === "string" ? result.summary.trim() : "";
+  const message = stderr.length > 0
+    ? `Agent spawn failed with exit code ${exitCode}: ${stderr}`
+    : summary.length > 0
+      ? `Agent spawn failed with exit code ${exitCode}: ${summary}`
+      : `Agent spawn failed with exit code ${exitCode}.`;
+  return formatSpawnFailureText(message);
 }
 
 function logNonErrorLintDiagnostics(
@@ -319,12 +469,7 @@ async function pathExists(container: CliContainer, targetPath: string): Promise<
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 async function executeHarnessNew(
@@ -368,24 +513,14 @@ async function executeHarnessNew(
   ]);
 
   await container.fs.mkdir(resolvedDir, { recursive: true });
+  const createdPaths: string[] = [];
   try {
-    await Promise.all([
-      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8", flag: "wx" }),
-      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8", flag: "wx" })
-    ]);
+    await writeHarnessScaffoldFile(container.fs, mdPath, mdSource);
+    createdPaths.push(mdPath);
+    await writeHarnessScaffoldFile(container.fs, ajsPath, ajsSource);
+    createdPaths.push(ajsPath);
   } catch (error) {
-    await Promise.all([
-      container.fs.unlink(mdPath).catch((cleanupError) => {
-        if (!hasErrorCode(cleanupError, "ENOENT")) {
-          throw cleanupError;
-        }
-      }),
-      container.fs.unlink(ajsPath).catch((cleanupError) => {
-        if (!hasErrorCode(cleanupError, "ENOENT")) {
-          throw cleanupError;
-        }
-      })
-    ]).catch(() => undefined);
+    await cleanupHarnessScaffoldFiles(container.fs, createdPaths);
     throw error;
   }
 
@@ -394,6 +529,35 @@ async function executeHarnessNew(
     dry: `Would create harness pair at ${formatDisplayPath(container, resolvedDir)}`
   });
   resources.context.finalize();
+}
+
+async function writeHarnessScaffoldFile(
+  fs: CliContainer["fs"],
+  filePath: string,
+  source: string
+): Promise<void> {
+  try {
+    await fs.writeFile(filePath, source, { encoding: "utf8", flag: "wx" });
+  } catch (error) {
+    if (!hasErrorCode(error, "EEXIST")) {
+      await tryUnlinkHarnessScaffoldFile(fs, filePath);
+    }
+    throw error;
+  }
+}
+
+async function cleanupHarnessScaffoldFiles(
+  fs: CliContainer["fs"],
+  filePaths: string[]
+): Promise<void> {
+  await Promise.all(filePaths.map((filePath) => tryUnlinkHarnessScaffoldFile(fs, filePath)));
+}
+
+async function tryUnlinkHarnessScaffoldFile(
+  fs: CliContainer["fs"],
+  filePath: string
+): Promise<void> {
+  await fs.unlink(filePath).catch(() => undefined);
 }
 
 async function executeHarnessList(program: Command, container: CliContainer): Promise<void> {
@@ -550,33 +714,48 @@ async function assertFilesDoNotExist(container: CliContainer, filePaths: string[
 
 function createHarnessModules(
   container: CliContainer,
+  logger: ReturnType<typeof createExecutionResources>["logger"],
   frontmatter: Record<string, unknown>,
-  meta: HarnessImportMeta
+  meta: HarnessImportMeta,
+  onSpawnFailure: (error: string) => void
 ): ModuleRegistry {
   const harnessMeta = {
     kind: meta.kind,
     version: meta.version,
     filepath: meta.filename
   };
-  const agent = makeAgentModule(async (input) => {
-    const { result } = sdkSpawn(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd ?? meta.dirname,
-      model: input.model,
-      mode: input.mode,
-      mcpServers: input.mcp,
-      signal: input.signal
-    });
-    const resolved = await result;
-    return {
-      exitCode: resolved.exitCode,
-      stdout: resolved.stdout,
-      stderr: resolved.stderr,
-      summary: resolved.stdout || resolved.stderr,
-      durationMs: 0,
-      ...(resolved.usage ? { usage: resolved.usage } : {})
-    };
-  });
+  const agent = makeAgentModule(
+    async (input) => {
+      const startedAt = Date.now();
+      const { result } = sdkSpawn(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd ?? meta.dirname,
+        model: input.model,
+        mode: input.mode,
+        mcpServers: input.mcp,
+        signal: input.signal,
+        activityTimeoutMs: input.timeoutMs
+      });
+      const resolved = await result;
+      return {
+        exitCode: resolved.exitCode,
+        stdout: resolved.stdout,
+        stderr: resolved.stderr,
+        summary: resolved.stdout || resolved.stderr,
+        durationMs: Date.now() - startedAt,
+        ...(resolved.usage ? { usage: resolved.usage } : {})
+      };
+    },
+    {
+      defaultRetry: {
+        maxAttempts: 5,
+        backoffMs: 1_000,
+        isErrorRetryable: isHarnessSpawnErrorRetryable,
+        isRetryable: isHarnessSpawnResultRetryable
+      },
+      onEvent: (event) => logHarnessSpawnEvent(logger, event, onSpawnFailure)
+    }
+  );
   const fail = makeFailModule().default;
   const git = makeGitModule(meta.dirname);
   const harness = makeHarnessModule(frontmatter, harnessMeta);
@@ -599,6 +778,77 @@ function createHarnessModules(
     log: toModuleExports(log),
     metric: toModuleExports(metric)
   };
+}
+
+function logHarnessSpawnEvent(
+  logger: ReturnType<typeof createExecutionResources>["logger"],
+  event: AgentSpawnEvent,
+  onSpawnFailure: (error: string) => void
+): void {
+  const label = `Spawn #${event.spawnId} ${event.agent} — ${event.task}`;
+
+  if (event.type === "spawn.started") {
+    const attempt =
+      event.attempt === 1 ? "" : ` attempt ${event.attempt}/${event.maxAttempts}`;
+    logger.info(`${label}${attempt} started`);
+    return;
+  }
+
+  if (event.type === "spawn.retry") {
+    logger.warn(
+      `${label} failed (attempt ${event.attempt}/${event.maxAttempts}): ${formatSpawnLifecycleError(event.error)}\nRetrying in ${formatRetryDelay(event.delayMs)}`
+    );
+    return;
+  }
+
+  if (event.type === "spawn.succeeded") {
+    const attempt =
+      event.attempt === 1 ? "" : ` on attempt ${event.attempt}/${event.maxAttempts}`;
+    logger.success(`${label} completed${attempt} (${formatDuration(event.durationMs)})`);
+    return;
+  }
+
+  if (event.type === "spawn.cancelled") {
+    logger.warn(`${label} cancelled (${formatDuration(event.durationMs)}): ${event.reason}`);
+    return;
+  }
+
+  onSpawnFailure(event.error);
+  logger.error(
+    `${label} failed after ${event.attempt} ${event.attempt === 1 ? "attempt" : "attempts"} (${formatDuration(event.durationMs)})\n${formatSpawnLifecycleError(event.error)}`
+  );
+}
+
+function formatSpawnLifecycleError(error: string): string {
+  const prefix = "Agent spawn failed with exit code ";
+  if (!error.startsWith(prefix)) {
+    return error;
+  }
+  const separator = error.indexOf(": ", prefix.length);
+  if (separator < 0) {
+    return error;
+  }
+  const exitCode = error.slice(prefix.length, separator);
+  const detail = error.slice(separator + 2);
+  return `${detail} (exit ${exitCode})`;
+}
+
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "object" && error !== null && "message" in error) {
+    return String(error.message);
+  }
+  return String(error);
+}
+
+function formatRetryDelay(delayMs: number): string {
+  return delayMs < 1_000 ? `${delayMs}ms` : `${delayMs / 1_000}s`;
+}
+
+function formatDuration(durationMs: number): string {
+  return durationMs < 1_000 ? `${durationMs}ms` : `${(durationMs / 1_000).toFixed(1)}s`;
 }
 
 function formatTotalCostLine(result: unknown): string | undefined {

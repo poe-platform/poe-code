@@ -1,6 +1,7 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { isNotFound } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "./error-codes.js";
 import type { FileSystem } from "./file-system.js";
 
 type TimestampProvider = () => string;
@@ -93,5 +94,16 @@ async function copyExclusive(
   to: string
 ): Promise<void> {
   const content = await fs.readFile(from);
-  await fs.writeFile(to, content, { flag: "wx" });
+  try {
+    await fs.writeFile(to, content, { flag: "wx" });
+  } catch (error) {
+    if (!isAlreadyExists(error)) {
+      await fs.unlink(to).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): error is NodeJS.ErrnoException {
+  return hasOwnErrorCode(error, "EEXIST");
 }

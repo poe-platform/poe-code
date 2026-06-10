@@ -8,20 +8,20 @@ type AuthHook = NonNullable<Hooks["auth"]>;
 type OAuthMethod = Extract<AuthHook["methods"][number], { type: "oauth" }>;
 type AuthOauthResult = Awaited<ReturnType<OAuthMethod["authorize"]>>;
 
-function getExpiry(expiresIn: number | null): number {
-  if (expiresIn == null) {
+function getExpiry(expiresIn: unknown): number {
+  if (expiresIn === null) {
     return Number.MAX_SAFE_INTEGER;
   }
 
-  if (!Number.isFinite(expiresIn) || expiresIn < 0) {
+  if (typeof expiresIn !== "number" || !Number.isFinite(expiresIn) || expiresIn < 0) {
     throw new Error("Poe API key has invalid expiration metadata. Run `opencode providers login` again.");
   }
 
   return Date.now() + expiresIn * 1000;
 }
 
-function requireApiKey(value: string): string {
-  const apiKey = value.trim();
+function requireApiKey(value: unknown): string {
+  const apiKey = typeof value === "string" ? value.trim() : "";
   if (apiKey.length === 0) {
     throw new Error("Poe API key is missing. Run `opencode providers login` again.");
   }
@@ -47,14 +47,15 @@ async function authorize(): Promise<AuthOauthResult> {
     instructions: "Complete authorization in your browser. This window will close automatically.",
     method: "auto",
     callback: async () => {
-      const result = await authorization.waitForResult();
-      const apiKey = requireApiKey(result.apiKey);
+      const result = await authorization.waitForResult() as unknown;
+      const resultRecord = isObjectRecord(result) ? result : {};
+      const apiKey = requireApiKey(getOwnEntry(resultRecord, "apiKey"));
 
       return {
         type: "success",
         access: apiKey,
         refresh: apiKey,
-        expires: getExpiry(result.expiresIn)
+        expires: getExpiry(getOwnEntry(resultRecord, "expiresIn"))
       };
     }
   };
@@ -66,20 +67,25 @@ export async function PoeAuthPlugin(_input: PluginInput): Promise<Hooks> {
       provider: "poe",
       async loader(getAuth) {
         const auth = await getAuth();
-
-        if (auth.type === "api") {
-          return { apiKey: requireApiKey(auth.key) };
-        }
-
-        if (auth.type !== "oauth") {
+        if (!isObjectRecord(auth)) {
           return {};
         }
 
-        if (!Number.isFinite(auth.expires) || auth.expires <= Date.now()) {
+        const authType = getOwnString(auth, "type");
+        if (authType === "api") {
+          return { apiKey: requireApiKey(getOwnEntry(auth, "key")) };
+        }
+
+        if (authType !== "oauth") {
+          return {};
+        }
+
+        const expires = getOwnEntry(auth, "expires");
+        if (typeof expires !== "number" || !Number.isFinite(expires) || expires <= Date.now()) {
           throw new Error("Poe API key expired. Run `opencode providers login` again.");
         }
 
-        return { apiKey: requireApiKey(auth.access) };
+        return { apiKey: requireApiKey(getOwnEntry(auth, "access")) };
       },
       methods: [
         {
@@ -97,3 +103,18 @@ export async function PoeAuthPlugin(_input: PluginInput): Promise<Hooks> {
 }
 
 export default PoeAuthPlugin;
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function getOwnEntry(record: object, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key)
+    ? (record as Record<string, unknown>)[key]
+    : undefined;
+}
+
+function getOwnString(record: object, key: string): string | undefined {
+  const value = getOwnEntry(record, key);
+  return typeof value === "string" ? value : undefined;
+}

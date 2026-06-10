@@ -30,6 +30,14 @@ export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";
 export { renderTable } from "./components/table.js";
 export type { TableColumn, RenderTableOptions } from "./components/table.js";
+export { renderCatalog } from "./components/catalog.js";
+export type {
+  CatalogGroup,
+  CatalogItem,
+  CatalogMetric,
+  CatalogTone,
+  RenderCatalogOptions
+} from "./components/catalog.js";
 export { renderDetailCard } from "./components/detail-card.js";
 export type {
   DetailCardRow,
@@ -121,6 +129,7 @@ export type { MdNode, RenderOptions } from "./terminal-markdown/index.js";
 export { getTheme, resolveThemeName, resetThemeCache } from "./internal/theme-detect.js";
 export type { ThemeEnv } from "./internal/theme-detect.js";
 export { configureTheme, getThemeConfig, resetTheme } from "./internal/theme-state.js";
+export { stripAnsi } from "./internal/strip-ansi.js";
 export {
   resolveOutputFormat,
   resetOutputFormatCache,

@@ -15,6 +15,25 @@ async function loadManager(
   return (await import("./model-strategy.js")).StrategyConfigManager;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 afterEach(() => {
   vi.doUnmock("fs");
   vi.doUnmock("os");
@@ -39,14 +58,24 @@ describe("StrategyConfigManager", () => {
   it("preserves prior config when replacement persistence fails", async () => {
     const previous = JSON.stringify({ type: "fixed", fixedModel: "gpt-5.4" });
     const volume = Volume.fromJSON({ "/home/user/.poe-code/strategy-config.json": previous });
-    const manager = await loadManager(volume, (filePath, data) => {
-      volume.writeFileSync(filePath, String(data).slice(0, 1));
+    let temporaryPath: string | undefined;
+    const manager = await loadManager(volume, (filePath, data, options) => {
+      if (filePath.includes("strategy-config.json.") && filePath.endsWith(".tmp")) {
+        temporaryPath = filePath;
+      }
+
+      volume.writeFileSync(filePath, String(data).slice(0, 1), options as never);
       throw new Error("strategy disk full");
     });
 
-    expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
-      .toThrow("strategy disk full");
+    await withObjectPrototypeCode("EEXIST", async () => {
+      expect(() => manager.saveConfig({ type: "fixed", fixedModel: "gpt-5.5" }))
+        .toThrow("strategy disk full");
+    });
     expect(manager.loadConfig()).toEqual({ type: "fixed", fixedModel: "gpt-5.4" });
+    expect(temporaryPath).toBeDefined();
+    expect(() => volume.readFileSync(temporaryPath as string, "utf8"))
+      .toThrow(/ENOENT/);
   });
 
   it("does not remove a colliding strategy config temp symlink", async () => {

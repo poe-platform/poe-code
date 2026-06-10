@@ -1,5 +1,6 @@
 import { readFile, realpath } from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { resolve as resolveConfigDocument } from "./resolve.js";
 
 export interface PromptDocumentFileSystem {
@@ -69,8 +70,8 @@ export async function resolvePromptDocument(
     view: input.variables ?? {},
     validate: input.validate ?? true
   });
-  const template = requirePrompt(composed.data.prompt, filePath);
-  const prompt = requirePrompt(rendered.data.prompt, filePath);
+  const template = requirePrompt(getOwnEntry(composed.data, "prompt"), filePath);
+  const prompt = requirePrompt(getOwnEntry(rendered.data, "prompt"), filePath);
   const { prompt: _ignored, ...metadata } = rendered.data;
   void _ignored;
   return {
@@ -110,7 +111,7 @@ async function readDocumentContent(
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
-    if (optional && hasCode(error, "ENOENT")) {
+    if (optional && hasOwnErrorCode(error, "ENOENT")) {
       return "---\nextends: true\n---\n";
     }
     throw error;
@@ -170,6 +171,6 @@ function requirePrompt(value: unknown, filePath: string): string {
   return value;
 }
 
-function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
+  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }

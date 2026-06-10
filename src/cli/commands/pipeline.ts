@@ -37,6 +37,7 @@ import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import { discoverPipelineInitSources } from "./pipeline-init.js";
 import {
   createExecutionResources,
@@ -773,7 +774,7 @@ async function pathExistsOnDisk(targetPath: string): Promise<boolean> {
     await stat(targetPath);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -801,7 +802,7 @@ async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<b
     await fs.stat(targetPath);
     return true;
   } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
     throw error;
@@ -815,7 +816,14 @@ async function writePipelineTextFile(
   options: { exclusive: boolean }
 ): Promise<void> {
   if (options.exclusive) {
-    await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
+    try {
+      await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        await fs.unlink(filePath).catch(() => undefined);
+      }
+      throw error;
+    }
     return;
   }
 
@@ -826,11 +834,15 @@ async function writePipelineTextFile(
     temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
-    if (temporaryCreated) {
+    if (temporaryCreated || !isAlreadyExists(error)) {
       await fs.unlink(temporaryPath).catch(() => undefined);
     }
     throw error;
   }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 export function registerPipelineCommand(program: Command, container: CliContainer): void {

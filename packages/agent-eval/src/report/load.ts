@@ -4,6 +4,7 @@ import type { Dirent } from "node:fs";
 import type { AggregatedCell, EvalRunResult, RunTraceSummary } from "../types.js";
 import type { NormalizedTrace } from "../run/trace/types.js";
 import { aggregateRuns } from "../aggregate.js";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 const defaultOutDir = "runs";
 const resultFileName = "result.json";
@@ -269,10 +270,5 @@ function hasDigits(value: string, start: number, length: number): boolean {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === "ENOENT"
-  );
+  return hasOwnErrorCode(error, "ENOENT");
 }

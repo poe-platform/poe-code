@@ -1,4 +1,5 @@
 import path from "node:path";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 type PathInspectionFileSystem = {
   lstat(filePath: string): Promise<{ isSymbolicLink(): boolean }>;
@@ -128,7 +129,7 @@ export async function assertNoSymbolicLinkPath(
         throw new Error(`Path may not contain symbolic links: ${filePath}`);
       }
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      if (hasOwnErrorCode(error, "ENOENT")) {
         return;
       }
       throw error;

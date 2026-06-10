@@ -1,5 +1,6 @@
 import { lstat, mkdir } from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 export async function ensureRunArtifactDirectory(
   sourceRootDir: string,
@@ -47,11 +48,5 @@ function isPathInside(rootDir: string, targetPath: string): boolean {
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

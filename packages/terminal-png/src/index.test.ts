@@ -37,6 +37,33 @@ const renameMock = vi.mocked(rename);
 const rmMock = vi.mocked(rm);
 const writeFileMock = vi.mocked(writeFile);
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("renderTerminalPng", () => {
   beforeEach(() => {
     parseAnsiMock.mockReset();
@@ -96,7 +123,20 @@ describe("renderTerminalPng", () => {
     expect(png).toEqual(Buffer.from("png"));
   });
 
-  it("does not remove a temporary path it did not create", async () => {
+  it("does not remove a colliding temporary path it did not create", async () => {
+    writeFileMock.mockRejectedValueOnce(
+      Object.assign(new Error("temporary path exists"), { code: "EEXIST" })
+    );
+
+    await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toMatchObject({
+      code: "EEXIST"
+    });
+
+    expect(renameMock).not.toHaveBeenCalled();
+    expect(rmMock).not.toHaveBeenCalled();
+  });
+
+  it("removes a partial temporary path when writing fails", async () => {
     writeFileMock.mockRejectedValueOnce(new Error("disk full"));
 
     await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
@@ -104,7 +144,20 @@ describe("renderTerminalPng", () => {
     );
 
     expect(renameMock).not.toHaveBeenCalled();
-    expect(rmMock).not.toHaveBeenCalled();
+    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
+  });
+
+  it("removes partial temporary paths when write errors only inherit existing-path codes", async () => {
+    writeFileMock.mockRejectedValueOnce(new Error("temporary write denied"));
+
+    await withObjectPrototypeProperties({ code: "EEXIST" }, async () => {
+      await expect(renderTerminalPng("hello", { output: "/tmp/example.png" })).rejects.toThrow(
+        "temporary write denied"
+      );
+    });
+
+    expect(renameMock).not.toHaveBeenCalled();
+    expect(rmMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", { force: true });
   });
 
   it("does not hide publication failure when temporary cleanup also fails", async () => {

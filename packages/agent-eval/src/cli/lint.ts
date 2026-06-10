@@ -2,6 +2,7 @@ import nodeFs from "node:fs/promises";
 import path from "node:path";
 import { color, getTheme, renderTable, withOutputFormat } from "toolcraft-design";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { evalLint, type LintIssue, type LintResult } from "../lint/lint.js";
 import { listEvals } from "../source/registry.js";
 import { resolveEvalCliTarget } from "./target.js";
@@ -133,10 +134,5 @@ async function assertSourceDirectory(sourceDir: string, fs: EvalFs): Promise<voi
 }
 
 function isMissingPath(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error.code === "ENOENT" || error.code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { resolve, type FileSystem as ResolveFileSystem } from "@poe-code/config-extends";
 import { createTimestamp, isNotFound, type FileSystem } from "@poe-code/config-mutations";
+import { hasOwnErrorCode } from "./errors.js";
 import type { ConfigDocument } from "./types.js";
 
 export async function readDocument(fs: FileSystem, filePath: string): Promise<ConfigDocument> {
@@ -240,6 +241,7 @@ async function writeInvalidBackup(fs: FileSystem, filePath: string, content: str
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
+        await fs.unlink(candidate).catch(() => undefined);
         throw error;
       }
     }
@@ -263,7 +265,7 @@ async function writeFileAtomically(fs: FileSystem, filePath: string, content: st
 }
 
 function isAlreadyExists(error: unknown): boolean {
-  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

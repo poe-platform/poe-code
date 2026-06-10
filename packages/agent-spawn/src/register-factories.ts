@@ -1,4 +1,5 @@
 import { spawn as spawnChildProcess } from "node:child_process";
+import type { ChildProcess, SpawnOptions } from "node:child_process";
 import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
 import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
 import { dockerExecutionEnvFactory, hostExecutionEnvFactory } from "@poe-code/process-runner";
@@ -39,18 +40,25 @@ function createTestHostExecutionEnvFactory(): ExecutionEnvFactory {
           );
         },
         shell() {
+          const shellSpec = openSpec.shellSpec;
+          const shellArgs = getOwnShellSpecProperty(shellSpec, "args");
+          const shellCwd = getOwnShellSpecProperty(shellSpec, "cwd");
+          const shellEnv = getOwnShellSpecProperty(shellSpec, "env");
+          const shellSignal = getOwnShellSpecProperty(shellSpec, "signal");
           return runHost(spawnChildProcess, {
-            command: openSpec.shellSpec?.command ?? openSpec.env.SHELL ?? process.env.SHELL ?? "sh",
-            args: openSpec.shellSpec?.args,
-            cwd: openSpec.cwd,
-            env:
-              openSpec.shellSpec && "env" in openSpec.shellSpec
-                ? openSpec.shellSpec.env
-                : openSpec.env,
+            command:
+              getOwnShellSpecProperty(shellSpec, "command") ??
+              openSpec.env.SHELL ??
+              process.env.SHELL ??
+              "sh",
+            ...(shellArgs === undefined ? {} : { args: shellArgs }),
+            cwd: shellCwd ?? openSpec.cwd,
+            env: hasOwnShellSpecProperty(shellSpec, "env") ? shellEnv : openSpec.env,
             stdin: "inherit",
             stdout: "inherit",
             stderr: "inherit",
-            tty: true
+            tty: true,
+            ...(shellSignal === undefined ? {} : { signal: shellSignal })
           });
         },
         async close() {}
@@ -66,7 +74,7 @@ function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: 
   const stdin = spec.stdin ?? "ignore";
   const stdout = spec.stdout ?? "pipe";
   const stderr = spec.stderr ?? "pipe";
-  const stdio =
+  const stdio: SpawnOptions["stdio"] =
     stdin === "inherit" && stdout === "inherit" && stderr === "inherit"
       ? "inherit"
       : ([stdin, stdout, stderr] as [
@@ -74,11 +82,15 @@ function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: 
           "pipe" | "inherit",
           "pipe" | "inherit"
         ]);
-  const child = spawnProcess(spec.command, spec.args ?? [], {
-    cwd: spec.cwd,
-    env: spec.env,
-    stdio
-  });
+  const child: ChildProcess = spawnProcess(
+    spec.command,
+    spec.args ?? [],
+    createNullRecord<SpawnOptions>({
+      cwd: spec.cwd,
+      env: spec.env,
+      stdio
+    })
+  );
   const result = new Promise<{ exitCode: number }>((resolve) => {
     child.once("close", (code) => {
       resolve({ exitCode: code ?? 1 });
@@ -103,4 +115,22 @@ function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: 
     result,
     kill
   };
+}
+
+function createNullRecord<T extends object>(value: T): T {
+  return Object.assign(Object.create(null) as T, value);
+}
+
+function getOwnShellSpecProperty<Name extends keyof RunSpec>(
+  shellSpec: RunSpec | undefined,
+  name: Name
+): RunSpec[Name] | undefined {
+  return hasOwnShellSpecProperty(shellSpec, name) ? shellSpec[name] : undefined;
+}
+
+function hasOwnShellSpecProperty<Name extends keyof RunSpec>(
+  shellSpec: RunSpec | undefined,
+  name: Name
+): shellSpec is RunSpec & Record<Name, RunSpec[Name]> {
+  return shellSpec !== undefined && Object.prototype.hasOwnProperty.call(shellSpec, name);
 }

@@ -131,6 +131,33 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return items;
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function stripMeta<T>(events: T[]): T[] {
   return events.map((event) => {
     if (event && typeof event === "object") {
@@ -810,6 +837,23 @@ describe("spawnAcp", () => {
     });
   });
 
+  it("lets caller environment override ACP config and MCP-derived environment", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "goose",
+      prompt: "test",
+      cwd: "/tmp/test",
+      env: { GOOSE_DISABLE_KEYRING: "caller", WORKSPACE_ID: "workspace-1" }
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.env).toMatchObject({
+      GOOSE_DISABLE_KEYRING: "caller",
+      WORKSPACE_ID: "workspace-1"
+    });
+  });
+
   it("bridges active skills before constructing the ACP client", async () => {
     skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
       acpLaunchOrder.push("bridge");
@@ -954,6 +998,41 @@ describe("spawnAcp", () => {
     expect(lastMockAcpClient).toBeUndefined();
   });
 
+  it("ignores inherited ACP spawn option fields", async () => {
+    const cwd = process.cwd();
+
+    await withObjectPrototypeProperties(
+      {
+        cwd: "/polluted",
+        env: {
+          POLLUTED: "1"
+        },
+        mcpServers: {
+          polluted: {
+            command: "polluted-mcp"
+          }
+        },
+        mode: "read",
+        model: "polluted/model",
+        runtime: "docker"
+      },
+      async () => {
+        const { events, done } = spawnAcp({
+          agentId: "opencode",
+          prompt: "test"
+        });
+
+        await collect(events);
+        await done;
+      }
+    );
+
+    expect(lastMockAcpClientOptions.cwd).toBe(cwd);
+    expect(lastMockAcpClientOptions.args).not.toContain("polluted/model");
+    expect(lastMockAcpClientOptions.env).toBeUndefined();
+    expect(lastMockAcpClient.newSession).toHaveBeenCalledWith(cwd, []);
+  });
+
   it("does not prompt when aborted while creating an ACP session", async () => {
     let resolveSession: ((value: { sessionId: string }) => void) | undefined;
     mockNewSession = () =>
@@ -1051,6 +1130,61 @@ describe("acp/spawnStreaming", () => {
       ...openCodeSpawnConfig.modes.yolo
     ]);
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
+  });
+
+  it("ignores inherited streaming spawn option fields", async () => {
+    const stdoutLines = [
+      JSON.stringify({
+        type: "text",
+        sessionID: "ses_inherited",
+        part: { type: "text", messageID: "msg_1", text: "clean" }
+      })
+    ];
+    const mock = createMockChildProcess({
+      stdoutLines,
+      exitCode: 0
+    });
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const cwd = process.cwd();
+
+    await withObjectPrototypeProperties(
+      {
+        args: ["--polluted"],
+        cwd: "/polluted",
+        detached: true,
+        mcpServers: {
+          polluted: {
+            command: "polluted-mcp"
+          }
+        },
+        mode: "read",
+        model: "polluted/model",
+        runtime: "docker"
+      },
+      async () => {
+        const { events, done } = spawnStreaming({
+          agentId: "opencode",
+          prompt: "hello"
+        });
+
+        await expect(collect(events).then(stripMeta)).resolves.toEqual([
+          { event: "session_start", threadId: "ses_inherited" },
+          { event: "agent_message", text: "clean" }
+        ]);
+        await expect(done).resolves.toMatchObject({ exitCode: 0 });
+      }
+    );
+
+    const [command, args, spawnOptions] = spawnMock.mock.calls[0];
+    expect(command).toBe("opencode");
+    expect(args).toEqual([
+      openCodeSpawnConfig.promptFlag,
+      "hello",
+      ...openCodeSpawnConfig.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
+    ]);
+    expect(Object.getPrototypeOf(spawnOptions)).toBeNull();
+    expect(spawnOptions).toMatchObject({ cwd, stdio: ["pipe", "pipe", "pipe"] });
   });
 
   it("runs streaming middlewares in onion order with populated context on the way out", async () => {
@@ -1365,6 +1499,7 @@ describe("acp/spawnStreaming", () => {
       agentId: "opencode",
       prompt: "inspect api_key=sk-secret",
       cwd: "/tmp",
+      env: { WORKSPACE_ID: "workspace-1" },
       runtime: "docker",
       runtimeImage: "poe-code:test",
       mountPoeCode: true
@@ -1401,6 +1536,8 @@ describe("acp/spawnStreaming", () => {
       stdout: "pipe",
       stderr: "pipe"
     });
+    expect(capturedOpenSpec?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
+    expect(capturedRunSpec?.env).toMatchObject({ WORKSPACE_ID: "workspace-1" });
   });
 
   it("passes through multiple usage events without accumulating into done", async () => {
@@ -1688,6 +1825,8 @@ describe("acp/spawnStreaming", () => {
     expect(args).toEqual([
       "-c",
       'mcp_servers.test.command="tiny-stdio-mcp-test-server"',
+      "-c",
+      'mcp_servers.test.default_tools_approval_mode="approve"',
       "-c",
       'mcp_servers.test.args=["serve", "word-of-the-day"]',
       "-c",

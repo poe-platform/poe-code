@@ -3,6 +3,7 @@ import path, { dirname, extname } from "node:path";
 import { inspect } from "node:util";
 import { pathToFileURL } from "node:url";
 
+import { hasOwnErrorCode } from "./error-codes.js";
 import { formatInterpreterError } from "./error/format.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { Budget, SandboxError } from "./interp/budget.js";
@@ -584,12 +585,7 @@ function exitCodeForError(error: unknown): number {
 }
 
 function isParseError(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    (error as { name?: unknown }).name === "ParseError"
-  );
+  return error instanceof Error && error.name === "ParseError";
 }
 
 function hasDefaultExport(source: string, filename: string): boolean {
@@ -688,12 +684,7 @@ function createAbortError(): Error {
 }
 
 function hasErrorCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    (error as { code?: unknown }).code === code
-  );
+  return hasOwnErrorCode(error, code);
 }
 
 function readErrorMessage(error: unknown): string {

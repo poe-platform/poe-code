@@ -33,6 +33,33 @@ vi.mock("tokenfill", () => ({
 
 const { computeTokenStats } = await import("./tokens.js");
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("computeTokenStats", () => {
   beforeEach(() => {
     vol.reset();
@@ -86,6 +113,23 @@ describe("computeTokenStats", () => {
       sourceTokens: 0,
       reductionRatio: 0,
       missingSources: []
+    });
+  });
+
+  it("does not treat inherited stat error codes as missing memory roots", async () => {
+    const stat = vol.promises.stat.bind(vol.promises);
+    vi.spyOn(vol.promises, "stat").mockImplementation(async (targetPath) => {
+      if (String(targetPath) === "/repo/.poe-code/memory") {
+        throw new Error("memory stat denied");
+      }
+
+      return stat(targetPath);
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(computeTokenStats("/repo/.poe-code/memory")).rejects.toThrow(
+        "memory stat denied"
+      );
     });
   });
 

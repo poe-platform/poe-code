@@ -14,7 +14,7 @@ export function parseDocument(content: string, filePath: string): ParsedDocument
           filePath
         );
   const hasExtendsField = Object.hasOwn(data, "extends");
-  const extendsValue = data.extends;
+  const extendsValue = hasExtendsField ? data.extends : undefined;
 
   if (hasExtendsField && typeof extendsValue !== "boolean") {
     throw new Error(`Invalid extends value in ${filePath}: expected a boolean.`);

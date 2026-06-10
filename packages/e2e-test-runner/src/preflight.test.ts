@@ -32,6 +32,24 @@ function createMissingPathError(): NodeJS.ErrnoException {
   return error;
 }
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, 'code');
+  Object.defineProperty(Object.prototype, 'code', {
+    configurable: true,
+    value: code,
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, 'code', descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 describe('runPreflight', () => {
   const originalPlatform = process.platform;
   const originalPath = process.env.PATH;
@@ -311,6 +329,28 @@ describe('runPreflight', () => {
       expect.objectContaining({ name: 'API key available', passed: true }),
       expect.objectContaining({ name: 'Agent not configured', passed: false }),
     ]);
+    expect(execSync).not.toHaveBeenCalled();
+  });
+
+  it('fails the agent config check when missing-path code is inherited', async () => {
+    const { access, execSync, resolveBackend, runPreflight } = await setup();
+    const accessError = new Error('access failed');
+    resolveBackend.mockReturnValue('env');
+    access.mockRejectedValue(accessError);
+
+    await withObjectPrototypeCode('ENOENT', async () => {
+      const result = await runPreflight();
+
+      expect(result.passed).toBe(false);
+      expect(result.results).toEqual([
+        expect.objectContaining({ name: 'API key available', passed: true }),
+        expect.objectContaining({
+          name: 'Agent not configured',
+          passed: false,
+          message: 'access failed',
+        }),
+      ]);
+    });
     expect(execSync).not.toHaveBeenCalled();
   });
 

@@ -1,8 +1,35 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 
 import * as api from "../index.js";
 import { extractSchema } from "./extract-schema.js";
+
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T>
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor) {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      } else {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      }
+    }
+  }
+}
 
 describe("extractSchema", () => {
   it("is re-exported from the package entrypoint", () => {
@@ -111,6 +138,44 @@ describe("extractSchema", () => {
         "/tmp/schema-typo.ajs"
       )
     ).rejects.toThrow("Identifier 'Nopee' is not defined.");
+  });
+
+  it("does not infer outer const diagnostics from inherited error fields", async () => {
+    const actualAgentScript = await vi.importActual<typeof import("@poe-code/agent-script")>(
+      "@poe-code/agent-script"
+    );
+    vi.resetModules();
+    vi.doMock("@poe-code/agent-script", () => ({
+      ...actualAgentScript,
+      run: vi.fn(async () => ({
+        ok: false,
+        error: {}
+      }))
+    }));
+
+    try {
+      const { extractSchema: extractSchemaWithMockedRun } = await import("./extract-schema.js");
+
+      await withObjectPrototypeProperties(
+        {
+          code: "UNBOUND_IDENTIFIER",
+          message: "Identifier 'Outer' is not defined."
+        },
+        async () => {
+          await expect(
+            extractSchemaWithMockedRun(
+              "const Outer = S.String(); export const schema = Outer;",
+              "/tmp/inherited-error.ajs"
+            )
+          ).rejects.toThrow(
+            'Failed to evaluate schema initializer in /tmp/inherited-error.ajs: schema initializer must be pure; only "schema" module imports allowed. [object Object]'
+          );
+        }
+      );
+    } finally {
+      vi.doUnmock("@poe-code/agent-script");
+      vi.resetModules();
+    }
   });
 
   it("evaluates schema identifiers supplied by the schema import", async () => {

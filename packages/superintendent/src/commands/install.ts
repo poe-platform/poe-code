@@ -15,6 +15,7 @@ import {
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 const fs = {
   readFile: (p: string, encoding: "utf8") => readFile(p, encoding),
@@ -171,7 +172,7 @@ export async function ensurePlanDirectory(
       }
       break;
     } catch (error) {
-      if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
       missingAncestors.push(currentPath);
@@ -198,12 +199,7 @@ async function pathExists(targetPath: string): Promise<boolean> {
     await stat(targetPath);
     return true;
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
     }
 

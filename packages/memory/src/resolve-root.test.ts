@@ -7,6 +7,33 @@ const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
 const projectConfigPath = `${cwd}/.poe-code/config.json`;
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 describe("resolveConfiguredMemoryRoot", () => {
   it("returns the default location when no env or config override exists", async () => {
     const fs = createMockFs(undefined, homeDir);
@@ -39,6 +66,25 @@ describe("resolveConfiguredMemoryRoot", () => {
     expect(root).toBe("/from/env");
   });
 
+  it("ignores inherited env root overrides", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await withObjectPrototypeProperties(
+      {
+        [MEMORY_ROOT_ENV_VAR]: "/from/prototype-env"
+      },
+      async () => {
+        const root = await resolveConfiguredMemoryRoot({
+          cwd,
+          env: {},
+          fs,
+          configPath
+        });
+        expect(root).toBe(`${cwd}/.poe-code/memory`);
+      }
+    );
+  });
+
   it("reads memory.root from config when env is unset", async () => {
     const fs = createMockFs(
       {
@@ -57,6 +103,31 @@ describe("resolveConfiguredMemoryRoot", () => {
       configPath
     });
     expect(root).toBe("/from/config");
+  });
+
+  it("ignores inherited config memory root values", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"memory":{}}\n'
+      },
+      homeDir
+    );
+
+    await withObjectPrototypeProperties(
+      {
+        memory: { root: "/from/prototype-memory" },
+        root: "/from/prototype-root"
+      },
+      async () => {
+        const root = await resolveConfiguredMemoryRoot({
+          cwd,
+          env: {},
+          fs,
+          configPath
+        });
+        expect(root).toBe(`${cwd}/.poe-code/memory`);
+      }
+    );
   });
 
   it("resolves relative overrides against cwd", async () => {

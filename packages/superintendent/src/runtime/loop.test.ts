@@ -21,6 +21,25 @@ const runners: LoopRunners = {
   ownerReview: runOwnerReviewMock as unknown as typeof runOwnerReview
 };
 
+async function withObjectPrototypeCode<T>(code: string, callback: () => Promise<T>): Promise<T> {
+  const descriptor = Object.getOwnPropertyDescriptor(Object.prototype, "code");
+  Object.defineProperty(Object.prototype, "code", {
+    configurable: true,
+    value: code,
+    writable: true
+  });
+
+  try {
+    return await callback();
+  } finally {
+    if (descriptor) {
+      Object.defineProperty(Object.prototype, "code", descriptor);
+    } else {
+      delete (Object.prototype as { code?: unknown }).code;
+    }
+  }
+}
+
 type TestFs = {
   rawFs: ReturnType<typeof createFsFromVolume>["promises"];
   fs: SuperintendentFileSystem;
@@ -451,6 +470,52 @@ describe("runLoop", () => {
     expect(plantedSymlink).toBe(true);
     expect((await rawFs.lstat(docPath)).isSymbolicLink()).toBe(false);
     expect((await rawFs.readFile(outsidePath, "utf8")).toString()).toBe("outside-state\n");
+  });
+
+  it("removes a partial temporary document when status publish fails", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const original = createDocument({ withInspectors: false });
+    const { fs, rawFs } = createFs({ [docPath]: original });
+    const realWriteFile = fs.writeFile.bind(fs);
+    let partialTempPath: string | undefined;
+
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      if (
+        !partialTempPath &&
+        filePath.startsWith(`/repo/docs/plans/.feature.md.${process.pid}.`) &&
+        filePath.endsWith(".tmp")
+      ) {
+        partialTempPath = filePath;
+        await rawFs.writeFile(filePath, "partial\n", { encoding: "utf8", ...options });
+        throw new Error("status write failed");
+      }
+      await realWriteFile(filePath, content, options);
+    });
+
+    runBuilderMock.mockResolvedValue({
+      summary: "Built",
+      log: "Built"
+    });
+
+    await withObjectPrototypeCode("EEXIST", async () => {
+      await expect(
+        runLoop({
+          docPath,
+          cwd: "/repo",
+          homeDir: "/home/test",
+          fs,
+          runners
+        })
+      ).rejects.toThrow("status write failed");
+    });
+
+    expect(runBuilderMock).not.toHaveBeenCalled();
+    expect(partialTempPath).toBeDefined();
+    await expect(rawFs.readFile(partialTempPath ?? "", "utf8")).rejects.toHaveProperty(
+      "code",
+      "ENOENT"
+    );
+    expect((await rawFs.readFile(docPath, "utf8")).toString()).toBe(original);
   });
 
   it("wraps each role execution through callbacks", async () => {

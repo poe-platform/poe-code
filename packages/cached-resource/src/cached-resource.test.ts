@@ -35,6 +35,33 @@ function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
   };
 }
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T,
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true,
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 function createMockFetch(data: unknown) {
   return vi
     .fn<(input: string | URL | Request, init?: RequestInit) => Promise<Response>>()
@@ -959,6 +986,16 @@ describe("loadFromDisk", () => {
     }
   });
 
+  it("returns null when required cache fields are inherited", async () => {
+    const fs = createMemFs({ "/cache/test.json": JSON.stringify({ data: ["a"] }) });
+
+    await withObjectPrototypeProperties({ timestamp: Date.now() }, async () => {
+      await expect(
+        loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "test", staleTtl: 60_000 }, { fs }),
+      ).resolves.toBeNull();
+    });
+  });
+
   it("does not read cache names outside the cache directory", async () => {
     const fs = createMemFs({
       "/victim/secret.json": JSON.stringify({ data: ["secret"], timestamp: Date.now() }),
@@ -1028,11 +1065,15 @@ describe("persist", () => {
     const fs = createMemFs({
       "/cache/test.json": JSON.stringify({ data: "prior", timestamp: 1 }),
     });
-    fs.writeFile = async (path, data) => {
+    const writeFile = fs.writeFile.bind(fs);
+    let temporaryPath: string | undefined;
+    fs.writeFile = async (path, data, options) => {
       if (path === "/cache/test.json") {
         await Promise.reject(new Error("unexpected direct overwrite"));
       }
       if (path.includes(".tmp")) {
+        temporaryPath = path;
+        await writeFile(path, `partial: ${data}`, options);
         throw new Error(`disk full: ${data}`);
       }
     };
@@ -1041,6 +1082,10 @@ describe("persist", () => {
       persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs }),
     ).resolves.not.toThrow();
     await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("prior");
+    expect(temporaryPath).toBeDefined();
+    await expect(fs.readFile(temporaryPath ?? "", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("does not follow or remove a colliding temporary cache symlink", async () => {
@@ -1124,6 +1169,19 @@ describe("removeFromDisk", () => {
     ).rejects.toThrow("permission denied");
   });
 
+  it("does not ignore delete failures with inherited missing-file codes", async () => {
+    const fs = createMemFs({ "/cache/test.json": "cached" });
+    fs.unlink = vi.fn(async () => {
+      throw new Error("cache unlink denied");
+    });
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
+      ).rejects.toThrow("cache unlink denied");
+    });
+  });
+
   it("does not delete cache names outside the cache directory", async () => {
     const fs = createMemFs({ "/victim/secret.json": "keep" });
 
@@ -1150,6 +1208,17 @@ describe("resolveCacheDir", () => {
     });
 
     expect(result).toBe("/home/user/.cache/myapp");
+  });
+
+  it("ignores inherited XDG_CACHE_HOME values", async () => {
+    await withObjectPrototypeProperties({ XDG_CACHE_HOME: "/polluted/cache" }, () => {
+      const result = resolveCacheDir("myapp", {
+        env: {},
+        homedir: () => "/home/user",
+      });
+
+      expect(result).toBe("/home/user/.cache/myapp");
+    });
   });
 
   it("rejects application names that leave the cache root", () => {

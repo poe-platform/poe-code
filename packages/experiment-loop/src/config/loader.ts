@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
+import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, RunConfig } from "../types.js";
 
 type RunConfigFileSystem = Pick<ExperimentFileSystem, "readFile" | "lstat">;
@@ -18,12 +19,7 @@ async function readOptionalFile(
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
-    if (
-      !!error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: unknown }).code === "ENOENT"
-    ) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return null;
     }
     throw error;
@@ -53,7 +49,7 @@ async function assertNoSymbolicLinks(fs: RunConfigFileSystem, filePath: string):
 }
 
 function isMissingPath(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }
 
 function isPathInside(rootPath: string, filePath: string): boolean {

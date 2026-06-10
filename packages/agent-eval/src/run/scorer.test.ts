@@ -32,6 +32,33 @@ vi.mock("./vitest-runner.js", () => ({
 
 import { runScorer, ScorerError, ScorerTimeoutError } from "./scorer.js";
 
+async function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => Promise<T> | T
+): Promise<T> {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return await callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
+
 afterEach(() => {
   vi.useRealTimers();
 });
@@ -331,6 +358,21 @@ describe("runScorer", () => {
     expect(error).toBeInstanceOf(ScorerError);
     expect((error as Error).message).toContain("stdout text");
     expect((error as Error).message).toContain("stderr text");
+  });
+
+  it("does not treat inherited read error codes as missing scorer results", async () => {
+    mocks.readFile.mockRejectedValue(new Error("result read denied"));
+    mocks.createHostRunner.mockReturnValue(createRecordingRunner([{ exitCode: 0 }]));
+
+    await withObjectPrototypeProperties({ code: "ENOENT" }, async () => {
+      await expect(
+        runScorer({
+          evalDef: createEvalDef(),
+          evalDir: "/work/eval",
+          cloneDir: "/work/clone"
+        })
+      ).rejects.toThrow("Failed to read scorer result /work/clone/score.json: result read denied");
+    });
   });
 
   it("throws a scorer error when the custom result JSON is malformed", async () => {

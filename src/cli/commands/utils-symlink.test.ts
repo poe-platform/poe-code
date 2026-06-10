@@ -291,6 +291,47 @@ describe("applySymlinkOps", () => {
     await expect(rawFs.readFile(`${cwd}/CLAUDE.md`, "utf8")).resolves.toBe("instructions\n");
     await expect(rawFs.lstat(`${cwd}/AGENTS.md`)).rejects.toMatchObject({ code: "ENOENT" });
   });
+
+  it("reports both the operation failure and rollback failure", async () => {
+    const rawFs = createMemFs({ [`${cwd}/CLAUDE.md`]: "instructions\n" });
+    const fs = {
+      ...rawFs,
+      rename: async (from, to) => {
+        if (from === `${cwd}/CLAUDE.md` && to === `${cwd}/AGENTS.md`) {
+          await rawFs.rename(from, to);
+          return;
+        }
+
+        throw new Error("simulated rollback failure");
+      },
+      symlink: async () => {
+        throw new Error("simulated symlink creation failure");
+      }
+    } as FileSystem;
+
+    let failure: unknown;
+    try {
+      await applySymlinkOps(
+        fs,
+        [
+          { kind: "rename", from: `${cwd}/CLAUDE.md`, to: `${cwd}/AGENTS.md` },
+          { kind: "symlink", target: "AGENTS.md", path: `${cwd}/CLAUDE.md` }
+        ],
+        { dryRun: false, log: () => undefined }
+      );
+    } catch (error) {
+      failure = error;
+    }
+
+    expect(failure).toBeInstanceOf(AggregateError);
+    expect((failure as AggregateError).errors).toHaveLength(2);
+    expect((failure as AggregateError).errors[0]).toMatchObject({
+      message: "simulated symlink creation failure"
+    });
+    expect((failure as AggregateError).errors[1]).toMatchObject({
+      message: "simulated rollback failure"
+    });
+  });
 });
 
 describe("utils symlink subcommand help", () => {

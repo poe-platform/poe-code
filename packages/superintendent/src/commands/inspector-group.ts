@@ -1,4 +1,5 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
   runAllInspectors,
@@ -191,5 +192,5 @@ function renderInspectorRunMarkdown(result: InspectorResult[]): string {
 }
 
 function hasCode(error: unknown, code: string): error is { code: string } {
-  return typeof error === "object" && error !== null && "code" in error && error.code === code;
+  return hasOwnErrorCode(error, code);
 }

@@ -307,7 +307,11 @@ function convertObjectSchema(
       "properties",
       key
     ]);
-    shape[key] = requiredKeys.has(key) ? convertedProperty : S.Optional(convertedProperty);
+    setOwnShapeProperty(
+      shape,
+      key,
+      requiredKeys.has(key) ? convertedProperty : S.Optional(convertedProperty)
+    );
   }
 
   return applyMetadata(
@@ -321,6 +325,15 @@ function convertObjectSchema(
       nullable: options.nullable ?? normalizedSchema.nullable
     }
   );
+}
+
+function setOwnShapeProperty(shape: Record<string, AnySchema>, key: string, value: AnySchema): void {
+  Object.defineProperty(shape, key, {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value
+  });
 }
 
 function createCommonOptions<TDefault>(
@@ -711,6 +724,10 @@ function resolveLocalRef(root: JsonSchema, ref: string): JsonSchema | undefined 
     }
 
     if (!isPlainObject(current)) {
+      return undefined;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(current, segment)) {
       return undefined;
     }
 

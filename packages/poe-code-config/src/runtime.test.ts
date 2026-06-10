@@ -1,10 +1,37 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { deepMergeDocuments } from "./merge.js";
 import { parseRunner, parseRuntime, resolveRuntime, runtimeConfigScope } from "./runtime.js";
 import { resolveScope } from "./resolve.js";
+
+function withObjectPrototypeProperties<T>(
+  properties: Record<string, unknown>,
+  callback: () => T
+): T {
+  const originals = new Map<string, PropertyDescriptor | undefined>();
+  for (const [key, value] of Object.entries(properties)) {
+    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
+    Object.defineProperty(Object.prototype, key, {
+      configurable: true,
+      value,
+      writable: true
+    });
+  }
+
+  try {
+    return callback();
+  } finally {
+    for (const [key, descriptor] of originals) {
+      if (descriptor === undefined) {
+        delete (Object.prototype as Record<string, unknown>)[key];
+      } else {
+        Object.defineProperty(Object.prototype, key, descriptor);
+      }
+    }
+  }
+}
 
 describe("runtime config", () => {
   it("defaults to the host runtime", () => {
@@ -93,6 +120,42 @@ describe("runtime config", () => {
     });
   });
 
+  it("ignores inherited runner fields", () => {
+    withObjectPrototypeProperties(
+      {
+        detach: true,
+        upload_max_file_mb: 1,
+        download_conflict: "overwrite",
+        sync: "none",
+        workspace: {
+          exclude: ["polluted-workspace"]
+        },
+        exclude: ["polluted-exclude"]
+      },
+      () => {
+        expect(parseRunner({})).toEqual({
+          detach: false,
+          upload_max_file_mb: 100,
+          download_conflict: "refuse",
+          sync: "both",
+          workspace: {
+            exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
+          }
+        });
+
+        expect(parseRunner({ workspace: {} })).toEqual({
+          detach: false,
+          upload_max_file_mb: 100,
+          download_conflict: "refuse",
+          sync: "both",
+          workspace: {
+            exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
+          }
+        });
+      }
+    );
+  });
+
   it("parses runner scope through the runtime schema", () => {
     expect(
       resolveScope(
@@ -164,6 +227,51 @@ describe("runtime config", () => {
     });
   });
 
+  it("ignores inherited runtime fields", () => {
+    withObjectPrototypeProperties(
+      {
+        type: "docker",
+        image: "polluted:latest",
+        build_args: { POLLUTED: "1" },
+        mounts: [{ source: ".", target: "/workspace" }],
+        link: "https://polluted.example/runtime",
+        dockerfile: "../Dockerfile",
+        build_context: "..",
+        engine: "podman",
+        network: "host",
+        extra_args: ["--polluted"],
+        template_id: "tmpl_polluted",
+        from_template: "polluted-template",
+        workspace_dir: "/polluted",
+        cpu: 1,
+        memory_mb: 128,
+        timeout_minutes: 1,
+        preserve_after_exit_hours: 1
+      },
+      () => {
+        expect(parseRuntime({})).toEqual({
+          type: "host",
+          build_args: {},
+          mounts: []
+        });
+
+        expect(parseRuntime({ type: "docker" })).toEqual({
+          type: "docker",
+          build_args: {},
+          mounts: []
+        });
+
+        expect(parseRuntime({ type: "e2b" })).toEqual({
+          type: "e2b",
+          build_args: {},
+          mounts: [],
+          workspace_dir: "/workspace",
+          preserve_after_exit_hours: 24
+        });
+      }
+    );
+  });
+
   it("applies e2b defaults and validates preserve range", () => {
     expect(parseRuntime({ type: "e2b", template_id: "tmpl_123" })).toEqual({
       type: "e2b",
@@ -216,6 +324,21 @@ describe("runtime config", () => {
     );
   });
 
+  it("ignores inherited mount fields", () => {
+    withObjectPrototypeProperties(
+      {
+        source: ".",
+        target: "/workspace",
+        readonly: true
+      },
+      () => {
+        expect(() => parseRuntime({ type: "docker", mounts: [{}] })).toThrow(
+          "mounts[0].source: expected a string."
+        );
+      }
+    );
+  });
+
   it("preserves __proto__ build argument keys", () => {
     const runtime = parseRuntime(JSON.parse('{"type":"docker","build_args":{"__proto__":"value"}}'));
 
@@ -239,6 +362,33 @@ describe("runtime config", () => {
         dockerfilePath,
         buildContext: cwd
       });
+    });
+  });
+
+  it("ignores inherited prebuilt runtime artifact fields while resolving", () => {
+    withTempProject(({ cwd }) => {
+      const dockerfilePath = path.join(cwd, ".poe-code", "Dockerfile");
+      mkdirSync(path.dirname(dockerfilePath), { recursive: true });
+      writeFileSync(dockerfilePath, "FROM scratch\n");
+
+      withObjectPrototypeProperties(
+        {
+          image: "polluted:latest",
+          template_id: "tmpl_polluted"
+        },
+        () => {
+          expect(resolveRuntime({ cwd, config: { runtime: parseRuntime({ type: "docker" }) } })).toEqual({
+            runtime: {
+              type: "docker",
+              build_args: {},
+              mounts: []
+            },
+            runner: "docker",
+            dockerfilePath,
+            buildContext: cwd
+          });
+        }
+      );
     });
   });
 
@@ -497,7 +647,7 @@ describe("runtime config", () => {
 });
 
 function withTempProject(fn: (project: { root: string; cwd: string }) => void): void {
-  const root = mkdtempSync(path.join(tmpdir(), "poe-runtime-config-"));
+  const root = mkdtempSync(path.join(realpathSync(tmpdir()), "poe-runtime-config-"));
   const cwd = path.join(root, "project");
   mkdirSync(cwd, { recursive: true });
 

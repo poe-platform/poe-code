@@ -12,6 +12,7 @@ import {
 } from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveHookPath, type AgentHookConfig } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 import { assertNoSymbolicLink } from "./path-safety.js";
 
 export interface SymlinkResult {
@@ -181,21 +182,51 @@ export function symlinkHooks(
       throw new Error(`Refuse to replace user-authored hook file at ${symlinkPath}`);
     }
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
       throw error;
     }
   }
 
-  mkdirSync(symlinkParent, { recursive: true });
-  assertNoSymbolicLink(symlinkParent);
   try {
+    mkdirSync(symlinkParent, { recursive: true });
+    assertNoSymbolicLink(symlinkParent);
     symlinkSync(targetPath, symlinkPath);
   } catch (error) {
-    if (replacedContents !== undefined) {
-      writeFileSync(symlinkPath, replacedContents, "utf8");
-    }
+    restoreGeneratedFile(symlinkParent, symlinkPath, replacedContents, error);
     throw error;
   }
 
   return { symlinkPath, targetPath, replaced };
+}
+
+function restoreGeneratedFile(
+  symlinkParent: string,
+  symlinkPath: string,
+  contents: string | undefined,
+  originalError: unknown
+): void {
+  if (contents === undefined) {
+    return;
+  }
+
+  try {
+    assertNoSymbolicLink(symlinkParent);
+    writeFileSync(symlinkPath, contents, { encoding: "utf8", flag: "wx" });
+  } catch (restoreError) {
+    throw new AggregateError(
+      [originalError, restoreError],
+      [
+        `Hook symlink replacement failed: ${formatUnknownError(originalError)}`,
+        `Generated hook file restore failed: ${formatUnknownError(restoreError)}`
+      ].join(" ")
+    );
+  }
+}
+
+function formatUnknownError(error: unknown): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  return String(error);
 }

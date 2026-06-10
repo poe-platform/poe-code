@@ -1,18 +1,13 @@
 import nodeFs from "node:fs/promises";
 import { join } from "node:path";
 
+import { hasOwnErrorCode } from "../error-codes.js";
 import { MissingPairError, resolvePair, type HarnessFs, type HarnessPair } from "../loader/pair.js";
 
 type DirectoryEntry = string | { name: string; isDirectory(): boolean };
 
 function isMissingDirectory(error: unknown): boolean {
-  return (
-    !!error &&
-    typeof error === "object" &&
-    "code" in error &&
-    ((error as { code?: unknown }).code === "ENOENT" ||
-      (error as { code?: unknown }).code === "ENOTDIR")
-  );
+  return hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR");
 }
 
 export async function discoverHarnesses(

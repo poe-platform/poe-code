@@ -7,6 +7,7 @@ export interface SpawnCommandOptions {
   args?: string[];
   model?: string;
   mode?: SpawnMode;
+  env?: Record<string, string>;
   mcpServers?: McpSpawnConfig;
   skills?: string[];
   hooks?: HookBridgeOptions;
@@ -15,6 +16,8 @@ export interface SpawnCommandOptions {
   logFileName?: string;
   logContent?: boolean;
   activityTimeoutMs?: number;
+  captureOtel?: boolean;
+  captureOtelContent?: boolean;
   middlewares?: AcpMiddleware[];
   cwd?: string;
   useStdin?: boolean;

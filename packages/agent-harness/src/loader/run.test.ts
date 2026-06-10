@@ -10,6 +10,7 @@ import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,
   failingWritePathPrefix: undefined as string | undefined,
+  failingWriteActualPath: undefined as string | undefined,
   collidingWritePathPrefix: undefined as string | undefined,
   collidingWriteTarget: undefined as string | undefined,
   collidingWritePath: undefined as string | undefined,
@@ -19,11 +20,19 @@ const mockedFileSystemState = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
+  function hasOwnErrorCode(error: unknown, code: string): boolean {
+    return (
+      error instanceof Error &&
+      Object.prototype.hasOwnProperty.call(error, "code") &&
+      (error as { code?: unknown }).code === code
+    );
+  }
+
   async function replaceWithSymlink(path: string, target: string): Promise<void> {
     try {
       await fs.promises.unlink(path);
     } catch (error) {
-      if ((error as { code?: unknown }).code !== "ENOENT") {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
         throw error;
       }
     }
@@ -51,6 +60,7 @@ vi.mock("node:fs/promises", async () => {
           pathText.startsWith(mockedFileSystemState.failingWritePathPrefix) &&
           pathText.endsWith(".tmp"))
       ) {
+        mockedFileSystemState.failingWriteActualPath = pathText;
         await fs.promises.writeFile(path, "[", options);
         throw new Error("host call disk full");
       }
@@ -108,6 +118,7 @@ describe("runHarnessPair", () => {
     vol.reset();
     mockedFileSystemState.failingWritePath = undefined;
     mockedFileSystemState.failingWritePathPrefix = undefined;
+    mockedFileSystemState.failingWriteActualPath = undefined;
     mockedFileSystemState.collidingWritePathPrefix = undefined;
     mockedFileSystemState.collidingWriteTarget = undefined;
     mockedFileSystemState.collidingWritePath = undefined;
@@ -287,6 +298,10 @@ describe("runHarnessPair", () => {
     ).rejects.toThrow("host call disk full");
 
     expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
+    expect(mockedFileSystemState.failingWriteActualPath).toMatch(
+      new RegExp(`^${storePath.replaceAll(".", "\\.")}\\.`)
+    );
+    expect(vol.existsSync(mockedFileSystemState.failingWriteActualPath ?? "")).toBe(false);
   });
 
   it("does not follow a preexisting legacy host-call temp path symlink", async () => {
@@ -505,6 +520,113 @@ describe("runHarnessPair", () => {
         spawnCount: 3
       }
     });
+  });
+
+  it("counts retries as attempts without inflating logical spawn count", async () => {
+    const mdPath = "/repo/harness/retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ...createSpawnResult({ inputTokens: 2, outputTokens: 1 }),
+        exitCode: 1,
+        stderr: "temporary"
+      })
+      .mockResolvedValueOnce(createSpawnResult({ inputTokens: 3, outputTokens: 2 }));
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(spawnAgent, { defaultRetry: { maxAttempts: 2, backoffMs: 0 } })
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 5,
+        outputTokens: 3,
+        cachedTokens: 0,
+        spawnCount: 1,
+        attemptCount: 2
+      }
+    });
+  });
+
+  it("counts thrown transport retries as attempts", async () => {
+    const mdPath = "/repo/harness/thrown-retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/thrown-retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("transport unavailable"))
+      .mockResolvedValueOnce(createSpawnResult({ inputTokens: 3, outputTokens: 2 }));
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(spawnAgent, { defaultRetry: { maxAttempts: 2, backoffMs: 0 } })
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 3,
+        outputTokens: 2,
+        cachedTokens: 0,
+        spawnCount: 1,
+        attemptCount: 2
+      }
+    });
+  });
+
+  it("does not count invalid retry policies as logical spawns", async () => {
+    const mdPath = "/repo/harness/invalid-retry-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/invalid-retry-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        "  try {",
+        '    await spawn.retry("codex", { prompt: "one" }, { maxAttempts: 6, backoffMs: 0 });',
+        "  } catch ({ message }) {",
+        "    return message;",
+        "  }",
+        "};"
+      ].join("\n")
+    });
+    const spawnAgent = vi.fn();
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({ agent: makeAgentModule(spawnAgent) })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        cachedTokens: 0,
+        spawnCount: 0
+      }
+    });
+    expect(spawnAgent).not.toHaveBeenCalled();
   });
 
   it("leaves cost undefined when no spawn reports cost and sums cost when any spawn reports it", async () => {
@@ -962,6 +1084,83 @@ describe("runHarnessPair", () => {
     expect(resumed).toMatchObject({
       ok: true,
       returnValue: "1000|31000|31001"
+    });
+  });
+
+  it("does not restore clock state whose next value is only inherited", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+
+    const mdPath = "/repo/harness/inherited-clock.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: inherited-clock\nversion: 1\n---\n",
+      "/repo/harness/inherited-clock.ajs": [
+        'import * as time from "time";',
+        'import { wait } from "host";',
+        "export default async () => {",
+        "  await wait('first');",
+        "  await wait('second');",
+        "  return String(time.now());",
+        "};"
+      ].join("\n")
+    });
+
+    const snapshotBackend = new MemorySnapshotBackend();
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const controller = new AbortController();
+    const firstRun = runHarnessPair(mdPath, {
+      clock: {
+        now: () => 1_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait(name: string) {
+            return name === "first" ? first.promise : second.promise;
+          }
+        }
+      }),
+      signal: controller.signal,
+      snapshotBackend
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.resolve("done");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(snapshotBackend.snapshot).toMatchObject({
+      sourceHash: expect.any(String)
+    });
+    snapshotBackend.snapshot = {
+      ...snapshotBackend.snapshot,
+      clock: Object.create({ next: 42 }) as Snapshot["clock"]
+    } as Snapshot;
+
+    controller.abort();
+    second.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({
+      name: "AbortError"
+    });
+
+    const resumed = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => 1_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait() {
+            return "done";
+          }
+        }
+      }),
+      snapshotBackend
+    });
+
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: "1000"
     });
   });
 

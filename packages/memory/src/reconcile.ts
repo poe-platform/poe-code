@@ -3,6 +3,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
 import { parseClaims } from "./confidence.js";
+import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter, serializeFrontmatter, serializeSourceRef } from "./frontmatter.js";
 import { initMemory } from "./init.js";
 import { collectMarkdownRelPaths, listPages } from "./pages.js";
@@ -251,5 +252,5 @@ function hashContent(content: string): string {
 }
 
 function isMissing(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
 }

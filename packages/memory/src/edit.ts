@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter } from "./frontmatter.js";
 import { assertNoSymlinkSegments, assertSafeRelPath } from "./paths.js";
 import type { MemoryDiff, MemoryRoot, PageFrontmatter } from "./types.js";
@@ -57,7 +58,7 @@ async function readIfPresent(filePath: string): Promise<string | undefined> {
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
-    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+    if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;
     }
 

@@ -2,11 +2,16 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
+import { hasOwnErrorCode } from "../errors.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import { assertValidManagedProcessId } from "../process-id.js";
 
 function isNotFoundError(error: unknown): boolean {
-  return error instanceof Error && "code" in error && error.code === "ENOENT";
+  return hasOwnErrorCode(error, "ENOENT");
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return hasOwnErrorCode(error, "EEXIST");
 }
 
 function resolveProcessDir(stateDir: string, id: string): string {
@@ -131,7 +136,7 @@ export function createStateStore(
       await assertPathHasNoSymbolicLinks(fs, statePath);
       await fs.rename(temporaryPath, statePath);
     } catch (error) {
-      if (temporaryCreated) {
+      if (temporaryCreated || !isAlreadyExistsError(error)) {
         await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
       }
       throw error;

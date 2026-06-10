@@ -27,6 +27,8 @@ poe-code harness run harness.md --snapshot-path .poe-code/harnesses/demo/snapsho
 poe-code harness new coverage-demo coverage.md
 ```
 
+When `poe-code harness run` executes real agents, spawn lifecycle events are printed as progress lines. Retryable child-agent failures are retried up to five attempts with backoff; permanent configuration, unsupported-agent, and credential errors fail immediately.
+
 ## Built-in templates
 
 `listBuiltinTemplates()` exposes template metadata with `kind`, `mdPath`, and `ajsPath`. `poe-code harness new <kind> <path>` copies both files into a new harness pair.

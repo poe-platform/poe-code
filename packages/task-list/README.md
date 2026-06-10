@@ -268,6 +268,18 @@ poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --
 
 `<list>` and `--project` both use `<owner>/<number>` project syntax. `--workflow` defaults to `./WORKFLOW.md`. `--repo` overrides the task repository from workflow frontmatter. `--states` overrides the required state list from workflow frontmatter. `--title` sets the human-readable project title when sync must create a missing project. `--json` prints the report object as JSON. `--yes` confirms non-interactive sync; it is only used by `poe-code tasks sync`.
 
+### Human-gated workflow transitions
+
+For workflow-backed CLI commands, states declared in `WORKFLOW.md` as `gate: true` are human gates. `poe-code tasks next` and `poe-code tasks set-state` refuse to move a task out of a gate state or across a gate state, so an automated worker cannot skip approval by advancing directly to a later state. Move the task from the GitHub Project board, or pass `--force` when an operator intentionally overrides the gate.
+
+```yaml
+states:
+  awaiting-build:
+    gate: true
+  build:
+    prompt: Implement the approved plan.
+```
+
 | Option                     | Commands         | Behavior                                            |
 | -------------------------- | ---------------- | --------------------------------------------------- |
 | `--workflow <path>`        | `verify`, `sync` | Workflow file path. Defaults to `./WORKFLOW.md`.    |

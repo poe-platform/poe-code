@@ -399,6 +399,10 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | `--resume-thread-id <id>` | None | Resume a prior provider thread/session before sending the prompt. |
 | `--log-dir <path>` | Default log dir | Directory override for ACP JSONL spawn logs. |
 | `--log-file-name <name>` | Generated | Filename override for the spawn log. Requires `--log-dir`. |
+| `--log-content` | `false` | Include message and tool content in ACP JSONL spawn logs. Logs are redacted by default. |
+| `--capture-otel` | `false` | Capture native OpenTelemetry emitted by the spawned agent when supported. |
+| `--capture-otel-content` | `false` | Include prompt and tool content in captured native OpenTelemetry. |
+| `--activity-timeout-ms <ms>` | None | Kill the agent after this many milliseconds of stdout/stderr inactivity. |
 | `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
 
 **Behavior:**
@@ -1346,6 +1350,8 @@ interface SpawnOptions {
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];
+  /** Environment overrides applied only to this spawned run */
+  env?: Record<string, string>;
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
   /** Resume a prior provider thread/session before sending the prompt */
@@ -1356,6 +1362,10 @@ interface SpawnOptions {
   logFileName?: string;
   /** Include message/tool content in ACP JSONL logs. Defaults to redacted logs */
   logContent?: boolean;
+  /** Capture native OTLP telemetry emitted internally by the spawned agent */
+  captureOtel?: boolean;
+  /** Include prompt and tool content in native OTLP telemetry */
+  captureOtelContent?: boolean;
   /** Send the prompt over stdin when the provider supports it */
   useStdin?: boolean;
   /** Kill the process after this many milliseconds of stdout/stderr inactivity */

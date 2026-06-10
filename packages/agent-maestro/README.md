@@ -52,13 +52,14 @@
 
 State definition fields:
 
-| Field      | Type                         | Default                  | Behavior                                                                                           |
-| ---------- | ---------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------- |
-| `prompt`   | string                       | unset                    | Prompt template for this state. Presence makes the state active and eligible for dispatch.         |
-| `agent`    | string                       | workflow `agent.service` | Agent service for this state. Falls back to the workflow-level `agent.service` when omitted.       |
-| `model`    | string                       | agent runner default     | Model for this state. Falls back to the agent runner's default when omitted.                       |
-| `mode`     | `"yolo" \| "edit" \| "read"` | `"yolo"`                 | Spawn mode for this state.                                                                         |
-| `terminal` | boolean                      | `false`                  | Marks this state as terminal. Terminal states are not dispatched and their workspaces are removed. |
+| Field      | Type                         | Default                  | Behavior                                                                                                                                |
+| ---------- | ---------------------------- | ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `prompt`   | string                       | unset                    | Prompt template for this state. Presence makes the state active and eligible for dispatch.                                              |
+| `agent`    | string                       | workflow `agent.service` | Agent service for this state. Falls back to the workflow-level `agent.service` when omitted.                                            |
+| `model`    | string                       | agent runner default     | Model for this state. Falls back to the agent runner's default when omitted.                                                            |
+| `mode`     | `"yolo" \| "edit" \| "read"` | `"yolo"`                 | Spawn mode for this state.                                                                                                              |
+| `terminal` | boolean                      | `false`                  | Marks this state as terminal. Terminal states are not dispatched and their workspaces are removed.                                      |
+| `gate`     | boolean                      | `false`                  | Marks a human approval gate. `poe-code tasks next` and `tasks set-state` will not cross or leave this state unless `--force` is passed. |
 
 ### Template variables
 

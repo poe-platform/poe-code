@@ -35,6 +35,7 @@ The package does not expose public subpath imports.
 - `formatColumns`, `formatCommand`, `formatUsage`, `formatOption`, `formatCommandList`, `formatOptionList`: individual help-formatting functions.
 - `formatCommandNotFound`, `formatCommandNotFoundPanel`: command error rendering.
 - `renderTable`, `renderDetailCard`: tabular and detail-card rendering.
+- `renderCatalog`: grouped catalog rendering with metrics and terminal/Markdown/JSON output-format support.
 - `getTemplatePartialNames`, `renderTemplate`, `resolveTemplatePartials`: template rendering utilities.
 - `openExternal`: opens a URL or file with the platform browser command.
 - Types: `Color`, `LoggerOutput`, `CommandInfo`, `OptionInfo`, `FormatColumnsOptions`, `TableColumn`, `RenderTableOptions`, `DetailCardRow`, `DetailCardSection`, `RenderDetailCardOptions`, `RenderTemplateOptions`, `TemplateEscape`.
@@ -153,5 +154,5 @@ This package has no file-based configuration. Configure it in-process before ren
 
 - `configureTheme({ brand?, label? })` sets the current brand and label.
 - `brands[name] = brand` registers additional brand palettes for later selection.
-- Component options such as `theme`, `width`, `columns`, `rows`, prompt option objects, dashboard options, and explorer config objects control individual renderers.
+- Component options such as `theme`, `width`, `columns`, `rows`, prompt option objects, dashboard options, explorer config objects, and catalog `groups`/`metrics` control individual renderers.
 - `withOutputFormat(format, fn)` temporarily selects `terminal`, `markdown`, or `json` rendering for components that use the output-format resolver.

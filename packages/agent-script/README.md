@@ -18,7 +18,7 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 
 Agent-script runs untrusted-by-default code. The interpreter ships **no** `fs`, `exec`, `process`, or network primitives, and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
 
-When you need filesystem, subprocess, or HTTP capability, build a host module with the *exact* surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what this harness actually needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
+When you need filesystem, subprocess, or HTTP capability, build a host module with the _exact_ surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what this harness actually needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
 
 ## Scripts are JavaScript
 
@@ -123,21 +123,25 @@ What is **not** available as a global: `Promise` constructor, `Date`, `RegExp`, 
 
 Method coverage on plain values follows ECMAScript with a few removals: `String#split` / `replace` / `replaceAll` reject regex separators and function replacers, and `Array#sort` only accepts an arrow comparator returning a number. See `src/interp/methods/` for the full list.
 
+## Import surfaces
+
+Use the package root for the full harness/runtime API. Use `@poe-code/agent-script/core` when a consumer only needs the lightweight interpreter surface: `lint`, `run`, `Budget`, and the related core types. The `./core` subpath avoids loading the bundled agent-spawn integration and is intended for codemods, linters, and other tooling that should not import provider/runtime adapters.
+
 ## Built-in host modules
 
 Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.
 
-| Import    | Factory                                | What it gives the script                                                                     |
-| --------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`                            |
-| `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                             |
-| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)` |
-| `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                  |
-| `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                            |
-| `mcp`     | `makeMcpModule(connectMcp)`            | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                         |
-| `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                |
-| `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                |
-| `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                 |
+| Import    | Factory                                 | What it gives the script                                                                                          |
+| --------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `agent`   | `makeAgentModule(spawnAgent, options?)` | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`; `spawn.retry(...)` adds per-call retry control |
+| `git`     | `makeGitModule(cwd)`                    | `head`, `checkpoint`, `commit`, `revert`, `diff`                                                                  |
+| `harness` | `makeHarnessModule(frontmatter, meta)`  | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)`                      |
+| `log`     | `makeLogModule(sink?)`                  | `info`, `error`, `event` (JSONL by default)                                                                       |
+| `metric`  | `makeMetricModule(npmRunner)`           | `run(name)` — runs an npm script and parses its last numeric line                                                 |
+| `mcp`     | `makeMcpModule(connectMcp)`             | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                                              |
+| `env`     | `makeEnvModule(allowList)`              | `get(name)` — only for names in the allowlist                                                                     |
+| `time`    | `makeTimeModule({ now?, random? })`     | `now`, `uuid`                                                                                                     |
+| `fail`    | `makeFailModule()`                      | `default(message)` — throws `HarnessFailure`                                                                      |
 
 ## Quick start
 
@@ -217,6 +221,12 @@ from the example registry. `runHarness()` derives the same `modules` metadata fr
 `modulesFor(frontmatter, meta)`. External editors or CI checks should use the
 same `filename`, `modules`, `allowedExportNames`, and any extra `allowedGlobals`
 as the runner they are mirroring.
+
+### Agent spawn retries
+
+`makeAgentModule(spawnAgent, { defaultRetry, onEvent })` can wrap every `agent.spawn(...)` call in retry handling. Scripts can also call `agent.spawn.retry(definition, options, { maxAttempts, backoffMs })` for a single spawn. Retry attempts are capped at five, cancellation stops retrying, and `onEvent` receives `spawn.started`, `spawn.retry`, `spawn.succeeded`, `spawn.failed`, and `spawn.cancelled` lifecycle events for progress logging.
+
+Poe Code's `poe-code harness run` command enables this by default for real agent runs: retryable spawn failures are attempted up to five times with backoff, while permanent configuration and credential errors fail immediately.
 
 ### `run(source, options?)`
 

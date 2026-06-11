@@ -42,6 +42,10 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         call: ([value, key]) => Reflect.apply(Object.hasOwn, Object, [value, key]),
         name: "hasOwn"
       }),
+      is: createSandboxClosure({
+        call: ([left, right]) => Reflect.apply(Object.is, Object, [left, right]),
+        name: "is"
+      }),
       fromEntries: createSandboxClosure({
         call: ([value]) =>
           budgetSandboxValue(Reflect.apply(Object.fromEntries, Object, [value]), options.budget),

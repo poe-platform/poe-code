@@ -127,9 +127,9 @@ tasks:
       TDD in object-array's test file: NaN/NaN true, +0/-0 false, -0/-0 true,
       reference identity for objects/arrays, primitive equality. Fast unit tests.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: promise-catch-finally
     title: Add Promise#catch and Promise#finally

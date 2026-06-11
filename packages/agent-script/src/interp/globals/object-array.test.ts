@@ -148,6 +148,26 @@ describe("createObjectArrayGlobals", () => {
     expect(() => hasOwn.call([undefined, "value"])).toThrow(TypeError);
   });
 
+  it("exposes Object.is with SameValue semantics", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const is = getClosure(getProperty(globals.Object, "is"));
+    const objectValue = {};
+    const arrayValue: unknown[] = [];
+
+    expect(await is.call([NaN, NaN])).toBe(true);
+    expect(await is.call([0, -0])).toBe(false);
+    expect(await is.call([-0, -0])).toBe(true);
+    expect(await is.call([objectValue, objectValue])).toBe(true);
+    expect(await is.call([objectValue, {}])).toBe(false);
+    expect(await is.call([arrayValue, arrayValue])).toBe(true);
+    expect(await is.call([arrayValue, []])).toBe(false);
+    expect(await is.call(["value", "value"])).toBe(true);
+    expect(await is.call([1, 1])).toBe(true);
+    expect(await is.call([true, false])).toBe(false);
+  });
+
   it("matches Array and coercion static edge behavior", async () => {
     const globals = createObjectArrayGlobals({
       budget: new Budget()

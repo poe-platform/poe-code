@@ -108,6 +108,7 @@ function runConsumerSmoke(projectDir, tarballs) {
       [
         'await import("toolcraft");',
         'await import("toolcraft/cli");',
+        'await import("toolcraft/design");',
         'await import("toolcraft/mcp");',
         'await import("toolcraft/mcp-proxy");',
         'await import("toolcraft/sdk");',
@@ -180,6 +181,7 @@ try {
       requiredEntries: [
         "package/dist/index.js",
         "package/dist/cli.js",
+        "package/dist/design.js",
         ...bundledRuntimeDependencies.map(
           (dependencyName) => `package/node_modules/${dependencyName}/package.json`
         )

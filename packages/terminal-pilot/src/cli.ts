@@ -3,7 +3,7 @@ import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCLI } from "toolcraft/cli";
-import { configureTheme } from "toolcraft-design";
+import { configureTheme } from "toolcraft/design";
 import { createTerminalPilotGroup } from "./commands/index.js";
 
 configureTheme({ brand: "green", label: "Terminal Pilot" });

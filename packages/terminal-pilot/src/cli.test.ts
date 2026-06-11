@@ -34,7 +34,7 @@ vi.mock("./commands/index.js", () => ({
 
 describe("terminal-pilot CLI entry point", () => {
   beforeEach(async () => {
-    const { resetTheme } = await import("toolcraft-design");
+    const { resetTheme } = await import("toolcraft/design");
     resetTheme();
     process.argv = [...originalArgv];
     realpathMock.mockReset();
@@ -47,7 +47,7 @@ describe("terminal-pilot CLI entry point", () => {
 
   it("configures the terminal-pilot brand on import", async () => {
     await import("./cli.js");
-    const { getThemeConfig } = await import("toolcraft-design");
+    const { getThemeConfig } = await import("toolcraft/design");
 
     expect(getThemeConfig()).toEqual({ brand: "green", label: "Terminal Pilot" });
   });

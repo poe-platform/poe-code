@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
+import { SnapshotValidationError } from "./snapshot/validation.js";
 
 describe("restore", () => {
   it("accepts snapshots whose source hash matches the current source", () => {
@@ -9,6 +10,21 @@ describe("restore", () => {
       version: 1,
       sourceHash: hashSource("1 + 2"),
       callStack: []
+    };
+
+    expect(restore(snapshot, { source: "1 + 2" })).toBe(snapshot);
+  });
+
+  it("accepts ordinary objects with a kind field", () => {
+    const snapshot = {
+      version: 1,
+      sourceHash: hashSource("1 + 2"),
+      bindings: {
+        frontmatter: {
+          kind: "pipeline",
+          version: 1
+        }
+      }
     };
 
     expect(restore(snapshot, { source: "1 + 2" })).toBe(snapshot);
@@ -47,5 +63,87 @@ describe("restore", () => {
     expect(() => restore(snapshot, { source: "user.profile" })).toThrowError(
       `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, got ${hashSource("user.profile")}); pass --reset to discard`
     );
+  });
+
+  it.each([
+    ["missing version", { sourceHash: hashSource("1 + 2") }, "$.version"],
+    ["unknown version", { version: 2, sourceHash: hashSource("1 + 2") }, "$.version"],
+    ["missing hash", { version: 1 }, "$.sourceHash"],
+    [
+      "unsafe integer",
+      { version: 1, sourceHash: hashSource("1 + 2"), count: Number.MAX_SAFE_INTEGER + 1 },
+      "$.count"
+    ],
+    [
+      "unsupported value",
+      { version: 1, sourceHash: hashSource("1 + 2"), value: Symbol("bad") },
+      "$.value"
+    ],
+    [
+      "negative clock count",
+      { version: 1, sourceHash: hashSource("1 + 2"), clock: { next: -1 } },
+      "$.clock.next"
+    ],
+    [
+      "non-finite loop cursor",
+      {
+        version: 1,
+        sourceHash: hashSource("1 + 2"),
+        loopIterations: { "1": Number.POSITIVE_INFINITY }
+      },
+      '$.loopIterations["1"]'
+    ],
+    [
+      "negative collection cursor",
+      {
+        version: 1,
+        sourceHash: hashSource("1 + 2"),
+        loopIterations: { "1": { index: -1, values: [] } }
+      },
+      '$.loopIterations["1"].index'
+    ],
+    [
+      "dangling heap reference",
+      {
+        version: 1,
+        sourceHash: hashSource("1 + 2"),
+        bindings: { value: { kind: "ref", id: 1 } },
+        heap: {}
+      },
+      "$.bindings.value.id"
+    ],
+    [
+      "invalid heap tag",
+      {
+        version: 1,
+        sourceHash: hashSource("1 + 2"),
+        heap: { "1": { kind: "map", entries: [] } }
+      },
+      '$.heap["1"].kind'
+    ],
+    [
+      "malformed heap array",
+      {
+        version: 1,
+        sourceHash: hashSource("1 + 2"),
+        heap: { "1": { kind: "array", items: { length: 100_000 } } }
+      },
+      '$.heap["1"].items'
+    ]
+  ])("rejects malformed dump envelopes: %s", (_name, snapshot, path) => {
+    expect(() => restore(snapshot as never, { source: "1 + 2" })).toThrowError(
+      expect.objectContaining({ name: "SnapshotValidationError", path })
+    );
+  });
+
+  it("does not expose host stack frames", () => {
+    try {
+      restore({ version: 2, sourceHash: "bad" }, { source: "1 + 2" });
+    } catch (error) {
+      expect(error).toBeInstanceOf(SnapshotValidationError);
+      expect((error as Error).stack).toBe(
+        (error as Error).message.replace(/^/, "SnapshotValidationError: ")
+      );
+    }
   });
 });

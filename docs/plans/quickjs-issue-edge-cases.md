@@ -35,7 +35,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: bounded-snapshot-decoder
     title: Validate hostile snapshots before restore
@@ -65,9 +65,9 @@ tasks:
       in-memory snapshots, remain fast, and prove no host module call runs before
       validation succeeds.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: iterative-snapshot-graph-walk

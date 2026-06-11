@@ -157,7 +157,7 @@ describe("aggregate sandbox data budget", () => {
     ).toThrowError(
       expect.objectContaining({
         code: "budgetExceeded",
-        budget: "dataSize"
+        path: expect.stringContaining("$.scopeChain")
       })
     );
   });

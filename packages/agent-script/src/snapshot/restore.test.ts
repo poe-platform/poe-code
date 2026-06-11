@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Budget } from "../interp/budget.js";
 import {
@@ -18,6 +18,7 @@ import { hashSource } from "../parse/hash.js";
 import { restore } from "./restore.js";
 import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
+import { SnapshotValidationError } from "./validation.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -47,6 +48,181 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it.each([
+    ["missing source hash", (snapshot: any) => delete snapshot.sourceHash, "$.sourceHash"],
+    ["missing scope id", (snapshot: any) => delete snapshot.scopeChain[0].id, "$.scopeChain[0].id"],
+    [
+      "duplicate scope id",
+      (snapshot: any) => snapshot.scopeChain.push({ id: "module", bindings: {} }),
+      "$.scopeChain[1].id"
+    ],
+    [
+      "dangling parent",
+      (snapshot: any) => (snapshot.scopeChain[0].parentId = "missing"),
+      "$.scopeChain[0].parentId"
+    ],
+    [
+      "cyclic parents",
+      (snapshot: any) => {
+        snapshot.scopeChain.push({ id: "child", parentId: "module", bindings: {} });
+        snapshot.scopeChain[0].parentId = "child";
+      },
+      "$.scopeChain"
+    ],
+    [
+      "dangling capture",
+      (snapshot: any) =>
+        (snapshot.scopeChain[0].bindings.fn = {
+          kind: "fn",
+          astNodeId: snapshot.currentAstNodeId,
+          capturedScopeId: "missing"
+        }),
+      "$.scopeChain[0].bindings.fn.capturedScopeId"
+    ],
+    [
+      "dangling node",
+      (snapshot: any) => (snapshot.currentAstNodeId = 999999),
+      "$.currentAstNodeId"
+    ],
+    [
+      "unsafe id",
+      (snapshot: any) => (snapshot.scopeChain[0].id = Number.MAX_SAFE_INTEGER + 1),
+      "$.scopeChain[0].id"
+    ],
+    [
+      "invalid promise",
+      (snapshot: any) => snapshot.pendingPromises.push({ id: "p", status: "pending", value: 1 }),
+      "$.pendingPromises[0]"
+    ],
+    [
+      "fulfilled promise without value",
+      (snapshot: any) => snapshot.pendingPromises.push({ id: "p", status: "fulfilled" }),
+      "$.pendingPromises[0].value"
+    ],
+    [
+      "rejected promise with value",
+      (snapshot: any) =>
+        snapshot.pendingPromises.push({ id: "p", status: "rejected", reason: "bad", value: 1 }),
+      "$.pendingPromises[0]"
+    ],
+    [
+      "mismatched host call tag",
+      (snapshot: any) =>
+        snapshot.pendingPromises.push({
+          id: "git-commit-1",
+          moduleId: "git",
+          operation: "commit",
+          sideEffectTag: {
+            kind: "host-call-side-effect",
+            callId: "different",
+            moduleId: "git",
+            operation: "commit"
+          }
+        }),
+      "$.pendingPromises[0].sideEffectTag.callId"
+    ],
+    [
+      "invalid generator",
+      (snapshot: any) =>
+        (snapshot.scopeChain[0].bindings.gen = {
+          kind: "generator",
+          state: "done",
+          yieldNodeId: 1
+        }),
+      "$.scopeChain[0].bindings.gen"
+    ],
+    [
+      "invalid generator completion",
+      (snapshot: any) =>
+        (snapshot.scopeChain[0].bindings.gen = {
+          kind: "generator",
+          state: "suspended",
+          astNodeId: snapshot.currentAstNodeId,
+          capturedScopeId: "module",
+          yieldNodeId: snapshot.currentAstNodeId,
+          sent: [{ type: "future", value: 1 }]
+        }),
+      "$.scopeChain[0].bindings.gen.sent[0].type"
+    ],
+    [
+      "malformed map entry",
+      (snapshot: any) => {
+        snapshot.heap = { "1": { kind: "map", entries: [[1]] } };
+        snapshot.scopeChain[0].bindings.map = { kind: "ref", id: 1 };
+      },
+      '$.heap["1"].entries[0]'
+    ],
+    [
+      "negative regex cursor",
+      (snapshot: any) =>
+        (snapshot.scopeChain[0].bindings.regex = {
+          kind: "regex",
+          source: "a",
+          flags: "g",
+          lastIndex: -1
+        }),
+      "$.scopeChain[0].bindings.regex.lastIndex"
+    ],
+    [
+      "non-finite number payload",
+      (snapshot: any) =>
+        (snapshot.scopeChain[0].bindings.number = { kind: "number", value: "future" }),
+      "$.scopeChain[0].bindings.number.value"
+    ]
+  ])("rejects mutated snapshots: %s", (_name, mutate, path) => {
+    const source = "await task()";
+    const module = parseModule(source);
+    const snapshot: any = {
+      sourceHash: hashSource(source),
+      currentAstNodeId: getNodeIdByType(module, "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: {} }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    };
+    mutate(snapshot);
+    expect(() => restore(snapshot, { source, budget: new Budget() })).toThrowError(
+      expect.objectContaining({ name: "SnapshotValidationError", path })
+    );
+  });
+
+  it("rejects excessive nesting and accepts the configured maximum collection size", () => {
+    const source = "await task()";
+    const base: any = {
+      sourceHash: hashSource(source),
+      currentAstNodeId: getNodeIdByType(parseModule(source), "AwaitExpression"),
+      scopeChain: [{ id: "module", bindings: {} }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    };
+    let deep: any = 1;
+    for (let index = 0; index < 130; index += 1) deep = { value: deep };
+    base.scopeChain[0].bindings.deep = deep;
+    expect(() => restore(base, { source, budget: new Budget() })).toThrow(SnapshotValidationError);
+
+    base.scopeChain[0].bindings = { items: [1, 2, 3] };
+    expect(() => restore(base, { source, budget: new Budget({ arrayLength: 3 }) })).not.toThrow();
+  });
+
+  it("preserves prototype-shaped keys and validates before wrapping host modules", () => {
+    const source = "await task()";
+    const wrapped = vi.fn();
+    const bindings = Object.create(null);
+    bindings.__proto__ = 1;
+    const snapshot: any = {
+      sourceHash: hashSource(source),
+      currentAstNodeId: 999999,
+      scopeChain: [{ id: "module", bindings }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: { host: "host" }
+    };
+    expect(() => restore(snapshot, { source, modules: { host: { wrapped } } })).toThrow(
+      SnapshotValidationError
+    );
+    expect(wrapped).not.toHaveBeenCalled();
+  });
   it("round-trips start and done generators", async () => {
     const source = "function* values() { yield 1; return 2; } await task();";
     const module = parseModule(source);
@@ -807,7 +983,12 @@ describe("snapshot restore", () => {
           budget: new Budget()
         }
       )
-    ).toThrowError("Snapshot references unknown AST node 9999.");
+    ).toThrowError(
+      expect.objectContaining({
+        name: "SnapshotValidationError",
+        path: "$.currentAstNodeId"
+      })
+    );
   });
 
   it("preserves null-prototype sandbox objects during restoration", () => {

@@ -37,6 +37,7 @@ import {
 import { interpret } from "../interp/interpreter.js";
 import { bindPattern } from "../interp/patterns.js";
 import { resolvePendingHostCallResumePolicy } from "./policy.js";
+import { validateInterpreterSnapshot, validateSnapshotSourceHash } from "./validation.js";
 import type {
   RuntimeCallFrame,
   RuntimePendingPromise,
@@ -100,6 +101,7 @@ type RestoreState = {
 
 export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): RestoredSnapshot {
   const budget = options.budget ?? new Budget();
+  validateSnapshotSourceHash(snapshot);
   let currentSourceHash: string;
   try {
     currentSourceHash = hashSource(options.source);
@@ -115,6 +117,7 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
 
   const ast = parseModule(options.source);
   const nodeById = indexAstNodes(ast);
+  validateInterpreterSnapshot(snapshot, nodeById, budget);
   const currentNode = nodeById.get(snapshot.currentAstNodeId);
 
   if (currentNode === undefined) {

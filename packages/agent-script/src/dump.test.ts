@@ -26,9 +26,7 @@ describe("dump", () => {
       }
     }) as Parameters<typeof dump>[0];
 
-    await expect(dump(result)).rejects.toThrow(
-      "Run completed without producing a snapshot."
-    );
+    await expect(dump(result)).rejects.toThrow("Run completed without producing a snapshot.");
   });
 
   it("writes human-readable JSON with 2-space indentation", async () => {
@@ -83,7 +81,7 @@ describe("dump", () => {
 
     const { version: ignoredVersion, ...withoutVersion } = snapshot;
     expect(() => restore(withoutVersion, { source })).toThrowError(
-      "incompatible dump version: expected 1, got missing"
+      expect.objectContaining({ name: "SnapshotValidationError", path: "$.version" })
     );
   });
 
@@ -98,7 +96,7 @@ describe("dump", () => {
         },
         { source }
       )
-    ).toThrowError("incompatible dump version: expected 1, got 0");
+    ).toThrowError(expect.objectContaining({ name: "SnapshotValidationError", path: "$.version" }));
   });
 
   it("rejects dumps with a corrupted source hash with a clear error", () => {

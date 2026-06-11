@@ -18,6 +18,8 @@ export type {
 } from "./snapshot/policy.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
+export { SnapshotValidationError } from "./snapshot/validation.js";
+export type { SnapshotValidationCode } from "./snapshot/validation.js";
 export { Budget, SandboxError } from "./interp/budget.js";
 export type { BudgetName, BudgetOptions } from "./interp/budget.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";

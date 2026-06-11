@@ -197,6 +197,22 @@ describe("agent-script CLI", () => {
     expect(badStderr.output()).toContain("source changed since snapshot was taken");
   });
 
+  it("rejects a truncated restore snapshot from memfs", async () => {
+    vol.writeFileSync("/repo/script.ajs", "return 1;");
+    vol.mkdirSync("/repo/snapshots", { recursive: true });
+    vol.writeFileSync("/repo/snapshots/truncated.json", '{"version":1,"sourceHash":');
+    const stderr = createSink();
+
+    const exitCode = await runCli(["--restore", "snapshots/truncated.json", "script.ajs"], {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr
+    });
+
+    expect(exitCode).not.toBe(0);
+    expect(stderr.output()).toContain("Failed to parse snapshot at snapshots/truncated.json");
+  });
+
   it("does not treat inherited snapshot read error codes as missing restore files", async () => {
     const stdout = createSink();
     const stderr = createSink();

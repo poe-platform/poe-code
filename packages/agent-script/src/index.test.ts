@@ -77,6 +77,7 @@ describe("@poe-code/agent-script public exports", () => {
       "FileSnapshotBackend",
       "HostOperationResumePolicyError",
       "SandboxError",
+      "SnapshotValidationError",
       "createSpawnUsageAccumulator",
       "declareHostOperation",
       "deepCopyFromSandbox",

@@ -11,7 +11,11 @@ import { createGeneratorChannel, type GeneratorCompletion } from "./generator.js
 import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
-import type { InterpreterError, InterpreterSnapshot } from "./interpreter.js";
+import type {
+  InterpreterError,
+  InterpreterSnapshot,
+  LoopIterationSnapshot
+} from "./interpreter.js";
 import { bindPattern } from "./patterns.js";
 import { resolveSandboxValue } from "./promise.js";
 import type { Scope } from "./scope.js";
@@ -40,11 +44,14 @@ export type AsyncInterpreterError = InterpreterError;
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
+  activeLoopIterations: Map<number, LoopIterationSnapshot>;
   budget: Budget;
   callStack: string[];
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
   rootNode?: ParseResult;
+  restoredLoopIterations: Map<number, LoopIterationSnapshot>;
   scope: Scope;
+  snapshot?: () => InterpreterSnapshot;
   stats: {
     nodeVisits: number;
   };
@@ -62,7 +69,7 @@ export function emitResumeBreakpoint(
 ): void {
   context.onYield?.({
     ...breakpoint,
-    snapshot: () => context.scope.snapshot()
+    snapshot: context.snapshot ?? (() => context.scope.snapshot())
   });
 }
 

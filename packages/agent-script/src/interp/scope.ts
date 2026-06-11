@@ -24,6 +24,7 @@ type ScopeOptions = {
 
 export class Scope {
   readonly #bindings = new Map<string, ScopeBinding>();
+  readonly #restoredBindings: Map<string, InterpreterValue>;
 
   constructor(
     bindings: Record<string, InterpreterValue> = {},
@@ -31,8 +32,13 @@ export class Scope {
     private readonly importMeta?: InterpreterValue,
     private readonly options: ScopeOptions = {
       functionBoundary: parent === undefined
-    }
+    },
+    restoredBindings?: Record<string, InterpreterValue>
   ) {
+    this.#restoredBindings =
+      parent === undefined
+        ? new Map(Object.entries(restoredBindings ?? {}))
+        : parent.#restoredBindings;
     for (const [name, value] of Object.entries(bindings)) {
       this.#bindings.set(name, {
         kind: "const",
@@ -43,6 +49,18 @@ export class Scope {
 
   child(bindings: Record<string, InterpreterValue> = {}, options: ScopeOptions = {}): Scope {
     return new Scope(bindings, this, undefined, options);
+  }
+
+  consumeRestoredBinding(
+    name: string
+  ): { found: true; value: InterpreterValue } | { found: false } {
+    if (!this.#restoredBindings.has(name)) {
+      return { found: false };
+    }
+
+    const value = this.#restoredBindings.get(name);
+    this.#restoredBindings.delete(name);
+    return { found: true, value };
   }
 
   hasOwnBinding(name: string): boolean {

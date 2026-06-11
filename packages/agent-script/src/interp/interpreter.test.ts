@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { parse, parseModule, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
+import { createCollectionGlobals } from "./globals/collections.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createErrorGlobals } from "./globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./globals/math.js";
@@ -11,6 +12,318 @@ import { interpret, Scope } from "./interpreter.js";
 import { createSandboxClosure, createSandboxPromise, isSandboxPromise } from "./values.js";
 
 describe("interpret", () => {
+  describe("loop resume breakpoints", () => {
+    it("restores a counter loop without repeated or skipped iterations", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("for (let i = 0; i < 5; i = i + 1) { output.push(i); }"),
+        parse('return output.join(",")')
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, {
+        bindings: globals,
+        snapshot
+      });
+
+      expect(first).toMatchObject({ ok: true, returnValue: "0,1,2,3,4" });
+      expect(restored).toMatchObject({ ok: true, returnValue: "0,1,2,3,4" });
+    });
+
+    it("restores for...of at the current array element", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("for (const value of [10, 20, 30, 40]) { output.push(value); }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [10, 20, 30, 40] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [10, 20, 30, 40] });
+    });
+
+    it("restores a while loop before the captured body", async () => {
+      const program = block(
+        parse("let i = 0"),
+        parse("const output = []"),
+        parse("while (i < 4) { output.push(i); i = i + 1; }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [0, 1, 2, 3] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [0, 1, 2, 3] });
+    });
+
+    it("restores a do...while loop before the captured body", async () => {
+      const program = block(
+        parse("let i = 0"),
+        parse("const output = []"),
+        parse("do { output.push(i); i = i + 1; } while (i < 4)"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [0, 1, 2, 3] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [0, 1, 2, 3] });
+    });
+
+    it("restores for...in at the current key", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("for (const key in value) { output.push(key); }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: { ...globals, value: { first: 1, second: 2, third: 3 } },
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 2) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, {
+        bindings: { ...globals, value: { first: 1, second: 2, third: 3 } },
+        snapshot
+      });
+
+      expect(first).toMatchObject({ ok: true, returnValue: ["first", "second", "third"] });
+      expect(restored).toMatchObject({ ok: true, returnValue: ["first", "second", "third"] });
+    });
+
+    it("restores for...in from its original key list after deletion", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("const value = { first: 1, second: 2, third: 3 }"),
+        parse(
+          "for (const key in value) { output.push(key); if (key === 'first') delete value.first; }"
+        ),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 2) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: ["first", "second", "third"] });
+      expect(restored).toMatchObject({ ok: true, returnValue: ["first", "second", "third"] });
+    });
+
+    it.each([
+      ["Map", "new Map([[1, 'a'], [2, 'b'], [3, 'c']])", ["1a", "2b", "3c"]],
+      ["Set", "new Set([1, 2, 3])", [1, 2, 3]]
+    ])("restores for...of over a %s", async (_name, expression, expected) => {
+      const program = block(
+        parse("const output = []"),
+        parse(
+          expression.startsWith("new Map")
+            ? `for (const [key, value] of ${expression}) { output.push(key + value); }`
+            : `for (const value of ${expression}) { output.push(value); }`
+        ),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const budget = new Budget();
+      const globals = {
+        ...createObjectArrayGlobals({ budget }),
+        ...createCollectionGlobals({ budget })
+      };
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 2) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: expected });
+      expect(restored).toMatchObject({ ok: true, returnValue: expected });
+    });
+
+    it("restores the inner cursor of nested for...of loops", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse(
+          "for (const left of ['a', 'b']) { for (const right of [1, 2, 3]) { output.push(left.concat(right)); } }"
+        ),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 6) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: ["a1", "a2", "a3", "b1", "b2", "b3"] });
+      expect(restored).toMatchObject({
+        ok: true,
+        returnValue: ["a1", "a2", "a3", "b1", "b2", "b3"]
+      });
+    });
+
+    it("restores a generic iterable cursor by consumed position", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("for (const value of values) { output.push(value); }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const values = {
+        [Symbol.iterator]: () => [1, 2, 3, 4][Symbol.iterator]()
+      };
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: { ...globals, values: values as never },
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, {
+        bindings: { ...globals, values: values as never },
+        snapshot
+      });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [1, 2, 3, 4] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [1, 2, 3, 4] });
+    });
+
+    it("advances a generic iterable cursor after continue", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("for (const value of values) { if (value === 2) continue; output.push(value); }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const values = {
+        [Symbol.iterator]: () => [1, 2, 3, 4][Symbol.iterator]()
+      };
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: { ...globals, values: values as never },
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, {
+        bindings: { ...globals, values: values as never },
+        snapshot
+      });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [1, 3, 4] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [1, 3, 4] });
+    });
+
+    it("restores for...of over a sandbox generator", async () => {
+      const program = block(
+        parse("const output = []"),
+        parse("function* values() { yield 1; yield 2; yield 3; yield 4; }"),
+        parse("for (const value of values()) { output.push(value); }"),
+        parse("return output")
+      );
+      let breakpointCount = 0;
+      let snapshot: Parameters<typeof interpret>[1]["snapshot"];
+      const globals = createObjectArrayGlobals({ budget: new Budget() });
+
+      const first = await interpret(program, {
+        bindings: globals,
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "loop-iteration" && (breakpointCount += 1) === 3) {
+            snapshot = cloneLoopSnapshot(yieldPoint.snapshot());
+          }
+        }
+      });
+      const restored = await interpret(program, { bindings: globals, snapshot });
+
+      expect(first).toMatchObject({ ok: true, returnValue: [1, 2, 3, 4] });
+      expect(restored).toMatchObject({ ok: true, returnValue: [1, 2, 3, 4] });
+    });
+
+    it("still halts an infinite loop under a small node budget", async () => {
+      await expect(
+        interpret(parse("while (true) {}"), { budget: new Budget({ maxSteps: 20 }) })
+      ).rejects.toMatchObject({ code: "budgetExceeded", budget: "steps" });
+    });
+  });
+
   describe("new expressions", () => {
     it("constructs user functions with a fresh this object", async () => {
       await expect(
@@ -4314,6 +4627,14 @@ describe("interpret", () => {
     });
   });
 });
+
+function cloneLoopSnapshot(
+  snapshot: NonNullable<Parameters<typeof interpret>[1]["snapshot"]>
+): NonNullable<Parameters<typeof interpret>[1]["snapshot"]> {
+  return JSON.parse(JSON.stringify(snapshot)) as NonNullable<
+    Parameters<typeof interpret>[1]["snapshot"]
+  >;
+}
 
 function block(...statements: Statement[]): ParseResult {
   return {

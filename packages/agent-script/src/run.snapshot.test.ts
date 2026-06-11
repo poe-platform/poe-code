@@ -351,6 +351,7 @@ describe("run snapshot checkpointing", () => {
       i: 0,
       total: 0
     });
+    await flushMicrotasks();
     const snapshotPromise = dump(result);
     waits[0]?.resolve();
     await flushMicrotasks();
@@ -361,7 +362,7 @@ describe("run snapshot checkpointing", () => {
 
     expect(restored.bindings).toMatchObject({
       i: 1,
-      total: 1
+      total: 0
     });
 
     waits[1]?.resolve();
@@ -384,6 +385,27 @@ describe("run snapshot checkpointing", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: 3
+    });
+  });
+
+  it("restores a background dump from a bound generator loop", async () => {
+    const source = [
+      "const output = [];",
+      "function* values() { yield 1; yield 2; yield 3; yield 4; }",
+      "const iterator = values();",
+      "for (const value of iterator) { output.push(value); }",
+      "return output;"
+    ].join("\n");
+    const result = run(source);
+    const snapshot = JSON.parse(await dump(result));
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3, 4]
+    });
+    await expect(run(source, { snapshot: restore(snapshot, { source }) })).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3, 4]
     });
   });
 
@@ -434,9 +456,7 @@ describe("run snapshot checkpointing", () => {
   });
 
   it("restores a snapshot from inside finally and preserves the pending return", async () => {
-    const source = ["try {", '  return "body";', "} finally {", "  await wait();", "}"].join(
-      "\n"
-    );
+    const source = ["try {", '  return "body";', "} finally {", "  await wait();", "}"].join("\n");
     const first = createDeferred<void>();
     const result = run(source, {
       bindings: {
@@ -490,9 +510,7 @@ describe("run snapshot checkpointing", () => {
         later: createSandboxClosure({
           async: true,
           call: ([label]) =>
-            createSandboxPromise(
-              label === "left" ? firstRun.left.promise : firstRun.right.promise
-            ),
+            createSandboxPromise(label === "left" ? firstRun.left.promise : firstRun.right.promise),
           name: "later"
         })
       }

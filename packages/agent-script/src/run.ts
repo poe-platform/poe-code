@@ -27,7 +27,12 @@ import { createRegexGlobals } from "./interp/globals/regex.js";
 import { createMiscGlobals } from "./interp/globals/misc.js";
 import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
-import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
+import {
+  interpret,
+  Scope,
+  type InterpreterResult,
+  type LoopIterationSnapshot
+} from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
 import {
   deepCopyToSandbox,
@@ -81,6 +86,7 @@ export class UnhandledRejectionError extends Error {
 export type RunSnapshot = AgentScriptSnapshot & {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock?: RunClockSnapshot;
+  loopIterations?: Record<string, LoopIterationSnapshot>;
   pendingAwaits?: RunPendingAwaitSnapshot[];
   random?: {
     seed: number;
@@ -128,6 +134,9 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       const module = parseExecutableModule(source, filename);
       const sourceHash = hashSource(source);
       const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
+      const interpreterSnapshot = hasLoopIterationSnapshot(restoredSnapshot)
+        ? (restoredSnapshot as RunSnapshot)
+        : undefined;
       const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));
       const callerBindings =
         options.bindings === undefined
@@ -167,7 +176,9 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       const scope = new Scope(
         bindings,
         undefined,
-        deepCopyToSandbox(options.importMeta ?? {})
+        deepCopyToSandbox(options.importMeta ?? {}),
+        undefined,
+        interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
       ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }), {
         functionBoundary: true
       });
@@ -194,6 +205,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             snapshot = createRunSnapshot({
               bindings: interpreterSnapshot.bindings,
               clock: options.clock,
+              loopIterations: interpreterSnapshot.loopIterations,
               pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
               random,
               sourceHash
@@ -205,6 +217,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           dumpController.onYield(createSnapshot);
         },
         scope,
+        snapshot: interpreterSnapshot,
         surfaceUnhandledThrows: true,
         useScopeDirectly: true
       });
@@ -230,6 +243,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   snapshot = createRunSnapshot({
                     bindings: interpreterSnapshot.bindings,
                     clock: options.clock,
+                    loopIterations: interpreterSnapshot.loopIterations,
                     pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
                     random,
                     sourceHash
@@ -240,7 +254,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 snapshotScheduler.onYield(createSnapshot);
                 dumpController.onYield(createSnapshot);
               },
-              scope
+              scope,
+              snapshot: interpreterSnapshot
             });
       await snapshotScheduler.finish();
 
@@ -299,6 +314,7 @@ async function callEntryPoint(input: {
   module: Module;
   onYield: NonNullable<Parameters<typeof interpret>[1]>["onYield"];
   scope: Scope;
+  snapshot?: RunSnapshot;
 }): Promise<InterpreterResult> {
   const defaultExport = input.scope.lookup("default");
 
@@ -322,6 +338,7 @@ async function callEntryPoint(input: {
     budget: input.budget,
     onYield: input.onYield,
     scope: entryScope,
+    snapshot: input.snapshot,
     surfaceUnhandledThrows: true,
     useScopeDirectly: true
   });
@@ -417,6 +434,7 @@ function createExecutableNode(module: Module): ParseResult {
 function createRunSnapshot(input: {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
+  loopIterations?: Record<string, LoopIterationSnapshot>;
   pendingAwaits?: RunPendingAwaitSnapshot[];
   random:
     | {
@@ -431,6 +449,7 @@ function createRunSnapshot(input: {
     sourceHash: input.sourceHash,
     bindings: input.bindings,
     clock: input.clock?.snapshot(),
+    ...(input.loopIterations === undefined ? {} : { loopIterations: input.loopIterations }),
     ...(input.pendingAwaits === undefined || input.pendingAwaits.length === 0
       ? {}
       : { pendingAwaits: input.pendingAwaits }),
@@ -442,6 +461,17 @@ function createRunSnapshot(input: {
             state: input.random.generator.snapshot()
           }
   };
+}
+
+function hasLoopIterationSnapshot(
+  snapshot: AgentScriptSnapshot | undefined
+): snapshot is RunSnapshot {
+  return (
+    snapshot !== undefined &&
+    typeof snapshot.loopIterations === "object" &&
+    snapshot.loopIterations !== null &&
+    Object.keys(snapshot.loopIterations).length > 0
+  );
 }
 
 function createPendingAwaitSnapshot(yieldPoint: ResumeBreakpoint): RunPendingAwaitSnapshot {

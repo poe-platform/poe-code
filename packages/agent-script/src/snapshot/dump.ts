@@ -38,6 +38,7 @@ export function createDumpController(): DumpController {
     | undefined;
   let finalSnapshot: RunSnapshot | undefined;
   let latestSnapshot: RunSnapshot | undefined;
+  let latestSnapshotFactory: (() => RunSnapshot) | undefined;
   let pendingRequest:
     | {
         promise: Promise<string>;
@@ -64,29 +65,30 @@ export function createDumpController(): DumpController {
       finished = true;
       finalSnapshot = snapshot;
       latestSnapshot = snapshot;
+      latestSnapshotFactory = undefined;
 
       if (pendingRequest !== undefined) {
         settlePendingSnapshot(snapshot);
       }
     },
     onYield(createSnapshot) {
-      const snapshot = createSnapshot();
-      latestSnapshot = snapshot;
+      latestSnapshot = undefined;
+      latestSnapshotFactory = createSnapshot;
 
       if (pendingRequest === undefined) {
         return;
       }
 
-      settlePendingSnapshot(snapshot);
+      settlePendingSnapshot(createSnapshot());
     },
     requestCurrentSnapshot() {
       if (failed !== undefined) {
         return Promise.reject(failed.error);
       }
 
-      if (latestSnapshot !== undefined) {
+      if (latestSnapshot !== undefined || latestSnapshotFactory !== undefined) {
         try {
-          return Promise.resolve(serializeRunSnapshot(latestSnapshot));
+          return Promise.resolve(serializeRunSnapshot(latestSnapshot ?? latestSnapshotFactory!()));
         } catch (error) {
           return Promise.reject(error);
         }
@@ -152,7 +154,9 @@ export function createDumpController(): DumpController {
   }
 }
 
-export function dump(result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult>): Promise<string> {
+export function dump(
+  result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult>
+): Promise<string> {
   const controller = readDumpController(result);
 
   if (controller !== undefined) {

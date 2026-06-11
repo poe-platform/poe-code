@@ -235,9 +235,9 @@ tasks:
       halts fast under a small node-visit budget. Fast unit tests, no timers
       beyond immediate resolution, no file I/O outside memfs, no LLM.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: generator-yield-resume-breakpoint

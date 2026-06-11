@@ -65,6 +65,7 @@ import {
   evaluateArrowFunctionExpression,
   evaluateFunctionExpression,
   evaluateAwaitExpression,
+  emitResumeBreakpoint,
   createInterpretedClosure,
   normalizeClosureResult,
   resolveClosureResult,
@@ -146,7 +147,15 @@ export type InterpreterStats = {
 
 export type InterpreterSnapshot = {
   bindings: Record<string, InterpreterValue>;
+  loopIterations?: Record<string, LoopIterationSnapshot>;
 };
+
+export type LoopIterationSnapshot =
+  | number
+  | {
+      index: number;
+      values: InterpreterValue[];
+    };
 
 export type InterpreterErrorCode = "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
 
@@ -182,6 +191,7 @@ export type InterpretOptions = {
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
   generatorYield?: (value?: SandboxValue) => Promise<GeneratorCompletion>;
+  snapshot?: InterpreterSnapshot;
 };
 
 type EvaluationContext = AsyncEvaluationContext;
@@ -265,9 +275,15 @@ export async function interpret(
   const budget = options.budget ?? new Budget();
   const scope =
     options.scope === undefined
-      ? new Scope(options.bindings, undefined, undefined, {
-          functionBoundary: true
-        })
+      ? new Scope(
+          options.bindings,
+          undefined,
+          undefined,
+          {
+            functionBoundary: true
+          },
+          options.snapshot?.bindings
+        )
       : options.useScopeDirectly === true && options.bindings === undefined
         ? options.scope
         : options.scope.child(options.bindings ?? {}, {
@@ -276,6 +292,7 @@ export async function interpret(
   const stats: InterpreterStats = {
     nodeVisits: 0
   };
+  const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
   hoistVarDeclarations(node, scope);
   const evaluation = await evaluateNode(node, {
     budget,
@@ -284,6 +301,13 @@ export async function interpret(
     rootNode: node,
     scope,
     stats,
+    activeLoopIterations,
+    restoredLoopIterations: new Map(
+      Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
+        Number(nodeId),
+        iteration
+      ])
+    ),
     generatorYield: options.generatorYield
   });
   const snapshot = scope.snapshot();
@@ -981,14 +1005,24 @@ async function evaluateVariableDeclaration(
   }
 
   for (const declarator of node.declarations) {
+    const restoredValue =
+      declarator.id.type === "Identifier"
+        ? context.scope.consumeRestoredBinding(declarator.id.name)
+        : { found: false as const };
     const value =
-      declarator.init === undefined
+      restoredValue.found && isRestorableBindingValue(restoredValue.value)
         ? {
             kind: "normal" as const,
             hasValue: true as const,
-            value: undefined
+            value: restoredValue.value
           }
-        : await evaluateNode(declarator.init, context);
+        : declarator.init === undefined
+          ? {
+              kind: "normal" as const,
+              hasValue: true as const,
+              value: undefined
+            }
+          : await evaluateNode(declarator.init, context);
 
     if (value.kind !== "normal") {
       return value;
@@ -1011,6 +1045,21 @@ async function evaluateVariableDeclaration(
     hasValue: false,
     value: undefined
   };
+}
+
+function isRestorableBindingValue(value: InterpreterValue): boolean {
+  if (Array.isArray(value)) {
+    return value.every(isRestorableBindingValue);
+  }
+  if (typeof value !== "object" || value === null) {
+    return true;
+  }
+  if (Object.hasOwn(value, "kind")) {
+    return !["fn", "generator", "map", "promise", "regex", "set"].includes(
+      String((value as { kind?: unknown }).kind)
+    );
+  }
+  return Object.values(value).every(isRestorableBindingValue);
 }
 
 function predeclareDeclarationBindings(node: VariableDeclaration, scope: Scope): void {
@@ -1067,8 +1116,17 @@ async function evaluateBlockStatement(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const blockContext = createBlockContext(node, context);
+  const resumeIndex = findResumeStatementIndex(node, blockContext);
 
-  for (const statement of node.body) {
+  for (let index = 0; index < node.body.length; index += 1) {
+    const statement = node.body[index]!;
+    if (
+      resumeIndex !== undefined &&
+      index < resumeIndex &&
+      statement.type !== "VariableDeclaration"
+    ) {
+      continue;
+    }
     const result = await evaluateNode(statement, blockContext);
     if (result.kind !== "normal") {
       return result;
@@ -1080,6 +1138,57 @@ async function evaluateBlockStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+function findResumeStatementIndex(
+  node: BlockStatement,
+  context: EvaluationContext
+): number | undefined {
+  if (context.restoredLoopIterations.size === 0) {
+    return undefined;
+  }
+
+  const targetNodeIds = new Set(context.restoredLoopIterations.keys());
+  const index = node.body.findIndex((statement) => containsResumeTarget(statement, targetNodeIds));
+  return index === -1 ? undefined : index;
+}
+
+function containsResumeTarget(node: ParseResult, targetNodeIds: ReadonlySet<number>): boolean {
+  if (node.nodeId !== undefined && targetNodeIds.has(node.nodeId)) {
+    return true;
+  }
+  if (
+    node.type === "ArrowFunctionExpression" ||
+    node.type === "FunctionDeclaration" ||
+    node.type === "FunctionExpression"
+  ) {
+    return false;
+  }
+
+  for (const value of Object.values(node)) {
+    if (Array.isArray(value)) {
+      if (
+        value.some((entry) => isParseResult(entry) && containsResumeTarget(entry, targetNodeIds))
+      ) {
+        return true;
+      }
+      continue;
+    }
+    if (isParseResult(value) && containsResumeTarget(value, targetNodeIds)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isParseResult(value: unknown): value is ParseResult {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { type?: unknown }).type === "string" &&
+    Object.hasOwn(value, "span")
+  );
 }
 
 function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
@@ -1214,39 +1323,27 @@ async function evaluateForOfStatement(
     return iterable;
   }
 
-  const iterator = getSandboxIterator(iterable.value);
-  if (iterator === undefined) {
-    throw new TypeError(`${String(iterable.value)} is not a supported iterable`);
+  const values = snapshotableIterationValues(iterable.value);
+  if (values === undefined) {
+    return evaluateForOfIterator(node, iterable.value, context);
   }
 
-  while (true) {
-    const iteration = await iterator.next();
-    if (typeof iteration !== "object" || iteration === null) {
-      throw new TypeError("Iterator result must be an object.");
-    }
-
-    if (iteration.done) {
-      break;
-    }
+  const restoredIndex = consumeRestoredLoopIterationIndex(node, context);
+  for (let index = restoredIndex; index < values.length; index += 1) {
+    context.activeLoopIterations.set(node.nodeId ?? -1, index);
 
     const scope = context.scope.child();
-    const binding = await bindForOfLoopVariable(
-      node.left,
-      iteration.value as SandboxValue,
-      scope,
-      context
-    );
+    const binding = await bindForOfLoopVariable(node.left, values[index]!, scope, context);
     if (!binding.ok) {
       return binding.result;
     }
 
-    const result = await evaluateNode(node.body, {
-      ...context,
-      scope
-    });
+    const iterationContext = createLoopIterationContext(context, scope);
+    emitLoopIterationBreakpoint(node, iterationContext);
+    const result = await evaluateNode(node.body, iterationContext);
 
     if (isMatchingBreak(result, loopLabels(node))) {
-      await closeIterator(iterator);
+      context.activeLoopIterations.delete(node.nodeId ?? -1);
       return {
         kind: "normal",
         hasValue: false,
@@ -1259,16 +1356,78 @@ async function evaluateForOfStatement(
     }
 
     if (result.kind !== "normal") {
-      await closeIterator(iterator);
+      context.activeLoopIterations.delete(node.nodeId ?? -1);
       return result;
     }
   }
+
+  context.activeLoopIterations.delete(node.nodeId ?? -1);
 
   return {
     kind: "normal",
     hasValue: false,
     value: undefined
   };
+}
+
+async function evaluateForOfIterator(
+  node: ForOfStatement,
+  value: SandboxValue,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const iterator = getSandboxIterator(value);
+  if (iterator === undefined) {
+    throw new TypeError(`${String(value)} is not a supported iterable`);
+  }
+
+  const nodeId = node.nodeId ?? -1;
+  let index = consumeRestoredLoopIterationIndex(node, context);
+  for (let skipped = 0; skipped < index; skipped += 1) {
+    const skippedIteration = await iterator.next();
+    if (typeof skippedIteration !== "object" || skippedIteration === null) {
+      throw new TypeError("Iterator result must be an object.");
+    }
+    if (skippedIteration.done) {
+      return normalEmptyResult();
+    }
+  }
+
+  while (true) {
+    const iteration = await iterator.next();
+    if (typeof iteration !== "object" || iteration === null) {
+      throw new TypeError("Iterator result must be an object.");
+    }
+    if (iteration.done) {
+      context.activeLoopIterations.delete(nodeId);
+      return normalEmptyResult();
+    }
+
+    context.activeLoopIterations.set(nodeId, index);
+    const scope = context.scope.child();
+    const binding = await bindForOfLoopVariable(node.left, iteration.value, scope, context);
+    if (!binding.ok) {
+      return binding.result;
+    }
+
+    const iterationContext = createLoopIterationContext(context, scope);
+    emitLoopIterationBreakpoint(node, iterationContext);
+    const result = await evaluateNode(node.body, iterationContext);
+    if (isMatchingBreak(result, loopLabels(node))) {
+      context.activeLoopIterations.delete(nodeId);
+      await closeIterator(iterator);
+      return normalEmptyResult();
+    }
+    if (isMatchingContinue(result, loopLabels(node))) {
+      index += 1;
+      continue;
+    }
+    if (result.kind !== "normal") {
+      context.activeLoopIterations.delete(nodeId);
+      await closeIterator(iterator);
+      return result;
+    }
+    index += 1;
+  }
 }
 
 async function evaluateForInStatement(
@@ -1285,8 +1444,16 @@ async function evaluateForInStatement(
     return normalEmptyResult();
   }
 
-  const keys = forInKeys(object);
-  for (const key of keys) {
+  const restoredIteration = consumeRestoredLoopIteration(node, context);
+  const keys =
+    restoredIteration === undefined || typeof restoredIteration === "number"
+      ? forInKeys(object)
+      : restoredIteration.values.map(String);
+  const restoredIndex =
+    typeof restoredIteration === "number" ? restoredIteration : (restoredIteration?.index ?? 0);
+  for (let index = restoredIndex; index < keys.length; index += 1) {
+    context.activeLoopIterations.set(node.nodeId ?? -1, { index, values: keys });
+    const key = keys[index]!;
     if (!(key in object)) {
       continue;
     }
@@ -1294,21 +1461,27 @@ async function evaluateForInStatement(
     const scope = context.scope.child();
     const binding = await bindForInLoopVariable(node.left, key, scope, context);
     if (!binding.ok) {
+      context.activeLoopIterations.delete(node.nodeId ?? -1);
       return binding.result;
     }
 
-    const result = await evaluateNode(node.body, { ...context, scope });
+    const iterationContext = createLoopIterationContext(context, scope);
+    emitLoopIterationBreakpoint(node, iterationContext);
+    const result = await evaluateNode(node.body, iterationContext);
     if (isMatchingBreak(result, loopLabels(node))) {
+      context.activeLoopIterations.delete(node.nodeId ?? -1);
       return normalEmptyResult();
     }
     if (isMatchingContinue(result, loopLabels(node))) {
       continue;
     }
     if (result.kind !== "normal") {
+      context.activeLoopIterations.delete(node.nodeId ?? -1);
       return result;
     }
   }
 
+  context.activeLoopIterations.delete(node.nodeId ?? -1);
   return normalEmptyResult();
 }
 
@@ -1406,8 +1579,9 @@ async function evaluateForStatement(
       loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
     const iterationContext = {
       ...loopContext,
-      scope: iterationScope
+      ...createLoopIterationContext(loopContext, iterationScope)
     };
+    emitLoopIterationBreakpoint(node, iterationContext);
     const result = await evaluateNode(node.body, iterationContext);
 
     if (isMatchingBreak(result, loopLabels(node))) {
@@ -1460,7 +1634,9 @@ async function evaluateWhileStatement(
       };
     }
 
-    const result = await evaluateNode(node.body, context);
+    const iterationContext = createLoopIterationContext(context, context.scope);
+    emitLoopIterationBreakpoint(node, iterationContext);
+    const result = await evaluateNode(node.body, iterationContext);
 
     if (isMatchingBreak(result, loopLabels(node))) {
       return {
@@ -1485,7 +1661,9 @@ async function evaluateDoWhileStatement(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   while (true) {
-    const result = await evaluateNode(node.body, context);
+    const iterationContext = createLoopIterationContext(context, context.scope);
+    emitLoopIterationBreakpoint(node, iterationContext);
+    const result = await evaluateNode(node.body, iterationContext);
 
     if (isMatchingBreak(result, loopLabels(node))) {
       return {
@@ -1512,6 +1690,64 @@ async function evaluateDoWhileStatement(
       };
     }
   }
+}
+
+function emitLoopIterationBreakpoint(
+  node: ForInStatement | ForOfStatement | ForStatement | WhileStatement | DoWhileStatement,
+  context: EvaluationContext
+): void {
+  emitResumeBreakpoint(context, {
+    kind: "loop-iteration",
+    nodeId: node.nodeId,
+    span: node.span
+  });
+}
+
+function createLoopIterationContext(context: EvaluationContext, scope: Scope): EvaluationContext {
+  return {
+    ...context,
+    scope,
+    snapshot: () => ({
+      ...scope.snapshot(),
+      ...(context.activeLoopIterations.size === 0
+        ? {}
+        : { loopIterations: Object.fromEntries(context.activeLoopIterations) })
+    })
+  };
+}
+
+function consumeRestoredLoopIteration(
+  node: ForInStatement | ForOfStatement,
+  context: EvaluationContext
+): LoopIterationSnapshot | undefined {
+  const nodeId = node.nodeId ?? -1;
+  const iteration = context.restoredLoopIterations.get(nodeId);
+  context.restoredLoopIterations.delete(nodeId);
+  return iteration;
+}
+
+function consumeRestoredLoopIterationIndex(
+  node: ForInStatement | ForOfStatement,
+  context: EvaluationContext
+): number {
+  const iteration = consumeRestoredLoopIteration(node, context);
+  return typeof iteration === "number" ? iteration : (iteration?.index ?? 0);
+}
+
+function snapshotableIterationValues(value: SandboxValue): SandboxValue[] | undefined {
+  if (typeof value === "string") {
+    return Array.from(value);
+  }
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (isSandboxMap(value)) {
+    return Array.from(value.entries, ([key, entry]) => [key, entry] as SandboxValue[]);
+  }
+  if (isSandboxSet(value)) {
+    return Array.from(value.values);
+  }
+  return undefined;
 }
 
 function isMatchingBreak(result: EvaluationResult, labels: string[] | string | undefined): boolean {

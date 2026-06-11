@@ -307,6 +307,7 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "approvals", "run", "--approval-id", approvalId];
     await runCLI(root, {
+      approvals: true,
       humanInLoop: {
         taskList,
         provider
@@ -526,7 +527,7 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
 
-    await expect(runCLI(rootFactory())).rejects.toThrowError(
+    await expect(runCLI(rootFactory(), { approvals: true })).rejects.toThrowError(
       "'approvals' is reserved for human-in-loop built-ins"
     );
     expect(() =>

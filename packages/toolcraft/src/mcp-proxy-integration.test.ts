@@ -883,7 +883,7 @@ describe("mcp proxy integration", () => {
       "--yes",
     ];
 
-    await runCLI(cliRoot);
+    await runCLI(cliRoot, { controls: { output: true, yes: true } });
 
     expect(JSON.parse(readOutput(stdoutWrite))).toEqual({
       result: "khoor",

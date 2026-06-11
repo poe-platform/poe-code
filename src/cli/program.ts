@@ -746,6 +746,13 @@ function registerForwardedToolcraftCommand(
     process.argv = buildToolcraftArgv(originalArgv, [options.name, ...(options.aliases ?? [])]);
     try {
       await runCLI(forwardedRoots, {
+        approvals: true,
+        controls: {
+          debug: true,
+          output: true,
+          verbose: true,
+          yes: true
+        },
         rootDisplayName: heading,
         rootUsageName: usageCommand,
         humanInLoop: createToolcraftHumanInLoopOptions(container)

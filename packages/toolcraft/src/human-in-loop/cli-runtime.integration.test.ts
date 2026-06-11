@@ -112,6 +112,7 @@ describe("human-in-loop CLI runtime", () => {
 
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
+      controls: { yes: true },
       humanInLoop: {
         provider
       }
@@ -153,6 +154,7 @@ describe("human-in-loop CLI runtime", () => {
 
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
+      controls: { yes: true },
       humanInLoop: {
         provider
       }
@@ -190,6 +192,7 @@ describe("human-in-loop CLI runtime", () => {
 
     process.argv = ["node", "toolcraft", "deploy", "prod", "--yes"];
     await runCLI(root, {
+      controls: { yes: true },
       humanInLoop: {
         provider
       }

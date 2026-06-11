@@ -24,7 +24,14 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   process.argv = normalizeArgv(argv);
 
   try {
-    await runCLI(createTerminalPilotGroup(), { approvals: false });
+    await runCLI(createTerminalPilotGroup(), {
+      controls: {
+        debug: true,
+        output: true,
+        verbose: true,
+        yes: true
+      }
+    });
   } finally {
     process.argv = originalArgv;
   }

@@ -157,9 +157,9 @@ tasks:
       throws rejects the chain; chaining order. Fast unit tests, no real timers
       beyond immediate microtask resolution.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: generalize-resume-breakpoint
     title: Decouple resume-breakpoint emission from await

@@ -108,21 +108,49 @@ export function getPromiseMember(
   property: string | number,
   budget: Budget
 ): SandboxValue {
-  if (property !== "then") {
-    return undefined;
+  if (property === "then") {
+    return createSandboxClosure({
+      async: true,
+      call: ([onFulfilled, onRejected]) =>
+        createSandboxPromise(
+          target.promise.then(
+            (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
+            (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+          )
+        ),
+      name: "then"
+    });
   }
 
-  return createSandboxClosure({
-    async: true,
-    call: ([onFulfilled, onRejected]) =>
-      createSandboxPromise(
-        target.promise.then(
-          (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
-          (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
-        )
-      ),
-    name: "then"
-  });
+  if (property === "catch") {
+    return createSandboxClosure({
+      async: true,
+      call: ([onRejected]) =>
+        createSandboxPromise(
+          target.promise.then(
+            (value) => runPromiseReaction(undefined, value, "fulfilled", budget),
+            (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+          )
+        ),
+      name: "catch"
+    });
+  }
+
+  if (property === "finally") {
+    return createSandboxClosure({
+      async: true,
+      call: ([onFinally]) =>
+        createSandboxPromise(
+          target.promise.then(
+            (value) => runPromiseFinally(onFinally, value, "fulfilled", budget),
+            (reason: SandboxValue) => runPromiseFinally(onFinally, reason, "rejected", budget)
+          )
+        ),
+      name: "finally"
+    });
+  }
+
+  return undefined;
 }
 
 function settleIterable(
@@ -326,6 +354,25 @@ function runPromiseReaction(
 
   try {
     return resolveSandboxValue(handler.call([value]), { budget });
+  } catch (error) {
+    return Promise.reject(error as SandboxValue);
+  }
+}
+
+function runPromiseFinally(
+  handler: SandboxValue,
+  value: SandboxValue,
+  state: "fulfilled" | "rejected",
+  budget: Budget
+): Promise<SandboxValue> {
+  if (!isSandboxClosure(handler)) {
+    return runPromiseReaction(undefined, value, state, budget);
+  }
+
+  try {
+    return resolveSandboxValue(handler.call([]), { budget }).then(() =>
+      runPromiseReaction(undefined, value, state, budget)
+    );
   } catch (error) {
     return Promise.reject(error as SandboxValue);
   }

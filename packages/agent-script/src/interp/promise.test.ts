@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "./budget.js";
-import { createPromiseGlobals } from "./promise.js";
+import { createPromiseGlobals, getPromiseMember } from "./promise.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -36,7 +36,9 @@ describe("createPromiseGlobals", () => {
 
     await expect(
       resolvePromise(
-        resolveClosure(globals.Promise, "all").call([[1, 2, createSandboxPromise(Promise.resolve(3))]])
+        resolveClosure(globals.Promise, "all").call([
+          [1, 2, createSandboxPromise(Promise.resolve(3))]
+        ])
       )
     ).resolves.toEqual([1, 2, 3]);
   });
@@ -76,10 +78,9 @@ describe("createPromiseGlobals", () => {
     );
     const fast = createSandboxPromise(Promise.resolve("fast"));
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([[slow, fast]]))).resolves.toEqual([
-      "slow",
-      "fast"
-    ]);
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([[slow, fast]]))
+    ).resolves.toEqual(["slow", "fast"]);
   });
 
   it("keeps Promise.race empty iterables pending", async () => {
@@ -135,7 +136,9 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))).resolves.toEqual([]);
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))
+    ).resolves.toEqual([]);
   });
 
   it("returns Promise.allSettled fulfillment and rejection records per input", async () => {
@@ -166,11 +169,13 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual({
-      errors: [],
-      message: "All promises were rejected",
-      name: "AggregateError"
-    });
+    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual(
+      {
+        errors: [],
+        message: "All promises were rejected",
+        name: "AggregateError"
+      }
+    );
   });
 
   it("aggregates all Promise.any rejection reasons", async () => {
@@ -181,7 +186,10 @@ describe("createPromiseGlobals", () => {
     await expect(
       resolvePromise(
         resolveClosure(globals.Promise, "any").call([
-          [createSandboxPromise(Promise.reject("left")), createSandboxPromise(Promise.reject("right"))]
+          [
+            createSandboxPromise(Promise.reject("left")),
+            createSandboxPromise(Promise.reject("right"))
+          ]
         ])
       )
     ).rejects.toEqual({
@@ -199,7 +207,10 @@ describe("createPromiseGlobals", () => {
     await expect(
       resolvePromise(
         resolveClosure(globals.Promise, "any").call([
-          [createSandboxPromise(Promise.reject("left")), createSandboxPromise(Promise.resolve("right"))]
+          [
+            createSandboxPromise(Promise.reject("left")),
+            createSandboxPromise(Promise.resolve("right"))
+          ]
         ])
       )
     ).resolves.toBe("right");
@@ -212,7 +223,9 @@ describe("createPromiseGlobals", () => {
         budget: new Budget()
       });
 
-      await expect(resolvePromise(resolveClosure(globals.Promise, name).call([123]))).rejects.toThrow(TypeError);
+      await expect(
+        resolvePromise(resolveClosure(globals.Promise, name).call([123]))
+      ).rejects.toThrow(TypeError);
     }
   );
 
@@ -225,7 +238,9 @@ describe("createPromiseGlobals", () => {
       const failure = new Error("next failed");
 
       await expect(
-        resolvePromise(resolveClosure(globals.Promise, name).call([createThrowingIterable(failure)]))
+        resolvePromise(
+          resolveClosure(globals.Promise, name).call([createThrowingIterable(failure)])
+        )
       ).rejects.toBe(failure);
     }
   );
@@ -237,7 +252,9 @@ describe("createPromiseGlobals", () => {
 
     await expect(
       resolvePromise(
-        resolveClosure(globals.Promise, "all").call([[createThenable((resolve) => resolve("thenable"))]])
+        resolveClosure(globals.Promise, "all").call([
+          [createThenable((resolve) => resolve("thenable"))]
+        ])
       )
     ).resolves.toEqual(["thenable"]);
   });
@@ -248,10 +265,9 @@ describe("createPromiseGlobals", () => {
     });
     const promise = createSandboxPromise(Promise.resolve("same"));
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([[promise, promise]]))).resolves.toEqual([
-      "same",
-      "same"
-    ]);
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([[promise, promise]]))
+    ).resolves.toEqual(["same", "same"]);
   });
 
   it("exposes await-only subset Promise helpers", async () => {
@@ -262,12 +278,17 @@ describe("createPromiseGlobals", () => {
     expect(resolveClosure(globals.Promise, "resolve").call(["value"])).toSatisfy(isSandboxPromise);
     expect(resolveClosure(globals.Promise, "reject").call(["boom"])).toSatisfy(isSandboxPromise);
     await expect(
-      resolvePromise(resolveClosure(globals.Promise, "all").call([[1, createSandboxPromise(Promise.resolve(2))]]))
+      resolvePromise(
+        resolveClosure(globals.Promise, "all").call([[1, createSandboxPromise(Promise.resolve(2))]])
+      )
     ).resolves.toEqual([1, 2]);
     await expect(
       resolvePromise(
         resolveClosure(globals.Promise, "race").call([
-          [createSandboxPromise(Promise.resolve("first")), createSandboxPromise(new Promise(() => undefined))]
+          [
+            createSandboxPromise(Promise.resolve("first")),
+            createSandboxPromise(new Promise(() => undefined))
+          ]
         ])
       )
     ).resolves.toBe("first");
@@ -294,12 +315,12 @@ describe("createPromiseGlobals", () => {
         ])
       )
     ).resolves.toBe("yes");
-    await expect(resolvePromise(resolveClosure(globals.Promise, "resolve").call(["ready"]))).resolves.toBe(
-      "ready"
-    );
-    await expect(resolvePromise(resolveClosure(globals.Promise, "reject").call(["boom"]))).rejects.toBe(
-      "boom"
-    );
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "resolve").call(["ready"]))
+    ).resolves.toBe("ready");
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "reject").call(["boom"]))
+    ).rejects.toBe("boom");
   });
 
   it("returns a subset AggregateError shape when Promise.any rejects", async () => {
@@ -310,7 +331,10 @@ describe("createPromiseGlobals", () => {
     await expect(
       resolvePromise(
         resolveClosure(globals.Promise, "any").call([
-          [createSandboxPromise(Promise.reject("left")), createSandboxPromise(Promise.reject("right"))]
+          [
+            createSandboxPromise(Promise.reject("left")),
+            createSandboxPromise(Promise.reject("right"))
+          ]
         ])
       )
     ).rejects.toEqual({
@@ -325,13 +349,19 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([[]]))).resolves.toEqual([]);
-    await expect(resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))).resolves.toEqual([]);
-    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual({
-      errors: [],
-      message: "All promises were rejected",
-      name: "AggregateError"
-    });
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([[]]))
+    ).resolves.toEqual([]);
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))
+    ).resolves.toEqual([]);
+    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual(
+      {
+        errors: [],
+        message: "All promises were rejected",
+        name: "AggregateError"
+      }
+    );
 
     const pendingRace = resolvePromise(resolveClosure(globals.Promise, "race").call([[]]));
 
@@ -351,7 +381,9 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call(["ab"]))).resolves.toEqual(["a", "b"]);
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call(["ab"]))
+    ).resolves.toEqual(["a", "b"]);
     await expect(
       resolvePromise(
         resolveClosure(globals.Promise, "all").call([
@@ -373,12 +405,12 @@ describe("createPromiseGlobals", () => {
       budget: new Budget()
     });
 
-    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([123]))).rejects.toThrow(
-      "Promise helpers require an iterable."
-    );
-    await expect(resolvePromise(resolveClosure(globals.Promise, "race").call([undefined]))).rejects.toThrow(
-      "Promise helpers require an iterable."
-    );
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "all").call([123]))
+    ).rejects.toThrow("Promise helpers require an iterable.");
+    await expect(
+      resolvePromise(resolveClosure(globals.Promise, "race").call([undefined]))
+    ).rejects.toThrow("Promise helpers require an iterable.");
   });
 
   it("adopts subset Promises passed to Promise.resolve", async () => {
@@ -417,7 +449,9 @@ describe("createPromiseGlobals", () => {
     );
     await expect(
       resolvePromise(
-        resolveClosure(stringBudgetGlobals.Promise, "allSettled").call([[createSandboxPromise(Promise.resolve(1))]])
+        resolveClosure(stringBudgetGlobals.Promise, "allSettled").call([
+          [createSandboxPromise(Promise.resolve(1))]
+        ])
       )
     ).rejects.toEqual(
       expect.objectContaining({
@@ -440,7 +474,9 @@ describe("createPromiseGlobals", () => {
       })
     });
 
-    await expect(resolvePromise(resolveClosure(resolveGlobals.Promise, "resolve").call(["ready"]))).rejects.toEqual(
+    await expect(
+      resolvePromise(resolveClosure(resolveGlobals.Promise, "resolve").call(["ready"]))
+    ).rejects.toEqual(
       expect.objectContaining({
         budget: "stringLength",
         current: 5,
@@ -456,6 +492,152 @@ describe("createPromiseGlobals", () => {
         limit: 1
       } satisfies Partial<SandboxError>)
     );
+  });
+});
+
+describe("getPromiseMember", () => {
+  it("recovers from rejection with catch", async () => {
+    const recovered = callPromiseMember(createSandboxPromise(Promise.reject("failure")), "catch", [
+      createSandboxClosure({
+        call: ([reason]) => `recovered: ${String(reason)}`,
+        name: "recover"
+      })
+    ]);
+
+    await expect(recovered.promise).resolves.toBe("recovered: failure");
+  });
+
+  it("awaits an async catch handler", async () => {
+    const recovered = callPromiseMember(createSandboxPromise(Promise.reject("failure")), "catch", [
+      createSandboxClosure({
+        async: true,
+        call: () => createSandboxPromise(Promise.resolve("recovered")),
+        name: "recover"
+      })
+    ]);
+
+    await expect(recovered.promise).resolves.toBe("recovered");
+  });
+
+  it.each([
+    { outcome: "fulfilled", promise: () => Promise.resolve("value") },
+    { outcome: "rejected", promise: () => Promise.reject("reason") }
+  ])("runs finally on $outcome and passes the outcome through", async ({ outcome, promise }) => {
+    const onFinally = vi.fn(() => undefined);
+    const settled = callPromiseMember(createSandboxPromise(promise()), "finally", [
+      createSandboxClosure({
+        call: (args) => {
+          onFinally(args);
+          return undefined;
+        },
+        name: "cleanup"
+      })
+    ]);
+
+    if (outcome === "fulfilled") {
+      await expect(settled.promise).resolves.toBe("value");
+    } else {
+      await expect(settled.promise).rejects.toBe("reason");
+    }
+    expect(onFinally).toHaveBeenCalledWith([]);
+  });
+
+  it("awaits async finally before propagating the original value", async () => {
+    const order: string[] = [];
+    const settled = callPromiseMember(createSandboxPromise(Promise.resolve("value")), "finally", [
+      createSandboxClosure({
+        async: true,
+        call: () =>
+          createSandboxPromise(
+            Promise.resolve().then(() => {
+              order.push("finally");
+              return "ignored";
+            })
+          ),
+        name: "cleanup"
+      })
+    ]);
+
+    const result = settled.promise.then((value) => {
+      order.push("settled");
+      return value;
+    });
+
+    await expect(result).resolves.toBe("value");
+    expect(order).toEqual(["finally", "settled"]);
+  });
+
+  it("rejects when finally throws", async () => {
+    const failure = new Error("cleanup failed");
+    const settled = callPromiseMember(createSandboxPromise(Promise.resolve("value")), "finally", [
+      createSandboxClosure({
+        call: () => {
+          throw failure;
+        },
+        name: "cleanup"
+      })
+    ]);
+
+    await expect(settled.promise).rejects.toBe(failure);
+  });
+
+  it("replaces the original rejection when async finally rejects", async () => {
+    const settled = callPromiseMember(createSandboxPromise(Promise.reject("original")), "finally", [
+      createSandboxClosure({
+        async: true,
+        call: () => createSandboxPromise(Promise.reject("cleanup failed")),
+        name: "cleanup"
+      })
+    ]);
+
+    await expect(settled.promise).rejects.toBe("cleanup failed");
+  });
+
+  it.each(["catch", "finally"])(
+    "passes rejection through when %s has no closure handler",
+    async (name) => {
+      const settled = callPromiseMember(
+        createSandboxPromise(Promise.reject("reason")),
+        name,
+        [123]
+      );
+
+      await expect(settled.promise).rejects.toBe("reason");
+    }
+  );
+
+  it("only exposes closed-world promise members", () => {
+    const target = createSandboxPromise(Promise.resolve("value"));
+
+    expect(getPromiseMember(target, "then", new Budget())).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember(target, "catch", new Budget())).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember(target, "finally", new Budget())).toSatisfy(isSandboxClosure);
+    expect(getPromiseMember(target, "constructor", new Budget())).toBeUndefined();
+  });
+
+  it("chains catch before finally", async () => {
+    const order: string[] = [];
+    const recovered = callPromiseMember(createSandboxPromise(Promise.reject("failure")), "catch", [
+      createSandboxClosure({
+        call: () => {
+          order.push("catch");
+          return "recovered";
+        },
+        name: "recover"
+      })
+    ]);
+    const settled = callPromiseMember(recovered, "finally", [
+      createSandboxClosure({
+        call: () => {
+          order.push("finally");
+          return undefined;
+        },
+        name: "cleanup"
+      })
+    ]);
+
+    await expect(settled.promise).resolves.toBe("recovered");
+    expect(order).toEqual(["catch", "finally"]);
   });
 });
 
@@ -475,6 +657,24 @@ async function resolvePromise(value: unknown): Promise<unknown> {
   }
 
   return value.promise;
+}
+
+function callPromiseMember(
+  target: ReturnType<typeof createSandboxPromise>,
+  name: string,
+  args: SandboxValue[]
+): ReturnType<typeof createSandboxPromise> {
+  const member = getPromiseMember(target, name, new Budget());
+  if (!isSandboxClosure(member)) {
+    throw new TypeError(`Expected Promise.${name} to be a sandbox closure.`);
+  }
+
+  const result = member.call(args);
+  if (!isSandboxPromise(result)) {
+    throw new TypeError(`Expected Promise.${name} to return a sandbox promise.`);
+  }
+
+  return result;
 }
 
 function createThenable(

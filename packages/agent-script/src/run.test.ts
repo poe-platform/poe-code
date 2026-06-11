@@ -850,6 +850,35 @@ describe("run", () => {
     ]);
   });
 
+  it("supports catch and finally promise chains in sandbox scripts", async () => {
+    const result = await run(`
+      const order = [];
+      const recovered = await Promise.reject('failure')
+        .catch(async (reason) => {
+          order.push('catch:' + reason);
+          return await Promise.resolve('recovered');
+        })
+        .finally(async () => {
+          order.push('finally');
+          await Promise.resolve('ignored');
+        });
+      let rejected;
+      try {
+        await Promise.reject('original').finally(() => {
+          throw 'cleanup';
+        });
+      } catch (error) {
+        rejected = error;
+      }
+      return JSON.stringify(Array.of(recovered, order, rejected));
+    `);
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["recovered", ["catch:failure", "finally"], "cleanup"])
+    });
+  });
+
   it("rejects in-flight awaits and the next host call when aborted", async () => {
     const controller = new AbortController();
     const after = vi.fn(() => "after");

@@ -104,7 +104,7 @@ describe("createObjectArrayGlobals", () => {
     const protoEntryObject = await fromEntries.call([[["__proto__", 1]]]);
     expect(Object.hasOwn(protoEntryObject as object, "__proto__")).toBe(true);
     expect((protoEntryObject as Record<string, unknown>).__proto__).toBe(1);
-    expect(Object.getPrototypeOf(protoEntryObject)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(protoEntryObject)).toBeNull();
 
     const frozen = await freeze.call([{ a: 1 }]);
     expect(await freeze.call([frozen])).toBe(frozen);

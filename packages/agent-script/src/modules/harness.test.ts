@@ -155,7 +155,7 @@ describe("makeHarnessModule", () => {
     expect(module.meta.frontmatter.__proto__).toEqual({
       polluted: true
     });
-    expect(Object.getPrototypeOf(module.meta.frontmatter)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(module.meta.frontmatter)).toBeNull();
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 

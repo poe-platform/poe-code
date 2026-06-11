@@ -124,13 +124,13 @@ describe("sandbox values", () => {
     expect(sandboxCopy.__proto__).toEqual({
       polluted: true
     });
-    expect(Object.getPrototypeOf(sandboxCopy)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(sandboxCopy)).toBeNull();
 
     expect(Object.hasOwn(hostCopy, "__proto__")).toBe(true);
     expect(hostCopy.__proto__).toEqual({
       polluted: true
     });
-    expect(Object.getPrototypeOf(hostCopy)).toBe(Object.prototype);
+    expect(Object.getPrototypeOf(hostCopy)).toBeNull();
     expect(({} as Record<string, unknown>).polluted).toBeUndefined();
   });
 

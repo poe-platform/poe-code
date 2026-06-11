@@ -355,7 +355,7 @@ function copyJsonToSandbox(value: unknown, budget: Budget): SandboxValue {
   }
 
   if (isPlainObject(value)) {
-    const copy: SandboxObject = {};
+    const copy = Object.create(null) as SandboxObject;
 
     for (const [key, entry] of Object.entries(value)) {
       defineDataProperty(copy, key, copyJsonToSandbox(entry, budget));

@@ -299,13 +299,31 @@ function setProperty(
   value: SandboxValue
 ): void {
   if (Array.isArray(target)) {
-    (target as unknown as Record<string, SandboxValue>)[String(property)] = value;
+    const key = String(property);
+    if (key === "length" || isArrayIndexKey(key)) {
+      (target as unknown as Record<string, SandboxValue>)[key] = value;
+      return;
+    }
+    defineProperty(target, key, value);
     return;
   }
   defineProperty(target, String(property), value);
 }
 
-function defineProperty(target: SandboxObject, key: string, value: SandboxValue): void {
+function isArrayIndexKey(value: string): boolean {
+  if (value === "") {
+    return false;
+  }
+
+  const index = Number(value);
+  return Number.isInteger(index) && index >= 0 && index < 4_294_967_295 && String(index) === value;
+}
+
+function defineProperty(
+  target: SandboxArray | SandboxObject,
+  key: string,
+  value: SandboxValue
+): void {
   Object.defineProperty(target, key, {
     configurable: true,
     enumerable: true,

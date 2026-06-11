@@ -386,7 +386,7 @@ function copyToSandbox(
       return existing;
     }
 
-    const copy = createPlainObject(Object.getPrototypeOf(value) === null);
+    const copy = createPlainObject(true);
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {

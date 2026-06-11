@@ -376,8 +376,8 @@ tasks:
       Fast unit tests in a dedicated *.test.ts; no I/O, no LLM. If any probe
       reveals a real leak, fix it at the correct layer (do not weaken the test).
     status:
-      test: open
-      commit: open
+      test: done
+      commit: done
 
   - id: resume-crash-integration-suite
     title: Crash/resume integration tests across breakpoint kinds

@@ -162,7 +162,12 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
     }
 
     for (const [key, value] of getOwnEnumerableEntries(source)) {
-      (target as Record<string, SandboxValue>)[key] = value;
+      Object.defineProperty(target, key, {
+        configurable: true,
+        enumerable: true,
+        value,
+        writable: true
+      });
     }
   }
 

@@ -106,16 +106,19 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
 export function getPromiseMember(
   target: SandboxPromise,
   property: string | number,
-  budget: Budget
+  budget: Budget,
+  enqueue: <T>(task: () => Promise<T>) => Promise<T> = (task) => Promise.resolve().then(task)
 ): SandboxValue {
   if (property === "then") {
     return createSandboxClosure({
       async: true,
       call: ([onFulfilled, onRejected]) =>
         createSandboxPromise(
-          target.promise.then(
-            (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
-            (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+          enqueue(() =>
+            target.promise.then(
+              (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
+              (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+            )
           )
         ),
       name: "then"
@@ -127,9 +130,11 @@ export function getPromiseMember(
       async: true,
       call: ([onRejected]) =>
         createSandboxPromise(
-          target.promise.then(
-            (value) => runPromiseReaction(undefined, value, "fulfilled", budget),
-            (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+          enqueue(() =>
+            target.promise.then(
+              (value) => runPromiseReaction(undefined, value, "fulfilled", budget),
+              (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+            )
           )
         ),
       name: "catch"
@@ -141,9 +146,11 @@ export function getPromiseMember(
       async: true,
       call: ([onFinally]) =>
         createSandboxPromise(
-          target.promise.then(
-            (value) => runPromiseFinally(onFinally, value, "fulfilled", budget),
-            (reason: SandboxValue) => runPromiseFinally(onFinally, reason, "rejected", budget)
+          enqueue(() =>
+            target.promise.then(
+              (value) => runPromiseFinally(onFinally, value, "fulfilled", budget),
+              (reason: SandboxValue) => runPromiseFinally(onFinally, reason, "rejected", budget)
+            )
           )
         ),
       name: "finally"

@@ -155,7 +155,7 @@ export class Scope {
 
     const binding = scope.#bindings.get(name);
     if (binding?.kind === "const") {
-      throw new Error(`Cannot assign to const binding '${name}'.`);
+      throw new TypeError(`Cannot assign to const binding '${name}'.`);
     }
 
     if (binding === undefined) {

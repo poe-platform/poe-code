@@ -305,6 +305,7 @@ export async function interpret(
     rootNode: node,
     scope,
     stats,
+    microtasks: [],
     activeLoopIterations,
     restoredLoopIterations: new Map(
       Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
@@ -456,6 +457,12 @@ async function evaluateArrayExpression(
   const values: SandboxArray = [];
 
   for (const element of node.elements) {
+    if (element.type === "UndefinedLiteral" && element.elision === true) {
+      values.length += 1;
+      context.budget.allocateArrayLength(values.length);
+      continue;
+    }
+
     if (element.type === "SpreadElement") {
       const spreadValues = await evaluateSpreadElement(element, context);
       if (!spreadValues.ok) {
@@ -734,7 +741,7 @@ async function evaluateAssignmentExpression(
   }
 
   if (binding.kind === "const") {
-    throw new Error(`Cannot assign to const '${node.left.name}'`);
+    throw new TypeError(`Cannot assign to const '${node.left.name}'`);
   }
 
   if (node.operator === "&&=" && !isTruthy(binding.value)) {
@@ -2128,7 +2135,7 @@ async function evaluateIdentifierUpdateExpression(
   }
 
   if (binding.kind === "const") {
-    throw new Error(`Cannot assign to const '${node.argument.name}'`);
+    throw new TypeError(`Cannot assign to const '${node.argument.name}'`);
   }
 
   const current = Number(binding.value);
@@ -2259,7 +2266,9 @@ async function evaluateMemberExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: getPromiseMember(member.object, member.property, context.budget)
+      value: getPromiseMember(member.object, member.property, context.budget, (task) =>
+        enqueueMicrotask(context, task)
+      )
     };
   }
 
@@ -2280,6 +2289,14 @@ async function evaluateMemberExpression(
     hasValue: true,
     value: getMemberValue(member.object, member.property, context)
   };
+}
+
+function enqueueMicrotask<T>(context: EvaluationContext, task: () => Promise<T>): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    context.microtasks.push(() => {
+      task().then(resolve, reject);
+    });
+  });
 }
 
 async function evaluateCallExpression(
@@ -2624,7 +2641,9 @@ async function evaluateMemberCallExpression(
   if (isSandboxPromise(member.object)) {
     return evaluateResolvedCallExpression(
       node,
-      getPromiseMember(member.object, member.property, context.budget),
+      getPromiseMember(member.object, member.property, context.budget, (task) =>
+        enqueueMicrotask(context, task)
+      ),
       context,
       member.object
     );

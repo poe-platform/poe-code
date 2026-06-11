@@ -1,10 +1,15 @@
 import type {
+  ArrayPattern,
   ArrowFunctionExpression,
+  AssignmentPattern,
   AwaitExpression,
   BlockStatement,
   FunctionDeclaration,
   FunctionExpression,
+  Identifier,
+  ObjectPattern,
   ParseResult,
+  RestElement,
   SourceSpan
 } from "../parse.js";
 import { createGeneratorChannel, type GeneratorCompletion } from "./generator.js";
@@ -55,6 +60,7 @@ export type AsyncEvaluationContext = {
   stats: {
     nodeVisits: number;
   };
+  microtasks: Array<() => void>;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
   generatorResume?: {
     sent: GeneratorCompletion[];
@@ -248,6 +254,9 @@ export async function evaluateAwaitExpression(
   const leaveAwait = context.budget.enterAwait();
 
   try {
+    while (context.microtasks.length > 0) {
+      context.microtasks.shift()?.();
+    }
     return {
       kind: "normal",
       hasValue: true,
@@ -316,6 +325,12 @@ async function bindParameters(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<void> {
+  for (const param of params) {
+    for (const name of getParameterBindingNames(param)) {
+      scope.predeclare(name, "let");
+    }
+  }
+
   for (let index = 0; index < params.length; index += 1) {
     const param = params[index];
     if (param.type === "RestElement") {
@@ -346,6 +361,37 @@ async function bindParameters(
         throw binding.result.value;
       }
     }
+  }
+}
+
+function getParameterBindingNames(
+  pattern:
+    | Identifier
+    | AssignmentPattern
+    | ArrayPattern
+    | ObjectPattern
+    | RestElement
+    | import("../parse.js").MemberExpression
+): string[] {
+  switch (pattern.type) {
+    case "Identifier":
+      return [pattern.name];
+    case "MemberExpression":
+      return [];
+    case "AssignmentPattern":
+      return getParameterBindingNames(pattern.left);
+    case "RestElement":
+      return getParameterBindingNames(pattern.argument);
+    case "ArrayPattern":
+      return pattern.elements.flatMap((element) =>
+        element === null ? [] : getParameterBindingNames(element)
+      );
+    case "ObjectPattern":
+      return pattern.properties.flatMap((property) =>
+        property.type === "RestElement"
+          ? getParameterBindingNames(property)
+          : getParameterBindingNames(property.value)
+      );
   }
 }
 

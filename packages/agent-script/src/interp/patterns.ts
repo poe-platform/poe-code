@@ -75,7 +75,7 @@ function bindIdentifier(
         throw new ReferenceError(`Cannot assign to undeclared binding '${pattern.name}'.`);
       }
       if (binding.kind === "const") {
-        throw new Error(`Cannot assign to const '${pattern.name}'`);
+        throw new TypeError(`Cannot assign to const '${pattern.name}'`);
       }
     }
     scope.assign(pattern.name, value);

@@ -531,8 +531,8 @@ tasks:
       case reveals a real interpreter bug, fix it at the correct layer and keep
       the assertion — do not weaken it to match a wrong result.
     status:
-      test: open
-      commit: open
+      test: done
+      commit: done
 ---
 
 # Context

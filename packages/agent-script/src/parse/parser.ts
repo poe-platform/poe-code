@@ -72,6 +72,7 @@ export type UndefinedLiteral = BaseNode & {
   type: "UndefinedLiteral";
   raw: "undefined";
   value: undefined;
+  elision?: true;
 };
 
 export type TemplateElement = BaseNode & {
@@ -2726,8 +2727,19 @@ class Parser {
     }
 
     while (true) {
-      if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
-        throw unexpectedTokenError(this.currentToken());
+      if (this.consumePunctuator(",") !== undefined) {
+        const comma = this.previousToken();
+        elements.push({
+          type: "UndefinedLiteral",
+          raw: "undefined",
+          value: undefined,
+          elision: true,
+          span: createSpan(comma.start, comma.end)
+        });
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+          break;
+        }
+        continue;
       }
 
       if (this.consumePunctuator("...") !== undefined) {
@@ -3154,6 +3166,9 @@ class Parser {
 
   private arrayExpressionToPattern(node: ArrayExpression): ArrayPattern {
     const elements = node.elements.map((element, index) => {
+      if (element.type === "UndefinedLiteral" && element.elision === true) {
+        return null;
+      }
       const patternElement = this.toArrayPatternElement(element);
       if (patternElement.type === "RestElement" && index < node.elements.length - 1) {
         const nextElement = node.elements[index + 1]!;

@@ -20,6 +20,7 @@ export type SnapshotScheduler<TSnapshot> = {
   onYield(createSnapshot: () => TSnapshot): void;
   pause(): void;
   resume(): void;
+  write(snapshot: TSnapshot): Promise<void>;
 };
 
 export function createSnapshotScheduler<TSnapshot>(
@@ -36,7 +37,8 @@ export function createSnapshotScheduler<TSnapshot>(
       async finish() {},
       onYield() {},
       pause() {},
-      resume() {}
+      resume() {},
+      async write() {}
     };
   }
 
@@ -46,7 +48,10 @@ export function createSnapshotScheduler<TSnapshot>(
       async finish() {},
       onYield() {},
       pause() {},
-      resume() {}
+      resume() {},
+      async write(snapshot) {
+        await snapshotBackend.write(snapshot as Snapshot);
+      }
     };
   }
 
@@ -93,6 +98,10 @@ export function createSnapshotScheduler<TSnapshot>(
 
       isPaused = false;
       nextCheckpointAt = Date.now() + intervalMs;
+    },
+    async write(snapshot) {
+      await pendingWrite.catch(() => undefined);
+      await snapshotBackend.write(snapshot as Snapshot);
     }
   };
 }

@@ -50,7 +50,8 @@ import {
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
 import { DUMP_FORMAT_VERSION } from "./snapshot/dump-format.js";
-import { createSnapshotScheduler } from "./snapshot/scheduler.js";
+import { createSnapshotScheduler, type SnapshotScheduler } from "./snapshot/scheduler.js";
+import { UnsnapshotableValueError } from "./snapshot/serialize.js";
 
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
@@ -125,6 +126,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   const dumpController = createDumpController();
   const result = (async () => {
     const deactivateOtelSink = activateOtelSink(options.otelSink);
+    let createFailureSnapshot: (() => RunSnapshot) | undefined;
+    let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
     try {
       const restoredSnapshot =
         options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
@@ -182,11 +185,19 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }), {
         functionBoundary: true
       });
-      const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+      const activeSnapshotScheduler = createSnapshotScheduler<RunSnapshot>({
         snapshotBackend: options.snapshotBackend,
         snapshotIntervalMs: options.snapshotIntervalMs,
         snapshotPath: options.snapshotPath
       });
+      snapshotScheduler = activeSnapshotScheduler;
+      createFailureSnapshot = () =>
+        createRunSnapshot({
+          bindings: scope.snapshot().bindings,
+          clock: options.clock,
+          random,
+          sourceHash
+        });
       let snapshotIteration = 0;
 
       const topLevelResult = await interpret(createExecutableNode(module), {
@@ -213,7 +224,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             return snapshot;
           };
 
-          snapshotScheduler.onYield(createSnapshot);
+          activeSnapshotScheduler.onYield(createSnapshot);
           dumpController.onYield(createSnapshot);
         },
         scope,
@@ -251,13 +262,13 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   return snapshot;
                 };
 
-                snapshotScheduler.onYield(createSnapshot);
+                activeSnapshotScheduler.onYield(createSnapshot);
                 dumpController.onYield(createSnapshot);
               },
               scope,
               snapshot: interpreterSnapshot
             });
-      await snapshotScheduler.finish();
+      await activeSnapshotScheduler.finish();
 
       const snapshot = createRunSnapshot({
         bindings: scope.snapshot().bindings,
@@ -274,6 +285,19 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       };
     } catch (error) {
       materializeWrappedErrorCause(error);
+      if (createFailureSnapshot !== undefined && snapshotScheduler !== undefined) {
+        try {
+          const snapshot = createFailureSnapshot();
+          await snapshotScheduler.write(snapshot);
+          dumpController.finalize(snapshot);
+        } catch (snapshotError) {
+          if (snapshotError instanceof UnsnapshotableValueError) {
+            console.warn(`Skipping failure snapshot: ${snapshotError.message}`);
+          } else {
+            console.warn("Failed to write failure snapshot.", snapshotError);
+          }
+        }
+      }
       dumpController.fail(error);
       throw error;
     } finally {

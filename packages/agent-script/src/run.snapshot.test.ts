@@ -11,6 +11,7 @@ const { createSandboxClosure, createSandboxPromise } = await import("./interp/va
 const { makeAgentModule } = await import("./modules/agent.js");
 const { restore } = await import("./restore.js");
 const { run } = await import("./run.js");
+const { UnsnapshotableValueError } = await import("./snapshot/serialize.js");
 
 describe("run snapshot checkpointing", () => {
   beforeEach(() => {
@@ -123,6 +124,7 @@ describe("run snapshot checkpointing", () => {
 
   it("continues execution after a scheduled snapshot write fails and surfaces the write error at finish", async () => {
     const diskFull = new Error("no space left on device");
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
     const first = createDeferred<string>();
     const second = createDeferred<string>();
     let waitCalls = 0;
@@ -160,6 +162,116 @@ describe("run snapshot checkpointing", () => {
 
     second.resolve("omega");
     await expect(result).rejects.toBe(diskFull);
+    expect(warning).toHaveBeenCalledWith("Failed to write failure snapshot.", diskFull);
+  });
+
+  it("writes the live bindings before propagating a run failure", async () => {
+    const failure = new Error("boom");
+    const snapshots: unknown[] = [];
+    const result = run("let progress = 0; progress = 2; fail();", {
+      bindings: {
+        fail: createSandboxClosure({
+          call: () => {
+            throw failure;
+          },
+          name: "fail"
+        })
+      },
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async write(snapshot) {
+          snapshots.push(snapshot);
+        },
+        async remove() {}
+      }
+    });
+
+    await expect(result).rejects.toMatchObject({
+      message: failure.message,
+      name: failure.name
+    });
+    expect(snapshots).toHaveLength(1);
+    expect(snapshots[0]).toMatchObject({
+      bindings: {
+        progress: 2
+      }
+    });
+  });
+
+  it("skips an unsnapshotable failure snapshot without replacing the run failure", async () => {
+    const failure = new Error("boom");
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const write = vi.fn(async (snapshot: { bindings: Record<string, unknown> }) => {
+      expect(snapshot.bindings).toHaveProperty("iterator");
+      throw new UnsnapshotableValueError("bindings.iterator");
+    });
+    const result = run(
+      [
+        "function* values() { yield 1; yield 2; }",
+        "const iterator = values();",
+        "iterator.next();",
+        "fail();"
+      ].join("\n"),
+      {
+        bindings: {
+          fail: createSandboxClosure({
+            call: () => {
+              throw failure;
+            },
+            name: "fail"
+          })
+        },
+        snapshotBackend: {
+          async read() {
+            return undefined;
+          },
+          write,
+          async remove() {}
+        }
+      }
+    );
+
+    await expect(result).rejects.toMatchObject({
+      message: failure.message,
+      name: failure.name
+    });
+    expect(write).toHaveBeenCalledOnce();
+    expect(warning).toHaveBeenCalledWith(
+      "Skipping failure snapshot: Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary."
+    );
+  });
+
+  it("logs a failure snapshot write error without replacing the run failure", async () => {
+    const failure = new Error("boom");
+    const writeFailure = new Error("disk full");
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const result = run("let progress = 1; fail();", {
+      bindings: {
+        fail: createSandboxClosure({
+          call: () => {
+            throw failure;
+          },
+          name: "fail"
+        })
+      },
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async write() {
+          throw writeFailure;
+        },
+        async remove() {}
+      }
+    });
+
+    await expect(result).rejects.toMatchObject({
+      message: failure.message,
+      name: failure.name
+    });
+    expect(warning).toHaveBeenCalledWith("Failed to write failure snapshot.", writeFailure);
   });
 
   it("resolves dump() with the next yielded snapshot when requested mid-run", async () => {

@@ -315,7 +315,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: crash-time-final-snapshot
     title: Write a last-gasp snapshot when a run fails
@@ -344,9 +344,9 @@ tasks:
       live state is unsnapshotable still propagates the original error with the
       snapshot skipped (no secondary error). Fast unit tests, no real I/O.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: sandbox-escape-red-team-suite
     title: Adversarial sandbox-integrity test suite

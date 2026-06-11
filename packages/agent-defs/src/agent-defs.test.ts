@@ -3,6 +3,7 @@ import {
   claudeCodeAgent,
   claudeDesktopAgent,
   codexAgent,
+  cursorAgent,
   geminiCliAgent,
   openCodeAgent,
   kimiAgent,
@@ -19,6 +20,7 @@ const expectedAgents: AgentDefinition[] = [
   claudeCodeAgent,
   claudeDesktopAgent,
   codexAgent,
+  cursorAgent,
   geminiCliAgent,
   openCodeAgent,
   kimiAgent,
@@ -70,6 +72,7 @@ describe("agent-defs package", () => {
     expect(claudeCodeAgent).toBeDefined();
     expect(claudeDesktopAgent).toBeDefined();
     expect(codexAgent).toBeDefined();
+    expect(cursorAgent).toBeDefined();
     expect(geminiCliAgent).toBeDefined();
     expect(openCodeAgent).toBeDefined();
     expect(kimiAgent).toBeDefined();
@@ -147,6 +150,7 @@ describe("agent-defs package", () => {
     expect(resolveAgentId("GeMiNi")).toBe("gemini-cli");
     expect(resolveAgentId("kimi-cli")).toBe("kimi");
     expect(resolveAgentId("GOOSE")).toBe("goose");
+    expect(resolveAgentId("cursor-agent")).toBe("cursor");
   });
 
   it("resolves aliases with surrounding whitespace", () => {

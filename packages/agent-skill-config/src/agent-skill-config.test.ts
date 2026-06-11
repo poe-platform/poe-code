@@ -126,7 +126,7 @@ function extractBodyAfterFrontmatter(markdown: string): string {
 
 describe("supportedAgents", () => {
   it("includes supported agent ids", () => {
-    expect(supportedAgents).toEqual(["claude-code", "codex", "gemini-cli", "opencode", "goose"]);
+    expect(supportedAgents).toEqual(["claude-code", "codex", "cursor", "gemini-cli", "opencode", "goose"]);
   });
 
   it("does not expose mutable agent config state", () => {

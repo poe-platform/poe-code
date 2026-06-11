@@ -12,6 +12,7 @@ import { openCodeSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
+import { cursorSpawnConfig } from "./cursor.js";
 import { serializeCodexMcpArgs, serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
@@ -57,10 +58,37 @@ describe("configs/mcp support", () => {
     expect(listMcpSupportedAgents()).toEqual([
       "claude-code",
       "codex",
+      "cursor",
       "opencode",
       "kimi",
       "goose"
     ]);
+  });
+
+  it("builds Cursor arguments and transforms only Poe-style Claude ids", async () => {
+    const { buildSpawnArgs } = await import("../spawn.js");
+    expect(getSpawnConfig("cursor-agent")).toBe(cursorSpawnConfig);
+    expect(buildSpawnArgs("cursor", {
+      prompt: "hello",
+      model: "anthropic/claude-opus-4.7",
+      mode: "read",
+      resumeThreadId: "session-1"
+    }).args).toEqual([
+      "--output-format", "stream-json", "--trust", "--approve-mcps",
+      "-p", "--resume", "session-1", "hello", "--model", "claude-opus-4-7",
+      "--mode", "plan"
+    ]);
+    expect(buildSpawnArgs("cursor", {
+      prompt: "hello",
+      model: "claude-4.5-sonnet-thinking",
+      mode: "edit"
+    }).args).toContain("claude-4.5-sonnet-thinking");
+  });
+
+  it("omits Cursor's prompt when stdin is requested", async () => {
+    const { buildSpawnArgs } = await import("../spawn.js");
+    expect(buildSpawnArgs("cursor", { prompt: "secret", useStdin: true }).args).not.toContain("secret");
+    expect(supportsMcpAtSpawn("cursor")).toBe(true);
   });
 });
 

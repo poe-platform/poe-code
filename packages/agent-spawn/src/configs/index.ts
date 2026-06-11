@@ -6,6 +6,7 @@ import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
+import { cursorSpawnConfig } from "./cursor.js";
 
 function freezeConfig<T extends SpawnConfig | AcpSpawnConfig>(config: T): T {
   freezeValue(config);
@@ -28,6 +29,7 @@ function freezeValue(value: unknown): void {
 export const allSpawnConfigs: readonly SpawnConfig[] = Object.freeze([
   freezeConfig(claudeCodeSpawnConfig),
   freezeConfig(codexSpawnConfig),
+  freezeConfig(cursorSpawnConfig),
   freezeConfig(openCodeSpawnConfig),
   freezeConfig(kimiSpawnConfig),
   freezeConfig(gooseSpawnConfig)
@@ -66,7 +68,9 @@ export function supportsMcpAtSpawn(input: string): boolean {
   return (
     !!config &&
     config.kind === "cli" &&
-    (typeof config.mcpArgs === "function" || typeof config.mcpEnv === "function")
+    (typeof config.mcpArgs === "function" ||
+      typeof config.mcpEnv === "function" ||
+      config.mcpFile !== undefined)
   );
 }
 
@@ -76,7 +80,9 @@ export function listMcpSupportedAgents(): string[] {
   for (const config of allSpawnConfigs) {
     if (
       config.kind !== "cli" ||
-      (typeof config.mcpArgs !== "function" && typeof config.mcpEnv !== "function")
+      (typeof config.mcpArgs !== "function" &&
+        typeof config.mcpEnv !== "function" &&
+        config.mcpFile === undefined)
     ) {
       continue;
     }

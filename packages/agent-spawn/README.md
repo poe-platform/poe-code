@@ -1,5 +1,7 @@
 # @poe-code/agent-spawn
 
+Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. No environment variables are injected. Supported modes map to Cursor's forced sandbox-disabled, forced edit, and plan/read-only modes.
+
 `@poe-code/agent-spawn` contains the low-level spawn adapters used by the CLI and SDK to run supported coding agents, stream ACP-like events, pass model and permission-mode flags, inject MCP servers at spawn time, and resume prior sessions when an agent returns a thread/session ID.
 
 ## Usage
@@ -34,7 +36,7 @@ Mode-specific args and env vars are declared in each agent config. Goose uses `G
 
 ## MCP at spawn time
 
-Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into the agent-specific CLI args or environment variables. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
+Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
 ## Autonomous streaming
 

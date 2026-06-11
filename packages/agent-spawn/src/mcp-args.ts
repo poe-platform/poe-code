@@ -15,7 +15,7 @@ export function getMcpArgs(
   if (!hasMcpServers(servers)) {
     return [];
   }
-  if (!config.mcpArgs && !config.mcpEnv) {
+  if (!config.mcpArgs && !config.mcpEnv && !config.mcpFile) {
     throw new Error(formatUnsupportedMcpSpawnMessage(config.agentId));
   }
   if (!config.mcpArgs) {

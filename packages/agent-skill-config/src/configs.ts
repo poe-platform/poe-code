@@ -18,6 +18,10 @@ const agentSkillConfigs: Record<string, AgentSkillConfig> = {
     globalSkillDir: "~/.codex/skills",
     localSkillDir: ".codex/skills"
   },
+  cursor: {
+    globalSkillDir: "~/.cursor/skills-cursor",
+    localSkillDir: ".cursor/skills"
+  },
   "gemini-cli": {
     globalSkillDir: "~/.gemini/skills",
     localSkillDir: ".gemini/skills"

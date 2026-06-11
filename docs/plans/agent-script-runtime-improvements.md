@@ -411,7 +411,7 @@ tasks:
       file I/O outside memfs, no LLM.
     status:
       test: done
-      commit: open
+      commit: done
 
   - id: language-interaction-stress-suite
     title: Complex language-feature interaction and snapshot round-trip tests
@@ -442,8 +442,8 @@ tasks:
       Fast unit tests, no timers beyond immediate resolution, no file I/O outside
       memfs, no LLM. If a probe reveals a real bug, fix it at the correct layer.
     status:
-      test: open
-      commit: open
+      test: done
+      commit: done
 
   - id: js-edge-case-conformance-matrix
     title: 50+ notorious JavaScript edge-case conformance tests

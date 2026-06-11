@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 import { Budget, SandboxError } from "../budget.js";
 import {
   createSandboxClosure,
+  createSandboxMap,
   createSandboxPromise,
+  createSandboxSet,
+  isSandboxMap,
+  isSandboxSet,
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
@@ -62,6 +66,28 @@ describe("createMiscGlobals", () => {
     expect(Object.getPrototypeOf(clone)).toBeNull();
     expect(clone.first).toBe(clone.second);
     expect(clone.first).not.toBe(shared);
+  });
+
+  it("deep clones Map and Set graphs while preserving shared identity and cycles", () => {
+    const globals = createMiscGlobals({ budget: new Budget() });
+    const shared = { id: "shared" };
+    const set = createSandboxSet([shared]);
+    const source = createSandboxMap([[shared, set]]);
+    source.entries.set("self", source);
+
+    const clone = call(globals.structuredClone, source);
+
+    expect(isSandboxMap(clone)).toBe(true);
+    if (!isSandboxMap(clone)) return;
+    const [[clonedShared, clonedSet]] = [...clone.entries];
+    expect(clone).not.toBe(source);
+    expect(clone.entries.get("self")).toBe(clone);
+    expect(clonedShared).not.toBe(shared);
+    expect(isSandboxSet(clonedSet)).toBe(true);
+    if (isSandboxSet(clonedSet)) {
+      expect(clonedSet).not.toBe(set);
+      expect([...clonedSet.values][0]).toBe(clonedShared);
+    }
   });
 
   it("rejects closures and promises anywhere in the cloned value", () => {

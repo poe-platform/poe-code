@@ -1,10 +1,12 @@
 import type { Budget } from "../budget.js";
 import {
   allocateProducedSandboxValue,
+  cloneSandboxValue,
   createSandboxClosure,
-  deepCopyToSandbox,
   isSandboxClosure,
+  isSandboxMap,
   isSandboxPromise,
+  isSandboxSet,
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
@@ -43,7 +45,7 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
 }
 
 function structuredCloneSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
-  const clone = deepCopyToSandbox(value);
+  const clone = cloneSandboxValue(value);
   assertStructuredCloneable(clone, new WeakSet());
   return allocateProducedSandboxValue(clone, budget);
 }
@@ -58,6 +60,19 @@ function assertStructuredCloneable(value: SandboxValue, seen: WeakSet<object>): 
   }
 
   seen.add(value);
+  if (isSandboxMap(value)) {
+    for (const [key, entry] of value.entries) {
+      assertStructuredCloneable(key, seen);
+      assertStructuredCloneable(entry, seen);
+    }
+    return;
+  }
+  if (isSandboxSet(value)) {
+    for (const entry of value.values) {
+      assertStructuredCloneable(entry, seen);
+    }
+    return;
+  }
   for (const entry of Object.values(value)) {
     assertStructuredCloneable(entry, seen);
   }

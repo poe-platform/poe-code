@@ -98,6 +98,18 @@ export function createDumpController(): DumpController {
     },
     requestSnapshot() {
       if (failed !== undefined) {
+        if (
+          isDataBudgetError(failed.error) &&
+          (latestSnapshot !== undefined || latestSnapshotFactory !== undefined)
+        ) {
+          try {
+            return Promise.resolve(
+              serializeRunSnapshot(latestSnapshot ?? latestSnapshotFactory!())
+            );
+          } catch (error) {
+            return Promise.reject(error);
+          }
+        }
         return Promise.reject(failed.error);
       }
 
@@ -152,6 +164,17 @@ export function createDumpController(): DumpController {
     pendingRequest.resolve(snapshot);
     pendingRequest = undefined;
   }
+}
+
+function isDataBudgetError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "budgetExceeded" &&
+    "budget" in error &&
+    error.budget === "dataSize"
+  );
 }
 
 export function dump(

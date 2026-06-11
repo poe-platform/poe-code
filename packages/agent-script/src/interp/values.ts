@@ -10,6 +10,7 @@ const sandboxPromiseBrand = Symbol("SandboxPromise");
 const sandboxRegexBrand = Symbol("SandboxRegex");
 const sandboxRegexPattern = Symbol("SandboxRegexPattern");
 const sandboxSetBrand = Symbol("SandboxSet");
+const sandboxRetainedValues = Symbol("SandboxRetainedValues");
 
 export type SandboxPrimitive = string | number | boolean | null | undefined;
 
@@ -82,6 +83,7 @@ export type SandboxClosure = {
     context?: SandboxCallContext
   ) => SandboxValue | Promise<SandboxValue>;
   readonly [sandboxClosureBrand]: true;
+  readonly [sandboxRetainedValues]?: () => Iterable<SandboxValue>;
 };
 
 export type SandboxPromise = {
@@ -120,6 +122,7 @@ export function createSandboxClosure(input: {
   ) => SandboxValue | Promise<SandboxValue>;
   name?: string;
   properties?: SandboxObject;
+  retainedValues?: () => Iterable<SandboxValue>;
 }): SandboxClosure {
   const closure = {
     kind: "fn" as const,
@@ -138,6 +141,12 @@ export function createSandboxClosure(input: {
     Object.defineProperty(closure, "properties", {
       enumerable: false,
       value: Object.freeze(input.properties)
+    });
+  }
+
+  if (input.retainedValues !== undefined) {
+    Object.defineProperty(closure, sandboxRetainedValues, {
+      value: input.retainedValues
     });
   }
 
@@ -285,6 +294,67 @@ export function cloneSandboxValue(value: SandboxValue): SandboxValue {
 export function allocateProducedSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
   allocateSandboxValue(value, budget, new WeakSet());
   return value;
+}
+
+export function measureSandboxData(values: Iterable<unknown>): number {
+  const seen = new WeakSet<object>();
+  let usage = 0;
+
+  const visit = (value: unknown): void => {
+    if (typeof value === "string") {
+      usage += value.length;
+      return;
+    }
+    if (typeof value !== "object" || value === null) return;
+    if (seen.has(value)) return;
+    seen.add(value);
+
+    usage += 1;
+    if (Array.isArray(value)) {
+      usage += value.length;
+      for (const entry of value) visit(entry);
+      return;
+    }
+    if (isSandboxMap(value)) {
+      usage += value.entries.size;
+      for (const [key, entry] of value.entries) {
+        visit(key);
+        visit(entry);
+      }
+      return;
+    }
+    if (isSandboxSet(value)) {
+      usage += value.values.size;
+      for (const entry of value.values) visit(entry);
+      return;
+    }
+    if (isSandboxClosure(value)) {
+      if (value.properties !== undefined) visit(value.properties);
+      for (const retained of value[sandboxRetainedValues]?.() ?? []) visit(retained);
+      return;
+    }
+    if (isSandboxGenerator(value)) {
+      const snapshot = value.channel.snapshot();
+      usage += snapshot.sent.length;
+      for (const completion of snapshot.sent) visit(completion.value);
+      return;
+    }
+    if (isSandboxPromise(value)) return;
+    if (isSandboxRegex(value)) {
+      usage += value.source.length + value.flags.length;
+      return;
+    }
+
+    const entries = Object.entries(value);
+    usage += entries.length;
+    for (const [key, entry] of entries) {
+      usage += key.length;
+      visit(entry);
+    }
+  };
+
+  for (const value of values) visit(value);
+  return usage;
 }
 
 export function deepCopyFromSandbox(

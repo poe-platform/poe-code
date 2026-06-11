@@ -242,13 +242,29 @@ describe("agent-script CLI", () => {
     expect(stderr.output()).toContain("Budget exceeded: steps");
   });
 
-  it("preserves injected __proto__ modules for raw scripts", async () => {
+  it("enforces --data-size and exits with the budget message when exceeded", async () => {
     const stdout = createSink();
     const stderr = createSink();
     vol.writeFileSync(
       "/repo/script.ajs",
-      'import { value } from "__proto__";\nreturn value;\n'
+      'const values = ["aa", "bb", "cc", "dd", "ee", "ff"]; return values;'
     );
+
+    const exitCode = await runCli(["--data-size", "12", "script.ajs"], {
+      cwd: "/repo",
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(3);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Budget exceeded: dataSize");
+  });
+
+  it("preserves injected __proto__ modules for raw scripts", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync("/repo/script.ajs", 'import { value } from "__proto__";\nreturn value;\n');
 
     const exitCode = await runCli(["script.ajs"], {
       cwd: "/repo",

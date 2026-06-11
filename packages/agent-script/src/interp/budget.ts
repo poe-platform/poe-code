@@ -1,6 +1,12 @@
 import { replaceErrorStack } from "../error/shape.js";
 
-export type BudgetName = "steps" | "deadline" | "callDepth" | "stringLength" | "arrayLength";
+export type BudgetName =
+  | "steps"
+  | "deadline"
+  | "callDepth"
+  | "stringLength"
+  | "arrayLength"
+  | "dataSize";
 
 export type BudgetOptions = {
   maxSteps?: number;
@@ -8,6 +14,7 @@ export type BudgetOptions = {
   maxCallDepth?: number;
   stringLength?: number;
   arrayLength?: number;
+  dataSize?: number;
 };
 
 export const REGEX_STEP_LIMIT = 2_000;
@@ -47,6 +54,7 @@ type BudgetLimits = {
   maxCallDepth?: number;
   stringLength?: number;
   arrayLength?: number;
+  dataSize?: number;
 };
 
 export class Budget {
@@ -54,6 +62,8 @@ export class Budget {
   readonly limits: Readonly<BudgetLimits>;
   stepsUsed = 0;
   peakCallDepth = 0;
+  currentDataSize = 0;
+  peakDataSize = 0;
 
   currentCallDepth = 0;
   private allChecksSuspended = 0;
@@ -66,7 +76,8 @@ export class Budget {
       maxSteps: normalizeLimit("maxSteps", options.maxSteps),
       maxCallDepth: normalizeLimit("maxCallDepth", options.maxCallDepth),
       stringLength: normalizeLimit("stringLength", options.stringLength),
-      arrayLength: normalizeLimit("arrayLength", options.arrayLength)
+      arrayLength: normalizeLimit("arrayLength", options.arrayLength),
+      dataSize: normalizeLimit("dataSize", options.dataSize)
     });
   }
 
@@ -121,6 +132,27 @@ export class Budget {
     this.allocateArrayLength(count);
   }
 
+  reconcileDataUsage(usage: number): void {
+    this.checkDataUsage(usage);
+    this.currentDataSize = usage;
+    this.peakDataSize = Math.max(this.peakDataSize, usage);
+  }
+
+  provisionDataUsage(usage: number): () => void {
+    const previous = this.currentDataSize;
+    const next = previous + usage;
+    this.checkDataUsage(next);
+    this.currentDataSize = next;
+    this.peakDataSize = Math.max(this.peakDataSize, next);
+
+    let released = false;
+    return () => {
+      if (released) return;
+      released = true;
+      this.currentDataSize = previous;
+    };
+  }
+
   enterCall(): () => void {
     return this.enterDepth();
   }
@@ -133,6 +165,8 @@ export class Budget {
     this.stepsUsed = 0;
     this.peakCallDepth = 0;
     this.currentCallDepth = 0;
+    this.currentDataSize = 0;
+    this.peakDataSize = 0;
     this.allChecksSuspended = 0;
     this.deadlineChecksSuspended = 0;
     this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
@@ -185,6 +219,20 @@ export class Budget {
       current: now,
       limit: this.deadline
     });
+  }
+
+  private checkDataUsage(usage: number): void {
+    if (
+      this.allChecksSuspended === 0 &&
+      this.limits.dataSize !== undefined &&
+      usage > this.limits.dataSize
+    ) {
+      throw new SandboxError({
+        budget: "dataSize",
+        current: usage,
+        limit: this.limits.dataSize
+      });
+    }
   }
 
   private checkSampledDeadline(): void {

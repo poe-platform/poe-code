@@ -32,9 +32,9 @@ tasks:
       and CLI/SDK budget option parity if budget options are exposed there. Do
       not edit a README without explicit user permission.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: bounded-snapshot-decoder

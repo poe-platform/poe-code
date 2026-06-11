@@ -19,6 +19,7 @@ export type {
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { Budget, SandboxError } from "./interp/budget.js";
+export type { BudgetName, BudgetOptions } from "./interp/budget.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";
 export { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 export { runHarness, runHarnessPair } from "./runner/run-harness.js";

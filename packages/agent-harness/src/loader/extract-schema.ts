@@ -15,6 +15,7 @@ type ParsedVariableDeclaration = Extract<ParsedStatement, { type: "VariableDecla
 
 const SCHEMA_EXTRACTION_BUDGET = {
   arrayLength: 1_000,
+  dataSize: 200_000,
   maxCallDepth: 20,
   maxSteps: 200,
   stringLength: 100_000
@@ -104,10 +105,7 @@ function collectPriorTopLevelBindings(
 
   for (const statement of module.body) {
     const declaration = readVariableDeclaration(statement);
-    if (
-      declaration === undefined ||
-      (declaration.kind !== "const" && declaration.kind !== "let")
-    ) {
+    if (declaration === undefined || (declaration.kind !== "const" && declaration.kind !== "let")) {
       continue;
     }
 
@@ -124,7 +122,9 @@ function collectPriorTopLevelBindings(
   return bindingNames;
 }
 
-function readVariableDeclaration(statement: ParsedStatement): ParsedVariableDeclaration | undefined {
+function readVariableDeclaration(
+  statement: ParsedStatement
+): ParsedVariableDeclaration | undefined {
   if (statement.type === "VariableDeclaration") {
     return statement;
   }

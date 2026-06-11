@@ -64,6 +64,7 @@ type HarnessMeta = {
 type ParsedArgs = {
   filepath?: string;
   fix: boolean;
+  dataSize?: number;
   maxSteps?: number;
   restorePath?: string;
   snapshotPath?: string;
@@ -155,7 +156,13 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
     }
 
     if (arg === "--max-steps") {
-      parsed.maxSteps = readMaxSteps(readFlagValue(argv, index, arg), arg);
+      parsed.maxSteps = readPositiveInteger(readFlagValue(argv, index, arg), arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--data-size") {
+      parsed.dataSize = readPositiveInteger(readFlagValue(argv, index, arg), arg);
       index += 1;
       continue;
     }
@@ -183,7 +190,7 @@ function readFlagValue(argv: readonly string[], index: number, flag: string): st
   return value;
 }
 
-function readMaxSteps(value: string, flag: string): number {
+function readPositiveInteger(value: string, flag: string): number {
   const parsed = Number(value);
 
   if (!Number.isInteger(parsed) || parsed <= 0) {
@@ -302,7 +309,10 @@ async function runScriptFile(
   options.process.on("SIGINT", onSigint);
   try {
     runPromise = run(executableSource, {
-      budget: parsed.maxSteps === undefined ? undefined : new Budget({ maxSteps: parsed.maxSteps }),
+      budget:
+        parsed.maxSteps === undefined && parsed.dataSize === undefined
+          ? undefined
+          : new Budget({ dataSize: parsed.dataSize, maxSteps: parsed.maxSteps }),
       entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
       filename: filepath,
       modules,
@@ -552,6 +562,7 @@ function createUsage(): string {
     "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
     "  --restore <path>      restore from a snapshot before running",
     "  --max-steps <n>       cap interpreter step budget",
+    "  --data-size <n>       cap retained sandbox data units",
     "  -h, --help            print this help",
     "",
     "Exit codes:",

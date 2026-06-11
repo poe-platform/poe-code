@@ -148,43 +148,46 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               budget,
               signal: options.signal
             });
-      const bindings = wrapCancelableBindings(
-        {
-          ...createConsoleJsonGlobals({
-            budget,
-            sink: options.sink
-          }),
-          ...createCollectionGlobals({ budget }),
-          ...createErrorGlobals({
-            budget
-          }),
-          ...createMathGlobals({
-            random: random?.generator.next
-          }),
-          ...createObjectArrayGlobals({
-            budget
-          }),
-          ...createMiscGlobals({
-            budget
-          }),
-          ...createPromiseGlobals({
-            budget
-          }),
-          ...createRegexGlobals(),
-          ...callerBindings
-        },
-        options.signal
-      );
+      const builtinBindings = {
+        ...createConsoleJsonGlobals({
+          budget,
+          sink: options.sink
+        }),
+        ...createCollectionGlobals({ budget }),
+        ...createErrorGlobals({
+          budget
+        }),
+        ...createMathGlobals({
+          random: random?.generator.next
+        }),
+        ...createObjectArrayGlobals({
+          budget
+        }),
+        ...createMiscGlobals({
+          budget
+        }),
+        ...createPromiseGlobals({
+          budget
+        }),
+        ...createRegexGlobals()
+      };
+      const bindings = wrapCancelableBindings(builtinBindings, options.signal);
+      const cancelableCallerBindings = wrapCancelableBindings(callerBindings, options.signal);
 
       const scope = new Scope(
         bindings,
         undefined,
-        deepCopyToSandbox(options.importMeta ?? {}),
         undefined,
+        { chargeData: false },
         interpreterSnapshot?.bindings as Record<string, SandboxValue> | undefined
-      ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }), {
-        functionBoundary: true
-      });
+      );
+      const callerScope = scope.child(cancelableCallerBindings);
+      const executionScope = new Scope(
+        resolveModuleImports(module, options.modules, { budget, signal: options.signal }),
+        callerScope,
+        deepCopyToSandbox(options.importMeta ?? {}),
+        { functionBoundary: true }
+      );
       const activeSnapshotScheduler = createSnapshotScheduler<RunSnapshot>({
         snapshotBackend: options.snapshotBackend,
         snapshotIntervalMs: options.snapshotIntervalMs,
@@ -193,7 +196,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       snapshotScheduler = activeSnapshotScheduler;
       createFailureSnapshot = () =>
         createRunSnapshot({
-          bindings: scope.snapshot().bindings,
+          bindings: executionScope.snapshot().bindings,
           clock: options.clock,
           random,
           sourceHash
@@ -227,7 +230,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           activeSnapshotScheduler.onYield(createSnapshot);
           dumpController.onYield(createSnapshot);
         },
-        scope,
+        scope: executionScope,
         snapshot: interpreterSnapshot,
         surfaceUnhandledThrows: true,
         useScopeDirectly: true
@@ -265,13 +268,13 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 activeSnapshotScheduler.onYield(createSnapshot);
                 dumpController.onYield(createSnapshot);
               },
-              scope,
+              scope: executionScope,
               snapshot: interpreterSnapshot
             });
       await activeSnapshotScheduler.finish();
 
       const snapshot = createRunSnapshot({
-        bindings: scope.snapshot().bindings,
+        bindings: executionScope.snapshot().bindings,
         clock: options.clock,
         random,
         sourceHash

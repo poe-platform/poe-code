@@ -128,6 +128,7 @@ import {
   isSandboxPromise,
   isSandboxRegex,
   isSandboxSet,
+  measureSandboxData,
   type SandboxArray,
   type SandboxClosure,
   type SandboxMap,
@@ -143,6 +144,8 @@ export type InterpreterValue = SandboxValue;
 
 export type InterpreterStats = {
   nodeVisits: number;
+  currentDataSize: number;
+  peakDataSize: number;
 };
 
 export type InterpreterSnapshot = {
@@ -284,18 +287,20 @@ export async function interpret(
           undefined,
           undefined,
           {
-            functionBoundary: true
+            chargeData: false
           },
           options.snapshot?.bindings
-        )
+        ).child({}, { functionBoundary: true })
       : options.useScopeDirectly === true && options.bindings === undefined
         ? options.scope
         : options.scope.child(options.bindings ?? {}, {
             functionBoundary: true
           });
-  const stats: InterpreterStats = {
-    nodeVisits: 0
-  };
+  const stats = { nodeVisits: 0 } as InterpreterStats;
+  Object.defineProperties(stats, {
+    currentDataSize: { enumerable: false, value: 0, writable: true },
+    peakDataSize: { enumerable: false, value: 0, writable: true }
+  });
   const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
   hoistVarDeclarations(node, scope);
   const evaluation = await evaluateNode(node, {
@@ -317,6 +322,12 @@ export async function interpret(
     generatorYield: options.generatorYield
   });
   const snapshot = scope.snapshot();
+  reconcileDataBudget(
+    budget,
+    stats,
+    scope,
+    "hasValue" in evaluation && evaluation.hasValue ? evaluation.value : undefined
+  );
 
   if (evaluation.kind === "error") {
     return {
@@ -385,7 +396,14 @@ async function evaluateNode(
   }
 
   try {
-    return await handler(node as never, context);
+    const result = await handler(node as never, context);
+    reconcileDataBudget(
+      context.budget,
+      context.stats,
+      context.scope,
+      "hasValue" in result && result.hasValue ? result.value : undefined
+    );
+    return result;
   } catch (error) {
     if (isFatalSandboxError(error)) {
       attachFatalSandboxErrorContext(error, node, context.callStack);
@@ -411,6 +429,21 @@ async function evaluateNode(
       value: exception
     };
   }
+}
+
+function reconcileDataBudget(
+  budget: Budget,
+  stats: InterpreterStats,
+  scope: Scope,
+  transient: SandboxValue | undefined
+): void {
+  budget.reconcileDataUsage(
+    measureSandboxData(
+      transient === undefined ? scope.retainedValues() : [...scope.retainedValues(), transient]
+    )
+  );
+  stats.currentDataSize = budget.currentDataSize;
+  stats.peakDataSize = budget.peakDataSize;
 }
 
 async function evaluatePrimitiveLiteral(

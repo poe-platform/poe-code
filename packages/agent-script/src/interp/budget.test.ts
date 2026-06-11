@@ -20,7 +20,8 @@ describe("Budget", () => {
     { option: "maxSteps", value: 1.5 },
     { option: "maxCallDepth", value: Number.NaN },
     { option: "stringLength", value: Number.NaN },
-    { option: "arrayLength", value: Number.NaN }
+    { option: "arrayLength", value: Number.NaN },
+    { option: "dataSize", value: Number.NaN }
   ])("rejects invalid $option limit $value", ({ option, value }) => {
     expect(() => new Budget({ [option]: value })).toThrow(
       `${option} must be a non-negative integer.`

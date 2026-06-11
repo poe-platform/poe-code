@@ -9,6 +9,7 @@ import {
   createSandboxPromise,
   createSandboxRegex,
   createSandboxSet,
+  measureSandboxData,
   type SandboxClosure,
   type SandboxGenerator,
   type SandboxPromise,
@@ -57,7 +58,7 @@ type SnapshotId = RuntimeScopeFrame["id"];
 export type RestoreOptions = {
   source: string;
   modules?: ModuleRegistry;
-  budget: Budget;
+  budget?: Budget;
   signal?: AbortSignal;
 };
 
@@ -98,6 +99,7 @@ type RestoreState = {
 };
 
 export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): RestoredSnapshot {
+  const budget = options.budget ?? new Budget();
   let currentSourceHash: string;
   try {
     currentSourceHash = hashSource(options.source);
@@ -120,11 +122,11 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
   }
 
   const state: RestoreState = {
-    budget: options.budget,
+    budget,
     heap: snapshot.heap ?? {},
     heapValueById: new Map(),
     moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
-      budget: options.budget,
+      budget,
       signal: options.signal
     }),
     nodeById,
@@ -149,9 +151,16 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
     throw new Error(`Snapshot references unknown scope ${String(currentScopeId)}.`);
   }
 
+  budget.reconcileDataUsage(
+    measureSandboxData([
+      ...currentScope.retainedValues(),
+      ...pendingPromises.flatMap((pending) => Object.values(pending).filter(isSandboxSnapshotValue))
+    ])
+  );
+
   return {
     ast,
-    budget: options.budget,
+    budget,
     callStack: snapshot.callStack.map((frame) => restoreCallFrame(frame, state)),
     currentAstNodeId: snapshot.currentAstNodeId,
     currentNode,
@@ -165,6 +174,10 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
     signal: options.signal,
     sourceHash: snapshot.sourceHash
   };
+}
+
+function isSandboxSnapshotValue(value: unknown): value is SandboxValue {
+  return value !== undefined && !(value instanceof Promise);
 }
 
 function restoreCallFrame(frame: RuntimeCallFrame, state: RestoreState): RestoredCallFrame {

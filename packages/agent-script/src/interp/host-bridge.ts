@@ -13,6 +13,7 @@ import {
   deepCopyToSandbox,
   isSandboxClosure,
   isSandboxPromise,
+  measureSandboxData,
   type SandboxClosure,
   type SandboxObject,
   type SandboxValue
@@ -57,26 +58,27 @@ export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
   options: HostBridgeOptions
 ): Record<string, SandboxValue> {
-  return Object.fromEntries(
+  const state = { seen: new WeakMap<object, SandboxValue>() };
+  const copied = Object.fromEntries(
     Object.entries(bindings).map(([name, value]) => [
       name,
-      wrapCallerInjectedValue(name, value, options)
+      typeof value === "function"
+        ? wrapCallerInjectedFunction(name, value, options, state)
+        : copyHostValueToSandbox(value, [], options, state, "<root>")
     ])
   );
+  options.budget.provisionDataUsage(measureSandboxData(Object.values(copied)));
+  return copied;
 }
 
-function wrapCallerInjectedValue(
+function wrapCallerInjectedFunction(
   name: string,
-  value: CallerInjectedBinding,
-  options: HostBridgeOptions
+  value: CallerInjectedFunction,
+  options: HostBridgeOptions,
+  state: { seen: WeakMap<object, SandboxValue> }
 ): SandboxValue {
-  if (typeof value !== "function") {
-    return copyHostResultToSandbox(value, [], options);
-  }
-
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
-  const state = { seen: new WeakMap<object, SandboxValue>() };
   const properties = copyFunctionProperties(callable, [], options, state, bindingName);
 
   return createSandboxClosure({
@@ -114,7 +116,7 @@ function copyHostResultToSandbox(
   stackFrames: readonly string[],
   options: HostBridgeOptions
 ): SandboxValue {
-  return copyHostValueToSandbox(
+  const value = copyHostValueToSandbox(
     result,
     stackFrames,
     options,
@@ -123,6 +125,8 @@ function copyHostResultToSandbox(
     },
     "<root>"
   );
+  options.budget.provisionDataUsage(measureSandboxData([value]));
+  return value;
 }
 
 function createHostErrorValue(

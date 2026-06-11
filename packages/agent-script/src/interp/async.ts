@@ -58,7 +58,9 @@ export type AsyncEvaluationContext = {
   scope: Scope;
   snapshot?: () => InterpreterSnapshot;
   stats: {
+    currentDataSize: number;
     nodeVisits: number;
+    peakDataSize: number;
   };
   microtasks: Array<() => void>;
   generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
@@ -156,6 +158,7 @@ export function createInterpretedClosure(
         : { name: node.id.name }
       : {}),
     ...(construct === undefined ? {} : { construct }),
+    retainedValues: () => context.scope.retainedValues(),
     call: (args, callContext) =>
       node.async
         ? createSandboxPromise(
@@ -193,6 +196,7 @@ function createGeneratorClosure(
 ) {
   return createSandboxClosure({
     ...(node.id === undefined ? {} : { name: node.id.name }),
+    retainedValues: () => context.scope.retainedValues(),
     call: async (args, callContext) => {
       const closureContext = {
         ...context,

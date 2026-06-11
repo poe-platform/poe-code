@@ -20,6 +20,7 @@ const uninitialized = Symbol("uninitialized");
 
 type ScopeOptions = {
   functionBoundary?: boolean;
+  chargeData?: boolean;
 };
 
 export class Scope {
@@ -48,7 +49,10 @@ export class Scope {
   }
 
   child(bindings: Record<string, InterpreterValue> = {}, options: ScopeOptions = {}): Scope {
-    return new Scope(bindings, this, undefined, options);
+    return new Scope(bindings, this, undefined, {
+      chargeData: true,
+      ...options
+    });
   }
 
   consumeRestoredBinding(
@@ -95,6 +99,17 @@ export class Scope {
     }
 
     return {};
+  }
+
+  retainedValues(): InterpreterValue[] {
+    const values = this.parent?.retainedValues() ?? [];
+    if (this.options.chargeData !== false) {
+      if (this.importMeta !== undefined) values.push(this.importMeta);
+      for (const binding of this.#bindings.values()) {
+        if (binding.value !== uninitialized) values.push(binding.value);
+      }
+    }
+    return values;
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue): void {

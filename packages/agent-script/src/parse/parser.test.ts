@@ -3256,6 +3256,12 @@ describe("parse", () => {
     );
   });
 
+  it("locates invalid regex flags in parser diagnostics", () => {
+    expect(() => parseModule("const pattern = /a/u;")).toThrowError(
+      "Unsupported regex flag 'u' at line 1, column 20."
+    );
+  });
+
   it("parses new expressions with identifier and member callees", () => {
     expect(parse("new Service(1)")).toMatchObject({
       type: "NewExpression",
@@ -3330,7 +3336,9 @@ describe("parse", () => {
   });
 
   it("rejects disallowed statement syntax", () => {
-    expect(parse("() => { switch (value) { case 1: break; default: return value; } }")).toMatchObject({
+    expect(
+      parse("() => { switch (value) { case 1: break; default: return value; } }")
+    ).toMatchObject({
       expression: false,
       body: {
         body: [{ type: "SwitchStatement" }]

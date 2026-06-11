@@ -184,9 +184,9 @@ tasks:
       Tests must not create files except approved snapshots, query an LLM, or use
       wall-clock sleeps.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 ---
 
 # Context

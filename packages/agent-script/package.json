@@ -31,7 +31,9 @@
     "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
     "example:superintendent": "tsx src/cli.ts examples/superintendent.md",
     "test": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test",
-    "test:unit": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test"
+    "test:unit": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test",
+    "test:adversarial": "cd ../.. && vitest run packages/agent-script/test/adversarial",
+    "test:adversarial:slow": "cd ../.. && AGENT_SCRIPT_ADVERSARIAL_SLOW=1 AGENT_SCRIPT_PARSE_FUZZ=1 vitest run packages/agent-script/test/adversarial packages/agent-script/src/parse/fuzz.test.ts"
   },
   "files": [
     "dist",

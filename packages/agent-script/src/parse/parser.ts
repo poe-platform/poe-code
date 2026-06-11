@@ -4019,12 +4019,33 @@ function createStringLiteral(token: Token): StringLiteral {
 
 function createRegexLiteral(token: Token): RegexLiteral {
   const lastSlash = token.value.lastIndexOf("/");
-  parseRegex(token.value.slice(1, lastSlash), token.value.slice(lastSlash + 1));
+  try {
+    parseRegex(token.value.slice(1, lastSlash), token.value.slice(lastSlash + 1));
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      const relativePosition = readRegexErrorPosition(error.message);
+      if (relativePosition !== undefined) {
+        const flagColumn = token.start.column + lastSlash + 1 + relativePosition;
+        throw new Error(
+          `${error.message.replace(/ at position \d+$/, "")} at line ${token.start.line}, column ${flagColumn}.`
+        );
+      }
+    }
+    throw error;
+  }
   return {
     type: "RegexLiteral",
     raw: token.value,
     span: createTokenSpan(token)
   };
+}
+
+function readRegexErrorPosition(message: string): number | undefined {
+  const marker = " at position ";
+  const markerIndex = message.lastIndexOf(marker);
+  if (markerIndex < 0) return undefined;
+  const position = Number(message.slice(markerIndex + marker.length));
+  return Number.isSafeInteger(position) && position >= 0 ? position : undefined;
 }
 
 function createKeywordLiteral(token: Token): BooleanLiteral | NullLiteral | UndefinedLiteral {

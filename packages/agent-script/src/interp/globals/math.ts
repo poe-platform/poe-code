@@ -2,13 +2,26 @@ import { createSandboxClosure, type SandboxObject } from "../values.js";
 
 const mathMethods = {
   abs: Math.abs,
+  acos: Math.acos,
+  acosh: Math.acosh,
+  asin: Math.asin,
+  asinh: Math.asinh,
+  atan: Math.atan,
+  atan2: Math.atan2,
+  atanh: Math.atanh,
   ceil: Math.ceil,
   cbrt: Math.cbrt,
+  clz32: Math.clz32,
   cos: Math.cos,
+  cosh: Math.cosh,
   exp: Math.exp,
+  expm1: Math.expm1,
   floor: Math.floor,
+  fround: Math.fround,
   hypot: Math.hypot,
+  imul: Math.imul,
   log: Math.log,
+  log1p: Math.log1p,
   log10: Math.log10,
   log2: Math.log2,
   max: Math.max,
@@ -17,8 +30,10 @@ const mathMethods = {
   round: Math.round,
   sign: Math.sign,
   sin: Math.sin,
+  sinh: Math.sinh,
   sqrt: Math.sqrt,
   tan: Math.tan,
+  tanh: Math.tanh,
   trunc: Math.trunc
 } satisfies Record<string, (...args: number[]) => number>;
 
@@ -41,7 +56,13 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals
   const random = options.random ?? Math.random;
   const mathObject: SandboxObject = {
     E: Math.E,
+    LN2: Math.LN2,
+    LN10: Math.LN10,
+    LOG2E: Math.LOG2E,
+    LOG10E: Math.LOG10E,
     PI: Math.PI,
+    SQRT1_2: Math.SQRT1_2,
+    SQRT2: Math.SQRT2,
     random: createSandboxClosure({
       call: () => random(),
       name: "random"

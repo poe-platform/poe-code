@@ -109,9 +109,9 @@ tasks:
       equals the host constant, and the closures are budget/snapshot-safe like
       the existing ones. Fast unit tests.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: object-is-static
     title: Add Object.is

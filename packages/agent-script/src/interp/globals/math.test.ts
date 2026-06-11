@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { parse } from "../../parse.js";
+import { Budget } from "../budget.js";
+import { interpret } from "../interpreter.js";
 import type { SandboxClosure, SandboxObject } from "../values.js";
 import { createMathGlobals, createSeededRandom } from "./math.js";
 
@@ -9,6 +12,12 @@ describe("createMathGlobals", () => {
 
     expect(getProperty(globals.Math, "PI")).toBe(Math.PI);
     expect(getProperty(globals.Math, "E")).toBe(Math.E);
+    expect(getProperty(globals.Math, "LN2")).toBe(Math.LN2);
+    expect(getProperty(globals.Math, "LN10")).toBe(Math.LN10);
+    expect(getProperty(globals.Math, "LOG2E")).toBe(Math.LOG2E);
+    expect(getProperty(globals.Math, "LOG10E")).toBe(Math.LOG10E);
+    expect(getProperty(globals.Math, "SQRT2")).toBe(Math.SQRT2);
+    expect(getProperty(globals.Math, "SQRT1_2")).toBe(Math.SQRT1_2);
     expect(globals.Infinity).toBe(Infinity);
     expect(globals.NaN).toBeNaN();
 
@@ -31,6 +40,28 @@ describe("createMathGlobals", () => {
     expect(getClosure(getProperty(globals.Math, "sin")).call([Math.PI / 2])).toBe(1);
     expect(getClosure(getProperty(globals.Math, "cos")).call([Math.PI])).toBe(-1);
     expect(getClosure(getProperty(globals.Math, "tan")).call([0])).toBe(0);
+  });
+
+  it.each([
+    ["atan2", Math.atan2, [1, -1]],
+    ["asin", Math.asin, [0.5]],
+    ["acos", Math.acos, [0.5]],
+    ["atan", Math.atan, [1]],
+    ["sinh", Math.sinh, [1]],
+    ["cosh", Math.cosh, [1]],
+    ["tanh", Math.tanh, [1]],
+    ["asinh", Math.asinh, [1]],
+    ["acosh", Math.acosh, [2]],
+    ["atanh", Math.atanh, [0.5]],
+    ["clz32", Math.clz32, [1]],
+    ["expm1", Math.expm1, [1]],
+    ["log1p", Math.log1p, [1]],
+    ["fround", Math.fround, [1.337]],
+    ["imul", Math.imul, [0xffff_ffff, 5]]
+  ] as const)("passes Math.%s through to the host", (name, method, args) => {
+    const globals = createMathGlobals();
+
+    expect(callMath(globals.Math, name, ...args)).toBe(method(...args));
   });
 
   it("matches JavaScript Math edge cases", () => {
@@ -57,6 +88,52 @@ describe("createMathGlobals", () => {
     expect(callMath(globals.Math, "log", -1)).toBeNaN();
     expect(callMath(globals.Math, "log2", 8)).toBe(3);
     expect(callMath(globals.Math, "log10", 1_000)).toBe(3);
+    expect(callMath(globals.Math, "acos", 2)).toBeNaN();
+    expect(callMath(globals.Math, "acosh", 0)).toBeNaN();
+    expect(callMath(globals.Math, "atanh", 1)).toBe(Infinity);
+    expect(callMath(globals.Math, "log1p", -1)).toBe(-Infinity);
+    expect(callMath(globals.Math, "sinh", Infinity)).toBe(Infinity);
+    expect(callMath(globals.Math, "fround", Number.NaN)).toBeNaN();
+  });
+
+  it.each([
+    ["atan2", "1, -1", Math.atan2(1, -1)],
+    ["asin", "0.5", Math.asin(0.5)],
+    ["acos", "0.5", Math.acos(0.5)],
+    ["atan", "1", Math.atan(1)],
+    ["sinh", "1", Math.sinh(1)],
+    ["cosh", "1", Math.cosh(1)],
+    ["tanh", "1", Math.tanh(1)],
+    ["asinh", "1", Math.asinh(1)],
+    ["acosh", "2", Math.acosh(2)],
+    ["atanh", "0.5", Math.atanh(0.5)],
+    ["clz32", "1", Math.clz32(1)],
+    ["expm1", "1", Math.expm1(1)],
+    ["log1p", "1", Math.log1p(1)],
+    ["fround", "1.337", Math.fround(1.337)],
+    ["imul", "4294967295, 5", Math.imul(0xffff_ffff, 5)]
+  ])("keeps Math.%s budgeted and snapshot-safe", async (name, args, expected) => {
+    const globals = createMathGlobals();
+
+    await expect(
+      interpret(parse(`return Math.${name}(${args})`), {
+        bindings: globals,
+        budget: new Budget({ maxSteps: 20 })
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: expected,
+      snapshot: {
+        bindings: {
+          Infinity,
+          Math: expect.any(Object),
+          NaN: Number.NaN
+        }
+      },
+      stats: {
+        nodeVisits: expect.any(Number)
+      }
+    });
   });
 
   it("uses host randomness by default", async () => {
@@ -87,9 +164,21 @@ describe("createMathGlobals", () => {
     const secondRandom = getClosure(getProperty(secondGlobals.Math, "random"));
     const thirdRandom = getClosure(getProperty(thirdGlobals.Math, "random"));
 
-    const firstSequence = [await firstRandom.call([]), await firstRandom.call([]), await firstRandom.call([])];
-    const secondSequence = [await secondRandom.call([]), await secondRandom.call([]), await secondRandom.call([])];
-    const thirdSequence = [await thirdRandom.call([]), await thirdRandom.call([]), await thirdRandom.call([])];
+    const firstSequence = [
+      await firstRandom.call([]),
+      await firstRandom.call([]),
+      await firstRandom.call([])
+    ];
+    const secondSequence = [
+      await secondRandom.call([]),
+      await secondRandom.call([]),
+      await secondRandom.call([])
+    ];
+    const thirdSequence = [
+      await thirdRandom.call([]),
+      await thirdRandom.call([]),
+      await thirdRandom.call([])
+    ];
 
     expect(firstSequence).toEqual(secondSequence);
     expect(firstSequence).not.toEqual(thirdSequence);

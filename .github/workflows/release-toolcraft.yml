@@ -43,7 +43,7 @@ jobs:
           version: ${{ steps.version.outputs.next }}
           packages: '["packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
       - name: Build toolcraft packages and dependencies
-        run: npx turbo build --filter=toolcraft-openapi... --filter=toolcraft-design
+        run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
         run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema

@@ -1962,7 +1962,8 @@ describe("renderResult", () => {
         { name: "alpha", count: 1 },
         { name: "beta", count: 2 }
       ],
-      expected: '{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"}],"rows":[{"name":"alpha","count":"1"},{"name":"beta","count":"2"}]}\n'
+      expected:
+        '{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"}],"rows":[{"name":"alpha","count":"1"},{"name":"beta","count":"2"}]}\n'
     },
     {
       label: "array of objects in markdown",
@@ -2066,7 +2067,9 @@ describe("renderResult", () => {
         ],
         "rich"
       )
-    ).toBe('{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"},{"name":"enabled","title":"enabled"}],"rows":[{"name":"alpha|beta","count":"1","enabled":""},{"name":"","count":"2","enabled":"true"}]}\n');
+    ).toBe(
+      '{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"},{"name":"enabled","title":"enabled"}],"rows":[{"name":"alpha|beta","count":"1","enabled":""},{"name":"","count":"2","enabled":"true"}]}\n'
+    );
 
     expect(
       runRender(
@@ -2358,9 +2361,7 @@ describe("createSDK", () => {
       ]
     });
 
-    expect(() => createSDK(root)).toThrow(
-      'SDK member "then" uses reserved member "then".'
-    );
+    expect(() => createSDK(root)).toThrow('SDK member "then" uses reserved member "then".');
   });
 
   it("rejects a nested SDK command named then consistently with deferred SDKs", () => {
@@ -2718,6 +2719,57 @@ describe("createSDK", () => {
 
     expect(result).toEqual({
       limit: null
+    });
+  });
+
+  it("preserves complex SDK parameter values", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "create",
+          scope: ["sdk"],
+          params: S.Object({
+            body: S.Json(),
+            tags: S.Record(S.String()),
+            choice: S.OneOf({
+              discriminator: "kind",
+              branches: { named: S.Object({ name: S.String() }) }
+            }),
+            target: S.Union([S.Object({ id: S.String() }), S.Object({ slug: S.String() })])
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    const sdk = createSDK(root, { approvals: false });
+    const params = {
+      body: { hello: "world" },
+      tags: { a: "b" },
+      choice: { kind: "named", name: "demo" },
+      target: { id: "123" }
+    };
+
+    await expect(sdk.create(params)).resolves.toEqual(params);
+  });
+
+  it("preserves additional SDK object properties when allowed", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "create",
+          scope: ["sdk"],
+          params: S.Object({ metadata: S.Object({}, { additionalProperties: true }) }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    const sdk = createSDK(root, { approvals: false });
+    await expect(sdk.create({ metadata: { custom: "value" } })).resolves.toEqual({
+      metadata: { custom: "value" }
     });
   });
 

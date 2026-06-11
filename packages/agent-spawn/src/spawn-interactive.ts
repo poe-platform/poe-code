@@ -1,7 +1,7 @@
 import "./register-factories.js";
 import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
-import { getMcpArgs } from "./mcp-args.js";
+import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
@@ -86,7 +86,11 @@ export async function spawnInteractive(
     args.push(...options.args);
   }
 
-  const envOverrides = { ...(modeResolved.env ?? {}), ...(options.env ?? {}) };
+  const envOverrides = {
+    ...(modeResolved.env ?? {}),
+    ...getMcpEnv(spawnConfig, options.mcpServers),
+    ...(options.env ?? {})
+  };
   const processEnv =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const executionEnv = processEnv as Record<string, string> | undefined;

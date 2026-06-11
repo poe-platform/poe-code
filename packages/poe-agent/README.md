@@ -128,6 +128,18 @@ If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (
 
 `mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 
+Disposing a `createAgentSession()` instance also disposes any in-flight `sendMessage()` run. Use
+`dispose()` when a caller cancels or abandons a session so child streams and tools can be cleaned up
+promptly.
+
+## Run lifecycle
+
+- Returning early from an ACP event stream aborts the active model request through the run
+  `AbortSignal`.
+- Model stop reasons `error` and `max_tokens` are surfaced as `session.error` terminal events.
+- Compaction summaries are stored as named system messages and do not replace the configured base
+  system prompt on later turns.
+
 ## Built-in plugins
 
 ### `auditLogPlugin(logPath)`

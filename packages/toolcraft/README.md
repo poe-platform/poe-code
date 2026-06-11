@@ -180,6 +180,12 @@ The same `root` flows into all three. No duplication.
 
 **CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table.
 
+**Parameter schemas**: Toolcraft validates the same `toolcraft-schema` contract across CLI, MCP,
+and SDK calls. Complex schema kinds such as `S.Json()`, `S.Record(...)`, discriminated
+`S.OneOf(...)`, and object `S.Union(...)` are preserved when a schema is filtered for a specific
+runtime scope. Objects declared with `{ additionalProperties: true }` keep unknown keys instead of
+rejecting them.
+
 ## Secrets
 
 Declare env-backed secrets on a command or group. Toolcraft reads `process.env` at command-run time and passes the values to the handler:

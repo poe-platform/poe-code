@@ -93,6 +93,7 @@ export class AgentHost implements AcpHost {
   readonly #baseSystemPrompt?: string;
   readonly #maxIterations?: number;
   readonly #emit?: (event: AcpEvent) => void;
+  #runtimeEmit?: (event: AcpEvent) => void;
   readonly #createSpawnSession: AgentHostOptions["createSpawnSession"];
   #forkSequence = 0;
 
@@ -103,6 +104,10 @@ export class AgentHost implements AcpHost {
     this.#maxIterations = options.maxIterations;
     this.#emit = options.emit;
     this.#createSpawnSession = options.createSpawnSession;
+  }
+
+  setEmit(emit: (event: AcpEvent) => void): void {
+    this.#runtimeEmit = emit;
   }
 
   async handle(intent: ToolIntent): Promise<ToolAckResult> {
@@ -250,14 +255,14 @@ export class AgentHost implements AcpHost {
         }
 
         if (next.value.type === "message.delta") {
-          this.#emit?.({
+          (this.#runtimeEmit ?? this.#emit)?.({
             type: "message.delta",
             content: next.value.content
           });
           continue;
         }
 
-        this.#emit?.({
+        (this.#runtimeEmit ?? this.#emit)?.({
           type: "progress",
           message: next.value.message
         });
@@ -310,6 +315,7 @@ export class AgentHost implements AcpHost {
       model: this.#model,
       baseSystemPrompt: this.#baseSystemPrompt,
       maxIterations: this.#maxIterations,
+      emit: this.#emit,
       createSpawnSession: this.#createSpawnSession
     });
 

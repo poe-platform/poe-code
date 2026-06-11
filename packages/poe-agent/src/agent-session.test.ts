@@ -621,6 +621,42 @@ describe("createAgentSession", () => {
     );
   });
 
+  it("dispose cancels an in-flight send", async () => {
+    let finishEvents: (() => void) | undefined;
+    const disposeRun = vi.fn(async () => {
+      finishEvents?.();
+    });
+    acpMock.mockResolvedValueOnce({
+      events: {
+        [Symbol.asyncIterator]() {
+          return {
+            async next() {
+              await new Promise<void>((resolve) => {
+                finishEvents = resolve;
+              });
+              return { done: true, value: undefined };
+            }
+          };
+        }
+      },
+      acknowledge: vi.fn(),
+      dispose: disposeRun
+    });
+
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({
+      apiKey: "provided-api-key",
+      model: "Claude-Sonnet-4.5"
+    });
+    const sending = session.sendMessage("keep working");
+    await Promise.resolve();
+
+    await session.dispose();
+
+    await expect(sending).rejects.toThrow("Run ended without a terminal event.");
+    expect(disposeRun).toHaveBeenCalled();
+  });
+
   it("surfaces session.error and emits failed tool updates", async () => {
     acpMock.mockImplementationOnce(() =>
       createAcpSession([

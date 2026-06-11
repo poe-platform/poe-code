@@ -36,6 +36,11 @@ Mode-specific args and env vars are declared in each agent config. Goose uses `G
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into the agent-specific CLI args or environment variables. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
+The same serialization is used for interactive TUI spawns. Agents that express MCP servers through
+environment-backed config, such as OpenCode's `OPENCODE_CONFIG_CONTENT`, receive those values in
+both non-interactive and interactive child processes before caller-provided `env` overrides are
+applied.
+
 ## Resume sessions
 
 Pass `resumeThreadId` to load a prior provider thread or session before sending the next prompt. The option uses each agent's declarative resume config and throws if the selected agent does not support session resume.

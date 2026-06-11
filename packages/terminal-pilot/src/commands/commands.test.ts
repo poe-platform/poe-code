@@ -162,8 +162,6 @@ describe("terminal-pilot commands", () => {
     expect(terminalPilotGroup.name).toBe("terminal-pilot");
     expect(terminalPilotGroup.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(terminalPilotGroup.children.map((command) => command.name)).toEqual([
-      "install",
-      "uninstall",
       "create-session",
       "fill",
       "type",
@@ -177,7 +175,9 @@ describe("terminal-pilot commands", () => {
       "resize",
       "close-session",
       "get-session",
-      "list-sessions"
+      "list-sessions",
+      "install",
+      "uninstall"
     ]);
     expect(install.scope).toEqual(["cli"]);
     expect(uninstall.scope).toEqual(["cli"]);

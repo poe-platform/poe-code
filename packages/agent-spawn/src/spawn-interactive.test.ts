@@ -41,9 +41,7 @@ describe("spawnInteractive", () => {
   });
 
   it("throws if agent ID cannot be resolved", async () => {
-    await expect(spawnInteractive("unknown", { prompt: "test" })).rejects.toThrow(
-      /Unknown agent/
-    );
+    await expect(spawnInteractive("unknown", { prompt: "test" })).rejects.toThrow(/Unknown agent/);
     expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
   });
 
@@ -76,9 +74,7 @@ describe("spawnInteractive", () => {
   });
 
   it("builds positional prompt args for claude-code", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     const result = await spawnInteractive("claude-code", { prompt: "test prompt" });
 
@@ -93,21 +89,21 @@ describe("spawnInteractive", () => {
   });
 
   it("builds positional prompt args for codex", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test prompt" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("codex");
-    expect(args).toEqual(["test prompt", ...codexSpawnConfig.interactive!.defaultArgs, ...codexSpawnConfig.modes.yolo]);
+    expect(args).toEqual([
+      "test prompt",
+      ...codexSpawnConfig.interactive!.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
   });
 
   it("builds flag-based prompt args for opencode", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "test prompt" });
 
@@ -122,9 +118,7 @@ describe("spawnInteractive", () => {
   });
 
   it("builds flag-based prompt args for kimi", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("kimi", { prompt: "test prompt" });
 
@@ -139,18 +133,13 @@ describe("spawnInteractive", () => {
   });
 
   it("builds goose interactive args with the session subcommand before the prompt", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("goose", { prompt: "test prompt" });
 
     const [command, args] = spawnMock.mock.calls[0];
     expect(command).toBe("goose");
-    expect(args).toEqual([
-      ...gooseSpawnConfig.interactive!.defaultArgs,
-      "test prompt"
-    ]);
+    expect(args).toEqual([...gooseSpawnConfig.interactive!.defaultArgs, "test prompt"]);
     const [, , spawnOpts] = spawnMock.mock.calls[0];
     expect(spawnOpts).toHaveProperty("env");
     expect(spawnOpts.env).toMatchObject({
@@ -160,9 +149,7 @@ describe("spawnInteractive", () => {
   });
 
   it("includes model flag when model is provided", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "test", model: "sonnet" });
 
@@ -177,9 +164,7 @@ describe("spawnInteractive", () => {
   });
 
   it("applies modelTransform from config (preserves namespace + poe/ prefix)", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
@@ -188,9 +173,7 @@ describe("spawnInteractive", () => {
   });
 
   it("strips provider namespace and transforms model before passing to CLI", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "test", model: "anthropic/claude-opus-4.6" });
 
@@ -201,9 +184,7 @@ describe("spawnInteractive", () => {
   });
 
   it("spawns with stdio inherit for all streams", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test" });
 
@@ -222,9 +203,7 @@ describe("spawnInteractive", () => {
   });
 
   it("passes cwd to spawned process", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test", cwd: "/my/project" });
 
@@ -233,9 +212,7 @@ describe("spawnInteractive", () => {
   });
 
   it("omits prompt args when prompt is empty", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("claude-code", { prompt: "" });
 
@@ -247,9 +224,7 @@ describe("spawnInteractive", () => {
   });
 
   it("omits prompt flag when prompt is empty for flag-based agents", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("opencode", { prompt: "" });
 
@@ -262,9 +237,7 @@ describe("spawnInteractive", () => {
   });
 
   it("appends extra args from options", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", { prompt: "test", args: ["--extra", "flag"] });
 
@@ -279,9 +252,7 @@ describe("spawnInteractive", () => {
   });
 
   it("serializes MCP servers for interactive spawn when supported", async () => {
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     await spawnInteractive("codex", {
       prompt: "test",
@@ -298,21 +269,37 @@ describe("spawnInteractive", () => {
       "test",
       ...codexSpawnConfig.interactive!.defaultArgs,
       "-c",
-      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      'mcp_servers.test.command="tiny-stdio-mcp-test-server"',
       "-c",
-      "mcp_servers.test.default_tools_approval_mode=\"approve\"",
+      'mcp_servers.test.default_tools_approval_mode="approve"',
       "-c",
-      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      'mcp_servers.test.args=["serve", "word-of-the-day"]',
       ...codexSpawnConfig.modes.yolo
     ]);
+  });
+
+  it("serializes opencode MCP servers into the interactive environment", async () => {
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
+
+    await spawnInteractive("opencode", {
+      prompt: "test",
+      mcpServers: {
+        test: { command: "tiny-stdio-mcp-test-server", args: ["serve"] }
+      }
+    });
+
+    const options = spawnMock.mock.calls[0]?.[2];
+    expect(options?.env).toEqual(
+      expect.objectContaining({
+        OPENCODE_CONFIG_CONTENT: expect.stringContaining("tiny-stdio-mcp-test-server")
+      })
+    );
   });
 
   it("merges per-invocation environment overrides without mutating the parent", async () => {
     const inheritedValue = process.env.POE_CODE_INTERACTIVE_ENV_TEST;
     process.env.POE_CODE_INTERACTIVE_ENV_TEST = "parent";
-    const spawnMock = vi
-      .mocked(spawnChildProcess)
-      .mockReturnValue(createMockInheritProcess(0));
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 
     try {
       await spawnInteractive("codex", {

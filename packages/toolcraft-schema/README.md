@@ -22,6 +22,7 @@ const schema = S.Object({
   retries: S.Optional(S.Number({ default: 3 })),
   mode: S.Enum(["fast", "safe"] as const, { default: "safe" }),
   tags: S.Array(S.String(), { default: [] }),
+  metadata: S.Record(S.Json(), { default: {} })
 });
 
 type Input = Static<typeof schema>;
@@ -45,6 +46,11 @@ const jsonSchema = toJsonSchema(schema);
 - `S.Enum(values, { description?, default? })`
 - `S.Array(itemSchema, { description?, default? })`
 - `S.Object({ [key]: schema })`
+- `S.Object({ [key]: schema }, { additionalProperties?: boolean })`
+- `S.Json({ description?, default? })`
+- `S.Record(valueSchema, { description?, default? })`
+- `S.OneOf({ discriminator, branches })`
+- `S.Union([objectSchema, ...])`
 - `S.Optional(schema)`
 
 ### Type helpers
@@ -58,6 +64,10 @@ const jsonSchema = toJsonSchema(schema);
 - Object properties not wrapped in `S.Optional(...)` are emitted in `required`.
 - Defaults provided to schema builders are emitted as JSON Schema `default`.
 - Nested `S.Object(...)` schemas produce nested JSON Schema objects.
+- `S.Object(..., { additionalProperties: true })` preserves caller-provided extra object
+  keys in Toolcraft CLI, MCP, and SDK parameter validation.
+- `S.Json()`, `S.Record(...)`, `S.OneOf(...)`, and `S.Union(...)` are preserved through
+  Toolcraft scope filtering and can be used in CLI, MCP, and SDK parameter contracts.
 - `S.Enum(...)` rejects empty or duplicate values at runtime for JavaScript callers.
 
 ## Environment variables

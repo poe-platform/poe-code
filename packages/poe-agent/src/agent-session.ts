@@ -126,6 +126,7 @@ function adaptAcpToLegacySession(
 ): AgentSession {
   let disposed = false;
   let previousRun: RunResult | undefined;
+  let activeSession: Awaited<ReturnType<AgentBuilder["acp"]>> | undefined;
 
   return {
     async sendMessage(
@@ -154,6 +155,7 @@ function adaptAcpToLegacySession(
       };
 
       const acpSession = await builder.acp(prompt, runOptions);
+      activeSession = acpSession;
 
       try {
         for await (const event of acpSession.events) {
@@ -176,6 +178,9 @@ function adaptAcpToLegacySession(
         }
       } finally {
         await acpSession.dispose();
+        if (activeSession === acpSession) {
+          activeSession = undefined;
+        }
       }
 
       if (failed) {
@@ -207,6 +212,7 @@ function adaptAcpToLegacySession(
     async dispose(): Promise<void> {
       disposed = true;
       previousRun = undefined;
+      await activeSession?.dispose();
     }
   };
 }

@@ -51,7 +51,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock);
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
   });
 
   it("maps --json to toolcraft's output flag", async () => {
@@ -84,7 +84,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock);
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
     expect(process.argv).toEqual(["node", "/tmp/terminal-pilot-bin", "--help"]);
   });
 

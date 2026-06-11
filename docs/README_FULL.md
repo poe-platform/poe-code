@@ -1372,8 +1372,22 @@ interface SpawnOptions {
   activityTimeoutMs?: number;
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
+  /** Run through a configured runtime, such as a sandbox runner */
+  runtime?: string;
+  /** Runtime image override */
+  runtimeImage?: string;
+  /** Runtime template override */
+  runtimeTemplate?: string;
+  /** Run as a detached runtime job */
+  detach?: boolean;
+  /** Mount the local poe-code checkout into the runtime when supported */
+  mountPoeCode?: boolean;
+  /** Sync runtime workspace changes back after completion when supported */
+  runnerSync?: boolean;
 }
 ```
+
+Runtime overrides require an agent with a CLI spawn configuration. ACP-only agents reject these options instead of silently falling back to a local ACP run.
 
 #### SpawnResult
 
@@ -2095,7 +2109,9 @@ const { result } = spawn("claude-code", {
 | Codex | TOML inline tables via `-c` flags | `-c mcp_servers.name.command="..."` |
 | Kimi | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
 | Goose | Repeated extension flags | `--with-extension "<command> <args...>"` |
-| OpenCode | Not supported at spawn time | N/A |
+| OpenCode | JSON config serialized into `OPENCODE_CONFIG_CONTENT` | environment variable |
+
+The same serialization runs for interactive spawns, so agents that receive MCP config through environment variables are configured before their TUI starts.
 
 ### Interactive Mode
 

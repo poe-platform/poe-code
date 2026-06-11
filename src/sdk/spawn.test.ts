@@ -1485,6 +1485,27 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("rejects runtime overrides for ACP-only agents instead of running locally", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "gemini-cli",
+      acpArgs: ["--acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+
+    const { result } = spawn("gemini-cli", "test prompt", {
+      runtime: "e2b",
+      detach: true
+    });
+
+    await expect(result).rejects.toThrow(
+      'Agent "gemini-cli" does not support runtime overrides because it has no CLI spawn configuration.'
+    );
+    expect(spawnAcp).not.toHaveBeenCalled();
+    expect(spawnStreaming).not.toHaveBeenCalled();
+  });
+
   it("composes ACP middlewares in SDK streaming path", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -2227,7 +2248,9 @@ describe("spawn.autonomous()", () => {
     delete process.env.POE_API_KEY;
     getPoeApiKeyMock.mockResolvedValue("stored-key");
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
-    vi.mocked(spawnInteractive).mockRejectedValue(new Error('Agent "unknown" has no spawn config.'));
+    vi.mocked(spawnInteractive).mockRejectedValue(
+      new Error('Agent "unknown" has no spawn config.')
+    );
 
     const { result } = spawn("unknown", "test prompt", { interactive: true });
 

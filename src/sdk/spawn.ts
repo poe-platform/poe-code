@@ -185,6 +185,13 @@ export function spawn(
         };
       }
 
+      if (acpSpawnConfig && hasRuntimeOverrides && !spawnConfig) {
+        resolveEventsOnce(emptyEvents);
+        throw new Error(
+          `Agent "${service}" does not support runtime overrides because it has no CLI spawn configuration.`
+        );
+      }
+
       if (acpSpawnConfig && !hasRuntimeOverrides && canUseAcpWithMcpServers && !captureOtel) {
         const model = await resolveModel();
         const adapter = registeredService;

@@ -31,7 +31,33 @@ export function filterSchemaForScope(schema: AnySchema, scope: SchemaScope): Any
     case "number":
     case "boolean":
     case "enum":
+    case "json":
       return schema;
+
+    case "record": {
+      const value = filterSchemaForScope(schema.value, scope);
+      return value === undefined ? undefined : { ...schema, value };
+    }
+
+    case "oneOf":
+      return {
+        ...schema,
+        branches: Object.fromEntries(
+          Object.entries(schema.branches).flatMap(([name, branch]) => {
+            const filtered = filterSchemaForScope(branch, scope);
+            return filtered?.kind === "object" ? [[name, filtered]] : [];
+          })
+        )
+      };
+
+    case "union":
+      return {
+        ...schema,
+        branches: schema.branches.flatMap((branch) => {
+          const filtered = filterSchemaForScope(branch, scope);
+          return filtered?.kind === "object" ? [filtered] : [];
+        })
+      };
 
     case "object":
       return {
@@ -41,7 +67,7 @@ export function filterSchemaForScope(schema: AnySchema, scope: SchemaScope): Any
             const filtered = filterSchemaForScope(childSchema, scope);
             return filtered === undefined ? [] : [[key, filtered]];
           })
-        ),
+        )
       };
   }
 }

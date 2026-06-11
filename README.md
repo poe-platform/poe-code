@@ -255,6 +255,9 @@ Runs a single prompt through a configured service CLI.
 - `options.model` – Model identifier override (optional)
 - `options.mode` – Permission mode: `yolo`, `edit`, or `read` (optional)
 - `options.args` – Additional arguments forwarded to the CLI (optional)
+- `options.env` – Per-invocation child environment overrides (optional)
+- `options.mcpServers` – Spawn-time MCP servers serialized into the agent-specific flags or environment (optional)
+- `options.runtime`, `options.runtimeImage`, `options.runtimeTemplate`, `options.detach`, `options.mountPoeCode`, `options.runnerSync` – Runtime overrides for agents with CLI spawn support (optional). ACP-only agents reject these options instead of running locally.
 
 Returns `{ stdout, stderr, exitCode }`.
 
@@ -263,10 +266,10 @@ Returns `{ stdout, stderr, exitCode }`.
 Same as `spawn()`, but renders the ACP event stream to stdout with colored, formatted output — matching the CLI's visual style.
 
 ```typescript
-import { spawn } from "poe-code"
+import { spawn } from "poe-code";
 
-const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
-console.log(result.exitCode)
+const result = await spawn.pretty("codex", "Fix the bug in auth.ts");
+console.log(result.exitCode);
 ```
 
 Returns `Promise<{ stdout, stderr, exitCode }>`.

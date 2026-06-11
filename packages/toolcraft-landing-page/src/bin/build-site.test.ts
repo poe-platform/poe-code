@@ -38,11 +38,20 @@ describe("buildSite", () => {
     expect(rebuiltHtml).toBe(html);
     expect(html).toContain("<!doctype html>");
     expect(html).toContain("<style>");
-    expect(html).toContain("npm install -g acme");
-    expect(html).toContain("1.4.0");
-    expect(html).toContain('href="https:&#x2F;&#x2F;github.com&#x2F;acme&#x2F;acme"');
+    expect(html).toContain("npm install toolcraft toolcraft-schema");
+    expect(html).toContain("0.0.4");
+    expect(html).toContain('href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code"');
     expect(html).not.toMatch(/<link\b[^>]*\bhref=/i);
     expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
+    const docsHtml = await fs.readFile(path.join(outputDirectory, "docs", "index.html"), "utf8");
+    expect(docsHtml).toContain("Toolcraft guide");
+    expect(docsHtml).toContain('id="first-command"');
+    expect(docsHtml).toContain('id="runtime-surfaces"');
+    expect(docsHtml).toContain('id="safety"');
+    expect(docsHtml).toContain('id="migration"');
+    expect(docsHtml).toContain("npm install toolcraft toolcraft-schema");
+    expect(docsHtml).not.toMatch(/<link\b[^>]*\bhref=/i);
+    expect(docsHtml).not.toMatch(/<script\b[^>]*\bsrc=/i);
     await expect(fs.readFile(path.join(outputDirectory, ".nojekyll"), "utf8")).resolves.toBe("");
   });
 
@@ -67,7 +76,7 @@ describe("buildSite", () => {
         contents: string,
         options: { encoding: "utf8"; flag?: string }
       ) {
-        if (filePath.includes("/index.html.")) {
+        if (filePath.startsWith("/package/dist-site/index.html.")) {
           await fs.writeFile(filePath, "partial", options);
           throw new Error("html write failed");
         }
@@ -75,7 +84,9 @@ describe("buildSite", () => {
       }
     };
 
-    await expect(buildSite({ fs: failingFs, outputDirectory })).rejects.toThrow("html write failed");
+    await expect(buildSite({ fs: failingFs, outputDirectory })).rejects.toThrow(
+      "html write failed"
+    );
 
     await expect(fs.readFile(path.join(outputDirectory, "index.html"), "utf8")).resolves.toBe(
       originalHtml
@@ -92,7 +103,7 @@ describe("buildSite", () => {
         _contents: string,
         _options: { encoding: "utf8"; flag?: string }
       ) => {
-        if (filePath.includes("/index.html.")) {
+        if (filePath.startsWith("/package/dist-site/index.html.")) {
           throw writeError;
         }
       }
@@ -105,14 +116,16 @@ describe("buildSite", () => {
     };
 
     await withObjectPrototypeCode("EEXIST", async () => {
-      await expect(buildSite({ fs: fileSystem, outputDirectory: "/package/dist-site" })).rejects.toBe(
-        writeError
-      );
+      await expect(
+        buildSite({ fs: fileSystem, outputDirectory: "/package/dist-site" })
+      ).rejects.toBe(writeError);
     });
 
-    expect(writeFile.mock.calls.filter(([filePath]) => filePath.includes("/index.html."))).toHaveLength(
-      1
-    );
+    expect(
+      writeFile.mock.calls.filter(([filePath]) =>
+        filePath.startsWith("/package/dist-site/index.html.")
+      )
+    ).toHaveLength(1);
     expect(fileSystem.rm).toHaveBeenCalledOnce();
   });
 });

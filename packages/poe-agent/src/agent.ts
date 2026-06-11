@@ -430,7 +430,11 @@ class ImmutableAgentBuilder implements AgentBuilder {
 }
 
 function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunOptions): unknown {
-  if (providerOptions === null || typeof providerOptions !== "object" || Array.isArray(providerOptions)) {
+  if (
+    providerOptions === null ||
+    typeof providerOptions !== "object" ||
+    Array.isArray(providerOptions)
+  ) {
     return providerOptions;
   }
 
@@ -444,7 +448,7 @@ function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunO
 const defaultTranscriptFs: TranscriptFsApi = {
   mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
   appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8"),
-  lstat: filePath => fsPromises.lstat(filePath)
+  lstat: (filePath) => fsPromises.lstat(filePath)
 };
 
 export function agent(): AgentBuilder {
@@ -465,7 +469,7 @@ type StartedRun = PreparedRun & {
 
 class CallerAcpHost implements AcpHost {
   readonly #runContext: RunContext;
-  readonly #delegate: Pick<AcpHost, "fork" | "spawn">;
+  readonly #delegate: Pick<AcpHost, "fork" | "spawn" | "setEmit">;
   readonly #autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>;
   readonly #pending = new Map<
     string,
@@ -477,7 +481,7 @@ class CallerAcpHost implements AcpHost {
 
   constructor(
     runContext: RunContext,
-    delegate: Pick<AcpHost, "fork" | "spawn">,
+    delegate: Pick<AcpHost, "fork" | "spawn" | "setEmit">,
     autoHandleIntent?: (intent: ToolIntent) => Promise<ToolAckResult>
   ) {
     this.#runContext = runContext;
@@ -532,6 +536,10 @@ class CallerAcpHost implements AcpHost {
     return this.#delegate.spawn(prompt);
   }
 
+  setEmit(emit: (event: AcpEvent) => void): void {
+    this.#delegate.setEmit?.(emit);
+  }
+
   #rejectPending(error: Error): void {
     const pendingEntries = Array.from(this.#pending.values());
     this.#pending.clear();
@@ -561,12 +569,15 @@ function toSpawnMcpServers(
   mcpServers: ReadonlyArray<McpServerConfig>
 ): NonNullable<CreateAgentSessionOptions["mcpServers"]> {
   return Object.fromEntries(
-    mcpServers.map(server => [server.name, {
-      transport: "stdio",
-      command: server.command,
-      ...(server.args === undefined ? {} : { args: [...server.args] }),
-      ...(server.env === undefined ? {} : { env: { ...server.env } })
-    }])
+    mcpServers.map((server) => [
+      server.name,
+      {
+        transport: "stdio",
+        command: server.command,
+        ...(server.args === undefined ? {} : { args: [...server.args] }),
+        ...(server.env === undefined ? {} : { env: { ...server.env } })
+      }
+    ])
   );
 }
 

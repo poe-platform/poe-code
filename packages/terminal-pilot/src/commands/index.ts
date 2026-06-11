@@ -37,8 +37,6 @@ export { createTerminalPilotRuntime, SESSION_ENV_VAR } from "./runtime.js";
 export type { TerminalPilotCommandServices, TerminalPilotRuntime } from "./runtime.js";
 
 const children = [
-  install,
-  uninstall,
   createSession,
   fill,
   type,
@@ -52,7 +50,9 @@ const children = [
   resize,
   closeSession,
   getSession,
-  listSessions
+  listSessions,
+  install,
+  uninstall
 ] as const;
 
 export function createTerminalPilotGroup() {

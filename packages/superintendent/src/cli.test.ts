@@ -7,6 +7,14 @@ const { isDirectExecutionMock, runCLIMock, superintendentGroupMock } = vi.hoiste
 }));
 
 const originalArgv = [...process.argv];
+const cliOptions = {
+  controls: {
+    debug: true,
+    output: true,
+    verbose: true,
+    yes: true
+  }
+};
 
 vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
@@ -36,7 +44,7 @@ describe("superintendent CLI entry point", () => {
     await main(["node", "superintendent", "run"]);
 
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock);
+    expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock, cliOptions);
   });
 
   it("normalizes --output markdown for toolcraft CLI parsing", async () => {
@@ -70,6 +78,6 @@ describe("superintendent CLI entry point", () => {
     await import("./cli.js");
 
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock);
+    expect(runCLIMock).toHaveBeenCalledWith(superintendentGroupMock, cliOptions);
   });
 });

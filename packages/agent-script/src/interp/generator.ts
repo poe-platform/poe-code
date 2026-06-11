@@ -1,3 +1,5 @@
+import { enterRunningState } from "./running-state.js";
+
 export type GeneratorCompletion = {
   type: "normal" | "return" | "throw";
   value: unknown;
@@ -66,51 +68,54 @@ export function createGeneratorChannel(
   }
 
   async function deliver(completion: GeneratorCompletion): Promise<IteratorResult<unknown>> {
-    if (state === "done") {
-      if (completion.type === "return") {
-        return { value: completion.value, done: true };
-      }
-      if (completion.type === "throw") {
-        throw completion.value;
-      }
-      return { value: undefined, done: true };
-    }
-
-    if (state === "running") {
-      throw new TypeError("Generator is already running.");
-    }
-
-    if (state === "unstarted") {
-      if (completion.type === "return") {
-        state = "done";
-        return { value: completion.value, done: true };
-      }
-      if (completion.type === "throw") {
-        state = "done";
-        throw completion.value;
+    const leaveRunning = enterRunningState(channelIdentity);
+    try {
+      if (state === "done") {
+        if (completion.type === "return") {
+          return { value: completion.value, done: true };
+        }
+        if (completion.type === "throw") {
+          throw completion.value;
+        }
+        return { value: undefined, done: true };
       }
 
-      state = "running";
-      sent.push(completion);
-      start.resolve();
-    } else {
-      state = "running";
-      sent.push(completion);
-      signal = deferred<ChannelSignal>();
-      const pendingResume = resume;
-      resume = undefined;
-      pendingResume?.resolve(completion);
-    }
+      if (state === "unstarted") {
+        if (completion.type === "return") {
+          state = "done";
+          return { value: completion.value, done: true };
+        }
+        if (completion.type === "throw") {
+          state = "done";
+          throw completion.value;
+        }
 
-    const settled = await signal.promise;
-    if (settled.type === "yield") {
-      return { value: settled.value, done: false };
+        state = "running";
+        sent.push(completion);
+        start.resolve();
+      } else {
+        state = "running";
+        sent.push(completion);
+        signal = deferred<ChannelSignal>();
+        const pendingResume = resume;
+        resume = undefined;
+        pendingResume?.resolve(completion);
+      }
+
+      const settled = await signal.promise;
+      if (settled.type === "yield") {
+        return { value: settled.value, done: false };
+      }
+      if (settled.type === "error") {
+        throw settled.error;
+      }
+      return { value: settled.value, done: true };
+    } finally {
+      leaveRunning();
     }
-    if (settled.type === "error") {
-      throw settled.error;
-    }
-    return { value: settled.value, done: true };
   }
+
+  const channelIdentity = {};
 
   return {
     next: (value) => deliver({ type: "normal", value }),

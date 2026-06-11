@@ -154,10 +154,10 @@ tasks:
       finally blocks run exactly once, guards recover after exceptions, and an
       unrelated nested interpreter remains supported.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: adversarial-interpreter-corpus
     title: Add a permanent adversarial runtime corpus

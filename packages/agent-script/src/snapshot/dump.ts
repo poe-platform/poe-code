@@ -1,5 +1,6 @@
 import type { RunResult, RunSnapshot } from "../run.js";
 import { serializeAgentScriptSnapshot } from "./dump-format.js";
+import { SandboxError } from "../interp/budget.js";
 
 const RUN_DUMP_CONTROLLER = Symbol("agent-script.run-dump-controller");
 
@@ -9,6 +10,10 @@ type DumpController = {
   onYield(createSnapshot: () => RunSnapshot): void;
   requestCurrentSnapshot(): Promise<string>;
   requestSnapshot(): Promise<string>;
+};
+
+export type RunLifecycle = {
+  hostCallbackDepth: number;
 };
 
 type DumpableRunResult = Promise<RunResult> & {
@@ -29,7 +34,7 @@ export function attachDumpController(
   return result;
 }
 
-export function createDumpController(): DumpController {
+export function createDumpController(lifecycle?: RunLifecycle): DumpController {
   let finished = false;
   let failed:
     | {
@@ -82,6 +87,7 @@ export function createDumpController(): DumpController {
       settlePendingSnapshot(createSnapshot());
     },
     requestCurrentSnapshot() {
+      assertDumpAllowed();
       if (failed !== undefined) {
         return Promise.reject(failed.error);
       }
@@ -97,6 +103,7 @@ export function createDumpController(): DumpController {
       return this.requestSnapshot();
     },
     requestSnapshot() {
+      assertDumpAllowed();
       if (failed !== undefined) {
         if (
           isDataBudgetError(failed.error) &&
@@ -146,6 +153,12 @@ export function createDumpController(): DumpController {
       return promise;
     }
   };
+
+  function assertDumpAllowed(): void {
+    if ((lifecycle?.hostCallbackDepth ?? 0) > 0) {
+      throw new SandboxError("reentry");
+    }
+  }
 
   function settlePendingSnapshot(snapshot: RunSnapshot): void {
     try {

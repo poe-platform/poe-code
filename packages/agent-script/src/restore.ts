@@ -1,6 +1,7 @@
 import { hashSource } from "./parse/hash.js";
 import { replaceErrorStack } from "./error/shape.js";
 import { validateDumpEnvelope } from "./snapshot/validation.js";
+import { assertSnapshotInactive } from "./interp/running-state.js";
 
 export type AgentScriptSnapshot = {
   version?: number;
@@ -38,6 +39,7 @@ export function restore<TSnapshot extends AgentScriptSnapshot>(
   snapshot: TSnapshot,
   options: RestoreOptions
 ): TSnapshot {
+  assertSnapshotInactive(snapshot);
   validateDumpEnvelope(snapshot);
 
   const currentSourceHash = hashSource(options.source);

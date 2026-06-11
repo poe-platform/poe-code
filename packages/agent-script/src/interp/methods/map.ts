@@ -8,6 +8,7 @@ import {
   type SandboxMap,
   type SandboxValue
 } from "../values.js";
+import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
 
 export type MapMethodName =
   | "get"
@@ -75,6 +76,7 @@ export async function callMapMethod(
     case "get":
       return target.entries.get(args[0]);
     case "set": {
+      assertCollectionMutable(target);
       const nextSize = target.entries.has(args[0]) ? target.entries.size : target.entries.size + 1;
       options.budget.allocateCollectionEntries(nextSize);
       target.entries.set(args[0], args[1]);
@@ -83,8 +85,10 @@ export async function callMapMethod(
     case "has":
       return target.entries.has(args[0]);
     case "delete":
+      assertCollectionMutable(target);
       return target.entries.delete(args[0]);
     case "clear":
+      assertCollectionMutable(target);
       target.entries.clear();
       return undefined;
     case "forEach": {
@@ -92,11 +96,18 @@ export async function callMapMethod(
       if (!isSandboxClosure(callback)) {
         throw new TypeError("Map.prototype.forEach requires a callback function.");
       }
-      for (const [key, value] of target.entries) {
-        const result = await options.callClosure(callback, [value, key, target], stack);
-        if (isSandboxPromise(result)) {
-          await result.promise;
+      const leaveCallback = enterCollectionCallback(target);
+      try {
+        const entries = [...target.entries];
+        for (let index = 0; index < entries.length; index += 1) {
+          const [key, value] = entries[index]!;
+          const result = await options.callClosure(callback, [value, key, target], stack);
+          if (isSandboxPromise(result)) {
+            await result.promise;
+          }
         }
+      } finally {
+        leaveCallback();
       }
       return undefined;
     }

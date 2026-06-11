@@ -1,6 +1,7 @@
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { GeneratorChannel } from "./generator.js";
+import { SandboxError } from "./budget.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 
@@ -575,7 +576,11 @@ function copyFromSandbox(
     return value.promise.then(
       (resolved) => copyFromSandbox(resolved, { seen: new WeakMap() }, "<root>", options),
       (reason: SandboxValue) =>
-        Promise.reject(copyFromSandbox(reason, { seen: new WeakMap() }, "<root>", options))
+        Promise.reject(
+          reason instanceof SandboxError
+            ? reason
+            : copyFromSandbox(reason, { seen: new WeakMap() }, "<root>", options)
+        )
     );
   }
 

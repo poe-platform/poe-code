@@ -19,6 +19,7 @@ import {
 import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
+import { enterSnapshotRun } from "./interp/running-state.js";
 import {
   HostCallJournal,
   type HostCallRecord,
@@ -130,14 +131,19 @@ type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknow
 export type RunResult = WithRunSnapshot<InterpreterResult>;
 
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  const dumpController = createDumpController();
+  const lifecycle = { hostCallbackDepth: 0 };
+  const dumpController = createDumpController(lifecycle);
   const result = (async () => {
     const deactivateOtelSink = activateOtelSink(options.otelSink);
+    let leaveSnapshotRun: (() => void) | undefined;
     let createFailureSnapshot: (() => RunSnapshot) | undefined;
     let snapshotScheduler: SnapshotScheduler<RunSnapshot> | undefined;
     try {
       const restoredSnapshot =
         options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
+      if (restoredSnapshot !== undefined) {
+        leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
+      }
       const budget = options.budget ?? new Budget();
       budget.reset();
       const filename = options.filename ?? "<input>";
@@ -160,7 +166,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               budget,
               hostCalls,
               moduleId: "<bindings>",
-              signal: options.signal
+              signal: options.signal,
+              lifecycle
             });
       const builtinBindings = {
         ...createConsoleJsonGlobals({
@@ -326,6 +333,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       dumpController.fail(error);
       throw error;
     } finally {
+      leaveSnapshotRun?.();
       deactivateOtelSink();
     }
   })();

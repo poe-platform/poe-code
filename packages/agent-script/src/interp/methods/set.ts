@@ -8,6 +8,7 @@ import {
   type SandboxSet,
   type SandboxValue
 } from "../values.js";
+import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
 
 export type SetMethodName =
   | "add"
@@ -71,6 +72,7 @@ export async function callSetMethod(
 ): Promise<SandboxValue> {
   switch (methodName) {
     case "add": {
+      assertCollectionMutable(target);
       const nextSize = target.values.has(args[0]) ? target.values.size : target.values.size + 1;
       options.budget.allocateCollectionEntries(nextSize);
       target.values.add(args[0]);
@@ -79,8 +81,10 @@ export async function callSetMethod(
     case "has":
       return target.values.has(args[0]);
     case "delete":
+      assertCollectionMutable(target);
       return target.values.delete(args[0]);
     case "clear":
+      assertCollectionMutable(target);
       target.values.clear();
       return undefined;
     case "forEach": {
@@ -88,11 +92,18 @@ export async function callSetMethod(
       if (!isSandboxClosure(callback)) {
         throw new TypeError("Set.prototype.forEach requires a callback function.");
       }
-      for (const value of target.values) {
-        const result = await options.callClosure(callback, [value, value, target], stack);
-        if (isSandboxPromise(result)) {
-          await result.promise;
+      const leaveCallback = enterCollectionCallback(target);
+      try {
+        const values = [...target.values];
+        for (let index = 0; index < values.length; index += 1) {
+          const value = values[index];
+          const result = await options.callClosure(callback, [value, value, target], stack);
+          if (isSandboxPromise(result)) {
+            await result.promise;
+          }
         }
+      } finally {
+        leaveCallback();
       }
       return undefined;
     }

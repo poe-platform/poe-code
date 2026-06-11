@@ -6,6 +6,7 @@ import {
   type SandboxGenerator,
   type SandboxValue
 } from "./values.js";
+import { enterRunningState } from "./running-state.js";
 
 export type SandboxIterator = {
   readonly generator?: true;
@@ -50,6 +51,7 @@ function generatorIterator(generator: SandboxGenerator): SandboxIterator {
     method: "next" | "return" | "throw",
     value?: SandboxValue
   ): Promise<IteratorResult<SandboxValue>> => {
+    const leaveRunning = enterRunningState(generator);
     generator.state = "running";
     try {
       const result = (await generator.channel[method](value)) as IteratorResult<SandboxValue>;
@@ -58,6 +60,8 @@ function generatorIterator(generator: SandboxGenerator): SandboxIterator {
     } catch (error) {
       generator.state = "done";
       throw error;
+    } finally {
+      leaveRunning();
     }
   };
 
@@ -70,13 +74,21 @@ function generatorIterator(generator: SandboxGenerator): SandboxIterator {
 }
 
 function syncIterator(iterator: Iterator<SandboxValue>): SandboxIterator {
+  const invoke = async (method: "next" | "return" | "throw", value?: SandboxValue) => {
+    const leaveRunning = enterRunningState(iterator as object);
+    try {
+      return await iterator[method]!(value);
+    } finally {
+      leaveRunning();
+    }
+  };
   return {
-    next: (value) => Promise.resolve(iterator.next(value)),
+    next: (value) => invoke("next", value),
     ...(typeof iterator.return === "function"
-      ? { return: (value?: SandboxValue) => Promise.resolve(iterator.return!(value)) }
+      ? { return: (value?: SandboxValue) => invoke("return", value) }
       : {}),
     ...(typeof iterator.throw === "function"
-      ? { throw: (error?: SandboxValue) => Promise.resolve(iterator.throw!(error)) }
+      ? { throw: (error?: SandboxValue) => invoke("throw", error) }
       : {})
   };
 }

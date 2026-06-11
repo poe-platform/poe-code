@@ -1,4 +1,5 @@
 import type { Budget } from "./budget.js";
+import { SandboxError } from "./budget.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -308,20 +309,32 @@ function resolveThenable(
   seenThenables.add(value);
 
   return new Promise<SandboxValue>((resolve, reject) => {
-    let settled = false;
-    const resolveOnce = (resolved: SandboxValue) => {
-      if (settled) {
-        return;
+    let settlement:
+      | { state: "fulfilled"; value: SandboxValue }
+      | { state: "rejected"; value: SandboxValue }
+      | undefined;
+    let completed = false;
+    const complete = () => {
+      if (completed || settlement === undefined) return;
+      completed = true;
+      if (settlement.state === "fulfilled") {
+        resolve(resolveSandboxValueNow(settlement.value, options, seenThenables));
+      } else {
+        reject(budgetIfNeeded(settlement.value, options.budget));
       }
-      settled = true;
-      resolve(resolveSandboxValueNow(resolved, options, seenThenables));
+    };
+    const recordSettlement = (state: "fulfilled" | "rejected", settledValue: SandboxValue) => {
+      if (settlement !== undefined) {
+        throw new SandboxError("reentry");
+      }
+      settlement = { state, value: settledValue };
+      queueMicrotask(complete);
+    };
+    const resolveOnce = (resolved: SandboxValue) => {
+      recordSettlement("fulfilled", resolved);
     };
     const rejectOnce = (reason: SandboxValue) => {
-      if (settled) {
-        return;
-      }
-      settled = true;
-      reject(budgetIfNeeded(reason, options.budget));
+      recordSettlement("rejected", reason);
     };
 
     try {
@@ -348,7 +361,12 @@ function resolveThenable(
         });
       }
     } catch (error) {
-      rejectOnce(error as SandboxValue);
+      if (settlement !== undefined) {
+        settlement = { state: "rejected", value: error as SandboxValue };
+        queueMicrotask(complete);
+      } else {
+        rejectOnce(error as SandboxValue);
+      }
     }
   }).then((resolved) => budgetIfNeeded(resolved, options.budget));
 }

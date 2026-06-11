@@ -9,6 +9,7 @@ import {
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
+import { assertCollectionMutable, enterCollectionCallback } from "../running-state.js";
 
 export type ArrayMethodName =
   | "map"
@@ -138,6 +139,29 @@ export async function callArrayMethod(
   args: readonly SandboxValue[],
   options: ArrayMethodOptions,
   stack: readonly string[] = []
+): Promise<SandboxValue> {
+  if (isMutatingArrayMethod(methodName)) {
+    assertCollectionMutable(value);
+  }
+
+  if (isCallbackArrayMethod(methodName)) {
+    const leaveCallback = enterCollectionCallback(value);
+    try {
+      return await callArrayMethodUnlocked(value, methodName, args, options, stack);
+    } finally {
+      leaveCallback();
+    }
+  }
+
+  return callArrayMethodUnlocked(value, methodName, args, options, stack);
+}
+
+async function callArrayMethodUnlocked(
+  value: SandboxArray,
+  methodName: ArrayMethodName,
+  args: readonly SandboxValue[],
+  options: ArrayMethodOptions,
+  stack: readonly string[]
 ): Promise<SandboxValue> {
   switch (methodName) {
     case "map":
@@ -313,6 +337,38 @@ export async function callArrayMethod(
       return nextLength;
     }
   }
+}
+
+function isCallbackArrayMethod(methodName: ArrayMethodName): boolean {
+  return (
+    methodName === "map" ||
+    methodName === "filter" ||
+    methodName === "find" ||
+    methodName === "findIndex" ||
+    methodName === "findLast" ||
+    methodName === "findLastIndex" ||
+    methodName === "some" ||
+    methodName === "every" ||
+    methodName === "reduce" ||
+    methodName === "reduceRight" ||
+    methodName === "forEach" ||
+    methodName === "flatMap" ||
+    methodName === "sort"
+  );
+}
+
+function isMutatingArrayMethod(methodName: ArrayMethodName): boolean {
+  return (
+    methodName === "splice" ||
+    methodName === "fill" ||
+    methodName === "copyWithin" ||
+    methodName === "sort" ||
+    methodName === "reverse" ||
+    methodName === "push" ||
+    methodName === "pop" ||
+    methodName === "shift" ||
+    methodName === "unshift"
+  );
 }
 
 function getRequiredCallback(

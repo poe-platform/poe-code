@@ -25,6 +25,8 @@ import {
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
+import { enterRunningState } from "./running-state.js";
+import type { RunLifecycle } from "../snapshot/dump.js";
 
 const AsyncFunction = (async () => undefined).constructor;
 
@@ -39,6 +41,7 @@ type HostBridgeOptions = {
   hostCalls?: HostCallJournal;
   moduleId?: string;
   signal?: AbortSignal;
+  lifecycle?: RunLifecycle;
 };
 
 export type CallerInjectedBinding =
@@ -108,7 +111,7 @@ function wrapCallerInjectedFunction(
         const moduleId = options.moduleId ?? "<bindings>";
         if (hostCalls === undefined) {
           return copyHostResultToSandbox(
-            Reflect.apply(callable, undefined, hostArgs),
+            invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
             stackFrames,
             options
           );
@@ -123,7 +126,7 @@ function wrapCallerInjectedFunction(
         return executeHostCall(
           issued.record,
           issued.restored,
-          () => Reflect.apply(callable, undefined, hostArgs),
+          () => invokeHostCallback(() => Reflect.apply(callable, undefined, hostArgs), options),
           stackFrames,
           options,
           context?.span
@@ -139,6 +142,28 @@ function wrapCallerInjectedFunction(
     name: bindingName,
     ...(properties ? { properties } : {})
   });
+}
+
+function invokeHostCallback(invoke: () => unknown, options: HostBridgeOptions): unknown {
+  const lifecycle = options.lifecycle;
+  if (lifecycle === undefined) {
+    return invoke();
+  }
+
+  lifecycle.hostCallbackDepth += 1;
+  try {
+    const result = invoke();
+    if (isPromiseLike(result)) {
+      return Promise.resolve(result).finally(() => {
+        lifecycle.hostCallbackDepth -= 1;
+      });
+    }
+    lifecycle.hostCallbackDepth -= 1;
+    return result;
+  } catch (error) {
+    lifecycle.hostCallbackDepth -= 1;
+    throw error;
+  }
 }
 
 function executeHostCall(
@@ -305,6 +330,7 @@ function wrapSandboxClosureForHost(
   budget: Budget
 ): (...args: readonly unknown[]) => Promise<unknown> {
   return async (...args) => {
+    const leaveRunning = enterRunningState(closure);
     const leaveCall = budget.enterCall();
     const wrapClosure = (nestedClosure: SandboxClosure) =>
       wrapSandboxClosureForHost(nestedClosure, stackFrames, budget);
@@ -332,6 +358,7 @@ function wrapSandboxClosureForHost(
       }) as Promise<unknown>);
     } finally {
       leaveCall();
+      leaveRunning();
     }
   };
 }
@@ -374,7 +401,7 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
 function isFatalBridgeError(error: unknown): error is SandboxError | HostCallResumabilityError {
   return (
     error instanceof HostCallResumabilityError ||
-    (error instanceof SandboxError && error.code === "budgetExceeded")
+    (error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry"))
   );
 }
 

@@ -102,6 +102,7 @@ import {
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember } from "./promise.js";
 import { getSandboxIterator, type SandboxIterator } from "./iteration.js";
+import { assertCollectionMutable } from "./running-state.js";
 import { getGeneratorMember } from "./methods/generator.js";
 import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
 import { bindPattern, type BindPatternResult } from "./patterns.js";
@@ -3229,6 +3230,7 @@ function setSandboxProperty(
   value: SandboxValue
 ): void {
   if (Array.isArray(target)) {
+    assertCollectionMutable(target);
     const key = String(property);
     if (key === "length" || isArrayIndexKey(key)) {
       (target as unknown as Record<string, SandboxValue>)[key] = value;
@@ -3246,6 +3248,9 @@ function deleteSandboxProperty(
   target: SandboxArray | SandboxObject,
   property: string | number
 ): void {
+  if (Array.isArray(target)) {
+    assertCollectionMutable(target);
+  }
   delete (target as unknown as Record<string, SandboxValue>)[String(property)];
 }
 
@@ -3585,7 +3590,9 @@ function captureException(error: unknown, stack: readonly string[]) {
 }
 
 function isFatalSandboxError(error: unknown): error is SandboxError {
-  return error instanceof SandboxError && error.code === "budgetExceeded";
+  return (
+    error instanceof SandboxError && (error.code === "budgetExceeded" || error.code === "reentry")
+  );
 }
 
 function isPromiseLikeResult(

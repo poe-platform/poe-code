@@ -22,24 +22,34 @@ export const REGEX_STEP_LIMIT = 2_000;
 const DEADLINE_CHECK_INTERVAL = 1_024;
 
 export class SandboxError extends Error {
-  readonly code: "aborted" | "budgetExceeded";
+  readonly code: "aborted" | "budgetExceeded" | "reentry";
   readonly budget?: BudgetName;
   readonly current?: number;
   readonly limit?: number;
 
   constructor(input: "aborted");
+  constructor(input: "reentry");
   constructor(input: { budget: BudgetName; current: number; limit: number });
-  constructor(input: "aborted" | { budget: BudgetName; current: number; limit: number }) {
+  constructor(
+    input: "aborted" | "reentry" | { budget: BudgetName; current: number; limit: number }
+  ) {
     super(
       input === "aborted"
         ? "aborted"
-        : `Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`
+        : input === "reentry"
+          ? "Sandbox object is already running."
+          : `Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`
     );
     this.name = "SandboxError";
     replaceErrorStack(this);
 
     if (input === "aborted") {
       this.code = "aborted";
+      return;
+    }
+
+    if (input === "reentry") {
+      this.code = "reentry";
       return;
     }
 

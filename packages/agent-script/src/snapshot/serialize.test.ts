@@ -4,6 +4,8 @@ import { createGeneratorChannel } from "../interp/generator.js";
 import { createSandboxGenerator } from "../interp/values.js";
 import { hashSource } from "../parse/hash.js";
 import { serialize, UnsnapshotableValueError } from "./serialize.js";
+import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
+import { serializeAgentScriptSnapshot } from "./dump-format.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -33,6 +35,35 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("serialize", () => {
+  it("serializes the boundary byte-identically and rejects deeply nested arrays and objects", () => {
+    const allowed = nestedObjectArrayGraph(MAX_DATA_DEPTH - 4);
+    const input = {
+      source: "await task()",
+      currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { allowed } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    };
+
+    const first = serializeAgentScriptSnapshot(serialize(input));
+    const second = serializeAgentScriptSnapshot(serialize(input));
+    expect(second).toBe(first);
+    expect(serializeAgentScriptSnapshot(JSON.parse(first))).toBe(first);
+    expect(() =>
+      serialize({
+        ...input,
+        scopeChain: [{ id: 1, bindings: { rejected: nestedObjectArrayGraph(5_000) } }]
+      })
+    ).toThrowError(
+      expect.objectContaining({
+        name: "SnapshotBudgetError",
+        code: "budgetExceeded",
+        current: MAX_DATA_DEPTH + 1,
+        limit: MAX_DATA_DEPTH
+      }) satisfies Partial<SnapshotBudgetError>
+    );
+  });
   it("serializes generators in start and done states", () => {
     const start = createSandboxGenerator(
       createGeneratorChannel(async () => undefined),
@@ -641,3 +672,11 @@ describe("serialize", () => {
     });
   });
 });
+
+function nestedObjectArrayGraph(depth: number): RuntimeSnapshotValue {
+  let value: RuntimeSnapshotValue = "leaf";
+  for (let index = 0; index < depth; index += 1) {
+    value = index % 2 === 0 ? [value] : { child: value };
+  }
+  return value;
+}

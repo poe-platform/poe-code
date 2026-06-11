@@ -1,4 +1,5 @@
 import { hashSource } from "../parse/hash.js";
+import { assertSnapshotGraphDepth } from "../graph-depth.js";
 import {
   isSandboxGenerator,
   isSandboxMap,
@@ -192,6 +193,18 @@ export class UnsnapshotableValueError extends Error {
 }
 
 export function serialize(input: SerializeInput): SerializedSnapshot {
+  for (const [scopeIndex, scope] of input.scopeChain.entries()) {
+    for (const [name, value] of Object.entries(scope.bindings)) {
+      assertSnapshotGraphDepth(value, `scopeChain[${scopeIndex}].bindings.${name}`);
+    }
+  }
+  for (const [promiseIndex, promise] of input.pendingPromises.entries()) {
+    for (const [key, value] of Object.entries(promise)) {
+      if (key !== "id" && key !== "promise") {
+        assertSnapshotGraphDepth(value, `pendingPromises[${promiseIndex}].${key}`);
+      }
+    }
+  }
   const state: SerializationState = {
     ancestors: new WeakMap(),
     heap: Object.create(null) as Record<string, SerializedHeapValue>,

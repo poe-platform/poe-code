@@ -1,4 +1,5 @@
 export const DUMP_FORMAT_VERSION = 1;
+import { assertSnapshotGraphDepth } from "../graph-depth.js";
 
 const SKIP_VALUE = Symbol("agent-script.skip-dump-value");
 
@@ -39,6 +40,11 @@ export type DumpableSnapshot = {
 };
 
 export function serializeAgentScriptSnapshot(snapshot: DumpableSnapshot): string {
+  for (const [key, value] of getEnumerableDataEntries(snapshot)) {
+    if (key !== "version" && key !== "sourceHash" && key !== "heap") {
+      assertSnapshotGraphDepth(value, key);
+    }
+  }
   return JSON.stringify(createDumpFile(snapshot), null, 2);
 }
 
@@ -87,8 +93,11 @@ function serializeDumpValue(
 
     return {
       kind: "number",
-      value:
-        Number.isNaN(value) ? "NaN" : value === Number.POSITIVE_INFINITY ? "Infinity" : "-Infinity"
+      value: Number.isNaN(value)
+        ? "NaN"
+        : value === Number.POSITIVE_INFINITY
+          ? "Infinity"
+          : "-Infinity"
     };
   }
 

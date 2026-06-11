@@ -68,7 +68,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: iterative-snapshot-graph-walk
     title: Make snapshot graph walks stack-safe
@@ -92,10 +92,10 @@ tasks:
       just below the limit round-trips byte-identically, a value above the limit
       fails deterministically, and the prior snapshot can still resume.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: exactly-once-host-call-resume
     title: Make pending host calls resume exactly once

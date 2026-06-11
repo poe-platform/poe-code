@@ -19,6 +19,7 @@ import { restore } from "./restore.js";
 import { serialize } from "./serialize.js";
 import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 import { SnapshotValidationError } from "./validation.js";
+import { MAX_DATA_DEPTH } from "../graph-depth.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -48,6 +49,31 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it("restores thousands of parent scopes without using the host call stack", () => {
+    const source = "await task()";
+    const module = parseModule(source);
+    const currentAstNodeId = getNodeIdByType(module, "AwaitExpression");
+    const scopeChain = Array.from({ length: 5_000 }, (_, index) => ({
+      id: index,
+      ...(index === 0 ? {} : { parentId: index - 1 }),
+      bindings: { [`value${index}`]: index }
+    }));
+
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId,
+        scopeChain: scopeChain.reverse(),
+        callStack: [{ astNodeId: currentAstNodeId, scopeId: 4_999 }],
+        pendingPromises: [],
+        moduleBindings: {}
+      },
+      { source, budget: new Budget({ maxCallDepth: 5_000 }) }
+    );
+
+    expect(restored.currentScope.lookup("value0")).toMatchObject({ found: true, value: 0 });
+    expect(restored.currentScope.lookup("value4999")).toMatchObject({ found: true, value: 4_999 });
+  });
   it.each([
     ["missing source hash", (snapshot: any) => delete snapshot.sourceHash, "$.sourceHash"],
     ["missing scope id", (snapshot: any) => delete snapshot.scopeChain[0].id, "$.scopeChain[0].id"],
@@ -197,7 +223,7 @@ describe("snapshot restore", () => {
       moduleBindings: {}
     };
     let deep: any = 1;
-    for (let index = 0; index < 130; index += 1) deep = { value: deep };
+    for (let index = 0; index < MAX_DATA_DEPTH + 2; index += 1) deep = { value: deep };
     base.scopeChain[0].bindings.deep = deep;
     expect(() => restore(base, { source, budget: new Budget() })).toThrow(SnapshotValidationError);
 

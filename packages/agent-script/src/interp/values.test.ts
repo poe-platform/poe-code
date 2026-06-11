@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { SandboxError } from "./budget.js";
 
 import {
   createSandboxClosure,
@@ -11,6 +13,30 @@ import {
 } from "./values.js";
 
 describe("sandbox values", () => {
+  it("rejects deeply nested host ingress and final-result export with typed depth errors", () => {
+    let hostValue: unknown = "leaf";
+    for (let index = 0; index < 5_000; index += 1) hostValue = [hostValue];
+
+    expect(() => deepCopyToSandbox(hostValue)).toThrowError(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "dataDepth",
+        current: MAX_DATA_DEPTH + 1,
+        limit: MAX_DATA_DEPTH
+      }) satisfies Partial<SandboxError>
+    );
+
+    let sandboxValue = "leaf" as ReturnType<typeof deepCopyToSandbox>;
+    for (let index = 0; index < 5_000; index += 1) sandboxValue = [sandboxValue];
+    expect(() => deepCopyFromSandbox(sandboxValue)).toThrowError(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "dataDepth",
+        current: MAX_DATA_DEPTH + 1,
+        limit: MAX_DATA_DEPTH
+      }) satisfies Partial<SandboxError>
+    );
+  });
   it("deep-copies host Map and Set values with shared references and cycles", () => {
     const shared = { id: "shared" };
     const source = new Map<unknown, unknown>();

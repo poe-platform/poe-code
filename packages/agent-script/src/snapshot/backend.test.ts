@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+import { MAX_DATA_DEPTH, SnapshotBudgetError } from "../graph-depth.js";
 
 const gates = vi.hoisted(() => ({
   holdFirstRename: false,
@@ -17,7 +18,7 @@ const gates = vi.hoisted(() => ({
 }));
 
 vi.mock("node:crypto", () => ({
-  randomUUID: () => gates.randomUUIDs.shift() ?? `fallback-uuid-${gates.randomUUIDCounter += 1}`
+  randomUUID: () => gates.randomUUIDs.shift() ?? `fallback-uuid-${(gates.randomUUIDCounter += 1)}`
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -110,6 +111,26 @@ describe("FileSnapshotBackend", () => {
     await backend.write(snapshot);
 
     await expect(backend.read()).resolves.toEqual(snapshot);
+  });
+
+  it("retains the previous snapshot when deep serialization exceeds the budget", async () => {
+    vol.mkdirSync("/snapshots");
+    const backend = new FileSnapshotBackend("/snapshots/run.json");
+    const previous = { sourceHash: "abc123", bindings: { value: "saved" } };
+    await backend.write(previous);
+
+    let value: unknown = "leaf";
+    for (let index = 0; index < 5_000; index += 1) value = { child: value };
+
+    await expect(backend.write({ sourceHash: "abc123", bindings: value })).rejects.toThrowError(
+      expect.objectContaining({
+        name: "SnapshotBudgetError",
+        current: MAX_DATA_DEPTH + 1,
+        limit: MAX_DATA_DEPTH
+      }) satisfies Partial<SnapshotBudgetError>
+    );
+    await expect(backend.read()).resolves.toEqual({ version: 1, ...previous });
+    expect(vol.readdirSync("/snapshots")).toEqual(["run.json"]);
   });
 
   it("returns undefined when the snapshot path does not exist", async () => {

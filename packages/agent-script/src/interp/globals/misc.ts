@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { assertSandboxGraphDepth } from "../../graph-depth.js";
 import {
   allocateProducedSandboxValue,
   cloneSandboxValue,
@@ -45,6 +46,7 @@ export function createMiscGlobals(options: { budget: Budget }): MiscGlobals {
 }
 
 function structuredCloneSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
+  assertSandboxGraphDepth(value);
   const clone = cloneSandboxValue(value);
   assertStructuredCloneable(clone, new WeakSet());
   return allocateProducedSandboxValue(clone, budget);

@@ -256,6 +256,22 @@ function restoreScopeFrame(frame: SerializedScopeFrame, state: RestoreState): Ru
     return existing;
   }
 
+  const pending: SerializedScopeFrame[] = [];
+  let current: SerializedScopeFrame | undefined = frame;
+  while (current !== undefined && !state.scopeFrameById.has(current.id)) {
+    pending.push(current);
+    current =
+      current.parentId === undefined ? undefined : state.serializedScopeById.get(current.parentId);
+  }
+
+  while (pending.length > 0) {
+    createScopeFrame(pending.pop() as SerializedScopeFrame, state);
+  }
+
+  return state.scopeFrameById.get(frame.id) as RuntimeScopeFrame;
+}
+
+function createScopeFrame(frame: SerializedScopeFrame, state: RestoreState): void {
   const bindings = Object.create(null) as Record<string, RuntimeSnapshotValue>;
 
   const runtimeFrame =
@@ -287,16 +303,16 @@ function restoreScopeFrame(frame: SerializedScopeFrame, state: RestoreState): Ru
   }
 
   const parentScope =
-    frame.parentId === undefined
-      ? undefined
-      : (state.scopeById.get(frame.parentId) ?? restoreParentScope(frame.parentId, state));
+    frame.parentId === undefined ? undefined : state.scopeById.get(frame.parentId);
+  if (frame.parentId !== undefined && parentScope === undefined) {
+    throw new Error(`Snapshot references unknown scope ${String(frame.parentId)}.`);
+  }
   const scope =
     parentScope === undefined
       ? new Scope(bindings as Record<string, SandboxValue>)
       : parentScope.child(bindings as Record<string, SandboxValue>);
 
   state.scopeById.set(frame.id, scope);
-  return runtimeFrame;
 }
 
 function restoreParentScope(scopeId: SnapshotId, state: RestoreState): Scope {

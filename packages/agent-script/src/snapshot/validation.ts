@@ -2,8 +2,9 @@ import { replaceErrorStack } from "../error/shape.js";
 import type { Budget } from "../interp/budget.js";
 import type { ParseResult } from "../parse/parser.js";
 import { DUMP_FORMAT_VERSION } from "./dump-format.js";
+import { MAX_DATA_DEPTH } from "../graph-depth.js";
 
-const DEFAULT_MAX_DEPTH = 128;
+const DEFAULT_MAX_DEPTH = MAX_DATA_DEPTH;
 const DEFAULT_MAX_ENTRIES = 100_000;
 const DEFAULT_MAX_STRING_LENGTH = 1_000_000;
 const DEFAULT_MAX_DATA_SIZE = 16_000_000;

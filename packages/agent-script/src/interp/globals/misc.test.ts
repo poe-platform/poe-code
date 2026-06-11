@@ -12,6 +12,7 @@ import {
   type SandboxValue
 } from "../values.js";
 import { createMiscGlobals } from "./misc.js";
+import { MAX_DATA_DEPTH } from "../../graph-depth.js";
 
 describe("createMiscGlobals", () => {
   it("exposes coercing numeric globals", () => {
@@ -51,6 +52,41 @@ describe("createMiscGlobals", () => {
     expect(clone.nested).toEqual(["value"]);
     expect(clone.nested).not.toBe(source.nested);
     expect(clone.self).toBe(clone);
+  });
+
+  it("round-trips at the data-depth limit and rejects deeper graphs deterministically", () => {
+    const globals = createMiscGlobals({ budget: new Budget() });
+    const allowed = nestedArrays(MAX_DATA_DEPTH);
+    const rejected = nestedArrays(5_000);
+
+    expect(call(globals.structuredClone, allowed)).toEqual(allowed);
+    expect(() => call(globals.structuredClone, rejected)).toThrowError(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "dataDepth",
+        current: MAX_DATA_DEPTH + 1,
+        limit: MAX_DATA_DEPTH
+      }) satisfies Partial<SandboxError>
+    );
+  });
+
+  it("allows a cycle that closes at the data-depth limit", () => {
+    const globals = createMiscGlobals({ budget: new Budget() });
+    const source = nestedArrays(MAX_DATA_DEPTH) as SandboxValue[];
+    let leaf = source;
+    for (let index = 0; index < MAX_DATA_DEPTH - 1; index += 1) {
+      leaf = leaf[0] as SandboxValue[];
+    }
+    leaf[0] = source;
+
+    const clone = call(globals.structuredClone, source) as SandboxValue[];
+    let clonedLeaf = clone;
+    for (let index = 0; index < MAX_DATA_DEPTH - 1; index += 1) {
+      clonedLeaf = clonedLeaf[0] as SandboxValue[];
+    }
+
+    expect(clonedLeaf[0]).toBe(clone);
   });
 
   it("preserves shared references and null prototypes", () => {
@@ -143,6 +179,12 @@ describe("createMiscGlobals", () => {
     expect(reads).toBe(0);
   });
 });
+
+function nestedArrays(depth: number): SandboxValue {
+  let value: SandboxValue = "leaf";
+  for (let index = 0; index < depth; index += 1) value = [value];
+  return value;
+}
 
 function call(closure: SandboxClosure, ...args: SandboxValue[]): SandboxValue {
   return closure.call(args) as SandboxValue;

@@ -2,6 +2,7 @@ import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { GeneratorChannel } from "./generator.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
+import { assertSandboxDataDepth } from "../graph-depth.js";
 
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxGeneratorBrand = Symbol("SandboxGenerator");
@@ -380,8 +381,10 @@ function copyToSandbox(
   value: unknown,
   state: CopyState<SandboxValue>,
   path = "<root>",
-  cloneSandboxCollections = false
+  cloneSandboxCollections = false,
+  depth = 0
 ): SandboxValue {
+  assertSandboxDataDepth(depth);
   if (isSandboxPrimitive(value)) {
     return value;
   }
@@ -403,8 +406,8 @@ function copyToSandbox(
     state.seen.set(value, copy);
     for (const [key, entry] of value.entries) {
       copy.entries.set(
-        copyToSandbox(key, state, `${path}.<key>`, true),
-        copyToSandbox(entry, state, `${path}.<value>`, true)
+        copyToSandbox(key, state, `${path}.<key>`, true, depth + 1),
+        copyToSandbox(entry, state, `${path}.<value>`, true, depth + 1)
       );
     }
     return copy;
@@ -417,7 +420,7 @@ function copyToSandbox(
     const copy = createSandboxSet();
     state.seen.set(value, copy);
     for (const entry of value.values) {
-      copy.values.add(copyToSandbox(entry, state, `${path}.<value>`, true));
+      copy.values.add(copyToSandbox(entry, state, `${path}.<value>`, true, depth + 1));
     }
     return copy;
   }
@@ -446,8 +449,8 @@ function copyToSandbox(
     state.seen.set(value, copy);
     for (const [key, entry] of value) {
       copy.entries.set(
-        copyToSandbox(key, state, `${path}.<key>`, cloneSandboxCollections),
-        copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections)
+        copyToSandbox(key, state, `${path}.<key>`, cloneSandboxCollections, depth + 1),
+        copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
       );
     }
     return copy;
@@ -462,7 +465,9 @@ function copyToSandbox(
     const copy = createSandboxSet();
     state.seen.set(value, copy);
     for (const entry of value) {
-      copy.values.add(copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections));
+      copy.values.add(
+        copyToSandbox(entry, state, `${path}.<value>`, cloneSandboxCollections, depth + 1)
+      );
     }
     return copy;
   }
@@ -480,7 +485,13 @@ function copyToSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyToSandbox(entry.value, state, joinArrayPath(path, entry.key), cloneSandboxCollections)
+        copyToSandbox(
+          entry.value,
+          state,
+          joinArrayPath(path, entry.key),
+          cloneSandboxCollections,
+          depth + 1
+        )
       );
     }
 
@@ -500,7 +511,13 @@ function copyToSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyToSandbox(entry.value, state, joinPath(path, entry.key), cloneSandboxCollections)
+        copyToSandbox(
+          entry.value,
+          state,
+          joinPath(path, entry.key),
+          cloneSandboxCollections,
+          depth + 1
+        )
       );
     }
 
@@ -514,8 +531,10 @@ function copyFromSandbox(
   value: SandboxValue,
   state: CopyState<unknown>,
   path = "<root>",
-  options: CopyFromSandboxOptions
+  options: CopyFromSandboxOptions,
+  depth = 0
 ): unknown {
+  assertSandboxDataDepth(depth);
   if (isSandboxPrimitive(value)) {
     return value;
   }
@@ -565,8 +584,8 @@ function copyFromSandbox(
     state.seen.set(value, copy);
     for (const [key, entry] of value.entries) {
       copy.set(
-        copyFromSandbox(key, state, `${path}.<key>`, options),
-        copyFromSandbox(entry, state, `${path}.<value>`, options)
+        copyFromSandbox(key, state, `${path}.<key>`, options, depth + 1),
+        copyFromSandbox(entry, state, `${path}.<value>`, options, depth + 1)
       );
     }
     return copy;
@@ -581,7 +600,7 @@ function copyFromSandbox(
     const copy = new Set<unknown>();
     state.seen.set(value, copy);
     for (const entry of value.values) {
-      copy.add(copyFromSandbox(entry, state, `${path}.<value>`, options));
+      copy.add(copyFromSandbox(entry, state, `${path}.<value>`, options, depth + 1));
     }
     return copy;
   }
@@ -599,7 +618,7 @@ function copyFromSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyFromSandbox(entry.value, state, joinArrayPath(path, entry.key), options)
+        copyFromSandbox(entry.value, state, joinArrayPath(path, entry.key), options, depth + 1)
       );
     }
 
@@ -622,7 +641,7 @@ function copyFromSandbox(
       defineOwnDataProperty(
         copy,
         entry.key,
-        copyFromSandbox(entry.value, state, joinPath(path, entry.key), options)
+        copyFromSandbox(entry.value, state, joinPath(path, entry.key), options, depth + 1)
       );
     }
 

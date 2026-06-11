@@ -6,7 +6,8 @@ export type BudgetName =
   | "callDepth"
   | "stringLength"
   | "arrayLength"
-  | "dataSize";
+  | "dataSize"
+  | "dataDepth";
 
 export type BudgetOptions = {
   maxSteps?: number;

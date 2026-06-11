@@ -219,6 +219,24 @@ describe("Scope", () => {
     });
   });
 
+  it("snapshots deep scope chains with child shadows and omitted uninitialized bindings", () => {
+    let scope = new Scope();
+    scope.declare("shared", "let", "parent");
+    scope.predeclare("pending", "let");
+
+    for (let index = 0; index < 50_000; index += 1) {
+      scope = scope.child();
+    }
+
+    scope.declare("shared", "let", "child");
+
+    expect(scope.snapshot()).toEqual({
+      bindings: {
+        shared: "child"
+      }
+    });
+  });
+
   it("throws a strict ReferenceError when assigning to an undeclared identifier", async () => {
     await expect(interpret(parse("missing = 1"))).rejects.toMatchObject({
       message: "Cannot assign to undeclared binding 'missing'.",

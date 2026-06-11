@@ -176,19 +176,24 @@ export class Scope {
   }
 
   snapshot(): InterpreterSnapshot {
-    const inheritedBindings = this.parent?.snapshot().bindings ?? {};
-    const bindings: Record<string, InterpreterValue> = {};
+    const scopes: Scope[] = [this];
+    let parent = this.parent;
 
-    for (const [name, value] of Object.entries(inheritedBindings)) {
-      defineSnapshotBinding(bindings, name, value);
+    while (parent !== undefined) {
+      scopes.push(parent);
+      parent = parent.parent;
     }
 
-    for (const [name, binding] of this.#bindings.entries()) {
-      if (binding.value === uninitialized) {
-        continue;
-      }
+    const bindings: Record<string, InterpreterValue> = {};
 
-      defineSnapshotBinding(bindings, name, binding.value);
+    for (let index = scopes.length - 1; index >= 0; index -= 1) {
+      for (const [name, binding] of scopes[index].#bindings.entries()) {
+        if (binding.value === uninitialized) {
+          continue;
+        }
+
+        defineSnapshotBinding(bindings, name, binding.value);
+      }
     }
 
     return {

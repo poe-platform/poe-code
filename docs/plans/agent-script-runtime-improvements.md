@@ -33,7 +33,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: flatten-scope-snapshot
     title: Flatten Scope.snapshot to a single root-to-leaf walk
@@ -56,10 +56,10 @@ tasks:
       deep-chain test asserting child-shadows-parent and that uninitialized
       bindings are omitted. Fast unit tests.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: sample-deadline-checks
     title: Sample the deadline clock instead of reading it every node

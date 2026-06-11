@@ -36,6 +36,14 @@ export type SerializedGeneratorValue =
     }
   | {
       kind: "generator";
+      state: "suspended";
+      astNodeId: number;
+      capturedScopeId: SnapshotId;
+      yieldNodeId: number;
+      sent: SerializedSnapshotValue;
+    }
+  | {
+      kind: "generator";
       state: "done";
     };
 
@@ -307,10 +315,6 @@ function serializeValue(
   }
 
   if (isSandboxGenerator(value)) {
-    if (value.state === "running" || value.state === "suspended") {
-      throw new UnsnapshotableValueError(path);
-    }
-
     if (value.state === "done") {
       return {
         kind: "generator",
@@ -318,8 +322,26 @@ function serializeValue(
       };
     }
 
+    if (value.state === "suspended" || value.state === "running") {
+      const continuation = value.channel.snapshot();
+      if (continuation.yieldNodeId === undefined) {
+        throw new UnsnapshotableValueError(path);
+      }
+      if (value.astNodeId === undefined || value.capturedScopeId === undefined) {
+        throw new TypeError(`Cannot serialize generator without origin metadata at ${path}.`);
+      }
+      return {
+        kind: "generator",
+        state: "suspended",
+        astNodeId: value.astNodeId,
+        capturedScopeId: value.capturedScopeId,
+        yieldNodeId: continuation.yieldNodeId,
+        sent: serializeValue(continuation.sent as RuntimeSnapshotValue, `${path}.sent`, state)
+      };
+    }
+
     if (value.astNodeId === undefined || value.capturedScopeId === undefined) {
-      throw new TypeError(`Cannot serialize unstarted generator without origin metadata at ${path}.`);
+      throw new TypeError(`Cannot serialize generator without origin metadata at ${path}.`);
     }
 
     return {

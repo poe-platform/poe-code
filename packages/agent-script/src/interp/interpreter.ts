@@ -190,7 +190,11 @@ export type InterpretOptions = {
   scope?: Scope;
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
-  generatorYield?: (value?: SandboxValue) => Promise<GeneratorCompletion>;
+  generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  generatorResume?: {
+    sent: GeneratorCompletion[];
+    yieldNodeId: number;
+  };
   snapshot?: InterpreterSnapshot;
 };
 
@@ -308,6 +312,7 @@ export async function interpret(
         iteration
       ])
     ),
+    generatorResume: options.generatorResume,
     generatorYield: options.generatorYield
   });
   const snapshot = scope.snapshot();
@@ -1117,9 +1122,13 @@ async function evaluateBlockStatement(
 ): Promise<EvaluationResult> {
   const blockContext = createBlockContext(node, context);
   const resumeIndex = findResumeStatementIndex(node, blockContext);
+  const generatorResumeIndex = findGeneratorResumeStatementIndex(node, blockContext);
 
   for (let index = 0; index < node.body.length; index += 1) {
     const statement = node.body[index]!;
+    if (generatorResumeIndex !== undefined && index < generatorResumeIndex) {
+      continue;
+    }
     if (
       resumeIndex !== undefined &&
       index < resumeIndex &&
@@ -1138,6 +1147,19 @@ async function evaluateBlockStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+function findGeneratorResumeStatementIndex(
+  node: BlockStatement,
+  context: EvaluationContext
+): number | undefined {
+  if (context.generatorResume === undefined) {
+    return undefined;
+  }
+  const index = node.body.findIndex((statement) =>
+    containsResumeTarget(statement, new Set([context.generatorResume!.yieldNodeId]))
+  );
+  return index === -1 ? undefined : index;
 }
 
 function findResumeStatementIndex(
@@ -1192,12 +1214,17 @@ function isParseResult(value: unknown): value is ParseResult {
 }
 
 function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
-  const scope = node === context.rootNode ? context.scope : context.scope.child();
+  const scope =
+    node === context.rootNode || context.generatorResume !== undefined
+      ? context.scope
+      : context.scope.child();
   const blockContext = {
     ...context,
     scope
   };
-  predeclareBlockBindings(node, blockContext);
+  if (context.generatorResume === undefined) {
+    predeclareBlockBindings(node, blockContext);
+  }
   return blockContext;
 }
 
@@ -1866,21 +1893,36 @@ async function evaluateYieldExpression(
     throw new TypeError("yield is only valid inside a generator.");
   }
 
+  if (
+    context.generatorResume !== undefined &&
+    node.nodeId !== context.generatorResume.yieldNodeId
+  ) {
+    return { kind: "normal", hasValue: true, value: undefined };
+  }
+
   if (node.delegate) {
     return evaluateYieldDelegate(node, context);
   }
 
   const argument =
-    node.argument === undefined
+    context.generatorResume !== undefined || node.argument === undefined
       ? { kind: "normal" as const, hasValue: true, value: undefined }
       : await evaluateNode(node.argument, context);
   if (argument.kind !== "normal") {
     return argument;
   }
 
-  const completion = await context.generatorYield(
-    allocateProducedSandboxValue(argument.value, context.budget)
+  const completionPromise = context.generatorYield(
+    allocateProducedSandboxValue(argument.value, context.budget),
+    node.nodeId
   );
+  emitResumeBreakpoint(context, {
+    kind: "generator-yield",
+    nodeId: node.nodeId,
+    span: node.span
+  });
+  const completion = await completionPromise;
+  context.generatorResume = undefined;
   return generatorCompletionResult(completion);
 }
 
@@ -1901,6 +1943,8 @@ async function evaluateYieldDelegate(
     type: "normal",
     value: undefined
   };
+  const replay = context.generatorResume?.sent ?? [];
+  let replayIndex = 0;
   while (true) {
     const method = completion.type === "normal" ? "next" : completion.type;
     const iteratorMethod = iterator[method];
@@ -1921,9 +1965,22 @@ async function evaluateYieldDelegate(
         value: result.value
       };
     }
-    completion = (await context.generatorYield!(
-      allocateProducedSandboxValue(result.value, context.budget)
-    )) as typeof completion;
+    if (replayIndex < replay.length - 1) {
+      completion = replay[replayIndex + 1] as typeof completion;
+      replayIndex += 1;
+      continue;
+    }
+    const completionPromise = context.generatorYield!(
+      allocateProducedSandboxValue(result.value, context.budget),
+      node.nodeId
+    );
+    emitResumeBreakpoint(context, {
+      kind: "generator-yield",
+      nodeId: node.nodeId,
+      span: node.span
+    });
+    completion = (await completionPromise) as typeof completion;
+    context.generatorResume = undefined;
   }
 }
 

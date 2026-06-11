@@ -34,10 +34,13 @@ function withObjectPrototypeProperties<T>(
 
 describe("serialize", () => {
   it("serializes generators in start and done states", () => {
-    const start = createSandboxGenerator(createGeneratorChannel(async () => undefined), {
-      astNodeId: 7,
-      capturedScopeId: "generator-scope"
-    });
+    const start = createSandboxGenerator(
+      createGeneratorChannel(async () => undefined),
+      {
+        astNodeId: 7,
+        capturedScopeId: "generator-scope"
+      }
+    );
     const done = createSandboxGenerator(createGeneratorChannel(async () => undefined));
     done.state = "done";
 
@@ -64,31 +67,92 @@ describe("serialize", () => {
     });
   });
 
-  it.each(["running", "suspended"] as const)(
-    "rejects a %s generator with its value path",
-    (generatorState) => {
-      const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
-      generator.state = generatorState;
+  it("rejects a generator without a representable continuation", () => {
+    const generator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    generator.state = "running";
 
-      expect(() =>
-        serialize({
-          source: "await task()",
-          currentAstNodeId: 1,
-          scopeChain: [{ id: 1, bindings: { nested: { generator } } }],
-          callStack: [],
-          pendingPromises: [],
-          moduleBindings: {}
-        })
-      ).toThrowError(
-        expect.objectContaining({
-          name: "UnsnapshotableValueError",
-          path: "scopeChain[0].bindings.nested.generator",
-          message:
-            "Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary."
-        }) satisfies Partial<UnsnapshotableValueError>
-      );
-    }
-  );
+    expect(() =>
+      serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [{ id: 1, bindings: { nested: { generator } } }],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      })
+    ).toThrowError(
+      expect.objectContaining({
+        name: "UnsnapshotableValueError",
+        path: "scopeChain[0].bindings.nested.generator",
+        message:
+          "Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary."
+      }) satisfies Partial<UnsnapshotableValueError>
+    );
+  });
+
+  it("serializes suspended generator continuation metadata", () => {
+    const generator = createSandboxGenerator(
+      createGeneratorChannel(async (yieldValue) => {
+        await yieldValue(1, 9);
+      }),
+      {
+        astNodeId: 7,
+        capturedScopeId: "generator-scope"
+      }
+    );
+    generator.state = "suspended";
+    void generator.channel.next();
+
+    return Promise.resolve().then(() => {
+      const snapshot = serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [{ id: 1, bindings: { generator } }],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      });
+
+      expect(snapshot.scopeChain[0]?.bindings.generator).toEqual({
+        kind: "generator",
+        state: "suspended",
+        astNodeId: 7,
+        capturedScopeId: "generator-scope",
+        yieldNodeId: 9,
+        sent: [{ type: "normal", value: { kind: "undefined" } }]
+      });
+    });
+  });
+
+  it("normalizes a running generator parked at a yield to suspended state", async () => {
+    const generator = createSandboxGenerator(
+      createGeneratorChannel(async (yieldValue) => {
+        await yieldValue(1, 9);
+      }),
+      {
+        astNodeId: 7,
+        capturedScopeId: "generator-scope"
+      }
+    );
+    void generator.channel.next();
+    await Promise.resolve();
+    generator.state = "running";
+
+    const snapshot = serialize({
+      source: "await task()",
+      currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { generator } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    expect(snapshot.scopeChain[0]?.bindings.generator).toMatchObject({
+      kind: "generator",
+      state: "suspended",
+      yieldNodeId: 9
+    });
+  });
 
   it("serializes resumable interpreter state without host references", () => {
     const source = "await task()";
@@ -503,20 +567,20 @@ describe("serialize", () => {
     cyclic.nested.self = cyclic;
 
     const snapshot = serialize({
-        source: "await task()",
-        currentAstNodeId: 1,
-        scopeChain: [
-          {
-            id: 1,
-            bindings: {
-              cyclic
-            }
+      source: "await task()",
+      currentAstNodeId: 1,
+      scopeChain: [
+        {
+          id: 1,
+          bindings: {
+            cyclic
           }
-        ],
-        callStack: [],
-        pendingPromises: [],
-        moduleBindings: {}
-      });
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
 
     expect(snapshot.scopeChain[0]?.bindings.cyclic).toEqual({
       kind: "ref",

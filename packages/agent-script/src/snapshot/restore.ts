@@ -14,7 +14,11 @@ import {
   type SandboxPromise,
   type SandboxValue
 } from "../interp/values.js";
-import { createGeneratorChannel } from "../interp/generator.js";
+import {
+  createGeneratorChannel,
+  restoreGeneratorChannel,
+  type GeneratorCompletion
+} from "../interp/generator.js";
 import { hashSource } from "../parse/hash.js";
 import {
   parseModule,
@@ -375,11 +379,20 @@ function restoreGeneratorValue(
     throw new Error(`Snapshot references non-generator AST node ${value.astNodeId}.`);
   }
 
-  const channel = createGeneratorChannel(async (generatorYield) => {
+  const createBody: Parameters<typeof createGeneratorChannel>[0] = async (generatorYield) => {
     const capturedScope =
-      state.scopeById.get(value.capturedScopeId) ?? restoreParentScope(value.capturedScopeId, state);
+      state.scopeById.get(value.capturedScopeId) ??
+      restoreParentScope(value.capturedScopeId, state);
     const result = await interpret(node.body, {
       budget: state.budget,
+      ...(value.state === "suspended"
+        ? {
+            generatorResume: {
+              sent: deserializeGeneratorCompletions(value.sent, state),
+              yieldNodeId: value.yieldNodeId
+            }
+          }
+        : {}),
       generatorYield,
       scope: capturedScope,
       useScopeDirectly: true
@@ -388,11 +401,44 @@ function restoreGeneratorValue(
       throw new Error(result.error.message);
     }
     return result.returnValue;
-  });
+  };
+  const channel =
+    value.state === "suspended"
+      ? restoreGeneratorChannel(createBody, {
+          yieldNodeId: value.yieldNodeId,
+          sent: deserializeGeneratorCompletions(value.sent, state)
+        })
+      : createGeneratorChannel(createBody);
 
-  return createSandboxGenerator(channel, {
+  const generator = createSandboxGenerator(channel, {
     astNodeId: value.astNodeId,
     capturedScopeId: value.capturedScopeId
+  });
+  generator.state = value.state;
+  return generator;
+}
+
+function deserializeGeneratorCompletions(
+  value: SerializedSnapshotValue,
+  state: RestoreState
+): GeneratorCompletion[] {
+  const sent = deserializeValue(value, state);
+  if (!Array.isArray(sent)) {
+    throw new TypeError("Snapshot generator sent state must be an array.");
+  }
+  return sent.map((completion) => {
+    const candidate = completion as { type?: unknown; value?: unknown };
+    if (
+      typeof completion !== "object" ||
+      completion === null ||
+      Array.isArray(completion) ||
+      !Object.hasOwn(completion, "type") ||
+      !["normal", "return", "throw"].includes(String(candidate.type)) ||
+      !Object.hasOwn(completion, "value")
+    ) {
+      throw new TypeError("Snapshot generator sent state contains an invalid completion.");
+    }
+    return candidate as GeneratorCompletion;
   });
 }
 
@@ -794,8 +840,15 @@ function isSerializedGeneratorValue(
         hasOwnProperty(value, "astNodeId") &&
         typeof value.astNodeId === "number" &&
         hasOwnProperty(value, "capturedScopeId") &&
-        (typeof value.capturedScopeId === "number" ||
-          typeof value.capturedScopeId === "string")))
+        (typeof value.capturedScopeId === "number" || typeof value.capturedScopeId === "string")) ||
+      (value.state === "suspended" &&
+        hasOwnProperty(value, "astNodeId") &&
+        typeof value.astNodeId === "number" &&
+        hasOwnProperty(value, "capturedScopeId") &&
+        (typeof value.capturedScopeId === "number" || typeof value.capturedScopeId === "string") &&
+        hasOwnProperty(value, "yieldNodeId") &&
+        typeof value.yieldNodeId === "number" &&
+        hasOwnProperty(value, "sent")))
   );
 }
 

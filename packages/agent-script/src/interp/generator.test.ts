@@ -4,9 +4,59 @@ import { parseModule } from "../parse/parser.js";
 import { Budget } from "./budget.js";
 import { createCollectionGlobals } from "./globals/collections.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
+import { restoreGeneratorChannel } from "./generator.js";
 import { interpret } from "./interpreter.js";
 
 describe("sync generators", () => {
+  it("preserves restored continuation metadata across repeated snapshots", async () => {
+    const body = async (
+      yieldValue: (
+        value?: unknown,
+        yieldNodeId?: number
+      ) => Promise<{ type: "normal" | "return" | "throw"; value: unknown }>
+    ) => {
+      await yieldValue(1, 10);
+      await yieldValue(2, 20);
+    };
+    const channel = restoreGeneratorChannel(body, {
+      yieldNodeId: 10,
+      sent: [{ type: "normal", value: undefined }]
+    });
+
+    expect(channel.snapshot()).toEqual({
+      yieldNodeId: 10,
+      sent: [{ type: "normal", value: undefined }]
+    });
+
+    await expect(channel.next("sent")).resolves.toEqual({ value: 2, done: false });
+    expect(channel.snapshot()).toEqual({
+      yieldNodeId: 20,
+      sent: [
+        { type: "normal", value: undefined },
+        { type: "normal", value: "sent" }
+      ]
+    });
+  });
+
+  it("emits a resume breakpoint at each yield", async () => {
+    const yieldNodeIds: Array<number | undefined> = [];
+    await interpret(
+      program(
+        "function* values() { yield 1; yield 2; } const gen = values(); gen.next(); gen.next();"
+      ),
+      {
+        onYield: (yieldPoint) => {
+          if (yieldPoint.kind === "generator-yield") {
+            yieldNodeIds.push(yieldPoint.nodeId);
+          }
+        }
+      }
+    );
+
+    expect(yieldNodeIds).toHaveLength(2);
+    expect(yieldNodeIds.every((nodeId) => nodeId !== undefined)).toBe(true);
+  });
+
   it("does not execute the body until first pull", async () => {
     await expect(
       interpret(
@@ -22,25 +72,43 @@ describe("sync generators", () => {
 
   it("pulls yielded values and returns the final value", async () => {
     await expect(
-      interpret(program("function* values() { yield 1; return 2; } const gen = values(); return [gen.next(), gen.next()];"))
+      interpret(
+        program(
+          "function* values() { yield 1; return 2; } const gen = values(); return [gen.next(), gen.next()];"
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [{ value: 1, done: false }, { value: 2, done: true }]
+      returnValue: [
+        { value: 1, done: false },
+        { value: 2, done: true }
+      ]
     });
   });
 
   it("binds parameters at the original call and sends values into yield", async () => {
     await expect(
-      interpret(program("function* values(value) { value = yield value; return value; } let input = 1; const gen = values(input); input = 2; const first = gen.next(); const second = gen.next(3); return [first, second];"))
+      interpret(
+        program(
+          "function* values(value) { value = yield value; return value; } let input = 1; const gen = values(input); input = 2; const first = gen.next(); const second = gen.next(3); return [first, second];"
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [{ value: 1, done: false }, { value: 3, done: true }]
+      returnValue: [
+        { value: 1, done: false },
+        { value: 3, done: true }
+      ]
     });
   });
 
   it("throws at the yield site where the body can catch it", async () => {
     await expect(
-      interpret(program("function* values() { try { yield 1; } catch (error) { yield error; } } const gen = values(); return [gen.next(), gen.throw('caught'), gen.next()];"))
+      interpret(
+        program(
+          "function* values() { try { yield 1; } catch (error) { yield error; } } const gen = values(); return [gen.next(), gen.throw('caught'), gen.next()];"
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [
@@ -53,7 +121,11 @@ describe("sync generators", () => {
 
   it("runs finally when return resumes a suspended yield", async () => {
     await expect(
-      interpret(program("const seen = []; function* values() { try { yield 1; } finally { seen.push('finally'); } } const gen = values(); const first = gen.next(); const last = gen.return(9); return [first, last, seen];"))
+      interpret(
+        program(
+          "const seen = []; function* values() { try { yield 1; } finally { seen.push('finally'); } } const gen = values(); const first = gen.next(); const last = gen.return(9); return [first, last, seen];"
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [{ value: 1, done: false }, { value: 9, done: true }, ["finally"]]
@@ -62,7 +134,11 @@ describe("sync generators", () => {
 
   it("delegates yield star and forwards throw and return", async () => {
     await expect(
-      interpret(program("function* inner() { try { yield 1; } catch (error) { yield error; } finally { yield 'finally'; } } function* outer() { return yield* inner(); } const thrown = outer(); const throwResults = [thrown.next(), thrown.throw('caught'), thrown.next(), thrown.next()]; const returned = outer(); const returnResults = [returned.next(), returned.return(7), returned.next()]; return [throwResults, returnResults];"))
+      interpret(
+        program(
+          "function* inner() { try { yield 1; } catch (error) { yield error; } finally { yield 'finally'; } } function* outer() { return yield* inner(); } const thrown = outer(); const throwResults = [thrown.next(), thrown.throw('caught'), thrown.next(), thrown.next()]; const returned = outer(); const returnResults = [returned.next(), returned.return(7), returned.next()]; return [throwResults, returnResults];"
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [
@@ -90,7 +166,10 @@ describe("sync generators", () => {
       )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [{ value: 1, done: false }, { value: 7, done: true }]
+      returnValue: [
+        { value: 1, done: false },
+        { value: 7, done: true }
+      ]
     });
   });
 
@@ -103,7 +182,10 @@ describe("sync generators", () => {
       )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [{ value: 1, done: false }, { value: 8, done: true }]
+      returnValue: [
+        { value: 1, done: false },
+        { value: 8, done: true }
+      ]
     });
   });
 
@@ -123,18 +205,17 @@ describe("sync generators", () => {
       )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: [
-        [1, 2],
-        ["a", "b"],
-        [3, 4],
-        [["x", 5]]
-      ]
+      returnValue: [[1, 2], ["a", "b"], [3, 4], [["x", 5]]]
     });
   });
 
   it("closes a generator when for of exits early", async () => {
     await expect(
-      interpret(program("const seen = []; function* values() { try { yield 1; yield 2; } finally { seen.push('finally'); } } for (const value of values()) { break; } return seen;"))
+      interpret(
+        program(
+          "const seen = []; function* values() { try { yield 1; yield 2; } finally { seen.push('finally'); } } for (const value of values()) { break; } return seen;"
+        )
+      )
     ).resolves.toMatchObject({ ok: true, returnValue: ["finally"] });
   });
 

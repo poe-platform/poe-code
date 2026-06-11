@@ -84,19 +84,16 @@ describe("snapshot scheduler", () => {
       expect.stringMatching(/^\/state\.json\..+\.tmp$/),
       "/state.json"
     );
-    expect(Object.keys(vol.toJSON()).some((filePath) => /^\/state\.json\..+\.tmp$/.test(filePath))).toBe(
-      false
-    );
+    expect(
+      Object.keys(vol.toJSON()).some((filePath) => /^\/state\.json\..+\.tmp$/.test(filePath))
+    ).toBe(false);
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
       version: 1,
       step: "checkpointed"
     });
   });
 
-  it("skips an unsnapshotable periodic dump and retries at the next interval", async () => {
-    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
-    const writes: string[] = [];
-    let attempts = 0;
+  it("surfaces an unsnapshotable periodic dump", async () => {
     const scheduler = createSnapshotScheduler<{ sourceHash: string }>({
       snapshotIntervalMs: 1_000,
       snapshotBackend: {
@@ -104,11 +101,8 @@ describe("snapshot scheduler", () => {
           return undefined;
         },
         async write(snapshot) {
-          attempts += 1;
-          if (attempts === 1) {
-            throw new UnsnapshotableValueError("bindings.generator");
-          }
-          writes.push(snapshot.sourceHash);
+          void snapshot;
+          throw new UnsnapshotableValueError("bindings.generator");
         },
         async remove() {}
       }
@@ -116,18 +110,10 @@ describe("snapshot scheduler", () => {
 
     vi.advanceTimersByTime(1_000);
     scheduler.onYield(() => ({ sourceHash: "skipped" }));
-    await scheduler.finish();
-
-    expect(warning).toHaveBeenCalledWith(
-      "Skipping periodic snapshot: Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary. (at bindings.generator)"
-    );
-    expect(writes).toEqual([]);
-
-    vi.advanceTimersByTime(1_000);
-    scheduler.onYield(() => ({ sourceHash: "recovered" }));
-    await scheduler.finish();
-
-    expect(writes).toEqual(["recovered"]);
+    await expect(scheduler.finish()).rejects.toMatchObject({
+      name: "UnsnapshotableValueError",
+      path: "bindings.generator"
+    });
   });
 
   it("waits for an in-flight atomic write before starting the next scheduled write", async () => {

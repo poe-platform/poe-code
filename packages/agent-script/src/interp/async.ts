@@ -55,7 +55,11 @@ export type AsyncEvaluationContext = {
   stats: {
     nodeVisits: number;
   };
-  generatorYield?: (value?: SandboxValue) => Promise<GeneratorCompletion>;
+  generatorYield?: (value?: SandboxValue, yieldNodeId?: number) => Promise<GeneratorCompletion>;
+  generatorResume?: {
+    sent: GeneratorCompletion[];
+    yieldNodeId: number;
+  };
 };
 
 export type EvaluateAsyncNode = (
@@ -198,7 +202,10 @@ function createGeneratorClosure(
       const channel = createGeneratorChannel(async (generatorYield) => {
         const result = await evaluateNode(node.body, {
           ...closureContext,
-          generatorYield,
+          generatorYield: (value, yieldNodeId) => {
+            generator.state = "suspended";
+            return generatorYield(value, yieldNodeId);
+          },
           scope
         });
         if (result.kind === "error") {
@@ -209,7 +216,8 @@ function createGeneratorClosure(
         }
         return result.hasValue ? result.value : undefined;
       });
-      return createSandboxGenerator(channel);
+      const generator = createSandboxGenerator(channel);
+      return generator;
     }
   });
 }

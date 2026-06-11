@@ -12,6 +12,7 @@ import {
   isSandboxSet
 } from "../interp/values.js";
 import { createGeneratorChannel } from "../interp/generator.js";
+import { interpret } from "../interp/interpreter.js";
 import { parseModule, type Module, type ParseResult } from "../parse/parser.js";
 import { hashSource } from "../parse/hash.js";
 import { restore } from "./restore.js";
@@ -75,10 +76,7 @@ describe("snapshot restore", () => {
       pendingPromises: [],
       moduleBindings: {}
     });
-    const snapshot = restore(
-      serialized,
-      { source, budget: new Budget() }
-    );
+    const snapshot = restore(serialized, { source, budget: new Budget() });
     const start = snapshot.currentScope.lookup("start");
     const done = snapshot.currentScope.lookup("done");
 
@@ -96,6 +94,118 @@ describe("snapshot restore", () => {
     await expect(start.value.channel.next()).resolves.toEqual({ value: 1, done: false });
     await expect(start.value.channel.next()).resolves.toEqual({ value: 2, done: true });
     await expect(done.value.channel.next()).resolves.toEqual({ value: undefined, done: true });
+  });
+
+  it("round-trips a generator suspended at its first yield", async () => {
+    const source = "function* values() { yield 1; yield 2; return 3; } await task();";
+    const module = parseModule(source);
+    const generatorNodeId = getNodeIdByType(module, "FunctionDeclaration");
+    const yieldNodeId = getNodeIdsByType(module, "YieldExpression")[0]!;
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId: getNodeIdByType(module, "AwaitExpression"),
+        scopeChain: [
+          { id: "module", bindings: {} },
+          {
+            id: "generator",
+            parentId: "module",
+            bindings: {
+              generator: {
+                kind: "generator",
+                state: "suspended",
+                astNodeId: generatorNodeId,
+                capturedScopeId: "generator",
+                yieldNodeId,
+                sent: [{ type: "normal", value: { kind: "undefined" } }]
+              }
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      },
+      { source, budget: new Budget() }
+    );
+    const binding = restored.currentScope.lookup("generator");
+    expect(binding.found && isSandboxGenerator(binding.value)).toBe(true);
+    if (!binding.found || !isSandboxGenerator(binding.value)) {
+      return;
+    }
+    const generator = binding.value;
+
+    await expect(generator.channel.next()).resolves.toEqual({ value: 2, done: false });
+    await expect(generator.channel.next()).resolves.toEqual({ value: 3, done: true });
+  });
+
+  it("round-trips after sent values update captured scope", async () => {
+    const source =
+      "function* values() { const state = { value: yield 1 }; state.value = yield state.value; return state.value; } await task();";
+    const module = parseModule(source);
+    const generator = restoreSuspendedGenerator(source, module, {
+      bindings: { state: { value: 7 } },
+      sent: [
+        { type: "normal", value: { kind: "undefined" } },
+        { type: "normal", value: 7 }
+      ],
+      yieldNodeId: getNodeIdsByType(module, "YieldExpression")[1]!
+    });
+
+    await expect(generator.channel.next(9)).resolves.toEqual({ value: 9, done: true });
+  });
+
+  it("round-trips yield star delegation", async () => {
+    const source = "function* values() { return yield* [1, 2, 3]; } await task();";
+    const module = parseModule(source);
+    const generator = restoreSuspendedGenerator(source, module, {
+      bindings: {},
+      sent: [
+        { type: "normal", value: { kind: "undefined" } },
+        { type: "normal", value: "first" }
+      ],
+      yieldNodeId: getNodeIdByType(module, "YieldExpression")
+    });
+
+    await expect(generator.channel.next("second")).resolves.toEqual({ value: 3, done: false });
+    await expect(generator.channel.next("third")).resolves.toEqual({
+      value: undefined,
+      done: true
+    });
+  });
+
+  it("runs a restored generator's finally when for of breaks early", async () => {
+    const source =
+      "function* values() { try { yield 1; yield 2; } finally { log.push('closed'); } } await task();";
+    const module = parseModule(source);
+    const restored = restoreSuspendedGeneratorState(source, module, {
+      bindings: { log: [] },
+      sent: [{ type: "normal", value: { kind: "undefined" } }],
+      yieldNodeId: getNodeIdsByType(module, "YieldExpression")[0]!
+    });
+    const log = restored.currentScope.lookup("log");
+    const result = await interpret(
+      program("for (const value of generator) { break; } return log;"),
+      { bindings: { generator: restored.generator, log: log.found ? log.value : undefined } }
+    );
+
+    expect(result).toMatchObject({ ok: true, returnValue: ["closed"] });
+  });
+
+  it("runs a restored generator's finally before propagating throw", async () => {
+    const source =
+      "function* values() { try { yield 1; yield 2; } finally { log.push('closed'); } } await task();";
+    const module = parseModule(source);
+    const restored = restoreSuspendedGeneratorState(source, module, {
+      bindings: { log: [] },
+      sent: [{ type: "normal", value: { kind: "undefined" } }],
+      yieldNodeId: getNodeIdsByType(module, "YieldExpression")[0]!
+    });
+    const log = restored.currentScope.lookup("log");
+    const error = new Error("stop");
+
+    await expect(restored.generator.channel.throw(error)).rejects.toBe(error);
+    expect(log.found ? log.value : undefined).toEqual(["closed"]);
   });
 
   it("round-trips collection shared keys and cycles", () => {
@@ -1041,6 +1151,91 @@ function getNodeIdByType(module: Module, type: ParseResult["type"]): number {
   }
 
   return match.nodeId;
+}
+
+function getNodeIdsByType(module: Module, type: ParseResult["type"]): number[] {
+  const ids: number[] = [];
+  collectNodeIds(module, type, ids);
+  return ids;
+}
+
+function restoreSuspendedGenerator(
+  source: string,
+  module: Module,
+  input: {
+    bindings: Record<string, unknown>;
+    sent: unknown[];
+    yieldNodeId: number;
+  }
+): SandboxGenerator {
+  return restoreSuspendedGeneratorState(source, module, input).generator;
+}
+
+function restoreSuspendedGeneratorState(
+  source: string,
+  module: Module,
+  input: {
+    bindings: Record<string, unknown>;
+    sent: unknown[];
+    yieldNodeId: number;
+  }
+) {
+  const generatorNodeId = getNodeIdByType(module, "FunctionDeclaration");
+  const restored = restore(
+    {
+      sourceHash: hashSource(source),
+      currentAstNodeId: getNodeIdByType(module, "AwaitExpression"),
+      scopeChain: [
+        { id: "module", bindings: {} },
+        {
+          id: "generator",
+          parentId: "module",
+          bindings: {
+            ...input.bindings,
+            generator: {
+              kind: "generator",
+              state: "suspended",
+              astNodeId: generatorNodeId,
+              capturedScopeId: "generator",
+              yieldNodeId: input.yieldNodeId,
+              sent: input.sent
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    } as never,
+    { source, budget: new Budget() }
+  );
+  const binding = restored.currentScope.lookup("generator");
+  if (!binding.found || !isSandboxGenerator(binding.value)) {
+    throw new Error("Expected restored generator binding.");
+  }
+  return { currentScope: restored.currentScope, generator: binding.value };
+}
+
+function program(source: string): ParseResult {
+  const module = parseModule(source);
+  return { type: "BlockStatement", body: module.body, span: module.span };
+}
+
+function collectNodeIds(value: unknown, type: ParseResult["type"], ids: number[]): void {
+  if (typeof value !== "object" || value === null) {
+    return;
+  }
+  if (
+    "type" in value &&
+    value.type === type &&
+    "nodeId" in value &&
+    typeof value.nodeId === "number"
+  ) {
+    ids.push(value.nodeId);
+  }
+  for (const entry of Array.isArray(value) ? value : Object.values(value)) {
+    collectNodeIds(entry, type, ids);
+  }
 }
 
 function findNode<TNode extends { nodeId?: number; type: string }>(

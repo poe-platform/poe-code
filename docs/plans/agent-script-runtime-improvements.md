@@ -238,7 +238,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: generator-yield-resume-breakpoint
     title: Make a suspended generator a resume breakpoint
@@ -279,10 +279,10 @@ tasks:
       uninterrupted run. Fast unit tests, no timers beyond immediate resolution,
       no file I/O outside memfs, no LLM.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: resume-policy-required-for-host-modules
     title: Require an explicit resume policy for every host operation

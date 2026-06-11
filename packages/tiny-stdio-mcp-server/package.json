@@ -24,8 +24,7 @@
     "prepublishOnly": "tsc"
   },
   "files": [
-    "dist",
-    "!dist/testing.*"
+    "dist"
   ],
   "engines": {
     "node": ">=20"

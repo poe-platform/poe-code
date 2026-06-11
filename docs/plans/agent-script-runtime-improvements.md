@@ -83,9 +83,9 @@ tasks:
       still prevents the throw. Fast unit tests using the existing
       `deadline: Date.now() - 1` style fixtures.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: math-methods-and-constants
     title: Fill in the missing Math methods and constants

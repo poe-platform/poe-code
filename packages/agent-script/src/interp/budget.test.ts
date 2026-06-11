@@ -43,14 +43,82 @@ describe("Budget", () => {
     expect(budget.stepsUsed).toBe(3);
   });
 
-  it("fails visits once the wallclock deadline has passed", () => {
+  it("fails visits within the deadline sampling window once the wallclock deadline has passed", () => {
     const budget = new Budget({
       deadline: Date.now() - 1
     });
 
-    expectSandboxError(() => budget.visitNode(), {
-      budget: "deadline"
+    expectSandboxError(
+      () => {
+        for (let visit = 0; visit < 1_024; visit += 1) {
+          budget.visitNode();
+        }
+      },
+      { budget: "deadline" }
+    );
+  });
+
+  it("does not fail deadline checks across many visits with a generous deadline", () => {
+    const budget = new Budget({
+      deadline: Date.now() + 60_000
     });
+    const dateNow = vi.spyOn(Date, "now");
+
+    try {
+      expect(() => {
+        for (let visit = 0; visit < 10_000; visit += 1) {
+          budget.visitNode();
+        }
+      }).not.toThrow();
+      expect(dateNow.mock.calls.length).toBeGreaterThan(0);
+      expect(dateNow.mock.calls.length).toBeLessThanOrEqual(10);
+    } finally {
+      dateNow.mockRestore();
+    }
+  });
+
+  it("does not fail deadline checks while deadline checks are suspended", () => {
+    const budget = new Budget({
+      deadline: Date.now() - 1
+    });
+
+    for (let visit = 0; visit < 1_023; visit += 1) {
+      budget.visitNode();
+    }
+
+    const resumeDeadlineChecks = budget.suspendDeadlineChecks();
+
+    expect(() => {
+      for (let visit = 0; visit < 10_000; visit += 1) {
+        budget.visitNode();
+      }
+    }).not.toThrow();
+
+    resumeDeadlineChecks();
+    expectSandboxError(() => budget.visitNode(), { budget: "deadline" });
+  });
+
+  it("does not fail deadline checks while all checks are suspended", () => {
+    const budget = new Budget({
+      deadline: Date.now() - 1
+    });
+    const resumeChecks = budget.suspendChecks();
+
+    expect(() => {
+      for (let visit = 0; visit < 10_000; visit += 1) {
+        budget.visitNode();
+      }
+    }).not.toThrow();
+
+    resumeChecks();
+    expectSandboxError(
+      () => {
+        for (let visit = 0; visit < 1_024; visit += 1) {
+          budget.visitNode();
+        }
+      },
+      { budget: "deadline" }
+    );
   });
 
   it("checks string allocations against the configured string budget", () => {
@@ -131,14 +199,21 @@ describe("Budget", () => {
     try {
       const budget = new Budget({
         deadline: new Date("2026-05-17T00:00:00.000Z"),
-        maxSteps: 0
+        maxSteps: 1_023
       });
 
-      expectSandboxError(() => budget.visitNode(), {
-        budget: "deadline",
-        current: new Date("2026-05-17T00:00:00.001Z").getTime(),
-        limit: new Date("2026-05-17T00:00:00.000Z").getTime()
-      });
+      expectSandboxError(
+        () => {
+          for (let visit = 0; visit < 1_024; visit += 1) {
+            budget.visitNode();
+          }
+        },
+        {
+          budget: "deadline",
+          current: new Date("2026-05-17T00:00:00.001Z").getTime(),
+          limit: new Date("2026-05-17T00:00:00.000Z").getTime()
+        }
+      );
     } finally {
       vi.useRealTimers();
     }

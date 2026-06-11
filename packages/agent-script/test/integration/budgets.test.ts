@@ -119,13 +119,13 @@ describe("budget integration", () => {
     );
   });
 
-  it("throws a deadline budget error on the first step when the deadline is already past", async () => {
+  it("throws a deadline budget error within the sampling window when already past", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-17T00:00:00.001Z"));
 
     try {
       await expectSandboxBudgetError(
-        "return 1",
+        "for (let index = 0; index < 2_000; index += 1) {} return 1",
         {
           budget: new Budget({
             deadline: new Date("2026-05-17T00:00:00.000Z")
@@ -154,6 +154,7 @@ describe("budget integration", () => {
         [
           "try {",
           "  advancePastDeadline();",
+          "  for (let index = 0; index < 2_000; index += 1) {}",
           "  record('after');",
           "} finally {",
           "  record('finally');",
@@ -228,19 +229,16 @@ describe("budget integration", () => {
   });
 
   it("renders host error excerpts after string budget exhaustion", async () => {
-    const result = await run(
-      "try { explode(); } catch ({ stack }) { return stack; }",
-      {
-        bindings: {
-          explode: () => {
-            throw new Error("render this error");
-          }
-        },
-        budget: new Budget({
-          stringLength: 1
-        })
-      }
-    );
+    const result = await run("try { explode(); } catch ({ stack }) { return stack; }", {
+      bindings: {
+        explode: () => {
+          throw new Error("render this error");
+        }
+      },
+      budget: new Budget({
+        stringLength: 1
+      })
+    });
 
     expect(result.ok).toBe(true);
     if (!result.ok) {
@@ -282,11 +280,7 @@ describe("budget integration", () => {
     const record = vi.fn();
 
     await expectSandboxBudgetError(
-      [
-        'record("before");',
-        "'x'.repeat(20971520);",
-        'record("after");'
-      ].join("\n"),
+      ['record("before");', "'x'.repeat(20971520);", 'record("after");'].join("\n"),
       {
         bindings: {
           record

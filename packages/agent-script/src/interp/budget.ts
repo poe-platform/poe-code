@@ -11,6 +11,7 @@ export type BudgetOptions = {
 };
 
 export const REGEX_STEP_LIMIT = 2_000;
+const DEADLINE_CHECK_INTERVAL = 1_024;
 
 export class SandboxError extends Error {
   readonly code: "aborted" | "budgetExceeded";
@@ -57,6 +58,7 @@ export class Budget {
   currentCallDepth = 0;
   private allChecksSuspended = 0;
   private deadlineChecksSuspended = 0;
+  private visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
 
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
@@ -70,7 +72,7 @@ export class Budget {
 
   visitNode(): void {
     this.stepsUsed += 1;
-    this.checkDeadline();
+    this.checkSampledDeadline();
 
     if (
       this.allChecksSuspended === 0 &&
@@ -133,6 +135,7 @@ export class Budget {
     this.currentCallDepth = 0;
     this.allChecksSuspended = 0;
     this.deadlineChecksSuspended = 0;
+    this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
   }
 
   suspendChecks(): () => void {
@@ -182,6 +185,24 @@ export class Budget {
       current: now,
       limit: this.deadline
     });
+  }
+
+  private checkSampledDeadline(): void {
+    if (
+      this.allChecksSuspended > 0 ||
+      this.deadlineChecksSuspended > 0 ||
+      this.deadline === undefined
+    ) {
+      return;
+    }
+
+    this.visitsUntilDeadlineCheck -= 1;
+    if (this.visitsUntilDeadlineCheck > 0) {
+      return;
+    }
+
+    this.visitsUntilDeadlineCheck = DEADLINE_CHECK_INTERVAL;
+    this.checkDeadline();
   }
 
   private enterDepth(): () => void {

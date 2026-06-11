@@ -8,6 +8,15 @@ export type { OtelSink, OtelSpan } from "./observability/otel.js";
 export { FileSnapshotBackend } from "./snapshot/backend.js";
 export type { Snapshot, SnapshotBackend } from "./snapshot/backend.js";
 export { declareHostOperation } from "./interp/host-bridge.js";
+export { HostCallResumabilityError } from "./interp/host-call.js";
+export type {
+  HostCallLifecycle,
+  HostCallOutcome,
+  HostCallRecord,
+  HostCallResumeProof,
+  HostCallResumeProvider,
+  HostCallResumeRequest
+} from "./interp/host-call.js";
 export {
   HostOperationResumePolicyError,
   registerPendingHostCallPolicy

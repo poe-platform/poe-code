@@ -90,6 +90,8 @@ export type SandboxClosure = {
 export type SandboxPromise = {
   readonly kind: "promise";
   readonly promise: Promise<SandboxValue>;
+  readonly hostCall?: import("./host-call.js").HostCallRecord;
+  readonly hostCallJournal?: import("./host-call.js").HostCallJournal;
   readonly span?: SandboxCallContext["span"];
   readonly [sandboxPromiseBrand]: true;
 };
@@ -156,7 +158,11 @@ export function createSandboxClosure(input: {
 
 export function createSandboxPromise(
   promise: Promise<SandboxValue>,
-  metadata: { span?: SandboxCallContext["span"] } = {}
+  metadata: {
+    hostCall?: import("./host-call.js").HostCallRecord;
+    hostCallJournal?: import("./host-call.js").HostCallJournal;
+    span?: SandboxCallContext["span"];
+  } = {}
 ): SandboxPromise {
   const sandboxPromise = {
     kind: "promise" as const,
@@ -171,6 +177,15 @@ export function createSandboxPromise(
   if (metadata.span !== undefined) {
     Object.defineProperty(sandboxPromise, "span", {
       value: metadata.span
+    });
+  }
+
+  if (metadata.hostCall !== undefined) {
+    Object.defineProperty(sandboxPromise, "hostCall", { value: metadata.hostCall });
+  }
+  if (metadata.hostCallJournal !== undefined) {
+    Object.defineProperty(sandboxPromise, "hostCallJournal", {
+      value: metadata.hostCallJournal
     });
   }
 

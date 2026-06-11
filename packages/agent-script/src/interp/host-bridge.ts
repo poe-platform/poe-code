@@ -5,6 +5,13 @@ import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
 import {
+  digestHostCallArguments,
+  HostCallResumabilityError,
+  type HostCallJournal,
+  type HostCallOutcome,
+  type HostCallRecord
+} from "./host-call.js";
+import {
   createSandboxClosure,
   createSandboxMap,
   createSandboxPromise,
@@ -29,6 +36,8 @@ const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCal
 
 type HostBridgeOptions = {
   budget: Budget;
+  hostCalls?: HostCallJournal;
+  moduleId?: string;
   signal?: AbortSignal;
 };
 
@@ -93,10 +102,31 @@ function wrapCallerInjectedFunction(
           })
         );
 
-        return copyHostResultToSandbox(
-          Reflect.apply(callable, undefined, hostArgs),
+        const policy = readHostOperationPolicy(value) ?? "re-issue";
+        const hostCalls = options.hostCalls;
+        const operation = bindingName;
+        const moduleId = options.moduleId ?? "<bindings>";
+        if (hostCalls === undefined) {
+          return copyHostResultToSandbox(
+            Reflect.apply(callable, undefined, hostArgs),
+            stackFrames,
+            options
+          );
+        }
+
+        const issued = hostCalls.issue({
+          argumentDigest: digestHostCallArguments(hostArgs),
+          moduleId,
+          operation,
+          policy
+        });
+        return executeHostCall(
+          issued.record,
+          issued.restored,
+          () => Reflect.apply(callable, undefined, hostArgs),
           stackFrames,
-          options
+          options,
+          context?.span
         );
       } catch (error) {
         if (isFatalBridgeError(error)) {
@@ -109,6 +139,126 @@ function wrapCallerInjectedFunction(
     name: bindingName,
     ...(properties ? { properties } : {})
   });
+}
+
+function executeHostCall(
+  record: HostCallRecord,
+  restored: boolean,
+  invoke: () => unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions,
+  span?: ErrorSourceSpan
+): SandboxValue {
+  const hostCalls = options.hostCalls as HostCallJournal;
+  if (
+    restored &&
+    record.policy === "read-side-effect" &&
+    record.lifecycle === "consumed" &&
+    record.outcome !== undefined
+  ) {
+    return createReplayedHostCallResult(record.outcome);
+  }
+  if (
+    restored &&
+    record.policy === "read-side-effect" &&
+    record.lifecycle === "settled" &&
+    record.outcome !== undefined
+  ) {
+    return createHostCallPromise(record, Promise.resolve(record.outcome), hostCalls);
+  }
+  if (restored && record.lifecycle === "cancelled" && record.policy === "read-side-effect") {
+    throw new HostCallResumabilityError(
+      record,
+      "reset",
+      `Host call ${record.id} was cancelled; reset is required.`
+    );
+  }
+  if (restored && record.policy === "read-side-effect" && record.lifecycle !== "created") {
+    return createHostCallPromise(record, hostCalls.reconcile(record), hostCalls);
+  }
+
+  hostCalls.start(record);
+  let result: unknown;
+  try {
+    result = invoke();
+  } catch (error) {
+    const reason = createHostErrorValue(error, stackFrames, options.budget, span);
+    hostCalls.settle(record, { status: "rejected", reason });
+    throw error;
+  }
+
+  if (!isPromiseLike(result)) {
+    const value = copyHostResultToSandbox(result, stackFrames, options);
+    hostCalls.settle(record, { status: "fulfilled", value });
+    hostCalls.consume(record);
+    return value;
+  }
+
+  const outcome = wrapHostPromiseWithSignal(Promise.resolve(result), options.signal).then(
+    (value): HostCallOutcome => {
+      try {
+        return {
+          status: "fulfilled",
+          value: copyHostResultToSandbox(value, stackFrames, options)
+        };
+      } catch (error) {
+        if (isFatalBridgeError(error)) {
+          throw error;
+        }
+
+        return {
+          status: "rejected",
+          reason: createHostErrorValue(error, stackFrames, options.budget, span)
+        };
+      }
+    },
+    (error): HostCallOutcome | Promise<never> => {
+      if (isFatalBridgeError(error)) {
+        return Promise.reject(error);
+      }
+
+      return {
+        status: "rejected",
+        reason: createHostErrorValue(error, stackFrames, options.budget, span)
+      };
+    }
+  );
+  return createHostCallPromise(record, outcome, hostCalls);
+}
+
+function createReplayedHostCallResult(outcome: HostCallOutcome): SandboxValue {
+  const promise =
+    outcome.status === "fulfilled"
+      ? Promise.resolve(outcome.value)
+      : Promise.reject(outcome.reason);
+  promise.catch(() => undefined);
+  return createSandboxPromise(promise);
+}
+
+function createHostCallPromise(
+  record: HostCallRecord,
+  outcomePromise: Promise<HostCallOutcome>,
+  hostCalls: HostCallJournal
+): SandboxValue {
+  const promise = outcomePromise.then((outcome) => {
+    if (outcome.status === "rejected" && isAbortReason(outcome.reason)) {
+      hostCalls.cancel(record, outcome.reason);
+    } else {
+      hostCalls.settle(record, outcome);
+    }
+    return outcome.status === "fulfilled" ? outcome.value : Promise.reject(outcome.reason);
+  });
+  promise.catch(() => undefined);
+  return createSandboxPromise(promise, { hostCall: record, hostCallJournal: hostCalls });
+}
+
+function isAbortReason(reason: SandboxValue): boolean {
+  return (
+    typeof reason === "object" &&
+    reason !== null &&
+    (("name" in reason && reason.name === "AbortError") ||
+      ("code" in reason && reason.code === "aborted"))
+  );
 }
 
 function copyHostResultToSandbox(
@@ -221,8 +371,11 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return typeof value === "object" && value !== null && "then" in value;
 }
 
-function isFatalBridgeError(error: unknown): error is SandboxError {
-  return error instanceof SandboxError && error.code === "budgetExceeded";
+function isFatalBridgeError(error: unknown): error is SandboxError | HostCallResumabilityError {
+  return (
+    error instanceof HostCallResumabilityError ||
+    (error instanceof SandboxError && error.code === "budgetExceeded")
+  );
 }
 
 function wrapHostPromiseWithSignal<TValue>(

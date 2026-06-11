@@ -19,6 +19,11 @@ import {
 import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
+import {
+  HostCallJournal,
+  type HostCallRecord,
+  type HostCallResumeProvider
+} from "./interp/host-call.js";
 import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/console-json.js";
 import { createCollectionGlobals } from "./interp/globals/collections.js";
 import { createErrorGlobals } from "./interp/globals/error.js";
@@ -60,6 +65,7 @@ export type RunOptions = {
   entryPointArgs?: readonly unknown[];
   filename?: string;
   importMeta?: Record<string, unknown>;
+  hostCallResumeProvider?: HostCallResumeProvider;
   modules?: ModuleRegistry;
   random?: RunRandom;
   randomSeed?: number;
@@ -87,6 +93,7 @@ export class UnhandledRejectionError extends Error {
 export type RunSnapshot = AgentScriptSnapshot & {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock?: RunClockSnapshot;
+  hostCalls?: HostCallRecord[];
   loopIterations?: Record<string, LoopIterationSnapshot>;
   pendingAwaits?: RunPendingAwaitSnapshot[];
   random?: {
@@ -136,6 +143,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       const filename = options.filename ?? "<input>";
       const module = parseExecutableModule(source, filename);
       const sourceHash = hashSource(source);
+      const hostCalls = new HostCallJournal(
+        sourceHash,
+        readHostCallSnapshot(restoredSnapshot),
+        options.hostCallResumeProvider
+      );
       const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
       const interpreterSnapshot = hasLoopIterationSnapshot(restoredSnapshot)
         ? (restoredSnapshot as RunSnapshot)
@@ -146,6 +158,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           ? {}
           : wrapCallerInjectedBindings(options.bindings, {
               budget,
+              hostCalls,
+              moduleId: "<bindings>",
               signal: options.signal
             });
       const builtinBindings = {
@@ -183,7 +197,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       );
       const callerScope = scope.child(cancelableCallerBindings);
       const executionScope = new Scope(
-        resolveModuleImports(module, options.modules, { budget, signal: options.signal }),
+        resolveModuleImports(module, options.modules, {
+          budget,
+          hostCalls,
+          signal: options.signal
+        }),
         callerScope,
         deepCopyToSandbox(options.importMeta ?? {}),
         { functionBoundary: true }
@@ -198,6 +216,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         createRunSnapshot({
           bindings: executionScope.snapshot().bindings,
           clock: options.clock,
+          hostCalls: hostCalls.snapshot(),
           random,
           sourceHash
         });
@@ -219,6 +238,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             snapshot = createRunSnapshot({
               bindings: interpreterSnapshot.bindings,
               clock: options.clock,
+              hostCalls: hostCalls.snapshot(),
               loopIterations: interpreterSnapshot.loopIterations,
               pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
               random,
@@ -257,6 +277,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   snapshot = createRunSnapshot({
                     bindings: interpreterSnapshot.bindings,
                     clock: options.clock,
+                    hostCalls: hostCalls.snapshot(),
                     loopIterations: interpreterSnapshot.loopIterations,
                     pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
                     random,
@@ -276,6 +297,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       const snapshot = createRunSnapshot({
         bindings: executionScope.snapshot().bindings,
         clock: options.clock,
+        hostCalls: hostCalls.snapshot(),
         random,
         sourceHash
       });
@@ -330,6 +352,9 @@ async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promis
   await Promise.resolve();
 
   if (rejected) {
+    if (result.returnValue.hostCall !== undefined) {
+      result.returnValue.hostCallJournal?.consume(result.returnValue.hostCall);
+    }
     throw new UnhandledRejectionError(rejectionReason, result.returnValue.span);
   }
 }
@@ -461,6 +486,7 @@ function createExecutableNode(module: Module): ParseResult {
 function createRunSnapshot(input: {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
+  hostCalls?: HostCallRecord[];
   loopIterations?: Record<string, LoopIterationSnapshot>;
   pendingAwaits?: RunPendingAwaitSnapshot[];
   random:
@@ -476,6 +502,9 @@ function createRunSnapshot(input: {
     sourceHash: input.sourceHash,
     bindings: input.bindings,
     clock: input.clock?.snapshot(),
+    ...(input.hostCalls === undefined || input.hostCalls.length === 0
+      ? {}
+      : { hostCalls: input.hostCalls }),
     ...(input.loopIterations === undefined ? {} : { loopIterations: input.loopIterations }),
     ...(input.pendingAwaits === undefined || input.pendingAwaits.length === 0
       ? {}
@@ -488,6 +517,56 @@ function createRunSnapshot(input: {
             state: input.random.generator.snapshot()
           }
   };
+}
+
+function readHostCallSnapshot(snapshot: AgentScriptSnapshot | undefined): HostCallRecord[] {
+  if (snapshot === undefined || !Array.isArray(snapshot.hostCalls)) {
+    return [];
+  }
+
+  return snapshot.hostCalls.map((value, index) => {
+    if (typeof value !== "object" || value === null) {
+      throw new TypeError(`Snapshot hostCalls[${index}] must be an object.`);
+    }
+
+    const record = value as Partial<HostCallRecord>;
+    const requiredStrings = [
+      "id",
+      "runId",
+      "sourceHash",
+      "moduleId",
+      "operation",
+      "argumentDigest"
+    ] as const;
+    for (const key of requiredStrings) {
+      if (typeof record[key] !== "string" || record[key].length === 0) {
+        throw new TypeError(`Snapshot hostCalls[${index}].${key} must be a non-empty string.`);
+      }
+    }
+    if (record.sourceHash !== snapshot.sourceHash) {
+      throw new TypeError(`Snapshot hostCalls[${index}].sourceHash must match the snapshot.`);
+    }
+    if (record.policy !== "re-issue" && record.policy !== "read-side-effect") {
+      throw new TypeError(`Snapshot hostCalls[${index}].policy is invalid.`);
+    }
+    if (
+      record.lifecycle !== "created" &&
+      record.lifecycle !== "running" &&
+      record.lifecycle !== "settled" &&
+      record.lifecycle !== "consumed" &&
+      record.lifecycle !== "cancelled"
+    ) {
+      throw new TypeError(`Snapshot hostCalls[${index}].lifecycle is invalid.`);
+    }
+    if (
+      (record.lifecycle === "settled" || record.lifecycle === "cancelled") &&
+      record.outcome === undefined
+    ) {
+      throw new TypeError(`Snapshot hostCalls[${index}].outcome is required.`);
+    }
+
+    return record as HostCallRecord;
+  });
 }
 
 function hasLoopIterationSnapshot(

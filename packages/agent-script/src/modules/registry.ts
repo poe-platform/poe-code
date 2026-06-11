@@ -1,4 +1,5 @@
 import type { Budget } from "../interp/budget.js";
+import type { HostCallJournal } from "../interp/host-call.js";
 import { wrapCancelableBindings } from "../interp/cancel.js";
 import {
   readHostOperationPolicy,
@@ -49,7 +50,7 @@ export function createUnknownExportMessage(
 export function resolveModuleImports(
   module: Module,
   modules: ModuleRegistry | undefined,
-  options: { budget: Budget; signal?: AbortSignal }
+  options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal }
 ): Record<string, SandboxValue> {
   const registry = normalizeModuleRegistry(modules);
   const bindings = createBindingRecord();
@@ -71,7 +72,7 @@ function bindImportDeclaration(
   registry: NormalizedModuleRegistry,
   wrappedModules: Map<string, Record<string, SandboxValue>>,
   bindings: Record<string, SandboxValue>,
-  options: { budget: Budget; signal?: AbortSignal }
+  options: { budget: Budget; hostCalls?: HostCallJournal; signal?: AbortSignal }
 ): void {
   const moduleName = declaration.source.value;
   const moduleExports = registry.get(moduleName);
@@ -85,6 +86,8 @@ function bindImportDeclaration(
     wrapCancelableBindings(
       wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
         budget: options.budget,
+        hostCalls: options.hostCalls,
+        moduleId: moduleName,
         signal: options.signal
       }),
       options.signal

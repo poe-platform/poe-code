@@ -75,6 +75,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(Object.keys(api).sort()).toEqual([
       "Budget",
       "FileSnapshotBackend",
+      "HostCallResumabilityError",
       "HostOperationResumePolicyError",
       "SandboxError",
       "SnapshotValidationError",

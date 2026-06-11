@@ -26,6 +26,7 @@ import {
   type ErrorSourceSpan
 } from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
+import { HostCallResumabilityError } from "./host-call.js";
 import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 
@@ -218,6 +219,10 @@ export function surfaceThrownValue(
   stackFrames: readonly string[] = [],
   span?: ErrorSourceSpan
 ): SandboxObject {
+  if (reason instanceof HostCallResumabilityError) {
+    throw reason;
+  }
+
   if (isSubsetErrorValue(reason)) {
     normalizeSurfacedSubsetError(reason, budget, stackFrames, span);
     return reason;

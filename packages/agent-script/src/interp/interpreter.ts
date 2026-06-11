@@ -74,6 +74,7 @@ import {
   type InterpreterYieldPoint
 } from "./async.js";
 import type { GeneratorCompletion } from "./generator.js";
+import { HostCallResumabilityError } from "./host-call.js";
 import { Budget, SandboxError } from "./budget.js";
 import {
   coerceThrownValue,
@@ -405,6 +406,10 @@ async function evaluateNode(
     );
     return result;
   } catch (error) {
+    if (error instanceof HostCallResumabilityError) {
+      throw error;
+    }
+
     if (isFatalSandboxError(error)) {
       attachFatalSandboxErrorContext(error, node, context.callStack);
       throw error;

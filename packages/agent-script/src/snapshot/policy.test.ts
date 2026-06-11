@@ -6,10 +6,31 @@ import {
   registerPendingHostCallPolicy,
   resolvePendingHostCallIssuePolicy,
   resolvePendingHostCallResumePolicy,
+  pendingHostCallResumeIdentityMatches,
   tagPendingHostCallAtIssue
 } from "./policy.js";
 
 describe("snapshot pending host-call policy", () => {
+  it("matches every external resume identity field", () => {
+    const identity = {
+      argumentDigest: "args",
+      callId: "run:1",
+      moduleId: "payments",
+      operation: "charge",
+      sourceHash: "source"
+    };
+
+    expect(pendingHostCallResumeIdentityMatches(identity, identity)).toBe(true);
+    for (const key of Object.keys(identity) as Array<keyof typeof identity>) {
+      expect(
+        pendingHostCallResumeIdentityMatches(identity, {
+          ...identity,
+          [key]: "wrong"
+        })
+      ).toBe(false);
+    }
+  });
+
   it("returns the read-side-effect decision for a known read-on-resume operation", () => {
     expect(
       resolvePendingHostCallIssuePolicy({

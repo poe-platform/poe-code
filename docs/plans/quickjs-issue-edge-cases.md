@@ -123,10 +123,10 @@ tasks:
       exactly-once invocation and consumption, deterministic event ordering, and
       a restorable last-good snapshot after every rejected resume attempt.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: reentrant-interpreter-state-guards
     title: Guard re-entrant callbacks and iterators

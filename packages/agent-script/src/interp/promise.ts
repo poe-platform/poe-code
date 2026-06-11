@@ -270,8 +270,14 @@ function resolveSandboxValueNow(
 
   if (isSandboxPromise(value)) {
     return value.promise.then(
-      (resolved) => resolveSandboxValueNow(resolved, options, seenThenables),
-      (reason: SandboxValue) => Promise.reject(budgetIfNeeded(reason, options.budget))
+      (resolved) => {
+        value.hostCallJournal?.consume(value.hostCall!);
+        return resolveSandboxValueNow(resolved, options, seenThenables);
+      },
+      (reason: SandboxValue) => {
+        value.hostCallJournal?.consume(value.hostCall!);
+        return Promise.reject(budgetIfNeeded(reason, options.budget));
+      }
     );
   }
 

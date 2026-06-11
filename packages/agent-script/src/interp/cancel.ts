@@ -55,7 +55,11 @@ function wrapCancelableValue(
   }
 
   if (isSandboxPromise(value)) {
-    const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen));
+    const wrapped = createSandboxPromise(wrapCancelablePromise(value.promise, signal, seen), {
+      ...(value.hostCall === undefined ? {} : { hostCall: value.hostCall }),
+      ...(value.hostCallJournal === undefined ? {} : { hostCallJournal: value.hostCallJournal }),
+      ...(value.span === undefined ? {} : { span: value.span })
+    });
     seen.set(value, wrapped);
     return wrapped;
   }

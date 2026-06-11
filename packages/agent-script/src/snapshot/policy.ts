@@ -1,5 +1,13 @@
 type SnapshotId = number | string;
 
+export type PendingHostCallResumeIdentity = {
+  argumentDigest: string;
+  callId: string;
+  moduleId: string;
+  operation: string;
+  sourceHash: string;
+};
+
 export type PendingHostCallDescriptor = {
   id: SnapshotId;
   moduleId?: string;
@@ -161,6 +169,19 @@ export function createPendingHostCallSideEffectTag(
     moduleId: readRequiredString(call.moduleId, "moduleId"),
     operation: readRequiredString(call.operation, "operation")
   };
+}
+
+export function pendingHostCallResumeIdentityMatches(
+  expected: PendingHostCallResumeIdentity,
+  actual: PendingHostCallResumeIdentity
+): boolean {
+  return (
+    actual.callId === expected.callId &&
+    actual.sourceHash === expected.sourceHash &&
+    actual.moduleId === expected.moduleId &&
+    actual.operation === expected.operation &&
+    actual.argumentDigest === expected.argumentDigest
+  );
 }
 
 function readPendingHostCallPolicyMode(call: PendingHostCallDescriptor): PendingHostCallPolicyMode {

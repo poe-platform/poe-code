@@ -1,0 +1,89 @@
+{
+  "total_count": 11742,
+  "incomplete_results": false,
+  "items": [
+    {
+      "url": "https://api.github.com/repos/oven-sh/bun/issues/32134",
+      "repository_url": "https://api.github.com/repos/oven-sh/bun",
+      "labels_url": "https://api.github.com/repos/oven-sh/bun/issues/32134/labels{/name}",
+      "comments_url": "https://api.github.com/repos/oven-sh/bun/issues/32134/comments",
+      "events_url": "https://api.github.com/repos/oven-sh/bun/issues/32134/events",
+      "html_url": "https://github.com/oven-sh/bun/issues/32134",
+      "id": 4643156385,
+      "node_id": "I_kwDOFVKCyc8AAAABFMDxoQ",
+      "number": 32134,
+      "title": "Intermittent segfault in @duckdb/node-api test on debian 13 x64 CI (release build)",
+      "user": {
+        "login": "robobun",
+        "id": 117481402,
+        "node_id": "U_kgDOBwCfug",
+        "avatar_url": "https://avatars.githubusercontent.com/u/117481402?v=4",
+        "gravatar_id": "",
+        "url": "https://api.github.com/users/robobun",
+        "html_url": "https://github.com/robobun",
+        "followers_url": "https://api.github.com/users/robobun/followers",
+        "following_url": "https://api.github.com/users/robobun/following{/other_user}",
+        "gists_url": "https://api.github.com/users/robobun/gists{/gist_id}",
+        "starred_url": "https://api.github.com/users/robobun/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/robobun/subscriptions",
+        "organizations_url": "https://api.github.com/users/robobun/orgs",
+        "repos_url": "https://api.github.com/users/robobun/repos",
+        "events_url": "https://api.github.com/users/robobun/events{/privacy}",
+        "received_events_url": "https://api.github.com/users/robobun/received_events",
+        "type": "User",
+        "user_view_type": "public",
+        "site_admin": false
+      },
+      "labels": [
+
+      ],
+      "state": "closed",
+      "locked": false,
+      "assignees": [
+
+      ],
+      "milestone": null,
+      "comments": 1,
+      "created_at": "2026-06-11T18:27:36Z",
+      "updated_at": "2026-06-11T18:52:22Z",
+      "closed_at": "2026-06-11T18:52:22Z",
+      "assignee": null,
+      "author_association": "COLLABORATOR",
+      "issue_field_values": [
+
+      ],
+      "type": null,
+      "active_lock_reason": null,
+      "sub_issues_summary": {
+        "total": 0,
+        "completed": 0,
+        "percent_completed": 0
+      },
+      "issue_dependencies_summary": {
+        "blocked_by": 0,
+        "total_blocked_by": 0,
+        "blocking": 0,
+        "total_blocking": 0
+      },
+      "body": "### What happened?\n\n`test/js/third_party/@duckdb/node-api/duckdb.test.ts` segfaulted on the `debian 13 x64` CI shard in two consecutive builds of the same PR branch (#32089):\n\n- [Build 61927](https://buildkite.com/bun/bun/builds/61927) at b116124e0f: `Segmentation fault at address 0x1E128000`, crash report `l_2b116124gmEikggCi7++C_A2Agggqie`\n- [Build 61931](https://buildkite.com/bun/bun/builds/61931) at 36adfc019d: `Segmentation fault at address 0x117D5000`, crash report https://bun.report/1.4.0/l_236adfc0gmEikggCi7++C_A2Aggo1vR\n\nBoth crashes happen ~1.5s into the file after roughly 5 passing tests, in the release (`bun-profile`) build. The parsed trace has a single unresolvable frame in `bun` (address 1555889 in build 61927; remap failed in CI). The fault addresses are page-aligned, which looks like a read past the end of a heap mapping.\n\n### Why I do not think the PR branch causes it\n\n- The commits between the last duckdb-green build of the branch ([61890](https://buildkite.com/bun/bun/builds/61890)) and the first crash touch only `src/js/internal/sql/postgres.ts`, `packages/bun-types/sql.d.ts`, `docs/runtime/sql.mdx`, and `test/js/sql/sql.test.ts`. The postgres adapter module is never loaded by the duckdb test (its loaded builtins per the crash banner: `bun:internal-for-testing`, `bun:jsc`, `bun:test`, `node:assert`, `node:child_process`, `node:fs`, `node:os`, `node:path`).\n- The failing shard did not run `test/js/sql/sql.test.ts` at all; the files preceding duckdb in the job were node parallel/zlib/tls tests.\n- 20 consecutive local runs of the exact test with a release-profile build at the same commit (36adfc019d, Linux x64, glibc) pass in ~350ms each with zero crashes.\n- No duckdb failure appears in the last 12 main builds or 8 recent builds of other branches.\n\nThat leaves a latent, load- or layout-sensitive crash in the `@duckdb/node-bindings` NAPI path (or Bun's NAPI layer) that the branch happens to tickle, likely via binary layout shift (the branch adds ~16 KB of code) or CI runner memory pressure (the test machine reports 8.17 GB with parallel shards). Related history: #29340 (closed) was a duckdb segfault in the raw npm addon.\n\n### Reproduction\n\nNot reproducible locally so far. CI-only, 2 out of 2 recent runs on one branch, 0 elsewhere.\n",
+      "reactions": {
+        "url": "https://api.github.com/repos/oven-sh/bun/issues/32134/reactions",
+        "total_count": 0,
+        "+1": 0,
+        "-1": 0,
+        "laugh": 0,
+        "hooray": 0,
+        "confused": 0,
+        "heart": 0,
+        "rocket": 0,
+        "eyes": 0
+      },
+      "timeline_url": "https://api.github.com/repos/oven-sh/bun/issues/32134/timeline",
+      "performed_via_github_app": null,
+      "state_reason": "not_planned",
+      "pinned_comment": null,
+      "score": 1.0
+    }
+  ],
+  "search_type": "lexical"
+}

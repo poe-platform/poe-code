@@ -7,10 +7,15 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { dump } = await import("./dump.js");
+const { digestHostCallArguments, HostCallResumabilityError } =
+  await import("./interp/host-call.js");
+const { declareHostOperation } = await import("./interp/host-bridge.js");
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
 const { makeAgentModule } = await import("./modules/agent.js");
 const { restore } = await import("./restore.js");
 const { run } = await import("./run.js");
+const { hashSource } = await import("./parse/hash.js");
+const { DUMP_FORMAT_VERSION } = await import("./snapshot/dump-format.js");
 const { UnsnapshotableValueError } = await import("./snapshot/serialize.js");
 
 describe("run snapshot checkpointing", () => {
@@ -740,6 +745,333 @@ describe("run snapshot checkpointing", () => {
         iteration: 1
       }
     });
+  });
+
+  it("does not re-issue a non-idempotent call after process death", async () => {
+    const source = 'import { charge } from "payments"; return await charge("order-1");';
+    const deferred = createDeferred<string>();
+    let invocations = 0;
+    const charge = declareHostOperation(async () => {
+      invocations += 1;
+      return deferred.promise;
+    }, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+
+    await expect(
+      run(source, {
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).rejects.toMatchObject({
+      action: "external-reconciliation",
+      name: "HostCallResumabilityError"
+    });
+    expect(invocations).toBe(1);
+
+    deferred.resolve("charged");
+    await expect(first).resolves.toMatchObject({ returnValue: "charged" });
+  });
+
+  it("accepts only a fully matching external result proof", async () => {
+    const source = 'import { charge } from "payments"; return await charge("order-1");';
+    const deferred = createDeferred<string>();
+    let invocations = 0;
+    const charge = declareHostOperation(async () => {
+      invocations += 1;
+      return deferred.promise;
+    }, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    const call = snapshot.hostCalls[0];
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: () => ({
+          callId: `${call.id}-stale`,
+          sourceHash: call.sourceHash,
+          moduleId: call.moduleId,
+          operation: call.operation,
+          argumentDigest: call.argumentDigest,
+          outcome: { status: "fulfilled", value: "charged" }
+        }),
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).rejects.toBeInstanceOf(HostCallResumabilityError);
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: () => ({
+          callId: call.id,
+          sourceHash: call.sourceHash,
+          moduleId: call.moduleId,
+          operation: call.operation,
+          argumentDigest: call.argumentDigest,
+          outcome: { status: "fulfilled", value: "charged" }
+        }),
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({ returnValue: "charged" });
+    expect(invocations).toBe(1);
+
+    deferred.resolve("charged");
+    await first;
+  });
+
+  it("dispatches a non-idempotent call restored before first dispatch exactly once", async () => {
+    const source = 'import { charge } from "payments"; return await charge("order-1");';
+    let invocations = 0;
+    const charge = declareHostOperation(async () => {
+      invocations += 1;
+      return "charged";
+    }, "read-side-effect");
+    const sourceHash = hashSource(source);
+    const argumentDigest = digestHostCallArguments(["order-1"]);
+    const snapshot = restore(
+      {
+        version: DUMP_FORMAT_VERSION,
+        sourceHash,
+        bindings: {},
+        hostCalls: [
+          {
+            id: "run:1",
+            runId: "run",
+            sourceHash,
+            moduleId: "payments",
+            operation: "charge",
+            argumentDigest,
+            policy: "read-side-effect",
+            lifecycle: "created"
+          }
+        ]
+      },
+      { source }
+    );
+
+    await expect(
+      run(source, { modules: { payments: { charge } }, snapshot })
+    ).resolves.toMatchObject({
+      returnValue: "charged"
+    });
+    expect(invocations).toBe(1);
+  });
+
+  it("reconciles multiple pending non-idempotent calls in call order", async () => {
+    const source = [
+      'import { charge } from "payments";',
+      'const left = charge("left");',
+      'const right = charge("right");',
+      "return JSON.stringify(await Promise.all([left, right]));"
+    ].join("\n");
+    const left = createDeferred<string>();
+    const right = createDeferred<string>();
+    let invocations = 0;
+    const charge = declareHostOperation(async (id: string) => {
+      invocations += 1;
+      return id === "left" ? left.promise : right.promise;
+    }, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    const seen: string[] = [];
+    const values = new Map(
+      snapshot.hostCalls.map((call: { id: string }, index: number) => [
+        call.id,
+        index === 0 ? "left" : "right"
+      ])
+    );
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: (request) => {
+          seen.push(request.callId);
+          return {
+            callId: request.callId,
+            sourceHash: request.sourceHash,
+            moduleId: request.moduleId,
+            operation: request.operation,
+            argumentDigest: request.argumentDigest,
+            outcome: { status: "fulfilled", value: values.get(request.callId)! }
+          };
+        },
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({ returnValue: JSON.stringify(["left", "right"]) });
+    expect(seen).toEqual(snapshot.hostCalls.map((call: { id: string }) => call.id));
+    expect(invocations).toBe(2);
+
+    left.resolve("left");
+    right.resolve("right");
+    await first;
+  });
+
+  it("delivers a reconciled rejection once to a sandbox catch", async () => {
+    const source = [
+      'import { charge } from "payments";',
+      "try {",
+      '  await charge("order-1");',
+      '} catch (error) { return "caught:" + error.message; }'
+    ].join("\n");
+    const deferred = createDeferred<string>();
+    const charge = declareHostOperation(async () => deferred.promise, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    let reconciliations = 0;
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: (request) => {
+          reconciliations += 1;
+          return {
+            callId: request.callId,
+            sourceHash: request.sourceHash,
+            moduleId: request.moduleId,
+            operation: request.operation,
+            argumentDigest: request.argumentDigest,
+            outcome: {
+              status: "rejected",
+              reason: { name: "Error", message: "declined" }
+            }
+          };
+        },
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({ returnValue: "caught:declined" });
+    expect(reconciliations).toBe(1);
+
+    deferred.resolve("unused");
+    await first;
+  });
+
+  it("reports a reconciled unhandled rejection once", async () => {
+    const source = 'import { charge } from "payments"; return charge("order-1");';
+    const deferred = createDeferred<string>();
+    const charge = declareHostOperation(async () => deferred.promise, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    let reconciliations = 0;
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: (request) => {
+          reconciliations += 1;
+          return {
+            callId: request.callId,
+            sourceHash: request.sourceHash,
+            moduleId: request.moduleId,
+            operation: request.operation,
+            argumentDigest: request.argumentDigest,
+            outcome: {
+              status: "rejected",
+              reason: { name: "Error", message: "declined" }
+            }
+          };
+        },
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).rejects.toMatchObject({ name: "UnhandledRejectionError" });
+    expect(reconciliations).toBe(1);
+
+    deferred.resolve("unused");
+    await first;
+  });
+
+  it("rejects malformed restored host-call source identity before invocation", async () => {
+    const source = 'import { charge } from "payments"; return await charge("order-1");';
+    const deferred = createDeferred<string>();
+    let invocations = 0;
+    const charge = declareHostOperation(async () => {
+      invocations += 1;
+      return deferred.promise;
+    }, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    snapshot.hostCalls[0].sourceHash = "stale";
+
+    await expect(
+      run(source, {
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).rejects.toThrow("sourceHash must match the snapshot");
+    expect(invocations).toBe(1);
+
+    deferred.resolve("charged");
+    await first;
+  });
+
+  it.each([
+    [
+      "mixed run ids",
+      (snapshot: any) => {
+        snapshot.hostCalls[1].runId = "other-run";
+      }
+    ],
+    [
+      "duplicate call ids",
+      (snapshot: any) => {
+        snapshot.hostCalls[1].id = snapshot.hostCalls[0].id;
+      }
+    ],
+    [
+      "call ids outside the run",
+      (snapshot: any) => {
+        snapshot.hostCalls[1].id = `other-run:2`;
+      }
+    ]
+  ])("rejects %s before external reconciliation", async (_name, corrupt) => {
+    const source = [
+      'import { charge } from "payments";',
+      'const left = charge("left");',
+      'const right = charge("right");',
+      "return await Promise.all([left, right]);"
+    ].join("\n");
+    const left = createDeferred<string>();
+    const right = createDeferred<string>();
+    let invocations = 0;
+    const charge = declareHostOperation(async (order: string) => {
+      invocations += 1;
+      return order === "left" ? left.promise : right.promise;
+    }, "read-side-effect");
+    const first = run(source, { modules: { payments: { charge } } });
+    const snapshotPromise = dump(first);
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    corrupt(snapshot);
+    let reconciliations = 0;
+
+    await expect(
+      run(source, {
+        hostCallResumeProvider: () => {
+          reconciliations += 1;
+          throw new Error("must not reconcile malformed journal");
+        },
+        modules: { payments: { charge } },
+        snapshot: restore(snapshot, { source })
+      })
+    ).rejects.toThrow();
+    expect(reconciliations).toBe(0);
+    expect(invocations).toBe(2);
+
+    left.resolve("left");
+    right.resolve("right");
+    await first;
   });
 });
 

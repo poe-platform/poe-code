@@ -1990,16 +1990,40 @@ function createNodeCommand<TServices extends object>(
   node.aliases.forEach((alias) => group.alias(alias));
   group.addHelpCommand(false);
   addGlobalOptions(group, presetsEnabled, controls);
+  const childNames = new Set(visibleChildren.map((child) => child.name()));
   for (const child of visibleChildren) {
     const isDefaultChild =
       node.default !== undefined &&
       node.default.scope.includes("cli") &&
       (child.name() === node.default.name || child.aliases().includes(node.default.name));
 
-    group.addCommand(child, isDefaultChild ? { isDefault: true } : undefined);
+    addCommanderChild(group, child, isDefaultChild, childNames);
   }
 
   return group;
+}
+
+function addCommanderChild(
+  parent: CommanderCommand,
+  child: CommanderCommand,
+  isDefault: boolean,
+  siblingNames: ReadonlySet<string>
+): void {
+  if (isDefault && child.name().length === 0) {
+    let internalName = "__toolcraft_default__";
+    let suffix = 2;
+
+    while (siblingNames.has(internalName)) {
+      internalName = `__toolcraft_default_${suffix}`;
+      suffix += 1;
+    }
+
+    child.name(internalName);
+    parent.addCommand(child, { hidden: true, isDefault: true });
+    return;
+  }
+
+  parent.addCommand(child, isDefault ? { isDefault: true } : undefined);
 }
 
 function addGlobalOptions(
@@ -4630,6 +4654,11 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     );
   };
 
+  const rootChildNames = new Set(
+    root.children
+      .filter((candidate) => isNodeVisibleInScope(candidate, "cli"))
+      .map((candidate) => candidate.name)
+  );
   for (const child of root.children) {
     const command = createNodeCommand(
       child,
@@ -4648,7 +4677,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       root.default.scope.includes("cli") &&
       (command.name() === root.default.name || command.aliases().includes(root.default.name));
 
-    program.addCommand(command, isDefaultChild ? { isDefault: true } : undefined);
+    addCommanderChild(program, command, isDefaultChild, rootChildNames);
   }
   configureCommanderSuggestionOutput(program);
 

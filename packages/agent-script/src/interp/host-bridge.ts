@@ -3,6 +3,7 @@ import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../err
 import { SandboxError, type Budget } from "./budget.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+import type { PendingHostCallPolicyMode } from "../snapshot/policy.js";
 import {
   createSandboxClosure,
   createSandboxMap,
@@ -23,6 +24,8 @@ type CallerInjectedFunction = {
   bivarianceHack(...args: readonly unknown[]): unknown;
 }["bivarianceHack"];
 
+const hostOperationPolicies = new WeakMap<CallerInjectedFunction, PendingHostCallPolicyMode>();
+
 type HostBridgeOptions = {
   budget: Budget;
   signal?: AbortSignal;
@@ -35,6 +38,20 @@ export type CallerInjectedBinding =
   | {
       readonly [key: string]: CallerInjectedBinding;
     };
+
+export function declareHostOperation<TFunction extends CallerInjectedFunction>(
+  operation: TFunction,
+  policy: PendingHostCallPolicyMode
+): TFunction {
+  hostOperationPolicies.set(operation, policy);
+  return operation;
+}
+
+export function readHostOperationPolicy(
+  operation: CallerInjectedFunction
+): PendingHostCallPolicyMode | undefined {
+  return hostOperationPolicies.get(operation);
+}
 
 export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
@@ -398,7 +415,9 @@ function copyHostValueToSandbox(
     state.seen.set(value, copy);
     budget.allocateCollectionEntries(value.size);
     for (const entry of value) {
-      copy.values.add(copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`));
+      copy.values.add(
+        copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`)
+      );
     }
     return copy;
   }

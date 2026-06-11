@@ -313,8 +313,8 @@ tasks:
       resolves with the side-effect tag; agent.spawn and git.commit still resolve
       to read-side-effect. Fast unit tests.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: crash-time-final-snapshot

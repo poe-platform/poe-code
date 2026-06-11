@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   createPendingHostCallSideEffectTag,
+  HostOperationResumePolicyError,
   registerPendingHostCallPolicy,
   resolvePendingHostCallIssuePolicy,
   resolvePendingHostCallResumePolicy,
@@ -39,28 +40,40 @@ describe("snapshot pending host-call policy", () => {
     });
   });
 
-  it("defaults unknown modules to re-issue because retrying is the safe fallback", () => {
-    expect(
-      resolvePendingHostCallIssuePolicy({
+  it("throws a typed error for an operation without a declared policy", () => {
+    expect(() =>
+      resolvePendingHostCallResumePolicy({
         id: "unknown-1",
-        moduleId: "unknown",
-        operation: "commit"
+        moduleId: "payments",
+        operation: "charge"
       })
-    ).toEqual({
-      kind: "re-issue"
-    });
+    ).toThrowError(HostOperationResumePolicyError);
+
+    expect(() =>
+      resolvePendingHostCallResumePolicy({
+        id: "unknown-1",
+        moduleId: "payments",
+        operation: "charge"
+      })
+    ).toThrowError(
+      "Host operation payments.charge has no resume policy; declare 're-issue' (idempotent) or 'read-side-effect' (effectful)."
+    );
   });
 
-  it("defaults unknown operations under known modules to re-issue", () => {
-    expect(
-      resolvePendingHostCallIssuePolicy({
-        id: "git-unknown-1",
-        moduleId: "git",
-        operation: "unknown"
+  it("rejects an unregistered operation even when the snapshot has a side-effect tag", () => {
+    expect(() =>
+      resolvePendingHostCallResumePolicy({
+        id: "payments-charge-tagged-1",
+        moduleId: "payments",
+        operation: "charge",
+        sideEffectTag: {
+          kind: "host-call-side-effect",
+          callId: "payments-charge-tagged-1",
+          moduleId: "payments",
+          operation: "charge"
+        }
       })
-    ).toEqual({
-      kind: "re-issue"
-    });
+    ).toThrowError(HostOperationResumePolicyError);
   });
 
   it("treats whitespace-only module ids and operations as unknown", () => {
@@ -86,15 +99,13 @@ describe("snapshot pending host-call policy", () => {
   });
 
   it("matches module ids and operations case-sensitively", () => {
-    expect(
+    expect(() =>
       resolvePendingHostCallIssuePolicy({
         id: "git-capital-commit-1",
         moduleId: "git",
         operation: "Commit"
       })
-    ).toEqual({
-      kind: "re-issue"
-    });
+    ).toThrowError(HostOperationResumePolicyError);
 
     expect(
       resolvePendingHostCallIssuePolicy({
@@ -152,17 +163,7 @@ describe("snapshot pending host-call policy", () => {
     }
   });
 
-  it("defaults to re-issuing operations when a module does not opt out", () => {
-    expect(
-      resolvePendingHostCallIssuePolicy({
-        id: "metric-1",
-        moduleId: "metric",
-        operation: "run"
-      })
-    ).toEqual({
-      kind: "re-issue"
-    });
-
+  it("resolves registered re-issue operations", () => {
     expect(
       resolvePendingHostCallResumePolicy({
         id: "git-1",

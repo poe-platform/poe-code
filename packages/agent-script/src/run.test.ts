@@ -3,16 +3,76 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
+import { declareHostOperation } from "./interp/host-bridge.js";
 import { makeAgentModule, type AgentSpawnEvent } from "./modules/agent.js";
 import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
+import { resolvePendingHostCallResumePolicy } from "./snapshot/policy.js";
 
 describe("run", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
+  });
+
+  it("registers declarative host operation resume policies", async () => {
+    const write = declareHostOperation(async () => "written", "read-side-effect");
+    const read = declareHostOperation(async () => "read", "re-issue");
+
+    await expect(
+      run('import { read, write } from "storage"; return await read() + await write();', {
+        modules: {
+          storage: { read, write }
+        }
+      })
+    ).resolves.toMatchObject({ ok: true, returnValue: "readwritten" });
+
+    expect(
+      resolvePendingHostCallResumePolicy({
+        id: "storage-read-1",
+        moduleId: "storage",
+        operation: "read"
+      })
+    ).toEqual({ kind: "re-issue" });
+    expect(
+      resolvePendingHostCallResumePolicy({
+        id: "storage-write-1",
+        moduleId: "storage",
+        operation: "write"
+      })
+    ).toEqual({
+      kind: "read-side-effect",
+      sideEffectTag: {
+        kind: "host-call-side-effect",
+        callId: "storage-write-1",
+        moduleId: "storage",
+        operation: "write"
+      }
+    });
+  });
+
+  it("leaves undeclared host operations unregistered for typed resume failures", async () => {
+    await expect(
+      run('import { charge } from "payments"; return await charge();', {
+        modules: {
+          payments: {
+            charge: async () => "charged"
+          }
+        }
+      })
+    ).resolves.toMatchObject({ ok: true, returnValue: "charged" });
+
+    expect(() =>
+      resolvePendingHostCallResumePolicy({
+        id: "payments-charge-1",
+        moduleId: "payments",
+        operation: "charge"
+      })
+    ).toThrowError(
+      "Host operation payments.charge has no resume policy; declare 're-issue' (idempotent) or 'read-side-effect' (effectful)."
+    );
   });
 
   it("registers Math globals by default", async () => {

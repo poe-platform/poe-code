@@ -1,6 +1,10 @@
 import type { Budget } from "../interp/budget.js";
 import { wrapCancelableBindings } from "../interp/cancel.js";
-import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
+import {
+  readHostOperationPolicy,
+  wrapCallerInjectedBindings,
+  type CallerInjectedBinding
+} from "../interp/host-bridge.js";
 import type { SandboxValue } from "../interp/values.js";
 import type {
   ImportDeclaration,
@@ -9,6 +13,7 @@ import type {
   ImportSpecifier,
   Module
 } from "../parse/parser.js";
+import { registerPendingHostCallPolicy } from "../snapshot/policy.js";
 
 export type ModuleExports =
   | ReadonlyMap<string, CallerInjectedBinding>
@@ -126,7 +131,7 @@ function normalizeModuleRegistry(modules: ModuleRegistry | undefined): Normalize
   }
 
   const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
-  return new Map(
+  const registry = new Map(
     entries
       .map(
         ([moduleName, moduleExports]) =>
@@ -134,6 +139,24 @@ function normalizeModuleRegistry(modules: ModuleRegistry | undefined): Normalize
       )
       .sort(([left], [right]) => left.localeCompare(right))
   );
+
+  registerModuleHostOperationPolicies(registry);
+  return registry;
+}
+
+function registerModuleHostOperationPolicies(registry: NormalizedModuleRegistry): void {
+  for (const [moduleId, moduleExports] of registry) {
+    for (const [operation, value] of moduleExports) {
+      if (typeof value !== "function") {
+        continue;
+      }
+
+      const policy = readHostOperationPolicy(value);
+      if (policy !== undefined) {
+        registerPendingHostCallPolicy({ moduleId, operation, policy });
+      }
+    }
+  }
 }
 
 function normalizeModuleExports(moduleExports: ModuleExports): Map<string, CallerInjectedBinding> {

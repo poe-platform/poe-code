@@ -6,6 +6,7 @@ import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { formatInterpreterError } from "./error/format.js";
 import { Budget, SandboxError } from "./interp/budget.js";
+import { declareHostOperation } from "./interp/host-bridge.js";
 import { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
@@ -31,7 +32,10 @@ import { run } from "./run.js";
 import { runHarness, runHarnessPair } from "./runner/run-harness.js";
 import { noopOtelSink } from "./observability/otel.js";
 import { FileSnapshotBackend } from "./snapshot/backend.js";
-import { registerPendingHostCallPolicy } from "./snapshot/policy.js";
+import {
+  HostOperationResumePolicyError,
+  registerPendingHostCallPolicy
+} from "./snapshot/policy.js";
 
 describe("@poe-code/agent-script public exports", () => {
   it("re-exports the public entrypoints", () => {
@@ -56,6 +60,8 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.createSpawnUsageAccumulator).toBe(createSpawnUsageAccumulator);
     expect(api.makeAgentModule).toBe(makeAgentModule);
     expect(api.runWithSpawnUsageAccumulator).toBe(runWithSpawnUsageAccumulator);
+    expect(api.declareHostOperation).toBe(declareHostOperation);
+    expect(api.HostOperationResumePolicyError).toBe(HostOperationResumePolicyError);
     expect(api.registerPendingHostCallPolicy).toBe(registerPendingHostCallPolicy);
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
@@ -69,8 +75,10 @@ describe("@poe-code/agent-script public exports", () => {
     expect(Object.keys(api).sort()).toEqual([
       "Budget",
       "FileSnapshotBackend",
+      "HostOperationResumePolicyError",
       "SandboxError",
       "createSpawnUsageAccumulator",
+      "declareHostOperation",
       "deepCopyFromSandbox",
       "deepCopyToSandbox",
       "dump",

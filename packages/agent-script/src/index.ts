@@ -7,8 +7,15 @@ export { noopOtelSink } from "./observability/otel.js";
 export type { OtelSink, OtelSpan } from "./observability/otel.js";
 export { FileSnapshotBackend } from "./snapshot/backend.js";
 export type { Snapshot, SnapshotBackend } from "./snapshot/backend.js";
-export { registerPendingHostCallPolicy } from "./snapshot/policy.js";
-export type { PendingHostCallPolicyRegistration } from "./snapshot/policy.js";
+export { declareHostOperation } from "./interp/host-bridge.js";
+export {
+  HostOperationResumePolicyError,
+  registerPendingHostCallPolicy
+} from "./snapshot/policy.js";
+export type {
+  PendingHostCallPolicyMode,
+  PendingHostCallPolicyRegistration
+} from "./snapshot/policy.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { Budget, SandboxError } from "./interp/budget.js";

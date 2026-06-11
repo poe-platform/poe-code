@@ -1068,9 +1068,9 @@ describe("snapshot restore", () => {
             }
           },
           {
-            id: "metric-1",
-            moduleId: "metric",
-            operation: "run"
+            id: "git-head-1",
+            moduleId: "git",
+            operation: "head"
           }
         ],
         moduleBindings: {}

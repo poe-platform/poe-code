@@ -24,7 +24,7 @@ export type PendingHostCallIssuePolicy =
 
 export type PendingHostCallResumePolicy = PendingHostCallIssuePolicy;
 
-type PendingHostCallPolicyMode = PendingHostCallIssuePolicy["kind"];
+export type PendingHostCallPolicyMode = PendingHostCallIssuePolicy["kind"];
 
 type ModulePolicyRegistry = Record<string, Record<string, PendingHostCallPolicyMode>>;
 
@@ -36,18 +36,38 @@ export type PendingHostCallPolicyRegistration = {
 
 const DEFAULT_PENDING_HOST_CALL_POLICY: PendingHostCallPolicyMode = "re-issue";
 
-const MODULE_PENDING_HOST_CALL_POLICIES = Object.assign(Object.create(null) as ModulePolicyRegistry, {
-  agent: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
-    spawn: "read-side-effect"
-  }),
-  git: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
-    checkpoint: "read-side-effect",
-    commit: "read-side-effect",
-    revert: "read-side-effect",
-    worktreeCreate: "read-side-effect",
-    worktreeRemove: "read-side-effect"
-  })
-});
+const MODULE_PENDING_HOST_CALL_POLICIES = Object.assign(
+  Object.create(null) as ModulePolicyRegistry,
+  {
+    agent: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
+      spawn: "read-side-effect"
+    }),
+    git: Object.assign(Object.create(null) as Record<string, PendingHostCallPolicyMode>, {
+      checkpoint: "read-side-effect",
+      commit: "read-side-effect",
+      diff: "re-issue",
+      head: "re-issue",
+      revert: "read-side-effect",
+      worktreeCreate: "read-side-effect",
+      worktreeList: "re-issue",
+      worktreeRemove: "read-side-effect"
+    })
+  }
+);
+
+export class HostOperationResumePolicyError extends Error {
+  readonly moduleId: string;
+  readonly operation: string;
+
+  constructor(moduleId: string, operation: string) {
+    super(
+      `Host operation ${moduleId}.${operation} has no resume policy; declare 're-issue' (idempotent) or 'read-side-effect' (effectful).`
+    );
+    this.name = "HostOperationResumePolicyError";
+    this.moduleId = moduleId;
+    this.operation = operation;
+  }
+}
 
 export function registerPendingHostCallPolicy(
   registration: PendingHostCallPolicyRegistration
@@ -102,6 +122,8 @@ export function resolvePendingHostCallResumePolicy(
     sideEffectTag?: PendingHostCallSideEffectTag;
   }
 ): PendingHostCallResumePolicy {
+  readPendingHostCallPolicyMode(call);
+
   if (call.sideEffectTag !== undefined) {
     const expectedTag = createPendingHostCallSideEffectTag(call);
     const sideEffectTag = normalizePendingHostCallSideEffectTag(call.sideEffectTag);
@@ -154,9 +176,13 @@ function readPendingHostCallPolicyMode(call: PendingHostCallDescriptor): Pending
     return DEFAULT_PENDING_HOST_CALL_POLICY;
   }
 
-  return (
-    MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation] ?? DEFAULT_PENDING_HOST_CALL_POLICY
-  );
+  const policy = MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation];
+
+  if (policy === undefined) {
+    throw new HostOperationResumePolicyError(moduleId, operation);
+  }
+
+  return policy;
 }
 
 function readRequiredString(value: string | undefined, label: string): string {

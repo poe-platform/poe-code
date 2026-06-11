@@ -629,7 +629,7 @@ export function createSDK(
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
   enableSourceMaps();
-  const mergedRoot = options.approvals === false ? root : mergeApprovalsGroup(root);
+  const mergedRoot = options.approvals === true ? mergeApprovalsGroup(root) : root;
 
   if (!hasMcpProxyGroups(mergedRoot)) {
     return createResolvedSDK(mergedRoot, options);

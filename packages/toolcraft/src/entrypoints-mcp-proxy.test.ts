@@ -280,6 +280,7 @@ describe("MCP proxy entrypoints", () => {
     writeCache();
 
     await createMCPServer(root, {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true

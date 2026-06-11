@@ -186,14 +186,20 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             iteration: snapshotIteration
           });
           let snapshot: RunSnapshot | undefined;
-          const createSnapshot = () =>
-            (snapshot ??= createRunSnapshot({
-              bindings: yieldPoint.snapshot.bindings,
+          const createSnapshot = () => {
+            if (snapshot !== undefined) {
+              return snapshot;
+            }
+            const interpreterSnapshot = yieldPoint.snapshot();
+            snapshot = createRunSnapshot({
+              bindings: interpreterSnapshot.bindings,
               clock: options.clock,
               pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
               random,
               sourceHash
-            }));
+            });
+            return snapshot;
+          };
 
           snapshotScheduler.onYield(createSnapshot);
           dumpController.onYield(createSnapshot);
@@ -216,14 +222,20 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   iteration: snapshotIteration
                 });
                 let snapshot: RunSnapshot | undefined;
-                const createSnapshot = () =>
-                  (snapshot ??= createRunSnapshot({
-                    bindings: yieldPoint.snapshot.bindings,
+                const createSnapshot = () => {
+                  if (snapshot !== undefined) {
+                    return snapshot;
+                  }
+                  const interpreterSnapshot = yieldPoint.snapshot();
+                  snapshot = createRunSnapshot({
+                    bindings: interpreterSnapshot.bindings,
                     clock: options.clock,
                     pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
                     random,
                     sourceHash
-                  }));
+                  });
+                  return snapshot;
+                };
 
                 snapshotScheduler.onYield(createSnapshot);
                 dumpController.onYield(createSnapshot);
@@ -432,13 +444,13 @@ function createRunSnapshot(input: {
   };
 }
 
-function createPendingAwaitSnapshot(yieldPoint: AwaitYieldPoint): RunPendingAwaitSnapshot {
+function createPendingAwaitSnapshot(yieldPoint: ResumeBreakpoint): RunPendingAwaitSnapshot {
   return {
     ...(yieldPoint.nodeId === undefined ? {} : { nodeId: yieldPoint.nodeId }),
     span: yieldPoint.span
   };
 }
 
-type AwaitYieldPoint = Parameters<
+type ResumeBreakpoint = Parameters<
   NonNullable<NonNullable<Parameters<typeof interpret>[1]>["onYield"]>
 >[0];

@@ -1,11 +1,50 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { parse, type ParseResult } from "../parse.js";
 import { parseModule } from "../parse/parser.js";
+import { emitResumeBreakpoint, type InterpreterYieldPoint } from "./async.js";
 import { Budget } from "./budget.js";
 import { interpret, type InterpreterValue } from "./interpreter.js";
 import { createPromiseGlobals } from "./promise.js";
+import { Scope } from "./scope.js";
 import { createSandboxClosure, createSandboxPromise, type SandboxValue } from "./values.js";
+
+describe("emitResumeBreakpoint", () => {
+  it("emits a lazy snapshot for non-await breakpoints", () => {
+    const scope = new Scope({ phase: "setup", iteration: 3 });
+    const snapshotScope = vi.spyOn(scope, "snapshot");
+    let kind: InterpreterYieldPoint["kind"] | undefined;
+    let snapshot: ReturnType<InterpreterYieldPoint["snapshot"]> | undefined;
+
+    emitResumeBreakpoint(
+      {
+        budget: new Budget(),
+        callStack: [],
+        onYield: (emittedYieldPoint) => {
+          kind = emittedYieldPoint.kind;
+          expect(snapshotScope).not.toHaveBeenCalled();
+          snapshot = emittedYieldPoint.snapshot();
+        },
+        scope,
+        stats: { nodeVisits: 0 }
+      },
+      {
+        kind: "loop-iteration",
+        nodeId: 42,
+        span: {
+          start: { line: 1, column: 0, offset: 0 },
+          end: { line: 1, column: 1, offset: 1 }
+        }
+      }
+    );
+
+    expect(kind).toBe("loop-iteration");
+    expect(snapshotScope).toHaveBeenCalledOnce();
+    expect(snapshot).toEqual({
+      bindings: { phase: "setup", iteration: 3 }
+    });
+  });
+});
 
 describe("async/await scheduling", () => {
   it("awaits non-promise values", async () => {

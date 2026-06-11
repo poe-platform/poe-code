@@ -193,10 +193,10 @@ tasks:
       the snapshot thunk returns the current scope bindings, for a non-await
       kind. Fast unit tests.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: loop-iteration-resume-breakpoint
     title: Make loop iterations resume breakpoints

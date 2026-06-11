@@ -26,12 +26,14 @@ import {
 } from "./values.js";
 
 export type InterpreterYieldPoint = {
-  kind: "await";
+  kind: "await" | "generator-yield" | "loop-iteration";
   nodeId?: number;
   otelSpan?: OtelSpan;
-  snapshot: InterpreterSnapshot;
+  snapshot: () => InterpreterSnapshot;
   span: SourceSpan;
 };
+
+type ResumeBreakpoint = Omit<InterpreterYieldPoint, "snapshot">;
 
 export type AsyncInterpreterError = InterpreterError;
 
@@ -53,6 +55,16 @@ export type EvaluateAsyncNode = (
   node: ParseResult,
   context: AsyncEvaluationContext
 ) => Promise<AsyncEvaluationResult>;
+
+export function emitResumeBreakpoint(
+  context: AsyncEvaluationContext,
+  breakpoint: ResumeBreakpoint
+): void {
+  context.onYield?.({
+    ...breakpoint,
+    snapshot: () => context.scope.snapshot()
+  });
+}
 
 export async function evaluateArrowFunctionExpression(
   node: ArrowFunctionExpression,
@@ -209,13 +221,12 @@ export async function evaluateAwaitExpression(
     return argument;
   }
 
-  context.onYield?.({
+  emitResumeBreakpoint(context, {
     kind: "await",
     nodeId: node.nodeId,
     ...(getBoundOtelSpan(argument.value) === undefined
       ? {}
       : { otelSpan: getBoundOtelSpan(argument.value) }),
-    snapshot: context.scope.snapshot(),
     span: node.span
   });
 

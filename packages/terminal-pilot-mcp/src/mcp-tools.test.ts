@@ -30,9 +30,7 @@ const EXPECTED_TOOL_NAMES = [
   "terminal_resize",
   "terminal_close_session",
   "terminal_get_session",
-  "terminal_list_sessions",
-  "approvals__list",
-  "approvals__show"
+  "terminal_list_sessions"
 ];
 
 const runtime: TerminalPilotRuntime = {

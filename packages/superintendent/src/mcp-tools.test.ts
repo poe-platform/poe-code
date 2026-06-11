@@ -39,9 +39,7 @@ const EXPECTED_TOOL_NAMES = [
   "superintendent__complete",
   "superintendent__builder__run",
   "superintendent__inspector__run",
-  "superintendent__inspector__list",
-  "approvals__list",
-  "approvals__show"
+  "superintendent__inspector__list"
 ];
 
 const documentPath = "/repo/.poe-code/superintendent/plan.md";

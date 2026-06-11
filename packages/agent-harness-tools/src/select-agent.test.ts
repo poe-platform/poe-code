@@ -185,7 +185,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, gemini-cli, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent'
     );
   });
 
@@ -213,7 +213,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, gemini-cli, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent'
     );
   });
 });

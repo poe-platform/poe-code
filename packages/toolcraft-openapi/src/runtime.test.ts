@@ -850,6 +850,7 @@ describe("commandsFromSpec", () => {
       ];
 
       await runCLI(client.root, {
+        controls: { output: true },
         rootUsageName: client.name,
         services: client.services
       });
@@ -929,6 +930,7 @@ describe("commandsFromSpec", () => {
       ];
 
       await runCLI(client.root, {
+        controls: { output: true, verbose: true, yes: true },
         rootUsageName: client.name,
         services: client.services
       });
@@ -1005,6 +1007,7 @@ describe("commandsFromSpec", () => {
       ];
 
       await runCLI(client.root, {
+        controls: { output: true, verbose: true, yes: true },
         rootUsageName: client.name,
         services: client.services
       });

@@ -94,7 +94,7 @@ describe("generated array CLI shape", () => {
       "json"
     ];
 
-    await runCLI(root);
+    await runCLI(root, { controls: { output: true } });
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({

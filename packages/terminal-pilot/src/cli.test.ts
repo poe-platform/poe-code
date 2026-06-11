@@ -11,6 +11,14 @@ const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGro
 
 const originalArgv = [...process.argv];
 const cliPath = fileURLToPath(new URL("./cli.ts", import.meta.url));
+const cliOptions = {
+  controls: {
+    debug: true,
+    output: true,
+    verbose: true,
+    yes: true
+  }
+};
 
 vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
@@ -51,7 +59,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptions);
   });
 
   it("maps --json to toolcraft's output flag", async () => {
@@ -84,7 +92,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptions);
     expect(process.argv).toEqual(["node", "/tmp/terminal-pilot-bin", "--help"]);
   });
 

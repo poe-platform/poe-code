@@ -88,17 +88,13 @@ describe("interpret", () => {
 
     it("uses a computed member name in constructor errors", async () => {
       await expect(
-        interpret(
-          block(parse("const values = { make: 1 }"), parse("return new values['make']()"))
-        )
+        interpret(block(parse("const values = { make: 1 }"), parse("return new values['make']()")))
       ).rejects.toThrowError("make is not a constructor.");
     });
 
     it("does not expose prototypes and rejects instanceof for user constructors", async () => {
       await expect(
-        interpret(
-          block(parse("function Person() {}"), parse("return Person.prototype"))
-        )
+        interpret(block(parse("function Person() {}"), parse("return Person.prototype")))
       ).resolves.toMatchObject({ ok: true, returnValue: undefined });
 
       await expect(
@@ -641,6 +637,70 @@ describe("interpret", () => {
       ok: true,
       returnValue: 6
     });
+  });
+
+  it("defines dangerous array properties without changing the array prototype", async () => {
+    const result = await interpret(
+      block(
+        parse("const arr = []"),
+        parse("arr.__proto__ = { evil: 1 }"),
+        parse("arr['constructor'] = 'safe-constructor'"),
+        parse("arr.prototype = 'safe-prototype'"),
+        parse("return arr")
+      )
+    );
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) {
+      throw new Error("Expected interpretation to succeed.");
+    }
+
+    expect(Array.isArray(result.returnValue)).toBe(true);
+    expect(Object.getPrototypeOf(result.returnValue)).toBe(Array.prototype);
+    expect(Object.getOwnPropertyDescriptor(result.returnValue, "__proto__")).toEqual({
+      configurable: true,
+      enumerable: true,
+      value: { evil: 1 },
+      writable: true
+    });
+    expect(result.returnValue).toHaveProperty("constructor", "safe-constructor");
+    expect(result.returnValue).toHaveProperty("prototype", "safe-prototype");
+  });
+
+  it("preserves array index and length assignment semantics", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const arr = [1, 2, 3]"),
+          parse("arr[4] = 5"),
+          parse("arr.length = 2"),
+          parse("return [arr.length, arr[0], arr[1], arr[2]]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [2, 1, 2, undefined]
+    });
+  });
+
+  it("round-trips non-index array properties", async () => {
+    const result = await interpret(
+      block(
+        parse("const arr = []"),
+        parse("arr.label = 'safe'"),
+        parse("arr['01'] = 'not-an-index'"),
+        parse("return arr")
+      )
+    );
+
+    expect(result).toMatchObject({ ok: true });
+    if (!result.ok) {
+      throw new Error("Expected interpretation to succeed.");
+    }
+
+    expect(result.returnValue).toHaveProperty("label", "safe");
+    expect(result.returnValue).toHaveProperty("01", "not-an-index");
+    expect(result.returnValue).toHaveLength(0);
   });
 
   it.each([
@@ -1793,12 +1853,7 @@ describe("interpret", () => {
       });
 
       await expect(
-        interpret(
-          block(
-            parse("function readThis() { return this; }"),
-            parse("return readThis();")
-          )
-        )
+        interpret(block(parse("function readThis() { return this; }"), parse("return readThis();")))
       ).resolves.toMatchObject({ ok: true, returnValue: undefined });
     });
 
@@ -1920,8 +1975,8 @@ describe("interpret", () => {
 
     it("rejects declarations named this", () => {
       expect(() => parse("const this = 1")).toThrow();
-      expect(() => parse("function this() {}" )).toThrow();
-      expect(() => parse("function work(this) {}" )).toThrow();
+      expect(() => parse("function this() {}")).toThrow();
+      expect(() => parse("function work(this) {}")).toThrow();
     });
 
     it("rejects assignment to this as an invalid assignment target", () => {
@@ -1987,7 +2042,7 @@ describe("interpret", () => {
     Object.setPrototypeOf(value, inherited);
 
     await expect(
-      interpret(parse('return [value[0], typeof value.custom, typeof value.inherited]'), {
+      interpret(parse("return [value[0], typeof value.custom, typeof value.inherited]"), {
         bindings: { value }
       })
     ).resolves.toMatchObject({
@@ -1998,7 +2053,9 @@ describe("interpret", () => {
 
   it("resolves only array and string indices plus length outside method tables", async () => {
     await expect(
-      interpret(parse('return [["first"][0], ["first"]["0"], "value"[1], "value"["1"], [1].length]'))
+      interpret(
+        parse('return [["first"][0], ["first"]["0"], "value"[1], "value"["1"], [1].length]')
+      )
     ).resolves.toMatchObject({
       ok: true,
       returnValue: ["first", "first", "a", "a", 1]

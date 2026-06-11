@@ -1691,9 +1691,10 @@ async function evaluateYieldDelegate(
   }
 }
 
-function generatorCompletionResult(
-  completion: { type: "normal" | "return" | "throw"; value: unknown }
-): EvaluationResult {
+function generatorCompletionResult(completion: {
+  type: "normal" | "return" | "throw";
+  value: unknown;
+}): EvaluationResult {
   if (completion.type === "throw") {
     return { kind: "throw", hasValue: true, value: completion.value as SandboxValue };
   }
@@ -2310,7 +2311,6 @@ async function evaluateMemberCallExpression(
     );
   }
 
-
   if (isSandboxGenerator(member.object)) {
     const memberValue = getGeneratorMember(member.object, member.property, context.budget);
     if (memberValue === undefined) {
@@ -2879,7 +2879,13 @@ function setSandboxProperty(
   value: SandboxValue
 ): void {
   if (Array.isArray(target)) {
-    (target as unknown as Record<string, SandboxValue>)[String(property)] = value;
+    const key = String(property);
+    if (key === "length" || isArrayIndexKey(key)) {
+      (target as unknown as Record<string, SandboxValue>)[key] = value;
+      return;
+    }
+
+    defineSandboxProperty(target, key, value);
     return;
   }
 
@@ -3173,7 +3179,11 @@ async function closeIterator(iterator: SandboxIterator): Promise<void> {
   }
 }
 
-function defineSandboxProperty(target: SandboxObject, key: string, value: SandboxValue): void {
+function defineSandboxProperty(
+  target: SandboxArray | SandboxObject,
+  key: string,
+  value: SandboxValue
+): void {
   Object.defineProperty(target, key, {
     configurable: true,
     enumerable: true,

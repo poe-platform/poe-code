@@ -410,7 +410,7 @@ tasks:
       Fast unit tests, no real timers (immediate resolution / mocked clock), no
       file I/O outside memfs, no LLM.
     status:
-      test: open
+      test: done
       commit: open
 
   - id: language-interaction-stress-suite

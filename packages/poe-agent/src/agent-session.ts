@@ -20,12 +20,11 @@ import webPlugin from "./plugins/poe-agent-plugin-web.js";
 import { resolvePluginsFromConfig, type PluginConfigEntry } from "./plugins/resolve-plugins.js";
 import type { AgentPlugin } from "./runtime/plugin-types.js";
 import { getStructuredToolResultParts } from "./runtime/tool-results.js";
-import type { AcpEvent, RunResult } from "./runtime/types.js";
-
-type ChatMessage = { role: string; content: string };
+import type { AcpEvent, ChatMessage, RunResult } from "./runtime/types.js";
 
 export interface AgentSession {
   sendMessage(prompt: string, options?: AgentSessionSendMessageOptions): Promise<ChatMessage>;
+  getHistory(): ChatMessage[];
   dispose(): Promise<void>;
 }
 
@@ -63,6 +62,7 @@ export interface CreateAgentSessionOptions {
   fetch?: AgentRunOptions["fetch"];
   maxToolCallIterations?: number;
   mode?: SpawnMode;
+  resume?: { messages: ChatMessage[] };
 }
 
 type LegacyAcpRunOptions = AgentRunOptions & {
@@ -113,8 +113,12 @@ export async function createAgentSession(
     });
   }
 
-  if (options.mode) {
-    builder = builder.use(policyPlugin({ mode: options.mode }));
+  const mode = options.mode;
+  if (mode === "auto") {
+    throw new Error('poe-agent does not support mode "auto". Supported modes: read, edit, yolo.');
+  }
+  if (mode) {
+    builder = builder.use(policyPlugin({ mode }));
   }
 
   return adaptAcpToLegacySession(builder, options);
@@ -125,7 +129,7 @@ function adaptAcpToLegacySession(
   options: CreateAgentSessionOptions
 ): AgentSession {
   let disposed = false;
-  let previousRun: RunResult | undefined;
+  let previousRun: Pick<RunResult, "messages"> | undefined = options.resume;
   let activeSession: Awaited<ReturnType<AgentBuilder["acp"]>> | undefined;
 
   return {
@@ -207,6 +211,10 @@ function adaptAcpToLegacySession(
         role: "assistant",
         content: assistantContent
       };
+    },
+
+    getHistory(): ChatMessage[] {
+      return previousRun?.messages ?? [];
     },
 
     async dispose(): Promise<void> {

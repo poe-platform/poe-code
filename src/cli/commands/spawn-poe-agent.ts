@@ -1,7 +1,6 @@
 import { renderAcpEvent, renderAcpStream } from "@poe-code/agent-spawn";
 import { renderMarkdown, resolveOutputFormat } from "toolcraft-design";
 import { spawnPoeAgentWithAcp } from "../../providers/poe-agent.js";
-import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import type { CustomSpawnHandler } from "./spawn.js";
 
 const REDACTED_PROMPT_ARG = "[prompt redacted]";
@@ -19,8 +18,9 @@ export function createPoeAgentSpawnHandler(): CustomSpawnHandler {
 
     const { events, done } = spawnPoeAgentWithAcp({
       prompt: options.prompt,
-      model: options.model ?? DEFAULT_FRONTIER_MODEL,
+      model: options.model,
       cwd: options.cwd ?? process.cwd(),
+      resumeThreadId: options.resumeThreadId,
       ...(options.mcpServers ? { mcpServers: options.mcpServers } : {})
     });
 
@@ -51,6 +51,11 @@ export function createPoeAgentSpawnHandler(): CustomSpawnHandler {
       const trimmedStdout = result.stdout.trim();
       if (trimmedStdout) {
         resources.logger.info(renderMarkdown(trimmedStdout).trimEnd());
+      }
+      if (result.threadId) {
+        resources.logger.info(
+          `Resume: poe-code spawn --agent poe-agent --resume-thread-id ${result.threadId}`
+        );
       }
     }
 

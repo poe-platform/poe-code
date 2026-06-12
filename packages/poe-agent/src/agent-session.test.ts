@@ -180,7 +180,7 @@ describe("createAgentSession", () => {
       "web-tools"
     ]);
 
-    expect(Object.keys(session).sort()).toEqual(["dispose", "sendMessage"]);
+    expect(Object.keys(session).sort()).toEqual(["dispose", "getHistory", "sendMessage"]);
   });
 
   it("adds the policy plugin when mode is provided", async () => {
@@ -558,6 +558,54 @@ describe("createAgentSession", () => {
         __legacyAutoHandleTools: true
       })
     );
+  });
+
+  it("seeds the first run with resumed messages", async () => {
+    const messages = [
+      { role: "user" as const, content: "remember zebra" },
+      { role: "assistant" as const, content: "remembered" }
+    ];
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      resume: { messages }
+    });
+
+    await session.sendMessage("what word?");
+
+    expect(acpMock).toHaveBeenCalledWith(
+      "what word?",
+      expect.objectContaining({ resume: { messages } })
+    );
+  });
+
+  it("exposes the latest completed message history", async () => {
+    const messages = [
+      { role: "user" as const, content: "hello" },
+      { role: "assistant" as const, content: "done" }
+    ];
+    acpMock.mockImplementationOnce(() =>
+      createAcpSession([
+        {
+          type: "session.complete",
+          result: {
+            output: "done",
+            stdout: "done",
+            summary: "done",
+            messages,
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
+          }
+        }
+      ])
+    );
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
+
+    await session.sendMessage("hello");
+
+    expect(session.getHistory()).toEqual(messages);
   });
 
   it("forwards undefined apiKey to ACP when not provided", async () => {

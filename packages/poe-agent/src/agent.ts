@@ -45,7 +45,7 @@ import type {
 
 export type AgentRunOptions = {
   signal?: AbortSignal;
-  resume?: RunResult;
+  resume?: Pick<RunResult, "messages">;
   skills?: string[];
   // Backward compatibility alias for `skills`.
   activeSkills?: string[];

@@ -772,6 +772,44 @@ describe("spawn command", () => {
     );
   });
 
+  it("forwards poe-agent resume thread and prints a resume hint", async () => {
+    spawnPoeAgentWithAcpMock.mockReturnValueOnce({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "continued\n",
+        stderr: "",
+        exitCode: 0,
+        threadId: "poe-agent-existing"
+      })
+    });
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "poe-agent",
+      "continue",
+      "--resume-thread-id",
+      "poe-agent-existing"
+    ]);
+
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
+      expect.objectContaining({ resumeThreadId: "poe-agent-existing" })
+    );
+    expect(logs.join("\n")).toContain(
+      "Resume: poe-code spawn --agent poe-agent --resume-thread-id poe-agent-existing"
+    );
+  });
+
   it("does not invoke inherited custom handler names", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

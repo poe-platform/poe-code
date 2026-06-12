@@ -4,10 +4,14 @@ import fsPromises from "node:fs/promises";
 import { Command } from "commander";
 import { renderAcpStream, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { log } from "toolcraft-design";
-import { createConfigStore, resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import {
+  createConfigStore,
+  resolveConfigPath,
+  resolveProjectConfigPath
+} from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import { agentConfigScope } from "../services/config.js";
-import { DEFAULT_FRONTIER_MODEL, FEEDBACK_URL } from "./constants.js";
+import { FEEDBACK_URL } from "./constants.js";
 import { ValidationError } from "./errors.js";
 
 function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
@@ -49,9 +53,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
     let args: string[] | undefined;
     if ("args" in entry && entry.args !== undefined) {
       if (!Array.isArray(entry.args) || entry.args.some((a: unknown) => typeof a !== "string")) {
-        throw new ValidationError(
-          `--mcp-servers entry "${name}".args must be an array of strings`
-        );
+        throw new ValidationError(`--mcp-servers entry "${name}".args must be an array of strings`);
       }
       args = entry.args as string[];
     }
@@ -74,20 +76,22 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
       env = Object.fromEntries(entries) as Record<string, string>;
     }
 
-    Object.defineProperty(servers, name, { value: {
-      command,
-      ...(args ? { args } : {}),
-      ...(env ? { env } : {})
-    }, enumerable: true, configurable: true, writable: true });
+    Object.defineProperty(servers, name, {
+      value: {
+        command,
+        ...(args ? { args } : {}),
+        ...(env ? { env } : {})
+      },
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return Object.keys(servers).length > 0 ? servers : undefined;
 }
 
-function resolveWorkingDirectory(
-  baseDir: string,
-  candidate?: string
-): string | undefined {
+function resolveWorkingDirectory(baseDir: string, candidate?: string): string | undefined {
   if (!candidate || candidate.trim().length === 0) {
     return undefined;
   }
@@ -113,6 +117,7 @@ type PoeAgentRunCommandOptions = {
   stdin?: boolean;
   mcpServers?: string;
   mcpConfig?: string;
+  resumeThreadId?: string;
 };
 
 function configurePoeAgentRunOptions(command: Command): Command {
@@ -122,31 +127,24 @@ function configurePoeAgentRunOptions(command: Command): Command {
     .option("--prompt <text>", "Prompt text to send")
     .option("-C, --cwd <path>", "Working directory for the agent")
     .option("--stdin", "Read the prompt from stdin")
-    .option(
-      "--mcp-servers <json>",
-      "MCP server config JSON: {name: {command, args?, env?}}"
-    )
+    .option("--resume-thread-id <id>", "Resume a prior poe-agent thread")
+    .option("--mcp-servers <json>", "MCP server config JSON: {name: {command, args?, env?}}")
     .option("--mcp-config <json>", "[deprecated: use --mcp-servers]")
     .argument("[prompt]", "Prompt text to send (or '-' / stdin)")
     .argument("[args...]", "Additional arguments forwarded to the agent");
 }
 
-async function runPoeAgentCommand(
-  options: {
-    baseDir: string;
-    homeDir: string;
-    fs: PoeAgentConfigFs;
-    promptText?: string;
-    commandOptions: PoeAgentRunCommandOptions;
-  }
-): Promise<void> {
+async function runPoeAgentCommand(options: {
+  baseDir: string;
+  homeDir: string;
+  fs: PoeAgentConfigFs;
+  promptText?: string;
+  commandOptions: PoeAgentRunCommandOptions;
+}): Promise<void> {
   const mcpServers = parseMcpSpawnConfig(
     options.commandOptions.mcpServers ?? options.commandOptions.mcpConfig
   );
-  const cwdOverride = resolveWorkingDirectory(
-    options.baseDir,
-    options.commandOptions.cwd
-  );
+  const cwdOverride = resolveWorkingDirectory(options.baseDir, options.commandOptions.cwd);
   const cwd = cwdOverride ?? options.baseDir;
   const configStore = createConfigStore({
     fs: options.fs as unknown as Parameters<typeof createConfigStore>[0]["fs"],
@@ -154,9 +152,11 @@ async function runPoeAgentCommand(
     projectFilePath: resolveProjectConfigPath(cwd)
   });
   const configuredModel = (await configStore.scope(agentConfigScope).get("model")).trim();
-  const model = options.commandOptions.model ?? configuredModel;
+  const model =
+    options.commandOptions.model ??
+    (options.commandOptions.resumeThreadId ? undefined : configuredModel || undefined);
 
-  if (options.commandOptions.yes && model.length === 0) {
+  if (options.commandOptions.yes && !options.commandOptions.resumeThreadId && !model) {
     throw new ValidationError(
       "Error: --model is required in non-interactive mode (--yes) and no agent.model is configured."
     );
@@ -165,9 +165,7 @@ async function runPoeAgentCommand(
   let promptText = options.commandOptions.prompt ?? options.promptText;
   const wantsStdinFlag = options.commandOptions.stdin === true;
   const shouldReadFromStdin =
-    wantsStdinFlag ||
-    promptText === "-" ||
-    (!promptText && !process.stdin.isTTY);
+    wantsStdinFlag || promptText === "-" || (!promptText && !process.stdin.isTTY);
 
   if (wantsStdinFlag || promptText === "-") {
     promptText = undefined;
@@ -185,19 +183,18 @@ async function runPoeAgentCommand(
     throw new ValidationError("No prompt provided via argument or stdin");
   }
 
-  const { spawnPoeAgentWithAcp } = await import(
-    "../providers/poe-agent.js"
-  );
+  const { spawnPoeAgentWithAcp } = await import("../providers/poe-agent.js");
 
   const { events, done } = spawnPoeAgentWithAcp({
     prompt: promptText,
-    model: model || DEFAULT_FRONTIER_MODEL,
+    model,
     cwd,
+    resumeThreadId: options.commandOptions.resumeThreadId,
     mcpServers,
     homeDir: options.homeDir,
     configPath: resolveConfigPath(options.homeDir),
     projectConfigPath: resolveProjectConfigPath(cwd),
-    fs: options.fs,
+    fs: options.fs
   });
 
   await renderAcpStream(events);
@@ -213,6 +210,9 @@ async function runPoeAgentCommand(
   const trimmedStdout = result.stdout.trim();
   if (trimmedStdout) {
     log.info(trimmedStdout);
+  }
+  if (result.threadId) {
+    log.info(`Resume: poe-agent --resume-thread-id ${result.threadId}`);
   }
 
   process.exitCode = result.exitCode;
@@ -240,9 +240,9 @@ export function createPoeAgentProgram(options: PoeAgentProgramOptions = {}): Com
 
   configurePoeAgentRunOptions(
     program
-    .name("poe-agent")
-    .description("Run a single prompt through the Poe agent runtime.")
-    .version("0.0.0")
+      .name("poe-agent")
+      .description("Run a single prompt through the Poe agent runtime.")
+      .version("0.0.0")
   ).action(runAction);
 
   return program;

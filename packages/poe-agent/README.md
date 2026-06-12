@@ -72,7 +72,7 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 `agent().acp(...)`, `.run(...)`, and `.stream(...)` accept:
 
 - `signal?: AbortSignal`
-- `resume?: RunResult`
+- `resume?: Pick<RunResult, "messages">`
 - `skills?: string[]`
 - `activeSkills?: string[]` — legacy alias for `skills`
 - `maxIterations?: number`
@@ -95,6 +95,9 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 - `baseUrl?: string`
 - `fetch?: typeof fetch`
 - `maxToolCallIterations?: number`
+- `resume?: { messages: ChatMessage[] }`
+
+Completed session history is available through `session.getHistory()`. Poe Agent resume sessions are stored as JSON under `~/.poe-code/sessions/` so the exact runtime message history can be reused losslessly.
 
 `McpServerDefinition` supports both `stdio` and `http` at the type level, but `createAgentSession()` currently accepts only `stdio` definitions.
 

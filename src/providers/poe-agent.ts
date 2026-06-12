@@ -1,5 +1,6 @@
 import fsPromises from "node:fs/promises";
 import os from "node:os";
+import { randomUUID } from "node:crypto";
 import { DEFAULT_FRONTIER_MODEL } from "../cli/constants.js";
 import type {
   AcpEvent,
@@ -19,7 +20,7 @@ import {
   type SessionUpdate,
   type SessionUpdateNotification,
   type ToolCallStatus,
-  type ToolKind,
+  type ToolKind
 } from "@poe-code/poe-acp-client";
 import type { FileSystem as ConfigFileSystem } from "@poe-code/config-mutations";
 import {
@@ -27,18 +28,22 @@ import {
   resolveConfigPath,
   resolveProjectConfigPath
 } from "@poe-code/poe-code-config";
-import type { PluginConfigEntry } from "@poe-code/poe-agent";
+import {
+  createAgentSessionStore,
+  type ChatMessage,
+  type PersistedAgentSession,
+  type PluginConfigEntry
+} from "@poe-code/poe-agent";
 import { createProvider } from "./create-provider.js";
 import { agentConfigScope } from "../services/config.js";
-import type {
-  EmptyProviderOptions
-} from "./spawn-options.js";
+import type { EmptyProviderOptions } from "./spawn-options.js";
 
 interface AgentSessionRuntime {
   sendMessage(
     prompt: string,
     options?: { onSessionUpdate?: (update: LegacySessionUpdate) => void }
   ): Promise<{ content: string }>;
+  getHistory(): ChatMessage[];
   dispose(): Promise<void>;
 }
 
@@ -49,7 +54,7 @@ interface EventQueue<T> extends AsyncIterable<T> {
 
 interface PoeAgentLifecycleOptions {
   prompt: string;
-  model: string;
+  model?: string;
   cwd: string;
   mcpServers?: McpSpawnConfig;
   baseUrl?: string;
@@ -57,6 +62,7 @@ interface PoeAgentLifecycleOptions {
   configPath?: string;
   projectConfigPath?: string;
   fs?: Pick<ConfigFileSystem, "mkdir" | "readFile" | "writeFile">;
+  resumeThreadId?: string;
   onEvent?: (event: AcpEvent) => void;
 }
 
@@ -133,9 +139,9 @@ function createEventQueue<T>(): EventQueue<T> {
           return new Promise<IteratorResult<T>>((resolve) => {
             waiters.push(resolve);
           });
-        },
+        }
       };
-    },
+    }
   };
 }
 
@@ -143,19 +149,21 @@ function createToolRenderState(): ToolRenderState {
   return {
     startedToolCalls: new Set<string>(),
     toolCallKinds: new Map<string, string>(),
-    toolCallTitles: new Map<string, string>(),
+    toolCallTitles: new Map<string, string>()
   };
 }
 
-function toAgentSessionMcpServers(servers: McpSpawnConfig): Record<
-  string,
-  {
-    transport: "stdio";
-    command: string;
-    args?: string[];
-    env?: Record<string, string>;
-  }
-> | undefined {
+function toAgentSessionMcpServers(servers: McpSpawnConfig):
+  | Record<
+      string,
+      {
+        transport: "stdio";
+        command: string;
+        args?: string[];
+        env?: Record<string, string>;
+      }
+    >
+  | undefined {
   const mappedServers: Record<
     string,
     {
@@ -179,7 +187,7 @@ function toAgentSessionMcpServers(servers: McpSpawnConfig): Record<
       transport: "stdio",
       command: server.command,
       ...(server.args && server.args.length > 0 ? { args: [...server.args] } : {}),
-      ...(server.env && Object.keys(server.env).length > 0 ? { env: { ...server.env } } : {}),
+      ...(server.env && Object.keys(server.env).length > 0 ? { env: { ...server.env } } : {})
     };
   }
 
@@ -220,11 +228,11 @@ function mapLegacyToolKind(kind: unknown): ToolKind | undefined {
   }
 
   if (
-    kind === "other"
-    || kind === "search"
-    || kind === "think"
-    || kind === "fetch"
-    || kind === "switch_mode"
+    kind === "other" ||
+    kind === "search" ||
+    kind === "think" ||
+    kind === "fetch" ||
+    kind === "switch_mode"
   ) {
     return "other";
   }
@@ -234,11 +242,11 @@ function mapLegacyToolKind(kind: unknown): ToolKind | undefined {
 
 function mapLegacyToolStatus(status: unknown): ToolCallStatus | undefined {
   if (
-    status === "pending"
-    || status === "in_progress"
-    || status === "completed"
-    || status === "failed"
-    || status === "cancelled"
+    status === "pending" ||
+    status === "in_progress" ||
+    status === "completed" ||
+    status === "failed" ||
+    status === "cancelled"
   ) {
     return status;
   }
@@ -247,10 +255,13 @@ function mapLegacyToolStatus(status: unknown): ToolCallStatus | undefined {
 }
 
 function normalizeSessionUpdate(update: LegacySessionUpdate): SessionUpdate {
-  if (update.sessionUpdate === "agent_message_chunk" || update.sessionUpdate === "agent_thought_chunk") {
+  if (
+    update.sessionUpdate === "agent_message_chunk" ||
+    update.sessionUpdate === "agent_thought_chunk"
+  ) {
     return {
       sessionUpdate: update.sessionUpdate,
-      content: update.content,
+      content: update.content
     };
   }
 
@@ -258,7 +269,7 @@ function normalizeSessionUpdate(update: LegacySessionUpdate): SessionUpdate {
     const normalized: SessionUpdate = {
       sessionUpdate: "usage_update",
       used: update.used,
-      size: update.size,
+      size: update.size
     };
 
     if (update.cost) {
@@ -276,7 +287,7 @@ function normalizeSessionUpdate(update: LegacySessionUpdate): SessionUpdate {
     const normalized: SessionUpdate = {
       sessionUpdate: "tool_call",
       toolCallId: update.toolCallId,
-      title: update.title,
+      title: update.title
     };
 
     const kind = mapLegacyToolKind(update.kind);
@@ -302,7 +313,7 @@ function normalizeSessionUpdate(update: LegacySessionUpdate): SessionUpdate {
 
   const normalized: SessionUpdate = {
     sessionUpdate: "tool_call_update",
-    toolCallId: update.toolCallId,
+    toolCallId: update.toolCallId
   };
 
   const kind = mapLegacyToolKind(update.kind);
@@ -418,7 +429,7 @@ function toEventsFromSessionUpdate(
     const usage: AcpEvent = {
       event: "usage",
       inputTokens,
-      outputTokens,
+      outputTokens
     };
 
     if (cachedTokens > 0) {
@@ -442,33 +453,37 @@ function toEventsFromSessionUpdate(
     }
 
     state.startedToolCalls.add(update.toolCallId);
-    return [{
-      event: "tool_start",
-      kind: renderKind,
-      title: update.title,
-      id: update.toolCallId,
-    }];
+    return [
+      {
+        event: "tool_start",
+        kind: renderKind,
+        title: update.title,
+        id: update.toolCallId
+      }
+    ];
   }
 
   if (update.sessionUpdate === "tool_call_update") {
-    const renderKind = toRenderKind(update.kind ?? undefined)
-      || state.toolCallKinds.get(update.toolCallId)
-      || "other";
+    const renderKind =
+      toRenderKind(update.kind ?? undefined) ||
+      state.toolCallKinds.get(update.toolCallId) ||
+      "other";
     state.toolCallKinds.set(update.toolCallId, renderKind);
 
     const events: AcpEvent[] = [];
     const toolTitle = state.toolCallTitles.get(update.toolCallId) ?? update.toolCallId;
     const status = update.status;
 
-    const shouldStart = !state.startedToolCalls.has(update.toolCallId)
-      && (status === "pending" || status === "in_progress");
+    const shouldStart =
+      !state.startedToolCalls.has(update.toolCallId) &&
+      (status === "pending" || status === "in_progress");
     if (shouldStart) {
       state.startedToolCalls.add(update.toolCallId);
       events.push({
         event: "tool_start",
         kind: renderKind,
         title: toolTitle,
-        id: update.toolCallId,
+        id: update.toolCallId
       });
     }
 
@@ -479,7 +494,7 @@ function toEventsFromSessionUpdate(
           event: "tool_start",
           kind: renderKind,
           title: toolTitle,
-          id: update.toolCallId,
+          id: update.toolCallId
         });
       }
 
@@ -487,7 +502,7 @@ function toEventsFromSessionUpdate(
         event: "tool_complete",
         kind: renderKind,
         path: toToolOutput(update.rawOutput),
-        id: update.toolCallId,
+        id: update.toolCallId
       });
     }
 
@@ -497,10 +512,7 @@ function toEventsFromSessionUpdate(
   return [];
 }
 
-function emitEvent(
-  callback: ((event: AcpEvent) => void) | undefined,
-  event: AcpEvent
-): void {
+function emitEvent(callback: ((event: AcpEvent) => void) | undefined, event: AcpEvent): void {
   if (!callback) {
     return;
   }
@@ -509,7 +521,10 @@ function emitEvent(
 }
 
 async function loadConfiguredPlugins(
-  options: Pick<PoeAgentLifecycleOptions, "cwd" | "homeDir" | "configPath" | "projectConfigPath" | "fs">
+  options: Pick<
+    PoeAgentLifecycleOptions,
+    "cwd" | "homeDir" | "configPath" | "projectConfigPath" | "fs"
+  >
 ): Promise<PluginConfigEntry[] | undefined> {
   const fs = createConfigFileSystem(options.fs);
   const homeDir = options.homeDir ?? os.homedir();
@@ -531,9 +546,7 @@ function createConfigFileSystem(
 
   return {
     readFile(filePath: string, encoding?: BufferEncoding): Promise<string | Buffer> {
-      return encoding
-        ? fsPromises.readFile(filePath, encoding)
-        : fsPromises.readFile(filePath);
+      return encoding ? fsPromises.readFile(filePath, encoding) : fsPromises.readFile(filePath);
     },
     async writeFile(
       filePath: string,
@@ -554,15 +567,19 @@ function createInMemoryAcpTransport(options: {
   mcpServers?: McpSpawnConfig;
   baseUrl?: string;
   pluginsConfig?: PluginConfigEntry[];
+  persistedSession?: PersistedAgentSession;
+  saveSession(session: PersistedAgentSession): Promise<void>;
 }): InMemoryAcpTransport {
   const sessions = new Map<string, AgentSessionRuntime>();
-  const notificationHandlers = new Map<string, Array<(params: unknown, context: { method: string }) => void | Promise<void>>>();
+  const notificationHandlers = new Map<
+    string,
+    Array<(params: unknown, context: { method: string }) => void | Promise<void>>
+  >();
   const requestHandlers = new Map<
     string,
     Array<(params: unknown, context: { id: string | number | null; method: string }) => unknown>
   >();
 
-  let sessionCounter = 0;
   let closed = false;
   let resolveClosed: ((event: AcpTransportClosedEvent) => void) | undefined;
   const closedPromise = new Promise<AcpTransportClosedEvent>((resolve) => {
@@ -582,14 +599,16 @@ function createInMemoryAcpTransport(options: {
     const entries = Array.from(sessions.values());
     sessions.clear();
 
-    void Promise.all(entries.map(async (session) => {
-      await session.dispose();
-    })).finally(() => {
+    void Promise.all(
+      entries.map(async (session) => {
+        await session.dispose();
+      })
+    ).finally(() => {
       resolveClosed?.({
         code: 0,
         signal: null,
         reason,
-        stderr: "",
+        stderr: ""
       });
     });
   };
@@ -604,8 +623,8 @@ function createInMemoryAcpTransport(options: {
           agentInfo: { name: "poe-agent", version: "0.0.1" },
           agentCapabilities: {
             sessionCapabilities: {},
-            promptCapabilities: {},
-          },
+            promptCapabilities: {}
+          }
         };
         return response as TResult;
       }
@@ -619,9 +638,11 @@ function createInMemoryAcpTransport(options: {
           ...(options.baseUrl ? { baseUrl: options.baseUrl } : {}),
           ...(sessionMcpServers ? { mcpServers: sessionMcpServers } : {}),
           ...(options.pluginsConfig !== undefined ? { pluginsConfig: options.pluginsConfig } : {}),
+          ...(options.persistedSession
+            ? { resume: { messages: options.persistedSession.messages } }
+            : {})
         });
-        const sessionId = `poe-agent-session-${sessionCounter + 1}`;
-        sessionCounter += 1;
+        const sessionId = options.persistedSession?.threadId ?? `poe-agent-${randomUUID()}`;
         sessions.set(sessionId, session as AgentSessionRuntime);
 
         const response: NewSessionResponse = { sessionId };
@@ -647,13 +668,24 @@ function createInMemoryAcpTransport(options: {
 
             const notification: SessionNotification = {
               sessionId: request.sessionId,
-              update: normalizedUpdate,
+              update: normalizedUpdate
             };
 
             for (const handler of handlers) {
               void handler(notification, { method: "session/update" });
             }
-          },
+          }
+        });
+
+        const timestamp = new Date().toISOString();
+        await options.saveSession({
+          version: 1,
+          threadId: request.sessionId,
+          model: options.model,
+          cwd: options.cwd,
+          createdAt: options.persistedSession?.createdAt ?? timestamp,
+          updatedAt: timestamp,
+          messages: session.getHistory()
         });
 
         const response: PromptResponse = { stopReason: "completed" };
@@ -694,7 +726,7 @@ function createInMemoryAcpTransport(options: {
     },
     dispose(reason?: Error): void {
       closeTransport(reason ?? new Error("ACP in-memory transport disposed"));
-    },
+    }
   };
 }
 
@@ -706,13 +738,25 @@ async function runPoeAgentAcpLifecycle(
   let sessionId = "";
   let assistantText = "";
   const pluginsConfig = await loadConfiguredPlugins(options);
+  const sessionStore = createAgentSessionStore({ homeDir: options.homeDir, fs: options.fs });
+  const persistedSession = options.resumeThreadId
+    ? await sessionStore.load(options.resumeThreadId)
+    : undefined;
+  if (options.resumeThreadId && !persistedSession) {
+    throw new Error(
+      `Unknown poe-agent thread "${options.resumeThreadId}". Sessions are stored in ~/.poe-code/sessions.`
+    );
+  }
+  const model = options.model ?? persistedSession?.model ?? DEFAULT_FRONTIER_MODEL;
 
   const transport = createInMemoryAcpTransport({
-    model: options.model,
+    model,
     cwd: options.cwd,
     baseUrl: options.baseUrl,
     mcpServers: options.mcpServers,
     pluginsConfig,
+    persistedSession,
+    saveSession: (session) => sessionStore.save(session)
   });
 
   const client = new AcpClient({ transport });
@@ -725,7 +769,7 @@ async function runPoeAgentAcpLifecycle(
 
     emitEvent(options.onEvent, {
       event: "session_start",
-      threadId: sessionId,
+      threadId: sessionId
     });
 
     turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
@@ -745,20 +789,20 @@ async function runPoeAgentAcpLifecycle(
     const promptResponse = await turn.response;
     await generateRunReportFromSessionUpdateStream(sessionUpdates, {
       runId: sessionId,
-      exitStatus: promptResponse.stopReason === "completed" ? "success" : "failed",
+      exitStatus: promptResponse.stopReason === "completed" ? "success" : "failed"
     });
 
     return {
       stdout: assistantText.length > 0 ? `${assistantText}\n` : "",
       stderr: "",
       exitCode: promptResponse.stopReason === "completed" ? 0 : 1,
-      threadId: sessionId,
+      threadId: sessionId
     };
   } catch (error) {
     emitEvent(options.onEvent, {
       event: "error",
       message: toErrorMessage(error),
-      ...(toErrorStack(error) ? { stack: toErrorStack(error) } : {}),
+      ...(toErrorStack(error) ? { stack: toErrorStack(error) } : {})
     });
     throw error;
   } finally {
@@ -777,14 +821,14 @@ export function spawnPoeAgentWithAcp(options: {
   configPath?: string;
   projectConfigPath?: string;
   fs?: Pick<ConfigFileSystem, "mkdir" | "readFile" | "writeFile">;
+  resumeThreadId?: string;
 }): { events: AsyncIterable<AcpEvent>; done: Promise<PoeAgentSpawnResult> } {
   const queue = createEventQueue<AcpEvent>();
-  const model = options.model ?? DEFAULT_FRONTIER_MODEL;
   const cwd = options.cwd ?? process.cwd();
 
   const done = runPoeAgentAcpLifecycle({
     prompt: options.prompt,
-    model,
+    model: options.model,
     cwd,
     baseUrl: options.baseUrl,
     mcpServers: options.mcpServers,
@@ -792,16 +836,17 @@ export function spawnPoeAgentWithAcp(options: {
     configPath: options.configPath,
     projectConfigPath: options.projectConfigPath,
     fs: options.fs,
+    resumeThreadId: options.resumeThreadId,
     onEvent: (event) => {
       queue.push(event);
-    },
+    }
   }).finally(() => {
     queue.complete();
   });
 
   return {
     events: queue,
-    done,
+    done
   };
 }
 

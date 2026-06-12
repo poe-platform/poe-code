@@ -44,12 +44,19 @@ import {
 const createAgentSessionMock = vi.hoisted(() => vi.fn());
 const sendMessageMock = vi.hoisted(() => vi.fn());
 const disposeMock = vi.hoisted(() => vi.fn());
+const getHistoryMock = vi.hoisted(() => vi.fn());
+const createAgentSessionStoreMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/poe-agent", () => ({
-  createAgentSession: createAgentSessionMock,
-  parseNullablePluginConfigEntries: (value: unknown) => value,
-  parsePluginConfigEntries: (value: unknown) => value
-}));
+vi.mock("@poe-code/poe-agent", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/poe-agent")>();
+  return {
+    ...actual,
+    createAgentSession: createAgentSessionMock,
+    createAgentSessionStore: createAgentSessionStoreMock,
+    parseNullablePluginConfigEntries: (value: unknown) => value,
+    parsePluginConfigEntries: (value: unknown) => value
+  };
+});
 
 const resolveVariantModel = (variant: keyof typeof CLAUDE_CODE_VARIANTS): string =>
   CLAUDE_CODE_VARIANTS[variant];
@@ -360,7 +367,9 @@ describe("claude-code service", () => {
       model: "user-model"
     };
     await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
-    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), {
+      encoding: "utf8"
+    });
 
     await configureClaude();
     await expect(unconfigureClaude()).resolves.toBe(true);
@@ -2102,7 +2111,9 @@ describe("gemini-cli service", () => {
       mcpServers: { local: { command: "node", args: ["server.js"] } }
     };
     await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
-    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), {
+      encoding: "utf8"
+    });
 
     await configureGemini();
     await expect(unconfigureGemini()).resolves.toBe(true);
@@ -2415,7 +2426,11 @@ describe("goose service", () => {
   });
 
   it("restores overwritten Goose settings after unconfigure", async () => {
-    const originalConfig = ["GOOSE_PROVIDER: user_provider", "GOOSE_MODEL: user_model", "theme: dark"].join("\n");
+    const originalConfig = [
+      "GOOSE_PROVIDER: user_provider",
+      "GOOSE_MODEL: user_model",
+      "theme: dark"
+    ].join("\n");
     const originalProvider = '{"name":"user provider"}\n';
     const originalSecrets = ["CUSTOM_POE_API_KEY: user-key", "USER_SECRET: keep"].join("\n");
     await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
@@ -2425,12 +2440,14 @@ describe("goose service", () => {
     await mockFsObj.writeFile(secretsPath, originalSecrets, { encoding: "utf8" });
 
     await configureGoose();
-    await expect(gooseService.gooseService.unconfigure({
-      fs: mockFsObj,
-      env,
-      command: createTestCommandContext(mockFsObj),
-      options: {}
-    })).resolves.toBe(true);
+    await expect(
+      gooseService.gooseService.unconfigure({
+        fs: mockFsObj,
+        env,
+        command: createTestCommandContext(mockFsObj),
+        options: {}
+      })
+    ).resolves.toBe(true);
 
     await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(originalConfig);
     await expect(mockFsObj.readFile(providerPath, "utf8")).resolves.toBe(originalProvider);
@@ -2676,6 +2693,37 @@ describe("poe-agent provider", () => {
     createAgentSessionMock.mockReset();
     sendMessageMock.mockReset();
     disposeMock.mockReset();
+    getHistoryMock.mockReset();
+    createAgentSessionStoreMock.mockReset();
+    createAgentSessionStoreMock.mockImplementation(
+      (options: { homeDir?: string; fs: MockFileSystem }) => {
+        const sessionsDir = path.join(options.homeDir ?? homeDir, ".poe-code", "sessions");
+        return {
+          async load(threadId: string) {
+            try {
+              const value = await options.fs.readFile(
+                path.join(sessionsDir, `${threadId}.json`),
+                "utf8"
+              );
+              return JSON.parse(String(value));
+            } catch (error) {
+              if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+                return undefined;
+              }
+              throw error;
+            }
+          },
+          async save(session: { threadId: string }) {
+            await options.fs.mkdir(sessionsDir, { recursive: true });
+            await options.fs.writeFile(
+              path.join(sessionsDir, `${session.threadId}.json`),
+              `${JSON.stringify(session)}\n`,
+              { encoding: "utf8" }
+            );
+          }
+        };
+      }
+    );
 
     sendMessageMock.mockImplementation(
       async (_prompt: string, options?: { onSessionUpdate?: (update: unknown) => void }) => {
@@ -2710,9 +2758,14 @@ describe("poe-agent provider", () => {
         };
       }
     );
+    getHistoryMock.mockReturnValue([
+      { role: "user", content: "Summarize this diff" },
+      { role: "assistant", content: "Poe agent output" }
+    ]);
     disposeMock.mockResolvedValue(undefined);
     createAgentSessionMock.mockResolvedValue({
       sendMessage: sendMessageMock,
+      getHistory: getHistoryMock,
       dispose: disposeMock
     });
   });
@@ -2792,7 +2845,7 @@ describe("poe-agent provider", () => {
     );
     expect(disposeMock).toHaveBeenCalledTimes(1);
     expect(received).toEqual([
-      { event: "session_start", threadId: "poe-agent-session-1" },
+      { event: "session_start", threadId: expect.stringMatching(/^poe-agent-/) },
       {
         event: "tool_start",
         kind: "exec",
@@ -2811,7 +2864,7 @@ describe("poe-agent provider", () => {
       stdout: "Poe agent output\n",
       stderr: "",
       exitCode: 0,
-      threadId: "poe-agent-session-1"
+      threadId: expect.stringMatching(/^poe-agent-/)
     });
 
     initializeSpy.mockRestore();
@@ -2834,6 +2887,60 @@ describe("poe-agent provider", () => {
       model: DEFAULT_FRONTIER_MODEL,
       cwd: process.cwd()
     });
+  });
+
+  it("resumes a persisted session and reuses its thread id", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/sessions/poe-agent-existing.json": `${JSON.stringify({
+          version: 1,
+          threadId: "poe-agent-existing",
+          model: "openai/gpt-5.5",
+          cwd: "/workspace/original",
+          createdAt: "2026-06-12T12:00:00.000Z",
+          updatedAt: "2026-06-12T12:00:00.000Z",
+          messages: [{ role: "assistant", content: "remembered" }]
+        })}\n`
+      },
+      homeDir
+    );
+
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "continue",
+      resumeThreadId: "poe-agent-existing",
+      cwd: "/workspace/current",
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: "/workspace/current/.poe-code/config.json",
+      fs
+    });
+
+    await expect(done).resolves.toEqual(
+      expect.objectContaining({
+        exitCode: 0,
+        threadId: "poe-agent-existing"
+      })
+    );
+    expect(createAgentSessionMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: "openai/gpt-5.5",
+        resume: { messages: [{ role: "assistant", content: "remembered" }] }
+      })
+    );
+  });
+
+  it("rejects an unknown resume thread", async () => {
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "continue",
+      resumeThreadId: "nope",
+      homeDir,
+      fs: createMockFs(undefined, homeDir)
+    });
+
+    await expect(done).rejects.toThrow(
+      'Unknown poe-agent thread "nope". Sessions are stored in ~/.poe-code/sessions.'
+    );
+    expect(createAgentSessionMock).not.toHaveBeenCalled();
   });
 
   it("loads agent.plugins from poe-code-config and forwards pluginsConfig", async () => {
@@ -2907,7 +3014,9 @@ describe("poe-agent provider", () => {
     });
     await done;
 
-    const options = createAgentSessionMock.mock.calls[0]?.[0] as { mcpServers?: Record<string, unknown> };
+    const options = createAgentSessionMock.mock.calls[0]?.[0] as {
+      mcpServers?: Record<string, unknown>;
+    };
     expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
   });
 });

@@ -7,34 +7,32 @@ const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
     done: Promise.resolve({
       stdout: "agent output\n",
       stderr: "",
-      exitCode: 0,
-    }),
+      exitCode: 0
+    })
   }))
 );
 
 vi.mock("../providers/poe-agent.js", () => ({
-  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock,
+  spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("@poe-code/agent-spawn")>();
+  const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
   return {
     ...actual,
-    renderAcpStream: vi.fn(),
+    renderAcpStream: vi.fn()
   };
 });
 
 vi.mock("toolcraft-design", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("toolcraft-design")>();
+  const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
     log: {
       info: vi.fn(),
       error: vi.fn(),
-      message: vi.fn(),
-    },
+      message: vi.fn()
+    }
   };
 });
 
@@ -52,8 +50,8 @@ describe("poe-agent CLI", () => {
       done: Promise.resolve({
         stdout: "agent output\n",
         stderr: "",
-        exitCode: 0,
-      }),
+        exitCode: 0
+      })
     });
   });
 
@@ -71,6 +69,17 @@ describe("poe-agent CLI", () => {
 
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
       expect.objectContaining({ model: "anthropic/claude-opus-4.7" })
+    );
+  });
+
+  it("passes --resume-thread-id without forcing a model", async () => {
+    await runProgram(["--resume-thread-id", "poe-agent-existing", "continue"]);
+
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        model: undefined,
+        resumeThreadId: "poe-agent-existing"
+      })
     );
   });
 
@@ -108,7 +117,7 @@ describe("poe-agent CLI", () => {
 
   it("passes --mcp-servers option", async () => {
     const mcpServersJson = JSON.stringify({
-      "test-server": { command: "test-mcp", args: ["serve"] },
+      "test-server": { command: "test-mcp", args: ["serve"] }
     });
 
     await runProgram(["--mcp-servers", mcpServersJson, "Test prompt"]);
@@ -116,8 +125,8 @@ describe("poe-agent CLI", () => {
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
       expect.objectContaining({
         mcpServers: {
-          "test-server": { command: "test-mcp", args: ["serve"] },
-        },
+          "test-server": { command: "test-mcp", args: ["serve"] }
+        }
       })
     );
   });
@@ -138,20 +147,20 @@ describe("poe-agent CLI", () => {
   });
 
   it("throws on invalid --mcp-servers JSON", async () => {
-    await expect(
-      runProgram(["--mcp-servers", "not-json", "Test"])
-    ).rejects.toThrow("--mcp-servers must be valid JSON");
+    await expect(runProgram(["--mcp-servers", "not-json", "Test"])).rejects.toThrow(
+      "--mcp-servers must be valid JSON"
+    );
   });
 
   it("throws on --mcp-servers with missing command", async () => {
     const mcpServersJson = JSON.stringify({ server: {} });
 
-    await expect(
-      runProgram(["--mcp-servers", mcpServersJson, "Test"])
-    ).rejects.toThrow('must include a non-empty string "command"');
+    await expect(runProgram(["--mcp-servers", mcpServersJson, "Test"])).rejects.toThrow(
+      'must include a non-empty string "command"'
+    );
   });
 
-  it("uses default model when --model is not specified", async () => {
+  it("lets the provider choose the default model when none is configured", async () => {
     await runProgram(["Test prompt"]);
 
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledOnce();
@@ -162,7 +171,7 @@ describe("poe-agent CLI", () => {
       throw new Error("Expected spawnPoeAgentWithAcp to be called.");
     }
 
-    expect(call[0]).toMatchObject({ model: "anthropic/claude-opus-4.7" });
+    expect(call[0]).toMatchObject({ model: undefined });
   });
 
   it("propagates non-zero exit code as error", async () => {
@@ -171,12 +180,10 @@ describe("poe-agent CLI", () => {
       done: Promise.resolve({
         stdout: "",
         stderr: "something went wrong",
-        exitCode: 1,
-      }),
+        exitCode: 1
+      })
     });
 
-    await expect(runProgram(["Test prompt"])).rejects.toThrow(
-      "poe-agent failed with exit code 1"
-    );
+    await expect(runProgram(["Test prompt"])).rejects.toThrow("poe-agent failed with exit code 1");
   });
 });

@@ -13,6 +13,11 @@ export {
   type McpServerDefinition,
   type McpStdioServerDefinition
 } from "./agent-session.js";
+export {
+  createAgentSessionStore,
+  type AgentSessionStore,
+  type PersistedAgentSession
+} from "./session-store.js";
 export { builtinPluginRegistry, type PluginSpec } from "./plugins/registry.js";
 export {
   PluginConfigError,
@@ -50,6 +55,7 @@ export {
 export type {
   AcpEvent,
   AcpHost,
+  ChatMessage,
   RunResult,
   Tool,
   ToolContext,
@@ -66,7 +72,8 @@ export { default as mcpPlugin } from "./plugins/poe-agent-plugin-mcp.js";
 export { default as memoryPlugin } from "./plugins/poe-agent-plugin-memory.js";
 export { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
 export { openaiResponsesPlugin } from "./plugins/poe-agent-plugin-openai-responses.js";
-export { default as policyPlugin } from "./plugins/poe-agent-plugin-policy.js";
+export { default as policyPlugin, POLICY_MODES } from "./plugins/poe-agent-plugin-policy.js";
+export type { PolicyMode } from "./plugins/poe-agent-plugin-policy.js";
 export { default as scratchpadPlugin } from "./plugins/poe-agent-plugin-scratchpad.js";
 export { default as shellPlugin } from "./plugins/poe-agent-plugin-shell.js";
 export { default as skillsPlugin } from "./plugins/poe-agent-plugin-skills.js";

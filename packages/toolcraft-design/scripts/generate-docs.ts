@@ -3,19 +3,21 @@
  * Generates design language documentation for terminal, markdown, and JSON formats.
  * Run from root: npm run generate:design-docs
  */
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
+import { parse } from "shell-quote";
 
 const ROOT_DIR = path.resolve(import.meta.dirname, "../../..");
 const SCREENSHOTS_DIR = path.join(ROOT_DIR, "docs/design-language");
 const require = createRequire(import.meta.url);
 const tsxCliPath = require.resolve("tsx/cli");
 const demoScriptPath = path.join(import.meta.dirname, "demo.ts");
+const demoBatchScriptPath = path.join(import.meta.dirname, "capture-demo-batch.ts");
 const OUTPUT_DOCS = {
   terminal: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE.md"),
   markdown: path.join(ROOT_DIR, "docs/DESIGN_LANGUAGE_MARKDOWN.md"),
@@ -460,6 +462,24 @@ export function captureTextOutput(
   return result.toString();
 }
 
+export function captureTextOutputs(
+  requests: Array<{
+    demoArgs: string;
+    format: Extract<OutputMode, "markdown" | "json">;
+  }>
+): string[] {
+  const payload = requests.map(({ demoArgs, format }) => ({
+    args: parse(demoArgs).filter((arg): arg is string => typeof arg === "string"),
+    format
+  }));
+  const result = execFileSync(process.execPath, [tsxCliPath, demoBatchScriptPath, JSON.stringify(payload)], {
+    cwd: ROOT_DIR,
+    env: process.env
+  });
+
+  return JSON.parse(result.toString()) as string[];
+}
+
 function renderSharedIntro(
   title: string,
   summary: string,
@@ -563,12 +583,18 @@ export function renderTerminalDocument(): string {
 
 export function renderTextDocument(
   format: Extract<OutputMode, "markdown" | "json">,
-  capture: (
+  capture?: (
     demoArgs: string,
     currentFormat: Extract<OutputMode, "markdown" | "json">
-  ) => string = captureTextOutput
+  ) => string
 ): string {
   const config = textDocConfig[format];
+  const elements = sections.flatMap((section) => section.elements);
+  const capturedOutputs =
+    capture === undefined
+      ? captureTextOutputs(elements.map((element) => ({ demoArgs: element.demoArgs, format })))
+      : undefined;
+  let capturedOutputIndex = 0;
   const lines = renderSharedIntro(
     config.title,
     config.summary,
@@ -596,7 +622,11 @@ export function renderTextDocument(
       lines.push("```");
       lines.push("");
       lines.push(`\`\`\`${config.fenceLanguage}`);
-      lines.push(capture(element.demoArgs, format).trimEnd());
+      const output =
+        capturedOutputs === undefined
+          ? capture!(element.demoArgs, format)
+          : capturedOutputs[capturedOutputIndex++] ?? "";
+      lines.push(output.trimEnd());
       lines.push("```");
       lines.push("");
     }

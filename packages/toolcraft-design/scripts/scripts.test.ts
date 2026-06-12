@@ -11,6 +11,7 @@ import {
 import { stripAnsi } from "../src/internal/strip-ansi.js";
 import {
   captureTextOutput,
+  captureTextOutputs,
   renderTerminalDocument,
   renderTextDocument,
   sections
@@ -170,61 +171,51 @@ describe("generate-docs", () => {
     );
   });
 
-  it("captures only demo output for text variants", () => {
-    const output = captureTextOutput('heading "Available Commands"', "markdown");
+  it("captures format-aware demo output through one executable run", () => {
+    const [heading, table, markdown, minimalMarkdown, menu] = captureTextOutputs([
+      { demoArgs: 'heading "Available Commands"', format: "markdown" },
+      { demoArgs: "table", format: "markdown" },
+      { demoArgs: "markdown", format: "markdown" },
+      { demoArgs: "markdown-minimal", format: "markdown" },
+      { demoArgs: "menu", format: "json" }
+    ]);
 
-    expect(output).toContain("Available Commands");
-    expect(output).not.toContain("> toolcraft-design");
-    expect(output).not.toContain("tsx scripts/demo.ts");
-  });
+    expect(heading).toContain("Available Commands");
+    expect(heading).not.toContain("> toolcraft-design");
+    expect(heading).not.toContain("tsx scripts/demo.ts");
+    expect(table).toContain("| Model | Context | $/MTok In/Out |");
+    expect(table).not.toContain("┌");
+    expect(table).not.toContain("\u001b[");
 
-  it("captures format-aware markdown table output", () => {
-    const output = captureTextOutput("table", "markdown");
+    const strippedMarkdown = stripAnsi(markdown);
+    expect(strippedMarkdown).toContain("Design System Markdown");
+    expect(strippedMarkdown).toContain("Overview");
+    expect(strippedMarkdown).toContain("Renderer Features");
+    expect(strippedMarkdown).toContain("Paragraph with bold, italic, strikethrough, code");
+    expect(strippedMarkdown).toContain("span, a docs link");
+    expect(strippedMarkdown).toContain('const agent = "poe-code";');
+    expect(strippedMarkdown).toContain("| Outer quote");
+    expect(strippedMarkdown).toContain("| | Nested quote");
+    expect(strippedMarkdown).toContain("• unordered item");
+    expect(strippedMarkdown).toContain("1. ordered item");
+    expect(strippedMarkdown).toContain("completed task");
+    expect(strippedMarkdown).toContain("pending task");
+    expect(strippedMarkdown).toContain("| Feature  | Alignment | Status |");
+    expect(strippedMarkdown).toContain("docs link");
+    expect(strippedMarkdown).toContain("(https://example.com/docs)");
+    expect(strippedMarkdown).toContain("[image: System diagram]");
+    expect(strippedMarkdown).toContain("| Note");
+    expect(strippedMarkdown).toContain("reference[1].");
+    expect(strippedMarkdown).toContain("Footnote definition for the markdown demo.");
 
-    expect(output).toContain("| Model | Context | $/MTok In/Out |");
-    expect(output).not.toContain("┌");
-    expect(output).not.toContain("\u001b[");
-  });
-
-  it("captures the full markdown renderer demo output", () => {
-    const output = stripAnsi(captureTextOutput("markdown", "markdown"));
-
-    expect(output).toContain("Design System Markdown");
-    expect(output).toContain("Overview");
-    expect(output).toContain("Renderer Features");
-    expect(output).toContain("Paragraph with bold, italic, strikethrough, code");
-    expect(output).toContain("span, a docs link");
-    expect(output).toContain('const agent = "poe-code";');
-    expect(output).toContain("| Outer quote");
-    expect(output).toContain("| | Nested quote");
-    expect(output).toContain("• unordered item");
-    expect(output).toContain("1. ordered item");
-    expect(output).toContain("completed task");
-    expect(output).toContain("pending task");
-    expect(output).toContain("| Feature  | Alignment | Status |");
-    expect(output).toContain("docs link");
-    expect(output).toContain("(https://example.com/docs)");
-    expect(output).toContain("[image: System diagram]");
-    expect(output).toContain("| Note");
-    expect(output).toContain("reference[1].");
-    expect(output).toContain("Footnote definition for the markdown demo.");
-  });
-
-  it("captures the minimal markdown renderer demo output", () => {
-    const output = stripAnsi(captureTextOutput("markdown-minimal", "markdown"));
-
-    expect(output).toContain("Markdown Minimal");
-    expect(output).toContain("Quick validation");
-    expect(output).toContain('console.log("demo");');
-    expect(output).not.toContain("| Feature |");
-    expect(output).not.toContain("> Note");
-  });
-
-  it("captures format-aware json menu output", () => {
-    const output = captureTextOutput("menu", "json");
-
-    expect(output).toContain('"type":"menu"');
-    expect(output).toContain('"message":"Pick an agent:"');
-    expect(output).not.toContain("◆");
+    const strippedMinimalMarkdown = stripAnsi(minimalMarkdown);
+    expect(strippedMinimalMarkdown).toContain("Markdown Minimal");
+    expect(strippedMinimalMarkdown).toContain("Quick validation");
+    expect(strippedMinimalMarkdown).toContain('console.log("demo");');
+    expect(strippedMinimalMarkdown).not.toContain("| Feature |");
+    expect(strippedMinimalMarkdown).not.toContain("> Note");
+    expect(menu).toContain('"type":"menu"');
+    expect(menu).toContain('"message":"Pick an agent:"');
+    expect(menu).not.toContain("◆");
   });
 });

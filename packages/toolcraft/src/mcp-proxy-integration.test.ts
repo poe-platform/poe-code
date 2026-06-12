@@ -1,5 +1,5 @@
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, stat, unlink, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, stat, unlink, utimes, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -495,14 +495,15 @@ describe("mcp proxy integration", () => {
     setProjectRoot(harness);
 
     await resolveMcpProxies(createProxyRoot(harness).root);
+    const stableTimestamp = new Date(1_700_000_000_000);
+    await utimes(harness.cachePath, stableTimestamp, stableTimestamp);
     const beforeRefresh = await stat(harness.cachePath);
-
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    const startupGateFile = path.join(harness.projectRoot, ".toolcraft-test-startup-gate");
 
     process.env.TOOLCRAFT_MCP_REFRESH = "github";
     const { root } = createProxyRoot(harness, {
       env: {
-        TOOLCRAFT_TEST_STARTUP_DELAY_MS: "250",
+        TOOLCRAFT_TEST_STARTUP_GATE_FILE: startupGateFile,
       },
     });
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -512,6 +513,7 @@ describe("mcp proxy integration", () => {
     await waitFor(async () => (await readNumberFile(harness.countFile)) === 2);
     expect(await pathExists(harness.cachePath)).toBe(true);
     expect((await stat(harness.cachePath)).mtimeMs).toBe(beforeRefresh.mtimeMs);
+    await writeFile(startupGateFile, "ready");
     await pendingRefresh;
 
     const afterRefresh = await stat(harness.cachePath);

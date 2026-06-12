@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { access } from "node:fs/promises";
 import packageJson from "../package.json" with { type: "json" };
 import {
   createEncryptServer,
@@ -23,6 +24,10 @@ program
     const startupDelayMs = Number(process.env.TOOLCRAFT_TEST_STARTUP_DELAY_MS ?? "0");
     if (startupDelayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, startupDelayMs));
+    }
+    const startupGateFile = process.env.TOOLCRAFT_TEST_STARTUP_GATE_FILE;
+    if (startupGateFile !== undefined) {
+      await waitForFile(startupGateFile);
     }
     const servers: Record<string, () => Promise<void>> = Object.create(null) as Record<string, () => Promise<void>>;
     Object.assign(servers, {
@@ -54,5 +59,16 @@ function recordProcessStart(): void {
   const pidFile = process.env.TOOLCRAFT_TEST_WRAPPER_PID_FILE;
   if (pidFile !== undefined) {
     writeFileSync(pidFile, String(process.pid));
+  }
+}
+
+async function waitForFile(filePath: string): Promise<void> {
+  while (true) {
+    try {
+      await access(filePath);
+      return;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
   }
 }

@@ -1,6 +1,8 @@
 node_modules/
 dist/
 screenshots/
+tmp/
+.tmp/
 actionlint
 vscode-extension/tests/*.js
 vscode-extension/tests/*.js.map

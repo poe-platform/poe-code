@@ -2,7 +2,6 @@ import type {
   ArrayExpression,
   ArrayPattern,
   AssignmentPattern,
-  AssignmentProperty,
   AssignmentExpression,
   ArrowFunctionExpression,
   AwaitExpression,
@@ -18,38 +17,44 @@ import type {
   Identifier,
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
+  ForInStatement,
   ForOfStatement,
   ForStatement,
+  FunctionDeclaration,
+  FunctionExpression,
   IfStatement,
   LogicalExpression,
   MemberExpression,
   MetaProperty,
+  NewExpression,
   NullLiteral,
   NumericLiteral,
   ObjectExpression,
   ObjectPattern,
   ParseResult,
   Property,
+  RegexLiteral,
   BreakStatement,
   ReturnStatement,
   SequenceExpression,
   SourceSpan,
   SpreadElement,
   StringLiteral,
+  SwitchStatement,
   TaggedTemplateExpression,
   TemplateLiteral,
   ThrowStatement,
+  ThisExpression,
   TryStatement,
   UnaryExpression,
   UndefinedLiteral,
   UpdateExpression,
   ExpressionStatement,
   VariableDeclaration,
-  VariableDeclarationKind,
-  VariableDeclarator,
   RestElement,
   WhileStatement
 } from "../parse.js";
+import type { YieldExpression } from "../parse/parser.js";
 import {
   attachErrorSpan,
   formatErrorStack,
@@ -58,13 +63,16 @@ import {
 } from "../error/shape.js";
 import {
   evaluateArrowFunctionExpression,
+  evaluateFunctionExpression,
   evaluateAwaitExpression,
+  createInterpretedClosure,
   normalizeClosureResult,
   resolveClosureResult,
   type AsyncEvaluationContext,
   type AsyncEvaluationResult,
   type InterpreterYieldPoint
 } from "./async.js";
+import type { GeneratorCompletion } from "./generator.js";
 import { Budget, SandboxError } from "./budget.js";
 import {
   coerceThrownValue,
@@ -81,25 +89,54 @@ import {
   type ArrayMethodName,
   type ArrayMethodOptions
 } from "./methods/array.js";
+import { getFunctionMember, type FunctionMethodOptions } from "./methods/function.js";
+import {
+  callMapMethod,
+  getMapMember,
+  isMapMethodName,
+  type MapMethodName,
+  type MapMethodOptions
+} from "./methods/map.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import { getPromiseMember } from "./promise.js";
+import { getSandboxIterator, type SandboxIterator } from "./iteration.js";
+import { getGeneratorMember } from "./methods/generator.js";
+import { getRegexMember, isRegexMethodName, setRegexMember } from "./methods/regex.js";
+import { bindPattern, type BindPatternResult } from "./patterns.js";
 import {
   callStringMethod,
   getStringMember,
   isStringMethodName,
   validateStringMethodArguments
 } from "./methods/string.js";
-import { isSandboxErrorConstructorInstance } from "./globals/error.js";
 import {
+  callSetMethod,
+  getSetMember,
+  isSetMethodName,
+  type SetMethodName,
+  type SetMethodOptions
+} from "./methods/set.js";
+import { isSandboxErrorConstructor, isSandboxErrorConstructorInstance } from "./globals/error.js";
+import { isSandboxMapConstructor, isSandboxSetConstructor } from "./globals/collections.js";
+import {
+  createSandboxRegex,
+  allocateProducedSandboxValue,
   isSandboxClosure,
+  isSandboxGenerator,
+  isSandboxMap,
   isSandboxPromise,
+  isSandboxRegex,
+  isSandboxSet,
   type SandboxArray,
   type SandboxClosure,
+  type SandboxMap,
   type SandboxObject,
   type SandboxPrimitive,
+  type SandboxSet,
   type SandboxValue
 } from "./values.js";
 import { Scope } from "./scope.js";
+import { hoistVarDeclarations } from "./var-hoist.js";
 
 export type InterpreterValue = SandboxValue;
 
@@ -144,11 +181,14 @@ export type InterpretOptions = {
   scope?: Scope;
   surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
+  generatorYield?: (value?: SandboxValue) => Promise<GeneratorCompletion>;
 };
 
 type EvaluationContext = AsyncEvaluationContext;
 
 type EvaluationResult = AsyncEvaluationResult;
+
+const taggedTemplateRawArrays = new WeakMap<SandboxArray, SandboxArray>();
 
 type HelperResult<TValue> =
   | {
@@ -185,28 +225,36 @@ const dispatchTable: DispatchTable = {
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
+  ForInStatement: evaluateForInStatement,
   ForOfStatement: evaluateForOfStatement,
   ForStatement: evaluateForStatement,
+  FunctionDeclaration: evaluateFunctionDeclaration,
+  FunctionExpression: evaluateFunction,
   IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
   LogicalExpression: evaluateLogicalExpression,
   MemberExpression: evaluateMemberExpression,
   MetaProperty: evaluateMetaProperty,
+  NewExpression: evaluateNewExpression,
   NullLiteral: evaluatePrimitiveLiteral,
   NumericLiteral: evaluatePrimitiveLiteral,
+  RegexLiteral: evaluateRegexLiteral,
   ObjectExpression: evaluateObjectExpression,
   BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
   SequenceExpression: evaluateSequenceExpression,
   StringLiteral: evaluatePrimitiveLiteral,
+  SwitchStatement: evaluateSwitchStatement,
   TaggedTemplateExpression: evaluateTaggedTemplateExpression,
   TemplateLiteral: evaluateTemplateLiteral,
   ThrowStatement: evaluateThrowStatement,
+  ThisExpression: evaluateThisExpression,
   TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
   UpdateExpression: evaluateUpdateExpression,
   VariableDeclaration: evaluateVariableDeclaration,
   WhileStatement: evaluateWhileStatement,
+  YieldExpression: evaluateYieldExpression,
   UndefinedLiteral: evaluatePrimitiveLiteral
 };
 
@@ -217,20 +265,26 @@ export async function interpret(
   const budget = options.budget ?? new Budget();
   const scope =
     options.scope === undefined
-      ? new Scope(options.bindings)
+      ? new Scope(options.bindings, undefined, undefined, {
+          functionBoundary: true
+        })
       : options.useScopeDirectly === true && options.bindings === undefined
         ? options.scope
-        : options.scope.child(options.bindings ?? {});
+        : options.scope.child(options.bindings ?? {}, {
+            functionBoundary: true
+          });
   const stats: InterpreterStats = {
     nodeVisits: 0
   };
+  hoistVarDeclarations(node, scope);
   const evaluation = await evaluateNode(node, {
     budget,
     callStack: [],
     onYield: options.onYield,
     rootNode: node,
     scope,
-    stats
+    stats,
+    generatorYield: options.generatorYield
   });
   const snapshot = scope.snapshot();
 
@@ -340,6 +394,18 @@ async function evaluatePrimitiveLiteral(
     kind: "normal",
     hasValue: true,
     value
+  };
+}
+
+async function evaluateRegexLiteral(
+  node: RegexLiteral,
+  _context: EvaluationContext
+): Promise<EvaluationResult> {
+  const lastSlash = node.raw.lastIndexOf("/");
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: createSandboxRegex(node.raw.slice(1, lastSlash), node.raw.slice(lastSlash + 1))
   };
 }
 
@@ -526,6 +592,7 @@ function createTaggedTemplateStrings(
     value: raw,
     writable: false
   });
+  taggedTemplateRawArrays.set(strings, raw);
 
   return strings;
 }
@@ -535,6 +602,32 @@ async function evaluateArrowFunction(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   return evaluateArrowFunctionExpression(node, context, evaluateNode);
+}
+
+async function evaluateFunctionDeclaration(
+  node: FunctionDeclaration,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (!context.scope.hasOwnBinding(node.id.name)) {
+    context.scope.declare(
+      node.id.name,
+      "const",
+      createInterpretedClosure(node, context, evaluateNode)
+    );
+  }
+
+  return {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
+  };
+}
+
+async function evaluateFunction(
+  node: FunctionExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateFunctionExpression(node, context, evaluateNode);
 }
 
 async function evaluateAwait(
@@ -571,6 +664,26 @@ async function evaluateAssignmentExpression(
   node: AssignmentExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.left.type === "ArrayPattern" || node.left.type === "ObjectPattern") {
+    const right = await evaluateNode(node.right, context);
+    if (right.kind !== "normal") {
+      return right;
+    }
+
+    const binding = await bindPattern(node.left, right.value, { assign: true }, context.scope, {
+      evaluate: (patternNode) => evaluateNode(patternNode, context)
+    });
+    if (!binding.ok) {
+      return binding.result;
+    }
+
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: right.value
+    };
+  }
+
   if (node.left.type === "MemberExpression") {
     return evaluateMemberAssignmentExpression(node, context);
   }
@@ -659,35 +772,50 @@ async function evaluateMemberAssignmentExpression(
   if (member.kind === "nullish") {
     throw new TypeError("Cannot assign properties of null or undefined.");
   }
+  if (isSandboxRegex(member.object)) {
+    if (node.operator !== "=") {
+      throw new TypeError("RegExp properties only support direct assignment.");
+    }
+    const right = await evaluateNode(node.right, context);
+    if (right.kind !== "normal") return right;
+    setRegexMember(member.object, member.property, right.value);
+    return { kind: "normal", hasValue: true, value: right.value };
+  }
   if (!isIndexableSandboxValue(member.object)) {
     throw new TypeError("Assignment expressions require a sandbox object property.");
   }
 
-  if (node.operator === "&&=" && !isTruthy(getMemberValue(member.object, member.property))) {
+  if (
+    node.operator === "&&=" &&
+    !isTruthy(getMemberValue(member.object, member.property, context))
+  ) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property)
+      value: getMemberValue(member.object, member.property, context)
     };
   }
 
-  if (node.operator === "||=" && isTruthy(getMemberValue(member.object, member.property))) {
+  if (
+    node.operator === "||=" &&
+    isTruthy(getMemberValue(member.object, member.property, context))
+  ) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property)
+      value: getMemberValue(member.object, member.property, context)
     };
   }
 
   if (
     node.operator === "??=" &&
-    getMemberValue(member.object, member.property) !== null &&
-    getMemberValue(member.object, member.property) !== undefined
+    getMemberValue(member.object, member.property, context) !== null &&
+    getMemberValue(member.object, member.property, context) !== undefined
   ) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getMemberValue(member.object, member.property)
+      value: getMemberValue(member.object, member.property, context)
     };
   }
 
@@ -696,7 +824,7 @@ async function evaluateMemberAssignmentExpression(
     return right;
   }
 
-  const current = getMemberValue(member.object, member.property);
+  const current = getMemberValue(member.object, member.property, context);
   const value =
     node.operator === "=" ||
     node.operator === "&&=" ||
@@ -783,14 +911,6 @@ async function evaluateIdentifier(
   const binding = context.scope.lookup(node.name);
 
   if (!binding.found) {
-    if (node.name === "this") {
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: undefined
-      };
-    }
-
     return {
       kind: "error",
       error: createError("UNBOUND_IDENTIFIER", node, `Identifier '${node.name}' is not defined.`)
@@ -801,6 +921,18 @@ async function evaluateIdentifier(
     kind: "normal",
     hasValue: true,
     value: binding.value
+  };
+}
+
+async function evaluateThisExpression(
+  _node: ThisExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const binding = context.scope.lookup("this");
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: binding.found ? binding.value : undefined
   };
 }
 
@@ -844,7 +976,9 @@ async function evaluateVariableDeclaration(
   node: VariableDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
-  predeclareDeclarationBindings(node, context.scope);
+  if (node.kind !== "var") {
+    predeclareDeclarationBindings(node, context.scope);
+  }
 
   for (const declarator of node.declarations) {
     const value =
@@ -860,7 +994,13 @@ async function evaluateVariableDeclaration(
       return value;
     }
 
-    const binding = await bindDeclarationPattern(declarator.id, value.value, node.kind, context);
+    const binding = await bindPattern(
+      declarator.id,
+      value.value,
+      { kind: node.kind },
+      context.scope,
+      { evaluate: (patternNode) => evaluateNode(patternNode, context) }
+    );
     if (!binding.ok) {
       return binding.result;
     }
@@ -873,37 +1013,6 @@ async function evaluateVariableDeclaration(
   };
 }
 
-async function bindDeclarationPattern(
-  pattern: VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement,
-  value: SandboxValue,
-  kind: VariableDeclarationKind,
-  context: EvaluationContext
-): Promise<
-  | {
-      ok: true;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult;
-    }
-> {
-  switch (pattern.type) {
-    case "Identifier":
-      context.scope.declare(pattern.name, kind, value);
-      return { ok: true };
-    case "MemberExpression":
-      throw new TypeError("Destructuring declarations cannot bind to member expressions.");
-    case "AssignmentPattern":
-      return bindDeclarationAssignmentPattern(pattern, value, kind, context);
-    case "ArrayPattern":
-      return bindDeclarationArrayPattern(pattern, value, kind, context);
-    case "ObjectPattern":
-      return bindDeclarationObjectPattern(pattern, value, kind, context);
-    case "RestElement":
-      return bindDeclarationPattern(pattern.argument, value, kind, context);
-  }
-}
-
 function predeclareDeclarationBindings(node: VariableDeclaration, scope: Scope): void {
   for (const name of getDeclarationBindingNames(node)) {
     if (!scope.hasOwnBinding(name)) {
@@ -913,7 +1022,9 @@ function predeclareDeclarationBindings(node: VariableDeclaration, scope: Scope):
 }
 
 function getForStatementBindingNames(node: ForStatement): string[] {
-  return node.init?.type === "VariableDeclaration" ? getDeclarationBindingNames(node.init) : [];
+  return node.init?.type === "VariableDeclaration" && node.init.kind !== "var"
+    ? getDeclarationBindingNames(node.init)
+    : [];
 }
 
 function getDeclarationBindingNames(node: VariableDeclaration): string[] {
@@ -951,197 +1062,6 @@ function getPatternBindingNames(
   }
 }
 
-async function bindDeclarationAssignmentPattern(
-  pattern: AssignmentPattern,
-  value: SandboxValue,
-  kind: VariableDeclarationKind,
-  context: EvaluationContext
-): Promise<
-  | {
-      ok: true;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult;
-    }
-> {
-  if (value !== undefined) {
-    return bindDeclarationPattern(pattern.left, value, kind, context);
-  }
-
-  const defaultValue = await evaluateNode(pattern.right, context);
-  if (defaultValue.kind !== "normal") {
-    return {
-      ok: false,
-      result: defaultValue
-    };
-  }
-
-  return bindDeclarationPattern(pattern.left, defaultValue.value, kind, context);
-}
-
-async function bindDeclarationArrayPattern(
-  pattern: ArrayPattern,
-  value: SandboxValue,
-  kind: VariableDeclarationKind,
-  context: EvaluationContext
-): Promise<
-  | {
-      ok: true;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult;
-    }
-> {
-  const values = getArrayPatternValues(value);
-
-  for (let index = 0; index < pattern.elements.length; index += 1) {
-    const element = pattern.elements[index];
-    if (element === null) {
-      continue;
-    }
-
-    const elementValue =
-      element.type === "RestElement" ? values.slice(index) : (values[index] as SandboxValue);
-    const binding = await bindDeclarationPattern(element, elementValue, kind, context);
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-function getArrayPatternValues(value: unknown): SandboxArray {
-  if (Array.isArray(value)) {
-    return value as SandboxArray;
-  }
-
-  if (typeof value === "string") {
-    return Array.from(value);
-  }
-
-  if (isIterableValue(value)) {
-    throw new TypeError(
-      `Array destructuring declarations support only arrays and strings; received ${describeRuntimeValue(value)}.`
-    );
-  }
-
-  throw new TypeError("Array destructuring declarations require an array or string iterable.");
-}
-
-function isIterableValue(value: unknown): value is Iterable<unknown> {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    Symbol.iterator in value &&
-    typeof value[Symbol.iterator] === "function"
-  );
-}
-
-function describeRuntimeValue(value: unknown): string {
-  if (value === null) {
-    return "null";
-  }
-
-  if (value === undefined) {
-    return "undefined";
-  }
-
-  if (typeof value === "object") {
-    return value.constructor?.name ?? "Object";
-  }
-
-  return typeof value;
-}
-
-async function bindDeclarationObjectPattern(
-  pattern: ObjectPattern,
-  value: SandboxValue,
-  kind: VariableDeclarationKind,
-  context: EvaluationContext
-): Promise<
-  | {
-      ok: true;
-    }
-  | {
-      ok: false;
-      result: EvaluationResult;
-    }
-> {
-  if (typeof value !== "object" || value === null) {
-    throw new TypeError("Object destructuring declarations require a non-null object value.");
-  }
-
-  const excludedKeys = new Set<string>();
-
-  for (const property of pattern.properties) {
-    if (property.type === "RestElement") {
-      const binding = await bindDeclarationPattern(
-        property,
-        copyObjectRestValue(value, excludedKeys),
-        kind,
-        context
-      );
-      if (!binding.ok) {
-        return binding;
-      }
-
-      continue;
-    }
-
-    const key = await evaluateDeclarationPatternKey(property, context);
-    if (!key.ok) {
-      return key;
-    }
-
-    excludedKeys.add(String(key.value));
-    const binding = await bindDeclarationPattern(
-      property.value,
-      (value as Record<string | number, SandboxValue>)[key.value],
-      kind,
-      context
-    );
-    if (!binding.ok) {
-      return binding;
-    }
-  }
-
-  return { ok: true };
-}
-
-async function evaluateDeclarationPatternKey(
-  property: AssignmentProperty,
-  context: EvaluationContext
-): Promise<HelperResult<string | number>> {
-  if (!property.computed) {
-    return {
-      ok: true,
-      value: getStaticPropertyName(property.key)
-    };
-  }
-
-  return evaluateMemberProperty(property.key, context);
-}
-
-function copyObjectRestValue(
-  value: Exclude<SandboxValue, null | undefined>,
-  excludedKeys: ReadonlySet<string>
-): SandboxObject {
-  const rest = Object.create(null) as SandboxObject;
-
-  for (const [key, entryValue] of Object.entries(value)) {
-    if (excludedKeys.has(key)) {
-      continue;
-    }
-
-    defineSandboxProperty(rest, key, entryValue);
-  }
-
-  return rest;
-}
-
 async function evaluateBlockStatement(
   node: BlockStatement,
   context: EvaluationContext
@@ -1164,19 +1084,38 @@ async function evaluateBlockStatement(
 
 function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
   const scope = node === context.rootNode ? context.scope : context.scope.child();
-  predeclareBlockBindings(node, scope);
-
-  return {
+  const blockContext = {
     ...context,
     scope
   };
+  predeclareBlockBindings(node, blockContext);
+  return blockContext;
 }
 
-function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
+function predeclareBlockBindings(node: BlockStatement, context: EvaluationContext): void {
+  predeclareStatementListBindings(node.body, context);
+}
+
+function predeclareStatementListBindings(
+  statements: readonly import("../parse.js").Statement[],
+  context: EvaluationContext
+): void {
+  const { scope } = context;
   const names = new Set<string>();
 
-  for (const statement of node.body) {
-    if (statement.type !== "VariableDeclaration") {
+  for (const statement of statements) {
+    if (statement.type === "FunctionDeclaration") {
+      const name = statement.id.name;
+      if (names.has(name) || scope.hasOwnBinding(name)) {
+        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+      }
+
+      names.add(name);
+      scope.declare(name, "const", createInterpretedClosure(statement, context, evaluateNode));
+      continue;
+    }
+
+    if (statement.type !== "VariableDeclaration" || statement.kind === "var") {
       continue;
     }
 
@@ -1189,6 +1128,60 @@ function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
       scope.predeclare(name, statement.kind);
     }
   }
+}
+
+async function evaluateSwitchStatement(
+  node: SwitchStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const discriminant = await evaluateNode(node.discriminant, context);
+  if (discriminant.kind !== "normal") {
+    return discriminant;
+  }
+
+  const switchContext = { ...context, scope: context.scope.child() };
+  predeclareStatementListBindings(
+    node.cases.flatMap((switchCase) => switchCase.consequent),
+    switchContext
+  );
+
+  let defaultIndex: number | undefined;
+  let startIndex: number | undefined;
+  for (let index = 0; index < node.cases.length; index += 1) {
+    const switchCase = node.cases[index]!;
+    if (switchCase.test === undefined) {
+      defaultIndex = index;
+      continue;
+    }
+
+    const test = await evaluateNode(switchCase.test, switchContext);
+    if (test.kind !== "normal") {
+      return test;
+    }
+    if (discriminant.value === test.value) {
+      startIndex = index;
+      break;
+    }
+  }
+
+  startIndex ??= defaultIndex;
+  if (startIndex === undefined) {
+    return normalEmptyResult();
+  }
+
+  for (let caseIndex = startIndex; caseIndex < node.cases.length; caseIndex += 1) {
+    for (const statement of node.cases[caseIndex]!.consequent) {
+      const result = await evaluateNode(statement, switchContext);
+      if (result.kind === "break" && result.label === undefined) {
+        return normalEmptyResult();
+      }
+      if (result.kind !== "normal") {
+        return result;
+      }
+    }
+  }
+
+  return normalEmptyResult();
 }
 
 async function evaluateIfStatement(
@@ -1221,13 +1214,13 @@ async function evaluateForOfStatement(
     return iterable;
   }
 
-  if (!isForOfIterableValue(iterable.value)) {
+  const iterator = getSandboxIterator(iterable.value);
+  if (iterator === undefined) {
     throw new TypeError(`${String(iterable.value)} is not a supported iterable`);
   }
 
-  const iterator = iterable.value[Symbol.iterator]();
   while (true) {
-    const iteration = iterator.next();
+    const iteration = await iterator.next();
     if (typeof iteration !== "object" || iteration === null) {
       throw new TypeError("Iterator result must be an object.");
     }
@@ -1237,7 +1230,15 @@ async function evaluateForOfStatement(
     }
 
     const scope = context.scope.child();
-    bindForOfLoopVariable(node.left, iteration.value as SandboxValue, scope);
+    const binding = await bindForOfLoopVariable(
+      node.left,
+      iteration.value as SandboxValue,
+      scope,
+      context
+    );
+    if (!binding.ok) {
+      return binding.result;
+    }
 
     const result = await evaluateNode(node.body, {
       ...context,
@@ -1245,6 +1246,7 @@ async function evaluateForOfStatement(
     });
 
     if (isMatchingBreak(result, loopLabels(node))) {
+      await closeIterator(iterator);
       return {
         kind: "normal",
         hasValue: false,
@@ -1257,6 +1259,7 @@ async function evaluateForOfStatement(
     }
 
     if (result.kind !== "normal") {
+      await closeIterator(iterator);
       return result;
     }
   }
@@ -1268,8 +1271,98 @@ async function evaluateForOfStatement(
   };
 }
 
-function isForOfIterableValue(value: unknown): value is Iterable<unknown> {
-  return Array.isArray(value) || isIterableValue(value);
+async function evaluateForInStatement(
+  node: ForInStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const right = await evaluateNode(node.right, context);
+  if (right.kind !== "normal") {
+    return right;
+  }
+
+  const object = forInObject(right.value);
+  if (object === undefined) {
+    return normalEmptyResult();
+  }
+
+  const keys = forInKeys(object);
+  for (const key of keys) {
+    if (!(key in object)) {
+      continue;
+    }
+
+    const scope = context.scope.child();
+    const binding = await bindForInLoopVariable(node.left, key, scope, context);
+    if (!binding.ok) {
+      return binding.result;
+    }
+
+    const result = await evaluateNode(node.body, { ...context, scope });
+    if (isMatchingBreak(result, loopLabels(node))) {
+      return normalEmptyResult();
+    }
+    if (isMatchingContinue(result, loopLabels(node))) {
+      continue;
+    }
+    if (result.kind !== "normal") {
+      return result;
+    }
+  }
+
+  return normalEmptyResult();
+}
+
+function forInObject(value: SandboxValue): object | undefined {
+  if (value === null || value === undefined || isSandboxClosure(value) || isSandboxPromise(value)) {
+    return undefined;
+  }
+  if (typeof value === "string" || Array.isArray(value) || isPlainForInObject(value)) {
+    return Object(value);
+  }
+  return undefined;
+}
+
+function forInKeys(object: object): string[] {
+  const keys = Object.keys(object);
+  return Array.isArray(object) ? keys.filter(isArrayIndexKey) : keys;
+}
+
+function isArrayIndexKey(key: string): boolean {
+  const index = Number(key);
+  return Number.isInteger(index) && index >= 0 && index < 4_294_967_295 && String(index) === key;
+}
+
+function isPlainForInObject(value: unknown): value is Record<string, SandboxValue> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
+}
+
+async function bindForInLoopVariable(
+  left: ForInStatement["left"],
+  key: string,
+  scope: Scope,
+  context: EvaluationContext
+): Promise<BindPatternResult> {
+  if (left.type === "Identifier") {
+    return bindPattern(left, key, { assign: true }, scope, {
+      evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
+    });
+  }
+
+  const [declarator] = left.declarations;
+  if (left.declarations.length !== 1 || declarator?.id.type !== "Identifier") {
+    throw new TypeError("for...in keys are strings; destructure inside the body");
+  }
+  return bindPattern(declarator.id, key, { kind: left.kind }, scope, {
+    evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
+  });
+}
+
+function normalEmptyResult(): EvaluationResult {
+  return { kind: "normal", hasValue: false, value: undefined };
 }
 
 async function evaluateForStatement(
@@ -1437,7 +1530,7 @@ function isMatchingContinue(
 }
 
 function loopLabels(
-  node: ForOfStatement | ForStatement | WhileStatement | DoWhileStatement
+  node: ForInStatement | ForOfStatement | ForStatement | WhileStatement | DoWhileStatement
 ): string[] | string | undefined {
   return node.labels ?? node.label;
 }
@@ -1446,11 +1539,18 @@ function hasLoopLabel(labels: string[] | string | undefined, target: string): bo
   return Array.isArray(labels) ? labels.includes(target) : labels === target;
 }
 
-function bindForOfLoopVariable(
+async function bindForOfLoopVariable(
   left: ForOfStatement["left"],
   value: SandboxValue,
-  scope: Scope
-): void {
+  scope: Scope,
+  context: EvaluationContext
+): Promise<BindPatternResult> {
+  if (left.type === "Identifier") {
+    return bindPattern(left, value, { assign: true }, scope, {
+      evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
+    });
+  }
+
   if (left.type !== "VariableDeclaration") {
     throw new TypeError(`Unsupported for...of left-hand side '${left.type}'.`);
   }
@@ -1460,11 +1560,9 @@ function bindForOfLoopVariable(
     throw new TypeError("for...of declarations must include exactly one declarator.");
   }
 
-  if (declarator.id.type !== "Identifier") {
-    throw new TypeError(`Unsupported for...of declaration pattern '${declarator.id.type}'.`);
-  }
-
-  scope.declare(declarator.id.name, left.kind, value);
+  return bindPattern(declarator.id, value, { kind: left.kind }, scope, {
+    evaluate: (patternNode) => evaluateNode(patternNode, { ...context, scope })
+  });
 }
 
 async function evaluateExpressionStatement(
@@ -1524,6 +1622,87 @@ async function evaluateReturnStatement(
   };
 }
 
+async function evaluateYieldExpression(
+  node: YieldExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (context.generatorYield === undefined) {
+    throw new TypeError("yield is only valid inside a generator.");
+  }
+
+  if (node.delegate) {
+    return evaluateYieldDelegate(node, context);
+  }
+
+  const argument =
+    node.argument === undefined
+      ? { kind: "normal" as const, hasValue: true, value: undefined }
+      : await evaluateNode(node.argument, context);
+  if (argument.kind !== "normal") {
+    return argument;
+  }
+
+  const completion = await context.generatorYield(
+    allocateProducedSandboxValue(argument.value, context.budget)
+  );
+  return generatorCompletionResult(completion);
+}
+
+async function evaluateYieldDelegate(
+  node: YieldExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const argument = await evaluateNode(node.argument!, context);
+  if (argument.kind !== "normal") {
+    return argument;
+  }
+  const iterator = getSandboxIterator(argument.value);
+  if (iterator === undefined) {
+    throw new TypeError(`${String(argument.value)} is not a supported iterable`);
+  }
+
+  let completion: { type: "normal" | "return" | "throw"; value: SandboxValue } = {
+    type: "normal",
+    value: undefined
+  };
+  while (true) {
+    const method = completion.type === "normal" ? "next" : completion.type;
+    const iteratorMethod = iterator[method];
+    if (iteratorMethod === undefined) {
+      if (completion.type === "throw") {
+        throw completion.value;
+      }
+      return generatorCompletionResult(completion);
+    }
+    const result = await iteratorMethod(completion.value);
+    if (result.done) {
+      if (completion.type === "return") {
+        return generatorCompletionResult({ type: "return", value: result.value });
+      }
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: result.value
+      };
+    }
+    completion = (await context.generatorYield!(
+      allocateProducedSandboxValue(result.value, context.budget)
+    )) as typeof completion;
+  }
+}
+
+function generatorCompletionResult(
+  completion: { type: "normal" | "return" | "throw"; value: unknown }
+): EvaluationResult {
+  if (completion.type === "throw") {
+    return { kind: "throw", hasValue: true, value: completion.value as SandboxValue };
+  }
+  if (completion.type === "return") {
+    return { kind: "return", hasValue: true, value: completion.value as SandboxValue };
+  }
+  return { kind: "normal", hasValue: true, value: completion.value as SandboxValue };
+}
+
 async function evaluateThrowStatement(
   node: ThrowStatement,
   context: EvaluationContext
@@ -1544,6 +1723,18 @@ async function evaluateUnaryExpression(
 ): Promise<EvaluationResult> {
   if (node.operator === "delete") {
     return evaluateDeleteExpression(node, context);
+  }
+
+  if (
+    node.operator === "typeof" &&
+    node.argument.type === "Identifier" &&
+    !context.scope.lookup(node.argument.name).found
+  ) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: "undefined"
+    };
   }
 
   const argument = await evaluateNode(node.argument, context);
@@ -1679,7 +1870,7 @@ async function evaluateMemberUpdateExpression(
     throw new TypeError("Update expressions require a sandbox object property.");
   }
 
-  const current = Number(getMemberValue(member.object, member.property));
+  const current = Number(getMemberValue(member.object, member.property, context));
   const next = node.operator === "++" ? current + 1 : current - 1;
   setSandboxProperty(member.object, member.property, next);
 
@@ -1731,25 +1922,42 @@ async function evaluateMemberExpression(
   }
 
   if (Array.isArray(member.object)) {
-    const arrayMember = getArrayMember(
-      member.object,
-      member.property,
-      createArrayMethodOptions(context)
-    );
-    if (arrayMember !== undefined) {
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: arrayMember
-      };
-    }
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getArrayMemberValue(member.object, member.property, context)
+    };
+  }
+
+  if (isSandboxMap(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getMapMember(member.object, member.property, createMapMethodOptions(context))
+    };
+  }
+
+  if (isSandboxSet(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getSetMember(member.object, member.property, createSetMethodOptions(context))
+    };
+  }
+
+  if (isSandboxGenerator(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getGeneratorMember(member.object, member.property, context.budget)
+    };
   }
 
   if (isSandboxClosure(member.object)) {
     return {
       kind: "normal",
       hasValue: true,
-      value: getClosureMemberValue(member.object, member.property)
+      value: getClosureMemberValue(member.object, member.property, context)
     };
   }
 
@@ -1761,6 +1969,14 @@ async function evaluateMemberExpression(
     };
   }
 
+  if (isSandboxRegex(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getRegexMember(member.object, member.property)
+    };
+  }
+
   if (!isIndexableSandboxValue(member.object)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
@@ -1768,7 +1984,7 @@ async function evaluateMemberExpression(
   return {
     kind: "normal",
     hasValue: true,
-    value: getMemberValue(member.object, member.property)
+    value: getMemberValue(member.object, member.property, context)
   };
 }
 
@@ -1788,6 +2004,71 @@ async function evaluateCallExpression(
   }
 
   return evaluateResolvedCallExpression(node, callee.value, context);
+}
+
+async function evaluateNewExpression(
+  node: NewExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const callee = await evaluateNode(node.callee, context);
+  if (callee.kind !== "normal") {
+    return callee;
+  }
+
+  const name = getConstructorName(node.callee);
+  if (!isSandboxClosure(callee.value) || callee.value.construct === undefined) {
+    throw new TypeError(`${name} is not a constructor.`);
+  }
+
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return args.result;
+  }
+
+  const stack = [...context.callStack, formatStackFrame(node, callee.value.name ?? name)];
+  const leaveCall = context.budget.enterCall();
+
+  try {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: await resolveClosureResult(
+        wrapHostResult(
+          callee.value.construct(args.value, {
+            stack,
+            thisValue: undefined,
+            span: node.span
+          }),
+          stack
+        )
+      )
+    };
+  } catch (error) {
+    if (isFatalSandboxError(error)) {
+      throw error;
+    }
+    throw captureException(error, stack);
+  } finally {
+    leaveCall();
+  }
+}
+
+function getConstructorName(callee: Expression): string {
+  if (callee.type === "Identifier") {
+    return callee.name;
+  }
+  if (callee.type === "MemberExpression") {
+    if (!callee.computed && callee.property.type === "Identifier") {
+      return callee.property.name;
+    }
+    if (callee.computed && callee.property.type === "StringLiteral") {
+      return callee.property.value;
+    }
+    if (callee.computed && callee.property.type === "NumericLiteral") {
+      return String(callee.property.value);
+    }
+  }
+  return "<anonymous>";
 }
 
 function formatStackFrame(node: { span: SourceSpan }, name: string | undefined): string {
@@ -1971,35 +2252,97 @@ async function evaluateMemberCallExpression(
     return evaluateArrayMethodCall(node, member.object, member.property, context);
   }
 
+  if (isSandboxMap(member.object) && isMapMethodName(member.property)) {
+    return evaluateMapMethodCall(node, member.object, member.property, context);
+  }
+
+  if (isSandboxSet(member.object) && isSetMethodName(member.property)) {
+    return evaluateSetMethodCall(node, member.object, member.property, context);
+  }
+
   if (typeof member.object === "string") {
-    return evaluateResolvedCallExpression(
+    return evaluatePrimitiveMemberCall(
       node,
+      "String",
+      member.property,
       getStringMember(member.object, member.property, context.budget),
       context
     );
   }
 
   if (typeof member.object === "number") {
-    return evaluateResolvedCallExpression(
+    return evaluatePrimitiveMemberCall(
       node,
+      "Number",
+      member.property,
       getNumberMember(member.object, member.property, context.budget),
       context
     );
   }
 
-  if (isSandboxClosure(member.object)) {
-    return evaluateResolvedCallExpression(
+  if (Array.isArray(member.object)) {
+    return evaluatePrimitiveMemberCall(
       node,
-      getClosureMemberValue(member.object, member.property),
+      "Array",
+      member.property,
+      getArrayMemberValue(member.object, member.property, context),
       context
     );
+  }
+
+  if (isSandboxMap(member.object)) {
+    return evaluatePrimitiveMemberCall(
+      node,
+      "Map",
+      member.property,
+      getMapMember(member.object, member.property, createMapMethodOptions(context)),
+      context
+    );
+  }
+
+  if (isSandboxSet(member.object)) {
+    return evaluatePrimitiveMemberCall(
+      node,
+      "Set",
+      member.property,
+      getSetMember(member.object, member.property, createSetMethodOptions(context)),
+      context
+    );
+  }
+
+
+  if (isSandboxGenerator(member.object)) {
+    const memberValue = getGeneratorMember(member.object, member.property, context.budget);
+    if (memberValue === undefined) {
+      throw new TypeError(`Generator#${String(member.property)} is not a supported method.`);
+    }
+    return evaluateResolvedCallExpression(node, memberValue, context, member.object);
+  }
+
+  if (isSandboxClosure(member.object)) {
+    const memberValue = getClosureMemberValue(member.object, member.property, context);
+    if (memberValue === undefined) {
+      throw new TypeError(`Function#${String(member.property)} is not a supported method.`);
+    }
+
+    return evaluateResolvedCallExpression(node, memberValue, context, member.object);
   }
 
   if (isSandboxPromise(member.object)) {
     return evaluateResolvedCallExpression(
       node,
       getPromiseMember(member.object, member.property, context.budget),
-      context
+      context,
+      member.object
+    );
+  }
+
+  if (isSandboxRegex(member.object) && isRegexMethodName(member.property)) {
+    return evaluateResolvedCallExpression(
+      node,
+      getRegexMember(member.object, member.property),
+      context,
+      member.object
     );
   }
 
@@ -2009,9 +2352,24 @@ async function evaluateMemberCallExpression(
 
   return evaluateResolvedCallExpression(
     node,
-    getMemberValue(member.object, member.property),
-    context
+    getMemberValue(member.object, member.property, context),
+    context,
+    member.object
   );
+}
+
+function evaluatePrimitiveMemberCall(
+  node: CallExpression,
+  receiverType: "Array" | "Map" | "Number" | "Set" | "String",
+  property: string | number,
+  value: SandboxValue | undefined,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (value === undefined) {
+    throw new TypeError(`${receiverType}#${String(property)} is not a supported method.`);
+  }
+
+  return evaluateResolvedCallExpression(node, value, context);
 }
 
 async function evaluateStringMethodCall(
@@ -2033,7 +2391,21 @@ async function evaluateStringMethodCall(
     return {
       kind: "normal",
       hasValue: true,
-      value: callStringMethod(target, methodName, args.value, context.budget)
+      value: await callStringMethod(
+        target,
+        methodName,
+        args.value,
+        context.budget,
+        async (closure, closureArgs) => {
+          const result = await invokeSandboxClosure(
+            closure,
+            closureArgs,
+            context,
+            context.callStack
+          );
+          return isSandboxPromise(result) ? await result.promise : result;
+        }
+      )
     };
   } catch (error) {
     if (isFatalSandboxError(error)) {
@@ -2076,6 +2448,74 @@ async function evaluateArrayMethodCall(
       throw error;
     }
 
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+  } finally {
+    leaveCall();
+  }
+}
+
+async function evaluateMapMethodCall(
+  node: CallExpression,
+  target: SandboxMap,
+  methodName: MapMethodName,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return args.result;
+  }
+
+  const leaveCall = context.budget.enterCall();
+  try {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: await callMapMethod(
+        target,
+        methodName,
+        args.value,
+        createMapMethodOptions(context),
+        context.callStack
+      )
+    };
+  } catch (error) {
+    if (isFatalSandboxError(error)) {
+      throw error;
+    }
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+  } finally {
+    leaveCall();
+  }
+}
+
+async function evaluateSetMethodCall(
+  node: CallExpression,
+  target: SandboxSet,
+  methodName: SetMethodName,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return args.result;
+  }
+
+  const leaveCall = context.budget.enterCall();
+  try {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: await callSetMethod(
+        target,
+        methodName,
+        args.value,
+        createSetMethodOptions(context),
+        context.callStack
+      )
+    };
+  } catch (error) {
+    if (isFatalSandboxError(error)) {
+      throw error;
+    }
     throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
   } finally {
     leaveCall();
@@ -2168,7 +2608,25 @@ function applyBinaryOperator(
     case ">>>":
       return toNumber(left) >>> toNumber(right);
     case "instanceof":
-      return isSandboxErrorConstructorInstance(left, right);
+      if (isSandboxMapConstructor(right) && isSandboxMap(left)) {
+        return true;
+      }
+      if (isSandboxSetConstructor(right) && isSandboxSet(left)) {
+        return true;
+      }
+      if (isSandboxErrorConstructorInstance(left, right)) {
+        return true;
+      }
+      if (
+        isSandboxClosure(right) &&
+        right.construct !== undefined &&
+        !isSandboxErrorConstructor(right)
+      ) {
+        throw new TypeError(
+          "Constructor prototypes are not supported; check a brand property instead."
+        );
+      }
+      return false;
     case "in":
       throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
   }
@@ -2384,25 +2842,35 @@ function isPlainSandboxObject(value: SandboxValue): value is SandboxObject {
     value !== null &&
     !Array.isArray(value) &&
     !isSandboxClosure(value) &&
-    !isSandboxPromise(value)
+    !isSandboxMap(value) &&
+    !isSandboxSet(value) &&
+    !isSandboxPromise(value) &&
+    !isSandboxRegex(value)
   );
 }
 
 function getMemberValue(
   target: SandboxArray | SandboxObject,
-  property: string | number
+  property: string | number,
+  context: EvaluationContext
 ): SandboxValue {
   if (Array.isArray(target)) {
-    if (typeof property === "number") {
-      return target[property];
-    }
-
-    return (
-      (target as unknown as Record<string, SandboxValue>)[property] ?? target[Number(property)]
-    );
+    return getArrayMemberValue(target, property, context);
   }
 
-  return target[String(property)];
+  return Object.hasOwn(target, String(property)) ? target[String(property)] : undefined;
+}
+
+function getArrayMemberValue(
+  target: SandboxArray,
+  property: string | number,
+  context: EvaluationContext
+): SandboxValue | undefined {
+  if (property === "raw") {
+    return taggedTemplateRawArrays.get(target);
+  }
+
+  return getArrayMember(target, property, createArrayMethodOptions(context));
 }
 
 function setSandboxProperty(
@@ -2425,14 +2893,19 @@ function deleteSandboxProperty(
   delete (target as unknown as Record<string, SandboxValue>)[String(property)];
 }
 
-function getClosureMemberValue(target: SandboxClosure, property: string | number): SandboxValue {
-  return target.properties?.[String(property)];
+function getClosureMemberValue(
+  target: SandboxClosure,
+  property: string | number,
+  context: EvaluationContext
+): SandboxValue | undefined {
+  return getFunctionMember(target, property, createFunctionMethodOptions(context));
 }
 
 async function evaluateResolvedCallExpression(
   node: CallExpression,
   callee: InterpreterValue,
-  context: EvaluationContext
+  context: EvaluationContext,
+  thisValue: SandboxValue = undefined
 ): Promise<EvaluationResult> {
   if (callee === null || callee === undefined) {
     if (node.optional) {
@@ -2463,7 +2936,8 @@ async function evaluateResolvedCallExpression(
       args.value,
       context,
       [...context.callStack, formatStackFrame(node, callee.name)],
-      node.span
+      node.span,
+      thisValue
     )
   };
 }
@@ -2505,12 +2979,34 @@ function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOption
   };
 }
 
+function createMapMethodOptions(context: EvaluationContext): MapMethodOptions {
+  return {
+    budget: context.budget,
+    callClosure: (closure, args, stack) => invokeSandboxClosure(closure, args, context, stack)
+  };
+}
+
+function createSetMethodOptions(context: EvaluationContext): SetMethodOptions {
+  return {
+    budget: context.budget,
+    callClosure: (closure, args, stack) => invokeSandboxClosure(closure, args, context, stack)
+  };
+}
+
+function createFunctionMethodOptions(context: EvaluationContext): FunctionMethodOptions {
+  return {
+    callClosure: (closure, args, stack, thisValue) =>
+      invokeSandboxClosure(closure, args, context, stack, undefined, thisValue)
+  };
+}
+
 async function invokeSandboxClosure(
   callee: Extract<InterpreterValue, { kind: "fn" }>,
   args: readonly SandboxValue[],
   context: EvaluationContext,
   stack: readonly string[],
-  span?: SourceSpan
+  span?: SourceSpan,
+  thisValue: SandboxValue = undefined
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
 
@@ -2519,6 +3015,7 @@ async function invokeSandboxClosure(
       args,
       {
         stack,
+        thisValue,
         ...(span === undefined ? {} : { span })
       }
     ]);
@@ -2592,7 +3089,7 @@ async function evaluateSpreadElement(
 
   const spreadValues: SandboxValue[] = [];
   while (true) {
-    const next = iterator.next();
+    const next = await iterator.next();
     if (typeof next !== "object" || next === null) {
       throw new TypeError("Iterator result must be an object.");
     }
@@ -2666,21 +3163,14 @@ function describeObjectSpreadValue(value: SandboxValue): string {
   return typeof value;
 }
 
-function getSpreadIterator(value: SandboxValue): Iterator<unknown> | undefined {
-  if (typeof value === "string") {
-    return value[Symbol.iterator]();
-  }
+function getSpreadIterator(value: SandboxValue): SandboxIterator | undefined {
+  return getSandboxIterator(value);
+}
 
-  if ((typeof value !== "object" && typeof value !== "function") || value === null) {
-    return undefined;
+async function closeIterator(iterator: SandboxIterator): Promise<void> {
+  if (iterator.generator && iterator.return !== undefined) {
+    await iterator.return();
   }
-
-  const iteratorMethod = (value as { [Symbol.iterator]?: unknown })[Symbol.iterator];
-  if (typeof iteratorMethod !== "function") {
-    return undefined;
-  }
-
-  return Reflect.apply(iteratorMethod, value, []) as Iterator<unknown>;
 }
 
 function defineSandboxProperty(target: SandboxObject, key: string, value: SandboxValue): void {

@@ -17,8 +17,14 @@ const ignoredRoot = defineGroup({
 });
 
 const ignoredOptions: RunCLIOptions<Record<string, never>> = {
-  approvals: false,
+  approvals: true,
   casing: "kebab",
+  controls: {
+    debug: true,
+    output: true,
+    verbose: true,
+    yes: true,
+  },
   humanInLoop: {},
   version: "1.0.0",
 };

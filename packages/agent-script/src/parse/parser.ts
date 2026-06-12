@@ -8,6 +8,7 @@ import {
   type ExportNamedDeclaration
 } from "./parse-export.js";
 import { createImportMeta, isImportMetaTokenSequence } from "./parse-import-meta.js";
+import { parseRegex } from "../interp/regex/parse.js";
 
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 
@@ -32,6 +33,10 @@ type BaseNode = {
 export type Identifier = BaseNode & {
   type: "Identifier";
   name: string;
+};
+
+export type ThisExpression = BaseNode & {
+  type: "ThisExpression";
 };
 
 export type NumericLiteral = BaseNode & {
@@ -177,6 +182,12 @@ export type AwaitExpression = BaseNode & {
   argument: Expression;
 };
 
+export type YieldExpression = BaseNode & {
+  type: "YieldExpression";
+  argument?: Expression;
+  delegate: boolean;
+};
+
 export type BinaryOperator =
   | "!="
   | "!=="
@@ -275,13 +286,19 @@ export type CallExpression = BaseNode & {
   optional: boolean;
 };
 
+export type NewExpression = BaseNode & {
+  type: "NewExpression";
+  arguments: Array<Expression | SpreadElement>;
+  callee: Expression;
+};
+
 export type VariableDeclarator = BaseNode & {
   type: "VariableDeclarator";
   id: ArrayPattern | Identifier | ObjectPattern;
   init?: Expression;
 };
 
-export type VariableDeclarationKind = "const" | "let";
+export type VariableDeclarationKind = "const" | "let" | "var";
 
 export type VariableDeclaration = BaseNode & {
   type: "VariableDeclaration";
@@ -318,6 +335,25 @@ export type BlockStatement = BaseNode & {
   body: Statement[];
 };
 
+export type FunctionDeclaration = BaseNode & {
+  type: "FunctionDeclaration";
+  async: boolean;
+  body: BlockStatement;
+  generator: boolean;
+  id: Identifier;
+  params: ArrowFunctionExpression["params"];
+};
+
+export type FunctionExpression = BaseNode & {
+  type: "FunctionExpression";
+  async: boolean;
+  body: BlockStatement;
+  generator: boolean;
+  id?: Identifier;
+  method?: true;
+  params: ArrowFunctionExpression["params"];
+};
+
 export type IfStatement = BaseNode & {
   type: "IfStatement";
   test: Expression;
@@ -338,6 +374,15 @@ export type ForStatement = BaseNode & {
 export type ForOfStatement = BaseNode & {
   type: "ForOfStatement";
   left: PatternTarget | VariableDeclaration;
+  right: Expression;
+  body: Statement;
+  label?: string;
+  labels?: string[];
+};
+
+export type ForInStatement = BaseNode & {
+  type: "ForInStatement";
+  left: Identifier | VariableDeclaration;
   right: Expression;
   body: Statement;
   label?: string;
@@ -378,6 +423,18 @@ export type TryStatement = BaseNode & {
   finalizer?: BlockStatement;
 };
 
+export type SwitchCase = BaseNode & {
+  type: "SwitchCase";
+  test?: Expression;
+  consequent: Statement[];
+};
+
+export type SwitchStatement = BaseNode & {
+  type: "SwitchStatement";
+  discriminant: Expression;
+  cases: SwitchCase[];
+};
+
 export type ImportSpecifier = BaseNode & {
   type: "ImportSpecifier";
   imported: Identifier;
@@ -416,10 +473,13 @@ export type Statement =
   | ContinueStatement
   | EmptyStatement
   | ExpressionStatement
+  | FunctionDeclaration
+  | ForInStatement
   | ForOfStatement
   | ForStatement
   | IfStatement
   | ReturnStatement
+  | SwitchStatement
   | ThrowStatement
   | VariableDeclaration
   | WhileStatement;
@@ -441,10 +501,12 @@ export type Expression =
   | BooleanLiteral
   | CallExpression
   | ConditionalExpression
+  | FunctionExpression
   | Identifier
   | LogicalExpression
   | MemberExpression
   | MetaProperty
+  | NewExpression
   | NullLiteral
   | NumericLiteral
   | ObjectExpression
@@ -453,9 +515,11 @@ export type Expression =
   | StringLiteral
   | TaggedTemplateExpression
   | TemplateLiteral
+  | ThisExpression
   | UnaryExpression
   | UpdateExpression
-  | UndefinedLiteral;
+  | UndefinedLiteral
+  | YieldExpression;
 
 export type ParseResult = Expression | Statement;
 
@@ -482,6 +546,7 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "continue",
   "do",
   "for",
+  "function",
   "if",
   "import",
   "let",
@@ -557,7 +622,9 @@ function parseExpressionTokens(tokens: Token[]): Expression {
 
 class Parser {
   private index = 0;
+  private breakableDepth = 0;
   private loopDepth = 0;
+  private generatorBody = false;
   private readonly scopes: Array<Map<string, Position>> = [new Map()];
 
   constructor(private readonly tokens: Token[]) {}
@@ -771,10 +838,10 @@ class Parser {
 
   private parseArrowFunctionBody(): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.withFunctionContext(() => this.parseBlockStatement());
+      return this.withFunctionContext(false, () => this.parseBlockStatement());
     }
 
-    return this.parseExpression().node;
+    return this.withFunctionContext(false, () => this.parseExpression().node);
   }
 
   private parseBlockStatement(): BlockStatement {
@@ -833,6 +900,17 @@ class Parser {
       return this.parseIfStatement();
     }
 
+    if (token.type === "identifier" && token.value === "switch") {
+      return this.parseSwitchStatement();
+    }
+
+    if (
+      (token.type === "keyword" && token.value === "function") ||
+      this.isAsyncFunctionDeclarationStart()
+    ) {
+      return this.parseFunctionDeclaration();
+    }
+
     if (token.type === "keyword" && token.value === "for") {
       return this.parseForStatement();
     }
@@ -889,14 +967,17 @@ class Parser {
       };
     }
 
-    if (token.type === "keyword" && (token.value === "const" || token.value === "let")) {
+    if (
+      (token.type === "keyword" && (token.value === "const" || token.value === "let")) ||
+      (token.type === "identifier" && token.value === "var")
+    ) {
       return this.parseVariableDeclaration();
     }
 
     if (token.type === "keyword" && token.value === "break") {
-      if (this.loopDepth === 0) {
+      if (this.breakableDepth === 0) {
         throw new Error(
-          `Illegal break statement outside a loop at line ${token.start.line}, column ${token.start.column}.`
+          `Illegal break statement outside a loop or switch at line ${token.start.line}, column ${token.start.column}.`
         );
       }
       this.index += 1;
@@ -997,17 +1078,104 @@ class Parser {
     };
   }
 
-  private parseForStatement(labels?: string[]): ForOfStatement | ForStatement {
+  private parseSwitchStatement(): SwitchStatement {
+    const switchToken = this.currentToken();
+    this.index += 1;
+    this.expectPunctuator("(");
+    const discriminant = this.parseExpression({ allowSequence: true }).node;
+    this.expectPunctuator(")");
+    const openBrace = this.expectPunctuator("{");
+
+    return this.withScope(() =>
+      this.withBreakableContext(() => {
+        const cases: SwitchCase[] = [];
+        let hasDefault = false;
+
+        while (this.consumePunctuator("}") === undefined) {
+          if (this.currentToken().type === "eof") {
+            throw new Error(
+              `Unterminated switch statement at line ${openBrace.start.line}, column ${openBrace.start.column}.`
+            );
+          }
+
+          const clauseToken = this.currentToken();
+          let test: Expression | undefined;
+          if (clauseToken.type === "identifier" && clauseToken.value === "case") {
+            this.index += 1;
+            test = this.parseExpression({ allowSequence: true }).node;
+          } else if (clauseToken.type === "identifier" && clauseToken.value === "default") {
+            if (hasDefault) {
+              throw new Error(
+                `Duplicate default clause at line ${clauseToken.start.line}, column ${clauseToken.start.column}.`
+              );
+            }
+            hasDefault = true;
+            this.index += 1;
+          } else {
+            throw unexpectedTokenError(clauseToken);
+          }
+
+          const colon = this.expectPunctuator(":");
+          const consequent: Statement[] = [];
+          while (!this.isSwitchClauseStart() && !this.isCurrentPunctuator("}")) {
+            const statement = this.parseStatement();
+            consequent.push(statement);
+            while (
+              statement.type !== "EmptyStatement" &&
+              this.consumePunctuator(";") !== undefined
+            ) {
+              continue;
+            }
+          }
+
+          cases.push({
+            type: "SwitchCase",
+            test,
+            consequent,
+            span: createSpan(clauseToken.start, consequent.at(-1)?.span.end ?? colon.end)
+          });
+        }
+
+        return {
+          type: "SwitchStatement",
+          discriminant,
+          cases,
+          span: createSpan(switchToken.start, this.previousToken().end)
+        };
+      })
+    );
+  }
+
+  private isSwitchClauseStart(): boolean {
+    const token = this.currentToken();
+    return token.type === "identifier" && (token.value === "case" || token.value === "default");
+  }
+
+  private isCurrentPunctuator(value: string): boolean {
+    const token = this.currentToken();
+    return token.type === "punctuator" && token.value === value;
+  }
+
+  private parseForStatement(labels?: string[]): ForInStatement | ForOfStatement | ForStatement {
     const forToken = this.expectKeyword("for");
     return this.withScope(() => {
       this.expectPunctuator("(");
-      if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
-        throw new DisallowedSyntaxError("var", this.currentToken().start);
-      }
       const iterationOperator = this.findTopLevelForIterationOperator(this.index);
 
       if (iterationOperator?.value === "in") {
-        throw new DisallowedSyntaxError("for...in", iterationOperator.start);
+        const left = this.parseForInLeft();
+        this.expectKeyword("in");
+        const right = this.parseExpression().node;
+        this.expectPunctuator(")");
+        const body = this.withLoopContext(() => this.parseStatement());
+        return {
+          type: "ForInStatement",
+          left,
+          right,
+          body,
+          ...createLoopLabelFields(labels),
+          span: createSpan(forToken.start, body.span.end)
+        };
       }
 
       if (iterationOperator?.value === "of") {
@@ -1029,8 +1197,10 @@ class Parser {
       let init: Expression | VariableDeclaration | undefined;
       if (this.consumePunctuator(";") === undefined) {
         init =
-          this.currentToken().type === "keyword" &&
-          (this.currentToken().value === "const" || this.currentToken().value === "let")
+          (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
+          (this.currentToken().value === "const" ||
+            this.currentToken().value === "let" ||
+            this.currentToken().value === "var")
             ? this.parseVariableDeclaration()
             : this.parseExpression({ allowSequence: true }).node;
         this.expectPunctuator(";");
@@ -1061,10 +1231,21 @@ class Parser {
     });
   }
 
+  private parseForInLeft(): Identifier | VariableDeclaration {
+    const left = this.parseForOfLeft();
+    const target = left.type === "VariableDeclaration" ? left.declarations[0]?.id : left;
+    if (target?.type !== "Identifier") {
+      throw new Error("for...in keys are strings; destructure inside the body");
+    }
+    return left as Identifier | VariableDeclaration;
+  }
+
   private parseForOfLeft(): PatternTarget | VariableDeclaration {
     if (
-      this.currentToken().type === "keyword" &&
-      (this.currentToken().value === "const" || this.currentToken().value === "let")
+      (this.currentToken().type === "keyword" || this.currentToken().type === "identifier") &&
+      (this.currentToken().value === "const" ||
+        this.currentToken().value === "let" ||
+        this.currentToken().value === "var")
     ) {
       return this.parseForOfDeclaration();
     }
@@ -1075,8 +1256,8 @@ class Parser {
   private parseForOfDeclaration(): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
-      kindToken.type !== "keyword" ||
-      (kindToken.value !== "const" && kindToken.value !== "let")
+      (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
+      (kindToken.value !== "const" && kindToken.value !== "let" && kindToken.value !== "var")
     ) {
       throw unexpectedTokenError(kindToken);
     }
@@ -1321,8 +1502,8 @@ class Parser {
   private parseVariableDeclaration(): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
-      kindToken.type !== "keyword" ||
-      (kindToken.value !== "const" && kindToken.value !== "let")
+      (kindToken.type !== "keyword" && kindToken.type !== "identifier") ||
+      (kindToken.value !== "const" && kindToken.value !== "let" && kindToken.value !== "var")
     ) {
       throw unexpectedTokenError(kindToken);
     }
@@ -1332,7 +1513,9 @@ class Parser {
 
     while (true) {
       const declarator = this.parseVariableDeclarator(kindToken.value);
-      this.declarePatternBindings(declarator.id);
+      if (kindToken.value !== "var") {
+        this.declarePatternBindings(declarator.id);
+      }
       declarations.push(declarator);
       const comma = this.consumePunctuator(",");
       if (comma === undefined) {
@@ -1345,6 +1528,40 @@ class Parser {
       declarations,
       kind: kindToken.value,
       span: createSpan(kindToken.start, declarations[declarations.length - 1]!.span.end)
+    };
+  }
+
+  private parseFunctionDeclaration(): FunctionDeclaration {
+    const asyncToken = this.consumeKeyword("async");
+    const functionToken = this.expectKeyword("function");
+    const generatorToken = this.consumePunctuator("*");
+    if (asyncToken !== undefined && generatorToken !== undefined) {
+      throw new Error(
+        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
+      );
+    }
+    const id = this.parseBindingIdentifier();
+    this.declareBinding(id);
+    const params = this.withScope(() => {
+      const parsedParams = this.parseArrowParameters();
+      for (const param of parsedParams) {
+        for (const identifier of collectBindingIdentifiers(param)) {
+          this.declareBinding(identifier);
+        }
+      }
+      return parsedParams;
+    });
+    const generator = generatorToken !== undefined;
+    const body = this.withFunctionContext(generator, () => this.parseBlockStatement());
+
+    return {
+      type: "FunctionDeclaration",
+      async: asyncToken !== undefined,
+      body,
+      generator,
+      id,
+      params,
+      span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
     };
   }
 
@@ -2065,7 +2282,49 @@ class Parser {
       };
     }
 
+    if (token.type === "keyword" && token.value === "yield") {
+      if (!this.generatorBody) {
+        throw new Error(
+          `yield is only valid inside a generator body at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+
+      this.index += 1;
+      if (
+        hasLineBreakBetween(token, this.currentToken()) &&
+        this.currentToken().type === "punctuator" &&
+        this.currentToken().value === "*"
+      ) {
+        throw unexpectedTokenError(this.currentToken());
+      }
+      const delegate = this.consumePunctuator("*") !== undefined;
+      const next = this.currentToken();
+      const hasArgument =
+        delegate ||
+        (!hasLineBreakBetween(token, next) &&
+          !(next.type === "punctuator" && (next.value === ";" || next.value === "}")) &&
+          next.type !== "eof");
+      const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
+      if (delegate && argument === undefined) {
+        throw unexpectedTokenError(next);
+      }
+      return {
+        node: {
+          type: "YieldExpression",
+          argument,
+          delegate,
+          span: createSpan(token.start, argument?.span.end ?? token.end)
+        },
+        parenthesized: false
+      };
+    }
+
     if (token.type === "keyword" && token.value === "await") {
+      if (this.generatorBody) {
+        throw new Error(
+          `generators cannot await; use a regular async function at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
       this.index += 1;
       const argument = this.parseUnaryExpression();
       return {
@@ -2248,8 +2507,29 @@ class Parser {
   private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
 
+    if (token.type === "keyword" && token.value === "this") {
+      this.index += 1;
+      return {
+        node: {
+          type: "ThisExpression",
+          span: createTokenSpan(token)
+        },
+        parenthesized: false
+      };
+    }
+
+    if (
+      (token.type === "keyword" && token.value === "function") ||
+      this.isAsyncFunctionDeclarationStart()
+    ) {
+      return {
+        node: this.parseFunctionExpression(),
+        parenthesized: false
+      };
+    }
+
     if (isNewToken(token)) {
-      return this.parseAllowedNewExpression();
+      return this.parseNewExpression();
     }
 
     if (isIdentifierLikeToken(token)) {
@@ -2336,30 +2616,99 @@ class Parser {
     throw unexpectedTokenError(token);
   }
 
-  private parseAllowedNewExpression(): ParsedExpression {
+  private parseNewExpression(): ParsedExpression {
     const newToken = this.currentToken();
     this.index += 1;
 
-    const calleeToken = this.currentToken();
-    if (!isAllowedNewCalleeToken(calleeToken)) {
+    if (this.consumePunctuator(".") !== undefined) {
       throw new DisallowedSyntaxError(newToken.value, newToken.start);
     }
 
-    this.index += 1;
-    const callee = createIdentifier(calleeToken);
+    let callee = this.parsePrimaryExpression();
+    while (true) {
+      if (this.consumePunctuator(".") !== undefined) {
+        const property = this.parseIdentifierName();
+        callee = {
+          node: {
+            type: "MemberExpression",
+            computed: false,
+            object: callee.node,
+            optional: false,
+            property,
+            span: createSpan(callee.node.span.start, property.span.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
+      if (this.consumePunctuator("[") !== undefined) {
+        const property = this.parseExpression({ allowSequence: true });
+        const end = this.expectPunctuator("]");
+        callee = {
+          node: {
+            type: "MemberExpression",
+            computed: true,
+            object: callee.node,
+            optional: false,
+            property: property.node,
+            span: createSpan(callee.node.span.start, end.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
+      break;
+    }
+
     this.expectPunctuator("(");
     const args = this.parseArguments();
     const end = this.previousToken();
 
     return {
       node: {
-        type: "CallExpression",
+        type: "NewExpression",
         arguments: args,
-        callee,
-        optional: false,
+        callee: callee.node,
         span: createSpan(newToken.start, end.end)
       },
       parenthesized: false
+    };
+  }
+
+  private parseFunctionExpression(): FunctionExpression {
+    const asyncToken = this.consumeKeyword("async");
+    const functionToken = this.expectKeyword("function");
+    const generatorToken = this.consumePunctuator("*");
+    if (asyncToken !== undefined && generatorToken !== undefined) {
+      throw new Error(
+        `async function* is not supported at line ${asyncToken.start.line}, column ${asyncToken.start.column}.`
+      );
+    }
+    const id = isIdentifierLikeToken(this.currentToken())
+      ? this.parseBindingIdentifier()
+      : undefined;
+    const params = this.withScope(() => {
+      const parsedParams = this.parseArrowParameters();
+      for (const param of parsedParams) {
+        for (const identifier of collectBindingIdentifiers(param)) {
+          this.declareBinding(identifier);
+        }
+      }
+      return parsedParams;
+    });
+    const generator = generatorToken !== undefined;
+    const body = this.withFunctionContext(generator, () => this.parseBlockStatement());
+
+    return {
+      type: "FunctionExpression",
+      async: asyncToken !== undefined,
+      body,
+      generator,
+      id,
+      params,
+      span: createSpan(asyncToken?.start ?? functionToken.start, body.span.end)
     };
   }
 
@@ -2456,10 +2805,48 @@ class Parser {
   }
 
   private parseObjectProperty(): Property {
+    const generatorToken =
+      this.currentToken().type === "punctuator" && this.currentToken().value === "*"
+        ? this.currentToken()
+        : this.currentToken().type === "keyword" &&
+            this.currentToken().value === "async" &&
+            this.peekToken(1).type === "punctuator" &&
+            this.peekToken(1).value === "*"
+          ? this.peekToken(1)
+          : undefined;
+    if (generatorToken !== undefined) {
+      throw new Error(
+        `Generator shorthand methods are not supported at line ${generatorToken.start.line}, column ${generatorToken.start.column}.`
+      );
+    }
+
+    if (
+      this.currentToken().type === "identifier" &&
+      (this.currentToken().value === "get" || this.currentToken().value === "set") &&
+      this.isObjectAccessorShorthandStart()
+    ) {
+      const token = this.currentToken();
+      const syntax = token.value === "get" ? "Getter" : "Setter";
+      throw new Error(
+        `${syntax} shorthand methods are not supported at line ${token.start.line}, column ${token.start.column}.`
+      );
+    }
+
     if (this.consumePunctuator("[") !== undefined) {
       const propertyStart = this.previousToken();
       const key = this.parseExpression();
       this.expectPunctuator("]");
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
+        const value = this.parseObjectMethod(undefined, propertyStart.start);
+        return {
+          type: "Property",
+          computed: true,
+          shorthand: false,
+          key: key.node,
+          value,
+          span: createSpan(propertyStart.start, value.span.end)
+        };
+      }
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -2472,10 +2859,34 @@ class Parser {
       };
     }
 
+    const asyncToken =
+      this.currentToken().type === "keyword" &&
+      this.currentToken().value === "async" &&
+      isIdentifierLikeToken(this.peekToken(1)) &&
+      this.peekToken(2).type === "punctuator" &&
+      this.peekToken(2).value === "(" &&
+      !hasLineBreakBetween(this.currentToken(), this.peekToken(1))
+        ? this.currentToken()
+        : undefined;
+    if (asyncToken !== undefined) {
+      this.index += 1;
+    }
+
     const token = this.currentToken();
-    if (token.type === "identifier") {
+    if (isIdentifierLikeToken(token)) {
       this.index += 1;
       const key = createIdentifier(token);
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
+        const value = this.parseObjectMethod(asyncToken, key.span.start);
+        return {
+          type: "Property",
+          computed: false,
+          shorthand: false,
+          key,
+          value,
+          span: createSpan(asyncToken?.start ?? key.span.start, value.span.end)
+        };
+      }
       if (this.consumePunctuator(":") === undefined) {
         assertAllowedIdentifierReference(token);
         return {
@@ -2501,6 +2912,17 @@ class Parser {
     if (isLiteralPropertyKey(token)) {
       this.index += 1;
       const key = createLiteralFromToken(token);
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "(") {
+        const value = this.parseObjectMethod(undefined, key.span.start);
+        return {
+          type: "Property",
+          computed: false,
+          shorthand: false,
+          key,
+          value,
+          span: createSpan(key.span.start, value.span.end)
+        };
+      }
       this.expectPunctuator(":");
       const value = this.parseExpression();
       return {
@@ -2514,6 +2936,64 @@ class Parser {
     }
 
     throw unexpectedTokenError(token);
+  }
+
+  private isObjectAccessorShorthandStart(): boolean {
+    const propertyToken = this.peekToken(1);
+    if (propertyToken.type === "punctuator" && propertyToken.value === "[") {
+      let depth = 0;
+      let offset = 1;
+      while (true) {
+        const token = this.peekToken(offset);
+        if (token.type === "eof") {
+          return false;
+        }
+        if (token.type === "punctuator" && token.value === "[") {
+          depth += 1;
+        } else if (token.type === "punctuator" && token.value === "]") {
+          depth -= 1;
+          if (depth === 0) {
+            const next = this.peekToken(offset + 1);
+            return next.type === "punctuator" && next.value === "(";
+          }
+        }
+        offset += 1;
+      }
+    }
+    return (
+      (isIdentifierLikeToken(propertyToken) ||
+        propertyToken.type === "numeric" ||
+        propertyToken.type === "string") &&
+      this.peekToken(2).type === "punctuator" &&
+      this.peekToken(2).value === "("
+    );
+  }
+
+  private parseObjectMethod(
+    asyncToken: Token | undefined,
+    methodStart: Position
+  ): FunctionExpression {
+    const params = this.withScope(() => {
+      const parsedParams = this.parseArrowParameters();
+      for (const param of parsedParams) {
+        for (const identifier of collectBindingIdentifiers(param)) {
+          this.declareBinding(identifier);
+        }
+      }
+      return parsedParams;
+    });
+    const body = this.withFunctionContext(false, () => this.parseBlockStatement());
+
+    return {
+      type: "FunctionExpression",
+      async: asyncToken !== undefined,
+      body,
+      generator: false,
+      id: undefined,
+      method: true,
+      params,
+      span: createSpan(asyncToken?.start ?? methodStart, body.span.end)
+    };
   }
 
   private parseIdentifierName(): Identifier {
@@ -2980,6 +3460,9 @@ class Parser {
 
   private shouldParseTopLevelStatement(): boolean {
     const token = this.currentToken();
+    if (this.isAsyncFunctionDeclarationStart()) {
+      return true;
+    }
     if (token.type === "keyword" && TOP_LEVEL_STATEMENT_KEYWORDS.has(token.value)) {
       if (token.value === "import" && this.isImportMetaStart()) {
         return false;
@@ -2995,17 +3478,21 @@ class Parser {
     );
   }
 
+  private isAsyncFunctionDeclarationStart(): boolean {
+    const token = this.currentToken();
+    const next = this.peekToken(1);
+    return (
+      token.type === "keyword" &&
+      token.value === "async" &&
+      next.type === "keyword" &&
+      next.value === "function" &&
+      !hasLineBreakBetween(token, next)
+    );
+  }
+
   private assertAllowedStatementStart(token: Token): void {
     if (this.isExportToken(token)) {
       throw new DisallowedSyntaxError("export", token.start);
-    }
-
-    if (token.type === "identifier" && token.value === "switch") {
-      throw new DisallowedSyntaxError("switch", token.start);
-    }
-
-    if (token.type === "identifier" && token.value === "var") {
-      throw new DisallowedSyntaxError("var", token.start);
     }
 
     if (
@@ -3038,22 +3525,39 @@ class Parser {
     );
   }
 
-  private withFunctionContext<T>(callback: () => T): T {
+  private withFunctionContext<T>(generatorBody: boolean, callback: () => T): T {
+    const previousBreakableDepth = this.breakableDepth;
     const previousLoopDepth = this.loopDepth;
+    const previousGeneratorBody = this.generatorBody;
+    this.breakableDepth = 0;
     this.loopDepth = 0;
+    this.generatorBody = generatorBody;
     try {
       return callback();
     } finally {
+      this.breakableDepth = previousBreakableDepth;
       this.loopDepth = previousLoopDepth;
+      this.generatorBody = previousGeneratorBody;
     }
   }
 
   private withLoopContext<T>(callback: () => T): T {
+    this.breakableDepth += 1;
     this.loopDepth += 1;
     try {
       return callback();
     } finally {
+      this.breakableDepth -= 1;
       this.loopDepth -= 1;
+    }
+  }
+
+  private withBreakableContext<T>(callback: () => T): T {
+    this.breakableDepth += 1;
+    try {
+      return callback();
+    } finally {
+      this.breakableDepth -= 1;
     }
   }
 
@@ -3322,6 +3826,10 @@ function findImportMetaAssignmentInNode(
         : findImportMetaAssignmentInNode(node.body);
     case "AwaitExpression":
       return findImportMetaAssignmentInNode(node.argument);
+    case "YieldExpression":
+      return node.argument === undefined
+        ? undefined
+        : findImportMetaAssignmentInNode(node.argument);
     case "ArrayExpression":
       return findImportMetaAssignmentInList(node.elements);
     case "ObjectExpression":
@@ -3380,6 +3888,7 @@ function findImportMetaAssignmentInNode(
     case "NullLiteral":
     case "NumericLiteral":
     case "StringLiteral":
+    case "ThisExpression":
     case "RegexLiteral":
     case "MetaProperty":
     case "UndefinedLiteral":
@@ -3494,6 +4003,8 @@ function createStringLiteral(token: Token): StringLiteral {
 }
 
 function createRegexLiteral(token: Token): RegexLiteral {
+  const lastSlash = token.value.lastIndexOf("/");
+  parseRegex(token.value.slice(1, lastSlash), token.value.slice(lastSlash + 1));
   return {
     type: "RegexLiteral",
     raw: token.value,
@@ -4058,18 +4569,6 @@ function isIdentifierLikeToken(token: Token): boolean {
 
 function isNewToken(token: Token): boolean {
   return token.value === "new";
-}
-
-function isAllowedNewCalleeToken(token: Token): boolean {
-  return (
-    token.type === "identifier" &&
-    (token.value === "Error" ||
-      token.value === "TypeError" ||
-      token.value === "RangeError" ||
-      token.value === "ReferenceError" ||
-      token.value === "SyntaxError" ||
-      token.value === "AggregateError")
-  );
 }
 
 function createTokenSpan(token: Token): SourceSpan {

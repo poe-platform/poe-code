@@ -7,7 +7,7 @@ interface JsonMcpServer {
   timeout?: number;
 }
 
-function toJsonMcpServers(servers: McpSpawnConfig): Record<string, JsonMcpServer> {
+export function toJsonMcpServers(servers: McpSpawnConfig): Record<string, JsonMcpServer> {
   const out: Record<string, JsonMcpServer> = Object.create(null);
 
   for (const [name, server] of Object.entries(servers)) {

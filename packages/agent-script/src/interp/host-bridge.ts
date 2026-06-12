@@ -5,7 +5,9 @@ import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import {
   createSandboxClosure,
+  createSandboxMap,
   createSandboxPromise,
+  createSandboxSet,
   deepCopyFromSandbox,
   deepCopyToSandbox,
   isSandboxClosure,
@@ -141,7 +143,8 @@ function wrapSandboxClosureForHost(
       let result: ReturnType<SandboxClosure["call"]>;
       try {
         result = closure.call(sandboxArgs, {
-          stack: stackFrames
+          stack: stackFrames,
+          thisValue: undefined
         });
       } catch (error) {
         if (isSandboxLikeValue(error)) {
@@ -364,6 +367,39 @@ function copyHostValueToSandbox(
       copy[index] = copyHostValueToSandbox(entry, stackFrames, options, state, `${path}[${index}]`);
     });
 
+    return copy;
+  }
+
+  if (value instanceof Map) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = createSandboxMap();
+    state.seen.set(value, copy);
+    budget.allocateCollectionEntries(value.size);
+    for (const [key, entry] of value) {
+      copy.entries.set(
+        copyHostValueToSandbox(key, stackFrames, options, state, `${path}.<key>`),
+        copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`)
+      );
+    }
+    return copy;
+  }
+
+  if (value instanceof Set) {
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const copy = createSandboxSet();
+    state.seen.set(value, copy);
+    budget.allocateCollectionEntries(value.size);
+    for (const entry of value) {
+      copy.values.add(copyHostValueToSandbox(entry, stackFrames, options, state, `${path}.<value>`));
+    }
     return copy;
   }
 

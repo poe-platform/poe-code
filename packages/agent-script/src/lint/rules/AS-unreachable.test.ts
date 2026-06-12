@@ -95,4 +95,17 @@ describe("AS_UNREACHABLE", () => {
       }
     });
   });
+
+  it("understands switch fallthrough and terminal cases", () => {
+    expect(
+      codes(
+        "switch (value) { case 1: first(); case 2: second(); break; unreachable(); default: fallback(); }"
+      )
+    ).toEqual(["AS-UNREACHABLE"]);
+  });
+
+  it("allows a case to flow into the next case", () => {
+    expect(codes("switch (value) { case 1: first(); case 2: second(); break; default: fallback(); }"))
+      .toEqual([]);
+  });
 });

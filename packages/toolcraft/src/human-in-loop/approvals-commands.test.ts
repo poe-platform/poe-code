@@ -307,6 +307,7 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "approvals", "run", "--approval-id", approvalId];
     await runCLI(root, {
+      approvals: true,
       humanInLoop: {
         taskList,
         provider
@@ -323,6 +324,7 @@ describe("approvals built-in commands", () => {
         children: []
       }),
       {
+        approvals: true,
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
@@ -359,6 +361,7 @@ describe("approvals built-in commands", () => {
         children: []
       }),
       {
+        approvals: true,
         humanInLoop: {
           taskList
         }
@@ -372,7 +375,7 @@ describe("approvals built-in commands", () => {
     expect("run" in (sdk.approvals as Record<string, unknown>)).toBe(false);
   });
 
-  it("omits approval-management commands across CLI, MCP, and SDK when approvals is false", async () => {
+  it("omits approval-management commands across CLI, MCP, and SDK by default", async () => {
     const root = defineGroup({
       name: "toolcraft",
       children: [
@@ -386,11 +389,10 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
     const write = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    await runCLI(root, { approvals: false });
+    await runCLI(root);
     expect(write.mock.calls.flat().join("")).not.toContain("approvals");
 
     const mcpServer = createMCPServer(root, {
-      approvals: false,
       name: "toolcraft-test",
       version: "1.0.0"
     });
@@ -413,7 +415,7 @@ describe("approvals built-in commands", () => {
       await cleanup();
     }
 
-    const sdk = createSDK(root, { approvals: false }) as Record<string, unknown>;
+    const sdk = createSDK(root) as Record<string, unknown>;
     expect(sdk).not.toHaveProperty("approvals");
     expect(sdk).toHaveProperty("deploy");
   });
@@ -526,22 +528,24 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
 
-    await expect(runCLI(rootFactory())).rejects.toThrowError(
+    await expect(runCLI(rootFactory(), { approvals: true })).rejects.toThrowError(
       "'approvals' is reserved for human-in-loop built-ins"
     );
     expect(() =>
       createMCPServer(rootFactory(), {
+        approvals: true,
         name: "toolcraft-test",
         version: "1.0.0"
       })
     ).toThrowError("'approvals' is reserved for human-in-loop built-ins");
     await expect(
       runMCP(rootFactory(), {
+        approvals: true,
         name: "toolcraft-test",
         version: "1.0.0"
       })
     ).rejects.toThrowError("'approvals' is reserved for human-in-loop built-ins");
-    expect(() => createSDK(rootFactory())).toThrowError(
+    expect(() => createSDK(rootFactory(), { approvals: true })).toThrowError(
       "'approvals' is reserved for human-in-loop built-ins"
     );
   });

@@ -15,6 +15,7 @@ import {
   type DoWhileStatement,
   type Expression,
   type ExpressionStatement,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -49,7 +50,7 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-type BindingKind = "const" | "import" | "let" | "param";
+type BindingKind = "const" | "import" | "let" | "param" | "var";
 
 type Binding = {
   kind: BindingKind;
@@ -104,6 +105,7 @@ class AS002Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -159,7 +161,8 @@ class AS002Scanner {
   }
 
   private visitForStatement(node: ForStatement): void {
-    const bindings = node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
+    const bindings =
+      node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
     this.withScope(bindings, () => {
       if (node.init !== undefined) {
         if (node.init.type === "VariableDeclaration") {
@@ -178,8 +181,9 @@ class AS002Scanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
-    const bindings = node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
+    const bindings =
+      node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
     this.withScope(bindings, () => {
       if (node.left.type === "VariableDeclaration") {
         this.visitVariableDeclaration(node.left);
@@ -390,7 +394,13 @@ class AS002Scanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
@@ -406,7 +416,9 @@ class AS002Scanner {
     }
   }
 
-  private visitBindingPattern(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitBindingPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         return;
@@ -439,7 +451,9 @@ class AS002Scanner {
     this.visitBindingElement(node.value);
   }
 
-  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
@@ -484,7 +498,11 @@ class AS002Scanner {
     }
 
     const binding = this.resolveBinding(node.name);
-    if (binding === undefined || binding.kind !== "let" || binding.ownerLambdaDepth >= currentLambda.depth) {
+    if (
+      binding === undefined ||
+      binding.kind !== "let" ||
+      binding.ownerLambdaDepth >= currentLambda.depth
+    ) {
       return;
     }
 
@@ -586,7 +604,13 @@ class AS002Scanner {
   }
 
   private collectBindingNamesFromElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     kind: BindingKind,
     bindings: Binding[]
   ): void {

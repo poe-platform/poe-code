@@ -10,6 +10,7 @@ vi.mock("node:fs/promises", async () => {
 
 const { FileSnapshotBackend } = await import("./backend.js");
 const { createSnapshotScheduler } = await import("./scheduler.js");
+const { UnsnapshotableValueError } = await import("./serialize.js");
 type SnapshotBackend = Awaited<typeof import("./backend.js")>["SnapshotBackend"];
 
 describe("snapshot scheduler", () => {
@@ -90,6 +91,43 @@ describe("snapshot scheduler", () => {
       version: 1,
       step: "checkpointed"
     });
+  });
+
+  it("skips an unsnapshotable periodic dump and retries at the next interval", async () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const writes: string[] = [];
+    let attempts = 0;
+    const scheduler = createSnapshotScheduler<{ sourceHash: string }>({
+      snapshotIntervalMs: 1_000,
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async write(snapshot) {
+          attempts += 1;
+          if (attempts === 1) {
+            throw new UnsnapshotableValueError("bindings.generator");
+          }
+          writes.push(snapshot.sourceHash);
+        },
+        async remove() {}
+      }
+    });
+
+    vi.advanceTimersByTime(1_000);
+    scheduler.onYield(() => ({ sourceHash: "skipped" }));
+    await scheduler.finish();
+
+    expect(warning).toHaveBeenCalledWith(
+      "Skipping periodic snapshot: Cannot snapshot a generator suspended mid-iteration; drain or discard it before the await boundary. (at bindings.generator)"
+    );
+    expect(writes).toEqual([]);
+
+    vi.advanceTimersByTime(1_000);
+    scheduler.onYield(() => ({ sourceHash: "recovered" }));
+    await scheduler.finish();
+
+    expect(writes).toEqual(["recovered"]);
   });
 
   it("waits for an in-flight atomic write before starting the next scheduled write", async () => {

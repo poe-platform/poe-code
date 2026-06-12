@@ -7,6 +7,7 @@ export const FRONTIER_MODELS = [
 ] as const;
 
 export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-opus-4.7";
+export const DEFAULT_CURSOR_MODEL = DEFAULT_FRONTIER_MODEL;
 
 export const DEFAULT_TEXT_MODEL = "anthropic/claude-sonnet-4.6";
 export const DEFAULT_IMAGE_BOT = "google/nano-banana-pro";

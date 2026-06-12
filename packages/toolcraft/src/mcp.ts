@@ -905,7 +905,7 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
   const normalizedRoot = normalizeRoots(roots);
-  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
+  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
 
   if (!hasMcpProxyGroups(root)) {
     return createResolvedMCPServer(root, options);
@@ -920,7 +920,7 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   enableSourceMaps();
   const normalizedRoot = normalizeRoots(roots);
-  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
+  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const server = createResolvedMCPServer(root, options);
   await server.listen();

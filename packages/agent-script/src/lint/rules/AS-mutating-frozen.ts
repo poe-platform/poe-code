@@ -13,6 +13,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -103,6 +104,7 @@ class ASMutatingFrozenScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -176,7 +178,7 @@ class ASMutatingFrozenScanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     const bindings =
       node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
 

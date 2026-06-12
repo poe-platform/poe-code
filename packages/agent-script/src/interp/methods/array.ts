@@ -2,7 +2,9 @@ import { Budget } from "../budget.js";
 import {
   createSandboxClosure,
   isSandboxClosure,
+  isSandboxMap,
   isSandboxPromise,
+  isSandboxSet,
   type SandboxArray,
   type SandboxClosure,
   type SandboxValue
@@ -13,6 +15,8 @@ export type ArrayMethodName =
   | "filter"
   | "find"
   | "findIndex"
+  | "findLast"
+  | "findLastIndex"
   | "some"
   | "every"
   | "reduce"
@@ -27,9 +31,15 @@ export type ArrayMethodName =
   | "slice"
   | "concat"
   | "splice"
+  | "fill"
+  | "copyWithin"
   | "at"
   | "sort"
   | "reverse"
+  | "toSorted"
+  | "toReversed"
+  | "toSpliced"
+  | "with"
   | "push"
   | "pop"
   | "shift"
@@ -49,6 +59,8 @@ const arrayMethodNames = new Set<ArrayMethodName>([
   "filter",
   "find",
   "findIndex",
+  "findLast",
+  "findLastIndex",
   "some",
   "every",
   "reduce",
@@ -63,9 +75,15 @@ const arrayMethodNames = new Set<ArrayMethodName>([
   "slice",
   "concat",
   "splice",
+  "fill",
+  "copyWithin",
   "at",
   "sort",
   "reverse",
+  "toSorted",
+  "toReversed",
+  "toSpliced",
+  "with",
   "push",
   "pop",
   "shift",
@@ -77,18 +95,37 @@ export function getArrayMember(
   property: string | number,
   options: ArrayMethodOptions
 ): SandboxValue | undefined {
+  const index = getArrayIndex(property);
+  if (index !== undefined) {
+    return Object.hasOwn(value, index) ? value[index] : undefined;
+  }
+
   if (property === "length") {
     return value.length;
   }
 
-  if (!isArrayMethodName(property)) {
+  if (isArrayMethodName(property)) {
+    return createSandboxClosure({
+      name: `Array#${property}`,
+      call: (args, context) => callArrayMethod(value, property, args, options, context?.stack ?? [])
+    });
+  }
+
+  return undefined;
+}
+
+function getArrayIndex(property: string | number): number | undefined {
+  const index = typeof property === "number" ? property : Number(property);
+  if (
+    !Number.isSafeInteger(index) ||
+    index < 0 ||
+    index >= 2 ** 32 - 1 ||
+    String(index) !== String(property)
+  ) {
     return undefined;
   }
 
-  return createSandboxClosure({
-    name: `Array#${property}`,
-    call: (args, context) => callArrayMethod(value, property, args, options, context?.stack ?? [])
-  });
+  return index;
 }
 
 export function isArrayMethodName(property: string | number): property is ArrayMethodName {
@@ -120,6 +157,18 @@ export async function callArrayMethod(
       );
     case "findIndex":
       return await findIndexInArray(
+        value,
+        getRequiredCallback(methodName, args[0]),
+        options,
+        stack
+      );
+    case "findLast":
+      return budgetProducedValue(
+        await findLastInArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        options.budget
+      );
+    case "findLastIndex":
+      return await findLastIndexInArray(
         value,
         getRequiredCallback(methodName, args[0]),
         options,
@@ -190,6 +239,14 @@ export async function callArrayMethod(
       budgetProducedValue(value, options.budget);
       return removed;
     }
+    case "fill":
+      Reflect.apply(Array.prototype.fill, value, [...args]);
+      budgetProducedValue(value, options.budget);
+      return value;
+    case "copyWithin":
+      Reflect.apply(Array.prototype.copyWithin, value, [...args]);
+      budgetProducedValue(value, options.budget);
+      return value;
     case "at":
       return budgetProducedValue(
         Reflect.apply(Array.prototype.at, value, [...args]),
@@ -209,6 +266,38 @@ export async function callArrayMethod(
       value.reverse();
       budgetProducedValue(value, options.budget);
       return value;
+    case "toSorted": {
+      const result = Array.from(value) as SandboxArray;
+      if (args[0] === undefined) {
+        result.sort();
+      } else {
+        await sortArray(result, getRequiredCallback(methodName, args[0]), options, stack);
+      }
+
+      return budgetProducedValue(result, options.budget);
+    }
+    case "toReversed": {
+      const result = Array.from(value) as SandboxArray;
+      result.reverse();
+      return budgetProducedValue(result, options.budget);
+    }
+    case "toSpliced": {
+      const result = Array.from(value) as SandboxArray;
+      Reflect.apply(Array.prototype.splice, result, [...args]);
+      return budgetProducedValue(result, options.budget);
+    }
+    case "with": {
+      const result = Array.from(value) as SandboxArray;
+      const index = toIntegerOrInfinity(args[0]);
+      const actualIndex = index < 0 ? result.length + index : index;
+
+      if (actualIndex < 0 || actualIndex >= result.length) {
+        throw new RangeError("Invalid index");
+      }
+
+      result[actualIndex] = args[1];
+      return budgetProducedValue(result, options.budget);
+    }
     case "push": {
       const nextLength = value.push(...args);
       budgetProducedValue(value, options.budget);
@@ -298,6 +387,42 @@ async function findIndexInArray(
   const length = value.length;
 
   for (let index = 0; index < length; index += 1) {
+    const entry = index in value ? value[index] : undefined;
+    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+async function findLastInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  const length = value.length;
+
+  for (let index = length - 1; index >= 0; index -= 1) {
+    const entry = index in value ? value[index] : undefined;
+    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+      return entry;
+    }
+  }
+
+  return undefined;
+}
+
+async function findLastIndexInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<number> {
+  const length = value.length;
+
+  for (let index = length - 1; index >= 0; index -= 1) {
     const entry = index in value ? value[index] : undefined;
     if (await callArrayCallback(callback, entry, index, value, options, stack)) {
       return index;
@@ -631,10 +756,37 @@ function allocateProducedValue(value: SandboxValue, budget: Budget, seen: WeakSe
     return;
   }
 
+  if (isSandboxMap(value)) {
+    budget.allocateCollectionEntries(value.entries.size);
+    if (seen.has(value)) {
+      return;
+    }
+    seen.add(value);
+    for (const [key, entry] of value.entries) {
+      allocateProducedValue(key, budget, seen);
+      allocateProducedValue(entry, budget, seen);
+    }
+    return;
+  }
+
+  if (isSandboxSet(value)) {
+    budget.allocateCollectionEntries(value.values.size);
+    if (seen.has(value)) {
+      return;
+    }
+    seen.add(value);
+    for (const entry of value.values) {
+      allocateProducedValue(entry, budget, seen);
+    }
+    return;
+  }
+
   if (
     typeof value !== "object" ||
     value === null ||
     isSandboxClosure(value) ||
+    isSandboxMap(value) ||
+    isSandboxSet(value) ||
     isSandboxPromise(value)
   ) {
     return;

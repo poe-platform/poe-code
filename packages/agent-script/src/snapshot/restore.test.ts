@@ -1,10 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import { Budget } from "../interp/budget.js";
-import { isSandboxPromise, createSandboxClosure } from "../interp/values.js";
+import {
+  createSandboxClosure,
+  createSandboxGenerator,
+  isSandboxGenerator,
+  createSandboxMap,
+  createSandboxSet,
+  isSandboxMap,
+  isSandboxPromise,
+  isSandboxSet
+} from "../interp/values.js";
+import { createGeneratorChannel } from "../interp/generator.js";
 import { parseModule, type Module, type ParseResult } from "../parse/parser.js";
 import { hashSource } from "../parse/hash.js";
 import { restore } from "./restore.js";
+import { serialize } from "./serialize.js";
+import { createSandboxRegex, isSandboxRegex } from "../interp/values.js";
 
 function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
@@ -34,6 +46,388 @@ function withObjectPrototypeProperties<T>(
 }
 
 describe("snapshot restore", () => {
+  it("round-trips start and done generators", async () => {
+    const source = "function* values() { yield 1; return 2; } await task();";
+    const module = parseModule(source);
+    const generatorNodeId = getNodeIdByType(module, "FunctionDeclaration");
+    const startGenerator = createSandboxGenerator(
+      createGeneratorChannel(async () => undefined),
+      {
+        astNodeId: generatorNodeId,
+        capturedScopeId: "module"
+      }
+    );
+    const doneGenerator = createSandboxGenerator(createGeneratorChannel(async () => undefined));
+    doneGenerator.state = "done";
+    const serialized = serialize({
+      source,
+      currentAstNodeId: getNodeIdByType(module, "AwaitExpression"),
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            start: startGenerator,
+            done: doneGenerator
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+    const snapshot = restore(
+      serialized,
+      { source, budget: new Budget() }
+    );
+    const start = snapshot.currentScope.lookup("start");
+    const done = snapshot.currentScope.lookup("done");
+
+    expect(start.found && isSandboxGenerator(start.value)).toBe(true);
+    expect(done.found && isSandboxGenerator(done.value)).toBe(true);
+    if (
+      !start.found ||
+      !isSandboxGenerator(start.value) ||
+      !done.found ||
+      !isSandboxGenerator(done.value)
+    ) {
+      return;
+    }
+
+    await expect(start.value.channel.next()).resolves.toEqual({ value: 1, done: false });
+    await expect(start.value.channel.next()).resolves.toEqual({ value: 2, done: true });
+    await expect(done.value.channel.next()).resolves.toEqual({ value: undefined, done: true });
+  });
+
+  it("round-trips collection shared keys and cycles", () => {
+    const source = "await task()";
+    const shared = { id: "shared" };
+    const map = createSandboxMap();
+    const set = createSandboxSet([shared]);
+    map.entries.set(shared, set);
+    map.entries.set("self", map);
+    const secondMap = createSandboxMap([[shared, "again"]]);
+
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: 1,
+      scopeChain: [{ id: "module", bindings: { map, secondMap } }],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+    expect(Object.values(snapshot.heap ?? {})).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "map", entries: expect.any(Array) }),
+        expect.objectContaining({ kind: "set", values: expect.any(Array) })
+      ])
+    );
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const mapBinding = restored.currentScope.lookup("map");
+    const secondMapBinding = restored.currentScope.lookup("secondMap");
+    expect(mapBinding.found && isSandboxMap(mapBinding.value)).toBe(true);
+    expect(secondMapBinding.found && isSandboxMap(secondMapBinding.value)).toBe(true);
+    if (
+      !mapBinding.found ||
+      !isSandboxMap(mapBinding.value) ||
+      !secondMapBinding.found ||
+      !isSandboxMap(secondMapBinding.value)
+    ) {
+      return;
+    }
+
+    const [[restoredShared, restoredSet]] = [...mapBinding.value.entries];
+    expect(isSandboxSet(restoredSet)).toBe(true);
+    expect(mapBinding.value.entries.get("self")).toBe(mapBinding.value);
+    expect([...secondMapBinding.value.entries.keys()][0]).toBe(restoredShared);
+    if (isSandboxSet(restoredSet)) {
+      expect([...restoredSet.values][0]).toBe(restoredShared);
+    }
+  });
+
+  it("round-trips object method shorthand closures through serialization", async () => {
+    const source = [
+      "const offset = 4;",
+      "const service = { reset() { return offset + 1; } };",
+      "await task();"
+    ].join("\n");
+    const module = parseModule(source);
+    const closureNodeId = getNodeIdByType(module, "FunctionExpression");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            offset: 4,
+            service: {
+              reset: {
+                kind: "fn",
+                astNodeId: closureNodeId,
+                capturedScopeId: "module"
+              }
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const service = restored.currentScope.lookup("service");
+    expect(service.found).toBe(true);
+    if (!service.found || service.value === null || typeof service.value !== "object") {
+      return;
+    }
+
+    const reset = (service.value as { reset?: { call?: (args: unknown[]) => unknown } }).reset;
+    const result = reset?.call?.([]);
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+
+    await expect(result.promise).resolves.toBe(5);
+  });
+
+  it("round-trips an arrow capturing a method this binding", async () => {
+    const source = [
+      "const service = { value: 7, makeReader() { return () => this.value; } };",
+      "await task();"
+    ].join("\n");
+    const module = parseModule(source);
+    const arrowNodeId = getNodeIdByType(module, "ArrowFunctionExpression");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {}
+        },
+        {
+          id: "method-call",
+          parentId: "module",
+          bindings: {
+            this: {
+              value: 7
+            },
+            reader: {
+              kind: "fn",
+              astNodeId: arrowNodeId,
+              capturedScopeId: "method-call"
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const reader = restored.currentScope.lookup("reader");
+    expect(reader.found).toBe(true);
+    if (!reader.found || reader.value === null || typeof reader.value !== "object") {
+      return;
+    }
+
+    const result = reader.value.call?.([], {
+      stack: [],
+      thisValue: { value: 99 }
+    });
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+
+    await expect(result.promise).resolves.toBe(7);
+  });
+
+  it("round-trips named function expression closures through serialization", async () => {
+    const source = [
+      "const factorial = async function check(value) { return value <= 1 ? 1 : value * await check(value - 1); };",
+      "await task();"
+    ].join("\n");
+    const module = parseModule(source);
+    const closureNodeId = getNodeIdByType(module, "FunctionExpression");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            factorial: {
+              kind: "fn",
+              astNodeId: closureNodeId,
+              capturedScopeId: "module"
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    expect(snapshot.scopeChain[0]?.bindings.factorial).toEqual({
+      kind: "fn",
+      astNodeId: closureNodeId,
+      capturedScopeId: "module"
+    });
+
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const factorial = restored.currentScope.lookup("factorial");
+    expect(factorial.found).toBe(true);
+    if (!factorial.found) {
+      return;
+    }
+
+    const result = factorial.value.call?.([5]);
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+    await expect(result.promise).resolves.toBe(120);
+    expect(restored.currentScope.lookup("check")).toEqual({ found: false });
+  });
+
+  it("restores a named function expression self-binding to the restored closure", async () => {
+    const source = [
+      "const factorial = async function check() { return check === factorial; };",
+      "await task();"
+    ].join("\n");
+    const module = parseModule(source);
+    const closureNodeId = getNodeIdByType(module, "FunctionExpression");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            factorial: {
+              kind: "fn",
+              astNodeId: closureNodeId,
+              capturedScopeId: "module"
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const factorial = restored.currentScope.lookup("factorial");
+    expect(factorial.found).toBe(true);
+    if (!factorial.found) {
+      return;
+    }
+
+    const result = factorial.value.call?.([]);
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+    await expect(result.promise).resolves.toBe(true);
+  });
+
+  it("round-trips function declaration closures through serialization", async () => {
+    const source = ["function add(value) { return value + base; }", "await task();"].join("\n");
+    const module = parseModule(source);
+    const closureNodeId = getNodeIdByType(module, "FunctionDeclaration");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            base: 40,
+            add: {
+              kind: "fn",
+              astNodeId: closureNodeId,
+              capturedScopeId: "module"
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    const restored = restore(snapshot, {
+      source,
+      budget: new Budget()
+    });
+    const add = restored.currentScope.lookup("add");
+    expect(add.found).toBe(true);
+    if (!add.found) {
+      return;
+    }
+
+    const result = add.value.call?.([2]);
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+    await expect(result.promise).resolves.toBe(42);
+  });
+
+  it("binds destructured parameters in restored async closures", async () => {
+    const source = [
+      "const collect = async ({ type, payload: { value = type }, ...meta }, [first, ...rest], { fallback = first } = {}) => { value = value + rest.length; return [value, meta.extra, fallback]; };",
+      "await task();"
+    ].join("\n");
+    const module = parseModule(source);
+    const closureNodeId = getNodeIdByType(module, "ArrowFunctionExpression");
+    const awaitNodeId = getNodeIdByType(module, "AwaitExpression");
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: awaitNodeId,
+      scopeChain: [
+        {
+          id: "module",
+          bindings: {
+            collect: {
+              kind: "fn",
+              astNodeId: closureNodeId,
+              capturedScopeId: "module"
+            }
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    const restored = restore(snapshot, { source, budget: new Budget() });
+    const collect = restored.currentScope.lookup("collect");
+    expect(collect.found).toBe(true);
+    if (!collect.found) {
+      return;
+    }
+
+    const result = collect.value.call?.([{ type: 5, payload: {}, extra: 9 }, [2, 3, 4]]);
+    expect(isSandboxPromise(result)).toBe(true);
+    if (!isSandboxPromise(result)) {
+      return;
+    }
+    await expect(result.promise).resolves.toEqual([7, 9, 2]);
+  });
+
   it("rebuilds scopes, call stack, modules, and the saved code pointer", async () => {
     const source = [
       'import * as time from "time";',
@@ -335,7 +729,12 @@ describe("snapshot restore", () => {
 
     const value = restored.currentScope.lookup("value");
     expect(value.found).toBe(true);
-    if (!value.found || value.value === null || typeof value.value !== "object" || Array.isArray(value.value)) {
+    if (
+      !value.found ||
+      value.value === null ||
+      typeof value.value !== "object" ||
+      Array.isArray(value.value)
+    ) {
       return;
     }
 
@@ -676,3 +1075,25 @@ function findNode<TNode extends { nodeId?: number; type: string }>(
 
   return undefined;
 }
+
+describe("regex snapshots", () => {
+  it("round-trips regex state and reparses the pattern", () => {
+    const source = "export default 1";
+    const regex = createSandboxRegex("a+", "g", 4);
+    const snapshot = serialize({
+      source,
+      currentAstNodeId: 1,
+      scopeChain: [{ id: 1, bindings: { regex } }],
+      callStack: [],
+      pendingPromises: []
+    });
+    const restored = restore(snapshot, { source });
+    expect(restored.scopeChain[0]?.bindings.regex).toSatisfy(isSandboxRegex);
+    expect(restored.scopeChain[0]?.bindings.regex).toMatchObject({
+      kind: "regex",
+      source: "a+",
+      flags: "g",
+      lastIndex: 4
+    });
+  });
+});

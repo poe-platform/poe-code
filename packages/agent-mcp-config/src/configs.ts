@@ -45,6 +45,12 @@ const agentMcpConfigs: Record<string, AgentMcpConfig> = {
     format: "toml",
     shape: "standard"
   },
+  cursor: {
+    configFile: "~/.cursor/mcp.json",
+    configKey: "mcpServers",
+    format: "json",
+    shape: "standard"
+  },
   opencode: {
     configFile: "~/.config/opencode/opencode.json",
     configKey: "mcp",

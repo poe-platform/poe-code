@@ -126,7 +126,18 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
-const { runCLI } = await import("./cli.js");
+const { runCLI: runCLIWithoutControls } = await import("./cli.js");
+const runCLI: typeof runCLIWithoutControls = (roots, options = {}) =>
+  runCLIWithoutControls(roots, {
+    approvals: true,
+    controls: {
+      debug: true,
+      output: true,
+      verbose: true,
+      yes: true
+    },
+    ...options
+  });
 
 const fixtureFilePath = fileURLToPath(new URL("./cli.test.fixture.json", import.meta.url));
 const fixtureFileContents = `[
@@ -1197,6 +1208,35 @@ describe("runCLI", () => {
     expect(output).toContain("--output <format>");
     expect(output).not.toContain("--version");
     expect(output).not.toContain("-h, --help");
+  });
+
+  it("keeps approvals and built-in CLI controls disabled by default", async () => {
+    const handler = vi.fn(async (ctx: { params: { yes: boolean; output: string } }) => ctx.params);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        yes: S.Boolean(),
+        output: S.String()
+      }),
+      handler
+    });
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--output", "custom"];
+
+    await runCLIWithoutControls(root);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ yes: true, output: "custom" });
+
+    process.argv = ["node", "toolcraft", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLIWithoutControls(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).not.toContain("Options:");
+    expect(output).not.toContain("approvals");
   });
 
   it("renders preset and version global options when presets and version are enabled", async () => {
@@ -4225,6 +4265,53 @@ describe("runCLI", () => {
       })
     );
     expect(runHandler).not.toHaveBeenCalled();
+  });
+
+  it("supports an unnamed root default command alongside named sibling commands", async () => {
+    const ingestHandler = vi.fn(async ({ params }: { params: { url: string } }) => params);
+    const initHandler = vi.fn(async () => ({ initialized: true }));
+    const ingest = defineCommand({
+      name: "",
+      positional: ["url"],
+      params: S.Object({
+        url: S.String()
+      }),
+      handler: ingestHandler
+    });
+    const init = defineCommand({
+      name: "init",
+      params: S.Object({}),
+      handler: initHandler
+    });
+    const root = defineGroup({
+      name: "",
+      children: [ingest, init],
+      default: ingest
+    });
+
+    process.argv = ["node", "wire", "https://example.com"];
+    await runCLI(root);
+
+    expect(ingestHandler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { url: "https://example.com" } })
+    );
+    expect(initHandler).not.toHaveBeenCalled();
+
+    ingestHandler.mockClear();
+    process.argv = ["node", "wire", "init"];
+    await runCLI(root);
+
+    expect(initHandler).toHaveBeenCalledTimes(1);
+    expect(ingestHandler).not.toHaveBeenCalled();
+
+    process.argv = ["node", "wire", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("<url>");
+    expect(output).toContain("init");
+    expect(output).not.toContain("__toolcraft_default");
   });
 
   it("renders leaf help with inherited secrets", async () => {

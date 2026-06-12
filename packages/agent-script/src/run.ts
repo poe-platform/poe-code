@@ -20,8 +20,11 @@ import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
 import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/console-json.js";
+import { createCollectionGlobals } from "./interp/globals/collections.js";
 import { createErrorGlobals } from "./interp/globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./interp/globals/math.js";
+import { createRegexGlobals } from "./interp/globals/regex.js";
+import { createMiscGlobals } from "./interp/globals/misc.js";
 import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
@@ -139,6 +142,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             budget,
             sink: options.sink
           }),
+          ...createCollectionGlobals({ budget }),
           ...createErrorGlobals({
             budget
           }),
@@ -148,9 +152,13 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           ...createObjectArrayGlobals({
             budget
           }),
+          ...createMiscGlobals({
+            budget
+          }),
           ...createPromiseGlobals({
             budget
           }),
+          ...createRegexGlobals(),
           ...callerBindings
         },
         options.signal
@@ -160,7 +168,9 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         bindings,
         undefined,
         deepCopyToSandbox(options.importMeta ?? {})
-      ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }));
+      ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }), {
+        functionBoundary: true
+      });
       const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
         snapshotBackend: options.snapshotBackend,
         snapshotIntervalMs: options.snapshotIntervalMs,

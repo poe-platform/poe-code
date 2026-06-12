@@ -41,7 +41,14 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   process.argv = normalizeArgv(argv);
 
   try {
-    await runCLI(superintendentGroup);
+    await runCLI(superintendentGroup, {
+      controls: {
+        debug: true,
+        output: true,
+        verbose: true,
+        yes: true
+      }
+    });
   } finally {
     process.argv = originalArgv;
   }

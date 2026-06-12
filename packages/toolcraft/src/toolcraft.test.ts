@@ -904,6 +904,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0"
     });
@@ -1072,6 +1073,7 @@ describe("createMCPServer", () => {
       ]
     });
     const server = createMCPServer(root, {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true
@@ -1175,6 +1177,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer(root, {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true
@@ -1561,6 +1564,7 @@ describe("createMCPServer", () => {
     });
 
     const server = createMCPServer([firstRoot, secondRoot], {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0"
     });

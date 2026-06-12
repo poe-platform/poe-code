@@ -6,10 +6,33 @@ import {
   deepCopyFromSandbox,
   deepCopyToSandbox,
   isSandboxClosure,
+  isSandboxMap,
   isSandboxPromise
 } from "./values.js";
 
 describe("sandbox values", () => {
+  it("deep-copies host Map and Set values with shared references and cycles", () => {
+    const shared = { id: "shared" };
+    const source = new Map<unknown, unknown>();
+    const set = new Set<unknown>([shared]);
+    source.set(shared, set);
+    source.set("self", source);
+
+    const sandbox = deepCopyToSandbox(source);
+    expect(isSandboxMap(sandbox)).toBe(true);
+    if (!isSandboxMap(sandbox)) {
+      return;
+    }
+
+    const host = deepCopyFromSandbox(sandbox);
+    expect(host).toBeInstanceOf(Map);
+    const restored = host as Map<unknown, unknown>;
+    const restoredShared = [...restored.keys()][0];
+    expect(restored.get("self")).toBe(restored);
+    expect(restored.get(restoredShared)).toBeInstanceOf(Set);
+    expect([...(restored.get(restoredShared) as Set<unknown>)][0]).toBe(restoredShared);
+  });
+
   it("copies plain objects and arrays into sandbox space using own enumerable keys only", () => {
     const source = {
       visible: {
@@ -339,9 +362,6 @@ describe("sandbox values", () => {
     expect(() => deepCopyToSandbox(() => "nope")).toThrowError(
       "Unsupported sandbox value at <root>: function"
     );
-    expect(() => deepCopyToSandbox(new Map())).toThrowError(
-      "Unsupported sandbox value at <root>: Map"
-    );
   });
 
   it("rejects unsupported scalar and built-in host values with clear errors", () => {
@@ -351,9 +371,6 @@ describe("sandbox values", () => {
     );
     expect(() => deepCopyToSandbox(new Uint8Array([1, 2, 3]))).toThrowError(
       "Unsupported sandbox value at <root>: Uint8Array"
-    );
-    expect(() => deepCopyToSandbox(new Set())).toThrowError(
-      "Unsupported sandbox value at <root>: Set"
     );
   });
 

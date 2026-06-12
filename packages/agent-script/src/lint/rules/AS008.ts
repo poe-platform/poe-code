@@ -14,6 +14,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -88,6 +89,7 @@ class AS008Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -147,7 +149,7 @@ class AS008Scanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -374,7 +376,9 @@ class AS008Scanner {
     this.visitBindingPattern(node);
   }
 
-  private visitBindingElement(node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement): void {
+  private visitBindingElement(
+    node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement
+  ): void {
     if (node.type === "RestElement") {
       this.visitRestElement(node);
       return;
@@ -382,7 +386,9 @@ class AS008Scanner {
     this.visitBindingPattern(node);
   }
 
-  private visitBindingPattern(node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitBindingPattern(
+    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         return;

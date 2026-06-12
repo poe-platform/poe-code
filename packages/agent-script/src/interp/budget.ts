@@ -10,6 +10,8 @@ export type BudgetOptions = {
   arrayLength?: number;
 };
 
+export const REGEX_STEP_LIMIT = 2_000;
+
 export class SandboxError extends Error {
   readonly code: "aborted" | "budgetExceeded";
   readonly budget?: BudgetName;
@@ -113,6 +115,10 @@ export class Budget {
     }
   }
 
+  allocateCollectionEntries(count: number): void {
+    this.allocateArrayLength(count);
+  }
+
   enterCall(): () => void {
     return this.enterDepth();
   }
@@ -207,6 +213,15 @@ export class Budget {
       left = true;
       this.currentCallDepth -= 1;
     };
+  }
+}
+
+export function allocateRegexSteps(steps: number): void {
+  if (!Number.isInteger(steps) || steps < 0) {
+    throw new Error("steps must be a non-negative integer.");
+  }
+  if (steps > REGEX_STEP_LIMIT) {
+    throw new SandboxError({ budget: "steps", current: steps, limit: REGEX_STEP_LIMIT });
   }
 }
 

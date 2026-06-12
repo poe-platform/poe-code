@@ -11,6 +11,7 @@ import {
   type CatchClause,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -49,7 +50,7 @@ export type Diagnostic = {
   };
 };
 
-type BindingKind = "const" | "import" | "let" | "param";
+type BindingKind = "const" | "import" | "let" | "param" | "var";
 type ImportSpecifierNode = ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
 
 type ImportBinding = {
@@ -176,6 +177,7 @@ class ASUnusedImportScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -242,7 +244,7 @@ class ASUnusedImportScanner {
     });
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     const bindings =
       node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
 

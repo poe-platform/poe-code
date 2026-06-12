@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import { run } from "../../run.js";
 import { Budget, SandboxError } from "../budget.js";
-import { createSandboxClosure, isSandboxClosure, type SandboxValue } from "../values.js";
+import {
+  createSandboxClosure,
+  createSandboxRegex,
+  isSandboxClosure,
+  type SandboxValue
+} from "../values.js";
 import { callStringMethod, getStringMember, validateStringMethodArguments } from "./string.js";
 
 type StringMethodName = Parameters<typeof callStringMethod>[1];
@@ -145,25 +150,21 @@ describe("string methods", () => {
     expectStringMethod("abc", "includes", ["z"], false, budget);
   });
 
-  it("supports split with string separators and rejects regex separators", () => {
+  it("supports split with string and regex separators", () => {
     const budget = new Budget();
 
     expectStringMethod("a,b,c", "split", [","], ["a", "b", "c"], budget);
     expectStringMethod("abc", "split", [""], ["a", "b", "c"], budget);
     expectStringMethod("", "split", [","], [""], budget);
 
-    expect(() => callStringMethod("abc", "split", [/[,]/ as never], budget)).toThrow(
-      "String#split does not support regex separator values."
+    expectStringMethod(
+      "a,b;c",
+      "split",
+      [createSandboxRegex("[,;]", "g")],
+      ["a", "b", "c"],
+      budget
     );
-    expect(() =>
-      validateStringMethodArguments("split", [
-        {
-          raw: "/[,]/",
-          span: { end: 14, start: 10 },
-          type: "RegexLiteral"
-        } as never
-      ])
-    ).toThrow("String#split does not support regex separator values.");
+    expect(() => validateStringMethodArguments("split", [])).not.toThrow();
   });
 
   it("supports replace and replaceAll with string arguments", () => {
@@ -173,19 +174,129 @@ describe("string methods", () => {
     expectStringMethod("aba", "replaceAll", ["a", "X"], "XbX", budget);
   });
 
-  it("rejects unsupported replace and replaceAll arguments", () => {
-    const budget = new Budget();
+  it("supports sandbox closure replacers", async () => {
+    const calls: SandboxValue[][] = [];
     const replacer = createSandboxClosure({
-      call: () => "X",
+      call: async (args) => {
+        calls.push([...args]);
+        await Promise.resolve();
+        return args[1];
+      },
       name: "replacer"
     });
 
-    expect(() => callStringMethod("abc", "replace", [/b/ as never, "X"], budget)).toThrow(
-      "String#replace does not support function replacers or regex search values."
+    await expect(callStringMethod("aba", "replace", ["a", replacer], new Budget())).resolves.toBe(
+      "0ba"
     );
-    expect(() => callStringMethod("abc", "replaceAll", ["b", replacer], budget)).toThrow(
-      "String#replaceAll does not support function replacers or regex search values."
+    expect(calls).toEqual([["a", 0, "aba"]]);
+
+    calls.length = 0;
+    await expect(
+      callStringMethod("aba", "replaceAll", ["a", replacer], new Budget())
+    ).resolves.toBe("0b2");
+    expect(calls).toEqual([
+      ["a", 0, "aba"],
+      ["a", 2, "aba"]
+    ]);
+  });
+
+  it("handles closure replacer occurrence edge cases", async () => {
+    const calls: SandboxValue[][] = [];
+    const replacer = createSandboxClosure({
+      call: (args) => {
+        calls.push([...args]);
+        return `[${args[1]}]`;
+      },
+      name: "replacer"
+    });
+
+    await expect(
+      callStringMethod("aaa", "replaceAll", ["aa", replacer], new Budget())
+    ).resolves.toBe("[0]a");
+    expect(calls).toEqual([["aa", 0, "aaa"]]);
+
+    calls.length = 0;
+    await expect(callStringMethod("😀", "replaceAll", ["", replacer], new Budget())).resolves.toBe(
+      "[0]\ud83d[1]\ude00[2]"
     );
+    expect(calls).toEqual([
+      ["", 0, "😀"],
+      ["", 1, "😀"],
+      ["", 2, "😀"]
+    ]);
+
+    calls.length = 0;
+    await expect(callStringMethod("abc", "replace", ["z", replacer], new Budget())).resolves.toBe(
+      "abc"
+    );
+    expect(calls).toEqual([]);
+  });
+
+  it("awaits replaceAll closure calls in occurrence order", async () => {
+    const events: string[] = [];
+    const replacer = createSandboxClosure({
+      call: async (args) => {
+        const offset = Number(args[1]);
+        events.push(`start:${offset}`);
+        await Promise.resolve();
+        events.push(`end:${offset}`);
+        return offset;
+      },
+      name: "replacer"
+    });
+
+    await expect(
+      callStringMethod("aba", "replaceAll", ["a", replacer], new Budget())
+    ).resolves.toBe("0b2");
+    expect(events).toEqual(["start:0", "end:0", "start:2", "end:2"]);
+  });
+
+  it("coerces closure replacement results and allocates the final string", async () => {
+    const replacer = createSandboxClosure({
+      call: () => 123,
+      name: "replacer"
+    });
+
+    await expect(callStringMethod("aba", "replace", ["a", replacer], new Budget())).resolves.toBe(
+      "123ba"
+    );
+    await expect(
+      callStringMethod("aba", "replaceAll", ["a", replacer], new Budget({ stringLength: 5 }))
+    ).rejects.toMatchObject({
+      budget: "stringLength",
+      code: "budgetExceeded",
+      current: 7,
+      limit: 5
+    });
+  });
+
+  it("evaluates closure replacers through scripts", async () => {
+    const result = await run(
+      [
+        'const one = "aba".replace("a", (match, offset, string) => `${match}:${offset}:${string}`);',
+        'const all = await "aba".replaceAll("a", async (match, offset, string) => {',
+        "  await Promise.resolve();",
+        "  return offset;",
+        "});",
+        "return [one, all];"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: ["a:0:ababa", "0b2"]
+    });
+  });
+
+  it("supports regex search values for replace and replaceAll", async () => {
+    const budget = new Budget();
+
+    await expect(
+      callStringMethod("abc", "replace", [createSandboxRegex("b"), "X"], budget)
+    ).resolves.toBe("aXc");
+    await expect(
+      callStringMethod("aba", "replaceAll", [createSandboxRegex("a", "g"), "X"], budget)
+    ).resolves.toBe("XbX");
   });
 
   it("supports repeat and preserves native RangeError cases", () => {
@@ -275,3 +386,55 @@ function expectStringMethod(
 ): void {
   expect(callStringMethod(value, methodName, args, budget)).toEqual(expected);
 }
+
+describe("regex string methods", () => {
+  it("supports match, matchAll, search, split, and regex replacers", async () => {
+    const budget = new Budget();
+    expect(callStringMethod("baac", "search", [createSandboxRegex("a+")], budget)).toBe(1);
+    expect(callStringMethod("baac", "match", [createSandboxRegex("(a+)")], budget)).toEqual(
+      Object.assign(["aa", "aa"], { index: 1, input: "baac" })
+    );
+    expect(callStringMethod("a1a2", "matchAll", [createSandboxRegex("a(.)", "g")], budget)).toEqual(
+      [
+        Object.assign(["a1", "1"], { index: 0, input: "a1a2" }),
+        Object.assign(["a2", "2"], { index: 2, input: "a1a2" })
+      ]
+    );
+    expect(callStringMethod("a1b2", "split", [createSandboxRegex("(\\d)", "g")], budget)).toEqual([
+      "a",
+      "1",
+      "b",
+      "2",
+      ""
+    ]);
+    const calls: SandboxValue[][] = [];
+    const replacer = createSandboxClosure({
+      call: (args) => {
+        calls.push([...args]);
+        return "X";
+      }
+    });
+    await expect(
+      callStringMethod("a1a2", "replaceAll", [createSandboxRegex("a(.)", "g"), replacer], budget)
+    ).resolves.toBe("XX");
+    expect(calls).toEqual([
+      ["a1", "1", 0, "a1a2"],
+      ["a2", "2", 2, "a1a2"]
+    ]);
+  });
+
+  it("splits with non-global and zero-width regexes", () => {
+    const budget = new Budget();
+
+    expect(callStringMethod("a1b2", "split", [createSandboxRegex("\\d")], budget)).toEqual([
+      "a",
+      "b",
+      ""
+    ]);
+    expect(callStringMethod("abc", "split", [createSandboxRegex("(?:)")], budget)).toEqual([
+      "a",
+      "b",
+      "c"
+    ]);
+  });
+});

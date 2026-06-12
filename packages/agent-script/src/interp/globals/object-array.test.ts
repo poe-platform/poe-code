@@ -130,6 +130,24 @@ describe("createObjectArrayGlobals", () => {
     expect(getterCalls).toBe(1);
   });
 
+  it("exposes Object.hasOwn with host coercion behavior", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const hasOwn = getClosure(getProperty(globals.Object, "hasOwn"));
+    const inherited = Object.create({ inherited: true }) as Record<string, unknown>;
+    inherited.own = true;
+
+    expect(await hasOwn.call([inherited, "own"])).toBe(true);
+    expect(await hasOwn.call([inherited, "inherited"])).toBe(false);
+    expect(await hasOwn.call(["abc", 1])).toBe(true);
+    expect(await hasOwn.call([{ __proto__: null }, "__proto__"])).toBe(false);
+    expect(await hasOwn.call([{ value: undefined }, "value"])).toBe(true);
+    expect(await hasOwn.call([{}, undefined])).toBe(false);
+    expect(() => hasOwn.call([null, "value"])).toThrow(TypeError);
+    expect(() => hasOwn.call([undefined, "value"])).toThrow(TypeError);
+  });
+
   it("matches Array and coercion static edge behavior", async () => {
     const globals = createObjectArrayGlobals({
       budget: new Budget()
@@ -189,6 +207,50 @@ describe("createObjectArrayGlobals", () => {
     expect(await raw.call([{ raw: ["a", "b"] }, 1, 2])).toBe("a1b");
     expect(await raw.call([{ raw: [] }])).toBe("");
     expect(() => raw.call([{}])).toThrow("String.raw requires a raw strings array.");
+  });
+
+  it("exposes budgeted String character factories", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const fromCharCode = getClosure(getClosureProperty(globals.String, "fromCharCode"));
+    const fromCodePoint = getClosure(getClosureProperty(globals.String, "fromCodePoint"));
+
+    expect(await fromCharCode.call([65, 66, 67])).toBe("ABC");
+    expect(await fromCharCode.call([65, "66"])).toBe("AB");
+    expect(await fromCharCode.call([])).toBe("");
+    expect(await fromCharCode.call([0x1_0041, -1, NaN])).toBe(`A${"\uffff\u0000"}`);
+    expect(await fromCodePoint.call([0x1f642])).toBe("🙂");
+    expect(await fromCodePoint.call([65, "66"])).toBe("AB");
+    expect(await fromCodePoint.call([])).toBe("");
+    expect(() => fromCodePoint.call([-1])).toThrow(RangeError);
+    expect(() => fromCodePoint.call([1.5])).toThrow(RangeError);
+    expect(() => fromCodePoint.call([0x11_0000])).toThrow(RangeError);
+
+    const budgetedGlobals = createObjectArrayGlobals({
+      budget: new Budget({
+        stringLength: 1
+      })
+    });
+
+    expect(() =>
+      getClosure(getClosureProperty(budgetedGlobals.String, "fromCodePoint")).call([0x1f642])
+    ).toThrowError(
+      expect.objectContaining({
+        budget: "stringLength",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
+    expect(() =>
+      getClosure(getClosureProperty(budgetedGlobals.String, "fromCharCode")).call([65, 66])
+    ).toThrowError(
+      expect.objectContaining({
+        budget: "stringLength",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
   });
 
   it("applies string and array budgets to produced values", () => {
@@ -264,6 +326,41 @@ describe("createObjectArrayGlobals", () => {
     expect(isSandboxClosure(getClosureProperty(globals.Number, "isFinite"))).toBe(true);
     expect(isSandboxClosure(getClosureProperty(globals.Number, "isNaN"))).toBe(true);
     expect(isSandboxClosure(getClosureProperty(globals.Number, "isInteger"))).toBe(true);
+  });
+
+  it("exposes Number parsing, safe integer checks, and constants", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const parseInt = getClosure(getClosureProperty(globals.Number, "parseInt"));
+    const parseFloat = getClosure(getClosureProperty(globals.Number, "parseFloat"));
+    const isSafeInteger = getClosure(getClosureProperty(globals.Number, "isSafeInteger"));
+
+    expect(await parseInt.call(["11", 2])).toBe(3);
+    expect(await parseInt.call([15.9, 10])).toBe(15);
+    expect(await parseInt.call(["0x10"])).toBe(16);
+    expect(await parseInt.call(["11", "2"])).toBe(3);
+    expect(await parseInt.call(["0x10", 10])).toBe(0);
+    expect(await parseInt.call(["z", 36])).toBe(35);
+    expect(await parseInt.call(["10", 1])).toBeNaN();
+    expect(await parseInt.call([])).toBeNaN();
+    expect(await parseFloat.call(["3.14more"])).toBe(3.14);
+    expect(await parseFloat.call([15.9])).toBe(15.9);
+    expect(await parseFloat.call(["  -Infinitytail"])).toBe(-Infinity);
+    expect(await parseFloat.call(["not a number"])).toBeNaN();
+    expect(await parseFloat.call([])).toBeNaN();
+    expect(await isSafeInteger.call([Number.MAX_SAFE_INTEGER])).toBe(true);
+    expect(await isSafeInteger.call([Number.MIN_SAFE_INTEGER])).toBe(true);
+    expect(await isSafeInteger.call([Number.MAX_SAFE_INTEGER + 1])).toBe(false);
+    expect(await isSafeInteger.call([1.5])).toBe(false);
+    expect(await isSafeInteger.call([Infinity])).toBe(false);
+    expect(await isSafeInteger.call(["1"])).toBe(false);
+
+    expect(getClosureProperty(globals.Number, "MAX_SAFE_INTEGER")).toBe(Number.MAX_SAFE_INTEGER);
+    expect(getClosureProperty(globals.Number, "MIN_SAFE_INTEGER")).toBe(Number.MIN_SAFE_INTEGER);
+    expect(getClosureProperty(globals.Number, "EPSILON")).toBe(Number.EPSILON);
+    expect(getClosureProperty(globals.Number, "MAX_VALUE")).toBe(Number.MAX_VALUE);
+    expect(getClosureProperty(globals.Number, "MIN_VALUE")).toBe(Number.MIN_VALUE);
   });
 
   it("treats sandbox coercion helpers as opaque Object sources", async () => {

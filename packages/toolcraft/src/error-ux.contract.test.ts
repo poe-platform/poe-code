@@ -178,7 +178,15 @@ async function runWithStderrSnapshot(
   process.argv = ["node", "toolcraft", ...argv];
 
   try {
-    await runCLI(root, options);
+    await runCLI(root, {
+      controls: {
+        debug: true,
+        output: true,
+        verbose: true,
+        yes: true
+      },
+      ...options
+    });
     return readPlainStderr(stderrWrite);
   } finally {
     stdoutWrite.mockRestore();

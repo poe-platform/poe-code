@@ -10,6 +10,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -79,6 +80,7 @@ class AS015Scanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -139,7 +141,7 @@ class AS015Scanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     }
@@ -286,7 +288,12 @@ class AS015Scanner {
     this.visitExpression(node.argument);
   }
 
-  private visitBinaryLikeExpression(node: ConditionalExpression | LogicalExpression | import("../../parse/parser.js").BinaryExpression): void {
+  private visitBinaryLikeExpression(
+    node:
+      | ConditionalExpression
+      | LogicalExpression
+      | import("../../parse/parser.js").BinaryExpression
+  ): void {
     if ("left" in node) {
       this.visitExpression(node.left);
       this.visitExpression(node.right);
@@ -318,7 +325,8 @@ class AS015Scanner {
       this.diagnostics.push({
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: this.filename,
         line: node.span.start.line,
         column: node.span.start.column,
@@ -344,7 +352,13 @@ class AS015Scanner {
   }
 
   private visitPattern(
-    node: ArrayPattern | AssignmentPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | ArrayPattern
+      | AssignmentPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":

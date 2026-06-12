@@ -4,6 +4,7 @@ import { getAdapter } from "../adapters/index.js";
 import { stampReceiveTime } from "./meta.js";
 import type { AcpEvent } from "./types.js";
 import { resolveConfig } from "../configs/resolve-config.js";
+import { applyMcpFile } from "../configs/mcp-file.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
@@ -387,6 +388,10 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     : undefined;
 
   const done = (async (): Promise<SpawnResult> => {
+    const restoreMcpFile =
+      options.mcpServers && spawnConfig.mcpFile
+        ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
+        : undefined;
     try {
       await applyMiddlewares(
         [
@@ -477,6 +482,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
       };
     } finally {
       resolveMiddlewaresApplied?.();
+      await restoreMcpFile?.();
       cleanupResourcesForRun(manifest);
     }
   })();

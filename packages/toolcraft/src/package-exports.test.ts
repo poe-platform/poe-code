@@ -5,6 +5,17 @@ import { describe, expect, it } from "vitest";
 const PACKAGE_JSON_PATH = path.resolve(import.meta.dirname, "..", "package.json");
 
 describe("toolcraft package exports", () => {
+  it("exports the bundled design system entrypoint", () => {
+    const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
+      exports?: Record<string, { import?: string; types?: string }>;
+    };
+
+    expect(packageJson.exports?.["./design"]).toEqual({
+      types: "./dist/design.d.ts",
+      import: "./dist/design.js",
+    });
+  });
+
   it("exports the human-in-loop entrypoint", () => {
     const packageJson = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH, "utf8")) as {
       exports?: Record<string, { import?: string; types?: string }>;

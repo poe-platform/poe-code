@@ -17,6 +17,7 @@ export const agentTemplateSets: Record<string, readonly string[]> = {
   "claude-code": [],
   "claude-desktop": [],
   codex: [],
+  cursor: [],
   "gemini-cli": [
     "src/templates/gemini-cli/SKILL_poe-code-plan.md",
     "src/templates/gemini-cli/SKILL_poe-code-pipeline-plan.md",

@@ -216,10 +216,18 @@ interface HelpOptionRow {
   flags: string;
 }
 
+export interface CLIControls {
+  debug?: boolean;
+  output?: boolean;
+  verbose?: boolean;
+  yes?: boolean;
+}
+
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
   approvals?: boolean;
   casing?: Casing;
+  controls?: CLIControls;
   humanInLoop?: HumanInLoopRuntimeOptions;
   projectRoot?: string;
   rootDisplayName?: string;
@@ -1031,15 +1039,44 @@ function createOption(
   return [option];
 }
 
-const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--debug", "--verbose"] as const;
+interface ResolvedCLIControls {
+  debug: boolean;
+  output: boolean;
+  verbose: boolean;
+  yes: boolean;
+}
+
+function resolveCLIControls(controls: CLIControls | undefined): ResolvedCLIControls {
+  return {
+    debug: controls?.debug === true,
+    output: controls?.output === true,
+    verbose: controls?.verbose === true,
+    yes: controls?.yes === true
+  };
+}
 
 function getGlobalLongOptionFlags(
   presetsEnabled: boolean,
-  versionEnabled = false
+  versionEnabled: boolean,
+  controls: ResolvedCLIControls
 ): ReadonlySet<string> {
-  const flags = presetsEnabled
-    ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS]
-    : [...ALWAYS_GLOBAL_LONG_OPTION_FLAGS];
+  const flags: string[] = [];
+
+  if (presetsEnabled) {
+    flags.push("--preset");
+  }
+  if (controls.yes) {
+    flags.push("--yes");
+  }
+  if (controls.output) {
+    flags.push("--output");
+  }
+  if (controls.debug) {
+    flags.push("--debug");
+  }
+  if (controls.verbose) {
+    flags.push("--verbose");
+  }
 
   if (versionEnabled) {
     flags.push("--version");
@@ -1580,20 +1617,29 @@ function formatCommandRows<TServices extends object>(
   }));
 }
 
-function formatGlobalOptionsLine(ctx: { showVersion: boolean; presetsEnabled: boolean }): string {
+function formatGlobalOptionsLine(ctx: {
+  controls: ResolvedCLIControls;
+  showVersion: boolean;
+  presetsEnabled: boolean;
+}): string {
   const flags: string[] = [];
 
   if (ctx.presetsEnabled) {
     flags.push("--preset <path>");
   }
 
-  flags.push("--yes", "--output <format>");
+  if (ctx.controls.yes) {
+    flags.push("--yes");
+  }
+  if (ctx.controls.output) {
+    flags.push("--output <format>");
+  }
 
   if (ctx.showVersion) {
     flags.push("--version");
   }
 
-  return `${text.section("Options:")} ${flags.join("  ")}`;
+  return flags.length > 0 ? `${text.section("Options:")} ${flags.join("  ")}` : "";
 }
 
 function collectSchemaGlobalFieldRows<TServices extends object>(
@@ -1669,6 +1715,7 @@ function renderGroupHelp<TServices extends object>(
   scope: Scope,
   casing: Casing,
   globalOptions: {
+    controls: ResolvedCLIControls;
     showVersion: boolean;
     presetsEnabled: boolean;
   },
@@ -1678,7 +1725,8 @@ function renderGroupHelp<TServices extends object>(
   const sections: string[] = [];
   const globalLongOptionFlags = getGlobalLongOptionFlags(
     globalOptions.presetsEnabled,
-    globalOptions.showVersion
+    globalOptions.showVersion,
+    globalOptions.controls
   );
   const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
 
@@ -1719,6 +1767,7 @@ function renderLeafHelp<TServices extends object>(
   breadcrumb: string[],
   casing: Casing,
   globalOptions: {
+    controls: ResolvedCLIControls;
     showVersion: boolean;
     presetsEnabled: boolean;
   },
@@ -1727,7 +1776,8 @@ function renderLeafHelp<TServices extends object>(
   const sections: string[] = [];
   const globalLongOptionFlags = getGlobalLongOptionFlags(
     globalOptions.presetsEnabled,
-    globalOptions.showVersion
+    globalOptions.showVersion,
+    globalOptions.controls
   );
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
@@ -1813,6 +1863,7 @@ async function renderGeneratedHelp<TServices extends object>(
   const output = resolveHelpOutput(argv);
   const casing = options.casing ?? "kebab";
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
+  const controls = resolveCLIControls(options.controls);
 
   await withOutputFormat(output, async () => {
     const rendered =
@@ -1823,6 +1874,7 @@ async function renderGeneratedHelp<TServices extends object>(
             "cli",
             casing,
             {
+              controls,
               showVersion: options.version !== undefined,
               presetsEnabled: options.presets === true
             },
@@ -1834,6 +1886,7 @@ async function renderGeneratedHelp<TServices extends object>(
             target.breadcrumb,
             casing,
             {
+              controls,
               showVersion: options.version !== undefined,
               presetsEnabled: options.presets === true
             },
@@ -1850,6 +1903,7 @@ function createNodeCommand<TServices extends object>(
   globalLongOptionFlags: ReadonlySet<string>,
   execute: (state: ExecutionState<TServices>) => Promise<void>,
   presetsEnabled: boolean,
+  controls: ResolvedCLIControls,
   pathSegments: string[] = []
 ): CommanderCommand | null {
   const nextPathSegments = [...pathSegments, node.name];
@@ -1870,7 +1924,7 @@ function createNodeCommand<TServices extends object>(
 
     node.aliases.forEach((alias) => command.alias(alias));
     command.addHelpCommand(false);
-    addGlobalOptions(command, presetsEnabled);
+    addGlobalOptions(command, presetsEnabled, controls);
     command.allowExcessArguments(true);
 
     if (collected.dynamicFields.length > 0) {
@@ -1921,6 +1975,7 @@ function createNodeCommand<TServices extends object>(
         globalLongOptionFlags,
         execute,
         presetsEnabled,
+        controls,
         nextPathSegments
       )
     )
@@ -1934,28 +1989,59 @@ function createNodeCommand<TServices extends object>(
 
   node.aliases.forEach((alias) => group.alias(alias));
   group.addHelpCommand(false);
-  addGlobalOptions(group, presetsEnabled);
+  addGlobalOptions(group, presetsEnabled, controls);
+  const childNames = new Set(visibleChildren.map((child) => child.name()));
   for (const child of visibleChildren) {
     const isDefaultChild =
       node.default !== undefined &&
       node.default.scope.includes("cli") &&
       (child.name() === node.default.name || child.aliases().includes(node.default.name));
 
-    group.addCommand(child, isDefaultChild ? { isDefault: true } : undefined);
+    addCommanderChild(group, child, isDefaultChild, childNames);
   }
 
   return group;
 }
 
-function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): void {
+function addCommanderChild(
+  parent: CommanderCommand,
+  child: CommanderCommand,
+  isDefault: boolean,
+  siblingNames: ReadonlySet<string>
+): void {
+  if (isDefault && child.name().length === 0) {
+    let internalName = "__toolcraft_default__";
+    let suffix = 2;
+
+    while (siblingNames.has(internalName)) {
+      internalName = `__toolcraft_default_${suffix}`;
+      suffix += 1;
+    }
+
+    child.name(internalName);
+    parent.addCommand(child, { hidden: true, isDefault: true });
+    return;
+  }
+
+  parent.addCommand(child, isDefault ? { isDefault: true } : undefined);
+}
+
+function addGlobalOptions(
+  command: CommanderCommand,
+  presetsEnabled: boolean,
+  controls: ResolvedCLIControls
+): void {
   const options: Option[] = [];
 
   if (presetsEnabled) {
     options.push(new Option("--preset <path>", "Load parameter defaults from a JSON file."));
   }
 
-  options.push(new Option("--yes", "Accept defaults and skip prompts."));
-  options.push(
+  if (controls.yes) {
+    options.push(new Option("--yes", "Accept defaults and skip prompts."));
+  }
+  if (controls.output) {
+    options.push(
     new Option("--output <format>", "Output format.").argParser((value: string) => {
       if (value === "rich" || value === "md" || value === "json") {
         return value;
@@ -1972,13 +2058,18 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         })
       );
     })
-  );
-  options.push(
+    );
+  }
+  if (controls.debug) {
+    options.push(
     new Option("--debug [mode]", "Print stack traces for unexpected errors.")
       .preset("trim")
       .argParser(parseDebugStackMode)
-  );
-  options.push(new Option("--verbose", "Print detailed runtime diagnostics."));
+    );
+  }
+  if (controls.verbose) {
+    options.push(new Option("--verbose", "Print detailed runtime diagnostics."));
+  }
 
   for (const option of options) {
     option.hideHelp(true);
@@ -4498,13 +4589,14 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   enableSourceMaps();
   const normalizedRoot = normalizeRoots(roots, process.argv);
-  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
+  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
   const version = options.version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
   const rootUsageName = options.rootUsageName ?? inferProgramName(process.argv);
+  const controls = resolveCLIControls(options.controls);
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
@@ -4527,8 +4619,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   program.showHelpAfterError();
   program.addHelpCommand(false);
   const presetsEnabled = options.presets === true;
-  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled, version !== undefined);
-  addGlobalOptions(program, presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(
+    presetsEnabled,
+    version !== undefined,
+    controls
+  );
+  addGlobalOptions(program, presetsEnabled, controls);
 
   if (version !== undefined) {
     program.version(version, "--version");
@@ -4558,13 +4654,19 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     );
   };
 
+  const rootChildNames = new Set(
+    root.children
+      .filter((candidate) => isNodeVisibleInScope(candidate, "cli"))
+      .map((candidate) => candidate.name)
+  );
   for (const child of root.children) {
     const command = createNodeCommand(
       child,
       casing,
       globalLongOptionFlags,
       execute,
-      presetsEnabled
+      presetsEnabled,
+      controls
     );
     if (command === null) {
       continue;
@@ -4575,7 +4677,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       root.default.scope.includes("cli") &&
       (command.name() === root.default.name || command.aliases().includes(root.default.name));
 
-    program.addCommand(command, isDefaultChild ? { isDefault: true } : undefined);
+    addCommanderChild(program, command, isDefaultChild, rootChildNames);
   }
   configureCommanderSuggestionOutput(program);
 

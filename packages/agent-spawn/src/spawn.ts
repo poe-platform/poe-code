@@ -3,6 +3,7 @@ import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
 import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
+import { applyMcpFile } from "./configs/mcp-file.js";
 import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { observeAgentSpawn } from "./observability/otel.js";
@@ -242,6 +243,10 @@ async function runSpawn(
 
   const cwd = options.cwd ?? process.cwd();
   const manifest = bridgeResourcesForRun(agentId, cwd, options.skills, options.hooks);
+  const restoreMcpFile =
+    options.mcpServers && spawnConfig.mcpFile
+      ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
+      : undefined;
   let logFd: number | undefined;
 
   try {
@@ -322,6 +327,7 @@ async function runSpawn(
     };
   } finally {
     closeSpawnLog(logFd);
+    await restoreMcpFile?.();
     cleanupResourcesForRun(manifest);
   }
 }

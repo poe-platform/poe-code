@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs/promises";
 import { adaptClaude } from "./claude.js";
 import { adaptCodex } from "./codex.js";
+import { adaptCursor } from "./cursor.js";
 import { adaptKimi } from "./kimi.js";
 import { adaptNative } from "./native.js";
 import { adaptOpenCode } from "./opencode.js";
@@ -566,6 +567,29 @@ describe("adaptCodex", () => {
   });
 });
 
+describe("adaptCursor", () => {
+  it("maps Cursor stream events and usage", async () => {
+    const events = await collect(adaptCursor(fromArray([
+      JSON.stringify({ type: "init", session_id: "session-1" }),
+      JSON.stringify({ type: "thinking", delta: "thinking" }),
+      JSON.stringify({ type: "assistant", content: [{ type: "text", text: "done" }] }),
+      JSON.stringify({ type: "tool_call", subtype: "started", call_id: "call-1", tool_call: { editToolCall: { args: { path: "src/a.ts" } } } }),
+      JSON.stringify({ type: "tool_call", subtype: "completed", call_id: "call-1", tool_call: { editToolCall: { args: { path: "src/a.ts" } } } }),
+      JSON.stringify({ type: "result", session_id: "session-1", usage: { inputTokens: 10, outputTokens: 4, cacheReadTokens: 3, cacheWriteTokens: 2 } })
+    ])));
+
+    expect(events).toEqual([
+      { event: "session_start", threadId: "session-1" },
+      { event: "reasoning", text: "thinking" },
+      { event: "agent_message", text: "done" },
+      { event: "tool_start", kind: "edit", title: "src/a.ts", id: "call-1" },
+      { event: "tool_complete", kind: "edit", path: "src/a.ts", id: "call-1" },
+      { event: "usage", inputTokens: 10, outputTokens: 4, cachedTokens: 3, _meta: { cacheWriteTokens: 2 } },
+      { event: "spawn_result", exitCode: 0, threadId: "session-1", usage: { inputTokens: 10, outputTokens: 4, cachedTokens: 3 } }
+    ]);
+  });
+});
+
 describe("adaptKimi", () => {
   it("emits session_start once when sessionId is present", async () => {
     const events = await collect(
@@ -859,6 +883,7 @@ describe("adapters barrel", () => {
   it("returns adapter functions by type", () => {
     expect(getAdapter("codex")).toBe(adaptCodex);
     expect(getAdapter("claude")).toBe(adaptClaude);
+    expect(getAdapter("cursor")).toBe(adaptCursor);
     expect(getAdapter("kimi")).toBe(adaptKimi);
     expect(getAdapter("native")).toBe(adaptNative);
     expect(getAdapter("opencode")).toBe(adaptOpenCode);

@@ -64,8 +64,8 @@ Run a single prompt through a configured agent CLI.
 
 Arguments:
   agent                        Agent to spawn (claude-code | claude | codex |
-                               gemini-cli | gemini | goose | kimi | kimi-cli |
-                               opencode | poe-agent)
+                               cursor | cursor-agent | gemini-cli | gemini |
+                               goose | kimi | kimi-cli | opencode | poe-agent)
   prompt                       Prompt text to send, '@path/to/file' to load from
                                a file, or '-' / stdin
   agentArgs                    Additional arguments forwarded to the agent CLI

@@ -14,6 +14,7 @@ import {
   type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
+  type ForInStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,
@@ -93,6 +94,7 @@ class ASShadowGlobalScanner {
       case "ForStatement":
         this.visitForStatement(node);
         return;
+      case "ForInStatement":
       case "ForOfStatement":
         this.visitForOfStatement(node);
         return;
@@ -156,7 +158,7 @@ class ASShadowGlobalScanner {
     this.visitStatement(node.body);
   }
 
-  private visitForOfStatement(node: ForOfStatement): void {
+  private visitForOfStatement(node: ForInStatement | ForOfStatement): void {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
@@ -353,7 +355,9 @@ class ASShadowGlobalScanner {
     this.visitExpression(node.right);
   }
 
-  private visitAssignmentTargetPattern(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTargetPattern(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTargetPattern(node.left);
@@ -410,7 +414,13 @@ class ASShadowGlobalScanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
@@ -426,7 +436,9 @@ class ASShadowGlobalScanner {
     }
   }
 
-  private visitPatternTarget(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitPatternTarget(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         this.reportIfGlobalShadow(node);

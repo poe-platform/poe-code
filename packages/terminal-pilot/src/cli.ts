@@ -3,7 +3,7 @@ import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCLI } from "toolcraft/cli";
-import { configureTheme } from "toolcraft-design";
+import { configureTheme } from "toolcraft/design";
 import { createTerminalPilotGroup } from "./commands/index.js";
 
 configureTheme({ brand: "green", label: "Terminal Pilot" });
@@ -24,7 +24,14 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   process.argv = normalizeArgv(argv);
 
   try {
-    await runCLI(createTerminalPilotGroup(), { approvals: false });
+    await runCLI(createTerminalPilotGroup(), {
+      controls: {
+        debug: true,
+        output: true,
+        verbose: true,
+        yes: true
+      }
+    });
   } finally {
     process.argv = originalArgv;
   }

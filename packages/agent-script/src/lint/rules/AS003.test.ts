@@ -11,6 +11,8 @@ describe("AS003", () => {
     expect(AS003("Math.PI;")).toEqual([]);
     expect(AS003("JSON.stringify({});")).toEqual([]);
     expect(AS003("Number.isFinite(1); Number.isNaN(0 / 0); Number.isInteger(1);")).toEqual([]);
+    expect(AS003('parseInt("1", 10); parseFloat("1.5"); isNaN("x"); isFinite("1");')).toEqual([]);
+    expect(AS003("structuredClone({ value: 1 });")).toEqual([]);
   });
 
   it("suggests nearby runtime globals for unresolved identifiers", () => {

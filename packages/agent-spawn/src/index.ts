@@ -23,6 +23,7 @@ export type {
   SpawnContext,
   SpawnLogger,
   McpSpawnConfig,
+  McpFileSpec,
   McpSpawnServer,
   OtelSink,
   OtelSpan,
@@ -43,7 +44,7 @@ export {
   listMcpSupportedAgents,
   supportsMcpAtSpawn
 } from "./configs/index.js";
-export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./configs/mcp.js";
+export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv, toJsonMcpServers } from "./configs/mcp.js";
 export {
   buildSpawnArgs,
   isActivityTimeoutError,

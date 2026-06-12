@@ -137,6 +137,12 @@ describe("createErrorGlobals", () => {
     await expect(run('const err = new Error("x"); return err instanceof Error;')).resolves.toBe(true);
   });
 
+  it("returns false for unrelated Error family constructors", async () => {
+    await expect(run('const err = new Error("x"); return err instanceof TypeError;')).resolves.toBe(
+      false
+    );
+  });
+
   it("keeps constructed error stacks limited to sandbox frames", async () => {
     const stack = await run('const make = () => new Error("sandbox"); return make().stack;');
 

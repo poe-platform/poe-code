@@ -14,11 +14,142 @@ import { callArrayMethod, getArrayMember } from "./array.js";
 describe("array methods", () => {
   it("exposes intercepted array members", () => {
     const values = [1, 2, 3];
+    Object.assign(values, { custom: "host value" });
+    const sparse = new Array(1) as SandboxValue[];
+    Object.setPrototypeOf(sparse, Object.assign(Object.create(Array.prototype), { 0: "host value" }));
     const options = createOptions(new Budget());
 
+    expect(getArrayMember(values, 0, options)).toBe(1);
+    expect(getArrayMember(values, "0", options)).toBe(1);
     expect(getArrayMember(values, "length", options)).toBe(3);
     expect(isSandboxClosure(getArrayMember(values, "map", options))).toBe(true);
+    expect(isSandboxClosure(getArrayMember(values, "findLast", options))).toBe(true);
+    expect(isSandboxClosure(getArrayMember(values, "toSorted", options))).toBe(true);
+    expect(isSandboxClosure(getArrayMember(values, "with", options))).toBe(true);
+    expect(getArrayMember(values, "custom", options)).toBeUndefined();
+    expect(getArrayMember(values, "01", options)).toBeUndefined();
+    expect(getArrayMember(values, -1, options)).toBeUndefined();
+    expect(getArrayMember(values, 1.5, options)).toBeUndefined();
+    expect(getArrayMember(values, 99, options)).toBeUndefined();
+    expect(getArrayMember(sparse, 0, options)).toBeUndefined();
     expect(getArrayMember(values, "missing", options)).toBeUndefined();
+  });
+
+  it("supports reverse callback searches with async callbacks", async () => {
+    const options = createOptions(new Budget());
+    const seen: number[] = [];
+    const isEven = createSandboxClosure({
+      call: async ([value, index]) => {
+        await Promise.resolve();
+        seen.push(Number(index));
+        return Number(value) % 2 === 0;
+      },
+      name: "isEven"
+    });
+
+    await expect(callArrayMethod([2, 3, 4, 5], "findLast", [isEven], options)).resolves.toBe(4);
+    expect(seen).toEqual([3, 2]);
+
+    seen.length = 0;
+    await expect(
+      callArrayMethod([2, 3, 4, 5], "findLastIndex", [isEven], options)
+    ).resolves.toBe(2);
+    expect(seen).toEqual([3, 2]);
+  });
+
+  it("returns the value observed by findLast before callback mutation", async () => {
+    const options = createOptions(new Budget());
+    const values = [1, 2, 3];
+    const mutateMatch = createSandboxClosure({
+      call: ([value, index, array]) => {
+        if (index === 2) {
+          (array as SandboxValue[])[2] = 9;
+          return true;
+        }
+
+        return value === 2;
+      },
+      name: "mutateMatch"
+    });
+
+    await expect(callArrayMethod(values, "findLast", [mutateMatch], options)).resolves.toBe(3);
+    expect(values).toEqual([1, 2, 9]);
+  });
+
+  it("supports fill and copyWithin mutations", async () => {
+    const options = createOptions(new Budget());
+    const filled = [1, 2, 3, 4];
+    const copied = [1, 2, 3, 4, 5];
+
+    await expect(callArrayMethod(filled, "fill", [0, 1, 3], options)).resolves.toBe(filled);
+    expect(filled).toEqual([1, 0, 0, 4]);
+
+    await expect(callArrayMethod(copied, "copyWithin", [0, 3], options)).resolves.toBe(copied);
+    expect(copied).toEqual([4, 5, 3, 4, 5]);
+  });
+
+  it("supports copying array methods without mutating the source", async () => {
+    const options = createOptions(new Budget());
+    const source = [3, 1, 2];
+    const ascending = createSandboxClosure({
+      call: async ([left, right]) => {
+        await Promise.resolve();
+        return Number(left) - Number(right);
+      },
+      name: "ascending"
+    });
+
+    await expect(callArrayMethod(source, "toSorted", [ascending], options)).resolves.toEqual([
+      1, 2, 3
+    ]);
+    await expect(callArrayMethod(source, "toReversed", [], options)).resolves.toEqual([2, 1, 3]);
+    await expect(callArrayMethod(source, "toSpliced", [1, 1, 8, 9], options)).resolves.toEqual([
+      3, 8, 9, 2
+    ]);
+    await expect(callArrayMethod(source, "with", [-1, 7], options)).resolves.toEqual([3, 1, 7]);
+    expect(source).toEqual([3, 1, 2]);
+  });
+
+  it("densifies sparse arrays in copying methods", async () => {
+    const options = createOptions(new Budget());
+    const sparse = new Array(4) as SandboxValue[];
+    sparse[1] = 2;
+    sparse[3] = 1;
+
+    for (const [method, args] of [
+      ["toSorted", []],
+      ["toReversed", []],
+      ["toSpliced", [1, 1, 9]],
+      ["with", [1, 9]]
+    ] as const) {
+      const result = (await callArrayMethod(sparse, method, args, options)) as SandboxValue[];
+      expect(result.every((_, index) => index in result)).toBe(true);
+    }
+
+    expect(0 in sparse).toBe(false);
+    expect(2 in sparse).toBe(false);
+  });
+
+  it("coerces with indexes per Array.prototype.with", async () => {
+    const options = createOptions(new Budget());
+
+    await expect(callArrayMethod([1, 2], "with", [undefined, 9], options)).resolves.toEqual([9, 2]);
+    await expect(callArrayMethod([1, 2], "with", [Number.NaN, 9], options)).resolves.toEqual([9, 2]);
+    await expect(callArrayMethod([1, 2], "with", [1.9, 9], options)).resolves.toEqual([1, 9]);
+    await expect(callArrayMethod([1, 2], "with", [-1.9, 9], options)).resolves.toEqual([1, 9]);
+  });
+
+  it("throws RangeError when with receives an out-of-bounds index", async () => {
+    const options = createOptions(new Budget());
+
+    await expect(callArrayMethod([1, 2], "with", [2, 3], options)).rejects.toThrow(RangeError);
+    await expect(callArrayMethod([1, 2], "with", [-3, 3], options)).rejects.toThrow(RangeError);
+    await expect(callArrayMethod([1, 2], "with", [Infinity, 3], options)).rejects.toThrow(
+      RangeError
+    );
+    await expect(callArrayMethod([1, 2], "with", [-Infinity, 3], options)).rejects.toThrow(
+      RangeError
+    );
   });
 
   it("supports callback-driven array methods", async () => {
@@ -475,6 +606,23 @@ describe("array methods", () => {
         limit: 1
       } satisfies Partial<SandboxError>)
     );
+    await expect(callArrayMethod([2, 1], "toSorted", [], arrayBudget)).rejects.toEqual(
+      expect.objectContaining({
+        budget: "arrayLength",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
+
+    const copied = [[1], [2]];
+    await expect(callArrayMethod(copied, "copyWithin", [0, 1], arrayBudget)).rejects.toEqual(
+      expect.objectContaining({
+        budget: "arrayLength",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
+    expect(copied).toEqual([[2], [2]]);
   });
 
   it("throws for reduce and reduceRight without an initial value on empty arrays", async () => {

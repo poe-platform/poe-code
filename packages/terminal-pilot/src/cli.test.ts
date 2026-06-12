@@ -11,6 +11,14 @@ const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGro
 
 const originalArgv = [...process.argv];
 const cliPath = fileURLToPath(new URL("./cli.ts", import.meta.url));
+const cliOptions = {
+  controls: {
+    debug: true,
+    output: true,
+    verbose: true,
+    yes: true
+  }
+};
 
 vi.mock("node:fs/promises", () => ({
   realpath: realpathMock
@@ -26,7 +34,7 @@ vi.mock("./commands/index.js", () => ({
 
 describe("terminal-pilot CLI entry point", () => {
   beforeEach(async () => {
-    const { resetTheme } = await import("toolcraft-design");
+    const { resetTheme } = await import("toolcraft/design");
     resetTheme();
     process.argv = [...originalArgv];
     realpathMock.mockReset();
@@ -39,7 +47,7 @@ describe("terminal-pilot CLI entry point", () => {
 
   it("configures the terminal-pilot brand on import", async () => {
     await import("./cli.js");
-    const { getThemeConfig } = await import("toolcraft-design");
+    const { getThemeConfig } = await import("toolcraft/design");
 
     expect(getThemeConfig()).toEqual({ brand: "green", label: "Terminal Pilot" });
   });
@@ -51,7 +59,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptions);
   });
 
   it("maps --json to toolcraft's output flag", async () => {
@@ -84,7 +92,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
-    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, { approvals: false });
+    expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock, cliOptions);
     expect(process.argv).toEqual(["node", "/tmp/terminal-pilot-bin", "--help"]);
   });
 

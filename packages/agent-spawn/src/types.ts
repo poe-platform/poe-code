@@ -38,6 +38,11 @@ export interface McpSpawnServer {
 
 export type McpSpawnConfig = Record<string, McpSpawnServer>;
 
+export interface McpFileSpec {
+  relativePath: string;
+  content: (servers: McpSpawnConfig) => Record<string, unknown>;
+}
+
 export type OtelSpan = {
   setAttribute(key: string, value: unknown): void;
   addEvent(name: string, attrs: Record<string, unknown>): void;
@@ -204,6 +209,7 @@ export interface CliSpawnConfig {
    * Use instead of `mcpArgs` when the agent reads MCP config from the environment.
    */
   mcpEnv?: (servers: McpSpawnConfig) => Record<string, string>;
+  mcpFile?: McpFileSpec;
   /**
    * Controls where serialized MCP args are inserted relative to the command.
    *

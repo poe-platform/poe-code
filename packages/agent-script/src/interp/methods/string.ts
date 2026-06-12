@@ -1,13 +1,18 @@
 import type { Expression } from "../../parse.js";
 import { Budget } from "../budget.js";
-import { createSandboxClosure, isSandboxClosure, type SandboxValue } from "../values.js";
+import {
+  createSandboxClosure,
+  getSandboxRegexPattern,
+  isSandboxClosure,
+  isSandboxRegex,
+  type SandboxClosure,
+  type SandboxRegex,
+  type SandboxValue
+} from "../values.js";
+import { matchRegexFrom } from "../regex/engine.js";
+import { executeRegex, toMatchArray } from "./regex.js";
 
-const SPLIT_REGEX_MESSAGE = "String#split does not support regex separator values.";
 const SPLIT_STRING_MESSAGE = "String#split only supports string separator values.";
-const REPLACE_MESSAGE =
-  "String#replace does not support function replacers or regex search values.";
-const REPLACE_ALL_MESSAGE =
-  "String#replaceAll does not support function replacers or regex search values.";
 
 type StringMethodName =
   | "at"
@@ -19,6 +24,8 @@ type StringMethodName =
   | "includes"
   | "indexOf"
   | "lastIndexOf"
+  | "match"
+  | "matchAll"
   | "normalize"
   | "padEnd"
   | "padStart"
@@ -26,6 +33,7 @@ type StringMethodName =
   | "replace"
   | "replaceAll"
   | "slice"
+  | "search"
   | "split"
   | "startsWith"
   | "substr"
@@ -46,6 +54,8 @@ const stringMethodNames = new Set<StringMethodName>([
   "includes",
   "indexOf",
   "lastIndexOf",
+  "match",
+  "matchAll",
   "normalize",
   "padEnd",
   "padStart",
@@ -53,6 +63,7 @@ const stringMethodNames = new Set<StringMethodName>([
   "replace",
   "replaceAll",
   "slice",
+  "search",
   "split",
   "startsWith",
   "substr",
@@ -69,6 +80,11 @@ export function getStringMember(
   property: string | number,
   budget: Budget
 ): SandboxValue | undefined {
+  const index = getStringIndex(property);
+  if (index !== undefined) {
+    return value[index];
+  }
+
   if (property === "length") {
     return value.length;
   }
@@ -83,38 +99,44 @@ export function getStringMember(
   });
 }
 
+function getStringIndex(property: string | number): number | undefined {
+  const index = typeof property === "number" ? property : Number(property);
+  if (!Number.isInteger(index) || index < 0 || String(index) !== String(property)) {
+    return undefined;
+  }
+
+  return index;
+}
+
 export function isStringMethodName(property: string | number): property is StringMethodName {
   return typeof property === "string" && stringMethodNames.has(property as StringMethodName);
 }
 
 export function validateStringMethodArguments(
-  methodName: StringMethodName,
-  args: readonly Expression[]
-): void {
-  if (methodName === "split" && args[0]?.type === "RegexLiteral") {
-    throw new TypeError(SPLIT_REGEX_MESSAGE);
-  }
-
-  if (
-    (methodName === "replace" || methodName === "replaceAll") &&
-    (args[0]?.type === "RegexLiteral" || isFunctionExpression(args[1]))
-  ) {
-    throw new TypeError(methodName === "replace" ? REPLACE_MESSAGE : REPLACE_ALL_MESSAGE);
-  }
-}
+  _methodName: StringMethodName,
+  _args: readonly Expression[]
+): void {}
 
 export function callStringMethod(
   value: string,
   methodName: StringMethodName,
   args: readonly SandboxValue[],
-  budget: Budget
-): SandboxValue {
+  budget: Budget,
+  callClosure: (
+    closure: SandboxClosure,
+    args: readonly SandboxValue[]
+  ) => Promise<SandboxValue> = async (closure, closureArgs) => await closure.call(closureArgs)
+): SandboxValue | Promise<SandboxValue> {
   if (methodName === "replace" || methodName === "replaceAll") {
-    return callReplaceLikeMethod(value, methodName, args, budget);
+    return callReplaceLikeMethod(value, methodName, args, budget, callClosure);
   }
 
   if (methodName === "split") {
     return callSplit(value, args, budget);
+  }
+
+  if (methodName === "match" || methodName === "matchAll" || methodName === "search") {
+    return callMatchLikeMethod(value, methodName, args);
   }
 
   if (args.some(isSandboxClosure)) {
@@ -179,54 +201,201 @@ function callReplaceLikeMethod(
   value: string,
   methodName: "replace" | "replaceAll",
   args: readonly SandboxValue[],
-  budget: Budget
-): string {
-  const message = methodName === "replace" ? REPLACE_MESSAGE : REPLACE_ALL_MESSAGE;
-
-  if (isSandboxClosure(args[0]) || isSandboxClosure(args[1])) {
-    throw new TypeError(message);
-  }
-
-  if (isRegexValue(args[0])) {
-    throw new TypeError(message);
-  }
-
-  if (typeof args[0] !== "string" || typeof args[1] !== "string") {
+  budget: Budget,
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+): string | Promise<string> {
+  const search = args[0];
+  const replacement = args[1];
+  if (
+    (!isSandboxRegex(search) && typeof search !== "string") ||
+    (typeof replacement !== "string" && !isSandboxClosure(replacement))
+  ) {
     throw new TypeError(
-      `String#${methodName} only supports string search and replacement arguments.`
+      `String#${methodName} only supports string or regex search values and string or function replacements.`
     );
   }
-
-  return budget.allocateString(
-    methodName === "replace" ? value.replace(args[0], args[1]) : value.replaceAll(args[0], args[1])
+  if (isSandboxRegex(search)) {
+    if (methodName === "replaceAll" && !search.flags.includes("g")) {
+      throw new TypeError("String#replaceAll requires a global regex.");
+    }
+    return replaceRegex(
+      value,
+      search,
+      replacement,
+      methodName === "replaceAll",
+      budget,
+      callClosure
+    );
+  }
+  if (typeof replacement === "string") {
+    return budget.allocateString(
+      methodName === "replace"
+        ? value.replace(search, replacement)
+        : value.replaceAll(search, replacement)
+    );
+  }
+  return replaceWithClosure(
+    value,
+    search,
+    replacement,
+    methodName === "replaceAll",
+    budget,
+    callClosure
   );
 }
 
+async function replaceRegex(
+  value: string,
+  regex: SandboxRegex,
+  replacement: string | SandboxClosure,
+  replaceAll: boolean,
+  budget: Budget,
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+): Promise<string> {
+  const matches = collectRegexMatches(regex, value, replaceAll || regex.flags.includes("g"));
+  let result = "";
+  let copiedThrough = 0;
+  for (const match of matches) {
+    result += value.slice(copiedThrough, match.index);
+    result +=
+      typeof replacement === "string"
+        ? expandReplacement(replacement, match.text, match.captures)
+        : String(
+            await callClosure(replacement, [match.text, ...match.captures, match.index, value])
+          );
+    copiedThrough = match.index + match.text.length;
+  }
+  result += value.slice(copiedThrough);
+  return budget.allocateString(result);
+}
+
+function expandReplacement(
+  replacement: string,
+  match: string,
+  captures: (string | undefined)[]
+): string {
+  return replacement.replace(/\$([$&]|[1-9][0-9]?)/g, (token, part: string) => {
+    if (part === "$") return "$";
+    if (part === "&") return match;
+    return captures[Number(part) - 1] ?? token;
+  });
+}
+
+async function replaceWithClosure(
+  value: string,
+  searchValue: string,
+  replacer: SandboxClosure,
+  replaceAll: boolean,
+  budget: Budget,
+  callClosure: (closure: SandboxClosure, args: readonly SandboxValue[]) => Promise<SandboxValue>
+): Promise<string> {
+  const offsets = findReplacementOffsets(value, searchValue, replaceAll);
+  let result = "";
+  let copiedThrough = 0;
+
+  for (const offset of offsets) {
+    result += value.slice(copiedThrough, offset);
+    result += String(await callClosure(replacer, [searchValue, offset, value]));
+    copiedThrough = offset + searchValue.length;
+  }
+
+  result += value.slice(copiedThrough);
+  return budget.allocateString(result);
+}
+
+function findReplacementOffsets(value: string, searchValue: string, replaceAll: boolean): number[] {
+  const firstOffset = value.indexOf(searchValue);
+  if (firstOffset === -1) {
+    return [];
+  }
+
+  if (!replaceAll) {
+    return [firstOffset];
+  }
+
+  if (searchValue.length === 0) {
+    return Array.from({ length: value.length + 1 }, (_, offset) => offset);
+  }
+
+  const offsets: number[] = [];
+  let offset = firstOffset;
+
+  while (offset !== -1) {
+    offsets.push(offset);
+    offset = value.indexOf(searchValue, offset + searchValue.length);
+  }
+
+  return offsets;
+}
+
 function callSplit(value: string, args: readonly SandboxValue[], budget: Budget): SandboxValue[] {
-  if (args.some(isSandboxClosure)) {
+  if (args.some(isSandboxClosure))
     throw new TypeError("String#split does not support function arguments.");
+  if (isSandboxRegex(args[0])) {
+    const limit = asNumberOrUndefined(args[1]) ?? 2 ** 32 - 1;
+    const result: SandboxValue[] = [];
+    let copiedThrough = 0;
+    let endedWithZeroWidthMatch = false;
+    for (const match of collectRegexMatches(args[0], value, true)) {
+      endedWithZeroWidthMatch = match.text.length === 0 && match.index === value.length;
+      if (match.text.length === 0 && match.index === 0) continue;
+      if (result.length >= limit) break;
+      result.push(budget.allocateString(value.slice(copiedThrough, match.index)));
+      for (const capture of match.captures) {
+        if (result.length >= limit) break;
+        result.push(capture === undefined ? undefined : budget.allocateString(capture));
+      }
+      copiedThrough = match.index + match.text.length;
+    }
+    if (result.length < limit && !endedWithZeroWidthMatch)
+      result.push(budget.allocateString(value.slice(copiedThrough)));
+    budget.allocateArrayLength(result.length);
+    return result;
   }
-
-  if (isRegexValue(args[0])) {
-    throw new TypeError(SPLIT_REGEX_MESSAGE);
-  }
-
-  if (args[0] !== undefined && typeof args[0] !== "string") {
+  if (args[0] !== undefined && typeof args[0] !== "string")
     throw new TypeError(SPLIT_STRING_MESSAGE);
-  }
-
   const limit = asNumberOrUndefined(args[1]);
   const result = splitString(value, args[0], limit).map((part) => budget.allocateString(part));
   budget.allocateArrayLength(result.length);
   return result;
 }
 
-function isFunctionExpression(node: Expression | undefined): boolean {
-  return node?.type === "ArrowFunctionExpression";
+function callMatchLikeMethod(
+  value: string,
+  methodName: "match" | "matchAll" | "search",
+  args: readonly SandboxValue[]
+): SandboxValue {
+  const regex = args[0];
+  if (!isSandboxRegex(regex))
+    throw new TypeError(`String#${methodName} requires a regex argument.`);
+  if (methodName === "search") {
+    const lastIndex = regex.lastIndex;
+    regex.lastIndex = 0;
+    const match = executeRegex(regex, value);
+    regex.lastIndex = lastIndex;
+    return match?.index ?? -1;
+  }
+  if (methodName === "matchAll" && !regex.flags.includes("g"))
+    throw new TypeError("String#matchAll requires a global regex.");
+  if (methodName === "match" && !regex.flags.includes("g"))
+    return toMatchArray(executeRegex(regex, value), value);
+  const matches = collectRegexMatches(regex, value, true);
+  return methodName === "match"
+    ? matches.map((match) => match.text)
+    : matches.map((match) => toMatchArray(match, value));
 }
 
-function isRegexValue(value: unknown): value is RegExp {
-  return value instanceof RegExp;
+function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean) {
+  const matches = [];
+  const pattern = getSandboxRegexPattern(regex);
+  let startIndex = 0;
+  do {
+    const match = matchRegexFrom(pattern, value, startIndex);
+    if (match === null) break;
+    matches.push(match);
+    startIndex = match.index + Math.max(match.text.length, 1);
+  } while (all);
+  return matches;
 }
 
 function splitString(

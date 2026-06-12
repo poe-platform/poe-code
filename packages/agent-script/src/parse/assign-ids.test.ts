@@ -235,12 +235,40 @@ function measureCpuMs(action: () => void): number {
 }
 
 describe("assignIds", () => {
+  it("assigns IDs to function expressions and their children", () => {
+    const root = parse("const f = function check(value) { return value; };");
+    const records = collectNodeRecords(root);
+
+    expect(records.map((record) => record.type)).toContain("FunctionExpression");
+    expect(records.map((record) => record.type)).toContain("Identifier");
+    expect(records.map((record) => record.id)).toEqual(records.map((_, index) => index));
+  });
   it.each([
     "const { user = fallback, profile: { name }, ...rest } = config",
     "`prefix ${first} middle ${second}`",
     "({ a, a: alias = fallback, nested: { b }, ...rest }) => `${a}${alias}${b}${rest}`"
   ])("assigns stable ids for the same source across parse runs: %s", (source) => {
     expect(collectNodeRecords(parse(source))).toEqual(collectNodeRecords(parse(source)));
+  });
+
+  it("assigns ids throughout function declarations", () => {
+    const nodes = collectNodesInIdOrder(
+      parse("async function load(value = fallback) { return await task(value); }")
+    );
+
+    expect(nodes.map((node) => node.type)).toEqual([
+      "FunctionDeclaration",
+      "Identifier",
+      "AssignmentPattern",
+      "Identifier",
+      "Identifier",
+      "BlockStatement",
+      "ReturnStatement",
+      "AwaitExpression",
+      "CallExpression",
+      "Identifier",
+      "Identifier"
+    ]);
   });
 
   it("does not shift unrelated node ids when comments are added", () => {
@@ -258,7 +286,9 @@ describe("assignIds", () => {
   });
 
   it("appends new ids when a statement is added at the end", () => {
-    const base = collectStableNodeRecords(parseModule("const first = 1;\nconst second = first + 2;"));
+    const base = collectStableNodeRecords(
+      parseModule("const first = 1;\nconst second = first + 2;")
+    );
     const appended = collectStableNodeRecords(
       parseModule("const first = 1;\nconst second = first + 2;\nconst third = second + 3;")
     );
@@ -270,7 +300,9 @@ describe("assignIds", () => {
   });
 
   it("renumbers following nodes when a statement is inserted at the beginning", () => {
-    const base = collectStableNodeRecords(parseModule("const first = 1;\nconst second = first + 2;"));
+    const base = collectStableNodeRecords(
+      parseModule("const first = 1;\nconst second = first + 2;")
+    );
     const prepended = collectStableNodeRecords(
       parseModule("const before = 0;\nconst first = 1;\nconst second = first + 2;")
     );

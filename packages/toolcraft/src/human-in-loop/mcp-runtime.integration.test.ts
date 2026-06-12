@@ -185,6 +185,7 @@ describe("human-in-loop MCP runtime", () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const handler = vi.fn(async () => "should not run");
     const server = createMCPServer(createRoot("async", handler), {
+      approvals: true,
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true,

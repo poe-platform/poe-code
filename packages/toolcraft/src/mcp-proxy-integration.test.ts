@@ -523,7 +523,7 @@ describe("mcp proxy integration", () => {
     expect(readOutput(stderrWrite)).toContain("MCP github: wrote");
   });
 
-  it("closes the previous hot upstream subprocess when the same root is resolved again", async () => {
+  it("replaces and reconnects hot upstream subprocesses", async () => {
     const harness = await createHarness();
     harnesses.push(harness);
     setProjectRoot(harness);
@@ -555,37 +555,15 @@ describe("mcp proxy integration", () => {
     expect(secondPid).toBeGreaterThan(0);
     expect(secondPid).not.toBe(firstPid);
     expect(await readNumberFile(harness.countFile)).toBe(2);
-  });
-
-  it("reconnects after the hot upstream subprocess is killed", async () => {
-    const harness = await createHarness();
-    harnesses.push(harness);
-    setProjectRoot(harness);
-
-    await resolveMcpProxies(createProxyRoot(harness).root);
-    await resetObservedState(harness);
-
-    const { github, root } = createProxyRoot(harness);
-    await resolveMcpProxies(root);
+    process.kill(secondPid, "SIGTERM");
+    await waitForProcessExit(secondPid);
 
     expect(
-      await callCommand(github, ["caesar_cipher_encrypt"], { text: "hello" })
+      await callCommand(github, ["caesar_cipher_encrypt"], { text: "xyz" })
     ).toEqual({
-      content: [{ type: "text", text: "khoor" }],
+      content: [{ type: "text", text: "abc" }],
     });
-    expect(await readNumberFile(harness.countFile)).toBe(1);
-
-    const firstPid = await readNumberFile(harness.pidFile);
-    expect(firstPid).toBeGreaterThan(0);
-    process.kill(firstPid, "SIGTERM");
-    await waitForProcessExit(firstPid);
-
-    expect(
-      await callCommand(github, ["caesar_cipher_encrypt"], { text: "abc" })
-    ).toEqual({
-      content: [{ type: "text", text: "def" }],
-    });
-    expect(await readNumberFile(harness.countFile)).toBe(2);
+    expect(await readNumberFile(harness.countFile)).toBe(3);
   });
 
   it("keeps discovery output off stdout in runMCP mode", async () => {

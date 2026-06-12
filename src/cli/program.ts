@@ -779,6 +779,7 @@ function registerForwardedToolcraftCommand(
     .description(options.description)
     .aliases([...(options.aliases ?? [])])
     .argument("[args...]")
+    .option("--output <format>", "Output format.")
     .allowUnknownOption()
     .allowExcessArguments()
     .helpOption(false)
@@ -893,14 +894,6 @@ function bootstrapProgram(container: CliContainer): Command {
     .option("-y, --yes", "Accept defaults without prompting.")
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--verbose", "Show verbose logs.")
-    .addOption(
-      new Option("--output <format>", "Output format for forwarded Toolcraft commands.").choices([
-        "rich",
-        "md",
-        "markdown",
-        "json"
-      ])
-    )
     .helpOption("-h, --help", "Display help for command")
     .showHelpAfterError(false)
     .showSuggestionAfterError(true)

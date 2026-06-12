@@ -912,15 +912,15 @@ describe("root command", () => {
     process.argv = [
       "node",
       "/usr/local/bin/poe-code",
-      "--output",
-      "json",
       "eval",
       "run",
       "--agent",
       "codex",
       "--model",
       "openai/gpt-5",
-      "--dry-run"
+      "--dry-run",
+      "--output",
+      "json"
     ];
 
     const program = createProgram({

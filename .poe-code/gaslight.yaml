@@ -1,0 +1,7 @@
+prompt: Implement
+followups:
+  - Is this best you can do? Maybe we could simplify a bit.
+  - Did you test it well? Like real end to end test?
+  - Did you commit the changes?
+  - Did you run e2e:verbose? 
+  - Did you push the changes and waited for release to go green?

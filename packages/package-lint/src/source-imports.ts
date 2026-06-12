@@ -43,7 +43,7 @@ interface RawImport {
   typeOnly: boolean;
 }
 
-function extractImports(text: string, fileName: string): RawImport[] {
+function extractImportsFromAst(text: string, fileName: string): RawImport[] {
   const sourceFile = ts.createSourceFile(
     fileName,
     text,
@@ -99,6 +99,17 @@ function extractImports(text: string, fileName: string): RawImport[] {
   return out;
 }
 
+export function extractRelevantImports(text: string, fileName: string): RawImport[] {
+  if (text.includes("import type") || text.includes("export type") || text.includes("{ type ")) {
+    return extractImportsFromAst(text, fileName);
+  }
+
+  return ts.preProcessFile(text, true, true).importedFiles.map(({ fileName: specifier }) => ({
+    specifier,
+    typeOnly: false
+  }));
+}
+
 async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
   let entries: { name: string; isDirectory(): boolean }[];
   try {
@@ -119,6 +130,26 @@ async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
     }
   }
   return files;
+}
+
+export function mayContainRelevantImport(
+  source: string,
+  workspaceNames: ReadonlySet<string>
+): boolean {
+  const imports = ts.preProcessFile(source, true, true).importedFiles;
+  for (const { fileName } of imports) {
+    if (fileName.startsWith("../")) {
+      return true;
+    }
+
+    for (const packageName of workspaceNames) {
+      if (fileName === packageName || fileName.startsWith(`${packageName}/`)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 function classify(
@@ -165,11 +196,14 @@ function classify(
 export async function scanSourceImports(
   fs: LintFs,
   rootDir: string,
-  packageDirs: string[]
+  packages: Array<{
+    dir: string;
+    workspaceNames: ReadonlySet<string>;
+  }>
 ): Promise<SourceImportView> {
   const view: SourceImportView = new Map();
   await Promise.all(
-    packageDirs.map(async (packageDir) => {
+    packages.map(async ({ dir: packageDir, workspaceNames }) => {
       const srcDir = path.join(rootDir, packageDir, "src");
       const files = await listSourceFiles(fs, srcDir);
       const refs: ImportRef[] = [];
@@ -180,8 +214,11 @@ export async function scanSourceImports(
         } catch {
           continue;
         }
+        if (!mayContainRelevantImport(text, workspaceNames)) {
+          continue;
+        }
         const relFile = toPosix(path.relative(rootDir, absFile));
-        for (const raw of extractImports(text, absFile)) {
+        for (const raw of extractRelevantImports(text, absFile)) {
           refs.push(classify(raw, rootDir, packageDir, absFile, relFile));
         }
       }

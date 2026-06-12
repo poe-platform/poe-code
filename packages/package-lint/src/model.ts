@@ -318,10 +318,14 @@ export async function loadWorkspace(fs: LintFs, rootDir: string): Promise<Worksp
   for (const p of packages) byDir.set(p.dir, p);
 
   const { shippedDirs, binTargets } = deriveShipped(root);
+  const workspaceNames = new Set(packages.map((p) => p.name));
   const sourceImports = await scanSourceImports(
     fs,
     rootDir,
-    packages.map((p) => p.dir)
+    packages.map((pkg) => ({
+      dir: pkg.dir,
+      workspaceNames: new Set([...workspaceNames].filter((name) => name !== pkg.name))
+    }))
   );
   return {
     root,

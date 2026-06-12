@@ -52,6 +52,7 @@ Concrete end state. This is the most important to get right. For example, practi
 
 ### 3. Implementation details and technical decisions
 
+- **Autonomy audit — do this first.** Everything the executor needs that the repo doesn't provide: env vars, credentials, network access, running services, sample data. Each item is confirmed available or gets a setup step in the plan; raise gaps in chat before drafting the rest of the level. A step that needs a human mid-run means the plan isn't ready.
 - Architecture — where the code lives, what it touches.
 - Edge cases — technical and product.
 - Flags, env vars, config — and which are default-on.
@@ -63,8 +64,9 @@ Contracts + validation, aimed at autonomous execution.
 - Module-boundary types.
 - Cross-package function signatures.
 - Tests: unit, integration, e2e, manual QA — and what each proves.
+- **Real-world test** — exact commands run against the real thing, in order: the invocation, the expected output, and the observation that proves it worked. "Tests pass" is not a real-world test.
+- **Must-work checklist** — `- [ ]` behaviors that must work when done, each paired with the command or observation that proves it. The executor checks a box only after running its proof.
 - Rollout / migration if existing callers are affected.
-- **Autonomy checklist** — what an agent needs to build and test without coming back.
 
 ### 5. Code plan
 

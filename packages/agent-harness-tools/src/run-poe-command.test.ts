@@ -1106,6 +1106,22 @@ describe("runPoeCommand", () => {
     expect(kill).toHaveBeenCalledWith("SIGTERM");
   });
 
+  it("requests a killable process group for unwrapped activity timeouts", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv({ result: Promise.resolve({ exitCode: 0 }) });
+
+    await runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({
+        execution: { activityTimeoutMs: 100, wrapForLogTee: false }
+      }),
+      detach: false,
+      state
+    });
+
+    expect(env.execSpecs[0]).toMatchObject({ killProcessGroup: true });
+  });
+
   it("rejects a wrapped synchronous run when its abort signal fires", async () => {
     const { state, statuses } = createRecordingState();
     const controller = new AbortController();

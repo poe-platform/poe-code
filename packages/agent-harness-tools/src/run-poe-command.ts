@@ -73,7 +73,10 @@ export async function runPoeCommand(opts: {
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
           signal: opts.signal,
-          killProcessGroup: wrapCommand ? true : undefined
+          killProcessGroup:
+            wrapCommand || opts.signal !== undefined || execution?.activityTimeoutMs !== undefined
+              ? true
+              : undefined
         });
     const running = opts.detach
       ? undefined
@@ -230,7 +233,10 @@ export function createPoeCommandSession(opts: {
             stdout: openSpec.execution?.stdout ?? "pipe",
             stderr: openSpec.execution?.stderr ?? "pipe",
             signal,
-            killProcessGroup: wrapCommand ? true : undefined
+            killProcessGroup:
+              wrapCommand || signal !== undefined || openSpec.execution?.activityTimeoutMs !== undefined
+                ? true
+                : undefined
           });
       const running = settleRunSync(runSync({
         env: currentEnv,
@@ -418,7 +424,7 @@ async function runSync(opts: {
   const execution = opts.openSpec.execution;
   const capture = execution?.captureOutput === true;
   const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs, {
-    forceKillAfterMs: opts.wrapCommand ? WRAPPED_COMMAND_FORCE_KILL_GRACE_MS : undefined
+    forceKillAfterMs: WRAPPED_COMMAND_FORCE_KILL_GRACE_MS
   });
   const streamState = capture
     ? captureRunStreams(opts.handle, execution, abort.resetActivityTimer)

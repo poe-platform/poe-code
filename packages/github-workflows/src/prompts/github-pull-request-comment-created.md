@@ -4,7 +4,6 @@ allow:
   - OWNER
   - MEMBER
   - COLLABORATOR
-  - CONTRIBUTOR
 prefix:
   - "poe-code"
   - "poe-code-agent"

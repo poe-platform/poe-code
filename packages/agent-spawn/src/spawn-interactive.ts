@@ -4,6 +4,7 @@ import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
+import { mergeSpawnEnvironment } from "./environment.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { resolveAgentModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
@@ -92,7 +93,9 @@ export async function spawnInteractive(
     ...(options.env ?? {})
   };
   const processEnv =
-    Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+    Object.keys(envOverrides).length > 0
+      ? mergeSpawnEnvironment(process.env, envOverrides)
+      : undefined;
   const executionEnv = processEnv as Record<string, string> | undefined;
   const cwd = options.cwd ?? process.cwd();
   const argv = [resolved.binaryName, ...args];

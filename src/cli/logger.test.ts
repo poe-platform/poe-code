@@ -9,9 +9,12 @@ const noteFn = vi.hoisted(() => vi.fn());
 const introFn = vi.hoisted(() => vi.fn());
 const introPlainFn = vi.hoisted(() => vi.fn());
 const outroFn = vi.hoisted(() => vi.fn());
+const resolveOutputFormatFn = vi.hoisted(() => vi.fn(() => "terminal"));
 
 vi.mock("toolcraft-design", () => ({
   log: {
+    info: logMessage,
+    success: logMessage,
     message: logMessage,
     warn: logWarn,
     error: logError
@@ -20,7 +23,7 @@ vi.mock("toolcraft-design", () => ({
   intro: introFn,
   introPlain: introPlainFn,
   outro: outroFn,
-  resolveOutputFormat: () => "terminal"
+  resolveOutputFormat: resolveOutputFormatFn
 }));
 
 import { createLoggerFactory } from "./logger.js";
@@ -34,6 +37,7 @@ describe("createLoggerFactory", () => {
     introFn.mockClear();
     introPlainFn.mockClear();
     outroFn.mockClear();
+    resolveOutputFormatFn.mockReturnValue("terminal");
   });
 
   it("uses purple symbols for info and success without a custom emitter", () => {
@@ -48,6 +52,27 @@ describe("createLoggerFactory", () => {
     expect(logMessage).toHaveBeenCalledWith("Done", {
       symbol: chalk.magenta("◆")
     });
+  });
+
+  it("delegates non-terminal messages to structured design-system loggers", () => {
+    resolveOutputFormatFn.mockReturnValue("json");
+    const logger = createLoggerFactory().create({ verbose: true });
+
+    logger.info("Hello");
+    logger.success("Done");
+    logger.warn("Careful");
+    logger.error("Failed");
+    logger.verbose("Details");
+    logger.resolved("Model", "Claude-Opus-4.7");
+    logger.errorResolved("Configuration Failed", "Missing API key");
+
+    expect(logMessage).toHaveBeenCalledWith("Hello");
+    expect(logMessage).toHaveBeenCalledWith("Done");
+    expect(logWarn).toHaveBeenCalledWith("Careful");
+    expect(logError).toHaveBeenCalledWith("Failed");
+    expect(logMessage).toHaveBeenCalledWith("Details");
+    expect(logMessage).toHaveBeenCalledWith("Model: Claude-Opus-4.7");
+    expect(logError).toHaveBeenCalledWith("Configuration Failed: Missing API key");
   });
 
   it("renders nextSteps as a clack note box", () => {

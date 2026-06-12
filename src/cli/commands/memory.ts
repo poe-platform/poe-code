@@ -184,11 +184,9 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .description("List every page with a one-line description.")
     .action(async () => {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "memory:ls");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
-      resources.logger.intro("memory ls");
       await assertInitialized(mem);
 
       const pages = await mem.listPages();
@@ -211,11 +209,9 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .argument("<path>", "Page path (relative to memory pages/)")
     .action(async (pagePath: string) => {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "memory:show");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
-      resources.logger.intro("memory show");
       await assertInitialized(mem);
 
       const relPath = resolvePageRelPath(pagePath);
@@ -239,11 +235,9 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .argument("<query>", "Search query")
     .action(async (query: string) => {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "memory:search");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
-      resources.logger.intro("memory search");
       await assertInitialized(mem);
 
       const hits = await mem.searchMemory(query);
@@ -440,12 +434,10 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .option("--no-tokens", "Skip token stats calculation")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "memory:status");
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       const options = this.opts<{ tokens: boolean }>();
 
-      resources.logger.intro("memory status");
       await assertInitialized(mem);
 
       const status = await mem.statusOf();

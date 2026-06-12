@@ -373,7 +373,7 @@ export function createExecutionResources(
   container: CliContainer,
   flags: CommandFlags,
   scope: string,
-  env?: Record<string, string>
+  env?: Record<string, string | undefined>
 ): ExecutionResources {
   const baseLogger = container.loggerFactory.create({
     dryRun: flags.dryRun,

@@ -2,6 +2,7 @@ import type { AdapterType } from "./adapters/index.js";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type { StateManager } from "@poe-code/poe-code-config";
 import type { AcpMiddleware } from "./acp/middleware.js";
+import type { SpawnEnvironment } from "./environment.js";
 
 export const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
 
@@ -110,7 +111,7 @@ export interface SpawnOptions {
   /** Include prompt and tool content in native OTLP telemetry. */
   captureOtelContent?: boolean;
   /** Additional environment passed to the spawned agent. */
-  env?: Record<string, string>;
+  env?: SpawnEnvironment;
   middlewares?: AcpMiddleware[];
   tee?: {
     stdout?: { write(chunk: string): void };

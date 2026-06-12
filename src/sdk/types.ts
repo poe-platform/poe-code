@@ -79,7 +79,7 @@ export interface SpawnOptions {
   /** Additional arguments forwarded to the CLI */
   args?: string[];
   /** Environment overrides applied only to this spawned run. */
-  env?: Record<string, string>;
+  env?: Record<string, string | undefined>;
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
   /** @deprecated Use mcpServers instead. */

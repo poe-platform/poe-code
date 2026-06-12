@@ -318,6 +318,27 @@ describe("spawnInteractive", () => {
     }
   });
 
+  it("removes inherited environment variables for one interactive spawn", async () => {
+    const inheritedValue = process.env.POE_CODE_INTERACTIVE_UNSET_TEST;
+    process.env.POE_CODE_INTERACTIVE_UNSET_TEST = "parent";
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
+
+    try {
+      await spawnInteractive("codex", {
+        prompt: "test",
+        env: { POE_CODE_INTERACTIVE_UNSET_TEST: undefined }
+      });
+
+      expect(spawnMock.mock.calls[0]?.[2]?.env).not.toHaveProperty(
+        "POE_CODE_INTERACTIVE_UNSET_TEST"
+      );
+      expect(process.env.POE_CODE_INTERACTIVE_UNSET_TEST).toBe("parent");
+    } finally {
+      if (inheritedValue === undefined) delete process.env.POE_CODE_INTERACTIVE_UNSET_TEST;
+      else process.env.POE_CODE_INTERACTIVE_UNSET_TEST = inheritedValue;
+    }
+  });
+
   it("throws clear error for interactive MCP on unsupported agents", () => {
     const fakeConfig = { kind: "cli" as const, agentId: "fake-agent" } as CliSpawnConfig;
     expect(() =>

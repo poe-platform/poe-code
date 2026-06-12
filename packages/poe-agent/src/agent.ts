@@ -59,6 +59,7 @@ export type AgentRunOptions = {
   createSpawnSession?: AgentHostOptions["createSpawnSession"];
   onStdout?: (chunk: string) => void;
   logPath?: string;
+  env?: Record<string, string | undefined>;
 };
 
 type InternalAgentRunOptions = AgentRunOptions & {
@@ -409,6 +410,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
               cwd: options.cwd ?? process.cwd(),
               ...(mode === undefined ? {} : { mode }),
               ...(options.baseUrl === undefined ? {} : { baseUrl: options.baseUrl }),
+              ...(options.env === undefined ? {} : { env: options.env }),
               ...(spawnMcpServers === undefined ? {} : { mcpServers: spawnMcpServers })
             });
           }),

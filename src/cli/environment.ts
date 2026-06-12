@@ -29,7 +29,7 @@ export interface CliEnvironment {
 
 export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
   const platform = init.platform ?? process.platform;
-  const variables = init.variables ?? process.env;
+  const variables = normalizeEnvironment(init.variables ?? process.env);
   const configPath = resolveConfigPath(init.homeDir);
   const servicesConfigPath = resolveServicesConfigPath(init.homeDir);
   const projectConfigPath = resolveProjectConfigPath(init.cwd);
@@ -56,6 +56,18 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
   };
 }
 
+function normalizeEnvironment(
+  input: Record<string, string | undefined>
+): Record<string, string | undefined> {
+  const output = Object.create(null) as Record<string, string | undefined>;
+  for (const [key, value] of Object.entries(input)) {
+    if (typeof value === "string") {
+      output[key] = value;
+    }
+  }
+  return output;
+}
+
 export function resolveLogDir(homeDir: string): string {
   return path.join(homeDir, ".poe-code", "logs");
 }
@@ -77,7 +89,7 @@ function resolvePoeBaseUrls(variables: Record<string, string | undefined>): {
   poeApiBaseUrl: string;
   poeBaseUrl: string;
 } {
-  const raw = variables.POE_BASE_URL;
+  const raw = Object.hasOwn(variables, "POE_BASE_URL") ? variables.POE_BASE_URL : undefined;
   const baseInput =
     typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : DEFAULT_POE_API_BASE_URL;
   const parsed = parseUrl(baseInput);

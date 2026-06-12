@@ -3,9 +3,7 @@ import path from "node:path";
 import { allAgents, resolveAgentId, type AgentDefinition } from "@poe-code/agent-defs";
 import { createTimestamp, readFileIfExists, type FileSystem } from "@poe-code/config-mutations";
 import {
-  anthropicProvider,
-  cloudflareProvider,
-  poeProvider,
+  allAuthProviders,
   ProviderRegistry,
   resolveApiShape,
   type ApiShapeId
@@ -443,11 +441,7 @@ function isRecord(value: unknown): value is Record<string, any> {
 }
 
 const agentsById = new Map(allAgents.map((agent) => [agent.id, agent]));
-const defaultProviderRegistry = new ProviderRegistry([
-  poeProvider,
-  anthropicProvider,
-  cloudflareProvider
-]);
+const defaultProviderRegistry = new ProviderRegistry(allAuthProviders);
 const CORE_SCOPE = "core";
 const configuredServicesScope = "configured_services";
 const EMPTY_DOCUMENT = `${JSON.stringify({}, null, 2)}\n`;

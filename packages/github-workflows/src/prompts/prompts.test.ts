@@ -92,6 +92,21 @@ describe("built-in prompts", () => {
     expect(automation?.prompt).toContain("check for existing open PRs");
   });
 
+  it("restricts comment-triggered write automations to current collaborators", async () => {
+    const automations = await discoverAutomations(promptsDir);
+
+    for (const name of [
+      "github-issue-comment-created",
+      "github-pull-request-comment-created"
+    ]) {
+      expect(automations.find((automation) => automation.name === name)?.allow).toEqual([
+        "OWNER",
+        "MEMBER",
+        "COLLABORATOR"
+      ]);
+    }
+  });
+
   it("keeps issue-opened automation from closing unclear issues", async () => {
     const automations = await discoverAutomations(promptsDir);
     const automation = automations.find(({ name }) => name === "github-issue-opened");

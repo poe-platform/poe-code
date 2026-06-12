@@ -13,8 +13,7 @@ import { ErrorLogger } from "../cli/error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
 import {
-  anthropicProvider,
-  cloudflareProvider,
+  allAuthProviders,
   ProviderRegistry,
   poeProvider,
   type AuthProvider
@@ -93,7 +92,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
   };
 
   const contextFactory = createCommandContextFactory({ fs: asyncFs });
-  const authProviders = [poeProvider, anthropicProvider, cloudflareProvider] as const;
+  const authProviders = allAuthProviders;
   const requireAuthProvider = (providerId: string): AuthProvider => {
     const provider = authProviders.find((candidate) => candidate.id === providerId);
     if (!provider) {

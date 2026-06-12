@@ -33,7 +33,7 @@ export interface GetPoeAuthIdentityOptions {
  * @throws Error if no credentials found
  */
 export async function getPoeApiKey(): Promise<string> {
-  const envKey = process.env.POE_API_KEY;
+  const envKey = Object.hasOwn(process.env, "POE_API_KEY") ? process.env.POE_API_KEY : undefined;
   if (typeof envKey === "string" && envKey.trim().length > 0) {
     return envKey.trim();
   }
@@ -56,7 +56,7 @@ export async function getPoeApiKey(): Promise<string> {
 }
 
 export async function ensurePoeApiKeyEnv(): Promise<void> {
-  const envKey = process.env.POE_API_KEY;
+  const envKey = Object.hasOwn(process.env, "POE_API_KEY") ? process.env.POE_API_KEY : undefined;
   if (typeof envKey === "string" && envKey.trim().length > 0) {
     return;
   }

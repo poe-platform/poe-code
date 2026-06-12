@@ -13,7 +13,10 @@ jobs:
   run:
     if: github.event.label.name == 'agent'
     uses: __UPSTREAM_REPO__/.github/workflows/gh-github-issue-opened.yml@main
-    secrets: inherit
+    secrets:
+      POE_CODE_AGENT_APP_ID: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+      POE_CODE_AGENT_PRIVATE_KEY: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      POE_API_KEY: ${{ secrets.POE_API_KEY }}
     with:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       ISSUE_TITLE: ${{ github.event.issue.title }}

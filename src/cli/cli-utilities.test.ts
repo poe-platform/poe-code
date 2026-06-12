@@ -465,6 +465,20 @@ describe("CliEnvironment", () => {
     expect(environment.getVariable("UNKNOWN_VAR")).toBeUndefined();
   });
 
+  it("ignores inherited environment variables", () => {
+    const variables = Object.create({
+      POE_API_KEY: "inherited-key",
+      POE_BASE_URL: "https://inherited.example/v1"
+    }) as Record<string, string | undefined>;
+    variables.OWN_VALUE = "own";
+
+    const environment = createCliEnvironment({ cwd, homeDir, variables });
+
+    expect(environment.getVariable("POE_API_KEY")).toBeUndefined();
+    expect(environment.getVariable("OWN_VALUE")).toBe("own");
+    expect(environment.poeApiBaseUrl).toBe("https://api.poe.com/v1");
+  });
+
   it("derives Poe base URLs from POE_BASE_URL with v1", () => {
     const environment = createCliEnvironment({
       cwd,

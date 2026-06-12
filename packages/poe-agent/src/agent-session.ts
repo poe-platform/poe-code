@@ -63,6 +63,7 @@ export interface CreateAgentSessionOptions {
   maxToolCallIterations?: number;
   mode?: SpawnMode;
   resume?: { messages: ChatMessage[] };
+  env?: Record<string, string | undefined>;
 }
 
 type LegacyAcpRunOptions = AgentRunOptions & {
@@ -154,6 +155,7 @@ function adaptAcpToLegacySession(
         baseUrl: options.baseUrl,
         fetch: options.fetch,
         cwd: options.cwd,
+        env: options.env,
         maxIterations: options.maxToolCallIterations,
         __legacyAutoHandleTools: true
       };

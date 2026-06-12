@@ -22,8 +22,7 @@ import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
 import {
-  anthropicProvider,
-  cloudflareProvider,
+  allAuthProviders,
   ProviderRegistry,
   poeProvider,
   type AuthProvider
@@ -119,7 +118,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
   const commandRunner = dependencies.commandRunner ?? runCommand;
 
   const promptLibrary = createPromptLibrary();
-  const authProviders = [poeProvider, anthropicProvider, cloudflareProvider] as const;
+  const authProviders = allAuthProviders;
   const requireAuthProvider = (providerId: string): AuthProvider => {
     const provider = authProviders.find((candidate) => candidate.id === providerId);
     if (!provider) {

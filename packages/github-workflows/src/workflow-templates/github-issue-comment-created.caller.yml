@@ -10,7 +10,10 @@ permissions:
 jobs:
   run:
     uses: __UPSTREAM_REPO__/.github/workflows/gh-github-issue-comment-created.yml@main
-    secrets: inherit
+    secrets:
+      POE_CODE_AGENT_APP_ID: ${{ secrets.POE_CODE_AGENT_APP_ID }}
+      POE_CODE_AGENT_PRIVATE_KEY: ${{ secrets.POE_CODE_AGENT_PRIVATE_KEY }}
+      POE_API_KEY: ${{ secrets.POE_API_KEY }}
     with:
       ISSUE_NUMBER: ${{ github.event.issue.number }}
       ISSUE_STATE: ${{ github.event.issue.state }}

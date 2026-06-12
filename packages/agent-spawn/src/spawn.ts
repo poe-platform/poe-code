@@ -13,6 +13,7 @@ import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { spawnStreaming } from "./acp/spawn.js";
+import { mergeSpawnEnvironment } from "./environment.js";
 import {
   resolveAgentModeConfig,
   type CliSpawnConfig,
@@ -259,7 +260,9 @@ async function runSpawn(
       ...(options.env ?? {})
     };
     const processEnv =
-      Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+      Object.keys(envOverrides).length > 0
+        ? mergeSpawnEnvironment(process.env, envOverrides)
+        : undefined;
     const argv = [binaryName, ...spawnArgs];
     const displayArgv = [binaryName, ...displaySpawnArgs];
     const execution = resolveSpawnExecution({

@@ -48,6 +48,7 @@ export interface ResolveModelInput {
 
 export interface ResolveReasoningInput {
   value?: string;
+  assumeDefault?: boolean;
   defaultValue: string;
   label: string;
 }
@@ -241,6 +242,7 @@ export function createOptionResolvers(
 
   const resolveReasoning = async ({
     value,
+    assumeDefault,
     defaultValue,
     label
   }: ResolveReasoningInput): Promise<string> =>
@@ -250,7 +252,7 @@ export function createOptionResolvers(
         label,
         defaultValue
       }),
-      fallback: defaultValue
+      fallback: assumeDefault ? defaultValue : undefined
     });
 
   const resolveConfigName = async (

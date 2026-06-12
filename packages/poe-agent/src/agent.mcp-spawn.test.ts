@@ -302,4 +302,29 @@ describe("agent builder MCP spawn handoff", () => {
       mode: "edit"
     });
   });
+
+  it("passes per-run environment overrides into the default spawn session factory", async () => {
+    await agent()
+      .model("test-model")
+      .use(spawnPlugin())
+      .run("Spawn a child", {
+        cwd: "/workspace",
+        env: { RUN_ONLY: "1", REMOVE_ME: undefined },
+        acpModel: createModel([
+          {
+            message: {
+              content: "",
+              toolCalls: [{ id: "spawn-1", tool: "spawn", args: { task: "Inspect child env" } }]
+            }
+          },
+          { message: { content: "done", toolCalls: [] } }
+        ])
+      });
+
+    expect(createInMemorySpawnSessionMock).toHaveBeenCalledWith({
+      model: "test-model",
+      cwd: "/workspace",
+      env: { RUN_ONLY: "1", REMOVE_ME: undefined }
+    });
+  });
 });

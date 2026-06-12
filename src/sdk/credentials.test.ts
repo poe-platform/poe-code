@@ -74,6 +74,21 @@ describe("getPoeApiKey", () => {
     expect(store.get).toHaveBeenCalledTimes(1);
   });
 
+  it("ignores an inherited POE_API_KEY", async () => {
+    Object.defineProperty(Object.prototype, "POE_API_KEY", {
+      configurable: true,
+      value: "inherited-key"
+    });
+    store.get.mockResolvedValue("auth-store-key");
+
+    try {
+      const { getPoeApiKey } = await import("./credentials.js");
+      await expect(getPoeApiKey()).resolves.toBe("auth-store-key");
+    } finally {
+      delete (Object.prototype as { POE_API_KEY?: string }).POE_API_KEY;
+    }
+  });
+
   it("exports the auth-store key when ensuring POE_API_KEY", async () => {
     delete process.env.POE_API_KEY;
     store.get.mockResolvedValue("  auth-store-key  ");

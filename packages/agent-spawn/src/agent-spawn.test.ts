@@ -982,6 +982,29 @@ describe("spawn", () => {
     }
   });
 
+  it("removes inherited environment variables for one spawn", async () => {
+    const inheritedValue = process.env.POE_CODE_UNSET_ENV_TEST;
+    process.env.POE_CODE_UNSET_ENV_TEST = "parent";
+    vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ stdout: "ok\n", exitCode: 0 })
+    );
+
+    try {
+      await spawn("codex", {
+        prompt: "unset",
+        env: { POE_CODE_UNSET_ENV_TEST: undefined }
+      });
+
+      expect(vi.mocked(spawnChildProcess).mock.calls[0]?.[2]?.env).not.toHaveProperty(
+        "POE_CODE_UNSET_ENV_TEST"
+      );
+      expect(process.env.POE_CODE_UNSET_ENV_TEST).toBe("parent");
+    } finally {
+      if (inheritedValue === undefined) delete process.env.POE_CODE_UNSET_ENV_TEST;
+      else process.env.POE_CODE_UNSET_ENV_TEST = inheritedValue;
+    }
+  });
+
   it("forwards output to tee streams when provided", async () => {
     vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "agent output", stderr: "agent progress", exitCode: 0 })

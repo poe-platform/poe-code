@@ -14,6 +14,7 @@ import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middl
 import { observeAgentSpawn } from "../observability/otel.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import type { HookBridgeOptions } from "../types.js";
+import { mergeSpawnEnvironment } from "../environment.js";
 
 export interface SpawnAcpOptions {
   agentId: string;
@@ -34,7 +35,7 @@ export interface SpawnAcpOptions {
   signal?: AbortSignal;
   otelSink?: OtelSink;
   middlewares?: AcpMiddleware[];
-  env?: NodeJS.ProcessEnv;
+  env?: Record<string, string | undefined>;
 }
 
 export interface SpawnAcpResult {
@@ -154,7 +155,9 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
   const acpEnv = getOwnProperty(acpConfig, "env") as NodeJS.ProcessEnv | undefined;
   const envOverrides = { ...(acpEnv ?? {}), ...mcpEnvVars, ...(options.env ?? {}) };
   const env =
-    Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+    Object.keys(envOverrides).length > 0
+      ? mergeSpawnEnvironment(process.env, envOverrides)
+      : undefined;
   const cwd = options.cwd ?? process.cwd();
   const manifest = bridgeResourcesForRun(options.agentId, cwd, options.skills, options.hooks);
 

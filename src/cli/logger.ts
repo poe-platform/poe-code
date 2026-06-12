@@ -88,7 +88,19 @@ export function createLoggerFactory(
       return;
     }
     if (resolveOutputFormat() !== "terminal") {
-      process.stdout.write(message + "\n");
+      if (level === "success") {
+        log.success(message);
+        return;
+      }
+      if (level === "warn") {
+        log.warn(message);
+        return;
+      }
+      if (level === "error") {
+        log.error(message);
+        return;
+      }
+      log.info(message);
       return;
     }
     if (level === "success") {
@@ -133,7 +145,7 @@ export function createLoggerFactory(
           return;
         }
         if (resolveOutputFormat() !== "terminal") {
-          process.stdout.write(`${label}: ${value}\n`);
+          log.error(`${label}: ${value}`);
           return;
         }
         const symbol = theme?.errorSymbol ?? chalk.red("■");
@@ -189,7 +201,7 @@ export function createLoggerFactory(
           return;
         }
         if (resolveOutputFormat() !== "terminal") {
-          process.stdout.write(formatMessage(message) + "\n");
+          log.message(formatMessage(message));
           return;
         }
         log.message(formatMessage(message), { symbol: chalk.gray("│") });
@@ -211,7 +223,7 @@ export function createLoggerFactory(
           return;
         }
         if (resolveOutputFormat() !== "terminal") {
-          process.stdout.write(`${label}: ${value}\n`);
+          log.message(`${label}: ${value}`);
           return;
         }
         const symbol = theme?.resolvedSymbol ?? chalk.magenta("◇");

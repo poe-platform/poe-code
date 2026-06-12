@@ -11,6 +11,7 @@ import { observeAgentSpawn } from "../observability/otel.js";
 import { startNativeOtelCapture, type NativeOtelCapture } from "../native-otel.js";
 import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
+import { mergeSpawnEnvironment } from "../environment.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
   resolveAgentModeConfig,
@@ -252,7 +253,11 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     args.push(...spawnConfig.stdinMode!.extraArgs);
   }
 
-  const runArgs = async (): Promise<{ args: string[]; env: Record<string, string>; capture?: NativeOtelCapture }> => {
+  const runArgs = async (): Promise<{
+    args: string[];
+    env: Record<string, string | undefined>;
+    capture?: NativeOtelCapture;
+  }> => {
     const capture = await capturePromise;
     return {
       args: capture?.args ?? [],
@@ -405,7 +410,9 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
               nativeOtel.env
             );
             const processEnv =
-              Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+              Object.keys(envOverrides).length > 0
+                ? mergeSpawnEnvironment(process.env, envOverrides)
+                : undefined;
             const execution = resolveSpawnExecution({
               cwd,
               runtimeConfigCwd: options.runtimeConfigCwd,
@@ -519,11 +526,15 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
 }
 
 function mergeEnvironment(
-  ...sources: Array<Record<string, string> | undefined>
-): Record<string, string> {
-  const merged: Record<string, string> = {};
+  ...sources: Array<Record<string, string | undefined> | undefined>
+): Record<string, string | undefined> {
+  const merged: Record<string, string | undefined> = {};
   for (const source of sources) {
     for (const [key, value] of Object.entries(source ?? {})) {
+      if (value === undefined) {
+        merged[key] = undefined;
+        continue;
+      }
       const existing = merged[key];
       merged[key] = existing === undefined ? value : mergeJsonObjectStrings(existing, value);
     }

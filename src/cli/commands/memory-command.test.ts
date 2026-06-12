@@ -212,7 +212,8 @@ describe("memory command", () => {
   });
 
   it("shows a page by relative path", async () => {
-    const container = createContainer();
+    const logs: string[] = [];
+    const container = createContainer(logs);
     const program = createBaseProgram();
     registerMemoryCommand(program, container);
 
@@ -227,6 +228,7 @@ describe("memory command", () => {
     await program.parseAsync(["node", "cli", "--yes", "memory", "show", "nested/example"]);
 
     expect(writeSpy).toHaveBeenCalledWith("Hello world\n");
+    expect(logs).toEqual([]);
     expect(memoryModuleMocks.resolveConfiguredMemoryRootMock).toHaveBeenCalledOnce();
     expect(memoryModuleMocks.openMemoryMock).toHaveBeenCalledWith({ root: memoryRoot });
     writeSpy.mockRestore();

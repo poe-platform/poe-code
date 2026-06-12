@@ -269,6 +269,27 @@ describe("configure provider resolution", () => {
     expect(prompts).not.toHaveBeenCalled();
   });
 
+  it("prompts for Codex reasoning effort without --yes", async () => {
+    const prompts = vi.fn().mockResolvedValue({ reasoningEffort: "high" });
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" }, prompts);
+    vi.spyOn(container.providerRegistry, "resolveCredential").mockImplementation(
+      async (_id, options) => options?.apiKey ?? "sk-test"
+    );
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
+    stubInvoke(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync(["node", "cli", "configure", "codex", "--model", "openai/gpt-5"]);
+
+    expect(prompts).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "reasoningEffort", initial: "medium" })
+    );
+  });
+
   it("keeps claude-code on Poe with --yes when only POE_API_KEY is set", async () => {
     const container = createContainer(fs, { POE_API_KEY: "sk-env" });
     mockOptions(container);

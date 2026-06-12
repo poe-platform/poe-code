@@ -107,6 +107,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
   if (reasoningPrompt) {
     const reasoningEffort = await container.options.resolveReasoning({
       value: options.reasoningEffort,
+      assumeDefault: flags.assumeYes,
       defaultValue: reasoningPrompt.defaultValue,
       label: reasoningPrompt.label
     });

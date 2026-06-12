@@ -288,6 +288,34 @@ describe("resolveWorkspace", () => {
     expect(result.cleanup).toBeTypeOf("function");
   });
 
+  it("creates isolated writable checkouts for auto mode", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", {
+      scheme: "github",
+      owner: "poe-platform",
+      repo: "poe-code"
+    });
+    await fs.mkdir(`${cachePath}/packages/process-runner`, { recursive: true });
+
+    const result = await resolveWorkspace(
+      "github://poe-platform/poe-code#main:packages/process-runner",
+      createOptions({
+        fs,
+        mode: "auto",
+        exec: async (command, args) => {
+          if (command === "git" && args[0] === "worktree" && args[1] === "add") {
+            const checkoutPath = args[3];
+            await fs.mkdir(`${checkoutPath}/packages/process-runner`, { recursive: true });
+          }
+          return { stdout: "", stderr: "", exitCode: 0 };
+        }
+      })
+    );
+
+    expect(result.cwd).toContain("/home/test/.poe-code/workspaces/checkouts/poe-platform-poe-code");
+    expect(result.cleanup).toBeTypeOf("function");
+  });
+
   it("uses direct cached access for yolo mode", async () => {
     const fs = createFs();
     const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });

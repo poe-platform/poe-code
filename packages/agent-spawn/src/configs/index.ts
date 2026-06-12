@@ -1,5 +1,5 @@
 import { resolveAgentId } from "@poe-code/agent-defs";
-import type { AcpSpawnConfig, SpawnConfig } from "../types.js";
+import type { AcpSpawnConfig, SpawnConfig, SpawnMode } from "../types.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { codexSpawnConfig } from "./codex.js";
 import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
@@ -61,6 +61,18 @@ export function getAcpSpawnConfig(input: string): AcpSpawnConfig | undefined {
     return undefined;
   }
   return acpLookup.get(resolvedId);
+}
+
+/**
+ * CLI agents support a mode when their spawn config defines it. ACP and custom
+ * spawn paths have a live permission channel, so every mode is accepted there.
+ */
+export function supportsSpawnMode(input: string, mode: SpawnMode): boolean {
+  const config = getSpawnConfig(input);
+  if (config && config.kind === "cli") {
+    return config.modes[mode] !== undefined;
+  }
+  return true;
 }
 
 export function supportsMcpAtSpawn(input: string): boolean {

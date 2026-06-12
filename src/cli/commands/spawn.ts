@@ -8,6 +8,7 @@ import {
   getSpawnConfig,
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
+  supportsSpawnMode,
   type HookBridgeOptions,
   type McpSpawnConfig,
   type SpawnMode
@@ -47,7 +48,7 @@ import {
   type RuntimeCliOptions
 } from "./runtime-options.js";
 
-const SPAWN_MODES = ["yolo", "edit", "read"] as const;
+const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -84,7 +85,7 @@ export function registerSpawnCommand(
     .option("-C, --cwd <path>", "Working directory or workspace locator for the agent CLI")
     .option("--stdin", "Read the prompt from stdin")
     .option("-i, --interactive", "Launch the agent in interactive TUI mode")
-    .option("--mode <mode>", "Permission mode: yolo | edit | read (prompted; --yes uses yolo)")
+    .option("--mode <mode>", "Permission mode: yolo | auto | edit | read (prompted; --yes uses yolo)")
     .option("--resume-thread-id <id>", "Resume a prior provider thread/session")
     .option(
       "--mcp-servers <json|@file>",
@@ -208,7 +209,7 @@ export function registerSpawnCommand(
         throw new Error("No prompt provided via argument or stdin");
       }
       const prompt = promptText ?? "";
-      const mode = await resolveSpawnMode(commandOptions.mode, flags);
+      const mode = await resolveSpawnMode(service, commandOptions.mode, flags);
 
       const workspace = await resolveSpawnWorkspace(commandOptions.cwd, {
         baseDir: container.env.cwd,
@@ -475,9 +476,14 @@ async function traceSpawnRun<T>(
   return integrations?.traceRun("spawn", name, run) ?? run();
 }
 
-async function resolveSpawnMode(input: string | undefined, flags: CommandFlags): Promise<SpawnMode> {
+async function resolveSpawnMode(
+  service: string,
+  input: string | undefined,
+  flags: CommandFlags
+): Promise<SpawnMode> {
   const explicitMode = parseSpawnMode(input);
   if (explicitMode) {
+    assertSpawnModeSupported(service, explicitMode);
     return explicitMode;
   }
 
@@ -487,24 +493,39 @@ async function resolveSpawnMode(input: string | undefined, flags: CommandFlags):
 
   if (process.stdin.isTTY !== true) {
     throw new ValidationError(
-      "spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode edit, or --mode read; or pass --yes to use yolo."
+      "spawn requires --mode when running without an interactive TTY. Pass --mode yolo, --mode auto, --mode edit, or --mode read; or pass --yes to use yolo."
     );
   }
+
+  const allModeOptions: Array<{ value: SpawnMode; label: string; hint: string }> = [
+    { value: "edit", label: "Edit", hint: "Allow edits, keep provider permission prompts" },
+    { value: "auto", label: "Auto", hint: "Agent auto-approves safe actions, rejects unsafe ones" },
+    { value: "read", label: "Read only", hint: "Inspect without editing" },
+    { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
+  ];
+  const modeOptions = allModeOptions.filter((option) => supportsSpawnMode(service, option.value));
 
   const selected = await select<SpawnMode>({
     message: "Select permission mode:",
     initialValue: "edit",
-    options: [
-      { value: "edit", label: "Edit", hint: "Allow edits, keep provider permission prompts" },
-      { value: "read", label: "Read only", hint: "Inspect without editing" },
-      { value: "yolo", label: "Yolo", hint: "Use provider full-access or skip-permission flags" }
-    ]
+    options: modeOptions
   });
   if (isCancel(selected)) {
     throw new OperationCancelledError();
   }
 
   return selected as SpawnMode;
+}
+
+function assertSpawnModeSupported(service: string, mode: SpawnMode): void {
+  if (supportsSpawnMode(service, mode)) {
+    return;
+  }
+
+  const supported = SPAWN_MODES.filter((name) => supportsSpawnMode(service, name));
+  throw new ValidationError(
+    `Agent "${service}" does not support --mode ${mode}. Supported modes: ${supported.join(", ")}.`
+  );
 }
 
 function parseSpawnMode(input: string | undefined): SpawnMode | undefined {
@@ -516,7 +537,7 @@ function parseSpawnMode(input: string | undefined): SpawnMode | undefined {
     return input;
   }
 
-  throw new ValidationError(`Invalid --mode "${input}". Expected yolo, edit, or read.`);
+  throw new ValidationError(`Invalid --mode "${input}". Expected yolo, auto, edit, or read.`);
 }
 
 function isSpawnMode(input: string): input is SpawnMode {

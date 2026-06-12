@@ -1,4 +1,4 @@
-export type WorkspaceMode = "read" | "edit" | "yolo";
+export type WorkspaceMode = "read" | "edit" | "auto" | "yolo";
 
 export interface ExecResult {
   stdout: string;

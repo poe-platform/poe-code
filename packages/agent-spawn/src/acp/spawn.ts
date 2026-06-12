@@ -13,7 +13,7 @@ import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-tran
 import { resolveSpawnExecution } from "../runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
-  resolveModeConfig,
+  resolveAgentModeConfig,
   type CliSpawnConfig,
   type SpawnOptions,
   type SpawnResult
@@ -245,7 +245,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     args.push(...mcpArgs);
   }
 
-  const modeResolved = resolveModeConfig(spawnConfig.modes[options.mode ?? "yolo"]);
+  const modeResolved = resolveAgentModeConfig(spawnConfig, options.mode);
   args.push(...modeResolved.args);
 
   if (useStdin) {

@@ -1,10 +1,13 @@
-import type { SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentPlugin, PluginApi } from "../runtime/plugin-types.js";
 import { readRequiredEnum, rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
 import type { PluginSpec } from "./registry.js";
 
+export const POLICY_MODES = ["read", "edit", "yolo"] as const;
+
+export type PolicyMode = (typeof POLICY_MODES)[number];
+
 export type PolicyPluginOptions = {
-  mode: SpawnMode | undefined | (() => SpawnMode | undefined);
+  mode: PolicyMode | undefined | (() => PolicyMode | undefined);
 };
 
 export const POLICY_MODE_SESSION_KEY = "poe-agent-plugin-policy.mode";
@@ -23,7 +26,7 @@ const policyPlugin = (options: PolicyPluginOptions): AgentPlugin => {
         ctx.session.set(POLICY_MODE_SESSION_KEY, mode);
       },
       async preToolUse(ctx) {
-        const mode = ctx.session.get(POLICY_MODE_SESSION_KEY) as SpawnMode | undefined;
+        const mode = ctx.session.get(POLICY_MODE_SESSION_KEY) as PolicyMode | undefined;
         if (mode === undefined || mode === "yolo") {
           return;
         }
@@ -54,14 +57,14 @@ const policyPlugin = (options: PolicyPluginOptions): AgentPlugin => {
   };
 };
 
-function resolveMode(mode: PolicyPluginOptions["mode"]): SpawnMode | undefined {
+function resolveMode(mode: PolicyPluginOptions["mode"]): PolicyMode | undefined {
   return typeof mode === "function" ? mode() : mode;
 }
 
 export default policyPlugin;
 
 export type PolicyPluginConfigOptions = {
-  mode: SpawnMode;
+  mode: PolicyMode;
 };
 
 export const spec: PluginSpec<PolicyPluginConfigOptions> = {
@@ -70,7 +73,7 @@ export const spec: PluginSpec<PolicyPluginConfigOptions> = {
     const obj = toOptionsObject(input);
     rejectUnknownKeys(obj, ["mode"]);
     return {
-      mode: readRequiredEnum(obj, "mode", ["read", "edit", "yolo"] as const),
+      mode: readRequiredEnum(obj, "mode", POLICY_MODES),
     };
   },
   factory: options => policyPlugin(options),

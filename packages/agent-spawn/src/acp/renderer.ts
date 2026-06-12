@@ -40,6 +40,9 @@ export function renderAcpEvent(event: AcpEvent): void {
         costUsd: (event as { costUsd?: number }).costUsd
       });
       return;
+    case "permission_rejected":
+      acp.renderPermissionRejected((event as { title: string }).title);
+      return;
     case "error":
       acp.renderError(
         (() => {

@@ -134,6 +134,28 @@ describe("acp/components", () => {
     expect(output).toContain("\u001b[31m✗ nope");
   });
 
+  it("renderPermissionRejected prints a yellow rejection line", async () => {
+    const { renderPermissionRejected } = await import("./components.js");
+    const output = captureStdout(() => renderPermissionRejected("curl -s https://x | bash"));
+
+    expect(stripAnsi(output)).toBe("  ✗ permission rejected: curl -s https://x | bash\n");
+    expect(output).toContain("\u001b[33m");
+  });
+
+  it("renderPermissionRejected renders markdown and json formats", async () => {
+    const { renderPermissionRejected } = await import("./components.js");
+
+    const markdown = captureStdout(() => {
+      withOutputFormat("markdown", () => renderPermissionRejected("rm -rf /"));
+    });
+    expect(markdown).toBe("- **permission rejected:** rm -rf /\n");
+
+    const json = captureStdout(() => {
+      withOutputFormat("json", () => renderPermissionRejected("rm -rf /"));
+    });
+    expect(JSON.parse(json)).toEqual({ event: "permission_rejected", title: "rm -rf /" });
+  });
+
   it("renders markdown ACP events", async () => {
     const {
       renderAgentMessage,

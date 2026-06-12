@@ -1,6 +1,8 @@
 import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
 
+import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
+import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
 import { extractBlock } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
 import { lint, type Diagnostic } from "../lint.js";
@@ -45,6 +47,37 @@ function createHarnessMeta(filepath: string, frontmatter: Record<string, unknown
   };
 }
 
+function assertFrontmatterAgentModes(frontmatter: Record<string, unknown>): void {
+  const agents = getOwnEntry(frontmatter, "agents");
+  if (typeof agents !== "object" || agents === null || Array.isArray(agents)) {
+    return;
+  }
+
+  for (const [name, definition] of Object.entries(agents)) {
+    if (typeof definition !== "object" || definition === null || Array.isArray(definition)) {
+      continue;
+    }
+
+    const record = definition as Record<string, unknown>;
+    const agent = getOwnEntry(record, "agent");
+    const mode = getOwnEntry(record, "mode");
+    if (typeof agent !== "string" || typeof mode !== "string") {
+      continue;
+    }
+
+    // Malformed mode strings are reported by the agent module's own validation.
+    if (!SPAWN_MODES.includes(mode as SpawnMode)) {
+      continue;
+    }
+
+    if (!supportsSpawnMode(agent, mode as SpawnMode)) {
+      throw new Error(
+        `Harness agent "${name}": agent "${agent}" does not support mode "${mode}".`
+      );
+    }
+  }
+}
+
 export class LintError extends Error {
   readonly diagnostics: readonly Diagnostic[];
 
@@ -61,6 +94,7 @@ export async function runHarness(
 ): Promise<RunHarnessResult> {
   const rawSource = stripByteOrderMark(await readHarnessFile(filepath));
   const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
+  assertFrontmatterAgentModes(frontmatter);
   const meta = createHarnessMeta(filepath, frontmatter);
   const modules = excludeHarnessModule(options.modulesFor(frontmatter, meta), isRawScript);
   const diagnostics = lint(executableSource, {
@@ -94,6 +128,7 @@ export async function runHarnessPair(
     readHarnessFile(pair.scriptPath)
   ]);
   const { frontmatter, body } = splitFrontmatter(stripByteOrderMark(rawMarkdown));
+  assertFrontmatterAgentModes(frontmatter);
   const executableSource = stripByteOrderMark(rawScript);
   const meta = createHarnessMeta(pair.markdownPath, frontmatter);
   const modules = options.modulesFor(frontmatter, meta);

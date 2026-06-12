@@ -1,5 +1,10 @@
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
-import { AcpClient, type McpServer } from "@poe-code/poe-acp-client";
+import {
+  AcpClient,
+  type McpServer,
+  type PermissionOption,
+  type RequestPermissionOutcome
+} from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
 import type { McpSpawnConfig, OtelSink, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";
@@ -56,6 +61,21 @@ function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
   error.name = "AbortError";
   return error;
+}
+
+/**
+ * Auto mode answers permission requests with an explicit rejection so the
+ * agent can adapt and continue, instead of "cancelled" which ends the turn.
+ */
+function rejectPermissionRequest(args: {
+  options: PermissionOption[];
+}): RequestPermissionOutcome {
+  const reject =
+    args.options.find((option) => option.kind === "reject_once") ??
+    args.options.find((option) => option.kind === "reject_always");
+  return reject
+    ? { outcome: "selected", optionId: reject.optionId }
+    : { outcome: "cancelled" };
 }
 
 function accumulateUsage(ctx: SpawnContext, event: AcpEvent): void {
@@ -155,7 +175,21 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
       cwd,
       env,
       skipAuth: skipAuth ?? false,
-      autoApprove: (options.mode ?? "yolo") === "yolo"
+      autoApprove: (options.mode ?? "yolo") === "yolo",
+      ...(options.mode === "auto"
+        ? {
+            permissionHandler: (args: {
+              toolCall: { title?: string | null; toolCallId: string };
+              options: PermissionOption[];
+            }) => {
+              pushEvent({
+                event: "permission_rejected",
+                title: args.toolCall.title ?? args.toolCall.toolCallId
+              });
+              return rejectPermissionRequest(args);
+            }
+          }
+        : {})
     });
   } catch (error) {
     cleanupResourcesForRun(manifest);

@@ -23,7 +23,7 @@ export interface SpawnCoreOptions {
   cwd?: string;
   /** Model identifier override */
   model?: string;
-  /** Permission mode: yolo | edit | read */
+  /** Permission mode: yolo | auto | edit | read */
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];

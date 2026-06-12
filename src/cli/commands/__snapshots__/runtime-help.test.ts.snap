@@ -76,8 +76,8 @@ Options:
                                agent CLI
   --stdin                      Read the prompt from stdin
   -i, --interactive            Launch the agent in interactive TUI mode
-  --mode <mode>                Permission mode: yolo | edit | read (prompted;
-                               --yes uses yolo)
+  --mode <mode>                Permission mode: yolo | auto | edit | read
+                               (prompted; --yes uses yolo)
   --resume-thread-id <id>      Resume a prior provider thread/session
   --mcp-servers <json|@file>   MCP server config JSON (or @path/to/file.json):
                                {name: {command, args?, env?}}

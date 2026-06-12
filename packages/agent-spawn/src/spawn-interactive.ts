@@ -5,7 +5,7 @@ import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
-import { resolveModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
+import { resolveAgentModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
   agentId: string,
@@ -75,7 +75,7 @@ export async function spawnInteractive(
   }
   args.push(...getMcpArgs(spawnConfig, options.mcpServers));
 
-  const modeResolved = resolveModeConfig(spawnConfig.modes[options.mode ?? "yolo"]);
+  const modeResolved = resolveAgentModeConfig(spawnConfig, options.mode);
   args.push(...modeResolved.args);
 
   if (resumeArgsPosition === "afterPrompt") {

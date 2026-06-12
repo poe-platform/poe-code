@@ -17,6 +17,7 @@ export const cursorSpawnConfig: CliSpawnConfig = {
   defaultArgs: ["--output-format", "stream-json", "--trust", "--approve-mcps"],
   defaultArgsPosition: "beforePrompt",
   modes: {
+    // No auto: cursor-agent print mode has no approval channel.
     yolo: ["--force", "--sandbox", "disabled"],
     edit: ["--force"],
     read: ["--mode", "plan"]

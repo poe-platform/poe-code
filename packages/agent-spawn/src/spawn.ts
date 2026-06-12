@@ -14,7 +14,7 @@ import { resolveSpawnExecution } from "./runtime.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { spawnStreaming } from "./acp/spawn.js";
 import {
-  resolveModeConfig,
+  resolveAgentModeConfig,
   type CliSpawnConfig,
   type McpSpawnConfig,
   type SpawnContext,
@@ -150,7 +150,7 @@ function buildCliArgs(
     args.push(...mcpArgs);
   }
 
-  const mode = resolveModeConfig(config.modes[options.mode ?? "yolo"]);
+  const mode = resolveAgentModeConfig(config, options.mode);
   args.push(...mode.args);
 
   if (options.args && options.args.length > 0) {

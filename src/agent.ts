@@ -25,7 +25,7 @@ export type ToolResultErrorPart = {
 
 export type ToolResultPart = ToolResultTextPart | ToolResultImagePart | ToolResultErrorPart;
 export type ToolResult = string | ToolResultPart | ToolResultPart[];
-export type SpawnMode = "yolo" | "edit" | "read";
+export type SpawnMode = "yolo" | "auto" | "edit" | "read";
 
 export type ChatMessage = {
   role: "system" | "user" | "assistant" | "tool";

@@ -12,7 +12,7 @@ export {
   type CommandRunnerResult
 } from "./run-command.js";
 
-export { resolveModeConfig } from "./types.js";
+export { resolveModeConfig, resolveAgentModeConfig, SPAWN_MODES } from "./types.js";
 
 export type {
   AcpSpawnConfig,
@@ -30,6 +30,7 @@ export type {
   HookBridgeOptions,
   SpawnMode,
   SpawnModeConfig,
+  SpawnModesConfig,
   SpawnOptions,
   SpawnResult,
   SpawnUsage,
@@ -42,7 +43,8 @@ export {
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
-  supportsMcpAtSpawn
+  supportsMcpAtSpawn,
+  supportsSpawnMode
 } from "./configs/index.js";
 export { serializeGooseMcpArgs, serializeOpenCodeMcpEnv, toJsonMcpServers } from "./configs/mcp.js";
 export {

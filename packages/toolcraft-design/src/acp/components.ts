@@ -145,6 +145,22 @@ export function renderUsage(tokens: {
   writeLine(color.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 
+export function renderPermissionRejected(title: string): void {
+  const format = resolveOutputFormat();
+
+  if (format === "markdown") {
+    writeLine(`- **permission rejected:** ${title}`);
+    return;
+  }
+
+  if (format === "json") {
+    writeLine(JSON.stringify({ event: "permission_rejected", title }));
+    return;
+  }
+
+  writeLine(color.yellow(`  ✗ permission rejected: ${title}`));
+}
+
 export function renderError(message: string): void {
   const format = resolveOutputFormat();
 

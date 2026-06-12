@@ -81,7 +81,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
     )
     .option(
       "--mode <mode>",
-      "Override the mode from the harness frontmatter agent block (read|edit|yolo)."
+      "Override the mode from the harness frontmatter agent block (read|edit|auto|yolo)."
     )
     .option("-y, --yes", "Accept defaults without prompting.")
     .action(async (mdPath: string | undefined, options: HarnessRunOptions) => {

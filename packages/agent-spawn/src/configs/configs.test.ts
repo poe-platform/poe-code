@@ -4,7 +4,8 @@ import {
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
-  supportsMcpAtSpawn
+  supportsMcpAtSpawn,
+  supportsSpawnMode
 } from "./index.js";
 import { codexSpawnConfig } from "./codex.js";
 import { claudeCodeSpawnConfig } from "./claude-code.js";
@@ -89,6 +90,39 @@ describe("configs/mcp support", () => {
     const { buildSpawnArgs } = await import("../spawn.js");
     expect(buildSpawnArgs("cursor", { prompt: "secret", useStdin: true }).args).not.toContain("secret");
     expect(supportsMcpAtSpawn("cursor")).toBe(true);
+  });
+});
+
+describe("configs/auto mode", () => {
+  it("defines auto only for agents with a native ask-style approval mode", () => {
+    expect(claudeCodeSpawnConfig.modes.auto).toEqual(["--permission-mode", "auto"]);
+    expect(codexSpawnConfig.modes.auto).toBeUndefined();
+    expect(cursorSpawnConfig.modes.auto).toBeUndefined();
+    expect(openCodeSpawnConfig.modes.auto).toBeUndefined();
+    expect(kimiSpawnConfig.modes.auto).toBeUndefined();
+    expect(gooseSpawnConfig.modes.auto).toBeUndefined();
+  });
+
+  it("reports mode support from the spawn config", () => {
+    expect(supportsSpawnMode("claude-code", "auto")).toBe(true);
+    expect(supportsSpawnMode("claude", "auto")).toBe(true);
+    expect(supportsSpawnMode("codex", "auto")).toBe(false);
+    expect(supportsSpawnMode("codex", "edit")).toBe(true);
+    expect(supportsSpawnMode("goose", "auto")).toBe(false);
+    // ACP and custom spawn paths accept every mode.
+    expect(supportsSpawnMode("gemini", "auto")).toBe(true);
+  });
+
+  it("maps gemini ACP approval mode from the spawn mode", () => {
+    const acpArgs = geminiCliAcpSpawnConfig.acpArgs;
+    if (typeof acpArgs !== "function") {
+      throw new Error("Expected gemini acpArgs to be a function");
+    }
+    expect(acpArgs({})).toEqual(["--acp", "--approval-mode", "yolo"]);
+    expect(acpArgs({ mode: "yolo" })).toEqual(["--acp", "--approval-mode", "yolo"]);
+    expect(acpArgs({ mode: "auto" })).toEqual(["--acp", "--approval-mode", "default"]);
+    expect(acpArgs({ mode: "edit" })).toEqual(["--acp", "--approval-mode", "auto_edit"]);
+    expect(acpArgs({ mode: "read" })).toEqual(["--acp", "--approval-mode", "plan"]);
   });
 });
 

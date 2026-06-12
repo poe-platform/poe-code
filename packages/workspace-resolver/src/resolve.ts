@@ -22,7 +22,8 @@ export async function resolveWorkspace(
   }
 
   const mode = options.mode ?? "read";
-  const needsIsolatedCheckout = mode === "edit" || (mode === "read" && locator.ref !== undefined);
+  const needsIsolatedCheckout =
+    mode === "edit" || mode === "auto" || (mode === "read" && locator.ref !== undefined);
   const cacheLocator = needsIsolatedCheckout ? { ...locator, ref: undefined } : locator;
   const cacheDir = await cloneOrUpdate(cacheLocator, options);
   let writable:

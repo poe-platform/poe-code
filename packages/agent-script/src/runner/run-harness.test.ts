@@ -833,6 +833,55 @@ describe("runHarnessPair", () => {
     );
   });
 
+  it("rejects frontmatter agents whose agent does not support the requested mode", async () => {
+    const mdPath = "/repo/harnesses/unsupported-mode.md";
+    const ajsPath = "/repo/harnesses/unsupported-mode.ajs";
+
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "agents:",
+        "  builder:",
+        "    agent: codex",
+        "    mode: auto",
+        "---",
+        "",
+        "Body"
+      ].join("\n"),
+      [ajsPath]: "export default async () => \"unreachable\";"
+    });
+
+    const modulesFor = vi.fn(() => ({}));
+
+    await expect(runHarnessPair(mdPath, { modulesFor })).rejects.toThrow(
+      'Harness agent "builder": agent "codex" does not support mode "auto".'
+    );
+    expect(modulesFor).not.toHaveBeenCalled();
+  });
+
+  it("accepts frontmatter agents whose agent supports the requested mode", async () => {
+    const mdPath = "/repo/harnesses/supported-mode.md";
+    const ajsPath = "/repo/harnesses/supported-mode.ajs";
+
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "agents:",
+        "  builder:",
+        "    agent: claude-code",
+        "    mode: auto",
+        "---",
+        "",
+        "Body"
+      ].join("\n"),
+      [ajsPath]: "export default async () => \"ran\";"
+    });
+
+    const result = await runHarnessPair(mdPath, { modulesFor: () => ({}) });
+
+    expect(result).toMatchObject({ ok: true, returnValue: "ran" });
+  });
+
   it("keeps concurrent runs against the same pair independent", async () => {
     const mdPath = "/repo/harnesses/example.md";
     const ajsPath = "/repo/harnesses/example.ajs";

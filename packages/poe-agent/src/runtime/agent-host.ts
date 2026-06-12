@@ -456,7 +456,13 @@ export function createInMemoryAcpTransport(
         }
 
         const reply = await session.sendMessage(toPromptText(request.prompt));
-        if (reply.content.length > 0) {
+        const replyText =
+          typeof reply.content === "string"
+            ? reply.content
+            : reply.content
+                .map((part) => (part.type === "text" ? part.text : ""))
+                .join("");
+        if (replyText.length > 0) {
           const handlers = notificationHandlers.get("session/update") ?? [];
           if (handlers.length > 0) {
             const notification: SessionNotification = {
@@ -465,7 +471,7 @@ export function createInMemoryAcpTransport(
                 sessionUpdate: "agent_message_chunk",
                 content: {
                   type: "text",
-                  text: reply.content
+                  text: replyText
                 }
               }
             };

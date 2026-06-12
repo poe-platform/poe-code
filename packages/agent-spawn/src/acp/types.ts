@@ -164,6 +164,13 @@ export interface ErrorEvent {
   _meta?: Record<string, unknown>;
 }
 
+/** Emitted when auto mode rejects an agent permission request, so the rejection is visible as the cause. */
+export interface PermissionRejectedEvent {
+  event: "permission_rejected";
+  title: string;
+  _meta?: Record<string, unknown>;
+}
+
 export interface SpawnResultEvent {
   event: "spawn_result";
   exitCode: number;
@@ -186,6 +193,7 @@ export type KnownAcpEvent =
   | ReasoningEvent
   | UsageEvent
   | ErrorEvent
+  | PermissionRejectedEvent
   | SpawnResultEvent;
 
 export type UnknownAcpEvent = { event: string } & Record<string, unknown>;

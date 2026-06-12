@@ -13,6 +13,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeCodexMcpArgs,
   mcpArgsBeforeCommand: true,
   modes: {
+    // No auto: `codex exec` has no approval channel in headless runs.
     yolo: ["-s", "danger-full-access"],
     edit: ["-s", "workspace-write"],
     read: ["-s", "read-only"]

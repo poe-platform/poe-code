@@ -15,6 +15,7 @@ export const gooseSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeGooseMcpArgs,
   mcpArgsPosition: "beforePrompt",
   modes: {
+    // No auto: GOOSE_MODE=approve prompts on the TTY and would hang a headless run.
     yolo: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "auto" } },
     edit: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "smart_approve" } },
     read: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "chat" } }

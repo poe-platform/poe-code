@@ -26,13 +26,14 @@ console.log(listMcpSupportedAgents());
 
 ## Spawn modes
 
-| Mode   | Purpose                                                       |
-| ------ | ------------------------------------------------------------- |
-| `yolo` | Full automation for trusted tasks.                            |
-| `edit` | File-editing mode when the agent supports scoped permissions. |
-| `read` | Read-only/research mode when the agent supports it.           |
+| Mode   | Purpose                                                                          |
+| ------ | -------------------------------------------------------------------------------- |
+| `yolo` | Full automation for trusted tasks.                                               |
+| `auto` | The agent's native auto permission mode: safe actions approved, unsafe rejected. |
+| `edit` | File-editing mode when the agent supports scoped permissions.                    |
+| `read` | Read-only/research mode when the agent supports it.                             |
 
-Mode-specific args and env vars are declared in each agent config. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
+Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
 ## MCP at spawn time
 
@@ -82,7 +83,7 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `prompt`             | `string`                         | Prompt sent to the agent.                                                              |
 | `cwd`                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
 | `model`              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
-| `mode`               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
+| `mode`               | `"yolo" \| "auto" \| "edit" \| "read"` | Permission mode. Defaults are chosen by the caller.                              |
 | `args`               | `string[]`                       | Extra args forwarded to the agent process.                                             |
 | `mcpServers`         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
 | `env`                | `Record<string, string>`         | Per-invocation child environment overrides. Caller values take precedence.             |

@@ -655,14 +655,7 @@ describe("spawn command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--dry-run",
-      "spawn",
-      "claude-code",
-      prompt
-    ]);
+    await program.parseAsync(["node", "cli", "--dry-run", "spawn", "claude-code", prompt]);
 
     expect(calls).toHaveLength(0);
     expect(sdkSpawn).not.toHaveBeenCalled();
@@ -840,14 +833,7 @@ describe("spawn command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "--dry-run",
-      "spawn",
-      "poe-agent",
-      prompt
-    ]);
+    await program.parseAsync(["node", "cli", "--dry-run", "spawn", "poe-agent", prompt]);
 
     expect(spawnPoeAgentWithAcpMock).not.toHaveBeenCalled();
     const dryRunLog = logs.find((line) => line.includes("Dry run: would spawn Poe Agent."));
@@ -908,6 +894,10 @@ describe("spawn command", () => {
         expect.objectContaining({ value: "yolo" })
       ])
     });
+    const offeredModes = (
+      selectMock.mock.calls[0]![0] as { options: Array<{ value: string }> }
+    ).options.map((option) => option.value);
+    expect(offeredModes).not.toContain("auto");
     expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "read" }));
   });
 
@@ -958,9 +948,47 @@ describe("spawn command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "spawn", "--mode", "dance", "codex", "hello"])
-    ).rejects.toThrow('Invalid --mode "dance". Expected yolo, edit, or read.');
+    ).rejects.toThrow('Invalid --mode "dance". Expected yolo, auto, edit, or read.');
 
     expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("passes through auto permission mode for agents that support it", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "--mode", "auto", "claude-code", "hello"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ mode: "auto" })
+    );
+  });
+
+  it("rejects auto permission mode for agents without an approval channel", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "spawn", "--mode", "auto", "codex", "hello"])
+    ).rejects.toThrow(
+      'Agent "codex" does not support --mode auto. Supported modes: yolo, edit, read.'
+    );
+
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 

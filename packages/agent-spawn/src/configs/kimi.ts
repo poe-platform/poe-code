@@ -13,6 +13,7 @@ export const kimiSpawnConfig: CliSpawnConfig = {
   defaultArgs: ["--print", "--output-format", "stream-json"],
   mcpArgs: serializeJsonMcpArgs,
   modes: {
+    // No auto: kimi --print mode has no approval channel.
     yolo: ["--yolo"],
     edit: [],
     read: []

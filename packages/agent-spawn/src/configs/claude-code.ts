@@ -18,6 +18,7 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeJsonMcpArgs,
   modes: {
     yolo: ["--dangerously-skip-permissions"],
+    auto: ["--permission-mode", "auto"],
     edit: ["--permission-mode", "acceptEdits", "--allowedTools", "Bash,Read,Write,Edit,Glob,Grep,NotebookEdit"],
     read: ["--permission-mode", "plan"]
   },

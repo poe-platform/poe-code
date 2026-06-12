@@ -12,9 +12,9 @@ import {
   systemPromptPlugin,
   webPlugin,
   type AgentBuilder,
+  type PolicyMode,
   type RunResult
 } from "@poe-code/poe-agent";
-import type { SpawnMode } from "@poe-code/agent-spawn";
 import type { AgentRunInput } from "../runtime/loop.js";
 
 export type AgentFactory = () => AgentBuilder;
@@ -44,7 +44,7 @@ export async function executePoeAgent(
     .use(webPlugin())
     .use(compactionPlugin())
     .use(skillsPlugin({ definitions: {} }))
-    .use(policyPlugin({ mode: input.mode as SpawnMode | undefined }))
+    .use(policyPlugin({ mode: readPolicyMode(input.mode) }))
     .mcp(input.mcpServers ?? {})
     .run(input.prompt, {
       cwd: input.cwd,
@@ -52,4 +52,14 @@ export async function executePoeAgent(
       onStdout: input.onStdout,
       logPath: input.logPath
     });
+}
+
+function readPolicyMode(mode: string | undefined): PolicyMode | undefined {
+  if (mode === undefined) {
+    return undefined;
+  }
+  if (mode === "read" || mode === "edit" || mode === "yolo") {
+    return mode;
+  }
+  throw new Error(`poe-agent does not support mode "${mode}". Supported modes: read, edit, yolo.`);
 }

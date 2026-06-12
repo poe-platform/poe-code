@@ -108,6 +108,18 @@ export async function* adaptClaude(
     }
 
     if (eventType === "result") {
+      const denials = (event as { permission_denials?: unknown }).permission_denials;
+      if (Array.isArray(denials)) {
+        for (const denial of denials) {
+          const entry = denial as { tool_name?: unknown; tool_input?: unknown };
+          if (!isNonEmptyString(entry.tool_name)) continue;
+          yield {
+            event: "permission_rejected",
+            title: extractTitle(entry.tool_name, entry.tool_input)
+          };
+        }
+      }
+
       const usage = (event.usage ?? {}) as {
         input_tokens?: unknown;
         output_tokens?: unknown;

@@ -751,6 +751,82 @@ describe("spawnAcp", () => {
     await expect(done).resolves.toMatchObject({ exitCode: 0 });
   });
 
+  it("auto-approves permission requests only in yolo mode", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test"
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.autoApprove).toBe(true);
+    expect(lastMockAcpClientOptions.permissionHandler).toBeUndefined();
+  });
+
+  it("rejects permission requests in auto mode and emits a permission_rejected event", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+      mode: "auto"
+    });
+
+    expect(lastMockAcpClientOptions.autoApprove).toBe(false);
+    const handler = lastMockAcpClientOptions.permissionHandler;
+    expect(handler).toBeTypeOf("function");
+
+    expect(
+      handler({
+        toolCall: { toolCallId: "tool-1", title: "Run rm -rf /tmp/x" },
+        options: [
+          { optionId: "allow-1", kind: "allow_once", name: "Allow" },
+          { optionId: "reject-1", kind: "reject_once", name: "Reject" }
+        ]
+      })
+    ).toEqual({ outcome: "selected", optionId: "reject-1" });
+
+    expect(
+      handler({
+        toolCall: { toolCallId: "tool-2" },
+        options: [{ optionId: "reject-all", kind: "reject_always", name: "Always reject" }]
+      })
+    ).toEqual({ outcome: "selected", optionId: "reject-all" });
+
+    expect(
+      handler({
+        toolCall: { toolCallId: "tool-3" },
+        options: [{ optionId: "allow-1", kind: "allow_once", name: "Allow" }]
+      })
+    ).toEqual({ outcome: "cancelled" });
+
+    const collected = await collect(events);
+    await done;
+
+    expect(collected).toContainEqual(
+      expect.objectContaining({ event: "permission_rejected", title: "Run rm -rf /tmp/x" })
+    );
+    expect(collected).toContainEqual(
+      expect.objectContaining({ event: "permission_rejected", title: "tool-2" })
+    );
+  });
+
+  it("leaves permission requests unanswered (cancelled) in edit and read modes", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+      mode: "edit"
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.autoApprove).toBe(false);
+    expect(lastMockAcpClientOptions.permissionHandler).toBeUndefined();
+  });
+
   it("passes MCP servers to newSession", async () => {
     const { events, done } = spawnAcp({
       agentId: "opencode",

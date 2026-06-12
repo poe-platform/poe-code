@@ -212,6 +212,24 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("builds claude-code args for auto mode", () => {
+    const result = buildSpawnArgs("claude-code", { prompt: "test", mode: "auto" });
+
+    expect(result.args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "test",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      "--permission-mode",
+      "auto"
+    ]);
+  });
+
+  it("rejects modes the agent does not support before launching", () => {
+    expect(() => buildSpawnArgs("codex", { prompt: "hello", mode: "auto" })).toThrow(
+      'Agent "codex" does not support mode "auto". Supported modes: yolo, edit, read.'
+    );
+  });
+
   it("redacts prompt arguments from display args without changing execution args", () => {
     const prompt = "investigate api_key=sk-secret";
     const result = buildSpawnArgs("claude-code", { prompt });

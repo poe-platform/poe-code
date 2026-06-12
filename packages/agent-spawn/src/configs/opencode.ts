@@ -76,6 +76,7 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
   },
   defaultArgs: ["--format", "json"],
   modes: {
+    // No auto: `opencode run` never asks; permissions come from opencode.json.
     yolo: [],
     edit: [],
     read: ["--agent", "plan"]

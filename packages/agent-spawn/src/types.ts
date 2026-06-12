@@ -3,9 +3,19 @@ import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type { StateManager } from "@poe-code/poe-code-config";
 import type { AcpMiddleware } from "./acp/middleware.js";
 
-export type SpawnMode = "yolo" | "edit" | "read";
+export const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
+
+export type SpawnMode = (typeof SPAWN_MODES)[number];
 
 export type SpawnModeConfig = string[] | { args?: string[]; env?: Record<string, string> };
+
+/**
+ * `auto` is optional: it maps to the agent's native ask-style approval mode and
+ * must be omitted when the agent has no approval channel in headless runs.
+ */
+export type SpawnModesConfig = Record<Exclude<SpawnMode, "auto">, SpawnModeConfig> & {
+  auto?: SpawnModeConfig;
+};
 
 export function resolveModeConfig(modeConfig: SpawnModeConfig): {
   args: string[];
@@ -18,6 +28,24 @@ export function resolveModeConfig(modeConfig: SpawnModeConfig): {
     args: modeConfig.args ?? [],
     env: modeConfig.env && Object.keys(modeConfig.env).length > 0 ? modeConfig.env : undefined
   };
+}
+
+export function resolveAgentModeConfig(
+  config: Pick<CliSpawnConfig, "agentId" | "modes">,
+  mode: SpawnMode | undefined
+): {
+  args: string[];
+  env?: Record<string, string>;
+} {
+  const selected = mode ?? "yolo";
+  const modeConfig = config.modes[selected];
+  if (modeConfig === undefined) {
+    const supported = SPAWN_MODES.filter((name) => config.modes[name] !== undefined);
+    throw new Error(
+      `Agent "${config.agentId}" does not support mode "${selected}". Supported modes: ${supported.join(", ")}.`
+    );
+  }
+  return resolveModeConfig(modeConfig);
 }
 
 export interface McpSpawnServer {
@@ -184,7 +212,7 @@ export interface CliSpawnConfig {
   promptFlag: string;
   defaultArgs: string[];
   defaultArgsPosition?: "beforePrompt" | "afterPrompt";
-  modes: Record<SpawnMode, SpawnModeConfig>;
+  modes: SpawnModesConfig;
   stdinMode?: StdinMode;
   modelFlag?: string;
   /**

@@ -1,4 +1,4 @@
-export type SpawnMode = "yolo" | "edit" | "read";
+export type SpawnMode = "yolo" | "auto" | "edit" | "read";
 export type Runtime = "host" | "docker" | "e2b";
 export type RunnerSync = "both" | "upload" | "none";
 
@@ -74,7 +74,7 @@ export interface SpawnOptions {
   cwd?: string;
   /** Model identifier override */
   model?: string;
-  /** Permission mode: yolo | edit | read (default: yolo) */
+  /** Permission mode: yolo | auto | edit | read (default: yolo) */
   mode?: SpawnMode;
   /** Additional arguments forwarded to the CLI */
   args?: string[];

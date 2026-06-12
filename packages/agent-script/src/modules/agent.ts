@@ -1,5 +1,6 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 
+import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn/parallel";
 import type { SpawnUsage } from "@poe-code/agent-spawn/types";
 import {
@@ -13,7 +14,7 @@ import {
   type OtelSink
 } from "../observability/otel.js";
 
-export type AgentSpawnMode = "read" | "edit" | "yolo";
+export type AgentSpawnMode = "read" | "edit" | "auto" | "yolo";
 
 export type AgentModuleMcpServer = {
   command: string;
@@ -885,6 +886,11 @@ function resolveSpawnInput(
 ): ResolvedSpawnAgentInput {
   const definition = normalizeAgentDefinition(agentDef);
   const normalizedOptions = normalizeSpawnOptions(options);
+  const mode = normalizedOptions.mode ?? definition.mode;
+
+  if (mode !== undefined && !supportsSpawnMode(definition.agent, mode)) {
+    throw new Error(`Agent "${definition.agent}" does not support mode "${mode}".`);
+  }
 
   return createNullRecord({
     agent: definition.agent,
@@ -1104,11 +1110,11 @@ function readRequiredPrompt(value: unknown): string {
 }
 
 function readSpawnMode(value: unknown, label: string): AgentSpawnMode {
-  if (value === "read" || value === "edit" || value === "yolo") {
+  if (value === "read" || value === "edit" || value === "auto" || value === "yolo") {
     return value;
   }
 
-  throw new Error(`${label} must be one of: read, edit, yolo.`);
+  throw new Error(`${label} must be one of: read, edit, auto, yolo.`);
 }
 
 function readMcpConfig(value: unknown, label: string): AgentModuleMcpConfig {

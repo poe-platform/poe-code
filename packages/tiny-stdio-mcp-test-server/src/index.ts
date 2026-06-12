@@ -1,4 +1,5 @@
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+import { appendFileSync } from "node:fs";
 import packageJson from "../package.json" with { type: "json" };
 
 const SERVER_NAME = "tiny-stdio-mcp-test-server";
@@ -48,10 +49,18 @@ export function createEncryptServer() {
     "Encrypts text using the Caesar cipher",
     caesarCipherSchema,
     ({ text, shift }) => {
+      recordToolCall("caesar_cipher_encrypt");
       const actualShift = shift ?? 3;
       return caesarEncrypt(text, actualShift);
     }
   );
+}
+
+function recordToolCall(name: string): void {
+  const filePath = process.env.TOOLCRAFT_TEST_TOOL_CALL_FILE;
+  if (filePath !== undefined) {
+    appendFileSync(filePath, `${name}\n`);
+  }
 }
 
 export function createWordOfTheDayServer() {

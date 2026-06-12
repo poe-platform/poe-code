@@ -32,120 +32,6 @@ const mcpModuleUrl = pathToFileURL(
   fileURLToPath(new URL("./mcp.ts", import.meta.url))
 ).href;
 
-const wrapperSource = String.raw`
-import { appendFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
-import { spawn } from "node:child_process";
-
-const countFile = process.env.TOOLCRAFT_TEST_SPAWN_COUNT_FILE;
-const pidFile = process.env.TOOLCRAFT_TEST_WRAPPER_PID_FILE;
-const toolCallFile = process.env.TOOLCRAFT_TEST_TOOL_CALL_FILE;
-const serverCli = process.env.TOOLCRAFT_TEST_SERVER_CLI;
-const startupDelayMs = Number(process.env.TOOLCRAFT_TEST_STARTUP_DELAY_MS ?? "0");
-
-if (
-  typeof countFile !== "string"
-  || typeof pidFile !== "string"
-  || typeof toolCallFile !== "string"
-  || typeof serverCli !== "string"
-) {
-  throw new Error("Missing toolcraft MCP proxy integration wrapper environment");
-}
-
-const previousCount = existsSync(countFile)
-  ? Number.parseInt(readFileSync(countFile, "utf8").trim() || "0", 10)
-  : 0;
-writeFileSync(countFile, String(previousCount + 1));
-writeFileSync(pidFile, String(process.pid));
-
-if (startupDelayMs > 0) {
-  await new Promise((resolve) => setTimeout(resolve, startupDelayMs));
-}
-
-const child = spawn(process.execPath, [serverCli, "serve", "encrypt"], {
-  stdio: ["pipe", "pipe", "pipe"],
-});
-
-let buffer = "";
-
-const forwardStdinLine = (line) => {
-  if (line.length === 0) {
-    child.stdin.write("\n");
-    return;
-  }
-
-  try {
-    const message = JSON.parse(line);
-    if (
-      message !== null
-      && typeof message === "object"
-      && message.method === "tools/call"
-      && message.params !== null
-      && typeof message.params === "object"
-      && typeof message.params.name === "string"
-    ) {
-      appendFileSync(toolCallFile, String(message.params.name) + "\n");
-    }
-  } catch {}
-
-  child.stdin.write(String(line) + "\n");
-};
-
-process.stdin.on("data", (chunk) => {
-  buffer += chunk.toString("utf8");
-
-  while (true) {
-    const newlineIndex = buffer.indexOf("\n");
-
-    if (newlineIndex === -1) {
-      break;
-    }
-
-    const line = buffer.slice(0, newlineIndex);
-    buffer = buffer.slice(newlineIndex + 1);
-    forwardStdinLine(line);
-  }
-});
-
-process.stdin.on("end", () => {
-  if (buffer.length > 0) {
-    forwardStdinLine(buffer);
-  }
-
-  child.stdin.end();
-});
-
-child.stdout.on("data", (chunk) => {
-  process.stdout.write(chunk);
-});
-
-child.stderr.on("data", (chunk) => {
-  process.stderr.write(chunk);
-});
-
-const terminate = (signal) => {
-  if (!child.killed) {
-    child.kill(signal);
-  }
-};
-
-process.on("SIGTERM", () => {
-  terminate("SIGTERM");
-});
-
-process.on("SIGINT", () => {
-  terminate("SIGINT");
-});
-
-child.on("exit", (code, signal) => {
-  process.exit(code ?? (signal === null ? 0 : 1));
-});
-
-child.on("error", (error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
-`;
-
 type ProxyHarness = {
   cachePath: string;
   countFile: string;
@@ -221,7 +107,7 @@ function createProxyRoot(
       command: options.command ?? process.execPath,
       args:
         options.command === undefined
-          ? ["--input-type=module", "--eval", wrapperSource]
+          ? [testServerCli, "serve", "encrypt"]
           : undefined,
       env:
         options.command === undefined
@@ -720,9 +606,8 @@ describe("mcp proxy integration", () => {
                 mcp: {
                   transport: "stdio",
                   command: ${JSON.stringify(process.execPath)},
-                  args: ["--input-type=module", "--eval", ${JSON.stringify(wrapperSource)}],
+                  args: [process.env.TOOLCRAFT_TEST_SERVER_CLI, "serve", "encrypt"],
                   env: {
-                    TOOLCRAFT_TEST_SERVER_CLI: process.env.TOOLCRAFT_TEST_SERVER_CLI,
                     TOOLCRAFT_TEST_SPAWN_COUNT_FILE: process.env.TOOLCRAFT_TEST_SPAWN_COUNT_FILE,
                     TOOLCRAFT_TEST_WRAPPER_PID_FILE: process.env.TOOLCRAFT_TEST_WRAPPER_PID_FILE,
                     TOOLCRAFT_TEST_TOOL_CALL_FILE: process.env.TOOLCRAFT_TEST_TOOL_CALL_FILE,

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { Command } from "commander";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import packageJson from "../package.json" with { type: "json" };
 import {
   createEncryptServer,
@@ -18,6 +19,11 @@ program
   .description("Start an MCP server on stdin/stdout")
   .argument("<tool>", "Tool to serve (encrypt, word-of-the-day)")
   .action(async (tool: string) => {
+    recordProcessStart();
+    const startupDelayMs = Number(process.env.TOOLCRAFT_TEST_STARTUP_DELAY_MS ?? "0");
+    if (startupDelayMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, startupDelayMs));
+    }
     const servers: Record<string, () => Promise<void>> = Object.create(null) as Record<string, () => Promise<void>>;
     Object.assign(servers, {
       encrypt: () => createEncryptServer().listen(),
@@ -35,3 +41,18 @@ program
   });
 
 program.parse();
+
+function recordProcessStart(): void {
+  const countFile = process.env.TOOLCRAFT_TEST_SPAWN_COUNT_FILE;
+  if (countFile !== undefined) {
+    const previousCount = existsSync(countFile)
+      ? Number.parseInt(readFileSync(countFile, "utf8").trim() || "0", 10)
+      : 0;
+    writeFileSync(countFile, String(previousCount + 1));
+  }
+
+  const pidFile = process.env.TOOLCRAFT_TEST_WRAPPER_PID_FILE;
+  if (pidFile !== undefined) {
+    writeFileSync(pidFile, String(process.pid));
+  }
+}

@@ -111,9 +111,10 @@ describe("cloneTarget", () => {
     await expect(simpleGit(dest).revparse(["HEAD"])).resolves.toBe(fixtureTemplate.headSha);
   });
 
-  it("reuses a cached bare repo for repeated worktrees", async () => {
+  it("reuses a cached bare repo across new and previously deleted worktree destinations", async () => {
     const root = await tempRoot();
     const cacheDir = path.join(root, "cache");
+    const secondDest = path.join(root, "second");
 
     await expect(
       cloneTarget({
@@ -128,7 +129,18 @@ describe("cloneTarget", () => {
       cloneTarget({
         repo: fixtureTemplate.bareRepo,
         ref: "main",
-        dest: path.join(root, "second"),
+        dest: secondDest,
+        cacheDir
+      })
+    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
+
+    await rm(secondDest, { recursive: true, force: true });
+
+    await expect(
+      cloneTarget({
+        repo: fixtureTemplate.bareRepo,
+        ref: "main",
+        dest: secondDest,
         cacheDir
       })
     ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
@@ -168,32 +180,6 @@ describe("cloneTarget", () => {
         cacheDir
       })
     ).resolves.toEqual({ resolvedSha: updatedSha });
-  });
-
-  it("reuses a cached destination after its previous worktree was deleted", async () => {
-    const root = await tempRoot();
-    const cacheDir = path.join(root, "cache");
-    const dest = path.join(root, "same-dest");
-
-    await expect(
-      cloneTarget({
-        repo: fixtureTemplate.bareRepo,
-        ref: "main",
-        dest,
-        cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
-
-    await rm(dest, { recursive: true, force: true });
-
-    await expect(
-      cloneTarget({
-        repo: fixtureTemplate.bareRepo,
-        ref: "main",
-        dest,
-        cacheDir
-      })
-    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
   });
 
   it("cleans up the destination when an in-flight clone is aborted", async () => {

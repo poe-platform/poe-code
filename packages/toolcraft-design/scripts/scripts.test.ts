@@ -1,16 +1,16 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { getMarkdownDemo } from "../src/terminal-markdown/demo-content.js";
 import { renderMarkdown } from "../src/index.js";
 import {
   loadMarkdownDemoDocument,
+  main as runDemo,
   parseMarkdownDemoArgs,
   resolveDemoWorkingDirectory
 } from "./demo.js";
 import { stripAnsi } from "../src/internal/strip-ansi.js";
 import {
-  captureTextOutput,
   captureTextOutputs,
   renderTerminalDocument,
   renderTextDocument,
@@ -93,22 +93,20 @@ describe("design-system demo script", () => {
 
 describe("generate-docs", () => {
   it("lists the current demo types in the no-argument usage output", () => {
-    let output = "";
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
-    try {
-      captureTextOutput("", "markdown");
-    } catch (error) {
-      output = String(error);
-    }
+    return runDemo([]).then(() => {
+      const output = stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 
-    expect(output).toContain("Usage: demo <type> [value...]");
-    expect(output).toContain("layout");
-    expect(output).toContain("layout-expanded");
-    expect(output).toContain("table");
-    expect(output).toContain("table-markdown");
-    expect(output).toContain("markdown");
-    expect(output).toContain("markdown-minimal");
-  }, 15_000);
+      expect(output).toContain("Usage: demo <type> [value...]");
+      expect(output).toContain("layout");
+      expect(output).toContain("layout-expanded");
+      expect(output).toContain("table");
+      expect(output).toContain("table-markdown");
+      expect(output).toContain("markdown");
+      expect(output).toContain("markdown-minimal");
+    });
+  });
 
   it("renders markdown docs with fenced markdown output blocks", () => {
     const output = renderTextDocument("markdown", (demoArgs, format) => {

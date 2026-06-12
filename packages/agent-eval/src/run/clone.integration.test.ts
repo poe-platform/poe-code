@@ -99,41 +99,39 @@ describe("cloneTarget", () => {
 
   it("clones a ref and returns the resolved HEAD sha", async () => {
     const root = await tempRoot();
-    const fixture = await copyFixtureRepo(root);
     const dest = path.join(root, "clone");
 
     const result = await cloneTarget({
-      repo: fixture.bareRepo,
+      repo: fixtureTemplate.bareRepo,
       ref: "main",
       dest
     });
 
-    expect(result.resolvedSha).toBe(fixture.headSha);
-    await expect(simpleGit(dest).revparse(["HEAD"])).resolves.toBe(fixture.headSha);
+    expect(result.resolvedSha).toBe(fixtureTemplate.headSha);
+    await expect(simpleGit(dest).revparse(["HEAD"])).resolves.toBe(fixtureTemplate.headSha);
   });
 
   it("reuses a cached bare repo for repeated worktrees", async () => {
     const root = await tempRoot();
-    const fixture = await copyFixtureRepo(root);
     const cacheDir = path.join(root, "cache");
 
     await expect(
       cloneTarget({
-        repo: fixture.bareRepo,
+        repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest: path.join(root, "first"),
         cacheDir
       })
-    ).resolves.toEqual({ resolvedSha: fixture.headSha });
+    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
     await expect(
       cloneTarget({
-        repo: fixture.bareRepo,
+        repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest: path.join(root, "second"),
         cacheDir
       })
-    ).resolves.toEqual({ resolvedSha: fixture.headSha });
+    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
     const cachedRepos = await readdir(cacheDir);
     expect(cachedRepos).toHaveLength(1);
@@ -174,34 +172,32 @@ describe("cloneTarget", () => {
 
   it("reuses a cached destination after its previous worktree was deleted", async () => {
     const root = await tempRoot();
-    const fixture = await copyFixtureRepo(root);
     const cacheDir = path.join(root, "cache");
     const dest = path.join(root, "same-dest");
 
     await expect(
       cloneTarget({
-        repo: fixture.bareRepo,
+        repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest,
         cacheDir
       })
-    ).resolves.toEqual({ resolvedSha: fixture.headSha });
+    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
 
     await rm(dest, { recursive: true, force: true });
 
     await expect(
       cloneTarget({
-        repo: fixture.bareRepo,
+        repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest,
         cacheDir
       })
-    ).resolves.toEqual({ resolvedSha: fixture.headSha });
+    ).resolves.toEqual({ resolvedSha: fixtureTemplate.headSha });
   });
 
   it("cleans up the destination when an in-flight clone is aborted", async () => {
     const root = await tempRoot();
-    const fixture = await copyFixtureRepo(root);
     const wrapperDir = path.join(root, "bin");
     const dest = path.join(root, "aborted");
     const originalPath = process.env.PATH;
@@ -231,7 +227,7 @@ describe("cloneTarget", () => {
     try {
       const controller = new AbortController();
       const pending = cloneTarget({
-        repo: fixture.bareRepo,
+        repo: fixtureTemplate.bareRepo,
         ref: "main",
         dest,
         signal: controller.signal

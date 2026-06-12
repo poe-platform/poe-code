@@ -1,5 +1,6 @@
 import path from "node:path";
 import { defineCommand, defineGroup, S, UserError } from "toolcraft";
+import { resolveOutputFormat } from "toolcraft-design";
 import { runInitCli } from "./init.js";
 import { runCheckCli } from "./check.js";
 import { runLintCli } from "./lint.js";
@@ -28,6 +29,7 @@ import type {
 } from "../types.js";
 
 type ReportFormat = "json" | "md" | "table";
+type EvalRunOutput = { dryRun: true; message: string } | { dryRun: false; runs: EvalRunResult[] };
 
 const initParams = S.Object({
   name: S.String({ description: "Eval folder name" }),
@@ -141,10 +143,10 @@ export const evalRunCommand = defineCommand({
   handler: async ({ params }) => {
     if (params.dryRun === true) {
       const evalIds = params.eval?.join(", ") ?? "configured evals";
-      process.stdout.write(
-        `Dry run: would run eval matrix for ${evalIds} with ${params.agent.join(", ")} on ${params.model.join(", ")}.\n`
-      );
-      return null;
+      return {
+        dryRun: true,
+        message: `Dry run: would run eval matrix for ${evalIds} with ${params.agent.join(", ")} on ${params.model.join(", ")}.`
+      } satisfies EvalRunOutput;
     }
     const sourceDir = path.resolve(params.cwd ?? process.cwd());
     const source = await openSource(sourceDir);
@@ -165,15 +167,20 @@ export const evalRunCommand = defineCommand({
 
     for await (const result of runMatrix(options)) {
       runs.push(result);
-      process.stdout.write(`${renderRunsTable(runs)}\n`);
+      if (resolveOutputFormat() === "terminal") {
+        process.stdout.write(`${renderRunsTable(runs)}\n`);
+      }
     }
 
-    return null;
+    return { dryRun: false, runs } satisfies EvalRunOutput;
   },
   render: {
-    rich: () => {},
-    markdown: () => "",
-    json: () => undefined
+    rich: (result: EvalRunOutput, { logger }) => {
+      if (result.dryRun) logger.message(result.message);
+    },
+    markdown: (result: EvalRunOutput) =>
+      result.dryRun ? result.message : renderRunsMarkdown(result.runs),
+    json: (result: EvalRunOutput) => result
   }
 });
 

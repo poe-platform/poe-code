@@ -711,9 +711,19 @@ function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): st
     return [entry, script];
   }
 
-  const forwardedFlags = argv
-    .slice(2, commandIndex)
-    .filter((value) => FORWARDABLE_TOOLCRAFT_FLAGS.has(value));
+  const forwardedFlags: string[] = [];
+  const rootArgs = argv.slice(2, commandIndex);
+  for (let index = 0; index < rootArgs.length; index += 1) {
+    const value = rootArgs[index]!;
+    if (FORWARDABLE_TOOLCRAFT_FLAGS.has(value)) {
+      forwardedFlags.push(value);
+      continue;
+    }
+    if (value === "--output" && rootArgs[index + 1] !== undefined) {
+      forwardedFlags.push(value, rootArgs[index + 1]!);
+      index += 1;
+    }
+  }
   const commandArgs = argv.slice(commandIndex);
 
   if (commandArgs.length === 1) {
@@ -883,6 +893,14 @@ function bootstrapProgram(container: CliContainer): Command {
     .option("-y, --yes", "Accept defaults without prompting.")
     .option("--dry-run", "Simulate commands without writing changes.")
     .option("--verbose", "Show verbose logs.")
+    .addOption(
+      new Option("--output <format>", "Output format for forwarded Toolcraft commands.").choices([
+        "rich",
+        "md",
+        "markdown",
+        "json"
+      ])
+    )
     .helpOption("-h, --help", "Display help for command")
     .showHelpAfterError(false)
     .showSuggestionAfterError(true)

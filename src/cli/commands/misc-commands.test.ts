@@ -908,6 +908,47 @@ describe("root command", () => {
     ]);
   });
 
+  it("forwards output format values into eval toolcraft commands", async () => {
+    process.argv = [
+      "node",
+      "/usr/local/bin/poe-code",
+      "--output",
+      "json",
+      "eval",
+      "run",
+      "--agent",
+      "codex",
+      "--model",
+      "openai/gpt-5",
+      "--dry-run"
+    ];
+
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+
+    await program.parseAsync(process.argv);
+
+    expect(runCliState.argvSnapshots).toEqual([
+      [
+        "node",
+        "/usr/local/bin/poe-code",
+        "eval",
+        "run",
+        "--agent",
+        "codex",
+        "--model",
+        "openai/gpt-5",
+        "--dry-run",
+        "--output",
+        "json"
+      ]
+    ]);
+  });
+
   it("shows approvals help when invoked without a subcommand", async () => {
     process.argv = ["node", "/usr/local/bin/poe-code", "approvals"];
 

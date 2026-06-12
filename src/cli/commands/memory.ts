@@ -183,7 +183,6 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .command("ls")
     .description("List every page with a one-line description.")
     .action(async () => {
-      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
@@ -208,7 +207,6 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .description("Print a page to stdout.")
     .argument("<path>", "Page path (relative to memory pages/)")
     .action(async (pagePath: string) => {
-      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
@@ -234,7 +232,6 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .description("Search over memory files for a substring.")
     .argument("<query>", "Search query")
     .action(async (query: string) => {
-      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
 
@@ -433,7 +430,6 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .description("Show memory status.")
     .option("--no-tokens", "Skip token stats calculation")
     .action(async function (this: Command) {
-      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       const options = this.opts<{ tokens: boolean }>();

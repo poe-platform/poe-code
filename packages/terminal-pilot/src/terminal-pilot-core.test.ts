@@ -1230,7 +1230,7 @@ describe("TerminalSession", () => {
     const matched = await session.waitFor(/Hello, Ada!/);
     expect(matched).toContain("Hello, Ada!");
 
-    await session.waitForQuiet(200);
+    await session.waitForQuiet(20);
 
     const screen = await session.screen();
     expect(screen.contains("Hello, Ada!")).toBe(true);
@@ -1263,7 +1263,7 @@ describe("TerminalSession", () => {
     expect(matched).toContain("Hello, Grace!");
     expect(expression.lastIndex).toBe(0);
 
-    await session.waitForQuiet(200);
+    await session.waitForQuiet(20);
     await session.resize(100, 30);
 
     const screen = await session.screen();

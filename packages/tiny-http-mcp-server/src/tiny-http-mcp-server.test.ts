@@ -958,7 +958,7 @@ describe("StreamableHttpTransport", () => {
 
   async function expectReaderToStayOpen(
     reader: ReadableStreamDefaultReader<Uint8Array>,
-    timeoutMs = 50
+    timeoutMs = 20
   ): Promise<void> {
     const state = await Promise.race([
       reader.read().then(() => "resolved"),
@@ -3913,7 +3913,7 @@ describe("Spec conformance", () => {
 
   async function expectNoSseEvent(
     reader: ReadableStreamDefaultReader<Uint8Array>,
-    timeoutMs = 100
+    timeoutMs = 20
   ): Promise<void> {
     const state = await Promise.race([
       reader.read().then(() => "resolved"),

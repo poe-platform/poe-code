@@ -85,7 +85,10 @@ export const root = defineGroup({
 import { runCLI } from "toolcraft/cli";
 import { root } from "./root.js";
 
-await runCLI(root, { version: "0.1.0" });
+await runCLI(root, {
+  version: "0.1.0",
+  controls: { yes: true, output: true, debug: true, verbose: true }
+});
 ```
 
 ```sh
@@ -93,6 +96,8 @@ mytool greet --name world
 mytool greet --name world --loud
 mytool greet --help
 ```
+
+Generated global CLI controls are opt-in. Pass `controls` to expose `--yes`, `--output`, `--debug`, or `--verbose`; otherwise toolcraft only adds options required by the root, such as `--version` or `--preset` when enabled. Root groups may also use an unnamed default command (`name: ""`) alongside named siblings; help shows its positional arguments without exposing the internal default-command name.
 
 ## Project layout
 
@@ -147,7 +152,10 @@ const mode = process.argv[2];
 if (mode === "mcp") {
   await runMCP(root, { name: "mytool", version: "0.1.0" });
 } else {
-  await runCLI(root, { version: "0.1.0" });
+  await runCLI(root, {
+    version: "0.1.0",
+    controls: { yes: true, output: true, debug: true, verbose: true }
+  });
 }
 ```
 
@@ -350,20 +358,20 @@ const humanInLoop = {
   taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const }
 };
 
-await runCLI(root, { humanInLoop });
-createMCPServer(root, { name: "mytool", version: "0.1.0", humanInLoop });
-const sdk = createSDK(root, { humanInLoop });
+await runCLI(root, { humanInLoop, approvals: true });
+createMCPServer(root, { name: "mytool", version: "0.1.0", humanInLoop, approvals: true });
+const sdk = createSDK(root, { humanInLoop, approvals: true });
 ```
 
 If `provider` is omitted, toolcraft picks a default lazily on first use: `osascriptProvider` on macOS; otherwise a stub that throws `UserError("no human-in-loop provider configured for this platform")`.
 
-A built-in `approvals` group is auto-merged into every root:
+A built-in `approvals` group is available when enabled with `approvals: true`:
 
 - `approvals list` — list pending tasks (CLI, MCP, SDK).
 - `approvals show --approval-id <id>` — show one task.
 - `approvals run --approval-id <id>` — execute one queued task. CLI-only; used by the detached runner.
 
-Pass `approvals: false` to `runCLI`, `createMCPServer`/`runMCP`, or `createSDK` to omit these approval-management commands while keeping `humanInLoop` execution behavior available for commands that request approval.
+Approval-management commands are opt-in for `runCLI`, `createMCPServer`/`runMCP`, and `createSDK`. Leave `approvals` unset or set it to `false` to omit the built-in commands while keeping `humanInLoop` execution behavior available for commands that request approval.
 
 The name `approvals` is reserved when the built-in group is enabled. Defining your own `approvals` group fails at startup.
 
@@ -473,7 +481,8 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
-- `approvals?: boolean` — set to `false` to omit the built-in approval-management commands.
+- `approvals?: boolean` — set to `true` to add built-in approval-management commands.
+- `controls?: { yes?: boolean; output?: boolean; debug?: boolean; verbose?: boolean }` — opt in to generated global CLI controls.
 - `errorReports?: boolean | { dir?: string }`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
@@ -528,3 +537,4 @@ Subpath imports:
 - `toolcraft/mcp` — `runMCP`, `createMCPServer`
 - `toolcraft/human-in-loop` — provider helpers
 - `toolcraft/mcp-proxy` — proxy internals
+- `toolcraft/design` — bundled terminal design-system exports

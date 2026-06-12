@@ -1,7 +1,5 @@
 # @poe-code/agent-spawn
 
-Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. No environment variables are injected. Supported modes map to Cursor's forced sandbox-disabled, forced edit, and plan/read-only modes.
-
 `@poe-code/agent-spawn` contains the low-level spawn adapters used by the CLI and SDK to run supported coding agents, stream ACP-like events, pass model and permission-mode flags, inject MCP servers at spawn time, and resume prior sessions when an agent returns a thread/session ID.
 
 ## Usage
@@ -24,6 +22,10 @@ console.log(result.exitCode, result.stdout);
 console.log(listMcpSupportedAgents());
 ```
 
+## Agent notes
+
+Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. No Poe environment variables are injected. Cursor models strip provider prefixes and translate Claude model dots to hyphens, modes map to forced sandbox-disabled (`yolo`), forced edit (`edit`), and plan/read-only (`read`), and resume passes `--resume <threadId>`.
+
 ## Spawn modes
 
 | Mode   | Purpose                                                       |
@@ -36,7 +38,7 @@ Mode-specific args and env vars are declared in each agent config. Goose uses `G
 
 ## MCP at spawn time
 
-Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
+Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. Cursor uses a temporary `.cursor/mcp.json` in the spawn working directory; existing JSON object content is deep-merged for the child process and restored afterward. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
 The same serialization is used for interactive TUI spawns. Agents that express MCP servers through
 environment-backed config, such as OpenCode's `OPENCODE_CONFIG_CONTENT`, receive those values in

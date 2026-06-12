@@ -50,10 +50,10 @@ For packages that must release in lockstep, use the shared composite action afte
   uses: ./.github/actions/prepare-lockstep-release
   with:
     version: ${{ steps.version.outputs.version }}
-    packages: '["packages/toolcraft", "packages/toolcraft-openapi"]'
+    packages: '["packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
 ```
 
-The action rewrites every listed `package.json` to the same version and rewrites intra-group `dependencies`, `peerDependencies`, and `optionalDependencies` to that exact version. The group must contain at least two public npm package directories, and each prepared package should be published by the workflow. `npm run lint:packages` enforces this with `lockstep-release-group-valid`.
+The action rewrites every listed `package.json` to the same version and rewrites intra-group `dependencies`, `peerDependencies`, and `optionalDependencies` to that exact version. The group must contain at least two public npm package directories, and each prepared package should be published by the workflow. The Toolcraft release group publishes `toolcraft-schema`, `toolcraft`, and `toolcraft-openapi`; `toolcraft-design` is private and is bundled through the public `toolcraft/design` export, so the workflow builds it but does not prepare or publish it. `npm run lint:packages` enforces public lockstep groups with `lockstep-release-group-valid`.
 
 If a published package declares `bin`, add the shared executable-bit helper to `prepack` so `tsc`-emitted binaries do not ship as mode `0644`:
 

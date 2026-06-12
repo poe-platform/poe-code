@@ -80,7 +80,10 @@ Utilities are especially useful for scripting and CI/CD.
 
 ```bash
 npx poe-code@latest spawn codex "Say hello"
+npx poe-code@latest spawn cursor "Say hello from Cursor"
 ```
+
+Cursor spawns use the authenticated `cursor-agent` installation and your Cursor account; Poe Code does not inject Poe credentials into Cursor.
 
 #### Spawn against a GitHub repository
 
@@ -120,6 +123,9 @@ npx poe-code@latest install codex
 
 # OpenCode
 npx poe-code@latest install opencode
+
+# Cursor
+npx poe-code@latest install cursor
 
 # Kimi
 npx poe-code@latest install kimi
@@ -249,7 +255,7 @@ console.log(run.output);
 
 Runs a single prompt through a configured service CLI.
 
-- `service` – Service identifier (`claude-code`, `codex`, `opencode`, `kimi`, `goose`)
+- `service` – Service identifier (`claude-code`, `codex`, `cursor`, `opencode`, `kimi`, `goose`)
 - `options.prompt` – The prompt to send
 - `options.cwd` – Working directory or workspace locator (optional). Supports local paths and `github://owner/repo[#ref[:subdir]]` locators. See [@poe-code/workspace-resolver](packages/workspace-resolver/) for the full locator syntax.
 - `options.model` – Model identifier override (optional)

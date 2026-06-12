@@ -6,43 +6,44 @@ This document is auto-generated. Run `npm run generate:design-docs:json` to rege
 
 ## Package Overview
 
-The `toolcraft-design` package provides consistent visual styling for the poe-code CLI.
+The public `toolcraft/design` export provides consistent visual styling for the poe-code CLI.
 
 ```typescript
 // Import components
-import { text, symbols, intro, outro, log } from "toolcraft-design";
+import { text, symbols, intro, outro, log } from "toolcraft/design";
 
 // Import tokens for advanced customization
-import { brand, dark, light, spacing, typography, widths } from "toolcraft-design";
+import { brand, dark, light, spacing, typography, widths } from "toolcraft/design";
 ```
 
 ## Design Tokens
 
 Foundational values that ensure consistency:
 
-| Token | Value | Description |
-|-------|-------|-------------|
-| `brand` | `#a200ff` | Primary brand color (Poe purple) |
-| `spacing.sm` | `1` | Small spacing unit |
-| `spacing.md` | `2` | Medium spacing unit |
-| `spacing.lg` | `4` | Large spacing unit |
-| `widths.header` | `60` | Header line width |
-| `widths.helpColumn` | `24` | Help text column width |
-| `widths.maxLine` | `80` | Maximum line width |
+| Token               | Value     | Description                      |
+| ------------------- | --------- | -------------------------------- |
+| `brand`             | `#a200ff` | Primary brand color (Poe purple) |
+| `spacing.sm`        | `1`       | Small spacing unit               |
+| `spacing.md`        | `2`       | Medium spacing unit              |
+| `spacing.lg`        | `4`       | Large spacing unit               |
+| `widths.header`     | `60`      | Header line width                |
+| `widths.helpColumn` | `24`      | Help text column width           |
+| `widths.maxLine`    | `80`      | Maximum line width               |
 
 ## Theme Palettes
 
 The design system supports dark and light themes, auto-detected from environment:
 
 ```typescript
-import { getTheme, resolveThemeName } from "toolcraft-design";
+import { getTheme, resolveThemeName } from "toolcraft/design";
 
 const themeName = resolveThemeName(); // 'dark' or 'light'
 const palette = getTheme();
-console.log(palette.header('Title'));
+console.log(palette.header("Title"));
 ```
 
 **Environment variables checked (in order):**
+
 - `POE_CODE_THEME` - explicit override ('dark' or 'light')
 - `APPLE_INTERFACE_STYLE` - macOS appearance
 - `VSCODE_COLOR_THEME_KIND` - VS Code theme
@@ -59,7 +60,7 @@ Standard command layout patterns. These show complete UI flows from start to fin
 Core layout: intro banner, info messages, resolved prompts, success message
 
 ```typescript
-import { intro, outro, log, symbols } from "toolcraft-design";
+import { intro, outro, log, symbols } from "toolcraft/design";
 
 intro("Configure");
 log.message("Configuring...", { symbol: symbols.info });
@@ -80,7 +81,7 @@ outro("Configuration complete.");
 Full layout with note and outro: intro, resolved prompts, success, note box, outro
 
 ```typescript
-import { intro, outro, note, log, symbols } from "toolcraft-design";
+import { intro, outro, note, log, symbols } from "toolcraft/design";
 
 intro("configure claude-code");
 log.message("Claude Code default model\n   Claude-Opus-4.6", { symbol: symbols.resolved });
@@ -98,15 +99,15 @@ outro("Problems? https://...");
 
 ## Text Styles
 
-Semantic text styling functions for consistent CLI output. Import from `toolcraft-design`.
+Semantic text styling functions for consistent CLI output. Import from `toolcraft/design`.
 
 ### intro
 
 Prominent introductory banners with brand background
 
 ```typescript
-import { text } from "toolcraft-design";
-text.intro("Configure")
+import { text } from "toolcraft/design";
+text.intro("Configure");
 ```
 
 ```json
@@ -118,8 +119,8 @@ text.intro("Configure")
 Section headings with brand accent color
 
 ```typescript
-import { text } from "toolcraft-design";
-text.heading("Available Commands")
+import { text } from "toolcraft/design";
+text.heading("Available Commands");
 ```
 
 ```json
@@ -131,8 +132,8 @@ Available Commands
 Bold text for subsection labels
 
 ```typescript
-import { text } from "toolcraft-design";
-text.section("Options:")
+import { text } from "toolcraft/design";
+text.section("Options:");
 ```
 
 ```json
@@ -144,8 +145,8 @@ Options:
 CLI command names in accent color
 
 ```typescript
-import { text } from "toolcraft-design";
-text.command("poe-code configure")
+import { text } from "toolcraft/design";
+text.command("poe-code configure");
 ```
 
 ```json
@@ -157,8 +158,8 @@ poe-code configure
 Command arguments (dimmed)
 
 ```typescript
-import { text } from "toolcraft-design";
-text.argument("<provider>")
+import { text } from "toolcraft/design";
+text.argument("<provider>");
 ```
 
 ```json
@@ -170,8 +171,8 @@ text.argument("<provider>")
 CLI flags and options in yellow
 
 ```typescript
-import { text } from "toolcraft-design";
-text.option("--dry-run")
+import { text } from "toolcraft/design";
+text.option("--dry-run");
 ```
 
 ```json
@@ -183,8 +184,8 @@ text.option("--dry-run")
 Example text (dimmed)
 
 ```typescript
-import { text } from "toolcraft-design";
-text.example("$ poe-code configure claude")
+import { text } from "toolcraft/design";
+text.example("$ poe-code configure claude");
 ```
 
 ```json
@@ -196,8 +197,8 @@ $ poe-code configure claude
 Commands in usage examples (green)
 
 ```typescript
-import { text } from "toolcraft-design";
-text.usageCommand("npm install -g poe-code")
+import { text } from "toolcraft/design";
+text.usageCommand("npm install -g poe-code");
 ```
 
 ```json
@@ -209,8 +210,8 @@ npm install -g poe-code
 Hyperlinks and references
 
 ```typescript
-import { text } from "toolcraft-design";
-text.link("https://poe.com")
+import { text } from "toolcraft/design";
+text.link("https://poe.com");
 ```
 
 ```json
@@ -222,8 +223,8 @@ https://poe.com
 De-emphasized text
 
 ```typescript
-import { text } from "toolcraft-design";
-text.muted("(optional)")
+import { text } from "toolcraft/design";
+text.muted("(optional)");
 ```
 
 ```json
@@ -239,12 +240,12 @@ Status indicators and visual markers. Use with `log.message()` for structured ou
 Information indicator (magenta dot)
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ```json
-{"level":"message","message":"info"}
+{ "level": "message", "message": "info" }
 ```
 
 ### success
@@ -252,12 +253,12 @@ log.message("Configuring claude-code...", { symbol: symbols.info });
 Success indicator (magenta diamond)
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ```json
-{"level":"message","message":"success"}
+{ "level": "message", "message": "success" }
 ```
 
 ### resolved
@@ -265,12 +266,12 @@ log.message("Configuration complete!", { symbol: symbols.success });
 Resolved/completed indicator (hollow diamond)
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```json
-{"level":"message","message":"resolved"}
+{ "level": "message", "message": "resolved" }
 ```
 
 ### errorResolved
@@ -278,12 +279,12 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 Error with details indicator (red square)
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved });
 ```
 
 ```json
-{"level":"message","message":"errorResolved"}
+{ "level": "message", "message": "errorResolved" }
 ```
 
 ## Log Messages
@@ -295,12 +296,12 @@ Structured logging with appropriate visual weight. Import `log` from the prompts
 Informational messages during operations
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Configuring claude-code...", { symbol: symbols.info });
 ```
 
 ```json
-{"level":"info","message":"Configuring claude-code..."}
+{ "level": "info", "message": "Configuring claude-code..." }
 ```
 
 ### log-success
@@ -308,12 +309,12 @@ log.message("Configuring claude-code...", { symbol: symbols.info });
 Success confirmation messages
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Configuration complete!", { symbol: symbols.success });
 ```
 
 ```json
-{"level":"success","message":"Configuration complete!"}
+{ "level": "success", "message": "Configuration complete!" }
 ```
 
 ### log-warn
@@ -321,12 +322,12 @@ log.message("Configuration complete!", { symbol: symbols.success });
 Warning messages for non-critical issues
 
 ```typescript
-import { log } from "toolcraft-design";
+import { log } from "toolcraft/design";
 log.warn("API key expires in 7 days");
 ```
 
 ```json
-{"level":"warn","message":"API key expires in 7 days"}
+{ "level": "warn", "message": "API key expires in 7 days" }
 ```
 
 ### log-error
@@ -334,24 +335,24 @@ log.warn("API key expires in 7 days");
 Error messages for failures
 
 ```typescript
-import { log } from "toolcraft-design";
+import { log } from "toolcraft/design";
 log.error("Failed to write config file");
 ```
 
 ```json
-{"level":"error","message":"Failed to write config file"}
+{ "level": "error", "message": "Failed to write config file" }
 ```
 
 ## Prompts
 
-Interactive prompts for user input. Import from `toolcraft-design`.
+Interactive prompts for user input. Import from `toolcraft/design`.
 
 ### prompt-intro
 
 Command intro banner with animation
 
 ```typescript
-import { intro } from "toolcraft-design";
+import { intro } from "toolcraft/design";
 intro("Configure");
 ```
 
@@ -364,12 +365,16 @@ intro("Configure");
 Boxed note for next steps or important info
 
 ```typescript
-import { note } from "toolcraft-design";
+import { note } from "toolcraft/design";
 note("Run poe-code test", "Next steps.");
 ```
 
 ```json
-{"type":"note","title":"Next steps.","message":"Run the following command to test:\n  poe-code test claude-code"}
+{
+  "type": "note",
+  "title": "Next steps.",
+  "message": "Run the following command to test:\n  poe-code test claude-code"
+}
 ```
 
 ### prompt-outro
@@ -377,12 +382,12 @@ note("Run poe-code test", "Next steps.");
 Command outro with feedback link
 
 ```typescript
-import { outro } from "toolcraft-design";
+import { outro } from "toolcraft/design";
 outro("Problems? https://...");
 ```
 
 ```json
-{"type":"outro","message":"Problems? https://github.com/poe-platform/poe-code/issues"}
+{ "type": "outro", "message": "Problems? https://github.com/poe-platform/poe-code/issues" }
 ```
 
 ### prompt-resolved
@@ -390,12 +395,12 @@ outro("Problems? https://...");
 Resolved prompt value display
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 ```
 
 ```json
-{"level":"message","message":"API Key\n   poe-abc...xyz\n   Expires: 2026-12-31"}
+{ "level": "message", "message": "API Key\n   poe-abc...xyz\n   Expires: 2026-12-31" }
 ```
 
 ### prompt-errorResolved
@@ -403,12 +408,15 @@ log.message("API Key\n   poe-abc...xyz", { symbol: symbols.resolved });
 Error with details display
 
 ```typescript
-import { log, symbols } from "toolcraft-design";
+import { log, symbols } from "toolcraft/design";
 log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved });
 ```
 
 ```json
-{"level":"message","message":"Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login"}
+{
+  "level": "message",
+  "message": "Configuration Failed\n   Missing API key\n   Check your .env file or run poe-code login"
+}
 ```
 
 ### menu
@@ -416,7 +424,7 @@ log.message("Config Failed\n   Missing API key", { symbol: symbols.errorResolved
 Interactive select prompt for choosing options
 
 ```typescript
-import { select } from "toolcraft-design";
+import { select } from "toolcraft/design";
 const choice = await select({
   message: "Pick an agent:",
   options: [
@@ -427,7 +435,16 @@ const choice = await select({
 ```
 
 ```json
-{"type":"menu","message":"Pick an agent:","options":[{"value":"claude-code","label":"Claude Code"},{"value":"codex","label":"Codex CLI"},{"value":"aider","label":"Aider"}],"selected":0}
+{
+  "type": "menu",
+  "message": "Pick an agent:",
+  "options": [
+    { "value": "claude-code", "label": "Claude Code" },
+    { "value": "codex", "label": "Codex CLI" },
+    { "value": "aider", "label": "Aider" }
+  ],
+  "selected": 0
+}
 ```
 
 ## Static Rendering
@@ -439,7 +456,7 @@ Utilities for rendering UI elements as static strings (for screenshots, tests, o
 Animated dots spinner for async operations
 
 ```typescript
-import { spinner } from "toolcraft-design";
+import { spinner } from "toolcraft/design";
 const s = spinner();
 s.start("Configuring...");
 await doWork();
@@ -457,7 +474,7 @@ s.stop("Done!");
 Timer spinner showing elapsed time
 
 ```typescript
-import { renderSpinnerFrame, renderSpinnerStopped } from "toolcraft-design";
+import { renderSpinnerFrame, renderSpinnerStopped } from "toolcraft/design";
 const frame = renderSpinnerFrame({ message: "Processing...", timer: "1s" });
 const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });
 ```
@@ -473,17 +490,15 @@ const stopped = renderSpinnerStopped({ message: "Complete!", timer: "2s" });
 Styled terminal table with themed borders and column alignment
 
 ```typescript
-import { renderTable, getTheme } from "toolcraft-design";
+import { renderTable, getTheme } from "toolcraft/design";
 
 const output = renderTable({
   theme: getTheme(),
   columns: [
     { name: "Model", title: "Model", alignment: "left", maxLen: 30 },
-    { name: "Context", title: "Context", alignment: "right", maxLen: 9 },
+    { name: "Context", title: "Context", alignment: "right", maxLen: 9 }
   ],
-  rows: [
-    { Model: "anthropic/claude-sonnet-4", Context: "200K" },
-  ],
+  rows: [{ Model: "anthropic/claude-sonnet-4", Context: "200K" }]
 });
 ```
 
@@ -512,7 +527,7 @@ const output = renderTable({
 Unified diff display for file changes (used in --dry-run)
 
 ```typescript
-import { color, log } from "toolcraft-design";
+import { color, log } from "toolcraft/design";
 const diffLines = [
   color.gray("--- config.json"),
   color.red('-  "model": "gpt-4",'),
@@ -522,7 +537,10 @@ log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
 
 ```json
-{"level":"message","message":"--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"gpt-4\",\n+  \"model\": \"claude-sonnet-4\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"}
+{
+  "level": "message",
+  "message": "--- config.json\n+++ config.json\n@@ -1,3 +1,5 @@\n {\n-  \"model\": \"gpt-4\",\n+  \"model\": \"claude-sonnet-4\",\n   \"temperature\": 0.7\n+  \"maxTokens\": 4096\n }"
+}
 ```
 
 ## Dashboard
@@ -534,7 +552,7 @@ Full-screen interactive terminal dashboard with output pane, stats pane, and key
 Two-pane dashboard layout with scrollable output on the left, live stats on the right, and keyboard hints in the footer
 
 ```typescript
-import { createDashboard } from "toolcraft-design";
+import { createDashboard } from "toolcraft/design";
 
 const dashboard = createDashboard({
   title: "Agent Output",
@@ -543,7 +561,13 @@ const dashboard = createDashboard({
 
 dashboard.start();
 dashboard.appendOutput({ kind: "info", text: "Analyzing repository state", ts: Date.now() });
-dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensOut: 445, elapsedMs: 5000 });
+dashboard.updateStats({
+  status: "running",
+  iterations: 5,
+  tokensIn: 685,
+  tokensOut: 445,
+  elapsedMs: 5000
+});
 ```
 
 ```json
@@ -578,7 +602,7 @@ Reference demos for the terminal markdown renderer, covering both the full showc
 Full markdown renderer showcase with headings, lists, tables, blockquotes, alerts, links, and footnotes.
 
 ```typescript
-import { renderMarkdown } from "toolcraft-design";
+import { renderMarkdown } from "toolcraft/design";
 
 const markdown = [
   "# Design System Markdown",
@@ -622,10 +646,10 @@ reference[1].
  active completed task
  inactive pending task
 
- Feature   Alignment  Status 
+ Feature   Alignment  Status
 ├──────────┼───────────┼────────┤
- Headings   center     Ready 
- Tables     aligned     100% 
+ Headings   center     Ready
+ Tables     aligned     100%
 
  Note
  Alerts are rendered as styled notes.
@@ -639,8 +663,8 @@ reference[1].
 
 Compact markdown renderer sample for quick validation of headings, prose, and fenced code blocks.
 
-```typescript
-import { renderMarkdown } from "toolcraft-design";
+````typescript
+import { renderMarkdown } from "toolcraft/design";
 
 const markdown = [
   "# Markdown Minimal",
@@ -653,7 +677,7 @@ const markdown = [
 ].join("\n");
 
 process.stdout.write(renderMarkdown(markdown));
-```
+````
 
 ```json
 Markdown Minimal

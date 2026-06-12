@@ -1,20 +1,20 @@
 # toolcraft-design
 
-Shared terminal design system for Toolcraft applications. It provides design tokens, ANSI-aware text and layout components, interactive prompts, dashboards, explorers, terminal Markdown rendering, and deterministic static renderers from one package.
+Private workspace package for the Toolcraft terminal design system. It provides design tokens, ANSI-aware text and layout components, interactive prompts, dashboards, explorers, terminal Markdown rendering, and deterministic static renderers from one package.
 
 ## Install
 
-```sh
-npm install toolcraft-design
-```
+`toolcraft-design` is private and is bundled through the public `toolcraft/design` export. Consumers should install `toolcraft` and import the design API from that subpath:
 
-Import from the package root:
+```sh
+npm install toolcraft
+```
 
 ```ts
-import { configureTheme, promptText, renderMarkdown, renderTable, text } from "toolcraft-design";
+import { configureTheme, promptText, renderMarkdown, renderTable, text } from "toolcraft/design";
 ```
 
-The package does not expose public subpath imports.
+Inside this monorepo, workspace packages may still import `toolcraft-design` directly when they need the source package.
 
 ## Public API
 
@@ -95,7 +95,7 @@ The package does not expose public subpath imports.
 The default configuration is `{ brand: "purple", label: "Poe" }`. Configure the package before producing design-system output:
 
 ```ts
-import { configureTheme, getThemeConfig, resetTheme } from "toolcraft-design";
+import { configureTheme, getThemeConfig, resetTheme } from "toolcraft/design";
 
 configureTheme({ brand: "blue", label: "Toolcraft" });
 
@@ -116,7 +116,7 @@ The built-in brands are:
 Register another brand by adding a `Brand` to the exported `brands` registry before selecting it:
 
 ```ts
-import { brands, configureTheme, type Brand } from "toolcraft-design";
+import { brands, configureTheme, type Brand } from "toolcraft/design";
 
 const orange: Brand = {
   name: "orange",

@@ -26,7 +26,7 @@ npx terminal-pilot <command> [options]
 
 ### Skill installation
 
-The CLI can install a Claude Code skill that teaches the agent how to use terminal-pilot's MCP tools. Supported agents: `claude-code`, `codex`, `opencode`.
+The CLI can install a Claude Code skill that teaches the agent how to use terminal-pilot's MCP tools. Supported agents: `claude-code`, `codex`, `cursor`, `opencode`.
 
 **Install the skill (local project, default):**
 

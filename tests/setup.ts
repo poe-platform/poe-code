@@ -1,5 +1,4 @@
-import * as fsPromises from "node:fs/promises";
-import { afterAll, beforeAll, beforeEach, vi } from "vitest";
+import { afterAll, beforeEach, vi } from "vitest";
 
 // Reduce vi.waitFor polling interval from 50ms (default) to 10ms.
 // Tests using vi.waitFor typically need just 1 retry, so this saves ~40ms per call
@@ -13,12 +12,7 @@ import { afterAll, beforeAll, beforeEach, vi } from "vitest";
 }
 import { setGlobalClient } from "../src/services/client-instance.js";
 import type { LlmClient } from "../src/services/llm-client.js";
-import type { FileSystem } from "../src/utils/file-system.js";
-import { createSnapshotClient, type SnapshotClient } from "./helpers/snapshot-client.js";
-import { parseSnapshotConfig, SNAPSHOT_DIR } from "./helpers/snapshot-config.js";
-import { createNodeHttpClient } from "./helpers/http-client.js";
-import { createPoeClient } from "../src/services/llm-client.js";
-import { getPoeApiKey } from "../src/sdk/credentials.js";
+import type { SnapshotClient } from "./helpers/snapshot-client.js";
 
 process.env.FORCE_COLOR = process.env.FORCE_COLOR ?? "1";
 
@@ -52,21 +46,17 @@ const defaultClient: LlmClient = {
   }
 };
 
-const fsAdapter = fsPromises as unknown as FileSystem;
-let snapshotDefault: LlmClient = defaultClient;
 let snapshotClient: SnapshotClient | null = null;
+let snapshotClientPromise: Promise<SnapshotClient> | null = null;
 
-beforeAll(async () => {
-  const config = parseSnapshotConfig(process.env);
-  const baseClient = await resolveSnapshotBaseClient(config.mode, config.onMiss);
-  snapshotClient = createSnapshotClient(baseClient, {
-    mode: config.mode,
-    snapshotDir: SNAPSHOT_DIR,
-    onMiss: config.onMiss,
-    fs: fsAdapter
-  });
-  snapshotDefault = snapshotClient;
-});
+const snapshotDefault: LlmClient = {
+  async text(request) {
+    return (await getSnapshotClient()).text(request);
+  },
+  async media(type, request) {
+    return (await getSnapshotClient()).media(type, request);
+  }
+};
 
 afterAll(async () => {
   if (snapshotClient) {
@@ -85,8 +75,41 @@ async function resolveSnapshotBaseClient(
   if (mode === "playback" && onMiss === "error") {
     return defaultClient;
   }
+  const [{ getPoeApiKey }, { createNodeHttpClient }, { createPoeClient }] = await Promise.all([
+    import("../src/sdk/credentials.js"),
+    import("./helpers/http-client.js"),
+    import("../src/services/llm-client.js")
+  ]);
   const apiKey = await getPoeApiKey();
   const baseUrl = process.env.POE_API_BASE_URL?.trim() || "https://api.poe.com/v1";
   const httpClient = createNodeHttpClient();
   return createPoeClient({ apiKey, baseUrl, httpClient });
+}
+
+async function getSnapshotClient(): Promise<SnapshotClient> {
+  if (snapshotClient !== null) {
+    return snapshotClient;
+  }
+  if (snapshotClientPromise === null) {
+    snapshotClientPromise = createDefaultSnapshotClient();
+  }
+  snapshotClient = await snapshotClientPromise;
+  return snapshotClient;
+}
+
+async function createDefaultSnapshotClient(): Promise<SnapshotClient> {
+  const [fsPromises, snapshotModule, configModule] = await Promise.all([
+    import("node:fs/promises"),
+    import("./helpers/snapshot-client.js"),
+    import("./helpers/snapshot-config.js")
+  ]);
+  const config = configModule.parseSnapshotConfig(process.env);
+  const baseClient = await resolveSnapshotBaseClient(config.mode, config.onMiss);
+
+  return snapshotModule.createSnapshotClient(baseClient, {
+    mode: config.mode,
+    snapshotDir: configModule.SNAPSHOT_DIR,
+    onMiss: config.onMiss,
+    fs: fsPromises as unknown as import("../src/utils/file-system.js").FileSystem
+  });
 }

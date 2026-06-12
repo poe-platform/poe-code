@@ -2,6 +2,7 @@ import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
+import { runCli } from "./cli.js";
 
 describe("tiny-http-mcp-oauth-test-server CLI", () => {
   const require = createRequire(import.meta.url);
@@ -136,32 +137,20 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
   });
 
   it("does not print a bearer token unless --print-test-token is passed", async () => {
-    const env = { ...process.env };
-    delete env.FORCE_COLOR;
-    delete env.NO_COLOR;
+    let stdout = "";
+    let stderr = "";
 
-    const child = spawn(process.execPath, [tsxCliPath, cliSourcePath], {
-      cwd: fileURLToPath(new URL("../../..", import.meta.url)),
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
+    const exitCode = await runCli([], {
+      stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
+      stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+      waitForShutdown: async (shutdown) => shutdown(),
     });
-    activeChildren.add(child);
 
-    const started = await waitForStartup(child);
-    const exitPromise = waitForExit(child);
-
-    expect(started.stdout()).toContain("MCP URL: http://127.0.0.1:");
-    expect(started.stdout()).toContain("PRM URL: http://127.0.0.1:");
-    expect(started.stdout()).toContain("AS issuer: http://127.0.0.1:");
-    expect(started.stdout()).not.toContain("Test bearer token: ");
-
-    child.kill("SIGTERM");
-
-    const result = await exitPromise;
-    activeChildren.delete(child);
-
-    expect(result.signal).toBeNull();
-    expect([0, 143]).toContain(result.code);
-    expect(started.stderr()).toBe("");
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("MCP URL: http://127.0.0.1:");
+    expect(stdout).toContain("PRM URL: http://127.0.0.1:");
+    expect(stdout).toContain("AS issuer: http://127.0.0.1:");
+    expect(stdout).not.toContain("Test bearer token: ");
+    expect(stderr).toBe("");
   });
 });

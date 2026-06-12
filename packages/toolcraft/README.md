@@ -43,10 +43,10 @@ Once the tool map exists, the rest is mechanical: add commands to `root`, expose
 ## Install
 
 ```sh
-npm install toolcraft toolcraft-schema
+npm install toolcraft
 ```
 
-Requires Node 20+.
+`toolcraft-schema` is a dependency and its `S` builders are re-exported from `toolcraft`. Requires Node 20+.
 
 ## Hello world
 

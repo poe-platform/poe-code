@@ -1,4 +1,4 @@
-export { loadGaslightConfig } from "./config.js";
+export { GASLIGHT_CONFIG_EXAMPLE, loadGaslightConfig } from "./config.js";
 export { runGaslight } from "./run.js";
 export type {
   GaslightConfig,

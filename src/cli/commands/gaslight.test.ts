@@ -10,6 +10,7 @@ const { runGaslightMock, selectMock } = vi.hoisted(() => ({
 }));
 
 vi.mock("../../sdk/gaslight.js", () => ({
+  GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
   runGaslight: runGaslightMock
 }));
 
@@ -113,6 +114,63 @@ describe("gaslight command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({ planPath: "docs/plans/a.md", agent: "claude-code", mode: "edit" })
+    );
+  });
+
+  it("routes install as a subcommand instead of a plan path", async () => {
+    const container = createContainer();
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local"]);
+
+    expect(runGaslightMock).not.toHaveBeenCalled();
+    await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toContain(
+      "prompt: Implement"
+    );
+  });
+
+  it("scaffolds global config when installing globally", async () => {
+    const container = createContainer();
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--global"]);
+
+    await expect(
+      container.fs.readFile("/home/test/.poe-code/gaslight.yaml", "utf8")
+    ).resolves.toContain("followups:");
+  });
+
+  it("does not replace an existing config without --force", async () => {
+    const container = createContainer();
+    await container.fs.mkdir("/repo/.poe-code", { recursive: true });
+    await container.fs.writeFile("/repo/.poe-code/gaslight.yaml", "prompt: Keep me\n", {
+      encoding: "utf8"
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local"]);
+
+    await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toBe(
+      "prompt: Keep me\n"
+    );
+  });
+
+  it("replaces an existing config with --force", async () => {
+    const container = createContainer();
+    await container.fs.mkdir("/repo/.poe-code", { recursive: true });
+    await container.fs.writeFile("/repo/.poe-code/gaslight.yaml", "prompt: Replace me\n", {
+      encoding: "utf8"
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local", "--force"]);
+
+    await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toContain(
+      "prompt: Implement"
     );
   });
 });

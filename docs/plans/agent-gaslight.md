@@ -22,7 +22,7 @@ Non-goals:
 
 - No conditional follow-ups — the list is consumed in order, always.
 - No per-plan gaslight config.
-- No harness-pair (`.md`/`.ajs`) scaffolding — this is a plain command.
+- No harness-pair (`.md`/`.ajs`) scaffolding.
 
 ## 2. User-facing shape
 
@@ -59,6 +59,14 @@ Standard interactive rules:
 - `--yes` — accepts defaults, no prompts (CI).
 - `--mode <read|edit|yolo>` — spawn mode, defaults to `edit`.
 
+Installation:
+
+```console
+$ poe-code gaslight install --local
+```
+
+The install subcommand scaffolds the matching project or global `gaslight.yaml`. Existing config is preserved unless `--force` is passed.
+
 Each round shows a spinner while the agent works (rounds always exceed 700ms).
 
 ### SDK
@@ -69,7 +77,7 @@ import { runGaslight } from "@poe-code/agent-gaslight";
 const result = await runGaslight({
   planPath: "docs/plans/foo.md",
   agent: "claude-code",
-  model: "Claude-Sonnet-4.5",
+  model: "Claude-Sonnet-4.5"
 });
 // result.rounds: [{ prompt, summary, threadId }, ...]
 ```
@@ -114,10 +122,10 @@ export type GaslightOptions = {
   planPath: string;
   agent: string;
   model?: string;
-  mode?: "read" | "edit" | "yolo";   // default "edit"
+  mode?: "read" | "edit" | "yolo"; // default "edit"
   cwd?: string;
-  prompt?: string;                   // bypasses config lookup when set
-  followups?: string[];              // bypasses config lookup when set
+  prompt?: string; // bypasses config lookup when set
+  followups?: string[]; // bypasses config lookup when set
   onEvent?: (event: GaslightEvent) => void;
   signal?: AbortSignal;
 };
@@ -135,7 +143,7 @@ export function runGaslight(options: GaslightOptions): Promise<GaslightResult>;
 export function loadGaslightConfig(
   cwd: string,
   homeDir: string,
-  fs?: GaslightFs               // injectable for memfs tests
+  fs?: GaslightFs // injectable for memfs tests
 ): Promise<{ prompt: string; followups: string[]; path: string }>;
 ```
 
@@ -143,12 +151,12 @@ export function loadGaslightConfig(
 
 ### Tests (TDD — test first per change)
 
-| Test | File | Proves |
-| --- | --- | --- |
-| project config beats global; `prompt` + `followups` parsing; missing/invalid → typed errors | `packages/agent-gaslight/src/config.test.ts` (memfs) | config loading |
-| round 1 prompt = config prompt + plan path; follow-up N sends `resumeThreadId` from round N-1; newest threadId carried forward | `packages/agent-gaslight/src/run.test.ts` (mock spawn) | the loop |
-| missing threadId → fails before round 2; mid-list failure reports completed rounds; usage summed | `packages/agent-gaslight/src/run.test.ts` | edge cases |
-| prompts for plan/agent/model when args missing; no prompts when all given; `--yes` takes defaults | `src/cli/commands/gaslight.test.ts` | CLI rules |
+| Test                                                                                                                           | File                                                   | Proves         |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------ | -------------- |
+| project config beats global; `prompt` + `followups` parsing; missing/invalid → typed errors                                    | `packages/agent-gaslight/src/config.test.ts` (memfs)   | config loading |
+| round 1 prompt = config prompt + plan path; follow-up N sends `resumeThreadId` from round N-1; newest threadId carried forward | `packages/agent-gaslight/src/run.test.ts` (mock spawn) | the loop       |
+| missing threadId → fails before round 2; mid-list failure reports completed rounds; usage summed                               | `packages/agent-gaslight/src/run.test.ts`              | edge cases     |
+| prompts for plan/agent/model when args missing; no prompts when all given; `--yes` takes defaults                              | `src/cli/commands/gaslight.test.ts`                    | CLI rules      |
 
 All in-memory: memfs for files, mocked spawn for agents — no real LLM calls, fast.
 
@@ -168,24 +176,24 @@ All in-memory: memfs for files, mocked spawn for agents — no real LLM calls, f
 
 ### Files to create
 
-| File | Purpose |
-| --- | --- |
-| `packages/agent-gaslight/package.json`, `tsconfig.json` | Package scaffolding (mirror `agent-spawn`) |
-| `packages/agent-gaslight/README.md` | Usage, config lookup paths, all options |
-| `packages/agent-gaslight/src/config.ts` | `loadGaslightConfig` + TS guards |
-| `packages/agent-gaslight/src/run.ts` | `runGaslight` loop |
-| `packages/agent-gaslight/src/types.ts` | Options/event/result types |
-| `packages/agent-gaslight/src/index.ts` | Public exports |
-| `packages/agent-gaslight/src/config.test.ts`, `src/run.test.ts` | Package tests |
-| `src/cli/commands/gaslight.ts` | Command wiring: args, prompts, spinner, event rendering |
-| `src/cli/commands/gaslight.test.ts` | CLI prompting/flag tests |
+| File                                                            | Purpose                                                 |
+| --------------------------------------------------------------- | ------------------------------------------------------- |
+| `packages/agent-gaslight/package.json`, `tsconfig.json`         | Package scaffolding (mirror `agent-spawn`)              |
+| `packages/agent-gaslight/README.md`                             | Usage, config lookup paths, all options                 |
+| `packages/agent-gaslight/src/config.ts`                         | `loadGaslightConfig` + TS guards                        |
+| `packages/agent-gaslight/src/run.ts`                            | `runGaslight` loop                                      |
+| `packages/agent-gaslight/src/types.ts`                          | Options/event/result types                              |
+| `packages/agent-gaslight/src/index.ts`                          | Public exports                                          |
+| `packages/agent-gaslight/src/config.test.ts`, `src/run.test.ts` | Package tests                                           |
+| `src/cli/commands/gaslight.ts`                                  | Command wiring: args, prompts, spinner, event rendering |
+| `src/cli/commands/gaslight.test.ts`                             | CLI prompting/flag tests                                |
 
 ### Files to change
 
-| File | Change |
-| --- | --- |
-| `src/cli/index.ts` (command registry) | Register the `gaslight` command |
-| `src/sdk.ts` (public SDK surface) | Re-export `runGaslight` |
+| File                                   | Change                                    |
+| -------------------------------------- | ----------------------------------------- |
+| `src/cli/index.ts` (command registry)  | Register the `gaslight` command           |
+| `src/sdk.ts` (public SDK surface)      | Re-export `runGaslight`                   |
 | root `package.json` / workspace config | Add the package to the workspace + bundle |
 
 ### Build order (green at every step)

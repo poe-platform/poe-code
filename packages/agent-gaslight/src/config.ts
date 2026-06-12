@@ -3,7 +3,7 @@ import path from "node:path";
 import { parse } from "yaml";
 import type { GaslightConfig, GaslightFileSystem } from "./types.js";
 
-const EXAMPLE_CONFIG = [
+export const GASLIGHT_CONFIG_EXAMPLE = [
   "prompt: Implement",
   "followups:",
   "  - Is this best you can do?",
@@ -79,6 +79,6 @@ export async function loadGaslightConfig(
   }
 
   throw new Error(
-    `No gaslight config found. Searched:\n- ${paths[0]}\n- ${paths[1]}\n\nCreate one with:\n${EXAMPLE_CONFIG}`
+    `No gaslight config found. Searched:\n- ${paths[0]}\n- ${paths[1]}\n\nCreate one with:\n${GASLIGHT_CONFIG_EXAMPLE}`
   );
 }

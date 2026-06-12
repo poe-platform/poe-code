@@ -87,6 +87,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["agent"] },
   { path: ["spawn"] },
   { path: ["gaslight"], args: "[plan-path]" },
+  { path: ["gaslight", "install"] },
   { path: ["wrap"] },
   { path: ["test"] },
   { path: ["generate"] },

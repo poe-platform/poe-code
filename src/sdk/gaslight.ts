@@ -1,4 +1,5 @@
 export {
+  GASLIGHT_CONFIG_EXAMPLE,
   loadGaslightConfig,
   runGaslight,
   type GaslightConfig,

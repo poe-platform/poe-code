@@ -2,12 +2,19 @@ import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { spawn, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
-import { intro, isCancel, outro, select, withSpinner } from "toolcraft-design";
+import { cancel, intro, isCancel, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
-import { runGaslight, type GaslightEvent } from "../../sdk/gaslight.js";
+import { GASLIGHT_CONFIG_EXAMPLE, runGaslight, type GaslightEvent } from "../../sdk/gaslight.js";
 import { resolvePlanDirectory } from "./plan.js";
-import { requireInteractiveStdin, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
+import {
+  createExecutionResources,
+  requireInteractiveStdin,
+  resolveCommandFlags,
+  resolveDefaultAgent
+} from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
+import { ValidationError } from "../errors.js";
+import { hasOwnErrorCode } from "../../utils/error-codes.js";
 
 const DEFAULT_AGENT = "claude-code";
 
@@ -16,6 +23,16 @@ interface GaslightCommandOptions {
   model?: string;
   mode?: "read" | "edit" | "yolo";
 }
+
+interface GaslightInstallOptions {
+  force?: boolean;
+  global?: boolean;
+  local?: boolean;
+}
+
+type GaslightConfigScope = "global" | "local";
+
+const DEFAULT_SCOPE: GaslightConfigScope = "local";
 
 async function selectPlan(container: CliContainer, assumeYes: boolean): Promise<string> {
   const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
@@ -92,8 +109,62 @@ function formatUsage(usage: Awaited<ReturnType<typeof runGaslight>>["usage"]): s
   return `Usage: ${usage.inputTokens.toLocaleString()} input / ${usage.outputTokens.toLocaleString()} output tokens${cost}`;
 }
 
+async function resolveInstallScope(
+  options: GaslightInstallOptions,
+  assumeYes: boolean
+): Promise<GaslightConfigScope | null> {
+  if (options.local && options.global) {
+    throw new ValidationError("Use either --local or --global, not both.");
+  }
+  if (options.local) return "local";
+  if (options.global) return "global";
+  if (assumeYes) return DEFAULT_SCOPE;
+  requireInteractiveStdin(
+    "Gaslight install scope selection requires --local, --global, or --yes when running without an interactive TTY."
+  );
+  const selected = await select({
+    message: "Select install scope:",
+    options: [
+      { label: "Local", value: "local" },
+      { label: "Global", value: "global" }
+    ]
+  });
+  if (isCancel(selected)) {
+    cancel("Gaslight install cancelled.");
+    return null;
+  }
+  return selected as GaslightConfigScope;
+}
+
+async function scaffoldConfig(
+  container: CliContainer,
+  scope: GaslightConfigScope,
+  force: boolean,
+  dryRun: boolean
+): Promise<{ path: string; changed: boolean }> {
+  const root = scope === "global" ? container.env.homeDir : container.env.cwd;
+  const configPath = path.join(root, ".poe-code", "gaslight.yaml");
+  try {
+    await container.fs.stat(configPath);
+    if (!force) {
+      return { path: configPath, changed: false };
+    }
+  } catch (error) {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+  }
+  if (!dryRun) {
+    await container.fs.mkdir(path.dirname(configPath), { recursive: true });
+    await container.fs.writeFile(configPath, `${GASLIGHT_CONFIG_EXAMPLE}\n`, {
+      encoding: "utf8"
+    });
+  }
+  return { path: configPath, changed: true };
+}
+
 export function registerGaslightCommand(program: Command, container: CliContainer): void {
-  program
+  const gaslight = program
     .command("gaslight")
     .description("Run a plan through a resumable sequence of agent follow-ups.")
     .argument("[plan-path]", "Markdown plan to implement")
@@ -135,5 +206,39 @@ export function registerGaslightCommand(program: Command, container: CliContaine
           })
       });
       outro(`${result.rounds.length} rounds finished\n${formatUsage(result.usage)}`);
+    });
+
+  gaslight
+    .command("install")
+    .description("Install a default gaslight.yaml configuration.")
+    .option("--local", "Install project-local config")
+    .option("--global", "Install user-global config")
+    .option("--force", "Overwrite an existing gaslight.yaml")
+    .action(async function (this: Command) {
+      const flags = resolveCommandFlags(program);
+      const options = this.opts<GaslightInstallOptions>();
+      const resources = createExecutionResources(container, flags, "gaslight:install");
+      try {
+        const scope = await resolveInstallScope(options, flags.assumeYes);
+        if (scope === null) return;
+
+        resources.logger.intro(`gaslight install (${scope})`);
+        const config = await scaffoldConfig(container, scope, options.force === true, flags.dryRun);
+        if (config.changed) {
+          resources.logger[flags.dryRun ? "dryRun" : "info"](
+            `${flags.dryRun ? "Would create" : "Create"}: ${config.path}`
+          );
+        }
+        resources.context.complete({
+          success: config.changed
+            ? `Installed Gaslight config (${scope}).`
+            : `Gaslight config already exists (${scope}).`,
+          dry: config.changed
+            ? `Would install Gaslight config (${scope}).`
+            : `Gaslight config already exists (${scope}).`
+        });
+      } finally {
+        resources.context.finalize();
+      }
     });
 }

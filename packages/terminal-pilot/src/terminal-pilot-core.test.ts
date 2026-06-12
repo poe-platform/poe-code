@@ -994,11 +994,7 @@ describe("TerminalPilot", () => {
     const pilot = await TerminalPilot.launch();
     pilots.push(pilot);
 
-    const first = await pilot.newSession({
-      ...createSessionOptions(),
-      cols: 80,
-      rows: 24
-    });
+    const first = await pilot.newSession(createSessionOptions());
     expect(first.command).toBe(process.execPath);
     const second = await pilot.newSession({
       ...createSessionOptions(),
@@ -1011,6 +1007,9 @@ describe("TerminalPilot", () => {
     await Promise.all([first.waitFor("What is your name?"), second.waitFor("What is your name?")]);
 
     expect(pilot.sessions()).toEqual([first, second]);
+    const listedSessions = pilot.sessions();
+    listedSessions.length = 0;
+    expect(pilot.sessions()).toEqual([first, second]);
     expect(pilot.getSession(first.id)).toBe(first);
     expect(pilot.getSession(second.id)).toBe(second);
     expect(() => pilot.getSession("missing-session")).toThrowError(
@@ -1019,6 +1018,9 @@ describe("TerminalPilot", () => {
 
     await Promise.all([first.send("Ada\r"), second.send("Grace\r")]);
     await Promise.all([first.waitFor("Hello, Ada!"), second.waitFor("Hello, Grace!")]);
+    await expect(first.screen()).resolves.toMatchObject({
+      size: { cols: 120, rows: 40 }
+    });
 
     await pilot.close();
 
@@ -1026,23 +1028,6 @@ describe("TerminalPilot", () => {
     expect(second.exitCode).toBe(0);
     expect(pilot.sessions()).toEqual([]);
     expect(() => pilot.getSession(first.id)).toThrowError(`Session not found: ${first.id}`);
-  });
-
-  it("uses default session sizing and keeps sessions() isolated from caller mutations", async () => {
-    const pilot = await TerminalPilot.launch();
-    pilots.push(pilot);
-
-    const session = await pilot.newSession(createSessionOptions());
-
-    await session.waitFor("What is your name?");
-
-    const listedSessions = pilot.sessions();
-    listedSessions.length = 0;
-
-    expect(pilot.sessions()).toEqual([session]);
-
-    const screen = await session.screen();
-    expect(screen.size).toEqual({ cols: 120, rows: 40 });
   });
 
   it("removes closed sessions from the active session list", async () => {

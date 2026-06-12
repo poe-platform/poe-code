@@ -1273,13 +1273,10 @@ describe("runPoeCommand", () => {
                 argv: [
                   "sh",
                   "-c",
-                  `trap '' TERM; sleep 30 & echo $! > ${shellQuote(pidFile)}; wait`
+                  `trap '' TERM; sleep 30 & echo $! > ${shellQuote(pidFile)}; echo ready; wait`
                 ]
               },
-              // Wide margin: under full-suite CPU contention the shell may not
-              // be scheduled fast enough to write the pid file before a tight
-              // timeout kills the process group.
-              execution: { activityTimeoutMs: 1_000 }
+              execution: { activityTimeoutMs: 100 }
             }),
             detach: false,
             state

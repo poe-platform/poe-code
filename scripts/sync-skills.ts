@@ -13,22 +13,6 @@ import {
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
-export const agentTemplateSets: Record<string, readonly string[]> = {
-  "claude-code": [],
-  "claude-desktop": [],
-  codex: [],
-  cursor: [],
-  "gemini-cli": [
-    "src/templates/gemini-cli/SKILL_poe-code-plan.md",
-    "src/templates/gemini-cli/SKILL_poe-code-pipeline-plan.md",
-    "src/templates/gemini-cli/SKILL_stop-slop.md"
-  ],
-  opencode: [],
-  kimi: [],
-  goose: [],
-  "poe-agent": []
-};
-
 function loadSkills(templatePaths: readonly string[]) {
   return templatePaths.flatMap((templatePath) => {
     const content = readFileSync(join(ROOT, templatePath), "utf8");
@@ -66,10 +50,7 @@ async function main() {
     absolute: false,
     ignore: ["**/dist/**", "**/node_modules/**"]
   });
-  const agentTemplates = new Set(Object.values(agentTemplateSets).flat());
-  const skills = loadSkills(
-    templateFiles.filter((templatePath) => !agentTemplates.has(templatePath))
-  );
+  const skills = loadSkills(templateFiles);
 
   const changed: string[] = [];
   let unchanged = 0;
@@ -82,7 +63,6 @@ async function main() {
   for (const agent of supportedAgents) {
     const config = getAgentConfig(agent);
     if (!config) continue;
-    const agentSkills = [...skills, ...loadSkills(agentTemplateSets[agent] ?? [])];
 
     for (const scope of scopes) {
       const skillDir = resolveSkillDir(config, scope, process.cwd());
@@ -92,7 +72,7 @@ async function main() {
         continue;
       }
 
-      for (const skill of agentSkills) {
+      for (const skill of skills) {
         const skillFilePath = join(skillDir, skill.name, "SKILL.md");
         assertSafeSkillPath(skillFilePath, scope === "global" ? homedir() : process.cwd());
         if (!existsSync(skillFilePath)) {

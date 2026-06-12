@@ -46,6 +46,7 @@ import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
 import { registerTasksCommand } from "./commands/tasks.js";
+import { registerGaslightCommand } from "./commands/gaslight.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import { ValidationError } from "./errors.js";
@@ -85,6 +86,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["auth"] },
   { path: ["agent"] },
   { path: ["spawn"] },
+  { path: ["gaslight"], args: "[plan-path]" },
   { path: ["wrap"] },
   { path: ["test"] },
   { path: ["generate"] },
@@ -900,6 +902,7 @@ function bootstrapProgram(container: CliContainer): Command {
     handlers: { "poe-agent": createPoeAgentSpawnHandler() },
     extraServices: ["poe-agent"]
   });
+  registerGaslightCommand(program, container);
   registerWrapCommand(program, container);
   registerGenerateCommand(program, container);
   registerTestCommand(program, container);

@@ -1,0 +1,26 @@
+{
+  "name": "@poe-code/agent-gaslight",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/agent-gaslight/src/*.test.ts",
+    "test:unit": "cd ../.. && vitest run packages/agent-gaslight/src/*.test.ts"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "yaml": "^2.8.2"
+  }
+}

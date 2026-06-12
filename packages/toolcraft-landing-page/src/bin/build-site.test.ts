@@ -46,16 +46,10 @@ describe("buildSite", () => {
     expect(html).toContain('href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code"');
     expect(html).not.toMatch(/<link\b[^>]*\bhref=/i);
     expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
-    const docsHtml = await fs.readFile(path.join(outputDirectory, "docs", "index.html"), "utf8");
-    expect(docsHtml).toContain("Toolcraft guide");
-    expect(docsHtml).toContain('id="first-command"');
-    expect(docsHtml).toContain('id="runtime-surfaces"');
-    expect(docsHtml).toContain('id="safety"');
-    expect(docsHtml).toContain('id="migration"');
-    expect(docsHtml).toContain("npm install toolcraft");
-    expect(docsHtml).not.toContain("npm install toolcraft toolcraft-schema");
-    expect(docsHtml).not.toMatch(/<link\b[^>]*\bhref=/i);
-    expect(docsHtml).not.toMatch(/<script\b[^>]*\bsrc=/i);
+    // docs live in the toolcraft README — no generated docs page
+    await expect(
+      fs.readFile(path.join(outputDirectory, "docs", "index.html"), "utf8")
+    ).rejects.toThrow();
     await expect(fs.readFile(path.join(outputDirectory, ".nojekyll"), "utf8")).resolves.toBe("");
   });
 

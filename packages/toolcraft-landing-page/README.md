@@ -13,7 +13,7 @@ npm run build:site -w toolcraft-landing-page
 
 The site build is deterministic, performs no network requests, requires no secrets, and also writes `dist-site/.nojekyll` for static hosting.
 
-The generated site includes a task-oriented guide at `dist-site/docs/index.html`. Its Markdown source is `docs/index.md`.
+Documentation links on the page point at the toolcraft package README on GitHub; the site does not generate a docs page.
 
 ## Configuration
 

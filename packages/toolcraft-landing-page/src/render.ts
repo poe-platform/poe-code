@@ -37,6 +37,7 @@ export interface LandingPageView {
   install?: string;
   version?: string;
   repoUrl?: string;
+  docsUrl: string;
   useCases: UseCaseView[];
   example: ExampleView;
   features: FeatureView[];

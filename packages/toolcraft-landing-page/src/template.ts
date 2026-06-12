@@ -109,13 +109,13 @@ export const TEMPLATE = String.raw`<!doctype html>
             <p class="section-label">Documentation</p>
             <h2 class="section-title" id="docs-heading">Start with the job in front of you.</h2>
             <p class="section-intro">Learn the mental model once, then jump directly to the runtime or safety feature you need.</p>
-            <a class="text-link" href="docs/">Read the Toolcraft guide <span aria-hidden="true">→</span></a>
+            <a class="text-link" href="{{docsUrl}}">Read the Toolcraft README <span aria-hidden="true">→</span></a>
           </div>
           <div class="docs-grid">
-            <a class="doc-card" href="docs/#first-command"><span>01</span><strong>Start with one command</strong><small>Install, define, and run a typed CLI in five minutes.</small></a>
-            <a class="doc-card" href="docs/#runtime-surfaces"><span>02</span><strong>Choose a runtime</strong><small>CLI, MCP, and SDK from the same command tree.</small></a>
-            <a class="doc-card" href="docs/#safety"><span>03</span><strong>Add safety controls</strong><small>Secrets, preconditions, services, and human approval.</small></a>
-            <a class="doc-card" href="docs/#migration"><span>04</span><strong>Migrate existing scripts</strong><small>Adopt Toolcraft incrementally without rewriting useful logic.</small></a>
+            <a class="doc-card" href="{{docsUrl}}#hello-world"><span>01</span><strong>Start with one command</strong><small>Install, define, and run a typed CLI in five minutes.</small></a>
+            <a class="doc-card" href="{{docsUrl}}#one-binary-three-runtimes"><span>02</span><strong>Choose a runtime</strong><small>CLI, MCP, and SDK from the same command tree.</small></a>
+            <a class="doc-card" href="{{docsUrl}}#secrets"><span>03</span><strong>Add safety controls</strong><small>Secrets, preconditions, services, and human approval.</small></a>
+            <a class="doc-card" href="{{docsUrl}}#migrating-from-a-folder-of-scripts"><span>04</span><strong>Migrate existing scripts</strong><small>Adopt Toolcraft incrementally without rewriting useful logic.</small></a>
           </div>
         </div>
       </section>
@@ -125,7 +125,7 @@ export const TEMPLATE = String.raw`<!doctype html>
           <h2 class="section-title" id="quickstart-heading">Ship the first command.</h2>
           <p class="section-intro">Install Toolcraft, point your binary at a root group, and add surfaces as the project needs them.</p>
           <pre>{{{quickstartHtml}}}</pre>
-          <div class="quickstart-actions"><a class="button button-primary" href="docs/">Continue in the guide</a>{{#repoUrl}}<a class="button button-secondary" href="{{repoUrl}}">Browse the source</a>{{/repoUrl}}</div>
+          <div class="quickstart-actions"><a class="button button-primary" href="{{docsUrl}}">Continue in the README</a>{{#repoUrl}}<a class="button button-secondary" href="{{repoUrl}}">Browse the source</a>{{/repoUrl}}</div>
         </div>
       </section>
     </main>

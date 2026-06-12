@@ -40,6 +40,7 @@ export const TOOLCRAFT_LANDING_PAGE: LandingPageView = {
   accent: "#2563eb",
   install: "npm install toolcraft",
   repoUrl: "https://github.com/poe-platform/poe-code",
+  docsUrl: "https://github.com/poe-platform/poe-code/tree/main/packages/toolcraft",
   useCases: [
     {
       title: "Consolidate a folder of scripts",

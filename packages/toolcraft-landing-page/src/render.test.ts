@@ -12,6 +12,7 @@ const page = {
   install: "npm install toolcraft",
   version: "0.0.4",
   repoUrl: "https://github.com/poe-platform/poe-code",
+  docsUrl: "https://github.com/poe-platform/poe-code/tree/main/packages/toolcraft",
   useCases: [
     {
       title: "Consolidate scripts",
@@ -85,7 +86,13 @@ describe("renderLandingPage", () => {
     expect(html).toContain("Choose a runtime");
     expect(html).toContain("Add safety controls");
     expect(html).toContain("Migrate existing scripts");
-    expect(html).toContain('href="docs/"');
+    // the docs link is the README — there is no generated docs page
+    expect(html).not.toContain('href="docs/');
+    expect(html).toContain(
+      'href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code&#x2F;tree&#x2F;main&#x2F;packages&#x2F;toolcraft"'
+    );
+    expect(html).toContain("toolcraft#hello-world");
+    expect(html).toContain("toolcraft#migrating-from-a-folder-of-scripts");
   });
 
   it("renders the use cases as text-beside-code rows", () => {

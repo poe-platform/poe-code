@@ -74,13 +74,12 @@ describe("standalone package publish metadata", () => {
     );
   });
 
-  it("keeps toolcraft-design private and exposes it through toolcraft", () => {
+  it("publishes toolcraft-design and exposes it through toolcraft", () => {
     const designPackage = readPackageJson("packages/toolcraft-design/package.json");
     const toolcraftPackage = readPackageJson("packages/toolcraft/package.json");
 
     expect(designPackage).toMatchObject({
       name: "toolcraft-design",
-      private: true,
       engines: { node: ">=20" },
       exports: {
         ".": {
@@ -91,6 +90,7 @@ describe("standalone package publish metadata", () => {
       repository: { directory: "packages/toolcraft-design" },
       publishConfig: { access: "public" },
     });
+    expect(designPackage.private).not.toBe(true);
     expect(toolcraftPackage.exports?.["./design"]).toEqual({
       types: "./dist/design.d.ts",
       import: "./dist/design.js",

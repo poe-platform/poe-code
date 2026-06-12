@@ -32,22 +32,26 @@ jobs:
         id: version
         run: |
           V1=$(npm view toolcraft-schema version 2>/dev/null || echo "0.0.0")
-          V2=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
-          V3=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
-          REMOTE=$(printf "%s\n%s\n%s" "$V1" "$V2" "$V3" | sort -V | tail -n1)
+          V2=$(npm view toolcraft-design version 2>/dev/null || echo "0.0.0")
+          V3=$(npm view toolcraft version 2>/dev/null || echo "0.0.0")
+          V4=$(npm view toolcraft-openapi version 2>/dev/null || echo "0.0.0")
+          REMOTE=$(printf "%s\n%s\n%s\n%s" "$V1" "$V2" "$V3" "$V4" | sort -V | tail -n1)
           NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
           echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
       - name: Prepare lockstep package versions
         uses: ./.github/actions/prepare-lockstep-release
         with:
           version: ${{ steps.version.outputs.next }}
-          packages: '["packages/toolcraft-schema", "packages/toolcraft", "packages/toolcraft-openapi"]'
+          packages: '["packages/toolcraft-schema", "packages/toolcraft-design", "packages/toolcraft", "packages/toolcraft-openapi"]'
       - name: Build toolcraft packages and dependencies
         run: npx turbo build --filter=toolcraft-design --filter=toolcraft --filter=toolcraft-openapi
       - name: Verify standalone install resolves all bundled imports
         run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
+        run: npm publish --provenance --access public
+      - name: Publish toolcraft-design
+        working-directory: packages/toolcraft-design
         run: npm publish --provenance --access public
       - name: Publish toolcraft
         working-directory: packages/toolcraft

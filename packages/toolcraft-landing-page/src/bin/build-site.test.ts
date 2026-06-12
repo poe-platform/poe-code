@@ -38,8 +38,11 @@ describe("buildSite", () => {
     expect(rebuiltHtml).toBe(html);
     expect(html).toContain("<!doctype html>");
     expect(html).toContain("<style>");
-    expect(html).toContain("npm install toolcraft toolcraft-schema");
-    expect(html).toContain("0.0.4");
+    // toolcraft-schema is a dependency of toolcraft; the install must not repeat it
+    expect(html).toContain('data-copy="npm install toolcraft"');
+    expect(html).not.toContain("npm install toolcraft toolcraft-schema");
+    // the workspace package.json version goes stale (releases version on CI), so no version is shown
+    expect(html).not.toContain("0.0.4");
     expect(html).toContain('href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code"');
     expect(html).not.toMatch(/<link\b[^>]*\bhref=/i);
     expect(html).not.toMatch(/<script\b[^>]*\bsrc=/i);
@@ -49,7 +52,8 @@ describe("buildSite", () => {
     expect(docsHtml).toContain('id="runtime-surfaces"');
     expect(docsHtml).toContain('id="safety"');
     expect(docsHtml).toContain('id="migration"');
-    expect(docsHtml).toContain("npm install toolcraft toolcraft-schema");
+    expect(docsHtml).toContain("npm install toolcraft");
+    expect(docsHtml).not.toContain("npm install toolcraft toolcraft-schema");
     expect(docsHtml).not.toMatch(/<link\b[^>]*\bhref=/i);
     expect(docsHtml).not.toMatch(/<script\b[^>]*\bsrc=/i);
     await expect(fs.readFile(path.join(outputDirectory, ".nojekyll"), "utf8")).resolves.toBe("");

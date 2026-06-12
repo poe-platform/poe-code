@@ -16,88 +16,97 @@ export const greet = defineCommand({
   })
 });`;
 
-const QUICKSTART = `npm install toolcraft toolcraft-schema
+const QUICKSTART = `# 1. Install
+npm install toolcraft
 
-# src/bin.ts — one root, every surface
+# 2. src/bin.ts — point the binary at your root group
 import { runCLI } from "toolcraft/cli";
 import { root } from "./root.js";
 
-await runCLI(root, { version: "0.1.0" });`;
+await runCLI(root, { version: "0.1.0" });
+
+# 3. Run it — flags, --help, and exit codes come from the schema
+mytool greet --name world`;
 
 export const TOOLCRAFT_LANDING_PAGE: LandingPageView = {
   title: "toolcraft — tools for agents and humans",
   description:
     "Define a command once. Get a typed CLI, an MCP server, and a typed SDK from the same source.",
   name: "toolcraft",
-  headline: "Define a command once. Run it everywhere.",
+  headline: "Define a command once.",
+  headlineHighlight: "Run it everywhere.",
   tagline:
     "Create tools for both agents and humans. One definition becomes a typed CLI, an MCP server, and a typed SDK — same handler, no duplication.",
-  accent: "#a200ff",
-  install: "npm install toolcraft toolcraft-schema",
-  version: "0.0.4",
+  accent: "#2563eb",
+  install: "npm install toolcraft",
   repoUrl: "https://github.com/poe-platform/poe-code",
-  surfaceCount: 4,
-  useCaseCount: 6,
-  surfaces: [
-    {
-      name: "CLI",
-      description: "argv parsing, --help, kebab/snake flags, and exit codes via runCLI.",
-      example: "mytool greet --name world"
-    },
-    {
-      name: "MCP",
-      description: "A JSON-RPC stdio server with auto-generated tool schemas via runMCP.",
-      example: "mytool mcp   # stdio server"
-    },
-    {
-      name: "SDK",
-      description: "Typed, in-process function calls via createSDK.",
-      example: 'await sdk.greet({ name: "world" })'
-    },
-    {
-      name: "OpenAPI",
-      description: "Generate toolcraft commands straight from an OpenAPI document.",
-      example: "toolcraft-openapi-generate --input openapi.json"
-    }
-  ],
   useCases: [
     {
       title: "Consolidate a folder of scripts",
       description:
-        "Wrap each one-off script as a defineCommand — keep its imports, fetch calls, and file I/O. The tree grows file by file; retire the old entrypoints when you're ready."
+        "Wrap each one-off script as a defineCommand — keep its imports, fetch calls, and file I/O. The tree grows file by file; retire the old entrypoints when you're ready.",
+      example: `// each script becomes one command file
+export const root = defineGroup({
+  name: "ops",
+  children: [backup, migrate, cleanup]
+});`
     },
     {
       title: "Give agents safe tools",
       description:
-        "Add MCP scope to the commands that are safe for agents. They surface as tools in Claude Desktop and other MCP clients, with destructive ones gated behind approval."
+        "Add MCP scope to the commands that are safe for agents. They surface as tools in Claude Desktop and other MCP clients, with destructive ones gated behind approval.",
+      example: `defineGroup({
+  name: "issues",
+  scope: ["cli", "mcp", "sdk"], // visible to agents
+  children: [list, label, close]
+});`
     },
     {
       title: "Adopt an existing MCP server",
       description:
-        "Proxy an upstream server with defineGroup({ mcp }): pull in a subset of its tools, rename them to dotted paths, and expose them under your own tree — no rewrite."
+        "Proxy an upstream server with defineGroup({ mcp }): pull in a subset of its tools, rename them to dotted paths, and expose them under your own tree — no rewrite.",
+      example: `defineGroup({
+  name: "github",
+  mcp: { transport: "stdio", command: "github-mcp-server" },
+  tools: ["create_issue", "list_issues"],
+  rename: { create_issue: "issues.create" },
+  children: []
+});`
     },
     {
       title: "Generate a client from OpenAPI",
       description:
-        "Point toolcraft-openapi-generate at an OpenAPI document to scaffold commands from the contract, with a --check drift guard for CI."
+        "Point toolcraft-openapi-generate at an OpenAPI document to scaffold commands from the contract, with a --check drift guard for CI.",
+      example: `toolcraft-openapi-generate --input openapi.json
+toolcraft-openapi-generate --check  # CI drift guard`
     },
     {
       title: "Call your tools from code",
       description:
-        "Other packages and tests reach the same operations in-process through createSDK — typed, no subprocessing, no second adapter to maintain."
+        "Other packages and tests reach the same operations in-process through createSDK — typed, no subprocessing, no second adapter to maintain.",
+      example: `const sdk = createSDK(root);
+const { message } = await sdk.greet({ name: "world" });`
     },
     {
       title: "Approve risky operations",
       description:
-        "Gate prod deploys and destructive actions on a human approval — sync or async, routed through Slack, osascript, or your own provider — from any surface."
+        "Gate prod deploys and destructive actions on a human approval — sync or async, routed through Slack, osascript, or your own provider — from any surface.",
+      example: `defineCommand({
+  name: "deploy",
+  humanInLoop: {
+    mode: "async",
+    message: ({ params }) => \`Deploy \${params.target}?\`
+  },
+  handler: async ({ params }) => release(params.target)
+});`
     }
   ],
   example: {
     source: GREET_SOURCE,
     surfaces: [
-      { name: "CLI", code: "mytool greet --name world --loud" },
-      { name: "MCP", code: 'greet({ name: "world", loud: true })' },
-      { name: "SDK", code: 'await sdk.greet({ name: "world", loud: true })' }
+      { name: "CLI · runCLI", code: "$ mytool greet --name world --loud" },
+      { name: "MCP tool · runMCP", code: 'greet({ name: "world", loud: true })' },
+      { name: "SDK · createSDK", code: 'await sdk.greet({ name: "world", loud: true })' }
     ]
   },
   features: [
@@ -112,14 +121,9 @@ export const TOOLCRAFT_LANDING_PAGE: LandingPageView = {
         "Name env-backed secrets per command or group; missing required ones fail with a UserError before the handler runs."
     },
     {
-      name: "Human-in-loop approvals",
+      name: "Preconditions",
       description:
-        "Gate destructive commands on sync or async approval, routed through Slack, osascript, or your own provider."
-    },
-    {
-      name: "MCP proxy",
-      description:
-        "Adopt an existing MCP server: pull a subset of its tools into your tree and rename them to dotted paths."
+        "Declare requires checks — auth, API versions, environment — that run before any handler, on every surface."
     },
     {
       name: "Dependency injection",
@@ -130,6 +134,11 @@ export const TOOLCRAFT_LANDING_PAGE: LandingPageView = {
       name: "Output renderers",
       description:
         "Return raw values, then add per-format rich, markdown, and json renderers for richer CLI output."
+    },
+    {
+      name: "Group inheritance",
+      description:
+        "Set secrets, scope, preconditions, or approvals on a group once — every descendant command inherits them."
     }
   ],
   quickstart: QUICKSTART,

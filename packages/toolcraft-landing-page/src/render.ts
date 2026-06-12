@@ -5,15 +5,10 @@ import { SCRIPT } from "./script.js";
 import { CSS } from "./styles.js";
 import { TEMPLATE } from "./template.js";
 
-interface SurfaceView {
-  name: string;
-  description: string;
-  example: string;
-}
-
 interface UseCaseView {
   title: string;
   description: string;
+  example: string;
 }
 
 interface ExampleSurfaceView {
@@ -36,14 +31,12 @@ export interface LandingPageView {
   description: string;
   name: string;
   headline: string;
+  headlineHighlight?: string;
   tagline: string;
   accent: string;
   install?: string;
   version?: string;
   repoUrl?: string;
-  surfaceCount: number;
-  useCaseCount: number;
-  surfaces: SurfaceView[];
   useCases: UseCaseView[];
   example: ExampleView;
   features: FeatureView[];
@@ -56,9 +49,9 @@ export function renderLandingPage(page: LandingPageView): string {
   const view = {
     ...page,
     installHtml: page.install === undefined ? undefined : highlight(page.install),
-    surfaces: page.surfaces.map((surface) => ({
-      ...surface,
-      exampleHtml: highlight(surface.example)
+    useCases: page.useCases.map((useCase) => ({
+      ...useCase,
+      exampleHtml: highlight(useCase.example)
     })),
     exampleSourceHtml: highlight(page.example.source),
     example: {

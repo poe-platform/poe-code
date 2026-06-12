@@ -62,8 +62,8 @@ export const DOCS_HTML = String.raw`<!doctype html>
 
         <section id="first-command">
           <h2>Your first command</h2>
-          <p>Install the runtime and schema builders:</p>
-          <pre>npm install toolcraft toolcraft-schema</pre>
+          <p>Install the runtime (the <code>S</code> schema builders ship with it):</p>
+          <pre>npm install toolcraft</pre>
           <p>Define one command with its contract and handler together:</p>
           <pre>import { defineCommand, S } from "toolcraft";
 

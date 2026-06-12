@@ -4,7 +4,7 @@ This is the source guide for the task-oriented documentation page emitted at `di
 
 ## First command
 
-Install `toolcraft` and `toolcraft-schema`, define a command with its schema and handler together, add it to a root group, and pass that root to the runtime you need.
+Install `toolcraft` (the `S` schema builders ship with it), define a command with its schema and handler together, add it to a root group, and pass that root to the runtime you need.
 
 ## Mental model
 

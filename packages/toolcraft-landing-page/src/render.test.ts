@@ -5,34 +5,37 @@ const page = {
   title: "toolcraft — tools for agents and humans",
   description: "Define a command once. Get a typed CLI, an MCP server, and a typed SDK.",
   name: "toolcraft",
-  headline: "Define a command once. Run it everywhere.",
+  headline: "Define a command once.",
+  headlineHighlight: "Run it everywhere.",
   tagline: "One definition becomes a typed CLI, an MCP server, and a typed SDK.",
   accent: "#a200ff",
-  install: "npm install toolcraft toolcraft-schema",
+  install: "npm install toolcraft",
   version: "0.0.4",
   repoUrl: "https://github.com/poe-platform/poe-code",
-  surfaceCount: 2,
-  useCaseCount: 2,
-  surfaces: [
-    { name: "CLI", description: "Terminal commands.", example: "mytool greet --name world" },
-    { name: "SDK", description: "Typed calls.", example: "await sdk.greet({ name: 'world' })" }
-  ],
   useCases: [
-    { title: "Consolidate scripts", description: "One tree from a folder of scripts." },
-    { title: "Give agents tools", description: "Safe commands as MCP tools." }
+    {
+      title: "Consolidate scripts",
+      description: "One tree from a folder of scripts.",
+      example: "export const root = defineGroup({ children: [backup] });"
+    },
+    {
+      title: "Give agents tools",
+      description: "Safe commands as MCP tools.",
+      example: 'defineGroup({ scope: ["cli", "mcp", "sdk"] })'
+    }
   ],
   example: {
     source: "export const greet = defineCommand({ name: 'greet' });",
     surfaces: [
-      { name: "CLI", code: "mytool greet --name world" },
-      { name: "SDK", code: "await sdk.greet({ name: 'world' })" }
+      { name: "CLI · runCLI", code: "mytool greet --name world" },
+      { name: "SDK · createSDK", code: "await sdk.greet({ name: 'world' })" }
     ]
   },
   features: [
     { name: "Typed params", description: "One schema, every surface." },
     { name: "Declared secrets", description: "Env-backed, validated up front." }
   ],
-  quickstart: "npm install toolcraft toolcraft-schema",
+  quickstart: "npm install toolcraft",
   includeJs: true
 };
 
@@ -51,25 +54,25 @@ describe("renderLandingPage", () => {
     expect(html).toContain('<section id="docs" aria-labelledby="docs-heading">');
     expect(html).toContain("</main>");
     expect(html).toContain("<footer");
-    expect(html).toContain('aria-label="Copy npm install toolcraft toolcraft-schema"');
-    expect(html).toContain('aria-label="Copy mytool greet --name world"');
+    expect(html).toContain('aria-label="Copy npm install toolcraft"');
+    // the install command is the only copyable snippet — example code for the
+    // fictional tool must not grow copy buttons or shell prompts
+    expect(html.match(/data-copy="/g)).toHaveLength(1);
+    expect(html).not.toContain('id="surfaces"');
     expect(html).toContain(
       '<div class="visually-hidden" id="copy-status" role="status" aria-live="polite" aria-atomic="true"></div>'
     );
   });
 
-  it("renders clear hero actions and architectural proof", () => {
+  it("renders clear hero actions without filler", () => {
     const html = renderLandingPage(page);
 
     expect(html).toContain('<a class="button button-primary" href="#quickstart">Get started</a>');
     expect(html).toContain(
       '<a class="button button-secondary" href="https:&#x2F;&#x2F;github.com&#x2F;poe-platform&#x2F;poe-code">View on GitHub</a>'
     );
-    expect(html).toContain('<ul class="proof" aria-label="Toolcraft guarantees">');
-    expect(html).toContain("One handler");
-    expect(html).toContain("Typed surfaces");
-    expect(html).toContain("Static site");
-    expect(html).toContain("Node 20+");
+    expect(html).not.toContain('class="proof"');
+    expect(html).not.toContain('class="surfaces-line"');
   });
 
   it("explains the mental model before task-oriented documentation", () => {
@@ -85,13 +88,28 @@ describe("renderLandingPage", () => {
     expect(html).toContain('href="docs/"');
   });
 
-  it("renders the use cases and counts", () => {
+  it("renders the use cases as text-beside-code rows", () => {
     const html = renderLandingPage(page);
 
-    expect(html).toContain("<b>2</b> use cases · <b>2</b> surfaces");
     expect(html).toContain('<div class="use-cases">');
+    expect(html).toContain('<div class="use-case-text">');
     expect(html).toContain("<h3>Consolidate scripts</h3>");
     expect(html).toContain("Safe commands as MCP tools.");
+    // each use case carries a syntax-highlighted snippet
+    expect(html).toContain('<pre class="use-case-code">');
+    expect(html).toContain('<span class="tok-kw">export</span>');
+    expect(html).toContain("defineGroup({ children: [backup] });");
+    expect(html).toContain('<span class="tok-str">&quot;mcp&quot;</span>');
+  });
+
+  it("renders the gradient headline highlight", () => {
+    const html = renderLandingPage(page);
+
+    expect(html).toContain(
+      '<h1 class="title">Define a command once. <span class="title-accent">Run it everywhere.</span></h1>'
+    );
+    expect(html).toContain(".title-accent");
+    expect(html).toContain("background-clip: text");
   });
 
   it("renders the worked example and feature cards", () => {
@@ -101,7 +119,7 @@ describe("renderLandingPage", () => {
     expect(html).toContain("defineCommand");
     // the worked-example source is syntax-highlighted (keywords wrapped)
     expect(html).toContain('<span class="tok-kw">const</span>');
-    expect(html).toContain('<span class="flow-surface-name">CLI</span>');
+    expect(html).toContain('<span class="flow-surface-name">CLI · runCLI</span>');
     expect(html).toContain('<div class="features">');
     expect(html).toContain("Typed params");
   });
@@ -124,13 +142,12 @@ describe("renderLandingPage", () => {
 
     expect(html).toContain("@media (prefers-color-scheme: dark)");
     expect(html).toContain("--bg: #111113;");
-    expect(html).toContain("--accent: #d8a7ff;");
+    expect(html).toContain("--accent: #9dc1ff;");
     expect(html).toContain("@media print");
     expect(html).toContain(".nav, .copy, .skip-link { display: none; }");
     expect(html).toContain(
-      ".install code, .params-scroll, pre, .example pre, .quickstart pre { overflow: visible; white-space: pre-wrap; }"
+      ".install code, pre { overflow: visible; white-space: pre-wrap; }"
     );
-    expect(html).toContain(".params { min-width: 0; table-layout: fixed; }");
   });
 
   it("inlines narrow-screen navigation and overflow styles", () => {
@@ -138,8 +155,6 @@ describe("renderLandingPage", () => {
 
     expect(html).toContain("@media (max-width: 620px)");
     expect(html).toContain(".nav-links { width: 100%; gap: 8px; }");
-    expect(html).toContain(".params-scroll { max-width: 100%; overflow-x: auto;");
-    expect(html).toContain("-webkit-overflow-scrolling: touch;");
     expect(html).toContain(".flow > * { min-width: 0; }");
     expect(html).toContain(".hero-actions { align-items: stretch; flex-direction: column; }");
   });

@@ -24,7 +24,7 @@ export const TEMPLATE = String.raw`<!doctype html>
       <div class="hero">
         <div class="wrap">
           <p class="eyebrow">{{name}}{{#version}} · v{{version}}{{/version}}</p>
-          <h1 class="title">{{headline}}</h1>
+          <h1 class="title">{{headline}}{{#headlineHighlight}} <span class="title-accent">{{headlineHighlight}}</span>{{/headlineHighlight}}</h1>
           <p class="tagline">{{tagline}}</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#quickstart">Get started</a>
@@ -36,13 +36,6 @@ export const TEMPLATE = String.raw`<!doctype html>
             <button class="copy" type="button" data-copy="{{install}}" aria-label="Copy {{install}}">Copy</button>
           </div>
           {{/install}}
-          <p class="surfaces-line"><b>{{useCaseCount}}</b> use cases · <b>{{surfaceCount}}</b> surfaces · one definition</p>
-          <ul class="proof" aria-label="Toolcraft guarantees">
-            <li>One handler</li>
-            <li>Typed surfaces</li>
-            <li>Static site</li>
-            <li>Node 20+</li>
-          </ul>
         </div>
       </div>
     </header>
@@ -70,26 +63,10 @@ export const TEMPLATE = String.raw`<!doctype html>
               {{#example.surfaces}}
               <article class="flow-surface">
                 <div class="flow-surface-head"><span class="flow-surface-name">{{name}}</span></div>
-                <div class="example"><pre><span aria-hidden="true">$ </span>{{{codeHtml}}}</pre><button class="copy" type="button" data-copy="{{code}}" aria-label="Copy {{code}}">Copy</button></div>
+                <pre class="flow-surface-code">{{{codeHtml}}}</pre>
               </article>
               {{/example.surfaces}}
             </div>
-          </div>
-        </div>
-      </section>
-      <section id="surfaces" aria-labelledby="surfaces-heading">
-        <div class="wrap">
-          <p class="section-label">One definition</p>
-          <h2 class="section-title" id="surfaces-heading">Every surface, no duplication</h2>
-          <p class="section-intro">The same command tree powers every runtime.</p>
-          <div class="surfaces">
-            {{#surfaces}}
-            <article class="surface">
-              <h3>{{name}}</h3>
-              <p>{{description}}</p>
-              <pre>{{{exampleHtml}}}</pre>
-            </article>
-            {{/surfaces}}
           </div>
         </div>
       </section>
@@ -101,8 +78,11 @@ export const TEMPLATE = String.raw`<!doctype html>
           <div class="use-cases">
             {{#useCases}}
             <article class="use-case">
-              <h3>{{title}}</h3>
-              <p>{{description}}</p>
+              <div class="use-case-text">
+                <h3>{{title}}</h3>
+                <p>{{description}}</p>
+              </div>
+              <pre class="use-case-code">{{{exampleHtml}}}</pre>
             </article>
             {{/useCases}}
           </div>
@@ -112,7 +92,7 @@ export const TEMPLATE = String.raw`<!doctype html>
         <div class="wrap">
           <p class="section-label">Declared once</p>
           <h2 class="section-title" id="features-heading">Built in</h2>
-          <p class="section-intro">Schema, secrets, approvals, and proxies are configuration — not boilerplate in every handler.</p>
+          <p class="section-intro">Schema, secrets, preconditions, and services are configuration — not boilerplate in every handler.</p>
           <div class="features">
             {{#features}}
             <article class="feature">

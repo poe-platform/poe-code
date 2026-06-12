@@ -582,6 +582,9 @@ describe("mcp proxy integration", () => {
     const secondResult = await callCommand(github, ["caesar_cipher_encrypt"], {
       text: "abc",
     });
+    const thirdResult = await callCommand(github, ["caesar_cipher_encrypt"], {
+      text: "xyz",
+    });
 
     expect(firstResult).toEqual({
       content: [{ type: "text", text: "khoor" }],
@@ -589,7 +592,15 @@ describe("mcp proxy integration", () => {
     expect(secondResult).toEqual({
       content: [{ type: "text", text: "def" }],
     });
+    expect(thirdResult).toEqual({
+      content: [{ type: "text", text: "abc" }],
+    });
     expect(await readNumberFile(harness.countFile)).toBe(1);
+    expect(await readLinesFile(harness.toolCallFile)).toEqual([
+      "caesar_cipher_encrypt",
+      "caesar_cipher_encrypt",
+      "caesar_cipher_encrypt",
+    ]);
   });
 
   it("retains and replaces the cache when TOOLCRAFT_MCP_REFRESH matches the group name", async () => {
@@ -622,35 +633,6 @@ describe("mcp proxy integration", () => {
     expect(afterRefresh.mtimeMs).toBeGreaterThan(beforeRefresh.mtimeMs);
     expect(readOutput(stderrWrite)).toContain("MCP github: connecting");
     expect(readOutput(stderrWrite)).toContain("MCP github: wrote");
-  });
-
-  it("reuses one upstream subprocess for three sequential tool calls", async () => {
-    const harness = await createHarness();
-    harnesses.push(harness);
-    setProjectRoot(harness);
-
-    await resolveMcpProxies(createProxyRoot(harness).root);
-    await resetObservedState(harness);
-
-    const { github, root } = createProxyRoot(harness);
-    await resolveMcpProxies(root);
-
-    expect(
-      await callCommand(github, ["caesar_cipher_encrypt"], { text: "hello" })
-    ).toEqual({
-      content: [{ type: "text", text: "khoor" }],
-    });
-    expect(
-      await callCommand(github, ["caesar_cipher_encrypt"], { text: "abc" })
-    ).toEqual({
-      content: [{ type: "text", text: "def" }],
-    });
-    expect(
-      await callCommand(github, ["caesar_cipher_encrypt"], { text: "xyz" })
-    ).toEqual({
-      content: [{ type: "text", text: "abc" }],
-    });
-    expect(await readNumberFile(harness.countFile)).toBe(1);
   });
 
   it("closes the previous hot upstream subprocess when the same root is resolved again", async () => {

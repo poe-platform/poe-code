@@ -508,7 +508,7 @@ async function evaluateArrayExpression(
         return spreadValues.result;
       }
 
-      values.push(...spreadValues.value);
+      appendArrayValues(values, spreadValues.value);
       context.budget.allocateArrayLength(values.length);
       continue;
     }
@@ -3250,6 +3250,12 @@ function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | S
   return Array.isArray(value) || isPlainSandboxObject(value);
 }
 
+function appendArrayValues(target: SandboxValue[], values: readonly SandboxValue[]): void {
+  for (const value of values) {
+    target.push(value);
+  }
+}
+
 function isPlainSandboxObject(value: SandboxValue): value is SandboxObject {
   return (
     typeof value === "object" &&
@@ -3471,7 +3477,7 @@ async function evaluateCallArguments(
         return spreadValues;
       }
 
-      values.push(...spreadValues.value);
+      appendArrayValues(values, spreadValues.value);
       context.budget.allocateArrayLength(values.length);
       continue;
     }

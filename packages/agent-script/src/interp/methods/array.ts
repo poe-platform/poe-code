@@ -323,7 +323,8 @@ async function callArrayMethodUnlocked(
       return budgetProducedValue(result, options.budget);
     }
     case "push": {
-      const nextLength = value.push(...args);
+      appendArrayValues(value, args);
+      const nextLength = value.length;
       budgetProducedValue(value, options.budget);
       return nextLength;
     }
@@ -332,10 +333,35 @@ async function callArrayMethodUnlocked(
     case "shift":
       return budgetProducedValue(value.shift(), options.budget);
     case "unshift": {
-      const nextLength = value.unshift(...args);
+      prependArrayValues(value, args);
+      const nextLength = value.length;
       budgetProducedValue(value, options.budget);
       return nextLength;
     }
+  }
+}
+
+function appendArrayValues(target: SandboxArray, values: readonly SandboxValue[]): void {
+  for (const value of values) {
+    target.push(value);
+  }
+}
+
+function prependArrayValues(target: SandboxArray, values: readonly SandboxValue[]): void {
+  const originalLength = target.length;
+  target.length = originalLength + values.length;
+
+  for (let index = originalLength - 1; index >= 0; index -= 1) {
+    const targetIndex = index + values.length;
+    if (Object.hasOwn(target, index)) {
+      target[targetIndex] = target[index];
+    } else {
+      delete target[targetIndex];
+    }
+  }
+
+  for (let index = 0; index < values.length; index += 1) {
+    target[index] = values[index];
   }
 }
 

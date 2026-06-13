@@ -934,6 +934,21 @@ describe("interpret", () => {
     );
   });
 
+  it("spreads large arrays into push without leaking the host argument limit", async () => {
+    const source = Array.from({ length: 1_000_000 }, (_, index) => index);
+
+    await expect(
+      interpret(block(parse("const target = []"), parse("target.push(...source)"), parse("return target.length")), {
+        bindings: {
+          source
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: source.length
+    });
+  });
+
   it("assigns a new value to a let binding", async () => {
     await expect(
       interpret(block(parse("let x = 1"), parse("x = 2"), parse("return x")))

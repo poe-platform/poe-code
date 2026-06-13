@@ -1086,6 +1086,59 @@ describe("run", () => {
     expect(messages).toEqual(["one", "two"]);
   });
 
+  it("applies detached fulfilled promise side effects before snapshotting", async () => {
+    const cases = [
+      {
+        expected: 1,
+        source: `
+          let value = 0;
+          Promise.resolve(1).then((next) => {
+            value = next;
+          });
+          return value;
+        `
+      },
+      {
+        expected: 2,
+        source: `
+          let value = 0;
+          Promise.resolve(1)
+            .then((next) => next + 1)
+            .then((next) => {
+              value = next;
+            });
+          return value;
+        `
+      },
+      {
+        expected: 1,
+        source: `
+          let value = 0;
+          Promise.resolve().then(() =>
+            Promise.resolve().then(() => {
+              value = 1;
+            })
+          );
+          return value;
+        `
+      }
+    ];
+
+    for (const testCase of cases) {
+      const result = await run(testCase.source);
+
+      expect(result).toMatchObject({
+        ok: true,
+        returnValue: 0,
+        snapshot: {
+          bindings: {
+            value: testCase.expected
+          }
+        }
+      });
+    }
+  });
+
   it("rejects promise chains that resolve to themselves", async () => {
     const result = await run(`
       let chained;

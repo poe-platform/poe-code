@@ -327,7 +327,7 @@ class Lexer {
       }
 
       if (char === "\\") {
-        this.readEscapedLiteralCharacter();
+        this.skipEscapedTemplateCharacter();
         continue;
       }
 
@@ -528,7 +528,7 @@ class Lexer {
         return;
       }
       if (char === "\\") {
-        this.readEscapedLiteralCharacter();
+        this.skipEscapedTemplateCharacter();
         continue;
       }
       if (char === "$" && this.peekChar(1) === "{") {
@@ -968,6 +968,25 @@ class Lexer {
 
     if (isOctalDigit(escaped)) {
       this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+    }
+
+    this.advance();
+  }
+
+  private skipEscapedTemplateCharacter(): void {
+    this.advance();
+
+    if (this.isAtEnd()) {
+      return;
+    }
+
+    const escaped = this.currentChar();
+    if (escaped === "\r") {
+      this.advance();
+      if (this.currentChar() === "\n") {
+        this.advance();
+      }
+      return;
     }
 
     this.advance();

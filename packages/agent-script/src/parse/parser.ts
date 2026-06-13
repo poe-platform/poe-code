@@ -80,7 +80,7 @@ export type TemplateElement = BaseNode & {
   tail: boolean;
   value: {
     raw: string;
-    cooked: string;
+    cooked: string | undefined;
   };
 };
 
@@ -541,6 +541,7 @@ const MULTIPLICATIVE_OPERATORS = new Set<BinaryOperator>(["*", "/", "%"]);
 const BITWISE_OR_OPERATORS = new Set<BinaryOperator>(["|"]);
 const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
 const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
+const MAX_UNICODE_CODE_POINT = 0x10ffff;
 const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "break",
   "const",
@@ -2465,7 +2466,7 @@ class Parser {
       }
 
       if (this.currentToken().type === "template") {
-        const quasi = createTemplateLiteral(this.currentToken());
+        const quasi = createTemplateLiteral(this.currentToken(), { allowMalformedEscapes: true });
         this.index += 1;
         expression = {
           node: {
@@ -2569,7 +2570,7 @@ class Parser {
     if (token.type === "template") {
       this.index += 1;
       return {
-        node: createTemplateLiteral(token),
+        node: createTemplateLiteral(token, { allowMalformedEscapes: false }),
         parenthesized: false
       };
     }
@@ -4093,7 +4094,10 @@ function createLiteralFromToken(
   return createKeywordLiteral(token);
 }
 
-function createTemplateLiteral(token: Token): TemplateLiteral {
+function createTemplateLiteral(
+  token: Token,
+  options: { allowMalformedEscapes: boolean } = { allowMalformedEscapes: false }
+): TemplateLiteral {
   const raw = token.value;
   const expressions: Expression[] = [];
   const quasis: TemplateElement[] = [];
@@ -4109,7 +4113,9 @@ function createTemplateLiteral(token: Token): TemplateLiteral {
     }
 
     if (char === "$" && raw[cursor + 1] === "{") {
-      quasis.push(createTemplateElement(token.start, raw, quasiStart, cursor, false));
+      quasis.push(
+        createTemplateElement(token.start, raw, quasiStart, cursor, false, options)
+      );
       const expressionStart = cursor + 2;
       const expressionEnd = findTemplateExpressionEnd(raw, expressionStart);
       expressions.push(
@@ -4126,7 +4132,9 @@ function createTemplateLiteral(token: Token): TemplateLiteral {
     cursor += 1;
   }
 
-  quasis.push(createTemplateElement(token.start, raw, quasiStart, raw.length - 1, true));
+  quasis.push(
+    createTemplateElement(token.start, raw, quasiStart, raw.length - 1, true, options)
+  );
 
   return {
     type: "TemplateLiteral",
@@ -4206,26 +4214,127 @@ function isHexDigit(value: string): boolean {
   return isDecimalDigit(value) || (value >= "a" && value <= "f") || (value >= "A" && value <= "F");
 }
 
+function isOctalDigit(value: string): boolean {
+  return value >= "0" && value <= "7";
+}
+
 function createTemplateElement(
   templateStart: Position,
   rawTemplate: string,
   rawStart: number,
   rawEnd: number,
-  tail: boolean
+  tail: boolean,
+  options: { allowMalformedEscapes: boolean }
 ): TemplateElement {
   const rawValue = rawTemplate.slice(rawStart, rawEnd);
+  const cooked = decodeTemplateElementCooked(rawValue, options.allowMalformedEscapes);
+  if (cooked.invalid !== undefined && !options.allowMalformedEscapes) {
+    const position = positionWithinRaw(templateStart, rawTemplate, rawStart + cooked.invalid.index);
+    throw new Error(`${cooked.invalid.message} at line ${position.line}, column ${position.column}.`);
+  }
+
   return {
     type: "TemplateElement",
     tail,
     value: {
       raw: rawValue,
-      cooked: decodeEscapedText(normalizeTemplateLineTerminators(rawValue))
+      cooked: cooked.invalid === undefined ? cooked.value : undefined
     },
     span: createSpan(
       positionWithinRaw(templateStart, rawTemplate, rawStart),
       positionWithinRaw(templateStart, rawTemplate, rawEnd)
     )
   };
+}
+
+function decodeTemplateElementCooked(
+  value: string,
+  allowMalformedEscapes: boolean
+): { invalid?: { index: number; message: string }; value?: string } {
+  const normalized = normalizeTemplateLineTerminators(value);
+  const invalid = findMalformedTemplateEscape(normalized);
+  if (invalid !== undefined) {
+    return allowMalformedEscapes ? { invalid } : { invalid };
+  }
+
+  return {
+    value: decodeEscapedText(normalized)
+  };
+}
+
+function findMalformedTemplateEscape(
+  value: string
+): { index: number; message: string } | undefined {
+  let index = 0;
+
+  while (index < value.length) {
+    if (value[index] !== "\\") {
+      index += 1;
+      continue;
+    }
+
+    const next = value[index + 1];
+    if (next === undefined || next === "\n") {
+      index += 2;
+      continue;
+    }
+
+    if (next === "u") {
+      if (!isValidUnicodeEscape(value, index)) {
+        return { index, message: "Invalid unicode escape" };
+      }
+      index += 2;
+      continue;
+    }
+
+    if (next === "x") {
+      const hex = value.slice(index + 2, index + 4);
+      if (hex.length !== 2 || ![...hex].every(isHexDigit)) {
+        return { index, message: "Invalid hex escape" };
+      }
+      index += 4;
+      continue;
+    }
+
+    if (next === "0") {
+      if (isDecimalDigit(value[index + 2] ?? "")) {
+        return { index, message: "Legacy octal escape sequences are not supported" };
+      }
+      index += 2;
+      continue;
+    }
+
+    if (isOctalDigit(next)) {
+      return { index, message: "Legacy octal escape sequences are not supported" };
+    }
+
+    index += 2;
+  }
+
+  return undefined;
+}
+
+function isValidUnicodeEscape(value: string, start: number): boolean {
+  let index = start + 2;
+  if (value[index] === "{") {
+    index += 1;
+    const codePointStart = index;
+    while (index < value.length && value[index] !== "}") {
+      if (!isHexDigit(value[index] ?? "")) {
+        return false;
+      }
+      index += 1;
+    }
+
+    if (index === codePointStart || value[index] !== "}") {
+      return false;
+    }
+
+    return Number.parseInt(value.slice(codePointStart, index), 16) <= MAX_UNICODE_CODE_POINT;
+  }
+
+  const hex = value.slice(index, index + 4);
+  return hex.length === 4 && [...hex].every(isHexDigit);
 }
 
 function findTemplateExpressionEnd(raw: string, start: number): number {

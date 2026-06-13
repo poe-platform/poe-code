@@ -1298,6 +1298,30 @@ describe("interpret", () => {
     });
   });
 
+  it("evaluates String.raw tagged templates with malformed raw escapes", async () => {
+    await expect(
+      interpret(parse("return String.raw`{\\rtf1\\adeflang1025\\ansi\\ansicpg1252\\uc1`"), {
+        bindings: createObjectArrayGlobals({
+          budget: new Budget()
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "{\\rtf1\\adeflang1025\\ansi\\ansicpg1252\\uc1"
+    });
+
+    await expect(
+      interpret(parse("return String.raw`/\\1`"), {
+        bindings: createObjectArrayGlobals({
+          budget: new Budget()
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "/\\1"
+    });
+  });
+
   it("calls tagged template functions with cooked strings and interpolation values", async () => {
     const calls: unknown[][] = [];
 

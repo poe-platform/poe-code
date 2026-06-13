@@ -654,7 +654,9 @@ function createTaggedTemplateStrings(
 ): SandboxArray {
   context.budget.allocateArrayLength(node.quasis.length);
   const strings = node.quasis.map((quasi) =>
-    context.budget.allocateString(quasi.value.cooked)
+    quasi.value.cooked === undefined
+      ? undefined
+      : context.budget.allocateString(quasi.value.cooked)
   ) as SandboxArray;
 
   context.budget.allocateArrayLength(node.quasis.length);

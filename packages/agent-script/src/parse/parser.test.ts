@@ -594,6 +594,39 @@ describe("parse", () => {
     });
   });
 
+  it("allows malformed escapes in tagged templates but rejects them in bare templates", () => {
+    expect(parse("String.raw`\\uc1`")).toMatchObject({
+      type: "TaggedTemplateExpression",
+      quasi: {
+        quasis: [
+          {
+            value: {
+              raw: "\\uc1",
+              cooked: undefined
+            }
+          }
+        ]
+      }
+    });
+
+    expect(parse("String.raw`/\\1`")).toMatchObject({
+      type: "TaggedTemplateExpression",
+      quasi: {
+        quasis: [
+          {
+            value: {
+              raw: "/\\1",
+              cooked: undefined
+            }
+          }
+        ]
+      }
+    });
+
+    expect(() => parse("`\\uc1`")).toThrowError("Invalid unicode escape");
+    expect(() => parse("`/\\1`")).toThrowError("Legacy octal escape sequences are not supported");
+  });
+
   it("rebases spans for multiline template expressions", () => {
     expect(parse("`A\\n${\n  { value, list: [1, ...rest] }\n}Z`")).toEqual({
       type: "TemplateLiteral",

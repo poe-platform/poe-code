@@ -721,7 +721,7 @@ function copyFunctionProperties(
 ): SandboxObject | undefined {
   const properties: SandboxObject = {};
 
-  for (const key of Object.keys(callable)) {
+  for (const key of Object.getOwnPropertyNames(callable)) {
     const descriptor = Object.getOwnPropertyDescriptor(callable, key);
     if (descriptor === undefined) {
       continue;

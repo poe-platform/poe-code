@@ -13,6 +13,21 @@ import {
 } from "./values.js";
 
 describe("host bridge", () => {
+  it("copies non-enumerable static methods from injected functions", () => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        AbortSignal
+      },
+      { budget: new Budget() }
+    ).AbortSignal as SandboxClosure;
+
+    expect(wrapped.properties).toMatchObject({
+      any: expect.objectContaining({
+        kind: "fn"
+      })
+    });
+  });
+
   it("converts host Map and Set results into sandbox collections", () => {
     const shared = { id: 1 };
     const wrapped = wrapCallerInjectedBindings(

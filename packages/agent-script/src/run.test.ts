@@ -29,6 +29,27 @@ describe("run", () => {
     });
   });
 
+  it("preserves non-enumerable static methods on injected functions", async () => {
+    function HostApi() {
+      return undefined;
+    }
+    Object.defineProperty(HostApi, "join", {
+      configurable: true,
+      value: (left: string, right: string) => `${left}:${right}`
+    });
+
+    await expect(
+      run('return HostApi.join("left", "right");', {
+        bindings: {
+          HostApi
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "left:right"
+    });
+  });
+
   it("registers declarative host operation resume policies", async () => {
     const write = declareHostOperation(async () => "written", "read-side-effect");
     const read = declareHostOperation(async () => "read", "re-issue");

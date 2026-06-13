@@ -29,6 +29,16 @@ describe("run", () => {
     });
   });
 
+  it("rejects parser stack stress with a controlled parse error", async () => {
+    await expect(run(createElseIfChain(3_000), { filename: "branches.ajs" })).rejects.toMatchObject(
+      {
+        filename: "branches.ajs",
+        kind: "ParseError",
+        message: expect.stringContaining("If statement nesting limit exceeded")
+      }
+    );
+  });
+
   it("preserves non-enumerable static methods on injected functions", async () => {
     function HostApi() {
       return undefined;
@@ -1724,3 +1734,11 @@ try {
     });
   });
 });
+
+function createElseIfChain(depth: number): string {
+  let source = "";
+  for (let index = 0; index < depth; index += 1) {
+    source += `if (0) { return ${index}; } else `;
+  }
+  return `${source}{ return ""; }`;
+}

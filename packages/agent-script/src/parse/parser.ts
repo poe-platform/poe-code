@@ -12,6 +12,9 @@ import { parseRegex } from "../interp/regex/parse.js";
 
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 
+const MAX_CONDITIONAL_EXPRESSION_DEPTH = 256;
+const MAX_IF_STATEMENT_DEPTH = 2_048;
+
 export type SourceSpan = {
   start: Position;
   end: Position;
@@ -625,6 +628,8 @@ function parseExpressionTokens(tokens: Token[]): Expression {
 class Parser {
   private index = 0;
   private breakableDepth = 0;
+  private conditionalExpressionDepth = 0;
+  private ifStatementDepth = 0;
   private loopDepth = 0;
   private generatorBody = false;
   private readonly scopes: Array<Map<string, Position>> = [new Map()];
@@ -818,24 +823,36 @@ class Parser {
   }
 
   private parseConditionalExpression(): ParsedExpression {
-    const test = this.parseCoalesceExpression();
-    if (this.consumePunctuator("?") === undefined) {
-      return test;
+    if (this.conditionalExpressionDepth >= MAX_CONDITIONAL_EXPRESSION_DEPTH) {
+      const token = this.currentToken();
+      throw new Error(
+        `Conditional expression nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
+      );
     }
 
-    const consequent = this.parseExpression();
-    this.expectPunctuator(":");
-    const alternate = this.parseConditionalExpression();
-    return {
-      node: {
-        type: "ConditionalExpression",
-        test: test.node,
-        consequent: consequent.node,
-        alternate: alternate.node,
-        span: createSpan(test.node.span.start, alternate.node.span.end)
-      },
-      parenthesized: false
-    };
+    this.conditionalExpressionDepth += 1;
+    try {
+      const test = this.parseCoalesceExpression();
+      if (this.consumePunctuator("?") === undefined) {
+        return test;
+      }
+
+      const consequent = this.parseExpression();
+      this.expectPunctuator(":");
+      const alternate = this.parseConditionalExpression();
+      return {
+        node: {
+          type: "ConditionalExpression",
+          test: test.node,
+          consequent: consequent.node,
+          alternate: alternate.node,
+          span: createSpan(test.node.span.start, alternate.node.span.end)
+        },
+        parenthesized: false
+      };
+    } finally {
+      this.conditionalExpressionDepth -= 1;
+    }
   }
 
   private parseArrowFunctionBody(): BlockStatement | Expression {
@@ -1054,30 +1071,42 @@ class Parser {
   }
 
   private parseIfStatement(): IfStatement {
-    const ifToken = this.expectKeyword("if");
-    this.expectPunctuator("(");
-    const test = this.parseExpression({ allowSequence: true }).node;
-    this.expectPunctuator(")");
-    const consequent = this.parseStatement();
-    if (consequent.type !== "BlockStatement") {
-      while (
-        this.currentToken().type === "punctuator" &&
-        this.currentToken().value === ";" &&
-        this.peekToken(1).type === "keyword" &&
-        this.peekToken(1).value === "else"
-      ) {
-        this.index += 1;
-      }
+    if (this.ifStatementDepth >= MAX_IF_STATEMENT_DEPTH) {
+      const token = this.currentToken();
+      throw new Error(
+        `If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
+      );
     }
-    const elseToken = this.consumeKeyword("else");
-    const alternate = elseToken === undefined ? undefined : this.parseStatement();
-    return {
-      type: "IfStatement",
-      test,
-      consequent,
-      alternate,
-      span: createSpan(ifToken.start, alternate?.span.end ?? consequent.span.end)
-    };
+
+    this.ifStatementDepth += 1;
+    try {
+      const ifToken = this.expectKeyword("if");
+      this.expectPunctuator("(");
+      const test = this.parseExpression({ allowSequence: true }).node;
+      this.expectPunctuator(")");
+      const consequent = this.parseStatement();
+      if (consequent.type !== "BlockStatement") {
+        while (
+          this.currentToken().type === "punctuator" &&
+          this.currentToken().value === ";" &&
+          this.peekToken(1).type === "keyword" &&
+          this.peekToken(1).value === "else"
+        ) {
+          this.index += 1;
+        }
+      }
+      const elseToken = this.consumeKeyword("else");
+      const alternate = elseToken === undefined ? undefined : this.parseStatement();
+      return {
+        type: "IfStatement",
+        test,
+        consequent,
+        alternate,
+        span: createSpan(ifToken.start, alternate?.span.end ?? consequent.span.end)
+      };
+    } finally {
+      this.ifStatementDepth -= 1;
+    }
   }
 
   private parseSwitchStatement(): SwitchStatement {

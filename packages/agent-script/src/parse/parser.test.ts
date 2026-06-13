@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DisallowedSyntaxError, parse } from "../parse.js";
+import { ParseError } from "./format-error.js";
 import { parseModule } from "./parser.js";
 
 describe("parse", () => {
@@ -847,6 +848,13 @@ describe("parse", () => {
         }
       }
     });
+
+    expect(() => parseModule(createNestedConditionalModule(500), "generated.ajs")).toThrow(
+      ParseError
+    );
+    expect(() => parseModule(createNestedConditionalModule(500), "generated.ajs")).toThrow(
+      "Conditional expression nesting limit exceeded"
+    );
 
     expect(parse("a || b && c")).toMatchObject({
       type: "LogicalExpression",
@@ -1909,6 +1917,11 @@ describe("parse", () => {
         }
       ]
     });
+
+    expect(() => parseModule(createElseIfChain(3_000), "branches.ajs")).toThrow(ParseError);
+    expect(() => parseModule(createElseIfChain(3_000), "branches.ajs")).toThrow(
+      "If statement nesting limit exceeded"
+    );
 
     expect(parseModule("try { a; } catch { b; }")).toMatchObject({
       body: [
@@ -3641,3 +3654,19 @@ describe("parse", () => {
     });
   });
 });
+
+function createNestedConditionalModule(depth: number): string {
+  let expression = "0";
+  for (let index = 0; index < depth; index += 1) {
+    expression = `a ? 0 : (${expression})`;
+  }
+  return `function validate() { return ${expression}; }`;
+}
+
+function createElseIfChain(depth: number): string {
+  let source = "";
+  for (let index = 0; index < depth; index += 1) {
+    source += `if (0) { return ${index}; } else `;
+  }
+  return `${source}{ return ""; }`;
+}

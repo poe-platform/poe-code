@@ -304,15 +304,16 @@ export async function interpret(
     peakDataSize: { enumerable: false, value: 0, writable: true }
   });
   const activeLoopIterations = new Map<number, LoopIterationSnapshot>();
+  const microtasks: Array<() => void> = [];
   hoistVarDeclarations(node, scope);
-  const evaluation = await evaluateNode(node, {
+  const context = {
     budget,
     callStack: [],
     onYield: options.onYield,
     rootNode: node,
     scope,
     stats,
-    microtasks: [],
+    microtasks,
     activeLoopIterations,
     restoredLoopIterations: new Map(
       Object.entries(options.snapshot?.loopIterations ?? {}).map(([nodeId, iteration]) => [
@@ -322,7 +323,9 @@ export async function interpret(
     ),
     generatorResume: options.generatorResume,
     generatorYield: options.generatorYield
-  });
+  };
+  const evaluation = await evaluateNode(node, context);
+  await drainMicrotasks(context);
   const snapshot = scope.snapshot();
   reconcileDataBudget(
     budget,
@@ -381,6 +384,24 @@ export async function interpret(
 }
 
 export { Scope } from "./scope.js";
+
+async function drainMicrotasks(context: EvaluationContext): Promise<void> {
+  let idleTurns = 0;
+
+  while (idleTurns < 20) {
+    const task = context.microtasks.shift();
+    if (task === undefined) {
+      idleTurns += 1;
+      await Promise.resolve();
+      continue;
+    }
+
+    idleTurns = 0;
+    context.budget.visitNode();
+    task();
+    await Promise.resolve();
+  }
+}
 
 async function evaluateNode(
   node: ParseResult,

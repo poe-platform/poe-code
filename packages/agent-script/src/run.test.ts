@@ -1055,6 +1055,37 @@ describe("run", () => {
     });
   });
 
+  it("drains detached fulfilled promise reactions before completing", async () => {
+    const messages: string[] = [];
+    const result = await run(
+      `
+        Promise.resolve('one')
+          .then((value) => {
+            console.log(value);
+            return 'two';
+          })
+          .then((value) => {
+            console.log(value);
+          });
+        return 'done';
+      `,
+      {
+        sink: {
+          error: () => undefined,
+          log: (...args) => {
+            messages.push(args.join(" "));
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+    expect(messages).toEqual(["one", "two"]);
+  });
+
   it("rejects in-flight awaits and the next host call when aborted", async () => {
     const controller = new AbortController();
     const after = vi.fn(() => "after");

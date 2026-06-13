@@ -16,6 +16,13 @@ import { makeFailModule } from "./modules/fail.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
+import {
+  createBrokenPipeState,
+  createSafeOutputStream,
+  withBrokenPipeGuard,
+  type BrokenPipeState,
+  type OutputStream
+} from "./output-stream.js";
 import type { CallerInjectedBinding } from "./interp/host-bridge.js";
 import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
 import { parseModule } from "./parse/parser.js";
@@ -23,9 +30,7 @@ import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { run, type RunResult } from "./run.js";
 import { dump, dumpCurrent } from "./snapshot/dump.js";
 
-type CliStream = {
-  write(chunk: string): void;
-};
+type CliStream = OutputStream;
 
 type CliProcess = Pick<NodeJS.Process, "off" | "on">;
 
@@ -92,42 +97,57 @@ export async function runCli(
   argv: readonly string[],
   options: RunCliOptions = {}
 ): Promise<number> {
-  const stdout = options.stdout ?? process.stdout;
-  const stderr = options.stderr ?? process.stderr;
+  const brokenPipe = createBrokenPipeState();
+  const stdout = createSafeOutputStream(options.stdout ?? process.stdout, brokenPipe);
+  const stderr = createSafeOutputStream(options.stderr ?? process.stderr, brokenPipe);
 
-  try {
-    if (argv.includes("--help") || argv.includes("-h")) {
-      stdout.write(`${createUsage()}\n`);
-      return 0;
+  return withBrokenPipeGuard(
+    [options.stdout ?? process.stdout, options.stderr ?? process.stderr],
+    brokenPipe,
+    async () => {
+      try {
+        if (argv.includes("--help") || argv.includes("-h")) {
+          stdout.write(`${createUsage()}\n`);
+          return 0;
+        }
+
+        const parsed = parseArgs(argv);
+        if (parsed.filepath === undefined) {
+          stderr.write(`${createUsage()}\n`);
+          return brokenPipe.closed ? 0 : EXIT_RUNTIME;
+        }
+
+        const cwd = options.cwd ?? readCurrentWorkingDirectory();
+        const filepath = path.resolve(cwd, parsed.filepath);
+        await assertHarnessFile({
+          displayPath: parsed.filepath,
+          filepath,
+          statFile: options.stat ?? stat
+        });
+
+        return await runScriptFile(filepath, parsed, {
+          cwd,
+          modulesFor: options.modulesFor,
+          process: options.process ?? process,
+          readFile: options.readFile ?? readFile,
+          brokenPipe,
+          stderr,
+          stdout,
+          writeFile: options.writeFile ?? writeFile
+        });
+      } catch (error) {
+        if (brokenPipe.closed) {
+          return 0;
+        }
+        stderr.write(`${readErrorMessage(error)}\n`);
+        return brokenPipe.closed
+          ? 0
+          : error instanceof CliExitError
+            ? error.exitCode
+            : exitCodeForError(error);
+      }
     }
-
-    const parsed = parseArgs(argv);
-    if (parsed.filepath === undefined) {
-      stderr.write(`${createUsage()}\n`);
-      return EXIT_RUNTIME;
-    }
-
-    const cwd = options.cwd ?? readCurrentWorkingDirectory();
-    const filepath = path.resolve(cwd, parsed.filepath);
-    await assertHarnessFile({
-      displayPath: parsed.filepath,
-      filepath,
-      statFile: options.stat ?? stat
-    });
-
-    return await runScriptFile(filepath, parsed, {
-      cwd,
-      modulesFor: options.modulesFor,
-      process: options.process ?? process,
-      readFile: options.readFile ?? readFile,
-      stderr,
-      stdout,
-      writeFile: options.writeFile ?? writeFile
-    });
-  } catch (error) {
-    stderr.write(`${readErrorMessage(error)}\n`);
-    return error instanceof CliExitError ? error.exitCode : exitCodeForError(error);
-  }
+  );
 }
 
 function readCurrentWorkingDirectory(): string {
@@ -235,6 +255,7 @@ async function runScriptFile(
   options: {
     cwd: string;
     modulesFor: RunCliOptions["modulesFor"];
+    brokenPipe: BrokenPipeState;
     process: CliProcess;
     readFile: ReadMarkdownFile;
     stderr: CliStream;
@@ -287,12 +308,20 @@ async function runScriptFile(
   const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
   if (lintErrors.length > 0) {
     options.stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
-    return lintErrors.some((diagnostic) => diagnostic.code === "AS001") ? EXIT_PARSE : EXIT_RUNTIME;
+    if (options.brokenPipe.closed) {
+      return 0;
+    }
+    return lintErrors.some((diagnostic) => diagnostic.code === "AS001")
+      ? EXIT_PARSE
+      : EXIT_RUNTIME;
   }
 
   const lintWarnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning");
   if (lintWarnings.length > 0) {
     options.stderr.write(`Lint warnings:\n${formatDiagnostics(lintWarnings)}\n`);
+    if (options.brokenPipe.closed) {
+      return 0;
+    }
   }
 
   const snapshot = await readRestoreSnapshot(parsed.restorePath, options);
@@ -331,6 +360,10 @@ async function runScriptFile(
     const result = await runPromise;
     await signalSnapshotWrite;
 
+    if (options.brokenPipe.closed) {
+      return 0;
+    }
+
     if (parsed.snapshotPath !== undefined) {
       await writeSnapshot(parsed.snapshotPath, await dump(result), options);
     }
@@ -342,20 +375,26 @@ async function runScriptFile(
           source: executableSource
         })}\n`
       );
+      if (options.brokenPipe.closed) {
+        return 0;
+      }
       return interrupted ? EXIT_SIGINT : exitCodeForError(result.error);
     }
 
     options.stdout.write(`${JSON.stringify({ ok: true, returnValue: result.returnValue })}\n`);
-    return interrupted ? EXIT_SIGINT : 0;
+    return options.brokenPipe.closed ? 0 : interrupted ? EXIT_SIGINT : 0;
   } catch (error) {
     await signalSnapshotWrite;
+    if (options.brokenPipe.closed) {
+      return 0;
+    }
     options.stderr.write(
       `${formatInterpreterError(error, {
         filename: filepath,
         source: executableSource
       })}\n`
     );
-    return interrupted ? EXIT_SIGINT : exitCodeForError(error);
+    return options.brokenPipe.closed ? 0 : interrupted ? EXIT_SIGINT : exitCodeForError(error);
   } finally {
     options.process.off("SIGINT", onSigint);
   }

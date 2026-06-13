@@ -16,6 +16,25 @@ function createSink(): {
   };
 }
 
+function createBrokenPipeSink(options: { failAfterWrites: number }): {
+  output: () => string;
+  write: (chunk: string) => void;
+} {
+  const sink = createSink();
+  let writes = 0;
+
+  return {
+    output: sink.output,
+    write(chunk) {
+      if (writes >= options.failAfterWrites) {
+        throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
+      }
+      writes += 1;
+      sink.write(chunk);
+    }
+  };
+}
+
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
   callback: () => Promise<T> | T
@@ -74,5 +93,31 @@ describe("runExampleFile", () => {
       expect(exitCode).toBe(1);
       expect(stderr.output()).toBe("[object Object]\n");
     });
+  });
+
+  it("treats stdout EPIPE as a clean early exit", async () => {
+    const stdout = createBrokenPipeSink({ failAfterWrites: 1 });
+    const stderr = createSink();
+    const source = [
+      "```js",
+      'import { info } from "log";',
+      'info("one");',
+      'info("two");',
+      "return 1;",
+      "```"
+    ].join("\n");
+
+    const exitCode = await runExampleFile("/repo/example.md", {
+      readFile: async () => source,
+      stderr,
+      stdout
+    });
+
+    expect(exitCode).toBe(0);
+    expect(JSON.parse(stdout.output())).toMatchObject({
+      type: "info",
+      args: ["one"]
+    });
+    expect(stderr.output()).toBe("");
   });
 });

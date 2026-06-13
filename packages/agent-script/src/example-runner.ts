@@ -11,12 +11,16 @@ import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
 import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
+import {
+  createBrokenPipeState,
+  createSafeOutputStream,
+  withBrokenPipeGuard,
+  type OutputStream
+} from "./output-stream.js";
 import { parseModule } from "./parse/parser.js";
 import { run } from "./run.js";
 
-type CliStream = {
-  write(chunk: string): void;
-};
+type CliStream = OutputStream;
 
 export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
 export type WriteMarkdownFile = (
@@ -71,80 +75,97 @@ export async function runExampleFile(
   filepath: string,
   options: RunExampleFileOptions = {}
 ): Promise<number> {
-  const stdout = options.stdout ?? process.stdout;
-  const stderr = options.stderr ?? process.stderr;
+  const brokenPipe = createBrokenPipeState();
+  const stdout = createSafeOutputStream(options.stdout ?? process.stdout, brokenPipe);
+  const stderr = createSafeOutputStream(options.stderr ?? process.stderr, brokenPipe);
   const readMarkdownFile = options.readFile ?? readFile;
   const writeMarkdownFile = options.writeFile ?? writeFile;
 
-  try {
-    const rawSource = await readMarkdownFile(filepath, "utf8");
-    const loaded = loadExecutableSource(rawSource);
-    const { frontmatter, hasScriptBlock } = loaded;
-    let executableSource = loaded.executableSource;
-    const meta = {
-      filepath,
-      kind: frontmatter.kind,
-      version: frontmatter.version
-    };
-    const runtime = createExampleRuntime(frontmatter, meta, stdout);
-
-    if (!hasScriptBlock) {
-      const returnValue = await runDemoFallback(frontmatter, runtime);
-      stdout.write(`${JSON.stringify({ ok: true, returnValue })}\n`);
-      return 0;
-    }
-
-    const lintOptions = {
-      allowedExportNames: ["schema"],
-      filename: filepath,
-      modules: createLintModulesFromRuntimeRegistry(runtime.registry)
-    };
-    const lintResult = options.fix
-      ? lint(executableSource, { ...lintOptions, fix: true })
-      : lint(executableSource, lintOptions);
-    const diagnostics = Array.isArray(lintResult) ? lintResult : lintResult.diagnostics;
-
-    if (!Array.isArray(lintResult)) {
-      executableSource = lintResult.fixed;
-      if (lintResult.fixed !== loaded.executableSource) {
-        await writeMarkdownFile(
+  return withBrokenPipeGuard(
+    [options.stdout ?? process.stdout, options.stderr ?? process.stderr],
+    brokenPipe,
+    async () => {
+      try {
+        const rawSource = await readMarkdownFile(filepath, "utf8");
+        const loaded = loadExecutableSource(rawSource);
+        const { frontmatter, hasScriptBlock } = loaded;
+        let executableSource = loaded.executableSource;
+        const meta = {
           filepath,
-          replaceExecutableSource(rawSource, loaded, lintResult.fixed),
-          {
-            encoding: "utf8"
+          kind: frontmatter.kind,
+          version: frontmatter.version
+        };
+        const runtime = createExampleRuntime(frontmatter, meta, stdout);
+
+        if (!hasScriptBlock) {
+          const returnValue = await runDemoFallback(frontmatter, runtime);
+          stdout.write(`${JSON.stringify({ ok: true, returnValue })}\n`);
+          return 0;
+        }
+
+        const lintOptions = {
+          allowedExportNames: ["schema"],
+          filename: filepath,
+          modules: createLintModulesFromRuntimeRegistry(runtime.registry)
+        };
+        const lintResult = options.fix
+          ? lint(executableSource, { ...lintOptions, fix: true })
+          : lint(executableSource, lintOptions);
+        const diagnostics = Array.isArray(lintResult) ? lintResult : lintResult.diagnostics;
+
+        if (!Array.isArray(lintResult)) {
+          executableSource = lintResult.fixed;
+          if (lintResult.fixed !== loaded.executableSource) {
+            await writeMarkdownFile(
+              filepath,
+              replaceExecutableSource(rawSource, loaded, lintResult.fixed),
+              {
+                encoding: "utf8"
+              }
+            );
           }
-        );
+        }
+        const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
+
+        if (lintErrors.length > 0) {
+          stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
+          return brokenPipe.closed ? 0 : 1;
+        }
+
+        const lintWarnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning");
+        if (lintWarnings.length > 0) {
+          stderr.write(`Lint warnings:\n${formatDiagnostics(lintWarnings)}\n`);
+          if (brokenPipe.closed) {
+            return 0;
+          }
+        }
+
+        const result = await run(executableSource, {
+          entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
+          filename: filepath,
+          modules: runtime.registry
+        });
+
+        if (brokenPipe.closed) {
+          return 0;
+        }
+
+        if (!result.ok) {
+          stderr.write(`${readErrorMessage(result.error)}\n`);
+          return brokenPipe.closed ? 0 : 1;
+        }
+
+        stdout.write(`${JSON.stringify({ ok: true, returnValue: result.returnValue })}\n`);
+        return 0;
+      } catch (error) {
+        if (brokenPipe.closed) {
+          return 0;
+        }
+        stderr.write(`${readErrorMessage(error)}\n`);
+        return brokenPipe.closed ? 0 : 1;
       }
     }
-    const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
-
-    if (lintErrors.length > 0) {
-      stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
-      return 1;
-    }
-
-    const lintWarnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning");
-    if (lintWarnings.length > 0) {
-      stderr.write(`Lint warnings:\n${formatDiagnostics(lintWarnings)}\n`);
-    }
-
-    const result = await run(executableSource, {
-      entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
-      filename: filepath,
-      modules: runtime.registry
-    });
-
-    if (!result.ok) {
-      stderr.write(`${readErrorMessage(result.error)}\n`);
-      return 1;
-    }
-
-    stdout.write(`${JSON.stringify({ ok: true, returnValue: result.returnValue })}\n`);
-    return 0;
-  } catch (error) {
-    stderr.write(`${readErrorMessage(error)}\n`);
-    return 1;
-  }
+  );
 }
 
 function loadExecutableSource(source: string): {

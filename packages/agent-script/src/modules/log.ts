@@ -1,3 +1,9 @@
+import {
+  addBrokenPipeListener,
+  createBrokenPipeState,
+  createSafeOutputStream
+} from "../output-stream.js";
+
 export type LogModuleEntry =
   | {
       ts: string;
@@ -51,8 +57,12 @@ export function makeLogModule(
 }
 
 function createJsonlStdoutSink(): LogModuleSink {
+  const brokenPipe = createBrokenPipeState();
+  const stdout = createSafeOutputStream(process.stdout, brokenPipe);
+  addBrokenPipeListener(process.stdout, brokenPipe);
+
   return (entry) => {
-    process.stdout.write(`${JSON.stringify(toJsonValue(entry, new WeakSet()))}\n`);
+    stdout.write(`${JSON.stringify(toJsonValue(entry, new WeakSet()))}\n`);
   };
 }
 

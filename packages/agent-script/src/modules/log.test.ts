@@ -125,6 +125,23 @@ describe("makeLogModule", () => {
     expect(Number.isNaN(Date.parse(String(event.ts)))).toBe(false);
   });
 
+  it("ignores default sink stdout EPIPE writes", () => {
+    const stdoutWrite = vi
+      .spyOn(process.stdout, "write")
+      .mockImplementationOnce(() => true)
+      .mockImplementation(() => {
+        throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
+      });
+    const log = makeLogModule();
+
+    expect(() => {
+      log.info("first");
+      log.info("second");
+      log.info("third");
+    }).not.toThrow();
+    expect(stdoutWrite).toHaveBeenCalledTimes(2);
+  });
+
   it("serializes default-sink records that JSON.stringify cannot handle directly", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const log = makeLogModule();

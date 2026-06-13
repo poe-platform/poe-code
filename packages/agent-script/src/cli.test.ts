@@ -25,6 +25,25 @@ function createSink(): {
   };
 }
 
+function createBrokenPipeSink(options: { failAfterWrites: number }): {
+  output: () => string;
+  write: (chunk: string) => void;
+} {
+  const sink = createSink();
+  let writes = 0;
+
+  return {
+    output: sink.output,
+    write(chunk) {
+      if (writes >= options.failAfterWrites) {
+        throw Object.assign(new Error("write EPIPE"), { code: "EPIPE" });
+      }
+      writes += 1;
+      sink.write(chunk);
+    }
+  };
+}
+
 async function withObjectPrototypeProperties<T>(
   properties: Record<string, unknown>,
   callback: () => Promise<T> | T
@@ -387,6 +406,21 @@ describe("agent-script CLI", () => {
     expect(stdout.output()).toContain("ab\n");
     expect(stderr.output()).toContain("bad\n");
     expect(stderr.output()).toContain("boom");
+  });
+
+  it("treats stdout EPIPE as a clean early exit", async () => {
+    const stdout = createBrokenPipeSink({ failAfterWrites: 1 });
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.ajs",
+      ['console.log("one");', 'console.log("two");', 'console.log("three");'].join("\n")
+    );
+
+    const exitCode = await runCli(["script.ajs"], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output()).toBe("one\n");
+    expect(stderr.output()).toBe("");
   });
 
   it("maps parse, runtime, and budget failures to documented exit codes", async () => {

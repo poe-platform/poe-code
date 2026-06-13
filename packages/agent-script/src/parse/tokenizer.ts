@@ -221,6 +221,11 @@ class Lexer {
     while (!this.isAtEnd()) {
       const char = this.currentChar();
 
+      if (this.isHashbangCommentStart()) {
+        this.skipLineComment();
+        continue;
+      }
+
       if (isWhitespace(char) || isLineBreak(char)) {
         this.advance();
         continue;
@@ -895,6 +900,13 @@ class Lexer {
     return this.source.startsWith("<!--", this.index) || this.source.startsWith("-->", this.index);
   }
 
+  private isHashbangCommentStart(): boolean {
+    return (
+      this.source.startsWith("#!", this.index) &&
+      (this.index === 0 || (this.index === 1 && this.source[0] === "\uFEFF"))
+    );
+  }
+
   private readUnicodeEscape(): string {
     const escapeStart = this.position();
     this.advance();
@@ -1077,7 +1089,7 @@ function isOctalDigit(char: string): boolean {
 }
 
 function isWhitespace(char: string): boolean {
-  return char === " " || char === "\t" || char === "\v" || char === "\f";
+  return char === " " || char === "\t" || char === "\v" || char === "\f" || char === "\uFEFF";
 }
 
 function isLineBreak(char: string): boolean {

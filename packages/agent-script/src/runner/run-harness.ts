@@ -201,7 +201,7 @@ function loadExecutableSource(
     countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
 
   return {
-    executableSource: createLineOffsetSource(executableBlock, absoluteLineOffset),
+    executableSource: createLineOffsetSource(stripHashbang(executableBlock), absoluteLineOffset),
     frontmatter,
     isRawScript: false
   };
@@ -284,6 +284,19 @@ function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): Mo
 
 function stripByteOrderMark(source: string): string {
   return source.startsWith("\uFEFF") ? source.slice(1) : source;
+}
+
+function stripHashbang(source: string): string {
+  if (!source.startsWith("#!")) {
+    return source;
+  }
+
+  const lineBreakIndex = source.indexOf("\n");
+  if (lineBreakIndex === -1) {
+    return "";
+  }
+
+  return source.slice(lineBreakIndex + 1);
 }
 
 function countLineBreaks(source: string): number {

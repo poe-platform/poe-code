@@ -182,6 +182,36 @@ describe("runHarness", () => {
     ).rejects.toThrow("No code block found");
   });
 
+  it("accepts hashbangs in raw scripts and fenced code blocks", async () => {
+    const rawPath = "/repo/docs/plans/raw.ajs";
+    const markdownPath = "/repo/docs/plans/markdown.md";
+
+    vol.fromJSON({
+      [rawPath]: "#!/usr/bin/env bun\nreturn 1;",
+      [markdownPath]: ["# Example", "", "```js", "#!/usr/bin/env node", "return 2;", "```"].join(
+        "\n"
+      )
+    });
+
+    await expect(
+      runHarness(rawPath, {
+        modulesFor: () => ({})
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+
+    await expect(
+      runHarness(markdownPath, {
+        modulesFor: () => ({})
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
   it("reports parse errors on source-mapped markdown lines", async () => {
     const filepath = "/repo/docs/plans/syntax.md";
 

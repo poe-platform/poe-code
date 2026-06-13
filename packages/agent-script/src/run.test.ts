@@ -17,6 +17,18 @@ describe("run", () => {
     vi.unstubAllEnvs();
   });
 
+  it("executes sources with a leading hashbang or byte order mark", async () => {
+    await expect(run("#!/usr/bin/env bun\nreturn 1;")).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+
+    await expect(run("\uFEFFreturn 2;")).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
   it("registers declarative host operation resume policies", async () => {
     const write = declareHostOperation(async () => "written", "read-side-effect");
     const read = declareHostOperation(async () => "read", "re-issue");

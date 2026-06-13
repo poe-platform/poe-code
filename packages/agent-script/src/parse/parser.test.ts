@@ -4,6 +4,24 @@ import { DisallowedSyntaxError, parse } from "../parse.js";
 import { parseModule } from "./parser.js";
 
 describe("parse", () => {
+  it("accepts byte-zero hashbangs and leading byte order marks", () => {
+    expect(parse("#!/usr/bin/env bun\n1")).toMatchObject({
+      type: "NumericLiteral",
+      raw: "1",
+      value: 1
+    });
+
+    expect(parse("\uFEFF1")).toMatchObject({
+      type: "NumericLiteral",
+      raw: "1",
+      value: 1
+    });
+
+    expect(parseModule("#!/usr/bin/env node\nreturn 1;").body[0]).toMatchObject({
+      type: "ReturnStatement"
+    });
+  });
+
   it("tracks closing delimiters in empty arrays and objects", () => {
     expect(parse("[]")).toEqual({
       type: "ArrayExpression",

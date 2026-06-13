@@ -1,6 +1,9 @@
 {
   "name": "tiny-stdio-mcp-server",
   "version": "0.1.0",
+  "bugs": {
+    "url": "https://github.com/poe-platform/poe-code/issues"
+  },
   "description": "Minimal MCP server over stdio with typed tools and rich content helpers",
   "type": "module",
   "main": "dist/index.js",

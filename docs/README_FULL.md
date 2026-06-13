@@ -2,7 +2,7 @@
 
 > **Audience**: AI agents and developers who need to understand and use every feature of the `poe-code` library — CLI, SDK, providers, and internals.
 
-`poe-code` is a CLI tool and Node.js SDK that configures coding agents (Claude Code, Codex, OpenCode, Kimi, Goose) to route their API calls through the [Poe API](https://poe.com/api). Instead of managing multiple provider accounts, a single Poe subscription powers all your coding agents.
+`poe-code` is a CLI tool and Node.js SDK that configures coding agents (Claude Code, Codex, Cursor, OpenCode, Kimi, Goose) to route their API calls through the [Poe API](https://poe.com/api). Instead of managing multiple provider accounts, a single Poe subscription powers all your coding agents.
 
 **Repository**: https://github.com/poe-platform/poe-code
 
@@ -22,6 +22,7 @@
   - [provider](#provider)
   - [approvals](#approvals)
   - [spawn](#spawn)
+  - [gaslight](#gaslight)
   - [code-review](#code-review)
   - [research](#research)
   - [wrap](#wrap)
@@ -373,7 +374,7 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `agent` | Yes | Agent to spawn: `claude-code`, `codex`, `opencode`, `kimi`, `goose` |
+| `agent` | Yes | Agent to spawn, such as `claude-code`, `codex`, `cursor`, `opencode`, `kimi`, `goose`, or `poe-agent`. |
 | `prompt` | No | Prompt text. Use `-` to read from stdin, or `@path/to/file` to load prompt text from a file. |
 | `agentArgs` | No | Additional arguments forwarded directly to the agent CLI. |
 
@@ -385,8 +386,10 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 | `-C, --cwd <path>` | Current dir | Working directory for the agent. |
 | `--stdin` | `false` | Read the prompt from stdin. |
 | `-i, --interactive` | `false` | Launch in interactive TUI mode (inherits stdio). |
-| `--mode <mode>` | `yolo` | Permission mode: `yolo` (full access), `edit` (file edits only), `read` (read-only). |
+| `--mode <mode>` | Prompted; `--yes` uses `yolo` | Permission mode: `yolo`, `auto`, `edit`, or `read`. Unsupported modes fail before launch with the supported-mode list. |
+| `--resume-thread-id <id>` | None | Resume a prior provider thread/session through the declarative agent resume mapping. |
 | `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
+| `--activity-timeout-ms <ms>` | Agent default | Kill or retry inactive streaming processes after the selected timeout. |
 
 **Behavior:**
 
@@ -435,8 +438,63 @@ poe-code spawn codex "Fix tests" -C /path/to/project
 # Forward extra args to agent CLI
 poe-code spawn claude-code "Hello" -- --max-tokens 1000
 
+# Resume a previous provider session
+poe-code spawn claude-code "Continue the fix" --resume-thread-id abc123
+
 # In CI with full automation
 poe-code spawn codex "Run lint and fix issues" --mode yolo --yes
+```
+
+---
+
+### gaslight
+
+Run a Markdown plan through an agent, then resume the same thread with configured follow-up prompts. This is useful for enforcing checks such as simplification, testing, committing, and release monitoring after the initial implementation round.
+
+```bash
+poe-code gaslight [plan-path]
+poe-code gaslight install
+```
+
+**Configuration lookup:**
+
+1. `<cwd>/.poe-code/gaslight.yaml`
+2. `<homeDir>/.poe-code/gaslight.yaml`
+
+**Config keys:**
+
+| Key | Required | Description |
+|-----|----------|-------------|
+| `prompt` | Yes | Non-empty initial instruction prepended to the plan. |
+| `followups` | Yes | Non-empty list of non-empty prompts. Each one resumes the prior round thread. |
+
+**Options:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `--agent <agent>` | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run. |
+| `--model <model>` | Agent/configured default | Model override. |
+| `--mode <mode>` | `edit` | Spawn mode: `read`, `edit`, or `yolo`. |
+| `install --local` | Local when `--yes` | Write `<cwd>/.poe-code/gaslight.yaml`. |
+| `install --global` | None | Write `<homeDir>/.poe-code/gaslight.yaml`. |
+| `install --force` | `false` | Replace an existing gaslight config. |
+
+**Example config:**
+
+```yaml
+prompt: Implement
+followups:
+  - Is this best you can do? Maybe we could simplify a bit.
+  - Did you test it well? Like real end to end test?
+  - Did you commit the changes?
+```
+
+**Examples:**
+
+```bash
+poe-code gaslight install --local
+poe-code gaslight docs/plans/feature.md --agent claude-code --model Claude-Sonnet-4.5
+poe-code gaslight docs/plans/feature.md --agent codex --mode read
 ```
 
 ---
@@ -1628,11 +1686,12 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
 
 ### Spawn Modes
 
-| Mode | Description | Claude Code Args | Codex Args | OpenCode Args | Kimi Args | Goose |
-|------|-------------|-----------------|------------|---------------|-----------|-------|
-| `yolo` | Full access, no permission prompts | `--dangerously-skip-permissions` | `-s danger-full-access` | (none) | `--yolo` | `GOOSE_MODE=auto` |
-| `edit` | Can edit files, restricted commands | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write` | (none) | (none) | `GOOSE_MODE=smart_approve` |
-| `read` | Read-only, no modifications | `--permission-mode plan` | `-s read-only` | `--agent plan` | (none) | `GOOSE_MODE=chat` |
+| Mode | Description | Claude Code Args | Codex Args | Cursor Args | OpenCode Args | Kimi Args | Goose |
+|------|-------------|-----------------|------------|-------------|---------------|-----------|-------|
+| `yolo` | Full access, no permission prompts | `--dangerously-skip-permissions` | `-s danger-full-access` | `--force --sandbox disabled` | (none) | `--yolo` | `GOOSE_MODE=auto` |
+| `auto` | Native safe-action auto approval when the agent supports it | `--permission-mode auto` | Not supported | Not supported | Not supported | Not supported | Not supported |
+| `edit` | Can edit files, restricted commands | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write` | `--force` | (none) | (none) | `GOOSE_MODE=smart_approve` |
+| `read` | Read-only, no modifications | `--permission-mode plan` | `-s read-only` | `--mode plan` | `--agent plan` | (none) | `GOOSE_MODE=chat` |
 
 ### Streaming (ACP Events)
 
@@ -1656,6 +1715,7 @@ const final = await result;
 |-------|-----------|---------------|
 | Claude Code | Yes | `stream-json` |
 | Codex | Yes | `json` |
+| Cursor | Yes | `stream-json` |
 | OpenCode | Yes | `json` |
 | Kimi | Yes | `stream-json` |
 | Goose | Yes | `stream-json` |
@@ -1697,7 +1757,8 @@ const { result } = spawn("claude-code", {
 | Codex | TOML inline tables via `-c` flags | `-c mcp_servers.name.command="..."` |
 | Kimi | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
 | Goose | Repeated extension flags | `--with-extension "<command> <args...>"` |
-| OpenCode | Not supported at spawn time | N/A |
+| OpenCode | Environment override (`OPENCODE_CONFIG_CONTENT`) | N/A |
+| Cursor | Project `.cursor/mcp.json` merge | `.cursor/mcp.json` |
 
 ### Interactive Mode
 
@@ -1741,6 +1802,7 @@ cat prompt.txt | poe-code spawn claude-code
 |-------|---------------|
 | Claude Code | Omits `-p` flag, adds `--input-format text` |
 | Codex | Omits `exec` subcommand, adds `-` |
+| Cursor | Omits `-p` flag |
 | Kimi | Omits `-p` flag, adds `--input-format stream-json` |
 | Goose | Omits `--text`, adds `--instructions -` |
 
@@ -1749,8 +1811,7 @@ cat prompt.txt | poe-code spawn claude-code
 After a spawn completes, if the agent returns a thread ID, a resume command is displayed:
 
 ```
-To resume this session:
-  poe-code spawn claude-code -- --resume abc123
+Resume: poe-code spawn claude-code "Continue" --resume-thread-id abc123
 ```
 
 **Resume command format per agent:**
@@ -1759,9 +1820,10 @@ To resume this session:
 |-------|-------------|
 | Claude Code | `--resume <threadId>` |
 | Codex | `resume -C <cwd> <threadId>` |
+| Cursor | `--resume <threadId>` |
 | OpenCode | `<cwd> --session <threadId>` |
 | Kimi | `--session <threadId> --work-dir <cwd>` |
-| Goose | `run --resume --text continue` |
+| Goose | `run --resume --session-id <threadId> --text continue` |
 
 ### Spawn Configurations per Agent
 
@@ -1776,6 +1838,7 @@ Model: --model <model> (provider prefix stripped, dots replaced with dashes)
 Default args: --output-format stream-json --verbose
 Modes:
   yolo: --dangerously-skip-permissions
+  auto: --permission-mode auto
   edit: --permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit
   read: --permission-mode plan
 MCP: --mcp-servers <JSON\|@file> (deprecated alias: --mcp-config)
@@ -1801,6 +1864,23 @@ Interactive: -a never
 Resume: resume -C <cwd> <threadId>
 ```
 
+#### Cursor Spawn Config
+
+```
+Binary: cursor-agent
+Prompt: -p <prompt>
+Model: --model <model> (provider prefix stripped; Claude dots replaced with dashes)
+Default args: --output-format stream-json --trust --approve-mcps
+Modes:
+  yolo: --force --sandbox disabled
+  edit: --force
+  read: --mode plan
+MCP: merge into .cursor/mcp.json for the spawn workspace
+Stdin: omit prompt flag
+Interactive: (no extra args)
+Resume: --resume <threadId>
+```
+
 #### OpenCode Spawn Config
 
 ```
@@ -1812,7 +1892,7 @@ Modes:
   yolo: (none)
   edit: (none)
   read: --agent plan
-MCP: not supported at spawn time
+MCP: OPENCODE_CONFIG_CONTENT environment override
 Stdin: not supported
 Interactive prompt flag: --prompt
 Resume: <cwd> --session <threadId>
@@ -1849,7 +1929,7 @@ Modes:
 MCP: --with-extension "<command> <args...>" (repeatable)
 Stdin: omit --text, add --instructions -
 Interactive: session
-Resume: run --resume --text continue
+Resume: run --resume --session-id <threadId> --text continue
 ```
 
 ---
@@ -2213,6 +2293,7 @@ poe-code/
 │   │       ├── configure.ts
 │   │       ├── unconfigure.ts
 │   │       ├── spawn.ts
+│   │       ├── gaslight.ts
 │   │       ├── research.ts
 │   │       ├── wrap.ts
 │   │       ├── test.ts
@@ -2230,12 +2311,14 @@ poe-code/
 │   │   ├── spawn-options.ts        # Spawn option types
 │   │   ├── claude-code.ts          # Claude Code provider
 │   │   ├── codex.ts                # Codex provider
+│   │   ├── cursor.ts               # Cursor provider
 │   │   ├── opencode.ts             # OpenCode provider
 │   │   └── kimi.ts                 # Kimi provider
 │   ├── sdk/
 │   │   ├── spawn.ts                # SDK spawn (streaming + pretty)
 │   │   ├── spawn-core.ts           # Core spawn logic
 │   │   ├── credentials.ts          # API key resolution
+│   │   ├── gaslight.ts             # Gaslight SDK export
 │   │   ├── container.ts            # SDK dependency container
 │   │   └── types.ts                # Public SDK types
 │   ├── services/
@@ -2265,6 +2348,7 @@ poe-code/
 │   ├── mcp-oauth/                  # OAuth client/server primitives for MCP HTTP transports
 │   ├── memory/                     # Repo-scoped memory files and MCP helpers
 │   ├── pipeline/                   # Fixed-step pipeline plan execution
+│   ├── agent-gaslight/             # Plan execution with resumable follow-up prompts
 │   ├── poe-oauth/                  # Poe OAuth client and auth checks
 │   ├── providers/                  # Auth-provider registry and strategies
 │   ├── task-list/                  # Markdown/YAML task-list backends and state machines
@@ -2300,6 +2384,7 @@ poe-code/
 | `provider` | `list`, `login`, `logout` | Provider authentication management |
 | `approvals` | `list`, `show`, `run` | Toolcraft human-in-loop approval queue |
 | `spawn <agent> [prompt]` | — | Run agent with prompt |
+| `gaslight [plan-path]` | `install` | Run a plan, then resume follow-up checks |
 | `code-review` | `install`, `profiles`, `ingest`, `run`, `drafts`, `commit`, `agent-mcp` | Agent-assisted GitHub pull request reviews |
 | `research [prompt]` | — | Research codebase (read mode) |
 | `wrap <agent>` | — | One-off isolated session |

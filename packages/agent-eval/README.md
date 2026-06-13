@@ -62,6 +62,10 @@ Set `scorer.command` in `eval.yaml` when you need a non-vitest scorer, such as a
 
 Per-case scorer output is written to each run's `result.json` under `tests.cases`.
 
+## Output formats
+
+`poe-code eval report` supports `--format table`, `--format md`, and `--format json`. `poe-code eval run` also honors the process output format selected by Toolcraft (`terminal`, Markdown, or JSON) so forwarded CLI output remains machine-readable when requested.
+
 ## Plan kinds
 
 - `plan`: dispatches the `plan.md` body directly to the selected agent.

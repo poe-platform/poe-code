@@ -17,7 +17,7 @@ Start a coding session routing all your `claude` calls to Poe
 
 ```bash
 npx poe-code@latest wrap claude
-# Also available: codex, opencode, kimi, goose
+# Also available: codex, cursor, opencode, kimi, goose
 ```
 
 or
@@ -31,7 +31,7 @@ This updates the provider’s config files and continue using your tools normall
 npx poe-code@latest configure
 
 # Setup a specific agent
-npx poe-code@latest configure codex # (or claude, opencode, kimi, goose)
+npx poe-code@latest configure codex # (or claude, cursor, opencode, kimi, goose)
 ```
 
 ### Unconfigure (remove overrides)
@@ -79,6 +79,8 @@ Utilities are especially useful for scripting and CI/CD.
 
 ```bash
 npx poe-code@latest spawn codex "Say hello"
+npx poe-code@latest spawn codex "Review only" --mode read
+npx poe-code@latest spawn codex "Continue" --resume-thread-id <thread-id>
 ```
 
 #### Spawn against a GitHub repository
@@ -92,6 +94,15 @@ npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/re
 
 ```bash
 echo "Say hello" | npx poe-code@latest spawn codex
+```
+
+#### Run a plan with follow-up checks
+
+Gaslight runs a Markdown plan, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks.
+
+```bash
+npx poe-code@latest gaslight install --local
+npx poe-code@latest gaslight docs/plans/feature.md --agent claude-code --mode edit
 ```
 
 #### Review a GitHub pull request
@@ -240,10 +251,10 @@ Returns `{ stdout, stderr, exitCode }`.
 Same as `spawn()`, but renders the ACP event stream to stdout with colored, formatted output — matching the CLI's visual style.
 
 ```typescript
-import { spawn } from "poe-code"
+import { spawn } from "poe-code";
 
-const result = await spawn.pretty("codex", "Fix the bug in auth.ts")
-console.log(result.exitCode)
+const result = await spawn.pretty("codex", "Fix the bug in auth.ts");
+console.log(result.exitCode);
 ```
 
 Returns `Promise<{ stdout, stderr, exitCode }>`.

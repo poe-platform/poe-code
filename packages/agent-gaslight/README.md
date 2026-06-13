@@ -2,7 +2,7 @@
 
 Every coding agent has the same flaw: it declares victory too early. "Done! ✨" — with uncommitted changes, untested code, and a TODO it quietly decided was out of scope.
 
-You already know the fix. You lean in and type *"did you actually test this?"* and the agent goes *"You're absolutely right!"* and finds three bugs. Then *"did you commit?"* and it sheepishly commits. You are not pair programming, you are babysitting.
+You already know the fix. You lean in and type _"did you actually test this?"_ and the agent goes _"You're absolutely right!"_ and finds three bugs. Then _"did you commit?"_ and it sheepishly commits. You are not pair programming, you are babysitting.
 
 Gaslight automates the babysitting. It runs your plan through one agent conversation, then follows up with a scripted list of pointed questions — each one resuming the same thread, so the agent has to face its own work.
 
@@ -48,6 +48,10 @@ followups:
   - Did you push the changes and waited for release to go green?
 ```
 
+## Environment variables
+
+This package exposes no environment variables. It delegates agent execution to `@poe-code/agent-spawn`, so spawned agents may still require their usual credentials or CLI environment.
+
 ## Configuration
 
 The package loads the first existing file in this order:
@@ -63,7 +67,12 @@ followups:
   - Did you forget something?
 ```
 
-`prompt` and `followups` must be non-empty. Pass both directly to `runGaslight` to bypass configuration lookup.
+Supported config keys:
+
+- `prompt`: Required non-empty string used for the initial implementation round.
+- `followups`: Required non-empty array of non-empty strings. Each follow-up resumes the previous round's thread.
+
+Pass both directly to `runGaslight` to bypass configuration lookup.
 
 ## CLI
 
@@ -89,6 +98,15 @@ poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d 
 ```
 
 By default, ingest writes a temporary curated Markdown analysis input under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace, then deletes it after analysis. Pass `--keep-data <path>` to preserve the file for inspection.
+
+CLI options:
+
+- `--agent <agent>`: Agent id to run. Without `--yes`, omitted values are prompted.
+- `--model <model>`: Optional model override.
+- `--mode <read|edit|yolo>`: Spawn mode. Defaults to `edit`.
+- `install --local`: Write `<cwd>/.poe-code/gaslight.yaml`.
+- `install --global`: Write `<homeDir>/.poe-code/gaslight.yaml`.
+- `install --force`: Replace an existing config.
 
 ## SDK
 

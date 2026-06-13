@@ -1,8 +1,8 @@
 # @poe-code/agent-spawn
 
-Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. No environment variables are injected. Supported modes map to Cursor's forced sandbox-disabled, forced edit, and plan/read-only modes.
-
 `@poe-code/agent-spawn` contains the low-level spawn adapters used by the CLI and SDK to run supported coding agents, stream ACP-like events, pass model and permission-mode flags, inject MCP servers at spawn time, and resume prior sessions when an agent returns a thread/session ID.
+
+Cursor spawns use the authenticated `cursor-agent` installation and the user's Cursor account. No environment variables are injected. Supported modes map to Cursor's forced sandbox-disabled, forced edit, and plan/read-only modes.
 
 ## Usage
 
@@ -31,13 +31,17 @@ console.log(listMcpSupportedAgents());
 | `yolo` | Full automation for trusted tasks.                                               |
 | `auto` | The agent's native auto permission mode: safe actions approved, unsafe rejected. |
 | `edit` | File-editing mode when the agent supports scoped permissions.                    |
-| `read` | Read-only/research mode when the agent supports it.                             |
+| `read` | Read-only/research mode when the agent supports it.                              |
 
 Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
 ## MCP at spawn time
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
+
+## Resuming sessions
+
+Pass `resumeThreadId` to continue a prior provider thread/session. Declarative agent configs decide where the resume arguments are inserted and how user-facing resume hints are rendered. Claude Code, Codex, Cursor, OpenCode, Kimi, Goose, and Poe Agent have resume mappings; Poe Agent persists its local message history under `~/.poe-code/sessions/`.
 
 ## Autonomous streaming
 
@@ -78,25 +82,26 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 
 ## Config options
 
-| Option               | Type                             | Description                                                                            |
-| -------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
-| `prompt`             | `string`                         | Prompt sent to the agent.                                                              |
-| `cwd`                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
-| `model`              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
-| `mode`               | `"yolo" \| "auto" \| "edit" \| "read"` | Permission mode. Defaults are chosen by the caller.                              |
-| `args`               | `string[]`                       | Extra args forwarded to the agent process.                                             |
-| `mcpServers`         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
-| `env`                | `Record<string, string>`         | Per-invocation child environment overrides. Caller values take precedence.             |
-| `middlewares`        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
-| `captureOtel`        | `boolean`                        | Capture native agent OTLP/HTTP JSON on host-runtime spawns.                            |
-| `captureOtelContent` | `boolean`                        | Opt in to native prompt/tool content capture.                                          |
+| Option                               | Type                                   | Description                                                                                  |
+| ------------------------------------ | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `prompt`                             | `string`                               | Prompt sent to the agent.                                                                    |
+| `cwd`                                | `string`                               | Working directory. Defaults to the caller's process cwd.                                     |
+| `model`                              | `string`                               | Optional model override. Provider prefixes are stripped or preserved per agent config.       |
+| `mode`                               | `"yolo" \| "auto" \| "edit" \| "read"` | Permission mode. Defaults are chosen by the caller.                                          |
+| `args`                               | `string[]`                             | Extra args forwarded to the agent process.                                                   |
+| `mcpServers`                         | `Record<string, McpSpawnServer>`       | MCP servers injected into the spawned agent.                                                 |
+| `resumeThreadId`                     | `string`                               | Provider thread/session id to resume.                                                        |
+| `env`                                | `Record<string, string>`               | Per-invocation child environment overrides. Caller values take precedence.                   |
+| `middlewares`                        | `AcpMiddleware[]`                      | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing.       |
+| `captureOtel`                        | `boolean`                              | Capture native agent OTLP/HTTP JSON on host-runtime spawns.                                  |
+| `captureOtelContent`                 | `boolean`                              | Opt in to native prompt/tool content capture.                                                |
+| `useStdin`                           | `boolean`                              | Send the prompt through stdin when the agent supports it.                                    |
+| `interactive`                        | `boolean`                              | Spawn the agent in interactive TUI mode.                                                     |
+| `activityTimeoutMs`                  | `number`                               | Kill/retry inactive streaming processes after this many milliseconds.                        |
+| `logPath` / `logDir` / `logFileName` | `string`                               | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
+| `logContent`                         | `boolean`                              | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs.         |
 
 Native capture sets a per-spawn `poe.code.spawn.id` resource attribute and stores captured OTLP records plus the correlation id in the backend-neutral ACP trace metadata. Unsupported agents and non-host runtimes warn and continue. Environment equivalents are `POE_CODE_CAPTURE_OTEL=1` and `POE_CODE_CAPTURE_OTEL_CONTENT=1`.
-| `useStdin` | `boolean` | Send the prompt through stdin when the agent supports it. |
-| `interactive` | `boolean` | Spawn the agent in interactive TUI mode. |
-| `activityTimeoutMs` | `number` | Kill/retry inactive streaming processes after this many milliseconds. |
-| `logPath` / `logDir` / `logFileName` | `string` | Persist spawn logs. `logPath` takes precedence. Message/tool content is redacted by default. |
-| `logContent` | `boolean` | Include message text, reasoning, tool input, and tool output/path in ACP JSONL logs. |
 
 ## Environment variables
 

@@ -2,6 +2,7 @@ import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { GeneratorChannel } from "./generator.js";
 import { SandboxError } from "./budget.js";
+import { trackSandboxPromise } from "./promise-tracker.js";
 import { parseRegex, type RegexPattern } from "./regex/parse.js";
 import { assertSandboxDataDepth } from "../graph-depth.js";
 
@@ -189,6 +190,8 @@ export function createSandboxPromise(
       value: metadata.hostCallJournal
     });
   }
+
+  trackSandboxPromise(sandboxPromise);
 
   return Object.freeze(sandboxPromise);
 }

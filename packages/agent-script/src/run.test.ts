@@ -972,6 +972,38 @@ describe("run", () => {
     });
   });
 
+  it("rejects detached async function rejections as unhandled", async () => {
+    await expect(
+      run(`
+        async function fail() {
+          await Promise.resolve('tick');
+          throw 'boom';
+        }
+        fail();
+        return 'ok';
+      `)
+    ).rejects.toMatchObject({
+      name: "UnhandledRejectionError",
+      reason: "boom"
+    });
+  });
+
+  it("does not reject detached async function rejections with sandbox catches", async () => {
+    const result = await run(`
+      async function fail() {
+        await Promise.resolve('tick');
+        throw 'boom';
+      }
+      fail().catch(() => undefined);
+      return 'ok';
+    `);
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "ok"
+    });
+  });
+
   it("rejects in-flight awaits and the next host call when aborted", async () => {
     const controller = new AbortController();
     const after = vi.fn(() => "after");

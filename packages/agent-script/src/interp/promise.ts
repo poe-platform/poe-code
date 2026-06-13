@@ -1,5 +1,6 @@
 import type { Budget } from "./budget.js";
 import { SandboxError } from "./budget.js";
+import { observeSandboxPromise } from "./promise-tracker.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -113,15 +114,17 @@ export function getPromiseMember(
   if (property === "then") {
     return createSandboxClosure({
       async: true,
-      call: ([onFulfilled, onRejected]) =>
-        createSandboxPromise(
+      call: ([onFulfilled, onRejected]) => {
+        observeSandboxPromise(target);
+        return createSandboxPromise(
           enqueue(() =>
             target.promise.then(
               (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
               (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
             )
           )
-        ),
+        );
+      },
       name: "then"
     });
   }
@@ -129,15 +132,17 @@ export function getPromiseMember(
   if (property === "catch") {
     return createSandboxClosure({
       async: true,
-      call: ([onRejected]) =>
-        createSandboxPromise(
+      call: ([onRejected]) => {
+        observeSandboxPromise(target);
+        return createSandboxPromise(
           enqueue(() =>
             target.promise.then(
               (value) => runPromiseReaction(undefined, value, "fulfilled", budget),
               (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
             )
           )
-        ),
+        );
+      },
       name: "catch"
     });
   }
@@ -145,15 +150,17 @@ export function getPromiseMember(
   if (property === "finally") {
     return createSandboxClosure({
       async: true,
-      call: ([onFinally]) =>
-        createSandboxPromise(
+      call: ([onFinally]) => {
+        observeSandboxPromise(target);
+        return createSandboxPromise(
           enqueue(() =>
             target.promise.then(
               (value) => runPromiseFinally(onFinally, value, "fulfilled", budget),
               (reason: SandboxValue) => runPromiseFinally(onFinally, reason, "rejected", budget)
             )
           )
-        ),
+        );
+      },
       name: "finally"
     });
   }
@@ -270,6 +277,7 @@ function resolveSandboxValueNow(
   }
 
   if (isSandboxPromise(value)) {
+    observeSandboxPromise(value);
     return value.promise.then(
       (resolved) => {
         value.hostCallJournal?.consume(value.hostCall!);

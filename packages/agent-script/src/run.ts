@@ -21,6 +21,12 @@ import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
 import { enterSnapshotRun } from "./interp/running-state.js";
 import {
+  createSandboxPromiseRejectionTracker,
+  observeSandboxPromise,
+  withSandboxPromiseRejectionTracker,
+  type SandboxPromiseRejectionTracker
+} from "./interp/promise-tracker.js";
+import {
   HostCallJournal,
   type HostCallRecord,
   type HostCallResumeProvider
@@ -133,7 +139,8 @@ export type RunResult = WithRunSnapshot<InterpreterResult>;
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
   const lifecycle = { hostCallbackDepth: 0 };
   const dumpController = createDumpController(lifecycle);
-  const result = (async () => {
+  const promiseTracker = createSandboxPromiseRejectionTracker();
+  const result = withSandboxPromiseRejectionTracker(promiseTracker, async () => {
     const deactivateOtelSink = activateOtelSink(options.otelSink);
     let leaveSnapshotRun: (() => void) | undefined;
     let createFailureSnapshot: (() => RunSnapshot) | undefined;
@@ -310,6 +317,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       });
       dumpController.finalize(snapshot);
       await throwIfReturnedPromiseRejected(result);
+      await throwIfUnhandledPromiseRejected(promiseTracker);
 
       return {
         ...result,
@@ -336,7 +344,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       leaveSnapshotRun?.();
       deactivateOtelSink();
     }
-  })();
+  });
 
   return attachDumpController(result, dumpController);
 }
@@ -345,6 +353,8 @@ async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promis
   if (!result.ok || !isSandboxPromise(result.returnValue)) {
     return;
   }
+
+  observeSandboxPromise(result.returnValue);
 
   let rejected = false;
   let rejectionReason: unknown;
@@ -364,6 +374,15 @@ async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promis
       result.returnValue.hostCallJournal?.consume(result.returnValue.hostCall);
     }
     throw new UnhandledRejectionError(rejectionReason, result.returnValue.span);
+  }
+}
+
+async function throwIfUnhandledPromiseRejected(
+  tracker: SandboxPromiseRejectionTracker
+): Promise<void> {
+  const unhandled = await tracker.findUnhandledRejection();
+  if (unhandled !== undefined) {
+    throw new UnhandledRejectionError(unhandled.reason, unhandled.span);
   }
 }
 

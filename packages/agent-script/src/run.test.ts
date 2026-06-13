@@ -1134,6 +1134,35 @@ try {
     );
   });
 
+  it("preserves sandbox call stacks for missing identifiers", async () => {
+    await expect(
+      run(
+        [
+          "function a() { return b(); }",
+          "function b() { return c(); }",
+          "function c() { return missing; }",
+          "return a();"
+        ].join("\n")
+      )
+    ).rejects.toMatchObject({
+      name: "ReferenceError",
+      stack: expect.stringContaining("at c")
+    });
+
+    await expect(
+      run(
+        [
+          "function a() { return b(); }",
+          "function b() { return c(); }",
+          "function c() { return missing; }",
+          "return a();"
+        ].join("\n")
+      )
+    ).rejects.toMatchObject({
+      stack: expect.stringContaining("at b")
+    });
+  });
+
   it("blocks imported module calls when the signal is already aborted", async () => {
     const controller = new AbortController();
     const request = vi.fn(() => "called");

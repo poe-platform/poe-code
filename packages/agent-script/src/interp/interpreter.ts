@@ -998,7 +998,12 @@ async function evaluateIdentifier(
   if (!binding.found) {
     return {
       kind: "error",
-      error: createError("UNBOUND_IDENTIFIER", node, `Identifier '${node.name}' is not defined.`)
+      error: createError(
+        "UNBOUND_IDENTIFIER",
+        node,
+        `Identifier '${node.name}' is not defined.`,
+        context.callStack
+      )
     };
   }
 
@@ -2458,9 +2463,11 @@ function formatStackFrame(node: { span: SourceSpan }, name: string | undefined):
 function createError(
   code: InterpreterErrorCode,
   node: ParseResult,
-  message: string
+  message: string,
+  stackFrames: readonly string[] = []
 ): InterpreterError {
   const name = code === "UNBOUND_IDENTIFIER" ? "ReferenceError" : "Error";
+  const stack = [...stackFrames, formatStackFrame(node, undefined)];
   return {
     code,
     message,
@@ -2468,7 +2475,7 @@ function createError(
     nodeId: node.nodeId,
     nodeType: node.type,
     span: node.span,
-    stack: formatErrorStack(name, message, [formatStackFrame(node, undefined)])
+    stack: formatErrorStack(name, message, stack)
   };
 }
 

@@ -550,7 +550,7 @@ async function bindPattern<TContext extends ExceptionContext, TError>(
 ): Promise<PatternBindingResult<TError>> {
   switch (pattern.type) {
     case "Identifier":
-      context.scope.declare(pattern.name, "const", value);
+      context.scope.declare(pattern.name, "let", value);
       return { ok: true };
     case "MemberExpression":
       throw new TypeError("Catch bindings do not support member expressions.");

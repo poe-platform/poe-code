@@ -4556,6 +4556,21 @@ describe("interpret", () => {
     });
   });
 
+  it("allows var initializers to reuse a catch parameter binding", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("var x = 1"),
+          parse("try { throw 0; } catch (x) { var x = 2; }"),
+          parse("return x")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
   it("uses one function-scoped binding for for-var closures", async () => {
     await expect(
       interpret(
@@ -4577,6 +4592,18 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: 2
+    });
+    await expect(
+      interpret(
+        block(
+          parse("function makeValue() { return 1; }"),
+          parse("var makeValue"),
+          parse("return makeValue()")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
     });
     await expect(
       interpret(block(parse("let value = 1"), parse("var value = 2")))

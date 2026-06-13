@@ -71,6 +71,10 @@ export class Scope {
     return this.#bindings.has(name);
   }
 
+  getOwnBindingKind(name: string): VariableDeclarationKind | undefined {
+    return this.#bindings.get(name)?.kind;
+  }
+
   isFunctionBoundary(): boolean {
     return this.options.functionBoundary === true;
   }

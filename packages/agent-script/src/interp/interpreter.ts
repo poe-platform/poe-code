@@ -1066,6 +1066,15 @@ async function evaluateVariableDeclaration(
   }
 
   for (const declarator of node.declarations) {
+    if (
+      node.kind === "var" &&
+      declarator.init === undefined &&
+      declarator.id.type === "Identifier" &&
+      context.scope.lookup(declarator.id.name).found
+    ) {
+      continue;
+    }
+
     const restoredValue =
       declarator.id.type === "Identifier"
         ? context.scope.consumeRestoredBinding(declarator.id.name)
@@ -1298,12 +1307,23 @@ function predeclareStatementListBindings(
   for (const statement of statements) {
     if (statement.type === "FunctionDeclaration") {
       const name = statement.id.name;
-      if (names.has(name) || scope.hasOwnBinding(name)) {
+      if (names.has(name)) {
+        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+      }
+
+      const closure = createInterpretedClosure(statement, context, evaluateNode);
+      const ownBindingKind = scope.getOwnBindingKind(name);
+      if (ownBindingKind === "var") {
+        names.add(name);
+        scope.assign(name, closure);
+        continue;
+      }
+      if (ownBindingKind !== undefined) {
         throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
       }
 
       names.add(name);
-      scope.declare(name, "const", createInterpretedClosure(statement, context, evaluateNode));
+      scope.declare(name, "const", closure);
       continue;
     }
 

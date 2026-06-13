@@ -2123,7 +2123,7 @@ async function evaluateUnaryExpression(
   return {
     kind: "normal",
     hasValue: true,
-    value: applyUnaryOperator(node.operator, argument.value)
+    value: await applyUnaryOperator(node.operator, argument.value, context)
   };
 }
 
@@ -2903,10 +2903,11 @@ async function evaluateSetMethodCall(
   }
 }
 
-function applyUnaryOperator(
+async function applyUnaryOperator(
   operator: UnaryExpression["operator"],
-  value: InterpreterValue
-): InterpreterValue {
+  value: InterpreterValue,
+  context: EvaluationContext
+): Promise<InterpreterValue> {
   switch (operator) {
     case "!":
       return !value;
@@ -2917,11 +2918,11 @@ function applyUnaryOperator(
     case "void":
       return undefined;
     case "+":
-      return toNumber(value);
+      return toNumber(await toNumericPrimitive(value, context));
     case "-":
-      return -toNumber(value);
+      return -toNumber(await toNumericPrimitive(value, context));
     case "~":
-      return ~toNumber(value);
+      return ~toNumber(await toNumericPrimitive(value, context));
   }
 }
 
@@ -2938,7 +2939,7 @@ function describeTypeofValue(value: InterpreterValue): string {
 }
 
 function isTruthy(value: InterpreterValue): boolean {
-  return applyUnaryOperator("!", value) === false;
+  return Boolean(value);
 }
 
 function applyBinaryOperator(
@@ -3170,6 +3171,38 @@ function getCoercionType(value: InterpreterValue): CoercionType {
 function toPrimitive(value: InterpreterValue): SandboxPrimitive {
   if (isPrimitiveCoercionType(getCoercionType(value))) {
     return value as SandboxPrimitive;
+  }
+
+  return toString(value);
+}
+
+async function toNumericPrimitive(
+  value: InterpreterValue,
+  context: EvaluationContext
+): Promise<SandboxPrimitive> {
+  if (isPrimitiveCoercionType(getCoercionType(value))) {
+    return value as SandboxPrimitive;
+  }
+
+  if (isIndexableSandboxValue(value)) {
+    for (const methodName of ["valueOf", "toString"] as const) {
+      const method = getMemberValue(value, methodName, context);
+      if (!isSandboxClosure(method)) {
+        continue;
+      }
+
+      const result = await invokeSandboxClosure(
+        method,
+        [],
+        context,
+        context.callStack,
+        undefined,
+        value
+      );
+      if (isPrimitiveCoercionType(getCoercionType(result))) {
+        return result as SandboxPrimitive;
+      }
+    }
   }
 
   return toString(value);

@@ -1599,6 +1599,25 @@ describe("interpret", () => {
     });
   });
 
+  it("uses valueOf before toString for unary numeric coercion", async () => {
+    await expect(
+      interpret(
+        block(
+          parse(`
+          const value = {
+            valueOf() { return 7; },
+            toString() { return "11"; }
+          };
+        `),
+          parse("return +value")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 7
+    });
+  });
+
   it("evaluates typeof for undeclared identifiers without resolving them", async () => {
     await expect(interpret(parse("return typeof missing"))).resolves.toMatchObject({
       ok: true,

@@ -86,6 +86,22 @@ describe("sync generators", () => {
     });
   });
 
+  it("allows bare yield before an array literal closing bracket", async () => {
+    await expect(
+      interpret(
+        program(
+          "function* values() { return [yield]; } const gen = values(); return [gen.next(), gen.next(3)];"
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [
+        { value: undefined, done: false },
+        { value: [3], done: true }
+      ]
+    });
+  });
+
   it("binds parameters at the original call and sends values into yield", async () => {
     await expect(
       interpret(

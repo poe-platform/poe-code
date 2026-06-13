@@ -2304,7 +2304,7 @@ class Parser {
       const hasArgument =
         delegate ||
         (!hasLineBreakBetween(token, next) &&
-          !(next.type === "punctuator" && (next.value === ";" || next.value === "}")) &&
+          !(next.type === "punctuator" && isYieldArgumentTerminator(next.value)) &&
           next.type !== "eof");
       const argument = hasArgument ? this.parseAssignmentExpression().node : undefined;
       if (delegate && argument === undefined) {
@@ -3998,6 +3998,10 @@ function isAssignmentOperator(value: string): value is AssignmentOperator {
     default:
       return false;
   }
+}
+
+function isYieldArgumentTerminator(value: string): boolean {
+  return value === ";" || value === "}" || value === ")" || value === "]" || value === ",";
 }
 
 function createNumericLiteral(token: Token): NumericLiteral {

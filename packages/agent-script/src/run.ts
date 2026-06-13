@@ -136,6 +136,8 @@ type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknow
 
 export type RunResult = WithRunSnapshot<InterpreterResult>;
 
+const DEFAULT_MAX_CALL_DEPTH = 1_000;
+
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
   const lifecycle = { hostCallbackDepth: 0 };
   const dumpController = createDumpController(lifecycle);
@@ -151,7 +153,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       if (restoredSnapshot !== undefined) {
         leaveSnapshotRun = enterSnapshotRun(restoredSnapshot);
       }
-      const budget = options.budget ?? new Budget();
+      const budget = options.budget ?? new Budget({ maxCallDepth: DEFAULT_MAX_CALL_DEPTH });
       budget.reset();
       const filename = options.filename ?? "<input>";
       const module = parseExecutableModule(source, filename);

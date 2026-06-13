@@ -40,6 +40,14 @@ describe("run", () => {
     );
   });
 
+  it("rejects unbounded recursion with the default call-depth guard", async () => {
+    await expect(run("function loop() { return loop(); } return loop();")).rejects.toMatchObject({
+      name: "SandboxError",
+      code: "budgetExceeded",
+      budget: "callDepth"
+    });
+  });
+
   it("preserves non-enumerable static methods on injected functions", async () => {
     function HostApi() {
       return undefined;

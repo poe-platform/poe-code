@@ -1,6 +1,6 @@
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path, { dirname, extname } from "node:path";
-import { inspect } from "node:util";
+import { formatWithOptions } from "node:util";
 import { pathToFileURL } from "node:url";
 
 import { hasOwnErrorCode } from "./error-codes.js";
@@ -546,11 +546,7 @@ function createConsoleSink(
 }
 
 function formatConsoleArgs(args: readonly unknown[]): string {
-  return args.map(formatConsoleArg).join(" ");
-}
-
-function formatConsoleArg(value: unknown): string {
-  return typeof value === "string" ? value : inspect(value, { colors: false, depth: 4 });
+  return formatWithOptions({ colors: false, depth: 4 }, ...args);
 }
 
 function createUsage(): string {

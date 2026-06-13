@@ -355,6 +355,7 @@ describe("agent-script CLI", () => {
       [
         "```js",
         'console.log("hello", 3);',
+        'console.log("%s%s", "a", "b");',
         'console.error("bad");',
         'throw Error("boom");',
         "```"
@@ -365,6 +366,7 @@ describe("agent-script CLI", () => {
 
     expect(exitCode).toBe(1);
     expect(stdout.output()).toContain("hello 3\n");
+    expect(stdout.output()).toContain("ab\n");
     expect(stderr.output()).toContain("bad\n");
     expect(stderr.output()).toContain("boom");
   });

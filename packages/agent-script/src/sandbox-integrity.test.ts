@@ -151,6 +151,24 @@ describe("sandbox integrity at the run boundary", () => {
     });
   });
 
+  it("treats non-computed object literal __proto__ as prototype syntax", async () => {
+    const result = await run(`
+      const key = "__proto__";
+      let evaluated = false;
+      const literal = { __proto__: (evaluated = true, null) };
+      const computed = { [key]: "own" };
+      const shorthandSource = "shorthand";
+      const __proto__ = shorthandSource;
+      const shorthand = { __proto__ };
+      return [literal.__proto__, evaluated, computed.__proto__, shorthand.__proto__];
+    `);
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: [undefined, true, "own", "shorthand"]
+    });
+  });
+
   it("allows supported closed-world methods and directs unsupported member calls", async () => {
     await expect(run("return [2, 1].toSorted();")).resolves.toMatchObject({
       ok: true,

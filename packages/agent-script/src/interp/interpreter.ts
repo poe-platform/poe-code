@@ -558,6 +558,10 @@ async function evaluateObjectExpression(
       return value;
     }
 
+    if (isObjectPrototypeSetterProperty(property, key.value)) {
+      continue;
+    }
+
     defineSandboxProperty(object, String(key.value), value.value);
   }
 
@@ -566,6 +570,10 @@ async function evaluateObjectExpression(
     hasValue: true,
     value: object
   };
+}
+
+function isObjectPrototypeSetterProperty(property: Property, key: string | number): boolean {
+  return !property.computed && !property.shorthand && key === "__proto__";
 }
 
 async function evaluateTemplateLiteral(

@@ -366,10 +366,11 @@ function runObservedSpawn(
   operation: () => Promise<SpawnAgentResult>
 ): Promise<SpawnAgentResult> {
   const otelSink = input.otelSink ?? moduleSink ?? getActiveOtelSink();
+  const cwd = input.cwd ?? readCurrentWorkingDirectory();
   const span = safeStartSpan(otelSink, "agent.spawn", {
     agent: input.agent,
     mode: input.mode ?? "yolo",
-    cwd: input.cwd ?? process.cwd()
+    cwd
   });
   const deactivateSpan = activateOtelSpan(span);
   safeAddEvent(span, "prompt", { prompt: input.prompt });
@@ -394,6 +395,14 @@ function runObservedSpawn(
 
   bindOtelSpan(promise, span);
   return promise;
+}
+
+function readCurrentWorkingDirectory(): string {
+  try {
+    return process.cwd();
+  } catch (error) {
+    throw new Error(`Unable to resolve current working directory: ${formatSpawnError(error)}`);
+  }
 }
 
 async function runSpawnRetry(

@@ -1173,6 +1173,29 @@ describe("makeAgentModule", () => {
     ]);
   });
 
+  it("reports a controlled error when spawn default cwd cannot be resolved", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockImplementation(() => {
+      throw Object.assign(new Error("uv_cwd"), { code: "ENOENT" });
+    });
+    const agent = makeAgentModule(
+      vi.fn(async () => ({
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        summary: "done",
+        durationMs: 1
+      }))
+    );
+
+    try {
+      await expect(agent.spawn("codex", { prompt: "Inspect." })).rejects.toThrow(
+        "Unable to resolve current working directory: uv_cwd"
+      );
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
   it("records an otel exception when a spawn fails", async () => {
     const events: string[] = [];
     const sink = createRecordingOtelSink(events);

@@ -94,7 +94,6 @@ export async function runCli(
 ): Promise<number> {
   const stdout = options.stdout ?? process.stdout;
   const stderr = options.stderr ?? process.stderr;
-  const cwd = options.cwd ?? process.cwd();
 
   try {
     if (argv.includes("--help") || argv.includes("-h")) {
@@ -108,6 +107,7 @@ export async function runCli(
       return EXIT_RUNTIME;
     }
 
+    const cwd = options.cwd ?? readCurrentWorkingDirectory();
     const filepath = path.resolve(cwd, parsed.filepath);
     await assertHarnessFile({
       displayPath: parsed.filepath,
@@ -127,6 +127,14 @@ export async function runCli(
   } catch (error) {
     stderr.write(`${readErrorMessage(error)}\n`);
     return error instanceof CliExitError ? error.exitCode : exitCodeForError(error);
+  }
+}
+
+function readCurrentWorkingDirectory(): string {
+  try {
+    return process.cwd();
+  } catch (error) {
+    throw new Error(`Unable to resolve current working directory: ${readErrorMessage(error)}`);
   }
 }
 

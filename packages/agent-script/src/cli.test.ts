@@ -85,6 +85,24 @@ describe("agent-script CLI", () => {
     expect(stderr.output()).toContain("Usage: poe-agent-script [options] <script.md|script.ajs>");
   });
 
+  it("reports a controlled error when the default cwd cannot be resolved", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const cwd = vi.spyOn(process, "cwd").mockImplementation(() => {
+      throw Object.assign(new Error("uv_cwd"), { code: "ENOENT" });
+    });
+
+    try {
+      const exitCode = await runCli(["script.md"], { stdout, stderr });
+
+      expect(exitCode).toBe(1);
+      expect(stdout.output()).toBe("");
+      expect(stderr.output()).toContain("Unable to resolve current working directory: uv_cwd");
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
   it("rejects unknown flags with the flag named", async () => {
     const stdout = createSink();
     const stderr = createSink();

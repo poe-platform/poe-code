@@ -64,6 +64,6 @@ export function toMatchArray(match: RegexMatch | null, input: string): SandboxVa
     return null;
   }
   const result = [match.text, ...match.captures] as SandboxValue[];
-  Object.assign(result, { index: match.index, input });
+  Object.assign(result, { groups: undefined, index: match.index, input });
   return result;
 }

@@ -1,3 +1,4 @@
+import { attachErrorSpan } from "../error/shape.js";
 import type { Budget } from "../interp/budget.js";
 import type { HostCallJournal } from "../interp/host-call.js";
 import { wrapCancelableBindings } from "../interp/cancel.js";
@@ -12,7 +13,8 @@ import type {
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,
   ImportSpecifier,
-  Module
+  Module,
+  SourceSpan
 } from "../parse/parser.js";
 import { registerPendingHostCallPolicy } from "../snapshot/policy.js";
 
@@ -78,7 +80,10 @@ function bindImportDeclaration(
   const moduleExports = registry.get(moduleName);
 
   if (moduleExports === undefined) {
-    throw new Error(createUnknownModuleMessage(moduleName, [...registry.keys()]));
+    throw createModuleImportError(
+      createUnknownModuleMessage(moduleName, [...registry.keys()]),
+      declaration.source.span
+    );
   }
 
   const wrappedExports =
@@ -99,7 +104,10 @@ function bindImportDeclaration(
     const localName = specifier.local.name;
 
     if (Object.hasOwn(bindings, localName)) {
-      throw new Error(`Cannot redeclare imported binding '${localName}'.`);
+      throw createModuleImportError(
+        `Cannot redeclare imported binding '${localName}'.`,
+        specifier.local.span
+      );
     }
 
     bindings[localName] = resolveImportSpecifier(moduleName, specifier, wrappedExports);
@@ -123,9 +131,16 @@ function resolveImportSpecifier(
     return exportedValue;
   }
 
-  throw new Error(
-    createUnknownExportMessage(moduleName, exportName, Object.keys(wrappedExports).sort())
+  throw createModuleImportError(
+    createUnknownExportMessage(moduleName, exportName, Object.keys(wrappedExports).sort()),
+    specifier.span
   );
+}
+
+function createModuleImportError(message: string, span: SourceSpan): Error {
+  const error = new Error(message);
+  attachErrorSpan(error, span);
+  return error;
 }
 
 function normalizeModuleRegistry(modules: ModuleRegistry | undefined): NormalizedModuleRegistry {

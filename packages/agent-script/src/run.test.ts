@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { dump } from "./dump.js";
+import { formatInterpreterError } from "./error/format.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { declareHostOperation } from "./interp/host-bridge.js";
@@ -346,6 +347,38 @@ describe("run", () => {
         }
       })
     ).rejects.toThrow("Module 'api' does not export 'default'. Available exports: request.");
+  });
+
+  it("attaches import-site source context to missing runtime export errors", async () => {
+    const source = 'import { missing } from "api";\nreturn missing;';
+
+    await expect(
+      run(source, {
+        filename: "workflow.ajs",
+        modules: {
+          api: {
+            request: vi.fn(() => "ok")
+          }
+        }
+      })
+    ).rejects.toMatchObject({
+      span: {
+        start: { line: 1, column: 10 }
+      }
+    });
+
+    await run(source, {
+      filename: "workflow.ajs",
+      modules: {
+        api: {
+          request: vi.fn(() => "ok")
+        }
+      }
+    }).catch((error: unknown) => {
+      expect(formatInterpreterError(error, { filename: "workflow.ajs", source })).toContain(
+        "InterpreterError: workflow.ajs:1:10"
+      );
+    });
   });
 
   it("supports edge-case import local names without leaking inherited namespace members", async () => {

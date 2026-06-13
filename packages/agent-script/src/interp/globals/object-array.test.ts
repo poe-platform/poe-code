@@ -321,6 +321,21 @@ describe("createObjectArrayGlobals", () => {
     ).resolves.toEqual([1, 0]);
   });
 
+  it("constructs sparse arrays through the Array constructor", async () => {
+    await expect(
+      run('const values = Array(1); return [values.length, Object.hasOwn(values, "0"), values[0]];')
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, false, undefined]
+    });
+    await expect(
+      run('const values = new Array(1); return [values.length, Object.hasOwn(values, "0"), values[0]];')
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, false, undefined]
+    });
+  });
+
   it("exposes strict Number static predicate methods", async () => {
     const globals = createObjectArrayGlobals({
       budget: new Budget()
@@ -405,7 +420,11 @@ describe("createObjectArrayGlobals", () => {
   });
 });
 
-function getProperty(value: SandboxObject, name: string) {
+function getProperty(value: SandboxObject | SandboxClosure, name: string) {
+  if (isSandboxClosure(value)) {
+    return value.properties?.[name];
+  }
+
   return value[name];
 }
 

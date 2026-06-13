@@ -17,7 +17,7 @@ import {
 
 export type ObjectArrayGlobals = {
   Object: SandboxObject;
-  Array: SandboxObject;
+  Array: SandboxClosure;
   String: SandboxClosure;
   Number: SandboxClosure;
   Boolean: SandboxClosure;
@@ -70,21 +70,26 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         name: "assign"
       })
     },
-    Array: {
-      isArray: createSandboxClosure({
-        call: ([value]) => Array.isArray(value),
-        name: "isArray"
-      }),
-      from: createSandboxClosure({
-        call: (args) => arrayFromSandboxValues(args, options.budget),
-        name: "from"
-      }),
-      of: createSandboxClosure({
-        call: (args) =>
-          budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
-        name: "of"
-      })
-    },
+    Array: createSandboxClosure({
+      call: (args) => createArrayFromConstructorArgs(args, options.budget),
+      construct: (args) => createArrayFromConstructorArgs(args, options.budget),
+      name: "Array",
+      properties: {
+        isArray: createSandboxClosure({
+          call: ([value]) => Array.isArray(value),
+          name: "isArray"
+        }),
+        from: createSandboxClosure({
+          call: (args) => arrayFromSandboxValues(args, options.budget),
+          name: "from"
+        }),
+        of: createSandboxClosure({
+          call: (args) =>
+            budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
+          name: "of"
+        })
+      }
+    }),
     String: createSandboxClosure({
       call: ([value]) => options.budget.allocateString(String(value)),
       name: "String",
@@ -215,6 +220,24 @@ async function arrayFromSandboxValues(
   }
 
   return budgetSandboxValue(mappedValues, budget);
+}
+
+function createArrayFromConstructorArgs(args: readonly SandboxValue[], budget: Budget): SandboxArray {
+  if (args.length !== 1) {
+    return budgetSandboxValue(Reflect.apply(Array, Array, [...args]), budget) as SandboxArray;
+  }
+
+  const [lengthOrValue] = args;
+  if (typeof lengthOrValue !== "number") {
+    return budgetSandboxValue([lengthOrValue], budget) as SandboxArray;
+  }
+
+  if (!Number.isInteger(lengthOrValue) || lengthOrValue < 0 || lengthOrValue > 0xffffffff) {
+    throw new RangeError("Invalid array length.");
+  }
+
+  budget.allocateArrayLength(lengthOrValue);
+  return new Array(lengthOrValue) as SandboxArray;
 }
 
 async function collectIteratorValues(

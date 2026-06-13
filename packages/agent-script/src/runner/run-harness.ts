@@ -3,6 +3,7 @@ import { extname } from "node:path";
 
 import { supportsSpawnMode } from "@poe-code/agent-spawn/configs";
 import { SPAWN_MODES, type SpawnMode } from "@poe-code/agent-spawn/types";
+import { hasOwnErrorCode } from "../error-codes.js";
 import { extractBlock } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
 import { lint, type Diagnostic } from "../lint.js";
@@ -163,12 +164,20 @@ export async function runHarnessPair(
 }
 
 async function readHarnessFile(filepath: string): Promise<string> {
-  const stats = await stat(filepath);
-  if (!stats.isFile()) {
-    throw new Error(`Harness path must point to a file: ${filepath}`);
-  }
+  try {
+    const stats = await stat(filepath);
+    if (!stats.isFile()) {
+      throw new Error(`Harness path must point to a file: ${filepath}`);
+    }
 
-  return readFile(filepath, "utf8");
+    return await readFile(filepath, "utf8");
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
+      throw new Error(`Harness file not found: ${filepath}`);
+    }
+
+    throw error;
+  }
 }
 
 function loadExecutableSource(

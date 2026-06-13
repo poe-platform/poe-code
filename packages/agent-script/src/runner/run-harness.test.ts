@@ -144,17 +144,40 @@ describe("runHarness", () => {
     );
   });
 
-  it("surfaces ENOENT with the missing path in the message", async () => {
+  it("normalizes missing harness files with the missing path in the message", async () => {
     const filepath = "/repo/docs/plans/missing.md";
 
     await expect(
       runHarness(filepath, {
         modulesFor: () => ({})
       })
-    ).rejects.toMatchObject({
-      code: "ENOENT",
-      message: expect.stringContaining(filepath)
+    ).rejects.toThrow(`Harness file not found: ${filepath}`);
+  });
+
+  it("normalizes harness paths under a file parent", async () => {
+    const filepath = "/repo/docs/plans/missing.md";
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.writeFileSync("/repo/docs", "not a directory");
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toThrow(`Harness file not found: ${filepath}`);
+  });
+
+  it("normalizes missing paired raw script files", async () => {
+    const filepath = "/repo/docs/plans/example.md";
+    const scriptPath = "/repo/docs/plans/example.ajs";
+    vol.fromJSON({
+      [filepath]: "---\nkind: pipeline\n---\nbody"
     });
+
+    await expect(
+      runHarnessPair(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toThrow(`Harness file not found: ${scriptPath}`);
   });
 
   it("throws a clear error when the path points at a directory", async () => {

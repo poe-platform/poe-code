@@ -202,14 +202,15 @@ async function arrayFromSandboxValues(
   const [items, mapFn] = args;
 
   const iterator = getSandboxIterator(items);
-  if (iterator?.generator !== true && (mapFn === undefined || !isSandboxClosure(mapFn))) {
-    return budgetSandboxValue(Reflect.apply(Array.from, Array, [...args]), budget);
-  }
   const values =
-    iterator?.generator === true
-      ? await collectIteratorValues(iterator)
-      : (Reflect.apply(Array.from, Array, [items]) as SandboxValue[]);
+    iterator === undefined
+      ? (Reflect.apply(Array.from, Array, [items]) as SandboxValue[])
+      : await collectIteratorValues(iterator);
   if (mapFn === undefined || !isSandboxClosure(mapFn)) {
+    if (mapFn !== undefined) {
+      throw new TypeError("Array.from mapping callback must be a function.");
+    }
+
     return budgetSandboxValue(values, budget);
   }
   const mappedValues: SandboxValue[] = [];

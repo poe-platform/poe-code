@@ -336,6 +336,15 @@ describe("createObjectArrayGlobals", () => {
     });
   });
 
+  it("collects sandbox set values with Array.from", async () => {
+    await expect(
+      run("const values = new Set([2147483648, 2147483649]); return Array.from(values);")
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [2147483648, 2147483649]
+    });
+  });
+
   it("exposes strict Number static predicate methods", async () => {
     const globals = createObjectArrayGlobals({
       budget: new Budget()

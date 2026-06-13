@@ -116,14 +116,16 @@ export function getPromiseMember(
       async: true,
       call: ([onFulfilled, onRejected]) => {
         observeSandboxPromise(target);
-        return createSandboxPromise(
+        const chained = createSandboxPromise(
           enqueue(() =>
             target.promise.then(
-              (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
-              (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+              (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget, chained),
+              (reason: SandboxValue) =>
+                runPromiseReaction(onRejected, reason, "rejected", budget, chained)
             )
           )
         );
+        return chained;
       },
       name: "then"
     });
@@ -134,14 +136,16 @@ export function getPromiseMember(
       async: true,
       call: ([onRejected]) => {
         observeSandboxPromise(target);
-        return createSandboxPromise(
+        const chained = createSandboxPromise(
           enqueue(() =>
             target.promise.then(
-              (value) => runPromiseReaction(undefined, value, "fulfilled", budget),
-              (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+              (value) => runPromiseReaction(undefined, value, "fulfilled", budget, chained),
+              (reason: SandboxValue) =>
+                runPromiseReaction(onRejected, reason, "rejected", budget, chained)
             )
           )
         );
+        return chained;
       },
       name: "catch"
     });
@@ -152,14 +156,16 @@ export function getPromiseMember(
       async: true,
       call: ([onFinally]) => {
         observeSandboxPromise(target);
-        return createSandboxPromise(
+        const chained = createSandboxPromise(
           enqueue(() =>
             target.promise.then(
-              (value) => runPromiseFinally(onFinally, value, "fulfilled", budget),
-              (reason: SandboxValue) => runPromiseFinally(onFinally, reason, "rejected", budget)
+              (value) => runPromiseFinally(onFinally, value, "fulfilled", budget, chained),
+              (reason: SandboxValue) =>
+                runPromiseFinally(onFinally, reason, "rejected", budget, chained)
             )
           )
         );
+        return chained;
       },
       name: "finally"
     });
@@ -383,7 +389,8 @@ function runPromiseReaction(
   handler: SandboxValue,
   value: SandboxValue,
   state: "fulfilled" | "rejected",
-  budget: Budget
+  budget: Budget,
+  self?: SandboxPromise
 ): Promise<SandboxValue> {
   if (!isSandboxClosure(handler)) {
     return state === "fulfilled"
@@ -392,7 +399,8 @@ function runPromiseReaction(
   }
 
   try {
-    return resolveSandboxValue(handler.call([value]), { budget });
+    const result = handler.call([value]);
+    return resolveReactionResult(result, budget, self);
   } catch (error) {
     return Promise.reject(error as SandboxValue);
   }
@@ -402,19 +410,45 @@ function runPromiseFinally(
   handler: SandboxValue,
   value: SandboxValue,
   state: "fulfilled" | "rejected",
-  budget: Budget
+  budget: Budget,
+  self?: SandboxPromise
 ): Promise<SandboxValue> {
   if (!isSandboxClosure(handler)) {
     return runPromiseReaction(undefined, value, state, budget);
   }
 
   try {
-    return resolveSandboxValue(handler.call([]), { budget }).then(() =>
+    const result = handler.call([]);
+    return resolveReactionResult(result, budget, self).then(() =>
       runPromiseReaction(undefined, value, state, budget)
     );
   } catch (error) {
     return Promise.reject(error as SandboxValue);
   }
+}
+
+function resolveReactionResult(
+  result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
+  budget: Budget,
+  self: SandboxPromise | undefined
+): Promise<SandboxValue> {
+  return Promise.resolve(result).then((resolved) => {
+    if (isSelfResolution(resolved, self)) {
+      return Promise.reject({
+        message: "Promise cannot resolve to itself.",
+        name: "TypeError"
+      });
+    }
+
+    return resolveSandboxValue(resolved, { budget });
+  });
+}
+
+function isSelfResolution(result: SandboxValue, self: SandboxPromise | undefined): boolean {
+  return (
+    self !== undefined &&
+    (result === self || (isSandboxPromise(result) && result.promise === self.promise))
+  );
 }
 
 function getThenable(value: SandboxValue): SandboxClosure | undefined {

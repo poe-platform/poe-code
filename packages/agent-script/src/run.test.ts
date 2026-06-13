@@ -1086,6 +1086,24 @@ describe("run", () => {
     expect(messages).toEqual(["one", "two"]);
   });
 
+  it("rejects promise chains that resolve to themselves", async () => {
+    const result = await run(`
+      let chained;
+      chained = Promise.resolve().then(() => chained);
+      try {
+        await chained;
+      } catch (error) {
+        return [error.name, error.message];
+      }
+      return 'resolved';
+    `);
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: ["TypeError", "Promise cannot resolve to itself."]
+    });
+  });
+
   it("rejects in-flight awaits and the next host call when aborted", async () => {
     const controller = new AbortController();
     const after = vi.fn(() => "after");

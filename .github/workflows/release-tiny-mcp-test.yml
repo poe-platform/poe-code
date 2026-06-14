@@ -5,6 +5,7 @@ on:
       - main
     paths:
       - 'packages/tiny-stdio-mcp-test-server/**'
+      - '.github/workflows/release-tiny-mcp-test.yml'
 concurrency:
   group: release-tiny-mcp-test
   cancel-in-progress: false
@@ -23,6 +24,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Build tiny-stdio-mcp-server dependency
+        run: npm run build --workspace tiny-stdio-mcp-server
       - name: Build
         working-directory: packages/tiny-stdio-mcp-test-server
         run: npm run build

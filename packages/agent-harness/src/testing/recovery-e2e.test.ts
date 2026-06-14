@@ -29,7 +29,7 @@ describe("harness recovery e2e", () => {
       "after-first-await",
       [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = await step('first');",
         "  const second = await step('second');",
         "  return first.concat('|').concat(second);",
@@ -67,7 +67,7 @@ describe("harness recovery e2e", () => {
       "for-of",
       [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const output = [];",
         "  for (const value of [1, 2, 3, 4]) {",
         "    output.push(await step(String(value)));",
@@ -110,7 +110,7 @@ describe("harness recovery e2e", () => {
       "try-catch",
       [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  try {",
         "    await step('before-throw');",
         "    throw Error('boom');",
@@ -146,7 +146,7 @@ describe("harness recovery e2e", () => {
       "finally-once",
       [
         'import { cleanup, wait } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  try {",
         "    return 'body';",
         "  } finally {",
@@ -207,7 +207,7 @@ describe("harness recovery e2e", () => {
       "host-call-policy",
       [
         'import { call } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const cached = await call('cached');",
         "  const pending = await call('pending');",
         "  return cached.concat('|').concat(pending);",
@@ -240,7 +240,7 @@ describe("harness recovery e2e", () => {
       "after-return",
       [
         'import { value } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  return await value();",
         "};"
       ].join("\n")
@@ -283,7 +283,7 @@ describe("harness recovery e2e", () => {
       "two-pending",
       [
         'import { later } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const left = (async () => await later('left'))();",
         "  const right = (async () => await later('right'))();",
         "  const values = await Promise.all([left, right]);",
@@ -293,7 +293,7 @@ describe("harness recovery e2e", () => {
     );
     const baseline = await runBaseline(harness.mdPath, {
       async later(name: string) {
-        return name.concat(':done');
+        return name.concat(":done");
       }
     });
     const firstRun = {
@@ -363,7 +363,7 @@ describe("harness recovery e2e", () => {
       "source-mismatch",
       [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = await step('first');",
         "  const second = await step('second');",
         "  return first.concat('|').concat(second);",
@@ -378,7 +378,7 @@ describe("harness recovery e2e", () => {
       harness.ajsPath,
       [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = await step('first');",
         "  const second = await step('second');",
         "  return first.concat('|changed|').concat(second);",

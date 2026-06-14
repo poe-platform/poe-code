@@ -220,7 +220,7 @@ describe("runHarnessPair", () => {
     const secondPath = "/repo/b/shared.md";
     const source = [
       'import { step } from "host";',
-      "export default async () => {",
+      "export default async (frontmatter) => {",
       "  const first = await step('first');",
       "  const second = await step('second');",
       "  return first.concat('|').concat(second);",
@@ -284,7 +284,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
       "/repo/harness/replay.ajs": [
         'import { step } from "host";',
-        "export default async () => await step('new');"
+        "export default async (frontmatter) => await step('new');"
       ].join("\n"),
       [storePath]: priorRecords
     });
@@ -292,7 +292,13 @@ describe("runHarnessPair", () => {
 
     await expect(
       runHarnessPair(mdPath, {
-        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        modulesFor: () => ({
+          host: {
+            async step() {
+              return "new";
+            }
+          }
+        }),
         snapshotPath
       })
     ).rejects.toThrow("host call disk full");
@@ -312,7 +318,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
       "/repo/harness/replay.ajs": [
         'import { step } from "host";',
-        "export default async () => await step('new');"
+        "export default async (frontmatter) => await step('new');"
       ].join("\n"),
       "/outside/host-calls.tmp": "outside-state\n"
     });
@@ -320,7 +326,13 @@ describe("runHarnessPair", () => {
     vol.symlinkSync("/outside/host-calls.tmp", `${storePath}.tmp`);
 
     await runHarnessPair(mdPath, {
-      modulesFor: () => ({ host: { async step() { return "new"; } } }),
+      modulesFor: () => ({
+        host: {
+          async step() {
+            return "new";
+          }
+        }
+      }),
       snapshotPath,
       preserveSnapshotOnSuccess: true
     });
@@ -340,7 +352,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
       "/repo/harness/replay.ajs": [
         'import { step } from "host";',
-        "export default async () => await step('new');"
+        "export default async (frontmatter) => await step('new');"
       ].join("\n"),
       "/outside/host-calls.tmp": "outside-state\n"
     });
@@ -350,7 +362,13 @@ describe("runHarnessPair", () => {
 
     await expect(
       runHarnessPair(mdPath, {
-        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        modulesFor: () => ({
+          host: {
+            async step() {
+              return "new";
+            }
+          }
+        }),
         snapshotPath,
         preserveSnapshotOnSuccess: true
       })
@@ -450,7 +468,7 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/no-spawns.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
-      "/repo/harness/no-spawns.ajs": "export default () => true;\n"
+      "/repo/harness/no-spawns.ajs": "export default (frontmatter) => true;\n"
     });
 
     await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).resolves.toMatchObject({
@@ -470,7 +488,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/usage.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         '  await spawn("codex", { prompt: "one" });',
         '  await spawn("codex", { prompt: "two" });',
         '  await spawn("codex", { prompt: "three" });',
@@ -528,7 +546,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/retry-usage.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         '  await spawn("codex", { prompt: "one" });',
         '  return "done";',
         "};"
@@ -567,7 +585,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/thrown-retry-usage.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         '  await spawn("codex", { prompt: "one" });',
         '  return "done";',
         "};"
@@ -602,7 +620,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/invalid-retry-usage.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  try {",
         '    await spawn.retry("codex", { prompt: "one" }, { maxAttempts: 6, backoffMs: 0 });',
         "  } catch ({ message }) {",
@@ -635,7 +653,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/cost-optional.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         '  await spawn("codex", { prompt: "one" });',
         '  await spawn("codex", { prompt: "two" });',
         '  return "done";',
@@ -687,7 +705,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: test\nversion: 1\n---\n",
       "/repo/harness/reset-usage.ajs": [
         'import { spawn } from "agent";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         '  await spawn("codex", { prompt: "one" });',
         '  return "done";',
         "};"
@@ -757,7 +775,11 @@ describe("runHarnessPair", () => {
   it("reports fix metadata without rewriting the harness script when fix is omitted", async () => {
     const mdPath = "/repo/harness/no-fix.md";
     const ajsPath = "/repo/harness/no-fix.ajs";
-    const ajsSource = ['import { log } from "log";', "export default () => true;", ""].join("\n");
+    const ajsSource = [
+      'import { log } from "log";',
+      "export default (frontmatter) => true;",
+      ""
+    ].join("\n");
     const onDiagnostics = vi.fn();
     vol.fromJSON({
       [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# No fix"].join("\n"),
@@ -795,7 +817,9 @@ describe("runHarnessPair", () => {
     const ajsPath = "/repo/harness/fix.ajs";
     vol.fromJSON({
       [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# Fix"].join("\n"),
-      [ajsPath]: ['import { log } from "log";', "export default () => true;", ""].join("\n")
+      [ajsPath]: ['import { log } from "log";', "export default (frontmatter) => true;", ""].join(
+        "\n"
+      )
     });
 
     await expect(
@@ -812,7 +836,7 @@ describe("runHarnessPair", () => {
       returnValue: true
     });
 
-    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default (frontmatter) => true;\n");
   });
 
   it("does not follow a harness script symlink inserted before fixed source publish", async () => {
@@ -820,7 +844,9 @@ describe("runHarnessPair", () => {
     const ajsPath = "/repo/harness/fix-race.ajs";
     vol.fromJSON({
       [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# Fix race"].join("\n"),
-      [ajsPath]: ['import { log } from "log";', "export default () => true;", ""].join("\n"),
+      [ajsPath]: ['import { log } from "log";', "export default (frontmatter) => true;", ""].join(
+        "\n"
+      ),
       "/outside/fix-race.ajs": "outside-state\n"
     });
     mockedFileSystemState.symlinkRacePath = ajsPath;
@@ -842,7 +868,7 @@ describe("runHarnessPair", () => {
 
     expect(vol.readFileSync("/outside/fix-race.ajs", "utf8")).toBe("outside-state\n");
     expect(vol.lstatSync(ajsPath).isSymbolicLink()).toBe(false);
-    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default (frontmatter) => true;\n");
   });
 
   it("passes raw frontmatter through when the script does not export a schema", async () => {
@@ -906,7 +932,7 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/top-return.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: review\nversion: 1\n---\n",
-      "/repo/harness/top-return.ajs": "export default () => 'ok';\nreturn 'ignored';"
+      "/repo/harness/top-return.ajs": "export default (frontmatter) => 'ok';\nreturn 'ignored';"
     });
 
     await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).resolves.toMatchObject({
@@ -920,7 +946,7 @@ describe("runHarnessPair", () => {
     vol.fromJSON({
       [mdPath]: "---\nkind: review\nversion: 1\n---\n",
       "/repo/harness/allowed-global.ajs":
-        "const unused = () => Custom.x;\nexport default () => 'ok';"
+        "const unused = () => Custom.x;\nexport default (frontmatter) => 'ok';"
     });
 
     await expect(
@@ -944,7 +970,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: resume\nversion: 1\n---\n",
       "/repo/harness/resume.ajs": [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = await step('first');",
         "  const second = await step('second');",
         "  return first.concat('|').concat(second);",
@@ -1017,7 +1043,7 @@ describe("runHarnessPair", () => {
       "/repo/harness/clock.ajs": [
         'import * as time from "time";',
         'import { wait } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = time.now();",
         "  await wait('first');",
         "  const second = time.now();",
@@ -1097,7 +1123,7 @@ describe("runHarnessPair", () => {
       "/repo/harness/inherited-clock.ajs": [
         'import * as time from "time";',
         'import { wait } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  await wait('first');",
         "  await wait('second');",
         "  return String(time.now());",
@@ -1170,7 +1196,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: live-clock\nversion: 1\n---\n",
       "/repo/harness/live-clock.ajs": [
         'import * as time from "time";',
-        "export default () => {",
+        "export default (frontmatter) => {",
         "  const first = time.now();",
         "  const second = time.now();",
         "  return String(first).concat('|').concat(String(second));",
@@ -1200,7 +1226,7 @@ describe("runHarnessPair", () => {
     const script = [
       'import * as time from "time";',
       'import { wait } from "host";',
-      "export default async () => {",
+      "export default async (frontmatter) => {",
       "  const first = time.uuid().concat('@').concat(String(time.now()));",
       "  await wait('first');",
       "  const second = time.uuid().concat('@').concat(String(time.now()));",
@@ -1288,7 +1314,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: fresh\nversion: 1\n---\n",
       "/repo/harness/fresh.ajs": [
         'import { read } from "host";',
-        "export default async () => await read();"
+        "export default async (frontmatter) => await read();"
       ].join("\n")
     });
 
@@ -1334,7 +1360,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: backend\nversion: 1\n---\n",
       "/repo/harness/backend.ajs": [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const first = await step('first');",
         "  const second = await step('second');",
         "  return first.concat('|').concat(second);",
@@ -1411,7 +1437,7 @@ describe("runHarnessPair", () => {
     });
     vol.fromJSON({
       [mdPath]: "---\nkind: mismatch\nversion: 1\n---\n",
-      "/repo/harness/backend-mismatch.ajs": "export default () => 'fresh';"
+      "/repo/harness/backend-mismatch.ajs": "export default (frontmatter) => 'fresh';"
     });
 
     await expect(
@@ -1429,7 +1455,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: fresh\nversion: 1\n---\n",
       "/repo/harness/no-resume.ajs": [
         'import { read } from "host";',
-        "export default async () => await read();"
+        "export default async (frontmatter) => await read();"
       ].join("\n"),
       [snapshotPath]: JSON.stringify({ sourceHash: "stale" }),
       [`${snapshotPath}.host-calls.json`]: JSON.stringify([
@@ -1462,7 +1488,7 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/probe.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
-      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
       "/outside/sentinel.txt": "untouched"
     });
     vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
@@ -1479,7 +1505,7 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/probe.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
-      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
       "/outside/snapshot.json": JSON.stringify({ version: 1, sourceHash: "external" })
     });
     vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
@@ -1495,7 +1521,7 @@ describe("runHarnessPair", () => {
     const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
     vol.fromJSON({
       [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
-      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
       "/outside/sentinel.txt": "untouched"
     });
     vol.mkdirSync("/repo/.poe-code/harnesses", { recursive: true });
@@ -1516,10 +1542,8 @@ describe("runHarnessPair", () => {
     const snapshotPath = "/repo/.poe-code/harnesses/probe/snapshot.json";
     vol.fromJSON({
       [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
-      "/repo/harness/probe.ajs": "export default () => 'done';",
-      "/outside/host-calls.json": JSON.stringify([
-        { key: "host.read", args: [], result: "stale" }
-      ])
+      "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
+      "/outside/host-calls.json": JSON.stringify([{ key: "host.read", args: [], result: "stale" }])
     });
     vol.mkdirSync(dirname(snapshotPath), { recursive: true });
     vol.symlinkSync("/outside/host-calls.json", `${snapshotPath}.host-calls.json`);

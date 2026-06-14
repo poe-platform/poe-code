@@ -38,7 +38,7 @@ describe("assertReplayEquivalent", () => {
     const mdPath = "/repo/harness/random.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: random\nversion: 1\n---\n",
-      "/repo/harness/random.ajs": "export default async () => Math.random();"
+      "/repo/harness/random.ajs": "export default async (frontmatter) => Math.random();"
     });
 
     await expect(assertReplayEquivalent(mdPath, deterministicModulesFor)).rejects.toThrow(
@@ -53,7 +53,7 @@ describe("assertReplayEquivalent", () => {
       [mdPath]: "---\nkind: before-await\nversion: 1\n---\n",
       "/repo/harness/before-await.ajs": [
         'import { step } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const value = await step('first');",
         "  return value.concat(':done');",
         "};"
@@ -78,7 +78,7 @@ describe("assertReplayEquivalent", () => {
       [mdPath]: "---\nkind: after-last-await\nversion: 1\n---\n",
       "/repo/harness/after-last-await.ajs": [
         'import { value } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  const result = await value();",
         "  return result;",
         "};"
@@ -107,7 +107,7 @@ describe("assertReplayEquivalent", () => {
       [mdPath]: "---\nkind: tampered\nversion: 1\n---\n",
       [ajsPath]: [
         'import { tamper } from "host";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  await tamper();",
         "  return 'original';",
         "};"
@@ -122,7 +122,7 @@ describe("assertReplayEquivalent", () => {
               ajsPath,
               [
                 'import { tamper } from "host";',
-                "export default async () => {",
+                "export default async (frontmatter) => {",
                 "  await tamper();",
                 "  return 'changed';",
                 "};"

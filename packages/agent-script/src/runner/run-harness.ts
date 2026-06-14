@@ -135,6 +135,10 @@ export async function runHarnessPair(
   const modules = options.modulesFor(frontmatter, meta);
   const diagnostics = lint(executableSource, {
     allowedExportNames: ["schema"],
+    defaultExport: {
+      parameters: ["frontmatter"],
+      required: true
+    },
     filename: pair.scriptPath,
     frontmatterFields: Object.keys(frontmatter),
     modules: createLintModulesFromRuntimeRegistry(modules)

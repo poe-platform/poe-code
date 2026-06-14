@@ -9,7 +9,6 @@ import {
   FileSnapshotBackend,
   createSpawnUsageAccumulator,
   makeTimeModule,
-  parseModule,
   run,
   splitFrontmatter,
   runWithSpawnUsageAccumulator,
@@ -157,6 +156,10 @@ export async function runHarnessPair(
     const lintOptions = {
       allowedExportNames: ["schema"],
       allowedGlobals: options.allowedGlobals,
+      defaultExport: {
+        parameters: ["frontmatter"],
+        required: true
+      },
       filename: pair.ajsPath,
       frontmatterFields: readSchemaTopLevelFields(schema),
       modules: createLintModules(modules)
@@ -173,8 +176,7 @@ export async function runHarnessPair(
     }
 
     const diagnostics = [
-      ...(Array.isArray(lintDiagnostics) ? lintDiagnostics : lintDiagnostics.diagnostics),
-      ...missingDefaultExportDiagnostics(executableSource, pair.ajsPath)
+      ...(Array.isArray(lintDiagnostics) ? lintDiagnostics : lintDiagnostics.diagnostics)
     ];
     options.onDiagnostics?.(diagnostics);
     throwOnLintErrors(diagnostics);
@@ -226,28 +228,6 @@ function throwOnLintErrors(diagnostics: readonly Diagnostic[]): void {
   if (errors.length > 0) {
     throw new LintError(errors);
   }
-}
-
-function missingDefaultExportDiagnostics(source: string, filename: string): Diagnostic[] {
-  const module = parseModule(source, filename);
-  const hasDefaultExport = module.body.some(
-    (statement) => statement.type === "ExportDefaultDeclaration"
-  );
-  if (hasDefaultExport) {
-    return [];
-  }
-
-  return [
-    {
-      code: "AS-EXPORT-DEFAULT-MISSING",
-      severity: "error",
-      message: "Module must export a default entry point.",
-      filename,
-      line: module.span.start.line,
-      column: module.span.start.column,
-      span: module.span
-    }
-  ];
 }
 
 function readSchemaTopLevelFields(schema: AnySchema | undefined): string[] | undefined {

@@ -78,6 +78,26 @@ describe("parse exports", () => {
         ]
       }
     });
+
+    expect(
+      parseModule("export default async function run(frontmatter) { return frontmatter; }").body[0]
+    ).toMatchObject({
+      type: "ExportDefaultDeclaration",
+      declaration: {
+        type: "FunctionExpression",
+        async: true,
+        id: {
+          type: "Identifier",
+          name: "run"
+        },
+        params: [
+          {
+            type: "Identifier",
+            name: "frontmatter"
+          }
+        ]
+      }
+    });
   });
 
   it("extracts exported const handlers by name", () => {
@@ -162,7 +182,6 @@ describe("parse exports", () => {
     expect(() => parseModule("const handler = () => {}; export { handler };")).toThrowError(
       DisallowedSyntaxError
     );
-    expect(() => parseModule("export default function () {}")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export default class Run {}")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const { x } = value")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const [x] = value")).toThrowError(DisallowedSyntaxError);

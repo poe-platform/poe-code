@@ -1503,7 +1503,7 @@ class Parser {
   private parseExportDefaultDeclaration(exportToken: Token): ExportDefaultDeclaration {
     this.index += 1;
 
-    if (this.currentToken().value === "function" || this.currentToken().value === "class") {
+    if (this.currentToken().value === "class") {
       throw new DisallowedSyntaxError(
         `export default ${this.currentToken().value}`,
         this.currentToken().start

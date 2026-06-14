@@ -15,6 +15,7 @@ import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
 import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_DESTRUCTURE_NULL_DEFAULT } from "./rules/AS-destructure-null-default.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
+import type { DefaultExportSignature } from "./rules/AS-export-import-meta.js";
 import { AS_FLOATING_PROMISE } from "./rules/AS-floating-promise.js";
 import { AS_FRONTMATTER_FIELD_UNUSED } from "./rules/AS-frontmatter-field-unused.js";
 import { AS_IMPORT_CYCLE } from "./rules/AS-import-cycle.js";
@@ -51,6 +52,7 @@ export type Fix = {
 export type LintOptions = {
   allowedExportNames?: readonly string[];
   allowedGlobals?: readonly string[];
+  defaultExport?: DefaultExportSignature;
   fix?: boolean;
   filename?: string;
   largeLiteralThreshold?: number;
@@ -114,9 +116,11 @@ const KNOWN_DIAGNOSTIC_CODES = new Set([
   "AS015",
   "AS-ASYNC-NOT-NEEDED",
   "AS-AWAIT-NON-PROMISE",
+  "AS-EXPORT-DEFAULT-MISSING",
   "AS-DESTRUCTURE-NULL-DEFAULT",
   "AS-EXPORT-DEFAULT-MULTIPLE",
   "AS-EXPORT-DEFAULT-NOT-ARROW",
+  "AS-EXPORT-DEFAULT-SIGNATURE",
   "AS-EXPORT-IMPORT-META",
   "AS-EXPORT-UNKNOWN",
   "AS-FLOATING-PROMISE",

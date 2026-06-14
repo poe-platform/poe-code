@@ -290,7 +290,7 @@ describe("runHarness", () => {
     vol.fromJSON({
       [ajsPath]: [
         'import { cleanup, fail } from "api";',
-        "export default async () => {",
+        "export default async (frontmatter) => {",
         "  try {",
         "    await fail();",
         "    return 'missed';",
@@ -855,7 +855,7 @@ describe("runHarnessPair", () => {
     vol.fromJSON({
       [mdPath]: "Body",
       [ajsPath]: [
-        "export default async () =>",
+        "export default async (frontmatter) =>",
         "  [import.meta.kind, import.meta.version, import.meta.filepath].join('|');"
       ].join("\n")
     });
@@ -901,7 +901,7 @@ describe("runHarnessPair", () => {
         "",
         "Body"
       ].join("\n"),
-      [ajsPath]: "export default async () => \"unreachable\";"
+      [ajsPath]: "export default async (frontmatter) => \"unreachable\";"
     });
 
     const modulesFor = vi.fn(() => ({}));
@@ -927,7 +927,7 @@ describe("runHarnessPair", () => {
         "",
         "Body"
       ].join("\n"),
-      [ajsPath]: "export default async () => \"ran\";"
+      [ajsPath]: "export default async (frontmatter) => \"ran\";"
     });
 
     const result = await runHarnessPair(mdPath, { modulesFor: () => ({}) });

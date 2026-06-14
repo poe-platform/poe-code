@@ -11,6 +11,7 @@ import {
   type ForInStatement,
   type ForOfStatement,
   type ForStatement,
+  type FunctionExpression,
   type IfStatement,
   type LogicalExpression,
   type MemberExpression,
@@ -31,8 +32,10 @@ import {
 } from "../../parse/parser.js";
 
 type DiagnosticCode =
+  | "AS-EXPORT-DEFAULT-MISSING"
   | "AS-EXPORT-DEFAULT-MULTIPLE"
   | "AS-EXPORT-DEFAULT-NOT-ARROW"
+  | "AS-EXPORT-DEFAULT-SIGNATURE"
   | "AS-EXPORT-UNKNOWN"
   | "AS-IMPORT-META-ASSIGN"
   | "AS-RETURN-AT-TOP";
@@ -47,13 +50,24 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
+export type DefaultExportSignature = {
+  parameters?: readonly string[];
+  required?: boolean;
+};
+
 export function AS_EXPORT_IMPORT_META(
   source: string,
-  options: { allowedExportNames?: readonly string[]; filename?: string } = {}
+  options: {
+    allowedExportNames?: readonly string[];
+    defaultExport?: DefaultExportSignature;
+    filename?: string;
+  } = {}
 ): Diagnostic[] {
-  return new Scanner(options.filename ?? "<input>", new Set(options.allowedExportNames ?? [])).scan(
-    source
-  );
+  return new Scanner(
+    options.filename ?? "<input>",
+    new Set(options.allowedExportNames ?? []),
+    options.defaultExport
+  ).scan(source);
 }
 
 class Scanner {
@@ -61,7 +75,8 @@ class Scanner {
 
   constructor(
     private readonly filename: string,
-    private readonly allowedExportNames: ReadonlySet<string>
+    private readonly allowedExportNames: ReadonlySet<string>,
+    private readonly defaultExport: DefaultExportSignature | undefined
   ) {}
 
   scan(source: string): Diagnostic[] {
@@ -74,6 +89,15 @@ class Scanner {
       (statement) => statement.type === "ExportDefaultDeclaration"
     );
     const hasDefaultExport = defaultExports.length > 0;
+
+    if (!hasDefaultExport && this.defaultExport?.required === true) {
+      this.pushDiagnostic(
+        "AS-EXPORT-DEFAULT-MISSING",
+        "error",
+        "Module must export a default entry point.",
+        node.span
+      );
+    }
 
     for (const [index, statement] of defaultExports.entries()) {
       if (index > 0) {
@@ -106,13 +130,15 @@ class Scanner {
         this.visitExportNamedDeclaration(node.declaration);
         return;
       case "ExportDefaultDeclaration":
-        if (node.declaration.type !== "ArrowFunctionExpression") {
+        if (!isDefaultExportCallable(node.declaration)) {
           this.pushDiagnostic(
             "AS-EXPORT-DEFAULT-NOT-ARROW",
             "error",
-            "Export default initializer must be an arrow expression.",
+            "Export default initializer must be an arrow or function expression.",
             node.declaration.span
           );
+        } else {
+          this.visitDefaultExportSignature(node.declaration);
         }
         this.visitExpression(node.declaration);
         return;
@@ -171,6 +197,24 @@ class Scanner {
     }
 
     this.visitVariableDeclaration(node);
+  }
+
+  private visitDefaultExportSignature(
+    node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression
+  ): void {
+    const parameters = this.defaultExport?.parameters;
+    if (parameters === undefined) {
+      return;
+    }
+
+    if (!hasParameterNames(node, parameters)) {
+      this.pushDiagnostic(
+        "AS-EXPORT-DEFAULT-SIGNATURE",
+        "error",
+        `Default export must declare signature (${parameters.join(", ")}).`,
+        node.span
+      );
+    }
   }
 
   private visitIfStatement(node: IfStatement): void {
@@ -255,6 +299,9 @@ class Scanner {
         } else {
           this.visitExpression(node.body);
         }
+        return;
+      case "FunctionExpression":
+        this.visitStatement(node.body);
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -432,6 +479,25 @@ class Scanner {
       span
     });
   }
+}
+
+function isDefaultExportCallable(
+  node: Expression
+): node is Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression {
+  return node.type === "ArrowFunctionExpression" || node.type === "FunctionExpression";
+}
+
+function hasParameterNames(
+  node: Extract<Expression, { type: "ArrowFunctionExpression" }> | FunctionExpression,
+  names: readonly string[]
+): boolean {
+  if (node.params.length !== names.length) {
+    return false;
+  }
+
+  return node.params.every(
+    (param, index) => param.type === "Identifier" && param.name === names[index]
+  );
 }
 
 function isImportMetaReference(node: AssignmentExpression["left"] | Expression): boolean {

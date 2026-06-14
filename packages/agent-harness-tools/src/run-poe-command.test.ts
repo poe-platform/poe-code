@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PassThrough } from "node:stream";
@@ -270,6 +270,21 @@ async function waitForProcessExit(pid: number, timeoutMs: number): Promise<boole
     await new Promise<void>((resolve) => setTimeout(resolve, 25));
   }
   return !isProcessAlive(pid);
+}
+
+async function waitForFileText(filePath: string, timeoutMs: number): Promise<string> {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    try {
+      return await readFile(filePath, "utf8");
+    } catch (error) {
+      if (!hasOwnErrorCode(error, "ENOENT")) {
+        throw error;
+      }
+    }
+    await new Promise<void>((resolve) => setTimeout(resolve, 10));
+  }
+  return readFile(filePath, "utf8");
 }
 
 function isProcessAlive(pid: number): boolean {
@@ -1259,32 +1274,39 @@ describe("runPoeCommand", () => {
       const { state } = createRecordingState();
       const tempDir = await mkdtemp(path.join(os.tmpdir(), "poe-wrapped-timeout-"));
       const pidFile = path.join(tempDir, "inner.pid");
+      const stopActivityFile = path.join(tempDir, "stop-activity");
       let innerPid: number | undefined;
 
       try {
-        await expect(
-          runPoeCommand({
-            factory: hostExecutionEnvFactory as unknown as ExecutionEnvFactory,
-            openSpec: createOpenSpec({
-              cwd: tempDir,
-              env: processEnv(),
-              jobLabel: {
-                tool: "sh",
-                argv: [
-                  "sh",
-                  "-c",
-                  `trap '' TERM; sleep 30 & echo $! > ${shellQuote(pidFile)}; echo ready; wait`
-                ]
-              },
-              execution: { activityTimeoutMs: 100 }
-            }),
-            detach: false,
-            state
-          })
-        ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
+        const run = runPoeCommand({
+          factory: hostExecutionEnvFactory as unknown as ExecutionEnvFactory,
+          openSpec: createOpenSpec({
+            cwd: tempDir,
+            env: processEnv(),
+            jobLabel: {
+              tool: "sh",
+              argv: [
+                "sh",
+                "-c",
+                [
+                  `trap '' TERM`,
+                  `sleep 30 & echo $! > ${shellQuote(pidFile)}`,
+                  `while [ ! -f ${shellQuote(stopActivityFile)} ]; do echo ready; sleep 0.02; done`,
+                  "wait"
+                ].join("; ")
+              ]
+            },
+            execution: { activityTimeoutMs: 100, captureOutput: true }
+          }),
+          detach: false,
+          state
+        });
+        const rejection = run.catch((error: unknown) => error);
 
-        innerPid = Number((await readFile(pidFile, "utf8")).trim());
+        innerPid = Number((await waitForFileText(pidFile, 2_000)).trim());
         expect(Number.isInteger(innerPid)).toBe(true);
+        await writeFile(stopActivityFile, "", "utf8");
+        await expect(rejection).resolves.toMatchObject({ name: "ActivityTimeoutError" });
         await expect(waitForProcessExit(innerPid, 2_000)).resolves.toBe(true);
       } finally {
         if (innerPid !== undefined && isProcessAlive(innerPid)) {

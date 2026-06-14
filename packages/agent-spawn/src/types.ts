@@ -263,6 +263,11 @@ export interface ResumeSpec {
   /** Position of `args` relative to the prompt token. Default `afterPrompt`. */
   position?: "beforePrompt" | "afterPrompt";
   /**
+   * Some CLIs implement resume as a subcommand under the normal prompt command
+   * and require command options before the resume token.
+   */
+  commandOptionsPosition?: "beforeResume";
+  /**
    * Optional override for the printed copy-paste resume hint (e.g. an interactive
    * shell command). When omitted, the hint composes binaryName + `args`.
    */

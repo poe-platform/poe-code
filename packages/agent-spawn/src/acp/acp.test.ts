@@ -1493,7 +1493,8 @@ describe("acp/spawnStreaming", () => {
       agentId: "codex",
       prompt: "continue",
       cwd: "/tmp",
-      resumeThreadId: "thread_abc123"
+      resumeThreadId: "thread_abc123",
+      mode: "edit"
     });
 
     await collect(events);
@@ -1503,11 +1504,11 @@ describe("acp/spawnStreaming", () => {
     expect(command).toBe("codex");
     expect(args).toEqual([
       codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.edit,
       "resume",
       "thread_abc123",
-      "continue",
-      ...codexSpawnConfig.defaultArgs,
-      ...codexSpawnConfig.modes.yolo
+      "continue"
     ]);
   });
 

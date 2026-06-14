@@ -98,6 +98,8 @@ function buildCliArgs(
   const defaultArgsPosition = getDefaultArgsPosition(config);
   const mcpArgsPosition = getMcpArgsPosition(config);
   const resumeArgsPosition = config.resume?.position ?? "afterPrompt";
+  const commandOptionsBeforeResume =
+    resumeArgs.length > 0 && config.resume?.commandOptionsPosition === "beforeResume";
 
   const args: string[] = [];
   const promptArgIndexes = new Set<number>();
@@ -105,6 +107,17 @@ function buildCliArgs(
     promptArgIndexes.add(args.length);
     args.push(options.prompt);
   };
+  const pushPromptOrStdinArgs = () => {
+    if (stdinMode) {
+      if (!stdinMode.omitPrompt) {
+        pushPromptArg();
+      }
+      args.push(...stdinMode.extraArgs);
+      return;
+    }
+    pushPromptArg();
+  };
+  const commandOptionArgs: string[] = [];
 
   if (mcpArgsPosition === "beforeCommand") {
     args.push(...mcpArgs);
@@ -118,48 +131,48 @@ function buildCliArgs(
     args.push(...mcpArgs);
   }
 
-  if (stdinMode) {
-    args.push(config.promptFlag);
-    if (resumeArgsPosition === "beforePrompt") {
-      args.push(...resumeArgs);
-    }
-    if (!stdinMode.omitPrompt) {
-      pushPromptArg();
-    }
-    args.push(...stdinMode.extraArgs);
-  } else {
-    args.push(config.promptFlag);
-    if (resumeArgsPosition === "beforePrompt") {
-      args.push(...resumeArgs);
-    }
-    pushPromptArg();
-  }
+  args.push(config.promptFlag);
 
   if (options.model && config.modelFlag) {
     let model = config.modelStripProviderPrefix
       ? stripModelNamespace(options.model)
       : options.model;
     if (config.modelTransform) model = config.modelTransform(model);
-    args.push(config.modelFlag, model);
+    commandOptionArgs.push(config.modelFlag, model);
   }
 
   if (defaultArgsPosition === "afterPrompt") {
-    args.push(...config.defaultArgs);
+    commandOptionArgs.push(...config.defaultArgs);
   }
 
   if (mcpArgsPosition === "afterCommand") {
-    args.push(...mcpArgs);
+    commandOptionArgs.push(...mcpArgs);
   }
 
   const mode = resolveAgentModeConfig(config, options.mode);
-  args.push(...mode.args);
+  commandOptionArgs.push(...mode.args);
 
-  if (options.args && options.args.length > 0) {
+  if (commandOptionsBeforeResume) {
+    args.push(...commandOptionArgs);
+    if (options.args && options.args.length > 0) {
+      args.push(...options.args);
+    }
+    args.push(...resumeArgs);
+    pushPromptOrStdinArgs();
+  } else {
+    if (resumeArgsPosition === "beforePrompt") {
+      args.push(...resumeArgs);
+    }
+    pushPromptOrStdinArgs();
+    args.push(...commandOptionArgs);
+  }
+
+  if (options.args && options.args.length > 0 && !commandOptionsBeforeResume) {
     if (resumeArgsPosition === "afterPrompt") {
       args.push(...resumeArgs);
     }
     args.push(...options.args);
-  } else if (resumeArgsPosition === "afterPrompt") {
+  } else if (resumeArgsPosition === "afterPrompt" && !commandOptionsBeforeResume) {
     args.push(...resumeArgs);
   }
 

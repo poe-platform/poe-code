@@ -14,7 +14,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   mcpArgsBeforeCommand: true,
   modes: {
     // No auto: `codex exec` has no approval channel in headless runs.
-    yolo: ["-s", "danger-full-access"],
+    yolo: ["--dangerously-bypass-approvals-and-sandbox"],
     edit: ["-s", "workspace-write"],
     read: ["-s", "read-only"]
   },
@@ -28,6 +28,7 @@ export const codexSpawnConfig: CliSpawnConfig = {
   resume: {
     args: (threadId) => ["resume", threadId],
     position: "beforePrompt",
+    commandOptionsPosition: "beforeResume",
     hintArgs: (threadId, cwd) => ["resume", "-C", cwd, threadId]
   }
 };

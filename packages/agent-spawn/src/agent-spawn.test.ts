@@ -272,20 +272,40 @@ describe("buildSpawnArgs", () => {
     const result = buildSpawnArgs("codex", {
       prompt: "continue",
       model: "o3",
-      resumeThreadId: "thread_abc123"
+      resumeThreadId: "thread_abc123",
+      mode: "edit"
     });
 
     expect(result.binaryName).toBe("codex");
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
-      "resume",
-      "thread_abc123",
-      "continue",
       codexSpawnConfig.modelFlag,
       "o3",
       ...codexSpawnConfig.defaultArgs,
-      ...codexSpawnConfig.modes.yolo
+      ...codexSpawnConfig.modes.edit,
+      "resume",
+      "thread_abc123",
+      "continue"
     ]);
+  });
+
+  it("builds codex resume stdin args with the prompt sentinel after the session id", () => {
+    const result = buildSpawnArgs("codex", {
+      prompt: "continue",
+      resumeThreadId: "thread_abc123",
+      useStdin: true
+    });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo,
+      "resume",
+      "thread_abc123",
+      ...codexSpawnConfig.stdinMode!.extraArgs
+    ]);
+    expect(result.args.indexOf("resume")).toBeGreaterThan(result.args.indexOf("--json"));
+    expect(result.args.at(-1)).toBe("-");
   });
 
   it("builds claude-code resume args from resumeThreadId", () => {

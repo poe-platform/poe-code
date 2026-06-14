@@ -113,6 +113,10 @@ describe("configs/auto mode", () => {
     expect(supportsSpawnMode("gemini", "auto")).toBe(true);
   });
 
+  it("maps codex yolo to the native bypass flag instead of sandbox selection", () => {
+    expect(codexSpawnConfig.modes.yolo).toEqual(["--dangerously-bypass-approvals-and-sandbox"]);
+  });
+
   it("maps gemini ACP approval mode from the spawn mode", () => {
     const acpArgs = geminiCliAcpSpawnConfig.acpArgs;
     if (typeof acpArgs !== "function") {

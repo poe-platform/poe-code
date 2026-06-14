@@ -200,12 +200,23 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
   const defaultArgsPosition = getDefaultArgsPosition(spawnConfig);
   const mcpArgsPosition = getMcpArgsPosition(spawnConfig);
   const resumeArgsPosition = spawnConfig.resume?.position ?? "afterPrompt";
+  const commandOptionsBeforeResume =
+    resumeArgs.length > 0 && spawnConfig.resume?.commandOptionsPosition === "beforeResume";
+  const useStdin = shouldSendPromptViaStdin(spawnConfig, options);
   const args: string[] = [];
   const promptArgIndexes = new Set<number>();
   const pushPromptArg = () => {
     promptArgIndexes.add(args.length);
     args.push(options.prompt);
   };
+  const pushPromptOrStdinArgs = () => {
+    if (useStdin) {
+      args.push(...spawnConfig.stdinMode!.extraArgs);
+      return;
+    }
+    pushPromptArg();
+  };
+  const commandOptionArgs: string[] = [];
 
   if (mcpArgsPosition === "beforeCommand") {
     args.push(...mcpArgs);
@@ -221,37 +232,24 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
 
   args.push(spawnConfig.promptFlag);
 
-  if (resumeArgsPosition === "beforePrompt") {
-    args.push(...resumeArgs);
-  }
-
-  const useStdin = shouldSendPromptViaStdin(spawnConfig, options);
-  if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
-    pushPromptArg();
-  }
-
   if (options.model && spawnConfig.modelFlag) {
     let model = spawnConfig.modelStripProviderPrefix
       ? stripModelNamespace(options.model)
       : options.model;
     if (spawnConfig.modelTransform) model = spawnConfig.modelTransform(model);
-    args.push(spawnConfig.modelFlag, model);
+    commandOptionArgs.push(spawnConfig.modelFlag, model);
   }
 
   if (defaultArgsPosition === "afterPrompt") {
-    args.push(...spawnConfig.defaultArgs);
+    commandOptionArgs.push(...spawnConfig.defaultArgs);
   }
 
   if (mcpArgsPosition === "afterCommand") {
-    args.push(...mcpArgs);
+    commandOptionArgs.push(...mcpArgs);
   }
 
   const modeResolved = resolveAgentModeConfig(spawnConfig, options.mode);
-  args.push(...modeResolved.args);
-
-  if (useStdin) {
-    args.push(...spawnConfig.stdinMode!.extraArgs);
-  }
+  commandOptionArgs.push(...modeResolved.args);
 
   const runArgs = async (): Promise<{
     args: string[];
@@ -266,12 +264,32 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     };
   };
 
-  if (options.args && options.args.length > 0) {
+  if (commandOptionsBeforeResume) {
+    args.push(...commandOptionArgs);
+    if (options.args && options.args.length > 0) {
+      args.push(...options.args);
+    }
+    args.push(...resumeArgs);
+    pushPromptOrStdinArgs();
+  } else {
+    if (resumeArgsPosition === "beforePrompt") {
+      args.push(...resumeArgs);
+    }
+    if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
+      pushPromptArg();
+    }
+    args.push(...commandOptionArgs);
+    if (useStdin) {
+      args.push(...spawnConfig.stdinMode!.extraArgs);
+    }
+  }
+
+  if (options.args && options.args.length > 0 && !commandOptionsBeforeResume) {
     if (resumeArgsPosition === "afterPrompt") {
       args.push(...resumeArgs);
     }
     args.push(...options.args);
-  } else if (resumeArgsPosition === "afterPrompt") {
+  } else if (resumeArgsPosition === "afterPrompt" && !commandOptionsBeforeResume) {
     args.push(...resumeArgs);
   }
 

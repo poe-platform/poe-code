@@ -43,14 +43,17 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client mcp-oauth auth-store",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client mcp-oauth auth-store"
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client mcp-oauth auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/frontmatter @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client mcp-oauth auth-store"
   },
   "dependencies": {
     "toolcraft-schema": "^0.0.1",
     "commander": "^14.0.3",
+    "fast-string-width": "^3.0.2",
+    "fast-wrap-ansi": "^0.2.0",
     "jose": "^6.1.2",
     "jsonc-parser": "^3.3.1",
+    "sisteransi": "^1.0.5",
     "smol-toml": "^1.3.0",
     "tiny-stdio-mcp-server": "^0.1.0",
     "yaml": "^2.8.2"
@@ -68,6 +71,7 @@
   },
   "bundleDependencies": [
     "toolcraft-design",
+    "@poe-code/frontmatter",
     "@poe-code/agent-mcp-config",
     "@poe-code/agent-human-in-loop",
     "@poe-code/task-list",
@@ -80,6 +84,7 @@
   ],
   "optionalDependencies": {
     "toolcraft-design": "^0.0.2",
+    "@poe-code/frontmatter": "*",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-human-in-loop": "*",
     "@poe-code/task-list": "*",

@@ -47,8 +47,6 @@
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-design @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/agent-defs @poe-code/config-mutations @poe-code/process-runner tiny-mcp-client mcp-oauth auth-store"
   },
   "dependencies": {
-    "@clack/core": "^1.0.0",
-    "@clack/prompts": "^1.0.0",
     "toolcraft-schema": "^0.0.1",
     "commander": "^14.0.3",
     "jose": "^6.1.2",

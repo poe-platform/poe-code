@@ -53,9 +53,10 @@
   ],
   "dependencies": {
     "@poe-code/agent-skill-config": "*",
-    "@clack/prompts": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
     "commander": "^14.0.3",
+    "fast-string-width": "^3.0.2",
+    "fast-wrap-ansi": "^0.2.0",
     "jetbrains-mono": "^1.0.6",
     "jose": "^6.1.2",
     "jsonc-parser": "^3.3.1",

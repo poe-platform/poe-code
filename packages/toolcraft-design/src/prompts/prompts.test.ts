@@ -5,11 +5,8 @@ vi.mock("./primitives/spinner.js", () => ({
   spinner: vi.fn()
 }));
 
-vi.mock("@clack/prompts", () => ({
-  confirm: vi.fn(),
-  select: vi.fn(),
-  text: vi.fn(),
-  password: vi.fn()
+vi.mock("./interactive/confirm.js", () => ({
+  confirmPrompt: vi.fn()
 }));
 
 vi.mock("./primitives/cancel.js", () => ({
@@ -264,7 +261,7 @@ describe("withSpinner", () => {
 // === index.test.ts ===
 
 describe("confirmOrCancel", () => {
-  let clackConfirm: Mock;
+  let promptConfirm: Mock;
   let primitiveCancel: Mock;
   let primitiveIsCancel: Mock;
   let confirmOrCancel: typeof import("./index.js").confirmOrCancel;
@@ -273,10 +270,10 @@ describe("confirmOrCancel", () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    const clack = await import("@clack/prompts");
+    const confirmModule = await import("./interactive/confirm.js");
     const cancelPrimitive = await import("./primitives/cancel.js");
     ({ confirmOrCancel, PromptCancelledError } = await import("./index.js"));
-    clackConfirm = vi.mocked(clack.confirm);
+    promptConfirm = vi.mocked(confirmModule.confirmPrompt);
     primitiveCancel = vi.mocked(cancelPrimitive.cancel);
     primitiveIsCancel = vi.mocked(cancelPrimitive.isCancel);
     vi.clearAllMocks();
@@ -289,7 +286,7 @@ describe("confirmOrCancel", () => {
   });
 
   it("returns true when user confirms", async () => {
-    clackConfirm.mockResolvedValueOnce(true as any);
+    promptConfirm.mockResolvedValueOnce(true as any);
 
     await expect(
       confirmOrCancel({ message: "Proceed?" })
@@ -297,7 +294,7 @@ describe("confirmOrCancel", () => {
   });
 
   it("returns false when user declines", async () => {
-    clackConfirm.mockResolvedValueOnce(false as any);
+    promptConfirm.mockResolvedValueOnce(false as any);
 
     await expect(
       confirmOrCancel({ message: "Proceed?" })
@@ -306,7 +303,7 @@ describe("confirmOrCancel", () => {
 
   it("throws PromptCancelledError when user cancels", async () => {
     const cancelled = Symbol("cancelled");
-    clackConfirm.mockResolvedValueOnce(cancelled as any);
+    promptConfirm.mockResolvedValueOnce(cancelled as any);
     primitiveIsCancel.mockReturnValue(true);
 
     await expect(

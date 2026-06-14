@@ -19,8 +19,10 @@
   "files": [
     "dist"
   ],
-  "peerDependencies": {
-    "@clack/prompts": "^1.0.0"
+  "dependencies": {
+    "fast-string-width": "^3.0.2",
+    "fast-wrap-ansi": "^0.2.0",
+    "sisteransi": "^1.0.5"
   },
   "exports": {
     ".": {
@@ -29,7 +31,7 @@
     }
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=18.18"
   },
   "repository": {
     "type": "git",

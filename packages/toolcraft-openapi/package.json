@@ -28,8 +28,6 @@
     "toolcraft-openapi-generate": "dist/bin/generate.js"
   },
   "dependencies": {
-    "@clack/core": "^1.0.0",
-    "@clack/prompts": "^1.0.0",
     "toolcraft": "^0.0.4",
     "auth-store": "^0.0.1",
     "yaml": "^2.8.2"

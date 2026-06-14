@@ -139,6 +139,18 @@ The registry key and `Brand.name` should match. Brand primary colors are CSS-sty
 - `VSCODE_COLOR_THEME_KIND`: automatic VS Code theme hint used after the macOS hint.
 - `COLORFGBG`: terminal foreground/background hint used after the macOS and VS Code hints. Rendering defaults to dark when no hint resolves a mode.
 
+### Prompts
+
+- `POE_NO_PROMPT`: when set to `1` in non-TTY contexts, `confirm`, `select`, and `multiselect` accept their default or initial values instead of throwing an interactive TTY error.
+
+### Node 18 Smoke
+
+After building the package, verify the prompt entrypoint under Node 18 with:
+
+```sh
+nvm exec 18.18 node packages/toolcraft-design/scripts/check-node18.mjs
+```
+
 ### Output and Color
 
 - `OUTPUT_FORMAT`: selects `terminal`, `markdown`, or `json` output for components that use the output-format resolver. Invalid or missing values default to `terminal`.

@@ -1,5 +1,5 @@
 import { color } from "../../components/color.js";
-export { isCancel } from "@clack/prompts";
+export { isCancel } from "../interactive/cancel-symbol.js";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 
 export function cancel(msg = ""): void {

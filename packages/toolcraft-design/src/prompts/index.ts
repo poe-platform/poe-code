@@ -1,7 +1,12 @@
 import { color } from "../components/color.js";
-import * as clack from "@clack/prompts";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
+import type { CANCEL } from "./interactive/cancel-symbol.js";
+import { confirmPrompt } from "./interactive/confirm.js";
+import { multiselectPrompt } from "./interactive/multiselect.js";
+import { passwordPrompt } from "./interactive/password.js";
+import { selectPrompt, type SelectOption } from "./interactive/select.js";
+import { textPrompt } from "./interactive/text.js";
 import { cancel, isCancel } from "./primitives/cancel.js";
 import { intro } from "./primitives/intro.js";
 import { log } from "./primitives/log.js";
@@ -26,15 +31,28 @@ export function introPlain(title: string): void {
 
 export interface SelectOptions<Value> {
   message: string;
-  options: Array<{ value: Value; label: string; hint?: string }>;
+  options: Array<SelectOption<Value>>;
   initialValue?: Value;
+  maxItems?: number;
+  signal?: AbortSignal;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
 }
 
-export async function select<Value>(opts: SelectOptions<Value>): Promise<Value | symbol> {
-  return clack.select(opts as Parameters<typeof clack.select<Value>>[0]);
+export async function select<Value>(opts: SelectOptions<Value>): Promise<Value | typeof CANCEL> {
+  return selectPrompt(opts);
 }
 
-export type MultiselectOptions<Value> = Parameters<typeof clack.multiselect<Value>>[0];
+export interface MultiselectOptions<Value> {
+  message: string;
+  options: Array<SelectOption<Value>>;
+  initialValues?: Value[];
+  required?: boolean;
+  maxItems?: number;
+  signal?: AbortSignal;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
+}
 
 /**
  * Prompts the user to select one or more values from a list.
@@ -54,23 +72,35 @@ export type MultiselectOptions<Value> = Parameters<typeof clack.multiselect<Valu
  */
 export async function multiselect<Value>(
   opts: MultiselectOptions<Value>
-): Promise<Value[] | symbol> {
-  return clack.multiselect(opts);
+): Promise<Value[] | typeof CANCEL> {
+  return multiselectPrompt(opts);
 }
 
-export type TextOptions = Parameters<typeof clack.text>[0];
+export interface TextOptions {
+  message: string;
+  placeholder?: string;
+  defaultValue?: string;
+  initialValue?: string;
+  validate?: (value: string) => string | Error | undefined;
+  signal?: AbortSignal;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
+}
 
-export async function text(opts: TextOptions): Promise<string | symbol> {
-  return clack.text(opts as Parameters<typeof clack.text>[0]);
+export async function text(opts: TextOptions): Promise<string | typeof CANCEL> {
+  return textPrompt(opts);
 }
 
 export interface ConfirmOptions {
   message: string;
   initialValue?: boolean;
+  signal?: AbortSignal;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
 }
 
-export async function confirm(opts: ConfirmOptions): Promise<boolean | symbol> {
-  return clack.confirm(opts as Parameters<typeof clack.confirm>[0]);
+export async function confirm(opts: ConfirmOptions): Promise<boolean | typeof CANCEL> {
+  return confirmPrompt(opts);
 }
 
 export class PromptCancelledError extends Error {
@@ -94,11 +124,14 @@ export async function confirmOrCancel(opts: ConfirmOptions): Promise<boolean> {
 
 export interface PasswordOptions {
   message: string;
-  validate?: (value: string) => string | undefined;
+  validate?: (value: string) => string | Error | undefined;
+  signal?: AbortSignal;
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
 }
 
-export async function password(opts: PasswordOptions): Promise<string | symbol> {
-  return clack.password(opts as Parameters<typeof clack.password>[0]);
+export async function password(opts: PasswordOptions): Promise<string | typeof CANCEL> {
+  return passwordPrompt(opts);
 }
 
 export type SpinnerOptions = {

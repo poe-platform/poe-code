@@ -81,7 +81,7 @@ describe("standalone package publish metadata", () => {
     expect(designPackage).toMatchObject({
       name: "toolcraft-design",
       private: true,
-      engines: { node: ">=20" },
+      engines: { node: ">=18.18" },
       exports: {
         ".": {
           types: "./dist/index.d.ts",

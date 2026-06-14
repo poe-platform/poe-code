@@ -25,6 +25,7 @@ import {
 } from "./auth.js";
 import {
   StreamableHttpTransport,
+  type HttpObservabilityEvent,
   type StreamableHttpTransportOptions,
 } from "./http-transport.js";
 
@@ -50,6 +51,9 @@ export interface HttpListenOptions {
   hostname?: string;
   path?: string;
   signal?: AbortSignal;
+  requestTimeoutMs?: number;
+  headersTimeoutMs?: number;
+  keepAliveTimeoutMs?: number;
 }
 
 export interface HttpServerHandle {
@@ -213,6 +217,46 @@ export function createHttpServer(
     request: {} as AuthenticatedIncomingMessage,
   } satisfies HttpToolContext;
 
+  const authorizeHttpRequest = async (
+    req: IncomingMessage,
+    res: ServerResponse,
+    protectedResourcePath: string
+  ): Promise<boolean> => {
+    if (options.oauth === undefined) {
+      return true;
+    }
+
+    const authenticatedRequest = req as AuthenticatedIncomingMessage;
+    if (authenticatedRequest.auth !== undefined) {
+      return true;
+    }
+
+    const authorization = await authorizeBearerRequest(authenticatedRequest, {
+      ...options.oauth,
+      protectedResourcePath,
+      trustedProxy: options.trustedProxy,
+    });
+    if (!authorization.ok) {
+      options.observability?.onEvent?.({
+        type: "auth.failure",
+        statusCode: authorization.statusCode,
+        challenge: authorization.challenge,
+        sessionId: Array.isArray(req.headers["mcp-session-id"])
+          ? req.headers["mcp-session-id"][0]
+          : req.headers["mcp-session-id"],
+      });
+      res.writeHead(authorization.statusCode, {
+        "WWW-Authenticate": authorization.challenge,
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "no-referrer",
+      });
+      res.end();
+      return false;
+    }
+
+    return true;
+  };
+
   httpServer.tool = <T>(
     name: string,
     description: string,
@@ -245,50 +289,66 @@ export function createHttpServer(
       hostname = "127.0.0.1",
       path: requestedPath = "/mcp",
       signal,
+      requestTimeoutMs,
+      headersTimeoutMs,
+      keepAliveTimeoutMs,
     } = listenOptions;
     const path = normalizePath(requestedPath);
 
     const nodeServer = http.createServer(async (req, res) => {
       const requestUrl = new URL(req.url ?? "/", "http://127.0.0.1");
 
-      if (
-        protectedResourceMetadataBody !== undefined &&
-        req.method === "GET" &&
-        getProtectedResourceMetadataPaths(path).includes(requestUrl.pathname)
-      ) {
-        res.writeHead(200, {
-          "Cache-Control": PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
-          "Content-Type": "application/json; charset=utf-8",
-        });
-        res.end(protectedResourceMetadataBody);
-        return;
-      }
+      try {
+        if (
+          protectedResourceMetadataBody !== undefined &&
+          req.method === "GET" &&
+          getProtectedResourceMetadataPaths(path).includes(requestUrl.pathname)
+        ) {
+          res.writeHead(200, {
+            "Cache-Control": PROTECTED_RESOURCE_METADATA_CACHE_CONTROL,
+            "Content-Type": "application/json; charset=utf-8",
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "no-referrer",
+          });
+          res.end(protectedResourceMetadataBody);
+          return;
+        }
 
-      if (requestUrl.pathname !== path) {
-        res.writeHead(404);
-        res.end();
-        return;
-      }
-
-      if (options.oauth !== undefined) {
-        const authorization = await authorizeBearerRequest(
-          req as AuthenticatedIncomingMessage,
-          {
-            ...options.oauth,
-            protectedResourcePath: path,
-          }
-        );
-        if (!authorization.ok) {
-          res.writeHead(authorization.statusCode, {
-            "WWW-Authenticate": authorization.challenge,
+        if (requestUrl.pathname !== path) {
+          res.writeHead(404, {
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "no-referrer",
           });
           res.end();
           return;
         }
-      }
 
-      await transport.handleRequest(req, res);
+        if (!(await authorizeHttpRequest(req, res, path))) {
+          return;
+        }
+
+        await transport.handleRequest(req, res);
+      } catch {
+        if (!res.headersSent) {
+          res.writeHead(500, {
+            "X-Content-Type-Options": "nosniff",
+            "Referrer-Policy": "no-referrer",
+          });
+        }
+        if (!res.writableEnded) {
+          res.end();
+        }
+      }
     });
+    if (requestTimeoutMs !== undefined) {
+      nodeServer.requestTimeout = requestTimeoutMs;
+    }
+    if (headersTimeoutMs !== undefined) {
+      nodeServer.headersTimeout = headersTimeoutMs;
+    }
+    if (keepAliveTimeoutMs !== undefined) {
+      nodeServer.keepAliveTimeout = keepAliveTimeoutMs;
+    }
 
     await listen(nodeServer, port, hostname);
 
@@ -340,7 +400,13 @@ export function createHttpServer(
     };
   };
 
-  httpServer.handleRequest = transport.handleRequest.bind(transport);
+  httpServer.handleRequest = async (req, res) => {
+    if (!(await authorizeHttpRequest(req, res, "/mcp"))) {
+      return;
+    }
+
+    await transport.handleRequest(req, res);
+  };
 
   return httpServer;
 }
@@ -350,3 +416,4 @@ function hasOwnProperty(value: object, key: string): boolean {
 }
 
 export type { RequestAuthInfo, TokenVerifier, VerifiedAccessToken };
+export type { HttpObservabilityEvent };

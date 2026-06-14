@@ -6,6 +6,7 @@ import {
   type ProtectedResourceMetadataOptions,
   type TinyHttpMcpServerOAuthOptions,
 } from "./http-server.js";
+import type { HttpObservabilityOptions } from "./http-transport.js";
 import { PROTECTED_RESOURCE_METADATA_PATH } from "./auth.js";
 import { PROTECTED_RESOURCE_METADATA_CACHE_CONTROL } from "./auth.js";
 
@@ -23,6 +24,21 @@ function normalizePath(path: string): string {
   }
 
   return path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
+}
+
+function setHardeningHeaders(res: {
+  set(field: string, value: string): unknown;
+}): void {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("Referrer-Policy", "no-referrer");
+}
+
+function readSessionId(
+  headers: Record<string, string | string[] | undefined>
+): string | undefined {
+  const value = headers["mcp-session-id"];
+  const sessionId = Array.isArray(value) ? value[0] : value;
+  return sessionId !== undefined && sessionId.length > 0 ? sessionId : undefined;
 }
 
 export function createExpressMiddleware(server: HttpServer): RequestHandler {
@@ -53,6 +69,7 @@ export function createProtectedResourceMetadataRouter(
 
   for (const metadataPath of metadataPaths) {
     router.get(metadataPath, (_req, res) => {
+      setHardeningHeaders(res);
       res.set("Cache-Control", PROTECTED_RESOURCE_METADATA_CACHE_CONTROL);
       res.status(200).json(document);
     });
@@ -65,6 +82,8 @@ export interface CreateExpressOAuthHandlersOptions {
   path: string;
   server: HttpServer;
   oauth: TinyHttpMcpServerOAuthOptions;
+  trustedProxy?: boolean;
+  observability?: HttpObservabilityOptions;
 }
 
 export function createExpressOAuthHandlers(
@@ -87,10 +106,18 @@ export function createExpressOAuthHandlers(
         {
           ...options.oauth,
           protectedResourcePath: path,
+          trustedProxy: options.trustedProxy,
         }
       );
       if (!authorization.ok) {
+        options.observability?.onEvent?.({
+          type: "auth.failure",
+          statusCode: authorization.statusCode,
+          challenge: authorization.challenge,
+          sessionId: readSessionId(req.headers),
+        });
         res.set("WWW-Authenticate", authorization.challenge);
+        setHardeningHeaders(res);
         res.status(authorization.statusCode).end();
         return;
       }

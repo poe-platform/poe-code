@@ -75,6 +75,7 @@ export interface BearerAuthOptions {
   authorizationServers: readonly (string | URL)[];
   protectedResourcePath?: string;
   requiredScopes?: readonly string[];
+  trustedProxy?: boolean;
   verifier: TokenVerifier;
 }
 
@@ -93,12 +94,35 @@ function readSingleHeaderValue(
 }
 
 function getRequestProtocol(
-  req: Pick<IncomingMessage, "headers" | "socket">
+  req: Pick<IncomingMessage, "headers" | "socket">,
+  trustedProxy = false
 ): string {
+  if (trustedProxy) {
+    const forwardedProto = readSingleHeaderValue(req.headers["x-forwarded-proto"])
+      ?.split(",")[0]
+      ?.trim()
+      .toLowerCase();
+    if (forwardedProto === "https" || forwardedProto === "http") {
+      return forwardedProto;
+    }
+  }
+
   return "encrypted" in req.socket && req.socket.encrypted ? "https" : "http";
 }
 
-function getRequestHost(req: Pick<IncomingMessage, "headers">): string {
+function getRequestHost(
+  req: Pick<IncomingMessage, "headers">,
+  trustedProxy = false
+): string {
+  if (trustedProxy) {
+    const forwardedHost = readSingleHeaderValue(req.headers["x-forwarded-host"])
+      ?.split(",")[0]
+      ?.trim();
+    if (forwardedHost !== undefined && forwardedHost.length > 0) {
+      return forwardedHost;
+    }
+  }
+
   return readSingleHeaderValue(req.headers.host) ?? "127.0.0.1";
 }
 
@@ -247,22 +271,24 @@ function toRequestAuthInfo(
 
 export function getProtectedResourceMetadataUrl(
   req: Pick<IncomingMessage, "headers" | "socket">,
-  protectedResourcePath?: string
+  protectedResourcePath?: string,
+  trustedProxy = false
 ): string {
   return new URL(
     `${PROTECTED_RESOURCE_METADATA_PATH}${normalizeProtectedResourcePath(protectedResourcePath)}`,
-    `${getRequestProtocol(req)}://${getRequestHost(req)}`
+    `${getRequestProtocol(req, trustedProxy)}://${getRequestHost(req, trustedProxy)}`
   ).toString();
 }
 
 export function createBearerChallenge(
   req: Pick<IncomingMessage, "headers" | "socket">,
   options: BearerChallengeOptions = {},
-  protectedResourcePath?: string
+  protectedResourcePath?: string,
+  trustedProxy = false
 ): string {
   const parts = [
     'Bearer realm="mcp"',
-    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req, protectedResourcePath))}"`,
+    `resource_metadata="${escapeChallengeValue(getProtectedResourceMetadataUrl(req, protectedResourcePath, trustedProxy))}"`,
   ];
 
   if (options.error !== undefined) {
@@ -290,7 +316,12 @@ export async function authorizeBearerRequest(
     return {
       ok: false,
       statusCode: 401,
-      challenge: createBearerChallenge(req, {}, options.protectedResourcePath),
+      challenge: createBearerChallenge(
+        req,
+        {},
+        options.protectedResourcePath,
+        options.trustedProxy
+      ),
     };
   }
 
@@ -301,7 +332,7 @@ export async function authorizeBearerRequest(
       challenge: createBearerChallenge(req, {
         error: "invalid_token",
         errorDescription: authorization.errorDescription,
-      }, options.protectedResourcePath),
+      }, options.protectedResourcePath, options.trustedProxy),
     };
   }
 
@@ -327,7 +358,12 @@ export async function authorizeBearerRequest(
     return {
       ok: false,
       statusCode: challengeOptions.error === "insufficient_scope" ? 403 : 401,
-      challenge: createBearerChallenge(req, challengeOptions, options.protectedResourcePath),
+      challenge: createBearerChallenge(
+        req,
+        challengeOptions,
+        options.protectedResourcePath,
+        options.trustedProxy
+      ),
     };
   }
 }

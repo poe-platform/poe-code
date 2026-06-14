@@ -18,6 +18,11 @@ export interface ClassifiedBody {
   responses: JSONRPCResponse[];
 }
 
+export interface BodyReadOptions {
+  maxBytes?: number;
+  maxBatchSize?: number;
+}
+
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -67,21 +72,28 @@ function hasResponseFields(value: unknown): boolean {
   return isObjectRecord(value) && (hasOwn(value, "result") || hasOwn(value, "error"));
 }
 
-async function readStreamBody(req: IncomingMessage): Promise<string> {
+async function readStreamBody(
+  req: IncomingMessage,
+  maxBytes: number | undefined
+): Promise<string> {
   const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
 
   for await (const chunk of req as AsyncIterable<unknown>) {
+    let bytes: Uint8Array;
     if (typeof chunk === "string") {
-      chunks.push(Buffer.from(chunk));
-      continue;
+      bytes = Buffer.from(chunk);
+    } else if (chunk instanceof Uint8Array) {
+      bytes = chunk;
+    } else {
+      bytes = Buffer.from(String(chunk));
     }
 
-    if (chunk instanceof Uint8Array) {
-      chunks.push(chunk);
-      continue;
+    totalBytes += bytes.byteLength;
+    if (maxBytes !== undefined && totalBytes > maxBytes) {
+      throw new Error("Payload too large");
     }
-
-    chunks.push(Buffer.from(String(chunk)));
+    chunks.push(bytes);
   }
 
   return Buffer.concat(chunks).toString("utf8");
@@ -89,7 +101,8 @@ async function readStreamBody(req: IncomingMessage): Promise<string> {
 
 async function readRawBody(
   req: IncomingMessage,
-  preParsed?: unknown
+  preParsed: unknown | undefined,
+  options: BodyReadOptions
 ): Promise<unknown> {
   if (preParsed !== undefined) {
     return preParsed;
@@ -100,7 +113,7 @@ async function readRawBody(
     return reqWithBody.body;
   }
 
-  const raw = await readStreamBody(req);
+  const raw = await readStreamBody(req, options.maxBytes);
 
   try {
     return JSON.parse(raw);
@@ -109,10 +122,14 @@ async function readRawBody(
   }
 }
 
-function toMessageList(body: unknown): unknown[] {
+function toMessageList(body: unknown, maxBatchSize: number | undefined): unknown[] {
   if (Array.isArray(body)) {
     if (body.length === 0) {
       throw new Error("Invalid Request");
+    }
+
+    if (maxBatchSize !== undefined && body.length > maxBatchSize) {
+      throw new Error("Batch size exceeds configured limit");
     }
 
     return body;
@@ -127,10 +144,11 @@ function toMessageList(body: unknown): unknown[] {
 
 export async function readAndClassifyBody(
   req: IncomingMessage,
-  preParsed?: unknown
+  preParsed?: unknown,
+  options: BodyReadOptions = {}
 ): Promise<ClassifiedBody> {
-  const body = await readRawBody(req, preParsed);
-  const inputMessages = toMessageList(body);
+  const body = await readRawBody(req, preParsed, options);
+  const inputMessages = toMessageList(body, options.maxBatchSize);
   const isBatch = Array.isArray(body);
   const entries: Array<JSONRPCMessage | null> = [];
   const requests: JSONRPCRequest[] = [];

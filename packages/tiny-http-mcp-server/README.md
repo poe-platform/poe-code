@@ -9,7 +9,7 @@ Streamable HTTP transport for tiny MCP servers. It builds on top of `tiny-stdio-
 
 ## Install
 
-Node.js 18+ is required.
+Node.js 20+ is required.
 
 ```sh
 npm install tiny-http-mcp-server
@@ -119,6 +119,7 @@ To publish RFC 9728 protected-resource metadata and require a Bearer header on M
 import {
   createHttpServer,
   createExpressOAuthHandlers,
+  createJwksTokenVerifier,
   TokenVerificationError
 } from "tiny-http-mcp-server";
 
@@ -160,6 +161,17 @@ const { metadataMiddleware, mcpMiddleware } = createExpressOAuthHandlers({
 - `scopesSupported`: optional values published as `scopes_supported`
 - `verifier`: `TokenVerifier` implementation used to validate bearer tokens
 
+For JWT bearer tokens signed by an authorization server JWKS endpoint, use the exported `createJwksTokenVerifier()` helper:
+
+```ts
+const verifier = createJwksTokenVerifier({
+  issuer: "https://auth.example.com",
+  jwksUri: "https://auth.example.com/.well-known/jwks.json",
+  audience: "https://example.com/mcp",
+  requiredScopes: ["mcp.read"]
+});
+```
+
 When OAuth is enabled, the server exposes `GET /.well-known/oauth-protected-resource` with `application/json`:
 
 ```json
@@ -178,6 +190,13 @@ WWW-Authenticate: Bearer realm="mcp", resource_metadata="http://127.0.0.1:3000/.
 ```
 
 Standalone `listenHttp()` serves both the MCP endpoint and the protected-resource metadata route. For Express, mount `metadataMiddleware` at the app root and mount `mcpMiddleware` on your MCP path.
+
+For non-HTTP integrations, `createProtectedResourceMetadataDocument(oauth)` returns the metadata JSON document without creating middleware.
+
+`createExpressOAuthHandlers()` also accepts:
+
+- `trustedProxy`: trust `X-Forwarded-Proto` and `X-Forwarded-Host` when building metadata challenge URLs.
+- `observability`: emit auth failure events through the same observability hook shape used by the HTTP transport.
 
 The package does not define any OAuth-specific environment variables. Configure OAuth with the `oauth` object in code or the CLI flags below.
 
@@ -267,13 +286,26 @@ Returned `HttpServer` instances support:
 
 `createHttpServer()` accepts the base `ServerOptions` from `tiny-stdio-mcp-server` plus HTTP transport options:
 
-| Option               | Type                                         | Default                          | Description                                                                                   |
-| -------------------- | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `name`               | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
-| `version`            | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
-| `sessionIdGenerator` | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
-| `enableJsonResponse` | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
-| `oauth`              | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
+| Option                     | Type                                         | Default                          | Description                                                                                   |
+| -------------------------- | -------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `name`                     | `string`                                     | none                             | MCP server name exposed during initialization.                                                |
+| `version`                  | `string`                                     | none                             | MCP server version exposed during initialization.                                             |
+| `sessionIdGenerator`       | `(() => string) \| undefined`                | built-in visible ASCII generator | Generates new session ids. Pass `undefined` to disable sessions entirely.                     |
+| `enableJsonResponse`       | `boolean`                                    | `false`                          | Return `application/json` bodies for `POST` responses instead of `text/event-stream`.         |
+| `allowedHosts`             | `readonly string[]`                          | loopback hosts                   | Allowed `Host` header values for DNS rebinding protection.                                    |
+| `allowedOrigins`           | `readonly string[]`                          | `[]`                             | Allowed CORS `Origin` values. Empty means no cross-origin browser clients are allowed.        |
+| `maxRequestBytes`          | `number`                                     | unlimited                        | Maximum JSON request body size.                                                              |
+| `maxBatchSize`             | `number`                                     | unlimited                        | Maximum JSON-RPC batch member count.                                                         |
+| `maxSessions`              | `number`                                     | unlimited                        | Maximum active sessions.                                                                     |
+| `sessionTtlMs`             | `number`                                     | no idle expiry                   | Expire idle sessions after this duration.                                                     |
+| `maxStreamsPerSession`     | `number`                                     | unlimited                        | Maximum concurrent GET SSE streams per session.                                               |
+| `maxSseEventHistory`       | `number`                                     | `100`                            | Number of server-sent events retained for `Last-Event-ID` replay.                            |
+| `maxConcurrentToolCalls`   | `number`                                     | unlimited                        | Maximum concurrent tool calls across sessions.                                                |
+| `sessionStore`             | `SessionStore`                               | in-memory store                  | Pluggable session storage for long-running or multi-instance deployments.                     |
+| `requestIdGenerator`       | `() => string`                               | incrementing ids                 | Generates request ids when `X-Request-Id` is absent.                                          |
+| `observability`            | `HttpObservabilityOptions`                   | none                             | Emits request, auth, session, stream, and tool lifecycle events.                              |
+| `trustedProxy`             | `boolean`                                    | `false`                          | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                 |
+| `oauth`                    | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`                      | Enables OAuth protected-resource metadata and bearer-token verification for the MCP endpoint. |
 
 ### `createExpressMiddleware(server)`
 
@@ -299,7 +331,10 @@ import type {
   HttpServer,
   HttpServerHandle,
   TinyHttpMcpServerOAuthOptions,
+  HttpObservabilityOptions,
   HttpTransportOptions,
+  Session,
+  SessionStore,
   StreamableHttpTransportOptions
 } from "tiny-http-mcp-server";
 ```
@@ -308,12 +343,15 @@ import type {
 
 Options for `server.listenHttp()`:
 
-| Option     | Type          | Default       | Description                                                                                   |
-| ---------- | ------------- | ------------- | --------------------------------------------------------------------------------------------- |
-| `port`     | `number`      | `0`           | TCP port to bind to. Use `0` for an ephemeral port.                                           |
-| `hostname` | `string`      | `"127.0.0.1"` | Interface/host to bind to. IPv4, hostnames, and IPv6 literals are supported.                  |
-| `path`     | `string`      | `"/mcp"`      | URL pathname to serve the MCP endpoint on. `mcp` and `/mcp` are normalized to the same value. |
-| `signal`   | `AbortSignal` | none          | Aborts the listener and closes the server when triggered.                                     |
+| Option              | Type          | Default       | Description                                                                                   |
+| ------------------- | ------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| `port`              | `number`      | `0`           | TCP port to bind to. Use `0` for an ephemeral port.                                           |
+| `hostname`          | `string`      | `"127.0.0.1"` | Interface/host to bind to. IPv4, hostnames, and IPv6 literals are supported.                  |
+| `path`              | `string`      | `"/mcp"`      | URL pathname to serve the MCP endpoint on. `mcp` and `/mcp` are normalized to the same value. |
+| `signal`            | `AbortSignal` | none          | Aborts the listener and closes the server when triggered.                                     |
+| `requestTimeoutMs`  | `number`      | Node default  | Sets `http.Server.requestTimeout`.                                                            |
+| `headersTimeoutMs`  | `number`      | Node default  | Sets `http.Server.headersTimeout`.                                                            |
+| `keepAliveTimeoutMs` | `number`      | Node default  | Sets `http.Server.keepAliveTimeout`.                                                          |
 
 #### `HttpServerHandle`
 
@@ -329,11 +367,24 @@ Returned by `listenHttp()`:
 
 These are the same shape:
 
-| Option               | Type                                         | Default            | Description                                                                               |
-| -------------------- | -------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
-| `sessionIdGenerator` | `(() => string) \| undefined`                | built-in generator | Controls session support and session id creation.                                         |
-| `enableJsonResponse` | `boolean`                                    | `false`            | Switches `POST` responses from SSE framing to plain JSON responses.                       |
-| `oauth`              | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`        | Publishes RFC 9728 metadata and protects the MCP endpoint with bearer-token verification. |
+| Option                   | Type                                         | Default            | Description                                                                               |
+| ------------------------ | -------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------- |
+| `sessionIdGenerator`     | `(() => string) \| undefined`                | built-in generator | Controls session support and session id creation.                                         |
+| `enableJsonResponse`     | `boolean`                                    | `false`            | Switches `POST` responses from SSE framing to plain JSON responses.                       |
+| `allowedHosts`           | `readonly string[]`                          | loopback hosts     | Allowed `Host` header values.                                                            |
+| `allowedOrigins`         | `readonly string[]`                          | `[]`               | Allowed CORS origins.                                                                    |
+| `maxRequestBytes`        | `number`                                     | unlimited          | Maximum JSON request body size.                                                          |
+| `maxBatchSize`           | `number`                                     | unlimited          | Maximum JSON-RPC batch member count.                                                     |
+| `maxSessions`            | `number`                                     | unlimited          | Maximum active sessions.                                                                 |
+| `sessionTtlMs`           | `number`                                     | no idle expiry     | Idle session expiration window.                                                          |
+| `maxStreamsPerSession`   | `number`                                     | unlimited          | Maximum concurrent GET SSE streams per session.                                           |
+| `maxSseEventHistory`     | `number`                                     | `100`              | Number of SSE events retained for replay.                                                |
+| `maxConcurrentToolCalls` | `number`                                     | unlimited          | Maximum concurrent tool calls across sessions.                                            |
+| `sessionStore`           | `SessionStore`                               | in-memory store    | Pluggable session storage.                                                               |
+| `requestIdGenerator`     | `() => string`                               | incrementing ids   | Request id generator used when the request lacks `X-Request-Id`.                         |
+| `observability`          | `HttpObservabilityOptions`                   | none               | Event hook for request, auth, session, stream, and tool lifecycle telemetry.              |
+| `trustedProxy`           | `boolean`                                    | `false`            | Trust forwarded host/proto headers for metadata challenge URLs.                           |
+| `oauth`                  | `TinyHttpMcpServerOAuthOptions \| undefined` | `undefined`        | Publishes RFC 9728 metadata and protects the MCP endpoint with bearer-token verification. |
 
 #### `HttpServer`
 
@@ -367,6 +418,19 @@ tiny-http-mcp-server [options]
 | `--path <path>`                              | `/mcp`      | MCP endpoint path. `api/mcp` and `/api/mcp` are equivalent.                                                                          |
 | `--stateless`                                | off         | Disable session support.                                                                                                             |
 | `--json-response`                            | off         | Return `application/json` for `POST` responses.                                                                                      |
+| `--allowed-host <host>`                      | loopback    | Allowed `Host` header value. Repeat the flag for multiple hosts.                                                                     |
+| `--allowed-origin <url>`                     | none        | Allowed CORS origin. Repeat the flag for multiple origins. Path/query are normalized to the URL origin.                              |
+| `--max-request-bytes <bytes>`                | unlimited   | Maximum JSON request body size.                                                                                                      |
+| `--max-batch-size <count>`                   | unlimited   | Maximum JSON-RPC batch member count.                                                                                                 |
+| `--max-sessions <count>`                     | unlimited   | Maximum active sessions.                                                                                                             |
+| `--session-ttl-ms <ms>`                      | none        | Expire idle sessions after this duration.                                                                                            |
+| `--max-streams-per-session <count>`          | unlimited   | Maximum concurrent GET SSE streams per session.                                                                                      |
+| `--max-sse-event-history <count>`            | `100`       | Number of SSE events retained for `Last-Event-ID` replay.                                                                            |
+| `--max-concurrent-tool-calls <count>`        | unlimited   | Maximum concurrent tool calls across sessions.                                                                                       |
+| `--trusted-proxy`                            | off         | Trust `X-Forwarded-Proto` and `X-Forwarded-Host` for metadata challenge URLs.                                                        |
+| `--request-timeout-ms <ms>`                  | Node default | Node HTTP request timeout.                                                                                                          |
+| `--headers-timeout-ms <ms>`                  | Node default | Node HTTP headers timeout.                                                                                                          |
+| `--keep-alive-timeout-ms <ms>`               | Node default | Node HTTP keep-alive timeout.                                                                                                       |
 | `--oauth-resource <uri>`                     | none        | Enable OAuth mode with this canonical protected resource URI. Requires `--oauth-authorization-server` and `--oauth-verifier-module`. |
 | `--oauth-authorization-server <issuer>`      | none        | Authorization server issuer URL to publish in metadata. Repeat the flag for multiple issuers.                                        |
 | `--oauth-supported-scope <scope>`            | none        | Scope to publish in `scopes_supported`. Repeat the flag for multiple scopes.                                                         |
@@ -381,6 +445,17 @@ Examples:
 ```sh
 tiny-http-mcp-server --port 8080 --path /api/mcp
 tiny-http-mcp-server --port 0 --stateless --json-response
+tiny-http-mcp-server \
+  --port 8080 \
+  --allowed-host mcp.example.com \
+  --allowed-origin https://app.example.com \
+  --max-request-bytes 1048576 \
+  --max-batch-size 16 \
+  --max-sessions 1000 \
+  --session-ttl-ms 900000 \
+  --max-streams-per-session 2 \
+  --max-concurrent-tool-calls 32 \
+  --request-timeout-ms 30000
 tiny-http-mcp-server \
   --oauth-resource https://example.com/mcp \
   --oauth-authorization-server https://auth.example.com \
@@ -451,6 +526,7 @@ Supported options:
 | `version`            | `string`                      | `"1.0.0"`                              |
 | `enableJsonResponse` | `boolean`                     | inherited default (`false`)            |
 | `sessionIdGenerator` | `(() => string) \| undefined` | inherited default (built-in generator) |
+| `oauth`              | `TinyHttpMcpServerOAuthOptions` | none                                 |
 
 Example:
 

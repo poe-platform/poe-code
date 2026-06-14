@@ -36,6 +36,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "mcp-oauth": "*",
     "tiny-stdio-mcp-server": "*"
   },
   "peerDependencies": {

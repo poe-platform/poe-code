@@ -29,6 +29,7 @@ export interface JwksTokenVerifierOptions {
   jwksUrl: string | URL;
   clockSkewSeconds?: number;
   allowedAlgorithms?: readonly string[];
+  jwksCacheTtlMs?: number;
   fetch?: FetchLike;
 }
 
@@ -377,10 +378,38 @@ export function createJwksTokenVerifier(
   const jwksUrl = toUrl(options.jwksUrl, "jwksUrl");
   const clockSkewSeconds = options.clockSkewSeconds ?? 30;
   const allowedAlgorithms = options.allowedAlgorithms ?? DEFAULT_ALLOWED_ALGORITHMS;
+  const jwksCacheTtlMs = options.jwksCacheTtlMs ?? 300_000;
   const fetchImplementation = options.fetch ?? globalThis.fetch;
+  let cachedJwks: { value: JSONWebKeySet; expiresAt: number } | undefined;
+  let pendingJwks: Promise<JSONWebKeySet> | undefined;
 
   if (typeof fetchImplementation !== "function") {
     throw new Error("fetch is not available; pass options.fetch explicitly");
+  }
+
+  async function getJwks(): Promise<JSONWebKeySet> {
+    const now = Date.now();
+    if (cachedJwks !== undefined && cachedJwks.expiresAt > now) {
+      return cachedJwks.value;
+    }
+
+    if (pendingJwks !== undefined) {
+      return pendingJwks;
+    }
+
+    pendingJwks = loadJwks(jwksUrl, fetchImplementation)
+      .then((jwks) => {
+        cachedJwks = {
+          value: jwks,
+          expiresAt: Date.now() + jwksCacheTtlMs,
+        };
+        return jwks;
+      })
+      .finally(() => {
+        pendingJwks = undefined;
+      });
+
+    return pendingJwks;
   }
 
   return {
@@ -389,7 +418,7 @@ export function createJwksTokenVerifier(
       const algorithm = resolveAlgorithm(input.token, allowedAlgorithms);
 
       try {
-        const jwks = await loadJwks(jwksUrl, fetchImplementation);
+        const jwks = await getJwks();
         const verified = await verifyJwtAgainstJwks({
           token: input.token,
           jwks,

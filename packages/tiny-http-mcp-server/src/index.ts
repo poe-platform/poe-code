@@ -64,7 +64,10 @@ export {
   createProtectedResourceMetadataRouter,
 } from "./express-middleware.js";
 export type { CreateExpressOAuthHandlersOptions } from "./express-middleware.js";
-export { createHttpServer } from "./http-server.js";
+export {
+  createHttpServer,
+  createProtectedResourceMetadataDocument,
+} from "./http-server.js";
 export type {
   HttpToolContext,
   HttpToolHandler,
@@ -82,5 +85,16 @@ export type {
   VerifiedAccessToken,
 } from "./auth.js";
 export { StreamableHttpTransport } from "./http-transport.js";
-export type { StreamableHttpTransportOptions } from "./http-transport.js";
+export type {
+  HttpObservabilityEvent,
+  HttpObservabilityOptions,
+  StreamableHttpTransportOptions,
+} from "./http-transport.js";
+export type { Session, SessionStore } from "./session.js";
+export { createJwksTokenVerifier } from "mcp-oauth";
+export type {
+  JwksTokenVerifier,
+  JwksTokenVerifierOptions,
+  JwksVerifiedAccessToken,
+} from "mcp-oauth";
 export { createTestMcpServer, nodeFetch } from "./test-support.js";

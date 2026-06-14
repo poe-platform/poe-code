@@ -20,6 +20,19 @@ interface ParsedCliArgs {
   path: string;
   stateless: boolean;
   jsonResponse: boolean;
+  allowedHosts?: string[];
+  allowedOrigins?: string[];
+  maxRequestBytes?: number;
+  maxBatchSize?: number;
+  maxSessions?: number;
+  sessionTtlMs?: number;
+  maxStreamsPerSession?: number;
+  maxSseEventHistory?: number;
+  maxConcurrentToolCalls?: number;
+  trustedProxy: boolean;
+  requestTimeoutMs?: number;
+  headersTimeoutMs?: number;
+  keepAliveTimeoutMs?: number;
   oauth?: {
     resource: string;
     authorizationServers: string[];
@@ -82,6 +95,27 @@ const HELP_TEXT = [
   "  --path <path>          HTTP path to serve MCP on (default: /mcp)",
   "  --stateless            Disable session support",
   "  --json-response        Return application/json for POST responses",
+  "  --allowed-host <host>  Allowed Host header value (repeatable; default: localhost loopback hosts)",
+  "  --allowed-origin <url> Allowed CORS Origin value (repeatable)",
+  "  --max-request-bytes <bytes>",
+  "                        Maximum JSON request body size",
+  "  --max-batch-size <count>",
+  "                        Maximum JSON-RPC batch member count",
+  "  --max-sessions <count> Maximum active sessions",
+  "  --session-ttl-ms <ms>  Expire sessions after this idle duration",
+  "  --max-streams-per-session <count>",
+  "                        Maximum concurrent GET SSE streams per session",
+  "  --max-sse-event-history <count>",
+  "                        Number of SSE events retained for Last-Event-ID replay",
+  "  --max-concurrent-tool-calls <count>",
+  "                        Maximum concurrent tool calls across sessions",
+  "  --trusted-proxy        Trust X-Forwarded-Proto and X-Forwarded-Host",
+  "  --request-timeout-ms <ms>",
+  "                        Node HTTP request timeout",
+  "  --headers-timeout-ms <ms>",
+  "                        Node HTTP headers timeout",
+  "  --keep-alive-timeout-ms <ms>",
+  "                        Node HTTP keep-alive timeout",
   "  --oauth-resource <uri> Enable OAuth mode with this canonical resource URI",
   "  --oauth-authorization-server <issuer>",
   "                        Authorization server issuer URL (repeatable)",
@@ -120,6 +154,31 @@ function parseAbsoluteUrl(
   } catch {
     throw new Error(`${flagName} must be an absolute URL.`);
   }
+}
+
+function parseOrigin(value: string, flagName: string): string {
+  try {
+    return new URL(value).origin;
+  } catch {
+    throw new Error(`${flagName} must be an absolute URL.`);
+  }
+}
+
+function parseOptionalInteger(
+  value: string | undefined,
+  flagName: string,
+  minimum: number
+): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < minimum) {
+    throw new Error(`${flagName} must be an integer greater than or equal to ${minimum}.`);
+  }
+
+  return parsed;
 }
 
 function hasConfiguredOAuthFlag(values: Record<string, unknown>): boolean {
@@ -199,6 +258,19 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
       path: { type: "string" },
       stateless: { type: "boolean" },
       "json-response": { type: "boolean" },
+      "allowed-host": { type: "string", multiple: true },
+      "allowed-origin": { type: "string", multiple: true },
+      "max-request-bytes": { type: "string" },
+      "max-batch-size": { type: "string" },
+      "max-sessions": { type: "string" },
+      "session-ttl-ms": { type: "string" },
+      "max-streams-per-session": { type: "string" },
+      "max-sse-event-history": { type: "string" },
+      "max-concurrent-tool-calls": { type: "string" },
+      "trusted-proxy": { type: "boolean" },
+      "request-timeout-ms": { type: "string" },
+      "headers-timeout-ms": { type: "string" },
+      "keep-alive-timeout-ms": { type: "string" },
       "oauth-resource": { type: "string" },
       "oauth-authorization-server": { type: "string", multiple: true },
       "oauth-supported-scope": { type: "string", multiple: true },
@@ -210,6 +282,57 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     },
   });
 
+  const maxRequestBytes = parseOptionalInteger(
+    values["max-request-bytes"],
+    "--max-request-bytes",
+    1
+  );
+  const maxBatchSize = parseOptionalInteger(
+    values["max-batch-size"],
+    "--max-batch-size",
+    1
+  );
+  const maxSessions = parseOptionalInteger(
+    values["max-sessions"],
+    "--max-sessions",
+    1
+  );
+  const sessionTtlMs = parseOptionalInteger(
+    values["session-ttl-ms"],
+    "--session-ttl-ms",
+    1
+  );
+  const maxStreamsPerSession = parseOptionalInteger(
+    values["max-streams-per-session"],
+    "--max-streams-per-session",
+    1
+  );
+  const maxSseEventHistory = parseOptionalInteger(
+    values["max-sse-event-history"],
+    "--max-sse-event-history",
+    0
+  );
+  const maxConcurrentToolCalls = parseOptionalInteger(
+    values["max-concurrent-tool-calls"],
+    "--max-concurrent-tool-calls",
+    1
+  );
+  const requestTimeoutMs = parseOptionalInteger(
+    values["request-timeout-ms"],
+    "--request-timeout-ms",
+    0
+  );
+  const headersTimeoutMs = parseOptionalInteger(
+    values["headers-timeout-ms"],
+    "--headers-timeout-ms",
+    0
+  );
+  const keepAliveTimeoutMs = parseOptionalInteger(
+    values["keep-alive-timeout-ms"],
+    "--keep-alive-timeout-ms",
+    0
+  );
+
   return {
     help: values.help ?? false,
     port: parsePort(values.port),
@@ -217,6 +340,27 @@ function parseCliOptions(args: string[]): ParsedCliArgs {
     path: values.path ?? "/mcp",
     stateless: values.stateless ?? false,
     jsonResponse: values["json-response"] ?? false,
+    ...(Array.isArray(values["allowed-host"]) && values["allowed-host"].length > 0
+      ? { allowedHosts: [...values["allowed-host"]] }
+      : {}),
+    ...(Array.isArray(values["allowed-origin"]) && values["allowed-origin"].length > 0
+      ? {
+          allowedOrigins: values["allowed-origin"].map((value) =>
+            parseOrigin(value, "--allowed-origin")
+          ),
+        }
+      : {}),
+    ...(maxRequestBytes === undefined ? {} : { maxRequestBytes }),
+    ...(maxBatchSize === undefined ? {} : { maxBatchSize }),
+    ...(maxSessions === undefined ? {} : { maxSessions }),
+    ...(sessionTtlMs === undefined ? {} : { sessionTtlMs }),
+    ...(maxStreamsPerSession === undefined ? {} : { maxStreamsPerSession }),
+    ...(maxSseEventHistory === undefined ? {} : { maxSseEventHistory }),
+    ...(maxConcurrentToolCalls === undefined ? {} : { maxConcurrentToolCalls }),
+    trustedProxy: values["trusted-proxy"] ?? false,
+    ...(requestTimeoutMs === undefined ? {} : { requestTimeoutMs }),
+    ...(headersTimeoutMs === undefined ? {} : { headersTimeoutMs }),
+    ...(keepAliveTimeoutMs === undefined ? {} : { keepAliveTimeoutMs }),
     oauth: parseCliOAuthOptions(values),
   };
 }
@@ -299,6 +443,22 @@ export async function runCli(
       version: packageInfo.version,
       ...(options.stateless ? { sessionIdGenerator: undefined } : {}),
       ...(options.jsonResponse ? { enableJsonResponse: true } : {}),
+      ...(options.allowedHosts === undefined ? {} : { allowedHosts: options.allowedHosts }),
+      ...(options.allowedOrigins === undefined ? {} : { allowedOrigins: options.allowedOrigins }),
+      ...(options.maxRequestBytes === undefined ? {} : { maxRequestBytes: options.maxRequestBytes }),
+      ...(options.maxBatchSize === undefined ? {} : { maxBatchSize: options.maxBatchSize }),
+      ...(options.maxSessions === undefined ? {} : { maxSessions: options.maxSessions }),
+      ...(options.sessionTtlMs === undefined ? {} : { sessionTtlMs: options.sessionTtlMs }),
+      ...(options.maxStreamsPerSession === undefined
+        ? {}
+        : { maxStreamsPerSession: options.maxStreamsPerSession }),
+      ...(options.maxSseEventHistory === undefined
+        ? {}
+        : { maxSseEventHistory: options.maxSseEventHistory }),
+      ...(options.maxConcurrentToolCalls === undefined
+        ? {}
+        : { maxConcurrentToolCalls: options.maxConcurrentToolCalls }),
+      ...(options.trustedProxy ? { trustedProxy: true } : {}),
       ...(oauth === undefined ? {} : { oauth }),
     });
 
@@ -306,6 +466,15 @@ export async function runCli(
       port: options.port,
       hostname: options.hostname,
       path: options.path,
+      ...(options.requestTimeoutMs === undefined
+        ? {}
+        : { requestTimeoutMs: options.requestTimeoutMs }),
+      ...(options.headersTimeoutMs === undefined
+        ? {}
+        : { headersTimeoutMs: options.headersTimeoutMs }),
+      ...(options.keepAliveTimeoutMs === undefined
+        ? {}
+        : { keepAliveTimeoutMs: options.keepAliveTimeoutMs }),
     });
 
     const shutdown = async () => {

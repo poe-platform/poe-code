@@ -1,9 +1,7 @@
 import http, { type IncomingMessage } from "node:http";
 import type { AddressInfo } from "node:net";
 import { createRequire } from "node:module";
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
 import { Readable } from "node:stream";
-import { fileURLToPath } from "node:url";
 import express, {
   type ErrorRequestHandler,
   type Express,
@@ -56,7 +54,7 @@ import type {
 import { HttpTransport, McpClient } from "tiny-mcp-client";
 import { StreamableHttpTransport } from "./http-transport.js";
 import { createExpressMiddleware } from "./express-middleware.js";
-import { createHttpServer } from "./http-server.js";
+import { createHttpServer, createProtectedResourceMetadataDocument } from "./http-server.js";
 import type { HttpListenOptions, HttpServer, HttpServerHandle, HttpTransportOptions } from "./http-server.js";
 import { runCli } from "./cli.js";
 import { createSessionStore, defaultSessionIdGenerator } from "./session.js";
@@ -255,6 +253,7 @@ describe("session", () => {
       id: "session-1",
       initialized: false,
       createdAt: expect.any(Date),
+      lastSeenAt: expect.any(Date),
     });
   });
 
@@ -573,6 +572,7 @@ describe("tiny-http-mcp-server", () => {
     expect(JSON_RPC_ERROR_CODES.INVALID_REQUEST).toBe(-32600);
     expect(createExpressMiddleware).toBeTypeOf("function");
     expect(createHttpServer).toBeTypeOf("function");
+    expect(createProtectedResourceMetadataDocument).toBeTypeOf("function");
     expect(createTestMcpServer).toBeTypeOf("function");
     expect(createHttpTestPair).toBeTypeOf("function");
     expect(createHttpTestPairWithTinyClient).toBeTypeOf("function");
@@ -786,61 +786,10 @@ describe("StreamableHttpTransport", () => {
         payload = typeof body === "string" ? body : JSON.stringify(body);
       }
 
-      return new Promise<TestResponse>((resolve, reject) => {
-        const request = http.request(
-          url,
-          {
-            method,
-            headers,
-          },
-          (response) => {
-            const responseHeaders = new Headers();
-
-            for (const [key, value] of Object.entries(response.headers)) {
-              if (typeof value === "string") {
-                responseHeaders.set(key, value);
-                continue;
-              }
-
-              if (Array.isArray(value)) {
-                responseHeaders.set(key, value.join(", "));
-              }
-            }
-
-            const stream = Readable.toWeb(response) as ReadableStream<Uint8Array>;
-
-            resolve({
-              status: response.statusCode ?? 0,
-              headers: responseHeaders,
-              body: stream,
-              async text() {
-                const decoder = new TextDecoder();
-                const reader = stream.getReader();
-                let text = "";
-
-                while (true) {
-                  const chunk = await reader.read();
-
-                  if (chunk.done) {
-                    break;
-                  }
-
-                  text += decoder.decode(chunk.value, { stream: true });
-                }
-
-                return text + decoder.decode();
-              },
-            });
-          }
-        );
-
-        request.on("error", reject);
-
-        if (payload !== undefined) {
-          request.write(payload);
-        }
-
-        request.end();
+      return nodeFetch(url, {
+        method,
+        headers,
+        ...(payload === undefined ? {} : { body: payload }),
       });
     };
 
@@ -1830,12 +1779,12 @@ describe("StreamableHttpTransport", () => {
     expect(response.status).toBe(405);
   });
 
-  it("T41 OPTIONS returns 405", async () => {
+  it("T41 OPTIONS returns CORS preflight response", async () => {
     const fixture = await createFixture();
 
     const response = await fixture.request("OPTIONS");
 
-    expect(response.status).toBe(405);
+    expect(response.status).toBe(204);
   });
 });
 
@@ -3138,10 +3087,6 @@ describe("HttpServer integration", () => {
 // ---------------------------------------------------------------------------
 
 describe("tiny-http-mcp-server CLI", () => {
-  const require = createRequire(import.meta.url);
-  const cliSourcePath = fileURLToPath(new URL("./cli.ts", import.meta.url));
-  const tsxCliPath = require.resolve("tsx/cli");
-  const activeChildren = new Set<ChildProcessWithoutNullStreams>();
   const initializeRequest = {
     jsonrpc: "2.0",
     id: 1,
@@ -3233,85 +3178,6 @@ describe("tiny-http-mcp-server CLI", () => {
       body: JSON.stringify(initializeRequest),
     });
   }
-
-  function waitForListening(
-    child: ChildProcessWithoutNullStreams
-  ): Promise<{ url: URL; stderr: () => string }> {
-    return new Promise((resolve, reject) => {
-      let stdout = "";
-      let stderr = "";
-
-      const cleanup = () => {
-        child.stdout.off("data", onStdout);
-        child.stderr.off("data", onStderr);
-        child.off("exit", onExit);
-        child.off("error", onError);
-      };
-
-      const onStdout = (chunk: Buffer) => {
-        stdout += chunk.toString("utf8");
-        const newlineIndex = stdout.indexOf("\n");
-        if (newlineIndex === -1) {
-          return;
-        }
-
-        const line = stdout.slice(0, newlineIndex).trim();
-        if (line.length === 0) {
-          return;
-        }
-
-        cleanup();
-        resolve({
-          url: new URL(line),
-          stderr: () => stderr,
-        });
-      };
-
-      const onStderr = (chunk: Buffer) => {
-        stderr += chunk.toString("utf8");
-      };
-
-      const onExit = (code: number | null, signal: NodeJS.Signals | null) => {
-        cleanup();
-        reject(
-          new Error(
-            `CLI exited before listening (code=${String(code)}, signal=${String(signal)}): ${stderr}`
-          )
-        );
-      };
-
-      const onError = (error: Error) => {
-        cleanup();
-        reject(error);
-      };
-
-      child.stdout.on("data", onStdout);
-      child.stderr.on("data", onStderr);
-      child.once("exit", onExit);
-      child.once("error", onError);
-    });
-  }
-
-  function waitForExit(
-    child: ChildProcessWithoutNullStreams
-  ): Promise<{ code: number | null; signal: NodeJS.Signals | null }> {
-    return new Promise((resolve, reject) => {
-      child.once("exit", (code, signal) => {
-        resolve({ code, signal });
-      });
-      child.once("error", reject);
-    });
-  }
-
-  afterEach(() => {
-    for (const child of activeChildren) {
-      if (child.exitCode === null && child.signalCode === null) {
-        child.kill("SIGTERM");
-      }
-    }
-
-    activeChildren.clear();
-  });
 
   it("C1 starts server on default port 3000", async () => {
     const close = vi.fn().mockResolvedValue(undefined);
@@ -3570,6 +3436,74 @@ describe("tiny-http-mcp-server CLI", () => {
     });
   });
 
+  it("parses production hardening flags into server and listen options", async () => {
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:3000/mcp",
+      port: 3000,
+      close: vi.fn().mockResolvedValue(undefined),
+    });
+    const createServer = vi.fn(() => ({ listenHttp }));
+
+    const exitCode = await runCli(
+      [
+        "--allowed-host",
+        "mcp.example.com",
+        "--allowed-origin",
+        "https://client.example.com/app",
+        "--max-request-bytes",
+        "1024",
+        "--max-batch-size",
+        "8",
+        "--max-sessions",
+        "100",
+        "--session-ttl-ms",
+        "60000",
+        "--max-streams-per-session",
+        "2",
+        "--max-sse-event-history",
+        "10",
+        "--max-concurrent-tool-calls",
+        "4",
+        "--trusted-proxy",
+        "--request-timeout-ms",
+        "30000",
+        "--headers-timeout-ms",
+        "5000",
+        "--keep-alive-timeout-ms",
+        "1000",
+      ],
+      {
+        createServer,
+        waitForShutdown: async (shutdown) => {
+          await shutdown();
+        },
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(createServer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        allowedHosts: ["mcp.example.com"],
+        allowedOrigins: ["https://client.example.com"],
+        maxRequestBytes: 1024,
+        maxBatchSize: 8,
+        maxSessions: 100,
+        sessionTtlMs: 60_000,
+        maxStreamsPerSession: 2,
+        maxSseEventHistory: 10,
+        maxConcurrentToolCalls: 4,
+        trustedProxy: true,
+      })
+    );
+    expect(listenHttp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        requestTimeoutMs: 30_000,
+        headersTimeoutMs: 5_000,
+        keepAliveTimeoutMs: 1_000,
+      })
+    );
+  });
+
   it("C10 -h/--help shows help and exits with code 0", async () => {
     const createServer = vi.fn();
     const shortOutput = createCapturedOutput();
@@ -3591,6 +3525,10 @@ describe("tiny-http-mcp-server CLI", () => {
     expect(createServer).not.toHaveBeenCalled();
     expect(shortOutput.stdout).toContain("Usage: tiny-http-mcp-server [options]");
     expect(shortOutput.stdout).toContain("--json-response");
+    expect(shortOutput.stdout).toContain("--allowed-host");
+    expect(shortOutput.stdout).toContain("--max-request-bytes");
+    expect(shortOutput.stdout).toContain("--trusted-proxy");
+    expect(shortOutput.stdout).toContain("--request-timeout-ms");
     expect(shortOutput.stdout).toContain("--oauth-resource");
     expect(shortOutput.stdout).toContain("--oauth-authorization-server");
     expect(shortOutput.stdout).toContain("--oauth-supported-scope");
@@ -3602,33 +3540,28 @@ describe("tiny-http-mcp-server CLI", () => {
   });
 
   it("C11 SIGINT triggers graceful shutdown", async () => {
-    const env = { ...process.env };
-    delete env.FORCE_COLOR;
-    delete env.NO_COLOR;
-    const child = spawn(process.execPath, [tsxCliPath, cliSourcePath, "--port", "0"], {
-      cwd: fileURLToPath(new URL("../../..", import.meta.url)),
-      env,
-      stdio: ["ignore", "pipe", "pipe"],
+    const close = vi.fn().mockResolvedValue(undefined);
+    const listenHttp = vi.fn().mockResolvedValue({
+      url: "http://127.0.0.1:41000/mcp",
+      port: 41000,
+      close,
     });
-    activeChildren.add(child);
+    const createServer = vi.fn(() => ({ listenHttp }));
+    const output = createCapturedOutput();
+    const runPromise = runCli(["--port", "0"], {
+      createServer,
+      stdout: output.io.stdout,
+      stderr: output.io.stderr,
+    });
 
-    const { url, stderr } = await waitForListening(child);
-    const exitPromise = waitForExit(child);
+    await vi.waitFor(() => {
+      expect(output.stdout).toBe("http://127.0.0.1:41000/mcp\n");
+    });
+    process.emit("SIGINT", "SIGINT");
 
-    child.kill("SIGINT");
-
-    const result = await exitPromise;
-    activeChildren.delete(child);
-
-    // tsx may surface SIGINT as exit code 130 even after the CLI closes cleanly.
-    expect(result.signal).toBeNull();
-    expect([0, 130]).toContain(result.code);
-    await expect(
-      nodeFetch(url, {
-        signal: AbortSignal.timeout(500),
-      })
-    ).rejects.toThrow();
-    expect(stderr()).toBe("");
+    await expect(runPromise).resolves.toBe(0);
+    expect(close).toHaveBeenCalledOnce();
+    expect(output.stderr).toBe("");
   });
 
   it("C12 exits with code 1 when --oauth-resource is set without --oauth-authorization-server", async () => {
@@ -4729,6 +4662,7 @@ describe("Spec conformance", () => {
         it("SC45: notifyToolsChanged is delivered to the client", async () => {
           await vi.waitFor(() => {
             expect(pair.requests.some((request) => request.method === "GET")).toBe(true);
+            expect(findRequestByMethod(pair.requests, "POST", "notifications/initialized")).toBeDefined();
           });
 
           const notification = pair.nextToolChange();

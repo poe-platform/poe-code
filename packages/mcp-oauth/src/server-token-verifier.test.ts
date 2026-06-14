@@ -1,8 +1,6 @@
 import { createSecretKey } from "node:crypto";
 import { exportJWK, generateKeyPair, SignJWT } from "jose";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { nodeFetch } from "tiny-http-mcp-server/testing";
-import { createOAuthTestServer } from "tiny-oauth-test-server";
 import { createJwksTokenVerifier } from "./index.js";
 
 async function withObjectPrototypeProperties<T>(
@@ -33,33 +31,63 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("createJwksTokenVerifier", () => {
-  const cleanups = new Set<() => Promise<void>>();
-
-  afterEach(async () => {
+  afterEach(() => {
     vi.useRealTimers();
-
-    for (const cleanup of [...cleanups].reverse()) {
-      await cleanup();
-    }
-
-    cleanups.clear();
   });
 
-  async function listenOAuthServer() {
-    const oauth = createOAuthTestServer({
-      signingKeySeed: "mcp-oauth:create-jwks-token-verifier",
-      defaultTokenTtlSeconds: 60,
-    });
-    const handle = await oauth.listen({ port: 0, hostname: "127.0.0.1" });
-    cleanups.add(handle.close);
-    return oauth;
+  async function createOAuthFixture() {
+    const issuer = "https://auth.example.com";
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+
+    return {
+      issuer,
+      async fetch(input: string | URL) {
+        const url = new URL(String(input));
+        if (url.toString() !== `${issuer}/.well-known/jwks.json`) {
+          return new Response("not found", { status: 404 });
+        }
+
+        return new Response(
+          JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }),
+          {
+            status: 200,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      },
+      async issueTokenFor(input: {
+        clientId: string;
+        resource: string;
+        scopes: readonly string[];
+        ttlSeconds?: number;
+      }) {
+        const now = Math.floor(Date.now() / 1_000);
+        return new SignJWT({
+          client_id: input.clientId,
+          scope: input.scopes.join(" "),
+        })
+          .setProtectedHeader({
+            alg: "ES256",
+            typ: "JWT",
+          })
+          .setIssuer(issuer)
+          .setAudience(input.resource)
+          .setSubject(input.clientId)
+          .setIssuedAt(now)
+          .setExpirationTime(now + (input.ttlSeconds ?? 60))
+          .sign(privateKey);
+      },
+    };
   }
 
   it("verifies a JWT against the published JWKS", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -83,11 +111,54 @@ describe("createJwksTokenVerifier", () => {
     });
   });
 
+  it("caches the JWKS between token verifications", async () => {
+    const { privateKey, publicKey } = await generateKeyPair("ES256");
+    const publicJwk = await exportJWK(publicKey);
+    let fetchCount = 0;
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: "https://auth.example.com/.well-known/jwks.json",
+      fetch: async () => {
+        fetchCount += 1;
+        return new Response(JSON.stringify({ keys: [{ ...publicJwk, alg: "ES256", use: "sig" }] }), {
+          status: 200,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      },
+    });
+    const token = await new SignJWT({
+      client_id: "demo-client",
+      scope: "mcp.read",
+    })
+      .setProtectedHeader({
+        alg: "ES256",
+        typ: "JWT",
+      })
+      .setIssuer("https://auth.example.com")
+      .setAudience("https://resource.example.com/mcp")
+      .setSubject("demo-client")
+      .setIssuedAt(Math.floor(Date.now() / 1_000))
+      .setExpirationTime("2m")
+      .sign(privateKey);
+    const input = {
+      token,
+      resource: "https://resource.example.com/mcp",
+      authorizationServers: ["https://auth.example.com"],
+      requiredScopes: ["mcp.read"],
+    };
+
+    await verifier.verify(input);
+    await verifier.verify(input);
+
+    expect(fetchCount).toBe(1);
+  });
+
   it("rejects tokens whose audience does not match the protected resource", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -109,10 +180,10 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("accepts a configured resource URI that is canonically equivalent to the token audience", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -177,10 +248,10 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("rejects tokens that do not satisfy the required scopes", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -299,10 +370,10 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("rejects tokens missing any required scope", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -445,10 +516,10 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("requires an exact issuer match against the configured authorization server URL", async () => {
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -472,11 +543,11 @@ describe("createJwksTokenVerifier", () => {
   it("accepts tokens inside the configured expiration clock-skew window", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-05-28T10:00:00.000Z"));
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
       clockSkewSeconds: 30,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",
@@ -502,11 +573,11 @@ describe("createJwksTokenVerifier", () => {
   it("rejects tokens outside the configured expiration clock-skew window with token expired", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-05-28T10:00:00.000Z"));
-    const oauth = await listenOAuthServer();
+    const oauth = await createOAuthFixture();
     const verifier = createJwksTokenVerifier({
       jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
       clockSkewSeconds: 30,
-      fetch: nodeFetch,
+      fetch: oauth.fetch,
     });
     const token = await oauth.issueTokenFor({
       clientId: "demo-client",

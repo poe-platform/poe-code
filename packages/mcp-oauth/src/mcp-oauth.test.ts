@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import http from "node:http";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { nodeFetch } from "../../tiny-http-mcp-server/src/testing.js";
 import {
   createAuthStoreSessionStore,
   createDefaultOAuthClientProvider,
@@ -456,13 +456,8 @@ function createOAuthPair(options: {
 }
 
 async function requestLoopbackCallback(url: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const request = http.get(url, (response) => {
-      response.resume();
-      response.once("end", resolve);
-    });
-    request.once("error", reject);
-  });
+  const response = await nodeFetch(url);
+  await response.text();
 }
 
 function createS256CodeChallenge(verifier: string): string {

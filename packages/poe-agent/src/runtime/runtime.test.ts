@@ -8,6 +8,9 @@ import {
   AbortError,
   HookRegistry,
   applyHookDecision,
+  applyInputDecision,
+  applyToolCallDecision,
+  applyToolResultDecision,
   createNotificationHookContext,
   createPostCompactionHookContext,
   createPostIterationHookContext,
@@ -1154,6 +1157,82 @@ describe("hook context factories", () => {
 });
 
 describe("applyHookDecision", () => {
+  it("applies typed preToolUse decisions", async () => {
+    const ctx = createPreToolUseHookContext({
+      tool: "run_command",
+      args: { command: "rm -rf /" },
+      intentId: "intent-typed",
+      session: new Map(),
+      messages: [],
+      signal: createSignal()
+    });
+
+    await expect(applyToolCallDecision(undefined, ctx)).resolves.toEqual({ type: "continue" });
+    await expect(applyToolCallDecision("skip", ctx)).resolves.toEqual({ type: "skip" });
+    await expect(applyToolCallDecision({ block: true, reason: "blocked" }, ctx)).resolves.toEqual({
+      type: "tool_error",
+      error: "blocked"
+    });
+    await expect(
+      applyToolCallDecision({ rewrite: { args: { command: "ls" } } }, ctx)
+    ).resolves.toEqual({
+      type: "rewrite",
+      args: { command: "ls" }
+    });
+  });
+
+  it("warns once and maps legacy preToolUse reject to a recoverable tool error", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const ctx = createPreToolUseHookContext({
+      tool: "run_command",
+      args: { command: "rm -rf /" },
+      intentId: "intent-legacy",
+      session: new Map(),
+      messages: [],
+      signal: createSignal()
+    });
+
+    await expect(applyToolCallDecision({ reject: "denied" }, ctx)).resolves.toEqual({
+      type: "tool_error",
+      error: "denied"
+    });
+    await applyToolCallDecision({ reject: "denied again" }, ctx);
+
+    expect(warn).toHaveBeenCalledTimes(1);
+    warn.mockRestore();
+  });
+
+  it("applies typed postToolUse and input decisions", async () => {
+    const toolCtx = createPostToolUseHookContext({
+      tool: "read_file",
+      args: { path: "README.md" },
+      intentId: "intent-result",
+      result: "secret",
+      session: new Map(),
+      messages: [],
+      signal: createSignal()
+    });
+    const inputCtx = createUserPromptSubmitHookContext({
+      prompt: "original",
+      messages: [],
+      signal: createSignal()
+    });
+
+    await expect(
+      applyToolResultDecision({ replace: { content: "redacted" } }, toolCtx)
+    ).resolves.toEqual({
+      type: "replace",
+      patch: { content: "redacted" }
+    });
+    await expect(
+      applyInputDecision({ action: "transform", prompt: "rewritten" }, inputCtx)
+    ).resolves.toEqual({ type: "continue" });
+    expect(inputCtx.prompt).toBe("rewritten");
+    await expect(
+      applyInputDecision({ action: "handled", response: "handled reply" }, inputCtx)
+    ).resolves.toEqual({ type: "handled", response: "handled reply" });
+  });
+
   it("maps skip to skip on pre hooks and no-op on post hooks", async () => {
     const preResult = await applyHookDecision(
       "preIteration",
@@ -1223,7 +1302,7 @@ describe("applyHookDecision", () => {
     expect(disposeRun).toHaveBeenCalledTimes(1);
   });
 
-  it("aborts run on reject outside preToolUse and calls disposal", async () => {
+  it("ignores legacy reject outside preToolUse", async () => {
     const disposeRun = vi.fn(async () => undefined);
 
     const ctx = createPostToolUseHookContext({
@@ -1237,10 +1316,10 @@ describe("applyHookDecision", () => {
       disposeRun
     });
 
-    await expect(applyHookDecision("postToolUse", { reject: "fatal" }, ctx)).rejects.toBeInstanceOf(
-      AbortError
-    );
-    expect(disposeRun).toHaveBeenCalledTimes(1);
+    await expect(
+      applyHookDecision("postToolUse", { reject: "fatal" } as never, ctx)
+    ).resolves.toEqual({ type: "continue" });
+    expect(disposeRun).not.toHaveBeenCalled();
   });
 
   it("still throws AbortError when disposal fails during abort", async () => {
@@ -2472,6 +2551,113 @@ describe("runAcpCore", () => {
     }
   });
 
+  it("rewrites tool call args before host execution", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add({
+      name: "rewriter",
+      hooks: {
+        preToolUse() {
+          return { rewrite: { args: { command: "ls -la" } } };
+        }
+      }
+    });
+
+    const host = createHost();
+    host.handle = vi.fn(async () => ({
+      status: "success",
+      result: "rewritten"
+    }));
+    const model = createModel([
+      {
+        message: {
+          content: "",
+          toolCalls: [{ id: "tool-1", tool: "run_command", args: { command: "pwd" } }]
+        }
+      },
+      {
+        message: { content: "Done", toolCalls: [] }
+      }
+    ]);
+
+    await collectEvents(runAcpCore({ prompt: "run", runContext, host, model }));
+
+    expect(host.handle).toHaveBeenCalledWith({
+      intentId: "tool-1",
+      tool: "run_command",
+      args: { command: "ls -la" }
+    });
+  });
+
+  it("replaces tool results before the next model request", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add({
+      name: "redactor",
+      hooks: {
+        postToolUse() {
+          return { replace: { content: "redacted content" } };
+        }
+      }
+    });
+
+    const host = createHost();
+    host.handle = vi.fn(async () => ({
+      status: "success",
+      result: "secret content"
+    }));
+    let callNumber = 0;
+    const model: AcpModel = {
+      complete: vi.fn(async (request) => {
+        callNumber += 1;
+        if (callNumber === 1) {
+          return toAcpModelResponse({
+            message: {
+              content: "",
+              toolCalls: [{ id: "tool-1", tool: "read_file", args: { path: "README.md" } }]
+            }
+          });
+        }
+
+        expect(request.messages.at(-1)).toEqual({
+          role: "tool",
+          content: "redacted content",
+          name: "read_file",
+          tool_call_id: "tool-1"
+        });
+        return toAcpModelResponse({ message: { content: "Done", toolCalls: [] } });
+      })
+    };
+
+    await collectEvents(runAcpCore({ prompt: "read", runContext, host, model }));
+
+    expect(host.handle).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets userPromptSubmit handle a turn without calling the model", async () => {
+    const runContext = createRunContext();
+    runContext.hooks.add({
+      name: "handler",
+      hooks: {
+        userPromptSubmit() {
+          return { action: "handled", response: "Handled by plugin" };
+        }
+      }
+    });
+    const host = createHost();
+    const model = createNeverModel();
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "hello",
+        runContext,
+        host,
+        model
+      })
+    );
+
+    expect(events.map((event) => event.type)).toEqual(["message.delta", "session.complete"]);
+    expect(model.complete).not.toHaveBeenCalled();
+  });
+
   it("applies guardrails, lets the model recover with a safe command, and executes allowed commands", async () => {
     const runContext = createRunContext();
 
@@ -2955,7 +3141,7 @@ describe("runAcpCore", () => {
       name: "stop",
       hooks: {
         stop() {
-          return { reject: "finalization blocked" };
+          return "abort";
         }
       }
     });

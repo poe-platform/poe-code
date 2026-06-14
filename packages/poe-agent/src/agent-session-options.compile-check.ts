@@ -1,5 +1,10 @@
-import type { CreateAgentSessionOptions } from "./agent-session.js";
-import type { McpServerDefinition } from "./agent-session.js";
+import type {
+  AgentSession,
+  ChatMessage,
+  CreateAgentSessionOptions,
+  McpServerDefinition,
+  SessionEntry
+} from "./index.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 
@@ -12,6 +17,7 @@ type ignoredCreateAgentSessionOptionsStillAllowsExistingFields = AssertAssignabl
     allowedPaths: string[];
     baseUrl: string;
     maxToolCallIterations: number;
+    persist: { directory: string };
   }
 >;
 
@@ -42,3 +48,18 @@ type ignoredCreateAgentSessionOptionsMcpServersIsOptional = AssertAssignable<
     model: string;
   }
 >;
+
+declare const session: AgentSession;
+declare const entryId: string;
+
+const ignoredSessionId: string = session.id;
+const ignoredHistory: ChatMessage[] = session.getHistory();
+const ignoredTree: SessionEntry[] = session.tree();
+const ignoredFork: Promise<AgentSession> = session.fork(entryId);
+const ignoredNavigation: Promise<void> = session.navigateTo(entryId);
+
+void ignoredSessionId;
+void ignoredHistory;
+void ignoredTree;
+void ignoredFork;
+void ignoredNavigation;

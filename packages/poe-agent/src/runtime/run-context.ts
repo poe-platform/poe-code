@@ -1,4 +1,5 @@
 import { HookRegistry } from "./hooks.js";
+import { createFileAwarenessTracker, type FileAwarenessTracker } from "./file-awareness.js";
 import type { McpServerConfig } from "./plugin-types.js";
 import { PromptRegistry } from "./prompts.js";
 import { ToolRegistry } from "./tools.js";
@@ -13,6 +14,8 @@ export type RunContextLogger = {
 export type CreateRunContextOptions = {
   activeSkills?: string[];
   logger?: RunContextLogger;
+  cwd?: string;
+  fileAwareness?: FileAwarenessTracker;
 };
 
 function normalizeActiveSkills(activeSkills?: string[]): string[] {
@@ -40,6 +43,7 @@ export class RunContext {
   readonly session = new Map<string, unknown>();
   readonly mcpServers: McpServerConfig[] = [];
   readonly activeSkills: string[];
+  readonly fileAwareness: FileAwarenessTracker;
   readonly abortController = new AbortController();
   readonly childRuns = new Set<Promise<unknown>>();
 
@@ -52,6 +56,8 @@ export class RunContext {
   constructor(options: CreateRunContextOptions = {}) {
     this.activeSkills = normalizeActiveSkills(options.activeSkills);
     this.#logger = options.logger ?? console;
+    this.fileAwareness =
+      options.fileAwareness ?? createFileAwarenessTracker(options.cwd ?? process.cwd());
   }
 
   get logger(): RunContextLogger {

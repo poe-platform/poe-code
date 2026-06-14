@@ -4,6 +4,8 @@ import {
 } from "../runtime/hooks.js";
 import type {
   AgentPlugin,
+  CompactSummarise,
+  FileAwareness,
   IterationCompactionOptions,
   IterationCompactionResult,
   IterationContext
@@ -45,6 +47,10 @@ async function compactIteration(
     tokenCount,
     force: false,
     messages: ctx.messages,
+    fileAwareness: {
+      readFiles: ctx.readFiles,
+      modifiedFiles: ctx.modifiedFiles
+    },
     signal: ctx.signal
   });
   const preCompactionDispatch = await ctx.runHook("preCompaction", preCompactionContext);
@@ -70,6 +76,10 @@ async function compactIteration(
   const summary = await resolveCompactionSummary({
     complete: ctx.complete,
     messages: compactionPlan.droppedMessages,
+    awareness: {
+      readFiles: ctx.readFiles,
+      modifiedFiles: ctx.modifiedFiles
+    },
     summarise: options.summarise
   });
   const compactedMessages = insertCompactionSummaryMessage(compactionPlan.messages, summary);
@@ -81,6 +91,10 @@ async function compactIteration(
     summary,
     droppedMessages: compactionPlan.droppedMessages,
     messages: ctx.messages,
+    fileAwareness: {
+      readFiles: ctx.readFiles,
+      modifiedFiles: ctx.modifiedFiles
+    },
     signal: ctx.signal
   });
   await ctx.runHook("postCompaction", postCompactionContext);
@@ -190,11 +204,12 @@ function formatCompactionSummary(summary: string): string {
 async function resolveCompactionSummary(options: {
   complete: IterationContext["complete"];
   messages: ChatMessage[];
-  summarise?: (messages: ChatMessage[]) => string | Promise<string>;
+  awareness: FileAwareness;
+  summarise?: ((messages: ChatMessage[]) => string | Promise<string>) | CompactSummarise;
 }): Promise<string> {
   const summary = options.summarise
-    ? await options.summarise(options.messages)
-    : await summariseWithModel(options.complete, options.messages);
+    ? await callCustomSummarise(options.summarise, options.messages, options.awareness)
+    : await summariseWithModel(options.complete, options.messages, options.awareness);
 
   const normalizedSummary = summary.trim();
   return normalizedSummary.length > 0 ? normalizedSummary : "Earlier context was compacted.";
@@ -202,13 +217,18 @@ async function resolveCompactionSummary(options: {
 
 async function summariseWithModel(
   complete: IterationContext["complete"],
-  messages: ChatMessage[]
+  messages: ChatMessage[],
+  awareness: FileAwareness
 ): Promise<string> {
   return complete([
     {
       role: "system",
-      content:
-        "Summarise the earlier conversation for the same coding task. Preserve goals, constraints, decisions, files, commands, errors, and open questions. Keep it concise and factual."
+      content: [
+        "Summarise the earlier conversation for the same coding task. Preserve goals, constraints, decisions, files, commands, errors, and open questions. Keep it concise and factual.",
+        renderFileAwarenessForSummary(awareness)
+      ]
+        .filter((part) => part.length > 0)
+        .join("\n\n")
     },
     ...messages,
     {
@@ -216,6 +236,37 @@ async function summariseWithModel(
       content: "Provide a concise continuation summary for the dropped context only."
     }
   ]);
+}
+
+async function callCustomSummarise(
+  summarise: ((messages: ChatMessage[]) => string | Promise<string>) | CompactSummarise,
+  messages: ChatMessage[],
+  awareness: FileAwareness
+): Promise<string> {
+  if (summarise.length < 2) {
+    return (summarise as (messages: ChatMessage[]) => string | Promise<string>)(messages);
+  }
+
+  return (summarise as CompactSummarise)(messages, awareness);
+}
+
+function renderFileAwarenessForSummary(awareness: FileAwareness): string {
+  const lines: string[] = [];
+  const readFiles = Array.from(awareness.readFiles).sort();
+  const modifiedFiles = Array.from(awareness.modifiedFiles).sort();
+
+  if (readFiles.length > 0) {
+    lines.push("Files read before compaction:", ...readFiles.map((filePath) => `- ${filePath}`));
+  }
+
+  if (modifiedFiles.length > 0) {
+    lines.push(
+      "Files modified before compaction:",
+      ...modifiedFiles.map((filePath) => `- ${filePath}`)
+    );
+  }
+
+  return lines.join("\n");
 }
 
 function estimateTokenCount(messages: ChatMessage[]): number {

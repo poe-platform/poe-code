@@ -10,6 +10,7 @@ import {
   dispatchHook,
   AbortError
 } from "./hooks.js";
+import { recordToolFileAwareness } from "./file-awareness.js";
 import type { HookContextByEvent, HookEvent, ProviderStreamEvent } from "./plugin-types.js";
 import type { RunContext } from "./run-context.js";
 import { estimateMessageContentSize, toToolMessageContent } from "./tool-results.js";
@@ -77,6 +78,7 @@ export type RunAcpCoreOptions = {
   baseSystemPrompt?: string;
   maxIterations?: number;
   signal?: AbortSignal;
+  onPromptSubmitted?(prompt: string): void | Promise<void>;
   disposeRun?(): void | Promise<void>;
 };
 
@@ -359,8 +361,35 @@ async function runLoop(
     "userPromptSubmit",
     userPromptContext
   );
-  await applyHookDecision("userPromptSubmit", userPromptDecision, userPromptContext);
+  const userPromptDispatch = await applyHookDecision(
+    "userPromptSubmit",
+    userPromptDecision,
+    userPromptContext
+  );
   prompt = syncSubmittedUserPrompt(promptMessage, prompt, userPromptContext.prompt);
+  await options.onPromptSubmitted?.(prompt);
+  if (userPromptDispatch.type === "handled") {
+    const assistantMessage: ChatMessage = {
+      role: "assistant",
+      content: userPromptDispatch.response
+    };
+    options.runContext.messages.push(assistantMessage);
+    if (userPromptDispatch.response.length > 0) {
+      options.emit({
+        type: "message.delta",
+        content: userPromptDispatch.response
+      });
+    }
+    return {
+      output: userPromptDispatch.response,
+      stdout: userPromptDispatch.response,
+      summary: userPromptDispatch.response,
+      messages: [...options.runContext.messages],
+      toolCalls: [...options.toolCalls],
+      exitCode: 0,
+      stderr: ""
+    };
+  }
 
   while (true) {
     assertNotAborted(options.signal);
@@ -390,6 +419,7 @@ async function runLoop(
         runContext: options.runContext,
         disposeRun: options.disposeRun
       }),
+      fileAwareness: options.runContext.fileAwareness.snapshot(),
       disposeRun: options.disposeRun
     });
     const preIterationDecision = await options.runContext.hooks.run(
@@ -536,6 +566,10 @@ async function runSingleToolCall(options: {
   } else if (preToolDispatch.type === "tool_error") {
     mutableOutcome.error = preToolDispatch.error;
   } else {
+    if (preToolDispatch.type === "rewrite") {
+      mutableOutcome.args = preToolDispatch.args;
+    }
+
     if (!options.toolCall.intentEmitted) {
       options.emit({
         type: "tool.intent",
@@ -576,7 +610,21 @@ async function runSingleToolCall(options: {
     disposeRun: options.disposeRun
   });
   const postToolDecision = await options.runContext.hooks.run("postToolUse", postToolContext);
-  await applyHookDecision("postToolUse", postToolDecision, postToolContext);
+  const postToolDispatch = await applyHookDecision("postToolUse", postToolDecision, postToolContext);
+
+  if (postToolDispatch.type === "replace") {
+    if ("content" in postToolDispatch.patch) {
+      postToolContext.result = postToolDispatch.patch.content;
+    }
+    if ("details" in postToolDispatch.patch) {
+      postToolContext.result = postToolDispatch.patch.details;
+    }
+    if (postToolDispatch.patch.isError !== undefined) {
+      postToolContext.error = postToolDispatch.patch.isError
+        ? toToolErrorText(postToolContext.result)
+        : undefined;
+    }
+  }
 
   if (postToolContext.error !== undefined) {
     mutableOutcome.error = postToolContext.error;
@@ -587,6 +635,12 @@ async function runSingleToolCall(options: {
   }
 
   if (mutableOutcome.error === undefined) {
+    recordToolFileAwareness({
+      tracker: options.runContext.fileAwareness,
+      tool: mutableOutcome.tool,
+      args: mutableOutcome.args
+    });
+
     options.emit({
       type: "tool.result",
       intentId: mutableOutcome.intentId,
@@ -651,6 +705,7 @@ async function runPostIterationHooks(options: {
       runContext: options.runContext,
       disposeRun: options.disposeRun
     }),
+    fileAwareness: options.runContext.fileAwareness.snapshot(),
     disposeRun: options.disposeRun
   });
   const postIterationDecision = await options.runContext.hooks.run(

@@ -323,4 +323,78 @@ describe("poe-agent-plugin-compaction", () => {
       { role: "assistant", content: "Latest answer" }
     ]);
   });
+
+  it("passes file awareness to custom summarise functions that accept it", async () => {
+    const runContext = createRunContext({ cwd: "/workspace/project" });
+    runContext.fileAwareness.recordRead("README.md");
+    runContext.fileAwareness.recordWrite("src/index.ts");
+    runContext.messages.push(
+      { role: "user", content: "Older request" },
+      { role: "assistant", content: "Older answer" }
+    );
+    runContext.hooks.add(
+      compactionPlugin({
+        threshold: 1,
+        keepLastTurns: 1,
+        summarise(_messages, awareness) {
+          return `read=${Array.from(awareness.readFiles).join(",")} modified=${Array.from(
+            awareness.modifiedFiles
+          ).join(",")}`;
+        }
+      })
+    );
+
+    const model = createQueuedModel([{ message: { content: "Latest answer", toolCalls: [] } }]);
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "Newest request",
+        runContext,
+        host: createHost(),
+        model
+      })
+    );
+
+    expect(getSessionMessages(events)[0]).toEqual({
+      role: "system",
+      name: "compaction",
+      content:
+        "Compacted context summary:\nread=/workspace/project/README.md modified=/workspace/project/src/index.ts"
+    });
+  });
+
+  it("includes file awareness in the default summariser request", async () => {
+    const runContext = createRunContext({ cwd: "/workspace/project" });
+    runContext.fileAwareness.recordRead("README.md");
+    runContext.fileAwareness.recordWrite("src/index.ts");
+    runContext.messages.push(
+      { role: "user", content: "Older request" },
+      { role: "assistant", content: "Older answer" }
+    );
+    runContext.hooks.add(compactionPlugin({ threshold: 1, keepLastTurns: 1 }));
+
+    const model = createQueuedModel([
+      { message: { content: "Latest answer", toolCalls: [] } },
+      { message: { content: "Compact summary", toolCalls: [] } }
+    ]);
+
+    await collectEvents(
+      runAcpCore({
+        prompt: "Newest request",
+        runContext,
+        host: createHost(),
+        model
+      })
+    );
+
+    const summaryRequest = (model.complete as ReturnType<typeof vi.fn>).mock.calls[1]?.[0] as
+      | { messages?: ChatMessage[] }
+      | undefined;
+    expect(summaryRequest?.messages?.[0]?.content).toContain(
+      "Files read before compaction:\n- /workspace/project/README.md"
+    );
+    expect(summaryRequest?.messages?.[0]?.content).toContain(
+      "Files modified before compaction:\n- /workspace/project/src/index.ts"
+    );
+  });
 });

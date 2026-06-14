@@ -29,7 +29,10 @@ export {
 } from "./plugins/resolve-plugins.js";
 export type {
   AgentPlugin,
+  CompactSummarise,
+  FileAwareness,
   HookDecision,
+  InputDecision,
   IterationCompactionOptions,
   IterationCompactionResult,
   Logger,
@@ -37,7 +40,9 @@ export type {
   Provider,
   ProviderContext,
   ProviderStreamEvent,
-  PromptContext
+  PromptContext,
+  ToolCallDecision,
+  ToolResultDecision
 } from "./runtime/plugin-types.js";
 export {
   collectProviders,
@@ -62,6 +67,7 @@ export type {
   ToolResult,
   ToolResultPart
 } from "./runtime/types.js";
+export type { SessionEntry } from "./runtime/session/entry-types.js";
 export { default as auditLogPlugin } from "./plugins/poe-agent-plugin-audit-log.js";
 export { default as compactionPlugin } from "./plugins/poe-agent-plugin-compaction.js";
 export { default as environmentPlugin } from "./plugins/poe-agent-plugin-environment.js";

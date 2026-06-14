@@ -47,10 +47,14 @@ function createEventStream(events: unknown[]): AsyncIterable<unknown> {
 describe("poe-agent-plugin-openai-responses", () => {
   const originalPoeBaseUrl = process.env.POE_BASE_URL;
   const originalOpenaiBaseUrl = process.env.OPENAI_BASE_URL;
+  const originalPoeApiKey = process.env.POE_API_KEY;
+  const originalOpenaiApiKey = process.env.OPENAI_API_KEY;
 
   beforeEach(() => {
     delete process.env.POE_BASE_URL;
     delete process.env.OPENAI_BASE_URL;
+    delete process.env.POE_API_KEY;
+    delete process.env.OPENAI_API_KEY;
     storeGetMock.mockReset();
     createSecretStoreMock.mockClear();
     openAiResponsesStreamMock.mockReset();
@@ -62,6 +66,10 @@ describe("poe-agent-plugin-openai-responses", () => {
     else process.env.POE_BASE_URL = originalPoeBaseUrl;
     if (originalOpenaiBaseUrl === undefined) delete process.env.OPENAI_BASE_URL;
     else process.env.OPENAI_BASE_URL = originalOpenaiBaseUrl;
+    if (originalPoeApiKey === undefined) delete process.env.POE_API_KEY;
+    else process.env.POE_API_KEY = originalPoeApiKey;
+    if (originalOpenaiApiKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = originalOpenaiApiKey;
   });
 
   it("validates config options with its plugin spec", () => {

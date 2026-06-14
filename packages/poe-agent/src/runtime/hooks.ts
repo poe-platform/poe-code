@@ -1,15 +1,20 @@
 import type {
   AgentPlugin,
+  FileAwareness,
   HookDecision,
   HookDispatchResult,
   HookEvent,
   HookContext,
+  HookContextByEvent,
+  InputDecision,
   IterationContext,
   NotificationContext,
   PostCompactionContext,
   PreCompactionContext,
   SessionStartContext,
   StopContext,
+  ToolCallDecision,
+  ToolResultDecision,
   ToolUseContext,
   UserPromptSubmitContext
 } from "./plugin-types.js";
@@ -35,6 +40,11 @@ const SKIPPABLE_HOOK_EVENTS = new Set<HookEvent>([
   "preCompaction",
   "notification"
 ]);
+const warnedLegacyRejectDecisions = new Set<HookEvent>();
+const EMPTY_FILE_AWARENESS: FileAwareness = {
+  readFiles: new Set<string>(),
+  modifiedFiles: new Set<string>()
+};
 
 function attachDisposeRun<TContext extends HookContext>(
   context: TContext,
@@ -47,11 +57,11 @@ function attachDisposeRun<TContext extends HookContext>(
   return context;
 }
 
-async function runHookPipeline<TContext>(
-  hooks: Array<(ctx: TContext) => HookDecision | Promise<HookDecision>>,
+async function runHookPipeline<TContext, TDecision>(
+  hooks: Array<(ctx: TContext) => TDecision | Promise<TDecision>>,
   context: TContext
-): Promise<HookDecision> {
-  let firstDecision: HookDecision = undefined;
+): Promise<TDecision | undefined> {
+  let firstDecision: TDecision | undefined = undefined;
 
   for (const hook of hooks) {
     const decision = await hook(context);
@@ -77,13 +87,70 @@ async function abortHookExecution(event: HookEvent, context: HookContext): Promi
   throw new AbortError(`Run aborted by ${event} hook decision.`, disposeError);
 }
 
-function isRejectDecision(decision: HookDecision): decision is { reject: string } {
+function isRejectDecision(decision: unknown): decision is { reject: string } {
   if (typeof decision !== "object" || decision === null) {
     return false;
   }
 
   const candidate = decision as Partial<{ reject: unknown }>;
   return typeof candidate.reject === "string";
+}
+
+function isBlockDecision(decision: unknown): decision is { block: true; reason: string } {
+  if (typeof decision !== "object" || decision === null) {
+    return false;
+  }
+
+  const candidate = decision as Partial<{ block: unknown; reason: unknown }>;
+  return candidate.block === true && typeof candidate.reason === "string";
+}
+
+function isRewriteDecision(decision: unknown): decision is { rewrite: { args: unknown } } {
+  if (typeof decision !== "object" || decision === null) {
+    return false;
+  }
+
+  const candidate = decision as Partial<{ rewrite: unknown }>;
+  return (
+    typeof candidate.rewrite === "object" &&
+    candidate.rewrite !== null &&
+    "args" in candidate.rewrite
+  );
+}
+
+function isReplaceDecision(
+  decision: unknown
+): decision is { replace: { content?: unknown; details?: unknown; isError?: boolean } } {
+  if (typeof decision !== "object" || decision === null) {
+    return false;
+  }
+
+  const candidate = decision as Partial<{ replace: unknown }>;
+  return typeof candidate.replace === "object" && candidate.replace !== null;
+}
+
+function isInputDecision(decision: unknown): decision is Exclude<InputDecision, HookDecision> {
+  if (typeof decision !== "object" || decision === null) {
+    return false;
+  }
+
+  const candidate = decision as Partial<{ action: unknown }>;
+  return candidate.action === "transform" || candidate.action === "handled";
+}
+
+function warnLegacyRejectDecision(event: HookEvent): void {
+  if (warnedLegacyRejectDecisions.has(event)) {
+    return;
+  }
+
+  warnedLegacyRejectDecisions.add(event);
+  console.warn(
+    'poe-agent hook decision { reject: string } is deprecated. Use { block: true, reason } for preToolUse hooks.'
+  );
+}
+
+function fileAwarenessOrEmpty(awareness: FileAwareness | undefined): FileAwareness {
+  return awareness ?? EMPTY_FILE_AWARENESS;
 }
 
 export class AbortError extends Error {
@@ -155,28 +222,40 @@ export class HookRegistry {
     }
   }
 
-  async run(event: HookEvent, ctx: HookContext): Promise<HookDecision> {
+  async run<TEvent extends HookEvent>(
+    event: TEvent,
+    ctx: HookContextByEvent[TEvent]
+  ): Promise<
+    | (TEvent extends "preToolUse"
+        ? ToolCallDecision
+        : TEvent extends "postToolUse"
+          ? ToolResultDecision
+          : TEvent extends "userPromptSubmit"
+            ? InputDecision
+            : HookDecision)
+    | undefined
+  > {
     switch (event) {
       case "sessionStart":
-        return runHookPipeline(this.#sessionStart, ctx as SessionStartContext);
+        return runHookPipeline(this.#sessionStart, ctx as SessionStartContext) as never;
       case "userPromptSubmit":
-        return runHookPipeline(this.#userPromptSubmit, ctx as UserPromptSubmitContext);
+        return runHookPipeline(this.#userPromptSubmit, ctx as UserPromptSubmitContext) as never;
       case "preToolUse":
-        return runHookPipeline(this.#preToolUse, ctx as ToolUseContext);
+        return runHookPipeline(this.#preToolUse, ctx as ToolUseContext) as never;
       case "postToolUse":
-        return runHookPipeline(this.#postToolUse, ctx as ToolUseContext);
+        return runHookPipeline(this.#postToolUse, ctx as ToolUseContext) as never;
       case "preIteration":
-        return runHookPipeline(this.#preIteration, ctx as IterationContext);
+        return runHookPipeline(this.#preIteration, ctx as IterationContext) as never;
       case "postIteration":
-        return runHookPipeline(this.#postIteration, ctx as IterationContext);
+        return runHookPipeline(this.#postIteration, ctx as IterationContext) as never;
       case "preCompaction":
-        return runHookPipeline(this.#preCompaction, ctx as PreCompactionContext);
+        return runHookPipeline(this.#preCompaction, ctx as PreCompactionContext) as never;
       case "postCompaction":
-        return runHookPipeline(this.#postCompaction, ctx as PostCompactionContext);
+        return runHookPipeline(this.#postCompaction, ctx as PostCompactionContext) as never;
       case "notification":
-        return runHookPipeline(this.#notification, ctx as NotificationContext);
+        return runHookPipeline(this.#notification, ctx as NotificationContext) as never;
       case "stop":
-        return runHookPipeline(this.#stop, ctx as StopContext);
+        return runHookPipeline(this.#stop, ctx as StopContext) as never;
       default:
         return undefined;
     }
@@ -240,6 +319,7 @@ export type CreatePreIterationHookContextOptions = {
   fork(prompt: string): Promise<ForkResult>;
   complete: IterationContext["complete"];
   runHook: IterationContext["runHook"];
+  fileAwareness?: FileAwareness;
   disposeRun?: DisposeRun;
 };
 
@@ -251,6 +331,7 @@ export type CreatePostIterationHookContextOptions = {
   fork(prompt: string): Promise<ForkResult>;
   complete: IterationContext["complete"];
   runHook: IterationContext["runHook"];
+  fileAwareness?: FileAwareness;
   disposeRun?: DisposeRun;
 };
 
@@ -258,6 +339,7 @@ export type CreatePreCompactionHookContextOptions = {
   tokenCount: number;
   force: boolean;
   messages: ChatMessage[];
+  fileAwareness?: FileAwareness;
   signal: AbortSignal;
   disposeRun?: DisposeRun;
 };
@@ -267,6 +349,7 @@ export type CreatePostCompactionHookContextOptions = {
   summary: string;
   droppedMessages: ChatMessage[];
   messages: ChatMessage[];
+  fileAwareness?: FileAwareness;
   signal: AbortSignal;
   disposeRun?: DisposeRun;
 };
@@ -353,11 +436,14 @@ export function createPostToolUseHookContext(
 export function createPreIterationHookContext(
   options: CreatePreIterationHookContextOptions
 ): IterationContext {
+  const awareness = fileAwarenessOrEmpty(options.fileAwareness);
   return attachDisposeRun(
     {
       iterationNumber: options.iterationNumber,
       tokenCount: options.tokenCount,
       messages: options.messages,
+      readFiles: awareness.readFiles,
+      modifiedFiles: awareness.modifiedFiles,
       signal: options.signal,
       fork: options.fork,
       complete: options.complete,
@@ -370,11 +456,14 @@ export function createPreIterationHookContext(
 export function createPostIterationHookContext(
   options: CreatePostIterationHookContextOptions
 ): IterationContext {
+  const awareness = fileAwarenessOrEmpty(options.fileAwareness);
   return attachDisposeRun(
     {
       iterationNumber: options.iterationNumber,
       tokenCount: options.tokenCount,
       messages: options.messages,
+      readFiles: awareness.readFiles,
+      modifiedFiles: awareness.modifiedFiles,
       signal: options.signal,
       fork: options.fork,
       complete: options.complete,
@@ -387,11 +476,14 @@ export function createPostIterationHookContext(
 export function createPreCompactionHookContext(
   options: CreatePreCompactionHookContextOptions
 ): PreCompactionContext {
+  const awareness = fileAwarenessOrEmpty(options.fileAwareness);
   return attachDisposeRun(
     {
       tokenCount: options.tokenCount,
       force: options.force,
       messages: options.messages,
+      readFiles: awareness.readFiles,
+      modifiedFiles: awareness.modifiedFiles,
       signal: options.signal
     },
     options.disposeRun
@@ -401,12 +493,15 @@ export function createPreCompactionHookContext(
 export function createPostCompactionHookContext(
   options: CreatePostCompactionHookContextOptions
 ): PostCompactionContext {
+  const awareness = fileAwarenessOrEmpty(options.fileAwareness);
   return attachDisposeRun(
     {
       tokenCount: options.tokenCount,
       summary: options.summary,
       droppedMessages: options.droppedMessages,
       messages: options.messages,
+      readFiles: awareness.readFiles,
+      modifiedFiles: awareness.modifiedFiles,
       signal: options.signal
     },
     options.disposeRun
@@ -442,11 +537,98 @@ export function createStopHookContext(options: CreateStopHookContextOptions): St
   );
 }
 
+export async function applyToolCallDecision(
+  decision: ToolCallDecision,
+  ctx: ToolUseContext
+): Promise<HookDispatchResult> {
+  if (decision === undefined) {
+    return { type: "continue" };
+  }
+
+  if (decision === "skip") {
+    return { type: "skip" };
+  }
+
+  if (decision === "abort") {
+    await abortHookExecution("preToolUse", ctx);
+  }
+
+  if (isRejectDecision(decision)) {
+    warnLegacyRejectDecision("preToolUse");
+    return { type: "tool_error", error: decision.reject };
+  }
+
+  if (isBlockDecision(decision)) {
+    return { type: "tool_error", error: decision.reason };
+  }
+
+  if (isRewriteDecision(decision)) {
+    return { type: "rewrite", args: decision.rewrite.args };
+  }
+
+  return { type: "continue" };
+}
+
+export async function applyToolResultDecision(
+  decision: ToolResultDecision,
+  ctx: ToolUseContext
+): Promise<HookDispatchResult> {
+  if (decision === undefined) {
+    return { type: "continue" };
+  }
+
+  if (decision === "abort") {
+    await abortHookExecution("postToolUse", ctx);
+  }
+
+  if (isReplaceDecision(decision)) {
+    return { type: "replace", patch: decision.replace };
+  }
+
+  return { type: "continue" };
+}
+
+export async function applyInputDecision(
+  decision: InputDecision,
+  ctx: UserPromptSubmitContext
+): Promise<HookDispatchResult> {
+  if (decision === undefined) {
+    return { type: "continue" };
+  }
+
+  if (decision === "abort") {
+    await abortHookExecution("userPromptSubmit", ctx);
+  }
+
+  if (isInputDecision(decision)) {
+    if (decision.action === "transform") {
+      ctx.prompt = decision.prompt;
+      return { type: "continue" };
+    }
+
+    return { type: "handled", response: decision.response };
+  }
+
+  return { type: "continue" };
+}
+
 export async function applyHookDecision(
   event: HookEvent,
-  decision: HookDecision,
+  decision: HookDecision | ToolCallDecision | ToolResultDecision | InputDecision,
   ctx: HookContext
 ): Promise<HookDispatchResult> {
+  if (event === "preToolUse") {
+    return applyToolCallDecision(decision as ToolCallDecision, ctx as ToolUseContext);
+  }
+
+  if (event === "postToolUse") {
+    return applyToolResultDecision(decision as ToolResultDecision, ctx as ToolUseContext);
+  }
+
+  if (event === "userPromptSubmit") {
+    return applyInputDecision(decision as InputDecision, ctx as UserPromptSubmitContext);
+  }
+
   if (decision === undefined) {
     return { type: "continue" };
   }
@@ -460,17 +642,6 @@ export async function applyHookDecision(
   }
 
   if (decision === "abort") {
-    await abortHookExecution(event, ctx);
-  }
-
-  if (isRejectDecision(decision)) {
-    if (event === "preToolUse") {
-      return {
-        type: "tool_error",
-        error: decision.reject
-      };
-    }
-
     await abortHookExecution(event, ctx);
   }
 

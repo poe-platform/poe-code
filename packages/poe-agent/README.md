@@ -83,6 +83,7 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 - `cwd?: string`
 - `baseSystemPrompt?: string`
 - `createSpawnSession?: AgentHostOptions["createSpawnSession"]`
+- `onPromptSubmitted?: (prompt: string) => void | Promise<void>` — internal lifecycle callback used by session adapters after prompt hooks run
 
 ## `createAgentSession()` options
 
@@ -96,8 +97,21 @@ Use the builder API when you need memory, policy, compaction, skills, scratchpad
 - `fetch?: typeof fetch`
 - `maxToolCallIterations?: number`
 - `resume?: { messages: ChatMessage[] }`
+- `persist?: { directory: string }` — opt-in JSONL session-entry persistence
 
-Completed session history is available through `session.getHistory()`. Poe Agent resume sessions are stored as JSON under `~/.poe-code/sessions/` so the exact runtime message history can be reused losslessly.
+`createAgentSession()` returns an `AgentSession`:
+
+- `id: string`
+- `sendMessage(prompt, options?)`
+- `getHistory(): ChatMessage[]`
+- `tree(): SessionEntry[]`
+- `fork(fromEntryId): Promise<AgentSession>`
+- `navigateTo(entryId): Promise<void>`
+- `dispose(): Promise<void>`
+
+Completed runtime message history is available through `session.getHistory()`. Structured entry history is available through `session.tree()`. By default, SDK sessions stay in memory only; pass `persist.directory` to append entries to `<directory>/<session.id>.jsonl`.
+
+The `poe-agent` CLI has a separate `--resume-thread-id` flow backed by `createAgentSessionStore()` JSON files under `~/.poe-code/sessions`. That CLI resume store is distinct from the SDK `persist.directory` JSONL tree store.
 
 `McpServerDefinition` supports both `stdio` and `http` at the type level, but `createAgentSession()` currently accepts only `stdio` definitions.
 
@@ -131,6 +145,41 @@ If `pluginsConfig` is omitted, `createAgentSession()` keeps the default bundle (
 
 `mcpServers` stays separate from `pluginsConfig`; MCP servers still use the dedicated `mcpServers` option.
 
+## Hook decisions
+
+Most hooks return `"skip"`, `"abort"`, or `undefined`.
+
+Tool and prompt hooks have richer typed decisions:
+
+```ts
+const plugin = {
+  name: "redactor",
+  hooks: {
+    userPromptSubmit(ctx) {
+      if (ctx.prompt.includes("secret")) {
+        return { action: "transform", prompt: ctx.prompt.replace("secret", "[redacted]") };
+      }
+    },
+    preToolUse(ctx) {
+      const args = ctx.args as { path?: string };
+      if (ctx.tool === "read_file" && args.path === "private.txt") {
+        return { block: true, reason: "private.txt is not readable in this mode" };
+      }
+      if (ctx.tool === "read_file" && args.path === "alias.txt") {
+        return { rewrite: { args: { path: "README.md" } } };
+      }
+    },
+    postToolUse(ctx) {
+      if (ctx.tool === "read_file") {
+        return { replace: { content: String(ctx.result).replaceAll("token", "[redacted]") } };
+      }
+    }
+  }
+};
+```
+
+`userPromptSubmit` may also return `{ action: "handled", response }` to complete the turn without calling the model. Legacy `{ reject: string }` from `preToolUse` is still accepted for one migration window and is mapped to `{ block: true, reason }` with a warning.
+
 ## Built-in plugins
 
 ### `auditLogPlugin(logPath)`
@@ -144,9 +193,9 @@ Options:
 - `threshold?: number`
 - `contextWindow?: number`
 - `keepLastTurns?: number`
-- `summarise?(messages): string | Promise<string>`
+- `summarise?(messages, awareness?): string | Promise<string>`
 
-Defaults: `contextWindow` 200000, `threshold` 80% of `contextWindow`, `keepLastTurns` 3. When the estimated token count crosses the threshold, older context is summarized into a system message. The plugin also triggers `preCompaction` and `postCompaction` hooks.
+Defaults: `contextWindow` 200000, `threshold` 80% of `contextWindow`, `keepLastTurns` 3. When the estimated token count crosses the threshold, older context is summarized into a system message. The plugin also triggers `preCompaction` and `postCompaction` hooks. File-awareness is preserved through compaction via `readFiles` and `modifiedFiles` sets on iteration and compaction hook contexts; two-argument custom summarizers receive the same awareness snapshot.
 
 ### `environmentPlugin(cwd)`
 
@@ -287,7 +336,7 @@ Tools:
 - `notification`
 - `stop`
 
-Each hook returns the existing `HookDecision` contract: `"skip" | "abort" | { reject: string } | void`.
+Most hooks return `"skip"`, `"abort"`, or `undefined`. `preToolUse`, `postToolUse`, and `userPromptSubmit` use the richer contracts described in [Hook decisions](#hook-decisions). Legacy `{ reject: string }` is accepted only from `preToolUse` during the migration window.
 
 ## Tool results
 

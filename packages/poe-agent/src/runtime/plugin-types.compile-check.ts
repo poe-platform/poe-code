@@ -1,6 +1,7 @@
 import type {
   AgentPlugin,
   HookDecision,
+  InputDecision,
   IterationContext,
   Logger,
   McpServerConfig,
@@ -13,6 +14,8 @@ import type {
   PromptContext,
   SessionStartContext,
   StopContext,
+  ToolCallDecision,
+  ToolResultDecision,
   ToolUseContext,
   UserPromptSubmitContext
 } from "./plugin-types.js";
@@ -46,8 +49,26 @@ type ignoredIterationCompactionOptionKeys = Assert<
 const hookDecisions: HookDecision[] = [
   undefined,
   "skip",
+  "abort"
+];
+const inputDecisions: InputDecision[] = [
+  undefined,
   "abort",
-  { reject: "missing permission" }
+  { action: "transform", prompt: "redacted prompt" },
+  { action: "handled", response: "handled response" }
+];
+const toolCallDecisions: ToolCallDecision[] = [
+  undefined,
+  "skip",
+  "abort",
+  { block: true, reason: "missing permission" },
+  { rewrite: { args: { path: "README.md" } } },
+  { reject: "legacy missing permission" }
+];
+const toolResultDecisions: ToolResultDecision[] = [
+  undefined,
+  "abort",
+  { replace: { content: "redacted" } }
 ];
 
 const promptContext: PromptContext = {
@@ -99,15 +120,15 @@ const plugin: AgentPlugin = {
     },
     userPromptSubmit(ctx) {
       void ctx;
-      return hookDecisions[3];
+      return inputDecisions[2];
     },
     preToolUse(ctx) {
       void ctx;
-      return hookDecisions[1];
+      return toolCallDecisions[3];
     },
     postToolUse(ctx) {
       void ctx;
-      return hookDecisions[3];
+      return toolResultDecisions[2];
     },
     preIteration(ctx) {
       void ctx.complete;

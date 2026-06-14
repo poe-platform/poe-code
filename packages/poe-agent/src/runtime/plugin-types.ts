@@ -79,7 +79,17 @@ export type HookEvent =
 export type HookDispatchResult =
   | { type: "continue" }
   | { type: "skip" }
-  | { type: "tool_error"; error: string };
+  | { type: "tool_error"; error: string }
+  | { type: "rewrite"; args: unknown }
+  | {
+      type: "replace";
+      patch: {
+        content?: unknown;
+        details?: unknown;
+        isError?: boolean;
+      };
+    }
+  | { type: "handled"; response: string };
 
 export type IterationComplete = (messages: ChatMessage[]) => Promise<string>;
 
@@ -107,17 +117,29 @@ export type IterationContext = {
   iterationNumber: number;
   tokenCount: number;
   messages: ChatMessage[];
+  readFiles: ReadonlySet<string>;
+  modifiedFiles: ReadonlySet<string>;
   signal: AbortSignal;
   fork(prompt: string): Promise<ForkResult>;
   complete: IterationComplete;
   runHook: IterationRunHook;
 };
 
+export type FileAwareness = {
+  readFiles: ReadonlySet<string>;
+  modifiedFiles: ReadonlySet<string>;
+};
+
+export type CompactSummarise = (
+  messages: ChatMessage[],
+  awareness: FileAwareness
+) => string | Promise<string>;
+
 export type IterationCompactionOptions = {
   threshold?: number;
   contextWindow?: number;
   keepLastTurns?: number;
-  summarise?(messages: ChatMessage[]): string | Promise<string>;
+  summarise?: ((messages: ChatMessage[]) => string | Promise<string>) | CompactSummarise;
 };
 
 export type IterationCompactionResult = {
@@ -141,6 +163,8 @@ export type PreCompactionContext = {
   tokenCount: number;
   force: boolean;
   messages: ChatMessage[];
+  readFiles: ReadonlySet<string>;
+  modifiedFiles: ReadonlySet<string>;
   signal: AbortSignal;
 };
 
@@ -149,6 +173,8 @@ export type PostCompactionContext = {
   summary: string;
   droppedMessages: ChatMessage[];
   messages: ChatMessage[];
+  readFiles: ReadonlySet<string>;
+  modifiedFiles: ReadonlySet<string>;
   signal: AbortSignal;
 };
 
@@ -169,7 +195,20 @@ export type StopContext = {
   signal: AbortSignal;
 };
 
-export type HookDecision = "skip" | "abort" | { reject: string } | void;
+export type HookDecision = "skip" | "abort" | void;
+export type LegacyRejectDecision = { reject: string };
+export type ToolCallDecision =
+  | HookDecision
+  | LegacyRejectDecision
+  | { block: true; reason: string }
+  | { rewrite: { args: unknown } };
+export type ToolResultDecision =
+  | Exclude<HookDecision, "skip">
+  | { replace: { content?: unknown; details?: unknown; isError?: boolean } };
+export type InputDecision =
+  | Exclude<HookDecision, "skip">
+  | { action: "transform"; prompt: string }
+  | { action: "handled"; response: string };
 
 export type AgentPlugin = {
   name: string;
@@ -180,9 +219,11 @@ export type AgentPlugin = {
     sessionStart?(ctx: SessionStartContext): HookDecision | void | Promise<HookDecision | void>;
     userPromptSubmit?(
       ctx: UserPromptSubmitContext
-    ): HookDecision | void | Promise<HookDecision | void>;
-    preToolUse?(ctx: ToolUseContext): HookDecision | void | Promise<HookDecision | void>;
-    postToolUse?(ctx: ToolUseContext): HookDecision | void | Promise<HookDecision | void>;
+    ): InputDecision | void | Promise<InputDecision | void>;
+    preToolUse?(ctx: ToolUseContext): ToolCallDecision | void | Promise<ToolCallDecision | void>;
+    postToolUse?(
+      ctx: ToolUseContext
+    ): ToolResultDecision | void | Promise<ToolResultDecision | void>;
     preIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
     postIteration?(ctx: IterationContext): HookDecision | void | Promise<HookDecision | void>;
     preCompaction?(ctx: PreCompactionContext): HookDecision | void | Promise<HookDecision | void>;

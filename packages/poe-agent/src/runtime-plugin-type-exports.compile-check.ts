@@ -1,6 +1,9 @@
 import type {
   AgentPlugin,
+  CompactSummarise,
+  FileAwareness,
   HookDecision,
+  InputDecision,
   IterationContext,
   Logger,
   McpServerConfig,
@@ -13,12 +16,17 @@ import type {
   PromptContext,
   SessionStartContext,
   StopContext,
+  ToolCallDecision,
+  ToolResultDecision,
   ToolUseContext,
   UserPromptSubmitContext,
 } from "./runtime/index.js";
 import type {
   AgentPlugin as InternalAgentPlugin,
+  CompactSummarise as InternalCompactSummarise,
+  FileAwareness as InternalFileAwareness,
   HookDecision as InternalHookDecision,
+  InputDecision as InternalInputDecision,
   IterationContext as InternalIterationContext,
   Logger as InternalLogger,
   McpServerConfig as InternalMcpServerConfig,
@@ -31,6 +39,8 @@ import type {
   PromptContext as InternalPromptContext,
   SessionStartContext as InternalSessionStartContext,
   StopContext as InternalStopContext,
+  ToolCallDecision as InternalToolCallDecision,
+  ToolResultDecision as InternalToolResultDecision,
   ToolUseContext as InternalToolUseContext,
   UserPromptSubmitContext as InternalUserPromptSubmitContext,
 } from "./runtime/plugin-types.js";
@@ -91,4 +101,24 @@ type ignoredPublicStopContextMatchesInternal = AssertAssignable<
 type ignoredPublicHookDecisionMatchesInternal = AssertAssignable<
   InternalHookDecision,
   HookDecision
+>;
+type ignoredPublicToolCallDecisionMatchesInternal = AssertAssignable<
+  InternalToolCallDecision,
+  ToolCallDecision
+>;
+type ignoredPublicToolResultDecisionMatchesInternal = AssertAssignable<
+  InternalToolResultDecision,
+  ToolResultDecision
+>;
+type ignoredPublicInputDecisionMatchesInternal = AssertAssignable<
+  InternalInputDecision,
+  InputDecision
+>;
+type ignoredPublicFileAwarenessMatchesInternal = AssertAssignable<
+  InternalFileAwareness,
+  FileAwareness
+>;
+type ignoredPublicCompactSummariseMatchesInternal = AssertAssignable<
+  InternalCompactSummarise,
+  CompactSummarise
 >;

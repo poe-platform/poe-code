@@ -10,6 +10,7 @@ import {
   type AgentHostOptions
 } from "./runtime/agent-host.js";
 import { AbortError } from "./runtime/hooks.js";
+import type { FileAwarenessTracker } from "./runtime/file-awareness.js";
 import {
   createResolvedAgentConfig,
   cloneAgentPlugin,
@@ -60,6 +61,8 @@ export type AgentRunOptions = {
   onStdout?: (chunk: string) => void;
   logPath?: string;
   env?: Record<string, string | undefined>;
+  fileAwareness?: FileAwarenessTracker;
+  onPromptSubmitted?: (prompt: string) => void | Promise<void>;
 };
 
 type InternalAgentRunOptions = AgentRunOptions & {
@@ -156,7 +159,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
       host,
       model: prepared.model,
       baseSystemPrompt: prepared.baseSystemPrompt,
-      maxIterations: prepared.maxIterations
+      maxIterations: prepared.maxIterations,
+      onPromptSubmitted: options.onPromptSubmitted
     });
 
     return {
@@ -351,7 +355,8 @@ class ImmutableAgentBuilder implements AgentBuilder {
         host,
         model: prepared.model,
         baseSystemPrompt: prepared.baseSystemPrompt,
-        maxIterations: prepared.maxIterations
+        maxIterations: prepared.maxIterations,
+        onPromptSubmitted: options.onPromptSubmitted
       })
     };
   }
@@ -359,7 +364,9 @@ class ImmutableAgentBuilder implements AgentBuilder {
   async #prepareRun(options: AgentRunOptions): Promise<PreparedRun> {
     const activeSkills = resolveActiveSkills(options);
     const runContext = createRunContext({
-      ...(activeSkills === undefined ? {} : { activeSkills })
+      ...(activeSkills === undefined ? {} : { activeSkills }),
+      ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
+      ...(options.fileAwareness === undefined ? {} : { fileAwareness: options.fileAwareness })
     });
     runContext.registerDisposeHook(
       linkExternalAbortSignal(options.signal, runContext.abortController)

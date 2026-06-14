@@ -8,6 +8,7 @@ import type {
   RunContextSnapshot,
   RunOutput,
   RunResult,
+  SessionEntry,
   Tool,
   ToolAckResult,
   ToolCallRecord,
@@ -33,6 +34,7 @@ import type {
   ToolEvent as InternalToolEvent,
   ToolIntent as InternalToolIntent,
 } from "./runtime/types.js";
+import type { SessionEntry as InternalSessionEntry } from "./runtime/session/entry-types.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 type AssertFalse<ignoredActual extends false> = true;
@@ -64,6 +66,10 @@ type ignoredPublicChatMessageMatchesInternal = AssertAssignable<InternalChatMess
 type ignoredPublicToolCallRecordMatchesInternal = AssertAssignable<
   InternalToolCallRecord,
   ToolCallRecord
+>;
+type ignoredPublicSessionEntryMatchesInternal = AssertAssignable<
+  InternalSessionEntry,
+  SessionEntry
 >;
 
 type ignoredRuntimeAcpEventIsNotSessionUpdate = AssertFalse<

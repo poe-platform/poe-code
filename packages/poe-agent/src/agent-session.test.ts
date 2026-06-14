@@ -180,7 +180,15 @@ describe("createAgentSession", () => {
       "web-tools"
     ]);
 
-    expect(Object.keys(session).sort()).toEqual(["dispose", "getHistory", "sendMessage"]);
+    expect(Object.keys(session).sort()).toEqual([
+      "dispose",
+      "fork",
+      "getHistory",
+      "id",
+      "navigateTo",
+      "sendMessage",
+      "tree"
+    ]);
   });
 
   it("adds the policy plugin when mode is provided", async () => {
@@ -493,13 +501,10 @@ describe("createAgentSession", () => {
       }
 
       expect(options?.resume).toEqual({
-        output: "first",
-        stdout: "first",
-        summary: "first",
-        messages: [{ role: "assistant", content: "first" }],
-        toolCalls: [],
-        exitCode: 0,
-        stderr: ""
+        messages: [
+          { role: "user", content: "first" },
+          { role: "assistant", content: "first" }
+        ]
       });
 
       return await createAcpSession([
@@ -573,6 +578,12 @@ describe("createAgentSession", () => {
 
     await session.sendMessage("what word?");
 
+    expect(session.tree().map((entry) => entry.kind)).toEqual([
+      "user",
+      "assistant",
+      "user",
+      "assistant"
+    ]);
     expect(acpMock).toHaveBeenCalledWith(
       "what word?",
       expect.objectContaining({ resume: { messages } })
@@ -606,6 +617,187 @@ describe("createAgentSession", () => {
     await session.sendMessage("hello");
 
     expect(session.getHistory()).toEqual(messages);
+  });
+
+  it("records session tree entries from ACP events", async () => {
+    acpMock.mockImplementationOnce(() =>
+      createAcpSession([
+        {
+          type: "tool.intent",
+          intentId: "call-1",
+          tool: "read_file",
+          args: { path: "README.md" }
+        },
+        {
+          type: "tool.result",
+          intentId: "call-1",
+          result: "README content"
+        },
+        {
+          type: "session.complete",
+          result: {
+            output: "Done",
+            stdout: "Done",
+            summary: "Done",
+            messages: [{ role: "assistant", content: "Done" }],
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
+          }
+        }
+      ])
+    );
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
+
+    await session.sendMessage("Read README");
+
+    expect((await session.tree()).map((entry) => entry.kind)).toEqual([
+      "user",
+      "tool_call",
+      "tool_result",
+      "assistant"
+    ]);
+  });
+
+  it("records the submitted prompt after userPromptSubmit transforms it", async () => {
+    acpMock.mockImplementationOnce(async (_prompt, options) => {
+      const callback = options?.onPromptSubmitted as ((prompt: string) => Promise<void>) | undefined;
+      await callback?.("redacted prompt");
+
+      return createAcpSession([
+        {
+          type: "session.complete",
+          result: {
+            output: "Done",
+            stdout: "Done",
+            summary: "Done",
+            messages: [
+              { role: "user", content: "redacted prompt" },
+              { role: "assistant", content: "Done" }
+            ],
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
+          }
+        }
+      ]);
+    });
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
+
+    await session.sendMessage("original prompt");
+
+    expect(session.tree()).toEqual([
+      expect.objectContaining({
+        kind: "user",
+        text: "redacted prompt"
+      }),
+      expect.objectContaining({
+        kind: "assistant",
+        text: "Done"
+      })
+    ]);
+  });
+
+  it("records compaction entries from completed session messages", async () => {
+    acpMock.mockImplementationOnce(() =>
+      createAcpSession([
+        {
+          type: "tool.intent",
+          intentId: "call-1",
+          tool: "read_file",
+          args: { path: "README.md" }
+        },
+        {
+          type: "tool.result",
+          intentId: "call-1",
+          result: "README content"
+        },
+        {
+          type: "session.complete",
+          result: {
+            output: "Done",
+            stdout: "Done",
+            summary: "Done",
+            messages: [
+              {
+                role: "system",
+                name: "compaction",
+                content: "Compacted context summary:\nEarlier context"
+              },
+              { role: "assistant", content: "Done" }
+            ],
+            toolCalls: [],
+            exitCode: 0,
+            stderr: ""
+          }
+        }
+      ])
+    );
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      cwd: "/workspace/project"
+    });
+
+    await session.sendMessage("Read README");
+
+    expect(await session.tree()).toContainEqual(
+      expect.objectContaining({
+        kind: "compaction",
+        summary: "Earlier context",
+        readFiles: ["/workspace/project/README.md"],
+        modifiedFiles: []
+      })
+    );
+  });
+
+  it("navigates to an earlier entry and resumes from that branch", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
+
+    await session.sendMessage("first");
+    const firstTree = await session.tree();
+    const firstUser = firstTree.find((entry) => entry.kind === "user");
+    expect(firstUser).toBeDefined();
+
+    await session.navigateTo(firstUser!.id);
+    await session.sendMessage("second");
+
+    expect(acpMock).toHaveBeenLastCalledWith(
+      "second",
+      expect.objectContaining({
+        resume: {
+          messages: [{ role: "user", content: "first" }]
+        }
+      })
+    );
+    expect((await session.tree()).map((entry) => entry.kind)).toEqual([
+      "user",
+      "assistant",
+      "user",
+      "assistant"
+    ]);
+  });
+
+  it("forks from an existing entry into a new session", async () => {
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({ model: "Claude-Sonnet-4.5" });
+
+    await session.sendMessage("first");
+    const fromEntry = (await session.tree()).find((entry) => entry.kind === "user");
+    expect(fromEntry).toBeDefined();
+
+    const fork = await session.fork(fromEntry!.id);
+
+    expect(fork.id).not.toBe(session.id);
+    expect((await fork.tree()).map((entry) => entry.kind)).toEqual(["user", "fork_marker"]);
+    expect((await session.tree()).map((entry) => entry.kind)).toEqual([
+      "user",
+      "assistant",
+      "branch_summary"
+    ]);
   });
 
   it("forwards undefined apiKey to ACP when not provided", async () => {

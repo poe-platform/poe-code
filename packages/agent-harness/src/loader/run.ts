@@ -19,7 +19,7 @@ import {
   type RunRandom,
   type SnapshotBackend,
   type SpawnUsageTotal
-} from "@poe-code/agent-script";
+} from "@poe-code/safejs";
 import type { AnySchema } from "toolcraft-schema";
 
 import { hasOwnErrorCode } from "../error-codes.js";
@@ -124,24 +124,28 @@ export async function runHarnessPair(
       seed: options.randomSeed,
       snapshot
     });
-    const hostCallReplay = await createHostCallReplay(snapshotPath, {
-      "time.now": {
-        restore: restoreClockState(runtimeClock),
-        snapshot: runtimeClock.snapshot
+    const hostCallReplay = await createHostCallReplay(
+      snapshotPath,
+      {
+        "time.now": {
+          restore: restoreClockState(runtimeClock),
+          snapshot: runtimeClock.snapshot
+        },
+        ...(runtimeRandom === undefined
+          ? {}
+          : {
+              "time.random": {
+                restore: restoreRandomState(runtimeRandom),
+                snapshot: runtimeRandom.snapshot
+              },
+              "time.uuid": {
+                restore: restoreRandomState(runtimeRandom),
+                snapshot: runtimeRandom.snapshot
+              }
+            })
       },
-      ...(runtimeRandom === undefined
-        ? {}
-        : {
-            "time.random": {
-              restore: restoreRandomState(runtimeRandom),
-              snapshot: runtimeRandom.snapshot
-            },
-            "time.uuid": {
-              restore: restoreRandomState(runtimeRandom),
-              snapshot: runtimeRandom.snapshot
-            }
-          })
-    }, { guardDefaultSnapshotPath });
+      { guardDefaultSnapshotPath }
+    );
     const modules = hostCallReplay.wrapModules(
       withBuiltinModules(
         options.modulesFor(validated, meta),

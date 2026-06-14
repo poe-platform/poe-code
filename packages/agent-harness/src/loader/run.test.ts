@@ -4,8 +4,8 @@ import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
-import { lint, makeAgentModule } from "@poe-code/agent-script";
-import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
+import { lint, makeAgentModule } from "@poe-code/safejs";
+import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
 
 const mockedFileSystemState = vi.hoisted(() => ({
   failingWritePath: undefined as string | undefined,

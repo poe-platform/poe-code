@@ -1,4 +1,4 @@
-import { lint, run } from "@poe-code/agent-script/core";
+import { lint, run } from "@poe-code/safejs/core";
 import type { HumanInLoopProvider } from "toolcraft/human-in-loop";
 import { createSDK } from "toolcraft/sdk";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -12,7 +12,7 @@ describe("buildHostModules", () => {
     vi.unstubAllEnvs();
   });
 
-  it("exposes commands through SDK-backed agent-script modules", async () => {
+  it("exposes commands through SDK-backed SafeJS modules", async () => {
     vi.stubEnv("TOOLCRAFT_CODEMODE_TOKEN", "secret-token");
 
     const provider: HumanInLoopProvider = {

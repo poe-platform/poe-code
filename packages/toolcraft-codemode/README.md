@@ -1,6 +1,6 @@
 # toolcraft-codemode
 
-Code-mode meta-tools for toolcraft trees, sandboxed by agent-script.
+Code-mode meta-tools for toolcraft trees, sandboxed by SafeJS.
 
 ## Why
 
@@ -9,7 +9,7 @@ Code-mode addresses two scaling problems in large toolcraft trees:
 - Catalog context bloat: expose three stable meta-tools instead of dumping every command schema into the model context.
 - Intermediate-token waste: let the model generate one script that searches, fetches schemas, and calls commands in-process instead of spending a model turn per tool call.
 
-The sandbox is `@poe-code/agent-script`, not a custom runtime.
+The sandbox is `@poe-code/safejs`, not a custom runtime.
 
 ## Install + Hello World
 
@@ -59,32 +59,32 @@ type ExecuteResult =
 
 On success, the model's script return value is returned by the `execute` tool as `returnValue`. Lint failures return `{ ok: false, kind: "lint", diagnostics }`; they are not thrown as exceptions.
 
-## Agent-Script Subset
+## SafeJS Subset
 
-The model must emit source accepted by [`@poe-code/agent-script`](../agent-script/README.md). This package does not define a second grammar.
+The model must emit source accepted by [`@poe-code/safejs`](../safejs/README.md). This package does not define a second grammar.
 
 ## Options
 
 `codeMode(root, options?: CodeModeOptions)` wraps a toolcraft root in a `code_mode` group.
 
-| Field | Default | Controls |
-| --- | --- | --- |
-| `services` | `undefined` | Passed through to the internal toolcraft SDK used by `execute`. |
-| `casing` | SDK default | Passed through to `createSDK`; only `"camel"` is accepted by the SDK type. |
-| `humanInLoop` | `undefined` | Passed through to `createSDK` for commands that use human-in-loop behavior. |
-| `apiVersion` | `undefined` | Passed through to `createSDK` for `requires.apiVersion` checks. |
-| `projectRoot` | toolcraft default | Passed through to `createSDK` and command-tree resolution. |
-| `errorReports` | toolcraft default | Passed through to `createSDK` error-report handling. |
-| `budget.maxSteps` | agent-script default | Maximum interpreter steps for `execute`. |
-| `budget.deadline` | agent-script default | Deadline for `execute`, as a timestamp or `Date`. |
-| `budget.maxCallDepth` | agent-script default | Maximum script call depth for `execute`. |
-| `budget.stringLength` | agent-script default | Maximum string length allowed by the interpreter. |
-| `budget.arrayLength` | agent-script default | Maximum array length allowed by the interpreter. |
-| `search.scope` | `["mcp", "sdk"]` | Scope for the `search` meta-tool. |
-| `search.defaultDetail` | `"brief"` | Detail level used when `search.detail` is omitted. |
-| `search.defaultLimit` | `10` | Result count used when `search.limit` is omitted. |
-| `getSchemas.scope` | `["mcp", "sdk"]` | Scope for the `get_schemas` meta-tool. |
-| `execute.scope` | `["mcp", "sdk"]` | Scope for the `execute` meta-tool. |
+| Field                  | Default           | Controls                                                                    |
+| ---------------------- | ----------------- | --------------------------------------------------------------------------- |
+| `services`             | `undefined`       | Passed through to the internal toolcraft SDK used by `execute`.             |
+| `casing`               | SDK default       | Passed through to `createSDK`; only `"camel"` is accepted by the SDK type.  |
+| `humanInLoop`          | `undefined`       | Passed through to `createSDK` for commands that use human-in-loop behavior. |
+| `apiVersion`           | `undefined`       | Passed through to `createSDK` for `requires.apiVersion` checks.             |
+| `projectRoot`          | toolcraft default | Passed through to `createSDK` and command-tree resolution.                  |
+| `errorReports`         | toolcraft default | Passed through to `createSDK` error-report handling.                        |
+| `budget.maxSteps`      | SafeJS default    | Maximum interpreter steps for `execute`.                                    |
+| `budget.deadline`      | SafeJS default    | Deadline for `execute`, as a timestamp or `Date`.                           |
+| `budget.maxCallDepth`  | SafeJS default    | Maximum script call depth for `execute`.                                    |
+| `budget.stringLength`  | SafeJS default    | Maximum string length allowed by the interpreter.                           |
+| `budget.arrayLength`   | SafeJS default    | Maximum array length allowed by the interpreter.                            |
+| `search.scope`         | `["mcp", "sdk"]`  | Scope for the `search` meta-tool.                                           |
+| `search.defaultDetail` | `"brief"`         | Detail level used when `search.detail` is omitted.                          |
+| `search.defaultLimit`  | `10`              | Result count used when `search.limit` is omitted.                           |
+| `getSchemas.scope`     | `["mcp", "sdk"]`  | Scope for the `get_schemas` meta-tool.                                      |
+| `execute.scope`        | `["mcp", "sdk"]`  | Scope for the `execute` meta-tool.                                          |
 
 ## Env Vars
 

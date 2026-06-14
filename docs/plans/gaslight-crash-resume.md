@@ -25,7 +25,7 @@ The scope includes:
 
 Explicit non-goals:
 
-- Do not replace the lower-level `agent-script` snapshot system.
+- Do not replace the lower-level `SafeJS` snapshot system.
 - Do not add provider-specific branching to Gaslight; provider behavior stays behind `agent-spawn` config.
 - Do not attempt exact recovery for a process killed while an agent spawn is still in flight unless the completed spawn result was already returned to Gaslight and checkpointed.
 - Do not edit README files without explicit user permission.
@@ -226,21 +226,21 @@ Unit tests:
 Must-work checklist:
 
 - [ ] Crash after round 1 can resume at round 2.
-  Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "resumes round 2"`
+      Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "resumes round 2"`
 - [ ] Resume preserves the original run UUID and records a new resume attempt UUID.
-  Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "runId"`
+      Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "runId"`
 - [ ] Multi-plan resume works after plan 1 was archived.
-  Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "skips an archived first plan"`
+      Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "skips an archived first plan"`
 - [ ] Stale or mismatched state cannot accidentally drive a different run.
-  Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "rejects resume"`
+      Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "rejects resume"`
 - [ ] CLI exposes the resume/reset flags and forwards them to the SDK.
-  Proof: `npx vitest run src/cli/commands/gaslight.test.ts`
+      Proof: `npx vitest run src/cli/commands/gaslight.test.ts`
 - [ ] Successful Gaslight completion removes the state file.
-  Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "deletes the state file"`
+      Proof: `npx vitest run packages/agent-gaslight/src/run.test.ts -t "deletes the state file"`
 - [ ] Codex resume argv keeps mode options in a valid position.
-  Proof: `npx vitest run packages/agent-spawn/src/configs/configs.test.ts -t "codex"`
+      Proof: `npx vitest run packages/agent-spawn/src/configs/configs.test.ts -t "codex"`
 - [ ] CLI help remains readable.
-  Proof: `npm run screenshot-poe-code -- gaslight --help`
+      Proof: `npm run screenshot-poe-code -- gaslight --help`
 
 Real-world test:
 

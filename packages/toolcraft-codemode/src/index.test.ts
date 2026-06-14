@@ -39,12 +39,14 @@ function fixtureRoot() {
 
 describe("codeMode", () => {
   it("wraps a toolcraft root with searchable executable code-mode meta-tools", async () => {
-    const sdk = createSDK(codeMode(fixtureRoot(), {
-      search: {
-        defaultDetail: "detailed",
-        defaultLimit: 1
-      }
-    })) as {
+    const sdk = createSDK(
+      codeMode(fixtureRoot(), {
+        search: {
+          defaultDetail: "detailed",
+          defaultLimit: 1
+        }
+      })
+    ) as {
       search(params: { query: string }): Promise<Array<{ path: string; schema?: object }>>;
       getSchemas(params: { names: string[] }): Promise<Record<string, { params: object }>>;
       execute(params: { source: string }): Promise<{ ok: boolean; returnValue?: unknown }>;
@@ -123,7 +125,7 @@ describe("codeMode", () => {
     ]);
   });
 
-  it("passes SDK options through to commands executed from agent-script", async () => {
+  it("passes SDK options through to commands executed from SafeJS", async () => {
     const params = S.Object({
       value: S.Number()
     });
@@ -170,7 +172,12 @@ describe("codeMode", () => {
     const root = defineGroup({
       name: "ops",
       children: [
-        defineCommand({ name: "ping", scope: ["mcp"], params: S.Object({}), handler: async () => "pong" })
+        defineCommand({
+          name: "ping",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: async () => "pong"
+        })
       ]
     });
     const sdk = createSDK(codeMode(root)) as {

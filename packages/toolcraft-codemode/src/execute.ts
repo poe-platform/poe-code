@@ -1,4 +1,4 @@
-import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script/core";
+import { Budget, lint, run, type Diagnostic } from "@poe-code/safejs/core";
 import { defineCommand, type Group, type Scope } from "toolcraft";
 import { S } from "toolcraft-schema";
 
@@ -52,7 +52,7 @@ export type ExecuteResult =
     };
 
 const executeParams = S.Object({
-  source: S.String({ description: "Agent-script source to execute." })
+  source: S.String({ description: "SafeJS source to execute." })
 });
 
 function createBudget(options: ExecuteBudgetOptions | undefined): Budget {
@@ -169,7 +169,7 @@ export function makeExecuteCommand({
 }: ExecuteCommandOptions) {
   return defineCommand({
     name: "execute",
-    description: "Execute agent-script source against the available host commands.",
+    description: "Execute SafeJS source against the available host commands.",
     scope,
     params: executeParams,
     handler: async ({ params }): Promise<ExecuteResult> => {

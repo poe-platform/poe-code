@@ -120,7 +120,9 @@ async function withObjectPrototypeProperties<T>(
 
 describe("acp/spawnStreaming integration", () => {
   const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url));
-  const mockAgentScriptPath = fileURLToPath(new URL("./__fixtures__/mock-agent.mjs", import.meta.url));
+  const mockAgentExecutablePath = fileURLToPath(
+    new URL("./__fixtures__/mock-agent.mjs", import.meta.url)
+  );
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -146,7 +148,7 @@ describe("acp/spawnStreaming integration", () => {
           kind: "cli",
           agentId: "codex",
           adapter: "codex",
-          promptFlag: mockAgentScriptPath,
+          promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
           modes: { yolo: [], edit: [], read: [] }
@@ -182,7 +184,7 @@ describe("acp/spawnStreaming integration", () => {
         kind: "cli",
         agentId: "codex",
         adapter: "codex",
-        promptFlag: mockAgentScriptPath,
+        promptFlag: mockAgentExecutablePath,
         modelStripProviderPrefix: true,
         defaultArgs: [],
         modes: { yolo: [], edit: [], read: [] }
@@ -196,10 +198,12 @@ describe("acp/spawnStreaming integration", () => {
       prompt: "codex",
       cwd: repoRoot,
       captureOtel: true,
-      middlewares: [async (ctx, next) => {
-        await next();
-        metadata = ctx.metadata;
-      }]
+      middlewares: [
+        async (ctx, next) => {
+          await next();
+          metadata = ctx.metadata;
+        }
+      ]
     });
 
     await collect(events);
@@ -231,7 +235,7 @@ describe("acp/spawnStreaming integration", () => {
           kind: "cli",
           agentId: "claude-code",
           adapter: "claude",
-          promptFlag: mockAgentScriptPath,
+          promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
           modes: { yolo: [], edit: [], read: [] }
@@ -271,7 +275,7 @@ describe("acp/spawnStreaming integration", () => {
           kind: "cli",
           agentId: "native-empty",
           adapter: "native",
-          promptFlag: mockAgentScriptPath,
+          promptFlag: mockAgentExecutablePath,
           defaultArgs: [],
           modes: { yolo: [], edit: [], read: [] }
         }
@@ -310,7 +314,7 @@ describe("acp/spawnStreaming integration", () => {
           kind: "cli",
           agentId: "codex",
           adapter: "codex",
-          promptFlag: mockAgentScriptPath,
+          promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
           modes: { yolo: [], edit: [], read: [] }
@@ -367,7 +371,7 @@ describe("acp/spawnStreaming integration", () => {
           kind: "cli",
           agentId: "codex",
           adapter: "codex",
-          promptFlag: mockAgentScriptPath,
+          promptFlag: mockAgentExecutablePath,
           modelStripProviderPrefix: true,
           defaultArgs: [],
           modes: { yolo: [], edit: [], read: [] }

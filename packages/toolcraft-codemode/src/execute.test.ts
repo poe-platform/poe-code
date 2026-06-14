@@ -179,12 +179,11 @@ describe("makeExecuteCommand", () => {
   });
 
   it("does not report inherited runtime error message or stack", async () => {
-    const actualAgentScript = await vi.importActual<typeof import("@poe-code/agent-script/core")>(
-      "@poe-code/agent-script/core"
-    );
+    const actualSafeJS =
+      await vi.importActual<typeof import("@poe-code/safejs/core")>("@poe-code/safejs/core");
     vi.resetModules();
-    vi.doMock("@poe-code/agent-script/core", () => ({
-      ...actualAgentScript,
+    vi.doMock("@poe-code/safejs/core", () => ({
+      ...actualSafeJS,
       run: vi.fn(async () => {
         throw {};
       })
@@ -216,7 +215,7 @@ describe("makeExecuteCommand", () => {
         }
       );
     } finally {
-      vi.doUnmock("@poe-code/agent-script/core");
+      vi.doUnmock("@poe-code/safejs/core");
       vi.resetModules();
     }
   });

@@ -38,7 +38,7 @@ describe("standalone package publish metadata", () => {
   it("bundles unpublished workspace dependencies for standalone toolcraft packages", () => {
     const packagesToCheck = [
       "packages/toolcraft/package.json",
-      "packages/toolcraft-openapi/package.json",
+      "packages/toolcraft-openapi/package.json"
     ];
 
     expect(
@@ -51,9 +51,7 @@ describe("standalone package publish metadata", () => {
 
   it("declares bundled toolcraft-design as optional in standalone consumers", () => {
     expect(
-      readPackageJson("packages/toolcraft/package.json").optionalDependencies?.[
-        "toolcraft-design"
-      ]
+      readPackageJson("packages/toolcraft/package.json").optionalDependencies?.["toolcraft-design"]
     ).toBe("^0.0.2");
     expect(
       readPackageJson("packages/toolcraft-openapi/package.json").optionalDependencies?.[
@@ -85,15 +83,15 @@ describe("standalone package publish metadata", () => {
       exports: {
         ".": {
           types: "./dist/index.d.ts",
-          import: "./dist/index.js",
-        },
+          import: "./dist/index.js"
+        }
       },
       repository: { directory: "packages/toolcraft-design" },
-      publishConfig: { access: "public" },
+      publishConfig: { access: "public" }
     });
     expect(toolcraftPackage.exports?.["./design"]).toEqual({
       types: "./dist/design.d.ts",
-      import: "./dist/design.js",
+      import: "./dist/design.js"
     });
   });
 
@@ -106,9 +104,7 @@ describe("standalone package publish metadata", () => {
   it("publishes the superintendent MCP server bin with the root package", () => {
     const rootPackage = readPackageJson("package.json");
 
-    expect(rootPackage.bin?.["poe-superintendent-mcp"]).toBe(
-      "packages/superintendent/dist/mcp.js"
-    );
+    expect(rootPackage.bin?.["poe-superintendent-mcp"]).toBe("packages/superintendent/dist/mcp.js");
     expect(rootPackage.files).toContain("packages/superintendent/dist");
   });
 
@@ -127,5 +123,34 @@ describe("standalone package publish metadata", () => {
         "packages/tiny-stdio-mcp-test-server/package.json"
       ])
     );
+  });
+
+  it("brands the sandboxed JavaScript package as SafeJS", () => {
+    const rootPackage = readPackageJson("package.json");
+    const safejsPackage = readPackageJson("packages/safejs/package.json");
+
+    expect(rootPackage.devDependencies?.["@poe-code/safejs"]).toBe("*");
+    expect(rootPackage.devDependencies?.["@poe-code/agent-script"]).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/safejs/dist");
+    expect(rootPackage.files).not.toContain("packages/agent-script/dist");
+    expect(safejsPackage).toMatchObject({
+      name: "@poe-code/safejs",
+      bin: {
+        "poe-safejs": "dist/cli.js"
+      }
+    });
+  });
+
+  it("brands the maestro package without the agent prefix", () => {
+    const rootPackage = readPackageJson("package.json");
+    const maestroPackage = readPackageJson("packages/maestro/package.json");
+
+    expect(rootPackage.devDependencies?.["@poe-code/maestro"]).toBe("*");
+    expect(rootPackage.devDependencies?.["@poe-code/agent-maestro"]).toBeUndefined();
+    expect(rootPackage.files).toContain("packages/maestro/dist");
+    expect(rootPackage.files).not.toContain("packages/agent-maestro/dist");
+    expect(maestroPackage).toMatchObject({
+      name: "@poe-code/maestro"
+    });
   });
 });

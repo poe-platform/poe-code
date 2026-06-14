@@ -1,4 +1,4 @@
-import { lint, run } from "@poe-code/agent-script";
+import { lint, run } from "@poe-code/safejs";
 import { describe, expect, it } from "vitest";
 import { S } from "toolcraft-schema";
 
@@ -10,7 +10,7 @@ describe("makeSchemaModule", () => {
     expect(api.makeSchemaModule).toBe(makeSchemaModule);
   });
 
-  it("round-trips schema builders through agent-script run()", async () => {
+  it("round-trips schema builders through SafeJS run()", async () => {
     const result = await run('import { S } from "schema"; return S.Object({ x: S.Number() });', {
       modules: {
         schema: makeSchemaModule()
@@ -23,7 +23,7 @@ describe("makeSchemaModule", () => {
     });
   });
 
-  it("registers its export list with agent-script lint()", () => {
+  it("registers its export list with SafeJS lint()", () => {
     expect(
       lint('import { S } from "schema"; return S.Object({ x: S.Number() });', {
         modules: {

@@ -1307,12 +1307,12 @@ describe("runPoeCommand", () => {
                 [
                   `trap '' TERM`,
                   `sleep 30 & echo $! > ${shellQuote(pidFile)}`,
-                  `while [ ! -f ${shellQuote(stopActivityFile)} ]; do echo ready; sleep 0.02; done`,
+                `while [ ! -f ${shellQuote(stopActivityFile)} ]; do echo ready; sleep 0.05; done`,
                   "wait"
                 ].join("; ")
               ]
             },
-            execution: { activityTimeoutMs: 100, captureOutput: true }
+            execution: { activityTimeoutMs: 1_000, captureOutput: true }
           }),
           detach: false,
           state

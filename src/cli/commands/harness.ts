@@ -18,7 +18,7 @@ import {
   restore,
   type AgentSpawnEvent,
   type Diagnostic
-} from "@poe-code/agent-script";
+} from "@poe-code/safejs";
 import {
   cancel,
   getTheme,
@@ -71,14 +71,8 @@ export function registerHarnessCommand(program: Command, container: CliContainer
     .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
     .option("--snapshot-path <path>", "File to write/read harness snapshots.")
     .option("--resume", "Resume from the snapshot file when it exists.")
-    .option(
-      "--agent <name>",
-      "Override the agent id from the harness frontmatter agent block."
-    )
-    .option(
-      "--model <name>",
-      "Override the model from the harness frontmatter agent block."
-    )
+    .option("--agent <name>", "Override the agent id from the harness frontmatter agent block.")
+    .option("--model <name>", "Override the model from the harness frontmatter agent block.")
     .option(
       "--mode <mode>",
       "Override the mode from the harness frontmatter agent block (read|edit|auto|yolo)."
@@ -209,9 +203,10 @@ function formatResultValue(value: unknown): string {
       truncateResultValue(sanitizeTerminalText(key))
     );
     const keySummary = keys.slice(0, 5).join(", ");
-    const summary = keys.length === 0
-      ? "object"
-      : `object · ${keySummary}${keys.length > 5 ? `, +${keys.length - 5} more` : ""}`;
+    const summary =
+      keys.length === 0
+        ? "object"
+        : `object · ${keySummary}${keys.length > 5 ? `, +${keys.length - 5} more` : ""}`;
     return truncateResultValue(summary);
   }
   return typeof value;
@@ -233,7 +228,10 @@ function sanitizeTerminalText(value: string): string {
       sanitized += " ";
     }
   }
-  return sanitized.split(" ").filter((part) => part.length > 0).join(" ");
+  return sanitized
+    .split(" ")
+    .filter((part) => part.length > 0)
+    .join(" ");
 }
 
 function formatHarnessUsage(usage: {
@@ -274,7 +272,9 @@ function isAlreadyReportedSpawnFailure(error: unknown, reported: ReadonlySet<str
     }
   }
   if ("errors" in error && Array.isArray(error.errors) && error.errors.length > 0) {
-    return error.errors.every((nestedError) => isAlreadyReportedSpawnFailure(nestedError, reported));
+    return error.errors.every((nestedError) =>
+      isAlreadyReportedSpawnFailure(nestedError, reported)
+    );
   }
   return false;
 }
@@ -292,14 +292,16 @@ function formatSpawnResultFailure(result: unknown): string | undefined {
   if (typeof exitCode !== "number") {
     return undefined;
   }
-  const stderr = "stderr" in result && typeof result.stderr === "string" ? result.stderr.trim() : "";
+  const stderr =
+    "stderr" in result && typeof result.stderr === "string" ? result.stderr.trim() : "";
   const summary =
     "summary" in result && typeof result.summary === "string" ? result.summary.trim() : "";
-  const message = stderr.length > 0
-    ? `Agent spawn failed with exit code ${exitCode}: ${stderr}`
-    : summary.length > 0
-      ? `Agent spawn failed with exit code ${exitCode}: ${summary}`
-      : `Agent spawn failed with exit code ${exitCode}.`;
+  const message =
+    stderr.length > 0
+      ? `Agent spawn failed with exit code ${exitCode}: ${stderr}`
+      : summary.length > 0
+        ? `Agent spawn failed with exit code ${exitCode}: ${summary}`
+        : `Agent spawn failed with exit code ${exitCode}.`;
   return formatSpawnFailureText(message);
 }
 
@@ -489,8 +491,15 @@ async function executeHarnessNew(
     throw new ValidationError(`Unknown harness template "${kind}".`);
   }
 
-  if (basename.length === 0 || basename === "." || basename === ".." || path.basename(basename) !== basename) {
-    throw new ValidationError(`Invalid harness basename "${basename}". Use a single directory name.`);
+  if (
+    basename.length === 0 ||
+    basename === "." ||
+    basename === ".." ||
+    path.basename(basename) !== basename
+  ) {
+    throw new ValidationError(
+      `Invalid harness basename "${basename}". Use a single directory name.`
+    );
   }
 
   const defaultDir = path.join(".poe-code", "harnesses", basename);
@@ -788,8 +797,7 @@ function logHarnessSpawnEvent(
   const label = `Spawn #${event.spawnId} ${event.agent} — ${event.task}`;
 
   if (event.type === "spawn.started") {
-    const attempt =
-      event.attempt === 1 ? "" : ` attempt ${event.attempt}/${event.maxAttempts}`;
+    const attempt = event.attempt === 1 ? "" : ` attempt ${event.attempt}/${event.maxAttempts}`;
     logger.info(`${label}${attempt} started`);
     return;
   }
@@ -802,8 +810,7 @@ function logHarnessSpawnEvent(
   }
 
   if (event.type === "spawn.succeeded") {
-    const attempt =
-      event.attempt === 1 ? "" : ` on attempt ${event.attempt}/${event.maxAttempts}`;
+    const attempt = event.attempt === 1 ? "" : ` on attempt ${event.attempt}/${event.maxAttempts}`;
     logger.success(`${label} completed${attempt} (${formatDuration(event.durationMs)})`);
     return;
   }

@@ -1,10 +1,10 @@
 # @poe-code/agent-harness
 
-Shared harness loader, template, schema, and runtime orchestration APIs for `.md` + `.ajs` agent-script harness pairs.
+Shared harness loader, template, schema, and runtime orchestration APIs for `.md` + `.ajs` SafeJS harness pairs.
 
 ## Public API
 
-- `runHarnessPair(mdPath, options)` resolves the matching `.ajs` file, validates frontmatter against any exported `schema`, lints the script, and runs it through `@poe-code/agent-script`.
+- `runHarnessPair(mdPath, options)` resolves the matching `.ajs` file, validates frontmatter against any exported `schema`, lints the script, and runs it through `@poe-code/safejs`.
 - `listBuiltinTemplates()` returns bundled template pairs: `ralph-demo`, `coverage-demo`, `experiment-demo`, `pipeline-demo`, and `superintendent-demo`.
 - `extractSchema(source, filename)` reads a harness script's exported schema for frontmatter validation.
 - `resolvePair(mdPath)` resolves the Markdown/script pair for a harness document.
@@ -18,7 +18,7 @@ A harness is a Markdown document plus a sibling `.ajs` script. The Markdown fron
 
 ## Snapshots and resume
 
-Pass `snapshotPath` to control where snapshots are read and written. `resume` defaults to `true`; set `resume: false` to remove a completed snapshot and force a fresh run. If a snapshot exists, the underlying agent-script source hash must still match the `.ajs` source.
+Pass `snapshotPath` to control where snapshots are read and written. `resume` defaults to `true`; set `resume: false` to remove a completed snapshot and force a fresh run. If a snapshot exists, the underlying SafeJS source hash must still match the `.ajs` source.
 
 The CLI mirrors these options:
 

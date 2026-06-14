@@ -120,10 +120,7 @@ describe("extractSchema", () => {
   it("explains when the schema initializer references an earlier outer const", async () => {
     await expect(
       extractSchema(
-        [
-          "const Inner = S.String();",
-          "export const schema = S.Object({ a: Inner });"
-        ].join("\n"),
+        ["const Inner = S.String();", "export const schema = S.Object({ a: Inner });"].join("\n"),
         "/tmp/outer-const.ajs"
       )
     ).rejects.toThrow(
@@ -133,20 +130,16 @@ describe("extractSchema", () => {
 
   it("keeps the original unbound identifier detail for schema initializer typos", async () => {
     await expect(
-      extractSchema(
-        "export const schema = S.Object({ a: Nopee });",
-        "/tmp/schema-typo.ajs"
-      )
+      extractSchema("export const schema = S.Object({ a: Nopee });", "/tmp/schema-typo.ajs")
     ).rejects.toThrow("Identifier 'Nopee' is not defined.");
   });
 
   it("does not infer outer const diagnostics from inherited error fields", async () => {
-    const actualAgentScript = await vi.importActual<typeof import("@poe-code/agent-script")>(
-      "@poe-code/agent-script"
-    );
+    const actualSafeJS =
+      await vi.importActual<typeof import("@poe-code/safejs")>("@poe-code/safejs");
     vi.resetModules();
-    vi.doMock("@poe-code/agent-script", () => ({
-      ...actualAgentScript,
+    vi.doMock("@poe-code/safejs", () => ({
+      ...actualSafeJS,
       run: vi.fn(async () => ({
         ok: false,
         error: {}
@@ -173,7 +166,7 @@ describe("extractSchema", () => {
         }
       );
     } finally {
-      vi.doUnmock("@poe-code/agent-script");
+      vi.doUnmock("@poe-code/safejs");
       vi.resetModules();
     }
   });
@@ -181,10 +174,9 @@ describe("extractSchema", () => {
   it("evaluates schema identifiers supplied by the schema import", async () => {
     await expect(
       extractSchema(
-        [
-          'import { S } from "schema";',
-          "export const schema = S.Object({ a: S.String() });"
-        ].join("\n"),
+        ['import { S } from "schema";', "export const schema = S.Object({ a: S.String() });"].join(
+          "\n"
+        ),
         "/tmp/imported-schema.ajs"
       )
     ).resolves.toEqual(

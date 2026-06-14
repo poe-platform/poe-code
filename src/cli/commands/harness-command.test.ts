@@ -32,8 +32,7 @@ vi.mock("@poe-code/agent-harness", async () => {
 });
 
 vi.mock("toolcraft-design", async () => {
-  const actual =
-    await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
+  const actual = await vi.importActual<typeof import("toolcraft-design")>("toolcraft-design");
   return {
     ...actual,
     select: harnessMocks.selectMock,
@@ -56,7 +55,7 @@ vi.mock("../../providers/index.js", () => ({
 }));
 
 const { registerHarnessCommand } = await import("./harness.js");
-const { run: runAgentScript } = await import("@poe-code/agent-script");
+const { run: runSafeJS } = await import("@poe-code/safejs");
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -139,7 +138,7 @@ async function waitForPath(filePath: string): Promise<void> {
 }
 
 async function snapshotForSource(source: string): Promise<string> {
-  const result = await runAgentScript(source);
+  const result = await runSafeJS(source);
   return JSON.stringify(result.snapshot, null, 2);
 }
 
@@ -749,7 +748,9 @@ describe("harness command", () => {
     await runHarnessCommand(["--dry-run", "--yes", "harness", "run", "harness.md", "--fix"], logs);
 
     expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
-    expect(logs.join("\n")).toContain("Dry run: would run harness.md without executing its script or applying fixes.");
+    expect(logs.join("\n")).toContain(
+      "Dry run: would run harness.md without executing its script or applying fixes."
+    );
   });
 
   it("forwards --agent/--model/--mode as frontmatterOverrides on the agent block", async () => {
@@ -1222,7 +1223,11 @@ describe("harness command", () => {
   it("removes a partial scaffold when writing the script fails", async () => {
     const fs = {
       ...(memfs.promises as unknown as FileSystem),
-      async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView, options?: { encoding?: BufferEncoding; flag?: string }) {
+      async writeFile(
+        filePath: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding; flag?: string }
+      ) {
         if (filePath.endsWith("example.ajs")) {
           await memfs.promises.writeFile(filePath, "partial script", options);
           throw new Error("script write failed");
@@ -1231,13 +1236,16 @@ describe("harness command", () => {
       }
     } as FileSystem;
     const program = createBaseProgram();
-    registerHarnessCommand(program, createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => undefined,
-      commandRunner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
-    }));
+    registerHarnessCommand(
+      program,
+      createCliContainer({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: () => undefined,
+        commandRunner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+      })
+    );
 
     await expect(
       program.parseAsync(["node", "cli", "--yes", "harness", "new", "demo", "example"])
@@ -1295,11 +1303,13 @@ describe("harness command", () => {
   });
 
   it("rejects a basename that escapes the harness directory", async () => {
-    await expect(runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])).rejects.toThrow(
-      /invalid harness basename/i
-    );
+    await expect(
+      runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])
+    ).rejects.toThrow(/invalid harness basename/i);
 
-    await expect(memfs.promises.readFile("/repo/.poe-code/victim.md", "utf8")).rejects.toMatchObject({
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/victim.md", "utf8")
+    ).rejects.toMatchObject({
       code: "ENOENT"
     });
   });

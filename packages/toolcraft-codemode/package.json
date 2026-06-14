@@ -23,7 +23,7 @@
   "dependencies": {
     "toolcraft": "*",
     "toolcraft-schema": "*",
-    "@poe-code/agent-script": "*"
+    "@poe-code/safejs": "*"
   },
   "engines": {
     "node": ">=20"

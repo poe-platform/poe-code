@@ -4,7 +4,16 @@ import { defineCommand, defineGroup, S, UserError, type AuthProvider, type Comma
 import { runCLI } from "toolcraft/cli";
 import { createMCPServer } from "toolcraft/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
-import { commandsFromSpec, defineApiCommand, defineClient, defineClientFromSpec, requestJson, type OpenApiDocument } from "./index.js";
+import {
+  commandsFromSpec,
+  defineApiCommand,
+  defineClient,
+  defineClientFromSpec,
+  prepareMultipartFileInputs,
+  requestJson,
+  writeBinaryResponseOutput,
+  type OpenApiDocument
+} from "./index.js";
 import { collectGeneratedCommands, generate } from "./generate.js";
 
 function createAuthProvider(commands: CommandNode<any>[]): AuthProvider {
@@ -222,6 +231,58 @@ function createArrayBodyDocument(): OpenApiDocument {
   };
 }
 
+function createMultipartBinaryDocument(): OpenApiDocument {
+  return {
+    openapi: "3.0.3",
+    info: {
+      title: "Internal Agent API",
+      version: "1.0.0"
+    },
+    paths: {
+      "/audio/clean": {
+        post: {
+          tags: ["audio"],
+          operationId: "cleanAudio",
+          summary: "Clean audio",
+          requestBody: {
+            required: true,
+            content: {
+              "multipart/form-data": {
+                schema: {
+                  type: "object",
+                  required: ["audio"],
+                  properties: {
+                    audio: {
+                      type: "string",
+                      format: "binary"
+                    },
+                    preset: {
+                      type: "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Cleaned audio.",
+              content: {
+                "audio/wav": {
+                  schema: {
+                    type: "string",
+                    format: "binary"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+}
+
 function createNullableScalarBodyDocument(): OpenApiDocument {
   return {
     openapi: "3.0.3",
@@ -361,14 +422,19 @@ function evaluateGeneratedCommand(fileContents: string, exportName: string) {
     "exports",
     `
 const { S, UserError } = deps.agentKit;
-const { requestJson, defineApiCommand } = deps.openapi;
+const { requestJson, defineApiCommand, prepareMultipartFileInputs, writeBinaryResponseOutput } = deps.openapi;
 ${transformedContents}
 return exports;
 `
   ) as (
     deps: {
       agentKit: typeof import("toolcraft");
-      openapi: { requestJson: typeof requestJson; defineApiCommand: typeof defineApiCommand };
+      openapi: {
+        requestJson: typeof requestJson;
+        defineApiCommand: typeof defineApiCommand;
+        prepareMultipartFileInputs: typeof prepareMultipartFileInputs;
+        writeBinaryResponseOutput: typeof writeBinaryResponseOutput;
+      };
     },
     exports: Record<string, unknown>
   ) => Record<string, unknown>;
@@ -376,7 +442,12 @@ return exports;
   return execute(
     {
       agentKit: { S, UserError },
-      openapi: { requestJson, defineApiCommand }
+      openapi: {
+        requestJson,
+        defineApiCommand,
+        prepareMultipartFileInputs,
+        writeBinaryResponseOutput
+      }
     },
     {}
   )[exportName] as CommandNode<any>;
@@ -499,6 +570,85 @@ describe("commandsFromSpec", () => {
     } finally {
       await cleanup();
     }
+  });
+
+  it("reads multipart binary file paths and writes binary responses to output paths", async () => {
+    const commands = await commandsFromSpec(createMultipartBinaryDocument());
+    const group = commands[0];
+    const command = group?.kind === "group" ? group.children[0] : undefined;
+    const volume = Volume.fromJSON(
+      {
+        "/repo/input/voice.wav": "input audio"
+      },
+      "/"
+    );
+    const memFs = createFsFromVolume(volume).promises;
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () =>
+        new Response(new Uint8Array([0, 1, 2, 255]), {
+          status: 200,
+          headers: { "content-type": "audio/wav" }
+        })
+    );
+
+    if (command?.kind !== "command") throw new Error("Expected runtime command.");
+
+    const result = await command.handler({
+      params: {
+        audio: "input/voice.wav",
+        preset: "voice",
+        output: "output/clean.wav"
+      },
+      baseUrl: "https://example.com/api",
+      tokenSource: createAuthProvider([]),
+      fetch,
+      fs: {
+        readFile: async (filePath: string, encoding: BufferEncoding = "utf8") =>
+          memFs.readFile(filePath, { encoding }) as Promise<string>,
+        writeFile: async (
+          filePath: string,
+          contents: string,
+          options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
+        ) => {
+          await memFs.mkdir("/repo/output", { recursive: true });
+          await memFs.writeFile(filePath, contents, options);
+        },
+        exists: async (filePath: string) => {
+          try {
+            await memFs.access(filePath);
+            return true;
+          } catch {
+            return false;
+          }
+        },
+        lstat: (filePath: string) => memFs.lstat(filePath) as never,
+        rename: async (fromPath: string, toPath: string) => {
+          await memFs.rename(fromPath, toPath);
+        },
+        unlink: async (filePath: string) => {
+          await memFs.unlink(filePath);
+        }
+      },
+      env: {
+        get: (key: string) => (key === "INIT_CWD" ? "/repo" : undefined)
+      }
+    });
+
+    const [, request] = fetch.mock.calls[0] ?? [];
+    const form = request?.body as FormData;
+    const file = form.get("audio");
+
+    expect(request?.method).toBe("POST");
+    expect(form.get("preset")).toBe("voice");
+    expect(file).toBeInstanceOf(Blob);
+    expect((file as { name?: string }).name).toBe("voice.wav");
+    expect(Buffer.from(await (file as Blob).arrayBuffer()).toString("utf8")).toBe("input audio");
+    expect(await memFs.readFile("/repo/output/clean.wav")).toEqual(Buffer.from([0, 1, 2, 255]));
+    expect(result).toEqual({
+      output: "/repo/output/clean.wav",
+      byteLength: 4,
+      contentType: "audio/wav"
+    });
   });
 
   it("preserves additionalProperties: false on runtime MCP params schemas", async () => {

@@ -1,5 +1,6 @@
+import path from "node:path";
 import { text as designText } from "toolcraft-design";
-import { UserError } from "toolcraft";
+import { UserError, type HandlerEnv, type HandlerFs } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";
 import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
@@ -54,6 +55,16 @@ export interface BinaryHttpResponse {
   byteLength: number;
   data: string;
 }
+
+interface MultipartFileInput {
+  data: string;
+  filename: string;
+}
+
+type RuntimeFileSystem = Pick<HandlerFs, "exists" | "readFile" | "writeFile">;
+type RuntimeEnvironment = Pick<HandlerEnv, "get">;
+
+type RequestShape = Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "headers" | "body">>;
 
 export class HttpError extends Error {
   readonly status: number;
@@ -264,6 +275,91 @@ export async function requestJson<TResult = unknown>(
   });
 }
 
+export async function prepareMultipartFileInputs(
+  requestShape: RequestShape,
+  options: {
+    bodyMode?: HttpRequestOptions["bodyMode"];
+    multipartBinaryFields?: readonly string[];
+    fs?: RuntimeFileSystem;
+    env?: RuntimeEnvironment;
+  }
+): Promise<RequestShape> {
+  if (
+    options.bodyMode !== "multipart" ||
+    options.multipartBinaryFields === undefined ||
+    options.multipartBinaryFields.length === 0 ||
+    options.fs === undefined ||
+    options.env === undefined ||
+    requestShape.body === undefined
+  ) {
+    return requestShape;
+  }
+
+  if (
+    requestShape.body === null ||
+    typeof requestShape.body !== "object" ||
+    Array.isArray(requestShape.body)
+  ) {
+    return requestShape;
+  }
+
+  const body = { ...(requestShape.body as Record<string, unknown>) };
+
+  for (const field of options.multipartBinaryFields) {
+    const value = body[field];
+
+    if (typeof value !== "string") {
+      continue;
+    }
+
+    const filePath = resolveUserPath(value, options.env);
+
+    if (!(await options.fs.exists(filePath))) {
+      continue;
+    }
+
+    body[field] = {
+      data: await options.fs.readFile(filePath, "base64"),
+      filename: path.basename(filePath) || field
+    } satisfies MultipartFileInput;
+  }
+
+  return {
+    ...requestShape,
+    body
+  };
+}
+
+export async function writeBinaryResponseOutput(
+  result: unknown,
+  outputPath: unknown,
+  runtime: {
+    fs?: RuntimeFileSystem;
+    env?: RuntimeEnvironment;
+  }
+): Promise<unknown> {
+  if (outputPath === undefined) {
+    return result;
+  }
+
+  if (runtime.fs === undefined || runtime.env === undefined) {
+    throw new UserError("Cannot write binary output without a Toolcraft file runtime.");
+  }
+
+  if (!isBinaryHttpResponse(result)) {
+    throw new UserError("Cannot write an empty binary response to an output path.");
+  }
+
+  const resolvedOutputPath = resolveUserPath(String(outputPath), runtime.env);
+  await runtime.fs.writeFile(resolvedOutputPath, result.data, { encoding: "base64" });
+
+  return {
+    output: resolvedOutputPath,
+    byteLength: result.byteLength,
+    contentType: result.contentType
+  };
+}
+
 function buildRequestUrl(options: HttpRequestOptions): string {
   const resolvedPath = substitutePathParams(options.path, options.pathParams);
   const baseUrl = new URL(options.baseUrl);
@@ -359,6 +455,27 @@ function decodeBase64Body(body: unknown): ArrayBuffer {
   return Uint8Array.from(Buffer.from(body, "base64")).buffer;
 }
 
+function decodeMultipartBinaryValue(value: unknown, fallbackFilename: string): MultipartFileInput {
+  if (typeof value === "string") {
+    return {
+      data: value,
+      filename: fallbackFilename
+    };
+  }
+
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    typeof (value as Partial<MultipartFileInput>).data === "string" &&
+    typeof (value as Partial<MultipartFileInput>).filename === "string"
+  ) {
+    return value as MultipartFileInput;
+  }
+
+  throw new UserError("Multipart binary request fields must be base64 strings or resolved file inputs.");
+}
+
 function serializeMultipartBody(body: unknown, binaryFields: readonly string[] = []): FormData {
   if (body === null || typeof body !== "object" || Array.isArray(body)) {
     throw new UserError("Multipart request bodies must be objects.");
@@ -369,7 +486,8 @@ function serializeMultipartBody(body: unknown, binaryFields: readonly string[] =
   for (const [key, value] of Object.entries(body)) {
     if (value === undefined) continue;
     if (binary.has(key)) {
-      form.append(key, new Blob([decodeBase64Body(value)]), key);
+      const file = decodeMultipartBinaryValue(value, key);
+      form.append(key, new Blob([decodeBase64Body(file.data)]), file.filename);
     } else if (Array.isArray(value)) {
       for (const item of value) form.append(key, String(item));
     } else {
@@ -377,6 +495,25 @@ function serializeMultipartBody(body: unknown, binaryFields: readonly string[] =
     }
   }
   return form;
+}
+
+function resolveUserPath(userPath: string, env: RuntimeEnvironment): string {
+  if (path.isAbsolute(userPath)) {
+    return path.normalize(userPath);
+  }
+
+  return path.resolve(env.get("INIT_CWD") ?? process.cwd(), userPath);
+}
+
+function isBinaryHttpResponse(value: unknown): value is BinaryHttpResponse {
+  return (
+    value !== null &&
+    typeof value === "object" &&
+    (value as Partial<BinaryHttpResponse>).encoding === "base64" &&
+    typeof (value as Partial<BinaryHttpResponse>).data === "string" &&
+    typeof (value as Partial<BinaryHttpResponse>).byteLength === "number" &&
+    typeof (value as Partial<BinaryHttpResponse>).contentType === "string"
+  );
 }
 
 function isQueryObject(value: QueryValue): value is QueryObject {

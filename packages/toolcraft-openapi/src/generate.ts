@@ -73,6 +73,16 @@ const TRANSPORT_PARAMS = [
   }
 ] as const satisfies ReadonlyArray<GeneratedParam>;
 
+const BINARY_OUTPUT_PARAM = {
+  paramName: "output",
+  sourceName: "output",
+  location: "transport",
+  description: "Write a binary response body to this local file path.",
+  scope: ["cli"],
+  optional: true,
+  definition: { kind: "string" }
+} as const satisfies GeneratedParam;
+
 export interface OpenApiDocument {
   openapi?: string;
   info?: {
@@ -545,7 +555,7 @@ function createGeneratedCommand(
   const response = resolveSuccessResponse(document, operation, operationId);
   const noun = createSafeGeneratedNoun(deriveNoun(operation, entry.path, operationId));
   const verb = deriveVerb(entry.method, entry.path, operation, operationId, noun);
-  const collected = collectParams(document, entry, operation, operationId, auth);
+  const collected = collectParams(document, entry, operation, operationId, auth, response.mode);
   const methodDefaults = METHOD_DEFAULTS[entry.method];
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
   const filePath = `${noun}/${verb}.ts`;
@@ -608,8 +618,11 @@ function collectParams(
   entry: OperationEntry,
   operation: OpenApiOperationObject,
   operationId: string,
-  auth: "required" | "none"
+  auth: "required" | "none",
+  responseMode: "json" | "text" | "binary"
 ): CollectedCommandParams {
+  const transportParams =
+    responseMode === "binary" ? [...TRANSPORT_PARAMS, BINARY_OUTPUT_PARAM] : TRANSPORT_PARAMS;
   const operationParams = collectOperationParameters(
     document,
     entry.path,
@@ -626,9 +639,9 @@ function collectParams(
   );
   const qualifiedRequestBodyParams = qualifyBodyParamCollisions(
     requestBodyParams,
-    new Set([...operationParams.params, ...TRANSPORT_PARAMS].map((param) => param.paramName))
+    new Set([...operationParams.params, ...transportParams].map((param) => param.paramName))
   );
-  const params = [...operationParams.params, ...qualifiedRequestBodyParams.params, ...TRANSPORT_PARAMS];
+  const params = [...operationParams.params, ...qualifiedRequestBodyParams.params, ...transportParams];
   const deduped = new Map<string, GeneratedParam>();
 
   for (const param of params) {
@@ -2330,6 +2343,18 @@ function createCommandFile(options: {
   confirm: boolean;
 }): string {
   const requiresUserError = options.preflightBlocks.length > 0;
+  const usesMultipartFileInputs =
+    options.bodyMode === "multipart" &&
+    options.multipartBinaryFields !== undefined &&
+    options.multipartBinaryFields.length > 0;
+  const usesBinaryOutput = options.responseMode === "binary";
+  const usesRequestShapeVariable = usesMultipartFileInputs || usesBinaryOutput;
+  const openApiImports = [
+    "requestJson",
+    "defineApiCommand",
+    ...(usesMultipartFileInputs ? ["prepareMultipartFileInputs"] : []),
+    ...(usesBinaryOutput ? ["writeBinaryResponseOutput"] : [])
+  ];
   const lines = createGeneratedTypeScriptFileLines([
     `spec-sha: ${options.specSha}`,
     `operation-id: ${options.operationId}`
@@ -2338,7 +2363,7 @@ function createCommandFile(options: {
     requiresUserError
       ? 'import { S, UserError } from "toolcraft";'
       : 'import { S } from "toolcraft";',
-    'import { requestJson, defineApiCommand } from "toolcraft-openapi";',
+    `import { ${openApiImports.join(", ")} } from "toolcraft-openapi";`,
     "",
     `export const ${options.exportName} = defineApiCommand({`,
     `  name: ${JSON.stringify(options.verb)},`
@@ -2359,9 +2384,34 @@ function createCommandFile(options: {
       ? "  }, { additionalProperties: false }),"
       : "  }),"
   );
-  lines.push("  handler: async ({ params, baseUrl, tokenSource, fetch }) => {");
+  lines.push(
+    usesRequestShapeVariable
+      ? "  handler: async ({ params, baseUrl, tokenSource, fetch, fs, env }) => {"
+      : "  handler: async ({ params, baseUrl, tokenSource, fetch }) => {"
+  );
   lines.push(...options.preflightBlocks.flatMap((block) => renderPreflightBlock(block)));
-  lines.push("    return requestJson({");
+  if (usesRequestShapeVariable) {
+    lines.push("    const requestShape = {");
+    lines.push(
+      ...renderRequestShape(options.requestFields, options.sectionRenders, options.optionalSections)
+    );
+    lines.push("    };");
+
+    if (usesMultipartFileInputs) {
+      lines.push("    const preparedRequestShape = await prepareMultipartFileInputs(requestShape, {");
+      lines.push('      bodyMode: "multipart",');
+      lines.push(`      multipartBinaryFields: ${JSON.stringify(options.multipartBinaryFields)},`);
+      lines.push("      fs,");
+      lines.push("      env,");
+      lines.push("    });");
+    } else {
+      lines.push("    const preparedRequestShape = requestShape;");
+    }
+
+    lines.push("    const result = await requestJson({");
+  } else {
+    lines.push("    return requestJson({");
+  }
   lines.push(
     options.baseUrl === undefined
       ? "      baseUrl,"
@@ -2395,10 +2445,17 @@ function createCommandFile(options: {
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
-  lines.push(
-    ...renderRequestShape(options.requestFields, options.sectionRenders, options.optionalSections)
-  );
+  if (usesRequestShapeVariable) {
+    lines.push("      ...preparedRequestShape,");
+  } else {
+    lines.push(
+      ...renderRequestShape(options.requestFields, options.sectionRenders, options.optionalSections)
+    );
+  }
   lines.push("    });");
+  if (usesBinaryOutput) {
+    lines.push("    return writeBinaryResponseOutput(result, params.output, { fs, env });");
+  }
   lines.push("  },");
   lines.push("});");
   lines.push("");

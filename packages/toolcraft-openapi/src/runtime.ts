@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { defineCommand, defineGroup, S, type AnySchema, type CommandNode } from "toolcraft";
+import { defineCommand, defineGroup, S, type AnySchema, type CommandNode, type HandlerEnv, type HandlerFs } from "toolcraft";
 import { defineClient, type DefineClientOptions, type DefinedClient, type OpenApiClientServices } from "./define-client.js";
 import {
   collectSchemaOptionEntries,
@@ -10,7 +10,12 @@ import {
   type OpenApiDocument
 } from "./generate.js";
 import { groupByNoun } from "./group-by-noun.js";
-import { requestJson, type HttpRequestOptions } from "./http.js";
+import {
+  prepareMultipartFileInputs,
+  requestJson,
+  writeBinaryResponseOutput,
+  type HttpRequestOptions
+} from "./http.js";
 import { buildRequestShape, executePreflightBlocks } from "./interpreter.js";
 import { parseOpenApiDocument, readOpenApiSourceText, type OpenApiSourceFileSystem } from "./spec-source.js";
 
@@ -30,6 +35,8 @@ type GeneratedCommandHandler = (ctx: {
   baseUrl: string;
   tokenSource: OpenApiClientServices["tokenSource"];
   fetch?: typeof globalThis.fetch;
+  fs?: HandlerFs;
+  env?: HandlerEnv;
 }) => Promise<unknown>;
 const RUNTIME_COMMAND_SCOPE = ["cli", "mcp", "sdk"] as ["cli", "mcp", "sdk"];
 
@@ -108,7 +115,7 @@ function createRuntimeCommand(command: GeneratedCommand) {
 }
 
 function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandler {
-  return async ({ params, baseUrl, tokenSource, fetch }) => {
+  return async ({ params, baseUrl, tokenSource, fetch, fs, env }) => {
     const resolvedValues = executePreflightBlocks(command.preflightBlocks, params);
     const requestShape = buildRequestShape(
       command.requestFields,
@@ -117,8 +124,14 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       params,
       resolvedValues
     ) as Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "headers" | "body">>;
+    const preparedRequestShape = await prepareMultipartFileInputs(requestShape, {
+      bodyMode: command.bodyMode,
+      multipartBinaryFields: command.multipartBinaryFields,
+      fs,
+      env
+    });
 
-    return requestJson({
+    const result = await requestJson({
       baseUrl: command.baseUrl ?? baseUrl,
       path: command.path,
       method: command.method,
@@ -132,8 +145,14 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       fetch,
       dryRun: params.dryRun as boolean | undefined,
       verbose: params.verbose as boolean | undefined,
-      ...requestShape
+      ...preparedRequestShape
     });
+
+    return writeBinaryResponseOutput(
+      result,
+      command.responseMode === "binary" ? params.output : undefined,
+      { fs, env }
+    );
   };
 }
 

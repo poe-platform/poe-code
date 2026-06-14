@@ -30,8 +30,10 @@ describe("toolcraft-openapi", () => {
       "generate",
       "inspectOpenApiDocument",
       "inspectOpenApiSource",
+      "prepareMultipartFileInputs",
       "renderOpenApiInspection",
-      "requestJson"
+      "requestJson",
+      "writeBinaryResponseOutput"
     ]);
   });
 

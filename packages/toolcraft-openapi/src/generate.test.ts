@@ -3455,6 +3455,8 @@ describe("generate", () => {
     const command = files.find((file) => file.path === "bots/archive-bot.ts")?.contents;
     expect(command).toContain('responseMode: "binary",');
     expect(command).toContain('accept: "application/octet-stream",');
+    expect(command).toContain("output: S.Optional(S.String(");
+    expect(command).toContain("writeBinaryResponseOutput(result, params.output, { fs, env });");
   });
 
   it("allows wildcard error response ranges when success responses stay JSON", () => {
@@ -3725,6 +3727,7 @@ describe("generate", () => {
     const command = files.find((file) => file.path === "uploads/upload-file.ts")?.contents;
     expect(command).toContain('bodyMode: "multipart",');
     expect(command).toContain('multipartBinaryFields: ["file"],');
+    expect(command).toContain("prepareMultipartFileInputs(requestShape, {");
     expect(command).toContain('file: S.String(');
     expect(command).toContain('description: S.Optional(S.String(');
     expect(command).toContain('placement: S.Optional(S.Number(');

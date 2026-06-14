@@ -17,7 +17,12 @@ export type { DefineClientOptions, DefinedClient, OpenApiClientServices } from "
 export type { AuthProvider, CommandContributor, TokenSource } from "./auth/types.js";
 export { bearerTokenAuth } from "./auth/bearer-token-auth.js";
 export type { BearerTokenAuthOptions } from "./auth/bearer-token-auth.js";
-export { HttpError, requestJson } from "./http.js";
+export {
+  HttpError,
+  prepareMultipartFileInputs,
+  requestJson,
+  writeBinaryResponseOutput
+} from "./http.js";
 export type {
   BinaryHttpResponse,
   HttpErrorRequest,

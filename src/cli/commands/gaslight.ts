@@ -8,6 +8,7 @@ import {
   GASLIGHT_CONFIG_EXAMPLE,
   ingestGaslight,
   runGaslight,
+  type GaslightEvent,
   type GaslightIngestEvent
 } from "../../sdk/gaslight.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
@@ -258,6 +259,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         optionPlanPaths: options.plans
       });
       const { agent, model } = await resolveAgentAndModel(program, container, options);
+      const logger = container.loggerFactory.create();
 
       intro("gaslight");
       const result = await runGaslight({
@@ -269,6 +271,11 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
         fs: container.fs,
+        onEvent(event: GaslightEvent) {
+          if (event.type === "round.started") {
+            logger.resolved("Prompt", event.prompt);
+          }
+        },
         spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
           await sdkSpawn.pretty(spawnAgent, spawnOptions)
       });

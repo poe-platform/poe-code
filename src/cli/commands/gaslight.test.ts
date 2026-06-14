@@ -185,6 +185,46 @@ describe("gaslight command", () => {
     });
   });
 
+  it("prints each gaslight round prompt before spawning", async () => {
+    const logger = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(vi.fn(), logger));
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    const options = runGaslightMock.mock.calls[0]?.[0];
+    options.onEvent({
+      type: "round.started",
+      round: 1,
+      total: 2,
+      prompt: "Implement docs/plans/a.md",
+      planPath: "docs/plans/a.md",
+      planIndex: 1,
+      totalPlans: 1
+    });
+    options.onEvent({
+      type: "round.started",
+      round: 2,
+      total: 2,
+      prompt: "Check it",
+      planPath: "docs/plans/a.md",
+      planIndex: 1,
+      totalPlans: 1
+    });
+
+    expect(logger).toHaveBeenCalledWith("Prompt: Implement docs/plans/a.md");
+    expect(logger).toHaveBeenCalledWith("Prompt: Check it");
+  });
+
   it("rejects mixing positional plan with --plans", async () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());

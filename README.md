@@ -17,7 +17,7 @@ Start a coding session routing all your `claude` calls to Poe
 
 ```bash
 npx poe-code@latest wrap claude
-# Also available: codex, cursor, opencode, kimi, goose
+# Also available: codex, opencode, kimi, goose
 ```
 
 or
@@ -31,7 +31,7 @@ This updates the provider’s config files and continue using your tools normall
 npx poe-code@latest configure
 
 # Setup a specific agent
-npx poe-code@latest configure codex # (or claude, cursor, opencode, kimi, goose)
+npx poe-code@latest configure codex # (or claude, opencode, kimi, goose)
 ```
 
 ### Unconfigure (remove overrides)

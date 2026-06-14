@@ -1145,7 +1145,10 @@ describe("runPoeCommand", () => {
     await runPoeCommand({
       factory: createFactory(env),
       openSpec: createOpenSpec({
-        execution: { activityTimeoutMs: 100, wrapForLogTee: false }
+        // Only the presence of activityTimeoutMs drives killProcessGroup; use a
+        // value large enough that the real timer cannot fire before the mock run
+        // resolves, even under heavy parallel load.
+        execution: { activityTimeoutMs: 60_000, wrapForLogTee: false }
       }),
       detach: false,
       state

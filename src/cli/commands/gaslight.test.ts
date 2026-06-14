@@ -4,8 +4,10 @@ import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 
-const { ingestGaslightMock, runGaslightMock, selectMock } = vi.hoisted(() => ({
+const { ingestGaslightMock, introMock, outroMock, runGaslightMock, selectMock } = vi.hoisted(() => ({
   ingestGaslightMock: vi.fn(),
+  introMock: vi.fn(),
+  outroMock: vi.fn(),
   runGaslightMock: vi.fn(),
   selectMock: vi.fn()
 }));
@@ -20,8 +22,8 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   const actual = await importOriginal<typeof import("toolcraft-design")>();
   return {
     ...actual,
-    intro: vi.fn(),
-    outro: vi.fn(),
+    intro: introMock,
+    outro: outroMock,
     isCancel: vi.fn(() => false),
     select: selectMock,
     withSpinner: vi.fn(async ({ fn }: { fn: () => Promise<unknown> }) => await fn())
@@ -39,7 +41,7 @@ function createProgram(): Command {
     .option("--verbose");
 }
 
-function createContainer(prompts = vi.fn().mockResolvedValue({})) {
+function createContainer(prompts = vi.fn().mockResolvedValue({}), logger = vi.fn()) {
   const volume = Volume.fromJSON({
     "/repo/docs/plans/a.md": "# A",
     "/repo/docs/plans/b.md": "# B"
@@ -48,7 +50,7 @@ function createContainer(prompts = vi.fn().mockResolvedValue({})) {
     fs: createFsFromVolume(volume).promises as unknown as FileSystem,
     prompts,
     env: { cwd: "/repo", homeDir: "/home/test" },
-    logger: () => {}
+    logger
   });
 }
 
@@ -60,6 +62,8 @@ describe("gaslight command", () => {
       promptCount: 3,
       traceCount: 2
     });
+    introMock.mockClear();
+    outroMock.mockClear();
     runGaslightMock.mockReset().mockResolvedValue({ rounds: [{ prompt: "x", summary: "done" }] });
     selectMock.mockReset();
   });
@@ -251,5 +255,49 @@ describe("gaslight command", () => {
         homeDir: "/home/test"
       })
     );
+  });
+
+  it("keeps gaslight ingest completion as a single closing line", async () => {
+    const logger = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(vi.fn(), logger));
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "ingest",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(outroMock).toHaveBeenCalledWith("Wrote .poe-code/codex-gaslight.yaml");
+    expect(outroMock.mock.calls[0]?.[0]).not.toContain("\n");
+    expect(logger).not.toHaveBeenCalledWith(expect.stringContaining("Extracted"));
+    expect(logger).not.toHaveBeenCalledWith(expect.stringContaining("Analysis input"));
+  });
+
+  it("reports kept gaslight ingest data before the closing line", async () => {
+    const logger = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(vi.fn(), logger));
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "ingest",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--keep-data",
+      ".poe-code/prompts.md"
+    ]);
+
+    expect(logger).toHaveBeenCalledWith("Analysis input: /tmp/prompts.md");
+    expect(outroMock).toHaveBeenCalledWith("Wrote .poe-code/codex-gaslight.yaml");
   });
 });

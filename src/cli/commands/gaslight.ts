@@ -276,7 +276,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
       const { agent, model } = await resolveAgentAndModel(program, container, options);
       let extractedPrompts = 0;
       let extractedTraces = 0;
-      let dataPath = "";
+      const logger = container.loggerFactory.create();
 
       intro("gaslight ingest");
       const result = await ingestGaslight({
@@ -296,9 +296,6 @@ export function registerGaslightCommand(program: Command, container: CliContaine
             extractedPrompts = event.prompts;
             extractedTraces = event.traces;
           }
-          if (event.type === "analysis.started") {
-            dataPath = event.dataPath;
-          }
         },
         spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
           await withSpinner({
@@ -309,15 +306,10 @@ export function registerGaslightCommand(program: Command, container: CliContaine
               `Analyzed ${extractedPrompts} prompts from ${extractedTraces} traces with ${spawnAgent}`
           })
       });
-      outro(
-        [
-          `Wrote ${result.outputPath}`,
-          `Extracted ${result.promptCount} human prompts from ${result.traceCount} traces`,
-          options.keepData
-            ? `Analysis input: ${dataPath || result.dataPath}`
-            : "Analysis input: removed after analysis"
-        ].join("\n")
-      );
+      if (options.keepData) {
+        logger.resolved("Analysis input", result.dataPath);
+      }
+      outro(`Wrote ${result.outputPath}`);
     });
 
   gaslight

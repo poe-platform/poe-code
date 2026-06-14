@@ -144,6 +144,7 @@ export interface CommandConfig<
   aliases?: string[];
   positional?: string[];
   params: TParamsSchema;
+  result?: ObjectSchema<any>;
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
@@ -165,6 +166,7 @@ export interface Command<
   aliases: string[];
   positional: string[];
   params: TParamsSchema;
+  result?: ObjectSchema<any>;
   secrets: SecretDeclarations;
   scope: Scope[];
   confirm: boolean;
@@ -267,6 +269,7 @@ type TypedGroupMetadata<
 
 interface InternalCommandConfig {
   scope?: Scope[];
+  result?: ObjectSchema<any>;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
@@ -713,6 +716,7 @@ function createBaseCommand<
     aliases: [...(config.aliases ?? [])],
     positional: [...(config.positional ?? [])],
     params: config.params,
+    result: config.result,
     secrets: cloneSecrets(config.secrets),
     scope: resolveCommandScope(config.scope, undefined),
     confirm: config.confirm ?? false,
@@ -725,6 +729,7 @@ function createBaseCommand<
   Object.defineProperty(command, commandConfigSymbol, {
     value: {
       scope: cloneScope(config.scope),
+      result: config.result,
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
       requires: cloneRequires(config.requires),
@@ -800,6 +805,7 @@ function materializeCommand<
     aliases: [...command.aliases],
     positional: [...command.positional],
     params: command.params,
+    result: internal.result,
     secrets: mergeSecrets(inherited.secrets, internal.secrets),
     scope: resolveCommandScope(internal.scope, inherited.scope),
     confirm: command.confirm,
@@ -812,6 +818,7 @@ function materializeCommand<
   Object.defineProperty(materialized, commandConfigSymbol, {
     value: {
       scope: cloneScope(internal.scope),
+      result: internal.result,
       humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
       requires: cloneRequires(internal.requires),

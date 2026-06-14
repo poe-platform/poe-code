@@ -27,6 +27,9 @@ const WORKSPACE_COMMAND_KILL_GRACE_MS = 1_000;
 
 export function createSupervisor(options: SupervisorOptions): Supervisor {
   const { spec } = options;
+  const readyChecker =
+    (options as SupervisorOptions & { readyChecker?: typeof waitForReady }).readyChecker ??
+    waitForReady;
   assertValidManagedProcessId(spec.id);
   assertValidRestartConfig(spec);
   const runner = resolveRunner(options);
@@ -141,7 +144,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     const stdoutPump = pipeOutput(nextHandle.stdout, "stdout", logWriter.write, logSource);
     const stderrPump = pipeOutput(nextHandle.stderr, "stderr", logWriter.write, logSource);
     const outputSettled = Promise.all([stdoutPump, stderrPump]).then(() => undefined);
-    const readiness = spec.readyCheck === undefined ? null : waitForReady(resolveReadyCheck(spec.readyCheck, spec), {
+    const readiness = spec.readyCheck === undefined ? null : readyChecker(resolveReadyCheck(spec.readyCheck, spec), {
       onLog: logSource,
       signal: activeReadyController?.signal
     });

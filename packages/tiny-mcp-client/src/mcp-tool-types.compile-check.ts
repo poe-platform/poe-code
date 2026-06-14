@@ -28,6 +28,13 @@ const tool: Tool = {
       locale: { type: "string" },
     },
   },
+  outputSchema: {
+    type: "object",
+    properties: {
+      word: { type: "string" },
+    },
+    required: ["word"],
+  },
   annotations,
 };
 
@@ -74,6 +81,9 @@ const contentItems: ContentItem[] = [
 
 const callToolResult: CallToolResult = {
   content: contentItems,
+  structuredContent: {
+    word: "quotidian",
+  },
 };
 
 const callToolErrorResult: CallToolResult = {

@@ -12,6 +12,7 @@ type MockTool = {
   name: string;
   description?: string;
   inputSchema: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
 };
 
 type MockClientPlan = {
@@ -501,6 +502,59 @@ describe("resolveMcpProxies", () => {
       name: "create_issue",
       arguments: { title: "Bug" },
     });
+  });
+
+  it("rejects typed upstream tool results that omit structuredContent", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({
+      name: "root",
+      children: [group],
+    });
+
+    vol.fromJSON(
+      {
+        [getCachePath()]: JSON.stringify({
+          $schema:
+            "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
+          version: 1,
+          upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: mockConfigFingerprint,
+          fetchedAt: "2026-04-26T12:00:00.000Z",
+          tools: [
+            {
+              ...tool("create_issue"),
+              outputSchema: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                },
+                required: ["id"],
+                additionalProperties: false,
+              },
+            },
+          ],
+        }),
+      },
+      "/"
+    );
+    setClientPlans({ callToolResult: { content: [{ type: "text", text: "{\"id\":\"1\"}" }] } });
+
+    await resolveMcpProxies(root);
+
+    const proxyGroup = root.children[0];
+    expect(proxyGroup?.kind).toBe("group");
+    if (proxyGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+    const createCommand = proxyGroup.children[0];
+    expect(createCommand?.kind).toBe("command");
+    if (createCommand?.kind !== "command") {
+      throw new Error("Expected create command.");
+    }
+
+    await expect(createCommand.handler(createContext({ title: "Bug" }) as never)).rejects.toThrow(
+      'upstream tool "create_issue" declared outputSchema but returned no structuredContent'
+    );
   });
 
   it("renames tools in place when the rename target has no dots", async () => {

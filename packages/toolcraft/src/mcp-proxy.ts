@@ -142,6 +142,13 @@ function createProxyCommand(
   if (params.kind !== "object") {
     throw new Error(`upstream tool "${tool.name}" must define an object input schema`);
   }
+  const result = tool.outputSchema === undefined
+    ? undefined
+    : convertJsonSchema(tool.outputSchema as Parameters<typeof convertJsonSchema>[0]);
+
+  if (result !== undefined && result.kind !== "object") {
+    throw new Error(`upstream tool "${tool.name}" must define an object output schema`);
+  }
 
   return markProxyNode({
     kind: "command",
@@ -150,16 +157,26 @@ function createProxyCommand(
     aliases: [],
     positional: [],
     params,
+    ...(result === undefined ? {} : { result }),
     secrets: cloneSecrets(parent.secrets),
     scope: cloneScope(parent.scope) ?? (["cli", "sdk"] satisfies Scope[]),
     confirm: false,
     requires: parent.requires,
     handler: async (ctx) => {
       const client = await ensureConnected(connection);
-      return client.callTool({
+      const toolResult = await client.callTool({
         name: tool.name,
         arguments: ctx.params as Record<string, unknown>,
       });
+      if (result === undefined) {
+        return toolResult;
+      }
+      if (toolResult.structuredContent === undefined) {
+        throw new Error(
+          `upstream tool "${tool.name}" declared outputSchema but returned no structuredContent`
+        );
+      }
+      return toolResult.structuredContent;
     },
     render: undefined,
   });

@@ -25,6 +25,7 @@ import type {
   JSONRPCRequest,
   JSONRPCResponse,
   JSONRPCNotification,
+  JSONSchemaProperty,
 } from "./types.js";
 import { JSON_RPC_ERROR_CODES, ToolError } from "./types.js";
 import {
@@ -33,7 +34,7 @@ import {
   formatErrorResponse,
 } from "./jsonrpc.js";
 import type { TypedSchema } from "./schema.js";
-import { toContentBlocks } from "./content/convert.js";
+import { toContentBlocks, type ToolReturn } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
 const SUPPORTED_PROTOCOL_VERSIONS = new Set([
@@ -43,15 +44,16 @@ const SUPPORTED_PROTOCOL_VERSIONS = new Set([
 ]);
 
 export interface Server {
-  tool<T>(
+  tool<TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<T>,
-    handler: ToolHandler<T>
+    inputSchema: TypedSchema<TIn>,
+    handler: ToolHandler<TIn, TOut>,
+    outputSchema?: TypedSchema<TOut>
   ): Server;
-  registerTool<T>(
-    definition: Omit<ToolDefinition<T>, "handler">,
-    handler: ToolHandler<T>
+  registerTool<TIn, TOut = never>(
+    definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
+    handler: ToolHandler<TIn, TOut>
   ): Server;
   prompt(definition: Prompt, handler: PromptHandler): Server;
   resource(definition: Resource, handler: ResourceHandler): Server;
@@ -238,18 +240,12 @@ export function createServer(options: ServerOptions): Server {
 
       try {
         const handlerResult = await tool.handler(toolArgs);
-        if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
-          throw new Error("Invalid tool result");
-        }
-        const result: CallToolResult = isCallToolResult(handlerResult)
-          ? handlerResult
-          : { content: toContentBlocks(handlerResult) };
-        if (
-          tool.outputSchema !== undefined
-          && (result.structuredContent === undefined
-            || !jsonSchemaValidator.validate(tool.outputSchema, result.structuredContent))
-        ) {
-          throw new Error("Invalid structured tool result");
+        const result = normalizeToolResult(handlerResult, tool.outputSchema);
+        if (tool.outputSchema !== undefined && !jsonSchemaValidator.validate(tool.outputSchema, result.structuredContent)) {
+          throw new ToolError(
+            JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+            "Invalid structured tool result"
+          );
         }
         return { result };
       } catch (err) {
@@ -478,25 +474,33 @@ export function createServer(options: ServerOptions): Server {
   };
 
   const server: Server = {
-    tool<T>(
+    tool<TIn, TOut = never>(
       name: string,
       description: string,
-      inputSchema: TypedSchema<T>,
-      handler: ToolHandler<T>
+      inputSchema: TypedSchema<TIn>,
+      handler: ToolHandler<TIn, TOut>,
+      outputSchema?: TypedSchema<TOut>
     ): Server {
+      if (outputSchema !== undefined) {
+        assertSupportedOutputSchema(outputSchema);
+      }
       tools.set(name, {
         name,
         description,
         inputSchema: inputSchema as JSONSchema,
+        ...(outputSchema === undefined ? {} : { outputSchema: outputSchema as JSONSchema }),
         handler: handler as ToolHandler,
       });
       return server;
     },
 
-    registerTool<T>(
-      definition: Omit<ToolDefinition<T>, "handler">,
-      handler: ToolHandler<T>
+    registerTool<TIn, TOut = never>(
+      definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
+      handler: ToolHandler<TIn, TOut>
     ): Server {
+      if (definition.outputSchema !== undefined) {
+        assertSupportedOutputSchema(definition.outputSchema);
+      }
       tools.set(definition.name, {
         ...definition,
         handler: handler as ToolHandler,
@@ -787,7 +791,148 @@ function matchesUriTemplate(template: string, uri: string): boolean {
 }
 
 function isCallToolResult(value: unknown): value is CallToolResult {
-  return hasContentArray(value) && value.content.every(isContentItem);
+  if (!hasContentArray(value) || !value.content.every(isContentItem)) {
+    return false;
+  }
+
+  if (
+    hasOwnProperty(value, "structuredContent")
+    && value.structuredContent !== undefined
+    && !isJsonObject(value.structuredContent)
+  ) {
+    return false;
+  }
+
+  return !(
+    hasOwnProperty(value, "isError")
+    && value.isError !== undefined
+    && typeof value.isError !== "boolean"
+  );
+}
+
+function normalizeToolResult(
+  handlerResult: unknown,
+  outputSchema: JSONSchema | undefined
+): CallToolResult {
+  if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
+    throw new Error("Invalid tool result");
+  }
+
+  if (outputSchema === undefined) {
+    return isCallToolResult(handlerResult)
+      ? handlerResult
+      : { content: toContentBlocks(handlerResult as ToolReturn) };
+  }
+
+  const structuredContent = isCallToolResult(handlerResult)
+    ? handlerResult.structuredContent
+    : handlerResult;
+
+  if (!isJsonObject(structuredContent)) {
+    throw new ToolError(
+      JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+      "Structured tool result must be an object"
+    );
+  }
+
+  return {
+    content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+    ...(isCallToolResult(handlerResult) && handlerResult.isError !== undefined
+      ? { isError: handlerResult.isError }
+      : {}),
+    structuredContent,
+  };
+}
+
+function assertSupportedOutputSchema(schema: JSONSchema): void {
+  assertObjectRootSchema(schema, "outputSchema");
+  assertSupportedJsonSchema(schema, "outputSchema");
+}
+
+function assertObjectRootSchema(schema: JSONSchema, path: string): void {
+  if (schema.type !== "object") {
+    throw new Error(`${path} root type must be "object"`);
+  }
+}
+
+function assertSupportedJsonSchema(schema: JSONSchemaProperty, path: string): void {
+  for (const keyword of ["anyOf", "allOf", "not", "if", "then", "else", "contains", "prefixItems"]) {
+    if (schema[keyword] !== undefined) {
+      throw new Error(`${path} uses unsupported keyword "${keyword}"`);
+    }
+  }
+
+  const type = schema.type;
+  if (Array.isArray(type)) {
+    const supported = new Set(["string", "number", "integer", "boolean", "object", "array", "null"]);
+    for (const item of type) {
+      if (!supported.has(item)) {
+        throw new Error(`${path} uses unsupported type "${item}"`);
+      }
+    }
+  } else if (
+    type !== undefined &&
+    type !== "string" &&
+    type !== "number" &&
+    type !== "integer" &&
+    type !== "boolean" &&
+    type !== "object" &&
+    type !== "array"
+  ) {
+    throw new Error(`${path} uses unsupported type "${type}"`);
+  }
+
+  if (isJsonObject(schema.properties)) {
+    for (const [key, child] of Object.entries(schema.properties)) {
+      if (isJsonObject(child)) {
+        assertSupportedJsonSchema(child as JSONSchemaProperty, `${path}.properties.${key}`);
+      } else {
+        throw new Error(`${path}.properties.${key} must be an object schema`);
+      }
+    }
+  } else if (schema.properties !== undefined) {
+    throw new Error(`${path}.properties must be an object`);
+  }
+
+  const additionalProperties = schema.additionalProperties;
+  if (typeof additionalProperties === "object" && additionalProperties !== null) {
+    if (Array.isArray(additionalProperties)) {
+      throw new Error(`${path}.additionalProperties must be an object schema or boolean`);
+    }
+    assertSupportedJsonSchema(additionalProperties as JSONSchemaProperty, `${path}.additionalProperties`);
+  } else if (
+    additionalProperties !== undefined
+    && typeof additionalProperties !== "boolean"
+  ) {
+    throw new Error(`${path}.additionalProperties must be an object schema or boolean`);
+  }
+
+  const items = schema.items;
+  if (Array.isArray(items)) {
+    throw new Error(`${path}.items uses unsupported tuple array schemas`);
+  }
+  if (typeof items === "object" && items !== null && !Array.isArray(items)) {
+    assertSupportedJsonSchema(items as JSONSchemaProperty, `${path}.items`);
+  } else if (items !== undefined && typeof items !== "boolean") {
+    throw new Error(`${path}.items must be an object schema or boolean`);
+  }
+
+  const oneOf = schema.oneOf;
+  if (Array.isArray(oneOf)) {
+    for (const [index, child] of oneOf.entries()) {
+      if (typeof child === "object" && child !== null && !Array.isArray(child)) {
+        assertSupportedJsonSchema(child as JSONSchemaProperty, `${path}.oneOf[${index}]`);
+      } else {
+        throw new Error(`${path}.oneOf[${index}] must be an object schema`);
+      }
+    }
+  } else if (oneOf !== undefined) {
+    throw new Error(`${path}.oneOf must be an array`);
+  }
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isGetPromptResult(value: unknown): boolean {

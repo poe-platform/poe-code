@@ -4037,6 +4037,36 @@ describe("Spec conformance", () => {
             return "notified";
           }
         );
+        server.tool(
+          "typed_profile",
+          "Return a typed profile",
+          defineSchema({ id: { type: "string" } }),
+          ({ id }) => ({
+            id,
+            displayName: "Alice",
+          }),
+          {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              displayName: { type: "string" },
+            },
+            required: ["id", "displayName"],
+            additionalProperties: false,
+          }
+        );
+        server.tool(
+          "invalid_typed_profile",
+          "Return an invalid typed profile",
+          emptySchema,
+          () => ({ id: 7 }),
+          {
+            type: "object",
+            properties: { id: { type: "string" } },
+            required: ["id"],
+            additionalProperties: false,
+          }
+        );
         pair = await createPair(server);
       });
 
@@ -4473,6 +4503,44 @@ describe("Spec conformance", () => {
             name: "Alice",
             role: "admin",
           });
+        });
+
+        it("SC31a: typed structured results advertise output schemas and include fallback text", async () => {
+          const list = await pair.client.listTools();
+          expect(list.tools).toContainEqual(
+            expect.objectContaining({
+              name: "typed_profile",
+              outputSchema: expect.objectContaining({
+                type: "object",
+                properties: expect.objectContaining({
+                  displayName: { type: "string" },
+                }),
+              }),
+            })
+          );
+
+          const result = await pair.client.callTool({
+            name: "typed_profile",
+            arguments: { id: "user-7" },
+          }) as {
+            content: Array<{ type: string; text: string }>;
+            structuredContent?: Record<string, unknown>;
+          };
+
+          expect(result.structuredContent).toEqual({
+            id: "user-7",
+            displayName: "Alice",
+          });
+          expect(JSON.parse(result.content[0]!.text)).toEqual(result.structuredContent);
+        });
+
+        it("SC31b: invalid typed outputs return JSON-RPC internal errors", async () => {
+          await expect(
+            pair.client.callTool({
+              name: "invalid_typed_profile",
+              arguments: {},
+            })
+          ).rejects.toMatchObject({ code: JSON_RPC_ERROR_CODES.INTERNAL_ERROR });
         });
 
         it("SC32: image content round-trips", async () => {

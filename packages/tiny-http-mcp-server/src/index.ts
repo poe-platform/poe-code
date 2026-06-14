@@ -7,6 +7,7 @@ export {
   toContentBlocks,
   fileTypeFromBuffer,
   JSON_RPC_ERROR_CODES,
+  ToolError,
 } from "tiny-stdio-mcp-server";
 export type {
   Server,

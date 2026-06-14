@@ -63,15 +63,16 @@ export interface HttpServerHandle {
 }
 
 export interface HttpServer extends Omit<Server, "tool" | "registerTool"> {
-  tool<T>(
+  tool<TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<T>,
-    handler: HttpToolHandler<T>
+    inputSchema: TypedSchema<TIn>,
+    handler: HttpToolHandler<TIn, TOut>,
+    outputSchema?: TypedSchema<TOut>
   ): HttpServer;
-  registerTool<T>(
-    definition: Omit<ToolDefinition<T>, "handler">,
-    handler: HttpToolHandler<T>
+  registerTool<TIn, TOut = never>(
+    definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
+    handler: HttpToolHandler<TIn, TOut>
   ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
   handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
@@ -81,10 +82,10 @@ export interface HttpToolContext {
   request: AuthenticatedIncomingMessage;
 }
 
-export type HttpToolHandler<T = Record<string, unknown>> = (
+export type HttpToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
   args: T,
   context: HttpToolContext
-) => Promise<ToolReturn | CallToolResult> | ToolReturn | CallToolResult;
+) => Promise<TOut | CallToolResult> | TOut | CallToolResult;
 
 function normalizePath(path: string): string {
   if (path.length === 0 || path === "/") {
@@ -257,22 +258,27 @@ export function createHttpServer(
     return true;
   };
 
-  httpServer.tool = <T>(
+  httpServer.tool = <TIn, TOut = never>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<T>,
-    handler: HttpToolHandler<T>
+    inputSchema: TypedSchema<TIn>,
+    handler: HttpToolHandler<TIn, TOut>,
+    outputSchema?: TypedSchema<TOut>
   ): HttpServer => {
-    registerTool(name, description, inputSchema, (args) =>
-      handler(args, requestContextStorage.getStore() ?? defaultContext)
+    registerTool(
+      name,
+      description,
+      inputSchema,
+      (args) => handler(args, requestContextStorage.getStore() ?? defaultContext),
+      outputSchema
     );
 
     return httpServer;
   };
 
-  httpServer.registerTool = <T>(
-    definition: Omit<ToolDefinition<T>, "handler">,
-    handler: HttpToolHandler<T>
+  httpServer.registerTool = <TIn, TOut = never>(
+    definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
+    handler: HttpToolHandler<TIn, TOut>
   ): HttpServer => {
     registerRichTool(definition, (args) =>
       handler(args, requestContextStorage.getStore() ?? defaultContext)

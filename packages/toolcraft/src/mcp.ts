@@ -3,6 +3,7 @@ import {
   createServer,
   JSON_RPC_ERROR_CODES,
   ToolError,
+  type ToolHandler,
   type SDKTransport,
   type Server as TinyServer,
   type TypedSchema
@@ -65,6 +66,8 @@ interface ToolDefinition<TServices extends object> {
   description: string;
   inputSchema: JsonSchema;
   name: string;
+  outputSchema?: JsonSchema;
+  resultSchema?: ObjectSchema<any>;
 }
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
@@ -236,15 +239,27 @@ function formatAvailableList(values: Iterable<string>): string {
 }
 
 function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
+  const oneOf = schema.oneOf?.map((child) => applySchemaCasing(child, casing));
+  const additionalProperties =
+    typeof schema.additionalProperties === "object" && schema.additionalProperties !== null
+      ? applySchemaCasing(schema.additionalProperties, casing)
+      : schema.additionalProperties;
+
   if (schema.type !== "object" || schema.properties === undefined) {
     if (schema.type === "array" && schema.items !== undefined) {
       return {
         ...schema,
-        items: applySchemaCasing(schema.items, casing)
+        ...(additionalProperties === undefined ? {} : { additionalProperties }),
+        items: applySchemaCasing(schema.items, casing),
+        ...(oneOf === undefined ? {} : { oneOf })
       };
     }
 
-    return schema;
+    return {
+      ...schema,
+      ...(additionalProperties === undefined ? {} : { additionalProperties }),
+      ...(oneOf === undefined ? {} : { oneOf })
+    };
   }
 
   const properties = Object.fromEntries(
@@ -257,8 +272,10 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
 
   return {
     ...schema,
+    ...(additionalProperties === undefined ? {} : { additionalProperties }),
     properties,
-    ...(required === undefined ? {} : { required })
+    ...(required === undefined ? {} : { required }),
+    ...(oneOf === undefined ? {} : { oneOf })
   };
 }
 
@@ -373,6 +390,9 @@ function enumerateTools<TServices extends object>(
       }
 
       validateUniqueMCPParameterFields(params, casing);
+      if (node.result !== undefined) {
+        validateUniqueMCPParameterFields(node.result, casing);
+      }
 
       const resolvedCommandPath = [...commandPath, node.name].join(".");
       const existingPath = commandPathsByToolName.get(name);
@@ -389,7 +409,13 @@ function enumerateTools<TServices extends object>(
         commandPath: resolvedCommandPath,
         name,
         description: buildToolDescription(node.description, params, casing),
-        inputSchema: applySchemaCasing(toJsonSchema(params), casing)
+        inputSchema: applySchemaCasing(toJsonSchema(params), casing),
+        ...(node.result === undefined
+          ? {}
+          : {
+              outputSchema: applySchemaCasing(toJsonSchema(node.result), casing),
+              resultSchema: node.result
+            })
       });
       return;
     }
@@ -705,6 +731,224 @@ function validateToolArguments(
   return result;
 }
 
+function serializeResultValue(
+  schema: AnySchema,
+  value: unknown,
+  casing: Casing,
+  label: string,
+  errors: ValidationError[]
+): unknown {
+  const unwrappedSchema = unwrapOptional(schema);
+
+  if (value === null && unwrappedSchema.nullable === true) {
+    return null;
+  }
+
+  switch (unwrappedSchema.kind) {
+    case "object":
+      return serializeResultObject(unwrappedSchema, value, casing, label, errors);
+
+    case "array":
+      if (!Array.isArray(value)) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      return value.map((item, index) =>
+        serializeResultValue(unwrappedSchema.item, item, casing, `${label}[${index}]`, errors)
+      );
+
+    case "record":
+      if (!isPlainObject(value)) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      return Object.fromEntries(
+        Object.entries(value).map(([key, item]) => [
+          key,
+          serializeResultValue(unwrappedSchema.value, item, casing, `${label}.${key}`, errors)
+        ])
+      );
+
+    case "oneOf": {
+      if (!isPlainObject(value)) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      const discriminator = value[unwrappedSchema.discriminator];
+      const branch =
+        typeof discriminator === "string" ? unwrappedSchema.branches[discriminator] : undefined;
+      if (branch === undefined) {
+        const branchNames = Object.keys(unwrappedSchema.branches);
+        errors.push({
+          path: label.length === 0 ? unwrappedSchema.discriminator : `${label}.${unwrappedSchema.discriminator}`,
+          message: `Invalid value for "${label.length === 0 ? unwrappedSchema.discriminator : `${label}.${unwrappedSchema.discriminator}`}". Expected one of: ${branchNames.join(", ")}, got ${describeReceived(discriminator)}.`
+        });
+        return value;
+      }
+      const { [unwrappedSchema.discriminator]: ignoredDiscriminator, ...branchValue } = value;
+      void ignoredDiscriminator;
+      return {
+        [formatSegment(unwrappedSchema.discriminator, casing)]: discriminator,
+        ...serializeResultObject(branch, branchValue, casing, label, errors)
+      };
+    }
+
+    case "union": {
+      if (!isPlainObject(value)) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      const branch = unwrappedSchema.branches.find((candidate) =>
+        Object.keys(candidate.shape).every(
+          (key) =>
+            candidate.shape[key]?.kind === "optional" ||
+            Object.prototype.hasOwnProperty.call(value, key)
+        )
+      );
+      if (branch === undefined) {
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected one union branch, got ${describeReceived(value)}.`
+        });
+        return value;
+      }
+      return serializeResultObject(branch, value, casing, label, errors);
+    }
+
+    default:
+      return validateSchemaValue(schema, value, casing, label, errors);
+  }
+}
+
+function serializeResultObject(
+  schema: ObjectSchema<any>,
+  value: unknown,
+  casing: Casing,
+  label: string,
+  errors: ValidationError[]
+): Record<string, unknown> {
+  if (!isPlainObject(value)) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+    });
+    return {};
+  }
+
+  const result: Record<string, unknown> = {};
+  const expectedKeys = new Set(Object.keys(schema.shape));
+
+  for (const key of Object.keys(value)) {
+    if (!expectedKeys.has(key) && schema.additionalProperties !== true) {
+      const fieldLabel = label.length === 0 ? key : `${label}.${key}`;
+      errors.push({
+        path: fieldLabel,
+        message: `Unexpected result field "${fieldLabel}". ${formatAvailableList(
+          [...expectedKeys].map((expectedKey) => label.length === 0 ? expectedKey : `${label}.${expectedKey}`)
+        )}`
+      });
+    }
+  }
+
+  for (const [sourceKey, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
+    const childSchema = unwrapOptional(rawChildSchema);
+    const hasValue = Object.prototype.hasOwnProperty.call(value, sourceKey);
+    const wireKey = formatSegment(sourceKey, casing);
+    const fieldLabel = label.length === 0 ? sourceKey : `${label}.${sourceKey}`;
+
+    if (!hasValue) {
+      if (childSchema.default !== undefined) {
+        Object.defineProperty(result, wireKey, {
+          value: childSchema.default,
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+        continue;
+      }
+
+      if (isOptional(rawChildSchema)) {
+        continue;
+      }
+
+      errors.push({ path: fieldLabel, message: `Missing required result field "${fieldLabel}".` });
+      continue;
+    }
+
+    Object.defineProperty(result, wireKey, {
+      value: serializeResultValue(rawChildSchema, value[sourceKey], casing, fieldLabel, errors),
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  }
+
+  if (schema.additionalProperties === true) {
+    for (const key of Object.keys(value)) {
+      if (!expectedKeys.has(key)) {
+        Object.defineProperty(result, key, {
+          value: value[key],
+          enumerable: true,
+          configurable: true,
+          writable: true
+        });
+      }
+    }
+  }
+
+  return result;
+}
+
+function validateCommandResult(
+  schema: ObjectSchema<any>,
+  value: unknown,
+  casing: Casing
+): Record<string, unknown> {
+  const errors: ValidationError[] = [];
+  const result = serializeResultObject(schema, value, casing, "", errors);
+  throwResultValidationErrors(errors);
+  return result;
+}
+
+function throwResultValidationErrors(errors: readonly ValidationError[]): void {
+  if (errors.length === 0) {
+    return;
+  }
+
+  if (errors.length === 1) {
+    throw new ToolError(
+      JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+      errors[0]?.message ?? "Invalid command result."
+    );
+  }
+
+  const rendered = errors
+    .slice(0, 10)
+    .map((error) => `  - ${error.path}: ${error.message}`);
+  const remaining = errors.length - rendered.length;
+
+  if (remaining > 0) {
+    rendered.push(`  ... and ${remaining} more`);
+  }
+
+  throw new ToolError(
+    JSON_RPC_ERROR_CODES.INTERNAL_ERROR,
+    `${errors.length} result errors:\n${rendered.join("\n")}`
+  );
+}
+
 function isContentBlock(value: unknown): value is ToolContent {
   if (!isPlainObject(value) || typeof value.type !== "string") {
     return false;
@@ -739,7 +983,9 @@ function toToolContent(result: unknown): ToolContent[] {
     return [result];
   }
 
-  return [{ type: "text", text: JSON.stringify(result) }];
+  const fallbackValue = result;
+  const fallbackText = JSON.stringify(fallbackValue);
+  return [{ type: "text", text: fallbackText }];
 }
 
 function toToolError(error: unknown): ToolError {
@@ -787,11 +1033,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   });
 
   for (const tool of tools) {
-    server.tool(
-      tool.name,
-      tool.description,
-      tool.inputSchema as TypedSchema<Record<string, unknown>>,
-      async (argumentsValue) => {
+    const handler = async (argumentsValue: Record<string, unknown>) => {
         let params: unknown;
         let secrets: Record<string, string | undefined> | undefined;
         try {
@@ -824,6 +1066,14 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
             return renderPendingApproval(result);
           }
 
+          if (tool.resultSchema !== undefined) {
+            const structuredContent = validateCommandResult(tool.resultSchema, result, casing);
+            return {
+              content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+              structuredContent
+            };
+          }
+
           return toToolContent(result);
         } catch (error) {
           if (error instanceof ApprovalDeclinedError) {
@@ -842,8 +1092,24 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           });
           throw toToolError(error);
         }
-      }
-    );
+      };
+
+    if (tool.outputSchema === undefined) {
+      server.tool(
+        tool.name,
+        tool.description,
+        tool.inputSchema as TypedSchema<Record<string, unknown>>,
+        handler as ToolHandler<Record<string, unknown>>
+      );
+    } else {
+      server.tool(
+        tool.name,
+        tool.description,
+        tool.inputSchema as TypedSchema<Record<string, unknown>>,
+        handler as ToolHandler<Record<string, unknown>, Record<string, unknown>>,
+        tool.outputSchema as TypedSchema<Record<string, unknown>>
+      );
+    }
   }
 
   return {

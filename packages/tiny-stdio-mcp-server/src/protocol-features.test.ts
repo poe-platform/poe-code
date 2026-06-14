@@ -152,6 +152,55 @@ describe("prompts and resources protocol conformance", () => {
     });
   });
 
+  it("emits structured content and JSON text fallback for typed plain object tool returns", async () => {
+    const outputSchema = {
+      type: "object" as const,
+      properties: {
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              id: { type: "string" },
+              score: { type: "number" },
+            },
+            required: ["id", "score"],
+            additionalProperties: false,
+          },
+        },
+        metadata: {
+          type: "object",
+          additionalProperties: { type: "string" },
+        },
+      },
+      required: ["items", "metadata"],
+      additionalProperties: false,
+    };
+    const server = createServer({ name: "typed-tools", version: "1.0.0" }).tool(
+      "search",
+      "Search",
+      defineSchema({}),
+      () => ({ items: [{ id: "a", score: 1 }], metadata: { source: "fixture" } }),
+      outputSchema
+    );
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    await expect(server.handleMessage("tools/list")).resolves.toMatchObject({
+      result: { tools: [{ name: "search", outputSchema }] },
+    });
+    const response = await server.handleMessage("tools/call", { name: "search", arguments: {} });
+
+    expect(response).toMatchObject({
+      result: {
+        structuredContent: { items: [{ id: "a", score: 1 }], metadata: { source: "fixture" } },
+      },
+    });
+    expect(JSON.parse((response.result as { content: Array<{ text: string }> }).content[0]!.text)).toEqual({
+      items: [{ id: "a", score: 1 }],
+      metadata: { source: "fixture" },
+    });
+  });
+
   it("validates complete JSON Schema constraints for tool inputs and outputs", async () => {
     const server = createServer({ name: "schema-tools", version: "1.0.0" }).registerTool(
       {
@@ -176,8 +225,62 @@ describe("prompts and resources protocol conformance", () => {
       error: { code: -32602 },
     });
     await expect(server.handleMessage("tools/call", { name: "tags", arguments: { tags: ["one", "two"] } })).resolves.toMatchObject({
-      result: { isError: true },
+      error: { code: -32603, message: "Invalid structured tool result" },
     });
+  });
+
+  it("rejects non-object output schemas at registration time", () => {
+    expect(() =>
+      createServer({ name: "bad-schema", version: "1.0.0" }).registerTool(
+        {
+          name: "bad",
+          inputSchema: defineSchema({}),
+          outputSchema: { type: "array" } as never,
+        },
+        () => []
+      )
+    ).toThrow('outputSchema root type must be "object"');
+  });
+
+  it("rejects unsupported output schema features at registration time", () => {
+    const server = createServer({ name: "bad-schema-features", version: "1.0.0" });
+
+    expect(() =>
+      server.registerTool(
+        {
+          name: "tuple",
+          inputSchema: defineSchema({}),
+          outputSchema: {
+            type: "object",
+            properties: {
+              values: {
+                type: "array",
+                items: [{ type: "string" }],
+              },
+            },
+          } as never,
+        },
+        () => ({ values: ["a"] })
+      )
+    ).toThrow("outputSchema.properties.values.items uses unsupported tuple array schemas");
+
+    expect(() =>
+      server.registerTool(
+        {
+          name: "any-of",
+          inputSchema: defineSchema({}),
+          outputSchema: {
+            type: "object",
+            properties: {
+              value: {
+                anyOf: [{ type: "string" }, { type: "number" }],
+              },
+            },
+          } as never,
+        },
+        () => ({ value: "a" })
+      )
+    ).toThrow("outputSchema.properties.value uses unsupported keyword \"anyOf\"");
   });
 
   it("accepts object JSON Schemas without a properties keyword", async () => {
@@ -187,6 +290,21 @@ describe("prompts and resources protocol conformance", () => {
     );
     await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
     await expect(server.handleMessage("tools/call", { name: "empty", arguments: {} })).resolves.toMatchObject({ result: { content: [] } });
+  });
+
+  it("rejects malformed call tool result envelopes from handlers", async () => {
+    const server = createServer({ name: "bad-envelope", version: "1.0.0" }).registerTool(
+      { name: "bad", inputSchema: defineSchema({}) },
+      () => ({ content: [], structuredContent: "not an object" }) as never
+    );
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    await expect(server.handleMessage("tools/call", { name: "bad", arguments: {} })).resolves.toMatchObject({
+      result: {
+        isError: true,
+        content: [{ type: "text", text: "Error: Invalid tool result" }],
+      },
+    });
   });
 
   it("preserves protocol metadata on tools, prompts, and resources", async () => {

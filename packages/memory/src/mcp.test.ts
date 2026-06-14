@@ -139,6 +139,46 @@ describe("memory MCP helpers", () => {
     expect(handle.searchMemory).not.toHaveBeenCalled();
   });
 
+  it("returns search hits as typed snake_case MCP output", async () => {
+    const handle = createHandle();
+    handle.searchMemory = vi.fn().mockResolvedValue([
+      { relPath: "pages/one.md", lineNumber: 3, line: "needle" },
+    ]);
+    const { server } = await startMemoryMcpServer(handle, { allowWrites: false });
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    const listResult = await server.handleMessage("tools/list");
+    expect(listResult.result).toMatchObject({
+      tools: expect.arrayContaining([
+        expect.objectContaining({
+          name: "search_memory",
+          outputSchema: expect.objectContaining({
+            properties: expect.objectContaining({
+              hits: expect.objectContaining({
+                items: expect.objectContaining({
+                  properties: expect.objectContaining({
+                    rel_path: { type: "string" },
+                  }),
+                }),
+              }),
+            }),
+          }),
+        }),
+      ]),
+    });
+
+    const result = await server.handleMessage("tools/call", {
+      name: "search_memory",
+      arguments: { query: "needle" },
+    });
+    const expected = {
+      hits: [{ rel_path: "pages/one.md", line_number: 3, line: "needle" }],
+    };
+
+    expect(result.result).toMatchObject({ structuredContent: expected });
+    expect(JSON.parse((result.result as { content: Array<{ text: string }> }).content[0]!.text)).toEqual(expected);
+  });
+
   it("returns an MCP tool error when memory search rejects", async () => {
     const handle = createHandle();
     handle.searchMemory = vi.fn().mockRejectedValue(

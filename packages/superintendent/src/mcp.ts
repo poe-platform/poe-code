@@ -134,8 +134,8 @@ function registerWorkflowToolDefinition(server: Server, tool: WorkflowToolDefini
   server.tool(tool.name, tool.description, tool.inputSchema, async (input) => {
     const transition = parseWorkflowCall(input);
     assertAllowedAction(tool, transition.action);
-    return `Recorded workflow transition: ${transition.action}`;
-  });
+    return { recorded: { action: transition.action } };
+  }, tool.outputSchema);
 }
 
 function registerBuilderTool(
@@ -152,8 +152,8 @@ function registerBuilderTool(
       promptOverride: prompt,
       defaultCwd: process.cwd()
     });
-    return JSON.stringify(result);
-  });
+    return result;
+  }, tool.outputSchema);
 }
 
 function registerInspectorTool(
@@ -183,8 +183,8 @@ function registerInspectorTool(
         ...(parsed.prompt ? { promptOverride: parsed.prompt } : {})
       }
     );
-    return JSON.stringify(result);
-  });
+    return result;
+  }, tool.outputSchema);
 }
 
 async function readSuperintendentDoc(

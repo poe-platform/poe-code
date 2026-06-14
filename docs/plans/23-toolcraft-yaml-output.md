@@ -12,7 +12,7 @@ YAML as the default rendering for parsed JSON values in toolcraft, on top of the
 
 Three coupled changes:
 
-1. **MCP return values** — every toolcraft-fronted MCP tool declares `outputSchema` and returns `structuredContent`. This extends [`docs/plans/mcp-typed-outputs.md`](mcp-typed-outputs.md) (in_progress); this plan does **not** re-spec that work, it consumes it.
+1. **MCP return values** — every toolcraft-fronted MCP tool declares `outputSchema` and returns `structuredContent`. This extends [`docs/plans/09-mcp-typed-outputs.md`](09-mcp-typed-outputs.md) (owner review); this plan does **not** re-spec that work, it consumes it.
 
 2. **Toolcraft respects typed results end to end** — `defineCommand` gains a `result:` schema (per the typed-outputs plan), and toolcraft's MCP runner propagates it to `Tool.outputSchema` + `CallToolResult.structuredContent`. The `result:` value also becomes the source of truth for CLI rendering.
 
@@ -20,7 +20,7 @@ Three coupled changes:
 
 ### Non-goals
 
-- Re-specifying typed MCP outputs (owned by `mcp-typed-outputs.md`).
+- Re-specifying typed MCP outputs (owned by `09-mcp-typed-outputs.md`).
 - Changing or removing `rich` tables for flat objects / arrays-of-objects.
 - Touching `design-system`, including its existing YAML frontmatter parser.
 - Migrating third-party MCP clients beyond keeping the text backstop populated.

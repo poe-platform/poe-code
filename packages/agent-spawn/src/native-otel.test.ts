@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { request } from "node:http";
+import { nodeFetch } from "tiny-http-mcp-server/testing";
 
 import { startNativeOtelCapture } from "./native-otel.js";
 
@@ -64,16 +64,10 @@ async function postBytes(url: string, body: Buffer): Promise<void> {
 }
 
 async function post(url: string, body: Buffer, contentType: string): Promise<number> {
-  return await new Promise<number>((resolve, reject) => {
-    const outgoing = request(url, {
+  const response = await nodeFetch(url, {
       method: "POST",
-      headers: { "content-type": contentType, "content-length": body.byteLength }
-    });
-    outgoing.once("error", reject);
-    outgoing.once("response", (response) => {
-      response.resume();
-      response.once("end", () => resolve(response.statusCode ?? 0));
-    });
-    outgoing.end(body);
+      headers: { "content-type": contentType, "content-length": String(body.byteLength) },
+      body,
   });
+  return response.status;
 }

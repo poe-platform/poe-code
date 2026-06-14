@@ -42,9 +42,9 @@ Creates a new MCP server.
 const server = createServer({ name: "my-server", version: "1.0.0" });
 ```
 
-### `.tool(name, description, schema, handler)`
+### `.tool(name, description, schema, handler, outputSchema?)`
 
-Register a tool. The handler receives typed args matching the schema and returns a string, content helper, or array of either.
+Register a tool. The handler receives typed args matching the schema and returns a string, content helper, array of content, or a typed object when `outputSchema` is supplied.
 
 ```ts
 const schema = defineSchema({
@@ -57,6 +57,33 @@ server.tool("search", "Search for things", schema, async ({ query, limit }) => {
   return `Found results for: ${query}`;
 });
 ```
+
+For structured-data tools, pass a root-object output schema. The server advertises it as MCP `Tool.outputSchema`, validates the handler result, returns it as `CallToolResult.structuredContent`, and also includes a JSON text backstop in `content[]` for older clients.
+
+```ts
+const input = defineSchema({
+  query: { type: "string" },
+});
+const output = defineSchema({
+  items: {
+    type: "array",
+    items: {
+      type: "object",
+      properties: {
+        title: { type: "string" },
+        score: { type: "number" },
+      },
+      required: ["title", "score"],
+    },
+  },
+});
+
+server.tool("search", "Search", input, async ({ query }) => ({
+  items: [{ title: query, score: 1 }],
+}), output);
+```
+
+Output schemas must have `type: "object"` at the root. Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
 
 ### `.listen()`
 

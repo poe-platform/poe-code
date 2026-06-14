@@ -32,6 +32,8 @@ type ToolCallLike = {
   arguments?: unknown;
   args?: unknown;
   input?: unknown;
+  result?: unknown;
+  output?: unknown;
 };
 
 const WORKFLOW_SERVER_NAME = "owner-workflow";
@@ -201,13 +203,11 @@ function readTransitionFromToolCalls(value: unknown): WorkflowTransition | undef
       continue;
     }
 
-    const argumentsValue = readToolCallArguments(toolCall);
+    const transitionValue = readToolCallResult(toolCall) ?? readToolCallArguments(toolCall);
 
-    if (argumentsValue === undefined) {
-      continue;
+    if (transitionValue !== undefined) {
+      return parseWorkflowCall(parseJsonValue(transitionValue));
     }
-
-    return parseWorkflowCall(parseJsonValue(argumentsValue));
   }
 
   return undefined;
@@ -236,6 +236,37 @@ function readToolCallName(toolCall: ToolCallLike): string | undefined {
 
 function readToolCallArguments(toolCall: ToolCallLike): unknown {
   return toolCall.arguments ?? toolCall.args ?? toolCall.input;
+}
+
+function readToolCallResult(toolCall: ToolCallLike): unknown {
+  const candidate = readStructuredToolResult(toolCall.result) ?? readStructuredToolResult(toolCall.output);
+
+  if (isRecord(candidate) && isRecord(candidate.recorded)) {
+    return candidate.recorded;
+  }
+
+  return candidate;
+}
+
+function readStructuredToolResult(value: unknown): unknown {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  if (value.structuredContent !== undefined) {
+    return value.structuredContent;
+  }
+
+  const content = value.content;
+  if (!Array.isArray(content)) {
+    return undefined;
+  }
+
+  const text = content
+    .map((item) => isRecord(item) && typeof item.text === "string" ? item.text : undefined)
+    .find((item): item is string => item !== undefined);
+
+  return text === undefined ? undefined : parseJsonValue(text);
 }
 
 function isWorkflowToolName(name: string | undefined): boolean {

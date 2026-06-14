@@ -1,28 +1,17 @@
 import http from "node:http";
 import { EventEmitter } from "node:events";
 import { describe, expect, it } from "vitest";
+import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { createLoopbackAuthorizationSession } from "../index.js";
 
 async function requestUrl(
   url: string
 ): Promise<{ status: number; body: string }> {
-  return new Promise((resolve, reject) => {
-    const request = http.get(url, (response) => {
-      const chunks: Buffer[] = [];
-
-      response.on("data", (chunk) => {
-        chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
-      });
-      response.once("end", () => {
-        resolve({
-          status: response.statusCode ?? 0,
-          body: Buffer.concat(chunks).toString("utf8"),
-        });
-      });
-    });
-
-    request.once("error", reject);
-  });
+  const response = await nodeFetch(url);
+  return {
+    status: response.status,
+    body: await response.text(),
+  };
 }
 
 describe("createLoopbackAuthorizationSession", () => {

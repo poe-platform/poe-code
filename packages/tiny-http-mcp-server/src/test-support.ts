@@ -499,8 +499,19 @@ export function createTestMcpServer(
         id: String(id),
         name: "Alice",
         role: "admin",
-      })
+      }),
+      {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          name: { type: "string" },
+          role: { type: "string" },
+        },
+        required: ["id", "name", "role"],
+        additionalProperties: false,
+      }
     )
+    // Deliberately untyped fixture: exercises legacy JSON-array text fallback.
     .tool("get_list", "Return a numeric array", emptySchema, () => [1, 2, 3])
     .tool("get_image", "Return an image block", emptySchema, () =>
       Image.fromBase64(TEST_PNG_BASE64, "image/png")

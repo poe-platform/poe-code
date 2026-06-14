@@ -18,11 +18,47 @@ type McpToolInputSchema = {
   required: string[];
 };
 
+type McpToolOutputSchema = {
+  type: "object";
+  additionalProperties: false;
+  properties: {
+    recorded: {
+      type: "object";
+      additionalProperties: false;
+      properties: {
+        action: McpToolProperty;
+      };
+      required: ["action"];
+    };
+  };
+  required: ["recorded"];
+};
+
 export type McpToolDefinition = {
   name: "workflow_transition";
   description: string;
   inputSchema: McpToolInputSchema;
+  outputSchema: McpToolOutputSchema;
 };
+
+export const workflowTransitionOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    recorded: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        action: {
+          type: "string",
+          description: "Recorded workflow transition action."
+        }
+      },
+      required: ["action"]
+    }
+  },
+  required: ["recorded"]
+} satisfies McpToolOutputSchema;
 
 export function createWorkflowTool(
   role: "superintendent" | "owner",
@@ -41,7 +77,8 @@ export function createWorkflowTool(
       additionalProperties: false,
       properties: createProperties(actions),
       required: createRequiredFields(actions)
-    }
+    },
+    outputSchema: workflowTransitionOutputSchema
   };
 }
 

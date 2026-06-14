@@ -6,12 +6,15 @@ export interface ReadinessLogSource {
   subscribe(listener: LogListener): () => void;
 }
 
+type TcpConnect = typeof net.connect;
+
 export async function waitForReady(
   check: ReadyCheck,
   options: {
     signal?: AbortSignal;
     onLog?: ReadinessLogSource;
     timeoutMs?: number;
+    connect?: TcpConnect;
   }
 ): Promise<boolean> {
   assertValidTimeout(options.timeoutMs, "readiness timeout");
@@ -74,7 +77,7 @@ function waitForLogPattern(
 
 function waitForTcp(
   check: Extract<ReadyCheck, { kind: "tcp" }>,
-  options: { signal?: AbortSignal; timeoutMs?: number }
+  options: { signal?: AbortSignal; timeoutMs?: number; connect?: TcpConnect }
 ): Promise<boolean> {
   const { signal } = options;
   if (signal?.aborted) {
@@ -107,7 +110,8 @@ function waitForTcp(
         return;
       }
 
-      const socket = net.connect({
+      const connect = options.connect ?? net.connect;
+      const socket = connect({
         host: check.host ?? "127.0.0.1",
         port: check.port
       });

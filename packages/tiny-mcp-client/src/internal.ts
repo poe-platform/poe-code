@@ -670,6 +670,7 @@ export interface Tool {
   name: string;
   description?: string;
   inputSchema: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
   annotations?: ToolAnnotations;
 }
 
@@ -785,6 +786,7 @@ export interface GetPromptParams {
 
 export interface CallToolResult {
   content: ContentItem[];
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
 
@@ -3575,6 +3577,10 @@ function isServerCapabilities(value: unknown): value is ServerCapabilities {
 
 function isCallToolResult(value: unknown): value is CallToolResult {
   if (!isObjectRecord(value) || !Array.isArray(value.content)) {
+    return false;
+  }
+
+  if (value.structuredContent !== undefined && !isObjectRecord(value.structuredContent)) {
     return false;
   }
 

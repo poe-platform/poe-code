@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto';
-import http, { createServer, type IncomingMessage, type Server } from 'node:http';
-import https from 'node:https';
+import { createServer, type IncomingMessage, type Server } from 'node:http';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { vol } from 'memfs';
+import { nodeFetch } from 'tiny-http-mcp-server/testing';
 
 const fsHooks = vi.hoisted(() => ({
   appendFile: undefined as undefined | (() => Promise<void>),
@@ -32,6 +32,23 @@ vi.mock('node:fs/promises', async () => {
 import { startProxyServer } from './proxy-server.js';
 import type { CapturedExchange } from './proxy-types.js';
 import './matchers.js';
+
+function installNodeFetchMock(): void {
+  const fetchImpl: typeof fetch = async (input, init) => {
+    if (input instanceof Request) {
+      return nodeFetch(input.url, {
+        method: input.method,
+        headers: input.headers,
+        body: input.body,
+        signal: input.signal,
+        ...init,
+      });
+    }
+
+    return nodeFetch(input, init);
+  };
+  vi.stubGlobal('fetch', vi.fn(fetchImpl));
+}
 
 interface DummyApiRequest {
   method: string;
@@ -101,74 +118,6 @@ function generateSnapshotKey(request: {
   });
   const hash = createHash('sha256').update(normalized).digest('hex').slice(0, 12);
   return `${sanitizeModelName(request.model)}-${hash}`;
-}
-
-function mergeHeaders(initHeaders?: HeadersInit): Record<string, string> {
-  if (!initHeaders) {
-    return {};
-  }
-
-  if (initHeaders instanceof Headers) {
-    return Object.fromEntries(initHeaders.entries());
-  }
-
-  if (Array.isArray(initHeaders)) {
-    return Object.fromEntries(initHeaders);
-  }
-
-  return Object.fromEntries(
-    Object.entries(initHeaders).map(([key, value]) => [key, String(value)]),
-  );
-}
-
-async function makeNetworkFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-  const sourceUrl =
-    input instanceof Request ? input.url : input instanceof URL ? input.toString() : input;
-  const url = new URL(sourceUrl);
-  const client = url.protocol === 'https:' ? https : http;
-  const port = url.port.length > 0 ? Number(url.port) : url.protocol === 'https:' ? 443 : 80;
-  const method = init?.method ?? (input instanceof Request ? input.method : 'GET');
-
-  const baseHeaders = input instanceof Request ? mergeHeaders(input.headers) : {};
-  const headers = { ...baseHeaders, ...mergeHeaders(init?.headers) };
-  const body =
-    init?.body === undefined
-      ? undefined
-      : typeof init.body === 'string'
-        ? init.body
-        : await new Response(init.body).text();
-
-  return await new Promise<Response>((resolve, reject) => {
-    const request = client.request(
-      {
-        method,
-        hostname: url.hostname,
-        port,
-        path: `${url.pathname}${url.search}`,
-        headers,
-      },
-      (response) => {
-        const chunks: Buffer[] = [];
-        response.on('data', (chunk) => {
-          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-        });
-        response.on('end', () => {
-          resolve(
-            new Response(Buffer.concat(chunks), {
-              status: response.statusCode ?? 500,
-              headers: response.headers as HeadersInit,
-            }),
-          );
-        });
-      },
-    );
-
-    request.on('error', reject);
-    if (body) {
-      request.write(body);
-    }
-    request.end();
-  });
 }
 
 function readBody(req: IncomingMessage): Promise<string> {
@@ -322,7 +271,7 @@ describe('startDummyApi', () => {
   beforeEach(() => {
     fsHooks.appendFile = undefined;
     fsHooks.writeFile = undefined;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {
@@ -388,7 +337,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {
@@ -580,7 +529,7 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     });
     closeHandles.push(proxy.close);
 
-    await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+    await nodeFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: {
         authorization: 'Bearer test-token',
@@ -747,7 +696,7 @@ describe('startProxyServer record mode', () => {
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {
@@ -1016,7 +965,7 @@ describe('startProxyServer record mode', () => {
     closeHandles.push(proxy.close);
 
     const response = await withObjectPrototypeProperties({ code: 'EEXIST' }, async () =>
-      makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+      nodeFetch(`${proxy.url}/v1/chat/completions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(payload),
@@ -1051,7 +1000,7 @@ describe('startProxyServer record mode', () => {
     });
     closeHandles.push(proxy.close);
 
-    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+    const response = await nodeFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -1088,7 +1037,7 @@ describe('startProxyServer record mode', () => {
     });
     closeHandles.push(proxy.close);
 
-    const response = await makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+    const response = await nodeFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -1114,7 +1063,7 @@ describe('startProxyServer playback mode', () => {
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {
@@ -1364,7 +1313,7 @@ describe('startProxyServer playback mode', () => {
     closeHandles.push(proxy.close);
 
     let settled = false;
-    const pendingResponse = makeNetworkFetch(`${proxy.url}/v1/chat/completions`, {
+    const pendingResponse = nodeFetch(`${proxy.url}/v1/chat/completions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -1491,7 +1440,7 @@ describe('startProxyServer playback mode with onMiss warn', () => {
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {
@@ -1572,7 +1521,7 @@ describe('startProxyServer playback mode with onMiss record', () => {
     vol.reset();
     vol.mkdirSync('/tmp', { recursive: true });
     closeHandles.length = 0;
-    vi.mocked(fetch).mockImplementation((input, init) => makeNetworkFetch(input, init));
+    installNodeFetchMock();
   });
 
   afterEach(async () => {

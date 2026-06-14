@@ -1,6 +1,5 @@
 import type { ChildProcess } from "node:child_process";
 import { EventEmitter } from "node:events";
-import net from "node:net";
 import { PassThrough } from "node:stream";
 import { Volume, createFsFromVolume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,6 +28,11 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
 
 import { createSupervisor } from "./supervisor.js";
 import { createSupervisor as createSupervisorFromIndex } from "../index.js";
+
+type TestSupervisorOptions = Partial<SupervisorOptions> & {
+  readyChecker?: (check: ReadyCheck, options: { signal?: AbortSignal }) => Promise<boolean>;
+  spec?: Partial<ProcessSpec>;
+};
 
 afterEach(() => {
   vi.useRealTimers();
@@ -499,17 +503,22 @@ describe("createSupervisor", () => {
   });
 
   it("rejects startup when readiness fails", async () => {
-    const port = await getAvailablePort();
     const handle = createControllableHandle();
+    const readyChecker = vi.fn(async () => false);
     handle.kill.mockImplementation(() => {
       handle.finish({ exitCode: 1 });
     });
     const supervisor = createTestSupervisor({
+      readyChecker,
       runner: { name: "controllable", exec: vi.fn(() => handle) },
-      spec: { readyCheck: { kind: "tcp", port, timeoutMs: 1 }, restart: "never" }
+      spec: { readyCheck: { kind: "tcp", port: 42_424, timeoutMs: 1 }, restart: "never" }
     });
 
     await expect(supervisor.start()).rejects.toThrow(/readiness/i);
+    expect(readyChecker).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "tcp", port: 42_424 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
     expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
   });
 
@@ -595,26 +604,25 @@ describe("createSupervisor", () => {
   });
 
   it("ready check with tcp polls until the port responds", async () => {
-    const port = await getAvailablePort();
-    const server = net.createServer();
+    const readyChecker = vi.fn(async () => true);
     const supervisor = createTestSupervisor({
+      readyChecker,
       runner: createMockRunner([{ exitCode: 0, exitAfterMs: 10_000 }]),
       spec: {
-        readyCheck: { kind: "tcp", port, timeoutMs: 2_000 },
+        readyCheck: { kind: "tcp", port: 42_424, timeoutMs: 2_000 },
         restart: "never"
       }
     });
 
-    setTimeout(() => {
-      void listen(server, port);
-    }, 200);
-
     await supervisor.start();
 
     expect(supervisor.getState().status).toBe("running");
+    expect(readyChecker).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "tcp", port: 42_424 }),
+      expect.objectContaining({ signal: expect.any(AbortSignal) })
+    );
 
     await supervisor.stop();
-    await closeServer(server);
   });
 
   it("rotates logs on each restart", async () => {
@@ -1096,7 +1104,7 @@ describe("createSupervisor", () => {
   });
 });
 
-function createTestSupervisor(overrides: Partial<SupervisorOptions> & { spec?: Partial<ProcessSpec> } = {}) {
+function createTestSupervisor(overrides: TestSupervisorOptions = {}) {
   const { fs } = createMemFs();
   const { spec, ...optionOverrides } = overrides;
 
@@ -1195,45 +1203,4 @@ function createControllableHandle(pid = 123) {
       resolveResult(result);
     }
   };
-}
-
-async function listen(server: net.Server, port: number, host = "127.0.0.1"): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(port, host, () => {
-      server.off("error", reject);
-      resolve();
-    });
-  });
-}
-
-async function closeServer(server: net.Server): Promise<void> {
-  if (!server.listening) {
-    return;
-  }
-
-  await new Promise<void>((resolve, reject) => {
-    server.close(error => {
-      if (error) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-}
-
-async function getAvailablePort(host = "127.0.0.1"): Promise<number> {
-  const server = net.createServer();
-  await listen(server, 0, host);
-  const address = server.address();
-
-  if (!address || typeof address === "string") {
-    throw new Error("Expected server to listen on a TCP port");
-  }
-
-  const { port } = address;
-  await closeServer(server);
-  return port;
 }

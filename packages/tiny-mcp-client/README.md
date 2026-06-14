@@ -14,8 +14,15 @@ const client = new McpClient({
 await client.connect(new HttpTransport({ url: "http://127.0.0.1:3000/mcp" }));
 const tools = await client.listTools();
 console.log(tools);
+const result = await client.callTool({
+  name: "search",
+  arguments: { query: "typed outputs" },
+});
+console.log(result.structuredContent);
 await client.close();
 ```
+
+`Tool` includes MCP `outputSchema` when a server advertises typed tool output. `CallToolResult` includes `structuredContent?: Record<string, unknown>` for typed results; legacy/content-block tools still use `content[]`.
 
 ## Transports
 

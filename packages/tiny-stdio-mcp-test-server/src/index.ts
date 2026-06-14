@@ -44,7 +44,9 @@ export function createEncryptServer() {
   return createServer({
     name: SERVER_NAME,
     version: SERVER_VERSION,
-  }).tool(
+  })
+  // Deliberately text-only fixture: encryption returns human-readable text, not structured data.
+  .tool(
     "caesar_cipher_encrypt",
     "Encrypts text using the Caesar cipher",
     caesarCipherSchema,
@@ -67,7 +69,9 @@ export function createWordOfTheDayServer() {
   return createServer({
     name: SERVER_NAME,
     version: SERVER_VERSION,
-  }).tool(
+  })
+  // Deliberately text-only fixture: word of the day is human-readable prose.
+  .tool(
     "word_of_the_day",
     "Returns the word of the day",
     wordOfTheDaySchema,
@@ -83,6 +87,7 @@ export function createTestServer() {
     version: SERVER_VERSION,
   });
 
+  // Deliberately text-only fixture: encryption returns human-readable text, not structured data.
   server.tool(
     "caesar_cipher_encrypt",
     "Encrypts text using the Caesar cipher",
@@ -93,6 +98,7 @@ export function createTestServer() {
     }
   );
 
+  // Deliberately text-only fixture: word of the day is human-readable prose.
   server.tool(
     "word_of_the_day",
     "Returns the word of the day",

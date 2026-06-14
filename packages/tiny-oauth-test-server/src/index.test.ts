@@ -1,9 +1,8 @@
 import http from "node:http";
-import https from "node:https";
 import { createHash } from "node:crypto";
-import { Readable } from "node:stream";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, jwtVerify } from "jose";
+import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { createOAuthTestServer } from "./index.js";
 
 function hasOwnErrorCode(error: unknown, code: string): boolean {
@@ -21,67 +20,6 @@ function createPkceChallenge(verifier: string): string {
 
 function createValidVerifier(label: string): string {
   return `${label}-ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef`;
-}
-
-function normalizeRequestHostname(hostname: string): string {
-  if (hostname.startsWith("[") && hostname.endsWith("]")) {
-    return hostname.slice(1, -1);
-  }
-
-  return hostname;
-}
-
-async function nodeFetch(input: string | URL, init: RequestInit = {}): Promise<Response> {
-  const url = new URL(String(input));
-  const client = url.protocol === "https:" ? https : http;
-  const headers = new Headers(init.headers);
-
-  return new Promise<Response>((resolve, reject) => {
-    const request = client.request(
-      {
-        method: init.method ?? "GET",
-        hostname: normalizeRequestHostname(url.hostname),
-        port: url.port.length > 0 ? Number(url.port) : url.protocol === "https:" ? 443 : 80,
-        path: `${url.pathname}${url.search}`,
-        headers: Object.fromEntries(headers.entries()),
-      },
-      (response) => {
-        const responseHeaders = new Headers();
-
-        for (const [key, value] of Object.entries(response.headers)) {
-          if (typeof value === "string") {
-            responseHeaders.set(key, value);
-            continue;
-          }
-
-          if (Array.isArray(value)) {
-            responseHeaders.set(key, value.join(", "));
-          }
-        }
-
-        const body =
-          response.statusCode === 204
-            ? null
-            : (Readable.toWeb(response) as ReadableStream<Uint8Array>);
-
-        resolve(
-          new Response(body, {
-            status: response.statusCode ?? 0,
-            statusText: response.statusMessage ?? "",
-            headers: responseHeaders,
-          })
-        );
-      }
-    );
-
-    request.on("error", reject);
-
-    if (typeof init.body === "string" || init.body instanceof Uint8Array) {
-      request.write(init.body);
-    }
-
-    request.end();
-  });
 }
 
 async function withObjectPrototypeProperties<T>(

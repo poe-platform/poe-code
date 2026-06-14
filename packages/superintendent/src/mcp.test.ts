@@ -23,11 +23,23 @@ const {
     listen: mcpListenMock
   }));
   const serverListenMock = vi.fn<() => Promise<void>>();
-  const serverToolMock = vi.fn<(name: string, description: string, schema: unknown, handler: unknown) => unknown>();
+  const serverToolMock = vi.fn<(
+    name: string,
+    description: string,
+    schema: unknown,
+    handler: unknown,
+    outputSchema?: unknown
+  ) => unknown>();
   const createServerMock = vi.fn(() => {
     const server = {
-      tool(name: string, description: string, schema: unknown, handler: unknown) {
-        serverToolMock(name, description, schema, handler);
+      tool(
+        name: string,
+        description: string,
+        schema: unknown,
+        handler: unknown,
+        outputSchema?: unknown
+      ) {
+        serverToolMock(name, description, schema, handler, outputSchema);
         return server;
       },
       listen: serverListenMock
@@ -152,21 +164,24 @@ describe("superintendent MCP entry point", () => {
       expectedWorkflowTool.name,
       expectedWorkflowTool.description,
       expectedWorkflowTool.inputSchema,
-      expect.any(Function)
+      expect.any(Function),
+      expectedWorkflowTool.outputSchema
     );
     expect(serverToolMock).toHaveBeenNthCalledWith(
       2,
       expectedBuilderTool.name,
       expectedBuilderTool.description,
       expectedBuilderTool.inputSchema,
-      expect.any(Function)
+      expect.any(Function),
+      expectedBuilderTool.outputSchema
     );
     expect(serverToolMock).toHaveBeenNthCalledWith(
       3,
       expectedInspectorTool.name,
       expectedInspectorTool.description,
       expectedInspectorTool.inputSchema,
-      expect.any(Function)
+      expect.any(Function),
+      expectedInspectorTool.outputSchema
     );
   });
 
@@ -184,7 +199,7 @@ describe("superintendent MCP entry point", () => {
 
     await expect(
       workflowHandler({ action: "request_review", summary: "Ready for owner review" })
-    ).resolves.toBe("Recorded workflow transition: request_review");
+    ).resolves.toEqual({ recorded: { action: "request_review" } });
     await expect(workflowHandler({ action: "approve_completion" })).rejects.toThrow(
       'workflow_transition action "approve_completion" is not allowed for this role/state'
     );
@@ -219,9 +234,11 @@ describe("superintendent MCP entry point", () => {
       promptOverride: "Fix the failing test in foo.test.ts",
       defaultCwd: process.cwd()
     });
-    expect(result).toBe(
-      JSON.stringify({ summary: "Builder summary", log: "log", log_path: "/tmp/builder.jsonl" })
-    );
+    expect(result).toEqual({
+      summary: "Builder summary",
+      log: "log",
+      log_path: "/tmp/builder.jsonl"
+    });
   });
 
   it("inspector_run handler resolves the inspector config and forwards the optional prompt", async () => {
@@ -267,7 +284,7 @@ describe("superintendent MCP entry point", () => {
         promptOverride: "Re-check after the latest fix"
       }
     );
-    expect(result).toBe(JSON.stringify({ name: "code-quality", summary: "Looks good" }));
+    expect(result).toEqual({ name: "code-quality", summary: "Looks good" });
   });
 
   it("inspector_run handler rejects unknown inspector names", async () => {
@@ -324,7 +341,8 @@ describe("superintendent MCP entry point", () => {
       ownerTool.name,
       ownerTool.description,
       ownerTool.inputSchema,
-      expect.any(Function)
+      expect.any(Function),
+      ownerTool.outputSchema
     );
   });
 
@@ -341,12 +359,12 @@ describe("superintendent MCP entry point", () => {
 
     const handler = serverToolMock.mock.calls[0]?.[3] as (input: unknown) => Promise<unknown>;
 
-    await expect(handler({ action: "approve_completion" })).resolves.toBe(
-      "Recorded workflow transition: approve_completion"
-    );
+    await expect(handler({ action: "approve_completion" })).resolves.toEqual({
+      recorded: { action: "approve_completion" }
+    });
     await expect(
       handler({ action: "request_changes", feedback: "Task 2 not done" })
-    ).resolves.toBe("Recorded workflow transition: request_changes");
+    ).resolves.toEqual({ recorded: { action: "request_changes" } });
     await expect(
       handler({ action: "request_review", summary: "ready" })
     ).rejects.toThrow(

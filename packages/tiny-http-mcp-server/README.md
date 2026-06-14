@@ -263,6 +263,8 @@ npx tiny-http-mcp-server --stateless
 
 The package re-exports the base server helpers from `tiny-stdio-mcp-server`, so you can import `defineSchema`, `createServer`, `Image`, `Audio`, `File`, and related types from here as well.
 
+HTTP tools have the same typed-output behavior as stdio tools. Pass an optional root-object `outputSchema` to `.tool(...)` to advertise MCP `Tool.outputSchema`, validate handler results, return `CallToolResult.structuredContent`, and keep a JSON text backstop in `content[]` for older clients. Omit `outputSchema` for prose, image, audio, file, and other content-block tools.
+
 ### `createHttpServer(options)`
 
 Creates an MCP server with HTTP transport helpers attached.
@@ -278,7 +280,7 @@ const server = createHttpServer({
 
 Returned `HttpServer` instances support:
 
-- `.tool(name, description, schema, handler)` to register tools
+- `.tool(name, description, schema, handler, outputSchema?)` to register tools
 - `.listenHttp(options?)` to start a standalone Node HTTP server
 - `.handleRequest(req, res)` to plug into an existing HTTP stack
 
@@ -392,16 +394,19 @@ These are the same shape:
 
 ```ts
 interface HttpServer {
-  tool<T>(
+  tool<TIn, TOut>(
     name: string,
     description: string,
-    inputSchema: TypedSchema<T>,
-    handler: ToolHandler<T>
+    inputSchema: TypedSchema<TIn>,
+    handler: HttpToolHandler<TIn, TOut>,
+    outputSchema?: TypedSchema<TOut>
   ): HttpServer;
   listenHttp(options?: HttpListenOptions): Promise<HttpServerHandle>;
   handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void>;
 }
 ```
+
+Invalid typed handler results are treated as server bugs and fail the JSON-RPC call with an internal `ToolError`, matching `tiny-stdio-mcp-server`.
 
 ## CLI Usage
 

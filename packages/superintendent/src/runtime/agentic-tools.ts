@@ -15,12 +15,14 @@ export type BuilderToolDefinition = {
   name: "builder_run";
   description: string;
   inputSchema: ObjectSchema;
+  outputSchema: ObjectSchema;
 };
 
 export type InspectorToolDefinition = {
   name: "inspector_run";
   description: string;
   inputSchema: ObjectSchema;
+  outputSchema: ObjectSchema;
 };
 
 export type BuilderRunInput = {
@@ -31,6 +33,46 @@ export type InspectorRunInput = {
   name: string;
   prompt?: string;
 };
+
+export const builderRunOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    summary: {
+      type: "string",
+      description: "Builder summary."
+    },
+    log: {
+      type: "string",
+      description: "Builder log text."
+    },
+    log_path: {
+      type: "string",
+      description: "Path to the builder session log."
+    }
+  },
+  required: ["summary", "log", "log_path"]
+} satisfies ObjectSchema;
+
+export const inspectorRunOutputSchema = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    name: {
+      type: "string",
+      description: "Inspector name."
+    },
+    summary: {
+      type: "string",
+      description: "Inspector summary."
+    },
+    log_path: {
+      type: "string",
+      description: "Path to the inspector session log."
+    }
+  },
+  required: ["name", "summary"]
+} satisfies ObjectSchema;
 
 export function createBuilderTool(): BuilderToolDefinition {
   return {
@@ -48,7 +90,8 @@ export function createBuilderTool(): BuilderToolDefinition {
         }
       },
       required: ["prompt"]
-    }
+    },
+    outputSchema: builderRunOutputSchema
   };
 }
 
@@ -76,7 +119,8 @@ export function createInspectorTool(inspectorNames: string[]): InspectorToolDefi
         }
       },
       required: ["name"]
-    }
+    },
+    outputSchema: inspectorRunOutputSchema
   };
 }
 

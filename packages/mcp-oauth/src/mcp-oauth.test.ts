@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { nodeFetch } from "../../tiny-http-mcp-server/src/testing.js";
+import { nodeFetch } from "tiny-http-mcp-server/testing";
 import {
   createAuthStoreSessionStore,
   createDefaultOAuthClientProvider,

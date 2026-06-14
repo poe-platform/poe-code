@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { createWorkflowTool, parseWorkflowCall } from "./workflow-tool.js";
+import {
+  createWorkflowTool,
+  parseWorkflowCall,
+  workflowTransitionOutputSchema
+} from "./workflow-tool.js";
 
 describe("createWorkflowTool", () => {
   it("gives superintendent in in_progress only request_review", () => {
@@ -23,7 +27,8 @@ describe("createWorkflowTool", () => {
             description: "Summarize why the work is ready for owner review."
           }
         }
-      }
+      },
+      outputSchema: workflowTransitionOutputSchema
     });
   });
 
@@ -48,7 +53,8 @@ describe("createWorkflowTool", () => {
             description: "Required when action is request_changes. Explain what needs to change."
           }
         }
-      }
+      },
+      outputSchema: workflowTransitionOutputSchema
     });
   });
 
@@ -73,7 +79,8 @@ describe("createWorkflowTool", () => {
             description: "Summarize why the work is ready for owner review."
           }
         }
-      }
+      },
+      outputSchema: workflowTransitionOutputSchema
     });
   });
 });

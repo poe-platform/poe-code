@@ -244,11 +244,11 @@ export interface ServerOptions {
 
 import type { ToolReturn } from "./content/index.js";
 
-export type ToolHandler<T = Record<string, unknown>> = (
+export type ToolHandler<T = Record<string, unknown>, TOut = ToolReturn> = (
   args: T
-) => Promise<ToolReturn | CallToolResult> | ToolReturn | CallToolResult;
+) => Promise<TOut | CallToolResult> | TOut | CallToolResult;
 
-export interface ToolDefinition<T = Record<string, unknown>> {
+export interface ToolDefinition<T = Record<string, unknown>, TOut = ToolReturn> {
   name: string;
   title?: string;
   description?: string;
@@ -258,7 +258,7 @@ export interface ToolDefinition<T = Record<string, unknown>> {
   execution?: ToolExecution;
   icons?: Icon[];
   _meta?: Record<string, unknown>;
-  handler: ToolHandler<T>;
+  handler: ToolHandler<T, TOut>;
 }
 
 // Transport types

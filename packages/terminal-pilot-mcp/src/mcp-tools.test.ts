@@ -137,13 +137,24 @@ describe("terminal-pilot-mcp tool surface", () => {
 
       expect(result.tools).toHaveLength(EXPECTED_TOOL_NAMES.length);
       expect(result.tools.map((tool) => tool.name)).toEqual(EXPECTED_TOOL_NAMES);
+      expect(result.tools.find((tool) => tool.name === "terminal_create_session")).toMatchObject({
+        outputSchema: {
+          type: "object",
+          properties: {
+            session: { type: "string" },
+            pid: { type: "number" }
+          },
+          required: ["session", "pid"]
+        }
+      });
       expect(
         await client.callTool({
           name: "terminal_create_session",
           arguments: { command: "bash" }
         })
       ).toEqual({
-        content: [{ type: "text", text: JSON.stringify({ session: "s1", pid: 1234 }) }]
+        content: [{ type: "text", text: JSON.stringify({ session: "s1", pid: 1234 }) }],
+        structuredContent: { session: "s1", pid: 1234 }
       });
     } finally {
       await cleanup();

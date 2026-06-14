@@ -61,6 +61,9 @@ export const greet = defineCommand({
     name: S.String({ description: "Who to greet" }),
     loud: S.Optional(S.Boolean({ default: false }))
   }),
+  result: S.Object({
+    message: S.String()
+  }),
   handler: async ({ params }) => {
     const message = `Hello, ${params.name}`;
     return { message: params.loud ? message.toUpperCase() : message };
@@ -250,11 +253,16 @@ Services are merged into the handler context alongside the built-ins (`fetch`, `
 
 ## Output rendering
 
-Handlers return raw values. Add per-format renderers when you want richer CLI output:
+Handlers return raw values. Add `result:` when a command returns structured data and may be exposed over MCP; Toolcraft turns that schema into MCP `outputSchema`, validates the returned object, returns it as `structuredContent`, and keeps a JSON text backstop for older MCP clients.
+
+Add per-format renderers when you want richer CLI output:
 
 ```ts
 defineCommand({
   // ...
+  result: S.Object({
+    rows: S.Array(S.Object({ id: S.Number() }))
+  }),
   handler: async () => ({ rows: [{ id: 1 }, { id: 2 }] }),
   render: {
     rich: (result, { renderTable }) =>
@@ -265,7 +273,7 @@ defineCommand({
 });
 ```
 
-CLI picks `rich` by default, `--json` switches to `json`. SDK and MCP always return the raw handler value.
+CLI picks `rich` by default, `--json` switches to `json`. SDK calls return the raw handler value. MCP calls with `result:` return the handler value as `structuredContent` using the configured MCP casing; MCP calls without `result:` keep content-block behavior.
 
 ## MCP proxy: adopt an existing MCP server
 
@@ -428,6 +436,7 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `aliases?: string[]`
 - `positional?: string[]` — parameter names mapped from CLI argv order.
 - `params: S.Object(...)` — input schema from `toolcraft-schema`.
+- `result?: S.Object(...)` — structured result schema for MCP `outputSchema`; must be a root object.
 - `secrets?: Record<string, { env: string; description?: string; optional?: boolean }>`
 - `scope?: Array<"cli" | "mcp" | "sdk">` — defaults to `["cli", "sdk"]`.
 - `confirm?: boolean` — deprecated CLI-only TTY confirmation; use `humanInLoop` instead. Cannot be combined with `humanInLoop`.
@@ -473,7 +482,7 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).
-- `casing?: "snake" | "camel"` — affects MCP **input-schema property names** only. Tool names always stay `__`-joined snake_case.
+- `casing?: "snake" | "camel"` — affects MCP input-schema property names, output-schema property names, and structured result keys. Tool names always stay `__`-joined snake_case.
 
 ### `HumanInLoopRuntimeOptions`
 

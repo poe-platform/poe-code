@@ -1,8 +1,9 @@
 import path from "node:path";
+import { execFile } from "node:child_process";
 import { performance } from "node:perf_hooks";
+import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, expectTypeOf, it } from "vitest";
-import { TerminalPilot } from "terminal-pilot";
 import { symbols } from "../components/symbols.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { resetThemeCache, getTheme } from "../internal/theme-detect.js";
@@ -12,6 +13,8 @@ import { parse, render, renderMarkdown, type MdNode } from "./index.js";
 import { parseBlocks } from "./parser/block.js";
 import { extractFrontmatter } from "./parser/frontmatter.js";
 import { parseInline } from "./parser/inline.js";
+
+const execFileAsync = promisify(execFile);
 
 describe("terminal markdown demo content", () => {
   it("returns the default markdown demo", () => {
@@ -679,38 +682,23 @@ describe("terminal markdown integration", () => {
   });
 });
 
-describe("terminal markdown theme validation via terminal-pilot", () => {
+describe("terminal markdown theme validation", () => {
   const fixturePath = path.join(
     path.dirname(fileURLToPath(import.meta.url)),
     "testing",
     "theme-render-fixture.ts"
   );
-  const tsxPath = path.resolve("node_modules/.bin/tsx");
 
   it("dark and light themes render readable, visually distinct ANSI output", async () => {
-    const pilot = await TerminalPilot.launch();
+    const { stdout } = await execFileAsync(process.execPath, ["--import", "tsx", fixturePath], {
+      cwd: process.cwd(),
+      env: { ...process.env }
+    });
 
-    try {
-      const session = await pilot.newSession({
-        command: tsxPath,
-        args: [fixturePath],
-        cwd: process.cwd(),
-        env: { ...process.env }
-      });
-
-      await session.waitFor("THEMES_VALIDATED", { timeout: 15_000 });
-      await session.waitForExit({ timeout: 5_000 });
-
-      const history = await session.history();
-      const output = history.join("\n");
-
-      expect(session.exitCode).toBe(0);
-      expect(output).toContain("Dark Theme");
-      expect(output).toContain("Light Theme");
-    } finally {
-      await pilot.close();
-    }
-  }, 25_000);
+    expect(stdout).toContain("THEMES_VALIDATED");
+    expect(stdout).toContain("Dark Theme");
+    expect(stdout).toContain("Light Theme");
+  });
 });
 
 type NodeOf<TType extends MdNode["type"]> = Extract<MdNode, { type: TType }>;

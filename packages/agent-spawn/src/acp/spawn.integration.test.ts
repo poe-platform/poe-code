@@ -6,6 +6,21 @@ vi.mock("../configs/resolve-config.js", () => ({
   resolveConfig: vi.fn()
 }));
 
+vi.mock("../native-otel.js", () => ({
+  startNativeOtelCapture: vi.fn(async () => ({
+    args: [],
+    correlationId: "test-native-otel-correlation-id",
+    env: {},
+    drain: vi.fn(async () => [
+      {
+        signal: "traces",
+        contentType: "application/json",
+        body: { resourceSpans: [{ scopeSpans: [] }] }
+      }
+    ])
+  }))
+}));
+
 vi.mock("toolcraft-design", () => {
   const renderLog: unknown[] = [];
   (globalThis as any).__acpIntegrationRenderLog = renderLog;

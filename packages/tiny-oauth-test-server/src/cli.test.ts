@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import "tiny-http-mcp-server/testing";
 import { runCli } from "./cli.js";
 
 interface CapturedOutput {

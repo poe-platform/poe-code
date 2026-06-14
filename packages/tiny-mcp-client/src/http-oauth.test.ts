@@ -1,5 +1,5 @@
-import http from "node:http";
 import { describe, expect, it, vi } from "vitest";
+import { nodeFetch } from "tiny-http-mcp-server/testing";
 import type { OAuthSessionStore, StoredOAuthSession } from "mcp-oauth";
 import {
   HttpTransport,
@@ -918,11 +918,5 @@ function readTransportLine(transport: HttpTransport): Promise<string> {
 }
 
 async function requestLoopbackCallback(url: string): Promise<void> {
-  await new Promise<void>((resolve, reject) => {
-    const request = http.get(url, (response) => {
-      response.resume();
-      response.once("end", resolve);
-    });
-    request.once("error", reject);
-  });
+  await nodeFetch(url);
 }

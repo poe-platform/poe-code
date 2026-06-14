@@ -21,6 +21,8 @@
     "@poe-code/agent-defs": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
-    "@poe-code/providers": "*"
+    "@poe-code/providers": "*",
+    "toolcraft-schema": "*",
+    "ts-morph": "^27.0.2"
   }
 }

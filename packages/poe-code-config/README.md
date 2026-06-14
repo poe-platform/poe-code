@@ -22,6 +22,32 @@ This package is responsible for merging global and project config documents. CLI
 
 Use `resolveConfigPath(homeDir)` for the global file and `resolveProjectConfigPath(cwd)` for the project file.
 
+## Schema compilation
+
+Packages can define declarative config fragments with `defineScope(...)` and export them from production entrypoints. `compileConfigSchemaFromEntrypoints(...)` walks static imports and re-exports from those entrypoints, collects reachable exported `defineScope(...)` calls, merges fragments by scope name, and emits a JSON Schema document through `toolcraft-schema`.
+
+```ts
+import { defineScope } from "@poe-code/poe-code-config";
+
+export const pipelineConfigScope = defineScope("pipeline", {
+  plan_directory: {
+    type: "string",
+    default: "docs/plans",
+    env: "POE_PIPELINE_PLAN_DIRECTORY",
+    doc: "Directory where Pipeline plan documents are stored"
+  }
+});
+```
+
+Supported compiled field types are `string`, `number`, and `boolean`. Scope names, field names, field defaults, `doc`, and optional `env` metadata must be static literals. Multiple packages may contribute to the same scope, but duplicate field names in a scope are rejected.
+
+Compiler document options:
+
+- `id`: JSON Schema `$id`.
+- `title`: JSON Schema document title.
+- `description`: JSON Schema document description.
+- `schema`: JSON Schema dialect URI. Defaults to `https://json-schema.org/draft/2020-12/schema`.
+
 ## State locations
 
 Runtime state is global to the local machine and lives under `~/.poe-code/state`.

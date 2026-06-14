@@ -1,11 +1,17 @@
+import type { JsonSchemaDocument } from "toolcraft-schema";
 import type {
+  CompileConfigSchemaFromSourceTextsOptions,
   ConfigDocument,
   InferConfig,
   MemoryConfig,
   ResolvedConfig,
   ScopedConfig
-} from "./types.js";
-import { defineScope } from "./schema.js";
+} from "./index.js";
+import {
+  compileConfigSchemaFromEntrypoints,
+  compileConfigSchemaFromSourceTexts,
+  defineScope
+} from "./index.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
 
@@ -109,4 +115,25 @@ type ignoredResolvedConfigRuntime = AssertAssignable<
       };
     };
   }
+>;
+
+const ignoredCompileOptions = {
+  entrypoints: ["/repo/src/index.ts"],
+  files: {
+    "/repo/src/index.ts": ""
+  }
+} satisfies CompileConfigSchemaFromSourceTextsOptions;
+
+const ignoredCompiledFromSourceTexts = compileConfigSchemaFromSourceTexts(ignoredCompileOptions);
+const ignoredCompiledFromEntrypoints = compileConfigSchemaFromEntrypoints({
+  entrypoints: ["/repo/src/index.ts"]
+});
+
+type ignoredCompileFromSourceTextsShape = AssertAssignable<
+  JsonSchemaDocument,
+  typeof ignoredCompiledFromSourceTexts
+>;
+type ignoredCompileFromEntrypointsShape = AssertAssignable<
+  JsonSchemaDocument,
+  typeof ignoredCompiledFromEntrypoints
 >;

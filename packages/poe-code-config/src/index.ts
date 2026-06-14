@@ -21,6 +21,11 @@ export type {
 
 export { defineScope, integrationsConfigScope } from "./schema.js";
 export {
+  compileConfigSchemaFromEntrypoints,
+  compileConfigSchemaFromSourceTexts,
+  type CompileConfigSchemaFromSourceTextsOptions
+} from "./compile/schema-compiler.js";
+export {
   parseRunner,
   parseRuntime,
   resolveRuntime,

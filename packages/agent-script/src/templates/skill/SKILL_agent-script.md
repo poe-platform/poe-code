@@ -48,14 +48,23 @@ capped at five.
 
 ## Supported JavaScript
 
-Supported: functions and arrows, closures over mutable outer bindings,
-`async`/`await`, generators, regexes, `const`/`let`/`var`, destructuring,
-spread, optional chaining, nullish coalescing, template literals, member
-assignment, `new`, `this`, `if`/`else`, `switch`, `for`, `for...in`,
+For linted harness files, prefer the conservative authoring subset: arrows
+(including async arrows), closures over `const`, parameters, and imports,
+`async`/`await`, regex literals, `new RegExp(...)`, `const`/`let`,
+destructuring, spread, optional chaining, nullish coalescing, template
+literals, assignments/member assignment, `if`/`else`, `for`, `for...in`,
 `for...of`, `while`, `do...while`, labels, `try`/`catch`/`finally`, `throw`,
 and `return`.
 
-Not supported: class syntax and async generators.
+The parser/runtime can execute additional JavaScript forms including
+`function`, generators, `var`, `switch`, `this`, and constructor calls for
+sandbox constructors, but default harness lint reports several of those forms
+(`function`, `var`, `switch`, `this`, and most `new` expressions). Avoid them
+in harnesses unless you are deliberately suppressing a lint rule.
+
+Not supported: class syntax, async generators, `eval`, `Function`, dynamic
+imports, BigInt literals, and Node/browser globals such as `process`, `fetch`,
+`setTimeout`, or `globalThis`.
 
 ## Schema Initializers
 
@@ -67,7 +76,9 @@ or rely on runtime imports during schema extraction.
 
 ## Common Pitfalls
 
-- `Map` and `Set` `keys()`, `values()`, and `entries()` return eager arrays.
+- `Map` and `Set` exist at runtime, but constructing them with `new Map(...)`
+  or `new Set(...)` requires suppressing the default `AS001` lint diagnostic.
+  Their `keys()`, `values()`, and `entries()` methods return eager arrays.
 - Prototype chains are absent. `Foo.prototype` is `undefined`; `instanceof`
   with a user constructor throws. Use an explicit brand property.
 - `Function#bind` is unsupported. Use an arrow that calls the function.

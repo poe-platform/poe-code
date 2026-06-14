@@ -9,7 +9,7 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 ## Why use it
 
 - **Orchestration as code.** Multi-agent shapes — pipeline, experiment, superintendent, custom — are just JS. No DSL, no JSON state machine, no per-step LLM round trip.
-- **Deterministic & sandboxed.** No `eval`, no `new`, no `class`, no `this`, no regex literals, no `function` keyword. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string and array sizes.
+- **Deterministic & sandboxed.** No `eval`, no `Function` constructor, no `class`, no dynamic import, no `globalThis`, and no built-in filesystem, process, subprocess, or network access. Imports are limited to modules you register. Budgets cap steps, depth, deadlines, string, array, and collection sizes.
 - **Crash-safe long runs.** Every `await` yields a snapshot. The scheduler writes them atomically to disk on an interval. A run can be resumed against the original source — the source hash is verified before restore.
 - **File-based plans.** A `.ajs` file or a markdown file with YAML frontmatter and a `js` fenced block is the unit of work. Frontmatter holds the plan; the script walks it.
 - **MCP code mode.** Connect to an MCP server once, then call tools imperatively from the script — no LLM in the loop for the orchestration layer.
@@ -22,7 +22,9 @@ When you need filesystem, subprocess, or HTTP capability, build a host module wi
 
 ## Scripts are JavaScript
 
-A `.ajs` body reads like a small JS program. No DSL, no decorators, no directive comments, no custom syntax — capabilities are imports, options are object literals, control flow is plain `if`/`for`/`try`. The subset is restrictive (no `function` keyword, no `class`, no regex literals), but everything in it is plain ECMAScript. Anything that would need a non-JS shape — version pins, runtime config, metadata, schedules — belongs in the markdown frontmatter or the caller's options, not in the script body.
+A `.ajs` body reads like a small JS program. No DSL, no decorators, no custom syntax — capabilities are imports, options are object literals, control flow is plain `if`/`for`/`try`. Anything that would need a non-JS shape — version pins, runtime config, metadata, schedules — belongs in the markdown frontmatter or the caller's options, not in the script body.
+
+The default linter intentionally keeps harness code conservative. It accepts the common orchestration subset and rejects some runtime-supported JavaScript forms, such as `function`, `var`, `switch`, `this`, and most `new` expressions. Embedders that call `run()` directly can execute the broader parser/runtime subset, but `poe-code harness run` and `poe-agent-script` lint first.
 
 ## At a glance
 
@@ -90,38 +92,41 @@ Embed agent-script in your own product when you want to let users (or models) wr
 
 ## Spec — index card
 
-| Aspect               | Detail                                                                                                                                                                                                                                                                                                                                                           |
-| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Source unit**      | one module body; `import` from registered modules only                                                                                                                                                                                                                                                                                                           |
-| **Allowed**          | `const`, `let`, arrays, objects, destructuring declarations, rest, spread, object spread, arrow funcs (incl. `async`), top-level `await`, `if`, `for`, `for...of`, `while`, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, binary/logical/conditional expressions, assignment to existing `let` bindings, template literals, optional chaining |
-| **Disallowed**       | `function`, `class`, `new`, `this`, `var`, `do…while`, `switch`, labels, regex literals, generators, `eval`, `Function`                                                                                                                                                                                                                                          |
-| **Lint extras**      | `await` only at top level or inside `async` arrows; lambdas can't close over outer `let`; no `__proto__` / `prototype` / `constructor`; no regex args to `String#split` / `replace` / `replaceAll`; `Array#sort` only takes an arrow returning a number                                                                                                          |
-| **Built-in globals** | `console`, `JSON`, `Error`, `TypeError`, `Math`, `Object`, `Array`, `String`, `Number`, `Boolean`, `Promise.all` / `race` / `allSettled` / `any` / `resolve` / `reject`                                                                                                                                                                                          |
-| **Determinism**      | Pass `randomSeed` for deterministic `Math.random()`; snapshots include the seeded RNG state.                                                                                                                                                                                                                                                                     |
-| **Snapshots**        | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                     |
-| **Budgets**          | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength`                                                                                                                                                                                                                                                                                            |
-| **Cancellation**     | `AbortSignal`, observed at every host call and yield point                                                                                                                                                                                                                                                                                                       |
+| Aspect                         | Detail                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Source unit**                | one module body; `import` from registered modules only                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| **Linter-approved syntax**     | `const`, `let`, arrays, objects, destructuring, rest/spread, object spread, arrows including `async` arrows, top-level `await`, `if`/`else`, `for`, `for...of`, `for...in`, `while`, `do...while`, labels, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, binary/logical/conditional expressions, assignments and updates, member assignment, template literals, optional chaining, nullish coalescing, regex literals, and `new RegExp(...)` |
+| **Runtime-only syntax**        | the parser/runtime also handle `function` declarations and expressions, generator functions, `var`, `switch`, `this`, and constructor calls for sandbox constructors. The default linter reports these forms for harnesses unless suppressed.                                                                                                                                                                                                                                                                      |
+| **Disallowed syntax**          | `class`, async generators, `with`, `eval`, `Function`, dynamic import, `import.meta` assignment, BigInt literals, legacy octal forms, and HTML-style comments                                                                                                                                                                                                                                                                                                                                                    |
+| **Lint extras**                | `await` only at top level or inside `async` arrows; arrows cannot close over outer `let`; host calls should be awaited or intentionally returned; `Array#sort` comparators must be arrows returning numbers; large literals and unreachable code are reported                                                                                                                                                                                                                                                     |
+| **Built-in globals**           | `console`, `JSON`, `Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`, `Math`, `Object`, `Array`, `String`, `Number`, `Boolean`, `Map`, `Set`, `RegExp`, `Promise` helpers, `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`                                                                                                                                                 |
+| **Determinism**                | Pass `randomSeed` for deterministic `Math.random()`; snapshots include seeded RNG state. Harness runs also provide replayable `time.now()` / `time.uuid()` through the `time` module.                                                                                                                                                                                                                                                                                                                            |
+| **Snapshots**                  | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                                                                                                                                                                     |
+| **Budgets**                    | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength`, and collection entry limits                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Cancellation**               | `AbortSignal`, observed at every host call and yield point                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| **Unsupported language edges** | prototype chains are intentionally absent; `Function#bind` is not implemented; generator frames suspended mid-iteration cannot be snapshotted; the regex engine does not support backreferences, lookaround, named groups, or Unicode property escapes                                                                                                                                                                                                                                                             |
 
 ## Supported globals
 
 These are pre-bound in every script — you don't need to import them.
 
-- **`Promise.all(values)`** — wait for every promise; rejects on the first rejection
-- **`Promise.race(values)`** — settle with the first promise to settle, fulfilled or rejected
-- **`Promise.allSettled(values)`** — never rejects; resolves to `{ status, value | reason }` entries
-- **`Promise.any(values)`** — resolves with the first fulfillment; rejects with `AggregateError` only if all reject
-- **`Promise.resolve(value)` / `Promise.reject(reason)`** — create settled sandbox promises
-- **`Math`** — `abs`, `ceil`, `cos`, `exp`, `floor`, `log`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sqrt`, `tan`, `trunc`, plus `E`, `PI`, and `random`
-- **`Object`** — `keys`, `values`, `entries`, `fromEntries`, `assign`, `freeze`
-- **`Array`** — `isArray`, `from`, `of`
+- **`Promise`** — `all`, `race`, `allSettled`, `any`, `resolve`, `reject`; sandbox promises expose `then`, `catch`, and `finally`
+- **`Math`** — numeric methods including `abs`, `acos`, `acosh`, `asin`, `asinh`, `atan`, `atan2`, `atanh`, `ceil`, `cbrt`, `clz32`, `cos`, `cosh`, `exp`, `expm1`, `floor`, `fround`, `hypot`, `imul`, `log`, `log1p`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sinh`, `sqrt`, `tan`, `tanh`, `trunc`, plus standard constants and `random`
+- **`Object`** — `keys`, `values`, `entries`, `hasOwn`, `is`, `fromEntries`, `assign`, `freeze`, `isFrozen`
+- **`Array`** — callable/constructable array factory plus `isArray`, `from`, `of`
+- **`String`** — value coercion plus `raw`, `fromCharCode`, `fromCodePoint`
+- **`Number`** — value coercion plus `isFinite`, `isNaN`, `isInteger`, `isSafeInteger`, `parseInt`, `parseFloat`, and standard numeric constants
+- **`Boolean`** — value coercion
+- **`Map`, `Set`** — sandbox collection constructors and methods (`get`/`set`/`has`/`delete`/`clear`/`forEach`/`keys`/`values`/`entries`, as applicable). Harness lint reports most `new` expressions, so direct harness code should avoid these unless the lint diagnostic is deliberately suppressed.
+- **`RegExp`** — callable or constructable regex factory; regex literals are supported
+- **`Error`, `TypeError`, `RangeError`, `ReferenceError`, `SyntaxError`, `AggregateError`** — callable factories; constructor calls work at runtime, but harness lint accepts the callable form by default
 - **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
 - **`console`** — `log`, `error` (routed to the `sink` you pass to `run()`)
-- **`Error`, `TypeError`** — callable factories, e.g. `throw Error("…")`. `new` is forbidden; the factory call is the supported form.
-- **`String`, `Number`, `Boolean`** — value coercion factories, e.g. `String(value)`
+- **Miscellaneous** — `structuredClone`, `parseInt`, `parseFloat`, `isNaN`, `isFinite`, `Infinity`, `NaN`
 
-What is **not** available as a global: `Promise` constructor, `Date`, `RegExp`, `Map`, `Set`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and the other `*Error` constructors (`RangeError`, `SyntaxError`, `ReferenceError`). Expose a host module if you need any of them.
+What is **not** available as a global: the `Promise` constructor, `Date`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and other browser or Node globals. Expose a host module if you need any of them.
 
-Method coverage on plain values follows ECMAScript with a few removals: `String#split` / `replace` / `replaceAll` reject regex separators and function replacers, and `Array#sort` only accepts an arrow comparator returning a number. See `src/interp/methods/` for the full list.
+Method coverage on plain values follows ECMAScript with a few removals. Arrays include the common iteration, search, copy, and mutation methods; strings include regex-aware `match`, `matchAll`, `search`, `split`, `replace`, and `replaceAll`; numbers include `toString`, `toFixed`, `toExponential`, and `toPrecision`; functions expose `call` and `apply`, but not `bind`. See `src/interp/methods/` for the full list.
 
 ## Built-in host modules
 
@@ -280,23 +285,23 @@ no module bodies to inspect.
 ## Gotchas
 
 - **No mutable closures.** Lambdas cannot capture an outer `let`. The idiomatic loop is recursion (see `examples/experiment.md`) or `for…of` whose body does not return a closure that reads the loop variable.
-- **No `function` at all.** Use arrow functions everywhere. The lint error is explicit but easy to hit when porting existing JS.
+- **Harness lint rejects `function`.** The runtime can execute function declarations and expressions, but linted harnesses should use arrows. The lint error is explicit but easy to hit when porting existing JS.
 - **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
 - **Seed `Math.random()` when replay matters.** Pass `randomSeed` to make random values deterministic. Snapshots persist the seeded RNG state so resumes stay deterministic.
-- **`Promise.all` is fine; user-defined concurrency primitives are not.** `Promise` is exposed only for static helpers. There is no `new Promise(...)`.
+- **`Promise.all` is fine; user-defined promise constructors are not.** `Promise` is exposed for static helpers and promise instances expose `then`, `catch`, and `finally`. There is no `new Promise(...)`.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
 - **Budgets are hard limits, not soft warnings.** Hitting `maxSteps` or `deadline` throws `SandboxError` with `code: "budgetExceeded"`. There is no graceful degradation; size budgets generously for your workload or wrap the run in your own retry policy.
 
-## What's not here yet
+## What's intentionally limited
 
-- No regex support of any kind: literals, `RegExp`, and regex args to string methods are gated.
-- No `do…while` or `switch`.
-- No generators or streaming iterator protocol. `for…of` works on arrays.
-- No member-target assignment such as `object.value = next`; assign to local `let` bindings or create a new object value instead.
+- Harness lint rejects `function`, `var`, `switch`, `this`, and most `new` expressions even though the parser/runtime can execute many of them. Prefer arrows, `const`/`let`, `if`/loops, callable error factories, and `RegExp(...)` / regex literals in harness code.
 - No user-defined classes or prototype chains.
+- No async generators. Synchronous generators work, but a generator suspended mid-iteration cannot be snapshotted.
+- Regex support covers common literals, `RegExp`, and string methods, but not backreferences, lookaround, named groups, or Unicode property escapes.
+- `Map` and `Set` work at runtime, but their constructors require `new`, so linted harnesses need an explicit suppression to construct them directly.
 - No filesystem, network, or process modules in the box. Build them as host modules with the surface you actually want to expose.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 

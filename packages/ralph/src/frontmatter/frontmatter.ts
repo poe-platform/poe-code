@@ -1,4 +1,7 @@
-import { parse, stringify } from "yaml";
+import {
+  parseFrontmatter as parseSharedFrontmatter,
+  stringifyFrontmatter
+} from "@poe-code/frontmatter";
 import type { RalphHooks } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -126,7 +129,6 @@ export const ralphDocumentSchema: JsonSchema = {
   additionalProperties: false
 };
 
-const FENCE = "---";
 const DEFAULT_STATUS: RalphFrontmatter["status"] = {
   state: "open",
   iteration: 0
@@ -136,29 +138,11 @@ export function parseFrontmatter(content: string): {
   data: RalphFrontmatter;
   body: string;
 } {
-  if (!content.startsWith(`${FENCE}\n`)) {
-    return {
-      data: createDefaultFrontmatter(),
-      body: content
-    };
-  }
-
-  const closingIndex = content.indexOf(`\n${FENCE}\n`, FENCE.length);
-  if (closingIndex === -1) {
-    return {
-      data: createDefaultFrontmatter(),
-      body: content
-    };
-  }
-
-  const yamlBlock = content.slice(FENCE.length + 1, closingIndex);
-  const rawBody = content.slice(closingIndex + FENCE.length + 2);
-  const body = rawBody.startsWith("\n") ? rawBody.slice(1) : rawBody;
-  const parsed = parse(yamlBlock);
+  const parsed = parseSharedFrontmatter(content);
 
   return {
-    data: parseFrontmatterData(parsed),
-    body
+    data: parseFrontmatterData(parsed.frontmatter),
+    body: parsed.body.startsWith("\n") ? parsed.body.slice(1) : parsed.body
   };
 }
 
@@ -177,8 +161,7 @@ export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
       iteration: data.status.iteration
     }
   };
-  const yaml = stringify(serialized).trimEnd();
-  return `${FENCE}\n${yaml}\n${FENCE}\n${body}`;
+  return stringifyFrontmatter(serialized, body);
 }
 
 function createDefaultFrontmatter(): RalphFrontmatter {
@@ -194,7 +177,25 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const defaults = createDefaultFrontmatter();
   const parsed = isRecord(value) ? value : undefined;
   if (parsed !== undefined) {
-    rejectUnknownKeys(parsed, ["$schema", "kind", "version", "name", "state", "agent", "extends", "iterations", "skills", "hooks", "status", "iteration", "prompt"], "frontmatter");
+    rejectUnknownKeys(
+      parsed,
+      [
+        "$schema",
+        "kind",
+        "version",
+        "name",
+        "state",
+        "agent",
+        "extends",
+        "iterations",
+        "skills",
+        "hooks",
+        "status",
+        "iteration",
+        "prompt"
+      ],
+      "frontmatter"
+    );
     const kind = getOwnEntry(parsed, "kind");
     if (kind !== undefined && kind !== "ralph") {
       throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');
@@ -318,12 +319,7 @@ function parseHooks(value: unknown): RalphHooks | undefined {
     );
   }
 
-  if (
-    scope !== undefined &&
-    scope !== "project" &&
-    scope !== "user" &&
-    scope !== "merged"
-  ) {
+  if (scope !== undefined && scope !== "project" && scope !== "user" && scope !== "merged") {
     throw new Error(
       'Invalid Ralph frontmatter: "hooks.scope" must be "project", "user", or "merged".'
     );

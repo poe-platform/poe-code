@@ -1,32 +1,5 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { splitFrontmatter } from "./frontmatter.js";
-
-async function withObjectPrototypeProperties<T>(
-  properties: Record<string, unknown>,
-  callback: () => Promise<T>
-): Promise<T> {
-  const originals = new Map<string, PropertyDescriptor | undefined>();
-  for (const [key, value] of Object.entries(properties)) {
-    originals.set(key, Object.getOwnPropertyDescriptor(Object.prototype, key));
-    Object.defineProperty(Object.prototype, key, {
-      configurable: true,
-      value,
-      writable: true
-    });
-  }
-
-  try {
-    return await callback();
-  } finally {
-    for (const [key, descriptor] of originals) {
-      if (descriptor) {
-        Object.defineProperty(Object.prototype, key, descriptor);
-      } else {
-        delete (Object.prototype as Record<string, unknown>)[key];
-      }
-    }
-  }
-}
 
 describe("splitFrontmatter", () => {
   it("returns parsed frontmatter and the markdown body", () => {
@@ -131,7 +104,7 @@ describe("splitFrontmatter", () => {
   });
 
   it("does not treat a fence-like value inside YAML as the closing delimiter", () => {
-    const markdown = ['---', 'separator: "---"', "title: Example", "---", "Body"].join("\n");
+    const markdown = ["---", 'separator: "---"', "title: Example", "---", "Body"].join("\n");
 
     expect(splitFrontmatter(markdown)).toEqual({
       frontmatter: {
@@ -145,8 +118,8 @@ describe("splitFrontmatter", () => {
   it("parses frontmatter values containing colons and dashes", () => {
     const markdown = [
       "---",
-      "command: \"npm run dev -- --agent claude\"",
-      "description: \"Fix loader: preserve alpha-beta values\"",
+      'command: "npm run dev -- --agent claude"',
+      'description: "Fix loader: preserve alpha-beta values"',
       "path: packages/agent-script/src/loader/frontmatter.ts",
       "---",
       "Body"
@@ -173,12 +146,10 @@ describe("splitFrontmatter", () => {
     });
   });
 
-  it("surfaces js-yaml errors for mixed tab and space indentation with the original line", () => {
+  it("surfaces YAML errors for mixed tab and space indentation with the original line", () => {
     const markdown = ["---", "tasks:", "\t- name: tabbed", "  - name: spaced", "---"].join("\n");
 
-    expect(() => splitFrontmatter(markdown)).toThrow(
-      "Invalid YAML frontmatter at line 3:"
-    );
+    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 3:");
   });
 
   it("does not impose a frontmatter size limit", () => {
@@ -250,39 +221,13 @@ describe("splitFrontmatter", () => {
   it("reports malformed yaml with the document line number", () => {
     const markdown = ["---", "title: ok", "items: [broken", "---", "# Heading"].join("\n");
 
-    expect(() => splitFrontmatter(markdown)).toThrow(
-      "Invalid YAML frontmatter at line 4:"
-    );
-  });
-
-  it("ignores inherited YAML error mark lines", async () => {
-    vi.resetModules();
-    vi.doMock("js-yaml", () => ({
-      load: () => {
-        throw {};
-      }
-    }));
-
-    try {
-      const { splitFrontmatter: splitFrontmatterWithMockedYaml } = await import("./frontmatter.js");
-
-      await withObjectPrototypeProperties({ mark: { line: 41 } }, async () => {
-        expect(() =>
-          splitFrontmatterWithMockedYaml(["---", "title: ok", "---"].join("\n"))
-        ).toThrow("Invalid YAML frontmatter at line 2: unknown YAML parse error");
-      });
-    } finally {
-      vi.doUnmock("js-yaml");
-      vi.resetModules();
-    }
+    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 4:");
   });
 
   it("reports malformed yaml with the correct line number for CRLF content", () => {
     const markdown = ["---", "title: ok", "items: [broken", "---", "# Heading"].join("\r\n");
 
-    expect(() => splitFrontmatter(markdown)).toThrow(
-      "Invalid YAML frontmatter at line 4:"
-    );
+    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 4:");
   });
 
   it("reports a missing closing fence with the line where parsing stopped", () => {

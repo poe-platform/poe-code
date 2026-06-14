@@ -16,15 +16,15 @@ The bug this kills: two parsers disagreeing on the same file. The `toolcraft-des
 
 Current parsers (all parse the same `--- ... ---` frontmatter shape):
 
-| Module | Export(s) | YAML engine |
-| --- | --- | --- |
-| `packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts` | `extractFrontmatter`, via `parse` | hand-rolled `YamlSubsetParser` (no dep) |
-| `packages/markdown-reader/src/core/document.ts` | `loadMarkdownDocument` | `toolcraft-design` `parse` + `yaml` `parseDocument` (errors only) |
-| `packages/github-workflows/src/frontmatter.ts` | `parseFrontmatter` | `yaml` |
-| `packages/memory/src/frontmatter.ts` | `parseFrontmatter`, `serializeFrontmatter`, `parseSourceRef`, `serializeSourceRef` | `yaml` (parse + stringify) |
-| `packages/ralph/src/frontmatter/frontmatter.ts` | `parseFrontmatter`, `writeFrontmatter`, `parseFrontmatterData` | `yaml` (parse + stringify) |
-| `packages/superintendent/src/document/parse.ts` | `parseSuperintendentDoc`, `readExplicitBuilderAgent` | `yaml` `parseDocument` (line-aware) |
-| `packages/agent-script/src/loader/frontmatter.ts` | `splitFrontmatter` | `js-yaml` |
+| Module                                                                  | Export(s)                                                                          | YAML engine                                                       |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `packages/toolcraft-design/src/terminal-markdown/parser/frontmatter.ts` | `extractFrontmatter`, via `parse`                                                  | hand-rolled `YamlSubsetParser` (no dep)                           |
+| `packages/markdown-reader/src/core/document.ts`                         | `loadMarkdownDocument`                                                             | `toolcraft-design` `parse` + `yaml` `parseDocument` (errors only) |
+| `packages/github-workflows/src/frontmatter.ts`                          | `parseFrontmatter`                                                                 | `yaml`                                                            |
+| `packages/memory/src/frontmatter.ts`                                    | `parseFrontmatter`, `serializeFrontmatter`, `parseSourceRef`, `serializeSourceRef` | `yaml` (parse + stringify)                                        |
+| `packages/ralph/src/frontmatter/frontmatter.ts`                         | `parseFrontmatter`, `writeFrontmatter`, `parseFrontmatterData`                     | `yaml` (parse + stringify)                                        |
+| `packages/superintendent/src/document/parse.ts`                         | `parseSuperintendentDoc`, `readExplicitBuilderAgent`                               | `yaml` `parseDocument` (line-aware)                               |
+| `packages/agent-script/src/loader/frontmatter.ts`                       | `splitFrontmatter`                                                                 | `js-yaml`                                                         |
 
 Non-goals:
 
@@ -81,6 +81,7 @@ try {
 ```
 
 README documents: the three entry points, that the body is returned byte-for-byte, that an absent frontmatter block yields `{ frontmatter: {}, body: source }`, and that `__proto__` keys are kept as own properties without prototype mutation.
+It also documents duplicate-key behavior: last-wins by default for legacy compatibility, with `{ uniqueKeys: true }` available for callers such as Maestro that must reject duplicate workflow state names.
 
 ## 3. Implementation details and technical decisions
 
@@ -92,7 +93,7 @@ README documents: the three entry points, that the body is returned byte-for-byt
 - **toolcraft-design:** `extractFrontmatter` delegates to `@poe-code/frontmatter`; `YamlSubsetParser` and its tokenizer are deleted. This adds `@poe-code/frontmatter` (transitively `yaml`) to `toolcraft-design`, which today depends only on `@clack/prompts`. Accepted tradeoff: correctness over a lean dependency set; `yaml` is dependency-free.
 - **markdown-reader:** drops the `parse` + `parseDocument`-for-errors dance; calls the shared library directly and keeps returning `{ frontmatter, sections }`.
 - **agent-script:** migrates off `js-yaml`; the `js-yaml` dependency is removed.
-- **Edge cases:** empty document; no frontmatter block; empty frontmatter block (`---\n---`); frontmatter with trailing/leading blank lines; cyclic objects passed to stringify (let `yaml` throw, wrap as `FrontmatterParseError`); duplicate keys (yaml's default — last wins, no throw).
+- **Edge cases:** empty document; no frontmatter block; empty frontmatter block (`---\n---`); frontmatter with trailing/leading blank lines; cyclic objects passed to stringify (let `yaml` throw, wrap as `FrontmatterParseError`); duplicate keys (last wins by default; strict diagnostics when `{ uniqueKeys: true }` is passed).
 - No flags, env vars, or config. Pure library.
 
 ## 4. Interfaces and test plan
@@ -129,7 +130,7 @@ Autonomy checklist:
 - New package builds under `turbo run build` and is added to the workspace.
 - Each consumer's existing test command passes after migration.
 - `npm run dev -- maestro run --config maestro/github-issues/WORKFLOW.md --dry-run` validates.
-- No direct `from "yaml"` / `from "js-yaml"` imports remain outside `@poe-code/frontmatter` (assert via `package-lint`/grep).
+- No duplicated frontmatter-specific YAML parsers remain in the migrated packages; unrelated YAML config readers may still import `yaml` directly where they are not parsing markdown frontmatter.
 - `toolcraft-design` no longer references `YamlSubsetParser`.
 
 ## 5. Code plan

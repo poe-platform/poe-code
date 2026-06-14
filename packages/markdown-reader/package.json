@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/frontmatter": "*",
     "toolcraft": "*",
     "toolcraft-schema": "*",
     "toolcraft-design": "*"

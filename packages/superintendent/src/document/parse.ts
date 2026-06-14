@@ -3,7 +3,7 @@ import {
   parseDocument as parseConfigDocument,
   resolve as resolveConfigExtends
 } from "@poe-code/config-extends";
-import { parseDocument } from "yaml";
+import { FrontmatterParseError, parseFrontmatterDocument } from "@poe-code/frontmatter";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -274,13 +274,12 @@ const maxSuperintendentExtendsDepth = 5;
 
 export function parseSuperintendentDoc(filePath: string, content: string): SuperintendentDoc {
   const resolvedFilePath = path.resolve(filePath);
-  const { frontmatterText, body } = splitFrontmatter(resolvedFilePath, content);
-  const parsedFrontmatter = parseYamlFrontmatter(resolvedFilePath, frontmatterText);
+  const parsed = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
 
   return {
     filePath: resolvedFilePath,
-    body,
-    frontmatter: parseFrontmatter(resolvedFilePath, parsedFrontmatter)
+    body: parsed.body,
+    frontmatter: parseFrontmatter(resolvedFilePath, parsed.frontmatter)
   };
 }
 
@@ -290,7 +289,7 @@ export async function resolveSuperintendentDoc(
   fs: SuperintendentDocumentFileSystem
 ): Promise<ResolvedSuperintendentDoc> {
   const resolvedFilePath = path.resolve(filePath);
-  const { body } = splitFrontmatter(resolvedFilePath, content);
+  const { body } = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
   const resolved = await resolveConfigExtends(
     [
       {
@@ -376,9 +375,8 @@ function assertSuperintendentBaseFrontmatter(
 
 export function readExplicitBuilderAgent(filePath: string, content: string): string | undefined {
   const resolvedFilePath = path.resolve(filePath);
-  const { frontmatterText } = splitFrontmatter(resolvedFilePath, content);
-  const parsedFrontmatter = parseYamlFrontmatter(resolvedFilePath, frontmatterText);
-  const frontmatter = expectRecord(parsedFrontmatter, "frontmatter", resolvedFilePath);
+  const parsed = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
+  const frontmatter = expectRecord(parsed.frontmatter, "frontmatter", resolvedFilePath);
 
   if (frontmatter.builder === undefined) {
     return undefined;
@@ -390,114 +388,63 @@ export function readExplicitBuilderAgent(filePath: string, content: string): str
     : expectString(builder.agent, "builder.agent", resolvedFilePath);
 }
 
-function splitFrontmatter(
+function parseSuperintendentFrontmatterDocument(
   filePath: string,
   content: string
-): { frontmatterText: string; body: string } {
-  const normalizedContent = content.startsWith("\uFEFF") ? content.slice(1) : content;
-  const openingLineBreak = readOpeningLineBreak(normalizedContent);
+): { frontmatter: Record<string, unknown>; body: string } {
+  try {
+    const parsed = parseFrontmatterDocument(content);
 
-  if (openingLineBreak === undefined) {
-    throw new Error(`${filePath}: expected YAML frontmatter delimited by ---`);
-  }
+    if (
+      parsed.body === content &&
+      Object.keys(parsed.frontmatter).length === 0 &&
+      !content.startsWith("\uFEFF---\n") &&
+      !content.startsWith("---\n") &&
+      !content.startsWith("---\r")
+    ) {
+      throw new Error(`${filePath}: expected YAML frontmatter delimited by ---`);
+    }
 
-  const frontmatterStart = 3 + openingLineBreak.length;
-  const closingFenceIndex = findClosingFence(normalizedContent, frontmatterStart, filePath);
-  const frontmatterEnd = readFrontmatterEnd(normalizedContent, closingFenceIndex);
+    if (parsed.errors.length > 0) {
+      throw new Error(`${filePath}: invalid YAML frontmatter: ${parsed.errors[0]?.message}`);
+    }
 
-  return {
-    frontmatterText: normalizedContent.slice(frontmatterStart, frontmatterEnd),
-    body: readBody(normalizedContent, closingFenceIndex + 4)
-  };
-}
-
-function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
-  if (!content.startsWith("---")) {
-    return undefined;
-  }
-
-  const nextCharacter = content[3];
-  if (nextCharacter === "\n") {
-    return "\n";
-  }
-
-  if (nextCharacter === "\r" && content[4] === "\n") {
-    return "\r\n";
-  }
-
-  return nextCharacter === undefined ? "\n" : undefined;
-}
-
-function findClosingFence(content: string, searchFrom: number, filePath: string): number {
-  let currentIndex = searchFrom - 1;
-
-  while (currentIndex < content.length) {
-    const candidateIndex = content.indexOf("\n---", currentIndex);
-
-    if (candidateIndex === -1) {
+    return {
+      frontmatter: parsed.frontmatter,
+      body: parsed.body
+    };
+  } catch (error) {
+    if (
+      error instanceof FrontmatterParseError &&
+      error.message === "Missing YAML frontmatter end delimiter (---)."
+    ) {
       throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
     }
 
-    const fenceEnd = candidateIndex + 4;
-    const nextCharacter = content[fenceEnd];
-
-    if (nextCharacter === "\n" || nextCharacter === undefined) {
-      return candidateIndex;
-    }
-
-    if (nextCharacter === "\r" && content[fenceEnd + 1] === "\n") {
-      return candidateIndex;
-    }
-
-    currentIndex = fenceEnd;
+    throw error;
   }
-
-  throw new Error(`${filePath}: missing YAML frontmatter end delimiter (---)`);
-}
-
-function readBody(content: string, bodyStart: number): string {
-  const nextCharacter = content[bodyStart];
-
-  if (nextCharacter === "\n") {
-    return content.slice(bodyStart + 1);
-  }
-
-  if (nextCharacter === "\r" && content[bodyStart + 1] === "\n") {
-    return content.slice(bodyStart + 2);
-  }
-
-  return content.slice(bodyStart);
-}
-
-function readFrontmatterEnd(content: string, closingFenceIndex: number): number {
-  return content[closingFenceIndex - 1] === "\r" ? closingFenceIndex - 1 : closingFenceIndex;
-}
-
-function parseYamlFrontmatter(filePath: string, frontmatterText: string): unknown {
-  const document = parseDocument(frontmatterText);
-
-  if (document.errors.length > 0) {
-    throw new Error(`${filePath}: invalid YAML frontmatter: ${document.errors[0].message}`);
-  }
-
-  return document.toJSON();
 }
 
 function parseFrontmatter(filePath: string, value: unknown): SuperintendentFrontmatter {
   const frontmatter = expectRecord(value, "frontmatter", filePath);
-  assertOnlyKeys(frontmatter, "frontmatter", [
-    "$schema",
-    "kind",
-    "version",
-    "extends",
-    "mcp",
-    "builder",
-    "inspectors",
-    "superintendent",
-    "owner",
-    "max_rounds",
-    "status"
-  ], filePath);
+  assertOnlyKeys(
+    frontmatter,
+    "frontmatter",
+    [
+      "$schema",
+      "kind",
+      "version",
+      "extends",
+      "mcp",
+      "builder",
+      "inspectors",
+      "superintendent",
+      "owner",
+      "max_rounds",
+      "status"
+    ],
+    filePath
+  );
   const kind = frontmatter.kind;
 
   if (kind === undefined) {
@@ -540,8 +487,13 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
         ? "claude-code"
         : expectNonEmptyString(role.agent, `${roleName}.agent`, filePath),
     mode:
-      role.mode === undefined ? undefined : expectNonEmptyString(role.mode, `${roleName}.mode`, filePath),
-    cwd: role.cwd === undefined ? undefined : expectNonEmptyString(role.cwd, `${roleName}.cwd`, filePath),
+      role.mode === undefined
+        ? undefined
+        : expectNonEmptyString(role.mode, `${roleName}.mode`, filePath),
+    cwd:
+      role.cwd === undefined
+        ? undefined
+        : expectNonEmptyString(role.cwd, `${roleName}.cwd`, filePath),
     mcp,
     prompt: expectNonEmptyString(role.prompt, `${roleName}.prompt`, filePath)
   };

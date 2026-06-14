@@ -1,8 +1,7 @@
 import nodeFs from "node:fs/promises";
 import path from "node:path";
+import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
 import { UserError } from "toolcraft";
-import { parse } from "toolcraft-design";
-import { parseDocument } from "yaml";
 import { getOwnErrorCode } from "../error-codes.js";
 import { scanMarkdown, type Section } from "./scan.js";
 
@@ -33,10 +32,7 @@ export async function loadMarkdownDocument(
 ): Promise<LoadedMarkdownDocument> {
   const resolvedFile = resolveMarkdownPath(file, dependencies.cwd);
   const source = await readMarkdownFile(resolvedFile, file, dependencies.fs ?? defaultFs);
-  const parsed = parse(source);
-  const frontmatter = parsed.frontmatter ?? {};
-
-  assertValidFrontmatter(source, file, frontmatter);
+  const frontmatter = readFrontmatter(source, file);
 
   return {
     frontmatter,
@@ -65,110 +61,50 @@ async function readMarkdownFile(
   }
 }
 
-function assertValidFrontmatter(
-  source: string,
-  file: string,
-  frontmatter: Record<string, unknown>
-): void {
-  const rawFrontmatter = getInvalidRawFrontmatter(frontmatter, source);
+function readFrontmatter(source: string, file: string): Record<string, unknown> {
+  try {
+    return parseFrontmatter(source).frontmatter;
+  } catch (error) {
+    if (error instanceof FrontmatterParseError) {
+      if (
+        error.message === "Missing YAML frontmatter end delimiter (---)." &&
+        !hasYamlLikeLeadingFrontmatter(source)
+      ) {
+        return {};
+      }
 
-  if (rawFrontmatter === undefined) {
-    return;
-  }
-
-  const document = parseDocument(rawFrontmatter, { prettyErrors: false });
-  const reason = document.errors[0]?.message ?? "unsupported YAML frontmatter";
-
-  throw new UserError(`invalid frontmatter in ${file}: ${reason}`);
-}
-
-function getInvalidRawFrontmatter(
-  frontmatter: Record<string, unknown>,
-  source: string
-): string | undefined {
-  const rawValue = frontmatter.raw;
-
-  if (typeof rawValue !== "string" || Object.keys(frontmatter).length !== 1) {
-    return undefined;
-  }
-
-  const yamlBlock = getLeadingFrontmatterBlock(source);
-
-  if (yamlBlock === undefined) {
-    return undefined;
-  }
-
-  const normalized = normalizeYamlBlock(yamlBlock);
-  return normalized === normalizeYamlBlock(rawValue) ? normalized : undefined;
-}
-
-function getLeadingFrontmatterBlock(source: string): string | undefined {
-  const start = source.startsWith("\uFEFF") ? 1 : 0;
-
-  if (!source.startsWith("---", start)) {
-    return undefined;
-  }
-
-  const openingFenceEnd = readLineEnd(source, start);
-
-  if (openingFenceEnd.content !== "---") {
-    return undefined;
-  }
-
-  let position = openingFenceEnd.next;
-
-  while (position <= source.length) {
-    const line = readLineEnd(source, position);
-
-    if (line.content === "---") {
-      return source.slice(openingFenceEnd.next, position);
+      throw new UserError(`invalid frontmatter in ${file}: ${error.message}`);
     }
 
-    if (line.next <= position) {
-      break;
-    }
-
-    position = line.next;
+    throw error;
   }
-
-  return undefined;
 }
 
-function readLineEnd(source: string, start: number): { content: string; next: number } {
-  let position = start;
+function hasYamlLikeLeadingFrontmatter(source: string): boolean {
+  const content = source.startsWith("\uFEFF") ? source.slice(1) : source;
 
-  while (position < source.length) {
-    const character = source[position];
+  if (!content.startsWith("---")) {
+    return false;
+  }
 
-    if (character === "\n") {
-      return { content: source.slice(start, position), next: position + 1 };
+  const normalized = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  const lines = normalized.split("\n");
+
+  if (lines[0] !== "---") {
+    return false;
+  }
+
+  for (const line of lines.slice(1)) {
+    const trimmed = line.trim();
+
+    if (trimmed.length === 0) {
+      continue;
     }
 
-    if (character === "\r") {
-      return {
-        content: source.slice(start, position),
-        next: source[position + 1] === "\n" ? position + 2 : position + 1
-      };
-    }
-
-    position += 1;
+    return trimmed.includes(":");
   }
 
-  return { content: source.slice(start), next: source.length + 1 };
-}
-
-function normalizeYamlBlock(value: string): string {
-  let end = value.length;
-
-  if (end > 0 && value[end - 1] === "\n") {
-    end -= 1;
-  }
-
-  if (end > 0 && value[end - 1] === "\r") {
-    end -= 1;
-  }
-
-  return value.slice(0, end);
+  return false;
 }
 
 function toUserError(error: unknown, file: string): UserError {

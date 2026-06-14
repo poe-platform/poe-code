@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/frontmatter": "*",
     "fast-string-width": "^3.0.2",
     "fast-wrap-ansi": "^0.2.0",
     "sisteransi": "^1.0.5"

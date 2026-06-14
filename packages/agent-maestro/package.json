@@ -27,7 +27,7 @@
     "@poe-code/agent-harness": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/experiment-loop": "*",
-    "@poe-code/markdown-reader": "*",
+    "@poe-code/frontmatter": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/ralph": "*",
     "@poe-code/superintendent": "*",

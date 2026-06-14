@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { readMarkdown } from "@poe-code/markdown-reader";
+import { FrontmatterParseError, parseFrontmatterDocument } from "@poe-code/frontmatter";
 
 export interface WorkflowDefinition {
   sourcePath: string;
@@ -23,7 +23,7 @@ export class WorkflowLoadError extends Error {
 export async function loadWorkflow(workflowPath: string): Promise<WorkflowDefinition> {
   const sourcePath = path.resolve(workflowPath);
   const source = await readWorkflowFile(sourcePath);
-  const config = await readWorkflowConfig(sourcePath);
+  const config = readWorkflowConfig(sourcePath, source);
 
   return {
     sourcePath,
@@ -42,16 +42,55 @@ async function readWorkflowFile(sourcePath: string): Promise<string> {
   }
 }
 
-async function readWorkflowConfig(sourcePath: string): Promise<unknown> {
+function readWorkflowConfig(sourcePath: string, source: string): unknown {
   try {
-    return (await readMarkdown({ file: sourcePath })).frontmatter;
+    const result = parseFrontmatterDocument(source, { uniqueKeys: true });
+
+    if (result.errors.length > 0) {
+      throw result.errors[0];
+    }
+
+    return result.frontmatter;
   } catch (error) {
-    throw new WorkflowLoadError(
-      "invalid_yaml",
-      `Invalid workflow frontmatter in ${sourcePath}.`,
-      { cause: error }
-    );
+    if (
+      error instanceof FrontmatterParseError &&
+      error.message === "Missing YAML frontmatter end delimiter (---)." &&
+      !hasYamlLikeLeadingFrontmatter(source)
+    ) {
+      return {};
+    }
+
+    throw new WorkflowLoadError("invalid_yaml", `Invalid workflow frontmatter in ${sourcePath}.`, {
+      cause: error
+    });
   }
+}
+
+function hasYamlLikeLeadingFrontmatter(source: string): boolean {
+  const content = source.startsWith("\uFEFF") ? source.slice(1) : source;
+
+  if (!content.startsWith("---")) {
+    return false;
+  }
+
+  const normalized = content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  const lines = normalized.split("\n");
+
+  if (lines[0] !== "---") {
+    return false;
+  }
+
+  for (const line of lines.slice(1)) {
+    const trimmed = line.trim();
+
+    if (trimmed.length === 0) {
+      continue;
+    }
+
+    return trimmed.includes(":");
+  }
+
+  return false;
 }
 
 function splitPromptTemplate(source: string): string {

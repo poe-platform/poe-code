@@ -49,7 +49,8 @@ describe("readMarkdown", () => {
       cwd: "/repo"
     });
 
-    await expect(readMarkdown({ file: "docs/with-frontmatter.md" })).resolves.toMatchInlineSnapshot(`
+    await expect(readMarkdown({ file: "docs/with-frontmatter.md" })).resolves
+      .toMatchInlineSnapshot(`
       {
         "file": "docs/with-frontmatter.md",
         "frontmatter": {
@@ -144,7 +145,13 @@ describe("readMarkdown", () => {
   it("reads frontmatter from carriage-return-only markdown", async () => {
     const readMarkdown = createReadMarkdown({
       fs: createMemFs({
-        "/repo/docs/metadata.md": ["---", "title: Metadata", "owner: docs", "---", "# Heading"].join("\r")
+        "/repo/docs/metadata.md": [
+          "---",
+          "title: Metadata",
+          "owner: docs",
+          "---",
+          "# Heading"
+        ].join("\r")
       }),
       cwd: "/repo"
     });
@@ -152,6 +159,21 @@ describe("readMarkdown", () => {
     await expect(readMarkdown({ file: "docs/metadata.md" })).resolves.toMatchObject({
       frontmatter: { title: "Metadata", owner: "docs" },
       sections: [{ depth: 1, number: null, title: "Heading" }]
+    });
+  });
+
+  it("treats a leading thematic break without a closing frontmatter fence as markdown", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({
+        "/repo/docs/thematic.md": ["---", "", "***", "", "# Real Heading", ""].join("\n")
+      }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/thematic.md" })).resolves.toEqual({
+      file: "docs/thematic.md",
+      frontmatter: {},
+      sections: [{ depth: 1, number: null, title: "Real Heading" }]
     });
   });
 
@@ -178,9 +200,12 @@ describe("readMarkdown", () => {
     const readMarkdown = createReadMarkdown({
       fs: {
         async readFile() {
-          const error = Object.assign(new Error("EACCES: permission denied, open '/repo/docs/secret.md'"), {
-            code: "EACCES"
-          });
+          const error = Object.assign(
+            new Error("EACCES: permission denied, open '/repo/docs/secret.md'"),
+            {
+              code: "EACCES"
+            }
+          );
 
           throw error;
         }

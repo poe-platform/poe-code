@@ -27,6 +27,7 @@
   ],
   "dependencies": {
     "@poe-code/agent-spawn": "*",
+    "@poe-code/frontmatter": "*",
     "@poe-code/config-extends": "*",
     "toolcraft-design": "*",
     "toolcraft": "*",

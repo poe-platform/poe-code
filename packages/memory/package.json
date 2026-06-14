@@ -24,6 +24,7 @@
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/config-mutations": "*",
+    "@poe-code/frontmatter": "*",
     "@poe-code/poe-code-config": "*",
     "tiny-stdio-mcp-server": "*",
     "tokenfill": "*"

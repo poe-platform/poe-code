@@ -474,7 +474,12 @@ describe("runPoeCommand", () => {
     };
 
     await expect(
-      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state
+      })
     ).rejects.toThrow("upload failed");
 
     await expect(state.jobs.list()).resolves.toEqual([]);
@@ -489,7 +494,12 @@ describe("runPoeCommand", () => {
     };
 
     await expect(
-      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: true, state })
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: true,
+        state
+      })
     ).rejects.toThrow("detach failed");
 
     await expect(state.jobs.list()).resolves.toEqual([
@@ -507,7 +517,12 @@ describe("runPoeCommand", () => {
     };
 
     await expect(
-      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state
+      })
     ).rejects.toThrow("download failed");
 
     await expect(state.jobs.list()).resolves.toEqual([
@@ -681,7 +696,10 @@ describe("runPoeCommand", () => {
     const session = createPoeCommandSession({ factory, state });
 
     await expect(session.run(createOpenSpec())).rejects.toThrow("upload offline");
-    await expect(session.run(createOpenSpec())).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    await expect(session.run(createOpenSpec())).resolves.toMatchObject({
+      kind: "sync",
+      exitCode: 0
+    });
 
     expect(opens).toBe(1);
     expect(env.uploads).toBe(2);
@@ -708,9 +726,8 @@ describe("runPoeCommand", () => {
     };
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
-      const nextIteration = remoteIterations.trim().length === 0
-        ? 1
-        : remoteIterations.trim().split("\n").length + 1;
+      const nextIteration =
+        remoteIterations.trim().length === 0 ? 1 : remoteIterations.trim().split("\n").length + 1;
       remoteIterations += `${nextIteration}\n`;
       return {
         pid: 123,
@@ -1214,12 +1231,8 @@ describe("runPoeCommand", () => {
 
   it("resets the activity timeout when non-captured output is piped", async () => {
     vi.useFakeTimers();
-    const stdoutWrite = vi
-      .spyOn(process.stdout, "write")
-      .mockImplementation(() => true);
-    const stderrWrite = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation(() => true);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
     const { state } = createRecordingState();
     const stdout = new PassThrough();
     const runStarted = deferred<void>();
@@ -1303,7 +1316,13 @@ describe("runPoeCommand", () => {
         });
         const rejection = run.catch((error: unknown) => error);
 
-        innerPid = Number((await waitForFileText(pidFile, 2_000)).trim());
+        const pidText = await Promise.race([
+          waitForFileText(pidFile, 10_000),
+          rejection.then((error) => {
+            throw error;
+          })
+        ]);
+        innerPid = Number(pidText.trim());
         expect(Number.isInteger(innerPid)).toBe(true);
         await writeFile(stopActivityFile, "", "utf8");
         await expect(rejection).resolves.toMatchObject({ name: "ActivityTimeoutError" });

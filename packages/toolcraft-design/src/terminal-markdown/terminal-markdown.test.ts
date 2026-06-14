@@ -23,9 +23,15 @@ describe("terminal markdown demo content", () => {
 
   it("returns the minimal markdown demo", () => {
     expect(getMarkdownDemo("minimal")).toBe(
-      ["# Markdown Minimal", "", "Quick validation paragraph.", "", "```ts", 'console.log("demo");', "```"].join(
-        "\n"
-      )
+      [
+        "# Markdown Minimal",
+        "",
+        "Quick validation paragraph.",
+        "",
+        "```ts",
+        'console.log("demo");',
+        "```"
+      ].join("\n")
     );
   });
 
@@ -101,20 +107,32 @@ describe("terminal markdown entrypoint", () => {
   });
 
   it("rejects a non-finite render width", () => {
-    expect(() => render({
-      type: "root",
-      children: [{ type: "paragraph", children: [{ type: "text", value: "hello" }] }]
-    }, { width: Number.NaN })).toThrow("width must be a positive finite number");
+    expect(() =>
+      render(
+        {
+          type: "root",
+          children: [{ type: "paragraph", children: [{ type: "text", value: "hello" }] }]
+        },
+        { width: Number.NaN }
+      )
+    ).toThrow("width must be a positive finite number");
   });
 
   it("renders cyclic frontmatter without throwing", () => {
     const metadata: { self?: unknown } = {};
     metadata.self = metadata;
 
-    expect(stripAnsi(render({
-      type: "root",
-      children: [{ type: "frontmatter", data: { metadata } }]
-    }, { showFrontmatter: true }))).toContain('metadata: {"self":"[Circular]"}');
+    expect(
+      stripAnsi(
+        render(
+          {
+            type: "root",
+            children: [{ type: "frontmatter", data: { metadata } }]
+          },
+          { showFrontmatter: true }
+        )
+      )
+    ).toContain('metadata: {"self":"[Circular]"}');
   });
 
   it("renders malformed markdown inputs as readable literal output without crashing", () => {
@@ -123,9 +141,9 @@ describe("terminal markdown entrypoint", () => {
       " const x = 1;\n no closing fence\n"
     );
 
-    expect(
-      stripAnsi(renderMarkdown("This has *unclosed emphasis and **unclosed strong"))
-    ).toBe("This has *unclosed emphasis and **unclosed strong\n\n");
+    expect(stripAnsi(renderMarkdown("This has *unclosed emphasis and **unclosed strong"))).toBe(
+      "This has *unclosed emphasis and **unclosed strong\n\n"
+    );
 
     expect(stripAnsi(renderMarkdown("[broken link(no close paren"))).toBe(
       "[broken link(no close paren\n\n"
@@ -138,7 +156,9 @@ describe("terminal markdown entrypoint", () => {
   });
 
   it("preserves unicode content and nested blockquote prefixes", () => {
-    const unicodeOutput = stripAnsi(renderMarkdown("# 你好世界 🌍\n\nParagraph with émojis 🎉 and ñ"));
+    const unicodeOutput = stripAnsi(
+      renderMarkdown("# 你好世界 🌍\n\nParagraph with émojis 🎉 and ñ")
+    );
     expect(unicodeOutput).toContain("你好世界 🌍\n");
     expect(unicodeOutput).toContain("Paragraph with émojis 🎉 and ñ\n\n");
 
@@ -395,7 +415,12 @@ describe("terminal markdown integration", () => {
 
     expectRenderedMarkdown(
       markdown,
-      ["name: Bug report", "Checklist", "I searched existing issues.", "npm run test -- packages/toolcraft-design"],
+      [
+        "name: Bug report",
+        "Checklist",
+        "I searched existing issues.",
+        "npm run test -- packages/toolcraft-design"
+      ],
       { showFrontmatter: true }
     );
   });
@@ -471,13 +496,21 @@ describe("terminal markdown integration", () => {
   it("renders a long fenced code block with a language tag (test 164)", () => {
     const markdown = createLongCodeBlockDocument();
 
-    expectRenderedMarkdown(markdown, ["Long Snippet", 'console.log("line 1");', 'console.log("line 60");']);
+    expectRenderedMarkdown(markdown, [
+      "Long Snippet",
+      'console.log("line 1");',
+      'console.log("line 60");'
+    ]);
   });
 
   it("renders a document with many scattered footnotes (test 165)", () => {
     const markdown = createFootnoteDocument();
 
-    expectRenderedMarkdown(markdown, ["Footnote Index", "Reference 1 uses note [1].", "Footnote 12 explanation."]);
+    expectRenderedMarkdown(markdown, [
+      "Footnote Index",
+      "Reference 1 uses note [1].",
+      "Footnote 12 explanation."
+    ]);
   });
 
   it("renders a deeply nested blockquote conversation (test 166)", () => {
@@ -525,14 +558,7 @@ describe("terminal markdown integration", () => {
       "> Do not crash on malformed markdown."
     ].join("\n");
 
-    expectRenderedMarkdown(markdown, [
-      "Alerts",
-      "Note",
-      "Tip",
-      "Important",
-      "Warning",
-      "Caution"
-    ]);
+    expectRenderedMarkdown(markdown, ["Alerts", "Note", "Tip", "Important", "Warning", "Caution"]);
   });
 
   it("renders paragraph continuation across adjacent text lines (test 83)", () => {
@@ -565,7 +591,13 @@ describe("terminal markdown integration", () => {
       "| alpha | beta |"
     ].join("\n");
 
-    expectRenderedMarkdown(markdown, ["Heading", "Paragraph text", "const value = 1;", "item two", "alpha"]);
+    expectRenderedMarkdown(markdown, [
+      "Heading",
+      "Paragraph text",
+      "const value = 1;",
+      "item two",
+      "alpha"
+    ]);
   });
 
   it("preserves unicode content including emoji, CJK, and RTL text (test 92)", () => {
@@ -638,9 +670,13 @@ describe("terminal markdown integration", () => {
   });
 
   it("does not render an unreferenced footnote definition into the visible output (test 107)", () => {
-    const markdown = ["# Notes", "", "Visible paragraph.", "", "[^orphan]: lonely footnote with **strong**"].join(
-      "\n"
-    );
+    const markdown = [
+      "# Notes",
+      "",
+      "Visible paragraph.",
+      "",
+      "[^orphan]: lonely footnote with **strong**"
+    ].join("\n");
 
     const output = expectRenderedMarkdown(markdown, ["Notes", "Visible paragraph."]);
     const plainText = stripAnsi(output);
@@ -1276,13 +1312,7 @@ describe("extractFrontmatter", () => {
   it("decodes common escaped characters in double-quoted scalars", () => {
     expect(
       extractFrontmatter(
-        [
-          "---",
-          'unicode: "\\u263A"',
-          'control: "a\\bb\\fc"',
-          "---",
-          "Body"
-        ].join("\n")
+        ["---", 'unicode: "\\u263A"', 'control: "a\\bb\\fc"', "---", "Body"].join("\n")
       )
     ).toEqual({
       frontmatter: {
@@ -1311,23 +1341,16 @@ describe("extractFrontmatter", () => {
     });
   });
 
-  it("does not treat non-leading or unclosed fences as frontmatter (tests 72, 130)", () => {
+  it("does not treat non-leading fences as frontmatter (test 72)", () => {
     expect(extractFrontmatter(["# Heading", "---", "title: Example", "---"].join("\n"))).toEqual({
       body: "# Heading\n---\ntitle: Example\n---"
     });
-
-    expect(extractFrontmatter(["---", "title: Example"].join("\n"))).toEqual({
-      body: "---\ntitle: Example"
-    });
   });
 
-  it("falls back to raw data when the yaml subset is invalid (test 131)", () => {
-    expect(extractFrontmatter(["---", "title: hello: world", "---", "Body"].join("\n"))).toEqual({
-      frontmatter: {
-        raw: "title: hello: world"
-      },
-      body: "Body"
-    });
+  it("throws typed parser errors for invalid frontmatter", () => {
+    expect(() =>
+      extractFrontmatter(["---", "title: hello: world", "---", "Body"].join("\n"))
+    ).toThrow("Invalid YAML frontmatter:");
   });
 });
 
@@ -2885,9 +2908,9 @@ describe("terminal markdown renderer", () => {
     expect(render({ type: "root", children: [] })).toBe("");
     expect(render({ type: "paragraph", children: [] })).toBe("");
     expect(render({ type: "heading", depth: 2, children: [] })).toBe("");
-    expect(render({ type: "root", children: [{ type: "frontmatter", data: { title: "Hidden" } }] })).toBe(
-      ""
-    );
+    expect(
+      render({ type: "root", children: [{ type: "frontmatter", data: { title: "Hidden" } }] })
+    ).toBe("");
   });
 
   it("renders inline styles, code spans, and breaks", () => {
@@ -2943,7 +2966,9 @@ describe("terminal markdown renderer", () => {
   it("renders thematic breaks to the requested width", () => {
     const theme = getTheme();
 
-    expect(render({ type: "thematicBreak" }, { width: 5 })).toBe(`${theme.divider("─".repeat(5))}\n\n`);
+    expect(render({ type: "thematicBreak" }, { width: 5 })).toBe(
+      `${theme.divider("─".repeat(5))}\n\n`
+    );
   });
 
   it("sizes h1 underlines by visible content width", () => {
@@ -3183,7 +3208,9 @@ describe("terminal markdown renderer", () => {
       ]
     };
 
-    expect(stripAnsi(render(ast, { width: 10 }))).toBe(`${symbols.bar} alpha\n${symbols.bar} beta\n${symbols.bar} gamma\n\n`);
+    expect(stripAnsi(render(ast, { width: 10 }))).toBe(
+      `${symbols.bar} alpha\n${symbols.bar} beta\n${symbols.bar} gamma\n\n`
+    );
   });
 
   it("wraps list items within the available width", () => {

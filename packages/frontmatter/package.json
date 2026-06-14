@@ -1,0 +1,25 @@
+{
+  "name": "@poe-code/frontmatter",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/frontmatter/src",
+    "test:unit": "cd ../.. && vitest run packages/frontmatter/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "yaml": "^2.8.2"
+  }
+}

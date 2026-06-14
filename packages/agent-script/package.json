@@ -23,7 +23,8 @@
     }
   },
   "dependencies": {
-    "@poe-code/agent-spawn": "*"
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/frontmatter": "*"
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",

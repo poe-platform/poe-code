@@ -103,6 +103,7 @@ interface FieldDefinition {
   optionAttribute: string;
   commanderOptionAttribute: string;
   optionFlag: string;
+  longAliases: string[];
   shortFlag?: string;
   schema: FieldSchema;
   description?: string;
@@ -446,6 +447,7 @@ function collectFields(
           globalLongOptionFlags
         ),
         optionFlag: toOptionFlag([...nextPath, childSchema.discriminator], casing),
+        longAliases: [],
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
         description: childSchema.description,
@@ -507,6 +509,7 @@ function collectFields(
           globalLongOptionFlags
         ),
         optionFlag: toOptionFlag(controlPath, casing),
+        longAliases: [],
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
         description: childSchema.description,
@@ -599,6 +602,9 @@ function collectFields(
       optionAttribute: toOptionAttribute(nextPath, casing),
       commanderOptionAttribute: toCommanderOptionAttribute(nextPath, casing, globalLongOptionFlags),
       optionFlag: toOptionFlag(nextPath, casing),
+      longAliases: [...(childSchema.cliAliases ?? [])].map((alias) =>
+        alias.startsWith("--") ? alias : `--${alias}`
+      ),
       shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
       description: childSchema.description,
@@ -681,10 +687,10 @@ function formatOptionFlags(
   }
 
   if (field.shortFlag === undefined) {
-    return field.optionFlag;
+    return [field.optionFlag, ...field.longAliases].join(", ");
   }
 
-  return `-${field.shortFlag}, ${field.optionFlag}`;
+  return [`-${field.shortFlag}`, field.optionFlag, ...field.longAliases].join(", ");
 }
 
 function formatPositionalToken(field: FieldDefinition): string {
@@ -1086,7 +1092,10 @@ function getGlobalLongOptionFlags(
   return new Set(flags);
 }
 
-function validateUniqueOptionFlags(fields: FieldDefinition[]): void {
+function validateUniqueOptionFlags(
+  fields: FieldDefinition[],
+  globalLongOptionFlags: ReadonlySet<string>
+): void {
   const fieldsByFlag = new Map<string, FieldDefinition>();
 
   for (const field of fields) {
@@ -1094,14 +1103,26 @@ function validateUniqueOptionFlags(fields: FieldDefinition[]): void {
       continue;
     }
 
-    const existing = fieldsByFlag.get(field.optionFlag);
-    if (existing !== undefined) {
-      throw new UserError(
-        `Parameters "${existing.displayPath}" and "${field.displayPath}" use conflicting CLI flag "${field.optionFlag}".`
-      );
-    }
+    for (const flag of [field.optionFlag, ...field.longAliases]) {
+      if (globalLongOptionFlags.has(flag)) {
+        if (flag === field.optionFlag && field.shortFlag !== undefined) {
+          continue;
+        }
 
-    fieldsByFlag.set(field.optionFlag, field);
+        throw new UserError(
+          `Parameter "${field.displayPath}" uses reserved CLI flag "${flag}". Add a short flag or rename the parameter.`
+        );
+      }
+
+      const existing = fieldsByFlag.get(flag);
+      if (existing !== undefined) {
+        throw new UserError(
+          `Parameters "${existing.displayPath}" and "${field.displayPath}" use conflicting CLI flag "${flag}".`
+        );
+      }
+
+      fieldsByFlag.set(flag, field);
+    }
   }
 }
 
@@ -1112,7 +1133,7 @@ function createCommanderOption(
 ): Option {
   const option = new Option(flags, description);
 
-  if (field.commanderOptionAttribute !== field.optionAttribute) {
+  if (field.commanderOptionAttribute !== field.optionAttribute || field.longAliases.length > 0) {
     option.attributeName = () => field.commanderOptionAttribute;
   }
 
@@ -1556,6 +1577,38 @@ function formatSecretDescription(secret: SecretDefinition): string {
   return secret.optional === true ? "Optional secret" : "Required secret";
 }
 
+function formatExampleValue(value: unknown): string {
+  if (typeof value === "string" && value.length > 0 && !value.includes(" ")) {
+    return value;
+  }
+
+  return JSON.stringify(value);
+}
+
+function formatExampleCommand(
+  breadcrumb: string[],
+  rootUsageName: string,
+  params: Record<string, unknown>
+): string {
+  const commandPath = buildUsageLine(breadcrumb, rootUsageName, "");
+  const flags = Object.entries(params).map(([key, value]) => {
+    const flag = `--${key}`;
+    return typeof value === "boolean" ? (value ? flag : `--no-${key}`) : `${flag} ${formatExampleValue(value)}`;
+  });
+
+  return [commandPath, ...flags].filter((token) => token.length > 0).join(" ");
+}
+
+function formatExampleRows(
+  examples: Command<any, any, any, any>["examples"],
+  breadcrumb: string[],
+  rootUsageName: string
+): string[] {
+  return examples.map((example) =>
+    `${example.title}\n  ${formatExampleCommand(breadcrumb, rootUsageName, example.params)}`
+  );
+}
+
 function wrapOptionalCommandParameterToken(token: string, optional: boolean): string {
   return optional ? `[${token}]` : token;
 }
@@ -1801,6 +1854,12 @@ function renderLeafHelp<TServices extends object>(
     );
   }
 
+  if (command.examples.length > 0) {
+    sections.push(
+      `${text.sectionHeader("Examples")}\n${formatExampleRows(command.examples, breadcrumb, rootUsageName).join("\n")}`
+    );
+  }
+
   const positionalFields = fields.filter((f) => f.positionalIndex !== undefined);
   const usageSuffix =
     positionalFields.length > 0
@@ -1917,7 +1976,7 @@ function createNodeCommand<TServices extends object>(
     const command = new CommanderCommand(node.name);
     const collected = collectFields(node.params, casing, globalLongOptionFlags);
     const fields = assignPositionals(collected.fields, node.positional);
-    validateUniqueOptionFlags(fields);
+    validateUniqueOptionFlags(fields, globalLongOptionFlags);
 
     if (node.description !== undefined) {
       command.description(node.description);

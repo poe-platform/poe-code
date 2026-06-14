@@ -253,6 +253,52 @@ describe("createMCPServer typed result schemas", () => {
     }
   });
 
+  it("appends command examples to MCP tool descriptions", async () => {
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "send",
+            description: "Send a message.",
+            scope: ["mcp"],
+            params: S.Object({
+              body: S.String(),
+            }),
+            examples: [
+              {
+                title: "Send a greeting",
+                params: { body: "hello" },
+              },
+            ],
+            handler: async () => ({ ok: true }),
+          }),
+        ],
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.listTools()).resolves.toMatchObject({
+        tools: [
+          {
+            name: "send",
+            description: expect.stringContaining("Examples:\n- Send a greeting: send body=hello"),
+          },
+        ],
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("applies MCP casing to result oneOf branches and record value schemas", async () => {
     invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
 

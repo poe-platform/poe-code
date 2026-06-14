@@ -306,20 +306,45 @@ function collectParamSummaries(
 function buildToolDescription(
   description: string | undefined,
   params: ObjectSchema<any>,
+  examples: Command<any, any, any, any>["examples"],
+  commandName: string,
   casing: Casing
 ): string {
   const summary = collectParamSummaries(params, casing);
   const parameterSummary = summary.length === 0 ? "" : `Parameters: ${summary.join(", ")}.`;
+  const exampleSummary =
+    examples.length === 0
+      ? ""
+      : `\n\nExamples:\n${examples
+          .map(
+            (example) =>
+              `- ${example.title}: ${commandName} ${formatMcpExampleParams(example.params)}`
+          )
+          .join("\n")}`;
 
   if (description === undefined) {
-    return parameterSummary;
+    return `${parameterSummary}${exampleSummary}`;
   }
 
   if (parameterSummary.length === 0) {
-    return description;
+    return `${description}${exampleSummary}`;
   }
 
-  return `${description} ${parameterSummary}`;
+  return `${description} ${parameterSummary}${exampleSummary}`;
+}
+
+function formatMcpExampleParams(params: Record<string, unknown>): string {
+  return Object.entries(params)
+    .map(([key, value]) => `${key}=${formatMcpExampleValue(value)}`)
+    .join(" ");
+}
+
+function formatMcpExampleValue(value: unknown): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  return JSON.stringify(value);
 }
 
 function matchesAllowlist(toolName: string, allowlist: string[] | undefined): boolean {
@@ -408,7 +433,7 @@ function enumerateTools<TServices extends object>(
         command: node,
         commandPath: resolvedCommandPath,
         name,
-        description: buildToolDescription(node.description, params, casing),
+        description: buildToolDescription(node.description, params, node.examples, node.name, casing),
         inputSchema: applySchemaCasing(toJsonSchema(params), casing),
         ...(node.result === undefined
           ? {}

@@ -1,9 +1,21 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { text as designText } from "toolcraft-design";
-import { UserError, type HandlerEnv, type HandlerFs } from "toolcraft";
+import {
+  HttpError,
+  UserError,
+  createHttpError,
+  type HandlerEnv,
+  type HandlerFs,
+  type HttpErrorRequest,
+  type HttpErrorResponse
+} from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";
 import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
+
+export { HttpError };
+export type { HttpErrorRequest, HttpErrorResponse };
 
 type QueryScalar = string | number | boolean | null | undefined;
 type QueryObject = { readonly [key: string]: QueryValue };
@@ -31,22 +43,22 @@ export interface HttpRequestOptions {
   dryRun?: boolean;
   verbose?: boolean;
   signal?: AbortSignal;
+  rawResponse?: boolean;
+  retries?: {
+    max: number;
+    backoff: "exponential";
+    retryOn: number[];
+    sleep?: (ms: number) => Promise<void>;
+    random?: () => number;
+  };
+  idempotency?: {
+    header: string;
+    enabled: boolean;
+    key?: string;
+    createKey?: () => string;
+  };
   writeStdout?: (chunk: string) => void;
   writeStderr?: (chunk: string) => void;
-}
-
-export interface HttpErrorRequest {
-  method: string;
-  url: string;
-  headers: Record<string, string>;
-  body?: unknown;
-}
-
-export interface HttpErrorResponse {
-  status: number;
-  statusText: string;
-  headers: Record<string, string>;
-  body: unknown;
 }
 
 export interface BinaryHttpResponse {
@@ -66,29 +78,6 @@ type RuntimeEnvironment = Pick<HandlerEnv, "get">;
 
 type RequestShape = Partial<Pick<HttpRequestOptions, "pathParams" | "query" | "headers" | "body">>;
 
-export class HttpError extends Error {
-  readonly status: number;
-  readonly statusText: string;
-  readonly request: HttpErrorRequest;
-  readonly response: HttpErrorResponse;
-
-  get body(): unknown {
-    return this.response.body;
-  }
-
-  constructor(args: { request: HttpErrorRequest; response: HttpErrorResponse; message?: string }) {
-    super(
-      args.message ??
-        `${args.request.method} ${args.request.url} → ${args.response.status} ${args.response.statusText}`
-    );
-    this.name = "HttpError";
-    this.status = args.response.status;
-    this.statusText = args.response.statusText;
-    this.request = args.request;
-    this.response = args.response;
-  }
-}
-
 export async function requestJson<TResult = unknown>(
   options: HttpRequestOptions
 ): Promise<TResult | undefined> {
@@ -107,10 +96,17 @@ export async function requestJson<TResult = unknown>(
             : JSON.stringify(options.body)
     : undefined;
   const url = buildRequestUrl(options);
+  const idempotencyHeader =
+    options.idempotency?.enabled === true && method !== "GET"
+      ? {
+          [options.idempotency.header]:
+            options.idempotency.key ?? options.idempotency.createKey?.() ?? randomUUID()
+        }
+      : {};
   const headers = createHeaders(
     token,
     hasBody,
-    options.headers,
+    { ...options.headers, ...idempotencyHeader },
     options.accept,
     options.bodyMode,
     options.contentType
@@ -130,18 +126,12 @@ export async function requestJson<TResult = unknown>(
     );
   }
 
-  let response: Response;
-
-  try {
-    response = await (options.fetch ?? globalThis.fetch)(url, {
-      method,
-      headers,
-      body: serializedBody,
-      signal: options.signal
-    });
-  } catch (error) {
-    throw classifyNetworkError(error, url) ?? error;
-  }
+  const response = await fetchWithRetries(options, url, {
+    method,
+    headers,
+    body: serializedBody,
+    signal: options.signal
+  });
 
   const contentType = response.headers.get("content-type");
   const request = createHttpErrorRequest(method, url, headers, options.body);
@@ -157,7 +147,7 @@ export async function requestJson<TResult = unknown>(
         );
       }
 
-      return undefined;
+      return formatRawResponseResult(undefined, response, options.rawResponse) as TResult;
     }
 
     const body: BinaryHttpResponse = {
@@ -173,7 +163,7 @@ export async function requestJson<TResult = unknown>(
       );
     }
 
-    return body as TResult;
+    return formatRawResponseResult(body, response, options.rawResponse) as TResult;
   }
 
   const text = await response.text();
@@ -186,7 +176,7 @@ export async function requestJson<TResult = unknown>(
         );
       }
 
-      return undefined;
+      return formatRawResponseResult(undefined, response, options.rawResponse) as TResult;
     }
 
     if (options.responseMode === "text") {
@@ -196,7 +186,7 @@ export async function requestJson<TResult = unknown>(
         );
       }
 
-      return text as TResult;
+      return formatRawResponseResult(text, response, options.rawResponse) as TResult;
     }
 
     if (!isJsonContentType(contentType)) {
@@ -206,7 +196,7 @@ export async function requestJson<TResult = unknown>(
         );
       }
 
-      throw new HttpError({
+      throw createHttpError({
         request,
         response: {
           status: response.status,
@@ -231,7 +221,7 @@ export async function requestJson<TResult = unknown>(
         );
       }
 
-      throw new HttpError({
+      throw createHttpError({
         request,
         response: {
           status: response.status,
@@ -249,7 +239,7 @@ export async function requestJson<TResult = unknown>(
       );
     }
 
-    return body;
+    return formatRawResponseResult(body, response, options.rawResponse) as TResult;
   }
 
   if (response.status === 401 && options.auth === "required") {
@@ -264,15 +254,102 @@ export async function requestJson<TResult = unknown>(
     );
   }
 
-  throw new HttpError({
+  throw createHttpError({
     request,
     response: {
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
       body
-    }
+    },
+    code: extractErrorCode(body),
+    requestId: response.headers.get("x-request-id") ?? response.headers.get("x-requestid") ?? undefined
   });
+}
+
+async function fetchWithRetries(
+  options: HttpRequestOptions,
+  url: string,
+  init: RequestInit
+): Promise<Response> {
+  const fetchImpl = options.fetch ?? globalThis.fetch;
+  const retries = options.retries;
+  const maxRetries = retries?.max ?? 0;
+  let attempt = 0;
+
+  while (true) {
+    try {
+      const response = await fetchImpl(url, init);
+
+      if (
+        retries === undefined ||
+        attempt >= maxRetries ||
+        !shouldRetryStatus(response.status, retries.retryOn)
+      ) {
+        return response;
+      }
+
+      await sleepBeforeRetry(response, retries, attempt);
+      attempt += 1;
+    } catch (error) {
+      const classified = classifyNetworkError(error, url) ?? error;
+      if (attempt >= maxRetries || retries === undefined) {
+        throw classified;
+      }
+
+      await sleepBeforeRetry(undefined, retries, attempt);
+      attempt += 1;
+    }
+  }
+}
+
+function shouldRetryStatus(status: number, retryOn: readonly number[] | undefined): boolean {
+  return retryOn?.includes(status) === true;
+}
+
+async function sleepBeforeRetry(
+  response: Response | undefined,
+  retries: NonNullable<HttpRequestOptions["retries"]>,
+  attempt: number
+): Promise<void> {
+  const retryAfter = response?.headers.get("retry-after");
+  const delay = parseRetryAfter(retryAfter) ?? calculateBackoffDelay(attempt, retries.random);
+  await (retries.sleep ?? defaultSleep)(delay);
+}
+
+function parseRetryAfter(value: string | null | undefined): number | undefined {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) {
+    return seconds * 1000;
+  }
+
+  const timestamp = Date.parse(value);
+  if (!Number.isNaN(timestamp)) {
+    return Math.max(0, timestamp - Date.now());
+  }
+
+  return undefined;
+}
+
+function calculateBackoffDelay(attempt: number, random: (() => number) | undefined): number {
+  const base = 100 * 2 ** attempt;
+  return Math.floor(base * (random ?? Math.random)());
+}
+
+function defaultSleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatRawResponseResult<T>(
+  data: T,
+  response: Response,
+  rawResponse: boolean | undefined
+): T | { data: T; response: Response } {
+  return rawResponse === true ? { data, response } : data;
 }
 
 export async function prepareMultipartFileInputs(
@@ -691,6 +768,25 @@ function parseResponseBody(text: string, contentType: string | null): unknown {
   }
 
   return JSON.parse(text) as unknown;
+}
+
+function extractErrorCode(body: unknown): string | undefined {
+  if (body === null || typeof body !== "object" || Array.isArray(body)) {
+    return undefined;
+  }
+
+  const directCode = (body as { code?: unknown }).code;
+  if (typeof directCode === "string") {
+    return directCode;
+  }
+
+  const error = (body as { error?: unknown }).error;
+  if (error !== null && typeof error === "object" && !Array.isArray(error)) {
+    const nestedCode = (error as { code?: unknown }).code;
+    return typeof nestedCode === "string" ? nestedCode : undefined;
+  }
+
+  return undefined;
 }
 
 function isJsonContentType(contentType: string | null): boolean {

@@ -1,9 +1,11 @@
 import { Json } from "./json.js";
+import { createJsonSchemaDocument } from "./json-schema-document.js";
 import { OneOf } from "./oneof.js";
 import { Record as RecordBuilder } from "./record.js";
 import { Union } from "./union.js";
 import { validate } from "./validate.js";
 import type { JsonValue, JsonValueSchema } from "./json.js";
+import type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 import type { OneOfSchema } from "./oneof.js";
 import type { RecordSchema } from "./record.js";
 import type { UnionSchema } from "./union.js";
@@ -52,9 +54,8 @@ type OptionalKeys<TShape extends ObjectShape> = {
 }[keyof TShape];
 type RequiredKeys<TShape extends ObjectShape> = Exclude<keyof TShape, OptionalKeys<TShape>>;
 
-type PropertyStatic<TSchema extends AnySchema> = TSchema extends OptionalSchema<infer TInner>
-  ? Static<TInner>
-  : Static<TSchema>;
+type PropertyStatic<TSchema extends AnySchema> =
+  TSchema extends OptionalSchema<infer TInner> ? Static<TInner> : Static<TSchema>;
 
 type InferObject<TShape extends ObjectShape> = {
   [TKey in RequiredKeys<TShape>]: PropertyStatic<TShape[TKey]>;
@@ -64,6 +65,7 @@ type InferObject<TShape extends ObjectShape> = {
 
 type SchemaOptions<TDefault> = {
   description?: string;
+  cliAliases?: readonly string[];
   default?: TDefault;
   nullable?: boolean;
   requiredScopes?: readonly SchemaScope[];
@@ -75,6 +77,7 @@ type SchemaOptions<TDefault> = {
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
   readonly description?: string;
+  readonly cliAliases?: readonly string[];
   readonly default?: TStatic;
   readonly nullable?: boolean;
   readonly requiredScopes?: readonly SchemaScope[];
@@ -113,8 +116,10 @@ export interface NumberSchema extends SchemaBase<"number", number>, NumberMetada
 
 export type BooleanSchema = SchemaBase<"boolean", boolean>;
 
-export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>>
-  extends SchemaBase<"enum", TValues[number]> {
+export interface EnumSchema<TValues extends NonEmptyReadonlyArray<EnumValue>> extends SchemaBase<
+  "enum",
+  TValues[number]
+> {
   readonly values: TValues;
   readonly jsonType?: "integer";
   readonly labels?: Partial<Record<string, string>>;
@@ -133,8 +138,10 @@ export interface ObjectSchema<TShape extends ObjectShape>
   readonly shape: TShape;
 }
 
-export interface OptionalSchema<TInner extends AnySchema>
-  extends SchemaBase<"optional", Static<TInner> | undefined> {
+export interface OptionalSchema<TInner extends AnySchema> extends SchemaBase<
+  "optional",
+  Static<TInner> | undefined
+> {
   readonly inner: TInner;
 }
 
@@ -151,9 +158,8 @@ export type AnySchema =
   | RecordSchema<AnySchema>
   | JsonValueSchema;
 
-export type Static<TSchema extends AnySchema> = TSchema extends SchemaBase<any, infer TStatic>
-  ? TStatic
-  : never;
+export type Static<TSchema extends AnySchema> =
+  TSchema extends SchemaBase<any, infer TStatic> ? TStatic : never;
 
 function withMetadata<TSchema extends AnySchema>(
   schema: TSchema,
@@ -308,8 +314,8 @@ function withInjectedDiscriminator(
     ...(branchJsonSchema.properties ?? {}),
     [discriminator]: {
       type: "string",
-      enum: [branchName],
-    } satisfies JsonSchema,
+      enum: [branchName]
+    } satisfies JsonSchema
   };
   const required = [...new Set([...(branchJsonSchema.required ?? []), discriminator])];
 
@@ -317,7 +323,7 @@ function withInjectedDiscriminator(
     ...branchJsonSchema,
     type: "object",
     properties,
-    required,
+    required
   };
 }
 
@@ -328,7 +334,7 @@ export const S = {
     assertPattern(options.pattern);
     return {
       kind: "string",
-      ...options,
+      ...options
     };
   },
 
@@ -338,19 +344,23 @@ export const S = {
     assertFiniteNumber(options.minimum, "minimum");
     assertFiniteNumber(options.maximum, "maximum");
     assertFiniteNumber(options.default, "default");
-    if (options.jsonType === "integer" && options.default !== undefined && !Number.isInteger(options.default)) {
+    if (
+      options.jsonType === "integer" &&
+      options.default !== undefined &&
+      !Number.isInteger(options.default)
+    ) {
       throw new Error("default must be an integer");
     }
     return {
       kind: "number",
-      ...options,
+      ...options
     };
   },
 
   Boolean(options: SchemaOptions<boolean> = {}): BooleanSchema {
     return {
       kind: "boolean",
-      ...options,
+      ...options
     };
   },
 
@@ -365,14 +375,17 @@ export const S = {
     } = {}
   ): EnumSchema<TValues> {
     assertValidEnumValues(values);
-    if (options.jsonType === "integer" && values.some((value) => typeof value !== "number" || !Number.isInteger(value))) {
+    if (
+      options.jsonType === "integer" &&
+      values.some((value) => typeof value !== "number" || !Number.isInteger(value))
+    ) {
       throw new Error("Integer enum values must be integers");
     }
 
     return {
       kind: "enum",
       values,
-      ...options,
+      ...options
     };
   },
 
@@ -385,7 +398,7 @@ export const S = {
     return {
       kind: "array",
       item,
-      ...options,
+      ...options
     };
   },
 
@@ -396,14 +409,14 @@ export const S = {
     return {
       kind: "object",
       shape,
-      ...options,
+      ...options
     };
   },
 
   Optional<TInner extends AnySchema>(inner: TInner): OptionalSchema<TInner> {
     return {
       kind: "optional",
-      inner,
+      inner
     };
   },
 
@@ -413,7 +426,7 @@ export const S = {
 
   Record: RecordBuilder,
 
-  Json,
+  Json
 } as const;
 
 export function toJsonSchema(schema: AnySchema): JsonSchema {
@@ -434,7 +447,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
         enum:
           unwrappedSchema.nullable === true
             ? [...unwrappedSchema.values, null]
-            : [...unwrappedSchema.values],
+            : [...unwrappedSchema.values]
       };
       const enumType = unwrappedSchema.jsonType ?? getEnumJsonType(unwrappedSchema.values);
 
@@ -448,7 +461,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
     case "array":
       return withArrayMetadata(unwrappedSchema, {
         type: "array",
-        items: toJsonSchema(unwrappedSchema.item),
+        items: toJsonSchema(unwrappedSchema.item)
       });
 
     case "object": {
@@ -471,7 +484,7 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
       return withObjectMetadata(unwrappedSchema, {
         type: "object",
         properties,
-        required,
+        required
       });
     }
 
@@ -479,18 +492,18 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
       return withMetadata(unwrappedSchema, {
         oneOf: Object.entries(unwrappedSchema.branches).map(([branchName, branchSchema]) =>
           withInjectedDiscriminator(branchSchema, unwrappedSchema.discriminator, branchName)
-        ),
+        )
       });
 
     case "union":
       return withMetadata(unwrappedSchema, {
-        oneOf: unwrappedSchema.branches.map((branchSchema) => toJsonSchema(branchSchema)),
+        oneOf: unwrappedSchema.branches.map((branchSchema) => toJsonSchema(branchSchema))
       });
 
     case "record":
       return withMetadata(unwrappedSchema, {
         type: "object",
-        additionalProperties: toJsonSchema(unwrappedSchema.value),
+        additionalProperties: toJsonSchema(unwrappedSchema.value)
       });
 
     case "json":
@@ -498,7 +511,15 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
   }
 }
 
+export function toJsonSchemaDocument(
+  schema: AnySchema,
+  options: JsonSchemaDocumentOptions = {}
+): JsonSchemaDocument {
+  return createJsonSchemaDocument(toJsonSchema(schema), options);
+}
+
 export { Json, OneOf, RecordBuilder as Record, Union, validate };
+export type { JsonSchemaDocument, JsonSchemaDocumentOptions } from "./json-schema-document.js";
 export type {
   JsonValue,
   JsonValueSchema,
@@ -506,5 +527,5 @@ export type {
   RecordSchema,
   UnionSchema,
   ValidationIssue,
-  ValidationResult,
+  ValidationResult
 };

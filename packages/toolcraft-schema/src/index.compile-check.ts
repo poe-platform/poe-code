@@ -1,15 +1,16 @@
-import { S } from "./index.js";
+import { S, toJsonSchemaDocument } from "./index.js";
 import type {
   AnySchema,
   ArraySchema,
   BooleanSchema,
   EnumSchema,
+  JsonSchemaDocument,
   JsonSchema,
   NumberSchema,
   ObjectSchema,
   OptionalSchema,
   Static,
-  StringSchema,
+  StringSchema
 } from "./index.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
@@ -22,7 +23,7 @@ const ignoredIntegerEnumSchema = S.Enum([1, 2] as const, { jsonType: "integer" }
 const ignoredArraySchema = S.Array(S.String(), { default: ["a"] });
 const ignoredObjectSchema = S.Object({
   name: S.String(),
-  retries: S.Optional(S.Number()),
+  retries: S.Optional(S.Number())
 });
 const ignoredOptionalSchema = S.Optional(S.Boolean());
 
@@ -71,4 +72,18 @@ type ignoredStaticObject = AssertAssignable<
   { name: string; retries?: number },
   Static<typeof ignoredObjectSchema>
 >;
-type ignoredStaticOptional = AssertAssignable<boolean | undefined, Static<typeof ignoredOptionalSchema>>;
+type ignoredStaticOptional = AssertAssignable<
+  boolean | undefined,
+  Static<typeof ignoredOptionalSchema>
+>;
+
+const ignoredJsonSchemaDocument = toJsonSchemaDocument(ignoredObjectSchema, {
+  id: "https://example.test/schema.json",
+  title: "Example schema",
+  description: "Example schema document"
+});
+
+type ignoredJsonSchemaDocumentShape = AssertAssignable<
+  JsonSchemaDocument,
+  typeof ignoredJsonSchemaDocument
+>;

@@ -183,6 +183,10 @@ The same `root` flows into all three. No duplication.
 
 **CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table.
 
+**Examples**: commands may declare `examples: Array<{ title, params }>` alongside their params.
+CLI help renders an `Examples` section for the command, and MCP tool descriptions include the
+same examples so agents see concrete argument shapes.
+
 ## Secrets
 
 Declare env-backed secrets on a command or group. Toolcraft reads `process.env` at command-run time and passes the values to the handler:
@@ -272,6 +276,26 @@ defineCommand({
   }
 });
 ```
+
+## HTTP errors
+
+Toolcraft exports a fixed HTTP error hierarchy for transports and generated API clients:
+
+- `HttpError`
+- `ClientError`
+- `BadRequestError`
+- `AuthenticationError`
+- `PermissionDeniedError`
+- `NotFoundError`
+- `ConflictError`
+- `UnprocessableEntityError`
+- `RateLimitError`
+- `ServerError`
+- `InternalServerError`
+- `ServiceUnavailableError`
+
+Each error carries `status`, optional `code`, optional `requestId`, and serializable `request` and
+`response` context.
 
 CLI picks `rich` by default, `--json` switches to `json`. SDK calls return the raw handler value. MCP calls with `result:` return the handler value as `structuredContent` using the configured MCP casing; MCP calls without `result:` keep content-block behavior.
 
@@ -445,6 +469,10 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `handler: (ctx) => Promise<unknown>`
 - `render?: { rich?, markdown?, json? }` — per-format output renderers.
 
+Parameter schemas may set `short: "x"` for a short CLI flag and `cliAliases: ["alias"]` for
+additional long CLI flags. For example, `rawResponse` normally maps to `--raw-response`; adding
+`cliAliases: ["raw"]` also accepts `--raw` while the SDK parameter remains `rawResponse`.
+
 ### `defineGroup(config)`
 
 - `name: string`
@@ -509,7 +537,7 @@ type HumanInLoopRuntimeOptions = {
 
 - `defineCommand`, `defineGroup`
 - `S`, `toJsonSchema`, type helpers — re-exported from `toolcraft-schema`
-- `UserError`, `ApprovalDeclinedError`
+- `UserError`, `ApprovalDeclinedError`, `HttpError` and the HTTP error subclasses.
 - Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, schema types from `toolcraft-schema`.
 
 Subpath imports:

@@ -24,6 +24,10 @@ command files.
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
 - `--output <dir>` — directory for generated files. Defaults to `src/generated`.
 - `--check` — exits non-zero when generated files would change.
+- `--diff` — prints the generated file changes without writing them.
+
+When `toolcraft.yml` is present next to the input file, the generator validates it, prints
+diagnostics, and uses it to shape generated command names for mapped resources.
 
 ### CI drift check
 
@@ -36,6 +40,14 @@ toolcraft-openapi-generate --check
 - `bearerTokenAuth(opts)`
 - `requestJson(options)`
 - `HttpError`
+- `readToolcraftConfig(path)`
+- `validateToolcraftConfig(value)`
+- `mergeToolcraftConfig(base, override)`
+- `diagnose(config, document)`
+- `formatDiagnostic(diagnostic)`
+- `formatDiagnostics(diagnostics)`
+- `resolveOpenApiBaseUrl(options)`
+- `DIAGNOSTIC_CODES`
 - `TokenSource`
 - `CommandContributor`
 - `AuthProvider`
@@ -44,8 +56,63 @@ toolcraft-openapi-generate --check
 
 - `<envVar passed to bearerTokenAuth>` — bearer token override; wins over stored credentials.
 - `AUTH_BACKEND` — forwarded to `auth-store` to select `file` or `keychain` storage.
+- `TOOLCRAFT_OPENAPI_ENV` — selects a configured OpenAPI environment when using
+  `resolveOpenApiBaseUrl`.
 
 ## Configuration
+
+### `toolcraft.yml`
+
+`toolcraft.yml` lives next to `openapi.json`. Without it, OpenAPI-only generation remains the
+default.
+
+```yaml
+edition: 2026-05-16
+
+client_settings:
+  idempotency_header: Idempotency-Key
+
+pagination:
+  cursor:
+    request: { cursor: cursor, limit: limit }
+    response: { items: data, next_cursor: meta.next_cursor }
+
+resources:
+  messages:
+    methods:
+      list: get /messages { pagination: cursor }
+      create: post /messages { idempotent: true }
+
+unspecified_endpoints:
+  - get /internal/health
+```
+
+Supported keys:
+
+- `edition` — required when `toolcraft.yml` exists. Currently `2026-05-16`.
+- `environments` — named base URLs for `resolveOpenApiBaseUrl`.
+- `client_settings.idempotency_header` — header used for generated idempotency keys.
+- `client_settings.auth.*.env` — declarative auth environment metadata.
+- `pagination` — named request/response field mappings. Schemes are validated today; iterator
+  generation is not implemented yet.
+- `resources` — resource/method mapping. Mapped methods shape generated names and file paths.
+- `readme.examples` — examples emitted into generated command help and MCP descriptions.
+- `unspecified_endpoints` — endpoints intentionally omitted from `resources`.
+
+Mapped idempotent methods with `client_settings.idempotency_header` get an optional
+`idempotencyKey` param across CLI, MCP, and SDK surfaces. Mapped methods also get a CLI/SDK
+`rawResponse` param that returns `{ data, response }`; the CLI accepts both `--raw-response` and
+`--raw`.
+
+Diagnostics use stable codes:
+
+- `TOOLCRAFT_OPENAPI_001` — endpoint is not mapped or listed in `unspecified_endpoints`.
+- `TOOLCRAFT_OPENAPI_002` — duplicate configured method path.
+- `TOOLCRAFT_OPENAPI_003` — unknown pagination scheme.
+- `TOOLCRAFT_OPENAPI_004` — reserved for spec drift.
+- `TOOLCRAFT_OPENAPI_005` — reserved method name.
+- `TOOLCRAFT_OPENAPI_006` — missing or unsupported edition.
+- `TOOLCRAFT_OPENAPI_007` — invalid config shape.
 
 ### `bearerTokenAuth(opts)`
 

@@ -1918,6 +1918,38 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("renders command examples in leaf help", async () => {
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [
+        defineCommand({
+          name: "send",
+          description: "Send a message.",
+          params: S.Object({
+            body: S.String()
+          }),
+          examples: [
+            {
+              title: "Send a greeting",
+              params: { body: "hello" }
+            }
+          ],
+          handler: async () => ({ ok: true })
+        })
+      ]
+    });
+
+    process.argv = ["node", "toolcraft", "send", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Examples");
+    expect(output).toContain("Send a greeting");
+    expect(output).toContain("toolcraft send --body hello");
+  });
+
   it("does not add a usage pointer when approval is declined", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -3985,6 +4017,41 @@ describe("runCLI", () => {
     );
   });
 
+  it("accepts long option aliases defined on params", async () => {
+    const handler = vi.fn(
+      async ({ params }: { params: { rawResponse?: boolean } }) => params
+    );
+
+    const show = defineCommand({
+      name: "show",
+      params: S.Object({
+        rawResponse: S.Optional(
+          S.Boolean({
+            cliAliases: ["raw"]
+          })
+        )
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [show]
+    });
+
+    process.argv = ["node", "toolcraft", "show", "--raw", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          rawResponse: true
+        }
+      })
+    );
+  });
+
   it("passes a declared __proto__ option to the command handler", async () => {
     const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
 
@@ -4029,6 +4096,27 @@ describe("runCLI", () => {
 
     await expect(runCLI(root)).rejects.toThrow(
       'Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".'
+    );
+  });
+
+  it("rejects long option aliases that collide with global flags", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        destination: S.Optional(S.String({ cliAliases: ["yes"] }))
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--yes"];
+
+    await expect(runCLI(root)).rejects.toThrow(
+      'Parameter "destination" uses reserved CLI flag "--yes". Add a short flag or rename the parameter.'
     );
   });
 

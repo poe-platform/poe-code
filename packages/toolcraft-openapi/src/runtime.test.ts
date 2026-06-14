@@ -11,6 +11,7 @@ import {
   defineClientFromSpec,
   prepareMultipartFileInputs,
   requestJson,
+  resolveOpenApiBaseUrl,
   writeBinaryResponseOutput,
   type OpenApiDocument
 } from "./index.js";
@@ -35,6 +36,53 @@ function createClientPair(server: ReturnType<typeof createMCPServer>) {
       })
   );
 }
+
+describe("resolveOpenApiBaseUrl", () => {
+  it("uses explicit environment, env var, config first, then OpenAPI servers", () => {
+    const document: OpenApiDocument = {
+      openapi: "3.0.3",
+      info: { title: "Example", version: "1.0.0" },
+      servers: [{ url: "https://openapi.example.com" }],
+      paths: {}
+    };
+    const environments = {
+      production: "https://api.example.com",
+      sandbox: "https://sandbox.example.com"
+    };
+
+    expect(resolveOpenApiBaseUrl({ document, environments, environment: "sandbox" })).toBe(
+      "https://sandbox.example.com"
+    );
+    expect(
+      resolveOpenApiBaseUrl({
+        document,
+        environments,
+        env: { TOOLCRAFT_OPENAPI_ENV: "sandbox" }
+      })
+    ).toBe("https://sandbox.example.com");
+    expect(resolveOpenApiBaseUrl({ document, environments })).toBe("https://api.example.com");
+    expect(resolveOpenApiBaseUrl({ document })).toBe("https://openapi.example.com");
+  });
+
+  it("rejects unknown explicit environments instead of silently falling back", () => {
+    const document: OpenApiDocument = {
+      openapi: "3.0.3",
+      info: { title: "Example", version: "1.0.0" },
+      servers: [{ url: "https://openapi.example.com" }],
+      paths: {}
+    };
+
+    expect(() =>
+      resolveOpenApiBaseUrl({
+        document,
+        environments: {
+          production: "https://api.example.com"
+        },
+        environment: "sandbox"
+      })
+    ).toThrow('Unknown OpenAPI environment "sandbox". Available: production.');
+  });
+});
 
 function createSetOfficialDocument(): OpenApiDocument {
   return {

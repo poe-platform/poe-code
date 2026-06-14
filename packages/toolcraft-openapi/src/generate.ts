@@ -15,6 +15,7 @@ import {
 import { groupByNoun } from "./group-by-noun.js";
 import { renderPreflightBlock, renderRequestShape } from "./interpreter.js";
 import { normalizeOpenApiDocument } from "./normalize-swagger.js";
+import type { ToolcraftConfig, ToolcraftMethodConfig, ToolcraftResourceConfig } from "./config.js";
 
 const HTTP_METHOD_ORDER = ["get", "post", "put", "patch", "delete", "head", "options"] as const;
 const UNSUPPORTED_HTTP_METHODS = ["trace"] as const;
@@ -89,6 +90,7 @@ export interface OpenApiDocument {
     title?: string;
     version?: string;
   };
+  servers?: OpenApiServerObject[];
   security?: OpenApiSecurityRequirementObject[];
   paths?: Record<string, OpenApiPathItemObject | undefined>;
   components?: {
@@ -189,6 +191,7 @@ type OpenApiSecurityRequirementObject = Record<string, string[]>;
 export interface GenerateOptions {
   specSha: string;
   brand?: string;
+  config?: ToolcraftConfig;
 }
 
 export interface GeneratedFile {
@@ -203,6 +206,7 @@ export interface GeneratedCommand {
   filePath: string;
   operationId: string;
   description?: string;
+  examples?: GeneratedCommandExample[];
   method: string;
   path: string;
   auth: "required" | "none";
@@ -212,6 +216,8 @@ export interface GeneratedCommand {
   bodyMode?: "json" | "form" | "raw" | "base64" | "multipart";
   contentType?: string;
   multipartBinaryFields?: readonly string[];
+  idempotencyHeader?: string;
+  rawResponse?: boolean;
   confirm: boolean;
   params: GeneratedParam[];
   paramsSchemaOptions?: GeneratedObjectSchemaOptions;
@@ -226,11 +232,17 @@ export interface GeneratedParam {
   sourceName: string;
   location: "path" | "query" | "header" | "body" | "transport";
   description?: string;
+  longAliases?: string[];
   shortFlag?: string;
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
   global?: boolean;
   optional: boolean;
   definition: GeneratedParamDefinition;
+}
+
+interface GeneratedCommandExample {
+  title: string;
+  params: Record<string, unknown>;
 }
 
 interface GeneratedParamDefinitionMetadata {
@@ -325,6 +337,7 @@ interface GeneratedParameterAssembly {
 interface RenderSchemaOptionsInput {
   definition: GeneratedParamDefinition;
   description?: string;
+  longAliases?: string[];
   shortFlag?: string;
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
   global?: boolean;
@@ -364,6 +377,10 @@ const SCHEMA_OPTION_SOURCES = [
   {
     key: "short",
     get: (param: RenderSchemaOptionsInput) => param.shortFlag
+  },
+  {
+    key: "cliAliases",
+    get: (param: RenderSchemaOptionsInput) => param.longAliases
   },
   {
     key: "scope",
@@ -462,7 +479,7 @@ interface OperationEntry {
 
 export function generate(document: OpenApiDocument, options: GenerateOptions): GeneratedFile[] {
   const normalizedDocument = normalizeOpenApiDocument(document);
-  const commands = collectGeneratedCommands(normalizedDocument);
+  const commands = collectGeneratedCommands(normalizedDocument, options.config);
   const brand = options.brand ?? "blue";
   const label = normalizedDocument.info?.title ?? "Toolcraft";
 
@@ -479,7 +496,10 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
   ];
 }
 
-export function collectGeneratedCommands(document: OpenApiDocument): GeneratedCommand[] {
+export function collectGeneratedCommands(
+  document: OpenApiDocument,
+  config?: ToolcraftConfig
+): GeneratedCommand[] {
   const normalizedDocument = normalizeOpenApiDocument(document);
   const paths = normalizedDocument.paths;
 
@@ -491,10 +511,133 @@ export function collectGeneratedCommands(document: OpenApiDocument): GeneratedCo
     createGeneratedCommand(normalizedDocument, entry)
   );
 
+  applyConfiguredCommandShape(commands, config);
   disambiguateCommandPaths(commands);
   assertUniqueCommandPaths(commands);
 
   return commands.slice().sort((left, right) => compareGeneratedCommandPaths(left, right));
+}
+
+interface ConfiguredCommandShape {
+  exampleKey: string;
+  noun: string;
+  verb: string;
+  method: ToolcraftMethodConfig;
+}
+
+function applyConfiguredCommandShape(commands: GeneratedCommand[], config: ToolcraftConfig | undefined): void {
+  const configured = collectConfiguredCommandShapes(config?.resources);
+  if (configured.length === 0) {
+    return;
+  }
+
+  for (const command of commands) {
+    const match = configured.find(
+      (candidate) =>
+        candidate.method.method.toUpperCase() === command.method && candidate.method.path === command.path
+    );
+
+    if (match === undefined) {
+      continue;
+    }
+
+    command.noun = createSafeGeneratedNoun(match.noun);
+    command.verb = createSafeGeneratedVerb(match.verb);
+    command.examples = config?.readme?.examples?.[match.exampleKey];
+    applyConfiguredRawResponse(command);
+    applyConfiguredIdempotency(command, match.method, config);
+    refreshGeneratedCommandNames(command);
+  }
+}
+
+function applyConfiguredRawResponse(command: GeneratedCommand): void {
+  command.rawResponse = true;
+  if (command.params.some((param) => param.paramName === "rawResponse")) {
+    return;
+  }
+
+  command.params.push({
+    paramName: "rawResponse",
+    sourceName: "rawResponse",
+    location: "transport",
+    description: "Return parsed data with the raw HTTP Response.",
+    longAliases: ["raw"],
+    scope: ["cli", "sdk"],
+    optional: true,
+    definition: { kind: "boolean" }
+  });
+}
+
+function applyConfiguredIdempotency(
+  command: GeneratedCommand,
+  method: ToolcraftMethodConfig,
+  config: ToolcraftConfig | undefined
+): void {
+  const header = config?.client_settings?.idempotency_header;
+  if (method.idempotent !== true || header === undefined || command.method === "GET") {
+    return;
+  }
+
+  command.idempotencyHeader = header;
+  if (command.params.some((param) => param.paramName === "idempotencyKey")) {
+    return;
+  }
+
+  command.params.push({
+    paramName: "idempotencyKey",
+    sourceName: "idempotencyKey",
+    location: "transport",
+    description: "Set an idempotency key to retry this request safely.",
+    scope: ["cli", "mcp", "sdk"],
+    optional: true,
+    definition: { kind: "string" }
+  });
+}
+
+function collectConfiguredCommandShapes(
+  resources: Record<string, ToolcraftResourceConfig> | undefined
+): ConfiguredCommandShape[] {
+  const shapes: ConfiguredCommandShape[] = [];
+
+  function visit(
+    resourceName: string,
+    resource: ToolcraftResourceConfig,
+    resourcePath: string[]
+  ): void {
+    for (const [methodName, method] of Object.entries(resource.methods ?? {})) {
+      shapes.push({
+        exampleKey: [...resourcePath, methodName].join("."),
+        noun: resourceName,
+        verb: methodName,
+        method
+      });
+    }
+
+    for (const [childName, childResource] of Object.entries(resource.subresources ?? {})) {
+      visit(childName, childResource, [...resourcePath, childName]);
+    }
+  }
+
+  for (const [resourceName, resource] of Object.entries(resources ?? {})) {
+    visit(resourceName, resource, [resourceName]);
+  }
+
+  return shapes;
+}
+
+function createSafeGeneratedVerb(value: string): string {
+  const verb = toCamelCase(value);
+
+  if (!isIdentifierName(verb)) {
+    throw new UserError(`Configured method ${JSON.stringify(value)} must map to a valid command name.`);
+  }
+
+  return verb;
+}
+
+function refreshGeneratedCommandNames(command: GeneratedCommand): void {
+  command.exportName = `${toCamelCase(command.noun)}${toPascalCase(command.verb)}Command`;
+  command.filePath = `${command.noun}/${command.verb}.ts`;
 }
 
 export function collectGeneratedCommand(
@@ -2325,6 +2468,7 @@ function createCommandFile(options: {
   verb: string;
   exportName: string;
   description?: string;
+  examples?: GeneratedCommandExample[];
   method: string;
   path: string;
   auth: "required" | "none";
@@ -2334,6 +2478,8 @@ function createCommandFile(options: {
   bodyMode?: "json" | "form" | "raw" | "base64" | "multipart";
   contentType?: string;
   multipartBinaryFields?: readonly string[];
+  idempotencyHeader?: string;
+  rawResponse?: boolean;
   params: GeneratedParam[];
   paramsSchemaOptions?: GeneratedObjectSchemaOptions;
   preflightBlocks: GeneratedPreflightBlock[];
@@ -2371,6 +2517,9 @@ function createCommandFile(options: {
 
   if (options.description !== undefined) {
     lines.push(`  description: ${JSON.stringify(options.description)},`);
+  }
+  if (options.examples !== undefined && options.examples.length > 0) {
+    lines.push(`  examples: ${JSON.stringify(options.examples)},`);
   }
 
   lines.push('  scope: ["cli", "mcp", "sdk"] as const,');
@@ -2445,6 +2594,16 @@ function createCommandFile(options: {
   lines.push("      fetch,");
   lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
+  if (options.rawResponse === true) {
+    lines.push("      rawResponse: params.rawResponse,");
+  }
+  if (options.idempotencyHeader !== undefined) {
+    lines.push("      idempotency: {");
+    lines.push(`        header: ${JSON.stringify(options.idempotencyHeader)},`);
+    lines.push("        enabled: true,");
+    lines.push("        key: params.idempotencyKey,");
+    lines.push("      },");
+  }
   if (usesRequestShapeVariable) {
     lines.push("      ...preparedRequestShape,");
   } else {
@@ -2561,6 +2720,7 @@ function renderParamSchema(param: GeneratedParam): string {
     param.definition,
     param.description,
     param.shortFlag,
+    param.longAliases,
     param.scope,
     param.global
   );
@@ -2571,6 +2731,7 @@ function renderDefinition(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
+  longAliases?: string[],
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]],
   global?: boolean
 ): string {
@@ -2578,6 +2739,7 @@ function renderDefinition(
     definition,
     description,
     shortFlag,
+    longAliases,
     scope,
     global
   });

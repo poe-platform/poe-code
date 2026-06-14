@@ -5,6 +5,7 @@ import type {
   BearerTokenAuthOptions,
   CommandsFromSpecOptions,
   CommandContributor,
+  Diagnostic,
   DefineClientFromSpecOptions,
   DefineClientOptions,
   DefinedClient,
@@ -13,6 +14,7 @@ import type {
   HttpRequestOptions,
   OpenApiDocument,
   OpenApiClientServices,
+  ToolcraftConfig,
   TokenSource
 } from "./index.js";
 import * as entrypoint from "./index.js";
@@ -21,20 +23,40 @@ import { HttpError } from "./index.js";
 describe("toolcraft-openapi", () => {
   it("loads the package entrypoint", () => {
     expect(Object.keys(entrypoint).sort()).toEqual([
+      "DIAGNOSTIC_CODES",
       "HttpError",
+      "SUPPORTED_TOOLCRAFT_EDITION",
       "bearerTokenAuth",
       "commandsFromSpec",
       "defineApiCommand",
       "defineClient",
       "defineClientFromSpec",
+      "diagnose",
+      "formatDiagnostic",
+      "formatDiagnostics",
       "generate",
       "inspectOpenApiDocument",
       "inspectOpenApiSource",
+      "mergeToolcraftConfig",
       "prepareMultipartFileInputs",
+      "readToolcraftConfig",
       "renderOpenApiInspection",
       "requestJson",
+      "resolveOpenApiBaseUrl",
+      "validateToolcraftConfig",
       "writeBinaryResponseOutput"
     ]);
+  });
+
+  it("exports config and diagnostic public types", () => {
+    expectTypeOf<ToolcraftConfig>().toMatchTypeOf<{
+      edition: string;
+    }>();
+    expectTypeOf<Diagnostic>().toMatchTypeOf<{
+      code: string;
+      severity: "error" | "warn";
+      message: string;
+    }>();
   });
 
   it("defines token sources that can resolve and invalidate tokens", () => {

@@ -7,6 +7,10 @@ import { fileURLToPath } from "node:url";
 import { UserError } from "toolcraft";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { withOutputFormat, type OutputFormat } from "toolcraft-design";
+import { readToolcraftConfig } from "../config.js";
+import type { ToolcraftConfig } from "../config.js";
+import { diagnose } from "../diagnose.js";
+import { formatDiagnostics, type Diagnostic } from "../diagnostics.js";
 import { generate, type GeneratedFile } from "../generate.js";
 import { inspectOpenApiSource } from "../inspect-source.js";
 import { renderOpenApiInspection } from "../render-inspection.js";
@@ -42,6 +46,7 @@ interface GenerateCliServices {
 
 interface GenerateCliOptions {
   check: boolean;
+  diff: boolean;
   input: string;
   inspect: boolean;
   outputFormat: OutputFormat;
@@ -50,13 +55,21 @@ interface GenerateCliOptions {
 
 interface SyncGeneratedClientResult {
   deletedFileCount: number;
+  deletedFiles: string[];
+  diagnostics: Diagnostic[];
   drifted: boolean;
   specSha: string;
+  updatedFiles: UpdatedGeneratedFile[];
   updatedFileCount: number;
+}
+
+interface UpdatedGeneratedFile extends GeneratedFile {
+  previousContents?: string;
 }
 
 const DEFAULT_OPTIONS: GenerateCliOptions = {
   check: false,
+  diff: false,
   input: "openapi.json",
   inspect: false,
   outputFormat: "terminal",
@@ -69,6 +82,7 @@ Options:
   --input <path-or-url>  OpenAPI document to read (default: openapi.json)
   --output <dir>         Directory for generated command files (default: src/generated)
   --check                Exit non-zero if generated output would change
+  --diff                 Print a diff of generated changes without writing files
   --inspect              Inspect route compatibility without writing files
   --output-format <fmt>  Inspection output: terminal, markdown, or json (default: terminal)
   -h, --help             Show this help text
@@ -102,11 +116,30 @@ export async function runGenerateCli(
 
     const result = await syncGeneratedClient(parsed, services);
 
+    if (result.diagnostics.length > 0) {
+      services.stderr.write(formatDiagnostics(result.diagnostics));
+    }
+
+    if (parsed.diff) {
+      if (!result.drifted) {
+        services.stdout.write(`OpenAPI output is up to date (${result.specSha}).\n`);
+        return 0;
+      }
+
+      services.stdout.write(renderGeneratedDiff(result, services.cwd));
+      return 1;
+    }
+
     if (parsed.check) {
       if (result.drifted) {
         services.stderr.write(
           `OpenAPI output is out of date for ${parsed.outputDir}. Run the generator without --check to update it.\n`
         );
+        return 1;
+      }
+
+      if (hasErrorDiagnostics(result.diagnostics)) {
+        services.stderr.write("OpenAPI diagnostics failed for toolcraft.yml.\n");
         return 1;
       }
 
@@ -150,7 +183,13 @@ export async function syncGeneratedClient(
   const sourceText = await readOpenApiSourceText(options.input, services);
   const specSha = createSpecSha(sourceText);
   const document = parseOpenApiDocument(sourceText, options.input);
-  const generatedFiles = generate(document, { specSha });
+  const configResult = await readAdjacentToolcraftConfig(options.input, services);
+  const diagnostics =
+    configResult.config === undefined
+      ? configResult.diagnostics
+      : [...configResult.diagnostics, ...diagnose(configResult.config, document)];
+  const effectiveConfig = hasErrorDiagnostics(diagnostics) ? undefined : configResult.config;
+  const generatedFiles = generate(document, { specSha, config: effectiveConfig });
   const outputDir = path.resolve(services.cwd, options.outputDir);
   const currentFiles = await readGeneratedFiles(services.fs, outputDir);
   const desiredFiles = new Map([
@@ -163,7 +202,7 @@ export async function syncGeneratedClient(
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
   const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
 
-  if (!options.check && drifted) {
+  if (!options.check && !options.diff && drifted) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
       await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);
@@ -174,11 +213,122 @@ export async function syncGeneratedClient(
   }
 
   return {
+    deletedFiles,
+    deletedFileCount: deletedFiles.length,
+    diagnostics,
     drifted,
     specSha,
-    updatedFileCount: updatedFiles.length,
-    deletedFileCount: deletedFiles.length
+    updatedFiles,
+    updatedFileCount: updatedFiles.length
   };
+}
+
+async function readAdjacentToolcraftConfig(
+  input: string,
+  services: Pick<GenerateCliServices, "cwd" | "fs">
+): Promise<{ config?: ToolcraftConfig; diagnostics: Diagnostic[] }> {
+  const configPath = resolveAdjacentConfigPath(input, services.cwd);
+  if (configPath === undefined) {
+    return { diagnostics: [] };
+  }
+
+  try {
+    return await readToolcraftConfig(configPath, { fs: services.fs });
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return { diagnostics: [] };
+    }
+
+    throw error;
+  }
+}
+
+function resolveAdjacentConfigPath(input: string, cwd: string): string | undefined {
+  const inputUrl = tryParseUrl(input);
+  if (inputUrl !== null && (inputUrl.protocol === "http:" || inputUrl.protocol === "https:")) {
+    return undefined;
+  }
+
+  return path.resolve(cwd, path.dirname(input), "toolcraft.yml");
+}
+
+function hasErrorDiagnostics(diagnostics: readonly Diagnostic[]): boolean {
+  return diagnostics.some((diagnostic) => diagnostic.severity === "error");
+}
+
+function renderGeneratedDiff(result: SyncGeneratedClientResult, outputDir: string): string {
+  const sections: string[] = [];
+
+  for (const file of result.updatedFiles) {
+    const relativePath = path.relative(outputDir, file.path);
+    sections.push(renderFileDiff(relativePath, file.previousContents ?? "", file.contents));
+  }
+
+  for (const filePath of result.deletedFiles) {
+    const relativePath = path.relative(outputDir, filePath);
+    sections.push([`--- ${relativePath}`, `+++ /dev/null`, "-<deleted>"].join("\n"));
+  }
+
+  return `${sections.join("\n")}\n`;
+}
+
+function renderFileDiff(relativePath: string, previousContents: string, nextContents: string): string {
+  const previousLines = previousContents.split("\n");
+  const nextLines = nextContents.split("\n");
+
+  return [
+    `--- ${relativePath}`,
+    `+++ ${relativePath}`,
+    ...collectChangedDiffLines(previousLines, nextLines)
+  ].join("\n");
+}
+
+function collectChangedDiffLines(previousLines: string[], nextLines: string[]): string[] {
+  const lengths = Array.from({ length: previousLines.length + 1 }, () =>
+    Array<number>(nextLines.length + 1).fill(0)
+  );
+
+  for (let leftIndex = previousLines.length - 1; leftIndex >= 0; leftIndex -= 1) {
+    for (let rightIndex = nextLines.length - 1; rightIndex >= 0; rightIndex -= 1) {
+      lengths[leftIndex]![rightIndex] =
+        previousLines[leftIndex] === nextLines[rightIndex]
+          ? lengths[leftIndex + 1]![rightIndex + 1]! + 1
+          : Math.max(lengths[leftIndex + 1]![rightIndex]!, lengths[leftIndex]![rightIndex + 1]!);
+    }
+  }
+
+  const lines: string[] = [];
+  let leftIndex = 0;
+  let rightIndex = 0;
+
+  while (leftIndex < previousLines.length && rightIndex < nextLines.length) {
+    if (previousLines[leftIndex] === nextLines[rightIndex]) {
+      leftIndex += 1;
+      rightIndex += 1;
+      continue;
+    }
+
+    if (lengths[leftIndex + 1]![rightIndex]! >= lengths[leftIndex]![rightIndex + 1]!) {
+      lines.push(`-${previousLines[leftIndex]}`);
+      leftIndex += 1;
+      continue;
+    }
+
+    lines.push(`+${nextLines[rightIndex]}`);
+    rightIndex += 1;
+  }
+
+  while (leftIndex < previousLines.length) {
+    lines.push(`-${previousLines[leftIndex]}`);
+    leftIndex += 1;
+  }
+
+  while (rightIndex < nextLines.length) {
+    lines.push(`+${nextLines[rightIndex]}`);
+    rightIndex += 1;
+  }
+
+  return lines;
 }
 
 function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
@@ -193,6 +343,11 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
 
     if (argument === "--check") {
       options.check = true;
+      continue;
+    }
+
+    if (argument === "--diff") {
+      options.diff = true;
       continue;
     }
 
@@ -341,15 +496,16 @@ async function readGeneratedFiles(
 function collectUpdatedFiles(
   currentFiles: ReadonlyMap<string, string>,
   desiredFiles: ReadonlyMap<string, string>
-): GeneratedFile[] {
-  const updatedFiles: GeneratedFile[] = [];
+): UpdatedGeneratedFile[] {
+  const updatedFiles: UpdatedGeneratedFile[] = [];
 
   for (const [filePath, contents] of desiredFiles) {
-    if (currentFiles.get(filePath) === contents) {
+    const previousContents = currentFiles.get(filePath);
+    if (previousContents === contents) {
       continue;
     }
 
-    updatedFiles.push({ path: filePath, contents });
+    updatedFiles.push({ path: filePath, contents, previousContents });
   }
 
   return updatedFiles;

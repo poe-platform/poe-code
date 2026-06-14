@@ -1,4 +1,4 @@
-import { UserError } from "toolcraft";
+import { RateLimitError, ServiceUnavailableError, UserError } from "toolcraft";
 import { describe, expect, it, vi } from "vitest";
 import { HttpError, requestJson } from "./http.js";
 
@@ -168,6 +168,121 @@ describe("requestJson", () => {
         fetch: vi.fn<typeof globalThis.fetch>().mockRejectedValue(error)
       })
     ).rejects.toThrow("Connection refused: 127.0.0.1:8080. Is the server running?");
+  });
+
+  it("returns parsed data with the raw Response when rawResponse is true", async () => {
+    const response = createJsonResponse({ ok: true });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: vi.fn(async () => response),
+        rawResponse: true
+      })
+    ).resolves.toEqual({
+      data: { ok: true },
+      response
+    });
+  });
+
+  it("throws typed HTTP errors with parsed code and request id", async () => {
+    const fetchMock = vi.fn(async () =>
+      new Response(JSON.stringify({ error: { code: "rate_limit_exceeded" } }), {
+        status: 429,
+        statusText: "Too Many Requests",
+        headers: {
+          "content-type": "application/json",
+          "x-request-id": "req-rate-limited"
+        }
+      })
+    );
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock
+      })
+    ).rejects.toMatchObject<RateLimitError>({
+      name: "RateLimitError",
+      status: 429,
+      code: "rate_limit_exceeded",
+      requestId: "req-rate-limited"
+    });
+  });
+
+  it("retries retryable responses and preserves the final typed error", async () => {
+    const fetchMock = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValueOnce(createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable"))
+      .mockResolvedValueOnce(createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable"));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        retries: {
+          max: 1,
+          backoff: "exponential",
+          retryOn: [503],
+          sleep: async () => undefined,
+          random: () => 0.5
+        }
+      })
+    ).rejects.toBeInstanceOf(ServiceUnavailableError);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("injects configured idempotency keys and generates one when omitted", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      body: { name: "bot" },
+      idempotency: {
+        header: "Idempotency-Key",
+        enabled: true,
+        key: "msg-42"
+      }
+    });
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: fetchMock,
+      body: { name: "bot" },
+      idempotency: {
+        header: "Idempotency-Key",
+        enabled: true,
+        createKey: () => "generated-key"
+      }
+    });
+
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      headers: expect.objectContaining({ "Idempotency-Key": "msg-42" })
+    });
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({
+      headers: expect.objectContaining({ "Idempotency-Key": "generated-key" })
+    });
   });
 
   it("calls toUpperCase once when issuing the request", async () => {

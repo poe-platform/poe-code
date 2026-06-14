@@ -343,6 +343,115 @@ describe("runGenerateCli", () => {
     expect([exitCode, await readRepoFiles(harness.fs, "/repo")]).toEqual([1, before]);
   });
 
+  it("returns diagnostics from toolcraft.yml in --check mode", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({
+      "/repo/openapi.json": specText,
+      ...Object.fromEntries(
+        Object.entries(createExpectedFiles(specText, { includeInputFile: false })).map(
+          ([filePath, contents]) => [`/repo/${filePath}`, contents]
+        )
+      ),
+      "/repo/toolcraft.yml": [
+        "edition: 2026-05-16",
+        "resources:",
+        "  bots:",
+        "    methods:",
+        "      list: get /bots { pagination: cursor }"
+      ].join("\n")
+    });
+
+    const exitCode = await runGenerateCli(["node", "generate", "--check"], harness.services);
+
+    expect(exitCode).toBe(1);
+    expect(harness.stderr()).toContain("TOOLCRAFT_OPENAPI_003");
+    expect(harness.stderr()).toContain("resources.bots.methods.list");
+    expect(harness.stderr()).toContain("OpenAPI diagnostics failed for toolcraft.yml.");
+    expect(harness.stderr()).not.toContain("OpenAPI output is out of date");
+  });
+
+  it("uses toolcraft.yml resource method names to shape generated files", async () => {
+    const document = JSON.parse(createSpec("List bots.")) as OpenApiDocument;
+    document.paths = {
+      "/bots": {
+        post: {
+          operationId: "createBot",
+          summary: "Create a bot.",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["name"],
+                  properties: { name: { type: "string" } }
+                }
+              }
+            }
+          },
+          responses: {
+            "200": {
+              description: "Created.",
+              content: { "application/json": { schema: { type: "object" } } }
+            }
+          }
+        }
+      }
+    };
+    const harness = createCliHarness({
+      "/repo/openapi.json": JSON.stringify(document, null, 2),
+      "/repo/toolcraft.yml": [
+        "edition: 2026-05-16",
+        "client_settings:",
+        "  idempotency_header: Idempotency-Key",
+        "resources:",
+        "  bots:",
+        "    methods:",
+        "      create: post /bots { idempotent: true }",
+        "readme:",
+        "  examples:",
+        "    bots.create:",
+        "      - title: Create a named bot",
+        "        params:",
+        "          name: demo"
+      ].join("\n")
+    });
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(exitCode).toBe(0);
+    expect(await readRepoFiles(harness.fs, "/repo/src/generated")).toMatchObject({
+      "bots/create.ts": expect.stringContaining('name: "create"')
+    });
+    const generated = await harness.fs.readFile("/repo/src/generated/bots/create.ts", "utf8");
+    expect(generated).toContain("idempotencyKey: S.Optional");
+    expect(generated).toContain('header: "Idempotency-Key"');
+    expect(generated).toContain("rawResponse: S.Optional");
+    expect(generated).toContain('cliAliases: ["raw"]');
+    expect(generated).toContain("rawResponse: params.rawResponse");
+    expect(generated).toContain('"title":"Create a named bot"');
+    expect(generated).toContain('"params":{"name":"demo"}');
+  });
+
+  it("prints a diff without writing files when --diff detects drift", async () => {
+    const originalSpec = createSpec("List bots.");
+    const updatedSpec = createSpec("List every bot.");
+    const harness = createCliHarness({ "/repo/openapi.json": originalSpec });
+
+    await runGenerateCli(["node", "generate"], harness.services);
+    await harness.fs.writeFile("/repo/openapi.json", updatedSpec, "utf8");
+    const before = await readRepoFiles(harness.fs, "/repo");
+
+    const exitCode = await runGenerateCli(["node", "generate", "--diff"], harness.services);
+
+    expect(exitCode).toBe(1);
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(before);
+    expect(harness.stdout()).toContain("--- src/generated/bots/list.ts");
+    expect(harness.stdout()).toContain('-  description: "List bots.",');
+    expect(harness.stdout()).toContain("+  description: \"List every bot.\",");
+    expect(harness.stdout()).not.toContain('-import { S } from "toolcraft";');
+  });
+
   it("returns a user-facing error when the input file is missing", async () => {
     const harness = createCliHarness();
 

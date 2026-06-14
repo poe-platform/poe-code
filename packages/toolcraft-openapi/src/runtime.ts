@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import { defineCommand, defineGroup, S, type AnySchema, type CommandNode, type HandlerEnv, type HandlerFs } from "toolcraft";
+import { UserError, defineCommand, defineGroup, S, type AnySchema, type CommandNode, type HandlerEnv, type HandlerFs } from "toolcraft";
 import { defineClient, type DefineClientOptions, type DefinedClient, type OpenApiClientServices } from "./define-client.js";
 import {
   collectSchemaOptionEntries,
@@ -29,6 +29,13 @@ export interface CommandsFromSpecOptions {
 
 export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> =
   Omit<DefineClientOptions<TServices>, "commands"> & CommandsFromSpecOptions;
+
+export interface ResolveOpenApiBaseUrlOptions {
+  document: OpenApiDocument;
+  environments?: Record<string, string>;
+  environment?: string;
+  env?: Record<string, string | undefined>;
+}
 
 type GeneratedCommandHandler = (ctx: {
   params: any;
@@ -76,6 +83,33 @@ async function resolveDocument(
   });
 
   return parseOpenApiDocument(sourceText, source);
+}
+
+export function resolveOpenApiBaseUrl(options: ResolveOpenApiBaseUrlOptions): string | undefined {
+  const environments = options.environments;
+
+  if (environments !== undefined && Object.keys(environments).length > 0) {
+    const selectedName =
+      options.environment ?? options.env?.TOOLCRAFT_OPENAPI_ENV ?? Object.keys(environments)[0];
+    const selectedUrl = selectedName === undefined ? undefined : environments[selectedName];
+
+    if (selectedUrl !== undefined) {
+      return normalizeBaseUrl(selectedUrl);
+    }
+
+    if (selectedName !== undefined) {
+      throw new UserError(
+        `Unknown OpenAPI environment ${JSON.stringify(selectedName)}. Available: ${Object.keys(environments).join(", ")}.`
+      );
+    }
+  }
+
+  const server = options.document.servers?.[0]?.url;
+  return server === undefined ? undefined : normalizeBaseUrl(server);
+}
+
+function normalizeBaseUrl(value: string): string {
+  return new URL(value).toString().replace(/\/$/, "");
 }
 
 function createRuntimeGroups(

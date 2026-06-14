@@ -86,6 +86,11 @@ export interface CheckResult {
   message?: string;
 }
 
+export interface CommandExample {
+  title: string;
+  params: Record<string, unknown>;
+}
+
 export type GroupCheckContext<TServices extends object = EmptyServices> = TServices & {
   params?: unknown;
   secrets?: Record<string, string | undefined>;
@@ -141,6 +146,7 @@ export interface CommandConfig<
 > {
   name: string;
   description?: string;
+  examples?: CommandExample[];
   aliases?: string[];
   positional?: string[];
   params: TParamsSchema;
@@ -163,6 +169,7 @@ export interface Command<
   kind: "command";
   name: string;
   description?: string;
+  examples: CommandExample[];
   aliases: string[];
   positional: string[];
   params: TParamsSchema;
@@ -269,6 +276,7 @@ type TypedGroupMetadata<
 
 interface InternalCommandConfig {
   scope?: Scope[];
+  examples: CommandExample[];
   result?: ObjectSchema<any>;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
@@ -339,6 +347,13 @@ function cloneRequires<TContext>(
 
 function cloneStringArray(values: string[] | undefined): string[] | undefined {
   return values === undefined ? undefined : [...values];
+}
+
+function cloneCommandExamples(examples: CommandExample[] | undefined): CommandExample[] {
+  return (examples ?? []).map((example) => ({
+    title: example.title,
+    params: { ...example.params }
+  }));
 }
 
 function cloneStringRecord(
@@ -713,6 +728,7 @@ function createBaseCommand<
     kind: "command",
     name: config.name,
     description: config.description,
+    examples: cloneCommandExamples(config.examples),
     aliases: [...(config.aliases ?? [])],
     positional: [...(config.positional ?? [])],
     params: config.params,
@@ -729,6 +745,7 @@ function createBaseCommand<
   Object.defineProperty(command, commandConfigSymbol, {
     value: {
       scope: cloneScope(config.scope),
+      examples: cloneCommandExamples(config.examples),
       result: config.result,
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
@@ -802,6 +819,7 @@ function materializeCommand<
     kind: "command",
     name: command.name,
     description: command.description,
+    examples: cloneCommandExamples(internal.examples),
     aliases: [...command.aliases],
     positional: [...command.positional],
     params: command.params,
@@ -818,6 +836,7 @@ function materializeCommand<
   Object.defineProperty(materialized, commandConfigSymbol, {
     value: {
       scope: cloneScope(internal.scope),
+      examples: cloneCommandExamples(internal.examples),
       result: internal.result,
       humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
@@ -1006,6 +1025,22 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
 }
 
 export { S, toJsonSchema } from "toolcraft-schema";
+export {
+  AuthenticationError,
+  BadRequestError,
+  ClientError,
+  ConflictError,
+  HttpError,
+  InternalServerError,
+  NotFoundError,
+  PermissionDeniedError,
+  RateLimitError,
+  ServerError,
+  ServiceUnavailableError,
+  UnprocessableEntityError,
+  createHttpError
+} from "./http-errors.js";
+export type { HttpErrorRequest, HttpErrorResponse } from "./http-errors.js";
 export { ApprovalDeclinedError, ToolcraftBugError, UserError };
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";

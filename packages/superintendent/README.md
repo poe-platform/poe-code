@@ -85,6 +85,7 @@ Import from the package root:
 ```ts
 import {
   parseSuperintendentDoc,
+  resolveSuperintendentDoc,
   updateStatus,
   transitionState,
   incrementRound,
@@ -105,12 +106,13 @@ import {
 ### Document
 
 - `parseSuperintendentDoc`
+- `resolveSuperintendentDoc`
 - `updateStatus`
 - `transitionState`
 - `incrementRound`
 - `parseTaskBoard`
 - `hasTaskBoard`
-- types: `SuperintendentDoc`, `SuperintendentFrontmatter`, `StatusBlock`, `TaskBoard`, `TaskItem`
+- types: `ResolvedSuperintendentDoc`, `SuperintendentDocumentFileSystem`, `SuperintendentDoc`, `SuperintendentFrontmatter`, `StatusBlock`, `TaskBoard`, `TaskItem`
 
 ### Runtime
 
@@ -195,6 +197,7 @@ status:
 
 - `kind` — required, must be `superintendent`
 - `version` — required numeric document version
+- `extends` — optional relative path to a superintendent base file; resolves from the current document's directory
 - `mcp` — optional map of named MCP server definitions
 - `builder` — required builder role config
 - `inspectors` — optional map of inspector role configs keyed by inspector name
@@ -202,6 +205,54 @@ status:
 - `owner` — required owner role config
 - `max_rounds` — optional number, defaults to `100`
 - `status` — required runtime status block
+
+### Frontmatter inheritance
+
+A superintendent plan can inherit frontmatter from a project-local base file:
+
+```yaml
+---
+kind: superintendent
+version: 1
+extends: ./_bases/coding.md
+
+owner:
+  prompt: |
+    Approve this feature-specific behavior.
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+```
+
+Base files use `kind: superintendent-base` and contribute frontmatter only. The child document keeps its own markdown body and `## Task Board`.
+
+```yaml
+---
+kind: superintendent-base
+version: 1
+builder:
+  prompt: |
+    Build {{plan.path}}.
+superintendent:
+  prompt: |
+    Review {{builder.summary}}.
+owner:
+  prompt: |
+    Approve.
+max_rounds: 100
+---
+```
+
+Path-valued `extends` must be a non-empty relative path. A base may also declare `extends` relative to its own directory. Cycles and chains deeper than five files are rejected.
+
+Child frontmatter deep-merges over the base. Set a map entry to `null` to remove an inherited entry:
+
+```yaml
+inspectors:
+  testing: null
+```
 
 ### `mcp.<name>` config
 
@@ -216,7 +267,7 @@ The `builder`, each `inspectors.<name>`, `superintendent`, and `owner` blocks su
 - `agent` — optional agent id. Parsed roles default to `claude-code`; `superintendent run` resolves an omitted builder agent from `--agent`, configured defaults, the `--yes` fallback, or an interactive prompt.
 - `mode` — optional spawn mode
 - `prompt` — required prompt template
-- `tools.mcp` — optional list of MCP server names declared under the root `mcp` map
+- `mcp` — optional map of MCP server definitions available only to this role
 
 ### Status block
 

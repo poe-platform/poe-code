@@ -85,9 +85,32 @@ describe("parseDocument", () => {
     });
   });
 
-  it("rejects non-boolean extends values", () => {
-    expect(() => parseDocument('extends: "something"\ntitle: Hello', "/tmp/config.yaml")).toThrow(
-      'Invalid extends value in /tmp/config.yaml: expected a boolean.'
+  it("extracts path-valued extends and strips it from data", () => {
+    expect(parseDocument("extends: ./_bases/coding.md\ntitle: Hello", "/tmp/config.yaml")).toEqual({
+      data: {
+        title: "Hello"
+      },
+      format: "yaml",
+      extends: "./_bases/coding.md",
+      hasExtendsField: true
+    });
+  });
+
+  it("rejects invalid extends values", () => {
+    expect(() => parseDocument("extends: 42\ntitle: Hello", "/tmp/config.yaml")).toThrow(
+      'Invalid extends value in /tmp/config.yaml: expected a boolean or relative string path.'
+    );
+  });
+
+  it("rejects empty path-valued extends", () => {
+    expect(() => parseDocument('extends: ""\ntitle: Hello', "/tmp/config.yaml")).toThrow(
+      'Invalid extends value in /tmp/config.yaml: expected a non-empty relative path.'
+    );
+  });
+
+  it("rejects absolute path-valued extends", () => {
+    expect(() => parseDocument("extends: /tmp/base.yaml\ntitle: Hello", "/tmp/config.yaml")).toThrow(
+      'Invalid extends value in /tmp/config.yaml: expected a relative path.'
     );
   });
 

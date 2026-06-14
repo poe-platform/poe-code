@@ -1,6 +1,9 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { hasOwnErrorCode } from "../error-codes.js";
-import { parseSuperintendentDoc } from "../document/parse.js";
+import {
+  resolveSuperintendentDoc,
+  type SuperintendentDoc
+} from "../document/parse.js";
 import {
   runAllInspectors,
   runInspector,
@@ -40,9 +43,13 @@ export const inspectorListCommand = defineCommand({
   scope: ["cli", "mcp", "sdk"],
   handler: async ({ params, fs }) => {
     const content = await readDocument(params.path, fs);
-    const document = parseSuperintendentDoc(params.path, content);
+    const { document } = await resolveSuperintendentDoc(
+      params.path,
+      content,
+      fs
+    );
 
-    return Object.entries(document.frontmatter.inspectors ?? {}).map(([name, config]) => ({
+    return listInspectors(document).map(([name, config]) => ({
       name,
       agent: config.agent,
       mode: config.mode
@@ -88,13 +95,17 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
     scope: ["cli", "mcp", "sdk"],
     handler: async ({ params, fs }) => {
       const content = await readDocument(params.path, fs);
-      const document = parseSuperintendentDoc(params.path, content);
+      const { document } = await resolveSuperintendentDoc(
+        params.path,
+        content,
+        fs
+      );
 
       const defaultCwd = process.cwd();
 
       if (params.name === undefined) {
         if (params.dryRun === true) {
-          return Object.entries(document.frontmatter.inspectors ?? {}).map(([name, config]) => ({
+          return listInspectors(document).map(([name, config]) => ({
             name,
             summary: `Would run inspector agent ${config.agent}.`
           }));
@@ -145,6 +156,12 @@ export function createInspectorGroup(runners?: InspectorGroupRunners) {
 }
 
 export const inspectorGroup = createInspectorGroup();
+
+function listInspectors(document: SuperintendentDoc) {
+  return Object.entries(document.frontmatter.inspectors ?? {}).sort(([left], [right]) =>
+    left.localeCompare(right)
+  );
+}
 
 async function readDocument(
   filePath: string,

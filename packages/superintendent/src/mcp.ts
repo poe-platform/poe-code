@@ -4,7 +4,11 @@ import { createMCPServer } from "toolcraft/mcp";
 import { createServer, type Server } from "tiny-stdio-mcp-server";
 import { isDirectExecution } from "./direct-execution.js";
 import { superintendentMcpGroup } from "./commands/index.js";
-import { parseSuperintendentDoc, type StatusBlock, type SuperintendentDoc } from "./document/parse.js";
+import {
+  resolveSuperintendentDoc,
+  type StatusBlock,
+  type SuperintendentDoc
+} from "./document/parse.js";
 import { runBuilder } from "./runtime/run-builder.js";
 import { runInspector } from "./runtime/run-inspector.js";
 import {
@@ -37,14 +41,20 @@ export type McpRunners = {
   superintendentMcpGroup?: typeof superintendentMcpGroup;
   runBuilder?: typeof runBuilder;
   runInspector?: typeof runInspector;
-  parseSuperintendentDoc?: typeof parseSuperintendentDoc;
+  parseSuperintendentDoc?: (
+    docPath: string,
+    content: string
+  ) => SuperintendentDoc | Promise<SuperintendentDoc>;
 };
 
 type ResolvedMcpRunners = {
   superintendentMcpGroup: typeof superintendentMcpGroup;
   runBuilder: typeof runBuilder;
   runInspector: typeof runInspector;
-  parseSuperintendentDoc: typeof parseSuperintendentDoc;
+  parseSuperintendentDoc: (
+    docPath: string,
+    content: string
+  ) => SuperintendentDoc | Promise<SuperintendentDoc>;
 };
 
 export type MainOptions = {
@@ -56,7 +66,10 @@ function resolveMcpRunners(overrides?: McpRunners): ResolvedMcpRunners {
     superintendentMcpGroup: overrides?.superintendentMcpGroup ?? superintendentMcpGroup,
     runBuilder: overrides?.runBuilder ?? runBuilder,
     runInspector: overrides?.runInspector ?? runInspector,
-    parseSuperintendentDoc: overrides?.parseSuperintendentDoc ?? parseSuperintendentDoc
+    parseSuperintendentDoc:
+      overrides?.parseSuperintendentDoc ??
+      (async (docPath, content) =>
+        (await resolveSuperintendentDoc(docPath, content, fsPromises)).document)
   };
 }
 

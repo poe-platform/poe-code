@@ -57,6 +57,10 @@
       },
       "additionalProperties": false
     },
+    "extends": {
+      "type": "string",
+      "minLength": 1
+    },
     "inspectors": {
       "type": "object",
       "additionalProperties": {
@@ -192,32 +196,6 @@
       },
       "additionalProperties": false
     },
-    "status": {
-      "type": "object",
-      "properties": {
-        "reason": {
-          "type": "string",
-          "minLength": 1
-        },
-        "review_turn": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "round": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "state": {
-          "type": "string",
-          "enum": [
-            "in_progress",
-            "review",
-            "completed"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
     "superintendent": {
       "type": "object",
       "properties": {
@@ -273,7 +251,8 @@
     }
   },
   "required": [
-    "kind"
+    "kind",
+    "version"
   ],
   "additionalProperties": false
 }

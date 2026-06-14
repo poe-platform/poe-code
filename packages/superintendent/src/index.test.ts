@@ -13,6 +13,7 @@ import * as stateMachine from "./state/machine.js";
 describe("@poe-code/superintendent package exports", () => {
   it("re-exports the public SDK surface", () => {
     expect(pkg.parseSuperintendentDoc).toBe(documentParse.parseSuperintendentDoc);
+    expect(pkg.resolveSuperintendentDoc).toBe(documentParse.resolveSuperintendentDoc);
     expect(pkg.superintendentDocumentSchema).toBe(documentParse.superintendentDocumentSchema);
     expect(pkg.superintendentDocumentSchemaId).toBe(documentParse.superintendentDocumentSchemaId);
     expect(pkg.superintendentBaseDocumentSchema).toBe(
@@ -56,7 +57,7 @@ describe("@poe-code/superintendent package exports", () => {
       properties: {
         kind: { const: "superintendent-base" }
       },
-      required: ["kind"]
+      required: ["kind", "version"]
     });
   });
 

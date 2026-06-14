@@ -192,6 +192,160 @@ describe("resolve", () => {
     });
   });
 
+  it("merges an explicit path-valued base relative to the document directory", async () => {
+    const fs = createMemFs({
+      "/workspace/docs/plans/_bases/coding.md": [
+        "---",
+        "kind: superintendent-base",
+        "builder:",
+        "  prompt: Build from base.",
+        "inspectors:",
+        "  code-quality:",
+        "    prompt: Review quality.",
+        "  testing:",
+        "    prompt: Run tests.",
+        "owner:",
+        "  agent: claude-code",
+        "---"
+      ].join("\n")
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/docs/plans/feature.md",
+          content: [
+            "---",
+            "kind: superintendent",
+            "extends: ./_bases/coding.md",
+            "inspectors:",
+            "  testing: null",
+            "  developer-experience:",
+            "    prompt: Review DX.",
+            "owner:",
+            "  prompt: Approve the feature.",
+            "---",
+            "# Feature"
+          ].join("\n")
+        }
+      ],
+      { fs }
+    );
+
+    expect(result).toMatchObject({
+      data: {
+        kind: "superintendent",
+        builder: {
+          prompt: "Build from base."
+        },
+        inspectors: {
+          "code-quality": {
+            prompt: "Review quality."
+          },
+          "developer-experience": {
+            prompt: "Review DX."
+          }
+        },
+        owner: {
+          agent: "claude-code",
+          prompt: "Approve the feature."
+        }
+      },
+      chain: ["/workspace/docs/plans/feature.md", "/workspace/docs/plans/_bases/coding.md"]
+    });
+  });
+
+  it("throws a targeted error when an explicit path-valued base is missing", async () => {
+    const fs = createMemFs();
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/docs/plans/feature.md",
+            content: ["---", "extends: ./_bases/coding.md", "---"].join("\n")
+          }
+        ],
+        { fs }
+      )
+    ).rejects.toThrow(
+      "base file not found at /workspace/docs/plans/_bases/coding.md"
+    );
+  });
+
+  it("treats ENOTDIR as a missing explicit path-valued base", async () => {
+    const fs = createMemFs({
+      "/workspace/docs/plans/_bases": "not a directory"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/docs/plans/feature.md",
+            content: ["---", "extends: ./_bases/coding.md", "---"].join("\n")
+          }
+        ],
+        { fs }
+      )
+    ).rejects.toThrow(
+      "base file not found at /workspace/docs/plans/_bases/coding.md"
+    );
+  });
+
+  it("resolves chained explicit path-valued bases relative to each base file", async () => {
+    const fs = createMemFs({
+      "/workspace/docs/plans/_bases/coding.md": [
+        "---",
+        "extends: ./shared.md",
+        "kind: superintendent-base",
+        "owner:",
+        "  prompt: Approve coding.",
+        "---"
+      ].join("\n"),
+      "/workspace/docs/plans/_bases/shared.md": [
+        "---",
+        "kind: superintendent-base",
+        "builder:",
+        "  prompt: Build shared.",
+        "---"
+      ].join("\n")
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/workspace/docs/plans/feature.md",
+          content: ["---", "kind: superintendent", "extends: ./_bases/coding.md", "---"].join(
+            "\n"
+          )
+        }
+      ],
+      { fs }
+    );
+
+    expect(result).toMatchObject({
+      data: {
+        kind: "superintendent",
+        builder: {
+          prompt: "Build shared."
+        },
+        owner: {
+          prompt: "Approve coding."
+        }
+      },
+      chain: [
+        "/workspace/docs/plans/feature.md",
+        "/workspace/docs/plans/_bases/coding.md",
+        "/workspace/docs/plans/_bases/shared.md"
+      ]
+    });
+  });
+
   it("lets a data layer before the document override document fields", async () => {
     const fs = createMemFs();
 

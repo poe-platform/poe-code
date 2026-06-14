@@ -87,6 +87,10 @@ function resolveKey(
     return undefined;
   }
 
+  if (winningValue === null) {
+    return undefined;
+  }
+
   const fullPath = buildPath(path, key);
 
   if (isPlainObject(winningValue)) {

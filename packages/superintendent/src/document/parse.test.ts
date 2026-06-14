@@ -1,6 +1,6 @@
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseSuperintendentDoc } from "./parse.js";
+import { parseSuperintendentDoc, resolveSuperintendentDoc } from "./parse.js";
 
 describe("parseSuperintendentDoc", () => {
   it("parses a valid document with all fields", () => {
@@ -156,6 +156,145 @@ Body
     expect(result.frontmatter.inspectors?.testing.agent).toBe("claude-code");
     expect(result.frontmatter.superintendent.agent).toBe("claude-code");
     expect(result.frontmatter.owner.agent).toBe("claude-code");
+  });
+
+  it("resolves frontmatter inherited from a path-valued base", async () => {
+    const content = `---
+kind: superintendent
+version: 1
+extends: ./_bases/coding.md
+inspectors:
+  testing: null
+  developer-experience:
+    prompt: Review developer experience.
+owner:
+  prompt: Approve the feature-specific behavior.
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+# Feature plan
+
+## Task Board
+
+- [ ] Build it
+`;
+    const fs = {
+      readFile: async (target: string) => {
+        expect(target).toBe(path.resolve("docs/plans/_bases/coding.md"));
+        return `---
+kind: superintendent-base
+version: 1
+builder:
+  agent: claude-code
+  prompt: Build from base.
+inspectors:
+  code-quality:
+    agent: claude-code
+    prompt: Review quality.
+  testing:
+    agent: claude-code
+    prompt: Run tests.
+superintendent:
+  agent: claude-code
+  prompt: Review everything.
+owner:
+  agent: claude-code
+  prompt: Approve from base.
+max_rounds: 25
+---
+`;
+      }
+    };
+
+    const { document: result } = await resolveSuperintendentDoc(
+      "docs/plans/feature.md",
+      content,
+      fs
+    );
+
+    expect(result.frontmatter).toMatchObject({
+      kind: "superintendent",
+      version: 1,
+      builder: {
+        agent: "claude-code",
+        prompt: "Build from base."
+      },
+      inspectors: {
+        "code-quality": {
+          agent: "claude-code",
+          prompt: "Review quality."
+        },
+        "developer-experience": {
+          agent: "claude-code",
+          prompt: "Review developer experience."
+        }
+      },
+      superintendent: {
+        agent: "claude-code",
+        prompt: "Review everything."
+      },
+      owner: {
+        agent: "claude-code",
+        prompt: "Approve the feature-specific behavior."
+      },
+      max_rounds: 25,
+      status: {
+        state: "in_progress",
+        round: 0,
+        review_turn: 0
+      }
+    });
+    expect(result.frontmatter.inspectors).not.toHaveProperty("testing");
+    expect(result.body).toBe("# Feature plan\n\n## Task Board\n\n- [ ] Build it\n");
+  });
+
+  it.each([
+    [
+      "wrong kind",
+      "kind: pipeline\nversion: 1\nbuilder:\n  prompt: build\n",
+      /expected kind: superintendent-base/i
+    ],
+    [
+      "missing version",
+      "kind: superintendent-base\nbuilder:\n  prompt: build\n",
+      /version must be a positive integer/i
+    ],
+    [
+      "runtime status",
+      "kind: superintendent-base\nversion: 1\nstatus:\n  state: in_progress\n",
+      /must not define runtime status/i
+    ]
+  ])("rejects a superintendent base with %s", async (_name, baseFrontmatter, message) => {
+    const content = `---
+kind: superintendent
+version: 1
+extends: ./_bases/coding.md
+builder:
+  prompt: build
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+## Task Board
+
+- [ ] Build it
+`;
+    const fs = {
+      readFile: async () => `---
+${baseFrontmatter}---
+`
+    };
+
+    await expect(resolveSuperintendentDoc("docs/plans/feature.md", content, fs)).rejects.toThrow(
+      message
+    );
   });
 
   it("rejects non-string cwd", () => {

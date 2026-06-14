@@ -112,7 +112,7 @@ describe("mergeLayers", () => {
     }
   });
 
-  it("treats null as defined and does not fall through", () => {
+  it("treats null as a delete marker and does not fall through", () => {
     expect(
       mergeLayers([
         {
@@ -129,12 +129,8 @@ describe("mergeLayers", () => {
         }
       ])
     ).toEqual({
-      data: {
-        title: null
-      },
-      sources: {
-        title: "first"
-      }
+      data: {},
+      sources: {}
     });
   });
 
@@ -503,7 +499,7 @@ describe("mergeLayers", () => {
     });
   });
 
-  it("treats a null prompt as defined and does not fall through", () => {
+  it("treats a null prompt as a delete marker and does not fall through", () => {
     expect(
       mergeLayers([
         {
@@ -520,12 +516,8 @@ describe("mergeLayers", () => {
         }
       ])
     ).toEqual({
-      data: {
-        prompt: null
-      },
-      sources: {
-        prompt: "first"
-      }
+      data: {},
+      sources: {}
     });
   });
 

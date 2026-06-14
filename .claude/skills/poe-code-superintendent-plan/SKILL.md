@@ -79,6 +79,59 @@ status:
 ---
 ```
 
+## Optional: Frontmatter Bases
+
+Plans are self-contained by default. If this repository already uses superintendent base files, or the user asks for one, a plan may inherit frontmatter from a project-local relative path:
+
+```yaml
+---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json
+kind: superintendent
+version: 1
+extends: ./_bases/coding.md
+
+owner:
+  prompt: |
+    Decide whether this feature-specific work is done.
+
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+```
+
+Base files use `kind: superintendent-base` and contribute frontmatter only. They do not carry the child plan body or runtime `status`:
+
+```yaml
+---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent-base.schema.json
+kind: superintendent-base
+version: 1
+
+builder:
+  prompt: |
+    Build the highest-priority open task from {{plan.path}}.
+
+superintendent:
+  prompt: |
+    Review the builder output and update the Task Board.
+
+owner:
+  prompt: |
+    Decide whether the work is complete.
+---
+```
+
+`extends` must be a non-empty relative path resolved from the current document's directory. Bases may extend other bases. Cycles and overly deep chains are invalid.
+
+Child frontmatter deep-merges over the base. Set an inherited map entry to `null` to remove it:
+
+```yaml
+inspectors:
+  testing: null
+```
+
 ## Task Board
 
 The markdown body must contain a `## Task Board` section with checkbox tasks:
@@ -171,12 +224,12 @@ An inspector auto-runs each round only if its summary is referenced in the super
 ## Rules
 
 - One plan document per feature: `<plan-directory>/<name>.md`. Do not create a second file in `.poe-code/superintendent/`.
-- Superintendent docs must start with `$schema`, `kind: superintendent`, and `version: 1`.
+- Superintendent docs must start with `$schema`, `kind: superintendent`, and `version: 1`; if present, put `extends` directly after `version`.
 - Role prompts are one line where possible. Do not restate CLAUDE.md.
 - Do not link the plan path inside every prompt — `{{plan.path}}` is in the template context.
-- `builder`, `superintendent`, and `owner` roles are required. `inspectors` is optional.
+- `builder`, `superintendent`, and `owner` roles are required after inheritance. `inspectors` is optional.
 - `max_rounds` defaults to 100 if omitted.
-- `status` must start with `state: in_progress`, `round: 0`, `review_turn: 0`.
+- `status` lives in the child plan and must start with `state: in_progress`, `round: 0`, `review_turn: 0`.
 
 ## After Writing
 

@@ -1,7 +1,13 @@
+import path from "node:path";
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "toolcraft-design";
 import { hasOwnErrorCode } from "../error-codes.js";
-import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
+import {
+  parseSuperintendentDoc,
+  resolveSuperintendentDoc,
+  type SuperintendentDoc,
+  type SuperintendentDocumentFileSystem
+} from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
 import {
   builderGroup,
@@ -30,6 +36,8 @@ export type ValidationProblem = {
 export type ValidationResult = {
   valid: boolean;
   problems: ValidationProblem[];
+  extends?: string;
+  merged?: string[];
 };
 
 const validateParams = S.Object({
@@ -44,7 +52,7 @@ export const validateCommand = defineCommand({
   scope: ["cli", "mcp", "sdk"],
   handler: async ({ params, fs }) => {
     const content = await readDocument(params.path, fs);
-    return validateSuperintendentDocument(params.path, content);
+    return validateSuperintendentDocumentWithExtends(params.path, content, fs);
   },
   render: {
     rich: (result, { logger }) => {
@@ -61,6 +69,14 @@ export const validateCommand = defineCommand({
 
       if (warnings.length > 0) {
         logger.warn(`${warnings.length} warning${warnings.length === 1 ? "" : "s"} found.`);
+      }
+
+      if (result.extends !== undefined) {
+        logger.message(`extends: ${result.extends}`);
+      }
+
+      if (result.merged !== undefined) {
+        logger.message(`merged: ${result.merged.join(", ")}`);
       }
 
       if (result.problems.length === 0) {
@@ -109,19 +125,51 @@ export function validateSuperintendentDocument(
   filePath: string,
   content: string
 ): ValidationResult {
-  const problems: ValidationProblem[] = [];
-  let document: SuperintendentDoc;
-
   try {
-    document = parseSuperintendentDoc(filePath, content);
+    return validateResolvedSuperintendentDocument(parseSuperintendentDoc(filePath, content));
   } catch (error) {
-    problems.push({
-      level: "error",
-      message: readErrorMessage(error)
-    });
-    return toValidationResult(problems);
+    return toValidationResult([
+      {
+        level: "error",
+        message: readErrorMessage(error)
+      }
+    ]);
   }
+}
 
+export async function validateSuperintendentDocumentWithExtends(
+  filePath: string,
+  content: string,
+  fs: SuperintendentDocumentFileSystem
+): Promise<ValidationResult> {
+  try {
+    const resolved = await resolveSuperintendentDoc(filePath, content, fs);
+    return validateResolvedSuperintendentDocument(
+      resolved.document,
+      resolved.extendsPath === undefined
+        ? undefined
+        : {
+            extends: formatDisplayPath(resolved.extendsPath),
+            merged: summarizeMergedFrontmatter(resolved.document)
+          }
+    );
+  } catch (error) {
+    return toValidationResult([
+      {
+        level: "error",
+        message: readErrorMessage(error)
+      }
+    ]);
+  }
+}
+
+type ValidationMetadata = Pick<ValidationResult, "extends" | "merged">;
+
+function validateResolvedSuperintendentDocument(
+  document: SuperintendentDoc,
+  metadata?: ValidationMetadata
+): ValidationResult {
+  const problems: ValidationProblem[] = [];
   if (!hasTaskBoard(document.body)) {
     problems.push({
       level: "error",
@@ -147,7 +195,10 @@ export function validateSuperintendentDocument(
 
   problems.push(...validatePromptVariables(document));
 
-  return toValidationResult(problems);
+  return {
+    ...toValidationResult(problems),
+    ...metadata
+  };
 }
 
 async function readDocument(
@@ -223,6 +274,33 @@ function collectPrompts(document: SuperintendentDoc): Array<{ path: string; valu
   return prompts;
 }
 
+function summarizeMergedFrontmatter(document: SuperintendentDoc): string[] {
+  const summary = ["builder"];
+  const inspectorNames = Object.keys(document.frontmatter.inspectors ?? {}).sort();
+
+  if (inspectorNames.length > 0) {
+    summary.push(`inspectors (${inspectorNames.join(", ")})`);
+  }
+
+  summary.push("superintendent", "owner", "max_rounds", "status");
+  return summary;
+}
+
+function formatDisplayPath(filePath: string): string {
+  const relativePath = path.relative(process.cwd(), filePath);
+
+  if (
+    relativePath.length > 0 &&
+    relativePath !== ".." &&
+    !relativePath.startsWith(`..${path.sep}`) &&
+    !path.isAbsolute(relativePath)
+  ) {
+    return relativePath;
+  }
+
+  return filePath;
+}
+
 function scanPromptVariables(prompt: string): string[] {
   const variables: string[] = [];
   let index = 0;
@@ -292,6 +370,14 @@ function renderValidationMarkdown(result: ValidationResult): string {
     `- Status: ${result.valid ? "valid" : "invalid"}`,
     `- Problems: ${result.problems.length}`
   ];
+
+  if (result.extends !== undefined) {
+    lines.push(`- Extends: ${result.extends}`);
+  }
+
+  if (result.merged !== undefined) {
+    lines.push(`- Merged: ${result.merged.join(", ")}`);
+  }
 
   if (result.problems.length === 0) {
     return lines.join("\n");

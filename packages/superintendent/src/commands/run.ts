@@ -44,7 +44,7 @@ import {
 } from "@poe-code/poe-code-config";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { superintendentConfigScope } from "../config-scope.js";
-import { parseSuperintendentDoc, readExplicitBuilderAgent } from "../document/parse.js";
+import { resolveSuperintendentDoc } from "../document/parse.js";
 import {
   runLoop,
   type AgentRunInput,
@@ -432,12 +432,14 @@ export async function runSuperintendentCommand(
     fs
   });
   const documentContent = await fs.readFile(selectedDocPath, "utf8");
-  const document = parseSuperintendentDoc(selectedDocPath, documentContent);
+  const { document, frontmatterData } = await resolveSuperintendentDoc(
+    selectedDocPath,
+    documentContent,
+    fs
+  );
   const selectedBuilder = await resolveLoopAgent({
     providedAgent: normalizeAgentSelection(options.builderAgent),
-    frontmatterAgent: normalizeAgentSelection(
-      readExplicitBuilderAgent(selectedDocPath, documentContent)
-    ),
+    frontmatterAgent: normalizeAgentSelection(readConfiguredBuilderAgent(frontmatterData)),
     configuredDefaultAgent: normalizeAgentSelection(options.configuredDefaultAgent) ?? null,
     assumeYes,
     fallbackAgent: "claude-code",
@@ -1286,6 +1288,17 @@ function stripStopReason(result: SuperintendentRunResult): LoopState {
     maxRounds: result.maxRounds,
     maxReviewTurns: result.maxReviewTurns
   };
+}
+
+function readConfiguredBuilderAgent(frontmatter: Record<string, unknown>): string | undefined {
+  const builder = frontmatter.builder;
+
+  if (typeof builder !== "object" || builder === null || Array.isArray(builder)) {
+    return undefined;
+  }
+
+  const agent = (builder as Record<string, unknown>).agent;
+  return typeof agent === "string" ? agent : undefined;
 }
 
 function createDefaultFs(): SuperintendentFileSystem {

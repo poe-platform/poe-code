@@ -2,7 +2,10 @@ import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
-import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
+import {
+  resolveSuperintendentDoc,
+  type SuperintendentDoc
+} from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
@@ -494,7 +497,7 @@ async function readDocument(
   docPath: string
 ): Promise<SuperintendentDoc> {
   const content = await readDocumentContent(fs, docPath);
-  return parseSuperintendentDoc(docPath, content);
+  return (await resolveSuperintendentDoc(docPath, content, fs)).document;
 }
 
 async function readDocumentContent(fs: SuperintendentFileSystem, docPath: string): Promise<string> {

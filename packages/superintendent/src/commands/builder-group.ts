@@ -1,7 +1,7 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "toolcraft-design";
 import { hasOwnErrorCode } from "../error-codes.js";
-import { parseSuperintendentDoc } from "../document/parse.js";
+import { resolveSuperintendentDoc } from "../document/parse.js";
 import { runBuilder, type BuilderResult } from "../runtime/run-builder.js";
 
 export type BuilderGroupRunners = {
@@ -28,7 +28,11 @@ export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
     scope: ["cli", "mcp", "sdk"],
     handler: async ({ params, fs }) => {
       const content = await readDocument(params.path, fs);
-      const document = parseSuperintendentDoc(params.path, content);
+      const { document } = await resolveSuperintendentDoc(
+        params.path,
+        content,
+        fs
+      );
 
       if (params.dryRun === true) {
         return {

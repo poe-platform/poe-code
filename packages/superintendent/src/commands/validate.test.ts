@@ -82,6 +82,88 @@ describe("superintendent validate", () => {
     });
   });
 
+  it("validates a document after resolving path-valued extends", async () => {
+    const path = "docs/plans/feature.md";
+    const basePath = "docs/plans/_bases/coding.md";
+    const document = `---
+kind: superintendent
+version: 1
+extends: ./_bases/coding.md
+owner:
+  prompt: |
+    Review {{superintendent.summary}}
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+# Feature plan
+
+## Task Board
+
+- [ ] Ship inherited validation
+`;
+    const base = `---
+kind: superintendent-base
+version: 1
+builder:
+  agent: claude-code
+  prompt: |
+    Build {{plan.path}}.
+inspectors:
+  code-quality:
+    agent: claude-code
+    prompt: |
+      Review quality.
+superintendent:
+  agent: claude-code
+  prompt: |
+    Review {{builder.summary}} and {{inspectors.code-quality}}.
+owner:
+  agent: claude-code
+  prompt: |
+    Approve.
+---
+`;
+
+    const result = await validateCommand.handler({
+      params: { path },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async (target: string) => {
+          if (target === path) {
+            return document;
+          }
+          if (target.endsWith(basePath)) {
+            return base;
+          }
+          throw Object.assign(new Error(`ENOENT: ${target}`), { code: "ENOENT" });
+        }),
+        writeFile: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: {
+        get: vi.fn(() => undefined)
+      },
+      progress: vi.fn()
+    });
+
+    expect(result).toEqual({
+      valid: true,
+      problems: [],
+      extends: "docs/plans/_bases/coding.md",
+      merged: [
+        "builder",
+        "inspectors (code-quality)",
+        "superintendent",
+        "owner",
+        "max_rounds",
+        "status"
+      ]
+    });
+  });
+
   it("flags a missing task board as an error", async () => {
     const document = validDocument.replace(
       "## Task Board\n\n- [ ] Ship the validate command\n",

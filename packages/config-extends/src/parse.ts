@@ -15,19 +15,46 @@ export function parseDocument(content: string, filePath: string): ParsedDocument
         );
   const hasExtendsField = Object.hasOwn(data, "extends");
   const extendsValue = hasExtendsField ? data.extends : undefined;
-
-  if (hasExtendsField && typeof extendsValue !== "boolean") {
-    throw new Error(`Invalid extends value in ${filePath}: expected a boolean.`);
-  }
+  const parsedExtends = parseExtendsValue(extendsValue, hasExtendsField, filePath);
 
   delete data.extends;
 
   return {
     data,
     format,
-    extends: extendsValue === true,
+    extends: parsedExtends,
     hasExtendsField
   };
+}
+
+function parseExtendsValue(
+  value: unknown,
+  hasExtendsField: boolean,
+  filePath: string
+): ParsedDocument["extends"] {
+  if (!hasExtendsField || value === false || value === undefined) {
+    return false;
+  }
+
+  if (value === true) {
+    return true;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(
+      `Invalid extends value in ${filePath}: expected a boolean or relative string path.`
+    );
+  }
+
+  if (value.trim().length === 0) {
+    throw new Error(`Invalid extends value in ${filePath}: expected a non-empty relative path.`);
+  }
+
+  if (path.isAbsolute(value)) {
+    throw new Error(`Invalid extends value in ${filePath}: expected a relative path.`);
+  }
+
+  return value;
 }
 
 function detectFormat(

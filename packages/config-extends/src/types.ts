@@ -37,6 +37,6 @@ export interface ResolvedDocument {
 export interface ParsedDocument {
   data: Record<string, unknown>;
   format: "markdown" | "yaml" | "json";
-  extends: boolean;
+  extends: boolean | string;
   hasExtendsField: boolean;
 }

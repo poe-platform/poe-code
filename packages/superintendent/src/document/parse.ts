@@ -1,4 +1,8 @@
 import path from "node:path";
+import {
+  parseDocument as parseConfigDocument,
+  resolve as resolveConfigExtends
+} from "@poe-code/config-extends";
 import { parseDocument } from "yaml";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
@@ -27,6 +31,16 @@ export type SuperintendentDoc = {
   frontmatter: SuperintendentFrontmatter;
   body: string;
   filePath: string;
+};
+
+export interface SuperintendentDocumentFileSystem {
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+}
+
+export type ResolvedSuperintendentDoc = {
+  document: SuperintendentDoc;
+  extendsPath?: string;
+  frontmatterData: Record<string, unknown>;
 };
 
 export type SuperintendentFrontmatter = {
@@ -169,29 +183,6 @@ const statusSchema: JsonSchema = {
   additionalProperties: false
 };
 
-const partialStatusSchema: JsonSchema = {
-  type: "object",
-  properties: {
-    state: {
-      type: "string",
-      enum: ["in_progress", "review", "completed"]
-    },
-    round: {
-      type: "integer",
-      minimum: 0
-    },
-    review_turn: {
-      type: "integer",
-      minimum: 0
-    },
-    reason: {
-      type: "string",
-      minLength: 1
-    }
-  },
-  additionalProperties: false
-};
-
 export const superintendentDocumentSchema: JsonSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: superintendentDocumentSchemaId,
@@ -209,6 +200,10 @@ export const superintendentDocumentSchema: JsonSchema = {
     version: {
       type: "integer",
       minimum: 1
+    },
+    extends: {
+      type: "string",
+      minLength: 1
     },
     mcp: {
       type: "object",
@@ -250,6 +245,10 @@ export const superintendentBaseDocumentSchema: JsonSchema = {
       type: "integer",
       minimum: 1
     },
+    extends: {
+      type: "string",
+      minLength: 1
+    },
     mcp: {
       type: "object",
       additionalProperties: mcpConfigSchema
@@ -264,14 +263,14 @@ export const superintendentBaseDocumentSchema: JsonSchema = {
     max_rounds: {
       type: "integer",
       minimum: 1
-    },
-    status: partialStatusSchema
+    }
   },
-  required: ["kind"],
+  required: ["kind", "version"],
   additionalProperties: false
 };
 
 const validStatusStates = new Set<StatusBlock["state"]>(["in_progress", "review", "completed"]);
+const maxSuperintendentExtendsDepth = 5;
 
 export function parseSuperintendentDoc(filePath: string, content: string): SuperintendentDoc {
   const resolvedFilePath = path.resolve(filePath);
@@ -283,6 +282,96 @@ export function parseSuperintendentDoc(filePath: string, content: string): Super
     body,
     frontmatter: parseFrontmatter(resolvedFilePath, parsedFrontmatter)
   };
+}
+
+export async function resolveSuperintendentDoc(
+  filePath: string,
+  content: string,
+  fs: SuperintendentDocumentFileSystem
+): Promise<ResolvedSuperintendentDoc> {
+  const resolvedFilePath = path.resolve(filePath);
+  const { body } = splitFrontmatter(resolvedFilePath, content);
+  const resolved = await resolveConfigExtends(
+    [
+      {
+        source: resolvedFilePath,
+        filePath: resolvedFilePath,
+        content
+      }
+    ],
+    { fs }
+  );
+
+  if (resolved.chain[1] !== undefined) {
+    await assertSuperintendentBaseChain(resolvedFilePath, content, fs);
+  }
+
+  const { prompt: ignoredPrompt, ...frontmatter } = resolved.data;
+
+  void ignoredPrompt;
+
+  return {
+    document: {
+      filePath: resolvedFilePath,
+      body,
+      frontmatter: parseFrontmatter(resolvedFilePath, frontmatter)
+    },
+    ...(resolved.chain[1] === undefined ? {} : { extendsPath: resolved.chain[1] }),
+    frontmatterData: frontmatter
+  };
+}
+
+async function assertSuperintendentBaseChain(
+  filePath: string,
+  content: string,
+  fs: SuperintendentDocumentFileSystem
+): Promise<void> {
+  let currentPath = filePath;
+  let currentContent = content;
+  const visited = new Set<string>([filePath]);
+
+  for (let depth = 1; depth <= maxSuperintendentExtendsDepth; depth += 1) {
+    const parsed = parseConfigDocument(currentContent, currentPath);
+
+    if (parsed.extends === false || parsed.extends === true) {
+      return;
+    }
+
+    const basePath = path.resolve(path.dirname(currentPath), parsed.extends);
+
+    if (visited.has(basePath)) {
+      return;
+    }
+
+    const baseContent = await fs.readFile(basePath, "utf8");
+    const baseDocument = parseConfigDocument(baseContent, basePath);
+    assertSuperintendentBaseFrontmatter(basePath, baseDocument.data);
+
+    visited.add(basePath);
+    currentPath = basePath;
+    currentContent = baseContent;
+  }
+}
+
+function assertSuperintendentBaseFrontmatter(
+  filePath: string,
+  frontmatter: Record<string, unknown>
+): void {
+  if (frontmatter.kind !== "superintendent-base") {
+    throw new Error(`${filePath}: expected kind: superintendent-base`);
+  }
+
+  if (
+    typeof frontmatter.version !== "number" ||
+    !Number.isInteger(frontmatter.version) ||
+    frontmatter.version < 1
+  ) {
+    throw new Error(`${filePath}: version must be a positive integer`);
+  }
+
+  if (Object.prototype.hasOwnProperty.call(frontmatter, "status")) {
+    throw new Error(`${filePath}: superintendent base must not define runtime status`);
+  }
 }
 
 export function readExplicitBuilderAgent(filePath: string, content: string): string | undefined {
@@ -400,6 +489,7 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
     "$schema",
     "kind",
     "version",
+    "extends",
     "mcp",
     "builder",
     "inspectors",

@@ -31,6 +31,13 @@ interface ResolvedBaseChain {
   layers: DataLayer[];
 }
 
+interface ResolvedBase {
+  content: string;
+  filePath: string;
+  source: string;
+  matchedBaseIndex?: number;
+}
+
 export async function resolve(
   chain: ChainLayer[],
   options: ResolveOptions
@@ -41,6 +48,8 @@ export async function resolve(
     ? await resolveBaseChain({
         name: documentLayer.baseName ?? getBaseName(documentLayer.filePath),
         baseLayers,
+        extendsValue: parsedDocument.extends,
+        fromFilePath: documentLayer.filePath,
         options,
         optional: !parsedDocument.extends,
         visited: new Set([path.resolve(documentLayer.filePath)]),
@@ -124,6 +133,8 @@ function classifyChain(chain: ChainLayer[]): ClassifiedChain {
 async function resolveBaseChain({
   name,
   baseLayers,
+  extendsValue,
+  fromFilePath,
   options,
   optional,
   visited,
@@ -131,6 +142,8 @@ async function resolveBaseChain({
 }: {
   name: string;
   baseLayers: BaseLayer[];
+  extendsValue: boolean | string;
+  fromFilePath: string;
   options: ResolveOptions;
   optional: boolean;
   visited: Set<string>;
@@ -138,6 +151,81 @@ async function resolveBaseChain({
 }): Promise<ResolvedBaseChain | undefined> {
   if (depth > MAX_EXTENDS_DEPTH) {
     throw new Error(`Maximum extends depth exceeded (${MAX_EXTENDS_DEPTH}).`);
+  }
+
+  const discoveredBase = await resolveBase({
+    name,
+    baseLayers,
+    extendsValue,
+    fromFilePath,
+    options,
+    optional
+  });
+
+  if (discoveredBase === undefined) {
+    return undefined;
+  }
+
+  const resolvedBasePath = path.resolve(discoveredBase.filePath);
+
+  if (visited.has(resolvedBasePath)) {
+    if (optional) {
+      return undefined;
+    }
+
+    throw new Error(
+      `Circular extends detected.\nVisited files:\n- ${[...visited, resolvedBasePath].join("\n- ")}`
+    );
+  }
+
+  const parsedBase = parseDocument(discoveredBase.content, discoveredBase.filePath);
+  const nextVisited = new Set(visited);
+  nextVisited.add(resolvedBasePath);
+  const nestedBase = parsedBase.extends
+    ? await resolveBaseChain({
+        name: getBaseName(discoveredBase.filePath),
+        baseLayers:
+          discoveredBase.matchedBaseIndex === undefined
+            ? baseLayers
+            : baseLayers.slice(discoveredBase.matchedBaseIndex + 1),
+        extendsValue: parsedBase.extends,
+        fromFilePath: discoveredBase.filePath,
+        options,
+        optional: false,
+        visited: nextVisited,
+        depth: depth + 1
+      })
+    : undefined;
+
+  return {
+    layers: [
+      {
+        source: discoveredBase.source,
+        data: parsedBase.data
+      },
+      ...(nestedBase?.layers ?? [])
+    ],
+    chain: [discoveredBase.filePath, ...(nestedBase?.chain ?? [])]
+  };
+}
+
+async function resolveBase({
+  name,
+  baseLayers,
+  extendsValue,
+  fromFilePath,
+  options,
+  optional
+}: {
+  name: string;
+  baseLayers: BaseLayer[];
+  extendsValue: boolean | string;
+  fromFilePath: string;
+  options: ResolveOptions;
+  optional: boolean;
+}): Promise<ResolvedBase | undefined> {
+  if (typeof extendsValue === "string") {
+    return readPathValuedBase(extendsValue, fromFilePath, options);
   }
 
   let discoveredBase;
@@ -156,18 +244,6 @@ async function resolveBaseChain({
     throw error;
   }
 
-  const resolvedBasePath = path.resolve(discoveredBase.filePath);
-
-  if (visited.has(resolvedBasePath)) {
-    if (optional) {
-      return undefined;
-    }
-
-    throw new Error(
-      `Circular extends detected.\nVisited files:\n- ${[...visited, resolvedBasePath].join("\n- ")}`
-    );
-  }
-
   const discoveredBaseDirectory = path.resolve(path.dirname(discoveredBase.filePath));
   const matchedBaseIndex = baseLayers.findIndex(
     (layer) => path.resolve(layer.path) === discoveredBaseDirectory
@@ -177,30 +253,34 @@ async function resolveBaseChain({
     throw new Error(`Resolved base is outside configured base paths: ${discoveredBase.filePath}`);
   }
 
-  const parsedBase = parseDocument(discoveredBase.content, discoveredBase.filePath);
-  const nextVisited = new Set(visited);
-  nextVisited.add(resolvedBasePath);
-  const nestedBase = parsedBase.extends
-    ? await resolveBaseChain({
-        name: getBaseName(discoveredBase.filePath),
-        baseLayers: baseLayers.slice(matchedBaseIndex + 1),
-        options,
-        optional: false,
-        visited: nextVisited,
-        depth: depth + 1
-      })
-    : undefined;
-
   return {
-    layers: [
-      {
-        source: baseLayers[matchedBaseIndex].source,
-        data: parsedBase.data
-      },
-      ...(nestedBase?.layers ?? [])
-    ],
-    chain: [discoveredBase.filePath, ...(nestedBase?.chain ?? [])]
+    content: discoveredBase.content,
+    filePath: discoveredBase.filePath,
+    matchedBaseIndex,
+    source: baseLayers[matchedBaseIndex].source
   };
+}
+
+async function readPathValuedBase(
+  extendsPath: string,
+  fromFilePath: string,
+  options: ResolveOptions
+): Promise<ResolvedBase> {
+  const filePath = path.resolve(path.dirname(fromFilePath), extendsPath);
+
+  try {
+    return {
+      content: await options.fs.readFile(filePath, "utf8"),
+      filePath,
+      source: filePath
+    };
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
+      throw new Error(`base file not found at ${filePath}`);
+    }
+
+    throw error;
+  }
 }
 
 function collectDataLayers(chain: ChainLayer[]): DataLayer[] {
@@ -444,7 +524,7 @@ function shouldResolveBase(
   parsedDocument: ReturnType<typeof parseDocument>,
   autoExtend: boolean | undefined
 ): boolean {
-  return parsedDocument.extends || (autoExtend === true && !parsedDocument.hasExtendsField);
+  return parsedDocument.extends !== false || (autoExtend === true && !parsedDocument.hasExtendsField);
 }
 
 function getOwnEntry(record: Record<string, unknown>, key: string): unknown {

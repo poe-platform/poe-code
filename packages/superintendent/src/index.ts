@@ -1,6 +1,7 @@
 // Document
 export {
   parseSuperintendentDoc,
+  resolveSuperintendentDoc,
   superintendentBaseDocumentSchema,
   superintendentBaseDocumentSchemaId,
   superintendentDocumentSchema,
@@ -9,6 +10,8 @@ export {
 export { updateStatus, transitionState, incrementRound } from "./document/write.js";
 export { parseTaskBoard, hasTaskBoard } from "./document/tasks.js";
 export type {
+  ResolvedSuperintendentDoc,
+  SuperintendentDocumentFileSystem,
   SuperintendentDoc,
   SuperintendentFrontmatter,
   StatusBlock,

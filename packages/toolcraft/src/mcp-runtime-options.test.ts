@@ -91,3 +91,70 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
     }
   });
 });
+
+describe("createMCPServer fetch runtime options plumbing", () => {
+  beforeEach(() => {
+    invokeWithHumanInLoopMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("passes options.fetch to command contexts", async () => {
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    const injectedFetch = vi.fn<typeof globalThis.fetch>(async () =>
+      new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    );
+
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "load",
+            scope: ["mcp"],
+            params: S.Object({}),
+            handler: async ({ fetch }) => {
+              expect(fetch).toBe(injectedFetch);
+              const response = await fetch("https://api.example.com/items");
+              return response.json();
+            },
+          }),
+        ],
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+        fetch: injectedFetch,
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(
+        client.callTool({
+          name: "load",
+          arguments: {},
+        })
+      ).resolves.toEqual({
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({
+              ok: true,
+            }),
+          },
+        ],
+      });
+      expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
+    } finally {
+      await cleanup();
+    }
+  });
+});

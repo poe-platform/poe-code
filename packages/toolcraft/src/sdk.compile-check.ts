@@ -95,6 +95,7 @@ const ignoredRoot = defineGroup({
 const ignoredOptions = {
   approvals: false,
   casing: "camel",
+  fetch: globalThis.fetch,
   services: {
     logger: console,
   },

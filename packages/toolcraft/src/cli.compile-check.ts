@@ -19,6 +19,7 @@ const ignoredRoot = defineGroup({
 const ignoredOptions: RunCLIOptions<Record<string, never>> = {
   approvals: true,
   casing: "kebab",
+  fetch: globalThis.fetch,
   controls: {
     debug: true,
     output: true,

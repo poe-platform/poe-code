@@ -228,6 +228,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   approvals?: boolean;
   casing?: Casing;
   controls?: CLIControls;
+  fetch?: typeof globalThis.fetch;
   humanInLoop?: HumanInLoopRuntimeOptions;
   projectRoot?: string;
   rootDisplayName?: string;
@@ -2853,14 +2854,15 @@ function createFixtureEnvValues(
 async function resolveFixtureRuntime<TServices extends object>(
   command: Command<TServices, any, any, any>,
   services: TServices,
-  requirementOptions: CommandRequirementOptions
+  requirementOptions: CommandRequirementOptions,
+  runtimeFetch: typeof globalThis.fetch
 ): Promise<ResolvedFixtureRuntime<TServices>> {
   const selector = process.env.TOOLCRAFT_FIXTURE;
 
   if (selector === undefined || selector.length === 0) {
     return {
       env: createEnv(),
-      fetch: globalThis.fetch,
+      fetch: runtimeFetch,
       fs: createFs(),
       isFixture: false,
       requirementOptions,
@@ -3789,6 +3791,7 @@ async function executeCommand<TServices extends object>(
   state: ExecutionState<TServices>,
   services: TServices,
   requirementOptions: CommandRequirementOptions,
+  runtimeFetch: typeof globalThis.fetch,
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
   onErrorReportContext?: (context: {
     command: Command<TServices, any, any, any>;
@@ -3808,7 +3811,12 @@ async function executeCommand<TServices extends object>(
   const resolvedFlags = optionValues as ResolvedFlags;
   const output = resolveOutput(resolvedFlags);
   const shouldPrompt = !resolvedFlags.yes && Boolean(process.stdin.isTTY);
-  const runtime = await resolveFixtureRuntime(state.command, services, requirementOptions);
+  const runtime = await resolveFixtureRuntime(
+    state.command,
+    services,
+    requirementOptions,
+    runtimeFetch
+  );
   const preflightContext = {
     ...runtime.services,
     secrets: runtime.secrets,
@@ -4594,6 +4602,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
+  const runtimeFetch = options.fetch ?? globalThis.fetch;
   const version = options.version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
   const rootUsageName = options.rootUsageName ?? inferProgramName(process.argv);
   const controls = resolveCLIControls(options.controls);
@@ -4647,6 +4656,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       state,
       servicesWithBuiltIns,
       requirementOptions,
+      runtimeFetch,
       runtimeOptions,
       (context) => {
         errorReportContext = context;

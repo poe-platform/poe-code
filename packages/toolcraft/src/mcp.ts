@@ -69,6 +69,7 @@ interface ToolDefinition<TServices extends object> {
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
   approvals?: boolean;
+  fetch?: typeof globalThis.fetch;
   name: string;
   version?: string;
   humanInLoop?: HumanInLoopRuntimeOptions;
@@ -764,6 +765,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
+  const runtimeFetch = options.fetch ?? globalThis.fetch;
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
@@ -797,7 +799,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           const baseContext = {
             ...servicesWithBuiltIns,
             secrets,
-            fetch: globalThis.fetch,
+            fetch: runtimeFetch,
             fs: createFs(),
             env: createEnv(),
             progress(): void {

@@ -2974,6 +2974,39 @@ describe("runCLI", () => {
     );
   });
 
+  it("passes options.fetch to command contexts", async () => {
+    const injectedFetch = vi.fn<typeof globalThis.fetch>(async () =>
+      new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    );
+    const load = defineCommand({
+      name: "load",
+      params: S.Object({}),
+      handler: async ({ fetch }) => {
+        expect(fetch).toBe(injectedFetch);
+        const response = await fetch("https://api.example.com/items");
+        return response.json();
+      }
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [load]
+    });
+
+    process.argv = ["node", "toolcraft", "load", "--output", "json", "--yes"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      fetch: injectedFetch
+    });
+
+    expect(JSON.parse(readStdout(stdoutWrite))).toEqual({ ok: true });
+    expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
+  });
+
   it("selects fixture scenarios by 1-based index", async () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const realStore = {

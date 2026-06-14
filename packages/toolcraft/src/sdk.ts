@@ -222,6 +222,7 @@ type SDKChildrenShape<
 
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
   approvals?: boolean;
+  fetch?: typeof globalThis.fetch;
   services?: TServices;
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
@@ -644,6 +645,7 @@ function createResolvedSDK(
 ): Record<string, unknown> {
   const services = options.services ?? {};
   const runtimeOptions = options.humanInLoop ?? {};
+  const runtimeFetch = options.fetch ?? globalThis.fetch;
   void options.casing;
   validateServices(services as Record<string, unknown>);
 
@@ -666,7 +668,7 @@ function createResolvedSDK(
             runtimeOptions,
             root,
             secrets,
-            fetch: globalThis.fetch,
+            fetch: runtimeFetch,
             fs: createFs(),
             env: createEnv(),
             progress(): void {

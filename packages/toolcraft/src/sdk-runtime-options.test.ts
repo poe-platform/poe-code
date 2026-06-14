@@ -82,3 +82,42 @@ describe("createSDK API version runtime options plumbing", () => {
     await expect(sdk.deploy({})).resolves.toBe("deployed");
   });
 });
+
+describe("createSDK fetch runtime options plumbing", () => {
+  it("passes options.fetch to command contexts", async () => {
+    invokeWithHumanInLoopMock.mockReset();
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    const injectedFetch = vi.fn<typeof globalThis.fetch>(async () =>
+      new Response(JSON.stringify({ ok: true }), {
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+    );
+
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "load",
+            params: S.Object({}),
+            handler: async ({ fetch }) => {
+              expect(fetch).toBe(injectedFetch);
+              const response = await fetch("https://api.example.com/items");
+              return response.json();
+            },
+          }),
+        ],
+      }),
+      {
+        fetch: injectedFetch,
+      }
+    ) as {
+      load(params: Record<string, never>): Promise<{ ok: boolean }>;
+    };
+
+    await expect(sdk.load({})).resolves.toEqual({ ok: true });
+    expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
+  });
+});

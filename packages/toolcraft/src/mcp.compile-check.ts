@@ -24,6 +24,7 @@ const ignoredOptions = {
   approvals: false,
   name: "toolcraft-test",
   version: "1.0.0",
+  fetch: globalThis.fetch,
   tools: ["usage"],
   casing: "snake",
   humanInLoop: {} satisfies HumanInLoopRuntimeOptions,

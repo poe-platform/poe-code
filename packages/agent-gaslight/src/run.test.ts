@@ -121,6 +121,88 @@ describe("runGaslight", () => {
     expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three", "four"]);
   });
 
+  it("archives each plan after its gaslight rounds succeed", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/first.md": "# First",
+        "/repo/docs/plans/second.md": "# Second"
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first start", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "first followup",
+        stderr: "",
+        threadId: "two"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second start",
+        stderr: "",
+        threadId: "three"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second followup",
+        stderr: "",
+        threadId: "four"
+      });
+
+    const result = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/first.md", "docs/plans/second.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check again"],
+      fs,
+      spawn
+    });
+
+    await expect(fs.readFile("/repo/docs/plans/first.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(fs.readFile("/repo/docs/plans/second.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).resolves.toBe(
+      "# First"
+    );
+    await expect(fs.readFile("/repo/docs/plans/archive/second.md", "utf8")).resolves.toBe(
+      "# Second"
+    );
+    expect(result.plans.map((plan) => plan.archivedPath)).toEqual([
+      "/repo/docs/plans/archive/first.md",
+      "/repo/docs/plans/archive/second.md"
+    ]);
+  });
+
+  it("leaves the active plan in place when a later round fails", async () => {
+    const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "done", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 1, stdout: "", stderr: "broken" });
+
+    await expect(
+      runGaslight({
+        cwd: "/repo",
+        planPaths: ["plan.md"],
+        agent: "codex",
+        prompt: "Implement",
+        followups: ["Again"],
+        fs,
+        spawn
+      })
+    ).rejects.toThrow("Gaslight round 2 failed after 1 completed round");
+
+    await expect(fs.readFile("/repo/plan.md", "utf8")).resolves.toBe("# Work");
+    await expect(fs.readFile("/repo/archive/plan.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("fails before round two when no thread id is returned", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
     const spawn = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "done", stderr: "" });

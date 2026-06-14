@@ -96,7 +96,7 @@ By default, ingest writes a temporary curated Markdown analysis input under `<cw
 import { runGaslight } from "@poe-code/agent-gaslight";
 
 const result = await runGaslight({
-  planPath: "docs/plans/feature.md",
+  planPaths: ["docs/plans/feature.md"],
   agent: "claude-code",
   model: "Claude-Sonnet-4.5"
 });
@@ -104,7 +104,7 @@ const result = await runGaslight({
 
 ## Run options
 
-- `planPath`: Required plan path, resolved from `cwd`.
+- `planPaths`: Required plan paths, resolved from `cwd`.
 - `agent`: Required agent identifier.
 - `model`: Optional model override.
 - `mode`: Spawn mode: `read`, `edit`, or `yolo`. Defaults to `edit`.
@@ -117,7 +117,7 @@ const result = await runGaslight({
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
 
-The run result contains each round's prompt, summary, and thread id plus summed token and cost usage when the agent reports usage.
+After all rounds for a plan finish successfully, Gaslight moves that plan into a sibling `archive/` directory. The run result contains each round's prompt, summary, and thread id; each plan's `archivedPath`; and summed token and cost usage when the agent reports usage.
 
 ## Ingest options
 

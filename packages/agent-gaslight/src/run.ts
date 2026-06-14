@@ -4,6 +4,7 @@ import path from "node:path";
 import { spawn as defaultSpawn, type SpawnUsage } from "@poe-code/agent-spawn";
 import { loadGaslightConfig } from "./config.js";
 import type {
+  GaslightArchiveFileSystem,
   GaslightFileSystem,
   GaslightOptions,
   GaslightPlanResult,
@@ -13,6 +14,15 @@ import type {
 
 function summarize(stdout: string, stderr: string): string {
   return stdout.trim() || stderr.trim();
+}
+
+function isMissingFile(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "ENOENT"
+  );
 }
 
 function addUsage(
@@ -46,6 +56,67 @@ async function requirePlan(fs: GaslightFileSystem, cwd: string, planPath: string
   }
 }
 
+async function rejectArchiveSymlink(
+  fs: GaslightArchiveFileSystem,
+  archiveDir: string
+): Promise<void> {
+  if (!fs.lstat) {
+    return;
+  }
+  try {
+    const stats = await fs.lstat(archiveDir);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`Archive directory cannot be a symbolic link: ${archiveDir}`);
+    }
+  } catch (error) {
+    if (isMissingFile(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+async function archivePlan(
+  fs: GaslightArchiveFileSystem,
+  cwd: string,
+  planPath: string
+): Promise<string> {
+  if (!fs.rename) {
+    throw new Error("Gaslight plan archiving requires a filesystem with rename support.");
+  }
+
+  const absolutePath = path.resolve(cwd, planPath);
+  const archiveDir = path.join(path.dirname(absolutePath), "archive");
+  const archivedPath = path.join(archiveDir, path.basename(absolutePath));
+
+  try {
+    await fs.readFile(archivedPath, "utf8");
+    throw new Error(`Archive destination already exists: ${archivedPath}`);
+  } catch (error) {
+    if (!isMissingFile(error)) {
+      throw error;
+    }
+  }
+
+  await rejectArchiveSymlink(fs, archiveDir);
+  const createdDirectory = await fs.mkdir(archiveDir, { recursive: true });
+  try {
+    await rejectArchiveSymlink(fs, archiveDir);
+    await fs.rename(absolutePath, archivedPath);
+  } catch (error) {
+    if (createdDirectory !== undefined && fs.rmdir) {
+      try {
+        await fs.rmdir(archiveDir);
+      } catch {
+        // Best-effort cleanup only; preserve the original archive failure.
+      }
+    }
+    throw error;
+  }
+
+  return archivedPath;
+}
+
 function validateInlineConfig(prompt: string | undefined, followups: string[] | undefined): void {
   if ((prompt === undefined) !== (followups === undefined)) {
     throw new Error("prompt and followups must be provided together.");
@@ -76,7 +147,7 @@ function resolvePlanPaths(options: GaslightOptions): string[] {
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
   const cwd = options.cwd ?? process.cwd();
   const homeDir = options.homeDir ?? os.homedir();
-  const fs = options.fs ?? nodeFs;
+  const fs = (options.fs ?? nodeFs) as GaslightArchiveFileSystem;
   const spawn = options.spawn ?? defaultSpawn;
   validateInlineConfig(options.prompt, options.followups);
   const planPaths = resolvePlanPaths(options);
@@ -158,7 +229,13 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       }
     }
 
-    plans.push({ planPath, rounds: planRounds, ...(planUsage ? { usage: planUsage } : {}) });
+    const archivedPath = await archivePlan(fs, cwd, planPath);
+    plans.push({
+      planPath,
+      archivedPath,
+      rounds: planRounds,
+      ...(planUsage ? { usage: planUsage } : {})
+    });
   }
 
   return { rounds, plans, ...(usage ? { usage } : {}) };

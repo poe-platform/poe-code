@@ -211,6 +211,14 @@ describe("ingestGaslight", () => {
         prompt: expect.stringContaining("Do not produce two followups for the same workflow step")
       })
     );
+    const analysisPrompt = spawn.mock.calls[0]?.[1]?.prompt;
+    expect(analysisPrompt).toContain(
+      "The `prompt` must compose naturally as `<prompt> docs/plans/example.md`"
+    );
+    expect(analysisPrompt).toContain("prefer `Implement`");
+    expect(analysisPrompt).toContain(
+      "review questions, validation checks, cleanup checks, commit checks, or release checks"
+    );
   });
 
   it("extracts YAML from Codex JSONL agent message output", async () => {

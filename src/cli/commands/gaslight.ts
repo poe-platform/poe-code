@@ -8,9 +8,9 @@ import {
   GASLIGHT_CONFIG_EXAMPLE,
   ingestGaslight,
   runGaslight,
-  type GaslightEvent,
   type GaslightIngestEvent
 } from "../../sdk/gaslight.js";
+import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { resolvePlanDirectory } from "./plan.js";
 import {
   createExecutionResources,
@@ -258,12 +258,6 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         optionPlanPaths: options.plans
       });
       const { agent, model } = await resolveAgentAndModel(program, container, options);
-      let currentRound = 1;
-      let totalRounds = 1;
-      let currentPlan = planPaths[0] ?? "";
-      let currentPlanIndex = 1;
-      const totalPlans = planPaths.length;
-      let currentPrompt = currentPlan;
 
       intro("gaslight");
       const result = await runGaslight({
@@ -275,27 +269,8 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
         fs: container.fs,
-        onEvent(event: GaslightEvent) {
-          if (event.type === "round.started") {
-            currentRound = event.round;
-            totalRounds = event.total;
-            currentPlan = event.planPath;
-            currentPlanIndex = event.planIndex;
-            currentPrompt = event.round === 1 ? `plan: ${event.planPath}` : event.prompt;
-          }
-        },
         spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
-          await withSpinner({
-            message: () =>
-              totalPlans > 1
-                ? `Plan ${currentPlanIndex}/${totalPlans} · Round ${currentRound}/${totalRounds} · ${currentPrompt}`
-                : `Round ${currentRound}/${totalRounds} · ${currentPrompt}`,
-            fn: () => spawn(spawnAgent, spawnOptions),
-            stopMessage: () =>
-              totalPlans > 1
-                ? `Plan ${currentPlanIndex}/${totalPlans} · Round ${currentRound}/${totalRounds} · ${currentPlan}`
-                : `Round ${currentRound}/${totalRounds} · ${currentPrompt}`
-          })
+          await sdkSpawn.pretty(spawnAgent, spawnOptions)
       });
       const finished =
         planPaths.length > 1

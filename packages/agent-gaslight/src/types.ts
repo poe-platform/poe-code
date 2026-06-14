@@ -8,6 +8,12 @@ import type {
 
 export type GaslightFileSystem = AgentTraceFileSystem;
 
+export type GaslightArchiveFileSystem = GaslightFileSystem & {
+  lstat?(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  rename?(oldPath: string, newPath: string): Promise<void>;
+  rmdir?(path: string): Promise<void>;
+};
+
 export type GaslightSpawn = (agent: string, options: SpawnOptions) => Promise<SpawnResult>;
 
 export type GaslightEvent =
@@ -44,6 +50,7 @@ export interface GaslightResult {
 
 export interface GaslightPlanResult {
   planPath: string;
+  archivedPath?: string;
   rounds: GaslightRound[];
   usage?: SpawnUsage;
 }

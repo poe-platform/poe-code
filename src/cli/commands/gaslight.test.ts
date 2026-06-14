@@ -4,20 +4,32 @@ import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 
-const { ingestGaslightMock, introMock, multiselectMock, outroMock, runGaslightMock, selectMock } =
-  vi.hoisted(() => ({
+const {
+  ingestGaslightMock,
+  introMock,
+  multiselectMock,
+  outroMock,
+  runGaslightMock,
+  selectMock,
+  spawnPrettyMock
+} = vi.hoisted(() => ({
     ingestGaslightMock: vi.fn(),
     introMock: vi.fn(),
     multiselectMock: vi.fn(),
     outroMock: vi.fn(),
     runGaslightMock: vi.fn(),
-    selectMock: vi.fn()
+    selectMock: vi.fn(),
+    spawnPrettyMock: vi.fn()
   }));
 
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
   ingestGaslight: ingestGaslightMock,
   runGaslight: runGaslightMock
+}));
+
+vi.mock("../../sdk/spawn.js", () => ({
+  spawn: { pretty: spawnPrettyMock }
 }));
 
 vi.mock("toolcraft-design", async (importOriginal) => {
@@ -70,6 +82,7 @@ describe("gaslight command", () => {
     runGaslightMock.mockReset().mockResolvedValue({ rounds: [{ prompt: "x", summary: "done" }] });
     multiselectMock.mockReset();
     selectMock.mockReset();
+    spawnPrettyMock.mockReset();
   });
 
   it("does not prompt when plan, agent, and model are provided", async () => {
@@ -147,6 +160,29 @@ describe("gaslight command", () => {
         model: "gpt-5"
       })
     );
+  });
+
+  it("uses the pretty spawn renderer for gaslight rounds", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    const options = runGaslightMock.mock.calls[0]?.[0];
+    expect(options?.spawn).toBeTypeOf("function");
+    await options.spawn("codex", { prompt: "Implement docs/plans/a.md" });
+    expect(spawnPrettyMock).toHaveBeenCalledWith("codex", {
+      prompt: "Implement docs/plans/a.md"
+    });
   });
 
   it("rejects mixing positional plan with --plans", async () => {

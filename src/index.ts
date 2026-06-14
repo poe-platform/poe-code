@@ -8,7 +8,7 @@ applyPoeTheme();
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
 export { runPipeline, runPipelineInit } from "./sdk/pipeline.js";
-export { runMaestro } from "@poe-code/agent-maestro";
+export { runMaestro } from "@poe-code/maestro";
 export {
   createLogWriter,
   createStateStore,
@@ -168,7 +168,7 @@ export type {
   RunMaestroOptions,
   MaestroEvent,
   Logger as MaestroLogger
-} from "@poe-code/agent-maestro";
+} from "@poe-code/maestro";
 export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
 export type { AutomationDefinition } from "@poe-code/github-workflows";
 export type {

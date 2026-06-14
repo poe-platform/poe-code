@@ -16,7 +16,7 @@ tasks:
         `packages/plan-browser/package.json`
       - dependencies: `@poe-code/design-system` (for `runExplorer`,
         `ExplorerConfig`), `@poe-code/task-list` (for `TaskList`, `Task`,
-        `openTaskList`), `@poe-code/agent-maestro` (to load the workflow
+        `openTaskList`), `@poe-code/maestro` (to load the workflow
         config — it already parses `states` / `events`)
       - no `@modelcontextprotocol/sdk`, no zod (see CLAUDE.md and memory)
 
@@ -281,7 +281,7 @@ tasks:
       Behaviour:
       1. If `options.taskList` is provided, use it. Otherwise load the
          workflow config via the same loader `runMaestro` uses
-         (`packages/agent-maestro/src/config`), extract the configured
+         (`packages/maestro/src/config`), extract the configured
          task-list options, and call `openTaskList(...)` from
          `@poe-code/task-list`. Do not duplicate workflow parsing —
          import and reuse.
@@ -308,7 +308,7 @@ tasks:
       1. Find the existing poe-code CLI entry — search the repo for the
          `bin` field in package.json files and for an existing
          `maestro` subcommand (`grep -rn '"maestro"' packages` and
-         `grep -rn 'commander\|cmdkit' packages/agent-maestro`). If a
+         `grep -rn 'commander\|cmdkit' packages/maestro`). If a
          `maestro` command already exists, add `tui` as a subcommand
          underneath it; if it does not, register a new `maestro`
          command with a single `tui` subcommand.
@@ -380,11 +380,11 @@ already wires up) rather than introducing a new TUI framework.
 
 ## Why a new package
 
-`packages/agent-maestro` is the runtime (polling, drivers, dispatch).
+`packages/maestro` is the runtime (polling, drivers, dispatch).
 Pulling `@poe-code/design-system` into it would couple the runtime to
 TUI rendering. A thin `@poe-code/maestro-tui` package sits beside it,
 depends on both, and contributes the CLI surface — same split that
-`agent-maestro` + `maestro-tui` mirrors for `plans` + `plan-browser`.
+`maestro` + `maestro-tui` mirrors for `plans` + `plan-browser`.
 
 ## Backend agnosticism
 
@@ -404,7 +404,7 @@ The "Next" section in the detail pane lists `Tasks.events(id)` results
 — i.e. transitions actually reachable from the task's current state
 given the workflow config. The TUI does not parse the workflow itself;
 that work is already done inside `@poe-code/task-list` /
-`@poe-code/agent-maestro`'s state machine.
+`@poe-code/maestro`'s state machine.
 
 ## Out of scope
 

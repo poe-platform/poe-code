@@ -4,7 +4,7 @@ import {
   resolveConfig,
   resolveConfiguredTaskListOptions,
   resolveWorkflowPath
-} from "@poe-code/agent-maestro";
+} from "@poe-code/maestro";
 import { runExplorer } from "toolcraft-design";
 import { openTaskList, type TaskList } from "@poe-code/task-list";
 import { buildMaestroExplorerConfig } from "./explorer-config.js";

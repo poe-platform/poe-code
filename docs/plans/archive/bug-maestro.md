@@ -16,10 +16,10 @@ tasks:
       error with a clear message.
 
       Touch:
-      - packages/agent-maestro/src/index.ts: runMaestro accepts `name?: string`;
+      - packages/maestro/src/index.ts: runMaestro accepts `name?: string`;
         add `resolveWorkflowPath(name, cwd)` next to the existing
         `workflowPath` handling.
-      - packages/agent-maestro/src/tick-command.ts: runMaestroTick accepts
+      - packages/maestro/src/tick-command.ts: runMaestroTick accepts
         `name?: string` and uses the same resolver.
       - packages/maestro-tui/src/run.ts: runMaestroTui accepts `name?: string`
         the same way.

@@ -1,4 +1,4 @@
-# @poe-code/agent-maestro
+# @poe-code/maestro
 
 ## Env Vars
 
@@ -97,7 +97,7 @@ Declaration order in `states:` is the happy path used by `poe-code tasks next`. 
 
 ## Workflow drivers
 
-Agent maestro includes two built-in workflow drivers:
+Maestro includes two built-in workflow drivers:
 
 - `pipeline`: runs the prompt for the task's current state.
 - `ralph`: runs plan-doc tasks through the ralph workflow driver.

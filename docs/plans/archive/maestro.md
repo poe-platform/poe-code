@@ -4,9 +4,9 @@ kind: pipeline
 version: 1
 tasks:
   - id: scaffold-package
-    title: Scaffold packages/agent-maestro
+    title: Scaffold packages/maestro
     prompt: |
-      Create packages/agent-maestro with package.json, tsconfig, an empty
+      Create packages/maestro with package.json, tsconfig, an empty
       src/index.ts, and a README skeleton. Add deps: @poe-code/task-list,
       @poe-code/pipeline, @poe-code/markdown-reader, @poe-code/poe-code-config,
       @poe-code/agent-spawn, @poe-code/file-lock. Wire into root workspaces
@@ -17,7 +17,7 @@ tasks:
   - id: runtime-sanitize
     title: Workspace-key sanitizer
     prompt: |
-      Implement packages/agent-maestro/src/runtime/sanitize.ts exporting
+      Implement packages/maestro/src/runtime/sanitize.ts exporting
       `sanitizeWorkspaceKey(qualifiedId: string): string`. Rules: keep
       `[A-Za-z0-9._-]`, replace everything else with `_`, throw on empty.
       Examples to cover in tests: `ENG-412` → `ENG-412`;
@@ -30,7 +30,7 @@ tasks:
   - id: runtime-phases
     title: Attempt phase state machine
     prompt: |
-      Implement packages/agent-maestro/src/runtime/phases.ts with the
+      Implement packages/maestro/src/runtime/phases.ts with the
       `AttemptPhase`, `FailureCategory`, `AttemptState` types and the
       `ATTEMPT_TRANSITIONS` table exactly as defined in
       docs/plans/26-maestro.md §3 "Attempt phase machine". Add a pure
@@ -44,7 +44,7 @@ tasks:
   - id: state-machine-export
     title: Recommended task state machine constant
     prompt: |
-      Implement packages/agent-maestro/src/state-machine.ts exporting
+      Implement packages/maestro/src/state-machine.ts exporting
       `maestroTaskStateMachine: StateMachineDef` from @poe-code/task-list.
       States and events per docs/plans/26-maestro.md §3 "Recommended task
       state machine": queued → agent-running (start), agent-running → done
@@ -59,7 +59,7 @@ tasks:
   - id: config-load-and-schema
     title: WORKFLOW.md loader, schema, preflight validation
     prompt: |
-      Implement these three files in packages/agent-maestro/src/config/:
+      Implement these three files in packages/maestro/src/config/:
       `load.ts` exports `loadWorkflow(path): Promise<WorkflowDefinition>`
       using @poe-code/markdown-reader to split YAML frontmatter and body
       (sourcePath, config, promptTemplate). `schema.ts` exports
@@ -80,7 +80,7 @@ tasks:
   - id: prompt-render
     title: Task and step prompt renderers
     prompt: |
-      Implement packages/agent-maestro/src/prompt/render.ts. Both
+      Implement packages/maestro/src/prompt/render.ts. Both
       `renderTaskPrompt(template, { task, attempt })` and
       `renderStepPrompt(step, { prompt, task, attempt })` are thin
       wrappers around `interpolatePipelineVars` from @poe-code/pipeline
@@ -95,7 +95,7 @@ tasks:
   - id: workspace-manager
     title: Per-task workspace manager
     prompt: |
-      Implement packages/agent-maestro/src/workspace/manager.ts exporting
+      Implement packages/maestro/src/workspace/manager.ts exporting
       `ensureWorkspace(root, qualifiedId)`, `removeWorkspace(...)`, and
       `startupTerminalCleanup(root, terminalQualifiedIds)`. Use
       `sanitizeWorkspaceKey` and enforce path-containment:
@@ -111,7 +111,7 @@ tasks:
   - id: runtime-retry-and-state
     title: Retry math and claim state mutators
     prompt: |
-      Implement two modules in packages/agent-maestro/src/runtime/:
+      Implement two modules in packages/maestro/src/runtime/:
       `retry.ts` exports `backoffMs(attempt, capMs) =
       min(10_000 * 2^(attempt-1), capMs)`, `CONTINUATION_DELAY_MS = 1_000`,
       and `shouldRetry(phase, failure)`: `succeeded` → continuation,
@@ -129,7 +129,7 @@ tasks:
   - id: runtime-reconcile
     title: Reconciliation against task store
     prompt: |
-      Implement packages/agent-maestro/src/runtime/reconcile.ts exporting
+      Implement packages/maestro/src/runtime/reconcile.ts exporting
       `reconcileRunning(state, deps)`. Per tick refresh every running id
       via `tasks.get(id)`; treat `TaskNotFoundError` as terminal. Actions
       per docs/plans/26-maestro.md §3 "Reconciliation":
@@ -145,7 +145,7 @@ tasks:
   - id: agent-runner
     title: Per-attempt step pipeline runner
     prompt: >
-      Implement packages/agent-maestro/src/agent/runner.ts exporting
+      Implement packages/maestro/src/agent/runner.ts exporting
 
       `runAttempt({ task, attempt, cfg, steps, deps, abort })`. Walk
 
@@ -191,7 +191,7 @@ tasks:
   - id: runtime-loop
     title: Poll-tick orchestration
     prompt: |
-      Implement packages/agent-maestro/src/runtime/loop.ts exporting
+      Implement packages/maestro/src/runtime/loop.ts exporting
       `tick(state, deps)`. Order per docs/plans/26-maestro.md §4 test
       table: reconcile running → preflight (skip dispatch on fail but
       keep reconciling) → fetch candidates from active_states union →
@@ -209,7 +209,7 @@ tasks:
   - id: index-and-integration
     title: Public SDK wire-up and integration tests
     prompt: |
-      Implement packages/agent-maestro/src/index.ts exporting
+      Implement packages/maestro/src/index.ts exporting
       `runMaestro(opts?: RunMaestroOptions): Promise<() => Promise<void>>`,
       the `MaestroEvent` union, and re-exports for `AttemptPhase`,
       `FailureCategory`, `maestroTaskStateMachine`. `runMaestro` loads
@@ -238,7 +238,7 @@ tasks:
       `./WORKFLOW.md`) and options `--max-concurrent` / `-c`,
       `--poll-interval-ms`, `--list`, `--dry-run`, `--yes`,
       `--log-level` (default `info`). The handler calls `runMaestro`
-      from @poe-code/agent-maestro with the parsed args. CLI and SDK
+      from @poe-code/maestro with the parsed args. CLI and SDK
       args must stay at parity (CLAUDE.md rule). Add a smoke test that
       `poe-code maestro --help` renders and exits 0. Reference:
       docs/plans/26-maestro.md §2 CLI block and §4 cmdkit declaration.
@@ -246,9 +246,9 @@ tasks:
       implement: done
       test: done
   - id: package-readme
-    title: agent-maestro README
+    title: maestro README
     prompt: |
-      Write packages/agent-maestro/README.md per CLAUDE.md package rules:
+      Write packages/maestro/README.md per CLAUDE.md package rules:
       list every env var consumed by chosen task-list backends (start with
       `GH_HOST` for gh-issues), every config field under `tasks`, `agent`,
       `polling`, `workspace`, `active_states`, `terminal_states`,
@@ -266,7 +266,7 @@ tasks:
       `npm run dev -- maestro /tmp/WORKFLOW.md --dry-run`. Verify the
       output reports `config OK`, opens the task store, lists candidates,
       and exits 0 without launching any agent. Also run `npm run lint`
-      and `npm run test -- packages/agent-maestro` from repo root and fix
+      and `npm run test -- packages/maestro` from repo root and fix
       anything that fails. Delete the temp files when done. See
       docs/plans/26-maestro.md §4 autonomy checklist.
     status:
@@ -282,7 +282,7 @@ A long-running daemon that polls a [`@poe-code/task-list`](../../packages/task-l
 
 ## 1. What we're building
 
-A new package `packages/agent-maestro` plus a `poe-code maestro` CLI command. The daemon:
+A new package `packages/maestro` plus a `poe-code maestro` CLI command. The daemon:
 
 - Loads a repo-owned `WORKFLOW.md` (YAML frontmatter + Markdown prompt body).
 - Opens a `TaskList` via `openTaskList(frontmatter.tasks)` — the `tasks:` block is passed through verbatim, so `markdown-dir`, `yaml-file`, and `gh-issues` are all supported on day one with zero adapter code.
@@ -425,7 +425,7 @@ $ poe-code maestro ./WORKFLOW.md --dry-run
 ### SDK
 
 ```ts
-import { runMaestro } from "@poe-code/agent-maestro";
+import { runMaestro } from "@poe-code/maestro";
 
 const stop = await runMaestro({
   workflowPath: "./WORKFLOW.md",
@@ -444,7 +444,7 @@ For tests / programmatic use, the SDK also accepts a pre-built `TaskList`:
 
 ```ts
 import { openTaskList } from "@poe-code/task-list";
-import { runMaestro } from "@poe-code/agent-maestro";
+import { runMaestro } from "@poe-code/maestro";
 
 const taskList = await openTaskList({ type: "markdown-dir", path: "./tasks" });
 await runMaestro({ workflowPath: "./WORKFLOW.md", taskList });
@@ -457,7 +457,7 @@ When `taskList` is supplied, the `tasks:` block in `WORKFLOW.md` is ignored.
 ### Package layout
 
 ```text
-packages/agent-maestro/
+packages/maestro/
   src/
     index.ts                 # public SDK: runMaestro, types
     config/
@@ -639,7 +639,7 @@ With this machine, the maestro's defaults change:
 
 `human-review` is terminal *to the maestro* — once a task lands there the daemon stops working it and cleans the workspace. The human moves it forward via `accept` or `fail` in the tracker UI.
 
-The constant is exported as `maestroTaskStateMachine` from `@poe-code/agent-maestro`. It's documentation + a default; nothing in v1 requires operators to use it.
+The constant is exported as `maestroTaskStateMachine` from `@poe-code/maestro`. It's documentation + a default; nothing in v1 requires operators to use it.
 
 ### Retry math
 
@@ -710,7 +710,7 @@ Three checks before any agent launch (fail closed):
 ### Public SDK
 
 ```ts
-// packages/agent-maestro/src/index.ts
+// packages/maestro/src/index.ts
 import type { Task, TaskList, OpenTaskListOptions } from "@poe-code/task-list";
 import type { spawn } from "@poe-code/agent-spawn";
 
@@ -789,13 +789,13 @@ No existing callers. New CLI command, new package — fully additive.
 
 An agent executing this plan needs to:
 
-- Create `packages/agent-maestro/` with `package.json` (deps: `@poe-code/task-list`, `@poe-code/pipeline`, `@poe-code/markdown-reader`, `@poe-code/poe-code-config`, `@poe-code/agent-spawn`, `@poe-code/file-lock`).
+- Create `packages/maestro/` with `package.json` (deps: `@poe-code/task-list`, `@poe-code/pipeline`, `@poe-code/markdown-reader`, `@poe-code/poe-code-config`, `@poe-code/agent-spawn`, `@poe-code/file-lock`).
 - Run `npm install` from repo root after package skeleton is in place.
 - Implement modules in the build order from §5; each module has its tests passing before moving on.
 - Wire CLI in [src/cli/program.ts](src/cli/program.ts) — register `maestro` command alongside `superintendent`, `pipeline`.
 - Add README.md to package: env vars (any consumed by chosen task-list backends — `GH_HOST` for gh-issues), config fields, example `WORKFLOW.md` for each backend, and a pointer at the pipeline package's docs for `steps.yaml`.
 - Use `memfs` for all fs tests. For task-store fakes, prefer constructing a real `markdown-dir` `TaskList` against memfs over hand-mocking `Tasks`. For step-file fakes, write a real `steps.yaml` into memfs and let `loadResolvedSteps` parse it — do not mock the loader.
-- Run `npm run lint`, `npm run test -- packages/agent-maestro`, and a manual `--dry-run` invocation against a fake `WORKFLOW.md` (markdown-dir backend with three seeded tasks) and a fake `steps.yaml` before declaring done.
+- Run `npm run lint`, `npm run test -- packages/maestro`, and a manual `--dry-run` invocation against a fake `WORKFLOW.md` (markdown-dir backend with three seeded tasks) and a fake `steps.yaml` before declaring done.
 
 ## 5. Code plan
 
@@ -803,32 +803,32 @@ An agent executing this plan needs to:
 
 | File | Purpose |
 | --- | --- |
-| `packages/agent-maestro/package.json` | Deps + scripts |
-| `packages/agent-maestro/README.md` | Env vars, config, example workflows (one per backend) |
-| `packages/agent-maestro/src/index.ts` | Re-exports public types + `runMaestro` |
-| `packages/agent-maestro/src/config/load.ts` | `loadWorkflow(path): WorkflowDefinition` |
-| `packages/agent-maestro/src/config/schema.ts` | `resolveConfig(raw, cwd): ResolvedConfig`, defaults, `$VAR`, picks up `step_overrides` |
-| `packages/agent-maestro/src/config/validate.ts` | `validateDispatch(cfg, taskList, steps): { ok: true } \| { ok: false; error }` |
-| `packages/agent-maestro/src/runtime/sanitize.ts` | `sanitizeWorkspaceKey` |
-| `packages/agent-maestro/src/runtime/phases.ts` | `AttemptPhase`, `FailureCategory`, `ATTEMPT_TRANSITIONS`, `transitionPhase()` |
-| `packages/agent-maestro/src/runtime/state.ts` | `createState()`, claim/release/dispatch/retry mutators |
-| `packages/agent-maestro/src/runtime/loop.ts` | `tick(state, deps): Promise<void>`; sort/dispatch logic |
-| `packages/agent-maestro/src/runtime/retry.ts` | `backoffMs`, `CONTINUATION_DELAY_MS`, `scheduleRetry`, `shouldRetry(phase, failure)` |
-| `packages/agent-maestro/src/runtime/reconcile.ts` | `reconcileRunning(state, deps): Promise<void>` |
-| `packages/agent-maestro/src/state-machine.ts` | `maestroTaskStateMachine: StateMachineDef` constant |
-| `packages/agent-maestro/src/workspace/manager.ts` | `ensureWorkspace`, `removeWorkspace`, `startupTerminalCleanup` |
-| `packages/agent-maestro/src/prompt/render.ts` | `renderTaskPrompt(template, { task, attempt }): string` — thin wrapper around `interpolatePipelineVars` |
-| `packages/agent-maestro/src/agent/runner.ts` | `runAttempt(task, deps): Promise<AttemptOutcome>` — walks `setup → steps[*] → teardown`, calls `agent-spawn` per step, checks reconcile between steps |
-| `packages/agent-maestro/src/logging.ts` | `createLogger`, key=value formatting |
-| `packages/agent-maestro/test/*.spec.ts` | per the test table in §4 |
+| `packages/maestro/package.json` | Deps + scripts |
+| `packages/maestro/README.md` | Env vars, config, example workflows (one per backend) |
+| `packages/maestro/src/index.ts` | Re-exports public types + `runMaestro` |
+| `packages/maestro/src/config/load.ts` | `loadWorkflow(path): WorkflowDefinition` |
+| `packages/maestro/src/config/schema.ts` | `resolveConfig(raw, cwd): ResolvedConfig`, defaults, `$VAR`, picks up `step_overrides` |
+| `packages/maestro/src/config/validate.ts` | `validateDispatch(cfg, taskList, steps): { ok: true } \| { ok: false; error }` |
+| `packages/maestro/src/runtime/sanitize.ts` | `sanitizeWorkspaceKey` |
+| `packages/maestro/src/runtime/phases.ts` | `AttemptPhase`, `FailureCategory`, `ATTEMPT_TRANSITIONS`, `transitionPhase()` |
+| `packages/maestro/src/runtime/state.ts` | `createState()`, claim/release/dispatch/retry mutators |
+| `packages/maestro/src/runtime/loop.ts` | `tick(state, deps): Promise<void>`; sort/dispatch logic |
+| `packages/maestro/src/runtime/retry.ts` | `backoffMs`, `CONTINUATION_DELAY_MS`, `scheduleRetry`, `shouldRetry(phase, failure)` |
+| `packages/maestro/src/runtime/reconcile.ts` | `reconcileRunning(state, deps): Promise<void>` |
+| `packages/maestro/src/state-machine.ts` | `maestroTaskStateMachine: StateMachineDef` constant |
+| `packages/maestro/src/workspace/manager.ts` | `ensureWorkspace`, `removeWorkspace`, `startupTerminalCleanup` |
+| `packages/maestro/src/prompt/render.ts` | `renderTaskPrompt(template, { task, attempt }): string` — thin wrapper around `interpolatePipelineVars` |
+| `packages/maestro/src/agent/runner.ts` | `runAttempt(task, deps): Promise<AttemptOutcome>` — walks `setup → steps[*] → teardown`, calls `agent-spawn` per step, checks reconcile between steps |
+| `packages/maestro/src/logging.ts` | `createLogger`, key=value formatting |
+| `packages/maestro/test/*.spec.ts` | per the test table in §4 |
 
 ### Files to change
 
 | File | Change |
 | --- | --- |
-| `src/cli/program.ts` | Register `maestro` command (calls into `@poe-code/agent-maestro`) |
-| `package.json` (workspace root) | Add `packages/agent-maestro` to workspaces if not glob-covered |
-| `tsconfig.base.json` or equivalent | Path mapping for `@poe-code/agent-maestro` if used |
+| `src/cli/program.ts` | Register `maestro` command (calls into `@poe-code/maestro`) |
+| `package.json` (workspace root) | Add `packages/maestro` to workspaces if not glob-covered |
+| `tsconfig.base.json` or equivalent | Path mapping for `@poe-code/maestro` if used |
 
 No changes to `task-list`, `pipeline`, `agent-spawn`, `markdown-reader`, `poe-code-config`, `file-lock`.
 

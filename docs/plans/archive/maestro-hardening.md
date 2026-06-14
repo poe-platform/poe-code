@@ -6,7 +6,7 @@ tasks:
   - id: mock-agent-spawn
     title: Build invisible mock agent spawn test double
     prompt: >
-      In packages/agent-maestro create `src/__test_utils__/mock-spawn.ts`.
+      In packages/maestro create `src/__test_utils__/mock-spawn.ts`.
 
       It must implement the same callable shape as
 
@@ -73,7 +73,7 @@ tasks:
   - id: mock-task-list
     title: Build invisible in-memory TaskList test double
     prompt: |
-      In packages/agent-maestro create `src/__test_utils__/mock-task-list.ts`.
+      In packages/maestro create `src/__test_utils__/mock-task-list.ts`.
       It must implement the full `TaskList` interface from
       `@poe-code/task-list` (every method on the exported `TaskList`
       type and `Tasks` namespace surface used by maestro: `allTasks`,
@@ -127,7 +127,7 @@ tasks:
   - id: shared-test-fixtures
     title: Extract shared maestro test fixtures and event collector
     prompt: |
-      In packages/agent-maestro create `src/__test_utils__/fixtures.ts`
+      In packages/maestro create `src/__test_utils__/fixtures.ts`
       and `src/__test_utils__/event-collector.ts`.
 
       `fixtures.ts` exports factories used across every maestro test:
@@ -174,7 +174,7 @@ tasks:
   - id: pipeline-driver-coverage
     title: Pipeline driver exhaustive failure-mode coverage
     prompt: |
-      In `packages/agent-maestro/src/drivers/pipeline.test.ts`, using
+      In `packages/maestro/src/drivers/pipeline.test.ts`, using
       the shared `mock-spawn`, `mock-task-list`, and fixtures, add
       coverage for every code path in `pipeline.ts`. Each scenario
       must assert the full `AttemptEvent`/`MaestroEvent` sequence,
@@ -222,7 +222,7 @@ tasks:
   - id: ralph-driver-coverage
     title: Ralph driver exhaustive failure-mode coverage
     prompt: |
-      In `packages/agent-maestro/src/drivers/ralph.test.ts`, using the
+      In `packages/maestro/src/drivers/ralph.test.ts`, using the
       shared mocks, cover every branch of `ralph.ts`. The mock spawn
       must impersonate the ralph child-spawn contract exactly — the
       ralph driver must not know it is mocked.
@@ -263,7 +263,7 @@ tasks:
   - id: loop-tick-coverage
     title: Loop tick concurrency, claim, and dispatch coverage
     prompt: |
-      In `packages/agent-maestro/src/runtime/loop.test.ts`, using the
+      In `packages/maestro/src/runtime/loop.test.ts`, using the
       shared mocks, add scenarios that drive the loop through its
       full state space.
 
@@ -307,7 +307,7 @@ tasks:
   - id: reconcile-coverage
     title: Reconcile state-mutation-mid-attempt coverage
     prompt: |
-      In `packages/agent-maestro/src/runtime/reconcile.test.ts`, using
+      In `packages/maestro/src/runtime/reconcile.test.ts`, using
       the shared `mock-task-list`, exercise every reconcile branch.
 
       Cases to add (where absent):
@@ -336,7 +336,7 @@ tasks:
   - id: workspace-manager-coverage
     title: Workspace manager security and cleanup edge cases
     prompt: |
-      In `packages/agent-maestro/src/workspace/manager.test.ts`,
+      In `packages/maestro/src/workspace/manager.test.ts`,
       using memfs, cover every workspace branch.
 
       Cases to add (where absent):
@@ -370,7 +370,7 @@ tasks:
   - id: retry-and-phase-coverage
     title: Retry, backoff, and phase-machine edge cases
     prompt: |
-      In `packages/agent-maestro/src/runtime/retry.test.ts` and
+      In `packages/maestro/src/runtime/retry.test.ts` and
       `phases.test.ts`, cover every branch.
 
       Retry:
@@ -405,7 +405,7 @@ tasks:
   - id: config-coverage
     title: Config load, schema, and validate edge cases
     prompt: |
-      In `packages/agent-maestro/src/config/{load,schema,validate}.test.ts`,
+      In `packages/maestro/src/config/{load,schema,validate}.test.ts`,
       add coverage using memfs.
 
       load:
@@ -447,7 +447,7 @@ tasks:
   - id: integration-coverage
     title: End-to-end maestro loop integration coverage
     prompt: |
-      In `packages/agent-maestro/src/index.test.ts` add a new
+      In `packages/maestro/src/index.test.ts` add a new
       `describe("integration", ...)` block that uses the shared
       mocks for a full `runMaestro` lifecycle, no memfs, no real
       timers (use vitest fake timers).
@@ -492,7 +492,7 @@ tasks:
   - id: shutdown-and-abort-coverage
     title: Shutdown, abort, and lifecycle edge cases
     prompt: |
-      In `packages/agent-maestro/src/index.test.ts` add a
+      In `packages/maestro/src/index.test.ts` add a
       `describe("shutdown", ...)` block focused on lifecycle
       correctness, using the shared mocks.
 
@@ -528,7 +528,7 @@ tasks:
   - id: driver-registry-and-prompt-render-coverage
     title: Driver registry and prompt render edge cases
     prompt: |
-      In `packages/agent-maestro/src/drivers/registry.test.ts`:
+      In `packages/maestro/src/drivers/registry.test.ts`:
       - `registerDriver` rejects duplicate kinds with a stable
         error message.
       - `getDriver` returns undefined for unknown kinds (no throw).
@@ -536,7 +536,7 @@ tasks:
       - Registering during a run is observed on the next call to
         `getDriver` (no caching surprises).
 
-      In `packages/agent-maestro/src/drivers/kind.test.ts` (create
+      In `packages/maestro/src/drivers/kind.test.ts` (create
       if missing):
       - `resolveWorkflowKind(task)` returns `pipeline` when
         frontmatter is absent.
@@ -544,7 +544,7 @@ tasks:
       - Whitespace and casing handling matches documented behavior.
       - Tasks without a description (gh-issues) get `pipeline`.
 
-      In `packages/agent-maestro/src/prompt/render.test.ts`:
+      In `packages/maestro/src/prompt/render.test.ts`:
       - Every documented template variable expands.
       - Missing variables render as empty string, not as a literal
         unrendered handlebars placeholder.
@@ -561,7 +561,7 @@ tasks:
   - id: concurrency-stress
     title: Concurrency stress and determinism
     prompt: |
-      In `packages/agent-maestro/src/integration.stress.test.ts`
+      In `packages/maestro/src/integration.stress.test.ts`
       (new file), build a stress harness on top of the shared
       mocks. Use vitest fake timers — virtual time only, no real
       sleeps. Each test must complete in < 500ms of real time.
@@ -598,7 +598,7 @@ tasks:
     title: Remove duplicated ad-hoc mocks from production-adjacent tests
     prompt: |
       Search every `*.test.ts` under
-      `packages/agent-maestro/src/` for ad-hoc mock spawn
+      `packages/maestro/src/` for ad-hoc mock spawn
       factories (`successSpawn`, inline `vi.fn()` shaped like the
       `spawn` signature) and ad-hoc TaskList object literals
       (`{ allTasks: vi.fn(), get: vi.fn(), ... }`). Replace each
@@ -661,17 +661,17 @@ tasks:
       commit: done
 teardown:
   prompt: |
-    Run `npm run lint` and `cd packages/agent-maestro && npm run test`
+    Run `npm run lint` and `cd packages/maestro && npm run test`
     in the package, confirm both are green, then run the full repo
     test suite from the root to confirm no cross-package regressions.
     Commit any remaining changes.
-name: agent-maestro-hardening
+name: maestro-hardening
 state: archived
 ---
 
 # Context
 
-`@poe-code/agent-maestro` is the workflow driver runtime: it polls a
+`@poe-code/maestro` is the workflow driver runtime: it polls a
 task backend, claims candidates, allocates per-task workspaces, runs
 drivers (pipeline, ralph, plus stubs for experiment / superintendent
 / harness), reconciles state between ticks, and gracefully shuts

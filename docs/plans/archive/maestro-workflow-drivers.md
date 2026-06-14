@@ -4,12 +4,12 @@ kind: pipeline
 version: 1
 tasks:
   - id: driver-interface
-    title: WorkflowDriver interface and registry in agent-maestro
+    title: WorkflowDriver interface and registry in maestro
     prompt: >
-      Add a pluggable workflow driver layer to `@poe-code/agent-maestro`.
+      Add a pluggable workflow driver layer to `@poe-code/maestro`.
 
 
-      Create `packages/agent-maestro/src/drivers/types.ts` defining:
+      Create `packages/maestro/src/drivers/types.ts` defining:
 
 
       ```ts
@@ -19,7 +19,7 @@ tasks:
         attempt: number | null;
         workspaceDir: string;
         planPath: string | null;          // absolute path to the task's source doc, or null for backends without files (gh-issues)
-        cfg: ResolvedConfig;              // agent-maestro config
+        cfg: ResolvedConfig;              // maestro config
         steps: ResolvedStepsConfig;       // pipeline steps, kept for pipeline driver and as a shared resource
         abort: AbortSignal;
         emit: (event: AttemptEvent) => void;
@@ -36,7 +36,7 @@ tasks:
       ```
 
 
-      Create `packages/agent-maestro/src/drivers/registry.ts` exposing:
+      Create `packages/maestro/src/drivers/registry.ts` exposing:
 
 
       - `registerDriver(driver: WorkflowDriver): void`
@@ -53,7 +53,7 @@ tasks:
       collision with a different instance.
 
 
-      Export both modules from `packages/agent-maestro/src/index.ts`.
+      Export both modules from `packages/maestro/src/index.ts`.
 
 
       Constraints:
@@ -68,7 +68,7 @@ tasks:
       throws;
         idempotent on same instance.
 
-      Conventional commit: `feat(agent-maestro): workflow driver interface and
+      Conventional commit: `feat(maestro): workflow driver interface and
       registry`.
     status:
       implement: done
@@ -78,7 +78,7 @@ tasks:
     title: Extract current pipeline behavior into PipelineDriver
     prompt: |
       Move the body of `AttemptRunner.run()` into a new
-      `packages/agent-maestro/src/drivers/pipeline.ts` exporting a
+      `packages/maestro/src/drivers/pipeline.ts` exporting a
       `pipelineDriver: WorkflowDriver` with `kind: "pipeline"`.
 
       The driver receives `WorkflowDriverContext` and must reproduce today's
@@ -93,14 +93,14 @@ tasks:
       2. Throw a clear "no driver registered for kind X" error if missing.
       3. Construct `WorkflowDriverContext` and call `driver.run(ctx)`.
 
-      Register `pipelineDriver` at agent-maestro module load (alongside any
-      future built-ins) in a new `packages/agent-maestro/src/drivers/index.ts`
+      Register `pipelineDriver` at maestro module load (alongside any
+      future built-ins) in a new `packages/maestro/src/drivers/index.ts`
       that calls `registerDriver(pipelineDriver)`. `src/index.ts` imports
       this for side effects.
 
       Constraints:
       - Zero behavior change for existing pipeline tasks. All existing
-        `agent-maestro` tests must pass with no test edits except imports.
+        `maestro` tests must pass with no test edits except imports.
       - Phase transitions, retry backoff, and `AttemptEvent` shapes are
         unchanged.
       - `runner.ts` becomes the thin coordinator; the pipeline-specific
@@ -110,7 +110,7 @@ tasks:
       that a task with `metadata.kind: "pipeline"` and one without both route
       through `pipelineDriver`.
 
-      Conventional commit: `refactor(agent-maestro): extract pipeline driver`.
+      Conventional commit: `refactor(maestro): extract pipeline driver`.
     status:
       implement: done
       refactor: done
@@ -146,7 +146,7 @@ tasks:
       `undefined`.
 
 
-      In `agent-maestro`, set `WorkflowDriverContext.planPath = task.sourcePath
+      In `maestro`, set `WorkflowDriverContext.planPath = task.sourcePath
       ?? null`.
 
 
@@ -167,7 +167,7 @@ tasks:
   - id: ralph-driver
     title: RalphDriver that delegates to @poe-code/ralph runRalph
     prompt: >
-      Add `packages/agent-maestro/src/drivers/ralph.ts` exporting
+      Add `packages/maestro/src/drivers/ralph.ts` exporting
 
       `ralphDriver: WorkflowDriver` with `kind: "ralph"`.
 
@@ -209,7 +209,7 @@ tasks:
 
       Add `@poe-code/ralph` as a regular `dependencies` entry in
 
-      `packages/agent-maestro/package.json`. Do not use optional peers.
+      `packages/maestro/package.json`. Do not use optional peers.
 
 
       Tests in `drivers/ralph.test.ts`:
@@ -228,7 +228,7 @@ tasks:
       Use memfs + a mock `runAgent` (do not invoke real agents in unit tests).
 
 
-      Conventional commit: `feat(agent-maestro): ralph workflow driver`.
+      Conventional commit: `feat(maestro): ralph workflow driver`.
     status:
       implement: done
       test: done
@@ -245,7 +245,7 @@ tasks:
       fast with an actionable error rather than crashing inside the runner.
 
 
-      Changes in `packages/agent-maestro/src/runtime/loop.ts` `tick()`:
+      Changes in `packages/maestro/src/runtime/loop.ts` `tick()`:
 
 
       1. Before acquiring a dispatch slot for a task, read
@@ -273,7 +273,7 @@ tasks:
       3. Task with no `kind`: dispatched via pipeline (default).
 
 
-      Conventional commit: `feat(agent-maestro): skip tasks with unsupported
+      Conventional commit: `feat(maestro): skip tasks with unsupported
       workflow kind`.
     status:
       implement: done
@@ -281,9 +281,9 @@ tasks:
       test: done
       commit: done
   - id: docs-readme
-    title: Document workflow drivers in agent-maestro README
+    title: Document workflow drivers in maestro README
     prompt: >
-      Update `packages/agent-maestro/README.md`:
+      Update `packages/maestro/README.md`:
 
 
       - New section "Workflow drivers" between "Examples" and the existing
@@ -303,7 +303,7 @@ tasks:
       No code changes. Documentation only.
 
 
-      Conventional commit: `docs(agent-maestro): workflow drivers and ralph
+      Conventional commit: `docs(maestro): workflow drivers and ralph
       integration`.
     status:
       implement: done
@@ -313,7 +313,7 @@ tasks:
     prompt: >
       Not in use today but the registry should be obvious to extend. Add
 
-      three placeholder files under `packages/agent-maestro/src/drivers/`:
+      three placeholder files under `packages/maestro/src/drivers/`:
 
 
       - `experiment.ts`: `experimentDriver` with `kind: "experiment"` whose
@@ -338,7 +338,7 @@ tasks:
 
       Add `@poe-code/experiment-loop`, `@poe-code/superintendent`,
 
-      `@poe-code/agent-harness` to `agent-maestro` `dependencies`.
+      `@poe-code/agent-harness` to `maestro` `dependencies`.
 
 
       `drivers/index.ts` documents (in a one-line comment) that these
@@ -353,7 +353,7 @@ tasks:
       register/get.
 
 
-      Conventional commit: `feat(agent-maestro): scaffold
+      Conventional commit: `feat(maestro): scaffold
       experiment/superintendent/harness driver stubs`.
     status:
       implement: done
@@ -388,7 +388,7 @@ A plan with `kind: ralph` is unrunnable today because maestro's `AttemptRunner` 
 ## Constraints
 
 - No behavior change for existing pipeline tasks.
-- `@poe-code/ralph` is a normal `dependencies` entry on `agent-maestro`. Not optional, not a peer.
+- `@poe-code/ralph` is a normal `dependencies` entry on `maestro`. Not optional, not a peer.
 - `task-list`'s `Task` gains an optional `sourcePath` for file-based backends; `gh-issues` leaves it undefined and is therefore pipeline-only for now.
 - Ralph driver mutates a copy in the workspace and rsyncs the result back to `docs/plans/`, so the on-disk plan remains the source of truth across attempts.
 

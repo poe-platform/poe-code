@@ -18,8 +18,8 @@ tasks:
       touched.
 
       Files:
-      - packages/agent-maestro/src/config/schema.ts
-      - packages/agent-maestro/src/config/validate.ts
+      - packages/maestro/src/config/schema.ts
+      - packages/maestro/src/config/validate.ts
       - Do NOT modify index.ts, reconcile.ts, or loop.ts in this task.
         They keep reading the old `active_states`/`terminal_states`/
         `step_overrides` fields until the next task swaps them.
@@ -92,14 +92,14 @@ tasks:
       backend metadata map). The other documented placeholders —
       `task.id`, `task.qualifiedId`, `task.name`, `task.state`,
       `task.description`, `task.list` — are ALREADY exposed in
-      packages/agent-maestro/src/prompt/render.ts:28-33 and require no
+      packages/maestro/src/prompt/render.ts:28-33 and require no
       changes.
 
       Files:
-      - packages/agent-maestro/src/prompt/render.ts (the actual
+      - packages/maestro/src/prompt/render.ts (the actual
         renderer; the DEFAULT_TASK_PROMPT and the variable map are at
         the top of the file).
-      - packages/agent-maestro/src/prompt/render.test.ts
+      - packages/maestro/src/prompt/render.test.ts
       - packages/task-list/src/types.ts (ONLY if you choose to promote
         `url` to a normalized Task field — see the design decision
         below).
@@ -132,8 +132,8 @@ tasks:
         between dispatches (the previous tick's agent may have edited
         it), and the next tick's prompt has to see the updated
         artifact. Audit the existing dispatch path
-        (packages/agent-maestro/src/index.ts and
-        packages/agent-maestro/src/drivers/pipeline.ts) and add a
+        (packages/maestro/src/index.ts and
+        packages/maestro/src/drivers/pipeline.ts) and add a
         re-fetch immediately before render if one is not already
         happening.
 
@@ -174,19 +174,19 @@ tasks:
       maestro no longer imports anything from `@poe-code/pipeline`.
 
       Files:
-      - packages/agent-maestro/src/drivers/pipeline.ts
-      - packages/agent-maestro/src/index.ts (both `loadResolvedSteps`
+      - packages/maestro/src/drivers/pipeline.ts
+      - packages/maestro/src/index.ts (both `loadResolvedSteps`
         callsites currently at lines 102 and 214; also the imports at
         line 6 and the related plumbing)
-      - packages/agent-maestro/src/runtime/loop.ts (the worker
+      - packages/maestro/src/runtime/loop.ts (the worker
         invocation path; switch from `cfg.active_states` to
         `cfg.activeStateNames`)
-      - packages/agent-maestro/src/runtime/reconcile.ts (switch from
+      - packages/maestro/src/runtime/reconcile.ts (switch from
         `cfg.terminal_states` to `cfg.terminalStateNames`)
-      - packages/agent-maestro/src/config/schema.ts (remove the now-dead
+      - packages/maestro/src/config/schema.ts (remove the now-dead
         `active_states`, `terminal_states`, `step_overrides` fields
         from `WorkflowConfig`)
-      - packages/agent-maestro/src/config/validate.ts (remove validation
+      - packages/maestro/src/config/validate.ts (remove validation
         for the old fields)
 
       Behavior:
@@ -210,7 +210,7 @@ tasks:
         `ResolvedStepDefinitions`, `setup`, `teardown`,
         `step_overrides`, and the pipeline-package runner from maestro.
         After this task, `import` of `@poe-code/pipeline` is removed
-        from packages/agent-maestro/src/index.ts.
+        from packages/maestro/src/index.ts.
       - Continuation behavior: while the task remains in an active state
         between ticks, maestro re-dispatches the same state's prompt on
         the next poll. The agent is responsible for transitioning the
@@ -496,9 +496,9 @@ tasks:
       implement: done
       commit: done
   - id: docs-state-machine
-    title: Update agent-maestro README for state-machine workflows
+    title: Update maestro README for state-machine workflows
     prompt: |
-      Goal: rewrite the relevant sections of the agent-maestro README
+      Goal: rewrite the relevant sections of the maestro README
       so the docs reflect: `states:` block schema, state-driven
       dispatch, the new `poe-code tasks` CLI (`get` / `set` /
       `set-state` / `next` / `comment`), and the expanded template
@@ -506,12 +506,12 @@ tasks:
       README MUST NOT be touched in this task.
 
       Files:
-      - packages/agent-maestro/README.md
+      - packages/maestro/README.md
       - Do NOT modify packages/pipeline/README.md.
       - Do NOT modify the top-level README.md (per CLAUDE.md, that
         file is user-scoped).
 
-      Edits in packages/agent-maestro/README.md:
+      Edits in packages/maestro/README.md:
       - Config table: replace the `active_states`,
         `terminal_states`, and `step_overrides` rows with a `states`
         row whose Behavior column describes the map and its lifecycle

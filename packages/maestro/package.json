@@ -1,5 +1,5 @@
 {
-  "name": "@poe-code/agent-maestro",
+  "name": "@poe-code/maestro",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -17,8 +17,8 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/agent-maestro/src",
-    "test:unit": "cd ../.. && vitest run packages/agent-maestro/src"
+    "test": "cd ../.. && vitest run packages/maestro/src",
+    "test:unit": "cd ../.. && vitest run packages/maestro/src"
   },
   "files": [
     "dist"

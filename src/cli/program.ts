@@ -12,7 +12,7 @@ import {
   runMaestroTick,
   type Logger as MaestroLogger,
   type MaestroEvent
-} from "@poe-code/agent-maestro";
+} from "@poe-code/maestro";
 import { runMaestroTui } from "@poe-code/maestro-tui";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "toolcraft-design";

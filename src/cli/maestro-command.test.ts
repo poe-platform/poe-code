@@ -7,7 +7,7 @@ const runMaestroMock = vi.hoisted(() => vi.fn());
 const runMaestroTickMock = vi.hoisted(() => vi.fn());
 const runMaestroTuiMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@poe-code/agent-maestro", () => ({
+vi.mock("@poe-code/maestro", () => ({
   runMaestro: runMaestroMock,
   runMaestroTick: runMaestroTickMock
 }));

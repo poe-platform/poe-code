@@ -20,7 +20,7 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/agent-maestro": "*",
+    "@poe-code/maestro": "*",
     "toolcraft-design": "*",
     "@poe-code/plan-browser": "*",
     "@poe-code/task-list": "*",

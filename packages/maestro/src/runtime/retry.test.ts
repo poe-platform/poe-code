@@ -79,7 +79,7 @@ describe("shouldRetry", () => {
     });
   });
 
-  it("keeps retrying retryable failures because agent-maestro has no max-attempt cap", () => {
+  it("keeps retrying retryable failures because maestro has no max-attempt cap", () => {
     expect(shouldRetry("failed", "agent_crashed", { attempt: 10_000 })).toEqual({
       retry: true,
       kind: "backoff",

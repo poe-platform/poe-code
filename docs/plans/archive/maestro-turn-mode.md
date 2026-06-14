@@ -7,7 +7,7 @@ tasks:
     title: Add stateless `maestro tick` CLI subcommand
     prompt: |
       Add a new subcommand `poe-code maestro tick` in
-      packages/agent-maestro/src/cli (or wherever maestro registers its
+      packages/maestro/src/cli (or wherever maestro registers its
       CLI; check src/cli/program.ts around lines 473-554 for where the
       existing `maestro` and `maestro tui` are wired).
 
@@ -23,11 +23,11 @@ tasks:
       - Read the task by `qualifiedId`. If not found, exit non-zero with
         a clear message.
       - Validate that `--transition` matches a real state-machine edge
-        in packages/agent-maestro/src/runtime/state-machine.ts. If not,
+        in packages/maestro/src/runtime/state-machine.ts. If not,
         exit non-zero.
       - For this task, emit a MaestroEvent of kind `tick_started` to
         stdout (NDJSON, one event per line, matching existing event
-        shape exported from packages/agent-maestro/src/index.ts:39-71).
+        shape exported from packages/maestro/src/index.ts:39-71).
       - No retry queue. No in-memory `running`/`claimed`/`completed`
         maps. No worker spawning yet — that comes in a later task.
       - Exit 0 on clean run.
@@ -51,7 +51,7 @@ tasks:
       task-list backend's existing API
       (packages/task-list/src/types.ts:48-62 — likely `.fire(id, event)`
       or `.update(id, ...)`; check what the daemon currently calls in
-      packages/agent-maestro/src/runtime/loop.ts around lines 213-235).
+      packages/maestro/src/runtime/loop.ts around lines 213-235).
 
       Critically: the tick does NOT spawn a worker process. In the
       stateless / GH Actions model, the worker is a separate workflow
@@ -111,9 +111,9 @@ tasks:
       implement: done
       commit: done
   - id: document-turn-mode
-    title: Document turn-based maestro mode in agent-maestro README
+    title: Document turn-based maestro mode in maestro README
     prompt: |
-      Update packages/agent-maestro/README.md with a new section
+      Update packages/maestro/README.md with a new section
       "Turn-based mode" covering:
 
       - What it is: each iteration is one short-lived process driven
@@ -161,10 +161,10 @@ payload.
 ## Why now
 
 The current `runMaestro()` in
-[packages/agent-maestro/src/index.ts:168](packages/agent-maestro/src/index.ts#L168)
+[packages/maestro/src/index.ts:168](packages/maestro/src/index.ts#L168)
 is a `setInterval`-driven daemon. It owns several in-memory state
 containers (`running`, `claimed`, `retry_attempts`, `completed` in
-[packages/agent-maestro/src/runtime/state.ts:17-23](packages/agent-maestro/src/runtime/state.ts#L17-L23))
+[packages/maestro/src/runtime/state.ts:17-23](packages/maestro/src/runtime/state.ts#L17-L23))
 that don't survive a process restart. That model doesn't fit GitHub
 Actions, where every event is a fresh process and the platform owns
 "what's in flight" via concurrency groups and the runs API.
@@ -186,7 +186,7 @@ Actions, where every event is a fresh process and the platform owns
   invocation. This is what makes the tick fit into a per-event GH
   Actions job.
 - **No retries in turn-based mode.** Time-based retries
-  ([loop.ts:359-388](packages/agent-maestro/src/runtime/loop.ts#L359-L388))
+  ([loop.ts:359-388](packages/maestro/src/runtime/loop.ts#L359-L388))
   require a wall clock, which doesn't survive a stateless tick. The
   daemon keeps them. Retries are in-memory only in both modes; on
   restart they are lost, which is acceptable.

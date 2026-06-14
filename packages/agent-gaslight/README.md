@@ -82,6 +82,14 @@ poe-code gaslight install --global
 
 Use `--force` to replace an existing config file. Existing configs are otherwise preserved.
 
+Generate a config from local Claude and Codex traces:
+
+```sh
+poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d --limit 200
+```
+
+By default, ingest writes extracted prompt data under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace. Pass `--keep-data <path>` to choose a stable JSONL path.
+
 ## SDK
 
 ```ts
@@ -94,7 +102,7 @@ const result = await runGaslight({
 });
 ```
 
-## Options
+## Run options
 
 - `planPath`: Required plan path, resolved from `cwd`.
 - `agent`: Required agent identifier.
@@ -109,7 +117,26 @@ const result = await runGaslight({
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
 
-The result contains each round's prompt, summary, and thread id plus summed token and cost usage when the agent reports usage.
+The run result contains each round's prompt, summary, and thread id plus summed token and cost usage when the agent reports usage.
+
+## Ingest options
+
+- `sources`: Optional trace sources. Supported values are `claude` and `codex`.
+- `analysisAgent`: Required agent identifier for prompt analysis.
+- `model`: Optional model override for the analysis agent.
+- `cwd`: Working directory. Defaults to `process.cwd()`.
+- `homeDir`: Home directory used to find local trace stores. Defaults to `os.homedir()`.
+- `since`: Duration string or date used to filter recent traces. Defaults to `30d`.
+- `limit`: Maximum extracted human prompts. Defaults to `200`.
+- `allWorkspaces`: Read traces from every workspace instead of only `cwd`.
+- `outputPath`: Generated gaslight config path. Defaults to `.poe-code/gaslight.yaml` or an agent-prefixed variant when that file exists.
+- `keepDataPath`: Persist extracted human prompt JSONL at this path. Defaults to a unique file under `.poe-code/ingest/`.
+- `onEvent`: Receives ingest progress events.
+- `fs`: Injectable filesystem for tests and custom hosts.
+- `spawn`: Injectable agent spawn function for tests and custom hosts.
+- `collectHumanPrompts`: Injectable trace collector for tests and custom hosts.
+
+The ingest result contains the generated config path, prompt data path, prompt count, and trace count.
 
 ## FAQ
 

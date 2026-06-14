@@ -1,9 +1,8 @@
-prompt: "After the agent says it is done, keep pushing until the work is genuinely finished."
+prompt: "Implement"
 followups:
   - "Is this best you can do? Look for messy design, missing edge cases, or unnecessary complexity and fix it."
   - "Be a user and test the real workflow end to end, not just the happy path."
-  - "Make sure tests run; fix every failure and timeout."
+  - "Make sure tests run, speed of tests is important, no excuses, it's your job to fix tests."
   - "Did you forget something? Check docs, exports, CLI/SDK parity, config, and issue state where relevant."
-  - "Clean up temporary files and generated debug artifacts that should not stay."
-  - "Show status and commit all finished changes."
-  - "If this was pushed or tied to an issue, wait for the release and close the issue when it is actually fixed."
+  - "Commit all changes."
+  - "Push and wait for release to go green"

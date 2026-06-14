@@ -34,7 +34,7 @@ $ poe-code gaslight ingest --sources claude,codex --agent codex --since 30d --li
 ◇ Extracted 173 human prompts from 48 traces
 ◇ Analyzing prompt patterns with codex
 ◇ Wrote .poe-code/codex-gaslight.yaml
-└ Data file: /repo/.poe-code/ingest/human-prompts-123-456-789.jsonl
+└ Analysis input: removed after analysis
 ```
 
 Default behavior:
@@ -46,7 +46,7 @@ Default behavior:
 - `--since <duration>` defaults to `30d`.
 - `--limit <n>` limits normalized human prompts after sorting newest first; default `200`.
 - `--output <path>` overrides YAML output path.
-- `--keep-data <path>` persists the extracted prompt file at an explicit path. Without it, the prompt file is created in an OS temp directory and removed unless `--debug` is enabled.
+- `--keep-data <path>` persists the curated analysis input at an explicit path. Without it, a temporary file is written under `.poe-code/ingest/` and deleted after analysis.
 - `--yes` accepts defaults and does not prompt.
 
 Collision behavior:
@@ -121,7 +121,7 @@ const prompts = await collectHumanPrompts({
 - Reading Claude JSONL and Codex SQLite/rollout JSONL.
 - Normalizing traces into provider-neutral types.
 - Filtering by workspace, date, source, and limit.
-- Writing extracted prompts as JSONL for downstream analysis.
+- Writing extracted prompts as curated Markdown for downstream analysis.
 
 `packages/agent-gaslight` owns:
 
@@ -232,13 +232,14 @@ Parsing:
 
 ### Analysis prompt
 
-`agent-gaslight` writes the extracted records to JSONL and sends the selected agent a prompt like:
+`agent-gaslight` writes the extracted records to a curated Markdown analysis input and sends the selected agent a prompt like:
 
 ```text
-Read this JSONL file of human prompts from coding-agent traces:
+Read this curated Markdown file of human prompts from coding-agent traces:
 <absolute-data-file>
 
 Generate a gaslight.yaml file that captures recurring follow-up prompts the human uses after agent work.
+Be clever: infer workflow-level prompts from the evidence instead of copying frequent strings.
 Return only YAML with this exact shape:
 prompt: <string>
 followups:
@@ -246,12 +247,15 @@ followups:
 
 Rules:
 - Prefer concise followups that generalize across tasks.
+- Do not produce two followups for the same workflow step; merge semantic duplicates.
+- Repeated short prompts like "commit" are evidence for one well-placed workflow check, not multiple followups.
+- Order followups as a useful review sequence: quality, verification, cleanup, then commit or release when supported by the evidence.
 - Do not include project secrets, file paths, names, tokens, or one-off task details.
 - Preserve the user's direct style when it is reusable.
 - Use 3 to 8 followups.
 ```
 
-The selected agent receives the path, not an inline dump. The default path is under `<cwd>/.poe-code/ingest/` so read-mode agents can access it from the workspace. That keeps command length stable and makes large prompt sets feasible.
+The selected agent receives the path, not an inline dump. The default path is under `<cwd>/.poe-code/ingest/` so read-mode agents can access it from the workspace during analysis, then the file is deleted unless `--keep-data` is passed. The file groups prompts by trace, summarizes repeated short prompts, redacts known local paths, and bounds long copied outputs so the agent can reason about patterns instead of raw trace noise.
 
 ### Output writing
 

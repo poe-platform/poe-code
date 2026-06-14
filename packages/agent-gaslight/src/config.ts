@@ -20,12 +20,46 @@ function isMissingFile(error: unknown): boolean {
   );
 }
 
-function validateConfig(value: unknown, configPath: string): Omit<GaslightConfig, "path"> {
+function objectKeys(value: Record<string, unknown>): string[] {
+  return Object.keys(value).sort();
+}
+
+export interface ParseGaslightConfigOptions {
+  rejectExtraKeys?: boolean;
+}
+
+export function parseGaslightConfig(
+  content: string,
+  configPath: string,
+  options: ParseGaslightConfigOptions = {}
+): Omit<GaslightConfig, "path"> {
+  let parsed: unknown;
+  try {
+    parsed = parse(content);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid gaslight config at ${configPath}: ${message}`, { cause: error });
+  }
+
+  return validateConfig(parsed, configPath, options);
+}
+
+function validateConfig(
+  value: unknown,
+  configPath: string,
+  options: ParseGaslightConfigOptions
+): Omit<GaslightConfig, "path"> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(`Invalid gaslight config at ${configPath}: expected a YAML object.`);
   }
 
   const config = value as Record<string, unknown>;
+  if (options.rejectExtraKeys) {
+    const extraKey = objectKeys(config).find((key) => key !== "prompt" && key !== "followups");
+    if (extraKey) {
+      throw new Error(`Invalid gaslight config at ${configPath}: unexpected key "${extraKey}".`);
+    }
+  }
   if (typeof config.prompt !== "string" || config.prompt.trim().length === 0) {
     throw new Error(`Invalid gaslight config at ${configPath}: prompt must be a non-empty string.`);
   }
@@ -50,8 +84,19 @@ function validateConfig(value: unknown, configPath: string): Omit<GaslightConfig
 export async function loadGaslightConfig(
   cwd: string,
   homeDir: string,
-  fs: GaslightFileSystem = nodeFs
+  fs: GaslightFileSystem = nodeFs,
+  configPath?: string
 ): Promise<GaslightConfig> {
+  if (configPath) {
+    const absoluteConfigPath = path.isAbsolute(configPath)
+      ? configPath
+      : path.join(cwd, configPath);
+    return {
+      ...parseGaslightConfig(await fs.readFile(absoluteConfigPath, "utf8"), absoluteConfigPath),
+      path: absoluteConfigPath
+    };
+  }
+
   const paths = [
     path.join(cwd, ".poe-code", "gaslight.yaml"),
     path.join(homeDir, ".poe-code", "gaslight.yaml")
@@ -68,14 +113,7 @@ export async function loadGaslightConfig(
       throw error;
     }
 
-    let parsed: unknown;
-    try {
-      parsed = parse(content);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Invalid gaslight config at ${configPath}: ${message}`, { cause: error });
-    }
-    return { ...validateConfig(parsed, configPath), path: configPath };
+    return { ...parseGaslightConfig(content, configPath), path: configPath };
   }
 
   throw new Error(

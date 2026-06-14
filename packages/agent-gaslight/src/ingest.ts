@@ -2,9 +2,10 @@ import { promises as nodeFs } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import parseDuration from "parse-duration";
-import { collectHumanPromptsWithStats, writeHumanPromptJsonl } from "@poe-code/agent-traces";
+import { collectHumanPromptsWithStats } from "@poe-code/agent-traces";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import { parseGaslightConfig } from "./config.js";
+import type { HumanPromptRecord } from "@poe-code/agent-traces";
 import type {
   GaslightCollectHumanPrompts,
   GaslightFileSystem,
@@ -14,6 +15,7 @@ import type {
 } from "./types.js";
 
 type WritableGaslightFileSystem = GaslightFileSystem & {
+  unlink?(path: string): Promise<void>;
   rename?(oldPath: string, newPath: string): Promise<void>;
 };
 
@@ -122,17 +124,18 @@ async function resolveDataPath(
   const resultPath = path.join(
     ".poe-code",
     "ingest",
-    `human-prompts-${process.pid}-${Date.now()}-${process.hrtime.bigint()}.jsonl`
+    `human-prompts-${process.pid}-${Date.now()}-${process.hrtime.bigint()}.md`
   );
   return { absolutePath: path.join(cwd, resultPath), resultPath };
 }
 
 function buildAnalysisPrompt(dataPath: string): string {
   return [
-    "Read this JSONL file of human prompts from coding-agent traces:",
+    "Read this curated Markdown file of human prompts from coding-agent traces:",
     dataPath,
     "",
     "Generate a gaslight.yaml file that captures recurring follow-up prompts the human uses after agent work.",
+    "Be clever: infer workflow-level prompts from the evidence instead of copying frequent strings.",
     "Return only YAML with this exact shape:",
     "prompt: <string>",
     "followups:",
@@ -140,10 +143,237 @@ function buildAnalysisPrompt(dataPath: string): string {
     "",
     "Rules:",
     "- Prefer concise followups that generalize across tasks.",
+    "- Do not produce two followups for the same workflow step; merge semantic duplicates.",
+    "- Repeated short prompts like \"commit\" are evidence for one well-placed workflow check, not multiple followups.",
+    "- Order followups as a useful review sequence: quality, verification, cleanup, then commit or release when supported by the evidence.",
     "- Do not include project secrets, file paths, names, tokens, or one-off task details.",
     "- Preserve the user's direct style when it is reusable.",
     "- Use 3 to 8 followups."
   ].join("\n");
+}
+
+function replaceEvery(value: string, search: string, replacement: string): string {
+  if (search.length === 0) {
+    return value;
+  }
+  return value.split(search).join(replacement);
+}
+
+function redactKnownPaths(value: string, cwd: string, homeDir: string): string {
+  const replacements = [
+    { value: cwd, label: "<workspace>" },
+    { value: homeDir, label: "<home>" }
+  ].sort((left, right) => right.value.length - left.value.length);
+  let redacted = value;
+  for (const replacement of replacements) {
+    redacted = replaceEvery(redacted, replacement.value, replacement.label);
+  }
+  return redacted;
+}
+
+function stripIdeSelection(value: string): string {
+  let stripped = value;
+  const openTag = "<ide_selection>";
+  const closeTag = "</ide_selection>";
+  while (true) {
+    const startIndex = stripped.indexOf(openTag);
+    if (startIndex === -1) {
+      return stripped;
+    }
+    const endIndex = stripped.indexOf(closeTag, startIndex + openTag.length);
+    if (endIndex === -1) {
+      return stripped;
+    }
+    stripped =
+      stripped.slice(0, startIndex) + stripped.slice(endIndex + closeTag.length);
+  }
+}
+
+function normalizePromptText(value: string, cwd: string, homeDir: string): string {
+  const normalizedLineEndings = stripIdeSelection(value)
+    .split("\r\n")
+    .join("\n")
+    .split("\r")
+    .join("\n");
+  const lines: string[] = [];
+  let blankLines = 0;
+  for (const line of normalizedLineEndings.split("\n")) {
+    const trimmedRight = line.trimEnd();
+    if (trimmedRight.trim().length === 0) {
+      blankLines += 1;
+      if (blankLines <= 1) {
+        lines.push("");
+      }
+      continue;
+    }
+    blankLines = 0;
+    lines.push(trimmedRight);
+  }
+  return redactKnownPaths(lines.join("\n").trim(), cwd, homeDir);
+}
+
+function truncateForAnalysis(value: string, maxLength: number): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+  const preferredCut = value.lastIndexOf("\n", maxLength);
+  const minimumUsefulCut = Math.floor(maxLength * 0.65);
+  const cutIndex = preferredCut >= minimumUsefulCut ? preferredCut : maxLength;
+  return `${value.slice(0, cutIndex).trimEnd()}\n[truncated]`;
+}
+
+function markdownBlock(value: string): string {
+  return value
+    .split("\n")
+    .map((line) => `    ${line}`)
+    .join("\n");
+}
+
+function markdownInline(value: string): string {
+  return value.split("\n").join(" ").split("`").join("'");
+}
+
+interface TracePromptGroup {
+  traceId: string;
+  source: string;
+  title?: string;
+  prompts: HumanPromptRecord[];
+}
+
+function groupPromptsByTrace(records: HumanPromptRecord[]): TracePromptGroup[] {
+  const groups = new Map<string, TracePromptGroup>();
+  for (const record of records) {
+    const key = `${record.source}:${record.traceId}`;
+    const existing = groups.get(key);
+    if (existing) {
+      existing.prompts.push(record);
+      if (!existing.title && record.title) {
+        existing.title = record.title;
+      }
+      continue;
+    }
+    groups.set(key, {
+      traceId: record.traceId,
+      source: record.source,
+      ...(record.title ? { title: record.title } : {}),
+      prompts: [record]
+    });
+  }
+  return [...groups.values()];
+}
+
+function shortPromptKey(record: HumanPromptRecord, cwd: string, homeDir: string): string | undefined {
+  const text = normalizePromptText(record.text, cwd, homeDir);
+  if (text.length === 0 || text.length > 80 || text.includes("\n")) {
+    return undefined;
+  }
+  return text.toLowerCase();
+}
+
+function buildRepeatedShortPromptSection(
+  records: HumanPromptRecord[],
+  cwd: string,
+  homeDir: string
+): string[] {
+  const counts = new Map<string, number>();
+  for (const record of records) {
+    const key = shortPromptKey(record, cwd, homeDir);
+    if (!key) {
+      continue;
+    }
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  const repeated = [...counts.entries()]
+    .filter((entry) => entry[1] > 1)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, 12);
+  if (repeated.length === 0) {
+    return [
+      "## Repeated short prompts",
+      "",
+      "No repeated short prompts were found.",
+      ""
+    ];
+  }
+  return [
+    "## Repeated short prompts",
+    "",
+    "Treat these as frequency evidence. Do not copy them blindly or create duplicate followups.",
+    "",
+    ...repeated.map(([text, count]) => `- \`${markdownInline(text)}\` - ${count} occurrences`),
+    ""
+  ];
+}
+
+function buildAnalysisInput(records: HumanPromptRecord[], cwd: string, homeDir: string): string {
+  const groups = groupPromptsByTrace(records);
+  const lines = [
+    "# Gaslight ingest analysis input",
+    "",
+    "This file is curated evidence for generating a reusable gaslight.yaml.",
+    "Infer durable follow-up behavior from the prompts. Do not copy task-specific text.",
+    "",
+    "## Summary",
+    "",
+    `- Prompts: ${records.length}`,
+    `- Traces: ${groups.length}`,
+    "",
+    ...buildRepeatedShortPromptSection(records, cwd, homeDir),
+    "## Prompt evidence",
+    ""
+  ];
+
+  groups.forEach((group, groupIndex) => {
+    const title = group.title
+      ? truncateForAnalysis(markdownInline(normalizePromptText(group.title, cwd, homeDir)), 90)
+      : group.traceId;
+    lines.push(`### Trace ${groupIndex + 1}: ${title}`);
+    lines.push("");
+    lines.push(`- Source: ${group.source}`);
+    lines.push(`- Prompts in trace: ${group.prompts.length}`);
+    lines.push("");
+    group.prompts.forEach((record, promptIndex) => {
+      const text = truncateForAnalysis(normalizePromptText(record.text, cwd, homeDir), 1200);
+      lines.push(`#### Prompt ${promptIndex + 1}`);
+      lines.push("");
+      if (record.timestamp) {
+        lines.push(`- Timestamp: ${record.timestamp}`);
+        lines.push("");
+      }
+      lines.push(markdownBlock(text));
+      lines.push("");
+    });
+  });
+
+  return `${lines.join("\n").trimEnd()}\n`;
+}
+
+async function writeAnalysisInput(
+  fs: GaslightFileSystem,
+  records: HumanPromptRecord[],
+  filePath: string,
+  cwd: string,
+  homeDir: string
+): Promise<void> {
+  await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await fs.writeFile(filePath, buildAnalysisInput(records, cwd, homeDir), { encoding: "utf8" });
+}
+
+async function removeAnalysisInput(
+  fs: WritableGaslightFileSystem,
+  filePath: string
+): Promise<void> {
+  if (!fs.unlink) {
+    return;
+  }
+  try {
+    await fs.unlink(filePath);
+  } catch (error) {
+    if (isMissingFile(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 function stripMarkdownFence(value: string): string {
@@ -320,32 +550,40 @@ export async function ingestGaslight(
   }
 
   const dataPath = await resolveDataPath(cwd, options.keepDataPath);
-  await writeHumanPromptJsonl(collection.records, dataPath.absolutePath, fs);
+  await writeAnalysisInput(fs, collection.records, dataPath.absolutePath, cwd, homeDir);
+  const shouldRemoveAnalysisInput = options.keepDataPath === undefined;
 
-  options.onEvent?.({
-    type: "analysis.started",
-    agent: options.analysisAgent,
-    dataPath: dataPath.absolutePath
-  });
-  const result = await spawn(options.analysisAgent, {
-    prompt: buildAnalysisPrompt(dataPath.absolutePath),
-    cwd,
-    mode: "read",
-    ...(options.model ? { model: options.model } : {})
-  });
-  if (result.exitCode !== 0) {
-    const message = result.stderr.trim() || result.stdout.trim() || `exit code ${result.exitCode}`;
-    throw new Error(`Gaslight ingest analysis failed: ${message}`);
+  try {
+    options.onEvent?.({
+      type: "analysis.started",
+      agent: options.analysisAgent,
+      dataPath: dataPath.absolutePath
+    });
+    const result = await spawn(options.analysisAgent, {
+      prompt: buildAnalysisPrompt(dataPath.absolutePath),
+      cwd,
+      mode: "read",
+      ...(options.model ? { model: options.model } : {})
+    });
+    if (result.exitCode !== 0) {
+      const message =
+        result.stderr.trim() || result.stdout.trim() || `exit code ${result.exitCode}`;
+      throw new Error(`Gaslight ingest analysis failed: ${message}`);
+    }
+
+    const outputPath = await resolveOutputPath(fs, cwd, options.analysisAgent, options.outputPath);
+    await writeGeneratedConfig(fs, result.stdout, outputPath.absolutePath);
+    options.onEvent?.({ type: "config.written", path: outputPath.resultPath });
+
+    return {
+      outputPath: outputPath.resultPath,
+      dataPath: dataPath.resultPath,
+      promptCount: collection.records.length,
+      traceCount: collection.traceCount
+    };
+  } finally {
+    if (shouldRemoveAnalysisInput) {
+      await removeAnalysisInput(fs, dataPath.absolutePath);
+    }
   }
-
-  const outputPath = await resolveOutputPath(fs, cwd, options.analysisAgent, options.outputPath);
-  await writeGeneratedConfig(fs, result.stdout, outputPath.absolutePath);
-  options.onEvent?.({ type: "config.written", path: outputPath.resultPath });
-
-  return {
-    outputPath: outputPath.resultPath,
-    dataPath: dataPath.resultPath,
-    promptCount: collection.records.length,
-    traceCount: collection.traceCount
-  };
 }

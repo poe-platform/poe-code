@@ -132,4 +132,37 @@ describe("runGaslight", () => {
     ).rejects.toThrow(/Plan file not found/);
     expect(spawn).not.toHaveBeenCalled();
   });
+
+  it("uses an explicit config path when provided", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/plan.md": "# Work",
+        "/repo/.poe-code/codex-gaslight.yaml": "prompt: Review\nfollowups:\n  - Inspect output\n"
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "one", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "two", stderr: "", threadId: "two" });
+
+    await runGaslight({
+      cwd: "/repo",
+      planPath: "plan.md",
+      agent: "codex",
+      configPath: ".poe-code/codex-gaslight.yaml",
+      fs,
+      spawn
+    });
+
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      "codex",
+      expect.objectContaining({ prompt: "Review plan.md" })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      2,
+      "codex",
+      expect.objectContaining({ prompt: "Inspect output" })
+    );
+  });
 });

@@ -87,6 +87,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["agent"] },
   { path: ["spawn"] },
   { path: ["gaslight"], args: "[plan-path]" },
+  { path: ["gaslight", "ingest"] },
   { path: ["gaslight", "install"] },
   { path: ["wrap"] },
   { path: ["test"] },
@@ -868,7 +869,9 @@ function interceptUnknownHelpPaths(program: Command, container: CliContainer): v
 }
 
 function findCommand(parent: Command, name: string): Command | undefined {
-  return parent.commands.find((command) => command.name() === name || command.aliases().includes(name));
+  return parent.commands.find(
+    (command) => command.name() === name || command.aliases().includes(name)
+  );
 }
 
 function bootstrapProgram(container: CliContainer): Command {

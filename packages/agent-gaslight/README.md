@@ -88,7 +88,7 @@ Generate a config from local Claude and Codex traces:
 poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d --limit 200
 ```
 
-By default, ingest writes extracted prompt data under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace. Pass `--keep-data <path>` to choose a stable JSONL path.
+By default, ingest writes a temporary curated Markdown analysis input under `<cwd>/.poe-code/ingest/` so the analysis agent can read it from the workspace, then deletes it after analysis. Pass `--keep-data <path>` to preserve the file for inspection.
 
 ## SDK
 
@@ -130,7 +130,7 @@ The run result contains each round's prompt, summary, and thread id plus summed 
 - `limit`: Maximum extracted human prompts. Defaults to `200`.
 - `allWorkspaces`: Read traces from every workspace instead of only `cwd`.
 - `outputPath`: Generated gaslight config path. Defaults to `.poe-code/gaslight.yaml` or an agent-prefixed variant when that file exists.
-- `keepDataPath`: Persist extracted human prompt JSONL at this path. Defaults to a unique file under `.poe-code/ingest/`.
+- `keepDataPath`: Persist curated analysis input at this path. Without it, ingest writes a temporary Markdown file under `.poe-code/ingest/` and deletes it after analysis.
 - `onEvent`: Receives ingest progress events.
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.

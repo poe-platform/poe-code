@@ -71,7 +71,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const config =
     options.prompt !== undefined && options.followups !== undefined
       ? { prompt: options.prompt.trim(), followups: options.followups.map((value) => value.trim()) }
-      : await loadGaslightConfig(cwd, homeDir, fs);
+      : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
   const prompts = [`${config.prompt} ${options.planPath}`, ...config.followups];
   const rounds: GaslightRound[] = [];
   let usage: SpawnUsage | undefined;

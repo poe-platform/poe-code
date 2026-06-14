@@ -17,13 +17,10 @@ export {
 } from "./sdk/process-launcher.js";
 export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
-export { runGaslight } from "./sdk/gaslight.js";
+export { ingestGaslight, runGaslight } from "./sdk/gaslight.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey, getPoeAuthIdentity } from "./sdk/credentials.js";
-export type {
-  GetPoeAuthIdentityOptions,
-  PoeAuthIdentity
-} from "./sdk/credentials.js";
+export type { GetPoeAuthIdentityOptions, PoeAuthIdentity } from "./sdk/credentials.js";
 export {
   agent,
   openaiChatCompletionsPlugin,

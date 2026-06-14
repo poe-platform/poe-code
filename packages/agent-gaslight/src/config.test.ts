@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { loadGaslightConfig } from "./config.js";
+import { loadGaslightConfig, parseGaslightConfig } from "./config.js";
 
 describe("loadGaslightConfig", () => {
   it("prefers project config over global config", async () => {
@@ -31,6 +31,23 @@ describe("loadGaslightConfig", () => {
     });
   });
 
+  it("loads an explicit config path instead of searching defaults", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/.poe-code/codex-gaslight.yaml": "prompt: Review\nfollowups:\n  - Check output\n",
+        "/repo/.poe-code/gaslight.yaml": "prompt: Ignore\nfollowups:\n  - Ignore me\n"
+      })
+    ).promises;
+
+    await expect(
+      loadGaslightConfig("/repo", "/home/me", fs, ".poe-code/codex-gaslight.yaml")
+    ).resolves.toEqual({
+      prompt: "Review",
+      followups: ["Check output"],
+      path: "/repo/.poe-code/codex-gaslight.yaml"
+    });
+  });
+
   it("reports both searched paths when config is missing", async () => {
     const fs = createFsFromVolume(new Volume()).promises;
 
@@ -51,5 +68,13 @@ describe("loadGaslightConfig", () => {
     await expect(loadGaslightConfig("/repo", "/home/me", fs)).rejects.toThrow(
       "/repo/.poe-code/gaslight.yaml"
     );
+  });
+
+  it("rejects extra keys for generated configs", () => {
+    expect(() =>
+      parseGaslightConfig("prompt: Implement\nfollowups:\n  - Test\nextra: no\n", "generated", {
+        rejectExtraKeys: true
+      })
+    ).toThrow("unexpected key");
   });
 });

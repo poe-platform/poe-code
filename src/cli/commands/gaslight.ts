@@ -4,7 +4,13 @@ import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { spawn, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
 import { cancel, intro, isCancel, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
-import { GASLIGHT_CONFIG_EXAMPLE, runGaslight, type GaslightEvent } from "../../sdk/gaslight.js";
+import {
+  GASLIGHT_CONFIG_EXAMPLE,
+  ingestGaslight,
+  runGaslight,
+  type GaslightEvent,
+  type GaslightIngestEvent
+} from "../../sdk/gaslight.js";
 import { resolvePlanDirectory } from "./plan.js";
 import {
   createExecutionResources,
@@ -20,8 +26,20 @@ const DEFAULT_AGENT = "claude-code";
 
 interface GaslightCommandOptions {
   agent?: string;
+  config?: string;
   model?: string;
   mode?: "read" | "edit" | "yolo";
+}
+
+interface GaslightIngestCommandOptions {
+  agent?: string;
+  allWorkspaces?: boolean;
+  keepData?: string;
+  limit?: string;
+  model?: string;
+  output?: string;
+  since?: string;
+  sources?: string;
 }
 
 interface GaslightInstallOptions {
@@ -109,6 +127,35 @@ function formatUsage(usage: Awaited<ReturnType<typeof runGaslight>>["usage"]): s
   return `Usage: ${usage.inputTokens.toLocaleString()} input / ${usage.outputTokens.toLocaleString()} output tokens${cost}`;
 }
 
+function parseSources(value: string | undefined): Array<"claude" | "codex"> | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const sources = value
+    .split(",")
+    .map((source) => source.trim())
+    .filter((source) => source.length > 0);
+  for (const source of sources) {
+    if (source !== "claude" && source !== "codex") {
+      throw new ValidationError(
+        `Unsupported trace source "${source}". Use claude, codex, or both.`
+      );
+    }
+  }
+  return sources as Array<"claude" | "codex">;
+}
+
+function parsePositiveInteger(value: string | undefined, label: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isInteger(parsed) || parsed <= 0 || parsed.toString() !== value.trim()) {
+    throw new ValidationError(`${label} must be a positive integer.`);
+  }
+  return parsed;
+}
+
 async function resolveInstallScope(
   options: GaslightInstallOptions,
   assumeYes: boolean
@@ -169,6 +216,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .description("Run a plan through a resumable sequence of agent follow-ups.")
     .argument("[plan-path]", "Markdown plan to implement")
     .option("--agent <agent>", "Agent to run")
+    .option("--config <path>", "gaslight.yaml variant to use")
     .option("--model <model>", "Model to run")
     .addOption(
       new Option("--mode <mode>", "Spawn mode").choices(["read", "edit", "yolo"]).default("edit")
@@ -187,6 +235,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         planPath,
         agent,
         ...(model ? { model } : {}),
+        ...(options.config ? { configPath: options.config } : {}),
         mode: options.mode ?? "edit",
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
@@ -206,6 +255,69 @@ export function registerGaslightCommand(program: Command, container: CliContaine
           })
       });
       outro(`${result.rounds.length} rounds finished\n${formatUsage(result.usage)}`);
+    });
+
+  gaslight
+    .command("ingest")
+    .description("Generate a gaslight config from local Claude and Codex traces.")
+    .option("--agent <agent>", "Agent to analyze extracted prompts")
+    .option("--model <model>", "Model to run")
+    .option("--sources <sources>", "Comma-separated trace sources: claude,codex")
+    .option("--since <duration>", "Only include recently updated traces", "30d")
+    .option("--limit <number>", "Maximum extracted human prompts", "200")
+    .option("--output <path>", "Generated gaslight config path")
+    .option("--keep-data <path>", "Persist curated analysis input at this path")
+    .option("--all-workspaces", "Read traces from every workspace")
+    .action(async function (this: Command) {
+      const options = {
+        ...gaslight.opts<GaslightIngestCommandOptions>(),
+        ...this.opts<GaslightIngestCommandOptions>()
+      };
+      const { agent, model } = await resolveAgentAndModel(program, container, options);
+      let extractedPrompts = 0;
+      let extractedTraces = 0;
+      let dataPath = "";
+
+      intro("gaslight ingest");
+      const result = await ingestGaslight({
+        analysisAgent: agent,
+        ...(model ? { model } : {}),
+        sources: parseSources(options.sources),
+        since: options.since,
+        limit: parsePositiveInteger(options.limit, "--limit"),
+        allWorkspaces: options.allWorkspaces === true,
+        ...(options.output ? { outputPath: options.output } : {}),
+        ...(options.keepData ? { keepDataPath: options.keepData } : {}),
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        fs: container.fs,
+        onEvent(event: GaslightIngestEvent) {
+          if (event.type === "prompts.extracted") {
+            extractedPrompts = event.prompts;
+            extractedTraces = event.traces;
+          }
+          if (event.type === "analysis.started") {
+            dataPath = event.dataPath;
+          }
+        },
+        spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
+          await withSpinner({
+            message: () =>
+              `Analyzing ${extractedPrompts} prompts from ${extractedTraces} traces with ${spawnAgent}`,
+            fn: () => spawn(spawnAgent, spawnOptions),
+            stopMessage: () =>
+              `Analyzed ${extractedPrompts} prompts from ${extractedTraces} traces with ${spawnAgent}`
+          })
+      });
+      outro(
+        [
+          `Wrote ${result.outputPath}`,
+          `Extracted ${result.promptCount} human prompts from ${result.traceCount} traces`,
+          options.keepData
+            ? `Analysis input: ${dataPath || result.dataPath}`
+            : "Analysis input: removed after analysis"
+        ].join("\n")
+      );
     });
 
   gaslight

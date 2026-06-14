@@ -4,13 +4,15 @@ import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 
-const { runGaslightMock, selectMock } = vi.hoisted(() => ({
+const { ingestGaslightMock, runGaslightMock, selectMock } = vi.hoisted(() => ({
+  ingestGaslightMock: vi.fn(),
   runGaslightMock: vi.fn(),
   selectMock: vi.fn()
 }));
 
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
+  ingestGaslight: ingestGaslightMock,
   runGaslight: runGaslightMock
 }));
 
@@ -52,6 +54,12 @@ function createContainer(prompts = vi.fn().mockResolvedValue({})) {
 
 describe("gaslight command", () => {
   beforeEach(() => {
+    ingestGaslightMock.mockReset().mockResolvedValue({
+      outputPath: ".poe-code/codex-gaslight.yaml",
+      dataPath: "/tmp/prompts.md",
+      promptCount: 3,
+      traceCount: 2
+    });
     runGaslightMock.mockReset().mockResolvedValue({ rounds: [{ prompt: "x", summary: "done" }] });
     selectMock.mockReset();
   });
@@ -76,6 +84,33 @@ describe("gaslight command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({ planPath: "docs/plans/a.md", agent: "codex", model: "gpt-5" })
+    );
+  });
+
+  it("forwards an explicit gaslight config path to the runner", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--config",
+      ".poe-code/codex-gaslight.yaml"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPath: "docs/plans/a.md",
+        agent: "codex",
+        model: "gpt-5",
+        configPath: ".poe-code/codex-gaslight.yaml"
+      })
     );
   });
 
@@ -171,6 +206,50 @@ describe("gaslight command", () => {
 
     await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toContain(
       "prompt: Implement"
+    );
+  });
+
+  it("runs ingest without prompting when agent is provided", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(prompts));
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "ingest",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--sources",
+      "claude,codex",
+      "--since",
+      "7d",
+      "--limit",
+      "25",
+      "--output",
+      ".poe-code/test-gaslight.yaml",
+      "--keep-data",
+      ".poe-code/prompts.md",
+      "--all-workspaces"
+    ]);
+
+    expect(prompts).not.toHaveBeenCalled();
+    expect(ingestGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analysisAgent: "codex",
+        model: "gpt-5",
+        sources: ["claude", "codex"],
+        since: "7d",
+        limit: 25,
+        outputPath: ".poe-code/test-gaslight.yaml",
+        keepDataPath: ".poe-code/prompts.md",
+        allWorkspaces: true,
+        cwd: "/repo",
+        homeDir: "/home/test"
+      })
     );
   });
 });

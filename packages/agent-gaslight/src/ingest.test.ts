@@ -33,7 +33,7 @@ describe("ingestGaslight", () => {
       cwd: "/repo",
       homeDir: "/home/me",
       analysisAgent: "codex",
-      keepDataPath: ".poe-code/ingest/human-prompts.jsonl",
+      keepDataPath: ".poe-code/ingest/human-prompts.md",
       fs,
       spawn,
       collectHumanPrompts
@@ -41,19 +41,19 @@ describe("ingestGaslight", () => {
 
     expect(result).toMatchObject({
       outputPath: ".poe-code/codex-gaslight.yaml",
-      dataPath: ".poe-code/ingest/human-prompts.jsonl",
+      dataPath: ".poe-code/ingest/human-prompts.md",
       promptCount: 1,
       traceCount: 2
     });
-    await expect(fs.readFile("/repo/.poe-code/ingest/human-prompts.jsonl", "utf8")).resolves.toBe(
-      '{"traceId":"one","source":"codex","cwd":"/repo","timestamp":"2026-06-13T12:00:00.000Z","text":"Did you test it?"}\n'
+    await expect(fs.readFile("/repo/.poe-code/ingest/human-prompts.md", "utf8")).resolves.toContain(
+      "Did you test it?"
     );
     expect(spawn).toHaveBeenCalledWith(
       "codex",
       expect.objectContaining({
         cwd: "/repo",
         mode: "read",
-        prompt: expect.stringContaining("/repo/.poe-code/ingest/human-prompts.jsonl")
+        prompt: expect.stringContaining("/repo/.poe-code/ingest/human-prompts.md")
       })
     );
     await expect(fs.readFile("/repo/.poe-code/codex-gaslight.yaml", "utf8")).resolves.toBe(
@@ -73,7 +73,7 @@ describe("ingestGaslight", () => {
       cwd: "/repo",
       homeDir: "/home/me",
       analysisAgent: "claude-code",
-      keepDataPath: "/tmp/prompts.jsonl",
+      keepDataPath: "/tmp/prompts.md",
       fs,
       spawn,
       collectHumanPrompts: vi.fn().mockResolvedValue({
@@ -88,7 +88,7 @@ describe("ingestGaslight", () => {
     );
   });
 
-  it("stores default prompt data under the workspace so the analysis agent can read it", async () => {
+  it("stores default prompt data under the workspace for analysis and removes it afterwards", async () => {
     const fs = createFsFromVolume(new Volume()).promises;
     const spawn = vi.fn().mockResolvedValue({
       exitCode: 0,
@@ -108,15 +108,107 @@ describe("ingestGaslight", () => {
       })
     });
 
-    expect(result.dataPath).toMatch(/^\.poe-code\/ingest\/human-prompts-\d+-\d+-\d+\.jsonl$/);
+    expect(result.dataPath).toMatch(/^\.poe-code\/ingest\/human-prompts-\d+-\d+-\d+\.md$/);
     const absoluteDataPath = `/repo/${result.dataPath}`;
-    await expect(fs.readFile(absoluteDataPath, "utf8")).resolves.toContain(
-      "Check workspace data"
-    );
     expect(spawn).toHaveBeenCalledWith(
       "claude-code",
       expect.objectContaining({
         prompt: expect.stringContaining(absoluteDataPath)
+      })
+    );
+    await expect(fs.readFile(absoluteDataPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("removes default prompt data when analysis fails", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+    const spawn = vi.fn().mockResolvedValue({
+      exitCode: 1,
+      stdout: "",
+      stderr: "analysis failed"
+    });
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "claude-code",
+        fs,
+        spawn,
+        collectHumanPrompts: vi.fn().mockResolvedValue({
+          traceCount: 1,
+          records: [{ traceId: "one", source: "claude", text: "Check workspace data" }]
+        })
+      })
+    ).rejects.toThrow("Gaslight ingest analysis failed");
+
+    const spawnOptions = spawn.mock.calls[0]?.[1];
+    expect(spawnOptions?.prompt).toEqual(expect.stringContaining("/repo/.poe-code/ingest/"));
+    const match = spawnOptions?.prompt.match(/\/repo\/\.poe-code\/ingest\/[^\s]+\.md/);
+    expect(match?.[0]).toBeDefined();
+    await expect(fs.readFile(match?.[0] ?? "", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("writes a curated Markdown analysis input instead of raw trace JSONL", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+    const spawn = vi.fn().mockResolvedValue({
+      exitCode: 0,
+      stdout: "prompt: Implement\nfollowups:\n  - Did you verify and then make one appropriate commit?\n",
+      stderr: ""
+    });
+
+    await ingestGaslight({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      analysisAgent: "claude-code",
+      keepDataPath: ".poe-code/ingest/prompts.md",
+      fs,
+      spawn,
+      collectHumanPrompts: vi.fn().mockResolvedValue({
+        traceCount: 2,
+        records: [
+          {
+            traceId: "one",
+            source: "codex",
+            cwd: "/repo",
+            title: "Build feature",
+            timestamp: "2026-06-13T12:00:00.000Z",
+            text: "commit"
+          },
+          {
+            traceId: "two",
+            source: "claude",
+            cwd: "/repo",
+            title: "Ship feature",
+            timestamp: "2026-06-13T12:05:00.000Z",
+            text: "commit"
+          },
+          {
+            traceId: "two",
+            source: "claude",
+            cwd: "/repo",
+            title: "Ship feature",
+            timestamp: "2026-06-13T12:06:00.000Z",
+            text: "Run tests in /repo and inspect logs under /home/me/.poe-code/logs/errors.log"
+          }
+        ]
+      })
+    });
+
+    const content = await fs.readFile("/repo/.poe-code/ingest/prompts.md", "utf8");
+    expect(content).toContain("# Gaslight ingest analysis input");
+    expect(content).toContain("## Repeated short prompts");
+    expect(content).toContain("- `commit` - 2 occurrences");
+    expect(content).toContain("### Trace 1: Build feature");
+    expect(content).toContain("### Trace 2: Ship feature");
+    expect(content).toContain("Run tests in <workspace> and inspect logs under <home>/.poe-code/logs/errors.log");
+    expect(content).not.toContain('{"traceId"');
+    expect(content).not.toContain("/repo");
+    expect(content).not.toContain("/home/me");
+
+    expect(spawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        prompt: expect.stringContaining("Do not produce two followups for the same workflow step")
       })
     );
   });
@@ -143,7 +235,7 @@ describe("ingestGaslight", () => {
       cwd: "/repo",
       homeDir: "/home/me",
       analysisAgent: "codex",
-      keepDataPath: "/tmp/prompts.jsonl",
+      keepDataPath: "/tmp/prompts.md",
       fs,
       spawn,
       collectHumanPrompts: vi.fn().mockResolvedValue({
@@ -187,7 +279,7 @@ describe("ingestGaslight", () => {
       cwd: "/repo",
       homeDir: "/home/me",
       analysisAgent: "claude-code",
-      keepDataPath: "/tmp/prompts.jsonl",
+      keepDataPath: "/tmp/prompts.md",
       fs,
       spawn,
       collectHumanPrompts: vi.fn().mockResolvedValue({
@@ -232,7 +324,7 @@ describe("ingestGaslight", () => {
       cwd: "/repo",
       homeDir: "/home/me",
       analysisAgent: "claude-code",
-      keepDataPath: "/tmp/prompts.jsonl",
+      keepDataPath: "/tmp/prompts.md",
       fs,
       spawn,
       collectHumanPrompts: vi.fn().mockResolvedValue({
@@ -258,7 +350,7 @@ describe("ingestGaslight", () => {
         cwd: "/repo",
         homeDir: "/home/me",
         analysisAgent: "codex",
-        keepDataPath: "/tmp/prompts.jsonl",
+        keepDataPath: "/tmp/prompts.md",
         fs,
         spawn: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "not: gaslight\n", stderr: "" }),
         collectHumanPrompts: vi.fn().mockResolvedValue({

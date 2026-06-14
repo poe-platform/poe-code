@@ -25,7 +25,7 @@ const COMMANDS = [
   "poe-code spawn claude-code 'hello' --mode yolo --dry-run --verbose",
   "poe-code mcp configure --yes --dry-run --verbose",
   "poe-code login --dry-run",
-  "poe-code install --dry-run",
+  "poe-code install --yes --dry-run --verbose",
   "poe-code github-workflows --help",
   "poe-code github-workflows list",
   "poe-code github-workflows prompt-preview github-issue-opened",

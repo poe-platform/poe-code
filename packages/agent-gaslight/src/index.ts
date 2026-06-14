@@ -10,6 +10,7 @@ export type {
   GaslightIngestOptions,
   GaslightIngestResult,
   GaslightOptions,
+  GaslightPlanResult,
   GaslightResult,
   GaslightRound,
   GaslightSpawn

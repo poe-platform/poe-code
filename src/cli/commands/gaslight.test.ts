@@ -4,13 +4,15 @@ import { createFsFromVolume, Volume } from "memfs";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createCliContainer } from "../container.js";
 
-const { ingestGaslightMock, introMock, outroMock, runGaslightMock, selectMock } = vi.hoisted(() => ({
-  ingestGaslightMock: vi.fn(),
-  introMock: vi.fn(),
-  outroMock: vi.fn(),
-  runGaslightMock: vi.fn(),
-  selectMock: vi.fn()
-}));
+const { ingestGaslightMock, introMock, multiselectMock, outroMock, runGaslightMock, selectMock } =
+  vi.hoisted(() => ({
+    ingestGaslightMock: vi.fn(),
+    introMock: vi.fn(),
+    multiselectMock: vi.fn(),
+    outroMock: vi.fn(),
+    runGaslightMock: vi.fn(),
+    selectMock: vi.fn()
+  }));
 
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
@@ -23,6 +25,7 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   return {
     ...actual,
     intro: introMock,
+    multiselect: multiselectMock,
     outro: outroMock,
     isCancel: vi.fn(() => false),
     select: selectMock,
@@ -65,6 +68,7 @@ describe("gaslight command", () => {
     introMock.mockClear();
     outroMock.mockClear();
     runGaslightMock.mockReset().mockResolvedValue({ rounds: [{ prompt: "x", summary: "done" }] });
+    multiselectMock.mockReset();
     selectMock.mockReset();
   });
 
@@ -85,9 +89,10 @@ describe("gaslight command", () => {
     ]);
 
     expect(prompts).not.toHaveBeenCalled();
+    expect(multiselectMock).not.toHaveBeenCalled();
     expect(selectMock).not.toHaveBeenCalled();
     expect(runGaslightMock).toHaveBeenCalledWith(
-      expect.objectContaining({ planPath: "docs/plans/a.md", agent: "codex", model: "gpt-5" })
+      expect.objectContaining({ planPaths: ["docs/plans/a.md"], agent: "codex", model: "gpt-5" })
     );
   });
 
@@ -110,7 +115,7 @@ describe("gaslight command", () => {
 
     expect(runGaslightMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        planPath: "docs/plans/a.md",
+        planPaths: ["docs/plans/a.md"],
         agent: "codex",
         model: "gpt-5",
         configPath: ".poe-code/codex-gaslight.yaml"
@@ -118,8 +123,55 @@ describe("gaslight command", () => {
     );
   });
 
+  it("forwards multiple gaslight plans to the runner in order", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "--plans",
+      "docs/plans/a.md",
+      "docs/plans/b.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPaths: ["docs/plans/a.md", "docs/plans/b.md"],
+        agent: "codex",
+        model: "gpt-5"
+      })
+    );
+  });
+
+  it("rejects mixing positional plan with --plans", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "gaslight",
+        "docs/plans/a.md",
+        "--plans",
+        "docs/plans/b.md",
+        "--agent",
+        "codex",
+        "--model",
+        "gpt-5"
+      ])
+    ).rejects.toThrow("Use only one plan source");
+    expect(runGaslightMock).not.toHaveBeenCalled();
+  });
+
   it("prompts for plan, agent, and model when omitted", async () => {
-    selectMock.mockResolvedValue("docs/plans/b.md");
+    multiselectMock.mockResolvedValue(["docs/plans/b.md"]);
     const prompts = vi
       .fn()
       .mockResolvedValueOnce({ serviceSelection: "codex" })
@@ -135,10 +187,41 @@ describe("gaslight command", () => {
       if (stdinDescriptor) Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
     }
 
-    expect(selectMock).toHaveBeenCalledOnce();
+    expect(multiselectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select Gaslight plans to run:",
+        required: true
+      })
+    );
     expect(prompts).toHaveBeenCalledTimes(2);
     expect(runGaslightMock).toHaveBeenCalledWith(
-      expect.objectContaining({ planPath: "docs/plans/b.md", agent: "codex", model: "gpt-5" })
+      expect.objectContaining({ planPaths: ["docs/plans/b.md"], agent: "codex", model: "gpt-5" })
+    );
+  });
+
+  it("uses multiselect-selected plans in order when omitted interactively", async () => {
+    multiselectMock.mockResolvedValue(["docs/plans/a.md", "docs/plans/b.md"]);
+    const prompts = vi
+      .fn()
+      .mockResolvedValueOnce({ serviceSelection: "codex" })
+      .mockResolvedValueOnce({ model: "gpt-5" });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(prompts));
+
+    const stdinDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+    try {
+      await program.parseAsync(["node", "cli", "gaslight"]);
+    } finally {
+      if (stdinDescriptor) Object.defineProperty(process.stdin, "isTTY", stdinDescriptor);
+    }
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPaths: ["docs/plans/a.md", "docs/plans/b.md"],
+        agent: "codex",
+        model: "gpt-5"
+      })
     );
   });
 
@@ -150,9 +233,14 @@ describe("gaslight command", () => {
     await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
 
     expect(prompts).not.toHaveBeenCalled();
+    expect(multiselectMock).not.toHaveBeenCalled();
     expect(selectMock).not.toHaveBeenCalled();
     expect(runGaslightMock).toHaveBeenCalledWith(
-      expect.objectContaining({ planPath: "docs/plans/a.md", agent: "claude-code", mode: "edit" })
+      expect.objectContaining({
+        planPaths: ["docs/plans/a.md"],
+        agent: "claude-code",
+        mode: "edit"
+      })
     );
   });
 

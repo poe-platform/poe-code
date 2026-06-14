@@ -6,6 +6,7 @@ import { loadGaslightConfig } from "./config.js";
 import type {
   GaslightFileSystem,
   GaslightOptions,
+  GaslightPlanResult,
   GaslightResult,
   GaslightRound
 } from "./types.js";
@@ -60,55 +61,105 @@ function validateInlineConfig(prompt: string | undefined, followups: string[] | 
   }
 }
 
+function resolvePlanPaths(options: GaslightOptions): string[] {
+  if (options.planPaths.length === 0) {
+    throw new Error("Provide at least one plan path.");
+  }
+  for (const planPath of options.planPaths) {
+    if (planPath.trim().length === 0) {
+      throw new Error("plan paths must be non-empty strings.");
+    }
+  }
+  return options.planPaths.map((planPath) => planPath.trim());
+}
+
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
   const cwd = options.cwd ?? process.cwd();
   const homeDir = options.homeDir ?? os.homedir();
   const fs = options.fs ?? nodeFs;
   const spawn = options.spawn ?? defaultSpawn;
   validateInlineConfig(options.prompt, options.followups);
-  await requirePlan(fs, cwd, options.planPath);
+  const planPaths = resolvePlanPaths(options);
+  for (const planPath of planPaths) {
+    await requirePlan(fs, cwd, planPath);
+  }
 
   const config =
     options.prompt !== undefined && options.followups !== undefined
       ? { prompt: options.prompt.trim(), followups: options.followups.map((value) => value.trim()) }
       : await loadGaslightConfig(cwd, homeDir, fs, options.configPath);
-  const prompts = [`${config.prompt} ${options.planPath}`, ...config.followups];
   const rounds: GaslightRound[] = [];
+  const plans: GaslightPlanResult[] = [];
   let usage: SpawnUsage | undefined;
-  let resumeThreadId: string | undefined;
 
-  for (const [index, prompt] of prompts.entries()) {
-    const round = index + 1;
-    options.onEvent?.({ type: "round.started", round, total: prompts.length, prompt });
-    const result = await spawn(options.agent, {
-      prompt,
-      cwd,
-      mode: options.mode ?? "edit",
-      ...(options.model ? { model: options.model } : {}),
-      ...(resumeThreadId ? { resumeThreadId } : {}),
-      ...(options.signal ? { signal: options.signal } : {})
-    });
+  for (const [planIndex, planPath] of planPaths.entries()) {
+    const prompts = [`${config.prompt} ${planPath}`, ...config.followups];
+    const planRounds: GaslightRound[] = [];
+    let planUsage: SpawnUsage | undefined;
+    let resumeThreadId: string | undefined;
 
-    if (result.exitCode !== 0) {
-      const completed = rounds.length;
-      const noun = completed === 1 ? "round" : "rounds";
-      throw new Error(
-        `Gaslight round ${round} failed after ${completed} completed ${noun}: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`
-      );
-    }
+    for (const [index, prompt] of prompts.entries()) {
+      const round = index + 1;
+      options.onEvent?.({
+        type: "round.started",
+        round,
+        total: prompts.length,
+        prompt,
+        planPath,
+        planIndex: planIndex + 1,
+        totalPlans: planPaths.length
+      });
+      const result = await spawn(options.agent, {
+        prompt,
+        cwd,
+        mode: options.mode ?? "edit",
+        ...(options.model ? { model: options.model } : {}),
+        ...(resumeThreadId ? { resumeThreadId } : {}),
+        ...(options.signal ? { signal: options.signal } : {})
+      });
 
-    const summary = summarize(result.stdout, result.stderr);
-    rounds.push({ prompt, summary, ...(result.threadId ? { threadId: result.threadId } : {}) });
-    usage = addUsage(usage, result.usage);
-    options.onEvent?.({ type: "round.finished", round, total: prompts.length, summary });
-
-    if (round < prompts.length) {
-      if (!result.threadId) {
-        throw new Error("agent returned no threadId; cannot resume the conversation");
+      if (result.exitCode !== 0) {
+        const completed = planRounds.length;
+        const noun = completed === 1 ? "round" : "rounds";
+        const prefix =
+          planPaths.length === 1
+            ? `Gaslight round ${round}`
+            : `Gaslight plan ${planIndex + 1}/${planPaths.length} (${planPath}) round ${round}`;
+        throw new Error(
+          `${prefix} failed after ${completed} completed ${noun}: ${summarize(result.stderr, result.stdout) || `exit code ${result.exitCode}`}`
+        );
       }
-      resumeThreadId = result.threadId;
+
+      const summary = summarize(result.stdout, result.stderr);
+      const gaslightRound = {
+        prompt,
+        summary,
+        ...(result.threadId ? { threadId: result.threadId } : {})
+      };
+      planRounds.push(gaslightRound);
+      rounds.push(gaslightRound);
+      planUsage = addUsage(planUsage, result.usage);
+      usage = addUsage(usage, result.usage);
+      options.onEvent?.({
+        type: "round.finished",
+        round,
+        total: prompts.length,
+        summary,
+        planPath,
+        planIndex: planIndex + 1,
+        totalPlans: planPaths.length
+      });
+
+      if (round < prompts.length) {
+        if (!result.threadId) {
+          throw new Error("agent returned no threadId; cannot resume the conversation");
+        }
+        resumeThreadId = result.threadId;
+      }
     }
+
+    plans.push({ planPath, rounds: planRounds, ...(planUsage ? { usage: planUsage } : {}) });
   }
 
-  return { rounds, ...(usage ? { usage } : {}) };
+  return { rounds, plans, ...(usage ? { usage } : {}) };
 }

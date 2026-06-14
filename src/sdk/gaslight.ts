@@ -12,6 +12,7 @@ export {
   type GaslightIngestOptions,
   type GaslightIngestResult,
   type GaslightOptions,
+  type GaslightPlanResult,
   type GaslightResult,
   type GaslightRound,
   type GaslightSpawn

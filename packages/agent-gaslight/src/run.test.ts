@@ -15,7 +15,7 @@ describe("runGaslight", () => {
 
     const result = await runGaslight({
       cwd: "/repo",
-      planPath: "docs/plans/work.md",
+      planPaths: ["docs/plans/work.md"],
       agent: "codex",
       prompt: "Implement",
       followups: ["Test it", "Check again"],
@@ -45,6 +45,82 @@ describe("runGaslight", () => {
     expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three"]);
   });
 
+  it("runs multiple plans sequentially with a fresh thread per plan", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/first.md": "# First",
+        "/repo/docs/plans/second.md": "# Second"
+      })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first start", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "first followup",
+        stderr: "",
+        threadId: "two"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second start",
+        stderr: "",
+        threadId: "three"
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "second followup",
+        stderr: "",
+        threadId: "four"
+      });
+
+    const result = await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/first.md", "docs/plans/second.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Check again"],
+      fs,
+      spawn
+    });
+
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      "codex",
+      expect.not.objectContaining({ resumeThreadId: expect.any(String) })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      "codex",
+      expect.objectContaining({ prompt: "Implement docs/plans/first.md" })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      2,
+      "codex",
+      expect.objectContaining({ prompt: "Check again", resumeThreadId: "one" })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      3,
+      "codex",
+      expect.not.objectContaining({ resumeThreadId: expect.any(String) })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      3,
+      "codex",
+      expect.objectContaining({ prompt: "Implement docs/plans/second.md" })
+    );
+    expect(spawn).toHaveBeenNthCalledWith(
+      4,
+      "codex",
+      expect.objectContaining({ prompt: "Check again", resumeThreadId: "three" })
+    );
+    expect(result.plans.map((plan) => plan.planPath)).toEqual([
+      "docs/plans/first.md",
+      "docs/plans/second.md"
+    ]);
+    expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three", "four"]);
+  });
+
   it("fails before round two when no thread id is returned", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
     const spawn = vi.fn().mockResolvedValue({ exitCode: 0, stdout: "done", stderr: "" });
@@ -52,7 +128,7 @@ describe("runGaslight", () => {
     await expect(
       runGaslight({
         cwd: "/repo",
-        planPath: "plan.md",
+        planPaths: ["plan.md"],
         agent: "codex",
         prompt: "Implement",
         followups: ["Again"],
@@ -73,7 +149,7 @@ describe("runGaslight", () => {
     await expect(
       runGaslight({
         cwd: "/repo",
-        planPath: "plan.md",
+        planPaths: ["plan.md"],
         agent: "codex",
         prompt: "Implement",
         followups: ["Again", "Last"],
@@ -104,7 +180,7 @@ describe("runGaslight", () => {
 
     const result = await runGaslight({
       cwd: "/repo",
-      planPath: "plan.md",
+      planPaths: ["plan.md"],
       agent: "codex",
       prompt: "Implement",
       followups: ["Again"],
@@ -122,7 +198,7 @@ describe("runGaslight", () => {
     await expect(
       runGaslight({
         cwd: "/repo",
-        planPath: "missing.md",
+        planPaths: ["missing.md"],
         agent: "codex",
         prompt: "Implement",
         followups: ["Again"],
@@ -147,7 +223,7 @@ describe("runGaslight", () => {
 
     await runGaslight({
       cwd: "/repo",
-      planPath: "plan.md",
+      planPaths: ["plan.md"],
       agent: "codex",
       configPath: ".poe-code/codex-gaslight.yaml",
       fs,

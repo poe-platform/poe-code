@@ -11,8 +11,24 @@ export type GaslightFileSystem = AgentTraceFileSystem;
 export type GaslightSpawn = (agent: string, options: SpawnOptions) => Promise<SpawnResult>;
 
 export type GaslightEvent =
-  | { type: "round.started"; round: number; total: number; prompt: string }
-  | { type: "round.finished"; round: number; total: number; summary: string };
+  | {
+      type: "round.started";
+      round: number;
+      total: number;
+      prompt: string;
+      planPath: string;
+      planIndex: number;
+      totalPlans: number;
+    }
+  | {
+      type: "round.finished";
+      round: number;
+      total: number;
+      summary: string;
+      planPath: string;
+      planIndex: number;
+      totalPlans: number;
+    };
 
 export interface GaslightRound {
   prompt: string;
@@ -22,11 +38,18 @@ export interface GaslightRound {
 
 export interface GaslightResult {
   rounds: GaslightRound[];
+  plans: GaslightPlanResult[];
+  usage?: SpawnUsage;
+}
+
+export interface GaslightPlanResult {
+  planPath: string;
+  rounds: GaslightRound[];
   usage?: SpawnUsage;
 }
 
 export interface GaslightOptions {
-  planPath: string;
+  planPaths: string[];
   agent: string;
   model?: string;
   mode?: Exclude<SpawnMode, "auto">;

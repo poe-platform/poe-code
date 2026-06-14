@@ -2,7 +2,7 @@ import path from "node:path";
 import { Option, type Command } from "commander";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { spawn, type SpawnOptions, type SpawnResult } from "@poe-code/agent-spawn";
-import { cancel, intro, isCancel, outro, select, withSpinner } from "toolcraft-design";
+import { cancel, intro, isCancel, multiselect, outro, select, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import {
   GASLIGHT_CONFIG_EXAMPLE,
@@ -29,6 +29,7 @@ interface GaslightCommandOptions {
   config?: string;
   model?: string;
   mode?: "read" | "edit" | "yolo";
+  plans?: string[];
 }
 
 interface GaslightIngestCommandOptions {
@@ -52,7 +53,7 @@ type GaslightConfigScope = "global" | "local";
 
 const DEFAULT_SCOPE: GaslightConfigScope = "local";
 
-async function selectPlan(container: CliContainer, assumeYes: boolean): Promise<string> {
+async function selectPlans(container: CliContainer, assumeYes: boolean): Promise<string[]> {
   const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
   const absoluteDirectory = path.resolve(container.env.cwd, planDirectory);
   let names: string[];
@@ -69,19 +70,44 @@ async function selectPlan(container: CliContainer, assumeYes: boolean): Promise<
     throw new Error(`No markdown plans found in ${planDirectory}.`);
   }
   if (assumeYes) {
-    return plans[0]!;
+    return [plans[0]!];
   }
   requireInteractiveStdin(
-    "Gaslight plan selection requires a plan path or --yes when running without an interactive TTY."
+    "Gaslight plan selection requires a plan path, --plans, or --yes when running without an interactive TTY."
   );
-  const selected = await select({
-    message: "Select a plan:",
-    options: plans.map((plan) => ({ label: plan, value: plan }))
+  const selected = await multiselect({
+    message: "Select Gaslight plans to run:",
+    options: plans.map((plan) => ({ label: plan, value: plan })),
+    required: true
   });
   if (isCancel(selected)) {
     throw new Error("Gaslight cancelled.");
   }
-  return selected as string;
+  return Array.isArray(selected) ? selected : [];
+}
+
+async function resolveGaslightPlanPaths(options: {
+  container: CliContainer;
+  assumeYes: boolean;
+  positionalPlanPath?: string;
+  optionPlanPaths?: string[];
+}): Promise<string[]> {
+  const sources = [
+    options.positionalPlanPath ? "positional plan" : undefined,
+    options.optionPlanPaths && options.optionPlanPaths.length > 0 ? "--plans" : undefined
+  ].filter((source): source is string => source !== undefined);
+
+  if (sources.length > 1) {
+    throw new ValidationError(`Use only one plan source: ${sources.join(", ")}.`);
+  }
+
+  if (options.optionPlanPaths && options.optionPlanPaths.length > 0) {
+    return options.optionPlanPaths;
+  }
+  if (options.positionalPlanPath) {
+    return [options.positionalPlanPath];
+  }
+  return selectPlans(options.container, options.assumeYes);
 }
 
 async function resolveAgentAndModel(
@@ -218,21 +244,30 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .option("--agent <agent>", "Agent to run")
     .option("--config <path>", "gaslight.yaml variant to use")
     .option("--model <model>", "Model to run")
+    .option("--plans <paths...>", "Markdown plans to run sequentially")
     .addOption(
       new Option("--mode <mode>", "Spawn mode").choices(["read", "edit", "yolo"]).default("edit")
     )
     .action(async function (this: Command, providedPlanPath: string | undefined) {
       const flags = resolveCommandFlags(program);
       const options = this.opts<GaslightCommandOptions>();
-      const planPath = providedPlanPath ?? (await selectPlan(container, flags.assumeYes));
+      const planPaths = await resolveGaslightPlanPaths({
+        container,
+        assumeYes: flags.assumeYes,
+        positionalPlanPath: providedPlanPath,
+        optionPlanPaths: options.plans
+      });
       const { agent, model } = await resolveAgentAndModel(program, container, options);
       let currentRound = 1;
       let totalRounds = 1;
-      let currentPrompt = planPath;
+      let currentPlan = planPaths[0] ?? "";
+      let currentPlanIndex = 1;
+      const totalPlans = planPaths.length;
+      let currentPrompt = currentPlan;
 
       intro("gaslight");
       const result = await runGaslight({
-        planPath,
+        planPaths,
         agent,
         ...(model ? { model } : {}),
         ...(options.config ? { configPath: options.config } : {}),
@@ -244,17 +279,29 @@ export function registerGaslightCommand(program: Command, container: CliContaine
           if (event.type === "round.started") {
             currentRound = event.round;
             totalRounds = event.total;
-            currentPrompt = event.round === 1 ? `plan: ${planPath}` : event.prompt;
+            currentPlan = event.planPath;
+            currentPlanIndex = event.planIndex;
+            currentPrompt = event.round === 1 ? `plan: ${event.planPath}` : event.prompt;
           }
         },
         spawn: async (spawnAgent: string, spawnOptions: SpawnOptions): Promise<SpawnResult> =>
           await withSpinner({
-            message: () => `Round ${currentRound}/${totalRounds} · ${currentPrompt}`,
+            message: () =>
+              totalPlans > 1
+                ? `Plan ${currentPlanIndex}/${totalPlans} · Round ${currentRound}/${totalRounds} · ${currentPrompt}`
+                : `Round ${currentRound}/${totalRounds} · ${currentPrompt}`,
             fn: () => spawn(spawnAgent, spawnOptions),
-            stopMessage: () => `Round ${currentRound}/${totalRounds} · ${currentPrompt}`
+            stopMessage: () =>
+              totalPlans > 1
+                ? `Plan ${currentPlanIndex}/${totalPlans} · Round ${currentRound}/${totalRounds} · ${currentPlan}`
+                : `Round ${currentRound}/${totalRounds} · ${currentPrompt}`
           })
       });
-      outro(`${result.rounds.length} rounds finished\n${formatUsage(result.usage)}`);
+      const finished =
+        planPaths.length > 1
+          ? `${planPaths.length} plans, ${result.rounds.length} rounds finished`
+          : `${result.rounds.length} rounds finished`;
+      outro(`${finished}\n${formatUsage(result.usage)}`);
     });
 
   gaslight

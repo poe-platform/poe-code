@@ -147,6 +147,9 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
   if (normalizedScopes.some((scope) => scope.trim().length === 0)) {
     throw new Error("scopes must contain non-empty values");
   }
+  if (normalizedScopes.some((scope) => scope.trim() !== scope || scope.includes(" "))) {
+    throw new Error("scope entries must not contain spaces");
+  }
 
   return normalizedScopes;
 }
@@ -160,6 +163,15 @@ function normalizeTtlSeconds(ttlSeconds: number | undefined): number {
   }
 
   return normalizedTtlSeconds;
+}
+
+function normalizeListenPort(port: number | undefined): number {
+  const normalizedPort = port ?? 0;
+  if (!Number.isInteger(normalizedPort) || normalizedPort < 0 || normalizedPort > 65535) {
+    throw new Error("port must be an integer between 0 and 65535");
+  }
+
+  return normalizedPort;
 }
 
 function closeServer(server: http.Server): Promise<void> {
@@ -218,10 +230,10 @@ export function createMcpOAuthTestServer(
         throw new Error("MCP OAuth test server is already listening");
       }
 
+      const hostname = listenOptions.hostname ?? "127.0.0.1";
+      const requestedPort = normalizeListenPort(listenOptions.port);
       listenPending = true;
 
-      const hostname = listenOptions.hostname ?? "127.0.0.1";
-      const requestedPort = listenOptions.port ?? 0;
       let lastError: unknown;
 
       for (let attempt = 0; attempt < 10; attempt += 1) {

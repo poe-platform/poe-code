@@ -81,6 +81,10 @@ function parsePort(value: string | undefined): number {
     return 0;
   }
 
+  if (!isDecimalInteger(value)) {
+    throw new Error("--port must be an integer between 0 and 65535.");
+  }
+
   const port = Number(value);
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw new Error("--port must be an integer between 0 and 65535.");
@@ -94,12 +98,20 @@ function parsePositiveInteger(value: string | undefined, flagName: string): numb
     return 60;
   }
 
+  if (!isDecimalInteger(value)) {
+    throw new Error(`${flagName} must be a positive integer.`);
+  }
+
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${flagName} must be a positive integer.`);
   }
 
   return parsed;
+}
+
+function isDecimalInteger(value: string): boolean {
+  return value.length > 0 && [...value].every((character) => character >= "0" && character <= "9");
 }
 
 function parseAbsoluteUrl(
@@ -148,8 +160,11 @@ function parseScopes(value: string | undefined): string[] | undefined {
 
   const scopes = value
     .split(",")
-    .map((scope) => scope.trim())
-    .filter((scope) => scope.length > 0);
+    .map((scope) => scope.trim());
+
+  if (scopes.some((scope) => scope.length === 0)) {
+    throw new Error("--scopes must not contain empty entries.");
+  }
 
   if (scopes.length === 0) {
     throw new Error("--scopes must include at least one non-empty scope.");
@@ -259,22 +274,31 @@ export async function runCli(
     port: parsed.port,
     hostname: parsed.hostname,
   };
-  const server = createMcpOAuthTestServer(serverOptions);
-  const handle = await server.listen(listenOptions);
+  let handle: Awaited<ReturnType<ReturnType<typeof createMcpOAuthTestServer>["listen"]>>;
 
-  stdout.write(`${packageInfo.name} ${packageInfo.version}\n`);
-  stdout.write(`MCP URL: ${handle.mcpUrl}\n`);
-  stdout.write(`PRM URL: ${handle.prmUrl}\n`);
-  stdout.write(`AS issuer: ${handle.oauth.issuer}\n`);
-  stdout.write(`Resource: ${handle.resource}\n`);
+  try {
+    const server = createMcpOAuthTestServer(serverOptions);
+    handle = await server.listen(listenOptions);
 
-  if (parsed.printTestToken) {
-    const token = await handle.oauth.issueTokenFor({
-      clientId: "demo-client",
-      resource: handle.resource,
-      scopes: parsed.scopes ?? ["mcp.read"],
-    });
-    stdout.write(`Test bearer token: ${token}\n`);
+    stdout.write(`${packageInfo.name} ${packageInfo.version}\n`);
+    stdout.write(`MCP URL: ${handle.mcpUrl}\n`);
+    stdout.write(`PRM URL: ${handle.prmUrl}\n`);
+    stdout.write(`AS issuer: ${handle.oauth.issuer}\n`);
+    stdout.write(`Resource: ${handle.resource}\n`);
+
+    if (parsed.printTestToken) {
+      const token = await handle.oauth.issueTokenFor({
+        clientId: "demo-client",
+        resource: handle.resource,
+        scopes: parsed.scopes ?? ["mcp.read"],
+      });
+      stdout.write(`Test bearer token: ${token}\n`);
+    }
+  } catch (error) {
+    stderr.write(
+      `${error instanceof Error ? error.message : String(error)}\n\n${HELP_TEXT}\n`
+    );
+    return 1;
   }
 
   await (dependencies.waitForShutdown ?? waitForShutdown)(handle.close);

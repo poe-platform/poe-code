@@ -35,6 +35,61 @@ describe("tiny-http-mcp-oauth-test-server CLI", () => {
     expect(stderr).toBe("");
   });
 
+  it("rejects non-decimal numeric flags", async () => {
+    for (const args of [
+      ["--port", "0x0", "--print-test-token"],
+      ["--ttl-seconds", "1e2", "--print-test-token"],
+    ]) {
+      let stdout = "";
+      let stderr = "";
+
+      const exitCode = await runCli(args, {
+        stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
+        stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+      });
+
+      expect(exitCode).toBe(1);
+      expect(stdout).toBe("");
+      expect(stderr).toContain(args[0]);
+      expect(stderr).toContain("Usage: tiny-http-mcp-oauth-test-server [options]");
+    }
+  });
+
+  it("rejects empty comma-separated scope entries", async () => {
+    let stdout = "";
+    let stderr = "";
+
+    const exitCode = await runCli(["--scopes", "mcp.read,,mcp.write"], {
+      stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
+      stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout).toBe("");
+    expect(stderr).toContain("--scopes must not contain empty entries.");
+  });
+
+  it("returns parser-style errors for server option validation failures", async () => {
+    for (const args of [
+      ["--mcp-path", "/mcp?tenant=demo"],
+      ["--resource", "https://resource.example.com/mcp#fragment"],
+      ["--scopes", "mcp.read mcp.write"],
+    ]) {
+      let stdout = "";
+      let stderr = "";
+
+      const exitCode = await runCli(args, {
+        stdout: { write: (chunk) => ((stdout += String(chunk)), true) },
+        stderr: { write: (chunk) => ((stderr += String(chunk)), true) },
+        waitForShutdown: async (shutdown) => shutdown(),
+      });
+
+      expect(exitCode).toBe(1);
+      expect(stdout).toBe("");
+      expect(stderr).toContain("Usage: tiny-http-mcp-oauth-test-server [options]");
+    }
+  });
+
   it("does not print a bearer token unless --print-test-token is passed", async () => {
     let stdout = "";
     let stderr = "";

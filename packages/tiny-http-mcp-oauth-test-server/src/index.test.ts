@@ -210,6 +210,19 @@ describe("createMcpOAuthTestServer", () => {
     expect(() => createMcpOAuthTestServer({ scopes: ["mcp.read", "   "] })).toThrow(
       "scopes must contain non-empty values"
     );
+    expect(() => createMcpOAuthTestServer({ scopes: ["mcp.read mcp.write"] })).toThrow(
+      "scope entries must not contain spaces"
+    );
+  });
+
+  it("rejects invalid listen ports at the SDK boundary", async () => {
+    for (const port of [-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY, 70000]) {
+      const server = createMcpOAuthTestServer();
+
+      await expect(
+        server.listen({ port, hostname: "127.0.0.1" })
+      ).rejects.toThrow("port must be an integer between 0 and 65535");
+    }
   });
 
   it("accepts direct tokens from the embedded OAuth server and exposes the test MCP tools", async () => {

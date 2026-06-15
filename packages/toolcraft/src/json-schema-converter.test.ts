@@ -42,6 +42,32 @@ describe("convertJsonSchema", () => {
     );
   });
 
+  it("preserves object defaults from JSON Schema metadata", async () => {
+    const schema = await loadSchema({
+      type: "object",
+      properties: {
+        name: { type: "string" }
+      },
+      required: ["name"],
+      default: {
+        name: "demo"
+      }
+    });
+
+    expect(convertJsonSchema(schema)).toEqual(
+      S.Object(
+        {
+          name: S.String()
+        },
+        {
+          default: {
+            name: "demo"
+          }
+        }
+      )
+    );
+  });
+
   it("preserves object schema properties named __proto__", async () => {
     const schema = await loadSchema(
       JSON.parse(

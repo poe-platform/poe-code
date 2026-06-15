@@ -32,12 +32,14 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "experimenter"
-      ]
+      ],
+      "additionalProperties": false
     },
     "attempts": {
       "type": "array",
@@ -55,7 +57,8 @@
         "required": [
           "id",
           "prompt"
-        ]
+        ],
+        "additionalProperties": false
       }
     },
     "kind": {
@@ -81,7 +84,8 @@
       "required": [
         "name",
         "direction"
-      ]
+      ],
+      "additionalProperties": false
     },
     "version": {
       "type": "number"
@@ -94,5 +98,6 @@
     "agents",
     "metric",
     "attempts"
-  ]
+  ],
+  "additionalProperties": false
 }

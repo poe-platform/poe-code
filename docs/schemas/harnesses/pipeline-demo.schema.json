@@ -32,7 +32,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "reviewer": {
           "type": "object",
@@ -54,13 +55,15 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
         "builder",
         "reviewer"
-      ]
+      ],
+      "additionalProperties": false
     },
     "kind": {
       "type": "string",
@@ -88,7 +91,8 @@
           "id",
           "title",
           "prompt"
-        ]
+        ],
+        "additionalProperties": false
       }
     },
     "version": {
@@ -101,5 +105,6 @@
     "version",
     "agents",
     "tasks"
-  ]
+  ],
+  "additionalProperties": false
 }

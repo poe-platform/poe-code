@@ -32,7 +32,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "judge": {
           "type": "object",
@@ -54,7 +55,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "owner": {
           "type": "object",
@@ -76,7 +78,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "perf": {
           "type": "object",
@@ -98,7 +101,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "security": {
           "type": "object",
@@ -120,7 +124,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         },
         "tests": {
           "type": "object",
@@ -142,7 +147,8 @@
           },
           "required": [
             "agent"
-          ]
+          ],
+          "additionalProperties": false
         }
       },
       "required": [
@@ -152,7 +158,8 @@
         "tests",
         "judge",
         "owner"
-      ]
+      ],
+      "additionalProperties": false
     },
     "kind": {
       "type": "string",
@@ -174,5 +181,6 @@
     "version",
     "agents",
     "max_rounds"
-  ]
+  ],
+  "additionalProperties": false
 }

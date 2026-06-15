@@ -327,7 +327,11 @@ function convertObjectSchema(
   );
 }
 
-function setOwnShapeProperty(shape: Record<string, AnySchema>, key: string, value: AnySchema): void {
+function setOwnShapeProperty(
+  shape: Record<string, AnySchema>,
+  key: string,
+  value: AnySchema
+): void {
   Object.defineProperty(shape, key, {
     configurable: true,
     enumerable: true,
@@ -361,11 +365,11 @@ function applyMetadata<TSchema extends AnySchema>(
     nullable?: boolean;
   }
 ): TSchema {
-  const result = { ...schema } as TSchema & {
+  const result: Omit<TSchema, "default" | "description" | "nullable"> & {
     default?: unknown;
     description?: string;
     nullable?: boolean;
-  };
+  } = { ...schema };
   const description = overrides.description ?? source.description;
   const hasDefaultOverride = Object.prototype.hasOwnProperty.call(overrides, "default");
   const defaultValue = hasDefaultOverride ? overrides.default : source.default;
@@ -382,7 +386,7 @@ function applyMetadata<TSchema extends AnySchema>(
     result.nullable = true;
   }
 
-  return result;
+  return result as TSchema;
 }
 
 function normalizeNullability(schema: JsonSchema): NormalizedJsonSchema {

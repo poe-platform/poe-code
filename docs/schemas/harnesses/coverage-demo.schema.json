@@ -16,5 +16,6 @@
   "required": [
     "kind",
     "version"
-  ]
+  ],
+  "additionalProperties": false
 }

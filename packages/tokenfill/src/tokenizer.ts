@@ -18,14 +18,32 @@ export interface Tokenizer {
 export function createTokenizer(options: TokenizerOptions = {}): Tokenizer {
   const encoding = options.encoding ?? DEFAULT_ENCODING;
   const tokenizer = get_encoding(encoding);
-  const utf8Decoder = new TextDecoder();
   const strictUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
 
   const encode = (text: string): Uint32Array => tokenizer.encode(text);
 
+  const normalizeDecodeTokens = (tokens: Uint32Array | number[]): Uint32Array => {
+    if (tokens instanceof Uint32Array) {
+      return tokens;
+    }
+
+    const tokenArray = new Uint32Array(tokens.length);
+    tokens.forEach((token, index) => {
+      if (!Number.isFinite(token) || !Number.isInteger(token) || token < 0 || token > 0xffffffff) {
+        throw new TypeError(`token id at index ${index} must be a finite non-negative integer.`);
+      }
+      tokenArray[index] = token;
+    });
+    return tokenArray;
+  };
+
   const decode = (tokens: Uint32Array | number[]): string => {
-    const tokenArray = tokens instanceof Uint32Array ? tokens : Uint32Array.from(tokens);
-    return utf8Decoder.decode(tokenizer.decode(tokenArray));
+    const tokenArray = normalizeDecodeTokens(tokens);
+    try {
+      return strictUtf8Decoder.decode(tokenizer.decode(tokenArray));
+    } catch {
+      throw new Error("Cannot decode tokens without corrupting UTF-8 text.");
+    }
   };
 
   const count = (text: string): number => encode(text).length;

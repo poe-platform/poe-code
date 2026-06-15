@@ -50,6 +50,31 @@ describe("tokenizer wrapper", () => {
   });
 
   it.each([
+    ["fractional", [1.5]],
+    ["NaN", [Number.NaN]],
+    ["negative", [-1]]
+  ])("rejects %s token ids before decoding", (_label, tokens) => {
+    const tokenizer = createTokenizer();
+
+    expect(() => tokenizer.decode(tokens)).toThrow(
+      "token id at index 0 must be a finite non-negative integer."
+    );
+  });
+
+  it("rejects decode output that would corrupt UTF-8 text", () => {
+    vi.mocked(get_encoding).mockReturnValueOnce({
+      encode: (): Uint32Array => Uint32Array.from([1]),
+      decode: () => Uint8Array.from([0xf0, 0x9f]),
+      free: vi.fn()
+    } as never);
+    const tokenizer = createTokenizer();
+
+    expect(() => tokenizer.decode(Uint32Array.from([1]))).toThrow(
+      "Cannot decode tokens without corrupting UTF-8 text."
+    );
+  });
+
+  it.each([
     ["hello", 5],
     ["hello world", 11],
     ["The quick brown fox jumps over the lazy dog.", 44],
@@ -215,10 +240,7 @@ describe("tokenfill CLI", () => {
 
   it("applies --tokenizer to set the encoding", async () => {
     const output = createCapturedOutput();
-    const exitCode = await runCli(
-      ["12", "--tokenizer", "o200k_base", "--json"],
-      output.io
-    );
+    const exitCode = await runCli(["12", "--tokenizer", "o200k_base", "--json"], output.io);
     const payload = JSON.parse(output.stdout) as {
       text: string;
       stats: { actualTokens: number; encoding: string };
@@ -249,5 +271,15 @@ describe("tokenfill CLI", () => {
 
     expect(exitCode).toBeGreaterThan(0);
     expect(output.stderr).toContain("unknown option '--unsupported'");
+  });
+
+  it.each(["0x10", "1e2", "010"])("rejects non-plain-decimal count syntax %s", async (count) => {
+    const output = createCapturedOutput();
+    const exitCode = await runCli([count, "--json"], output.io);
+
+    expect(exitCode).toBeGreaterThan(0);
+    expect(output.stdout).toBe("");
+    expect(output.stderr).toContain("count must be a non-negative decimal integer");
+    expect(tokenfillMock).not.toHaveBeenCalled();
   });
 });

@@ -23,10 +23,22 @@ const defaultOutput: CliOutput = {
 };
 
 function parseTokenCount(value: string): number {
+  const isDecimalDigit = (character: string): boolean => {
+    const code = character.charCodeAt(0);
+    return code >= 48 && code <= 57;
+  };
+  const isCanonicalDecimal =
+    value === "0" ||
+    (value.length > 0 && value[0] !== "0" && Array.from(value).every(isDecimalDigit));
+
+  if (!isCanonicalDecimal) {
+    throw new InvalidArgumentError("count must be a non-negative decimal integer");
+  }
+
   const tokenCount = Number(value);
 
-  if (!Number.isInteger(tokenCount) || tokenCount < 0) {
-    throw new InvalidArgumentError("count must be a non-negative integer");
+  if (!Number.isSafeInteger(tokenCount) || tokenCount < 0) {
+    throw new InvalidArgumentError("count must be a non-negative decimal integer");
   }
 
   return tokenCount;
@@ -40,10 +52,7 @@ function createTokenfillProgram(output: CliOutput): Command {
     .description("Generate deterministic text with exact token counts")
     .argument("<count>", "Number of tokens to generate", parseTokenCount)
     .option("--json", "Output structured JSON to stdout")
-    .option(
-      "--tokenizer <encoding>",
-      `Tokenizer encoding (default: ${DEFAULT_ENCODING})`
-    )
+    .option("--tokenizer <encoding>", `Tokenizer encoding (default: ${DEFAULT_ENCODING})`)
     .action((count: number, options: CliOptions) => {
       const encoding = (options.tokenizer ?? DEFAULT_ENCODING) as TiktokenEncoding;
       const result = tokenfill(count, { encoding });
@@ -63,16 +72,14 @@ function createTokenfillProgram(output: CliOutput): Command {
       }
 
       output.stdout.write(result.text);
-      output.stderr.write(
-        `Generated ${result.actualTokens} tokens using ${encoding}\n`
-      );
+      output.stderr.write(`Generated ${result.actualTokens} tokens using ${encoding}\n`);
     });
 
   program.configureOutput({
-    writeOut: value => {
+    writeOut: (value) => {
       output.stdout.write(value);
     },
-    writeErr: value => {
+    writeErr: (value) => {
       output.stderr.write(value);
     }
   });

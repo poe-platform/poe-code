@@ -3870,7 +3870,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { resources: { listChanged: true } },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3896,6 +3896,40 @@ describe("McpClient connect", () => {
     await resourcesChangedPromise;
 
     expect(onResourcesChanged).toHaveBeenCalledTimes(1);
+
+    await client.close();
+  });
+
+  it("ignores resources/list_changed when server did not advertise listChanged", async () => {
+    const onResourcesChanged = vi.fn();
+    const { client, readable, iterator, connectPromise } = await startClientHandshake(
+      {
+        protocolVersion: "2025-03-26",
+        capabilities: { resources: {} },
+        serverInfo: { name: "server", version: "1.0.0" },
+      },
+      {
+        clientInfo: {
+          name: "tiny-mcp-client",
+          version: "0.1.0",
+        },
+        onResourcesChanged,
+      }
+    );
+    await connectPromise;
+    await iterator.next();
+
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/resources/list_changed",
+      })}\n`
+    );
+    await new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(onResourcesChanged).toHaveBeenCalledTimes(0);
 
     await client.close();
   });
@@ -3942,7 +3976,7 @@ describe("McpClient connect", () => {
         id: initializeRequest.id,
         result: {
           protocolVersion: "2025-03-26",
-          capabilities: {},
+          capabilities: { prompts: { listChanged: true } },
           serverInfo: {
             name: "server",
             version: "1.0.0",
@@ -3968,6 +4002,40 @@ describe("McpClient connect", () => {
     await promptsChangedPromise;
 
     expect(onPromptsChanged).toHaveBeenCalledTimes(1);
+
+    await client.close();
+  });
+
+  it("ignores prompts/list_changed when server did not advertise listChanged", async () => {
+    const onPromptsChanged = vi.fn();
+    const { client, readable, iterator, connectPromise } = await startClientHandshake(
+      {
+        protocolVersion: "2025-03-26",
+        capabilities: { prompts: {} },
+        serverInfo: { name: "server", version: "1.0.0" },
+      },
+      {
+        clientInfo: {
+          name: "tiny-mcp-client",
+          version: "0.1.0",
+        },
+        onPromptsChanged,
+      }
+    );
+    await connectPromise;
+    await iterator.next();
+
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        method: "notifications/prompts/list_changed",
+      })}\n`
+    );
+    await new Promise<void>((resolve) => {
+      setImmediate(resolve);
+    });
+
+    expect(onPromptsChanged).toHaveBeenCalledTimes(0);
 
     await client.close();
   });
@@ -5685,6 +5753,36 @@ describe("McpClient listResources", () => {
       nextCursor: "4",
     });
   });
+
+  it("rejects invalid resource descriptors returned from resources/list", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { resources: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.listResources();
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected resources/list request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          resources: [{ uri: 42, name: null }],
+          nextCursor: 7,
+        },
+      })}\n`
+    );
+
+    await expect(requestPromise).rejects.toThrow("Invalid resources/list result");
+    await client.close();
+  });
 });
 
 describe("McpClient listResourceTemplates", () => {
@@ -5773,6 +5871,36 @@ describe("McpClient listResourceTemplates", () => {
     await expect(listResourceTemplatesPromise).resolves.toEqual({
       resourceTemplates: expectedResourceTemplates,
     });
+  });
+
+  it("rejects invalid resource templates returned from resources/templates/list", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { resources: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.listResourceTemplates();
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected resources/templates/list request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          resourceTemplates: [{ uriTemplate: 123, name: false, mimeType: 42 }],
+          nextCursor: 7,
+        },
+      })}\n`
+    );
+
+    await expect(requestPromise).rejects.toThrow("Invalid resources/templates/list result");
+    await client.close();
   });
 });
 
@@ -6188,6 +6316,40 @@ describe("McpClient getPrompt", () => {
       new Set(["user", "assistant"])
     );
   });
+
+  it("rejects invalid prompt messages returned from prompts/get", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { prompts: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.getPrompt({ name: "broken" });
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected prompts/get request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          messages: [
+            {
+              role: "system",
+              content: { type: "text", text: 123 },
+            },
+          ],
+        },
+      })}\n`
+    );
+
+    await expect(requestPromise).rejects.toThrow("Invalid prompts/get result");
+    await client.close();
+  });
 });
 
 describe("McpClient complete", () => {
@@ -6482,6 +6644,44 @@ describe("McpClient complete", () => {
 
     await expect(completePromise).resolves.toEqual(expectedResult);
   });
+
+  it("rejects invalid completion values returned from completion/complete", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { completions: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.complete({
+      ref: {
+        type: "ref/prompt",
+        name: "code_review",
+      },
+      argument: {
+        name: "language",
+        value: "p",
+      },
+    });
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected completion/complete request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          completion: { values: "not-an-array" },
+        },
+      })}\n`
+    );
+
+    await expect(requestPromise).rejects.toThrow("Invalid completion/complete result");
+    await client.close();
+  });
 });
 
 describe("McpClient readResource", () => {
@@ -6573,6 +6773,35 @@ describe("McpClient readResource", () => {
     await expect(readResourcePromise).resolves.toEqual({
       contents: expectedContents,
     });
+  });
+
+  it("rejects invalid content returned from resources/read", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { resources: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.readResource({ uri: "memo://bad" });
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected resources/read request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(
+      `${JSON.stringify({
+        jsonrpc: "2.0",
+        id: request.id,
+        result: {
+          contents: [{ uri: "memo://bad", mimeType: 123, text: 456 }],
+        },
+      })}\n`
+    );
+
+    await expect(requestPromise).rejects.toThrow("Invalid resources/read result");
+    await client.close();
   });
 
   it("sends resources/read with uri and returns binary resource contents", async () => {

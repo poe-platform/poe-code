@@ -213,7 +213,10 @@ export class McpClient {
       await onToolsChanged();
     });
     messageLayer.onNotification("notifications/resources/list_changed", async () => {
-      if (onResourcesChanged === undefined) {
+      if (
+        onResourcesChanged === undefined
+        || this.currentServerCapabilities?.resources?.listChanged !== true
+      ) {
         return;
       }
 
@@ -236,7 +239,10 @@ export class McpClient {
       await onResourceUpdated(uri);
     });
     messageLayer.onNotification("notifications/prompts/list_changed", async () => {
-      if (onPromptsChanged === undefined) {
+      if (
+        onPromptsChanged === undefined
+        || this.currentServerCapabilities?.prompts?.listChanged !== true
+      ) {
         return;
       }
 
@@ -521,10 +527,12 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    return (await messageLayer.sendRequest("resources/list", requestParams)) as {
-      resources: Resource[];
-      nextCursor?: string;
-    };
+    const result = await messageLayer.sendRequest("resources/list", requestParams);
+    if (!isResourcesListResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/list result");
+    }
+
+    return result;
   }
 
   async listResourceTemplates(
@@ -537,10 +545,12 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    return (await messageLayer.sendRequest("resources/templates/list", requestParams)) as {
-      resourceTemplates: ResourceTemplate[];
-      nextCursor?: string;
-    };
+    const result = await messageLayer.sendRequest("resources/templates/list", requestParams);
+    if (!isResourceTemplatesListResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/templates/list result");
+    }
+
+    return result;
   }
 
   async readResource(params: ReadResourceParams): Promise<{ contents: ResourceContents[] }> {
@@ -550,9 +560,12 @@ export class McpClient {
       throw new Error("Server does not support resources");
     }
 
-    return (await messageLayer.sendRequest("resources/read", params)) as {
-      contents: ResourceContents[];
-    };
+    const result = await messageLayer.sendRequest("resources/read", params);
+    if (!isReadResourceResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid resources/read result");
+    }
+
+    return result;
   }
 
   async subscribe(uri: string): Promise<void> {
@@ -598,7 +611,12 @@ export class McpClient {
       throw new Error("Server does not support prompts");
     }
 
-    return (await messageLayer.sendRequest("prompts/get", params)) as GetPromptResult;
+    const result = await messageLayer.sendRequest("prompts/get", params);
+    if (!isGetPromptResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid prompts/get result");
+    }
+
+    return result;
   }
 
   async complete(params: CompleteParams): Promise<CompleteResult> {
@@ -608,7 +626,12 @@ export class McpClient {
       throw new Error("Server does not support completions");
     }
 
-    return (await messageLayer.sendRequest("completion/complete", params)) as CompleteResult;
+    const result = await messageLayer.sendRequest("completion/complete", params);
+    if (!isCompleteResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid completion/complete result");
+    }
+
+    return result;
   }
 
   async setLogLevel(level: LogLevel): Promise<void> {
@@ -3597,6 +3620,87 @@ function isToolsListResult(value: unknown): value is { tools: Tool[]; nextCursor
     && (value.nextCursor === undefined || typeof value.nextCursor === "string");
 }
 
+function isResourcesListResult(value: unknown): value is { resources: Resource[]; nextCursor?: string } {
+  return isObjectRecord(value)
+    && Array.isArray(value.resources)
+    && value.resources.every(isResource)
+    && (value.nextCursor === undefined || typeof value.nextCursor === "string");
+}
+
+function isResourceTemplatesListResult(
+  value: unknown
+): value is { resourceTemplates: ResourceTemplate[]; nextCursor?: string } {
+  return isObjectRecord(value)
+    && Array.isArray(value.resourceTemplates)
+    && value.resourceTemplates.every(isResourceTemplate)
+    && (value.nextCursor === undefined || typeof value.nextCursor === "string");
+}
+
+function isReadResourceResult(value: unknown): value is { contents: ResourceContents[] } {
+  return isObjectRecord(value)
+    && Array.isArray(value.contents)
+    && value.contents.every(isResourceContents);
+}
+
+function isGetPromptResult(value: unknown): value is GetPromptResult {
+  return isObjectRecord(value)
+    && (value.description === undefined || typeof value.description === "string")
+    && Array.isArray(value.messages)
+    && value.messages.every(isPromptMessage);
+}
+
+function isCompleteResult(value: unknown): value is CompleteResult {
+  return isObjectRecord(value)
+    && isObjectRecord(value.completion)
+    && Array.isArray(value.completion.values)
+    && value.completion.values.every((candidate) => typeof candidate === "string")
+    && (value.completion.hasMore === undefined || typeof value.completion.hasMore === "boolean")
+    && (value.completion.total === undefined || typeof value.completion.total === "number");
+}
+
+function isResource(value: unknown): value is Resource {
+  return isObjectRecord(value)
+    && typeof value.uri === "string"
+    && typeof value.name === "string"
+    && (value.description === undefined || typeof value.description === "string")
+    && (value.mimeType === undefined || typeof value.mimeType === "string")
+    && (value.size === undefined || typeof value.size === "number");
+}
+
+function isResourceTemplate(value: unknown): value is ResourceTemplate {
+  return isObjectRecord(value)
+    && typeof value.uriTemplate === "string"
+    && typeof value.name === "string"
+    && (value.description === undefined || typeof value.description === "string")
+    && (value.mimeType === undefined || typeof value.mimeType === "string");
+}
+
+function isResourceContents(value: unknown): value is ResourceContents {
+  if (!isObjectRecord(value) || typeof value.uri !== "string") {
+    return false;
+  }
+
+  if (value.mimeType !== undefined && typeof value.mimeType !== "string") {
+    return false;
+  }
+
+  const hasText = value.text !== undefined;
+  const hasBlob = value.blob !== undefined;
+
+  if (!hasText && !hasBlob) {
+    return false;
+  }
+
+  return (!hasText || typeof value.text === "string")
+    && (!hasBlob || typeof value.blob === "string");
+}
+
+function isPromptMessage(value: unknown): value is PromptMessage {
+  return isObjectRecord(value)
+    && (value.role === "user" || value.role === "assistant")
+    && isContentItem(value.content);
+}
+
 function isContentItem(value: unknown): value is ContentItem {
   if (!isObjectRecord(value)) {
     return false;
@@ -3614,9 +3718,7 @@ function isContentItem(value: unknown): value is ContentItem {
     return false;
   }
 
-  return typeof value.resource.uri === "string"
-    && (value.resource.mimeType === undefined || typeof value.resource.mimeType === "string")
-    && (typeof value.resource.text === "string" || typeof value.resource.blob === "string");
+  return isResourceContents(value.resource);
 }
 
 function hasOwn(

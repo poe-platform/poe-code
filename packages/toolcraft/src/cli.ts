@@ -746,11 +746,19 @@ function validateStringPattern(
   schema: Extract<ScalarSchema, { kind: "string" }>,
   label: string
 ): string {
-  if (schema.pattern === undefined) {
-    return value;
+  if (schema.minLength !== undefined && value.length < schema.minLength) {
+    throw new UserError(
+      `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+    );
   }
 
-  if (!matchesStringPattern(value, schema.pattern)) {
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    throw new UserError(
+      `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+    );
+  }
+
+  if (schema.pattern !== undefined && !matchesStringPattern(value, schema.pattern)) {
     throw new UserError(
       `Invalid value for "${label}": "${value}" does not match pattern "${schema.pattern}".`
     );
@@ -1005,6 +1013,20 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
   return splitArrayInput(value).map((item) =>
     parseScalarValue(item, itemSchema as ScalarSchema, label)
   );
+}
+
+function validateArrayBounds(value: unknown[], schema: ArraySchema<any>, label: string): void {
+  if (schema.minItems !== undefined && value.length < schema.minItems) {
+    throw new UserError(
+      `Invalid value for "${label}". Expected an array with at least ${schema.minItems} items, got array(${value.length}).`
+    );
+  }
+
+  if (schema.maxItems !== undefined && value.length > schema.maxItems) {
+    throw new UserError(
+      `Invalid value for "${label}". Expected an array with at most ${schema.maxItems} items, got array(${value.length}).`
+    );
+  }
 }
 
 function createOption(
@@ -1593,7 +1615,11 @@ function formatExampleCommand(
   const commandPath = buildUsageLine(breadcrumb, rootUsageName, "");
   const flags = Object.entries(params).map(([key, value]) => {
     const flag = `--${key}`;
-    return typeof value === "boolean" ? (value ? flag : `--no-${key}`) : `${flag} ${formatExampleValue(value)}`;
+    return typeof value === "boolean"
+      ? value
+        ? flag
+        : `--no-${key}`
+      : `${flag} ${formatExampleValue(value)}`;
   });
 
   return [commandPath, ...flags].filter((token) => token.length > 0).join(" ");
@@ -1604,8 +1630,9 @@ function formatExampleRows(
   breadcrumb: string[],
   rootUsageName: string
 ): string[] {
-  return examples.map((example) =>
-    `${example.title}\n  ${formatExampleCommand(breadcrumb, rootUsageName, example.params)}`
+  return examples.map(
+    (example) =>
+      `${example.title}\n  ${formatExampleCommand(breadcrumb, rootUsageName, example.params)}`
   );
 }
 
@@ -2102,29 +2129,29 @@ function addGlobalOptions(
   }
   if (controls.output) {
     options.push(
-    new Option("--output <format>", "Output format.").argParser((value: string) => {
-      if (value === "rich" || value === "md" || value === "json") {
-        return value;
-      }
+      new Option("--output <format>", "Output format.").argParser((value: string) => {
+        if (value === "rich" || value === "md" || value === "json") {
+          return value;
+        }
 
-      if (value === "markdown") {
-        return "md";
-      }
+        if (value === "markdown") {
+          return "md";
+        }
 
-      throw new InvalidArgumentError(
-        formatInvalidEnumMessage("--output", value, ["rich", "md", "markdown", "json"], {
-          candidates: ["rich", "markdown", "json"],
-          threshold: 3
-        })
-      );
-    })
+        throw new InvalidArgumentError(
+          formatInvalidEnumMessage("--output", value, ["rich", "md", "markdown", "json"], {
+            candidates: ["rich", "markdown", "json"],
+            threshold: 3
+          })
+        );
+      })
     );
   }
   if (controls.debug) {
     options.push(
-    new Option("--debug [mode]", "Print stack traces for unexpected errors.")
-      .preset("trim")
-      .argParser(parseDebugStackMode)
+      new Option("--debug [mode]", "Print stack traces for unexpected errors.")
+        .preset("trim")
+        .argParser(parseDebugStackMode)
     );
   }
   if (controls.verbose) {
@@ -2377,6 +2404,10 @@ function describeExpectedPresetValue(schema: FieldSchema): string {
     return "an array";
   }
 
+  if (schema.kind === "number") {
+    return getExpectedNumberDescription(schema);
+  }
+
   if (schema.kind === "json") {
     return "valid JSON";
   }
@@ -2402,6 +2433,16 @@ function validatePresetScalarValue(
     case "string":
       if (typeof value !== "string") {
         break;
+      }
+      if (schema.minLength !== undefined && value.length < schema.minLength) {
+        throw new UserError(
+          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+        );
+      }
+      if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+        throw new UserError(
+          `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+        );
       }
       if (schema.pattern !== undefined && !matchesStringPattern(value, schema.pattern)) {
         throw new UserError(
@@ -2463,6 +2504,18 @@ function validatePresetFieldValue(
   if (!Array.isArray(value)) {
     throw new UserError(
       `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array, got ${describeReceived(value)}.`
+    );
+  }
+
+  if (field.schema.minItems !== undefined && value.length < field.schema.minItems) {
+    throw new UserError(
+      `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array with at least ${field.schema.minItems} items, got array(${value.length}).`
+    );
+  }
+
+  if (field.schema.maxItems !== undefined && value.length > field.schema.maxItems) {
+    throw new UserError(
+      `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array with at most ${field.schema.maxItems} items, got array(${value.length}).`
     );
   }
 
@@ -3043,6 +3096,7 @@ function parseOptionFieldValue(
         parsedValues.push(...parsed);
       }
 
+      validateArrayBounds(parsedValues, field.schema, field.displayPath);
       return { ok: true, value: parsedValues };
     }
 
@@ -3050,7 +3104,12 @@ function parseOptionFieldValue(
       return { ok: true, value };
     }
 
-    return { ok: true, value: parseFieldInputValue(value, field.schema, field.displayPath) };
+    const parsedValue = parseFieldInputValue(value, field.schema, field.displayPath);
+    if (field.schema.kind === "array" && Array.isArray(parsedValue)) {
+      validateArrayBounds(parsedValue, field.schema, field.displayPath);
+    }
+
+    return { ok: true, value: parsedValue };
   } catch (error) {
     if (error instanceof UserError || error instanceof InvalidArgumentError) {
       errors.push({
@@ -3130,6 +3189,8 @@ function consumeFieldValue(
     if (values.length === 0) {
       throw new InvalidArgumentError(`option '${label}' argument missing`);
     }
+
+    validateArrayBounds(values, schema, label);
 
     return {
       nextIndex,

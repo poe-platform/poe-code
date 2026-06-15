@@ -1299,6 +1299,61 @@ describe("createMCPServer", () => {
     }
   });
 
+  it("rejects MCP arguments that violate string, number, and array constraints", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        slug: S.String({ minLength: 3, maxLength: 5, pattern: "^[a-z]+$" }),
+        count: S.Number({ minimum: 1, maximum: 3 }),
+        tags: S.Array(S.String(), { minItems: 2, maxItems: 2 })
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run]
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(
+        client.callTool({
+          name: "run",
+          arguments: {
+            slug: "BAD",
+            count: 99,
+            tags: ["only-one"]
+          }
+        })
+      ).rejects.toSatisfy(
+        (error: unknown) =>
+          error instanceof Error &&
+          error.message.includes("3 parameter errors:") &&
+          error.message.includes(
+            'Invalid value for "slug": "BAD" does not match pattern "^[a-z]+$".'
+          ) &&
+          error.message.includes(
+            'Invalid value for "count". Expected a number greater than or equal to 1 and less than or equal to 3, got 99.'
+          ) &&
+          error.message.includes(
+            'Invalid value for "tags". Expected an array with at least 2 items, got array(1).'
+          )
+      );
+      expect(handler).not.toHaveBeenCalled();
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("describes received MCP argument values in validation errors", async () => {
     const run = defineCommand({
       name: "run",
@@ -2458,6 +2513,43 @@ describe("createSDK", () => {
         '  - dryRun: Invalid value for "dryRun". Expected a boolean, got "yes".'
       ].join("\n")
     );
+  });
+
+  it("rejects SDK arguments that violate string, number, and array constraints", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          scope: ["sdk"],
+          params: S.Object({
+            slug: S.String({ minLength: 3, maxLength: 5, pattern: "^[a-z]+$" }),
+            count: S.Number({ minimum: 1, maximum: 3 }),
+            tags: S.Array(S.String(), { minItems: 2, maxItems: 2 })
+          }),
+          handler
+        })
+      ]
+    });
+
+    const sdk = createSDK(root);
+
+    await expect(
+      sdk.deploy({
+        slug: "BAD",
+        count: 99,
+        tags: ["only-one"]
+      })
+    ).rejects.toThrow(
+      [
+        "3 parameter errors:",
+        '  - slug: Invalid value for "slug": "BAD" does not match pattern "^[a-z]+$".',
+        '  - count: Invalid value for "count". Expected a number greater than or equal to 1 and less than or equal to 3, got 99.',
+        '  - tags: Invalid value for "tags". Expected an array with at least 2 items, got array(1).'
+      ].join("\n")
+    );
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it("rejects CLI-only helper flags in the SDK argument surface", async () => {

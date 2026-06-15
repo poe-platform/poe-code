@@ -1068,9 +1068,7 @@ describe("runCLI", () => {
   });
 
   it("does not inherit enum option labels for prototype-named values", async () => {
-    const handler = vi.fn(
-      async (ctx: { params: { mode: "constructor" | "safe" } }) => ctx.params
-    );
+    const handler = vi.fn(async (ctx: { params: { mode: "constructor" | "safe" } }) => ctx.params);
 
     const deploy = defineCommand({
       name: "deploy",
@@ -1438,6 +1436,51 @@ describe("runCLI", () => {
     expect(loggerState.error).toEqual([
       withUsagePointer(
         'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+        "deploy"
+      )
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("rejects preset values that violate numeric and array bounds", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        count: S.Number({ minimum: 1, maximum: 3 }),
+        tags: S.Array(S.String(), { minItems: 2, maxItems: 2 })
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    vol.fromJSON({
+      "/presets/invalid-bounds.json": JSON.stringify({
+        count: 99,
+        tags: ["only-one"]
+      })
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "deploy",
+      "--preset",
+      "/presets/invalid-bounds.json",
+      "--yes"
+    ];
+
+    await runCLI(root, { presets: true });
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      withUsagePointer(
+        'Preset file "/presets/invalid-bounds.json" has an invalid value for "count". Expected a number greater than or equal to 1 and less than or equal to 3, got 99.',
         "deploy"
       )
     ]);
@@ -3007,12 +3050,13 @@ describe("runCLI", () => {
   });
 
   it("passes options.fetch to command contexts", async () => {
-    const injectedFetch = vi.fn<typeof globalThis.fetch>(async () =>
-      new Response(JSON.stringify({ ok: true }), {
-        headers: {
-          "content-type": "application/json",
-        },
-      })
+    const injectedFetch = vi.fn<typeof globalThis.fetch>(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          headers: {
+            "content-type": "application/json"
+          }
+        })
     );
     const load = defineCommand({
       name: "load",
@@ -3659,6 +3703,37 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("validates numeric and array bounds before invoking the handler", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        count: S.Number({ minimum: 1, maximum: 3 }),
+        tags: S.Array(S.String(), { minItems: 2, maxItems: 2 })
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--count", "2", "--tags", "only-one", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      withUsagePointer(
+        'Invalid value for "tags". Expected an array with at least 2 items, got array(1).',
+        "deploy"
+      )
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
   it("supports dot-path flags nested deeper than two levels", async () => {
     const handler = vi.fn(async ({ params }: { params: unknown }) => params);
 
@@ -4018,9 +4093,7 @@ describe("runCLI", () => {
   });
 
   it("accepts long option aliases defined on params", async () => {
-    const handler = vi.fn(
-      async ({ params }: { params: { rawResponse?: boolean } }) => params
-    );
+    const handler = vi.fn(async ({ params }: { params: { rawResponse?: boolean } }) => params);
 
     const show = defineCommand({
       name: "show",

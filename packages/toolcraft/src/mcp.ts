@@ -433,7 +433,13 @@ function enumerateTools<TServices extends object>(
         command: node,
         commandPath: resolvedCommandPath,
         name,
-        description: buildToolDescription(node.description, params, node.examples, node.name, casing),
+        description: buildToolDescription(
+          node.description,
+          params,
+          node.examples,
+          node.name,
+          casing
+        ),
         inputSchema: applySchemaCasing(toJsonSchema(params), casing),
         ...(node.result === undefined
           ? {}
@@ -567,6 +573,8 @@ function validateSchemaValue(
           path: label,
           message: `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
         });
+      } else {
+        validateStringConstraints(unwrappedSchema, value, label, errors);
       }
       return value;
 
@@ -602,6 +610,7 @@ function validateSchemaValue(
         });
         return value;
       }
+      validateArrayConstraints(unwrappedSchema, value, label, errors);
       return value.map((item, index) =>
         validateSchemaValue(unwrappedSchema.item, item, casing, `${label}[${index}]`, errors)
       );
@@ -662,6 +671,55 @@ function validateSchemaValue(
         ? value
         : validateObjectSchema(branch, value, casing, label, errors);
     }
+  }
+}
+
+function validateStringConstraints(
+  schema: Extract<AnySchema, { kind: "string" }>,
+  value: string,
+  label: string,
+  errors: ValidationError[]
+): void {
+  if (schema.minLength !== undefined && value.length < schema.minLength) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+    });
+  }
+
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+    });
+  }
+
+  if (schema.pattern !== undefined && !new RegExp(schema.pattern).test(value)) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}": "${value}" does not match pattern "${schema.pattern}".`
+    });
+  }
+}
+
+function validateArrayConstraints(
+  schema: Extract<AnySchema, { kind: "array" }>,
+  value: unknown[],
+  label: string,
+  errors: ValidationError[]
+): void {
+  if (schema.minItems !== undefined && value.length < schema.minItems) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an array with at least ${schema.minItems} items, got array(${value.length}).`
+    });
+  }
+
+  if (schema.maxItems !== undefined && value.length > schema.maxItems) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an array with at most ${schema.maxItems} items, got array(${value.length}).`
+    });
   }
 }
 
@@ -814,7 +872,10 @@ function serializeResultValue(
       if (branch === undefined) {
         const branchNames = Object.keys(unwrappedSchema.branches);
         errors.push({
-          path: label.length === 0 ? unwrappedSchema.discriminator : `${label}.${unwrappedSchema.discriminator}`,
+          path:
+            label.length === 0
+              ? unwrappedSchema.discriminator
+              : `${label}.${unwrappedSchema.discriminator}`,
           message: `Invalid value for "${label.length === 0 ? unwrappedSchema.discriminator : `${label}.${unwrappedSchema.discriminator}`}". Expected one of: ${branchNames.join(", ")}, got ${describeReceived(discriminator)}.`
         });
         return value;
@@ -881,13 +942,17 @@ function serializeResultObject(
       errors.push({
         path: fieldLabel,
         message: `Unexpected result field "${fieldLabel}". ${formatAvailableList(
-          [...expectedKeys].map((expectedKey) => label.length === 0 ? expectedKey : `${label}.${expectedKey}`)
+          [...expectedKeys].map((expectedKey) =>
+            label.length === 0 ? expectedKey : `${label}.${expectedKey}`
+          )
         )}`
       });
     }
   }
 
-  for (const [sourceKey, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
+  for (const [sourceKey, rawChildSchema] of Object.entries(schema.shape) as Array<
+    [string, AnySchema]
+  >) {
     const childSchema = unwrapOptional(rawChildSchema);
     const hasValue = Object.prototype.hasOwnProperty.call(value, sourceKey);
     const wireKey = formatSegment(sourceKey, casing);
@@ -959,9 +1024,7 @@ function throwResultValidationErrors(errors: readonly ValidationError[]): void {
     );
   }
 
-  const rendered = errors
-    .slice(0, 10)
-    .map((error) => `  - ${error.path}: ${error.message}`);
+  const rendered = errors.slice(0, 10).map((error) => `  - ${error.path}: ${error.message}`);
   const remaining = errors.length - rendered.length;
 
   if (remaining > 0) {
@@ -1059,65 +1122,65 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
 
   for (const tool of tools) {
     const handler = async (argumentsValue: Record<string, unknown>) => {
-        let params: unknown;
-        let secrets: Record<string, string | undefined> | undefined;
-        try {
-          secrets = resolveCommandSecrets(tool.command);
-          const baseContext = {
-            ...servicesWithBuiltIns,
-            secrets,
-            fetch: runtimeFetch,
-            fs: createFs(),
-            env: createEnv(),
-            progress(): void {
-              return undefined;
-            }
-          };
-
-          await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
-
-          params = validateToolArguments(tool.command.params, argumentsValue, casing);
-          const result = await invokeWithHumanInLoop(
-            tool.command,
-            {
-              ...baseContext,
-              params
-            } as Parameters<typeof tool.command.handler>[0],
-            runtimeOptions,
-            tool.commandPath
-          );
-
-          if (isHumanInLoopPending(result)) {
-            return renderPendingApproval(result);
+      let params: unknown;
+      let secrets: Record<string, string | undefined> | undefined;
+      try {
+        secrets = resolveCommandSecrets(tool.command);
+        const baseContext = {
+          ...servicesWithBuiltIns,
+          secrets,
+          fetch: runtimeFetch,
+          fs: createFs(),
+          env: createEnv(),
+          progress(): void {
+            return undefined;
           }
+        };
 
-          if (tool.resultSchema !== undefined) {
-            const structuredContent = validateCommandResult(tool.resultSchema, result, casing);
-            return {
-              content: [{ type: "text", text: JSON.stringify(structuredContent) }],
-              structuredContent
-            };
-          }
+        await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
 
-          return toToolContent(result);
-        } catch (error) {
-          if (error instanceof ApprovalDeclinedError) {
-            return renderDeclinedApproval(error);
-          }
+        params = validateToolArguments(tool.command.params, argumentsValue, casing);
+        const result = await invokeWithHumanInLoop(
+          tool.command,
+          {
+            ...baseContext,
+            params
+          } as Parameters<typeof tool.command.handler>[0],
+          runtimeOptions,
+          tool.commandPath
+        );
 
-          await writeErrorReport({
-            command: tool.command,
-            commandPath: tool.commandPath,
-            env: process.env,
-            error,
-            errorReports: options.errorReports,
-            params,
-            projectRoot: options.projectRoot,
-            secrets
-          });
-          throw toToolError(error);
+        if (isHumanInLoopPending(result)) {
+          return renderPendingApproval(result);
         }
-      };
+
+        if (tool.resultSchema !== undefined) {
+          const structuredContent = validateCommandResult(tool.resultSchema, result, casing);
+          return {
+            content: [{ type: "text", text: JSON.stringify(structuredContent) }],
+            structuredContent
+          };
+        }
+
+        return toToolContent(result);
+      } catch (error) {
+        if (error instanceof ApprovalDeclinedError) {
+          return renderDeclinedApproval(error);
+        }
+
+        await writeErrorReport({
+          command: tool.command,
+          commandPath: tool.commandPath,
+          env: process.env,
+          error,
+          errorReports: options.errorReports,
+          params,
+          projectRoot: options.projectRoot,
+          secrets
+        });
+        throw toToolError(error);
+      }
+    };
 
     if (tool.outputSchema === undefined) {
       server.tool(

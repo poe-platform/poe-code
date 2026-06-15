@@ -336,7 +336,7 @@ describe("terminal-pilot-mcp tool surface", () => {
         })
       ).rejects.toMatchObject({
         code: -32602,
-        message: expect.stringContaining("Unknown terminal key")
+        message: expect.stringContaining('Invalid value for "key"')
       });
     });
 

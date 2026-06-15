@@ -394,6 +394,8 @@ function validateSchemaValue(
           path: label,
           message: `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
         });
+      } else {
+        validateStringConstraints(unwrappedSchema, value, label, errors);
       }
       return value;
 
@@ -429,6 +431,7 @@ function validateSchemaValue(
         });
         return value;
       }
+      validateArrayConstraints(unwrappedSchema, value, label, errors);
       return value.map((item, index) =>
         validateSchemaValue(unwrappedSchema.item, item, `${label}[${index}]`, errors)
       );
@@ -486,6 +489,55 @@ function validateSchemaValue(
       );
       return branch === undefined ? value : validateObjectSchema(branch, value, label, errors);
     }
+  }
+}
+
+function validateStringConstraints(
+  schema: Extract<AnySchema, { kind: "string" }>,
+  value: string,
+  label: string,
+  errors: ValidationError[]
+): void {
+  if (schema.minLength !== undefined && value.length < schema.minLength) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${value.length}.`
+    });
+  }
+
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected a string with length at most ${schema.maxLength}, got string with length ${value.length}.`
+    });
+  }
+
+  if (schema.pattern !== undefined && !new RegExp(schema.pattern).test(value)) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}": "${value}" does not match pattern "${schema.pattern}".`
+    });
+  }
+}
+
+function validateArrayConstraints(
+  schema: Extract<AnySchema, { kind: "array" }>,
+  value: unknown[],
+  label: string,
+  errors: ValidationError[]
+): void {
+  if (schema.minItems !== undefined && value.length < schema.minItems) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an array with at least ${schema.minItems} items, got array(${value.length}).`
+    });
+  }
+
+  if (schema.maxItems !== undefined && value.length > schema.maxItems) {
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an array with at most ${schema.maxItems} items, got array(${value.length}).`
+    });
   }
 }
 

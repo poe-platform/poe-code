@@ -76,6 +76,10 @@ function parsePort(value: string | undefined): number {
     return 0;
   }
 
+  if (!isDecimalInteger(value)) {
+    throw new Error("--port must be an integer between 0 and 65535.");
+  }
+
   const port = Number(value);
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw new Error("--port must be an integer between 0 and 65535.");
@@ -89,12 +93,20 @@ function parsePositiveInteger(value: string | undefined, flagName: string): numb
     return 60;
   }
 
+  if (!isDecimalInteger(value)) {
+    throw new Error(`${flagName} must be a positive integer.`);
+  }
+
   const parsed = Number(value);
   if (!Number.isInteger(parsed) || parsed <= 0) {
     throw new Error(`${flagName} must be a positive integer.`);
   }
 
   return parsed;
+}
+
+function isDecimalInteger(value: string): boolean {
+  return value.length > 0 && [...value].every((character) => character >= "0" && character <= "9");
 }
 
 function parseIssuer(value: string | undefined): string | undefined {

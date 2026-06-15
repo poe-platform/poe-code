@@ -288,6 +288,9 @@ describe("tiny-oauth-test-server", () => {
     const redirectUri = "http://127.0.0.1:43123/callback";
 
     expect(() =>
+      createOAuthTestServer({ staticClients: [{ clientId: "   ", redirectUris: [redirectUri] }] })
+    ).toThrow("staticClients[].clientId must be non-empty");
+    expect(() =>
       createOAuthTestServer({ staticClients: [{ clientId: "client", redirectUris: [] }] })
     ).toThrow("staticClients[].redirectUris must be a non-empty array");
     expect(() =>
@@ -1413,6 +1416,44 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects token requests with the wrong content type", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43141/callback";
+    const resource = "https://resource.example.com/mcp";
+    const codeVerifier = createValidVerifier("wrong-content-type");
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      codeChallenge: createPkceChallenge(codeVerifier),
+      redirectUri,
+      resource,
+    });
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      client_id: clientId,
+      code: authorization.code,
+      code_verifier: codeVerifier,
+      redirect_uri: redirectUri,
+      resource,
+    });
+
+    const response = await nodeFetch(`${server.issuer}/token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body.toString(),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+      error_description: "Content-Type must be application/x-www-form-urlencoded",
+    });
+  });
+
   it("issues direct tokens that verify against the published JWKS", async () => {
     const { server } = await listenServer();
     const resource = "https://resource.example.com/direct";
@@ -1433,6 +1474,64 @@ describe("tiny-oauth-test-server", () => {
     expect(verified.payload.client_id).toBe("direct-client");
     expect(verified.payload.scope).toBe("mcp.read");
     expect(verified.payload.exp).toBe(verified.payload.iat! + 120);
+  });
+
+  it("rejects direct tokens with blank client ids", async () => {
+    const { server } = await listenServer();
+
+    for (const clientId of ["", "   "]) {
+      await expect(
+        server.issueTokenFor({
+          clientId,
+          resource: "https://resource.example.com/direct",
+          scopes: ["mcp.read"],
+        })
+      ).rejects.toThrow("clientId must be non-empty");
+
+      const response = await nodeFetch(`${server.issuer}/testing/issue-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: clientId,
+          resource: "https://resource.example.com/direct",
+          scopes: ["mcp.read"],
+        }),
+      });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({
+        error: "invalid_request",
+        error_description: "client_id is required",
+      });
+    }
+  });
+
+  it("rejects direct token scope entries that contain spaces", async () => {
+    const { server } = await listenServer();
+
+    await expect(
+      server.issueTokenFor({
+        clientId: "direct-client",
+        resource: "https://resource.example.com/direct",
+        scopes: ["mcp.read mcp.admin"],
+      })
+    ).rejects.toThrow("scope entries must not contain spaces");
+
+    const response = await nodeFetch(`${server.issuer}/testing/issue-token`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: "direct-client",
+        resource: "https://resource.example.com/direct",
+        scopes: ["mcp.read mcp.admin"],
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_request",
+      error_description: "scope entries must not contain spaces",
+    });
   });
 
   it("rejects direct tokens with a non-positive ttl", async () => {

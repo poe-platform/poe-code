@@ -260,14 +260,27 @@ function formatScope(scope: readonly string[]): string | undefined {
   return scope.length === 0 ? undefined : scope.join(" ");
 }
 
+function isValidScopeEntry(scope: string): boolean {
+  const parsed = parseScope(scope);
+  return scope.length > 0 && parsed.length === 1 && parsed[0] === scope;
+}
+
 function validateConfiguredScopes(scopes: readonly string[] | undefined): void {
   if (scopes === undefined) {
     return;
   }
 
   for (const scope of scopes) {
-    if (scope.length === 0 || parseScope(scope).length !== 1 || parseScope(scope)[0] !== scope) {
+    if (!isValidScopeEntry(scope)) {
       throw new Error("scope entries must not contain spaces");
+    }
+  }
+}
+
+function validateDirectTokenScopes(scopes: readonly string[]): void {
+  for (const scope of scopes) {
+    if (!isValidScopeEntry(scope)) {
+      throw new OAuthRequestError(400, "invalid_request", "scope entries must not contain spaces");
     }
   }
 }
@@ -580,6 +593,17 @@ function requireJsonContentType(headers: Record<string, string>): void {
   }
 }
 
+function requireFormContentType(headers: Record<string, string>): void {
+  const contentType = headers["content-type"]?.split(";")[0]?.trim().toLowerCase();
+  if (contentType !== "application/x-www-form-urlencoded") {
+    throw new OAuthRequestError(
+      400,
+      "invalid_request",
+      "Content-Type must be application/x-www-form-urlencoded"
+    );
+  }
+}
+
 function normalizeRegistrationStringArray(
   value: unknown,
   field: string,
@@ -651,7 +675,7 @@ function assertAllowedScopes(requestedScopes: readonly string[], client: StoredC
 }
 
 function normalizeStaticClient(input: OAuthTestStaticClient): StoredClient {
-  if (input.clientId.length === 0) {
+  if (input.clientId.trim().length === 0) {
     throw new Error("staticClients[].clientId must be non-empty");
   }
 
@@ -812,11 +836,15 @@ export function createOAuthTestServer(
 
     async issueTokenFor(input: DirectTokenIssueOptions): Promise<string> {
       const issuer = getIssuer();
+      if (input.clientId.trim().length === 0) {
+        throw new Error("clientId must be non-empty");
+      }
       const resource = parseAbsoluteUrl(input.resource, "resource");
       const ttlSeconds = input.ttlSeconds ?? defaultTokenTtlSeconds;
       if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0) {
         throw new Error("ttlSeconds must be a positive integer");
       }
+      validateDirectTokenScopes(input.scopes);
       const token = await issueAccessToken({
         issuer,
         clientId: input.clientId,
@@ -927,6 +955,7 @@ export function createOAuthTestServer(
       if (method === "POST" && paths.tokenPaths.includes(url.pathname)) {
         const body = await readBody(request);
         appendRequestLog(body);
+        requireFormContentType(requestHeaders);
         await handleToken(new URLSearchParams(body), response);
         return;
       }
@@ -1265,7 +1294,7 @@ export function createOAuthTestServer(
     const ttlSeconds = getOwnEntry(payload, "ttl_seconds");
     const scopes = getOwnEntry(payload, "scopes");
 
-    if (typeof clientId !== "string" || clientId.length === 0) {
+    if (typeof clientId !== "string" || clientId.trim().length === 0) {
       throw new OAuthRequestError(400, "invalid_request", "client_id is required");
     }
 
@@ -1277,6 +1306,9 @@ export function createOAuthTestServer(
       throw new OAuthRequestError(400, "invalid_request", "scopes must be a string or array");
     }
     const parsedScopes = typeof scopes === "string" ? parseScope(scopes) : scopes ?? [];
+    if (Array.isArray(scopes)) {
+      validateDirectTokenScopes(parsedScopes);
+    }
     if (
       ttlSeconds !== undefined
       && (typeof ttlSeconds !== "number" || !Number.isInteger(ttlSeconds) || ttlSeconds <= 0)

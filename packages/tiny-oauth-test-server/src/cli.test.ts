@@ -89,6 +89,21 @@ describe("tiny-oauth-test-server CLI", () => {
     expect(output.stderr).toBe("");
   });
 
+  it("rejects non-decimal numeric flags", async () => {
+    for (const args of [
+      ["--port", "0x400"],
+      ["--ttl-seconds", "1e2"],
+    ]) {
+      const output = createCapturedOutput();
+      const exitCode = await runCli(args, output.io);
+
+      expect(exitCode).toBe(1);
+      expect(output.stderr).toContain(args[0]);
+      expect(output.stderr).toContain("Usage: tiny-oauth-test-server [options]");
+      expect(output.stdout).toBe("");
+    }
+  });
+
   it("prints the served metadata path for a pathful issuer", async () => {
     const output = createCapturedOutput();
 

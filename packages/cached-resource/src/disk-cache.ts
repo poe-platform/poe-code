@@ -26,6 +26,9 @@ interface ResolveCacheDirDeps {
 }
 
 const TEMP_WRITE_MAX_ATTEMPTS = 3;
+const CACHE_PATH_ERROR_MESSAGE = "Cache path must remain inside its configured directory.";
+
+class DiskCacheConfigError extends Error {}
 
 export async function loadFromDisk<T>(
   config: Pick<CacheConfig, "cacheDir" | "cacheName" | "staleTtl">,
@@ -49,7 +52,10 @@ export async function loadFromDisk<T>(
     }
 
     return cached;
-  } catch {
+  } catch (error) {
+    if (error instanceof DiskCacheConfigError) {
+      throw error;
+    }
     return null;
   }
 }
@@ -67,7 +73,10 @@ export async function persist<T>(
       timestamp: Date.now(),
     };
     await writeCacheFile(filePath, JSON.stringify(cached), deps.fs);
-  } catch {
+  } catch (error) {
+    if (error instanceof DiskCacheConfigError) {
+      throw error;
+    }
     // Disk cache writes are best-effort; callers can still use memory or bundled data.
     return;
   }
@@ -96,8 +105,16 @@ export function resolveCacheDir(
 ): string {
   const xdgCacheHome = getOwnEnvValue(deps?.env ?? process.env, "XDG_CACHE_HOME");
   const home = deps?.homedir ? deps.homedir() : os.homedir();
-  const cacheRoot = xdgCacheHome ?? join(home, ".cache");
-  const cacheDir = join(cacheRoot, appName);
+  const cacheRoot = xdgCacheHome && xdgCacheHome.trim().length > 0
+    ? xdgCacheHome
+    : join(home, ".cache");
+  if (!isAbsolute(cacheRoot)) {
+    throw new Error("XDG_CACHE_HOME must be an absolute path");
+  }
+
+  const normalizedAppName = appName.trim();
+  assertSafeAppName(normalizedAppName);
+  const cacheDir = join(cacheRoot, normalizedAppName);
 
   assertContainedPath(cacheRoot, cacheDir);
   return cacheDir;
@@ -116,7 +133,7 @@ async function resolveCachePath(
       const canonicalExistingPath = await fs.realpath(existingPath);
       const canonicalCacheDir = await fs.realpath(config.cacheDir);
       if (canonicalCacheDir !== resolve(config.cacheDir)) {
-        throw new Error("Cache path must remain inside its configured directory.");
+        throw new DiskCacheConfigError(CACHE_PATH_ERROR_MESSAGE);
       }
       assertContainedPath(canonicalCacheDir, canonicalExistingPath);
       return cachePath;
@@ -174,7 +191,19 @@ async function writeCacheFileOnce(
 function assertContainedPath(basePath: string, targetPath: string): void {
   const relativePath = relative(resolve(basePath), resolve(targetPath));
   if (relativePath === ".." || relativePath.startsWith(`..${pathSeparator()}`) || isAbsolute(relativePath)) {
-    throw new Error("Cache path must remain inside its configured directory.");
+    throw new DiskCacheConfigError(CACHE_PATH_ERROR_MESSAGE);
+  }
+}
+
+function assertSafeAppName(appName: string): void {
+  if (
+    appName.length === 0 ||
+    appName === "." ||
+    appName === ".." ||
+    appName.includes("/") ||
+    appName.includes("\\")
+  ) {
+    throw new Error("appName must be a single non-empty directory name");
   }
 }
 

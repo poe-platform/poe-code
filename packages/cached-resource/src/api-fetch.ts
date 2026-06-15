@@ -8,9 +8,7 @@ export async function fetchFromApi<T>(
   config: Pick<CacheConfig, "apiEndpoint" | "fetchTimeout">,
   deps?: Partial<ApiFetchDeps>,
 ): Promise<T> {
-  if (!Number.isFinite(config.fetchTimeout) || config.fetchTimeout < 0) {
-    throw new Error("fetchTimeout must be a finite non-negative number");
-  }
+  validateFetchConfig(config);
 
   const fetchFn = deps?.fetch ?? globalThis.fetch;
   const controller = new AbortController();
@@ -33,5 +31,19 @@ export async function fetchFromApi<T>(
     throw error;
   } finally {
     clearTimeout(timeoutId);
+  }
+}
+
+export function validateFetchConfig(
+  config: Pick<CacheConfig, "apiEndpoint" | "fetchTimeout">,
+): void {
+  if (!Number.isFinite(config.fetchTimeout) || config.fetchTimeout < 0) {
+    throw new Error("fetchTimeout must be a finite non-negative number");
+  }
+
+  try {
+    new URL(config.apiEndpoint);
+  } catch (error) {
+    throw new Error("apiEndpoint must be a valid URL", { cause: error });
   }
 }

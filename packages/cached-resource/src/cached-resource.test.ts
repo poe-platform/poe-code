@@ -471,7 +471,7 @@ describe("resolveData", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("preferOffline fetches data when no cache exists", async () => {
+  it("preferOffline returns bundled data when no cache exists", async () => {
     const memoryCache = createMockMemoryCache<string[]>();
     const mockFetch = createMockFetch(["net-a"]);
 
@@ -482,8 +482,9 @@ describe("resolveData", () => {
       { preferOffline: true },
     );
 
-    expect(result.data).toEqual(["net-a"]);
-    expect(mockFetch).toHaveBeenCalledOnce();
+    expect(result.data).toEqual(bundledData);
+    expect(result.timestamp).toBe(0);
+    expect(mockFetch).not.toHaveBeenCalled();
   });
 
   it("preferOffline returns memory-cached data if available", async () => {
@@ -560,6 +561,22 @@ describe("resolveData", () => {
     expect(result.timestamp).toBe(0);
   });
 
+  it("forceRefresh rejects invalid fetch configuration", async () => {
+    await expect(resolveData(
+      bundledData,
+      { ...defaultConfig, apiEndpoint: "not a url" },
+      { memoryCache: createMockMemoryCache<string[]>(), fs: createMemFs() },
+      { forceRefresh: true },
+    )).rejects.toThrow("apiEndpoint must be a valid URL");
+
+    await expect(resolveData(
+      bundledData,
+      { ...defaultConfig, fetchTimeout: Infinity },
+      { memoryCache: createMockMemoryCache<string[]>(), fs: createMemFs() },
+      { forceRefresh: true },
+    )).rejects.toThrow("fetchTimeout must be a finite non-negative number");
+  });
+
   describe("stale-while-revalidate", () => {
     it("stale disk data triggers background revalidation", async () => {
       const memoryCache = createMockMemoryCache<string[]>();
@@ -614,6 +631,33 @@ describe("resolveData", () => {
       await revalidator.waitForRevalidation();
 
       expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it("stale memory data triggers background revalidation", async () => {
+      const memoryCache = createMockMemoryCache<string[]>();
+      const revalidator = createRevalidator();
+      const staleCached: CachedData<string[]> = {
+        data: ["stale-memory"],
+        timestamp: Date.now() - defaultConfig.freshTtl - 1,
+      };
+      memoryCache.set("test", staleCached);
+      const mockFetch = createMockFetch(["fresh-memory"]);
+      const fs = createMemFs();
+
+      const result = await resolveData(bundledData, defaultConfig, {
+        memoryCache,
+        fs,
+        fetch: mockFetch,
+        revalidator,
+      });
+
+      expect(result).toEqual(staleCached);
+
+      await revalidator.waitForRevalidation();
+
+      expect(mockFetch).toHaveBeenCalledOnce();
+      expect(memoryCache.get("test")?.data).toEqual(["fresh-memory"]);
+      await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("fresh-memory");
     });
 
     it("rejects non-finite fresh ttl values", async () => {
@@ -996,14 +1040,14 @@ describe("loadFromDisk", () => {
     });
   });
 
-  it("does not read cache names outside the cache directory", async () => {
+  it("rejects cache names outside the cache directory", async () => {
     const fs = createMemFs({
       "/victim/secret.json": JSON.stringify({ data: ["secret"], timestamp: Date.now() }),
     });
 
     await expect(
       loadFromDisk<string[]>({ cacheDir: "/cache", cacheName: "../victim/secret", staleTtl: 60_000 }, { fs }),
-    ).resolves.toBeNull();
+    ).rejects.toThrow("Cache path must remain inside its configured directory.");
   });
 
   it("returns null when file contains invalid JSON", async () => {
@@ -1088,6 +1132,14 @@ describe("persist", () => {
     });
   });
 
+  it("rejects cache names outside the cache directory", async () => {
+    const fs = createMemFs();
+
+    await expect(
+      persist("data", { cacheDir: "/cache", cacheName: "../victim/secret" }, { fs }),
+    ).rejects.toThrow("Cache path must remain inside its configured directory.");
+  });
+
   it("does not follow or remove a colliding temporary cache symlink", async () => {
     const volume = Volume.fromJSON({ "/outside/cache-tmp.json": "outside-state\n" }, "/");
     const fsPromises = createFsFromVolume(volume).promises;
@@ -1122,7 +1174,7 @@ describe("persist", () => {
     expect(JSON.parse(await fs.readFile("/cache/test.json", "utf8"))).toMatchObject({ data: "data" });
   });
 
-  it("does not write through a symlinked cache subdirectory", async () => {
+  it("rejects symlinked cache directories", async () => {
     const volume = Volume.fromJSON({ "/outside/marker": "original" }, "/");
     const fsPromises = createFsFromVolume(volume).promises;
     volume.mkdirSync("/cache", { recursive: true });
@@ -1136,7 +1188,9 @@ describe("persist", () => {
       realpath: (p) => fsPromises.realpath(p) as Promise<string>,
     };
 
-    await persist("data", { cacheDir: "/cache/link", cacheName: "test" }, { fs });
+    await expect(
+      persist("data", { cacheDir: "/cache/link", cacheName: "test" }, { fs }),
+    ).rejects.toThrow("Cache path must remain inside its configured directory.");
 
     await expect(fs.readFile("/outside/test.json", "utf8")).rejects.toThrow();
   });
@@ -1201,6 +1255,18 @@ describe("resolveCacheDir", () => {
     expect(result).toBe("/custom/cache/myapp");
   });
 
+  it("ignores empty XDG_CACHE_HOME and rejects relative values", () => {
+    expect(resolveCacheDir("myapp", {
+      env: { XDG_CACHE_HOME: "" },
+      homedir: () => "/home/user",
+    })).toBe("/home/user/.cache/myapp");
+
+    expect(() => resolveCacheDir("myapp", {
+      env: { XDG_CACHE_HOME: "relative-cache" },
+      homedir: () => "/home/user",
+    })).toThrow("XDG_CACHE_HOME must be an absolute path");
+  });
+
   it("falls back to ~/.cache/<app-name> when XDG_CACHE_HOME is not set", () => {
     const result = resolveCacheDir("myapp", {
       env: {},
@@ -1223,8 +1289,17 @@ describe("resolveCacheDir", () => {
 
   it("rejects application names that leave the cache root", () => {
     expect(() => resolveCacheDir("../escaped", { env: {}, homedir: () => "/home/user" })).toThrow(
-      "Cache path must remain inside its configured directory.",
+      "appName must be a single non-empty directory name",
     );
+  });
+
+  it("rejects blank and path-valued application names", () => {
+    for (const appName of ["", ".", "./", "nested/app"]) {
+      expect(() => resolveCacheDir(appName, {
+        env: { XDG_CACHE_HOME: "/custom/cache" },
+        homedir: () => "/home/user",
+      })).toThrow("appName must be a single non-empty directory name");
+    }
   });
 });
 

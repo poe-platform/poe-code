@@ -3,7 +3,7 @@ import type { MemoryCache } from "./memory-cache.js";
 import type { DiskCacheFs } from "./disk-cache.js";
 import type { Revalidator } from "./background-revalidator.js";
 import { loadFromDisk, persist } from "./disk-cache.js";
-import { fetchFromApi } from "./api-fetch.js";
+import { fetchFromApi, validateFetchConfig } from "./api-fetch.js";
 
 export interface CacheOrchestratorDeps<T> {
   memoryCache: MemoryCache<T>;
@@ -30,6 +30,15 @@ export async function resolveData<T>(
   if (!forceRefresh) {
     const memoryCached = deps.memoryCache.get(config.cacheName);
     if (memoryCached) {
+      const isStale = Date.now() - memoryCached.timestamp > config.freshTtl;
+      if (isStale && deps.revalidator && !offline && !preferOffline) {
+        deps.revalidator.trigger(config.cacheName, async () => {
+          const data = await fetchFromApi<T>(config, { fetch: deps.fetch });
+          const cached: CachedData<T> = { data, timestamp: Date.now() };
+          deps.memoryCache.set(config.cacheName, cached);
+          await persist(data, config, { fs: deps.fs });
+        });
+      }
       return memoryCached;
     }
 
@@ -54,6 +63,12 @@ export async function resolveData<T>(
   if (offline) {
     return { data: bundledData, timestamp: 0 };
   }
+
+  if (preferOffline && !forceRefresh) {
+    return { data: bundledData, timestamp: 0 };
+  }
+
+  validateFetchConfig(config);
 
   try {
     const data = await fetchFromApi<T>(config, { fetch: deps.fetch });

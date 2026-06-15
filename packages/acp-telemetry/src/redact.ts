@@ -3,11 +3,14 @@ const MAX_JSON_BYTES = 262_144;
 const BINARY_SCAN_BYTES = 1_024;
 const REDACTED_SECRET = "[redacted]";
 const BEARER_TOKEN_PATTERN = /\b(Bearer\s+)[A-Za-z0-9._~+/=-]+/gi;
-const ASSIGNED_SECRET_NAME_PATTERN =
-  String.raw`(?:(?:[A-Za-z0-9]+[-_])*api[-_ ]?key|(?:[A-Za-z0-9]+[-_])*(?:token|secret|password|private[-_ ]?key))`;
+const AUTH_HEADER_PATTERN =
+  /\b((?:Proxy-)?Authorization\s*:\s*(?:Bearer|Basic|Token)\s+)[^\s"'\r\n]+/gi;
+const COOKIE_HEADER_PATTERN = /\b((?:Set-)?Cookie\s*:\s*)[^\r\n"']+/gi;
+const URL_USERINFO_PATTERN = /\b([A-Za-z][A-Za-z0-9+.-]*:\/\/)([^/?#\s@]+@)/g;
+const ASSIGNED_SECRET_NAME_PATTERN = String.raw`(?:(?:[A-Za-z0-9]+[-_])*api[-_ ]?key|(?:[A-Za-z0-9]+[-_])*(?:token|secret|password|private[-_ ]?key))`;
 const ASSIGNED_SECRET_PATTERN = new RegExp(
   String.raw`\b(${ASSIGNED_SECRET_NAME_PATTERN}\s*[:=]\s*)(?:"[^"\r\n]*"|'[^'\r\n]*'|[A-Za-z0-9._~+/=-]+)`,
-  "gi",
+  "gi"
 );
 
 export function redact(value: unknown): unknown {
@@ -65,7 +68,7 @@ function redactLeaf(value: unknown, ancestors: WeakSet<object>, key?: string): u
         configurable: true,
         enumerable: true,
         value: redactLeaf(item, ancestors, key),
-        writable: true,
+        writable: true
       });
     }
     ancestors.delete(value);
@@ -82,6 +85,9 @@ function redactString(value: string): string {
   }
 
   return value
+    .replace(URL_USERINFO_PATTERN, `$1${REDACTED_SECRET}@`)
+    .replace(AUTH_HEADER_PATTERN, `$1${REDACTED_SECRET}`)
+    .replace(COOKIE_HEADER_PATTERN, `$1${REDACTED_SECRET}`)
     .replace(BEARER_TOKEN_PATTERN, `$1${REDACTED_SECRET}`)
     .replace(ASSIGNED_SECRET_PATTERN, redactAssignedSecretValue);
 }

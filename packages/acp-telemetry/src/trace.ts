@@ -33,17 +33,17 @@ export function acpToTrace(ctx: AcpSpawnContext): AcpTrace {
       input: redact({
         prompt: ctx.prompt,
         mode: ctx.mode,
-        cwd: ctx.cwd,
+        cwd: ctx.cwd
       }),
       output: redact(accumulateAgentOutput(ctx.events)),
       metadata: redactRecord({
         ...spawnCtx.metadata,
         sessionId: ctx.sessionId,
-        threadId: ctx.threadId,
+        threadId: ctx.threadId
       }),
       metrics: buildMetrics(ctx),
-      children: logToolSpans(ctx.events),
-    },
+      children: logToolSpans(ctx.events)
+    }
   };
 }
 
@@ -65,7 +65,7 @@ function logToolSpans(events: AcpEvent[]): AcpTraceSpan[] {
       output: redact(assembleToolOutput(events, index, toolCallId)),
       ...(metadata ? { metadata } : {}),
       ...readSpanTimestamps(metadata),
-      children: [],
+      children: []
     });
   }
 
@@ -75,10 +75,10 @@ function logToolSpans(events: AcpEvent[]): AcpTraceSpan[] {
 function collectToolMeta(
   events: AcpEvent[],
   toolCallIndex: number,
-  toolCallId: string | undefined,
+  toolCallId: string | undefined
 ): Record<string, unknown> | undefined {
   const merged: Record<string, unknown> = {
-    ...(toolCallId !== undefined ? { toolCallId } : {}),
+    ...(toolCallId !== undefined ? { toolCallId } : {})
   };
 
   const startMeta = asRecord(asRecord(events[toolCallIndex])?._meta);
@@ -89,6 +89,10 @@ function collectToolMeta(
   }
 
   for (const event of events.slice(toolCallIndex + 1)) {
+    if (toolCallId === undefined && asToolCall(event) !== undefined) {
+      break;
+    }
+
     const update = asToolCallUpdate(event);
     if (update === undefined) continue;
     if (readToolCallId(update) !== toolCallId) continue;
@@ -131,12 +135,16 @@ function accumulateAgentOutput(events: AcpEvent[]): string {
 function assembleToolOutput(
   events: AcpEvent[],
   toolCallIndex: number,
-  toolCallId: string | undefined,
+  toolCallId: string | undefined
 ): unknown {
   const outputs: unknown[] = [];
   let text = "";
 
   for (const event of events.slice(toolCallIndex + 1)) {
+    if (toolCallId === undefined && asToolCall(event) !== undefined) {
+      break;
+    }
+
     const update = asToolCallUpdate(event);
     if (update === undefined) {
       continue;
@@ -182,17 +190,17 @@ function buildMetrics(ctx: AcpSpawnContext): Record<string, number> {
   addMetric(
     metrics,
     "tokens",
-    readNumber(usage.tokens) ?? sumIfPresent(promptTokens, completionTokens),
+    readNumber(usage.tokens) ?? sumIfPresent(promptTokens, completionTokens)
   );
   addMetric(
     metrics,
     "prompt_cached_tokens",
-    readNumber(usage.prompt_cached_tokens) ?? readNumber(usage.cachedTokens),
+    readNumber(usage.prompt_cached_tokens) ?? readNumber(usage.cachedTokens)
   );
   addMetric(
     metrics,
     "prompt_cache_creation_tokens",
-    readNumber(usage.prompt_cache_creation_tokens),
+    readNumber(usage.prompt_cache_creation_tokens)
   );
   addMetric(metrics, "durationMs", readNumber(usage.durationMs));
 
@@ -239,7 +247,7 @@ function readContentText(value: unknown): string {
 }
 
 function readSpanTimestamps(
-  metadata: Record<string, unknown> | undefined,
+  metadata: Record<string, unknown> | undefined
 ): Pick<AcpTraceSpan, "startTs" | "endTs"> {
   if (metadata === undefined) {
     return {};
@@ -250,7 +258,7 @@ function readSpanTimestamps(
 
   return {
     ...(startTs !== undefined ? { startTs } : {}),
-    ...(endTs !== undefined ? { endTs } : {}),
+    ...(endTs !== undefined ? { endTs } : {})
   };
 }
 
@@ -260,9 +268,7 @@ function redactRecord(record: Record<string, unknown>): Record<string, unknown> 
 }
 
 function asRecord(value: unknown): EventRecord | undefined {
-  return typeof value === "object" && value !== null
-    ? value as EventRecord
-    : undefined;
+  return typeof value === "object" && value !== null ? (value as EventRecord) : undefined;
 }
 
 function readString(value: unknown): string | undefined {
@@ -270,41 +276,28 @@ function readString(value: unknown): string | undefined {
 }
 
 function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value)
-    ? value
-    : undefined;
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
-function addMetric(
-  metrics: Record<string, number>,
-  key: string,
-  value: number | undefined,
-): void {
-  if (value !== undefined) {
+function addMetric(metrics: Record<string, number>, key: string, value: number | undefined): void {
+  if (value !== undefined && value >= 0) {
     metrics[key] = value;
   }
 }
 
-function sumIfPresent(
-  left: number | undefined,
-  right: number | undefined,
-): number | undefined {
-  if (left === undefined || right === undefined) {
+function sumIfPresent(left: number | undefined, right: number | undefined): number | undefined {
+  if (left === undefined || right === undefined || left < 0 || right < 0) {
     return undefined;
   }
 
   return readNumber(left + right);
 }
 
-function setOwnProperty(
-  target: Record<string, unknown>,
-  key: string,
-  value: unknown,
-): void {
+function setOwnProperty(target: Record<string, unknown>, key: string, value: unknown): void {
   Object.defineProperty(target, key, {
     configurable: true,
     enumerable: true,
     value,
-    writable: true,
+    writable: true
   });
 }

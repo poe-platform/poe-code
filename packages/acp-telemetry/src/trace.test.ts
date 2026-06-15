@@ -5,15 +5,17 @@ import { acpToTrace } from "./trace.js";
 
 describe("acpToTrace", () => {
   it("builds a root span with no children and metrics from ctx.usage for an empty event list", () => {
-    const trace = acpToTrace(createContext({
-      events: [],
-      usage: {
-        inputTokens: 11,
-        outputTokens: 7,
-        cachedTokens: 3,
-        durationMs: 125,
-      },
-    }));
+    const trace = acpToTrace(
+      createContext({
+        events: [],
+        usage: {
+          inputTokens: 11,
+          outputTokens: 7,
+          cachedTokens: 3,
+          durationMs: 125
+        }
+      })
+    );
 
     expect(trace.root).toMatchObject({
       name: "agent:codex:gpt-5",
@@ -21,16 +23,16 @@ describe("acpToTrace", () => {
       output: "",
       metadata: {
         sessionId: "session-1",
-        threadId: "thread-1",
+        threadId: "thread-1"
       },
       metrics: {
         prompt_tokens: 11,
         completion_tokens: 7,
         tokens: 18,
         prompt_cached_tokens: 3,
-        durationMs: 125,
+        durationMs: 125
       },
-      children: [],
+      children: []
     });
   });
 
@@ -41,14 +43,14 @@ describe("acpToTrace", () => {
         toolCallId: "tc-1",
         kind: "read",
         input: { path: "README.md" },
-        _meta: { ts: 100, toolName: "Read" },
+        _meta: { ts: 100, toolName: "Read" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
         content: [{ type: "text", text: "contents" }],
-        _meta: { ts: 250, statusText: "done" },
-      },
+        _meta: { ts: 250, statusText: "done" }
+      }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -64,12 +66,12 @@ describe("acpToTrace", () => {
           startTs: 100,
           toolName: "Read",
           endTs: 250,
-          statusText: "done",
+          statusText: "done"
         },
         startTs: 100,
         endTs: 250,
-        children: [],
-      },
+        children: []
+      }
     ]);
   });
 
@@ -79,29 +81,29 @@ describe("acpToTrace", () => {
         sessionUpdate: "tool_call",
         toolCallId: "tc-1",
         kind: "read",
-        rawInput: { path: "a.txt" },
+        rawInput: { path: "a.txt" }
       },
       {
         sessionUpdate: "tool_call",
         toolCallId: "tc-2",
         kind: "execute",
-        rawInput: { command: "pwd" },
+        rawInput: { command: "pwd" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-2",
-        rawOutput: { exitCode: 0 },
+        rawOutput: { exitCode: 0 }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
-        content: [{ type: "text", text: "alpha" }],
+        content: [{ type: "text", text: "alpha" }]
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-2",
-        content: [{ type: "text", text: "workspace" }],
-      },
+        content: [{ type: "text", text: "workspace" }]
+      }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -110,13 +112,13 @@ describe("acpToTrace", () => {
       {
         name: "tool_call:read",
         input: { path: "a.txt" },
-        output: "alpha",
+        output: "alpha"
       },
       {
         name: "tool_call:execute",
         input: { command: "pwd" },
-        output: [{ exitCode: 0 }, "workspace"],
-      },
+        output: [{ exitCode: 0 }, "workspace"]
+      }
     ]);
   });
 
@@ -124,7 +126,7 @@ describe("acpToTrace", () => {
     const events = [
       { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Hello " } },
       { event: "agent_message", text: "world" },
-      { sessionUpdate: "agent_message_chunk", content: [{ type: "text", text: "!" }] },
+      { sessionUpdate: "agent_message_chunk", content: [{ type: "text", text: "!" }] }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -133,22 +135,39 @@ describe("acpToTrace", () => {
   });
 
   it("normalizes usage from canonical token fields", () => {
-    const trace = acpToTrace(createContext({
-      usage: {
-        prompt_tokens: 5,
-        completion_tokens: 8,
-        prompt_cached_tokens: 2,
-        prompt_cache_creation_tokens: 3,
-      },
-    }));
+    const trace = acpToTrace(
+      createContext({
+        usage: {
+          prompt_tokens: 5,
+          completion_tokens: 8,
+          prompt_cached_tokens: 2,
+          prompt_cache_creation_tokens: 3
+        }
+      })
+    );
 
     expect(trace.root.metrics).toEqual({
       prompt_tokens: 5,
       completion_tokens: 8,
       tokens: 13,
       prompt_cached_tokens: 2,
-      prompt_cache_creation_tokens: 3,
+      prompt_cache_creation_tokens: 3
     });
+  });
+
+  it("omits negative usage metrics and derived totals from the root span", () => {
+    const trace = acpToTrace(
+      createContext({
+        usage: {
+          inputTokens: -10,
+          outputTokens: -5,
+          cachedTokens: -3,
+          durationMs: -100
+        }
+      })
+    );
+
+    expect(trace.root.metrics).toEqual({});
   });
 
   it("accepts contexts without optional usage metrics", () => {
@@ -164,14 +183,14 @@ describe("acpToTrace", () => {
         id: "tc-1",
         kind: "exec",
         title: "pwd",
-        input: { command: "pwd" },
+        input: { command: "pwd" }
       },
       {
         event: "tool_complete",
         id: "tc-1",
         kind: "exec",
-        path: "/repo",
-      },
+        path: "/repo"
+      }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -181,35 +200,39 @@ describe("acpToTrace", () => {
         name: "tool_call:exec",
         input: { command: "pwd" },
         output: "/repo",
-        metadata: { toolCallId: "tc-1" },
-      },
+        metadata: { toolCallId: "tc-1" }
+      }
     ]);
   });
 
   it("carries ctx.metadata.aborted into root metadata", () => {
-    const trace = acpToTrace(createContext({
-      metadata: {
-        aborted: true,
-      },
-    }));
+    const trace = acpToTrace(
+      createContext({
+        metadata: {
+          aborted: true
+        }
+      })
+    );
 
     expect(trace.root.metadata).toMatchObject({
       sessionId: "session-1",
-      aborted: true,
+      aborted: true
     });
   });
 
   it("keeps authoritative session identifiers over supplemental metadata", () => {
-    const trace = acpToTrace(createContext({
-      metadata: {
-        sessionId: "spoofed-session",
-        threadId: "spoofed-thread",
-      },
-    }));
+    const trace = acpToTrace(
+      createContext({
+        metadata: {
+          sessionId: "spoofed-session",
+          threadId: "spoofed-thread"
+        }
+      })
+    );
 
     expect(trace.root.metadata).toMatchObject({
       sessionId: "session-1",
-      threadId: "thread-1",
+      threadId: "thread-1"
     });
   });
 
@@ -219,20 +242,22 @@ describe("acpToTrace", () => {
         sessionUpdate: "tool_call",
         toolCallId: "tc-1",
         rawInput: { query: "status" },
-        _meta: { ts: "not-a-number", phase: "start" },
+        _meta: { ts: "not-a-number", phase: "start" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
         rawOutput: { ok: true },
-        _meta: { ts: "also-not-a-number", phase: "end" },
-      },
+        _meta: { ts: "also-not-a-number", phase: "end" }
+      }
     ] as unknown as AcpEvent[];
 
-    const trace = acpToTrace(createContext({
-      events,
-      model: undefined,
-    }));
+    const trace = acpToTrace(
+      createContext({
+        events,
+        model: undefined
+      })
+    );
 
     expect(trace.root.name).toBe("agent:codex:?");
     expect(trace.root.children).toEqual([
@@ -245,10 +270,10 @@ describe("acpToTrace", () => {
           toolCallId: "tc-1",
           startTs: "not-a-number",
           phase: "end",
-          endTs: "also-not-a-number",
+          endTs: "also-not-a-number"
         },
-        children: [],
-      },
+        children: []
+      }
     ]);
   });
 
@@ -257,28 +282,30 @@ describe("acpToTrace", () => {
     const events = [
       {
         sessionUpdate: "agent_message_chunk",
-        content: { type: "text", text: longText },
+        content: { type: "text", text: longText }
       },
       {
         sessionUpdate: "tool_call",
         toolCallId: "tc-1",
         kind: "read",
-        input: longText,
+        input: longText
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
-        rawOutput: longText,
-      },
+        rawOutput: longText
+      }
     ] as unknown as AcpEvent[];
 
-    const trace = acpToTrace(createContext({
-      events,
-      prompt: longText,
-    }));
+    const trace = acpToTrace(
+      createContext({
+        events,
+        prompt: longText
+      })
+    );
 
     expect(trace.root.input).toMatchObject({
-      prompt: "[truncated:65537]",
+      prompt: "[truncated:65537]"
     });
     expect(trace.root.output).toBe("[truncated:65537]");
     expect(trace.root.children[0]?.input).toBe("[truncated:65537]");
@@ -294,50 +321,52 @@ describe("acpToTrace", () => {
         input: {
           env: {
             PATH: "/usr/bin",
-            POE_API_KEY: "sk-tool",
+            POE_API_KEY: "sk-tool"
           },
           headers: {
-            Authorization: "Bearer tool-token",
-          },
+            Authorization: "Bearer tool-token"
+          }
         },
-        _meta: { token: "meta-token" },
+        _meta: { token: "meta-token" }
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
         rawOutput: "api_key=sk-output",
-        content: [{ type: "text", text: "Bearer output-token" }],
-      },
+        content: [{ type: "text", text: "Bearer output-token" }]
+      }
     ] as unknown as AcpEvent[];
 
-    const trace = acpToTrace(createContext({
-      events,
-      metadata: { apiKey: "sk-root" },
-      prompt: "Use Bearer prompt-token",
-    }));
+    const trace = acpToTrace(
+      createContext({
+        events,
+        metadata: { apiKey: "sk-root" },
+        prompt: "Use Bearer prompt-token"
+      })
+    );
 
     expect(trace.root.input).toMatchObject({
-      prompt: "Use Bearer [redacted]",
+      prompt: "Use Bearer [redacted]"
     });
     expect(trace.root.metadata).toMatchObject({
       apiKey: "[redacted]",
       sessionId: "session-1",
-      threadId: "thread-1",
+      threadId: "thread-1"
     });
     expect(trace.root.children[0]).toMatchObject({
       input: {
         env: {
           PATH: "/usr/bin",
-          POE_API_KEY: "[redacted]",
+          POE_API_KEY: "[redacted]"
         },
         headers: {
-          Authorization: "[redacted]",
-        },
+          Authorization: "[redacted]"
+        }
       },
       output: ["api_key=[redacted]", "Bearer [redacted]"],
       metadata: {
-        token: "[redacted]",
-      },
+        token: "[redacted]"
+      }
     });
   });
 
@@ -345,33 +374,35 @@ describe("acpToTrace", () => {
     const events = [
       {
         event: "agent_message",
-        text: "OPENAI_API_KEY=\"sk-agent\"",
+        text: 'OPENAI_API_KEY="sk-agent"'
       },
       {
         sessionUpdate: "tool_call",
         toolCallId: "tc-1",
         kind: "execute",
-        input: "token: \"tok-input\"",
+        input: 'token: "tok-input"'
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-1",
-        rawOutput: "password=\"pw-output\"",
-      },
+        rawOutput: 'password="pw-output"'
+      }
     ] as unknown as AcpEvent[];
 
-    const trace = acpToTrace(createContext({
-      events,
-      prompt: "OPENAI_API_KEY=sk-prompt",
-    }));
+    const trace = acpToTrace(
+      createContext({
+        events,
+        prompt: "OPENAI_API_KEY=sk-prompt"
+      })
+    );
 
     expect(trace.root.input).toMatchObject({
-      prompt: "OPENAI_API_KEY=[redacted]",
+      prompt: "OPENAI_API_KEY=[redacted]"
     });
-    expect(trace.root.output).toBe("OPENAI_API_KEY=\"[redacted]\"");
+    expect(trace.root.output).toBe('OPENAI_API_KEY="[redacted]"');
     expect(trace.root.children[0]).toMatchObject({
-      input: "token: \"[redacted]\"",
-      output: "password=\"[redacted]\"",
+      input: 'token: "[redacted]"',
+      output: 'password="[redacted]"'
     });
   });
 
@@ -379,15 +410,15 @@ describe("acpToTrace", () => {
     const metadata: Record<string, unknown> = { raw: "a".repeat(65_537) };
     Object.defineProperty(metadata, "__proto__", {
       value: "safe-value",
-      enumerable: true,
+      enumerable: true
     });
     const events = [
       {
         sessionUpdate: "tool_call",
         toolCallId: "tc-1",
         kind: "read",
-        _meta: metadata,
-      },
+        _meta: metadata
+      }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -400,16 +431,18 @@ describe("acpToTrace", () => {
   });
 
   it("does not emit a non-finite derived total token count", () => {
-    const trace = acpToTrace(createContext({
-      usage: {
-        prompt_tokens: Number.MAX_VALUE,
-        completion_tokens: Number.MAX_VALUE,
-      },
-    }));
+    const trace = acpToTrace(
+      createContext({
+        usage: {
+          prompt_tokens: Number.MAX_VALUE,
+          completion_tokens: Number.MAX_VALUE
+        }
+      })
+    );
 
     expect(trace.root.metrics).toEqual({
       prompt_tokens: Number.MAX_VALUE,
-      completion_tokens: Number.MAX_VALUE,
+      completion_tokens: Number.MAX_VALUE
     });
   });
 
@@ -417,19 +450,19 @@ describe("acpToTrace", () => {
     const events = [
       {
         sessionUpdate: "tool_call",
-        kind: "read",
+        kind: "read"
       },
       {
         sessionUpdate: "tool_call",
         toolCallId: "tc-2",
-        kind: "execute",
+        kind: "execute"
       },
       {
         sessionUpdate: "tool_call_update",
         toolCallId: "tc-2",
         rawOutput: "workspace",
-        _meta: { ts: 25 },
-      },
+        _meta: { ts: 25 }
+      }
     ] as unknown as AcpEvent[];
 
     const trace = acpToTrace(createContext({ events }));
@@ -437,19 +470,43 @@ describe("acpToTrace", () => {
     expect(trace.root.children).toMatchObject([
       {
         name: "tool_call:read",
-        output: "",
+        output: ""
       },
       {
         name: "tool_call:execute",
         output: "workspace",
-        metadata: { toolCallId: "tc-2", endTs: 25 },
+        metadata: { toolCallId: "tc-2", endTs: 25 }
+      }
+    ]);
+  });
+
+  it("keeps sequential idless tool outputs on their originating spans", () => {
+    const events = [
+      { event: "tool_start", kind: "read_file", rawInput: { path: "a.txt" } },
+      { event: "tool_complete", content: [{ type: "text", text: "A output" }] },
+      { event: "tool_start", kind: "read_file", rawInput: { path: "b.txt" } },
+      { event: "tool_complete", content: [{ type: "text", text: "B output" }] }
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({ events }));
+
+    expect(trace.root.children).toMatchObject([
+      {
+        name: "tool_call:read_file",
+        input: { path: "a.txt" },
+        output: "A output"
       },
+      {
+        name: "tool_call:read_file",
+        input: { path: "b.txt" },
+        output: "B output"
+      }
     ]);
   });
 });
 
 function createContext(
-  overrides: Partial<AcpSpawnContext> & { metadata?: Record<string, unknown> } = {},
+  overrides: Partial<AcpSpawnContext> & { metadata?: Record<string, unknown> } = {}
 ): AcpSpawnContext & { metadata?: Record<string, unknown> } {
   return {
     sessionId: "session-1",
@@ -462,8 +519,8 @@ function createContext(
     events: [],
     usage: {
       inputTokens: 0,
-      outputTokens: 0,
+      outputTokens: 0
     },
-    ...overrides,
+    ...overrides
   };
 }

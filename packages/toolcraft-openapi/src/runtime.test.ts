@@ -12,6 +12,7 @@ import {
   prepareMultipartFileInputs,
   requestJson,
   resolveOpenApiBaseUrl,
+  validateArrayJsonHelperValue,
   writeBinaryResponseOutput,
   type OpenApiDocument
 } from "./index.js";
@@ -470,7 +471,7 @@ function evaluateGeneratedCommand(fileContents: string, exportName: string) {
     "exports",
     `
 const { S, UserError } = deps.agentKit;
-const { requestJson, defineApiCommand, prepareMultipartFileInputs, writeBinaryResponseOutput } = deps.openapi;
+const { requestJson, defineApiCommand, prepareMultipartFileInputs, validateArrayJsonHelperValue, writeBinaryResponseOutput } = deps.openapi;
 ${transformedContents}
 return exports;
 `
@@ -481,6 +482,7 @@ return exports;
         requestJson: typeof requestJson;
         defineApiCommand: typeof defineApiCommand;
         prepareMultipartFileInputs: typeof prepareMultipartFileInputs;
+        validateArrayJsonHelperValue: typeof validateArrayJsonHelperValue;
         writeBinaryResponseOutput: typeof writeBinaryResponseOutput;
       };
     },
@@ -494,6 +496,7 @@ return exports;
         requestJson,
         defineApiCommand,
         prepareMultipartFileInputs,
+        validateArrayJsonHelperValue,
         writeBinaryResponseOutput
       }
     },
@@ -847,6 +850,51 @@ describe("commandsFromSpec", () => {
         })
       })
     );
+  });
+
+  it("validates runtime array JSON helper items in generated handlers", async () => {
+    const commands = await commandsFromSpec(createArrayBodyDocument());
+    const fetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: {
+          "content-type": "application/json"
+        }
+      })
+    );
+    const client = defineClient({
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([]),
+      commands
+    });
+    const conversationsGroup = client.root.children[0];
+
+    if (conversationsGroup?.kind !== "group") {
+      throw new Error("Expected a generated conversations group.");
+    }
+
+    const command = conversationsGroup.children[0];
+
+    if (command?.kind !== "command") {
+      throw new Error("Expected a generated command.");
+    }
+
+    await expect(
+      command.handler({
+        params: {
+          startersJson: "[1,2]"
+        },
+        baseUrl: client.services.baseUrl,
+        tokenSource: client.services.tokenSource,
+        fetch
+      })
+    ).rejects.toMatchObject<UserError>({
+      name: "UserError",
+      message: 'Invalid value for "--starters-json". Expected string at [0].'
+    });
+
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("keeps generated code and runtime handlers in parity for preflight + request-shape behavior", async () => {

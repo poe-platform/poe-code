@@ -43,6 +43,7 @@ describe("toolcraft-openapi", () => {
       "renderOpenApiInspection",
       "requestJson",
       "resolveOpenApiBaseUrl",
+      "validateArrayJsonHelperValue",
       "validateToolcraftConfig",
       "writeBinaryResponseOutput"
     ]);

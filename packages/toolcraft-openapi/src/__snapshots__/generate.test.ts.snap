@@ -229,7 +229,7 @@ exports[`generate > generates array body params with a repeatable CLI flag, a JS
  * operation-id: setConversationStarters
  */
 import { S, UserError } from "toolcraft";
-import { requestJson, defineApiCommand } from "toolcraft-openapi";
+import { requestJson, defineApiCommand, validateArrayJsonHelperValue } from "toolcraft-openapi";
 
 export const botsSetConversationStartersCommand = defineApiCommand({
   name: "set-conversation-starters",
@@ -257,6 +257,7 @@ export const botsSetConversationStartersCommand = defineApiCommand({
       if (!Array.isArray(parsedJson)) {
         throw new UserError("Invalid value for \\"--starters-json\\". Expected a JSON array.");
       }
+      validateArrayJsonHelperValue(parsedJson, {"kind":"array","itemDefinition":{"kind":"string"},"maxItems":4}, "startersJson");
       resolvedStarters = parsedJson;
     }
     if (resolvedStarters === undefined) {

@@ -33,6 +33,7 @@ export {
   requestJson,
   writeBinaryResponseOutput
 } from "./http.js";
+export { validateArrayJsonHelperValue } from "./interpreter.js";
 export type {
   BinaryHttpResponse,
   HttpErrorRequest,

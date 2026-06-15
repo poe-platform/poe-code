@@ -2,6 +2,7 @@ import { UserError } from "toolcraft";
 import { isIdentifierName, toCliFlag } from "./naming.js";
 import { REQUEST_PARAM_SECTIONS, type RequestParamSection, type RequestSectionKey } from "./request-shape.js";
 import type {
+  GeneratedParamDefinition,
   GeneratedPreflightBlock,
   GeneratedRequestField,
   GeneratedRequestLocation,
@@ -20,6 +21,13 @@ interface PreflightExecutionContext {
   params: Readonly<Record<string, unknown>>;
   resolvedValues: Record<string, unknown>;
 }
+
+type GeneratedArrayDefinition = GeneratedParamDefinition & {
+  kind: "array";
+  itemDefinition: GeneratedParamDefinition;
+};
+type GeneratedNumberDefinition = GeneratedParamDefinition & { kind: "number" };
+type GeneratedStringDefinition = GeneratedParamDefinition & { kind: "string" };
 
 interface RequestSectionOperation {
   render: (
@@ -169,6 +177,7 @@ const PREFLIGHT_BLOCK_OPERATIONS = {
         "      if (!Array.isArray(parsedJson)) {",
         `        throw new UserError(${JSON.stringify(getInvalidArrayJsonMessage(block.jsonParamName, "Expected a JSON array."))});`,
         "      }",
+        `      validateArrayJsonHelperValue(parsedJson, ${JSON.stringify(block.definition)}, ${JSON.stringify(block.jsonParamName)});`,
         `      ${block.resolvedName} = parsedJson;`,
         "    }",
         ...(block.nullParamName === undefined
@@ -219,6 +228,7 @@ const PREFLIGHT_BLOCK_OPERATIONS = {
           throw new UserError(getInvalidArrayJsonMessage(block.jsonParamName, "Expected a JSON array."));
         }
 
+        validateArrayJsonHelperValue(parsedJson, block.definition, block.jsonParamName);
         resolved = parsedJson;
       }
 
@@ -337,6 +347,151 @@ export function executePreflightBlocks(
   }
 
   return resolvedValues;
+}
+
+export function validateArrayJsonHelperValue(
+  value: unknown,
+  definition: GeneratedArrayDefinition,
+  jsonParamName: string
+): void {
+  const issue = findDefinitionIssue(value, definition, []);
+
+  if (issue !== undefined) {
+    throw new UserError(getInvalidArrayJsonMessage(jsonParamName, issue));
+  }
+}
+
+function findDefinitionIssue(
+  value: unknown,
+  definition: GeneratedParamDefinition,
+  path: readonly string[]
+): string | undefined {
+  if (value === null) {
+    return definition.nullable === true || definition.kind === "json"
+      ? undefined
+      : `Expected ${expectedDefinition(definition)} at ${formatJsonPath(path)}.`;
+  }
+
+  switch (definition.kind) {
+    case "array":
+      return findArrayDefinitionIssue(value, definition, path);
+    case "boolean":
+      return typeof value === "boolean"
+        ? undefined
+        : `Expected boolean at ${formatJsonPath(path)}.`;
+    case "enum":
+      return definition.enumValues.includes(value as never)
+        ? undefined
+        : `Expected one of ${definition.enumValues.join(", ")} at ${formatJsonPath(path)}.`;
+    case "json":
+      return undefined;
+    case "number":
+      return findNumberDefinitionIssue(value, definition as GeneratedNumberDefinition, path);
+    case "string":
+      return findStringDefinitionIssue(value, definition as GeneratedStringDefinition, path);
+  }
+}
+
+function findArrayDefinitionIssue(
+  value: unknown,
+  definition: GeneratedArrayDefinition,
+  path: readonly string[]
+): string | undefined {
+  if (!Array.isArray(value)) {
+    return `Expected array at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.minItems !== undefined && value.length < definition.minItems) {
+    return `Expected array with at least ${definition.minItems} items at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.maxItems !== undefined && value.length > definition.maxItems) {
+    return `Expected array with at most ${definition.maxItems} items at ${formatJsonPath(path)}.`;
+  }
+
+  for (const [index, item] of value.entries()) {
+    const issue = findDefinitionIssue(item, definition.itemDefinition, [...path, String(index)]);
+
+    if (issue !== undefined) {
+      return issue;
+    }
+  }
+
+  return undefined;
+}
+
+function findNumberDefinitionIssue(
+  value: unknown,
+  definition: GeneratedNumberDefinition,
+  path: readonly string[]
+): string | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return `Expected ${definition.jsonType === "integer" ? "integer" : "number"} at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.jsonType === "integer" && !Number.isInteger(value)) {
+    return `Expected integer at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.minimum !== undefined && value < definition.minimum) {
+    return `Expected number greater than or equal to ${definition.minimum} at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.maximum !== undefined && value > definition.maximum) {
+    return `Expected number less than or equal to ${definition.maximum} at ${formatJsonPath(path)}.`;
+  }
+
+  return undefined;
+}
+
+function findStringDefinitionIssue(
+  value: unknown,
+  definition: GeneratedStringDefinition,
+  path: readonly string[]
+): string | undefined {
+  if (typeof value !== "string") {
+    return `Expected string at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.minLength !== undefined && value.length < definition.minLength) {
+    return `Expected string with length at least ${definition.minLength} at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.maxLength !== undefined && value.length > definition.maxLength) {
+    return `Expected string with length at most ${definition.maxLength} at ${formatJsonPath(path)}.`;
+  }
+
+  if (definition.pattern !== undefined) {
+    const pattern = compileDefinitionPattern(definition.pattern);
+
+    if (pattern === undefined || !pattern.test(value)) {
+      return `Expected string matching pattern ${definition.pattern} at ${formatJsonPath(path)}.`;
+    }
+  }
+
+  return undefined;
+}
+
+function compileDefinitionPattern(pattern: string): RegExp | undefined {
+  try {
+    return new RegExp(pattern, "u");
+  } catch {
+    return undefined;
+  }
+}
+
+function expectedDefinition(definition: GeneratedParamDefinition): string {
+  return definition.kind === "number" && definition.jsonType === "integer"
+    ? "integer"
+    : definition.kind;
+}
+
+function formatJsonPath(path: readonly string[]): string {
+  if (path.length === 0) {
+    return "the JSON array";
+  }
+
+  return path.map((segment) => `[${segment}]`).join("");
 }
 
 export function renderRequestShape(

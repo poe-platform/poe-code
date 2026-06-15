@@ -357,6 +357,7 @@ export type GeneratedPreflightBlock =
       jsonParamName: string;
       nullParamName?: string;
       resolvedName: string;
+      definition: Extract<GeneratedParamDefinition, { kind: "array" }>;
       required: boolean;
     };
 
@@ -1566,6 +1567,7 @@ function createArrayParam(options: CreateArrayParamOptions): GeneratedParameterA
         jsonParamName,
         ...(emitsNullHelper ? { nullParamName } : {}),
         resolvedName,
+        definition: directDefinition as Extract<GeneratedParamDefinition, { kind: "array" }>,
         required: !optional
       }
     ],
@@ -2493,11 +2495,13 @@ function createCommandFile(options: {
     options.bodyMode === "multipart" &&
     options.multipartBinaryFields !== undefined &&
     options.multipartBinaryFields.length > 0;
+  const usesArrayJsonValidation = options.preflightBlocks.some((block) => block.kind === "array");
   const usesBinaryOutput = options.responseMode === "binary";
   const usesRequestShapeVariable = usesMultipartFileInputs || usesBinaryOutput;
   const openApiImports = [
     "requestJson",
     "defineApiCommand",
+    ...(usesArrayJsonValidation ? ["validateArrayJsonHelperValue"] : []),
     ...(usesMultipartFileInputs ? ["prepareMultipartFileInputs"] : []),
     ...(usesBinaryOutput ? ["writeBinaryResponseOutput"] : [])
   ];

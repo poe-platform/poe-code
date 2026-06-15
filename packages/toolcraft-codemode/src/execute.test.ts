@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { defineCommand, defineGroup } from "toolcraft";
 import { createSDK } from "toolcraft/sdk";
-import { S } from "toolcraft-schema";
+import { S, toJsonSchema } from "toolcraft-schema";
 
 import { makeExecuteCommand } from "./execute.js";
 
@@ -118,6 +118,30 @@ describe("makeExecuteCommand", () => {
         })
       ]
     });
+  });
+
+  it("advertises and rejects empty source", async () => {
+    const root = fixtureRoot();
+    const command = makeExecuteCommand({
+      root,
+      sdk: createSDK(root)
+    });
+
+    expect(toJsonSchema(command.params)).toMatchObject({
+      properties: {
+        source: {
+          minLength: 1,
+          pattern: "\\S"
+        }
+      }
+    });
+
+    await expect(command.handler({ params: { source: "" } } as never)).rejects.toThrow(
+      "source must not be empty or whitespace"
+    );
+    await expect(command.handler({ params: { source: "   " } } as never)).rejects.toThrow(
+      "source must not be empty or whitespace"
+    );
   });
 
   it("returns lint diagnostics instead of rejecting malformed source", async () => {

@@ -21,7 +21,10 @@ function getModuleName(root: Group<any>, groupPath: string): string {
   return groupPath.length === 0 ? formatModuleSegment(root.name) : groupPath;
 }
 
-function getOrCreateModule(modules: HostModules, moduleName: string): Record<string, HostModuleFunction> {
+function getOrCreateModule(
+  modules: HostModules,
+  moduleName: string
+): Record<string, HostModuleFunction> {
   modules[moduleName] ??= Object.create(null) as Record<string, HostModuleFunction>;
   return modules[moduleName];
 }
@@ -36,6 +39,10 @@ function resolveSdkMember(sdk: Record<string, unknown>, path: string[]): unknown
 
   for (const segment of path) {
     if (typeof current !== "object" && typeof current !== "function") {
+      return undefined;
+    }
+
+    if (!Object.prototype.hasOwnProperty.call(current, segment)) {
       return undefined;
     }
 

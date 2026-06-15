@@ -84,7 +84,7 @@ async function runSearch(
     limit?: number;
     detail?: "brief" | "detailed" | "full";
   },
-  defaults: { limit?: number } = {}
+  defaults: { detail?: "brief" | "detailed" | "full"; limit?: number } = {}
 ) {
   const command = makeSearchCommand({
     entries: await fixtureEntries(),
@@ -142,6 +142,34 @@ describe("makeSearchCommand", () => {
   it("rejects negative search limits", async () => {
     await expect(runSearch({ query: "task", limit: -1 })).rejects.toThrow(
       "limit must be a non-negative integer, received -1"
+    );
+  });
+
+  it("advertises search limits as non-negative integers", () => {
+    const command = makeSearchCommand({
+      entries: []
+    });
+
+    expect(toJsonSchema(command.params)).toMatchObject({
+      properties: {
+        limit: {
+          type: "integer",
+          minimum: 0
+        }
+      }
+    });
+  });
+
+  it("rejects invalid default detail values", async () => {
+    const command = makeSearchCommand({
+      entries: await fixtureEntries(),
+      defaults: {
+        detail: "invalid" as "brief"
+      }
+    });
+
+    await expect(command.handler({ params: { query: "profile" } } as never)).rejects.toThrow(
+      'detail must be one of: brief, detailed, full, received "invalid"'
     );
   });
 

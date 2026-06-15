@@ -31,12 +31,19 @@ type IndexedEntry = {
 const K1 = 1.5;
 const B = 0.75;
 const FALLBACK_LIMIT = 10;
+const SEARCH_DETAILS = ["brief", "detailed", "full"] as const;
 
 const searchParams = S.Object({
   query: S.String({ description: "Search query." }),
-  limit: S.Optional(S.Number({ description: "Maximum result count." })),
+  limit: S.Optional(
+    S.Number({
+      description: "Maximum result count.",
+      jsonType: "integer",
+      minimum: 0
+    })
+  ),
   detail: S.Optional(
-    S.Enum(["brief", "detailed", "full"] as const, {
+    S.Enum(SEARCH_DETAILS, {
       description: "Result detail level."
     })
   )
@@ -45,11 +52,7 @@ const searchParams = S.Object({
 function isWordCharacter(character: string): boolean {
   const code = character.charCodeAt(0);
 
-  return (
-    (code >= 97 && code <= 122) ||
-    (code >= 48 && code <= 57) ||
-    character === "_"
-  );
+  return (code >= 97 && code <= 122) || (code >= 48 && code <= 57) || character === "_";
 }
 
 function tokenize(value: string): string[] {
@@ -154,6 +157,16 @@ function normalizeLimit(limit: number): number {
   return limit;
 }
 
+function normalizeDetail(detail: unknown): SearchDetail {
+  if (SEARCH_DETAILS.includes(detail as SearchDetail)) {
+    return detail as SearchDetail;
+  }
+
+  throw new UserError(
+    `detail must be one of: ${SEARCH_DETAILS.join(", ")}, received ${JSON.stringify(detail)}`
+  );
+}
+
 function toSearchResult(entry: CommandEntry, detail: SearchDetail): SearchResult {
   const result: SearchResult = {
     path: entry.path,
@@ -191,7 +204,7 @@ export function makeSearchCommand({
         return [];
       }
 
-      const detail = params.detail ?? defaults.detail ?? "brief";
+      const detail = normalizeDetail(params.detail ?? defaults.detail ?? "brief");
       const indexedEntries = resolvedEntries.map(indexEntry);
       const frequencies = documentFrequencies(indexedEntries);
       const averageLength = averageDocumentLength(indexedEntries);

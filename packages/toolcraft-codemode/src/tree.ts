@@ -49,7 +49,9 @@ function splitWords(value: string): string[] {
     const previous = value[index - 1];
     const next = value[index + 1];
     const previousIsLowercase =
-      previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
+      previous !== undefined &&
+      previous === previous.toLowerCase() &&
+      previous !== previous.toUpperCase();
     const nextIsLowercase =
       next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
 
@@ -77,6 +79,18 @@ export function formatSdkSegment(segment: string): string {
 
 export function formatModuleSegment(segment: string): string {
   return splitWords(segment).join("_");
+}
+
+function formatNamedModuleSegment(segment: string, kind: "command" | "group"): string {
+  const formatted = formatModuleSegment(segment);
+
+  if (formatted.length === 0) {
+    throw new Error(
+      `Codemode ${kind} name "${segment}" must include at least one non-separator character.`
+    );
+  }
+
+  return formatted;
 }
 
 function commandIsExecutable(command: Command): boolean {
@@ -109,7 +123,9 @@ export async function resolveCommandTree(
   const paths = new Set<string>();
 
   function visit(group: Group, groupSegments: string[]): void {
-    const groupPath = groupSegments.map(formatModuleSegment).join(".");
+    const groupPath = groupSegments
+      .map((segment) => formatNamedModuleSegment(segment, "group"))
+      .join(".");
 
     for (const child of group.children) {
       if (child.kind === "group") {
@@ -121,7 +137,7 @@ export async function resolveCommandTree(
         continue;
       }
 
-      const name = formatModuleSegment(child.name);
+      const name = formatNamedModuleSegment(child.name, "command");
       const path = groupPath.length === 0 ? name : `${groupPath}.${name}`;
       if (paths.has(path)) {
         throw new Error(`Duplicate codemode command path "${path}".`);

@@ -222,4 +222,33 @@ describe("buildHostModules", () => {
       returnValue: JSON.stringify(["proto", "constructor", "dotted"])
     });
   });
+
+  it("does not call SDK members inherited from the prototype chain", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "danger",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => null
+        })
+      ]
+    });
+    const entries = [
+      {
+        path: "danger",
+        groupPath: "",
+        name: "danger",
+        sdkPath: ["danger"],
+        command: root.children[0]
+      }
+    ];
+    const sdk = Object.create({
+      danger: async () => "polluted"
+    }) as Record<string, unknown>;
+    const { modules } = await buildHostModules(root, sdk, entries);
+
+    await expect(modules.root?.danger({})).rejects.toThrow('SDK member "danger" is not callable.');
+  });
 });

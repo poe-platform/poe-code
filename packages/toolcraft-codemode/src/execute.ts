@@ -1,5 +1,5 @@
 import { Budget, lint, run, type Diagnostic } from "@poe-code/safejs/core";
-import { defineCommand, type Group, type Scope } from "toolcraft";
+import { defineCommand, type Group, type Scope, UserError } from "toolcraft";
 import { S } from "toolcraft-schema";
 
 import { getOwnErrorCode } from "./error-codes.js";
@@ -52,7 +52,11 @@ export type ExecuteResult =
     };
 
 const executeParams = S.Object({
-  source: S.String({ description: "SafeJS source to execute." })
+  source: S.String({
+    description: "SafeJS source to execute.",
+    minLength: 1,
+    pattern: "\\S"
+  })
 });
 
 function createBudget(options: ExecuteBudgetOptions | undefined): Budget {
@@ -173,6 +177,10 @@ export function makeExecuteCommand({
     scope,
     params: executeParams,
     handler: async ({ params }): Promise<ExecuteResult> => {
+      if (params.source.trim().length === 0) {
+        throw new UserError("source must not be empty or whitespace");
+      }
+
       const { lintModules, modules } = await buildHostModules(root, sdk, entries);
       let diagnostics: Diagnostic[];
 

@@ -100,10 +100,7 @@ describe("resolveCommandTree", () => {
             testCommand("explicit_sdk", ["sdk"]),
             defineGroup({
               name: "nested",
-              children: [
-                testCommand("still_cli"),
-            testCommand("explicit_mcp", ["mcp"])
-              ]
+              children: [testCommand("still_cli"), testCommand("explicit_mcp", ["mcp"])]
             })
           ]
         }),
@@ -121,13 +118,9 @@ describe("resolveCommandTree", () => {
 
     const tree = await resolveCommandTree(root);
 
-    expect(tree.entries.map((entry) => entry.path)).toEqual([
-      "cli_only.explicit_sdk"
-    ]);
+    expect(tree.entries.map((entry) => entry.path)).toEqual(["cli_only.explicit_sdk"]);
 
-    expect([...tree.exportsByGroupPath.entries()]).toEqual([
-      ["cli_only", ["explicit_sdk"]]
-    ]);
+    expect([...tree.exportsByGroupPath.entries()]).toEqual([["cli_only", ["explicit_sdk"]]]);
   });
 
   it("canonicalizes separator names without colliding nested groups", async () => {
@@ -144,10 +137,7 @@ describe("resolveCommandTree", () => {
 
     const tree = await resolveCommandTree(root);
 
-    expect(tree.entries.map((entry) => entry.path)).toEqual([
-      "a_b.read_secret",
-      "a.b.read_secret"
-    ]);
+    expect(tree.entries.map((entry) => entry.path)).toEqual(["a_b.read_secret", "a.b.read_secret"]);
     expect([...tree.exportsByGroupPath.entries()]).toEqual([
       ["a_b", ["read_secret"]],
       ["a.b", ["read_secret"]]
@@ -162,6 +152,17 @@ describe("resolveCommandTree", () => {
 
     await expect(resolveCommandTree(root)).rejects.toThrow(
       'Duplicate codemode command path "read_secret".'
+    );
+  });
+
+  it("rejects executable command names that normalize to an empty path segment", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [testCommand("---", ["sdk"])]
+    });
+
+    await expect(resolveCommandTree(root)).rejects.toThrow(
+      'Codemode command name "---" must include at least one non-separator character.'
     );
   });
 });

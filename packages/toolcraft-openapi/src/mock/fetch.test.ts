@@ -288,6 +288,126 @@ describe("mockFetch", () => {
     expect(response.status).toBe(422);
   });
 
+  it("returns 422 when required parameters are missing or violate their schema", async () => {
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/search": {
+          get: {
+            operationId: "search",
+            parameters: [
+              { name: "q", in: "query", required: true, schema: { type: "string", minLength: 3 } },
+              { name: "X-Trace", in: "header", required: true, schema: { type: "string" } }
+            ],
+            responses: {
+              "200": {
+                description: "OK",
+                content: { "application/json": { schema: { type: "object" } } }
+              }
+            }
+          }
+        }
+      }
+    };
+    const { fetch } = await mockFetch({
+      spec,
+      fixtures: { search: { body: { ok: true } } }
+    });
+
+    const missing = await fetch("https://api.example.com/search");
+    expect(missing.status).toBe(422);
+    await expect(missing.json()).resolves.toMatchObject({
+      errors: expect.arrayContaining(["$query/q: required", "$header/X-Trace: required"])
+    });
+
+    const invalid = await fetch("https://api.example.com/search?q=x", {
+      headers: { "X-Trace": "trace-1" }
+    });
+    expect(invalid.status).toBe(422);
+    await expect(invalid.json()).resolves.toMatchObject({
+      errors: expect.arrayContaining(["$query/q: expected length to be >= 3"])
+    });
+
+    const valid = await fetch("https://api.example.com/search?q=abc", {
+      headers: { "X-Trace": "trace-1" }
+    });
+    expect(valid.status).toBe(200);
+  });
+
+  it("validates scalar minimum, maximum, minLength, maxLength and pattern constraints", async () => {
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/items": {
+          post: {
+            operationId: "create_item",
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    required: ["count", "code"],
+                    properties: {
+                      count: { type: "integer", minimum: 1, maximum: 5 },
+                      code: { type: "string", minLength: 3, maxLength: 5, pattern: "^[A-Z]+$" }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "OK",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      required: ["id"],
+                      properties: { id: { type: "integer", minimum: 1 } }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const { fetch: requestFetch } = await mockFetch({
+      spec,
+      fixtures: { create_item: { body: { id: 1 } } }
+    });
+    const requestResponse = await requestFetch("https://api.example.com/items", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ count: 0, code: "x" })
+    });
+    expect(requestResponse.status).toBe(422);
+    await expect(requestResponse.json()).resolves.toMatchObject({
+      errors: expect.arrayContaining([
+        "$/count: expected value to be >= 1",
+        "$/code: expected length to be >= 3",
+        "$/code: expected value to match pattern ^[A-Z]+$"
+      ])
+    });
+
+    const { fetch: fixtureFetch } = await mockFetch({
+      spec,
+      fixtures: { create_item: { body: { id: 0 } } }
+    });
+    await expect(
+      fixtureFetch("https://api.example.com/items", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ count: 1, code: "ABC" })
+      })
+    ).rejects.toThrow(/expected value to be >= 1/);
+  });
+
   it("returns 422 for undeclared fields in a closed request body schema", async () => {
     const spec = createSetOfficialSpec();
     const requestSchema = spec.paths!["/v1/bots/{botHandle}/actions/set-official"]!.post!
@@ -465,6 +585,48 @@ describe("mockFetch", () => {
     const response = await fetch("https://api.example.com/v1/whoami");
 
     expect(response.status).toBe(201);
+  });
+
+  it("uses wildcard 2XX response examples and schemas for success fixtures", async () => {
+    const spec: OpenApiDocument = {
+      openapi: "3.1.0",
+      info: { title: "T", version: "0" },
+      paths: {
+        "/widgets": {
+          get: {
+            operationId: "list_widgets",
+            responses: {
+              "2XX": {
+                description: "Any success",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      required: ["ok"],
+                      properties: { ok: { type: "boolean" } }
+                    },
+                    example: { ok: true }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const fromExample = await mockFetch({ spec });
+    const exampleResponse = await fromExample.fetch("https://api.example.com/widgets");
+    expect(exampleResponse.status).toBe(200);
+    await expect(exampleResponse.json()).resolves.toEqual({ ok: true });
+
+    const withInvalidFixture = await mockFetch({
+      spec,
+      fixtures: { list_widgets: { status: 201, body: { ok: "not boolean" } } }
+    });
+    await expect(withInvalidFixture.fetch("https://api.example.com/widgets")).rejects.toThrow(
+      /expected boolean/
+    );
   });
 
   it("loads the spec from a file path via the injected fs", async () => {

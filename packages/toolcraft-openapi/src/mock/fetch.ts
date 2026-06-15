@@ -6,6 +6,7 @@ import type {
   OpenApiDocument,
   OpenApiMediaTypeObject,
   OpenApiOperationObject,
+  OpenApiParameterObject,
   OpenApiReferenceObject,
   OpenApiRequestBodyObject,
   OpenApiResponseObject,
@@ -61,14 +62,34 @@ interface CompiledOperation {
   method: string;
   pathTemplate: string;
   pathRegex: RegExp;
+  pathParameterNames: string[];
   pathSpecificity: number;
   operationId: string;
   operation: OpenApiOperationObject;
+  parameters: CompiledParameter[];
   defaultStatus: number;
   defaultExample: unknown;
   requestBodySchema: OpenApiSchemaObject | undefined;
   requestBodyRequired: boolean;
-  responseSchemas: Map<number, OpenApiSchemaObject>;
+  responseSchemas: CompiledResponseSchema[];
+}
+
+interface CompiledParameter {
+  name: string;
+  location: "path" | "query" | "header";
+  required: boolean;
+  schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined;
+}
+
+interface CompiledResponseSchema {
+  status: number;
+  range: boolean;
+  schema: OpenApiSchemaObject;
+}
+
+interface ResponseStatusMetadata {
+  status: number;
+  range: boolean;
 }
 
 export async function mockFetch(options: MockFetchOptions): Promise<MockFetchHandle> {
@@ -116,6 +137,16 @@ export async function mockFetch(options: MockFetchOptions): Promise<MockFetchHan
       at: new Date()
     });
 
+    const parameterErrors = validateRequestParameters(
+      operation,
+      requestUrl,
+      headers,
+      document
+    );
+    if (parameterErrors.length > 0) {
+      return jsonResponse(422, { errors: parameterErrors });
+    }
+
     if (operation.requestBodySchema !== undefined && parsedBody !== undefined) {
       const errors = validateAgainstSchema(parsedBody, operation.requestBodySchema, document, "$");
       if (errors.length > 0) {
@@ -129,7 +160,7 @@ export async function mockFetch(options: MockFetchOptions): Promise<MockFetchHan
 
     if (fixture !== undefined) {
       const status = fixture.status ?? operation.defaultStatus;
-      const responseSchema = operation.responseSchemas.get(status);
+      const responseSchema = findResponseSchema(operation.responseSchemas, status);
       if (responseSchema !== undefined && fixture.body !== undefined) {
         const errors = validateAgainstSchema(fixture.body, responseSchema, document, "$response");
         if (errors.length > 0) {
@@ -218,14 +249,17 @@ function compileOperations(document: OpenApiDocument): CompiledOperation[] {
         resolvedOperation,
         document
       );
+      const pathParameterNames = collectPathParameterNames(pathTemplate);
 
       compiled.push({
         method: method.toUpperCase(),
         pathTemplate,
         pathRegex: pathTemplateToRegex(pathTemplate),
+        pathParameterNames,
         pathSpecificity: countPathPlaceholders(pathTemplate),
         operationId,
         operation: resolvedOperation,
+        parameters: collectCompiledParameters(pathItem.parameters, resolvedOperation.parameters, document),
         defaultStatus,
         defaultExample,
         requestBodySchema,
@@ -243,7 +277,7 @@ function compileOperations(document: OpenApiDocument): CompiledOperation[] {
 }
 
 function countPathPlaceholders(template: string): number {
-  return (template.match(/\{[^}]+\}/g) ?? []).length;
+  return collectPathParameterNames(template).length;
 }
 
 function pathTemplateToRegex(template: string): RegExp {
@@ -251,8 +285,28 @@ function pathTemplateToRegex(template: string): RegExp {
   const pattern = template.replace(/[.*+?^${}()|[\]\\]/g, (match) =>
     match === "{" || match === "}" ? match : `\\${match}`
   );
-  const withParams = pattern.replace(/\{[^}]+\}/g, "[^/]+");
+  const withParams = pattern.replace(/\{[^}]+\}/g, "([^/]+)");
   return new RegExp(`^${withParams}$`);
+}
+
+function collectPathParameterNames(template: string): string[] {
+  const names: string[] = [];
+  let index = 0;
+
+  while (index < template.length) {
+    const start = template.indexOf("{", index);
+    if (start === -1) {
+      break;
+    }
+    const end = template.indexOf("}", start + 1);
+    if (end === -1) {
+      break;
+    }
+    names.push(template.slice(start + 1, end));
+    index = end + 1;
+  }
+
+  return names;
 }
 
 function resolveOperation(
@@ -271,14 +325,18 @@ function pickResponseMetadata(
 ): {
   defaultStatus: number;
   defaultExample: unknown;
-  responseSchemas: Map<number, OpenApiSchemaObject>;
+  responseSchemas: CompiledResponseSchema[];
 } {
   const responses = operation.responses ?? {};
-  const responseSchemas = new Map<number, OpenApiSchemaObject>();
+  const responseSchemas: CompiledResponseSchema[] = [];
+  const successResponses: Array<{
+    status: number;
+    response: OpenApiResponseObject | OpenApiReferenceObject;
+  }> = [];
 
   for (const [code, response] of Object.entries(responses)) {
-    const status = parseInt(code, 10);
-    if (!Number.isFinite(status) || response === undefined) {
+    const status = parseResponseStatus(code);
+    if (status === undefined || response === undefined) {
       continue;
     }
     const resolved = isReference(response)
@@ -286,31 +344,58 @@ function pickResponseMetadata(
       : response;
     const schema = extractResponseSchema(resolved, document);
     if (schema !== undefined) {
-      responseSchemas.set(status, schema);
+      responseSchemas.push({ ...status, schema });
+    }
+    if (isSuccessStatus(status.status)) {
+      successResponses.push({ status: status.status, response });
     }
   }
 
-  const successCodes = Object.keys(responses)
-    .map((code) => parseInt(code, 10))
-    .filter((code) => Number.isFinite(code) && code >= 200 && code < 300)
-    .sort((a, b) => a - b);
-
-  if (successCodes.length === 0) {
+  successResponses.sort((a, b) => a.status - b.status);
+  const firstSuccess = successResponses[0];
+  if (firstSuccess === undefined) {
     return { defaultStatus: 200, defaultExample: undefined, responseSchemas };
   }
 
-  const status = successCodes[0]!;
-  const response = responses[String(status)];
-  const resolvedResponse =
-    response !== undefined && isReference(response)
-      ? resolveReference<OpenApiResponseObject>(response, document)
-      : (response as OpenApiResponseObject | undefined);
+  const resolvedResponse = isReference(firstSuccess.response)
+    ? resolveReference<OpenApiResponseObject>(firstSuccess.response, document)
+    : firstSuccess.response;
 
   return {
-    defaultStatus: status,
+    defaultStatus: firstSuccess.status,
     defaultExample: extractExample(resolvedResponse, document),
     responseSchemas
   };
+}
+
+function parseResponseStatus(code: string): ResponseStatusMetadata | undefined {
+  if (code.length === 3 && code[1]?.toUpperCase() === "X" && code[2]?.toUpperCase() === "X") {
+    const family = Number(code[0]);
+    return Number.isInteger(family) && family >= 1 && family <= 5
+      ? { status: family * 100, range: true }
+      : undefined;
+  }
+
+  if (code.length !== 3 || [...code].some((character) => character < "0" || character > "9")) {
+    return undefined;
+  }
+
+  return { status: Number(code), range: false };
+}
+
+function isSuccessStatus(status: number): boolean {
+  return status >= 200 && status < 300;
+}
+
+function findResponseSchema(
+  schemas: readonly CompiledResponseSchema[],
+  status: number
+): OpenApiSchemaObject | undefined {
+  return (
+    schemas.find((candidate) => !candidate.range && candidate.status === status)?.schema ??
+    schemas.find((candidate) => candidate.range && Math.floor(status / 100) === candidate.status / 100)
+      ?.schema
+  );
 }
 
 function extractResponseSchema(
@@ -356,6 +441,132 @@ function pickRequestBody(
     : media.schema;
 
   return { schema, required: resolved.required === true };
+}
+
+function collectCompiledParameters(
+  pathParameters: readonly (OpenApiParameterObject | OpenApiReferenceObject)[] | undefined,
+  operationParameters: readonly (OpenApiParameterObject | OpenApiReferenceObject)[] | undefined,
+  document: OpenApiDocument
+): CompiledParameter[] {
+  const parameters = new Map<string, CompiledParameter>();
+
+  for (const raw of [...(pathParameters ?? []), ...(operationParameters ?? [])]) {
+    const parameter = isReference(raw)
+      ? resolveReference<OpenApiParameterObject>(raw, document)
+      : raw;
+    if (parameter.in !== "path" && parameter.in !== "query" && parameter.in !== "header") {
+      continue;
+    }
+    parameters.set(`${parameter.in}:${parameter.name}`, {
+      name: parameter.name,
+      location: parameter.in,
+      required: parameter.in === "path" || parameter.required === true,
+      schema: parameter.schema
+    });
+  }
+
+  return [...parameters.values()];
+}
+
+function validateRequestParameters(
+  operation: CompiledOperation,
+  requestUrl: URL,
+  headers: Record<string, string>,
+  document: OpenApiDocument
+): string[] {
+  const pathValues = collectPathParameterValues(operation, requestUrl.pathname);
+  const errors: string[] = [];
+
+  for (const parameter of operation.parameters) {
+    const pointer = `$${parameter.location}/${parameter.name}`;
+    const value = readParameterValue(parameter, requestUrl, headers, pathValues);
+
+    if (value === undefined) {
+      if (parameter.required) {
+        errors.push(`${pointer}: required`);
+      }
+      continue;
+    }
+
+    if (parameter.schema !== undefined) {
+      errors.push(...validateAgainstSchema(value, parameter.schema, document, pointer));
+    }
+  }
+
+  return errors;
+}
+
+function collectPathParameterValues(
+  operation: CompiledOperation,
+  pathname: string
+): Map<string, string> {
+  const match = operation.pathRegex.exec(pathname);
+  const values = new Map<string, string>();
+  if (match === null) {
+    return values;
+  }
+
+  for (let index = 0; index < operation.pathParameterNames.length; index++) {
+    const value = match[index + 1];
+    if (value !== undefined) {
+      values.set(operation.pathParameterNames[index]!, decodeUrlComponent(value));
+    }
+  }
+
+  return values;
+}
+
+function readParameterValue(
+  parameter: CompiledParameter,
+  requestUrl: URL,
+  headers: Record<string, string>,
+  pathValues: Map<string, string>
+): unknown {
+  switch (parameter.location) {
+    case "path":
+      return coerceParameterValue(parameter.schema, pathValues.get(parameter.name));
+    case "query": {
+      const values = requestUrl.searchParams.getAll(parameter.name);
+      if (values.length === 0) {
+        return undefined;
+      }
+      return schemaAcceptsArray(parameter.schema) ? coerceParameterValues(values) : values[0];
+    }
+    case "header":
+      return coerceParameterValue(parameter.schema, headers[parameter.name.toLowerCase()]);
+  }
+}
+
+function coerceParameterValue(
+  schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined,
+  value: string | undefined
+): unknown {
+  if (value === undefined || !schemaAcceptsArray(schema)) {
+    return value;
+  }
+  return coerceParameterValues([value]);
+}
+
+function coerceParameterValues(values: readonly string[]): string[] {
+  return values.flatMap((value) => value.split(","));
+}
+
+function schemaAcceptsArray(
+  schema: OpenApiSchemaObject | OpenApiReferenceObject | undefined
+): boolean {
+  if (schema === undefined || isReference(schema)) {
+    return false;
+  }
+  const type = schema.type;
+  return Array.isArray(type) ? type.includes("array") : type === "array";
+}
+
+function decodeUrlComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 function extractExample(
@@ -436,7 +647,7 @@ function resolveReference<T>(reference: OpenApiReferenceObject, document: OpenAp
   const segments = ref
     .slice(2)
     .split("/")
-    .map((segment) => segment.replace(/~1/g, "/").replace(/~0/g, "~"));
+    .map(decodeReferenceSegment);
 
   let current: unknown = document;
   for (const segment of segments) {
@@ -454,6 +665,16 @@ function resolveReference<T>(reference: OpenApiReferenceObject, document: OpenAp
   }
 
   return current as T;
+}
+
+function decodeReferenceSegment(segment: string): string {
+  let decoded = segment;
+  try {
+    decoded = decodeURIComponent(segment);
+  } catch {
+    decoded = segment;
+  }
+  return decoded.replace(/~1/g, "/").replace(/~0/g, "~");
 }
 
 function validateAgainstSchema(
@@ -526,11 +747,50 @@ function validateAgainstSchema(
     }
   }
 
+  if (typeof value === "number") {
+    validateNumberConstraints(value, resolved, pointer, errors);
+  }
+
+  if (typeof value === "string") {
+    validateStringConstraints(value, resolved, pointer, errors);
+  }
+
   if (resolved.enum !== undefined && !resolved.enum.includes(value as never)) {
     errors.push(`${pointer}: not in enum`);
   }
 
   return errors;
+}
+
+function validateNumberConstraints(
+  value: number,
+  schema: OpenApiSchemaObject,
+  pointer: string,
+  errors: string[]
+): void {
+  if (schema.minimum !== undefined && value < schema.minimum) {
+    errors.push(`${pointer}: expected value to be >= ${schema.minimum}`);
+  }
+  if (schema.maximum !== undefined && value > schema.maximum) {
+    errors.push(`${pointer}: expected value to be <= ${schema.maximum}`);
+  }
+}
+
+function validateStringConstraints(
+  value: string,
+  schema: OpenApiSchemaObject,
+  pointer: string,
+  errors: string[]
+): void {
+  if (schema.minLength !== undefined && value.length < schema.minLength) {
+    errors.push(`${pointer}: expected length to be >= ${schema.minLength}`);
+  }
+  if (schema.maxLength !== undefined && value.length > schema.maxLength) {
+    errors.push(`${pointer}: expected length to be <= ${schema.maxLength}`);
+  }
+  if (schema.pattern !== undefined && !new RegExp(schema.pattern).test(value)) {
+    errors.push(`${pointer}: expected value to match pattern ${schema.pattern}`);
+  }
 }
 
 function normalizeTypes(schema: OpenApiSchemaObject): string[] {

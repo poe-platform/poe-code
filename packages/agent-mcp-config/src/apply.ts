@@ -7,11 +7,7 @@ import {
   type ConfigObject
 } from "@poe-code/config-mutations";
 import type { McpServerEntry, ApplyOptions } from "./types.js";
-import {
-  getAgentConfig,
-  resolveConfigPath,
-  isSupported
-} from "./configs.js";
+import { getAgentConfig, resolveConfigPath, isSupported } from "./configs.js";
 import { getShapeTransformer } from "./shapes.js";
 
 function getConfigDirectory(configPath: string): string {
@@ -29,10 +25,39 @@ function isConfigObject(value: unknown): value is ConfigObject {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function resolveServerMap(
-  document: ConfigObject,
-  configKey: string
-): ConfigObject {
+function assertNonEmptyString(value: unknown, message: string): asserts value is string {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    throw new Error(message);
+  }
+}
+
+function assertHttpUrl(value: unknown): asserts value is string {
+  assertNonEmptyString(value, "MCP HTTP URL must be a valid http or https URL.");
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("MCP HTTP URL must be a valid http or https URL.");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("MCP HTTP URL must be a valid http or https URL.");
+  }
+}
+
+function validateServerEntry(server: McpServerEntry): void {
+  assertNonEmptyString(server.name, "MCP server name must be a non-empty string.");
+
+  if (server.config.transport === "stdio") {
+    assertNonEmptyString(server.config.command, "MCP stdio command must be a non-empty string.");
+    return;
+  }
+
+  assertHttpUrl(server.config.url);
+}
+
+function resolveServerMap(document: ConfigObject, configKey: string): ConfigObject {
   const value = document[configKey];
 
   if (value === undefined) {
@@ -63,13 +88,17 @@ export async function configure(
     throw new UnsupportedAgentError(agentId);
   }
 
+  validateServerEntry(server);
+
   const config = getAgentConfig(agentId)!;
   const configPath = resolveConfigPath(config, options.platform);
   const shapeTransformer = getShapeTransformer(config.shape);
   const shaped = shapeTransformer(server);
+  const enabledServer: McpServerEntry = { ...server, enabled: true };
+  const enabledShaped = shapeTransformer(enabledServer);
 
   if (shaped === undefined) {
-    await unconfigure(agentId, server.name, options);
+    await unconfigure(agentId, enabledServer, options);
     return;
   }
 
@@ -92,12 +121,17 @@ export async function configure(
             ? servers[server.name]
             : undefined;
           const shapedServer = shaped as unknown as ConfigObject;
+          const enabledShapedServer = enabledShaped as unknown as ConfigObject | undefined;
 
           if (existingServer !== undefined && isDeepStrictEqual(existingServer, shapedServer)) {
             return { changed: false, content: document };
           }
 
-          if (existingServer !== undefined && server.enabled !== false) {
+          if (
+            existingServer !== undefined &&
+            (enabledShapedServer === undefined ||
+              !isDeepStrictEqual(existingServer, enabledShapedServer))
+          ) {
             throw new Error(
               `MCP server "${server.name}" already exists with different configuration in ${configPath}.`
             );
@@ -149,7 +183,10 @@ export async function unconfigure(
           if (!Object.hasOwn(servers, serverName)) {
             return { changed: false, content: document };
           }
-          if (expectedServer !== undefined && !isDeepStrictEqual(servers[serverName], expectedServer)) {
+          if (
+            expectedServer !== undefined &&
+            !isDeepStrictEqual(servers[serverName], expectedServer)
+          ) {
             return { changed: false, content: document };
           }
           const newServers = { ...servers };

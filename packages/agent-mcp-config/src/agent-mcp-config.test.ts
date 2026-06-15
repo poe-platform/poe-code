@@ -2,19 +2,10 @@ import { Volume, createFsFromVolume } from "memfs";
 import { describe, it, expect, vi } from "vitest";
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import { parse as parseYaml } from "yaml";
-import {
-  configure,
-  unconfigure,
-  UnsupportedAgentError
-} from "./apply.js";
+import { configure, unconfigure, UnsupportedAgentError } from "./apply.js";
 import type { McpServerEntry, ApplyOptions } from "./types.js";
 import { resolveAgentSupport, type AgentMcpConfig } from "./configs.js";
-import {
-  standardShape,
-  opencodeShape,
-  gooseShape,
-  getShapeTransformer
-} from "./shapes.js";
+import { standardShape, opencodeShape, gooseShape, getShapeTransformer } from "./shapes.js";
 
 const HOME_DIR = "/home/test";
 
@@ -26,6 +17,54 @@ function createOptions(
 }
 
 describe("configure", () => {
+  describe("input validation", () => {
+    it("rejects blank server names before writing config", async () => {
+      for (const name of ["", "   "]) {
+        const fs = createMockFs({}, HOME_DIR);
+
+        await expect(
+          configure(
+            "claude-code",
+            { name, config: { transport: "stdio", command: "npx" } },
+            createOptions(fs)
+          )
+        ).rejects.toThrow("MCP server name must be a non-empty string.");
+
+        expect(fs.exists("/home/test/.claude.json")).toBe(false);
+      }
+    });
+
+    it("rejects whitespace-only stdio commands before writing config", async () => {
+      const fs = createMockFs({}, HOME_DIR);
+
+      await expect(
+        configure(
+          "claude-code",
+          { name: "poe-code", config: { transport: "stdio", command: "   " } },
+          createOptions(fs)
+        )
+      ).rejects.toThrow("MCP stdio command must be a non-empty string.");
+
+      expect(fs.exists("/home/test/.claude.json")).toBe(false);
+    });
+
+    it("rejects blank and non-http MCP URLs before writing config", async () => {
+      for (const url of ["   ", "ftp://example.com/mcp"]) {
+        const fs = createMockFs({}, HOME_DIR);
+
+        await expect(
+          configure(
+            "claude-code",
+            { name: "remote", config: { transport: "http", url } },
+            createOptions(fs)
+          )
+        ).rejects.toThrow("MCP HTTP URL must be a valid http or https URL.");
+
+        expect(fs.exists("/home/test/.claude.json")).toBe(false);
+      }
+    });
+  });
+
   describe("claude-code", () => {
     it("configures a new MCP server", async () => {
       const fs = createMockFs({}, HOME_DIR);
@@ -48,11 +87,14 @@ describe("configure", () => {
     });
 
     it("refuses to overwrite a different user-owned server with the same name", async () => {
-      const fs = createMockFs({
-        "~/.claude.json": JSON.stringify({
-          mcpServers: { "poe-code": { command: "user-custom-command" } }
-        })
-      }, HOME_DIR);
+      const fs = createMockFs(
+        {
+          "~/.claude.json": JSON.stringify({
+            mcpServers: { "poe-code": { command: "user-custom-command" } }
+          })
+        },
+        HOME_DIR
+      );
       const server: McpServerEntry = {
         name: "poe-code",
         config: { transport: "stdio", command: "npx", args: ["poe-code", "mcp"] }
@@ -186,6 +228,37 @@ describe("configure", () => {
       });
     });
 
+    it("does not remove a different user-owned server when enabled: false", async () => {
+      const fs = createMockFs(
+        {
+          "~/.claude.json": JSON.stringify({
+            mcpServers: {
+              "poe-code": { command: "user-custom-command" },
+              other: { command: "keep" }
+            }
+          })
+        },
+        HOME_DIR
+      );
+
+      await configure(
+        "claude-code",
+        {
+          name: "poe-code",
+          config: { transport: "stdio", command: "npx" },
+          enabled: false
+        },
+        createOptions(fs)
+      );
+
+      expect(JSON.parse(fs.getContent("/home/test/.claude.json")!)).toEqual({
+        mcpServers: {
+          "poe-code": { command: "user-custom-command" },
+          other: { command: "keep" }
+        }
+      });
+    });
+
     it("includes env when provided", async () => {
       const fs = createMockFs({}, HOME_DIR);
       const server: McpServerEntry = {
@@ -243,9 +316,7 @@ describe("configure", () => {
 
       await configure("claude-desktop", server, createOptions(fs, "win32"));
 
-      expect(
-        fs.exists("/home/test/AppData/Roaming/Claude/claude_desktop_config.json")
-      ).toBe(true);
+      expect(fs.exists("/home/test/AppData/Roaming/Claude/claude_desktop_config.json")).toBe(true);
     });
   });
 
@@ -278,9 +349,7 @@ describe("configure", () => {
 
       await configure("opencode", server, createOptions(fs));
 
-      const content = JSON.parse(
-        fs.getContent("/home/test/.config/opencode/opencode.json")!
-      );
+      const content = JSON.parse(fs.getContent("/home/test/.config/opencode/opencode.json")!);
       expect(content).toEqual({
         mcp: {
           "poe-code": {
@@ -311,10 +380,41 @@ describe("configure", () => {
 
       await configure("opencode", server, createOptions(fs));
 
-      const content = JSON.parse(
-        fs.getContent("/home/test/.config/opencode/opencode.json")!
-      );
+      const content = JSON.parse(fs.getContent("/home/test/.config/opencode/opencode.json")!);
       expect(content.mcp["poe-code"].enabled).toBe(false);
+    });
+
+    it("refuses to overwrite a different user-owned server when enabled: false", async () => {
+      const fs = createMockFs(
+        {
+          "~/.config/opencode/opencode.json": JSON.stringify({
+            mcp: {
+              "poe-code": { type: "local", command: ["custom"], enabled: true },
+              other: { type: "local", command: ["keep"], enabled: true }
+            }
+          })
+        },
+        HOME_DIR
+      );
+
+      await expect(
+        configure(
+          "opencode",
+          {
+            name: "poe-code",
+            config: { transport: "stdio", command: "npx" },
+            enabled: false
+          },
+          createOptions(fs)
+        )
+      ).rejects.toThrow('MCP server "poe-code" already exists');
+
+      expect(JSON.parse(fs.getContent("/home/test/.config/opencode/opencode.json")!)).toEqual({
+        mcp: {
+          "poe-code": { type: "local", command: ["custom"], enabled: true },
+          other: { type: "local", command: ["keep"], enabled: true }
+        }
+      });
     });
   });
 
@@ -365,9 +465,7 @@ describe("configure", () => {
 
       await configure("goose", server, createOptions(fs));
 
-      const content = parseYaml(
-        fs.getContent("/home/test/.config/goose/config.yaml")!
-      );
+      const content = parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!);
       expect(content).toEqual({
         extensions: {
           existing: {
@@ -432,9 +530,7 @@ describe("configure", () => {
         createOptions(fs)
       );
 
-      expect(
-        parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
-      ).toEqual({
+      expect(parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)).toEqual({
         extensions: {
           "first-server": {
             type: "stdio",
@@ -477,9 +573,7 @@ describe("configure", () => {
         createOptions(fs)
       );
 
-      expect(
-        parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
-      ).toEqual({
+      expect(parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)).toEqual({
         extensions: {
           other: {
             type: "stdio",
@@ -510,7 +604,8 @@ describe("configure", () => {
     it("preserves existing YAML when a replacement write fails", async () => {
       const targetPath = "/home/test/.config/goose/config.yaml";
       const previous = "extensions:\n  old:\n    type: stdio\n    cmd: old-command\n";
-      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: previous })).promises as unknown as ApplyOptions["fs"];
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: previous }))
+        .promises as unknown as ApplyOptions["fs"];
       const fs: ApplyOptions["fs"] = {
         ...base,
         async writeFile(filePath, data, options) {
@@ -561,9 +656,9 @@ describe("configure", () => {
         config: { transport: "stdio", command: "npx" }
       };
 
-      await expect(
-        configure("unknown-agent", server, createOptions(fs))
-      ).rejects.toThrow(UnsupportedAgentError);
+      await expect(configure("unknown-agent", server, createOptions(fs))).rejects.toThrow(
+        UnsupportedAgentError
+      );
     });
 
     it("throws with agent name in error message", async () => {
@@ -573,9 +668,9 @@ describe("configure", () => {
         config: { transport: "stdio", command: "npx" }
       };
 
-      await expect(
-        configure("unknown-agent", server, createOptions(fs))
-      ).rejects.toThrow("Unsupported agent: unknown-agent");
+      await expect(configure("unknown-agent", server, createOptions(fs))).rejects.toThrow(
+        "Unsupported agent: unknown-agent"
+      );
     });
   });
 });
@@ -614,7 +709,10 @@ describe("unconfigure", () => {
 
     await unconfigure(
       "claude-code",
-      { name: "poe-code", config: { transport: "stdio", command: "npx", args: ["poe-code", "mcp"] } },
+      {
+        name: "poe-code",
+        config: { transport: "stdio", command: "npx", args: ["poe-code", "mcp"] }
+      },
       createOptions(fs)
     );
 
@@ -644,17 +742,15 @@ describe("unconfigure", () => {
   it("is no-op when file does not exist", async () => {
     const fs = createMockFs({}, HOME_DIR);
 
-    await expect(
-      unconfigure("claude-code", "poe-code", createOptions(fs))
-    ).resolves.not.toThrow();
+    await expect(unconfigure("claude-code", "poe-code", createOptions(fs))).resolves.not.toThrow();
   });
 
   it("throws UnsupportedAgentError for unknown agent", async () => {
     const fs = createMockFs({}, HOME_DIR);
 
-    await expect(
-      unconfigure("unknown-agent", "test", createOptions(fs))
-    ).rejects.toThrow(UnsupportedAgentError);
+    await expect(unconfigure("unknown-agent", "test", createOptions(fs))).rejects.toThrow(
+      UnsupportedAgentError
+    );
   });
 
   it("removes MCP server from codex TOML", async () => {
@@ -693,9 +789,7 @@ command = "test"
 
     await unconfigure("goose", "poe-code", createOptions(fs));
 
-    expect(
-      parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)
-    ).toEqual({
+    expect(parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)).toEqual({
       otherKey: "value"
     });
   });

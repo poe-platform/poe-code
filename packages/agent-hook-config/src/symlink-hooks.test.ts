@@ -136,6 +136,22 @@ describe("symlinkHooks", () => {
     expect(lstatSync(targetPath).isSymbolicLink()).toBe(true);
   });
 
+  it("replaces an entirely generated regular file larger than the first kilobyte", () => {
+    const hooks = Array.from({ length: 30 }, (_, index) => ({
+      type: "command",
+      command: `notify-${index}`,
+      statusMessage: `[generated:poe-code:old-run] generated hook ${index} ${"x".repeat(40)}`
+    }));
+    const contents = JSON.stringify({ hooks: { Stop: [{ hooks }] } }, null, 2);
+    expect(Buffer.byteLength(contents)).toBeGreaterThan(1024);
+    vol.fromJSON({ [targetPath]: contents }, "/");
+
+    expect(symlinkHooks("source", "target", cwd, homeDir, "project").replaced).toBe(
+      "generated-file"
+    );
+    expect(lstatSync(targetPath).isSymbolicLink()).toBe(true);
+  });
+
   it("restores a generated regular file when replacement symlink creation fails", () => {
     const contents = generatedSettings();
     vol.fromJSON({ [targetPath]: contents }, "/");

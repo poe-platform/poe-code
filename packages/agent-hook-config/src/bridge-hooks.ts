@@ -29,6 +29,7 @@ export interface BridgeHookManifest {
   symlinkPath?: string;
   symlinkTarget?: string;
   symlinkReplaced?: "none" | "stale-symlink" | "generated-file";
+  symlinkCreated?: boolean;
   createdParents?: string[];
   preExistingEvents?: string[];
   preExistingMatchers?: Array<{ event: string; matcher?: string }>;
@@ -67,6 +68,17 @@ function pathExists(targetPath: string): boolean {
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT")) {
       return false;
+    }
+    throw error;
+  }
+}
+
+function readSymlinkTarget(targetPath: string): string | undefined {
+  try {
+    return fs.lstatSync(targetPath).isSymbolicLink() ? fs.readlinkSync(targetPath) : undefined;
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT")) {
+      return undefined;
     }
     throw error;
   }
@@ -235,12 +247,16 @@ export function bridgeHooks(
 
   if (strategy === "symlink") {
     const symlinkPath = requireTargetPath(target.id, target.config, cwd, homeDir);
-    assertNoSymbolicLink(path.dirname(symlinkPath));
+    assertNoSymbolicLink(path.dirname(symlinkPath), { root: cwd });
+    const preExistingSymlinkTarget = readSymlinkTarget(symlinkPath);
     manifest.createdParents = collectMissingParents(symlinkPath);
     const result = symlinkHooks(source.id, target.id, cwd, homeDir, "project");
     manifest.symlinkPath = result.symlinkPath;
     manifest.symlinkTarget = result.targetPath;
     manifest.symlinkReplaced = result.replaced;
+    manifest.symlinkCreated = !(
+      result.replaced === "none" && preExistingSymlinkTarget === result.targetPath
+    );
     try {
       const excludeBlockId = appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
         markerPrefix: hookExcludeMarkerPrefix
@@ -266,7 +282,7 @@ export function bridgeHooks(
   }
 
   const targetPath = requireTargetPath(target.id, target.config, cwd, homeDir);
-  assertNoSymbolicLink(path.dirname(targetPath));
+  assertNoSymbolicLink(path.dirname(targetPath), { root: cwd });
   const priorFile = readCodexFile(targetPath);
   const sourceHooks = readClaudeHooks(cwd, homeDir, { scope: opts?.scope ?? "merged" });
   const ownership = acquireOwnershipId(targetPath, runId);
@@ -321,21 +337,23 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
     return;
   }
   if (manifest.strategy === "symlink" && manifest.symlinkPath && manifest.symlinkTarget) {
-    try {
-      if (
-        fs.lstatSync(manifest.symlinkPath).isSymbolicLink() &&
-        fs.readlinkSync(manifest.symlinkPath) === manifest.symlinkTarget
-      ) {
-        fs.unlinkSync(manifest.symlinkPath);
+    if (manifest.symlinkCreated !== false) {
+      try {
+        if (
+          fs.lstatSync(manifest.symlinkPath).isSymbolicLink() &&
+          fs.readlinkSync(manifest.symlinkPath) === manifest.symlinkTarget
+        ) {
+          fs.unlinkSync(manifest.symlinkPath);
+        }
+      } catch (error) {
+        if (!hasOwnErrorCode(error, "ENOENT")) {
+          throw error;
+        }
       }
-    } catch (error) {
-      if (!hasOwnErrorCode(error, "ENOENT")) {
-        throw error;
-      }
-    }
 
-    for (const parent of [...(manifest.createdParents ?? [])].reverse()) {
-      removeDirectoryIfEmpty(parent);
+      for (const parent of [...(manifest.createdParents ?? [])].reverse()) {
+        removeDirectoryIfEmpty(parent);
+      }
     }
   }
 

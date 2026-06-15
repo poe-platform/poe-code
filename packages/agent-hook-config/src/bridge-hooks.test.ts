@@ -197,6 +197,43 @@ describe("bridgeHooks", () => {
     expect(vol.readFileSync(excludePath, "utf8") as string).toContain(".claude/settings.json");
   });
 
+  it("preserves a pre-existing same-format hook symlink during cleanup", () => {
+    vol.mkdirSync(path.dirname(identityPath), { recursive: true });
+    vol.mkdirSync(path.dirname(userSourcePath), { recursive: true });
+    vol.writeFileSync(userSourcePath, JSON.stringify({ hooks: {} }));
+    fs.symlinkSync(userSourcePath, identityPath);
+
+    const manifest = bridgeHooks("claude-code", "claude-code", cwd, homeDir, runId);
+
+    expect(manifest.symlinkReplaced).toBe("none");
+    cleanupBridgedHooks(manifest);
+    expect(fs.lstatSync(identityPath).isSymbolicLink()).toBe(true);
+    expect(fs.readlinkSync(identityPath)).toBe(userSourcePath);
+  });
+
+  it("bridges under a symlinked system prefix outside the workspace root", () => {
+    const macCwd = "/var/folders/run/repo";
+    const macHome = "/home/tester";
+    const macSourcePath = path.join(macCwd, ".claude/settings.json");
+    const macTargetPath = path.join(macCwd, ".codex/hooks.json");
+    vol.mkdirSync("/private/var/folders/run/repo", { recursive: true });
+    fs.symlinkSync("/private/var", "/var");
+    vol.mkdirSync(path.dirname(macSourcePath), { recursive: true });
+    vol.writeFileSync(
+      macSourcePath,
+      JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "notify" }] }] } })
+    );
+
+    const manifest = bridgeHooks("claude-code", "codex", macCwd, macHome, runId, {
+      scope: "project"
+    });
+
+    expect(manifest.writtenPath).toBe(macTargetPath);
+    expect(JSON.parse(vol.readFileSync(macTargetPath, "utf8") as string)).toMatchObject({
+      hooks: { Stop: [{ hooks: [{ command: "notify" }] }] }
+    });
+  });
+
   it("throws specifically for unknown source and target agents", () => {
     expect(() => bridgeHooks("bad-source", "codex", cwd, homeDir, runId)).toThrow(
       'Unsupported source hook agent "bad-source". Supported hook agents: claude-code, codex.'

@@ -1,11 +1,8 @@
 import {
-  closeSync,
   lstatSync,
   mkdirSync,
-  openSync,
   readFileSync,
   readlinkSync,
-  readSync,
   symlinkSync,
   unlinkSync,
   writeFileSync
@@ -66,18 +63,6 @@ function resolveScopedPath(
   return targetPath;
 }
 
-function readFirstKilobyte(filePath: string): string {
-  const descriptor = openSync(filePath, "r");
-  const buffer = Buffer.alloc(1024);
-
-  try {
-    const length = readSync(descriptor, buffer, 0, buffer.length, 0);
-    return buffer.toString("utf8", 0, length);
-  } finally {
-    closeSync(descriptor);
-  }
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -86,7 +71,7 @@ function isFullyGeneratedFile(filePath: string): boolean {
   let parsed: unknown;
 
   try {
-    parsed = JSON.parse(readFirstKilobyte(filePath));
+    parsed = JSON.parse(readFileSync(filePath, "utf8"));
   } catch {
     return false;
   }
@@ -163,7 +148,7 @@ export function symlinkHooks(
   let replaced: SymlinkResult["replaced"] = "none";
   let replacedContents: string | undefined;
 
-  assertNoSymbolicLink(symlinkParent);
+  assertNoSymbolicLink(symlinkParent, { root: cwd });
 
   try {
     const existing = lstatSync(symlinkPath);
@@ -189,10 +174,10 @@ export function symlinkHooks(
 
   try {
     mkdirSync(symlinkParent, { recursive: true });
-    assertNoSymbolicLink(symlinkParent);
+    assertNoSymbolicLink(symlinkParent, { root: cwd });
     symlinkSync(targetPath, symlinkPath);
   } catch (error) {
-    restoreGeneratedFile(symlinkParent, symlinkPath, replacedContents, error);
+    restoreGeneratedFile(cwd, symlinkParent, symlinkPath, replacedContents, error);
     throw error;
   }
 
@@ -200,6 +185,7 @@ export function symlinkHooks(
 }
 
 function restoreGeneratedFile(
+  cwd: string,
   symlinkParent: string,
   symlinkPath: string,
   contents: string | undefined,
@@ -210,7 +196,7 @@ function restoreGeneratedFile(
   }
 
   try {
-    assertNoSymbolicLink(symlinkParent);
+    assertNoSymbolicLink(symlinkParent, { root: cwd });
     writeFileSync(symlinkPath, contents, { encoding: "utf8", flag: "wx" });
   } catch (restoreError) {
     throw new AggregateError(

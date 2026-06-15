@@ -449,11 +449,12 @@ poe-code spawn codex "Run lint and fix issues" --mode yolo --yes
 
 ### gaslight
 
-Run a Markdown plan through an agent, then resume the same thread with configured follow-up prompts. This is useful for enforcing checks such as simplification, testing, committing, and release monitoring after the initial implementation round.
+Run Markdown plans through an agent, then resume the same thread with configured follow-up prompts. This is useful for enforcing checks such as simplification, testing, committing, and release monitoring after the initial implementation round. Completed plans are moved into a sibling `archive/` directory.
 
 ```bash
 poe-code gaslight [plan-path]
 poe-code gaslight install
+poe-code gaslight ingest
 ```
 
 **Configuration lookup:**
@@ -470,14 +471,29 @@ poe-code gaslight install
 
 **Options:**
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--agent <agent>` | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run. |
-| `--model <model>` | Agent/configured default | Model override. |
-| `--mode <mode>` | `edit` | Spawn mode: `read`, `edit`, or `yolo`. |
-| `install --local` | Local when `--yes` | Write `<cwd>/.poe-code/gaslight.yaml`. |
-| `install --global` | None | Write `<homeDir>/.poe-code/gaslight.yaml`. |
-| `install --force` | `false` | Replace an existing gaslight config. |
+| Option             | Default                                                    | Description                                |
+| ------------------ | ---------------------------------------------------------- | ------------------------------------------ |
+| `--agent <agent>`  | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run.                           |
+| `--config <path>`  | Default config lookup                                      | Use a specific gaslight config file.       |
+| `--model <model>`  | Agent/configured default                                   | Model override.                            |
+| `--mode <mode>`    | `edit`                                                     | Spawn mode: `read`, `edit`, or `yolo`.     |
+| `--plans <paths>`  | None                                                       | Markdown plans to run sequentially.        |
+| `install --local`  | Local when `--yes`                                         | Write `<cwd>/.poe-code/gaslight.yaml`.     |
+| `install --global` | None                                                       | Write `<homeDir>/.poe-code/gaslight.yaml`. |
+| `install --force`  | `false`                                                    | Replace an existing gaslight config.       |
+
+**Ingest options:**
+
+| Option                       | Default                    | Description                                                       |
+| ---------------------------- | -------------------------- | ----------------------------------------------------------------- |
+| `ingest --agent <agent>`     | Prompted; `--yes` fallback | Agent id used to analyze extracted prompts.                       |
+| `ingest --model <model>`     | Agent/configured default   | Model override for the analysis agent.                            |
+| `ingest --sources <sources>` | `claude,codex` collector   | Comma-separated trace sources: `claude`, `codex`, or both.        |
+| `ingest --since <duration>`  | `30d`                      | Only include recently updated traces.                             |
+| `ingest --limit <number>`    | `200`                      | Maximum extracted human prompts.                                  |
+| `ingest --output <path>`     | `.poe-code/gaslight.yaml`  | Generated gaslight config path.                                   |
+| `ingest --keep-data <path>`  | Temporary workspace file   | Persist the curated Markdown analysis input at this path.         |
+| `ingest --all-workspaces`    | `false`                    | Read traces from every workspace instead of only the current one. |
 
 **Example config:**
 
@@ -495,6 +511,8 @@ followups:
 poe-code gaslight install --local
 poe-code gaslight docs/plans/feature.md --agent claude-code --model Claude-Sonnet-4.5
 poe-code gaslight docs/plans/feature.md --agent codex --mode read
+poe-code gaslight --plans docs/plans/a.md docs/plans/b.md --agent claude-code
+poe-code gaslight ingest --agent claude-code --sources claude,codex --since 30d
 ```
 
 ---
@@ -2374,28 +2392,27 @@ poe-code/
 
 ### CLI Commands Summary
 
-| Command | Subcommands | Description |
-|---------|-------------|-------------|
-| `configure [agent]` | — | Configure agent for the selected provider API |
-| `unconfigure <agent>` | — | Remove Poe configuration |
-| `login` | — | Store API key |
-| `logout` | — | Remove all config + credentials |
-| `auth` | `status`, `api-key`, `whoami`, `login`, `logout` | Poe account authentication commands |
-| `provider` | `list`, `login`, `logout` | Provider authentication management |
-| `approvals` | `list`, `show`, `run` | Toolcraft human-in-loop approval queue |
-| `spawn <agent> [prompt]` | — | Run agent with prompt |
-| `gaslight [plan-path]` | `install` | Run a plan, then resume follow-up checks |
-| `code-review` | `install`, `profiles`, `ingest`, `run`, `drafts`, `commit`, `agent-mcp` | Agent-assisted GitHub pull request reviews |
-| `research [prompt]` | — | Research codebase (read mode) |
-| `wrap <agent>` | — | One-off isolated session |
-| `test [agent]` | — | Health check |
-| `install [agent]` | — | Install agent binary |
-| `usage` | `balance`, `list` | Check usage/billing |
-| `models` | — | List available models |
-| `skill` | `configure`, `unconfigure` | Agent skill management |
-| `pipeline` | `run`, `init`, `validate`, `plan-path`, `install` | Pipeline plan generation, validation, and execution |
-| `memory` | `init`, `ls`, `show`, `search`, `status`, `clear` | Repo-scoped persistent memory operations |
-
+| Command                  | Subcommands                                                             | Description                                         |
+| ------------------------ | ----------------------------------------------------------------------- | --------------------------------------------------- |
+| `configure [agent]`      | —                                                                       | Configure agent for the selected provider API       |
+| `unconfigure <agent>`    | —                                                                       | Remove Poe configuration                            |
+| `login`                  | —                                                                       | Store API key                                       |
+| `logout`                 | —                                                                       | Remove all config + credentials                     |
+| `auth`                   | `status`, `api-key`, `whoami`, `login`, `logout`                        | Poe account authentication commands                 |
+| `provider`               | `list`, `login`, `logout`                                               | Provider authentication management                  |
+| `approvals`              | `list`, `show`, `run`                                                   | Toolcraft human-in-loop approval queue              |
+| `spawn <agent> [prompt]` | —                                                                       | Run agent with prompt                               |
+| `gaslight [plan-path]`   | `install`, `ingest`                                                     | Run plans, then resume follow-up checks             |
+| `code-review`            | `install`, `profiles`, `ingest`, `run`, `drafts`, `commit`, `agent-mcp` | Agent-assisted GitHub pull request reviews          |
+| `research [prompt]`      | —                                                                       | Research codebase (read mode)                       |
+| `wrap <agent>`           | —                                                                       | One-off isolated session                            |
+| `test [agent]`           | —                                                                       | Health check                                        |
+| `install [agent]`        | —                                                                       | Install agent binary                                |
+| `usage`                  | `balance`, `list`                                                       | Check usage/billing                                 |
+| `models`                 | —                                                                       | List available models                               |
+| `skill`                  | `configure`, `unconfigure`                                              | Agent skill management                              |
+| `pipeline`               | `run`, `init`, `validate`, `plan-path`, `install`                       | Pipeline plan generation, validation, and execution |
+| `memory`                 | `init`, `ls`, `show`, `search`, `status`, `clear`                       | Repo-scoped persistent memory operations            |
 
 ### SDK Exports Summary
 

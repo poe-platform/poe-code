@@ -102,11 +102,24 @@ By default, ingest writes a temporary curated Markdown analysis input under `<cw
 CLI options:
 
 - `--agent <agent>`: Agent id to run. Without `--yes`, omitted values are prompted.
+- `--config <path>`: Use a specific `gaslight.yaml` variant instead of the default lookup order.
 - `--model <model>`: Optional model override.
 - `--mode <read|edit|yolo>`: Spawn mode. Defaults to `edit`.
+- `--plans <paths...>`: Run multiple Markdown plans sequentially. Use either the positional plan path or `--plans`, not both.
 - `install --local`: Write `<cwd>/.poe-code/gaslight.yaml`.
 - `install --global`: Write `<homeDir>/.poe-code/gaslight.yaml`.
 - `install --force`: Replace an existing config.
+
+Ingest CLI options:
+
+- `ingest --agent <agent>`: Agent id used to analyze extracted prompts.
+- `ingest --model <model>`: Optional model override for the analysis agent.
+- `ingest --sources <sources>`: Comma-separated trace sources. Supported values are `claude` and `codex`.
+- `ingest --since <duration>`: Only include recently updated traces. Defaults to `30d`.
+- `ingest --limit <number>`: Maximum extracted human prompts. Defaults to `200`.
+- `ingest --output <path>`: Generated gaslight config path.
+- `ingest --keep-data <path>`: Persist the curated analysis input at this path.
+- `ingest --all-workspaces`: Read traces from every workspace instead of only the current workspace.
 
 ## SDK
 

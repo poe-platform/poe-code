@@ -98,11 +98,18 @@ echo "Say hello" | npx poe-code@latest spawn codex
 
 #### Run a plan with follow-up checks
 
-Gaslight runs a Markdown plan, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks.
+Gaslight runs Markdown plans, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks. Completed plans are moved into `archive/`.
 
 ```bash
 npx poe-code@latest gaslight install --local
 npx poe-code@latest gaslight docs/plans/feature.md --agent claude-code --mode edit
+npx poe-code@latest gaslight --plans docs/plans/a.md docs/plans/b.md --agent claude-code
+```
+
+Generate a Gaslight config from local Claude and Codex traces:
+
+```bash
+npx poe-code@latest gaslight ingest --agent claude-code --sources claude,codex --since 30d
 ```
 
 #### Review a GitHub pull request

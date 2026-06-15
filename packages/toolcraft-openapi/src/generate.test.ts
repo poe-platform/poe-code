@@ -1136,6 +1136,37 @@ describe("generate", () => {
     expect(command).toContain('region: S.Optional(S.String())');
   });
 
+  it("preserves enum values when collapsing same-shape oneOf parameter branches", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "status",
+                in: "query",
+                schema: {
+                  oneOf: [
+                    { type: "string", enum: ["active"] },
+                    { type: "string", enum: ["archived"] }
+                  ]
+                }
+              }
+            ],
+            responses: { "200": { description: "Listed." } }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const command = files.find((file) => file.contents.includes("operation-id: listBots"))?.contents;
+    expect(command).toContain('status: S.Optional(S.Enum(["active","archived"]');
+    expect(command).not.toContain("status: S.Optional(S.String())");
+  });
+
   it("serializes deepObject query arrays with bracketed keys", () => {
     const files = generate(
       createDocument({

@@ -2208,7 +2208,12 @@ function resolveEquivalentCompositionSchema(
   const { anyOf: _anyOf, oneOf: _oneOf, ...wrapper } = schema;
   void _anyOf;
   void _oneOf;
-  return { ...wrapper, ...createSchemaFromEquivalentShape(firstShape) };
+  const enumValues = collectEquivalentCompositionEnumValues(resolved);
+  return {
+    ...wrapper,
+    ...createSchemaFromEquivalentShape(firstShape),
+    ...(enumValues === undefined ? {} : { enum: enumValues })
+  };
 }
 
 function getEquivalentSchemaShape(schema: OpenApiSchemaObject): string | undefined {
@@ -2228,6 +2233,25 @@ function createSchemaFromEquivalentShape(shape: string): OpenApiSchemaObject {
     return { type: shape as OpenApiScalarType };
   }
   return { type: "array", items: createSchemaFromEquivalentShape(shape.slice("array:".length)) };
+}
+
+function collectEquivalentCompositionEnumValues(
+  schemas: readonly OpenApiSchemaObject[]
+): unknown[] | undefined {
+  if (schemas.some((schema) => schema.enum === undefined)) {
+    return undefined;
+  }
+
+  const values: unknown[] = [];
+  for (const schema of schemas) {
+    for (const value of schema.enum ?? []) {
+      if (!values.some((existing) => Object.is(existing, value))) {
+        values.push(value);
+      }
+    }
+  }
+
+  return values.length === 0 ? undefined : values;
 }
 
 function normalizeNullableTypeArray(schema: OpenApiSchemaObject): OpenApiSchemaObject {

@@ -42,6 +42,58 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe("token endpoint parsing", () => {
+  it("normalizes surrounding whitespace from token strings before storing them", async () => {
+    await expect(
+      exchangeAuthorizationCode({
+        tokenEndpoint: "https://auth.example.test/token",
+        clientId: "client",
+        code: "code",
+        codeVerifier: "verifier",
+        redirectUri: "http://127.0.0.1/callback",
+        resource: "https://resource.example.test/",
+        fetch: async () =>
+          jsonResponse({
+            access_token: "  access  ",
+            refresh_token: "  refresh  ",
+            token_type: "Bearer",
+            scope: "  read write  "
+          }),
+        now: () => 1_000
+      })
+    ).resolves.toEqual({
+      accessToken: "access",
+      refreshToken: "refresh",
+      tokenType: "Bearer",
+      expiresAt: null,
+      scope: "read write"
+    });
+  });
+
+  it.each([
+    { name: "string", expiresIn: "3600" },
+    { name: "non-finite", expiresIn: Infinity },
+    { name: "fractional", expiresIn: 1.5 },
+    { name: "overflowing", expiresIn: 8_640_000_000_000 }
+  ])("rejects $name expires_in values", async ({ expiresIn }) => {
+    await expect(
+      exchangeAuthorizationCode({
+        tokenEndpoint: "https://auth.example.test/token",
+        clientId: "client",
+        code: "code",
+        codeVerifier: "verifier",
+        redirectUri: "http://127.0.0.1/callback",
+        resource: "https://resource.example.test/",
+        fetch: async () =>
+          jsonResponse({
+            access_token: "access",
+            token_type: "Bearer",
+            expires_in: expiresIn
+          }),
+        now: () => 1_700_000_000_000
+      })
+    ).rejects.toThrow("OAuth token response has invalid expires_in");
+  });
+
   it("ignores inherited token response fields", async () => {
     await withObjectPrototypeProperties(
       {
@@ -84,10 +136,11 @@ describe("token endpoint parsing", () => {
             codeVerifier: "verifier",
             redirectUri: "http://127.0.0.1/callback",
             resource: "https://resource.example.test/",
-            fetch: async () => jsonResponse({
-              access_token: "access",
-              token_type: "Bearer"
-            }),
+            fetch: async () =>
+              jsonResponse({
+                access_token: "access",
+                token_type: "Bearer"
+              }),
             now: () => 1_000
           })
         ).resolves.toEqual({

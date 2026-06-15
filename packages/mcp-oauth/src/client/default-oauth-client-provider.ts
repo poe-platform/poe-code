@@ -8,11 +8,11 @@ import type {
   OAuthDiscoveryResult,
   OAuthMetadataFetch,
   StoredOAuthSession,
-  StoredOAuthTokens,
+  StoredOAuthTokens
 } from "./types.js";
 import {
   createAuthStoreClientStore,
-  createAuthStoreSessionStore,
+  createAuthStoreSessionStore
 } from "./auth-store-session-store.js";
 import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";
@@ -22,9 +22,11 @@ import {
   OAuthError,
   refreshAccessToken,
   isRetryableOAuthError,
-  readOAuthJsonObjectResponse,
+  readOAuthJsonObjectResponse
 } from "./token-endpoint.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
+
+const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
 export function createOAuthClientProvider(
   options: OAuthClientProviderOptions
@@ -40,7 +42,8 @@ export function createDefaultOAuthClientProvider(
   options: DefaultOAuthClientProviderOptions
 ): OAuthClientProvider {
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
-  const clientStore = options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
+  const clientStore =
+    options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
   const now = options.now ?? Date.now;
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
@@ -53,10 +56,10 @@ export function createDefaultOAuthClientProvider(
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false);
       const accessToken = session?.tokens?.accessToken;
       if (
-        session === null
-        || accessToken === undefined
-        || session.tokens === undefined
-        || isExpired(session.tokens, now)
+        session === null ||
+        accessToken === undefined ||
+        session.tokens === undefined ||
+        isExpired(session.tokens, now)
       ) {
         return;
       }
@@ -73,13 +76,13 @@ export function createDefaultOAuthClientProvider(
         const resource = canonicalizeResourceIndicator(input.discovery.resource);
         assertRequestMatchesResource(requestUrl, resource);
         const forceRefresh =
-          hasCachedAccessToken(await loadSession(resource))
-          && input.challenge?.params.error === "invalid_token";
+          hasCachedAccessToken(await loadSession(resource)) &&
+          input.challenge?.params.error === "invalid_token";
         const session = await ensureAuthorizedSession(
           resource,
           {
             ...input.discovery,
-            resource,
+            resource
           },
           input.fetch,
           true,
@@ -94,10 +97,10 @@ export function createDefaultOAuthClientProvider(
       } catch (error) {
         return {
           action: "fail",
-          error: error instanceof Error ? error : new Error(String(error)),
+          error: error instanceof Error ? error : new Error(String(error))
         } as const;
       }
-    },
+    }
   };
 
   async function ensureAuthorizedSession(
@@ -116,9 +119,9 @@ export function createDefaultOAuthClientProvider(
     }
 
     if (
-      session?.tokens?.refreshToken !== undefined
-      && sessionDiscovery !== undefined
-      && (forceRefresh || isExpired(session.tokens, now))
+      session?.tokens?.refreshToken !== undefined &&
+      sessionDiscovery !== undefined &&
+      (forceRefresh || isExpired(session.tokens, now))
     ) {
       session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch);
       if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
@@ -173,7 +176,7 @@ export function createDefaultOAuthClientProvider(
               refreshToken: session.tokens.refreshToken,
               resource,
               fetch,
-              now,
+              now
             });
             break;
           } catch (error) {
@@ -208,9 +211,9 @@ export function createDefaultOAuthClientProvider(
           ...session,
           tokens: {
             ...refreshedTokens,
-            refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken,
+            refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken
           },
-          discovery: toStoredDiscovery(discovery),
+          discovery: toStoredDiscovery(discovery)
         };
         await saveSession(resource, updatedSession);
         return updatedSession;
@@ -246,17 +249,22 @@ export function createDefaultOAuthClientProvider(
           openBrowser: options.browser.openBrowser,
           readLine: options.browser.readLine,
           createServer: options.browser.createServer,
-          landingPage: options.browser.landingPage,
+          landingPage: options.browser.landingPage
         });
         let resolvedClient: ResolvedOAuthClient | null = null;
 
         try {
-          resolvedClient = await resolveClient(currentSession, discovery, loopback.redirectUri, fetch);
+          resolvedClient = await resolveClient(
+            currentSession,
+            discovery,
+            loopback.redirectUri,
+            fetch
+          );
           const sessionWithoutTokens: StoredOAuthSession = {
             resource,
             authorizationServer: discovery.authorizationServer,
             client: resolvedClient.client,
-            discovery: toStoredDiscovery(discovery),
+            discovery: toStoredDiscovery(discovery)
           };
           await saveSession(resource, sessionWithoutTokens);
 
@@ -268,7 +276,7 @@ export function createDefaultOAuthClientProvider(
             clientId: resolvedClient.client.clientId,
             redirectUri: loopback.redirectUri,
             codeChallenge: challenge,
-            clientMetadata: getClientMetadata(options.client),
+            clientMetadata: getClientMetadata(options.client)
           });
           const code = await loopback.waitForCode(authorizationUrl);
           const tokens = await exchangeAuthorizationCode({
@@ -284,20 +292,18 @@ export function createDefaultOAuthClientProvider(
             redirectUri: loopback.redirectUri,
             resource,
             fetch,
-            now,
+            now
           });
 
           const session: StoredOAuthSession = {
             ...sessionWithoutTokens,
-            tokens,
+            tokens
           };
 
           await saveSession(resource, session);
           return session;
         } catch (error) {
-          if (
-            shouldReRegisterStoredDynamicClient(error, resolvedClient, reRegistrationAttempted)
-          ) {
+          if (shouldReRegisterStoredDynamicClient(error, resolvedClient, reRegistrationAttempted)) {
             reRegistrationAttempted = true;
             await clearRegisteredClient(discovery.authorizationServer);
             await clearSession(resource);
@@ -332,14 +338,17 @@ export function createDefaultOAuthClientProvider(
     redirectUri: string,
     fetch: OAuthMetadataFetch
   ): Promise<ResolvedOAuthClient> {
+    const configuredClient = normalizeConfiguredClient(options.client);
+
     if (options.client.mode === "static") {
+      if (configuredClient === null) {
+        throw new Error("OAuth client_id must not be blank");
+      }
+
       return {
         kind: "static",
         fromStoredRegistration: false,
-        client: {
-          clientId: options.client.clientId,
-          clientSecret: options.client.clientSecret,
-        },
+        client: configuredClient
       };
     }
 
@@ -347,14 +356,11 @@ export function createDefaultOAuthClientProvider(
       discovery.authorizationServerMetadata,
       "registration_endpoint"
     );
-    if (registrationEndpoint === undefined && options.client.clientId !== undefined) {
+    if (registrationEndpoint === undefined && configuredClient !== null) {
       return {
         kind: "static",
         fromStoredRegistration: false,
-        client: {
-          clientId: options.client.clientId,
-          clientSecret: options.client.clientSecret,
-        },
+        client: configuredClient
       };
     }
 
@@ -363,7 +369,7 @@ export function createDefaultOAuthClientProvider(
       return {
         kind: "dynamic",
         fromStoredRegistration: true,
-        client: storedClient,
+        client: storedClient
       };
     }
 
@@ -372,7 +378,7 @@ export function createDefaultOAuthClientProvider(
         return {
           kind: "dynamic",
           fromStoredRegistration: true,
-          client: existingSession.client,
+          client: existingSession.client
         };
       }
 
@@ -381,16 +387,16 @@ export function createDefaultOAuthClientProvider(
 
     if (existingSession !== null && existingSession.client.clientId.length > 0) {
       const isConfiguredStaticFallback =
-        options.client.clientId !== undefined
-        && existingSession.client.clientId === options.client.clientId
-        && existingSession.client.clientSecret === options.client.clientSecret;
+        configuredClient !== null &&
+        existingSession.client.clientId === configuredClient.clientId &&
+        existingSession.client.clientSecret === configuredClient.clientSecret;
 
       if (!isConfiguredStaticFallback) {
         await saveRegisteredClient(discovery.authorizationServer, existingSession.client);
         return {
           kind: "dynamic",
           fromStoredRegistration: true,
-          client: existingSession.client,
+          client: existingSession.client
         };
       }
     }
@@ -402,34 +408,31 @@ export function createDefaultOAuthClientProvider(
     const response = await fetch(registrationEndpoint, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      body: JSON.stringify(registrationBody),
+      body: JSON.stringify(registrationBody)
     });
     const payload = await readOAuthJsonObjectResponse(response);
     const clientId = getOwnString(payload, "client_id");
 
-    if (
-      clientId === undefined ||
-      clientId.trim().length === 0
-    ) {
+    if (clientId === undefined || clientId.trim().length === 0) {
       throw new Error("OAuth client registration response missing client_id");
     }
 
     const clientSecret = getOwnString(payload, "client_secret");
     const registeredClient = {
-      clientId,
+      clientId: clientId.trim(),
       clientSecret:
-        clientSecret !== undefined && clientSecret.length > 0
-          ? clientSecret
-          : undefined,
+        clientSecret !== undefined && clientSecret.trim().length > 0
+          ? clientSecret.trim()
+          : undefined
     };
     await saveRegisteredClient(discovery.authorizationServer, registeredClient);
 
     return {
       kind: "dynamic",
       fromStoredRegistration: false,
-      client: registeredClient,
+      client: registeredClient
     };
   }
 
@@ -502,7 +505,7 @@ function resolveDiscovery(
   if (discovery !== undefined) {
     return {
       ...discovery,
-      resource: canonicalizeResourceIndicator(discovery.resource),
+      resource: canonicalizeResourceIndicator(discovery.resource)
     };
   }
 
@@ -531,10 +534,11 @@ function resolveDiscovery(
   return {
     resource: canonicalizeResourceIndicator(session.resource),
     resourceMetadataUrl: session.discovery.resourceMetadataUrl,
-    resourceMetadata: session.discovery.resourceMetadata as OAuthDiscoveryResult["resourceMetadata"],
+    resourceMetadata: session.discovery
+      .resourceMetadata as OAuthDiscoveryResult["resourceMetadata"],
     authorizationServer: session.authorizationServer,
     authorizationServerMetadataUrl: "",
-    authorizationServerMetadata: metadata as OAuthAuthorizationServerMetadata,
+    authorizationServerMetadata: metadata as OAuthAuthorizationServerMetadata
   };
 }
 
@@ -563,7 +567,7 @@ function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuth
   return {
     ...session,
     client,
-    tokens: normalizeStoredTokens(getOwnEntry(session, "tokens")),
+    tokens: normalizeStoredTokens(getOwnEntry(session, "tokens"))
   };
 }
 
@@ -576,17 +580,19 @@ function normalizeStoredClient(value: unknown): StoredOAuthSession["client"] | n
   if (clientId === undefined || clientId.trim().length === 0) {
     return null;
   }
+  const normalizedClientId = clientId.trim();
 
   const clientSecret = getOwnEntry(value, "clientSecret");
   if (clientSecret === undefined) {
-    return { clientId };
+    return { clientId: normalizedClientId };
   }
 
   if (typeof clientSecret !== "string" || clientSecret.trim().length === 0) {
     return null;
   }
+  const normalizedClientSecret = clientSecret.trim();
 
-  return { clientId, clientSecret };
+  return { clientId: normalizedClientId, clientSecret: normalizedClientSecret };
 }
 
 function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
@@ -599,37 +605,75 @@ function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
   const expiresAt = getOwnEntry(value, "expiresAt");
   const refreshToken = getOwnEntry(value, "refreshToken");
   const scope = getOwnString(value, "scope");
-  const normalizedRefreshToken = typeof refreshToken === "string" ? refreshToken : undefined;
+  const normalizedAccessToken = accessToken?.trim();
+  const normalizedRefreshToken = typeof refreshToken === "string" ? refreshToken.trim() : undefined;
+  const normalizedScope = scope?.trim();
 
   if (
     accessToken === undefined ||
-    accessToken.trim().length === 0 ||
+    normalizedAccessToken === undefined ||
+    normalizedAccessToken.length === 0 ||
     tokenType !== "Bearer" ||
     !(
       expiresAt === null ||
-      (typeof expiresAt === "number" && Number.isFinite(expiresAt))
+      (typeof expiresAt === "number" &&
+        Number.isSafeInteger(expiresAt) &&
+        expiresAt <= MAX_JS_DATE_MS &&
+        Number.isFinite(new Date(expiresAt).getTime()))
     ) ||
-    (
-      refreshToken !== undefined &&
-      (typeof refreshToken !== "string" || refreshToken.trim().length === 0)
-    )
+    (refreshToken !== undefined &&
+      (typeof refreshToken !== "string" ||
+        normalizedRefreshToken === undefined ||
+        normalizedRefreshToken.length === 0))
   ) {
     return undefined;
   }
 
   return {
-    accessToken,
+    accessToken: normalizedAccessToken,
     tokenType,
     expiresAt,
     ...(normalizedRefreshToken === undefined ? {} : { refreshToken: normalizedRefreshToken }),
-    ...(scope === undefined || scope.length === 0 ? {} : { scope }),
+    ...(normalizedScope === undefined || normalizedScope.length === 0
+      ? {}
+      : { scope: normalizedScope })
   };
 }
 
 function getClientMetadata(
   client: DefaultOAuthClientProviderOptions["client"]
 ): OAuthClientMetadata | undefined {
-  return client.metadata;
+  if (client.metadata === undefined) {
+    return undefined;
+  }
+
+  return {
+    clientName: normalizeOptionalOAuthString(client.metadata.clientName),
+    scope: normalizeOptionalOAuthString(client.metadata.scope),
+    softwareId: normalizeOptionalOAuthString(client.metadata.softwareId),
+    softwareVersion: normalizeOptionalOAuthString(client.metadata.softwareVersion)
+  };
+}
+
+function normalizeConfiguredClient(
+  client: DefaultOAuthClientProviderOptions["client"]
+): StoredOAuthSession["client"] | null {
+  const clientId = normalizeOptionalOAuthString(client.clientId);
+  if (clientId === undefined) {
+    return null;
+  }
+
+  const clientSecret = normalizeOptionalOAuthString(client.clientSecret);
+  return clientSecret === undefined ? { clientId } : { clientId, clientSecret };
+}
+
+function normalizeOptionalOAuthString(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length === 0 ? undefined : trimmed;
 }
 
 function getOwnEntry(record: object, key: string): unknown {
@@ -647,11 +691,7 @@ function getOwnString(record: object, key: string): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-function requireOwnString(
-  record: object,
-  key: string,
-  label: string
-): string {
+function requireOwnString(record: object, key: string, label: string): string {
   const value = getOwnString(record, key);
   if (value === undefined) {
     throw new Error(`${label} is missing ${key}`);
@@ -660,10 +700,7 @@ function requireOwnString(
   return value;
 }
 
-function getOwnStringArray(
-  record: object,
-  key: string
-): string[] | undefined {
+function getOwnStringArray(record: object, key: string): string[] | undefined {
   const value = getOwnEntry(record, key);
   return Array.isArray(value) && value.every((entry) => typeof entry === "string")
     ? value
@@ -683,17 +720,13 @@ function buildAuthorizationUrl(input: {
     "authorization_endpoint",
     "Authorization server metadata"
   );
-  const issuer = requireOwnString(
-    input.metadata,
-    "issuer",
-    "Authorization server metadata"
-  );
+  const issuer = requireOwnString(input.metadata, "issuer", "Authorization server metadata");
   const url = new URL(authorizationEndpoint);
   const resource = canonicalizeResourceIndicator(input.resource);
   const state = createAuthorizationState({
     issuer,
     requireIssuer:
-      getOwnEntry(input.metadata, "authorization_response_iss_parameter_supported") === true,
+      getOwnEntry(input.metadata, "authorization_response_iss_parameter_supported") === true
   });
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", input.clientId);
@@ -724,9 +757,11 @@ function normalizeHostname(hostname: string): string {
 
 function isLoopbackHostname(hostname: string): boolean {
   const normalizedHostname = normalizeHostname(hostname);
-  return normalizedHostname === "localhost"
-    || normalizedHostname === "::1"
-    || normalizedHostname.startsWith("127.");
+  return (
+    normalizedHostname === "localhost" ||
+    normalizedHostname === "::1" ||
+    normalizedHostname.startsWith("127.")
+  );
 }
 
 function assertSecureUrl(value: string, label: string): void {
@@ -789,14 +824,13 @@ function buildClientRegistrationBody(
     redirect_uris: [redirectUri],
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
-    token_endpoint_auth_method: "none",
+    token_endpoint_auth_method: "none"
   };
   const clientName = metadata === undefined ? undefined : getOwnString(metadata, "clientName");
   const scope = metadata === undefined ? undefined : getOwnString(metadata, "scope");
   const softwareId = metadata === undefined ? undefined : getOwnString(metadata, "softwareId");
-  const softwareVersion = metadata === undefined
-    ? undefined
-    : getOwnString(metadata, "softwareVersion");
+  const softwareVersion =
+    metadata === undefined ? undefined : getOwnString(metadata, "softwareVersion");
 
   if (clientName !== undefined && clientName.length > 0) {
     body.client_name = clientName;
@@ -821,7 +855,7 @@ function toStoredDiscovery(discovery: OAuthDiscoveryResult): StoredOAuthSession[
   return {
     resourceMetadataUrl: discovery.resourceMetadataUrl,
     resourceMetadata: discovery.resourceMetadata,
-    authorizationServerMetadata: discovery.authorizationServerMetadata,
+    authorizationServerMetadata: discovery.authorizationServerMetadata
   };
 }
 

@@ -1,8 +1,7 @@
-import type {
-  OAuthMetadataFetch,
-  StoredOAuthTokens,
-} from "./types.js";
+import type { OAuthMetadataFetch, StoredOAuthTokens } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
+
+const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
 interface OAuthErrorShape {
   error: string;
@@ -36,12 +35,10 @@ export class OAuthError extends Error {
 
 export function isRetryableOAuthError(error: unknown): error is OAuthError {
   return (
-    error instanceof OAuthError
-    && (
-      error.status >= 500
-      || error.error === "server_error"
-      || error.error === "temporarily_unavailable"
-    )
+    error instanceof OAuthError &&
+    (error.status >= 500 ||
+      error.error === "server_error" ||
+      error.error === "temporarily_unavailable")
   );
 }
 
@@ -67,10 +64,10 @@ export async function exchangeAuthorizationCode(input: {
       code: input.code,
       code_verifier: input.codeVerifier,
       redirect_uri: input.redirectUri,
-      resource,
+      resource
     },
     fetch: input.fetch,
-    now: input.now,
+    now: input.now
   });
 }
 
@@ -92,10 +89,10 @@ export async function refreshAccessToken(input: {
     params: {
       grant_type: "refresh_token",
       refresh_token: input.refreshToken,
-      resource,
+      resource
     },
     fetch: input.fetch,
-    now: input.now,
+    now: input.now
   });
 }
 
@@ -109,7 +106,7 @@ async function requestTokens(input: {
 }): Promise<StoredOAuthTokens> {
   const body = new URLSearchParams({
     client_id: input.clientId,
-    ...input.params,
+    ...input.params
   });
 
   if (input.clientSecret !== undefined) {
@@ -119,9 +116,9 @@ async function requestTokens(input: {
   const response = await input.fetch(input.tokenEndpoint, {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: body.toString(),
+    body: body.toString()
   });
   const payload = await readOAuthJsonObjectResponse(response);
   const accessToken = getOwnEntry(payload, "access_token");
@@ -129,6 +126,7 @@ async function requestTokens(input: {
   if (typeof accessToken !== "string" || accessToken.trim().length === 0) {
     throw new Error("OAuth token response missing access_token");
   }
+  const normalizedAccessToken = accessToken.trim();
 
   const tokenType = normalizeBearerTokenType(getOwnEntry(payload, "token_type"));
   if (tokenType === null) {
@@ -136,31 +134,41 @@ async function requestTokens(input: {
   }
 
   const expiresIn = getOwnEntry(payload, "expires_in");
-  if (
-    typeof expiresIn === "number"
-    && Number.isFinite(expiresIn)
-    && expiresIn < 0
-  ) {
-    throw new Error("OAuth token response has invalid expires_in");
+  let expiresAt: number | null = null;
+  if (expiresIn !== undefined) {
+    if (
+      typeof expiresIn !== "number" ||
+      !Number.isFinite(expiresIn) ||
+      !Number.isInteger(expiresIn) ||
+      expiresIn < 0
+    ) {
+      throw new Error("OAuth token response has invalid expires_in");
+    }
+
+    expiresAt = input.now() + expiresIn * 1000;
+    if (
+      !Number.isSafeInteger(expiresAt) ||
+      expiresAt > MAX_JS_DATE_MS ||
+      !Number.isFinite(new Date(expiresAt).getTime())
+    ) {
+      throw new Error("OAuth token response has invalid expires_in");
+    }
   }
 
   const refreshToken = getOwnEntry(payload, "refresh_token");
   const scope = getOwnEntry(payload, "scope");
+  const normalizedRefreshToken =
+    typeof refreshToken === "string" && refreshToken.trim().length > 0
+      ? refreshToken.trim()
+      : undefined;
+  const normalizedScope =
+    typeof scope === "string" && scope.trim().length > 0 ? scope.trim() : undefined;
   return {
-    accessToken,
-    refreshToken:
-      typeof refreshToken === "string" && refreshToken.length > 0
-        ? refreshToken
-        : undefined,
+    accessToken: normalizedAccessToken,
+    refreshToken: normalizedRefreshToken === undefined ? undefined : normalizedRefreshToken,
     tokenType,
-    expiresAt:
-      typeof expiresIn === "number" && Number.isFinite(expiresIn)
-        ? input.now() + (expiresIn * 1000)
-        : null,
-    scope:
-      typeof scope === "string" && scope.length > 0
-        ? scope
-        : undefined,
+    expiresAt,
+    scope: normalizedScope === undefined ? undefined : normalizedScope
   };
 }
 
@@ -203,14 +211,8 @@ function readOAuthError(
   const errorUri = getOwnEntry(payload, "error_uri");
   return {
     error: typeof error === "string" ? error : fallbackError,
-    error_description:
-      typeof errorDescription === "string"
-        ? errorDescription
-        : undefined,
-    error_uri:
-      typeof errorUri === "string"
-        ? errorUri
-        : undefined,
+    error_description: typeof errorDescription === "string" ? errorDescription : undefined,
+    error_uri: typeof errorUri === "string" ? errorUri : undefined
   };
 }
 

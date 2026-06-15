@@ -4,13 +4,11 @@ import { describe, expect, it } from "vitest";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { createLoopbackAuthorizationSession } from "../index.js";
 
-async function requestUrl(
-  url: string
-): Promise<{ status: number; body: string }> {
+async function requestUrl(url: string): Promise<{ status: number; body: string }> {
   const response = await nodeFetch(url);
   return {
     status: response.status,
-    body: await response.text(),
+    body: await response.text()
   };
 }
 
@@ -25,7 +23,7 @@ describe("createLoopbackAuthorizationSession", () => {
 
     await expect(
       createLoopbackAuthorizationSession({
-        createServer: () => new FailingServer() as unknown as http.Server,
+        createServer: () => new FailingServer() as unknown as http.Server
       })
     ).rejects.toThrow("address in use");
   });
@@ -47,7 +45,7 @@ describe("createLoopbackAuthorizationSession", () => {
 
   it("keeps the configured callback path fixed while using a random loopback port", async () => {
     const session = await createLoopbackAuthorizationSession({
-      callbackPath: "/oauth/callback",
+      callbackPath: "/oauth/callback"
     });
     const waitForCode = session.waitForCode("https://auth.example.com/authorize");
 
@@ -61,7 +59,7 @@ describe("createLoopbackAuthorizationSession", () => {
       wrongPath.pathname = "/other";
 
       await expect(requestUrl(`${wrongPath.toString()}?code=ignored`)).resolves.toMatchObject({
-        status: 404,
+        status: 404
       });
 
       const successResponsePromise = requestUrl(
@@ -70,32 +68,28 @@ describe("createLoopbackAuthorizationSession", () => {
 
       await expect(waitForCode).resolves.toBe("code-123");
       await expect(successResponsePromise).resolves.toMatchObject({
-        status: 200,
+        status: 200
       });
     } finally {
       session.close();
     }
   });
 
-  it("does not settle a state-bound authorization for an error callback without matching state", async () => {
+  it("rejects a state-bound authorization for an error callback without matching state", async () => {
     const session = await createLoopbackAuthorizationSession();
     const waitForCode = session.waitForCode(
       "https://auth.example.com/authorize?state=expected-state"
     );
-    void waitForCode.catch(() => undefined);
 
     try {
       await expect(
         requestUrl(`${session.redirectUri}?error=access_denied&error_description=forged`)
       ).resolves.toMatchObject({
         status: 400,
-        body: "OAuth callback missing state",
+        body: "OAuth callback missing state"
       });
 
-      await requestUrl(
-        `${session.redirectUri}?code=code-123&state=expected-state`
-      );
-      await expect(waitForCode).resolves.toBe("code-123");
+      await expect(waitForCode).rejects.toThrow("OAuth callback missing state");
     } finally {
       session.close();
     }
@@ -104,7 +98,7 @@ describe("createLoopbackAuthorizationSession", () => {
   it("reports an authorization denial pasted through manual input", async () => {
     const session = await createLoopbackAuthorizationSession({
       readLine: async () =>
-        "http://127.0.0.1/callback?error=access_denied&error_description=User%20declined&state=expected-state",
+        "http://127.0.0.1/callback?error=access_denied&error_description=User%20declined&state=expected-state"
     });
 
     try {
@@ -120,13 +114,13 @@ describe("createLoopbackAuthorizationSession", () => {
     const session = await createLoopbackAuthorizationSession({
       readLine: async () => {
         throw new Error("stdin failed");
-      },
+      }
     });
 
     try {
-      await expect(
-        session.waitForCode("https://auth.example.com/authorize")
-      ).rejects.toThrow("stdin failed");
+      await expect(session.waitForCode("https://auth.example.com/authorize")).rejects.toThrow(
+        "stdin failed"
+      );
     } finally {
       session.close();
     }

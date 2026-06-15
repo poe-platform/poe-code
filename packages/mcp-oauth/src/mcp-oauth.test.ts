@@ -9,7 +9,7 @@ import {
   type OAuthClientProvider,
   type OAuthDiscoveryResult,
   type OAuthSessionStore,
-  type StoredOAuthSession,
+  type StoredOAuthSession
 } from "./index.js";
 import { createAuthStoreClientStore } from "./client/auth-store-session-store.js";
 
@@ -32,7 +32,7 @@ function createDiscoveryResult(
     resourceMetadataUrl: RESOURCE_METADATA_URL,
     resourceMetadata: {
       resource: RESOURCE_URL,
-      authorization_servers: [AUTHORIZATION_SERVER],
+      authorization_servers: [AUTHORIZATION_SERVER]
     },
     authorizationServer: AUTHORIZATION_SERVER,
     authorizationServerMetadataUrl: AUTHORIZATION_SERVER_METADATA_URL,
@@ -42,13 +42,15 @@ function createDiscoveryResult(
       token_endpoint: TOKEN_ENDPOINT,
       registration_endpoint: REGISTRATION_ENDPOINT,
       response_types_supported: ["code"],
-      code_challenge_methods_supported: ["S256"],
+      code_challenge_methods_supported: ["S256"]
     },
-    ...overrides,
+    ...overrides
   };
 }
 
-function createMemorySessionStore(): OAuthSessionStore & { sessions: Map<string, StoredOAuthSession> } {
+function createMemorySessionStore(): OAuthSessionStore & {
+  sessions: Map<string, StoredOAuthSession>;
+} {
   const sessions = new Map<string, StoredOAuthSession>();
 
   return {
@@ -61,7 +63,7 @@ function createMemorySessionStore(): OAuthSessionStore & { sessions: Map<string,
     },
     async clear(resource: string): Promise<void> {
       sessions.delete(resource);
-    },
+    }
   };
 }
 
@@ -73,10 +75,7 @@ type MemFsPromises = {
     data: string | NodeJS.ArrayBufferView,
     options?: { encoding?: BufferEncoding }
   ): Promise<void>;
-  mkdir(
-    path: string,
-    options?: { recursive?: boolean }
-  ): Promise<void | string | undefined>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
   unlink(path: string): Promise<void>;
   chmod(path: string, mode: number): Promise<void>;
 };
@@ -89,8 +88,8 @@ function createAuthStoreConfig(fs: MemFsPromises) {
       salt: "poe-code:test:mcp-oauth:v1",
       defaultDirectory: ".test-mcp-oauth",
       getHomeDirectory: () => "/home/test",
-      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-    },
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    }
   };
 }
 
@@ -102,8 +101,8 @@ function createAuthStoreFilePathConfig(fs: MemFsPromises, filePath: string) {
       filePath,
       salt: "poe-code:test:mcp-oauth:v1",
       getHomeDirectory: () => "/home/test",
-      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-    },
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    }
   };
 }
 
@@ -112,28 +111,28 @@ function createStoredSession(resource: string, label: string): StoredOAuthSessio
     resource,
     authorizationServer: AUTHORIZATION_SERVER,
     client: {
-      clientId: `client-${label}`,
+      clientId: `client-${label}`
     },
     tokens: {
       accessToken: `access-${label}`,
       refreshToken: `refresh-${label}`,
       tokenType: "Bearer",
-      expiresAt: 123_456,
+      expiresAt: 123_456
     },
     discovery: {
       resourceMetadataUrl: `${new URL(resource).origin}/.well-known/oauth-protected-resource`,
       resourceMetadata: {
         resource,
-        authorization_servers: [AUTHORIZATION_SERVER],
+        authorization_servers: [AUTHORIZATION_SERVER]
       },
       authorizationServerMetadata: {
         issuer: AUTHORIZATION_SERVER,
         authorization_endpoint: AUTHORIZATION_ENDPOINT,
         token_endpoint: TOKEN_ENDPOINT,
         response_types_supported: ["code"],
-        code_challenge_methods_supported: ["S256"],
-      },
-    },
+        code_challenge_methods_supported: ["S256"]
+      }
+    }
   };
 }
 
@@ -141,8 +140,8 @@ function createCallbackResponse(code: string): Response {
   return new Response(JSON.stringify({ code }), {
     status: 200,
     headers: {
-      "Content-Type": "application/json",
-    },
+      "Content-Type": "application/json"
+    }
   });
 }
 
@@ -156,7 +155,7 @@ async function withObjectPrototypeProperties<T>(
     Object.defineProperty(Object.prototype, key, {
       configurable: true,
       value,
-      writable: true,
+      writable: true
     });
   }
 
@@ -173,13 +172,15 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
-function createOAuthPair(options: {
-  includeRegistrationEndpoint?: boolean;
-  authorizationResponseIssParameterSupported?: boolean;
-  callbackStateMode?: "match" | "mismatch" | "missing";
-  callbackIssMode?: "match" | "mismatch" | "missing";
-  repeatCallbacks?: number;
-} = {}) {
+function createOAuthPair(
+  options: {
+    includeRegistrationEndpoint?: boolean;
+    authorizationResponseIssParameterSupported?: boolean;
+    callbackStateMode?: "match" | "mismatch" | "missing";
+    callbackIssMode?: "match" | "mismatch" | "missing";
+    repeatCallbacks?: number;
+  } = {}
+) {
   const includeRegistrationEndpoint = options.includeRegistrationEndpoint ?? true;
   const authorizationResponseIssParameterSupported =
     options.authorizationResponseIssParameterSupported ?? false;
@@ -219,7 +220,7 @@ function createOAuthPair(options: {
       access_token: accessToken,
       token_type: "Bearer",
       expires_in: 3600,
-      refresh_token: refreshToken,
+      refresh_token: refreshToken
     };
   };
 
@@ -231,11 +232,11 @@ function createOAuthPair(options: {
       return new Response(
         JSON.stringify({
           resource: RESOURCE_URL,
-          authorization_servers: [AUTHORIZATION_SERVER],
+          authorization_servers: [AUTHORIZATION_SERVER]
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         }
       );
     }
@@ -249,12 +250,11 @@ function createOAuthPair(options: {
           registration_endpoint: includeRegistrationEndpoint ? REGISTRATION_ENDPOINT : undefined,
           response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
-          authorization_response_iss_parameter_supported:
-            authorizationResponseIssParameterSupported,
+          authorization_response_iss_parameter_supported: authorizationResponseIssParameterSupported
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         }
       );
     }
@@ -276,11 +276,11 @@ function createOAuthPair(options: {
       return new Response(
         JSON.stringify({
           client_id: clientId,
-          token_endpoint_auth_method: "none",
+          token_endpoint_auth_method: "none"
         }),
         {
           status: 201,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         }
       );
     }
@@ -298,13 +298,10 @@ function createOAuthPair(options: {
 
         const storedCode = authorizationCodes.get(code);
         if (!storedCode) {
-          return new Response(
-            JSON.stringify({ error: "invalid_grant" }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
+          return new Response(JSON.stringify({ error: "invalid_grant" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" }
+          });
         }
 
         authorizationCodes.delete(code);
@@ -312,26 +309,23 @@ function createOAuthPair(options: {
         expect(body.get("resource")).toBe(RESOURCE_URL);
         expect(body.get("redirect_uri")).toBe(storedCode.redirectUri);
         expect(body.get("client_id")).toBe(storedCode.clientId);
-        expect(
-          createS256CodeChallenge(body.get("code_verifier") ?? "")
-        ).toBe(storedCode.codeChallenge);
+        expect(createS256CodeChallenge(body.get("code_verifier") ?? "")).toBe(
+          storedCode.codeChallenge
+        );
 
         return new Response(JSON.stringify(issueTokens()), {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
       }
 
       if (grantType === "refresh_token") {
         const refreshToken = body.get("refresh_token");
         if (refreshToken === null || !validRefreshTokens.has(refreshToken)) {
-          return new Response(
-            JSON.stringify({ error: "invalid_grant" }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
+          return new Response(JSON.stringify({ error: "invalid_grant" }), {
+            status: 400,
+            headers: { "Content-Type": "application/json" }
+          });
         }
 
         validRefreshTokens.delete(refreshToken);
@@ -339,7 +333,7 @@ function createOAuthPair(options: {
 
         return new Response(JSON.stringify(issueTokens()), {
           status: 200,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
       }
 
@@ -357,8 +351,8 @@ function createOAuthPair(options: {
           headers: {
             "WWW-Authenticate":
               `Bearer realm="mcp", error="invalid_token", ` +
-              `resource_metadata="${RESOURCE_METADATA_URL}"`,
-          },
+              `resource_metadata="${RESOURCE_METADATA_URL}"`
+          }
         });
       }
 
@@ -373,8 +367,8 @@ function createOAuthPair(options: {
           headers: {
             "WWW-Authenticate":
               `Bearer realm="mcp", error="invalid_token", ` +
-              `resource_metadata="${RESOURCE_METADATA_URL}"`,
-          },
+              `resource_metadata="${RESOURCE_METADATA_URL}"`
+          }
         });
       }
 
@@ -408,7 +402,11 @@ function createOAuthPair(options: {
 
     if (clientId !== "static-client") {
       const clientRedirectUris = registeredRedirectUris.get(clientId) ?? [];
-      if (!clientRedirectUris.some((candidate) => matchesRegisteredLoopbackRedirect(candidate, redirectUri))) {
+      if (
+        !clientRedirectUris.some((candidate) =>
+          matchesRegisteredLoopbackRedirect(candidate, redirectUri)
+        )
+      ) {
         throw new Error(`redirect_uri ${redirectUri} does not match the registered loopback path`);
       }
     }
@@ -419,7 +417,7 @@ function createOAuthPair(options: {
       clientId,
       redirectUri,
       resource: url.searchParams.get("resource") ?? "",
-      codeChallenge: url.searchParams.get("code_challenge") ?? "",
+      codeChallenge: url.searchParams.get("code_challenge") ?? ""
     });
 
     const callbackUrl = new URL(redirectUri);
@@ -451,7 +449,7 @@ function createOAuthPair(options: {
     authorizationRequests,
     registrationBodies,
     tokenBodies,
-    resourceAuthorizations,
+    resourceAuthorizations
   };
 }
 
@@ -486,19 +484,19 @@ async function authorizeProvider(
       headers: {
         "WWW-Authenticate":
           `Bearer realm="mcp", error="invalid_token", ` +
-          `resource_metadata="${RESOURCE_METADATA_URL}"`,
-      },
+          `resource_metadata="${RESOURCE_METADATA_URL}"`
+      }
     }),
     challenge: {
       scheme: "Bearer",
       raw: "",
       params: {
         error: "invalid_token",
-        resource_metadata: RESOURCE_METADATA_URL,
-      },
+        resource_metadata: RESOURCE_METADATA_URL
+      }
     },
     discovery,
-    fetch: fetchMock,
+    fetch: fetchMock
   });
 
   expect(result).toEqual({ action: "retry" });
@@ -513,10 +511,7 @@ describe("createAuthStoreSessionStore", () => {
         data: string | NodeJS.ArrayBufferView,
         options?: { encoding?: BufferEncoding }
       ): Promise<void>;
-      mkdir(
-        path: string,
-        options?: { recursive?: boolean }
-      ): Promise<void | string | undefined>;
+      mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
       unlink(path: string): Promise<void>;
       chmod(path: string, mode: number): Promise<void>;
     };
@@ -528,36 +523,36 @@ describe("createAuthStoreSessionStore", () => {
         salt: "poe-code:test:mcp-oauth:v1",
         defaultDirectory: ".test-mcp-oauth",
         getHomeDirectory: () => "/home/test",
-        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-      },
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
     });
 
     const session: StoredOAuthSession = {
       resource: RESOURCE_URL,
       authorizationServer: AUTHORIZATION_SERVER,
       client: {
-        clientId: "client-1",
+        clientId: "client-1"
       },
       tokens: {
         accessToken: "access-1",
         refreshToken: "refresh-1",
         tokenType: "Bearer",
-        expiresAt: 123_456,
+        expiresAt: 123_456
       },
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: {
           resource: RESOURCE_URL,
-          authorization_servers: [AUTHORIZATION_SERVER],
+          authorization_servers: [AUTHORIZATION_SERVER]
         },
         authorizationServerMetadata: {
           issuer: AUTHORIZATION_SERVER,
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
-      },
+          code_challenge_methods_supported: ["S256"]
+        }
+      }
     };
 
     await sessionStore.save(RESOURCE_URL, session);
@@ -577,10 +572,7 @@ describe("createAuthStoreSessionStore", () => {
         data: string | NodeJS.ArrayBufferView,
         options?: { encoding?: BufferEncoding }
       ): Promise<void>;
-      mkdir(
-        path: string,
-        options?: { recursive?: boolean }
-      ): Promise<void | string | undefined>;
+      mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
       unlink(path: string): Promise<void>;
       chmod(path: string, mode: number): Promise<void>;
     };
@@ -592,36 +584,36 @@ describe("createAuthStoreSessionStore", () => {
         salt: "poe-code:test:mcp-oauth:v1",
         defaultDirectory: ".test-mcp-oauth",
         getHomeDirectory: () => "/home/test",
-        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-      },
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
     });
 
     const session: StoredOAuthSession = {
       resource: RESOURCE_URL,
       authorizationServer: AUTHORIZATION_SERVER,
       client: {
-        clientId: "client-1",
+        clientId: "client-1"
       },
       tokens: {
         accessToken: "access-sensitive-token",
         refreshToken: "refresh-sensitive-token",
         tokenType: "Bearer",
-        expiresAt: 123_456,
+        expiresAt: 123_456
       },
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: {
           resource: RESOURCE_URL,
-          authorization_servers: [AUTHORIZATION_SERVER],
+          authorization_servers: [AUTHORIZATION_SERVER]
         },
         authorizationServerMetadata: {
           issuer: AUTHORIZATION_SERVER,
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
-      },
+          code_challenge_methods_supported: ["S256"]
+        }
+      }
     };
 
     await sessionStore.save(NON_CANONICAL_RESOURCE_URL, session);
@@ -651,10 +643,7 @@ describe("createAuthStoreSessionStore", () => {
         data: string | NodeJS.ArrayBufferView,
         options?: { encoding?: BufferEncoding }
       ): Promise<void>;
-      mkdir(
-        path: string,
-        options?: { recursive?: boolean }
-      ): Promise<void | string | undefined>;
+      mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
       unlink(path: string): Promise<void>;
       chmod(path: string, mode: number): Promise<void>;
     };
@@ -666,30 +655,30 @@ describe("createAuthStoreSessionStore", () => {
         salt: "poe-code:test:mcp-oauth:v1",
         defaultDirectory: ".test-mcp-oauth",
         getHomeDirectory: () => "/home/test",
-        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-      },
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
     });
 
     const session: StoredOAuthSession = {
       resource: RESOURCE_URL,
       authorizationServer: AUTHORIZATION_SERVER,
       client: {
-        clientId: "client-1",
+        clientId: "client-1"
       },
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: {
           resource: RESOURCE_URL,
-          authorization_servers: [AUTHORIZATION_SERVER],
+          authorization_servers: [AUTHORIZATION_SERVER]
         },
         authorizationServerMetadata: {
           issuer: AUTHORIZATION_SERVER,
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
-      },
+          code_challenge_methods_supported: ["S256"]
+        }
+      }
     };
 
     await sessionStore.save(NON_CANONICAL_RESOURCE_URL, session);
@@ -725,7 +714,7 @@ describe("createAuthStoreSessionStore", () => {
     expect(directoryEntries).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^session-[a-f0-9]{64}\.enc$/),
-        expect.stringMatching(/^session-[a-f0-9]{64}\.enc$/),
+        expect.stringMatching(/^session-[a-f0-9]{64}\.enc$/)
       ])
     );
   });
@@ -744,33 +733,54 @@ describe("createAuthStoreSessionStore", () => {
         fs,
         salt: "poe-code:test:mcp-oauth:v1",
         getHomeDirectory: () => "/home/test",
-        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
-      },
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
     });
     const session: StoredOAuthSession = {
       resource: RESOURCE_URL,
       authorizationServer: AUTHORIZATION_SERVER,
       client: {
-        clientId: "client-1",
+        clientId: "client-1"
       },
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: {
           resource: RESOURCE_URL,
-          authorization_servers: [AUTHORIZATION_SERVER],
+          authorization_servers: [AUTHORIZATION_SERVER]
         },
         authorizationServerMetadata: {
           issuer: AUTHORIZATION_SERVER,
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
-      },
+          code_challenge_methods_supported: ["S256"]
+        }
+      }
     };
 
     await expect(sessionStore.save(RESOURCE_URL, session)).rejects.toThrow(/symbolic link/i);
     await expect(fs.readdir("/outside/mcp-oauth")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("rejects loaded session records with invalid stored shapes", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const sessionStore = createAuthStoreSessionStore(createAuthStoreConfig(fs));
+
+    await sessionStore.save(RESOURCE_URL, {
+      resource: 42,
+      authorizationServer: [],
+      client: null,
+      tokens: {
+        accessToken: 123,
+        tokenType: "Bearer",
+        expiresAt: "tomorrow"
+      },
+      discovery: "bad"
+    } as unknown as StoredOAuthSession);
+
+    await expect(sessionStore.load(RESOURCE_URL)).rejects.toThrow(
+      "Stored OAuth session must match the expected shape"
+    );
   });
 });
 
@@ -784,17 +794,46 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
-      },
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
+      }
     } as unknown as StoredOAuthSession;
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore: {
-        async load() { return malformedSession; },
+        async load() {
+          return malformedSession;
+        },
         async save() {},
-        async clear() {},
+        async clear() {}
+      }
+    });
+
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+  });
+
+  it("does not emit cached tokens with unsafe expiration timestamps", async () => {
+    const sessionStore = createMemorySessionStore();
+    sessionStore.sessions.set(RESOURCE_URL, {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      tokens: {
+        accessToken: "stored-access",
+        tokenType: "Bearer",
+        expiresAt: Number.MAX_VALUE
       },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
+      }
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore,
+      now: () => 10_000
     });
 
     expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
@@ -808,17 +847,19 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
-      },
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
+      }
     } as StoredOAuthSession;
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore: {
-        async load() { return session; },
+        async load() {
+          return session;
+        },
         async save() {},
-        async clear() {},
-      },
+        async clear() {}
+      }
     });
 
     await withObjectPrototypeProperties(
@@ -826,8 +867,8 @@ describe("createDefaultOAuthClientProvider", () => {
         tokens: {
           accessToken: "polluted-access",
           tokenType: "Bearer",
-          expiresAt: null,
-        },
+          expiresAt: null
+        }
       },
       async () => {
         expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
@@ -842,27 +883,29 @@ describe("createDefaultOAuthClientProvider", () => {
       tokens: {
         accessToken: "stored-access",
         tokenType: "Bearer",
-        expiresAt: null,
+        expiresAt: null
       },
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
-      },
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
+      }
     } as StoredOAuthSession;
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore: {
-        async load() { return session; },
+        async load() {
+          return session;
+        },
         async save() {},
-        async clear() {},
-      },
+        async clear() {}
+      }
     });
 
     await withObjectPrototypeProperties(
       {
-        client: { clientId: "static-client" },
+        client: { clientId: "static-client" }
       },
       async () => {
         expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
@@ -874,19 +917,19 @@ describe("createDefaultOAuthClientProvider", () => {
     const pair = createOAuthPair();
     const provider = createDefaultOAuthClientProvider({
       client: {
-        mode: "dynamic",
+        mode: "dynamic"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult({
@@ -896,10 +939,10 @@ describe("createDefaultOAuthClientProvider", () => {
           token_endpoint: TOKEN_ENDPOINT,
           registration_endpoint: REGISTRATION_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["plain"],
-        },
+          code_challenge_methods_supported: ["plain"]
+        }
       }),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -914,13 +957,13 @@ describe("createDefaultOAuthClientProvider", () => {
     const pair = createOAuthPair();
     const provider = createDefaultOAuthClientProvider({
       client: {
-        mode: "dynamic",
+        mode: "dynamic"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(
@@ -933,8 +976,8 @@ describe("createDefaultOAuthClientProvider", () => {
           token_endpoint: TOKEN_ENDPOINT,
           registration_endpoint: REGISTRATION_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["plain", "S256"],
-        },
+          code_challenge_methods_supported: ["plain", "S256"]
+        }
       })
     );
 
@@ -949,7 +992,9 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.authorizationRequests).toHaveLength(1);
     const authorizationRequest = pair.authorizationRequests[0];
     expect(authorizationRequest?.searchParams.get("code_challenge_method")).toBe("S256");
-    const runtimeRedirectUri = new URL(authorizationRequest?.searchParams.get("redirect_uri") ?? "");
+    const runtimeRedirectUri = new URL(
+      authorizationRequest?.searchParams.get("redirect_uri") ?? ""
+    );
     expect(runtimeRedirectUri.protocol).toBe("http:");
     expect(runtimeRedirectUri.hostname).toBe("127.0.0.1");
     expect(runtimeRedirectUri.pathname).toBe("/callback");
@@ -957,28 +1002,28 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it("rejects callback state mismatches without exchanging the authorization code", async () => {
     const pair = createOAuthPair({
-      callbackStateMode: "mismatch",
+      callbackStateMode: "mismatch"
     });
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -992,24 +1037,24 @@ describe("createDefaultOAuthClientProvider", () => {
   it("rejects callback issuer mismatches before token exchange when the AS supports iss", async () => {
     const pair = createOAuthPair({
       authorizationResponseIssParameterSupported: true,
-      callbackIssMode: "mismatch",
+      callbackIssMode: "mismatch"
     });
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult({
@@ -1020,10 +1065,10 @@ describe("createDefaultOAuthClientProvider", () => {
           registration_endpoint: REGISTRATION_ENDPOINT,
           response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"],
-          authorization_response_iss_parameter_supported: true,
-        },
+          authorization_response_iss_parameter_supported: true
+        }
       }),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -1039,34 +1084,35 @@ describe("createDefaultOAuthClientProvider", () => {
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult({
         authorizationServer: "http://auth.example.com",
-        authorizationServerMetadataUrl: "http://auth.example.com/.well-known/oauth-authorization-server",
+        authorizationServerMetadataUrl:
+          "http://auth.example.com/.well-known/oauth-authorization-server",
         authorizationServerMetadata: {
           issuer: "http://auth.example.com",
           authorization_endpoint: "http://auth.example.com/authorize",
           token_endpoint: "http://auth.example.com/token",
           registration_endpoint: "http://auth.example.com/register",
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
+          code_challenge_methods_supported: ["S256"]
+        }
       }),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -1078,37 +1124,70 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it("skips DCR for static clients and sends the resource indicator on authorize and token requests", async () => {
     const pair = createOAuthPair({
-      includeRegistrationEndpoint: true,
+      includeRegistrationEndpoint: true
     });
     const sessionStore = createMemorySessionStore();
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
 
     expect(pair.registrationBodies).toHaveLength(0);
     expect(pair.authorizationRequests).toHaveLength(1);
-    expect(pair.authorizationRequests[0]?.searchParams.get("redirect_uri")).toContain("http://127.0.0.1:");
+    expect(pair.authorizationRequests[0]?.searchParams.get("redirect_uri")).toContain(
+      "http://127.0.0.1:"
+    );
     expect(pair.authorizationRequests[0]?.searchParams.get("resource")).toBe(RESOURCE_URL);
     expect(pair.tokenBodies).toHaveLength(1);
     expect(pair.tokenBodies[0]?.get("resource")).toBe(RESOURCE_URL);
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       client: {
-        clientId: "static-client",
+        clientId: "static-client"
       },
       tokens: {
         accessToken: "access-1",
-        refreshToken: "refresh-1",
+        refreshToken: "refresh-1"
+      }
+    });
+  });
+
+  it("normalizes static client credentials before authorization and token exchange", async () => {
+    const pair = createOAuthPair({
+      includeRegistrationEndpoint: true
+    });
+    const sessionStore = createMemorySessionStore();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: " static-client ",
+        clientSecret: " top-secret "
       },
+      browser: {
+        openBrowser: pair.openBrowser
+      },
+      sessionStore,
+      now: () => 10_000
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("static-client");
+    expect(pair.tokenBodies[0]?.get("client_id")).toBe("static-client");
+    expect(pair.tokenBodies[0]?.get("client_secret")).toBe("top-secret");
+    expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
+      client: {
+        clientId: "static-client",
+        clientSecret: "top-secret"
+      }
     });
   });
 
@@ -1118,13 +1197,13 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "static",
         clientId: "static-client",
-        clientSecret: "top-secret",
+        clientSecret: "top-secret"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
@@ -1138,27 +1217,27 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it("canonicalizes the resource indicator across request mapping, authorize, code exchange, and refresh", async () => {
     const pair = createOAuthPair({
-      includeRegistrationEndpoint: true,
+      includeRegistrationEndpoint: true
     });
     const sessionStore = createMemorySessionStore();
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const nonCanonicalDiscovery = createDiscoveryResult({
       resource: NON_CANONICAL_RESOURCE_URL,
       resourceMetadata: {
         resource: NON_CANONICAL_RESOURCE_URL,
-        authorization_servers: [AUTHORIZATION_SERVER],
-      },
+        authorization_servers: [AUTHORIZATION_SERVER]
+      }
     });
 
     await authorizeProvider(
@@ -1177,7 +1256,7 @@ describe("createDefaultOAuthClientProvider", () => {
     await provider.authorizeRequest!({
       requestUrl: new URL(RESOURCE_URL),
       headers,
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(headers.get("Authorization")).toBe("Bearer access-1");
@@ -1189,19 +1268,19 @@ describe("createDefaultOAuthClientProvider", () => {
         headers: {
           "WWW-Authenticate":
             `Bearer realm="mcp", error="invalid_token", ` +
-            `resource_metadata="${RESOURCE_METADATA_URL}"`,
-        },
+            `resource_metadata="${RESOURCE_METADATA_URL}"`
+        }
       }),
       challenge: {
         scheme: "Bearer",
         raw: "",
         params: {
           error: "invalid_token",
-          resource_metadata: RESOURCE_METADATA_URL,
-        },
+          resource_metadata: RESOURCE_METADATA_URL
+        }
       },
       discovery: nonCanonicalDiscovery,
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(refreshResult).toEqual({ action: "retry" });
@@ -1209,22 +1288,24 @@ describe("createDefaultOAuthClientProvider", () => {
       pair.tokenBodies.filter((body) => body.get("grant_type") === "refresh_token")
     ).toHaveLength(1);
     expect(
-      pair.tokenBodies.filter((body) => body.get("grant_type") === "refresh_token")[0]?.get("resource")
+      pair.tokenBodies
+        .filter((body) => body.get("grant_type") === "refresh_token")[0]
+        ?.get("resource")
     ).toBe(RESOURCE_URL);
 
     const refreshedHeaders = new Headers();
     await provider.authorizeRequest!({
       requestUrl: new URL(NON_CANONICAL_RESOURCE_URL),
       headers: refreshedHeaders,
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(refreshedHeaders.get("Authorization")).toBe("Bearer access-2");
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       resource: RESOURCE_URL,
       tokens: {
-        accessToken: "access-2",
-      },
+        accessToken: "access-2"
+      }
     });
   });
 
@@ -1233,13 +1314,13 @@ describe("createDefaultOAuthClientProvider", () => {
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
@@ -1248,7 +1329,7 @@ describe("createDefaultOAuthClientProvider", () => {
       provider.authorizeRequest!({
         requestUrl: new URL(`${RESOURCE_URL}?access_token=stolen-token`),
         headers: new Headers(),
-        fetch: pair.fetchMock as typeof fetch,
+        fetch: pair.fetchMock as typeof fetch
       })
     ).rejects.toThrow("access_token");
   });
@@ -1258,23 +1339,23 @@ describe("createDefaultOAuthClientProvider", () => {
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL("https://other.example.com/mcp"),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -1287,18 +1368,18 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it("exchanges an authorization code only once when the loopback callback fires twice", async () => {
     const pair = createOAuthPair({
-      repeatCallbacks: 2,
+      repeatCallbacks: 2
     });
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
@@ -1316,14 +1397,14 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore,
-      now: () => currentTime,
+      now: () => currentTime
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
@@ -1332,7 +1413,7 @@ describe("createDefaultOAuthClientProvider", () => {
     const authorizeCalls = await Promise.all([
       createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch),
       createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch),
-      createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch),
+      createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch)
     ]);
 
     expect(new Set(authorizeCalls)).toEqual(new Set(["Bearer access-2"]));
@@ -1350,19 +1431,19 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "expired-access",
         tokenType: "Bearer",
-        expiresAt: 1,
-      },
+        expiresAt: 1
+      }
     });
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const authorizationHeader = await createAuthorizedHeaders(provider, vi.fn() as typeof fetch);
@@ -1378,25 +1459,27 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "expired-access",
         refreshToken: { secret: true },
         tokenType: "Bearer",
-        expiresAt: 1,
-      },
+        expiresAt: 1
+      }
     } as unknown as StoredOAuthSession;
     const fetchMock = vi.fn();
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore: {
-        async load() { return malformedSession; },
+        async load() {
+          return malformedSession;
+        },
         async save() {},
-        async clear() {},
+        async clear() {}
       },
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBeNull();
@@ -1413,26 +1496,32 @@ describe("createDefaultOAuthClientProvider", () => {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
         authorizationServerMetadata: {
-          response_types_supported: ["code"],
-        },
+          response_types_supported: ["code"]
+        }
       },
       tokens: {
         accessToken: "expired-access",
         refreshToken: "refresh-polluted",
         tokenType: "Bearer",
-        expiresAt: 1,
-      },
+        expiresAt: 1
+      }
     });
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
-      access_token: "refreshed-access",
-      token_type: "Bearer",
-      expires_in: 3600,
-    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            access_token: "refreshed-access",
+            token_type: "Bearer",
+            expires_in: 3600
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+    );
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await withObjectPrototypeProperties(
@@ -1440,7 +1529,7 @@ describe("createDefaultOAuthClientProvider", () => {
         issuer: AUTHORIZATION_SERVER,
         authorization_endpoint: AUTHORIZATION_ENDPOINT,
         token_endpoint: TOKEN_ENDPOINT,
-        code_challenge_methods_supported: ["S256"],
+        code_challenge_methods_supported: ["S256"]
       },
       async () => {
         expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBeNull();
@@ -1459,19 +1548,19 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "revoked-access",
         tokenType: "Bearer",
-        expiresAt: null,
-      },
+        expiresAt: null
+      }
     });
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: pair.openBrowser },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
@@ -1479,11 +1568,13 @@ describe("createDefaultOAuthClientProvider", () => {
       response: new Response(null, { status: 401 }),
       challenge: { scheme: "Bearer", raw: "", params: { error: "invalid_token" } },
       discovery: createDiscoveryResult(),
-      fetch: pair.fetchMock as typeof fetch,
+      fetch: pair.fetchMock as typeof fetch
     });
 
     expect(result).toEqual({ action: "retry" });
-    expect(await createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch)).toBe("Bearer access-1");
+    expect(await createAuthorizedHeaders(provider, pair.fetchMock as typeof fetch)).toBe(
+      "Bearer access-1"
+    );
   });
 
   it("honors external session-store clears after an access token was previously loaded", async () => {
@@ -1495,21 +1586,23 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "stored-access",
         tokenType: "Bearer",
-        expiresAt: null,
-      },
+        expiresAt: null
+      }
     });
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
-      sessionStore,
+      sessionStore
     });
 
-    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBe("Bearer stored-access");
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBe(
+      "Bearer stored-access"
+    );
     sessionStore.sessions.delete(RESOURCE_URL);
     expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
   });
@@ -1518,7 +1611,7 @@ describe("createDefaultOAuthClientProvider", () => {
     {
       name: "whitespace-only access tokens",
       response: { access_token: "   ", refresh_token: "refresh-next", token_type: "Bearer" },
-      error: "OAuth token response missing access_token",
+      error: "OAuth token response missing access_token"
     },
     {
       name: "negative access token expiration",
@@ -1526,10 +1619,10 @@ describe("createDefaultOAuthClientProvider", () => {
         access_token: "access-next",
         refresh_token: "refresh-next",
         token_type: "Bearer",
-        expires_in: -1,
+        expires_in: -1
       },
-      error: "OAuth token response has invalid expires_in",
-    },
+      error: "OAuth token response has invalid expires_in"
+    }
   ])("rejects refresh responses containing $name", async ({ response, error }) => {
     const sessionStore = createMemorySessionStore();
     const originalSession: StoredOAuthSession = {
@@ -1538,31 +1631,34 @@ describe("createDefaultOAuthClientProvider", () => {
       client: { clientId: "static-client" },
       discovery: {
         authorizationServer: AUTHORIZATION_SERVER,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "access-current",
         refreshToken: "refresh-current",
         tokenType: "Bearer",
-        expiresAt: 3_700_000,
-      },
+        expiresAt: 3_700_000
+      }
     };
     sessionStore.sessions.set(RESOURCE_URL, originalSession);
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: vi.fn(),
+        openBrowser: vi.fn()
       },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify(response), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify(response), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        })
+    );
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
@@ -1570,10 +1666,10 @@ describe("createDefaultOAuthClientProvider", () => {
       challenge: {
         scheme: "Bearer",
         raw: "",
-        params: { error: "invalid_token" },
+        params: { error: "invalid_token" }
       },
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -1599,11 +1695,11 @@ describe("createDefaultOAuthClientProvider", () => {
           return new Response(
             JSON.stringify({
               error: "invalid_grant",
-              error_description: `refresh token ${body.get("refresh_token")} is invalid`,
+              error_description: `refresh token ${body.get("refresh_token")} is invalid`
             }),
             {
               status: 400,
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json" }
             }
           );
         }
@@ -1615,14 +1711,14 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore,
-      now: () => currentTime,
+      now: () => currentTime
     });
 
     await authorizeProvider(provider, fetchMock as typeof fetch);
@@ -1635,19 +1731,19 @@ describe("createDefaultOAuthClientProvider", () => {
         headers: {
           "WWW-Authenticate":
             `Bearer realm="mcp", error="invalid_token", ` +
-            `resource_metadata="${RESOURCE_METADATA_URL}"`,
-        },
+            `resource_metadata="${RESOURCE_METADATA_URL}"`
+        }
       }),
       challenge: {
         scheme: "Bearer",
         raw: "",
         params: {
           error: "invalid_token",
-          resource_metadata: RESOURCE_METADATA_URL,
-        },
+          resource_metadata: RESOURCE_METADATA_URL
+        }
       },
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result).toEqual({ action: "retry" });
@@ -1661,8 +1757,8 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       tokens: {
         accessToken: "access-2",
-        refreshToken: "refresh-2",
-      },
+        refreshToken: "refresh-2"
+      }
     });
 
     const authorizationHeader = await createAuthorizedHeaders(provider, fetchMock as typeof fetch);
@@ -1679,35 +1775,42 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "expired-access",
         refreshToken: "refresh-reusable",
         tokenType: "Bearer",
-        expiresAt: 1,
-      },
+        expiresAt: 1
+      }
     });
     let refreshCalls = 0;
     const fetchMock = vi.fn(async () => {
       refreshCalls += 1;
-      return new Response(JSON.stringify({
-        access_token: `access-${refreshCalls}`,
-        token_type: "Bearer",
-        expires_in: 1,
-      }), { status: 200, headers: { "Content-Type": "application/json" } });
+      return new Response(
+        JSON.stringify({
+          access_token: `access-${refreshCalls}`,
+          token_type: "Bearer",
+          expires_in: 1
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } }
+      );
     });
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore,
-      now: () => currentTime,
+      now: () => currentTime
     });
 
-    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe("Bearer access-1");
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe(
+      "Bearer access-1"
+    );
     expect((await sessionStore.load(RESOURCE_URL))?.tokens?.refreshToken).toBe("refresh-reusable");
     currentTime = 12_000;
-    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe("Bearer access-2");
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBe(
+      "Bearer access-2"
+    );
     expect(refreshCalls).toBe(2);
   });
 
@@ -1719,50 +1822,58 @@ describe("createDefaultOAuthClientProvider", () => {
       discovery: {
         resourceMetadataUrl: RESOURCE_METADATA_URL,
         resourceMetadata: createDiscoveryResult().resourceMetadata,
-        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata
       },
       tokens: {
         accessToken: "expired-access",
         refreshToken: "refresh-old",
         tokenType: "Bearer",
-        expiresAt: 1,
-      },
+        expiresAt: 1
+      }
     };
     const sessionStore: OAuthSessionStore = {
       load: vi.fn(async () => storedSession),
       save: vi.fn(async () => {
         throw new Error("session disk full");
       }),
-      clear: vi.fn(async () => undefined),
+      clear: vi.fn(async () => undefined)
     };
     const provider = createDefaultOAuthClientProvider({
       client: { mode: "static", clientId: "static-client" },
       browser: { openBrowser: vi.fn() },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
-      access_token: "uncommitted-access",
-      refresh_token: "refresh-new",
-      token_type: "Bearer",
-      expires_in: 3600,
-    }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            access_token: "uncommitted-access",
+            refresh_token: "refresh-new",
+            token_type: "Bearer",
+            expires_in: 3600
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } }
+        )
+    );
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, { status: 401 }),
       challenge: { scheme: "Bearer", raw: "", params: { error: "invalid_token" } },
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
     const headers = new Headers();
-    await expect(provider.authorizeRequest?.({
-      requestUrl: new URL(RESOURCE_URL),
-      headers,
-      fetch: fetchMock as typeof fetch,
-    })).rejects.toThrow("session disk full");
+    await expect(
+      provider.authorizeRequest?.({
+        requestUrl: new URL(RESOURCE_URL),
+        headers,
+        fetch: fetchMock as typeof fetch
+      })
+    ).rejects.toThrow("session disk full");
     expect(headers.get("Authorization")).toBeNull();
   });
 
@@ -1786,11 +1897,11 @@ describe("createDefaultOAuthClientProvider", () => {
         return new Response(
           JSON.stringify({
             client_id: "client-1",
-            token_endpoint_auth_method: "none",
+            token_endpoint_auth_method: "none"
           }),
           {
             status: 201,
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" }
           }
         );
       }
@@ -1810,19 +1921,19 @@ describe("createDefaultOAuthClientProvider", () => {
 
         expect(body.get("client_id")).toBe(authorizationCode.clientId);
         expect(body.get("redirect_uri")).toBe(authorizationCode.redirectUri);
-        expect(
-          createS256CodeChallenge(body.get("code_verifier") ?? "")
-        ).toBe(authorizationCode.codeChallenge);
+        expect(createS256CodeChallenge(body.get("code_verifier") ?? "")).toBe(
+          authorizationCode.codeChallenge
+        );
 
         if (tokenCounter === 1) {
           return new Response(
             JSON.stringify({
               error: "invalid_grant",
-              error_description: "expired code",
+              error_description: "expired code"
             }),
             {
               status: 400,
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json" }
             }
           );
         }
@@ -1832,16 +1943,16 @@ describe("createDefaultOAuthClientProvider", () => {
             access_token: "access-2",
             token_type: "Bearer",
             expires_in: 3600,
-            refresh_token: "refresh-2",
+            refresh_token: "refresh-2"
           }),
           {
             status: 200,
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" }
           }
         );
       }
 
-      throw new Error(`Unexpected fetch request: ${(init?.method ?? "GET")} ${url}`);
+      throw new Error(`Unexpected fetch request: ${init?.method ?? "GET"} ${url}`);
     });
     const openBrowser = vi.fn(async (authorizationUrl: string) => {
       const url = new URL(authorizationUrl);
@@ -1852,7 +1963,7 @@ describe("createDefaultOAuthClientProvider", () => {
       authorizationCodes.set(code, {
         clientId: url.searchParams.get("client_id") ?? "",
         redirectUri: url.searchParams.get("redirect_uri") ?? "",
-        codeChallenge: url.searchParams.get("code_challenge") ?? "",
+        codeChallenge: url.searchParams.get("code_challenge") ?? ""
       });
 
       const callbackUrl = new URL(url.searchParams.get("redirect_uri") ?? "");
@@ -1864,32 +1975,32 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser,
+        openBrowser
       },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const firstAttempt = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(firstAttempt.action).toBe("fail");
     const failedSession = await sessionStore.load(RESOURCE_URL);
     expect(failedSession).toMatchObject({
       client: {
-        clientId: "client-1",
-      },
+        clientId: "client-1"
+      }
     });
     expect(failedSession?.tokens).toBeUndefined();
 
@@ -1899,17 +2010,19 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(authorizationRequests).toHaveLength(2);
     expect(
       new Set(
-        authorizationRequests.map((request) => new URL(request.searchParams.get("redirect_uri") ?? "").port)
+        authorizationRequests.map(
+          (request) => new URL(request.searchParams.get("redirect_uri") ?? "").port
+        )
       ).size
     ).toBe(2);
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       client: {
-        clientId: "client-1",
+        clientId: "client-1"
       },
       tokens: {
         accessToken: "access-2",
-        refreshToken: "refresh-2",
-      },
+        refreshToken: "refresh-2"
+      }
     });
   });
 
@@ -1925,15 +2038,15 @@ describe("createDefaultOAuthClientProvider", () => {
           clientName: "poe-code test",
           scope: "mcp.read mcp.write",
           softwareId: "poe-code",
-          softwareVersion: "1.0.0",
-        },
+          softwareVersion: "1.0.0"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider1, pair.fetchMock as typeof fetch);
@@ -1945,15 +2058,15 @@ describe("createDefaultOAuthClientProvider", () => {
           clientName: "poe-code test",
           scope: "mcp.read mcp.write",
           softwareId: "poe-code",
-          softwareVersion: "1.0.0",
-        },
+          softwareVersion: "1.0.0"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider2, pair.fetchMock as typeof fetch);
@@ -1967,7 +2080,7 @@ describe("createDefaultOAuthClientProvider", () => {
       token_endpoint_auth_method: "none",
       scope: "mcp.read mcp.write",
       software_id: "poe-code",
-      software_version: "1.0.0",
+      software_version: "1.0.0"
     });
     expect(pair.authorizationRequests).toHaveLength(2);
     expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("client-1");
@@ -1980,7 +2093,7 @@ describe("createDefaultOAuthClientProvider", () => {
       if (input.toString() === REGISTRATION_ENDPOINT) {
         return new Response(JSON.stringify({ client_id: "   " }), {
           status: 201,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
       }
 
@@ -1989,11 +2102,11 @@ describe("createDefaultOAuthClientProvider", () => {
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "dynamic",
-        metadata: { clientName: "poe-code test" },
+        metadata: { clientName: "poe-code test" }
       },
       browser: { openBrowser: pair.openBrowser },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
@@ -2001,7 +2114,7 @@ describe("createDefaultOAuthClientProvider", () => {
       response: new Response(null, { status: 401 }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -2011,13 +2124,160 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.authorizationRequests).toHaveLength(0);
   });
 
+  it("normalizes dynamic client registration identifiers before storing and reusing them", async () => {
+    const openedAuthorizationUrls: string[] = [];
+    const savedSessions: StoredOAuthSession[] = [];
+    let tokenBody: URLSearchParams | undefined;
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic"
+      },
+      browser: {
+        openBrowser: async (authorizationUrl) => {
+          openedAuthorizationUrls.push(authorizationUrl);
+        },
+        readLine: async () => {
+          while (openedAuthorizationUrls.length === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+
+          const authorizationUrl = new URL(openedAuthorizationUrls[0] ?? "");
+          const callbackUrl = new URL(authorizationUrl.searchParams.get("redirect_uri") ?? "");
+          callbackUrl.searchParams.set("code", "code-1");
+          callbackUrl.searchParams.set("state", authorizationUrl.searchParams.get("state") ?? "");
+          return callbackUrl.toString();
+        }
+      },
+      sessionStore: {
+        async load() {
+          return null;
+        },
+        async save(_resource, session) {
+          savedSessions.push(session);
+        },
+        async clear() {}
+      },
+      now: () => 10_000
+    });
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        return new Response(
+          JSON.stringify({
+            client_id: "  dynamic-client  ",
+            client_secret: "  dynamic-secret  "
+          }),
+          {
+            status: 201,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      if (input.toString() === TOKEN_ENDPOINT) {
+        tokenBody = new URLSearchParams(String(init?.body ?? ""));
+        return new Response(
+          JSON.stringify({
+            access_token: "access-1",
+            token_type: "Bearer",
+            expires_in: 3600
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      throw new Error(`Unexpected fetch request: ${input.toString()}`);
+    });
+
+    await authorizeProvider(provider, fetchMock as typeof fetch);
+
+    expect(new URL(openedAuthorizationUrls[0] ?? "").searchParams.get("client_id")).toBe(
+      "dynamic-client"
+    );
+    expect(tokenBody?.get("client_id")).toBe("dynamic-client");
+    expect(tokenBody?.get("client_secret")).toBe("dynamic-secret");
+    expect(savedSessions[savedSessions.length - 1]?.client).toEqual({
+      clientId: "dynamic-client",
+      clientSecret: "dynamic-secret"
+    });
+  });
+
+  it("omits whitespace-only dynamic client metadata from registration and authorization requests", async () => {
+    const openedAuthorizationUrls: string[] = [];
+    const registrationBodies: Array<Record<string, unknown>> = [];
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "   ",
+          scope: "   ",
+          softwareId: "   ",
+          softwareVersion: "   "
+        }
+      },
+      browser: {
+        openBrowser: async (authorizationUrl) => {
+          openedAuthorizationUrls.push(authorizationUrl);
+        },
+        readLine: async () => {
+          while (openedAuthorizationUrls.length === 0) {
+            await new Promise((resolve) => setTimeout(resolve, 0));
+          }
+
+          const authorizationUrl = new URL(openedAuthorizationUrls[0] ?? "");
+          const callbackUrl = new URL(authorizationUrl.searchParams.get("redirect_uri") ?? "");
+          callbackUrl.searchParams.set("code", "code-1");
+          callbackUrl.searchParams.set("state", authorizationUrl.searchParams.get("state") ?? "");
+          return callbackUrl.toString();
+        }
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000
+    });
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        registrationBodies.push(JSON.parse(String(init?.body)) as Record<string, unknown>);
+        return new Response(JSON.stringify({ client_id: "client-1" }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+
+      if (input.toString() === TOKEN_ENDPOINT) {
+        return new Response(
+          JSON.stringify({
+            access_token: "access-1",
+            token_type: "Bearer",
+            expires_in: 3600
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        );
+      }
+
+      throw new Error(`Unexpected fetch request: ${input.toString()}`);
+    });
+
+    await authorizeProvider(provider, fetchMock as typeof fetch);
+
+    expect(registrationBodies[0]).not.toHaveProperty("client_name");
+    expect(registrationBodies[0]).not.toHaveProperty("scope");
+    expect(registrationBodies[0]).not.toHaveProperty("software_id");
+    expect(registrationBodies[0]).not.toHaveProperty("software_version");
+    expect(new URL(openedAuthorizationUrls[0] ?? "").searchParams.get("scope")).toBeNull();
+  });
+
   it("ignores inherited dynamic client registration identifiers", async () => {
     const pair = createOAuthPair();
     const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
       if (input.toString() === REGISTRATION_ENDPOINT) {
         return new Response(JSON.stringify({}), {
           status: 201,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json" }
         });
       }
 
@@ -2026,17 +2286,17 @@ describe("createDefaultOAuthClientProvider", () => {
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "dynamic",
-        metadata: { clientName: "poe-code test" },
+        metadata: { clientName: "poe-code test" }
       },
       browser: { openBrowser: pair.openBrowser },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await withObjectPrototypeProperties(
       {
         client_id: "polluted-client",
-        client_secret: "polluted-secret",
+        client_secret: "polluted-secret"
       },
       async () => {
         const result = await provider.handleUnauthorized({
@@ -2044,12 +2304,14 @@ describe("createDefaultOAuthClientProvider", () => {
           response: new Response(null, { status: 401 }),
           challenge: null,
           discovery: createDiscoveryResult(),
-          fetch: fetchMock as typeof fetch,
+          fetch: fetchMock as typeof fetch
         });
 
         expect(result.action).toBe("fail");
         if (result.action === "fail") {
-          expect(result.error?.message).toBe("OAuth client registration response missing client_id");
+          expect(result.error?.message).toBe(
+            "OAuth client registration response missing client_id"
+          );
         }
       }
     );
@@ -2071,15 +2333,15 @@ describe("createDefaultOAuthClientProvider", () => {
 
     await clientStore.save(AUTHORIZATION_SERVER, {
       clientId: "stored-client",
-      clientSecret: "stored-secret",
+      clientSecret: "stored-secret"
     });
 
     expect(await clientStore.load(AUTHORIZATION_SERVER)).toEqual({
       clientId: "stored-client",
-      clientSecret: "stored-secret",
+      clientSecret: "stored-secret"
     });
     expect(await clientStore.load(otherIssuer)).toEqual({
-      clientId: "other-client",
+      clientId: "other-client"
     });
 
     const directoryEntries = await fs.readdir("/home/test/oauth");
@@ -2089,7 +2351,7 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(directoryEntries).toEqual(
       expect.arrayContaining([
         expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
-        expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/),
+        expect.stringMatching(/^client-[a-f0-9]{64}\.enc$/)
       ])
     );
   });
@@ -2106,7 +2368,7 @@ describe("createDefaultOAuthClientProvider", () => {
     await withObjectPrototypeProperties(
       {
         clientId: "polluted-client",
-        clientSecret: "polluted-secret",
+        clientSecret: "polluted-secret"
       },
       async () => {
         await expect(clientStore.load(AUTHORIZATION_SERVER)).rejects.toThrow(
@@ -2118,7 +2380,7 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it.each([
     { clientId: "", clientSecret: undefined },
-    { clientId: "stored-client", clientSecret: 42 },
+    { clientId: "stored-client", clientSecret: 42 }
   ])("discards unusable persisted dynamic client registrations", async (storedClient) => {
     const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
     const authStore = createAuthStoreConfig(fs);
@@ -2133,7 +2395,7 @@ describe("createDefaultOAuthClientProvider", () => {
       browser: { openBrowser: pair.openBrowser },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider, pair.fetchMock as typeof fetch);
@@ -2143,19 +2405,19 @@ describe("createDefaultOAuthClientProvider", () => {
 
   it("falls back to a configured static client_id when registration_endpoint is missing", async () => {
     const pair = createOAuthPair({
-      includeRegistrationEndpoint: false,
+      includeRegistrationEndpoint: false
     });
     const sessionStore = createMemorySessionStore();
     const provider = createDefaultOAuthClientProvider({
       client: {
         mode: "dynamic",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(
@@ -2167,8 +2429,8 @@ describe("createDefaultOAuthClientProvider", () => {
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
+          code_challenge_methods_supported: ["S256"]
+        }
       })
     );
 
@@ -2177,11 +2439,11 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("static-client");
     expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
       client: {
-        clientId: "static-client",
+        clientId: "static-client"
       },
       tokens: {
-        accessToken: "access-1",
-      },
+        accessToken: "access-1"
+      }
     });
   });
 
@@ -2194,33 +2456,33 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: registrationPair.openBrowser,
+        openBrowser: registrationPair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider1, registrationPair.fetchMock as typeof fetch);
 
     const fallbackPair = createOAuthPair({
-      includeRegistrationEndpoint: false,
+      includeRegistrationEndpoint: false
     });
     const provider2 = createDefaultOAuthClientProvider({
       client: {
         mode: "dynamic",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: fallbackPair.openBrowser,
+        openBrowser: fallbackPair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(
@@ -2232,14 +2494,16 @@ describe("createDefaultOAuthClientProvider", () => {
           authorization_endpoint: AUTHORIZATION_ENDPOINT,
           token_endpoint: TOKEN_ENDPOINT,
           response_types_supported: ["code"],
-          code_challenge_methods_supported: ["S256"],
-        },
+          code_challenge_methods_supported: ["S256"]
+        }
       })
     );
 
     expect(fallbackPair.registrationBodies).toHaveLength(0);
     expect(fallbackPair.authorizationRequests).toHaveLength(1);
-    expect(fallbackPair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("static-client");
+    expect(fallbackPair.authorizationRequests[0]?.searchParams.get("client_id")).toBe(
+      "static-client"
+    );
   });
 
   it("surfaces dynamic client registration endpoint errors as OAuthError", async () => {
@@ -2250,11 +2514,11 @@ describe("createDefaultOAuthClientProvider", () => {
           JSON.stringify({
             error: "invalid_client_metadata",
             error_description: "token_endpoint_auth_method client_secret_basic is not supported",
-            error_uri: "https://errors.example.com/invalid_client_metadata",
+            error_uri: "https://errors.example.com/invalid_client_metadata"
           }),
           {
             status: 400,
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json" }
           }
         );
       }
@@ -2266,24 +2530,24 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -2295,7 +2559,7 @@ describe("createDefaultOAuthClientProvider", () => {
         errorUri: "https://errors.example.com/invalid_client_metadata",
         status: 400,
         retryable: false,
-        terminal: true,
+        terminal: true
       });
     }
     expect(pair.authorizationRequests).toHaveLength(0);
@@ -2316,20 +2580,20 @@ describe("createDefaultOAuthClientProvider", () => {
           authorizationCodeTokenAttempts += 1;
         }
         if (
-          rejectStoredClient
-          && body.get("grant_type") === "authorization_code"
-          && body.get("client_id") === "client-1"
+          rejectStoredClient &&
+          body.get("grant_type") === "authorization_code" &&
+          body.get("client_id") === "client-1"
         ) {
           rejectStoredClient = false;
           return new Response(
             JSON.stringify({
               error: "invalid_client",
               error_description: "stored client registration was revoked",
-              error_uri: "https://errors.example.com/invalid_client",
+              error_uri: "https://errors.example.com/invalid_client"
             }),
             {
               status: 401,
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json" }
             }
           );
         }
@@ -2342,15 +2606,15 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider1, fetchMock as typeof fetch);
@@ -2360,15 +2624,15 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider2, fetchMock as typeof fetch);
@@ -2396,11 +2660,11 @@ describe("createDefaultOAuthClientProvider", () => {
             JSON.stringify({
               error: "invalid_client",
               error_description: `client ${body.get("client_id")} is rejected`,
-              error_uri: "https://errors.example.com/invalid_client",
+              error_uri: "https://errors.example.com/invalid_client"
             }),
             {
               status: 401,
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json" }
             }
           );
         }
@@ -2413,15 +2677,15 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(provider1, pair.fetchMock as typeof fetch);
@@ -2430,25 +2694,25 @@ describe("createDefaultOAuthClientProvider", () => {
       client: {
         mode: "dynamic",
         metadata: {
-          clientName: "poe-code test",
-        },
+          clientName: "poe-code test"
+        }
       },
       browser: {
-        openBrowser: pair.openBrowser,
+        openBrowser: pair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
       authStore,
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const result = await provider2.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: fetchMock as typeof fetch,
+      fetch: fetchMock as typeof fetch
     });
 
     expect(result.action).toBe("fail");
@@ -2459,7 +2723,7 @@ describe("createDefaultOAuthClientProvider", () => {
         errorDescription: "client client-2 is rejected",
         status: 401,
         retryable: false,
-        terminal: true,
+        terminal: true
       });
     }
     expect(pair.registrationBodies).toHaveLength(2);
@@ -2479,54 +2743,56 @@ describe("createDefaultOAuthClientProvider", () => {
       { error: "unsupported_grant_type", status: 400, retries: 1 },
       { error: "invalid_scope", status: 400, retries: 1 },
       { error: "server_error", status: 500, retries: 2 },
-      { error: "temporarily_unavailable", status: 503, retries: 2 },
+      { error: "temporarily_unavailable", status: 503, retries: 2 }
     ] as const;
 
     for (const testCase of cases) {
       const pair = createOAuthPair();
       let tokenAttempts = 0;
-      const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
-        if (input.toString() === TOKEN_ENDPOINT) {
-          const body = new URLSearchParams(String(init?.body ?? ""));
-          if (body.get("grant_type") === "authorization_code") {
-            tokenAttempts += 1;
-            return new Response(
-              JSON.stringify({
-                error: testCase.error,
-                error_description: `${testCase.error} description`,
-                error_uri: `https://errors.example.com/${testCase.error}`,
-              }),
-              {
-                status: testCase.status,
-                headers: { "Content-Type": "application/json" },
-              }
-            );
+      const fetchMock = vi.fn(
+        async (input: string | URL, init?: RequestInit): Promise<Response> => {
+          if (input.toString() === TOKEN_ENDPOINT) {
+            const body = new URLSearchParams(String(init?.body ?? ""));
+            if (body.get("grant_type") === "authorization_code") {
+              tokenAttempts += 1;
+              return new Response(
+                JSON.stringify({
+                  error: testCase.error,
+                  error_description: `${testCase.error} description`,
+                  error_uri: `https://errors.example.com/${testCase.error}`
+                }),
+                {
+                  status: testCase.status,
+                  headers: { "Content-Type": "application/json" }
+                }
+              );
+            }
           }
-        }
 
-        return pair.fetchMock(input, init);
-      });
+          return pair.fetchMock(input, init);
+        }
+      );
 
       const provider = createDefaultOAuthClientProvider({
         client: {
           mode: "static",
-          clientId: "static-client",
+          clientId: "static-client"
         },
         browser: {
-          openBrowser: pair.openBrowser,
+          openBrowser: pair.openBrowser
         },
         sessionStore: createMemorySessionStore(),
-        now: () => 10_000,
+        now: () => 10_000
       });
 
       const result = await provider.handleUnauthorized({
         requestUrl: new URL(RESOURCE_URL),
         response: new Response(null, {
-          status: 401,
+          status: 401
         }),
         challenge: null,
         discovery: createDiscoveryResult(),
-        fetch: fetchMock as typeof fetch,
+        fetch: fetchMock as typeof fetch
       });
 
       expect(result.action).toBe("fail");
@@ -2538,7 +2804,7 @@ describe("createDefaultOAuthClientProvider", () => {
           errorUri: `https://errors.example.com/${testCase.error}`,
           error_description: `${testCase.error} description`,
           error_uri: `https://errors.example.com/${testCase.error}`,
-          status: testCase.status,
+          status: testCase.status
         });
       }
       expect(tokenAttempts).toBe(testCase.retries);
@@ -2548,39 +2814,41 @@ describe("createDefaultOAuthClientProvider", () => {
   it("retries transient authorization server failures once and does not retry terminal OAuth errors", async () => {
     const transientPair = createOAuthPair();
     let transientAttempts = 0;
-    const transientFetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
-      if (input.toString() === TOKEN_ENDPOINT) {
-        const body = new URLSearchParams(String(init?.body ?? ""));
-        if (body.get("grant_type") === "authorization_code") {
-          transientAttempts += 1;
-          if (transientAttempts === 1) {
-            return new Response(
-              JSON.stringify({
-                error: "server_error",
-                error_description: "temporary authorization server failure",
-              }),
-              {
-                status: 500,
-                headers: { "Content-Type": "application/json" },
-              }
-            );
+    const transientFetchMock = vi.fn(
+      async (input: string | URL, init?: RequestInit): Promise<Response> => {
+        if (input.toString() === TOKEN_ENDPOINT) {
+          const body = new URLSearchParams(String(init?.body ?? ""));
+          if (body.get("grant_type") === "authorization_code") {
+            transientAttempts += 1;
+            if (transientAttempts === 1) {
+              return new Response(
+                JSON.stringify({
+                  error: "server_error",
+                  error_description: "temporary authorization server failure"
+                }),
+                {
+                  status: 500,
+                  headers: { "Content-Type": "application/json" }
+                }
+              );
+            }
           }
         }
-      }
 
-      return transientPair.fetchMock(input, init);
-    });
+        return transientPair.fetchMock(input, init);
+      }
+    );
 
     const transientProvider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: transientPair.openBrowser,
+        openBrowser: transientPair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     await authorizeProvider(transientProvider, transientFetchMock as typeof fetch);
@@ -2589,47 +2857,49 @@ describe("createDefaultOAuthClientProvider", () => {
 
     const terminalPair = createOAuthPair();
     let terminalAttempts = 0;
-    const terminalFetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
-      if (input.toString() === TOKEN_ENDPOINT) {
-        const body = new URLSearchParams(String(init?.body ?? ""));
-        if (body.get("grant_type") === "authorization_code") {
-          terminalAttempts += 1;
-          return new Response(
-            JSON.stringify({
-              error: "invalid_scope",
-              error_description: "requested scope is not allowed",
-            }),
-            {
-              status: 400,
-              headers: { "Content-Type": "application/json" },
-            }
-          );
+    const terminalFetchMock = vi.fn(
+      async (input: string | URL, init?: RequestInit): Promise<Response> => {
+        if (input.toString() === TOKEN_ENDPOINT) {
+          const body = new URLSearchParams(String(init?.body ?? ""));
+          if (body.get("grant_type") === "authorization_code") {
+            terminalAttempts += 1;
+            return new Response(
+              JSON.stringify({
+                error: "invalid_scope",
+                error_description: "requested scope is not allowed"
+              }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" }
+              }
+            );
+          }
         }
-      }
 
-      return terminalPair.fetchMock(input, init);
-    });
+        return terminalPair.fetchMock(input, init);
+      }
+    );
 
     const terminalProvider = createDefaultOAuthClientProvider({
       client: {
         mode: "static",
-        clientId: "static-client",
+        clientId: "static-client"
       },
       browser: {
-        openBrowser: terminalPair.openBrowser,
+        openBrowser: terminalPair.openBrowser
       },
       sessionStore: createMemorySessionStore(),
-      now: () => 10_000,
+      now: () => 10_000
     });
 
     const terminalResult = await terminalProvider.handleUnauthorized({
       requestUrl: new URL(RESOURCE_URL),
       response: new Response(null, {
-        status: 401,
+        status: 401
       }),
       challenge: null,
       discovery: createDiscoveryResult(),
-      fetch: terminalFetchMock as typeof fetch,
+      fetch: terminalFetchMock as typeof fetch
     });
 
     expect(terminalResult.action).toBe("fail");
@@ -2646,7 +2916,7 @@ async function createAuthorizedHeaders(
   await provider.authorizeRequest?.({
     requestUrl: new URL(RESOURCE_URL),
     headers,
-    fetch: fetchMock,
+    fetch: fetchMock
   });
   return headers.get("Authorization");
 }

@@ -67,9 +67,7 @@ describe("eval yaml schema", () => {
 
     const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
     delete parsed.judge;
-    expect(() => validateEvalYaml(parsed, "schema/eval.yaml")).toThrow(
-      "schema/eval.yaml (judge):"
-    );
+    expect(() => validateEvalYaml(parsed, "schema/eval.yaml")).toThrow("schema/eval.yaml (judge):");
   });
 
   it("accepts a valid eval.yaml and applies defaults", () => {
@@ -205,6 +203,68 @@ describe("eval yaml schema", () => {
     );
   });
 
+  it.each([
+    [["id"], "   "],
+    [["title"], "   "],
+    [["target", "repo"], "   "],
+    [["target", "ref"], "   "],
+    [["target", "plan_dest"], "   "],
+    [["scorer", "command"], "   "],
+    [["scorer", "result_path"], "   "],
+    [["oracle", "path"], "   "],
+    [["oracle", "solution_dest"], "   "],
+    [["judge", "agent"], "   "],
+    [["judge", "model"], "   "],
+    [["judge", "rubric", "0"], "   "],
+    [["verify", "command"], "   "]
+  ])("rejects blank required string at %s", (fieldPath, value) => {
+    const parsed = parseEvalYaml(
+      [validEvalYaml, "verify:", "  command: npm run verify", "  timeout_ms: 1000"].join("\n")
+    ) as Record<string, unknown>;
+    setPath(parsed, fieldPath, value);
+
+    expect(() => validateEvalYaml(parsed, "blank/eval.yaml")).toThrow(
+      `blank/eval.yaml (${fieldPath.join(".")}):`
+    );
+  });
+
+  it("rejects impossible execution budgets", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.budget = {
+      max_iterations: 0,
+      max_tokens: -1,
+      wall_clock_ms: -5
+    };
+
+    expect(() => validateEvalYaml(parsed, "budget/eval.yaml")).toThrow(
+      "budget/eval.yaml (budget.max_iterations):"
+    );
+  });
+
+  it("rejects scoring weights outside the supported range", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.weights = {
+      tests: -1,
+      judge: 2
+    };
+
+    expect(() => validateEvalYaml(parsed, "weights/eval.yaml")).toThrow(
+      "weights/eval.yaml (weights.tests):"
+    );
+  });
+
+  it("rejects negative verify timeouts", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.verify = {
+      command: "npm run verify",
+      timeout_ms: -1
+    };
+
+    expect(() => validateEvalYaml(parsed, "verify/eval.yaml")).toThrow(
+      "verify/eval.yaml (verify.timeout_ms):"
+    );
+  });
+
   it("accepts eval.yaml with scorer", () => {
     const result = validateEvalYaml(parseEvalYaml(validEvalYaml), "smoke/eval.yaml");
 
@@ -270,3 +330,11 @@ describe("eval yaml schema", () => {
     });
   });
 });
+
+function setPath(value: Record<string, unknown>, path: readonly string[], next: unknown): void {
+  let current: Record<string, unknown> = value;
+  for (const segment of path.slice(0, -1)) {
+    current = current[segment] as Record<string, unknown>;
+  }
+  current[path[path.length - 1] as string] = next;
+}

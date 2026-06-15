@@ -33,7 +33,10 @@ vi.mock("node:fs/promises", () => {
         mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
     },
     cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
+    lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
     mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
+    readdir: (...args: unknown[]) =>
+      mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
     stat,
     realpath: (...args: unknown[]) =>
       mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
@@ -160,6 +163,28 @@ describe("evalCheck", () => {
     );
   });
 
+  it("rejects starter symlinks before overlaying the clone", async () => {
+    await mocks.fs.mkdir("/outside", { recursive: true });
+    await mocks.fs.writeFile("/outside/leaked.txt", "outside\n", "utf8");
+    await mocks.fs.symlink("/outside/leaked.txt", "/repo/evals/smoke/starter/leaked.txt");
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "starter must not contain symbolic links: /repo/evals/smoke/starter/leaked.txt"
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("rejects oracle solution symlinks before overlaying the clone", async () => {
+    await mocks.fs.mkdir("/outside", { recursive: true });
+    await mocks.fs.writeFile("/outside/answer.txt", "outside\n", "utf8");
+    await mocks.fs.symlink("/outside/answer.txt", "/repo/evals/smoke/oracle/solution/link.txt");
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.solution must not contain symbolic links: /repo/evals/smoke/oracle/solution/link.txt"
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
   it("defaults the check clone under runs when source config is absent", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(createSourceFiles({ includeSourceConfig: false }), "/")
@@ -212,7 +237,9 @@ describe("evalCheck", () => {
 
     expect(mocks.runScorer).not.toHaveBeenCalled();
     expect(clonedDir).toBeDefined();
-    await expect(mocks.fs.readFile(path.join(clonedDir!, "starter.txt"), "utf8")).rejects.toMatchObject({
+    await expect(
+      mocks.fs.readFile(path.join(clonedDir!, "starter.txt"), "utf8")
+    ).rejects.toMatchObject({
       code: "ENOENT"
     });
   });
@@ -273,7 +300,9 @@ describe("evalCheck", () => {
     );
     expect(mocks.runScorer).not.toHaveBeenCalled();
     expect(clonedDir).toBeDefined();
-    await expect(mocks.fs.readFile(path.join(clonedDir!, "patched", "answer.txt"), "utf8")).rejects.toMatchObject({
+    await expect(
+      mocks.fs.readFile(path.join(clonedDir!, "patched", "answer.txt"), "utf8")
+    ).rejects.toMatchObject({
       code: "ENOENT"
     });
   });

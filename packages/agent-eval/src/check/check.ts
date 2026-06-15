@@ -12,6 +12,7 @@ import {
   assertCanonicalDestinationPath,
   resolveContainedPath
 } from "../path-boundary.js";
+import { assertNoSymlinksInDirectoryTree } from "../run/fixture-copy.js";
 
 export interface CheckOptions {
   sourceDir: string;
@@ -92,6 +93,7 @@ async function copyDirectoryIfPresent(sourceDir: string, destDir: string): Promi
     throw error;
   }
 
+  await assertNoSymlinksInDirectoryTree(sourceDir, "starter");
   await cp(sourceDir, destDir, {
     recursive: true,
     force: true
@@ -106,6 +108,7 @@ async function copyOracleSolution(input: {
   const destDir = resolveCloneRelativePath(input.cloneDir, input.solutionDest);
   await assertCanonicalDestinationPath(input.cloneDir, destDir, "oracle.solution_dest");
   await mkdir(destDir, { recursive: true });
+  await assertNoSymlinksInDirectoryTree(input.solutionDir, "oracle.solution");
   await cp(input.solutionDir, destDir, {
     recursive: true,
     force: true

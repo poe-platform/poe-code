@@ -105,6 +105,52 @@ describe("report loaders", () => {
     });
   });
 
+  it("rejects impossible numeric result fields before aggregation", async () => {
+    vol.fromJSON({
+      "/runs/run-bad/result.json": JSON.stringify(
+        runResult({
+          runId: "run-bad",
+          iterations: -2,
+          durationMs: -100,
+          usage: { inputTokens: -5, outputTokens: 1.5, cachedTokens: -3, costUsd: -0.25 },
+          tests: { passed: 3, total: 2, pass_rate: 1.5 },
+          correctness: 2,
+          scoring: {
+            tests: {
+              configured: true,
+              required: true,
+              configuredWeight: -1,
+              effectiveWeight: 2,
+              status: "executed"
+            },
+            judge: {
+              configured: false,
+              required: false,
+              configuredWeight: 0,
+              effectiveWeight: 0,
+              status: "disabled"
+            }
+          }
+        })
+      )
+    });
+
+    await expect(loadRunResult("run-bad", "/runs")).rejects.toThrow(
+      "Invalid result.json in /runs/run-bad/result.json (iterations):"
+    );
+  });
+
+  it("rejects trace files whose events field is not an array", async () => {
+    vol.fromJSON({
+      "/runs/run-trace/result.json": JSON.stringify(runResult({ runId: "run-trace" })),
+      "/runs/run-trace/trace.json": JSON.stringify({ events: { length: 99 }, usage: {} })
+    });
+
+    await expect(loadRunResult("run-trace", "/runs")).rejects.toThrow(
+      "Invalid trace.json in /runs/run-trace/trace.json (events):"
+    );
+  });
+
   it("loads a nested matrix run result by id", async () => {
     const result = runResult({ runId: "run-nested" });
     vol.fromJSON({

@@ -2,6 +2,11 @@ import { S, validate } from "toolcraft-schema";
 import type { Static, ValidationIssue } from "toolcraft-schema";
 import path from "node:path";
 
+const nonEmptyString = S.String({ minLength: 1 });
+const positiveInteger = S.Number({ jsonType: "integer", minimum: 1 });
+const nonNegativeInteger = S.Number({ jsonType: "integer", minimum: 0 });
+const scoringWeight = S.Number({ minimum: 0, maximum: 1 });
+
 const metricEvaluatorSchema = S.OneOf({
   discriminator: "kind",
   branches: {
@@ -42,44 +47,44 @@ const metricSchema = S.Object({
  * oracle.solution_dest to copy it under a clone-root-relative subdirectory.
  */
 export const evalYamlSchema = S.Object({
-  id: S.String(),
-  title: S.String(),
+  id: nonEmptyString,
+  title: nonEmptyString,
   target: S.Object({
-    repo: S.String(),
-    ref: S.String(),
-    plan_dest: S.Optional(S.String({ default: "docs/plans/eval-task.md" }))
+    repo: nonEmptyString,
+    ref: nonEmptyString,
+    plan_dest: S.Optional(S.String({ default: "docs/plans/eval-task.md", minLength: 1 }))
   }),
   scorer: S.Optional(
     S.Object({
-      command: S.String(),
+      command: nonEmptyString,
       cwd: S.Optional(S.String({ default: "" })),
-      result_path: S.String(),
-      timeout_ms: S.Number()
+      result_path: nonEmptyString,
+      timeout_ms: nonNegativeInteger
     })
   ),
   oracle: S.Object({
-    path: S.Optional(S.String({ default: "oracle" })),
-    solution_dest: S.Optional(S.String({ default: "." }))
+    path: S.Optional(S.String({ default: "oracle", minLength: 1 })),
+    solution_dest: S.Optional(S.String({ default: ".", minLength: 1 }))
   }),
   budget: S.Object({
-    max_iterations: S.Number(),
-    max_tokens: S.Number(),
-    wall_clock_ms: S.Number()
+    max_iterations: positiveInteger,
+    max_tokens: positiveInteger,
+    wall_clock_ms: positiveInteger
   }),
   judge: S.Object({
-    agent: S.String(),
-    model: S.String(),
-    rubric: S.Array(S.String())
+    agent: nonEmptyString,
+    model: nonEmptyString,
+    rubric: S.Array(nonEmptyString, { minItems: 1 })
   }),
   weights: S.Object({
-    tests: S.Number(),
-    judge: S.Number()
+    tests: scoringWeight,
+    judge: scoringWeight
   }),
   metrics: S.Optional(S.Array(metricSchema)),
   verify: S.Optional(
     S.Object({
-      command: S.String(),
-      timeout_ms: S.Number()
+      command: nonEmptyString,
+      timeout_ms: nonNegativeInteger
     })
   )
 });
@@ -103,6 +108,7 @@ export function validateEvalYaml(value: unknown, filePath = "eval.yaml"): EvalYa
 
   if (result.ok) {
     const issues = [
+      ...validateNonBlankStrings(result.value),
       ...validateTarget(result.value.target),
       ...validateMetrics(result.value.metrics)
     ];
@@ -113,6 +119,47 @@ export function validateEvalYaml(value: unknown, filePath = "eval.yaml"): EvalYa
   }
 
   throw new EvalYamlValidationError(formatIssues(filePath, result.issues), result.issues);
+}
+
+function validateNonBlankStrings(value: EvalYaml): readonly ValidationIssue[] {
+  const issues: ValidationIssue[] = [];
+  const fields: Array<[readonly string[], string | undefined]> = [
+    [["id"], value.id],
+    [["title"], value.title],
+    [["target", "repo"], value.target.repo],
+    [["target", "ref"], value.target.ref],
+    [["target", "plan_dest"], value.target.plan_dest],
+    [["scorer", "command"], value.scorer?.command],
+    [["scorer", "result_path"], value.scorer?.result_path],
+    [["oracle", "path"], value.oracle.path],
+    [["oracle", "solution_dest"], value.oracle.solution_dest],
+    [["judge", "agent"], value.judge.agent],
+    [["judge", "model"], value.judge.model],
+    [["verify", "command"], value.verify?.command]
+  ];
+
+  for (const [fieldPath, fieldValue] of fields) {
+    if (fieldValue !== undefined && fieldValue.trim().length === 0) {
+      issues.push(blankStringIssue(fieldPath, fieldValue));
+    }
+  }
+
+  for (const [index, rubricLine] of value.judge.rubric.entries()) {
+    if (rubricLine.trim().length === 0) {
+      issues.push(blankStringIssue(["judge", "rubric", String(index)], rubricLine));
+    }
+  }
+
+  return issues;
+}
+
+function blankStringIssue(path: readonly string[], value: string): ValidationIssue {
+  return {
+    path,
+    expected: "non-blank string",
+    received: JSON.stringify(value),
+    message: `${path.join(".")} must not be blank.`
+  };
 }
 
 function validateTarget(target: EvalYaml["target"]): readonly ValidationIssue[] {

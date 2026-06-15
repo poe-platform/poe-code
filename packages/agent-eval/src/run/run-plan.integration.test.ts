@@ -1,4 +1,4 @@
-import { mkdir, readFile, symlink } from "node:fs/promises";
+import { cp, mkdir, readFile, symlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
@@ -140,6 +140,35 @@ describe("runEval plan integration", () => {
         })
       ).rejects.toThrow("starter stat denied");
     });
+
+    expect(mockedAgentSpawn.spawnStreaming).not.toHaveBeenCalled();
+  });
+
+  it("rejects starter symlinks before dispatching the agent", async () => {
+    const outDir = await createRunOutDir();
+    const tempRoot = path.dirname(outDir);
+    const sourceDir = path.join(tempRoot, "source");
+    const outsideDir = path.join(tempRoot, "outside");
+    await cp(sourceFixture("plan"), sourceDir, { recursive: true });
+    await mkdir(outsideDir, { recursive: true });
+    await writeFile(path.join(outsideDir, "leaked.txt"), "outside\n", "utf8");
+    await symlink(
+      path.join(outsideDir, "leaked.txt"),
+      path.join(sourceDir, "task", "starter", "leaked.txt")
+    );
+    mockedAgentSpawn.spawnStreaming.mockClear();
+
+    await expect(
+      runEval({
+        sourceDir,
+        evalId: "task",
+        agent: "codex",
+        model: "openai/gpt-5",
+        outDir,
+        judge: "off",
+        verifyOracle: false
+      })
+    ).rejects.toThrow("starter must not contain symbolic links:");
 
     expect(mockedAgentSpawn.spawnStreaming).not.toHaveBeenCalled();
   });

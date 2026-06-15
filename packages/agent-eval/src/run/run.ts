@@ -48,6 +48,7 @@ import { verifyOracle } from "./oracle.js";
 import { runScorer } from "./scorer.js";
 import { createTraceNormalizer } from "./trace/normalize.js";
 import { writeRunCompletion, writeRunEvidence, writeRunResult } from "./result-writer.js";
+import { assertNoSymlinksInDirectoryTree } from "./fixture-copy.js";
 import type { CaseResult } from "./vitest-runner.js";
 
 export class EvalFrameworkError extends Error {
@@ -318,6 +319,7 @@ async function copyStarterIfPresent(starterDir: string, cloneDir: string): Promi
     throw error;
   }
 
+  await assertNoSymlinksInDirectoryTree(starterDir, "starter");
   await cp(starterDir, cloneDir, {
     recursive: true,
     force: true

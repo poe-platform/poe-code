@@ -57,6 +57,11 @@ export async function loadEval(
     parseYamlFile(await fs.readFile(evalYamlPath, "utf8"), evalYamlPath),
     evalYamlPath
   );
+  if (evalYaml.id !== id) {
+    throw new Error(
+      `Eval id mismatch in ${evalYamlPath}: expected "${id}", found "${evalYaml.id}".`
+    );
+  }
   const plan = parsePlanMarkdown(await fs.readFile(planPath, "utf8"), planPath);
 
   return {

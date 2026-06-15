@@ -93,7 +93,9 @@ async function enrichAggregatedCell(cell: AggregatedCell, outDir: string): Promi
     const runs = await Promise.all(cell.runIds.map((runId) => loadRunResult(runId, outDir)));
     const mismatchedRun = runs.find((run) => !matchesCell(run, cell.cell));
     if (mismatchedRun !== undefined) {
-      throw new Error(`Aggregate cell references run "${mismatchedRun.runId}" from a different cell`);
+      throw new Error(
+        `Aggregate cell references run "${mismatchedRun.runId}" from a different cell`
+      );
     }
     return aggregateRuns(runs);
   } catch (error) {
@@ -105,7 +107,10 @@ async function enrichAggregatedCell(cell: AggregatedCell, outDir: string): Promi
 }
 
 async function enrichMatchedRunResult(runId: string, resultPath: string): Promise<EvalRunResult> {
-  const result = parseJson<EvalRunResult>(await readFile(resultPath, "utf8"), resultPath);
+  const result = validateRunResult(
+    parseJson<unknown>(await readFile(resultPath, "utf8"), resultPath),
+    resultPath
+  );
   if (result.runId !== runId) {
     throw new Error(`Run result "${runId}" embeds mismatched runId "${result.runId}"`);
   }
@@ -202,7 +207,10 @@ async function enrichRunResult(result: EvalRunResult, runDir: string): Promise<E
 async function loadTraceSummary(tracePath: string, outDir: string): Promise<RunTraceSummary> {
   try {
     await assertCanonicalOutputFile(outDir, tracePath);
-    const trace = parseJson<NormalizedTrace>(await readFile(tracePath, "utf8"), tracePath);
+    const trace = validateTrace(
+      parseJson<unknown>(await readFile(tracePath, "utf8"), tracePath),
+      tracePath
+    );
     return {
       available: true,
       eventCount: trace.events.length,
@@ -215,6 +223,182 @@ async function loadTraceSummary(tracePath: string, outDir: string): Promise<RunT
     }
     throw error;
   }
+}
+
+function validateRunResult(value: unknown, filePath: string): EvalRunResult {
+  const result = requireRecord(value, filePath, "result.json", []);
+  requireString(result.runId, filePath, "result.json", ["runId"]);
+  requireString(result.eval, filePath, "result.json", ["eval"]);
+  requireString(result.agent, filePath, "result.json", ["agent"]);
+  requireString(result.model, filePath, "result.json", ["model"]);
+  requireString(result.planKind, filePath, "result.json", ["planKind"]);
+  requireString(result.verdict, filePath, "result.json", ["verdict"]);
+  requireNonNegativeInteger(result.iterations, filePath, "result.json", ["iterations"]);
+  requireNonNegativeNumber(result.durationMs, filePath, "result.json", ["durationMs"]);
+  requireRange(result.correctness, 0, 1, filePath, "result.json", ["correctness"]);
+
+  const usage = requireRecord(result.usage, filePath, "result.json", ["usage"]);
+  requireNonNegativeInteger(usage.inputTokens, filePath, "result.json", ["usage", "inputTokens"]);
+  requireNonNegativeInteger(usage.outputTokens, filePath, "result.json", ["usage", "outputTokens"]);
+  if (usage.cachedTokens !== undefined) {
+    requireNonNegativeInteger(usage.cachedTokens, filePath, "result.json", [
+      "usage",
+      "cachedTokens"
+    ]);
+  }
+  if (usage.costUsd !== undefined) {
+    requireNonNegativeNumber(usage.costUsd, filePath, "result.json", ["usage", "costUsd"]);
+  }
+
+  const tests = requireRecord(result.tests, filePath, "result.json", ["tests"]);
+  const passed = requireNonNegativeInteger(tests.passed, filePath, "result.json", [
+    "tests",
+    "passed"
+  ]);
+  const total = requireNonNegativeInteger(tests.total, filePath, "result.json", ["tests", "total"]);
+  if (passed > total) {
+    throw invalidArtifactField(
+      filePath,
+      "result.json",
+      ["tests", "passed"],
+      "integer less than or equal to tests.total",
+      passed
+    );
+  }
+  requireRange(tests.pass_rate, 0, 1, filePath, "result.json", ["tests", "pass_rate"]);
+  if (!Array.isArray(tests.cases)) {
+    throw invalidArtifactField(filePath, "result.json", ["tests", "cases"], "array", tests.cases);
+  }
+
+  const scoring = requireRecord(result.scoring, filePath, "result.json", ["scoring"]);
+  validateScoringComponent(scoring.tests, filePath, ["scoring", "tests"]);
+  validateScoringComponent(scoring.judge, filePath, ["scoring", "judge"]);
+  requireBoolean(result.cheated, filePath, "result.json", ["cheated"]);
+  requireRecord(result.cheatReport, filePath, "result.json", ["cheatReport"]);
+
+  return result as unknown as EvalRunResult;
+}
+
+function validateScoringComponent(value: unknown, filePath: string, path: readonly string[]): void {
+  const component = requireRecord(value, filePath, "result.json", path);
+  requireBoolean(component.configured, filePath, "result.json", [...path, "configured"]);
+  requireBoolean(component.required, filePath, "result.json", [...path, "required"]);
+  requireRange(component.configuredWeight, 0, 1, filePath, "result.json", [
+    ...path,
+    "configuredWeight"
+  ]);
+  requireRange(component.effectiveWeight, 0, 1, filePath, "result.json", [
+    ...path,
+    "effectiveWeight"
+  ]);
+  requireString(component.status, filePath, "result.json", [...path, "status"]);
+}
+
+function validateTrace(value: unknown, filePath: string): NormalizedTrace {
+  const trace = requireRecord(value, filePath, "trace.json", []);
+  if (!Array.isArray(trace.events)) {
+    throw invalidArtifactField(filePath, "trace.json", ["events"], "array", trace.events);
+  }
+  return trace as unknown as NormalizedTrace;
+}
+
+function requireRecord(
+  value: unknown,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): Record<string, unknown> {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    return value as Record<string, unknown>;
+  }
+  throw invalidArtifactField(filePath, artifact, path, "object", value);
+}
+
+function requireString(
+  value: unknown,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): string {
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+  throw invalidArtifactField(filePath, artifact, path, "non-empty string", value);
+}
+
+function requireBoolean(
+  value: unknown,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): void {
+  if (typeof value !== "boolean") {
+    throw invalidArtifactField(filePath, artifact, path, "boolean", value);
+  }
+}
+
+function requireNonNegativeInteger(
+  value: unknown,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): number {
+  if (typeof value === "number" && Number.isInteger(value) && value >= 0) {
+    return value;
+  }
+  throw invalidArtifactField(filePath, artifact, path, "non-negative integer", value);
+}
+
+function requireNonNegativeNumber(
+  value: unknown,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): number {
+  if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+    return value;
+  }
+  throw invalidArtifactField(filePath, artifact, path, "non-negative number", value);
+}
+
+function requireRange(
+  value: unknown,
+  min: number,
+  max: number,
+  filePath: string,
+  artifact: string,
+  path: readonly string[]
+): void {
+  if (typeof value === "number" && Number.isFinite(value) && value >= min && value <= max) {
+    return;
+  }
+  throw invalidArtifactField(filePath, artifact, path, `number from ${min} through ${max}`, value);
+}
+
+function invalidArtifactField(
+  filePath: string,
+  artifact: string,
+  path: readonly string[],
+  expected: string,
+  received: unknown
+): Error {
+  return new Error(
+    `Invalid ${artifact} in ${filePath} (${formatIssuePath(path)}): expected ${expected}, received ${formatReceived(received)}.`
+  );
+}
+
+function formatIssuePath(path: readonly string[]): string {
+  return path.join(".") || "value";
+}
+
+function formatReceived(value: unknown): string {
+  if (typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  if (typeof value === "object" && value !== null) {
+    return Array.isArray(value) ? "array" : "object";
+  }
+  return String(value);
 }
 
 async function assertCanonicalOutputFile(outDir: string, filePath: string): Promise<void> {

@@ -26,7 +26,14 @@ export async function loadSourceConfig(
 ): Promise<SourceConfig> {
   const configPath = join(source.rootDir, ".poe-code-eval.json");
 
-  if (!(await assertFsCanonicalContainedPathIfPresent(fs, source.rootDir, configPath, "source.config"))) {
+  if (
+    !(await assertFsCanonicalContainedPathIfPresent(
+      fs,
+      source.rootDir,
+      configPath,
+      "source.config"
+    ))
+  ) {
     return cloneDefaultConfig();
   }
 
@@ -51,10 +58,9 @@ export async function loadSourceConfig(
     throw new Error(`${configPath} must contain a JSON object.`);
   }
 
-  return deepMerge(
-    cloneDefaultConfig() as unknown as Record<string, unknown>,
-    parsed
-  ) as unknown as SourceConfig;
+  const merged = deepMerge(cloneDefaultConfig() as unknown as Record<string, unknown>, parsed);
+  validateSourceConfig(merged, configPath);
+  return merged as unknown as SourceConfig;
 }
 
 function cloneDefaultConfig(): SourceConfig {
@@ -97,6 +103,66 @@ function deepMerge(
   }
 
   return result;
+}
+
+function validateSourceConfig(config: Record<string, unknown>, configPath: string): void {
+  const judge = requireRecord(config.judge, configPath, "judge");
+  requireNonBlankString(judge.agent, configPath, "judge.agent");
+  requireNonBlankString(judge.model, configPath, "judge.model");
+  requireNonBlankString(config.out, configPath, "out");
+
+  const weights = requireRecord(config.weights, configPath, "weights");
+  requireWeight(weights.tests, configPath, "weights.tests");
+  requireWeight(weights.judge, configPath, "weights.judge");
+
+  if (config.clone_cache_dir !== null) {
+    requireNonBlankString(config.clone_cache_dir, configPath, "clone_cache_dir");
+  }
+}
+
+function requireRecord(
+  value: unknown,
+  configPath: string,
+  fieldPath: string
+): Record<string, unknown> {
+  if (isRecord(value)) {
+    return value;
+  }
+  throw invalidConfigField(configPath, fieldPath, "object", value);
+}
+
+function requireNonBlankString(value: unknown, configPath: string, fieldPath: string): void {
+  if (typeof value !== "string") {
+    throw invalidConfigField(configPath, fieldPath, "string", value);
+  }
+
+  if (value.trim().length === 0) {
+    throw invalidConfigField(configPath, fieldPath, "non-blank string", value);
+  }
+}
+
+function requireWeight(value: unknown, configPath: string, fieldPath: string): void {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
+    throw invalidConfigField(configPath, fieldPath, "number from 0 through 1", value);
+  }
+}
+
+function invalidConfigField(
+  configPath: string,
+  fieldPath: string,
+  expected: string,
+  received: unknown
+): Error {
+  return new Error(
+    `${configPath} (${fieldPath}): expected ${expected}, received ${formatReceived(received)}.`
+  );
+}
+
+function formatReceived(value: unknown): string {
+  if (typeof value === "string") {
+    return JSON.stringify(value);
+  }
+  return String(value);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

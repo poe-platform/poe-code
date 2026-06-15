@@ -40,7 +40,10 @@ const evalYaml = [
   "        max_steps: 12"
 ].join("\n");
 
-function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { symlink(target: string, path: string): Promise<void> } {
+function memfs(
+  files: Record<string, string | null>,
+  cwd = "/"
+): EvalFs & { symlink(target: string, path: string): Promise<void> } {
   const volume = Volume.fromJSON(files, "/");
   const fs = createFsFromVolume(volume).promises;
 
@@ -169,6 +172,17 @@ describe("eval source registry", () => {
         body: "Run the task."
       }
     });
+  });
+
+  it("rejects eval.yaml ids that do not match the selected directory", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml.replace("id: smoke", "id: other"),
+      "/repo/evals/smoke/plan.md": ["---", "kind: plan", "---", "Run the task."].join("\n")
+    });
+
+    await expect(loadEval(source, "smoke", fs)).rejects.toThrow(
+      'Eval id mismatch in /repo/evals/smoke/eval.yaml: expected "smoke", found "other".'
+    );
   });
 
   it("rejects unsupported plan kind in plan.md", async () => {

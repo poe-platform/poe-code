@@ -5,7 +5,10 @@ import { describe, expect, it } from "vitest";
 import { defaultSourceConfig, loadSourceConfig } from "./config.js";
 import type { EvalFs, EvalSource } from "../types.js";
 
-function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { symlink(target: string, path: string): Promise<void> } {
+function memfs(
+  files: Record<string, string | null>,
+  cwd = "/"
+): EvalFs & { symlink(target: string, path: string): Promise<void> } {
   const volume = Volume.fromJSON(files, "/");
   const fs = createFsFromVolume(volume).promises;
 
@@ -110,12 +113,29 @@ describe("loadSourceConfig", () => {
     });
   });
 
+  it.each([
+    [{ out: 123 }, "out"],
+    [{ clone_cache_dir: false }, "clone_cache_dir"],
+    [{ judge: { agent: "" } }, "judge.agent"],
+    [{ judge: { model: 42 } }, "judge.model"],
+    [{ weights: { tests: "bad" } }, "weights.tests"],
+    [{ weights: { judge: -1 } }, "weights.judge"]
+  ])("rejects invalid source config field %s", async (config, fieldPath) => {
+    const fs = memfs({
+      "/repo/evals/.poe-code-eval.json": JSON.stringify(config)
+    });
+
+    await expect(loadSourceConfig(source, fs)).rejects.toThrow(
+      `/repo/evals/.poe-code-eval.json (${fieldPath}):`
+    );
+  });
+
   it("preserves special source config fields as own data properties", async () => {
     const fs = memfs({
       "/repo/evals/.poe-code-eval.json": '{"__proto__":{"injected":"yes"}}'
     });
 
-    const config = await loadSourceConfig(source, fs) as unknown as Record<string, unknown>;
+    const config = (await loadSourceConfig(source, fs)) as unknown as Record<string, unknown>;
 
     expect(Object.hasOwn(config, "__proto__")).toBe(true);
     expect(config["__proto__"]).toEqual({ injected: "yes" });
@@ -157,10 +177,7 @@ describe("loadSourceConfig", () => {
       "/repo/evals": null,
       "/outside/config.json": JSON.stringify({ out: "external" })
     });
-    await fs.symlink(
-      "/outside/config.json",
-      "/repo/evals/.poe-code-eval.json"
-    );
+    await fs.symlink("/outside/config.json", "/repo/evals/.poe-code-eval.json");
 
     await expect(loadSourceConfig(source, fs)).rejects.toThrow(
       "source.config must stay within the canonical source directory."

@@ -3550,6 +3550,64 @@ describe("runCLI", () => {
     );
   });
 
+  it("parses negative values for dynamic array flags", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const configure = defineCommand({
+      name: "configure",
+      params: S.Object({
+        weights: S.Record(S.Array(S.Number()))
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [configure]
+    });
+
+    process.argv = ["node", "toolcraft", "configure", "--weights.primary", "-1", "-2", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          weights: {
+            primary: [-1, -2]
+          }
+        }
+      })
+    );
+  });
+
+  it("reports missing dynamic array values with a usage pointer", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const configure = defineCommand({
+      name: "configure",
+      params: S.Object({
+        weights: S.Record(S.Array(S.Number()))
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [configure]
+    });
+
+    process.argv = ["node", "toolcraft", "configure", "--weights.primary", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      withUsagePointer("error: option 'weights.primary' argument missing", "configure")
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
   it("parses arrays of objects from indexed flags", async () => {
     const handler = vi.fn(async ({ params }: { params: unknown }) => params);
 

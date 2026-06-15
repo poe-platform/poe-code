@@ -1015,6 +1015,26 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
   );
 }
 
+function isNegativeNumericArrayToken(token: string, schema: ArraySchema<any>): boolean {
+  if (!token.startsWith("-") || token.startsWith("--")) {
+    return false;
+  }
+
+  const itemSchema = unwrapOptional(schema.item);
+  if (itemSchema.kind !== "number") {
+    return false;
+  }
+
+  const items = splitArrayInput(token);
+  return (
+    items.length > 0 && items.every((item) => isValidNumberSchemaValue(Number(item), itemSchema))
+  );
+}
+
+function isNextArrayOptionToken(token: string, schema: ArraySchema<any>): boolean {
+  return token.startsWith("-") && !isNegativeNumericArrayToken(token, schema);
+}
+
 function validateArrayBounds(value: unknown[], schema: ArraySchema<any>, label: string): void {
   if (schema.minItems !== undefined && value.length < schema.minItems) {
     throw new UserError(
@@ -3169,7 +3189,7 @@ function consumeFieldValue(
 
     while (cursor < args.length) {
       const token = args[cursor] ?? "";
-      if (token.startsWith("-")) {
+      if (isNextArrayOptionToken(token, schema)) {
         break;
       }
 
@@ -4408,6 +4428,15 @@ function handleRunError(
       );
       return;
     }
+    logger.error(
+      appendUsagePointer(formatCommanderErrorMessage(error), {
+        rootUsageName: options.rootUsageName,
+        commandPath:
+          options.commandPath.length > 0
+            ? options.commandPath
+            : findCurrentCommanderCommandPath(options.program, options.argv ?? process.argv)
+      })
+    );
     return;
   }
 
@@ -4427,6 +4456,10 @@ function handleRunError(
   }
 
   process.exitCode = 1;
+}
+
+function formatCommanderErrorMessage(error: CommanderError): string {
+  return error.message.startsWith("error:") ? error.message : `error: ${error.message}`;
 }
 
 function formatInvalidEnumMessage(

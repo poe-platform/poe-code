@@ -1,5 +1,6 @@
 name: Release terminal-png + terminal-png-mcp
 on:
+  workflow_dispatch:
   push:
     branches:
       - main

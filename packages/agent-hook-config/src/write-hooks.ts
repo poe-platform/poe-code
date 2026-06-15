@@ -22,7 +22,16 @@ interface CodexHooksFile {
 
 function validateHooksFile(file: CodexHooksFile, targetPath: string): void {
   for (const groups of Object.values(file.hooks ?? {})) {
-    if (!Array.isArray(groups) || groups.some((group) => !Array.isArray(group.hooks))) {
+    if (
+      !Array.isArray(groups) ||
+      groups.some(
+        (group) =>
+          typeof group !== "object" ||
+          group === null ||
+          Array.isArray(group) ||
+          !Array.isArray(group.hooks)
+      )
+    ) {
       throw new Error(`Malformed hooks in ${targetPath}`);
     }
   }

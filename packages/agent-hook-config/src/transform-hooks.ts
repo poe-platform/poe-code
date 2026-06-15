@@ -70,7 +70,10 @@ export function transformHooks(
       continue;
     }
 
-    if (sourceEntry.handler.type === "command" && !sourceEntry.handler.command) {
+    if (
+      sourceEntry.handler.type === "command" &&
+      (sourceEntry.handler.command === undefined || sourceEntry.handler.command.trim() === "")
+    ) {
       result.drops.push({
         reason: "unsupported-handler-type",
         detail: "Command hook is missing an executable command",

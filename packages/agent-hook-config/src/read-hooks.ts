@@ -39,6 +39,10 @@ interface ClaudeSettings {
   hooks?: Record<string, ClaudeMatcherGroup[]>;
 }
 
+function isHookHandler(value: unknown): value is SourceHookEntry["handler"] {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function readSettingsFile(filePath: string): ClaudeSettings | undefined {
   let content: string;
 
@@ -91,6 +95,9 @@ export function readClaudeHooks(
           throw new Error(`Malformed hooks in ${sourcePath}`);
         }
         for (const handler of group.hooks) {
+          if (!isHookHandler(handler)) {
+            throw new Error(`Malformed hooks in ${sourcePath}`);
+          }
           result.entries.push({ event, matcher: group.matcher, handler });
         }
       }

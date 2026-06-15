@@ -272,6 +272,12 @@ describe("writeCodexHooks", () => {
     expect(() => writeCodexHooks(targetPath, [], "current")).toThrow(`Malformed hooks in ${targetPath}`);
   });
 
+  it("reports null matcher groups as malformed configuration", () => {
+    writeHooks({ hooks: { Stop: [null] } });
+
+    expect(() => writeCodexHooks(targetPath, [], "current")).toThrow(`Malformed hooks in ${targetPath}`);
+  });
+
   it("reports malformed JSON before rejecting an unmarked incoming entry", () => {
     const entry = generatedEntry("Stop", "unsafe");
     entry.handler.statusMessage = "unsafe";

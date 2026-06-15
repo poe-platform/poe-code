@@ -242,4 +242,14 @@ describe("readClaudeHooks", () => {
       `Malformed hooks in ${projectPath}`
     );
   });
+
+  it("rejects null handlers as malformed configuration", () => {
+    writeSettings(projectPath, {
+      hooks: { Stop: [{ hooks: [null] }] }
+    });
+
+    expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(
+      `Malformed hooks in ${projectPath}`
+    );
+  });
 });

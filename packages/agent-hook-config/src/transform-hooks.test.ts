@@ -199,13 +199,20 @@ describe("transformHooks", () => {
 
   it("drops command handlers missing an executable command", () => {
     const result = transformHooks(
-      [commandEntry("Stop", { type: "command" })],
+      [
+        commandEntry("Stop", { type: "command" }),
+        commandEntry("Stop", { type: "command", command: "   " })
+      ],
       "claude-code",
       "codex",
       { runId }
     );
 
     expect(result.entries).toEqual([]);
-    expect(result.drops).toHaveLength(1);
+    expect(result.drops).toHaveLength(2);
+    expect(result.drops.map((drop) => drop.detail)).toEqual([
+      "Command hook is missing an executable command",
+      "Command hook is missing an executable command"
+    ]);
   });
 });

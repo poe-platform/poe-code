@@ -69,9 +69,7 @@ describe("normalizeParticipantConfig", () => {
   });
 
   it("preserves inline model syntax while normalizing the agent id", () => {
-    expect(
-      normalizeParticipantConfig("writer", "claude:anthropic/claude-opus-4.6")
-    ).toEqual({
+    expect(normalizeParticipantConfig("writer", "claude:anthropic/claude-opus-4.6")).toEqual({
       id: "writer",
       agent: "claude-code:anthropic/claude-opus-4.6"
     });
@@ -96,9 +94,7 @@ describe("normalizeParticipantConfig", () => {
       normalizeParticipantConfig("writer", {
         agent: true
       })
-    ).toThrow(
-      'Participant "writer" has invalid agent. Expected a string or string array.'
-    );
+    ).toThrow('Participant "writer" has invalid agent. Expected a string or string array.');
   });
 
   it("throws for an invalid agent array entry", () => {
@@ -106,9 +102,7 @@ describe("normalizeParticipantConfig", () => {
       normalizeParticipantConfig("writer", {
         agent: ["claude", 42]
       })
-    ).toThrow(
-      'Participant "writer" has invalid agent. Expected a string or string array.'
-    );
+    ).toThrow('Participant "writer" has invalid agent. Expected a string or string array.');
   });
 
   it("throws when agent is missing", () => {
@@ -156,6 +150,24 @@ describe("normalizeParticipantConfig", () => {
         model: ""
       })
     ).toThrow('Participant "writer" must define a non-empty model.');
+  });
+
+  it("throws for a whitespace-only model override", () => {
+    expect(() =>
+      normalizeParticipantConfig("writer", {
+        agent: "claude",
+        model: "   "
+      })
+    ).toThrow('Participant "writer" must define a non-empty model.');
+  });
+
+  it("throws for a whitespace-only participant prompt", () => {
+    expect(() =>
+      normalizeParticipantConfig("writer", {
+        agent: "claude",
+        prompt: "   "
+      })
+    ).toThrow('Participant "writer" must define a non-empty prompt.');
   });
 
   it("throws when the participant config is not a string or object", () => {

@@ -230,6 +230,127 @@ describe("runDocumentWorkflow", () => {
     });
   });
 
+  it("rejects whitespace-only participant ids before running stages", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          fs,
+          runAgent,
+          frontmatter: {
+            participants: {
+              "   ": {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "draft",
+                participant: "   ",
+                prompt: "Draft changes"
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow("Workflow participant id must be a non-empty string.");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects whitespace-only stage participants before running stages", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          fs,
+          runAgent,
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "draft",
+                participant: "   ",
+                prompt: "Draft changes"
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow stage "draft" must define a non-empty participant.');
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects whitespace-only stage prompts before running stages", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          fs,
+          runAgent,
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "draft",
+                participant: "default",
+                prompt: "   "
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow stage "draft" prompt must be a non-empty string when provided.');
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects whitespace-only stage hook sources before running stages", async () => {
+    const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          fs,
+          runAgent,
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "draft",
+                participant: "default",
+                prompt: "Draft changes",
+                hooks: { from: "   " }
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow stage "draft" hooks from must be a non-empty string.');
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("runs setup, stages, and teardown in order", async () => {
     const prompts: string[] = [];
     const options = createOptions({
@@ -619,9 +740,7 @@ describe("runDocumentWorkflow", () => {
               }
             },
             stages:
-              reads === 1
-                ? [{ id: "draft", participant: "default", prompt: "Draft changes" }]
-                : [],
+              reads === 1 ? [{ id: "draft", participant: "default", prompt: "Draft changes" }] : [],
             max_iterations: 2
           },
           body: "Body"

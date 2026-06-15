@@ -61,6 +61,17 @@ function defineRecordEntry<T>(record: Record<string, T>, key: string, value: T):
   });
 }
 
+function requireNonEmptyString(value: unknown, message: string): string {
+  if (typeof value !== "string") {
+    throw new Error(message);
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(message);
+  }
+  return trimmed;
+}
+
 function toAbortError(reason: unknown): Error {
   if (reason instanceof Error) {
     return reason;
@@ -97,30 +108,26 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
   const participant = getOwnEntry(value, "participant");
   const mode = getOwnEntry(value, "mode");
 
-  if (typeof prompt !== "string" || prompt.length === 0) {
-    throw new Error(`Workflow "${fieldName}" must define a non-empty prompt.`);
-  }
+  const normalizedPrompt = requireNonEmptyString(
+    prompt,
+    `Workflow "${fieldName}" must define a non-empty prompt.`
+  );
 
-  if (participant !== undefined && typeof participant !== "string") {
-    throw new Error(`Workflow "${fieldName}" participant must be a string.`);
-  }
+  const normalizedParticipant =
+    participant === undefined
+      ? undefined
+      : requireNonEmptyString(
+          participant,
+          `Workflow "${fieldName}" participant must define a non-empty string.`
+        );
 
-  if (participant === "") {
-    throw new Error(`Workflow "${fieldName}" participant must define a non-empty string.`);
-  }
-
-  if (
-    mode !== undefined &&
-    mode !== "read" &&
-    mode !== "edit" &&
-    mode !== "yolo"
-  ) {
+  if (mode !== undefined && mode !== "read" && mode !== "edit" && mode !== "yolo") {
     throw new Error(`Workflow "${fieldName}" mode must be "read", "edit", or "yolo".`);
   }
 
   return {
-    prompt,
-    ...(participant ? { participant } : {}),
+    prompt: normalizedPrompt,
+    ...(normalizedParticipant ? { participant: normalizedParticipant } : {}),
     ...(mode ? { mode } : {})
   };
 }
@@ -131,46 +138,46 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
   }
 
   const id = getOwnEntry(value, "id");
-  if (typeof id !== "string" || id.length === 0) {
-    throw new Error(`Workflow stage at index ${index} must define a non-empty id.`);
-  }
+  const normalizedId = requireNonEmptyString(
+    id,
+    `Workflow stage at index ${index} must define a non-empty id.`
+  );
 
   const participant = getOwnEntry(value, "participant");
-  if (typeof participant !== "string" || participant.length === 0) {
-    throw new Error(`Workflow stage "${id}" must define a non-empty participant.`);
-  }
+  const normalizedParticipant = requireNonEmptyString(
+    participant,
+    `Workflow stage "${normalizedId}" must define a non-empty participant.`
+  );
 
   const prompt = getOwnEntry(value, "prompt");
   if (prompt !== undefined && typeof prompt !== "string") {
-    throw new Error(`Workflow stage "${id}" prompt must be a string.`);
+    throw new Error(`Workflow stage "${normalizedId}" prompt must be a string.`);
   }
+  const normalizedPrompt =
+    prompt === undefined
+      ? undefined
+      : requireNonEmptyString(
+          prompt,
+          `Workflow stage "${normalizedId}" prompt must be a non-empty string when provided.`
+        );
 
   const mode = getOwnEntry(value, "mode");
-  if (
-    mode !== undefined &&
-    mode !== "read" &&
-    mode !== "edit" &&
-    mode !== "yolo"
-  ) {
-    throw new Error(`Workflow stage "${id}" mode must be "read", "edit", or "yolo".`);
+  if (mode !== undefined && mode !== "read" && mode !== "edit" && mode !== "yolo") {
+    throw new Error(`Workflow stage "${normalizedId}" mode must be "read", "edit", or "yolo".`);
   }
 
   const onFailure = getOwnEntry(value, "onFailure");
-  if (
-    onFailure !== undefined &&
-    onFailure !== "stop" &&
-    onFailure !== "continue"
-  ) {
-    throw new Error(`Workflow stage "${id}" onFailure must be "stop" or "continue".`);
+  if (onFailure !== undefined && onFailure !== "stop" && onFailure !== "continue") {
+    throw new Error(`Workflow stage "${normalizedId}" onFailure must be "stop" or "continue".`);
   }
 
-  const skills = parseSkills(getOwnEntry(value, "skills"), `Workflow stage "${id}"`);
-  const hooks = parseHooks(getOwnEntry(value, "hooks"), `Workflow stage "${id}"`);
+  const skills = parseSkills(getOwnEntry(value, "skills"), `Workflow stage "${normalizedId}"`);
+  const hooks = parseHooks(getOwnEntry(value, "hooks"), `Workflow stage "${normalizedId}"`);
 
   return {
-    id,
-    participant,
-    ...(prompt !== undefined ? { prompt } : {}),
+    id: normalizedId,
+    participant: normalizedParticipant,
+    ...(normalizedPrompt !== undefined ? { prompt: normalizedPrompt } : {}),
     ...(mode !== undefined ? { mode } : {}),
     ...(skills !== undefined ? { skills } : {}),
     ...(hooks !== undefined ? { hooks } : {}),
@@ -214,9 +221,10 @@ function parseHooks(value: unknown, label: string): RunAgentHooks | undefined {
     throw new Error(`${label} hooks must be an object.`);
   }
   const from = getOwnEntry(value, "from");
-  if (typeof from !== "string" || from.length === 0) {
-    throw new Error(`${label} hooks from must be a non-empty string.`);
-  }
+  const normalizedFrom = requireNonEmptyString(
+    from,
+    `${label} hooks from must be a non-empty string.`
+  );
   const strategy = getOwnEntry(value, "strategy");
   if (
     strategy !== undefined &&
@@ -227,16 +235,11 @@ function parseHooks(value: unknown, label: string): RunAgentHooks | undefined {
     throw new Error(`${label} hooks strategy must be "auto", "symlink", or "transform".`);
   }
   const scope = getOwnEntry(value, "scope");
-  if (
-    scope !== undefined &&
-    scope !== "project" &&
-    scope !== "user" &&
-    scope !== "merged"
-  ) {
+  if (scope !== undefined && scope !== "project" && scope !== "user" && scope !== "merged") {
     throw new Error(`${label} hooks scope must be "project", "user", or "merged".`);
   }
   return {
-    from,
+    from: normalizedFrom,
     ...(strategy !== undefined ? { strategy } : {}),
     ...(scope !== undefined ? { scope } : {})
   };
@@ -253,10 +256,17 @@ function parseParticipants(value: unknown): Record<string, WorkflowParticipant> 
 
   const participants: Record<string, WorkflowParticipant> = Object.create(null);
   for (const [participantId, participantConfig] of Object.entries(value)) {
+    const normalizedParticipantId = participantId.trim();
+    if (normalizedParticipantId.length === 0) {
+      throw new Error("Workflow participant id must be a non-empty string.");
+    }
+    if (Object.hasOwn(participants, normalizedParticipantId)) {
+      throw new Error(`Duplicate workflow participant id: ${normalizedParticipantId}`);
+    }
     defineRecordEntry(
       participants,
-      participantId,
-      normalizeParticipantConfig(participantId, participantConfig)
+      normalizedParticipantId,
+      normalizeParticipantConfig(normalizedParticipantId, participantConfig)
     );
   }
 

@@ -24,6 +24,14 @@ function invalidAgentError(id: string): Error {
   return new Error(`Participant "${id}" must define a non-empty agent.`);
 }
 
+function nonEmptyString(value: string, message: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(message);
+  }
+  return trimmed;
+}
+
 function validateAgentSpecifier(id: string, value: string): void {
   try {
     parseAgentSpecifier(value);
@@ -43,9 +51,7 @@ function normalizeParticipantAgent(id: string, value: unknown): string | string[
   }
 
   if (!Array.isArray(value)) {
-    throw new Error(
-      `Participant "${id}" has invalid agent. Expected a string or string array.`
-    );
+    throw new Error(`Participant "${id}" has invalid agent. Expected a string or string array.`);
   }
 
   if (value.length === 0) {
@@ -54,9 +60,7 @@ function normalizeParticipantAgent(id: string, value: unknown): string | string[
 
   return value.map((entry) => {
     if (typeof entry !== "string") {
-      throw new Error(
-        `Participant "${id}" has invalid agent. Expected a string or string array.`
-      );
+      throw new Error(`Participant "${id}" has invalid agent. Expected a string or string array.`);
     }
 
     validateAgentSpecifier(id, entry);
@@ -69,10 +73,7 @@ function normalizeParticipantAgent(id: string, value: unknown): string | string[
   });
 }
 
-export function normalizeParticipantConfig(
-  id: string,
-  value: unknown
-): WorkflowParticipant {
+export function normalizeParticipantConfig(id: string, value: unknown): WorkflowParticipant {
   const input: unknown = typeof value === "string" ? { agent: value } : value;
 
   if (!isRecord(input)) {
@@ -90,14 +91,8 @@ export function normalizeParticipantConfig(
 
   const mode = getOwnEntry(input, "mode");
   if (mode !== undefined) {
-    if (
-      mode !== "read" &&
-      mode !== "edit" &&
-      mode !== "yolo"
-    ) {
-      throw new Error(
-        `Participant "${id}" has invalid mode. Expected "read", "edit", or "yolo".`
-      );
+    if (mode !== "read" && mode !== "edit" && mode !== "yolo") {
+      throw new Error(`Participant "${id}" has invalid mode. Expected "read", "edit", or "yolo".`);
     }
     participant.mode = mode;
   }
@@ -107,10 +102,7 @@ export function normalizeParticipantConfig(
     if (typeof model !== "string") {
       throw new Error(`Participant "${id}" has invalid model. Expected a string.`);
     }
-    if (model.length === 0) {
-      throw new Error(`Participant "${id}" must define a non-empty model.`);
-    }
-    participant.model = model;
+    participant.model = nonEmptyString(model, `Participant "${id}" must define a non-empty model.`);
   }
 
   const prompt = getOwnEntry(input, "prompt");
@@ -118,7 +110,10 @@ export function normalizeParticipantConfig(
     if (typeof prompt !== "string") {
       throw new Error(`Participant "${id}" has invalid prompt. Expected a string.`);
     }
-    participant.prompt = prompt;
+    participant.prompt = nonEmptyString(
+      prompt,
+      `Participant "${id}" must define a non-empty prompt.`
+    );
   }
 
   return participant;

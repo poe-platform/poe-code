@@ -210,6 +210,19 @@ describe("waitForExit", () => {
     );
   });
 
+  it.each(["0x10\n", "1e2\n", "08\n"])(
+    "rejects non-decimal exit-file syntax %j",
+    async (contents) => {
+      const { fs } = createMemFs({
+        "/tmp/poe-jobs/job-1.exit": contents
+      });
+
+      await expect(waitForExit({ fs }, "job-1")).rejects.toThrow(
+        "Invalid exit code in /tmp/poe-jobs/job-1.exit"
+      );
+    }
+  );
+
   it("stops polling when the signal aborts", async () => {
     const { fs } = createMemFs({});
     const controller = new AbortController();
@@ -262,14 +275,22 @@ describe("wrapForLogTee", () => {
   });
 
   it("rejects job identifiers that escape the managed job directory", () => {
-    expect(() => wrapForLogTee(["printf", "hello"], "../external")).toThrow(
-      "Invalid job id"
-    );
+    expect(() => wrapForLogTee(["printf", "hello"], "../external")).toThrow("Invalid job id");
   });
 
   it("rejects traversing job identifiers before log or exit reads", async () => {
-    await expect(takeChunks(streamLogFile({}, "../external", {}), 1)).rejects.toThrow("Invalid job id");
+    await expect(takeChunks(streamLogFile({}, "../external", {}), 1)).rejects.toThrow(
+      "Invalid job id"
+    );
     await expect(waitForExit({}, "../external")).rejects.toThrow("Invalid job id");
+  });
+
+  it("rejects NUL job identifiers before wrapping, streaming, or waiting", async () => {
+    expect(() => wrapForLogTee(["printf", "hello"], "job\0bad")).toThrow("Invalid job id");
+    await expect(takeChunks(streamLogFile({}, "job\0bad", {}), 1)).rejects.toThrow(
+      "Invalid job id"
+    );
+    await expect(waitForExit({}, "job\0bad")).rejects.toThrow("Invalid job id");
   });
 });
 

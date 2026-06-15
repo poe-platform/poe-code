@@ -171,9 +171,71 @@ describe("resolveLoopAgent", () => {
     expect(receivedOptions?.options).not.toEqual(
       expect.arrayContaining([
         expect.objectContaining({
+          value: "poe-agent"
+        }),
+        expect.objectContaining({
           value: "claude-desktop"
         })
       ])
+    );
+  });
+
+  it("rejects bare poe-agent specifiers because the loop runner requires a model", async () => {
+    await expect(
+      resolveLoopAgent(
+        createInput({
+          providedAgent: "poe-agent"
+        })
+      )
+    ).rejects.toThrow(
+      'poe-agent requires a model in the agent specifier (e.g. "poe-agent:openai/gpt-5.4").'
+    );
+  });
+
+  it("accepts poe-agent specifiers with an explicit model", async () => {
+    const result = await resolveLoopAgent(
+      createInput({
+        providedAgent: "poe-agent:openai/gpt-5.4"
+      })
+    );
+
+    expect(result).toEqual({ agent: "poe-agent:openai/gpt-5.4" });
+  });
+
+  it("rejects interactively selected bare poe-agent specifiers", async () => {
+    await expect(
+      resolveLoopAgent(
+        createInput({
+          select: async () => "poe-agent"
+        })
+      )
+    ).rejects.toThrow(
+      'poe-agent requires a model in the agent specifier (e.g. "poe-agent:openai/gpt-5.4").'
+    );
+  });
+
+  it("rejects configured bare poe-agent defaults with assumeYes", async () => {
+    await expect(
+      resolveLoopAgent(
+        createInput({
+          assumeYes: true,
+          configuredDefaultAgent: "poe-agent"
+        })
+      )
+    ).rejects.toThrow(
+      'poe-agent requires a model in the agent specifier (e.g. "poe-agent:openai/gpt-5.4").'
+    );
+  });
+
+  it("rejects frontmatter bare poe-agent defaults", async () => {
+    await expect(
+      resolveLoopAgent(
+        createInput({
+          frontmatterAgent: "poe-agent"
+        })
+      )
+    ).rejects.toThrow(
+      'poe-agent requires a model in the agent specifier (e.g. "poe-agent:openai/gpt-5.4").'
     );
   });
 
@@ -185,7 +247,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent:<model>'
     );
   });
 
@@ -213,7 +275,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, cursor, gemini-cli, opencode, kimi, goose, poe-agent:<model>'
     );
   });
 });

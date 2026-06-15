@@ -126,7 +126,7 @@ function createBaseProgram(): Command {
 
 function getExperimentAgentOptions() {
   return allAgents
-    .filter((agent) => agent.binaryName !== undefined || agent.id === "poe-agent")
+    .filter((agent) => agent.binaryName !== undefined)
     .map((agent) => ({
       label: agent.label,
       value: agent.id,

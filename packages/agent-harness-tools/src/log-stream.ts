@@ -54,7 +54,8 @@ export async function* streamLogFile(
 
   const fs = env.fs ?? nodeFs;
   const file = jobLogPath(jobId);
-  let byteOffset = opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
+  let byteOffset =
+    opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
   let pendingBytes: Buffer = Buffer.alloc(0);
   let pendingByteOffset = byteOffset;
 
@@ -66,9 +67,8 @@ export async function* streamLogFile(
 
     const result = await readLogChunk(fs, file, byteOffset);
     if (result !== null) {
-      const combined = pendingBytes.length === 0
-        ? result.bytes
-        : Buffer.concat([pendingBytes, result.bytes]);
+      const combined =
+        pendingBytes.length === 0 ? result.bytes : Buffer.concat([pendingBytes, result.bytes]);
       const completeLength = completeUtf8PrefixLength(combined);
       byteOffset = result.nextByteOffset;
       pendingBytes = combined.subarray(completeLength);
@@ -128,15 +128,18 @@ export async function waitForExit(
     const contents = await readTextFileIfExists(fs, file);
     if (contents !== null) {
       const text = contents.trim();
-      const exitCode = Number(text);
-      if (text.length === 0 || !Number.isInteger(exitCode)) {
+      if (!isDecimalExitCode(text)) {
         throw new Error(`Invalid exit code in ${file}: ${contents}`);
       }
-      return { exitCode };
+      return { exitCode: Number(text) };
     }
 
     await sleep(POLL_INTERVAL_MS, opts.signal);
   }
+}
+
+function isDecimalExitCode(value: string): boolean {
+  return value === "0" || /^[1-9][0-9]*$/.test(value);
 }
 
 function jobLogPath(jobId: string): string {
@@ -148,7 +151,14 @@ function jobExitPath(jobId: string): string {
 }
 
 function assertSafeJobId(jobId: string): void {
-  if (jobId.length === 0 || jobId === "." || jobId === ".." || jobId.includes("/") || jobId.includes("\\")) {
+  if (
+    jobId.length === 0 ||
+    jobId === "." ||
+    jobId === ".." ||
+    jobId.includes("/") ||
+    jobId.includes("\\") ||
+    jobId.includes("\0")
+  ) {
     throw new Error(`Invalid job id "${jobId}". Job ids must be single filename components.`);
   }
 }

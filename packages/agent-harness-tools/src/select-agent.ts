@@ -17,7 +17,10 @@ export interface ResolveLoopAgentInput {
 const loopAgents = allAgents.filter(
   (agent) => agent.binaryName !== undefined || agent.id === "poe-agent"
 );
-const supportedAgents = loopAgents.map((agent) => agent.id).join(", ");
+const selectableLoopAgents = loopAgents.filter((agent) => agent.id !== "poe-agent");
+const supportedAgents = loopAgents
+  .map((agent) => (agent.id === "poe-agent" ? "poe-agent:<model>" : agent.id))
+  .join(", ");
 
 function resolveSelectedAgent(agent: string): { agent: string } {
   const specifier = parseAgentSpecifier(agent);
@@ -25,6 +28,12 @@ function resolveSelectedAgent(agent: string): { agent: string } {
 
   if (!resolvedAgentId || !loopAgents.some((agent) => agent.id === resolvedAgentId)) {
     throw new Error(`Unsupported agent "${agent}". Supported agents: ${supportedAgents}`);
+  }
+
+  if (resolvedAgentId === "poe-agent" && !specifier.model) {
+    throw new Error(
+      'poe-agent requires a model in the agent specifier (e.g. "poe-agent:openai/gpt-5.4").'
+    );
   }
 
   return {
@@ -57,7 +66,7 @@ export async function resolveLoopAgent(
 
   const selectedAgent = await input.select({
     message: input.message,
-    options: loopAgents.map((agent) => ({
+    options: selectableLoopAgents.map((agent) => ({
       value: agent.id,
       label: agent.label,
       hint: agent.summary

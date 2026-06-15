@@ -1024,10 +1024,12 @@ describe("createMCPServer", () => {
                 type: "string"
               }
             },
-            required: ["api_key"]
+            required: ["api_key"],
+            additionalProperties: false
           }
         },
-        required: ["dry_run", "bot_config"]
+        required: ["dry_run", "bot_config"],
+        additionalProperties: false
       });
       expect(result.tools[1]?.inputSchema).toEqual({
         type: "object",
@@ -1036,7 +1038,8 @@ describe("createMCPServer", () => {
             type: "string"
           }
         },
-        required: ["bot_name"]
+        required: ["bot_name"],
+        additionalProperties: false
       });
     } finally {
       await cleanup();
@@ -1093,7 +1096,8 @@ describe("createMCPServer", () => {
             }
           }
         },
-        required: ["starters"]
+        required: ["starters"],
+        additionalProperties: false
       });
     } finally {
       await cleanup();
@@ -1196,7 +1200,8 @@ describe("createMCPServer", () => {
             type: "string"
           }
         },
-        required: ["endpoint"]
+        required: ["endpoint"],
+        additionalProperties: false
       });
     } finally {
       await cleanup();
@@ -1241,7 +1246,8 @@ describe("createMCPServer", () => {
             nullable: true
           }
         },
-        required: []
+        required: [],
+        additionalProperties: false
       });
 
       const callResult = await client.callTool({
@@ -1496,7 +1502,8 @@ describe("createMCPServer", () => {
             nullable: true
           }
         },
-        required: []
+        required: [],
+        additionalProperties: false
       });
     } finally {
       await cleanup();

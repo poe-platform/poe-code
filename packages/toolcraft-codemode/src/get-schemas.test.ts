@@ -61,7 +61,8 @@ describe("makeGetSchemasCommand", () => {
           }
         }
       },
-      required: ["names"]
+      required: ["names"],
+      additionalProperties: false
     });
   });
 
@@ -88,7 +89,9 @@ describe("makeGetSchemasCommand", () => {
       .catch((error: unknown) => error);
 
     expect(thrown).toBeInstanceOf(UserError);
-    expect((thrown as Error).message).toBe("Unknown command path(s): issues.missing, pulls.unknown");
+    expect((thrown as Error).message).toBe(
+      "Unknown command path(s): issues.missing, pulls.unknown"
+    );
   });
 
   it("returns an empty record when no names are requested", async () => {
@@ -112,6 +115,8 @@ describe("makeGetSchemasCommand", () => {
       .catch((error: unknown) => error);
 
     expect(thrown).toBeInstanceOf(UserError);
-    expect((thrown as Error).message).toBe("Unknown command path(s): issues.missing, pulls.unknown");
+    expect((thrown as Error).message).toBe(
+      "Unknown command path(s): issues.missing, pulls.unknown"
+    );
   });
 });

@@ -5,6 +5,7 @@ exports[`makeGetSchemasCommand > returns a requested command description and par
   "issues.list": {
     "description": "List matching issues.",
     "params": {
+      "additionalProperties": false,
       "properties": {
         "assignee": {
           "description": "GitHub login to filter by.",

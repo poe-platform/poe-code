@@ -363,11 +363,11 @@ describe("validate", () => {
   });
 
   it("validates and clones defaults on each optional application", () => {
-    const schema = S.Object({
-      names: S.Optional(S.Array(S.String({ minLength: 2 }), { default: ["x"] }))
-    });
-
-    expect(validate(schema, {}).ok).toBe(false);
+    expect(() =>
+      S.Object({
+        names: S.Optional(S.Array(S.String({ minLength: 2 }), { default: ["x"] }))
+      })
+    ).toThrow("default must satisfy schema");
 
     const validSchema = S.Object({
       names: S.Optional(S.Array(S.String(), { default: ["seed"] }))
@@ -385,15 +385,24 @@ describe("validate", () => {
     const input = Object.create(null) as Record<string, unknown>;
     input.name = "Ada";
     Object.defineProperty(input, "__proto__", { enumerable: true, value: "declared" });
-    const declaredShape = Object.create(null) as { name: ReturnType<typeof S.String>; __proto__: ReturnType<typeof S.String> };
+    const declaredShape = Object.create(null) as {
+      name: ReturnType<typeof S.String>;
+      __proto__: ReturnType<typeof S.String>;
+    };
     declaredShape.name = S.String();
     Object.defineProperty(declaredShape, "__proto__", { enumerable: true, value: S.String() });
     const declared = validate(S.Object(declaredShape), input);
 
     const additionalInput = Object.create(null) as Record<string, unknown>;
     additionalInput.name = "Ada";
-    Object.defineProperty(additionalInput, "__proto__", { enumerable: true, value: { polluted: true } });
-    const additional = validate(S.Object({ name: S.String() }, { additionalProperties: true }), additionalInput);
+    Object.defineProperty(additionalInput, "__proto__", {
+      enumerable: true,
+      value: { polluted: true }
+    });
+    const additional = validate(
+      S.Object({ name: S.String() }, { additionalProperties: true }),
+      additionalInput
+    );
 
     const recordInput = Object.create(null) as Record<string, unknown>;
     Object.defineProperty(recordInput, "__proto__", { enumerable: true, value: "value" });

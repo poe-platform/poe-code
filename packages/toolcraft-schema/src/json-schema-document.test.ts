@@ -24,6 +24,7 @@ describe("toJsonSchemaDocument", () => {
       title: "poe-code config",
       description: "Schema for poe-code config files",
       type: "object",
+      additionalProperties: false,
       properties: {
         version: {
           type: "number",
@@ -31,6 +32,7 @@ describe("toJsonSchemaDocument", () => {
         },
         core: {
           type: "object",
+          additionalProperties: false,
           properties: {
             apiKey: {
               type: "string",

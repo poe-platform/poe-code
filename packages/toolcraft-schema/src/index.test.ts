@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
-import { S, toJsonSchema } from "toolcraft-schema";
+import { S, toJsonSchema, toJsonSchemaDocument, validate } from "toolcraft-schema";
 import type {
   ArraySchema,
   BooleanSchema,
@@ -13,7 +13,7 @@ import type {
   RecordSchema,
   Static,
   StringSchema,
-  UnionSchema,
+  UnionSchema
 } from "toolcraft-schema";
 
 describe("toolcraft-schema", () => {
@@ -23,22 +23,22 @@ describe("toolcraft-schema", () => {
     const booleanSchema = S.Boolean({ description: "Enabled", default: false });
     const enumSchema = S.Enum(["admin", "user"] as const, {
       description: "Role",
-      default: "admin",
+      default: "admin"
     });
     const arraySchema = S.Array(S.String(), {
       description: "Tags",
-      default: ["a", "b"],
+      default: ["a", "b"]
     });
     const objectSchema = S.Object({
-      name: S.String(),
+      name: S.String()
     });
     const optionalSchema = S.Optional(S.String());
     const oneOfSchema = S.OneOf({
       discriminator: "kind",
       branches: {
         text: S.Object({ value: S.String() }),
-        count: S.Object({ value: S.Number() }),
-      },
+        count: S.Object({ value: S.Number() })
+      }
     });
     const unionSchema = S.Union([S.Object({ email: S.String() }), S.Object({ phone: S.String() })]);
     const recordSchema = S.Record(S.String());
@@ -89,9 +89,9 @@ describe("toolcraft-schema", () => {
       metadata: S.Optional(
         S.Object({
           retries: S.Number(),
-          active: S.Optional(S.Boolean()),
+          active: S.Optional(S.Boolean())
         })
-      ),
+      )
     });
 
     expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<{
@@ -113,18 +113,35 @@ describe("toolcraft-schema", () => {
     expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<boolean[] | undefined>();
   });
 
+  it("infers null for nullable schemas and validation results", () => {
+    const nullableString = S.String({ nullable: true });
+    const ignoredNullableArray = S.Array(S.Number(), { nullable: true });
+    const ignoredNullableObject = S.Object({
+      name: S.String({ nullable: true })
+    });
+    const result = validate(nullableString, null);
+
+    expectTypeOf<Static<typeof nullableString>>().toEqualTypeOf<string | null>();
+    expectTypeOf<Static<typeof ignoredNullableArray>>().toEqualTypeOf<number[] | null>();
+    expectTypeOf<Static<typeof ignoredNullableObject>>().toEqualTypeOf<{ name: string | null }>();
+
+    if (result.ok) {
+      expectTypeOf(result.value).toEqualTypeOf<string | null>();
+    }
+  });
+
   it("infers static types for discriminated oneOf schemas", () => {
     const ignoredSchema = S.OneOf({
       discriminator: "kind",
       branches: {
         text: S.Object({
           value: S.String(),
-          preview: S.Optional(S.Boolean()),
+          preview: S.Optional(S.Boolean())
         }),
         count: S.Object({
-          value: S.Number(),
-        }),
-      },
+          value: S.Number()
+        })
+      }
     });
 
     expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<
@@ -144,12 +161,12 @@ describe("toolcraft-schema", () => {
     const ignoredUnionSchema = S.Union([
       S.Object({
         email: S.String(),
-        name: S.Optional(S.String()),
+        name: S.Optional(S.String())
       }),
       S.Object({
         phone: S.String(),
-        extension: S.Optional(S.Number()),
-      }),
+        extension: S.Optional(S.Number())
+      })
     ]);
     const ignoredRecordSchema = S.Record(S.Array(S.Boolean()));
     const ignoredJsonSchema = S.Json();
@@ -178,7 +195,7 @@ describe("toolcraft-schema", () => {
   it("infers static types for optional object properties without leaking undefined into present values", () => {
     const ignoredSchema = S.Object({
       requiredValue: S.String(),
-      optionalValue: S.Optional(S.Number()),
+      optionalValue: S.Optional(S.Number())
     });
 
     expectTypeOf<Static<typeof ignoredSchema>>().toEqualTypeOf<{
@@ -191,19 +208,19 @@ describe("toolcraft-schema", () => {
     expect(toJsonSchema(S.String({ description: "Name", default: "guest" }))).toEqual({
       type: "string",
       description: "Name",
-      default: "guest",
+      default: "guest"
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Number({ description: "Count", default: 3 }))).toEqual({
       type: "number",
       description: "Count",
-      default: 3,
+      default: 3
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Boolean({ description: "Enabled", default: false }))).toEqual({
       type: "boolean",
       description: "Enabled",
-      default: false,
+      default: false
     } satisfies JsonSchema);
   });
 
@@ -215,7 +232,7 @@ describe("toolcraft-schema", () => {
           minLength: 3,
           maxLength: 40,
           pattern: "^[a-z]+$",
-          format: "date-time",
+          format: "date-time"
         })
       )
     ).toEqual({
@@ -224,7 +241,7 @@ describe("toolcraft-schema", () => {
       minLength: 3,
       maxLength: 40,
       pattern: "^[a-z]+$",
-      format: "date-time",
+      format: "date-time"
     } satisfies JsonSchema);
 
     expect(
@@ -232,37 +249,39 @@ describe("toolcraft-schema", () => {
         S.Number({
           jsonType: "integer",
           minimum: 1,
-          maximum: 100,
+          maximum: 100
         })
       )
     ).toEqual({
       type: "integer",
       minimum: 1,
-      maximum: 100,
+      maximum: 100
     } satisfies JsonSchema);
 
     expect(
       toJsonSchema(
         S.Array(S.String(), {
           minItems: 1,
-          maxItems: 4,
+          maxItems: 4
         })
       )
     ).toEqual({
       type: "array",
       items: {
-        type: "string",
+        type: "string"
       },
       minItems: 1,
-      maxItems: 4,
+      maxItems: 4
     } satisfies JsonSchema);
   });
 
   it("serializes integer-flavored number schemas as JSON Schema integers", () => {
-    expect(toJsonSchema(S.Number({ description: "Count", default: 3, jsonType: "integer" }))).toEqual({
+    expect(
+      toJsonSchema(S.Number({ description: "Count", default: 3, jsonType: "integer" }))
+    ).toEqual({
       type: "integer",
       description: "Count",
-      default: 3,
+      default: 3
     } satisfies JsonSchema);
   });
 
@@ -271,14 +290,14 @@ describe("toolcraft-schema", () => {
       toJsonSchema(
         S.Enum(["admin", "user", "guest"] as const, {
           description: "Role",
-          default: "user",
+          default: "user"
         })
       )
     ).toEqual({
       type: "string",
       enum: ["admin", "user", "guest"],
       description: "Role",
-      default: "user",
+      default: "user"
     } satisfies JsonSchema);
   });
 
@@ -288,14 +307,14 @@ describe("toolcraft-schema", () => {
         S.Enum([1, 2, 3] as const, {
           description: "Status code",
           default: 2,
-          jsonType: "integer",
+          jsonType: "integer"
         })
       )
     ).toEqual({
       type: "integer",
       enum: [1, 2, 3],
       description: "Status code",
-      default: 2,
+      default: 2
     } satisfies JsonSchema);
   });
 
@@ -303,29 +322,29 @@ describe("toolcraft-schema", () => {
     expect(
       toJsonSchema(
         S.Enum(["off", "auto", "forced"] as const, {
-          nullable: true,
+          nullable: true
         })
       )
     ).toEqual({
       type: "string",
       enum: ["off", "auto", "forced", null],
-      nullable: true,
+      nullable: true
     } satisfies JsonSchema);
   });
 
   it("serializes numeric, boolean, and mixed enums to JSON Schema", () => {
     expect(toJsonSchema(S.Enum([1, 2, 3] as const))).toEqual({
       type: "number",
-      enum: [1, 2, 3],
+      enum: [1, 2, 3]
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Enum([true, false] as const))).toEqual({
       type: "boolean",
-      enum: [true, false],
+      enum: [true, false]
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Enum(["enabled", false] as const))).toEqual({
-      enum: ["enabled", false],
+      enum: ["enabled", false]
     } satisfies JsonSchema);
   });
 
@@ -334,17 +353,17 @@ describe("toolcraft-schema", () => {
       toJsonSchema(
         S.Array(S.Number({ description: "Single value" }), {
           description: "Values",
-          default: [1, 2, 3],
+          default: [1, 2, 3]
         })
       )
     ).toEqual({
       type: "array",
       items: {
         type: "number",
-        description: "Single value",
+        description: "Single value"
       },
       description: "Values",
-      default: [1, 2, 3],
+      default: [1, 2, 3]
     } satisfies JsonSchema);
   });
 
@@ -354,8 +373,8 @@ describe("toolcraft-schema", () => {
       enabled: S.Optional(S.Boolean({ default: true })),
       nested: S.Object({
         port: S.Number({ default: 5432 }),
-        secure: S.Optional(S.Boolean()),
-      }),
+        secure: S.Optional(S.Boolean())
+      })
     });
 
     expect(toJsonSchema(schema)).toEqual({
@@ -363,27 +382,29 @@ describe("toolcraft-schema", () => {
       properties: {
         name: {
           type: "string",
-          description: "Display name",
+          description: "Display name"
         },
         enabled: {
           type: "boolean",
-          default: true,
+          default: true
         },
         nested: {
           type: "object",
           properties: {
             port: {
               type: "number",
-              default: 5432,
+              default: 5432
             },
             secure: {
-              type: "boolean",
-            },
+              type: "boolean"
+            }
           },
           required: ["port"],
-        },
+          additionalProperties: false
+        }
       },
       required: ["name", "nested"],
+      additionalProperties: false
     } satisfies JsonSchema);
   });
 
@@ -392,6 +413,7 @@ describe("toolcraft-schema", () => {
       type: "object",
       properties: {},
       required: [],
+      additionalProperties: false
     } satisfies JsonSchema);
   });
 
@@ -400,7 +422,7 @@ describe("toolcraft-schema", () => {
       toJsonSchema(
         S.Object(
           {
-            name: S.String(),
+            name: S.String()
           },
           { additionalProperties: false }
         )
@@ -409,11 +431,50 @@ describe("toolcraft-schema", () => {
       type: "object",
       properties: {
         name: {
-          type: "string",
-        },
+          type: "string"
+        }
       },
       required: ["name"],
+      additionalProperties: false
+    } satisfies JsonSchema);
+
+    expect(toJsonSchema(S.Object({ name: S.String() }, { additionalProperties: true }))).toEqual({
+      type: "object",
+      properties: {
+        name: {
+          type: "string"
+        }
+      },
+      required: ["name"],
+      additionalProperties: true
+    } satisfies JsonSchema);
+  });
+
+  it("serializes object JSON Schema contracts that reject runtime-rejected extra properties", () => {
+    expect(
+      toJsonSchemaDocument(
+        S.Object({
+          user: S.Object({
+            name: S.String()
+          })
+        })
+      )
+    ).toMatchObject({
+      type: "object",
       additionalProperties: false,
+      properties: {
+        user: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            name: {
+              type: "string"
+            }
+          },
+          required: ["name"]
+        }
+      },
+      required: ["user"]
     } satisfies JsonSchema);
   });
 
@@ -424,13 +485,13 @@ describe("toolcraft-schema", () => {
           discriminator: "kind",
           branches: {
             text: S.Object({
-              value: S.String(),
+              value: S.String()
             }),
             count: S.Object({
               value: S.Number(),
-              preview: S.Optional(S.Boolean()),
-            }),
-          },
+              preview: S.Optional(S.Boolean())
+            })
+          }
         })
       )
     ).toEqual({
@@ -439,32 +500,34 @@ describe("toolcraft-schema", () => {
           type: "object",
           properties: {
             value: {
-              type: "string",
+              type: "string"
             },
             kind: {
               type: "string",
-              enum: ["text"],
-            },
+              enum: ["text"]
+            }
           },
           required: ["value", "kind"],
+          additionalProperties: false
         },
         {
           type: "object",
           properties: {
             value: {
-              type: "number",
+              type: "number"
             },
             preview: {
-              type: "boolean",
+              type: "boolean"
             },
             kind: {
               type: "string",
-              enum: ["count"],
-            },
+              enum: ["count"]
+            }
           },
           required: ["value", "kind"],
-        },
-      ],
+          additionalProperties: false
+        }
+      ]
     } satisfies JsonSchema);
   });
 
@@ -473,12 +536,12 @@ describe("toolcraft-schema", () => {
       toJsonSchema(
         S.Union([
           S.Object({
-            email: S.String(),
+            email: S.String()
           }),
           S.Object({
             phone: S.String(),
-            extension: S.Optional(S.Number({ jsonType: "integer" })),
-          }),
+            extension: S.Optional(S.Number({ jsonType: "integer" }))
+          })
         ])
       )
     ).toEqual({
@@ -487,31 +550,33 @@ describe("toolcraft-schema", () => {
           type: "object",
           properties: {
             email: {
-              type: "string",
-            },
+              type: "string"
+            }
           },
           required: ["email"],
+          additionalProperties: false
         },
         {
           type: "object",
           properties: {
             phone: {
-              type: "string",
+              type: "string"
             },
             extension: {
-              type: "integer",
-            },
+              type: "integer"
+            }
           },
           required: ["phone"],
-        },
-      ],
+          additionalProperties: false
+        }
+      ]
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Record(S.Number({ jsonType: "integer" })))).toEqual({
       type: "object",
       additionalProperties: {
-        type: "integer",
-      },
+        type: "integer"
+      }
     } satisfies JsonSchema);
 
     expect(toJsonSchema(S.Json())).toEqual({} satisfies JsonSchema);
@@ -519,7 +584,7 @@ describe("toolcraft-schema", () => {
 
   it("treats double-wrapped optional object properties as optional", () => {
     const schema = S.Object({
-      maybeName: S.Optional(S.Optional(S.String({ default: "guest" }))),
+      maybeName: S.Optional(S.Optional(S.String({ default: "guest" })))
     });
 
     expectTypeOf<Static<typeof schema>>().toEqualTypeOf<{
@@ -531,17 +596,18 @@ describe("toolcraft-schema", () => {
       properties: {
         maybeName: {
           type: "string",
-          default: "guest",
-        },
+          default: "guest"
+        }
       },
       required: [],
+      additionalProperties: false
     } satisfies JsonSchema);
   });
 
   it("serializes top-level optional schemas as the underlying JSON Schema", () => {
     expect(toJsonSchema(S.Optional(S.String({ default: "value" })))).toEqual({
       type: "string",
-      default: "value",
+      default: "value"
     } satisfies JsonSchema);
   });
 
@@ -556,13 +622,13 @@ describe("toolcraft-schema", () => {
   });
 
   it("rejects empty enums at runtime for JavaScript callers", () => {
-    expect(() => S.Enum([] as unknown as [string])).toThrow("Enum schema requires at least one value");
+    expect(() => S.Enum([] as unknown as [string])).toThrow(
+      "Enum schema requires at least one value"
+    );
   });
 
   it("rejects duplicate enum values at runtime", () => {
-    expect(() => S.Enum(["admin", "admin"] as const)).toThrow(
-      "Enum schema values must be unique"
-    );
+    expect(() => S.Enum(["admin", "admin"] as const)).toThrow("Enum schema values must be unique");
   });
 
   it("rejects invalid constraint metadata and non-finite schema values", () => {
@@ -571,6 +637,33 @@ describe("toolcraft-schema", () => {
     expect(() => S.Array(S.String(), { maxItems: -1 })).toThrow("maxItems");
     expect(() => S.Number({ minimum: Number.POSITIVE_INFINITY })).toThrow("minimum");
     expect(() => S.Number({ default: Number.NaN })).toThrow("default");
+  });
+
+  it("rejects impossible bound ordering at schema construction time", () => {
+    expect(() => S.String({ minLength: 5, maxLength: 3 })).toThrow(
+      "minLength must be less than or equal to maxLength"
+    );
+    expect(() => S.Number({ minimum: 10, maximum: 3 })).toThrow(
+      "minimum must be less than or equal to maximum"
+    );
+    expect(() => S.Array(S.String(), { minItems: 3, maxItems: 1 })).toThrow(
+      "minItems must be less than or equal to maxItems"
+    );
+  });
+
+  it("rejects defaults that do not satisfy their schemas", () => {
+    expect(() => S.String({ default: 123 as unknown as string })).toThrow(
+      "default must satisfy schema"
+    );
+    expect(() => S.Boolean({ default: "yes" as unknown as boolean })).toThrow(
+      "default must satisfy schema"
+    );
+    expect(() =>
+      S.Enum(["fast", "safe"] as const, { default: "turbo" as unknown as "fast" })
+    ).toThrow("default must satisfy schema");
+    expect(() => S.Array(S.Number(), { default: ["one"] as unknown as number[] })).toThrow(
+      "default must satisfy schema"
+    );
   });
 
   it("rejects invalid integer enum members and non-finite enum values", () => {
@@ -582,7 +675,7 @@ describe("toolcraft-schema", () => {
     expect(() =>
       S.OneOf({
         discriminator: "kind",
-        branches: {},
+        branches: {}
       })
     ).toThrow("OneOf schema requires at least one branch");
   });
@@ -594,9 +687,9 @@ describe("toolcraft-schema", () => {
         branches: {
           text: S.Object({
             kind: S.Enum(["custom"] as const),
-            value: S.String(),
-          }),
-        },
+            value: S.String()
+          })
+        }
       })
     ).toThrow('OneOf branch "text" must not declare discriminator field "kind".');
   });
@@ -610,11 +703,11 @@ describe("toolcraft-schema", () => {
       S.Union([
         S.Object({
           email: S.String(),
-          verified: S.Optional(S.Boolean()),
+          verified: S.Optional(S.Boolean())
         }),
         S.Object({
-          email: S.Number(),
-        }),
+          email: S.Number()
+        })
       ])
     ).toThrow(
       'Union branches [0, 1] share required-key fingerprint "email". Each branch must require a distinct set of keys.'

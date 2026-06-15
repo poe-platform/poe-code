@@ -47,6 +47,7 @@ describe("compileConfigSchemaFromSourceTexts", () => {
       title: "poe-code config",
       description: "Schema for poe-code config files",
       type: "object",
+      additionalProperties: false,
       properties: {
         version: {
           type: "number",
@@ -54,6 +55,7 @@ describe("compileConfigSchemaFromSourceTexts", () => {
         },
         pipeline: {
           type: "object",
+          additionalProperties: false,
           properties: {
             plan_directory: {
               type: "string",
@@ -104,6 +106,7 @@ describe("compileConfigSchemaFromSourceTexts", () => {
 
     expect(document.properties?.core).toEqual({
       type: "object",
+      additionalProperties: false,
       properties: {
         apiKey: {
           type: "string",

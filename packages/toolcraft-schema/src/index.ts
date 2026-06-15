@@ -29,6 +29,7 @@ type JsonSchemaEnumValue = EnumValue | null;
 type NumberJsonType = "number" | "integer";
 type NonEmptyReadonlyArray<T> = readonly [T, ...T[]];
 type ObjectShape = Record<string, AnySchema>;
+type EmptyOptions = Record<never, never>;
 type SchemaScope = "cli" | "mcp" | "sdk";
 type StringMetadata = {
   format?: string;
@@ -73,6 +74,11 @@ type SchemaOptions<TDefault> = {
   scope?: readonly SchemaScope[];
   global?: boolean;
 };
+
+type WithNullable<
+  TSchema extends AnySchema,
+  TOptions extends { nullable?: boolean }
+> = TOptions extends { readonly nullable: true } ? TSchema & { readonly nullable: true } : TSchema;
 
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly kind: TKind;
@@ -158,8 +164,13 @@ export type AnySchema =
   | RecordSchema<AnySchema>
   | JsonValueSchema;
 
-export type Static<TSchema extends AnySchema> =
-  TSchema extends SchemaBase<any, infer TStatic> ? TStatic : never;
+export type Static<TSchema extends AnySchema> = TSchema extends { readonly nullable: true }
+  ? TSchema extends SchemaBase<any, infer TStatic>
+    ? TStatic | null
+    : never
+  : TSchema extends SchemaBase<any, infer TStatic>
+    ? TStatic
+    : never;
 
 function withMetadata<TSchema extends AnySchema>(
   schema: TSchema,
@@ -225,9 +236,7 @@ function withArrayMetadata(schema: ArraySchema<any>, jsonSchema: JsonSchema): Js
 }
 
 function withObjectMetadata(schema: ObjectSchema<any>, jsonSchema: JsonSchema): JsonSchema {
-  if (schema.additionalProperties !== undefined) {
-    jsonSchema.additionalProperties = schema.additionalProperties;
-  }
+  jsonSchema.additionalProperties = schema.additionalProperties ?? false;
 
   return withMetadata(schema, jsonSchema);
 }
@@ -285,6 +294,30 @@ function assertFiniteNumber(value: number | undefined, name: string): void {
   }
 }
 
+function assertMinMaxOrder(
+  minimum: number | undefined,
+  maximum: number | undefined,
+  minimumName: string,
+  maximumName: string
+): void {
+  if (minimum !== undefined && maximum !== undefined && minimum > maximum) {
+    throw new Error(`${minimumName} must be less than or equal to ${maximumName}`);
+  }
+}
+
+function assertValidDefault(schema: AnySchema): void {
+  if (schema.default === undefined) {
+    return;
+  }
+
+  const result = validate(schema, schema.default);
+  if (!result.ok) {
+    throw new Error(
+      `default must satisfy schema: ${result.issues[0]?.message ?? "invalid default"}`
+    );
+  }
+}
+
 function assertPattern(pattern: string | undefined): void {
   if (pattern === undefined) {
     return;
@@ -328,21 +361,28 @@ function withInjectedDiscriminator(
 }
 
 export const S = {
-  String(options: SchemaOptions<string> & StringMetadata = {}): StringSchema {
+  String<const TOptions extends SchemaOptions<string> & StringMetadata = EmptyOptions>(
+    options: TOptions = {} as TOptions
+  ): WithNullable<StringSchema, TOptions> {
     assertNonNegativeInteger(options.minLength, "minLength");
     assertNonNegativeInteger(options.maxLength, "maxLength");
+    assertMinMaxOrder(options.minLength, options.maxLength, "minLength", "maxLength");
     assertPattern(options.pattern);
-    return {
+    const schema: StringSchema = {
       kind: "string",
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<StringSchema, TOptions>;
   },
 
-  Number(
-    options: SchemaOptions<number> & NumberMetadata & { jsonType?: NumberJsonType } = {}
-  ): NumberSchema {
+  Number<
+    const TOptions extends SchemaOptions<number> & NumberMetadata & { jsonType?: NumberJsonType } =
+      EmptyOptions
+  >(options: TOptions = {} as TOptions): WithNullable<NumberSchema, TOptions> {
     assertFiniteNumber(options.minimum, "minimum");
     assertFiniteNumber(options.maximum, "maximum");
+    assertMinMaxOrder(options.minimum, options.maximum, "minimum", "maximum");
     assertFiniteNumber(options.default, "default");
     if (
       options.jsonType === "integer" &&
@@ -351,29 +391,38 @@ export const S = {
     ) {
       throw new Error("default must be an integer");
     }
-    return {
+    const schema: NumberSchema = {
       kind: "number",
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<NumberSchema, TOptions>;
   },
 
-  Boolean(options: SchemaOptions<boolean> = {}): BooleanSchema {
-    return {
+  Boolean<const TOptions extends SchemaOptions<boolean> = EmptyOptions>(
+    options: TOptions = {} as TOptions
+  ): WithNullable<BooleanSchema, TOptions> {
+    const schema: BooleanSchema = {
       kind: "boolean",
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<BooleanSchema, TOptions>;
   },
 
-  Enum<const TValues extends NonEmptyReadonlyArray<EnumValue>>(
-    values: TValues,
-    options: SchemaOptions<TValues[number]> & {
+  Enum<
+    const TValues extends NonEmptyReadonlyArray<EnumValue>,
+    const TOptions extends SchemaOptions<TValues[number]> & {
       jsonType?: "integer";
       labels?: Partial<Record<string, string>>;
       loadOptions?:
         | (() => Array<{ label: string; value: string }>)
         | (() => Promise<Array<{ label: string; value: string }>>);
-    } = {}
-  ): EnumSchema<TValues> {
+    } = EmptyOptions
+  >(
+    values: TValues,
+    options: TOptions = {} as TOptions
+  ): WithNullable<EnumSchema<TValues>, TOptions> {
     assertValidEnumValues(values);
     if (
       options.jsonType === "integer" &&
@@ -382,35 +431,45 @@ export const S = {
       throw new Error("Integer enum values must be integers");
     }
 
-    return {
+    const schema: EnumSchema<TValues> = {
       kind: "enum",
       values,
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<EnumSchema<TValues>, TOptions>;
   },
 
-  Array<TItem extends AnySchema>(
-    item: TItem,
-    options: SchemaOptions<Array<Static<TItem>>> & ArrayMetadata = {}
-  ): ArraySchema<TItem> {
+  Array<
+    TItem extends AnySchema,
+    const TOptions extends SchemaOptions<Array<Static<TItem>>> & ArrayMetadata = EmptyOptions
+  >(item: TItem, options: TOptions = {} as TOptions): WithNullable<ArraySchema<TItem>, TOptions> {
     assertNonNegativeInteger(options.minItems, "minItems");
     assertNonNegativeInteger(options.maxItems, "maxItems");
-    return {
+    assertMinMaxOrder(options.minItems, options.maxItems, "minItems", "maxItems");
+    const schema: ArraySchema<TItem> = {
       kind: "array",
       item,
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<ArraySchema<TItem>, TOptions>;
   },
 
-  Object<const TShape extends ObjectShape>(
+  Object<
+    const TShape extends ObjectShape,
+    const TOptions extends SchemaOptions<InferObject<TShape>> & ObjectMetadata = EmptyOptions
+  >(
     shape: TShape,
-    options: SchemaOptions<InferObject<TShape>> & ObjectMetadata = {}
-  ): ObjectSchema<TShape> {
-    return {
+    options: TOptions = {} as TOptions
+  ): WithNullable<ObjectSchema<TShape>, TOptions> {
+    const schema: ObjectSchema<TShape> = {
       kind: "object",
       shape,
       ...options
     };
+    assertValidDefault(schema);
+    return schema as WithNullable<ObjectSchema<TShape>, TOptions>;
   },
 
   Optional<TInner extends AnySchema>(inner: TInner): OptionalSchema<TInner> {

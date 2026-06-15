@@ -1,4 +1,5 @@
 import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
+import { readRemoteBytes, type FromUrlOptions } from "./remote.js";
 
 export interface TextResourceContents {
   uri: string;
@@ -39,14 +40,13 @@ export class File {
     private readonly charset = "utf-8"
   ) {}
 
-  static async fromUrl(url: string): Promise<File> {
+  static async fromUrl(url: string, options?: FromUrlOptions): Promise<File> {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch file from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
+    const data = await readRemoteBytes(response, "file", url, options);
 
     const detected = fileTypeFromBuffer(data);
     let mimeType: string;

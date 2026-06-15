@@ -1,4 +1,5 @@
 import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
+import { readRemoteBytes, type FromUrlOptions } from "./remote.js";
 
 export interface AudioContent {
   type: "audio";
@@ -27,14 +28,13 @@ export class Audio {
     private readonly mimeType: string
   ) {}
 
-  static async fromUrl(url: string): Promise<Audio> {
+  static async fromUrl(url: string, options?: FromUrlOptions): Promise<Audio> {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch audio from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
+    const data = await readRemoteBytes(response, "audio", url, options);
 
     const detected = fileTypeFromBuffer(data);
     let mimeType: string;

@@ -13,6 +13,7 @@ export {
   File,
   toContentBlocks,
   fileTypeFromBuffer,
+  DEFAULT_FROM_URL_MAX_BYTES,
 } from "./content/index.js";
 export type {
   ImageContent,
@@ -23,6 +24,7 @@ export type {
   ContentBlock,
   TextContent,
   FileTypeResult,
+  FromUrlOptions,
 } from "./content/index.js";
 export type { ToolReturn } from "./content/index.js";
 

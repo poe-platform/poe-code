@@ -31,6 +31,28 @@ function withObjectPrototypeProperties<T>(
   }
 }
 
+function createResponseBody(chunks: Uint8Array[]): ReadableStream<Uint8Array> {
+  return new ReadableStream({
+    start(controller) {
+      for (const chunk of chunks) {
+        controller.enqueue(chunk);
+      }
+      controller.close();
+    },
+  });
+}
+
+function combineChunks(chunks: Uint8Array[]): ArrayBuffer {
+  const totalBytes = chunks.reduce((total, chunk) => total + chunk.byteLength, 0);
+  const combined = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return combined.buffer;
+}
+
 // --- Audio ---
 
 describe("Audio", () => {
@@ -54,6 +76,22 @@ describe("Audio", () => {
       const block = (await Audio.fromUrl("https://example.com/audio")).toContentBlock();
 
       expect(block.mimeType).toBe("audio/mpeg");
+    });
+
+    it("rejects streamed responses over a custom maximum size", async () => {
+      const chunks = [Uint8Array.from([0x49, 0x44, 0x33]), Uint8Array.from([0x04, 0x00, 0x00])];
+      const arrayBuffer = vi.fn(() => Promise.resolve(combineChunks(chunks)));
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer,
+        body: createResponseBody(chunks),
+        headers: { get: () => "audio/mpeg" },
+      } as unknown as Response);
+
+      await expect(Audio.fromUrl("https://example.com/large.mp3", { maxBytes: 5 })).rejects.toThrow(
+        "Remote audio from https://example.com/large.mp3 exceeds maximum size of 5 bytes"
+      );
+      expect(arrayBuffer).not.toHaveBeenCalled();
     });
 
     it("redacts query credentials from fetch failures", async () => {
@@ -743,6 +781,38 @@ describe("File", () => {
       expect(block.resource.uri).toBe("file:///report.txt");
     });
 
+    it("rejects responses over the default maximum size before buffering", async () => {
+      const arrayBuffer = vi.fn(() => Promise.resolve(new ArrayBuffer(0)));
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer,
+        headers: {
+          get: (name: string) => name === "content-length" ? "8388608" : "application/octet-stream",
+        },
+      } as unknown as Response);
+
+      await expect(File.fromUrl("https://example.com/large.bin?token=secret")).rejects.toThrow(
+        "Remote file from https://example.com/large.bin exceeds maximum size of 5242880 bytes"
+      );
+      expect(arrayBuffer).not.toHaveBeenCalled();
+    });
+
+    it("rejects streamed responses over a custom maximum size", async () => {
+      const chunks = [new TextEncoder().encode("abcd"), new TextEncoder().encode("ef")];
+      const arrayBuffer = vi.fn(() => Promise.resolve(combineChunks(chunks)));
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer,
+        body: createResponseBody(chunks),
+        headers: { get: () => "text/plain" },
+      } as unknown as Response);
+
+      await expect(File.fromUrl("https://example.com/large.txt", { maxBytes: 5 })).rejects.toThrow(
+        "Remote file from https://example.com/large.txt exceeds maximum size of 5 bytes"
+      );
+      expect(arrayBuffer).not.toHaveBeenCalled();
+    });
+
     it("normalizes text MIME values and preserves declared charset", async () => {
       vi.mocked(fetch).mockResolvedValue({
         ok: true,
@@ -1168,6 +1238,25 @@ describe("Image", () => {
       const block = (await Image.fromUrl("https://example.com/image")).toContentBlock();
 
       expect(block.mimeType).toBe("image/png");
+    });
+
+    it("rejects streamed responses over a custom maximum size", async () => {
+      const chunks = [
+        Uint8Array.from([0x89, 0x50, 0x4e, 0x47]),
+        Uint8Array.from([0x0d, 0x0a, 0x1a, 0x0a]),
+      ];
+      const arrayBuffer = vi.fn(() => Promise.resolve(combineChunks(chunks)));
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer,
+        body: createResponseBody(chunks),
+        headers: { get: () => "image/png" },
+      } as unknown as Response);
+
+      await expect(Image.fromUrl("https://example.com/large.png", { maxBytes: 7 })).rejects.toThrow(
+        "Remote image from https://example.com/large.png exceeds maximum size of 7 bytes"
+      );
+      expect(arrayBuffer).not.toHaveBeenCalled();
     });
 
     it("redacts query credentials from fetch failures", async () => {

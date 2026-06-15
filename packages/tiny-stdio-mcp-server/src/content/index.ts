@@ -1,5 +1,7 @@
 // MIME detection
 export { fileTypeFromBuffer, type FileTypeResult } from "./mime.js";
+export { DEFAULT_FROM_URL_MAX_BYTES } from "./remote.js";
+export type { FromUrlOptions } from "./remote.js";
 
 // Content helpers
 export { Image, type ImageContent } from "./image.js";

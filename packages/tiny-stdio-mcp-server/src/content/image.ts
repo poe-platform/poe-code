@@ -1,4 +1,5 @@
 import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
+import { readRemoteBytes, type FromUrlOptions } from "./remote.js";
 
 export interface ImageContent {
   type: "image";
@@ -19,14 +20,13 @@ export class Image {
     private readonly mimeType: string
   ) {}
 
-  static async fromUrl(url: string): Promise<Image> {
+  static async fromUrl(url: string, options?: FromUrlOptions): Promise<Image> {
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Failed to fetch image from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
-    const arrayBuffer = await response.arrayBuffer();
-    const data = new Uint8Array(arrayBuffer);
+    const data = await readRemoteBytes(response, "image", url, options);
 
     const detected = fileTypeFromBuffer(data);
     let mimeType: string;

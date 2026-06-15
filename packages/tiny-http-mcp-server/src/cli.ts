@@ -137,7 +137,7 @@ function parsePort(value: string | undefined): number {
     return 3000;
   }
 
-  const port = Number(value);
+  const port = parseDecimalInteger(value, "--port");
   if (!Number.isInteger(port) || port < 0 || port > 65535) {
     throw new Error("--port must be an integer between 0 and 65535.");
   }
@@ -164,6 +164,22 @@ function parseOrigin(value: string, flagName: string): string {
   }
 }
 
+function parseDecimalInteger(value: string, flagName: string): number {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${flagName} must be an integer.`);
+  }
+
+  for (const character of trimmed) {
+    const codePoint = character.codePointAt(0);
+    if (codePoint === undefined || codePoint < 48 || codePoint > 57) {
+      throw new Error(`${flagName} must be an integer.`);
+    }
+  }
+
+  return Number(trimmed);
+}
+
 function parseOptionalInteger(
   value: string | undefined,
   flagName: string,
@@ -173,7 +189,7 @@ function parseOptionalInteger(
     return undefined;
   }
 
-  const parsed = Number(value);
+  const parsed = parseDecimalInteger(value, flagName);
   if (!Number.isInteger(parsed) || parsed < minimum) {
     throw new Error(`${flagName} must be an integer greater than or equal to ${minimum}.`);
   }
@@ -191,6 +207,30 @@ function hasConfiguredOAuthFlag(values: Record<string, unknown>): boolean {
     values["oauth-verifier-module"],
     values["oauth-verifier-export"],
   ].some((value) => value !== undefined);
+}
+
+function parseRepeatableStrings(
+  value: unknown,
+  flagName: string
+): string[] | undefined {
+  if (!Array.isArray(value) || value.length === 0) {
+    return undefined;
+  }
+
+  const normalized: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") {
+      throw new Error(`${flagName} must be provided as a string.`);
+    }
+
+    const trimmed = item.trim();
+    if (trimmed.length === 0) {
+      throw new Error(`${flagName} must not be blank.`);
+    }
+    normalized.push(trimmed);
+  }
+
+  return normalized;
 }
 
 function parseCliOAuthOptions(
@@ -221,24 +261,27 @@ function parseCliOAuthOptions(
     );
   }
 
-  const supportedScopes = values["oauth-supported-scope"];
-  const requiredScopes = values["oauth-required-scope"];
-  const bearerMethods = values["oauth-bearer-method"];
+  const supportedScopes = parseRepeatableStrings(
+    values["oauth-supported-scope"],
+    "--oauth-supported-scope"
+  );
+  const requiredScopes = parseRepeatableStrings(
+    values["oauth-required-scope"],
+    "--oauth-required-scope"
+  );
+  const bearerMethods = parseRepeatableStrings(
+    values["oauth-bearer-method"],
+    "--oauth-bearer-method"
+  );
 
   return {
     resource: parseAbsoluteUrl(resource, "--oauth-resource"),
     authorizationServers: authorizationServers.map((value) =>
       parseAbsoluteUrl(value, "--oauth-authorization-server")
     ),
-    ...(Array.isArray(requiredScopes) && requiredScopes.length > 0
-      ? { requiredScopes: [...requiredScopes] }
-      : {}),
-    ...(Array.isArray(supportedScopes) && supportedScopes.length > 0
-      ? { scopesSupported: [...supportedScopes] }
-      : {}),
-    ...(Array.isArray(bearerMethods) && bearerMethods.length > 0
-      ? { bearerMethodsSupported: [...bearerMethods] }
-      : {}),
+    ...(requiredScopes === undefined ? {} : { requiredScopes }),
+    ...(supportedScopes === undefined ? {} : { scopesSupported: supportedScopes }),
+    ...(bearerMethods === undefined ? {} : { bearerMethodsSupported: bearerMethods }),
     verifierModule,
     verifierExport:
       typeof verifierExport === "string" && verifierExport.length > 0

@@ -1,4 +1,5 @@
-import http from "node:http";
+import http, { type IncomingMessage } from "node:http";
+import { Readable } from "node:stream";
 import type { AddressInfo } from "node:net";
 import express, { type Express } from "express";
 import { afterEach, describe, expect, it } from "vitest";
@@ -445,6 +446,91 @@ describe("OAuth protected resource", () => {
     expect(response.headers.get("www-authenticate")).toBe(
       `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp"`
     );
+  });
+
+  it("returns a challenge instead of throwing when the Host header is malformed", async () => {
+    const { oauth } = createProtectedResourceMetadata();
+    const server = createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    });
+    const req = Object.assign(Readable.from([createInitializeRequestBody()]), {
+      method: "POST",
+      url: "/mcp",
+      headers: {
+        accept: "application/json, text/event-stream",
+        "content-type": "application/json",
+        host: "bad host",
+      },
+      socket: {},
+    }) as IncomingMessage;
+    const headers = new Map<string, string | number | readonly string[]>();
+    const res = {
+      statusCode: 200,
+      headersSent: false,
+      writableEnded: false,
+      writeHead(
+        this: { statusCode: number; headersSent: boolean },
+        statusCode: number,
+        responseHeaders: Record<string, string>
+      ) {
+        this.statusCode = statusCode;
+        this.headersSent = true;
+        for (const [name, value] of Object.entries(responseHeaders)) {
+          headers.set(name.toLowerCase(), value);
+        }
+        return this;
+      },
+      end(this: { writableEnded: boolean }) {
+        this.writableEnded = true;
+        return this;
+      },
+    };
+
+    await server.handleRequest(req, res as never);
+
+    expect(res.statusCode).toBe(401);
+    expect(headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1/.well-known/oauth-protected-resource/mcp"`
+    );
+  });
+
+  it("rejects bearer tokens with embedded tab characters before verifier calls", async () => {
+    const verifier = {
+      verify: vi.fn(async () => {
+        throw new Error("not reached");
+      }),
+    };
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth: {
+        resource: PROTECTED_RESOURCE,
+        authorizationServers: [AUTHORIZATION_SERVER],
+        requiredScopes: [REQUIRED_SCOPE],
+        verifier,
+      },
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer abc\tdef",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="malformed bearer token"`
+    );
+    expect(verifier.verify).not.toHaveBeenCalled();
   });
 
   it("returns invalid_token when the bearer token is expired", async () => {

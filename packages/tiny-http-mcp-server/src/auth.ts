@@ -151,6 +151,23 @@ function formatScope(scope: readonly string[]): string | undefined {
   return scope.join(" ");
 }
 
+function hasBearerTokenWhitespace(value: string): boolean {
+  for (const character of value) {
+    if (
+      character === " "
+      || character === "\t"
+      || character === "\n"
+      || character === "\r"
+      || character === "\f"
+      || character === "\v"
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function readBearerToken(
   req: Pick<IncomingMessage, "headers">
 ):
@@ -173,7 +190,7 @@ function readBearerToken(
   const scheme = authorization.slice(0, separatorIndex);
   const token = authorization.slice(separatorIndex + 1).trim();
 
-  if (scheme.toLowerCase() !== "bearer" || token.length === 0 || token.includes(" ")) {
+  if (scheme.toLowerCase() !== "bearer" || token.length === 0 || hasBearerTokenWhitespace(token)) {
     return {
       kind: "malformed",
       errorDescription: "malformed bearer token",
@@ -274,10 +291,14 @@ export function getProtectedResourceMetadataUrl(
   protectedResourcePath?: string,
   trustedProxy = false
 ): string {
-  return new URL(
-    `${PROTECTED_RESOURCE_METADATA_PATH}${normalizeProtectedResourcePath(protectedResourcePath)}`,
-    `${getRequestProtocol(req, trustedProxy)}://${getRequestHost(req, trustedProxy)}`
-  ).toString();
+  const path = `${PROTECTED_RESOURCE_METADATA_PATH}${normalizeProtectedResourcePath(protectedResourcePath)}`;
+  const protocol = getRequestProtocol(req, trustedProxy);
+
+  try {
+    return new URL(path, `${protocol}://${getRequestHost(req, trustedProxy)}`).toString();
+  } catch {
+    return new URL(path, `${protocol}://127.0.0.1`).toString();
+  }
 }
 
 export function createBearerChallenge(

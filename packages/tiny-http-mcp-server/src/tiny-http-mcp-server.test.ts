@@ -1645,6 +1645,21 @@ describe("StreamableHttpTransport", () => {
     expect(response.headers.get("content-type")).toBe("text/event-stream");
   });
 
+  it("rejects GET streams when Accept does not include text/event-stream", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "session-1",
+    });
+
+    const { sessionId } = await fixture.initialize();
+    const response = await fixture.get({
+      sessionId: sessionId ?? undefined,
+      headers: { Accept: "application/json" },
+    });
+
+    expect(response.status).toBe(406);
+  });
+
   it("T29 GET without session returns 400", async () => {
     const fixture = await createFixture({ enableJsonResponse: true });
 
@@ -1785,6 +1800,17 @@ describe("StreamableHttpTransport", () => {
     const response = await fixture.request("OPTIONS");
 
     expect(response.status).toBe(204);
+  });
+
+  it("rejects negative transport limits at construction time", () => {
+    const server = createServer({ name: "http-test", version: "1.0.0" });
+
+    expect(() => new StreamableHttpTransport(server, { maxRequestBytes: -1 }))
+      .toThrow("maxRequestBytes must be an integer greater than or equal to 1.");
+    expect(() => new StreamableHttpTransport(server, { maxBatchSize: -1 }))
+      .toThrow("maxBatchSize must be an integer greater than or equal to 1.");
+    expect(() => new StreamableHttpTransport(server, { maxSessions: -1 }))
+      .toThrow("maxSessions must be an integer greater than or equal to 1.");
   });
 });
 
@@ -3360,7 +3386,7 @@ describe("tiny-http-mcp-server CLI", () => {
         "--oauth-required-scope",
         "mcp.admin",
         "--oauth-bearer-method",
-        "header",
+        " header ",
         "--oauth-bearer-method",
         "body",
         "--oauth-verifier-module",
@@ -3393,6 +3419,68 @@ describe("tiny-http-mcp-server CLI", () => {
         }),
       })
     );
+  });
+
+  it("exits with code 1 for non-decimal numeric flags", async () => {
+    const cases = [
+      ["--port", "0x50"],
+      ["--max-batch-size", "1e3"],
+      ["--request-timeout-ms", "0x100"],
+    ];
+
+    for (const args of cases) {
+      const createServer = vi.fn();
+      const output = createCapturedOutput();
+
+      const exitCode = await runCli(args, {
+        createServer,
+        stdout: output.io.stdout,
+        stderr: output.io.stderr,
+      });
+
+      expect(exitCode).toBe(1);
+      expect(createServer).not.toHaveBeenCalled();
+      expect(output.stderr).toContain("must be an integer");
+    }
+  });
+
+  it("exits with code 1 for blank repeatable OAuth flags", async () => {
+    const cases = [
+      ["--oauth-supported-scope", "   "],
+      ["--oauth-required-scope", ""],
+      ["--oauth-bearer-method", "  "],
+    ];
+
+    for (const repeatedFlag of cases) {
+      const createServer = vi.fn();
+      const output = createCapturedOutput();
+
+      const exitCode = await runCli(
+        [
+          "--oauth-resource",
+          "https://resource.example.com/mcp",
+          "--oauth-authorization-server",
+          "https://auth.example.com",
+          ...repeatedFlag,
+          "--oauth-verifier-module",
+          "./verify-token.mjs",
+        ],
+        {
+          createServer,
+          loadOAuthVerifier: async () => ({
+            verify: vi.fn(async () => {
+              throw new Error("not used in this test");
+            }),
+          }),
+          stdout: output.io.stdout,
+          stderr: output.io.stderr,
+        }
+      );
+
+      expect(exitCode).toBe(1);
+      expect(createServer).not.toHaveBeenCalled();
+      expect(output.stderr).toContain(`${repeatedFlag[0]} must not be blank`);
+    }
   });
 
   it("C9 passes --oauth-verifier-export to the verifier loader", async () => {

@@ -95,6 +95,22 @@ const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
 const LOCAL_HOSTS = ["localhost", "127.0.0.1", "::1"] as const;
 const DEFAULT_ALLOWED_HEADERS = "Accept, Authorization, Content-Type, Mcp-Session-Id, MCP-Protocol-Version";
 
+function validateOptionalIntegerOption(
+  name: string,
+  value: number | undefined,
+  minimum: number
+): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Number.isInteger(value) || value < minimum) {
+    throw new Error(`${name} must be an integer greater than or equal to ${minimum}.`);
+  }
+
+  return value;
+}
+
 export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;
   private readonly enableJsonResponse: boolean;
@@ -140,13 +156,42 @@ export class StreamableHttpTransport {
     this.allowedHosts = new Set(
       (options.allowedHosts ?? LOCAL_HOSTS).map((host) => this.normalizeHost(host))
     );
-    this.maxRequestBytes = options.maxRequestBytes;
-    this.maxBatchSize = options.maxBatchSize;
-    this.maxSessions = options.maxSessions;
-    this.sessionTtlMs = options.sessionTtlMs;
-    this.maxStreamsPerSession = options.maxStreamsPerSession;
-    this.maxSseEventHistory = options.maxSseEventHistory ?? 100;
-    this.maxConcurrentToolCalls = options.maxConcurrentToolCalls;
+    this.maxRequestBytes = validateOptionalIntegerOption(
+      "maxRequestBytes",
+      options.maxRequestBytes,
+      1
+    );
+    this.maxBatchSize = validateOptionalIntegerOption(
+      "maxBatchSize",
+      options.maxBatchSize,
+      1
+    );
+    this.maxSessions = validateOptionalIntegerOption(
+      "maxSessions",
+      options.maxSessions,
+      1
+    );
+    this.sessionTtlMs = validateOptionalIntegerOption(
+      "sessionTtlMs",
+      options.sessionTtlMs,
+      1
+    );
+    this.maxStreamsPerSession = validateOptionalIntegerOption(
+      "maxStreamsPerSession",
+      options.maxStreamsPerSession,
+      1
+    );
+    this.maxSseEventHistory =
+      validateOptionalIntegerOption(
+        "maxSseEventHistory",
+        options.maxSseEventHistory,
+        0
+      ) ?? 100;
+    this.maxConcurrentToolCalls = validateOptionalIntegerOption(
+      "maxConcurrentToolCalls",
+      options.maxConcurrentToolCalls,
+      1
+    );
     this.sessionStore = options.sessionStore ?? createSessionStore();
     this.requestIdGenerator =
       options.requestIdGenerator ?? (() => `req-${this.nextRequestId++}`);
@@ -484,6 +529,11 @@ export class StreamableHttpTransport {
       this.respondWithStatus(res, 405, undefined, {
         Allow: ALLOWED_METHODS,
       });
+      return;
+    }
+
+    if (!this.acceptsResponseType(req, "text/event-stream")) {
+      this.respondWithStatus(res, 406);
       return;
     }
 
@@ -922,12 +972,16 @@ export class StreamableHttpTransport {
   }
 
   private acceptsConfiguredResponse(req: IncomingMessage): boolean {
+    const expectedType = this.enableJsonResponse ? "application/json" : "text/event-stream";
+    return this.acceptsResponseType(req, expectedType);
+  }
+
+  private acceptsResponseType(req: IncomingMessage, expectedType: string): boolean {
     const accept = req.headers.accept;
     if (accept === undefined) {
       return true;
     }
 
-    const expectedType = this.enableJsonResponse ? "application/json" : "text/event-stream";
     const value = Array.isArray(accept) ? accept.join(",") : accept;
     return value
       .split(",")

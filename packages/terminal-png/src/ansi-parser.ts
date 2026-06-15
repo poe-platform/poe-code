@@ -19,6 +19,9 @@ export type StyledRun = {
 type StyleState = Omit<StyledRun, "text">;
 
 const ESC = "\u001b";
+const TAB_WIDTH = 8;
+const MAX_TERMINAL_ROWS = 1000;
+const MAX_TERMINAL_COLUMNS = 1000;
 
 function createDefaultStyle(): StyleState {
   return {
@@ -388,11 +391,62 @@ function positionParameter(params: string, index: number, fallback: number): num
   return value === null || value < 1 ? fallback : value;
 }
 
-function buildRuns(lines: DisplayCell[][], lineBreakStyles: Array<StyleState | undefined>): StyledRun[] {
+function modeParameter(params: string, fallback: number): number {
+  const value = toInteger(params.split(";")[0]);
+  return value === null ? fallback : value;
+}
+
+function displayWidth(text: string): number {
+  if (text === "\t") {
+    return TAB_WIDTH;
+  }
+
+  const codePoint = text.codePointAt(0);
+  if (codePoint === undefined) {
+    return 0;
+  }
+
+  if (
+    (codePoint >= 0x1100 && codePoint <= 0x115f) ||
+    codePoint === 0x2329 ||
+    codePoint === 0x232a ||
+    (codePoint >= 0x2e80 && codePoint <= 0xa4cf && codePoint !== 0x303f) ||
+    (codePoint >= 0xac00 && codePoint <= 0xd7a3) ||
+    (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
+    (codePoint >= 0xfe10 && codePoint <= 0xfe19) ||
+    (codePoint >= 0xfe30 && codePoint <= 0xfe6f) ||
+    (codePoint >= 0xff00 && codePoint <= 0xff60) ||
+    (codePoint >= 0xffe0 && codePoint <= 0xffe6) ||
+    (codePoint >= 0x1f300 && codePoint <= 0x1f64f) ||
+    (codePoint >= 0x1f900 && codePoint <= 0x1f9ff) ||
+    (codePoint >= 0x20000 && codePoint <= 0x3fffd)
+  ) {
+    return 2;
+  }
+
+  return 1;
+}
+
+function hasRenderableCell(line: DisplayCell[] | undefined): boolean {
+  return (line ?? []).some((cell) => cell !== undefined && cell.text.length > 0);
+}
+
+function buildRuns(
+  lines: DisplayCell[][],
+  lineBreakStyles: Array<StyleState | undefined>
+): StyledRun[] {
   const runs: StyledRun[] = [];
   const defaultStyle = createDefaultStyle();
+  let lastRow = lines.length - 1;
+  while (
+    lastRow > 0 &&
+    !hasRenderableCell(lines[lastRow]) &&
+    lineBreakStyles[lastRow - 1] === undefined
+  ) {
+    lastRow -= 1;
+  }
 
-  for (let row = 0; row < lines.length; row += 1) {
+  for (let row = 0; row <= lastRow; row += 1) {
     const line = lines[row] ?? [];
     let lastCell = line.length - 1;
     while (lastCell >= 0 && line[lastCell] === undefined) {
@@ -402,7 +456,7 @@ function buildRuns(lines: DisplayCell[][], lineBreakStyles: Array<StyleState | u
       const cell = line[column] ?? { text: " ", style: defaultStyle };
       pushRun(runs, cell.style, cell.text);
     }
-    if (row < lines.length - 1) {
+    if (row < lastRow) {
       pushRun(runs, lineBreakStyles[row] ?? defaultStyle, "\n");
     }
   }
@@ -416,7 +470,23 @@ export function parseAnsi(input: string): StyledRun[] {
   let style = createDefaultStyle();
   let row = 0;
   let column = 0;
+  let savedRow = 0;
+  let savedColumn = 0;
   let index = 0;
+
+  const clampRow = (nextRow: number): number => {
+    if (nextRow < 0) {
+      return 0;
+    }
+    return Math.min(nextRow, MAX_TERMINAL_ROWS - 1);
+  };
+
+  const clampColumn = (nextColumn: number): number => {
+    if (nextColumn < 0) {
+      return 0;
+    }
+    return Math.min(nextColumn, MAX_TERMINAL_COLUMNS - 1);
+  };
 
   const ensureLine = (): void => {
     while (lines.length <= row) {
@@ -426,11 +496,70 @@ export function parseAnsi(input: string): StyledRun[] {
 
   const moveDown = (keepColumn: boolean): void => {
     lineBreakStyles[row] = cloneStyle(style);
-    row += 1;
+    row = clampRow(row + 1);
     if (!keepColumn) {
       column = 0;
     }
     ensureLine();
+  };
+
+  const eraseLine = (mode: number): void => {
+    const line = lines[row] ?? [];
+    if (mode === 1) {
+      for (let cell = 0; cell <= column; cell += 1) {
+        delete line[cell];
+      }
+      return;
+    }
+    if (mode === 2) {
+      lines[row] = [];
+      return;
+    }
+    line.splice(column);
+  };
+
+  const eraseDisplay = (mode: number): void => {
+    if (mode === 1) {
+      for (let lineRow = 0; lineRow < row; lineRow += 1) {
+        lines[lineRow] = [];
+      }
+      eraseLine(1);
+      return;
+    }
+    if (mode === 2 || mode === 3) {
+      lines.length = 0;
+      lineBreakStyles.length = 0;
+      ensureLine();
+      return;
+    }
+
+    eraseLine(0);
+    lines.splice(row + 1);
+    lineBreakStyles.splice(row);
+  };
+
+  const saveCursor = (): void => {
+    savedRow = row;
+    savedColumn = column;
+  };
+
+  const restoreCursor = (): void => {
+    row = clampRow(savedRow);
+    column = clampColumn(savedColumn);
+    ensureLine();
+  };
+
+  const writeText = (text: string): void => {
+    const width = displayWidth(text);
+    if (width === 0) {
+      return;
+    }
+
+    lines[row]![column] = { text, style: cloneStyle(style) };
+    for (let offset = 1; offset < width && column + offset < MAX_TERMINAL_COLUMNS; offset += 1) {
+      lines[row]![column + offset] = { text: "", style: cloneStyle(style) };
+    }
+    column = clampColumn(column + width);
   };
 
   while (index < input.length) {
@@ -456,31 +585,68 @@ export function parseAnsi(input: string): StyledRun[] {
       index += 1;
       continue;
     }
+    if (char === "\t") {
+      const nextTabStop = Math.min(
+        Math.floor(column / TAB_WIDTH) * TAB_WIDTH + TAB_WIDTH,
+        MAX_TERMINAL_COLUMNS
+      );
+      while (column < nextTabStop) {
+        writeText(" ");
+      }
+      index += 1;
+      continue;
+    }
     if (char === ESC && input[index + 1] === "]") {
       index = parseOscEnd(input, index);
       continue;
     }
+    if (char === ESC && input[index + 1] === "7") {
+      saveCursor();
+      index += 2;
+      continue;
+    }
+    if (char === ESC && input[index + 1] === "8") {
+      restoreCursor();
+      index += 2;
+      continue;
+    }
 
-    const csiPrefixLength = char === "\u009b" ? 1 : char === ESC && input[index + 1] === "[" ? 2 : null;
+    const csiPrefixLength =
+      char === "\u009b" ? 1 : char === ESC && input[index + 1] === "[" ? 2 : null;
     if (csiPrefixLength !== null) {
       const sequence = parseCsi(input, index, csiPrefixLength);
       if (sequence.final === "m") {
         style = applySgr(style, sequence.params);
       } else if (sequence.final === "G") {
-        column = positionParameter(sequence.params, 0, 1) - 1;
+        column = clampColumn(positionParameter(sequence.params, 0, 1) - 1);
       } else if (sequence.final === "C") {
-        column += positionParameter(sequence.params, 0, 1);
+        column = clampColumn(column + positionParameter(sequence.params, 0, 1));
       } else if (sequence.final === "D") {
         column = Math.max(0, column - positionParameter(sequence.params, 0, 1));
       } else if (sequence.final === "A") {
-        row = Math.max(0, row - positionParameter(sequence.params, 0, 1));
+        row = clampRow(row - positionParameter(sequence.params, 0, 1));
       } else if (sequence.final === "B") {
-        row += positionParameter(sequence.params, 0, 1);
+        row = clampRow(row + positionParameter(sequence.params, 0, 1));
         ensureLine();
+      } else if (sequence.final === "E") {
+        row = clampRow(row + positionParameter(sequence.params, 0, 1));
+        column = 0;
+        ensureLine();
+      } else if (sequence.final === "F") {
+        row = clampRow(row - positionParameter(sequence.params, 0, 1));
+        column = 0;
       } else if (sequence.final === "H" || sequence.final === "f") {
-        row = positionParameter(sequence.params, 0, 1) - 1;
-        column = positionParameter(sequence.params, 1, 1) - 1;
+        row = clampRow(positionParameter(sequence.params, 0, 1) - 1);
+        column = clampColumn(positionParameter(sequence.params, 1, 1) - 1);
         ensureLine();
+      } else if (sequence.final === "K") {
+        eraseLine(modeParameter(sequence.params, 0));
+      } else if (sequence.final === "J") {
+        eraseDisplay(modeParameter(sequence.params, 0));
+      } else if (sequence.final === "s") {
+        saveCursor();
+      } else if (sequence.final === "u") {
+        restoreCursor();
       }
       index = sequence.end;
       continue;
@@ -488,8 +654,7 @@ export function parseAnsi(input: string): StyledRun[] {
 
     const codePoint = input.codePointAt(index);
     const text = codePoint === undefined ? "" : String.fromCodePoint(codePoint);
-    lines[row]![column] = { text, style: cloneStyle(style) };
-    column += 1;
+    writeText(text);
     index += text.length;
   }
 

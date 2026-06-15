@@ -149,11 +149,90 @@ describe("parseAnsi", () => {
   });
 
   it("moves vertically for a vertical tab without rendering its control byte", () => {
-    expect(parseAnsi("A\vB")).toEqual([
-      createRun("A"),
-      createRun("\n"),
-      createRun(" B")
-    ]);
+    expect(parseAnsi("A\vB")).toEqual([createRun("A"), createRun("\n"), createRun(" B")]);
+  });
+
+  it("handles cursor next and previous line controls", () => {
+    expect(
+      parseAnsi("top\u001b[1Ebottom")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("top\nbottom");
+    expect(
+      parseAnsi("one\ntwo\u001b[1Ftop")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("top\ntwo");
+  });
+
+  it("clears stale line cells for erase-in-line controls", () => {
+    expect(
+      parseAnsi("loading\r\u001b[2Kdone")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("done");
+    expect(
+      parseAnsi("loading\r\u001b[Kdone")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("done");
+  });
+
+  it("clears stale display cells for erase-in-display controls", () => {
+    expect(
+      parseAnsi("old line\nsecond\u001b[2J\u001b[Hnew")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("new");
+  });
+
+  it("handles save and restore cursor controls", () => {
+    expect(
+      parseAnsi("\u001b[shello\u001b[uX")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("Xello");
+    expect(
+      parseAnsi("\u001b7hello\u001b8X")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("Xello");
+  });
+
+  it("expands tabs to terminal cells before later cursor positioning", () => {
+    expect(
+      parseAnsi("A\tB")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("A       B");
+    expect(
+      parseAnsi("A\tB\u001b[9GC")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("A       C");
+  });
+
+  it("tracks wide characters as two terminal cells", () => {
+    expect(
+      parseAnsi("测\u001b[3GZ")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("测Z");
+    expect(
+      parseAnsi("测X\u001b[4GZ")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("测XZ");
+    expect(
+      parseAnsi("Ａ\u001b[3GZ")
+        .map((run) => run.text)
+        .join("")
+    ).toBe("ＡZ");
+  });
+
+  it("bounds large cursor movement before materializing blank lines", () => {
+    const rendered = parseAnsi("top\u001b[100000Bbottom");
+    expect(rendered.filter((run) => run.text === "\n")).toHaveLength(999);
   });
 });
 
@@ -163,7 +242,10 @@ describe("font", () => {
   const shippedFontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-Regular.woff2");
   const shippedBoldFontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-Bold.woff2");
   const shippedItalicFontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-Italic.woff2");
-  const shippedBoldItalicFontPath = join(fontPackageRoot, "fonts/webfonts/JetBrainsMono-BoldItalic.woff2");
+  const shippedBoldItalicFontPath = join(
+    fontPackageRoot,
+    "fonts/webfonts/JetBrainsMono-BoldItalic.woff2"
+  );
 
   it("embeds the full JetBrains Mono font family for svg rendering", () => {
     expect(Buffer.from(JETBRAINS_MONO_BASE64, "base64")).toEqual(readFileSync(shippedFontPath));
@@ -186,9 +268,9 @@ describe("font", () => {
     expect(JETBRAINS_MONO_FONT_FILES[1]).toMatch(/jetbrains-mono-700-normal\.ttf$/);
     expect(JETBRAINS_MONO_FONT_FILES[2]).toMatch(/jetbrains-mono-400-italic\.ttf$/);
     expect(JETBRAINS_MONO_FONT_FILES[3]).toMatch(/jetbrains-mono-700-italic\.ttf$/);
-    expect(JETBRAINS_MONO_FONT_FILES.every((fontPath) => readFileSync(fontPath).byteLength > 0)).toBe(
-      true
-    );
+    expect(
+      JETBRAINS_MONO_FONT_FILES.every((fontPath) => readFileSync(fontPath).byteLength > 0)
+    ).toBe(true);
   });
 });
 
@@ -235,14 +317,22 @@ describe("renderSvg", () => {
   });
 
   it("renders background colors behind text runs", () => {
-    const svg = renderSvg([createRun({ text: "ERROR", bg: { type: "ansi4", index: 1 } })], { window: false });
+    const svg = renderSvg([createRun({ text: "ERROR", bg: { type: "ansi4", index: 1 } })], {
+      window: false
+    });
 
     expect(svg).toContain('fill="#D74E6F"');
     expect(svg).toContain("<rect");
   });
 
   it("renders inverse text with swapped default colors and conceals hidden text", () => {
-    const svg = renderSvg([createRun({ text: "selected", inverse: true }), createRun({ text: "secret", conceal: true })], { window: false });
+    const svg = renderSvg(
+      [
+        createRun({ text: "selected", inverse: true }),
+        createRun({ text: "secret", conceal: true })
+      ],
+      { window: false }
+    );
 
     expect(svg).toContain('fill="#c4c4c4"');
     expect(svg).toContain('fill="#171717"');
@@ -291,7 +381,7 @@ describe("renderSvg", () => {
   it("escapes xml text content", () => {
     const svg = renderSvg([createRun({ text: `<a & "b">` })], { window: false });
 
-    expect(svg).toContain("&lt;a &amp; \"b\"&gt;");
+    expect(svg).toContain('&lt;a &amp; "b"&gt;');
   });
 
   it("uses #c4c4c4 as the default foreground color", () => {

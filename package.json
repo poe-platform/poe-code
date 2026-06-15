@@ -266,6 +266,7 @@
     "terminal-pilot": "^0.0.1",
     "terminal-pilot-mcp": "*",
     "terminal-png": "*",
+    "terminal-png-mcp": "*",
     "tiny-http-mcp-oauth-test-server": "*",
     "tiny-http-mcp-server": "*",
     "tiny-mcp-client": "*",

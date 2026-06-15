@@ -23,13 +23,37 @@ const defaultOutput: CliOutput = {
 };
 
 function parsePadding(value: string): number {
-  const padding = Number(value);
-
-  if (!Number.isInteger(padding) || padding < 0) {
-    throw new InvalidArgumentError("padding must be a non-negative integer");
+  if (!isDecimalInteger(value)) {
+    throw new InvalidArgumentError("padding must be a non-negative decimal integer");
   }
 
-  return padding;
+  return Number.parseInt(value, 10);
+}
+
+function isDecimalInteger(value: string): boolean {
+  if (value === "0") {
+    return true;
+  }
+
+  if (value.length === 0 || value[0] === "0") {
+    return false;
+  }
+
+  for (const char of value) {
+    if (char < "0" || char > "9") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function parseOutputPath(value: string): string {
+  if (value.length === 0) {
+    throw new InvalidArgumentError("output path must not be empty");
+  }
+
+  return value;
 }
 
 export async function main(
@@ -42,7 +66,7 @@ export async function main(
     .name("terminal-png")
     .description("Render a PNG image from ANSI terminal output")
     .argument("<input>", "Path to the ANSI input file")
-    .requiredOption("-o, --output <output>", "Path to the output PNG file")
+    .requiredOption("-o, --output <output>", "Path to the output PNG file", parseOutputPath)
     .option("--window", "Include terminal window chrome", true)
     .option("--no-window", "Exclude terminal window chrome")
     .option("--padding <n>", "Padding around terminal content", parsePadding)
@@ -56,7 +80,7 @@ export async function main(
     });
 
   program.configureOutput({
-    writeErr: value => {
+    writeErr: (value) => {
       output.stderr.write(value);
     }
   });
@@ -77,9 +101,7 @@ export async function main(
   }
 }
 
-const entryPoint = process.argv[1]
-  ? pathToFileURL(path.resolve(process.argv[1])).href
-  : null;
+const entryPoint = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : null;
 
 if (entryPoint === import.meta.url) {
   const exitCode = await main();

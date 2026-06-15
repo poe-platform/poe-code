@@ -15,8 +15,14 @@ export async function renderTerminalPng(
   ansiText: string,
   options: TerminalPngOptions = {}
 ): Promise<Buffer> {
-  if (options.padding !== undefined && (!Number.isInteger(options.padding) || options.padding < 0)) {
+  if (
+    options.padding !== undefined &&
+    (!Number.isInteger(options.padding) || options.padding < 0)
+  ) {
     throw new Error("Padding must be a non-negative integer.");
+  }
+  if (options.output !== undefined && options.output.length === 0) {
+    throw new Error("Output path must not be empty.");
   }
 
   const runs = parseAnsi(ansiText);
@@ -26,7 +32,7 @@ export async function renderTerminalPng(
   });
   const png = renderPng(svg);
 
-  if (options.output) {
+  if (options.output !== undefined) {
     const temporaryPath = `${options.output}.${randomUUID()}.tmp`;
     let temporaryCreated = false;
     try {

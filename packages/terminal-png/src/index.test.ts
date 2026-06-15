@@ -114,13 +114,19 @@ describe("renderTerminalPng", () => {
       output: "/tmp/example.png"
     });
 
-    expect(writeFileMock).toHaveBeenCalledWith(
-      "/tmp/example.png.temp-id.tmp",
-      Buffer.from("png"),
-      { flag: "wx" }
-    );
+    expect(writeFileMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", Buffer.from("png"), {
+      flag: "wx"
+    });
     expect(renameMock).toHaveBeenCalledWith("/tmp/example.png.temp-id.tmp", "/tmp/example.png");
     expect(png).toEqual(Buffer.from("png"));
+  });
+
+  it("rejects an empty SDK output path before rendering", async () => {
+    await expect(renderTerminalPng("hello", { output: "" })).rejects.toThrow(
+      "Output path must not be empty."
+    );
+
+    expect(parseAnsiMock).not.toHaveBeenCalled();
   });
 
   it("does not remove a colliding temporary path it did not create", async () => {

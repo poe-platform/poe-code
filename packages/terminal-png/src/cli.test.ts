@@ -104,15 +104,36 @@ describe("terminal-png CLI", () => {
     );
 
     expect(exitCode).toBeGreaterThan(0);
-    expect(output.stderr).toContain("padding must be a non-negative integer");
+    expect(output.stderr).toContain("padding must be a non-negative decimal integer");
+  });
+
+  it("rejects non-decimal padding syntax before reading input", async () => {
+    for (const value of ["0x10", "1e2", "010"]) {
+      const output = createCapturedOutput();
+      const exitCode = await main(
+        ["example.ansi", "-o", "example.png", "--padding", value],
+        output.io
+      );
+
+      expect(exitCode).toBeGreaterThan(0);
+      expect(output.stderr).toContain("padding must be a non-negative decimal integer");
+    }
+
+    expect(readFileMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an empty output path before reading input", async () => {
+    const output = createCapturedOutput();
+    const exitCode = await main(["example.ansi", "-o", ""], output.io);
+
+    expect(exitCode).toBeGreaterThan(0);
+    expect(output.stderr).toContain("output path must not be empty");
+    expect(readFileMock).not.toHaveBeenCalled();
   });
 
   it("uses commander errors for invalid options", async () => {
     const output = createCapturedOutput();
-    const exitCode = await main(
-      ["example.ansi", "-o", "example.png", "--unsupported"],
-      output.io
-    );
+    const exitCode = await main(["example.ansi", "-o", "example.png", "--unsupported"], output.io);
 
     expect(exitCode).toBeGreaterThan(0);
     expect(output.stderr).toContain("unknown option '--unsupported'");

@@ -353,6 +353,32 @@ describe("runHarness", () => {
     });
   });
 
+  it("invokes a markdown default export with no arguments", async () => {
+    const filepath = "/repo/docs/plans/default-export.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'export default () => "entrypoint ran";',
+        "```"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "entrypoint ran"
+    });
+  });
+
   it("surfaces modulesFor errors before code runs", async () => {
     const filepath = "/repo/docs/plans/modules-for-throws.md";
     const error = new Error("module setup failed");
@@ -693,6 +719,39 @@ describe("runHarness", () => {
 
   it("does not register the harness module for .ajs files", async () => {
     const filepath = "/repo/scripts/no-harness.ajs";
+
+    vol.fromJSON({
+      [filepath]: ['import { meta } from "harness";', "return meta.filepath;"].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: (frontmatter, meta) => ({
+          api: {
+            run: createSandboxClosure({
+              call: () => "ok",
+              name: "run"
+            })
+          },
+          harness: makeHarnessModule(frontmatter, meta)
+        })
+      })
+    ).rejects.toMatchObject({
+      diagnostics: [
+        expect.objectContaining({
+          code: "AS004",
+          filename: filepath,
+          line: 1,
+          message: "Unknown module 'harness'. Available modules: api.",
+          severity: "error"
+        })
+      ],
+      name: "LintError"
+    });
+  });
+
+  it("does not register the harness module for .safejs files", async () => {
+    const filepath = "/repo/scripts/no-harness.safejs";
 
     vol.fromJSON({
       [filepath]: ['import { meta } from "harness";', "return meta.filepath;"].join("\n")

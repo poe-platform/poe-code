@@ -335,6 +335,25 @@ describe("SafeJS CLI", () => {
     expect(stderr.output()).toBe("");
   });
 
+  it("does not expose the harness module to .safejs files", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.safejs",
+      'import { meta } from "harness";\nreturn meta.filepath;\n'
+    );
+
+    const exitCode = await runCli(["script.safejs"], {
+      cwd: "/repo",
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Unknown module 'harness'");
+  });
+
   it("handles SIGINT with graceful shutdown, finally blocks, and a non-zero exit", async () => {
     const stdout = createSink();
     const stderr = createSink();

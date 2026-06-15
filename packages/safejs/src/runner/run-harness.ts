@@ -10,6 +10,7 @@ import { lint, type Diagnostic } from "../lint.js";
 import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
 import type { ModuleExports, ModuleRegistry } from "../modules/registry.js";
 import type { OtelSink } from "../observability/otel.js";
+import { parseModule } from "../parse/parser.js";
 import { run, type RunResult } from "../run.js";
 import type { SnapshotBackend } from "../snapshot/backend.js";
 
@@ -107,6 +108,7 @@ export async function runHarness(
   }
 
   return runHarnessSource(executableSource, {
+    entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
     filename: filepath,
     modules,
     otelSink: options.otelSink,
@@ -276,6 +278,12 @@ function isAbortError(error: unknown): boolean {
     error !== null &&
     Object.prototype.hasOwnProperty.call(error, "name") &&
     (error as { name?: unknown }).name === "AbortError"
+  );
+}
+
+function hasDefaultExport(source: string, filename: string): boolean {
+  return parseModule(source, filename).body.some(
+    (statement) => statement.type === "ExportDefaultDeclaration"
   );
 }
 

@@ -401,7 +401,7 @@ async function runScriptFile(
 function loadExecutableSource(filepath: string, rawSource: string): LoadedSource {
   const source = stripByteOrderMark(rawSource);
 
-  if (extname(filepath) === ".ajs") {
+  if (isRawScriptExtension(extname(filepath))) {
     return {
       blockEndOffset: source.length,
       blockStartOffset: 0,
@@ -424,6 +424,10 @@ function loadExecutableSource(filepath: string, rawSource: string): LoadedSource
     isRawScript: false,
     rawSource: source
   };
+}
+
+function isRawScriptExtension(extension: string): boolean {
+  return extension === ".safejs" || extension === ".ajs";
 }
 
 function replaceExecutableSource(source: string, loaded: LoadedSource, fixed: string): string {

@@ -129,24 +129,36 @@ describe("extractBlock", () => {
     });
   });
 
-  it("requires the closing fence to use exactly the opening marker length", () => {
-    const markdown = [
-      "````js",
-      "const nested = `",
-      "```",
-      "`;",
-      "`````",
-      "const stillInside = true;",
-      "````",
-      "",
-      "```js",
-      "throw new Error('ignored');",
-      "```"
-    ].join("\n");
+  it("allows closing fences longer than the opening marker", () => {
+    const markdown = ["```js", "const value = 1;", "````"].join("\n");
 
     expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 1,
-      source: "const nested = `\n```\n`;\n`````\nconst stillInside = true;\n"
+      source: "const value = 1;\n"
+    });
+  });
+
+  it("does not close on a shorter fence marker", () => {
+    const markdown = ["````js", "const nested = `", "```", "`;"].join("\n");
+
+    expect(() => extractBlock(markdown)).toThrowError("Unclosed js fenced block opened at line 1.");
+  });
+
+  it("extracts tilde-fenced JavaScript blocks", () => {
+    const markdown = ["# Plan", "", "~~~js", "return 1;", "~~~"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 3,
+      source: "return 1;\n"
+    });
+  });
+
+  it("does not close a tilde fence with backticks", () => {
+    const markdown = ["~~~js", "return 1;", "```", "return 2;", "~~~"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 1,
+      source: "return 1;\n```\nreturn 2;\n"
     });
   });
 

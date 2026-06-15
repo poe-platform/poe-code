@@ -59,21 +59,22 @@ export function extractBlock(markdown: string): ExtractBlockResult {
 interface Fence {
   indent: string;
   marker: string;
+  markerCharacter: "`" | "~";
   info: string;
 }
 
 function readOpeningFence(line: string): Fence | undefined {
-  const indentLength = readFenceIndentLength(line);
-  if (indentLength === undefined) {
+  const fenceStart = readFenceStart(line);
+  if (fenceStart === undefined) {
     return undefined;
   }
 
-  let markerEnd = indentLength;
-  while (line[markerEnd] === "`") {
+  let markerEnd = fenceStart.indentLength;
+  while (line[markerEnd] === fenceStart.markerCharacter) {
     markerEnd += 1;
   }
 
-  const marker = line.slice(indentLength, markerEnd);
+  const marker = line.slice(fenceStart.indentLength, markerEnd);
   if (marker.length < 3) {
     return undefined;
   }
@@ -81,20 +82,29 @@ function readOpeningFence(line: string): Fence | undefined {
   const info = line.slice(markerEnd).trimStart();
 
   return {
-    indent: line.slice(0, indentLength),
+    indent: line.slice(0, fenceStart.indentLength),
     marker,
+    markerCharacter: fenceStart.markerCharacter,
     info
   };
 }
 
-function readFenceIndentLength(line: string): number | undefined {
+function readFenceStart(
+  line: string
+): { indentLength: number; markerCharacter: "`" | "~" } | undefined {
   let index = 0;
 
   while (index < line.length && line[index] === " ") {
     index += 1;
   }
 
-  return line[index] === "`" ? index : undefined;
+  const markerCharacter = line[index];
+  return markerCharacter === "`" || markerCharacter === "~"
+    ? {
+        indentLength: index,
+        markerCharacter
+      }
+    : undefined;
 }
 
 function matchesScriptInfo(info: string): boolean {
@@ -184,22 +194,23 @@ function findClosingFence(markdown: string, searchStart: number, fence: Fence): 
 }
 
 function isClosingFence(line: string, fence: Fence): boolean {
-  const indentLength = readFenceIndentLength(line);
-  if (indentLength === undefined) {
+  const fenceStart = readFenceStart(line);
+  if (fenceStart === undefined || fenceStart.markerCharacter !== fence.markerCharacter) {
     return false;
   }
 
+  const { indentLength } = fenceStart;
   if (line.slice(0, indentLength) !== fence.indent) {
     return false;
   }
 
   let markerEnd = indentLength;
-  while (line[markerEnd] === "`") {
+  while (line[markerEnd] === fence.markerCharacter) {
     markerEnd += 1;
   }
 
   const closingMarker = line.slice(indentLength, markerEnd);
-  if (closingMarker.length !== fence.marker.length) {
+  if (closingMarker.length < fence.marker.length) {
     return false;
   }
 

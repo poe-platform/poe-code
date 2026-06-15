@@ -4,7 +4,7 @@ import type {
   SpawnOptions as NodeSpawnOptions,
   StdioOptions
 } from "node:child_process";
-import type { Readable, Writable } from "node:stream";
+import { PassThrough, type Readable, type Writable } from "node:stream";
 import { StringDecoder } from "node:string_decoder";
 import type { SpawnResult, SpawnUsage } from "@poe-code/agent-spawn";
 
@@ -101,9 +101,12 @@ export async function exec(
   command: string,
   options?: AgentChildProcessOptions
 ): Promise<AgentChildProcessResult> {
-  const shell = process.platform === "win32" ? process.env.ComSpec ?? "cmd.exe" : process.env.SHELL ?? "sh";
-  const shellArgs =
-    process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-c", command];
+  assertNonBlank(command, "command");
+  const shell =
+    process.platform === "win32"
+      ? (options?.env?.ComSpec ?? process.env.ComSpec ?? "cmd.exe")
+      : (options?.env?.SHELL ?? process.env.SHELL ?? "sh");
+  const shellArgs = process.platform === "win32" ? ["/d", "/s", "/c", command] : ["-c", command];
 
   return runExecution({
     kind: "exec",
@@ -129,6 +132,7 @@ export async function execFile(
   argsOrOptions: string[] | AgentChildProcessOptions = [],
   maybeOptions?: AgentChildProcessOptions
 ): Promise<AgentChildProcessResult> {
+  assertNonBlank(file, "file");
   const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
   const options = Array.isArray(argsOrOptions) ? maybeOptions : argsOrOptions;
 
@@ -153,11 +157,16 @@ export function spawn(
   argsOrOptions: string[] | AgentChildProcessOptions = [],
   maybeOptions?: AgentChildProcessOptions
 ): AgentChildProcessHandle {
-  const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
-  const options = Array.isArray(argsOrOptions) ? maybeOptions : argsOrOptions;
-
-  let child: { process: ChildProcess; result: Promise<AgentChildProcessResult> };
+  let child: {
+    process: ChildProcess;
+    stdout: Readable | null;
+    stderr: Readable | null;
+    result: Promise<AgentChildProcessResult>;
+  };
   try {
+    assertNonBlank(file, "file");
+    const args = Array.isArray(argsOrOptions) ? argsOrOptions : [];
+    const options = Array.isArray(argsOrOptions) ? maybeOptions : argsOrOptions;
     child = startChildProcess({
       kind: "spawn",
       file,
@@ -180,8 +189,8 @@ export function spawn(
   return {
     pid: child.process.pid,
     stdin: child.process.stdin,
-    stdout: child.process.stdout,
-    stderr: child.process.stderr,
+    stdout: child.stdout,
+    stderr: child.stderr,
     kill(signal?: NodeJS.Signals | number) {
       return child.process.kill(signal);
     },
@@ -195,13 +204,18 @@ async function runExecution(spec: ExecutionSpec): Promise<AgentChildProcessResul
 
 function startChildProcess(spec: ExecutionSpec): {
   process: ChildProcess;
+  stdout: Readable | null;
+  stderr: Readable | null;
   result: Promise<AgentChildProcessResult>;
 } {
   const child = spawnChild(spec);
-  const result = collectResult(child, spec).then((commandResult) =>
-    applyExitPolicy(commandResult, spec.options)
-  );
-  return { process: child, result };
+  const stdout = createOutputPipes(child.stdout, spec.kind === "spawn");
+  const stderr = createOutputPipes(child.stderr, spec.kind === "spawn");
+  const result = collectResult(child, spec, {
+    stdout: stdout.result,
+    stderr: stderr.result
+  }).then((commandResult) => applyExitPolicy(commandResult, spec.options));
+  return { process: child, stdout: stdout.user, stderr: stderr.user, result };
 }
 
 function spawnChild(spec: ExecutionSpec): ChildProcess {
@@ -223,24 +237,25 @@ function getStdio(kind: AgentChildProcessKind): StdioOptions {
 
 function collectResult(
   child: ChildProcess,
-  spec: ExecutionSpec
+  spec: ExecutionSpec,
+  streams: { stdout: Readable | null; stderr: Readable | null }
 ): Promise<AgentChildProcessResult> {
   const stdoutDecoder = new StringDecoder("utf8");
   const stderrDecoder = new StringDecoder("utf8");
   let stdout = "";
   let stderr = "";
   let childClosed = false;
-  let stdoutFinished = child.stdout === null;
-  let stderrFinished = child.stderr === null;
+  let stdoutFinished = streams.stdout === null;
+  let stderrFinished = streams.stderr === null;
   let exitCode = 1;
   let exitSignal: NodeJS.Signals | null = null;
   let processError: Error | undefined;
   let outputError: Error | undefined;
 
-  child.stdout?.on("data", (chunk: Buffer | string) => {
+  streams.stdout?.on("data", (chunk: Buffer | string) => {
     stdout += typeof chunk === "string" ? chunk : stdoutDecoder.write(chunk);
   });
-  child.stderr?.on("data", (chunk: Buffer | string) => {
+  streams.stderr?.on("data", (chunk: Buffer | string) => {
     stderr += typeof chunk === "string" ? chunk : stderrDecoder.write(chunk);
   });
 
@@ -264,20 +279,20 @@ function collectResult(
       resolve({ ...attempt, attempts: [attempt] });
     };
 
-    child.stdout?.once("end", () => {
+    streams.stdout?.once("end", () => {
       stdoutFinished = true;
       finish();
     });
-    child.stderr?.once("end", () => {
+    streams.stderr?.once("end", () => {
       stderrFinished = true;
       finish();
     });
-    child.stdout?.once("error", (error) => {
+    streams.stdout?.once("error", (error) => {
       outputError = error;
       stdoutFinished = true;
       finish();
     });
-    child.stderr?.once("error", (error) => {
+    streams.stderr?.once("error", (error) => {
       outputError = error;
       stderrFinished = true;
       finish();
@@ -297,6 +312,32 @@ function collectResult(
       finish();
     });
   });
+}
+
+function createOutputPipes(
+  source: Readable | null,
+  exposeUserStream: boolean
+): {
+  result: Readable | null;
+  user: Readable | null;
+} {
+  if (source === null) {
+    return { result: null, user: null };
+  }
+
+  const result = new PassThrough();
+  const user = exposeUserStream ? new PassThrough() : null;
+
+  source.once("error", (error) => {
+    result.destroy(error);
+    user?.destroy();
+  });
+  source.pipe(result);
+  if (user !== null) {
+    source.pipe(user);
+  }
+
+  return { result, user };
 }
 
 function createAttempt(
@@ -349,6 +390,14 @@ async function maybeRunAgent(
     });
   }
 
+  try {
+    validateExitPolicy(policy);
+  } catch (error) {
+    throw new AgentChildProcessError("Agent exit policy is invalid", result, {
+      cause: error
+    });
+  }
+
   const runAgent = options.runAgent ?? defaultRunAgent;
   let agentResult: SpawnResult;
   try {
@@ -378,6 +427,17 @@ async function maybeRunAgent(
       ...(agentResult.logFile ? { logFile: agentResult.logFile } : {})
     }
   };
+}
+
+function validateExitPolicy(policy: AgentExitPolicy): void {
+  assertNonBlank(policy.agent, "onExit.agent");
+  assertNonBlank(policy.prompt, "onExit.prompt");
+}
+
+function assertNonBlank(value: string, field: string): void {
+  if (value.trim().length === 0) {
+    throw new TypeError(`${field} must not be empty`);
+  }
 }
 
 async function defaultRunAgent(input: AgentChildProcessRunAgentInput): Promise<SpawnResult> {

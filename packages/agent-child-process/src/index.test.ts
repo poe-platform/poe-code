@@ -58,7 +58,12 @@ function createSpawnHarness() {
 
 function finish(
   child: FakeChild,
-  options: { stdout?: string; stderr?: string; exitCode?: number; signal?: NodeJS.Signals | null } = {}
+  options: {
+    stdout?: string;
+    stderr?: string;
+    exitCode?: number;
+    signal?: NodeJS.Signals | null;
+  } = {}
 ) {
   child.stdout.push(options.stdout ?? "");
   child.stderr.push(options.stderr ?? "");
@@ -172,6 +177,21 @@ describe("@poe-code/agent-child-process", () => {
       stdio: ["ignore", "pipe", "pipe"],
       signal: undefined
     });
+  });
+
+  it("rejects empty and whitespace-only command inputs before spawning", async () => {
+    const spawnProcess = vi.fn((() => {
+      throw new Error("spawn should not be called");
+    }) as SpawnProcess);
+
+    await expect(exec("", { spawnProcess })).rejects.toThrow("command must not be empty");
+    await expect(exec("  ", { spawnProcess })).rejects.toThrow("command must not be empty");
+    await expect(execFile("", { spawnProcess })).rejects.toThrow("file must not be empty");
+    await expect(execFile("  ", { spawnProcess })).rejects.toThrow("file must not be empty");
+
+    const handle = spawn("  ", { spawnProcess });
+    await expect(handle.result).rejects.toThrow("file must not be empty");
+    expect(spawnProcess).not.toHaveBeenCalled();
   });
 
   it("captures stdout and stderr", async () => {
@@ -298,6 +318,21 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
+  it("exec uses the shell from the supplied child environment", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const env =
+      process.platform === "win32"
+        ? { ComSpec: "C:\\custom\\cmd.exe", PATH: "C:\\Windows" }
+        : { SHELL: "/custom/shell", PATH: "/bin" };
+    const resultPromise = exec("echo hi", { spawnProcess, env });
+
+    finish(children[0]!);
+
+    const call = spawnProcess.mock.calls[0] as SpawnCall;
+    expect(call[0]).toBe(process.platform === "win32" ? env.ComSpec : env.SHELL);
+    await resultPromise;
+  });
+
   it("exec uses the documented shell fallback when the platform env var is absent", async () => {
     const { children, spawnProcess } = createSpawnHarness();
 
@@ -335,8 +370,8 @@ describe("@poe-code/agent-child-process", () => {
 
     expect(handle.pid).toBe(123);
     expect(handle.stdin).toBe(children[0]!.stdin);
-    expect(handle.stdout).toBe(children[0]!.stdout);
-    expect(handle.stderr).toBe(children[0]!.stderr);
+    expect(handle.stdout).not.toBeNull();
+    expect(handle.stderr).not.toBeNull();
     expect(handle.kill("SIGTERM")).toBe(true);
     expect(children[0]!.kill).toHaveBeenCalledWith("SIGTERM");
     expect(spawnProcess).toHaveBeenCalledWith("npm", ["test"], {
@@ -347,6 +382,31 @@ describe("@poe-code/agent-child-process", () => {
     });
     await expect(handle.result).resolves.toMatchObject({ stdout: "ok" });
     expect(stdoutChunks.join("")).toBe("ok");
+  });
+
+  it("buffers spawned stdout and stderr for callers that attach listeners after early output", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const handle = spawn("worker", [], { spawnProcess });
+    const child = children[0]!;
+
+    child.stdout.push("early-out");
+    child.stderr.push("early-err");
+
+    const stdoutChunks: string[] = [];
+    const stderrChunks: string[] = [];
+    handle.stdout?.on("data", (chunk) => stdoutChunks.push(String(chunk)));
+    handle.stderr?.on("data", (chunk) => stderrChunks.push(String(chunk)));
+
+    child.emit("close", 0, null);
+    child.stdout.push(null);
+    child.stderr.push(null);
+
+    await expect(handle.result).resolves.toMatchObject({
+      stdout: "early-out",
+      stderr: "early-err"
+    });
+    expect(stdoutChunks.join("")).toBe("early-out");
+    expect(stderrChunks.join("")).toBe("early-err");
   });
 
   it("spawn supports omitting args", async () => {
@@ -584,6 +644,35 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
+  it("rejects blank agent exit policy fields before invoking the agent", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const runAgent = vi.fn<AgentChildProcessRunAgent>().mockResolvedValue({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    const resultPromise = execFile("npm", ["test"], {
+      spawnProcess,
+      runAgent,
+      onExit: {
+        agent: "   ",
+        prompt: "   "
+      }
+    });
+
+    finish(children[0]!, { stdout: "failed", stderr: "error", exitCode: 1 });
+
+    await expect(resultPromise).rejects.toMatchObject({
+      name: "AgentChildProcessError",
+      message: "Agent exit policy is invalid",
+      result: {
+        command: "npm",
+        exitCode: 1
+      }
+    });
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("turns rejected async policy evaluation into AgentChildProcessError", async () => {
     const { children, spawnProcess } = createSpawnHarness();
     const resultPromise = execFile("npm", ["test"], {
@@ -728,7 +817,7 @@ describe("@poe-code/agent-child-process", () => {
     expect(prompt).toContain("Fix the failing command.");
     expect(prompt).toContain("Kind: execFile");
     expect(prompt).toContain("Command file: npm");
-    expect(prompt).toContain("Argv: [\"test\"]");
+    expect(prompt).toContain('Argv: ["test"]');
     expect(prompt).toContain("Cwd: /repo");
     expect(prompt).toContain("Exit code: 1");
     expect(prompt).toContain("out");
@@ -786,7 +875,7 @@ describe("@poe-code/agent-child-process", () => {
     const prompt = runAgent.mock.calls[0]?.[0].prompt;
     expect(prompt).toContain("Kind: spawn");
     expect(prompt).toContain("Command file: npm");
-    expect(prompt).toContain("Argv: [\"run\",\"build\"]");
+    expect(prompt).toContain('Argv: ["run","build"]');
     expect(result.stdout).toBe("build output");
     expect(result.stderr).toBe("build error");
   });
@@ -826,9 +915,7 @@ describe("@poe-code/agent-child-process", () => {
     expect(prompt).toContain(
       "The stdout and stderr below are historical facts from the original attempt and must not be rewritten by this library."
     );
-    expect(prompt).toContain(
-      "If verification or a rerun is needed, run commands yourself."
-    );
+    expect(prompt).toContain("If verification or a rerun is needed, run commands yourself.");
   });
 
   it("converts child error events into failed attempts", async () => {
@@ -934,10 +1021,7 @@ describe("@poe-code/agent-child-process", () => {
 
     const result = await execFile(
       process.execPath,
-      [
-        "-e",
-        "process.stdout.write('out'); process.stderr.write('err'); process.exit(4)"
-      ],
+      ["-e", "process.stdout.write('out'); process.stderr.write('err'); process.exit(4)"],
       {
         spawnProcess: nodeSpawn,
         runAgent,
@@ -993,11 +1077,9 @@ describe("@poe-code/agent-child-process", () => {
   });
 
   it("supports stdin for real spawned child processes", async () => {
-    const handle = spawn(
-      process.execPath,
-      ["-e", "process.stdin.pipe(process.stdout)"],
-      { spawnProcess: nodeSpawn }
-    );
+    const handle = spawn(process.execPath, ["-e", "process.stdin.pipe(process.stdout)"], {
+      spawnProcess: nodeSpawn
+    });
 
     expect(handle.stdin).not.toBeNull();
     handle.stdin!.end("input");
@@ -1031,14 +1113,10 @@ describe("@poe-code/agent-child-process", () => {
 
   it("turns real abort signal errors into failed attempts", async () => {
     const controller = new AbortController();
-    const resultPromise = execFile(
-      process.execPath,
-      ["-e", "setTimeout(() => {}, 10_000)"],
-      {
-        spawnProcess: nodeSpawn,
-        signal: controller.signal
-      }
-    );
+    const resultPromise = execFile(process.execPath, ["-e", "setTimeout(() => {}, 10_000)"], {
+      spawnProcess: nodeSpawn,
+      signal: controller.signal
+    });
 
     controller.abort();
 

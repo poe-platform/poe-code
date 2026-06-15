@@ -28,7 +28,7 @@ function isMissingFile(error: unknown): boolean {
   return (
     typeof error === "object" &&
     error !== null &&
-    "code" in error &&
+    Object.prototype.hasOwnProperty.call(error, "code") &&
     (error as { code?: unknown }).code === "ENOENT"
   );
 }
@@ -64,7 +64,7 @@ async function defaultSqliteFactory(databasePath: string): Promise<SqliteTraceDa
 
 function dateFromRow(seconds: unknown, milliseconds: unknown): Date | undefined {
   if (typeof milliseconds === "number" && Number.isFinite(milliseconds)) {
-    return new Date(milliseconds);
+    return parseDate(milliseconds);
   }
   return parseDate(seconds);
 }

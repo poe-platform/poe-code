@@ -97,4 +97,58 @@ describe("claudeTraceReader", () => {
 
     expect(references.map((reference) => reference.id).sort()).toEqual(["one", "two"]);
   });
+
+  it("omits invalid numeric timestamps instead of creating invalid dates", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/home/me/.claude/projects/-repo/trace-one.jsonl": JSON.stringify({
+          type: "user",
+          sessionId: "session-one",
+          cwd: "/repo",
+          timestamp: 100_000_000_000_000_000_000,
+          message: { role: "user", content: "collect this prompt" }
+        })
+      })
+    ).promises;
+
+    const references = await claudeTraceReader.discover({
+      cwd: "/repo",
+      homeDir: "/home/me",
+      fs
+    });
+    const trace = await claudeTraceReader.read(references[0]!, { fs });
+
+    expect(references[0]).not.toHaveProperty("updatedAt");
+    expect(trace.turns[0]).toEqual({
+      role: "human",
+      text: "collect this prompt",
+      sourceKind: "user"
+    });
+  });
+
+  it("throws readdir errors that inherit ENOENT without owning it", async () => {
+    const inheritedMissing = Object.create({ code: "ENOENT" }) as Error;
+    Object.assign(inheritedMissing, { message: "permission denied" });
+    const fs = {
+      async readdir(): Promise<string[]> {
+        throw inheritedMissing;
+      },
+      async readFile(): Promise<string> {
+        throw new Error("unexpected read");
+      },
+      async mkdir(): Promise<void> {},
+      async writeFile(): Promise<void> {},
+      async stat(): Promise<{ isFile(): boolean; isDirectory(): boolean }> {
+        return { isFile: () => false, isDirectory: () => false };
+      }
+    };
+
+    await expect(
+      claudeTraceReader.discover({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs
+      })
+    ).rejects.toBe(inheritedMissing);
+  });
 });

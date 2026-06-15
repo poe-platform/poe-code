@@ -44,13 +44,27 @@ function removeContextTags(text: string): string {
 }
 
 function recordKey(record: HumanPromptRecord): string {
-  return [record.source, record.traceId, record.text].join("\u0000");
+  return [record.source, record.traceId, record.timestamp ?? "", record.text].join("\u0000");
+}
+
+function isValidDate(date: Date): boolean {
+  return Number.isFinite(date.getTime());
 }
 
 export async function collectHumanPromptsFromReaders(
   readers: TraceReader[],
   options: CollectHumanPromptsOptions = {}
 ): Promise<CollectHumanPromptsResult> {
+  if (options.since !== undefined && !isValidDate(options.since)) {
+    throw new Error("since must be a valid Date.");
+  }
+  if (
+    options.limit !== undefined &&
+    (!Number.isInteger(options.limit) || options.limit < 0 || !Number.isFinite(options.limit))
+  ) {
+    throw new Error("limit must be a non-negative integer.");
+  }
+
   const sources = options.sources ?? DEFAULT_SOURCES;
   const readerById = new Map(readers.map((reader) => [reader.id, reader]));
   const fs = options.fs ?? nodeFs;
@@ -90,12 +104,14 @@ export async function collectHumanPromptsFromReaders(
         if (isInjectedContext(text)) {
           continue;
         }
+        const timestamp =
+          turn.timestamp && isValidDate(turn.timestamp) ? turn.timestamp.toISOString() : undefined;
         const record = {
           traceId: trace.id,
           source: trace.source,
           ...(trace.cwd ? { cwd: trace.cwd } : {}),
           ...(trace.title ? { title: trace.title } : {}),
-          ...(turn.timestamp ? { timestamp: turn.timestamp.toISOString() } : {}),
+          ...(timestamp ? { timestamp } : {}),
           text
         };
         const key = recordKey(record);

@@ -66,7 +66,7 @@ describe("collectHumanPromptsFromReaders", () => {
     ]);
   });
 
-  it("excludes injected context records and de-duplicates repeated human prompts", async () => {
+  it("excludes injected context records and de-duplicates exact repeated human prompts", async () => {
     const readers: TraceReader[] = [
       {
         id: "codex",
@@ -120,7 +120,7 @@ describe("collectHumanPromptsFromReaders", () => {
             {
               role: "human",
               text: "Did you test it?",
-              timestamp: new Date("2026-06-13T12:00:02.001Z")
+              timestamp: new Date("2026-06-13T12:00:02.000Z")
             }
           ]
         })
@@ -134,5 +134,106 @@ describe("collectHumanPromptsFromReaders", () => {
     });
 
     expect(result.records.map((record) => record.text)).toEqual(["commit", "Did you test it?"]);
+  });
+
+  it("keeps repeated human prompts from separate turns when timestamps differ", async () => {
+    const readers: TraceReader[] = [
+      {
+        id: "codex",
+        defaultRoots: () => [],
+        discover: async () => [{ source: "codex", id: "codex-one", cwd: "/repo" }],
+        read: async () => ({
+          source: "codex",
+          id: "codex-one",
+          cwd: "/repo",
+          turns: [
+            {
+              role: "human",
+              text: "retry the command",
+              timestamp: new Date("2026-06-13T12:00:00.000Z")
+            },
+            {
+              role: "assistant",
+              text: "failed"
+            },
+            {
+              role: "human",
+              text: "retry the command",
+              timestamp: new Date("2026-06-13T12:05:00.000Z")
+            }
+          ]
+        })
+      }
+    ];
+
+    const result = await collectHumanPromptsFromReaders(readers, {
+      sources: ["codex"],
+      cwd: "/repo",
+      homeDir: "/home/me"
+    });
+
+    expect(result.records).toMatchObject([
+      {
+        text: "retry the command",
+        timestamp: "2026-06-13T12:05:00.000Z"
+      },
+      {
+        text: "retry the command",
+        timestamp: "2026-06-13T12:00:00.000Z"
+      }
+    ]);
+  });
+
+  it("rejects invalid since dates before readers run", async () => {
+    const discover = vi.fn();
+    const readers: TraceReader[] = [
+      {
+        id: "codex",
+        defaultRoots: () => [],
+        discover,
+        read: async () => ({
+          source: "codex",
+          id: "codex-one",
+          turns: []
+        })
+      }
+    ];
+
+    await expect(
+      collectHumanPromptsFromReaders(readers, {
+        sources: ["codex"],
+        cwd: "/repo",
+        homeDir: "/home/me",
+        since: new Date(Number.NaN)
+      })
+    ).rejects.toThrow("since must be a valid Date");
+    expect(discover).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid limits", async () => {
+    const readers: TraceReader[] = [
+      {
+        id: "codex",
+        defaultRoots: () => [],
+        discover: async () => [{ source: "codex", id: "codex-one", cwd: "/repo" }],
+        read: async () => ({
+          source: "codex",
+          id: "codex-one",
+          cwd: "/repo",
+          turns: [{ role: "human", text: "one" }]
+        })
+      }
+    ];
+
+    for (const limit of [-1, 1.5, Number.NaN, Infinity]) {
+      await expect(
+        collectHumanPromptsFromReaders(readers, {
+          sources: ["codex"],
+          cwd: "/repo",
+          homeDir: "/home/me",
+          limit
+        })
+      ).rejects.toThrow("limit must be a non-negative integer");
+    }
   });
 });

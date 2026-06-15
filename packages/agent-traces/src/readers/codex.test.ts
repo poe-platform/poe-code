@@ -136,4 +136,20 @@ describe("codexTraceReader", () => {
       [1781352000, 1781352000000]
     );
   });
+
+  it("throws sqlite errors that inherit ENOENT without owning it", async () => {
+    const inheritedMissing = Object.create({ code: "ENOENT" }) as Error;
+    Object.assign(inheritedMissing, { message: "sqlite permission denied" });
+
+    await expect(
+      codexTraceReader.discover({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        fs: createFsFromVolume(new Volume()).promises,
+        sqlite: async () => {
+          throw inheritedMissing;
+        }
+      })
+    ).rejects.toBe(inheritedMissing);
+  });
 });

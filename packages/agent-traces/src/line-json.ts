@@ -24,7 +24,8 @@ export function asRecord(value: unknown): Record<string, unknown> | undefined {
 export function parseDate(value: unknown): Date | undefined {
   if (typeof value === "number" && Number.isFinite(value)) {
     const milliseconds = value > 10_000_000_000 ? value : value * 1_000;
-    return new Date(milliseconds);
+    const date = new Date(milliseconds);
+    return Number.isNaN(date.getTime()) ? undefined : date;
   }
   if (typeof value !== "string" || value.trim().length === 0) {
     return undefined;

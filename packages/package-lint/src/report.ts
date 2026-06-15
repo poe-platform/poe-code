@@ -76,7 +76,12 @@ export function formatReport(result: LintResult, opts: { json: boolean; quiet: b
   const errors = result.violations.filter((v) => v.severity === "error").length;
   const warnings = result.violations.length - errors;
   if (result.summary.ok) {
-    lines.push(color.green(`✓ all ${result.summary.rules} rules passed`));
+    if (result.skipped.length > 0) {
+      const passed = result.summary.rules - result.skipped.length;
+      lines.push(color.green(`✓ ${passed} rules passed · ${result.skipped.length} skipped`));
+    } else {
+      lines.push(color.green(`✓ all ${result.summary.rules} rules passed`));
+    }
   } else {
     const summary = `${failedRules} rules failed · ${result.violations.length} violations`;
     lines.push(

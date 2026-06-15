@@ -9,7 +9,10 @@ describe("mayContainRelevantImport", () => {
       mayContainRelevantImport('import { value } from "private-package";\n', workspaceNames)
     ).toBe(true);
     expect(
-      mayContainRelevantImport('export { value } from "@poe-code/shared/testing";\n', workspaceNames)
+      mayContainRelevantImport(
+        'export { value } from "@poe-code/shared/testing";\n',
+        workspaceNames
+      )
     ).toBe(true);
   });
 
@@ -20,9 +23,9 @@ describe("mayContainRelevantImport", () => {
   });
 
   it("ignores bare workspace imports when only relative boundary checks apply", () => {
-    expect(
-      mayContainRelevantImport('import { value } from "private-package";\n', new Set())
-    ).toBe(false);
+    expect(mayContainRelevantImport('import { value } from "private-package";\n', new Set())).toBe(
+      false
+    );
   });
 
   it("rejects source that cannot affect import-boundary rules", () => {
@@ -30,19 +33,21 @@ describe("mayContainRelevantImport", () => {
     expect(mayContainRelevantImport('export { value } from "./value.js";\n', workspaceNames)).toBe(
       false
     );
-    expect(mayContainRelevantImport('// import "../../shared/src/index.js"\n', workspaceNames)).toBe(
-      false
-    );
+    expect(
+      mayContainRelevantImport('// import "../../shared/src/index.js"\n', workspaceNames)
+    ).toBe(false);
     expect(mayContainRelevantImport('const example = "private-package";\n', workspaceNames)).toBe(
       false
     );
   });
 
   it("accepts relevant dynamic imports and requires", () => {
-    expect(mayContainRelevantImport('await import("private-package");\n', workspaceNames)).toBe(true);
-    expect(mayContainRelevantImport('require("../../shared/src/index.js");\n', workspaceNames)).toBe(
+    expect(mayContainRelevantImport('await import("private-package");\n', workspaceNames)).toBe(
       true
     );
+    expect(
+      mayContainRelevantImport('require("../../shared/src/index.js");\n', workspaceNames)
+    ).toBe(true);
   });
 });
 
@@ -72,14 +77,24 @@ describe("extractRelevantImports", () => {
         [
           'import type { A } from "private-package";',
           'export type { B } from "@poe-code/shared/testing";',
-          'import { type C } from "private-package/types";'
+          'import { type C } from "private-package/types";',
+          'import{type D}from "private-package/compact";',
+          'export{type E}from "private-package/export-compact";'
         ].join("\n"),
         "index.ts"
       )
     ).toEqual([
       { specifier: "private-package", typeOnly: true },
       { specifier: "@poe-code/shared/testing", typeOnly: true },
-      { specifier: "private-package/types", typeOnly: true }
+      { specifier: "private-package/types", typeOnly: true },
+      { specifier: "private-package/compact", typeOnly: true },
+      { specifier: "private-package/export-compact", typeOnly: true }
     ]);
+  });
+
+  it("ignores import type queries because they are erased", () => {
+    expect(
+      extractRelevantImports('type Client = import("private-package").Client;\n', "index.ts")
+    ).toEqual([]);
   });
 });

@@ -65,4 +65,30 @@ describe("imported-workspace-dep-unresolvable", () => {
 
     expect(importedWorkspaceDepUnresolvable.run(model)).toHaveLength(0);
   });
+
+  it("scans .mts and .cts source files", async () => {
+    for (const extension of ["mts", "cts"]) {
+      const model = await makeWorkspace({
+        "/repo/package.json": pkgJson({ name: "root" }),
+        "/repo/packages/pub/package.json": PUB,
+        [`/repo/packages/pub/src/index.${extension}`]: 'export { z } from "priv";\n',
+        "/repo/packages/priv/package.json": pkgJson({ name: "priv", private: true }),
+        "/repo/.github/workflows/release-pub.yml": releaseWorkflow("packages/pub")
+      });
+
+      expect(importedWorkspaceDepUnresolvable.run(model)).toHaveLength(1);
+    }
+  });
+
+  it("ignores import type queries", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/pub/package.json": PUB,
+      "/repo/packages/pub/src/index.ts": 'type Client = import("priv").Client;\n',
+      "/repo/packages/priv/package.json": pkgJson({ name: "priv", private: true }),
+      "/repo/.github/workflows/release-pub.yml": releaseWorkflow("packages/pub")
+    });
+
+    expect(importedWorkspaceDepUnresolvable.run(model)).toHaveLength(0);
+  });
 });

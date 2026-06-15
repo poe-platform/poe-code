@@ -72,7 +72,12 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
       out.push({ specifier: statement.moduleSpecifier.text, typeOnly });
     } else if (ts.isExportDeclaration(statement) && statement.moduleSpecifier) {
       if (ts.isStringLiteralLike(statement.moduleSpecifier)) {
-        out.push({ specifier: statement.moduleSpecifier.text, typeOnly: statement.isTypeOnly });
+        let typeOnly = statement.isTypeOnly;
+        if (!typeOnly && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
+          const elements = statement.exportClause.elements;
+          typeOnly = elements.length > 0 && elements.every((e) => e.isTypeOnly);
+        }
+        out.push({ specifier: statement.moduleSpecifier.text, typeOnly });
       }
     } else if (ts.isImportEqualsDeclaration(statement)) {
       const ref = statement.moduleReference;
@@ -100,14 +105,14 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
 }
 
 export function extractRelevantImports(text: string, fileName: string): RawImport[] {
-  if (text.includes("import type") || text.includes("export type") || text.includes("{ type ")) {
-    return extractImportsFromAst(text, fileName);
-  }
+  return extractImportsFromAst(text, fileName);
+}
 
-  return ts.preProcessFile(text, true, true).importedFiles.map(({ fileName: specifier }) => ({
-    specifier,
-    typeOnly: false
-  }));
+function isSourceFile(name: string): boolean {
+  if (name.endsWith(".d.ts") || name.endsWith(".d.mts") || name.endsWith(".d.cts")) return false;
+  return (
+    name.endsWith(".ts") || name.endsWith(".tsx") || name.endsWith(".mts") || name.endsWith(".cts")
+  );
 }
 
 async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
@@ -122,10 +127,7 @@ async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       files.push(...(await listSourceFiles(fs, full)));
-    } else if (
-      (entry.name.endsWith(".ts") || entry.name.endsWith(".tsx")) &&
-      !entry.name.endsWith(".d.ts")
-    ) {
+    } else if (isSourceFile(entry.name)) {
       files.push(full);
     }
   }

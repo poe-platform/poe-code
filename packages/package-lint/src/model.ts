@@ -121,6 +121,11 @@ function toStringRecord(value: unknown): Record<string, string> {
   return out;
 }
 
+function toBinRecord(value: unknown, packageName: string): Record<string, string> {
+  if (typeof value === "string") return { [packageName]: value };
+  return toStringRecord(value);
+}
+
 function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
@@ -161,7 +166,7 @@ async function loadPackage(
       typeof repository?.directory === "string" ? repository.directory : undefined,
     ecosystem,
     exports: pkg.exports,
-    bin: toStringRecord(pkg.bin),
+    bin: toBinRecord(pkg.bin, typeof pkg.name === "string" ? pkg.name : relDir),
     files: Array.isArray(pkg.files)
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
       : [],
@@ -213,6 +218,38 @@ interface WorkflowStep {
   "working-directory"?: unknown;
 }
 
+interface WorkflowJob {
+  defaults?: {
+    run?: {
+      "working-directory"?: unknown;
+    };
+  };
+  steps?: unknown;
+}
+
+function splitShellLine(line: string): string[] {
+  return line
+    .trim()
+    .split(" ")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function hasPublishRun(run: string): boolean {
+  for (const line of run.split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed.startsWith("#")) continue;
+    const parts = splitShellLine(trimmed);
+    if (parts[0] === "npm" && parts[1] === "publish") return true;
+    if (parts.includes("semantic-release")) return true;
+  }
+  return false;
+}
+
+function isPypiPublishAction(uses: string): boolean {
+  return uses === "pypa/gh-action-pypi-publish" || uses.startsWith("pypa/gh-action-pypi-publish@");
+}
+
 function parseLockstepGroup(value: unknown): { dirs: string[]; valid: boolean } {
   if (typeof value !== "string") return { dirs: [], valid: false };
   try {
@@ -240,32 +277,36 @@ function parseReleaseWorkflow(file: string, raw: string): ReleaseWorkflow {
     doc?.jobs && typeof doc.jobs === "object" ? (doc.jobs as Record<string, unknown>) : {};
 
   for (const job of Object.values(jobs)) {
+    const workflowJob = job && typeof job === "object" ? (job as WorkflowJob) : {};
     const activeLockstepGroups: LockstepGroup[] = [];
-    const steps = Array.isArray((job as { steps?: unknown })?.steps)
-      ? (job as { steps: WorkflowStep[] }).steps
-      : [];
+    const steps = Array.isArray(workflowJob.steps) ? (workflowJob.steps as WorkflowStep[]) : [];
+    const defaultWorkingDir =
+      typeof workflowJob.defaults?.run?.["working-directory"] === "string"
+        ? normalizeWorkingDir(workflowJob.defaults.run["working-directory"])
+        : undefined;
     for (const step of steps) {
       const run = typeof step.run === "string" ? step.run : "";
       const uses = typeof step.uses === "string" ? step.uses : "";
       const wd =
         typeof step["working-directory"] === "string"
           ? normalizeWorkingDir(step["working-directory"] as string)
-          : undefined;
+          : defaultWorkingDir;
 
-      if (run.includes("npm publish") || run.includes("semantic-release")) {
+      if (hasPublishRun(run)) {
         const targetDir = wd ?? ".";
         targetDirs.add(targetDir);
         for (const group of activeLockstepGroups) {
           if (group.dirs.includes(targetDir)) group.publishedDirs.push(targetDir);
         }
       }
-      if (uses.startsWith("pypa/gh-action-pypi-publish")) {
+      if (isPypiPublishAction(uses)) {
         const pd = step.with?.["packages-dir"];
         if (typeof pd === "string") targetDirs.add(dirFromArtifactPath(pd));
       }
       if (uses === "./.github/actions/prepare-lockstep-release") {
         const parsed = parseLockstepGroup(step.with?.packages);
-        const validVersion = typeof step.with?.version === "string" && step.with.version.length > 0;
+        const validVersion =
+          typeof step.with?.version === "string" && step.with.version.trim().length > 0;
         const group = { ...parsed, valid: parsed.valid && validVersion, publishedDirs: [] };
         lockstepGroups.push(group);
         activeLockstepGroups.push(group);
@@ -284,7 +325,12 @@ async function loadReleaseWorkflows(fs: LintFs, rootDir: string): Promise<Releas
     return [];
   }
   const files = entries
-    .filter((e) => !e.isDirectory() && e.name.startsWith("release") && e.name.endsWith(".yml"))
+    .filter(
+      (e) =>
+        !e.isDirectory() &&
+        e.name.startsWith("release") &&
+        (e.name.endsWith(".yml") || e.name.endsWith(".yaml"))
+    )
     .map((e) => e.name)
     .sort();
   const workflows = await Promise.all(

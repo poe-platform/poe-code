@@ -68,4 +68,19 @@ describe("exports-subpath-resolvable", () => {
 
     expect(exportsSubpathResolvable.run(model)).toHaveLength(0);
   });
+
+  it("treats array exports as root-only gated exports", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/a/package.json": pkgJson({ name: "a" }),
+      "/repo/packages/a/src/index.ts": 'export { x } from "b/internal";\n',
+      "/repo/packages/b/package.json": pkgJson({
+        name: "b",
+        exports: ["./dist/index.js"]
+      }),
+      "/repo/packages/b/src/index.ts": "export const x = 1;\n"
+    });
+
+    expect(exportsSubpathResolvable.run(model)).toHaveLength(1);
+  });
 });

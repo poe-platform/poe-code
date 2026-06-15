@@ -55,6 +55,41 @@ describe("published-bin-must-be-executable", () => {
     expect(publishedBinMustBeExecutable.run(model)).toHaveLength(0);
   });
 
+  it("models string-form bin declarations", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/cli/package.json": pkgJson({
+        name: "cli",
+        repository: { directory: "packages/cli" },
+        bin: "dist/bin/generate.js"
+      }),
+      "/repo/.github/workflows/release-cli.yml": releaseWorkflow("packages/cli")
+    });
+
+    expect(model.byName.get("cli")?.bin).toEqual({ cli: "dist/bin/generate.js" });
+    expect(publishedBinMustBeExecutable.run(model)).toHaveLength(1);
+  });
+
+  it("does not accept comments or similarly named scripts as set-bin-executable", async () => {
+    for (const prepack of [
+      "echo set-bin-executable",
+      "node ../../scripts/not-set-bin-executable.mjs"
+    ]) {
+      const model = await makeWorkspace({
+        "/repo/package.json": pkgJson({ name: "root" }),
+        "/repo/packages/cli/package.json": pkgJson({
+          name: "cli",
+          repository: { directory: "packages/cli" },
+          bin: { "cli-generate": "dist/bin/generate.js" },
+          scripts: { prepack }
+        }),
+        "/repo/.github/workflows/release-cli.yml": releaseWorkflow("packages/cli")
+      });
+
+      expect(publishedBinMustBeExecutable.run(model)).toHaveLength(1);
+    }
+  });
+
   it("ignores private packages", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

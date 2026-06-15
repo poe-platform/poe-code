@@ -49,6 +49,66 @@ describe("public-needs-publish-wiring", () => {
     expect(publicNeedsPublishWiring.run(model)).toHaveLength(0);
   });
 
+  it("uses job default working directories for publish steps", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/dep/package.json": pkgJson({
+        name: "dep",
+        repository: { directory: "packages/dep" }
+      }),
+      "/repo/.github/workflows/release-dep.yml": [
+        "name: Release",
+        "jobs:",
+        "  publish:",
+        "    defaults:",
+        "      run:",
+        "        working-directory: packages/dep",
+        "    steps:",
+        "      - run: npm publish --provenance --access public",
+        ""
+      ].join("\n")
+    });
+
+    expect(publicNeedsPublishWiring.run(model)).toHaveLength(0);
+  });
+
+  it("loads release workflows with the .yaml extension", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/dep/package.json": pkgJson({
+        name: "dep",
+        repository: { directory: "packages/dep" }
+      }),
+      "/repo/.github/workflows/release-dep.yaml": releaseWorkflow("packages/dep")
+    });
+
+    expect(model.releaseWorkflows).toHaveLength(1);
+    expect(publicNeedsPublishWiring.run(model)).toHaveLength(0);
+  });
+
+  it("ignores commented npm publish text", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/dep/package.json": pkgJson({
+        name: "dep",
+        repository: { directory: "packages/dep" }
+      }),
+      "/repo/.github/workflows/release-dep.yml": [
+        "name: Release",
+        "jobs:",
+        "  publish:",
+        "    steps:",
+        "      - working-directory: packages/dep",
+        "        run: |",
+        "          # npm publish",
+        "          echo skipped",
+        ""
+      ].join("\n")
+    });
+
+    expect(publicNeedsPublishWiring.run(model)).toHaveLength(1);
+  });
+
   it("ignores private packages", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

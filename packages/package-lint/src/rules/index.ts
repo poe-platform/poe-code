@@ -26,6 +26,17 @@ export const rules: Rule[] = [
 ];
 
 export function runRules(model: WorkspaceModel, build?: BuildView, only?: string[]): LintResult {
+  if (only && only.length > 0) {
+    const known = new Set(rules.map((rule) => rule.id));
+    const unknown = only.filter((id) => !known.has(id));
+    if (unknown.length > 0) {
+      throw new Error(
+        `Unknown package-lint rule: ${unknown.join(", ")}. Known rules: ${rules
+          .map((rule) => rule.id)
+          .join(", ")}`
+      );
+    }
+  }
   const selected = only && only.length > 0 ? rules.filter((r) => only.includes(r.id)) : rules;
   const violations: Violation[] = [];
   const skipped: string[] = [];

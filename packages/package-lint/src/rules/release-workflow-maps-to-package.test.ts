@@ -54,4 +54,25 @@ describe("release-workflow-maps-to-package", () => {
 
     expect(releaseWorkflowMapsToPackage.run(model)).toHaveLength(0);
   });
+
+  it("does not count similarly prefixed PyPI publish actions", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root", private: true }),
+      "/repo/packages/py/package.json": pkgJson({ name: "py", private: true }),
+      "/repo/packages/py/pyproject.toml": '[project]\nname = "py"\n',
+      "/repo/.github/workflows/release-py.yml": [
+        "name: Release py",
+        "jobs:",
+        "  publish:",
+        "    steps:",
+        "      - uses: pypa/gh-action-pypi-publish-fake@v1",
+        "        with:",
+        "          packages-dir: packages/py/dist",
+        ""
+      ].join("\n")
+    });
+
+    expect(model.releaseWorkflows[0]?.targetDirs).toEqual([]);
+    expect(releaseWorkflowMapsToPackage.run(model)).toHaveLength(0);
+  });
 });

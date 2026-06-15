@@ -307,6 +307,81 @@ describe("prompts and resources protocol conformance", () => {
     });
   });
 
+  it("rejects empty tool and prompt names at registration", () => {
+    const server = createServer({ name: "empty-names", version: "1.0.0" });
+
+    expect(() =>
+      server.tool("", "Empty-name tool", defineSchema({}), () => "called")
+    ).toThrow("Tool name required");
+    expect(() =>
+      server.registerTool({ name: "", inputSchema: defineSchema({}) }, () => "called")
+    ).toThrow("Tool name required");
+    expect(() =>
+      server.prompt({ name: "" }, () => ({ messages: [] }))
+    ).toThrow("Prompt name required");
+  });
+
+  it("rejects invalid tool content metadata and resource URIs", async () => {
+    const server = createServer({ name: "invalid-tool-content", version: "1.0.0" })
+      .registerTool({ name: "bad-annotations", inputSchema: defineSchema({}) }, () => ({
+        content: [{
+          type: "text",
+          text: "hello",
+          annotations: { audience: ["invalid"], priority: "high", lastModified: 123 },
+        }],
+      }) as never)
+      .registerTool({ name: "bad-resource-link", inputSchema: defineSchema({}) }, () => ({
+        content: [{ type: "resource_link", uri: "not a uri", name: "Broken link" }],
+      }) as never)
+      .registerTool({ name: "bad-resource", inputSchema: defineSchema({}) }, () => ({
+        content: [{
+          type: "resource",
+          resource: { uri: "not a uri", mimeType: "text/plain", text: "hello" },
+        }],
+      }) as never)
+      .registerTool({ name: "bad-raw-image", inputSchema: defineSchema({}) }, () => ({
+        type: "image",
+        data: "not base64!",
+        mimeType: "image/png",
+      }) as never);
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    for (const name of ["bad-annotations", "bad-resource-link", "bad-resource", "bad-raw-image"]) {
+      await expect(server.handleMessage("tools/call", { name, arguments: {} })).resolves.toMatchObject({
+        result: {
+          content: [{ type: "text", text: "Error: Invalid tool result" }],
+          isError: true,
+        },
+      });
+    }
+  });
+
+  it("rejects invalid prompt metadata and resource mime types", async () => {
+    const server = createServer({ name: "invalid-prompt-resource", version: "1.0.0" })
+      .prompt({ name: "bad-prompt" }, () => ({
+        description: 123,
+        messages: [{
+          role: "user",
+          content: {
+            type: "text",
+            text: "hello",
+            annotations: { audience: ["invalid"], priority: "high" },
+          },
+        }],
+      }) as never)
+      .resource({ uri: "memo://bad", name: "bad" }, () => ({
+        contents: [{ uri: "memo://bad", mimeType: 123, text: "hello" }],
+      }) as never);
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    await expect(server.handleMessage("prompts/get", { name: "bad-prompt" })).resolves.toMatchObject({
+      error: { code: -32603, message: "Invalid prompt result" },
+    });
+    await expect(server.handleMessage("resources/read", { uri: "memo://bad" })).resolves.toMatchObject({
+      error: { code: -32603, message: "Invalid resource result" },
+    });
+  });
+
   it("preserves protocol metadata on tools, prompts, and resources", async () => {
     const server = createServer({ name: "metadata", version: "1.0.0" })
       .registerTool(
@@ -441,5 +516,16 @@ describe("prompts and resources protocol conformance", () => {
   it("does not register malformed URI templates", () => {
     const server = createServer({ name: "template", version: "1.0.0" });
     expect(() => server.resourceTemplate({ uriTemplate: "memory://{unclosed", name: "bad" }, () => ({ contents: [] }))).toThrow();
+  });
+
+  it("does not register URI templates that cannot expand to readable URIs", () => {
+    const server = createServer({ name: "template-uri", version: "1.0.0" });
+
+    expect(() =>
+      server.resourceTemplate({ uriTemplate: "not-a-uri/{id}", name: "bad" }, () => ({ contents: [] }))
+    ).toThrow("Invalid resource URI template");
+    expect(() =>
+      server.resourceTemplate({ uriTemplate: "", name: "empty" }, () => ({ contents: [] }))
+    ).toThrow("Invalid resource URI template");
   });
 });

@@ -481,6 +481,7 @@ export function createServer(options: ServerOptions): Server {
       handler: ToolHandler<TIn, TOut>,
       outputSchema?: TypedSchema<TOut>
     ): Server {
+      assertNonEmptyName(name, "Tool name required");
       if (outputSchema !== undefined) {
         assertSupportedOutputSchema(outputSchema);
       }
@@ -498,6 +499,7 @@ export function createServer(options: ServerOptions): Server {
       definition: Omit<ToolDefinition<TIn, TOut>, "handler">,
       handler: ToolHandler<TIn, TOut>
     ): Server {
+      assertNonEmptyName(definition.name, "Tool name required");
       if (definition.outputSchema !== undefined) {
         assertSupportedOutputSchema(definition.outputSchema);
       }
@@ -509,6 +511,7 @@ export function createServer(options: ServerOptions): Server {
     },
 
     prompt(definition: Prompt, handler: PromptHandler): Server {
+      assertNonEmptyName(definition.name, "Prompt name required");
       prompts.set(definition.name, { ...definition, handler });
       return server;
     },
@@ -522,7 +525,7 @@ export function createServer(options: ServerOptions): Server {
     },
 
     resourceTemplate(definition: ResourceTemplate, handler: ResourceHandler): Server {
-      uriTemplateParser.parse(definition.uriTemplate);
+      assertReadableUriTemplate(definition.uriTemplate);
       new UriTemplate(definition.uriTemplate);
       resourceTemplates.set(definition.uriTemplate, { ...definition, handler });
       return server;
@@ -740,6 +743,25 @@ function isValidUri(uri: string): boolean {
   }
 }
 
+function assertNonEmptyName(name: string, message: string): void {
+  if (name.length === 0) {
+    throw new Error(message);
+  }
+}
+
+function assertReadableUriTemplate(uriTemplate: string): void {
+  const parsed = uriTemplateParser.parse(uriTemplate);
+  const expanded = parsed.expand(
+    new Proxy({}, {
+      get: (_target, property) => typeof property === "string" ? "value" : undefined,
+    })
+  );
+
+  if (typeof expanded !== "string" || !isValidUri(expanded)) {
+    throw new Error(`Invalid resource URI template: ${uriTemplate}`);
+  }
+}
+
 function toStringArguments(value: unknown): Record<string, string> | undefined {
   if (value === undefined) {
     return {};
@@ -819,9 +841,14 @@ function normalizeToolResult(
   }
 
   if (outputSchema === undefined) {
-    return isCallToolResult(handlerResult)
+    const result = isCallToolResult(handlerResult)
       ? handlerResult
       : { content: toContentBlocks(handlerResult as ToolReturn) };
+    if (!isCallToolResult(result)) {
+      throw new Error("Invalid tool result");
+    }
+
+    return result;
   }
 
   const structuredContent = isCallToolResult(handlerResult)
@@ -940,7 +967,8 @@ function isGetPromptResult(value: unknown): boolean {
     return false;
   }
 
-  return Array.isArray(value.messages)
+  return (!hasOwnProperty(value, "description") || value.description === undefined || typeof value.description === "string")
+    && Array.isArray(value.messages)
     && value.messages.every((message) =>
       typeof message === "object"
       && message !== null
@@ -957,15 +985,7 @@ function isReadResourceResult(value: unknown): boolean {
   }
 
   return Array.isArray(value.contents)
-    && value.contents.every((content) =>
-      typeof content === "object"
-      && content !== null
-      && hasOwnProperty(content, "uri")
-      && typeof content.uri === "string"
-      && isValidUri(content.uri)
-      && ((hasOwnProperty(content, "text") && typeof content.text === "string")
-        || (hasOwnProperty(content, "blob") && typeof content.blob === "string" && isBase64(content.blob)))
-    );
+    && value.contents.every(isResourceContents);
 }
 
 function hasContentArray(value: unknown): value is { content: unknown[] } {
@@ -979,6 +999,10 @@ function isContentItem(value: unknown): boolean {
   }
 
   const block = value as Record<string, unknown>;
+  if (!hasValidContentAnnotations(block)) {
+    return false;
+  }
+
   if (block.type === "text") {
     return hasOwnProperty(block, "text") && typeof block.text === "string";
   }
@@ -994,8 +1018,13 @@ function isContentItem(value: unknown): boolean {
   if (block.type === "resource_link") {
     return hasOwnProperty(block, "uri")
       && typeof block.uri === "string"
+      && isValidUri(block.uri)
       && hasOwnProperty(block, "name")
-      && typeof block.name === "string";
+      && typeof block.name === "string"
+      && (!hasOwnProperty(block, "title") || block.title === undefined || typeof block.title === "string")
+      && (!hasOwnProperty(block, "description") || block.description === undefined || typeof block.description === "string")
+      && (!hasOwnProperty(block, "mimeType") || block.mimeType === undefined || typeof block.mimeType === "string")
+      && (!hasOwnProperty(block, "size") || block.size === undefined || typeof block.size === "number");
   }
 
   if (
@@ -1007,12 +1036,41 @@ function isContentItem(value: unknown): boolean {
     return false;
   }
 
-  const resource = block.resource as Record<string, unknown>;
-  return hasOwnProperty(resource, "uri")
-    && typeof resource.uri === "string"
-    && (!hasOwnProperty(resource, "mimeType") || typeof resource.mimeType === "string")
-    && ((hasOwnProperty(resource, "text") && typeof resource.text === "string")
-      || (hasOwnProperty(resource, "blob") && typeof resource.blob === "string" && isBase64(resource.blob)));
+  return isResourceContents(block.resource);
+}
+
+function isResourceContents(value: unknown): boolean {
+  if (
+    typeof value !== "object"
+    || value === null
+    || !hasOwnProperty(value, "uri")
+    || typeof value.uri !== "string"
+    || !isValidUri(value.uri)
+  ) {
+    return false;
+  }
+
+  if (hasOwnProperty(value, "mimeType") && value.mimeType !== undefined && typeof value.mimeType !== "string") {
+    return false;
+  }
+
+  return (hasOwnProperty(value, "text") && typeof value.text === "string")
+    || (hasOwnProperty(value, "blob") && typeof value.blob === "string" && isBase64(value.blob));
+}
+
+function hasValidContentAnnotations(value: Record<string, unknown>): boolean {
+  if (!hasOwnProperty(value, "annotations") || value.annotations === undefined) {
+    return true;
+  }
+
+  if (!isJsonObject(value.annotations)) {
+    return false;
+  }
+
+  const { audience, priority, lastModified } = value.annotations;
+  return (audience === undefined || (Array.isArray(audience) && audience.every((item) => item === "user" || item === "assistant")))
+    && (priority === undefined || typeof priority === "number")
+    && (lastModified === undefined || typeof lastModified === "string");
 }
 
 function isBase64(value: string): boolean {

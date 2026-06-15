@@ -6,6 +6,7 @@ interface SchemaPropertyDef {
   type: SchemaPropertyType;
   description?: string;
   optional?: boolean;
+  [keyword: string]: unknown;
 }
 
 type SchemaDefinition = Record<string, SchemaPropertyDef>;
@@ -43,14 +44,17 @@ export function defineSchema<T extends SchemaDefinition>(
   const required: string[] = [];
 
   for (const [key, prop] of Object.entries(definition)) {
+    const jsonSchemaProperty: Record<string, unknown> = {};
+    for (const [propertyKey, propertyValue] of Object.entries(prop)) {
+      if (propertyKey !== "optional") {
+        jsonSchemaProperty[propertyKey] = propertyValue;
+      }
+    }
     Object.defineProperty(properties, key, {
       enumerable: true,
       configurable: true,
       writable: true,
-      value: {
-      type: prop.type,
-      ...(prop.description !== undefined && { description: prop.description }),
-      },
+      value: jsonSchemaProperty,
     });
     if (!prop.optional) {
       required.push(key);

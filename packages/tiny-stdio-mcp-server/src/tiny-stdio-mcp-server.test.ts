@@ -976,6 +976,40 @@ describe("defineSchema", () => {
       expect(Object.hasOwn(schema.properties, "__proto__")).toBe(true);
       expect(schema.properties.__proto__).toEqual({ type: "string" });
     });
+
+    it("preserves nested array item object schemas", () => {
+      const schema = defineSchema({
+        items: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              title: { type: "string" },
+              score: { type: "number" },
+            },
+            required: ["title", "score"],
+          },
+        },
+      });
+
+      expect(schema).toEqual({
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                score: { type: "number" },
+              },
+              required: ["title", "score"],
+            },
+          },
+        },
+        required: ["items"],
+      });
+    });
   });
 
   describe("property types", () => {

@@ -263,7 +263,8 @@ export async function requestJson<TResult = unknown>(
       body
     },
     code: extractErrorCode(body),
-    requestId: response.headers.get("x-request-id") ?? response.headers.get("x-requestid") ?? undefined
+    requestId:
+      response.headers.get("x-request-id") ?? response.headers.get("x-requestid") ?? undefined
   });
 }
 
@@ -495,7 +496,11 @@ function appendQueryValue(searchParams: URLSearchParams, key: string, value: Que
 
     if (isQueryObject(entry)) {
       for (const [childKey, childValue] of Object.entries(entry)) {
-        appendQueryValue(searchParams, `${key}[${Array.isArray(value) ? `${index}][` : ""}${childKey}]`, childValue);
+        appendQueryValue(
+          searchParams,
+          `${key}[${Array.isArray(value) ? `${index}][` : ""}${childKey}]`,
+          childValue
+        );
       }
       continue;
     }
@@ -529,7 +534,72 @@ function decodeBase64Body(body: unknown): ArrayBuffer {
     throw new UserError("Base64 request bodies must be strings.");
   }
 
+  if (!isValidBase64(body)) {
+    throw new UserError("Base64 request bodies must contain valid base64 text.");
+  }
+
   return Uint8Array.from(Buffer.from(body, "base64")).buffer;
+}
+
+function isValidBase64(value: string): boolean {
+  const paddingLength = getBase64PaddingLength(value);
+
+  if (paddingLength === null) {
+    return false;
+  }
+
+  const unpaddedLength = value.length - paddingLength;
+  if (unpaddedLength % 4 === 1) {
+    return false;
+  }
+
+  if (paddingLength > 0 && value.length % 4 !== 0) {
+    return false;
+  }
+
+  for (let index = 0; index < unpaddedLength; index += 1) {
+    if (!isBase64Character(value[index] ?? "")) {
+      return false;
+    }
+  }
+
+  const normalized = value.padEnd(value.length + ((4 - (value.length % 4)) % 4), "=");
+  return Buffer.from(value, "base64").toString("base64") === normalized;
+}
+
+function getBase64PaddingLength(value: string): number | null {
+  let paddingLength = 0;
+
+  for (let index = value.length - 1; index >= 0 && value[index] === "="; index -= 1) {
+    paddingLength += 1;
+  }
+
+  if (paddingLength > 2) {
+    return null;
+  }
+
+  for (let index = 0; index < value.length - paddingLength; index += 1) {
+    if (value[index] === "=") {
+      return null;
+    }
+  }
+
+  return paddingLength;
+}
+
+function isBase64Character(value: string): boolean {
+  if (value.length !== 1) {
+    return false;
+  }
+
+  const codePoint = value.charCodeAt(0);
+  return (
+    (codePoint >= 0x41 && codePoint <= 0x5a) ||
+    (codePoint >= 0x61 && codePoint <= 0x7a) ||
+    (codePoint >= 0x30 && codePoint <= 0x39) ||
+    value === "+" ||
+    value === "/"
+  );
 }
 
 function decodeMultipartBinaryValue(value: unknown, fallbackFilename: string): MultipartFileInput {
@@ -550,7 +620,9 @@ function decodeMultipartBinaryValue(value: unknown, fallbackFilename: string): M
     return value as MultipartFileInput;
   }
 
-  throw new UserError("Multipart binary request fields must be base64 strings or resolved file inputs.");
+  throw new UserError(
+    "Multipart binary request fields must be base64 strings or resolved file inputs."
+  );
 }
 
 function serializeMultipartBody(body: unknown, binaryFields: readonly string[] = []): FormData {
@@ -767,7 +839,11 @@ function parseResponseBody(text: string, contentType: string | null): unknown {
     return text;
   }
 
-  return JSON.parse(text) as unknown;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return text;
+  }
 }
 
 function extractErrorCode(body: unknown): string | undefined {

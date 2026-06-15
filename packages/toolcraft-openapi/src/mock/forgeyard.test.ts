@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import type { Command } from "toolcraft";
 import { commandsFromSpec, inspectOpenApiDocument } from "../index.js";
-import { collectGeneratedCommands, type GeneratedParamDefinition } from "../generate.js";
+import {
+  collectGeneratedCommands,
+  type GeneratedCommand,
+  type GeneratedParam,
+  type GeneratedParamDefinition
+} from "../generate.js";
 import { createForgeyardSpec, mockFetch } from "../mock.js";
+
+const base64Sample = "c2FtcGxl";
 
 function sampleValue(definition: GeneratedParamDefinition): unknown {
   switch (definition.kind) {
@@ -19,6 +26,17 @@ function sampleValue(definition: GeneratedParamDefinition): unknown {
     case "string":
       return "sample";
   }
+}
+
+function sampleParamValue(command: GeneratedCommand, param: GeneratedParam): unknown {
+  if (
+    (command.bodyMode === "base64" && param.location === "body") ||
+    (command.multipartBinaryFields?.includes(param.sourceName) === true &&
+      param.definition.kind === "string")
+  ) {
+    return base64Sample;
+  }
+  return sampleValue(param.definition);
 }
 
 describe("createForgeyardSpec", () => {
@@ -74,7 +92,7 @@ describe("createForgeyardSpec", () => {
       const params = Object.fromEntries(
         generatedCommand.params
           .filter((param) => !param.optional)
-          .map((param) => [param.paramName, sampleValue(param.definition)])
+          .map((param) => [param.paramName, sampleParamValue(generatedCommand, param)])
       );
 
       const expected =
@@ -102,28 +120,55 @@ describe("createForgeyardSpec", () => {
     expect(new Set(mock.requests.map((request) => request.operationId))).toEqual(
       new Set(generated.map((command) => command.operationId))
     );
-    expect(mock.requests.find((request) => request.operationId === "get compatibility representation")?.headers).toMatchObject({
+    expect(
+      mock.requests.find((request) => request.operationId === "get compatibility representation")
+        ?.headers
+    ).toMatchObject({
       accept: "application/json",
       "x-forgeyard-tenant": "sample"
     });
-    expect(mock.requests.find((request) => request.operationId === "POST /v1/compatibility/jobs")?.body).toEqual({
+    expect(
+      mock.requests.find((request) => request.operationId === "POST /v1/compatibility/jobs")?.body
+    ).toEqual({
       configuration: { nested: { enabled: true }, values: [1, "two"] }
     });
-    expect(mock.requests.find((request) => request.operationId === "create compatibility token")?.headers).toMatchObject({
+    expect(
+      mock.requests.find((request) => request.operationId === "create compatibility token")?.headers
+    ).toMatchObject({
       "content-type": "application/x-www-form-urlencoded"
     });
-    expect(mock.requests.find((request) => request.operationId === "create compatibility token")?.body).toEqual({
+    expect(
+      mock.requests.find((request) => request.operationId === "create compatibility token")?.body
+    ).toEqual({
       username: "sample"
     });
-    expect(mock.requests.find((request) => request.operationId === "import compatibility manifest")?.headers).toMatchObject({
+    expect(
+      mock.requests.find((request) => request.operationId === "import compatibility manifest")
+        ?.headers
+    ).toMatchObject({
       "content-type": "text/xml"
     });
-    expect(mock.requests.find((request) => request.operationId === "import compatibility manifest")?.body).toBe("sample");
-    expect(mock.requests.find((request) => request.operationId === "upload compatibility bundle")?.headers).toMatchObject({
+    expect(
+      mock.requests.find((request) => request.operationId === "import compatibility manifest")?.body
+    ).toBe("sample");
+    expect(
+      mock.requests.find((request) => request.operationId === "upload compatibility bundle")
+        ?.headers
+    ).toMatchObject({
       "content-type": "application/zip"
     });
-    expect(mock.requests.find((request) => request.operationId === "upload compatibility attachment")?.headers["content-type"]).toContain("multipart/form-data; boundary=");
-    expect(mock.requests.find((request) => request.operationId === "create explicit authorization compatibility")?.headers).toMatchObject({ authorization: "sample" });
-    expect(mock.requests.find((request) => request.operationId === "search compatibility with body")?.body).toEqual({ query: "sample" });
+    expect(
+      mock.requests.find((request) => request.operationId === "upload compatibility attachment")
+        ?.headers["content-type"]
+    ).toContain("multipart/form-data; boundary=");
+    expect(
+      mock.requests.find(
+        (request) => request.operationId === "create explicit authorization compatibility"
+      )?.headers
+    ).toMatchObject({ authorization: "sample" });
+    expect(
+      mock.requests.find((request) => request.operationId === "search compatibility with body")
+        ?.body
+    ).toEqual({ query: "sample" });
   });
 });

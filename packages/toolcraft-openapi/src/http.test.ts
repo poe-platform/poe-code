@@ -103,7 +103,9 @@ describe("requestJson", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/tokens",
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Basic Zm9yZ2V5YXJk" }) })
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Basic Zm9yZ2V5YXJk" })
+      })
     );
   });
 
@@ -190,15 +192,16 @@ describe("requestJson", () => {
   });
 
   it("throws typed HTTP errors with parsed code and request id", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ error: { code: "rate_limit_exceeded" } }), {
-        status: 429,
-        statusText: "Too Many Requests",
-        headers: {
-          "content-type": "application/json",
-          "x-request-id": "req-rate-limited"
-        }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ error: { code: "rate_limit_exceeded" } }), {
+          status: 429,
+          statusText: "Too Many Requests",
+          headers: {
+            "content-type": "application/json",
+            "x-request-id": "req-rate-limited"
+          }
+        })
     );
 
     await expect(
@@ -221,8 +224,12 @@ describe("requestJson", () => {
   it("retries retryable responses and preserves the final typed error", async () => {
     const fetchMock = vi
       .fn<typeof globalThis.fetch>()
-      .mockResolvedValueOnce(createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable"))
-      .mockResolvedValueOnce(createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable"));
+      .mockResolvedValueOnce(
+        createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable")
+      )
+      .mockResolvedValueOnce(
+        createJsonResponse({ error: { code: "busy" } }, 503, "Service Unavailable")
+      );
 
     await expect(
       requestJson({
@@ -573,6 +580,29 @@ describe("requestJson", () => {
     expect(Buffer.from(request?.body as Uint8Array)).toEqual(Buffer.from([0, 1, 2, 255]));
   });
 
+  it("rejects invalid base64 request bodies before sending binary content", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/imports",
+        method: "POST",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        bodyMode: "base64",
+        contentType: "application/zip",
+        body: "not base64!!!"
+      })
+    ).rejects.toMatchObject<UserError>({
+      name: "UserError",
+      message: "Base64 request bodies must contain valid base64 text."
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("serializes multipart forms with base64 file fields and native scalars", async () => {
     const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
 
@@ -596,6 +626,29 @@ describe("requestJson", () => {
     const file = form.get("file");
     expect(file).toBeInstanceOf(Blob);
     expect(Buffer.from(await (file as Blob).arrayBuffer())).toEqual(Buffer.from([0, 1, 2, 255]));
+  });
+
+  it("rejects invalid base64 multipart binary fields before sending content", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/uploads",
+        method: "POST",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        bodyMode: "multipart",
+        multipartBinaryFields: ["file"],
+        body: { file: "not base64!!!" }
+      })
+    ).rejects.toMatchObject<UserError>({
+      name: "UserError",
+      message: "Base64 request bodies must contain valid base64 text."
+    });
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("requests a JSON response representation", async () => {
@@ -684,12 +737,13 @@ describe("requestJson", () => {
         method: "GET",
         auth: "required",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () =>
-          new Response('{"bots":', {
-            status: 200,
-            statusText: "OK",
-            headers: { "content-type": "application/json" }
-          })
+        fetch: vi.fn(
+          async () =>
+            new Response('{"bots":', {
+              status: 200,
+              statusText: "OK",
+              headers: { "content-type": "application/json" }
+            })
         )
       })
     ).rejects.toMatchObject<HttpError>({
@@ -727,6 +781,51 @@ describe("requestJson", () => {
     });
   });
 
+  it("throws an HttpError with context for malformed JSON error responses", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/fail",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(
+        async () =>
+          new Response("{not json", {
+            status: 500,
+            statusText: "Internal Server Error",
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": "req_123"
+            }
+          })
+      )
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toBeInstanceOf(HttpError);
+    expect(error).toMatchObject<HttpError>({
+      status: 500,
+      statusText: "Internal Server Error",
+      requestId: "req_123",
+      request: {
+        method: "GET",
+        url: "https://api.example.com/fail"
+      },
+      response: {
+        status: 500,
+        statusText: "Internal Server Error",
+        headers: {
+          "content-type": "application/json",
+          "x-request-id": "req_123"
+        },
+        body: "{not json"
+      },
+      body: "{not json"
+    });
+  });
   it("preserves the received 401 when token invalidation fails", async () => {
     const tokenSource = createTokenSource("expired");
     tokenSource.invalidate = vi.fn(async () => {
@@ -986,7 +1085,8 @@ describe("requestJson", () => {
 
     expect(error).toMatchObject<HttpError>({
       request: { url: "https://api.example.com/bots?access_token=****&page=2" },
-      message: "GET https://api.example.com/bots?access_token=****&page=2 → 500 Internal Server Error"
+      message:
+        "GET https://api.example.com/bots?access_token=****&page=2 → 500 Internal Server Error"
     });
     expect(String((error as Error).message)).not.toContain("raw-query-token");
   });

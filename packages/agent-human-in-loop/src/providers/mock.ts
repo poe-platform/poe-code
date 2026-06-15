@@ -7,10 +7,18 @@ export function mockProvider(
     id: "mock",
     async requestApproval(_request) {
       if (typeof answer === "function") {
-        return await answer();
+        return cloneApprovalResult(await answer());
       }
 
-      return answer;
+      return cloneApprovalResult(answer);
     },
   };
+}
+
+function cloneApprovalResult(result: ApprovalResult): ApprovalResult {
+  return result.outcome === "approved"
+    ? { outcome: "approved" }
+    : result.reason === undefined
+      ? { outcome: "declined" }
+      : { outcome: "declined", reason: result.reason };
 }

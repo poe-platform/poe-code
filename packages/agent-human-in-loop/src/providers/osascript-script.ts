@@ -31,7 +31,9 @@ export function parseStdout(out: string): ApprovalResult {
     ? out.slice(0, -2)
     : out.endsWith("\n")
       ? out.slice(0, -1)
-      : out;
+      : out.endsWith("\r")
+        ? out.slice(0, -1)
+        : out;
 
   switch (value) {
     case "Approve":

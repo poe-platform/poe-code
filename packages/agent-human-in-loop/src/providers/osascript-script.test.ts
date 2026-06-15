@@ -60,6 +60,15 @@ describe("parseStdout", () => {
     expect(parseStdout("Approve\r\n")).toEqual({ outcome: "approved" });
   });
 
+  it("parses output terminated with a bare carriage return", () => {
+    expect(parseStdout("APPROVED\r")).toEqual({ outcome: "approved" });
+    expect(parseStdout("Approve\r")).toEqual({ outcome: "approved" });
+    expect(parseStdout("DECLINED:reason\r")).toEqual({
+      outcome: "declined",
+      reason: "reason",
+    });
+  });
+
   it('parses "Decline" as declined without a reason', () => {
     expect(parseStdout("Decline\n")).toEqual({ outcome: "declined" });
   });

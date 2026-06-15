@@ -1,4 +1,5 @@
 import { symbols } from "../components/symbols.js";
+import { displayWidth, graphemes } from "../dashboard/terminal-width.js";
 import { getTheme } from "../internal/theme-detect.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 import { spacing } from "../tokens/spacing.js";
@@ -105,7 +106,10 @@ function renderChildren(children: MdNode[], context: RenderContext): string {
   return children.map((child) => renderNode(child, context)).join("");
 }
 
-function renderParagraph(node: Extract<MdNode, { type: "paragraph" }>, context: RenderContext): string {
+function renderParagraph(
+  node: Extract<MdNode, { type: "paragraph" }>,
+  context: RenderContext
+): string {
   const lines = renderInline(node.children, context);
   if (lines.length === 0) {
     return "";
@@ -122,14 +126,17 @@ function renderHeading(node: Extract<MdNode, { type: "heading" }>, context: Rend
 
   const styledLines = lines.map((line) => styleHeading(line, node.depth, context));
   if (node.depth === 1) {
-    const underlineWidth = Math.max(...lines.map((line) => stripAnsi(line).length));
+    const underlineWidth = Math.max(...lines.map((line) => visibleWidth(line)));
     return `${styledLines.join("\n")}\n${context.theme.header(lineChar.repeat(underlineWidth))}\n\n`;
   }
 
   return `${styledLines.join("\n")}\n\n`;
 }
 
-function renderBlockquote(node: Extract<MdNode, { type: "blockquote" }>, context: RenderContext): string {
+function renderBlockquote(
+  node: Extract<MdNode, { type: "blockquote" }>,
+  context: RenderContext
+): string {
   const prefix = `${symbols.bar} `;
   const body = renderBlockChildren(node.children, reduceWidth(context, prefix));
   if (body.length === 0) {
@@ -161,8 +168,8 @@ function renderAlert(node: Extract<MdNode, { type: "alert" }>, context: RenderCo
 
 function renderCodeBlock(node: Extract<MdNode, { type: "code" }>, context: RenderContext): string {
   const indent = " ".repeat(spacing.sm);
-  const lines = node.value.split("\n");
-  const longestLine = lines.reduce((max, line) => Math.max(max, line.length), 0);
+  const lines = node.value.split("\n").map((line) => stripAnsi(line));
+  const longestLine = lines.reduce((max, line) => Math.max(max, visibleWidth(line)), 0);
   const borderWidth = Math.max(3, Math.min(context.width - indent.length, longestLine));
   const border = context.theme.muted(`${indent}${lineChar.repeat(borderWidth)}`);
   const content = lines.map((line) => `${indent}${line}`).join("\n");
@@ -189,7 +196,9 @@ function renderList(node: Extract<MdNode, { type: "list" }>, context: RenderCont
 }
 
 function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderContext): string {
-  const rows = node.children.filter((child): child is Extract<MdNode, { type: "tableRow" }> => child.type === "tableRow");
+  const rows = node.children.filter(
+    (child): child is Extract<MdNode, { type: "tableRow" }> => child.type === "tableRow"
+  );
   if (rows.length === 0) {
     return "";
   }
@@ -206,7 +215,7 @@ function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderCo
     })
   );
   const columnWidths = Array.from({ length: columnCount }, (_, columnIndex) =>
-    Math.max(...renderedRows.map((row) => stripAnsi(row[columnIndex] ?? "").length), 0)
+    Math.max(...renderedRows.map((row) => visibleWidth(row[columnIndex] ?? "")), 0)
   );
 
   if (getRenderedTableWidth(columnWidths) > context.width) {
@@ -233,9 +242,7 @@ function renderTable(node: Extract<MdNode, { type: "table" }>, context: RenderCo
     }
 
     const divider = context.theme.muted(
-      `├${columnWidths
-        .map((width) => lineChar.repeat(width + spacing.sm * 2))
-        .join("┼")}┤`
+      `├${columnWidths.map((width) => lineChar.repeat(width + spacing.sm * 2)).join("┼")}┤`
     );
 
     return `${line}\n${divider}`;
@@ -257,7 +264,9 @@ function renderStackedTable(
   const dataRows = rows.slice(1);
   if (dataRows.length === 0) {
     const headerLines = Array.from({ length: columnCount }, (_, columnIndex) =>
-      tokenizeText(getStackedTableLabel(headerRow.children[columnIndex], columnIndex, context), [typography.bold])
+      tokenizeText(getStackedTableLabel(headerRow.children[columnIndex], columnIndex, context), [
+        typography.bold
+      ])
     ).flatMap((tokens) => wrapTokens(tokens, context.width));
 
     return headerLines.length === 0 ? "" : `${headerLines.join("\n")}\n\n`;
@@ -266,7 +275,12 @@ function renderStackedTable(
   const blocks = dataRows
     .map((row) =>
       Array.from({ length: columnCount }, (_, columnIndex) =>
-        renderStackedTableField(headerRow.children[columnIndex], row.children[columnIndex], columnIndex, context)
+        renderStackedTableField(
+          headerRow.children[columnIndex],
+          row.children[columnIndex],
+          columnIndex,
+          context
+        )
       )
         .filter((field) => field.length > 0)
         .join("\n")
@@ -359,7 +373,7 @@ function formatFrontmatterValue(value: unknown): string {
 }
 
 function renderHtml(node: Extract<MdNode, { type: "html" }>, context: RenderContext): string {
-  const value = stripHtmlTags(node.value).trim();
+  const value = stripAnsi(stripHtmlTags(node.value)).trim();
   if (value.length === 0) {
     return "";
   }
@@ -428,7 +442,7 @@ function renderFootnoteDefinition(
 ): string {
   const marker = typography.dim(`[${number}]`);
   const firstPrefix = `${" ".repeat(spacing.sm)}${marker} `;
-  const continuationPrefix = `${" ".repeat(spacing.sm + stripAnsi(`[${number}] `).length)}`;
+  const continuationPrefix = `${" ".repeat(spacing.sm + visibleWidth(`[${number}] `))}`;
   const body = renderBlockChildren(node.children, reduceWidth(context, firstPrefix));
 
   if (body.length === 0) {
@@ -471,7 +485,7 @@ function prefixBlock(rendered: string, firstPrefix: string, restPrefix: string):
 function reduceWidth(context: RenderContext, prefix: string): RenderContext {
   return {
     ...context,
-    width: Math.max(1, context.width - stripAnsi(prefix).length)
+    width: Math.max(1, context.width - visibleWidth(prefix))
   };
 }
 
@@ -498,7 +512,7 @@ function collectInlineTokens(
 ): void {
   switch (node.type) {
     case "text":
-      tokens.push(...tokenizeText(node.value, formatters));
+      tokens.push(...tokenizeText(stripAnsi(node.value), formatters));
       return;
     case "strong":
       collectChildren(node.children, [...formatters, typography.bold], context, tokens);
@@ -510,13 +524,18 @@ function collectInlineTokens(
       collectChildren(node.children, [...formatters, typography.strikethrough], context, tokens);
       return;
     case "inlineCode":
-      tokens.push(...tokenizeText(node.value, [...formatters, context.theme.accent]));
+      tokens.push(...tokenizeText(stripAnsi(node.value), [...formatters, context.theme.accent]));
       return;
     case "link":
       collectLinkTokens(node, formatters, context, tokens);
       return;
     case "image":
-      tokens.push(createWordToken(formatImagePlaceholder(node.alt), [...formatters, context.theme.muted]));
+      tokens.push(
+        createWordToken(formatImagePlaceholder(stripAnsi(node.alt)), [
+          ...formatters,
+          context.theme.muted
+        ])
+      );
       return;
     case "footnoteReference": {
       const footnoteNumber = resolveFootnoteNumber(node.label, context);
@@ -528,7 +547,7 @@ function collectInlineTokens(
       return;
     }
     case "html": {
-      const value = stripHtmlTags(node.value);
+      const value = stripAnsi(stripHtmlTags(node.value));
 
       if (value.length > 0) {
         tokens.push(...tokenizeText(value, formatters));
@@ -564,7 +583,7 @@ function collectLinkTokens(
   tokens: WrapToken[]
 ): void {
   if (isAutolink(node)) {
-    tokens.push(createWordToken(node.url, [...formatters, context.theme.accent]));
+    tokens.push(createWordToken(stripAnsi(node.url), [...formatters, context.theme.accent]));
     return;
   }
 
@@ -578,7 +597,7 @@ function collectLinkTokens(
     tokens.push({ type: "space", value: " " });
   }
 
-  tokens.push(createWordToken(`(${node.url})`, [...formatters, context.theme.accent]));
+  tokens.push(createWordToken(`(${stripAnsi(node.url)})`, [...formatters, context.theme.accent]));
 }
 
 function isAutolink(node: Extract<MdNode, { type: "link" }>): boolean {
@@ -619,8 +638,11 @@ function tokenizeText(value: string, formatters: readonly TextFormatter[]): Wrap
     const pieces = line
       .split(/([ \t]+)/)
       .filter((piece) => piece.length > 0)
-      .map((piece): WrapToken =>
-        /^[ \t]+$/.test(piece) ? { type: "space", value: piece } : { type: "word", value: piece, formatters }
+      .map(
+        (piece): WrapToken =>
+          /^[ \t]+$/.test(piece)
+            ? { type: "space", value: piece }
+            : { type: "word", value: piece, formatters }
       );
     return lineIndex < lines.length - 1 ? [...pieces, { type: "break" }] : pieces;
   });
@@ -656,9 +678,10 @@ function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {
     for (let index = 0; index < chunks.length; index++) {
       const chunk = chunks[index]!;
       const gap = index === 0 ? pendingSpace : "";
-      const gapWidth = gap.length;
+      const chunkWidth = visibleWidth(chunk);
+      const gapWidth = visibleWidth(gap);
 
-      if (currentWidth > 0 && currentWidth + chunk.length + gapWidth > width) {
+      if (currentWidth > 0 && currentWidth + chunkWidth + gapWidth > width) {
         flushLine();
       }
 
@@ -668,7 +691,7 @@ function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {
       }
 
       currentLine += applyFormatters(chunk, token.formatters);
-      currentWidth += chunk.length;
+      currentWidth += chunkWidth;
       pendingSpace = "";
 
       if (index < chunks.length - 1) {
@@ -685,14 +708,35 @@ function wrapTokens(tokens: readonly WrapToken[], width: number): string[] {
 }
 
 function splitWord(value: string, width: number): string[] {
-  if (value.length <= width) {
+  if (visibleWidth(value) <= width) {
     return [value];
   }
 
   const chunks: string[] = [];
+  let chunk = "";
+  let chunkWidth = 0;
 
-  for (let index = 0; index < value.length; index += width) {
-    chunks.push(value.slice(index, index + width));
+  for (const grapheme of graphemes(value)) {
+    const graphemeWidth = visibleWidth(grapheme);
+
+    if (chunk.length > 0 && chunkWidth + graphemeWidth > width) {
+      chunks.push(chunk);
+      chunk = "";
+      chunkWidth = 0;
+    }
+
+    chunk += grapheme;
+    chunkWidth += graphemeWidth;
+
+    if (chunkWidth >= width) {
+      chunks.push(chunk);
+      chunk = "";
+      chunkWidth = 0;
+    }
+  }
+
+  if (chunk.length > 0) {
+    chunks.push(chunk);
   }
 
   return chunks;
@@ -754,7 +798,10 @@ function formatAlertLabel(
   }
 }
 
-function renderTableCell(node: Extract<MdNode, { type: "tableCell" }>, context: RenderContext): string {
+function renderTableCell(
+  node: Extract<MdNode, { type: "tableCell" }>,
+  context: RenderContext
+): string {
   return wrapTokens(tokenizeInline(node.children, context), Number.MAX_SAFE_INTEGER).join(" ");
 }
 
@@ -808,8 +855,7 @@ function alignTableCell(
   width: number,
   align: Extract<MdNode, { type: "table" }>["align"][number]
 ): string {
-  const visibleWidth = stripAnsi(value).length;
-  const extraSpace = Math.max(0, width - visibleWidth);
+  const extraSpace = Math.max(0, width - visibleWidth(value));
 
   if (align === "right") {
     return `${" ".repeat(extraSpace)}${value}`;
@@ -845,4 +891,8 @@ function stripHtmlTags(value: string): string {
   }
 
   return output;
+}
+
+function visibleWidth(value: string): number {
+  return displayWidth(stripAnsi(value));
 }

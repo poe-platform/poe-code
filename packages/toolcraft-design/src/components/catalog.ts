@@ -1,6 +1,7 @@
 import type { ThemePalette } from "../tokens/colors.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
+import { text } from "./text.js";
 
 export type CatalogTone = "accent" | "muted" | "success" | "warning" | "error" | "info";
 
@@ -74,7 +75,7 @@ function renderTerminal(options: RenderCatalogOptions): string {
 }
 
 function escapeMarkdown(value: string): string {
-  return stripAnsi(value).replaceAll("`", "\\`");
+  return stripAnsi(value);
 }
 
 function renderMarkdown(options: RenderCatalogOptions): string {
@@ -95,7 +96,7 @@ function renderMarkdown(options: RenderCatalogOptions): string {
     }
     const items = group.items.map((item) => {
       const detail = item.detail === undefined ? "" : ` — ${escapeMarkdown(item.detail)}`;
-      return `- \`${escapeMarkdown(item.label)}\` \`${escapeMarkdown(item.value)}\`${detail}`;
+      return `- ${text.command(escapeMarkdown(item.label))} ${text.command(escapeMarkdown(item.value))}${detail}`;
     });
     blocks.push(`${header.join("\n\n")}\n\n${items.join("\n")}`);
   }

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { getTheme, resetThemeCache } from "../internal/theme-detect.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
+import { renderMarkdown } from "../terminal-markdown/index.js";
 import { renderCatalog } from "./catalog.js";
 
 const options = {
@@ -80,6 +81,26 @@ describe("renderCatalog", () => {
         "",
         "- `GET` `/health` — health get"
       ].join("\n")
+    );
+  });
+
+  it("renders markdown code spans that preserve backticks in labels and values", () => {
+    const markdown = withOutputFormat("markdown", () =>
+      renderCatalog({
+        theme: options.theme,
+        title: "API",
+        groups: [
+          {
+            title: "routes",
+            items: [{ label: "GET", value: "/bots/`id`", detail: "path contains backticks" }]
+          }
+        ]
+      })
+    );
+
+    expect(markdown).toContain("- `GET` `` /bots/`id` `` — path contains backticks");
+    expect(stripAnsi(renderMarkdown(markdown))).toContain(
+      "GET /bots/`id` — path contains backticks"
     );
   });
 

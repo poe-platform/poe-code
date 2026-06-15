@@ -20,7 +20,8 @@ function renderMarkdownCode(content: string): string {
     currentRun = 0;
   }
   const delimiter = "`".repeat(longestRun + 1);
-  return `${delimiter}${value}${delimiter}`;
+  const paddedValue = value.startsWith("`") || value.endsWith("`") ? ` ${value} ` : value;
+  return `${delimiter}${paddedValue}${delimiter}`;
 }
 
 function renderMarkdownLink(content: string): string {

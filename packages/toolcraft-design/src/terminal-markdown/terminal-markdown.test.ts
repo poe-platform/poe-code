@@ -167,6 +167,34 @@ describe("terminal markdown entrypoint", () => {
     );
   });
 
+  it("strips ANSI control sequences from markdown input before rendering", () => {
+    const clearOutput = renderMarkdown("before \u001b[2Jafter");
+    const redOutput = renderMarkdown("normal \u001b[31mred\u001b[0m text");
+
+    expect(clearOutput).not.toContain("\u001b[2J");
+    expect(redOutput).not.toContain("\u001b[31m");
+    expect(stripAnsi(clearOutput)).toBe("before after\n\n");
+    expect(stripAnsi(redOutput)).toBe("normal red text\n\n");
+  });
+
+  it("wraps markdown by terminal cells without splitting grapheme clusters", () => {
+    expect(
+      stripAnsi(renderMarkdown("abcd efgh", { width: 4 }))
+        .trimEnd()
+        .split("\n")
+    ).toEqual(["abcd", "efgh"]);
+    expect(
+      stripAnsi(renderMarkdown("你好世界", { width: 4 }))
+        .trimEnd()
+        .split("\n")
+    ).toEqual(["你好", "世界"]);
+    expect(
+      stripAnsi(renderMarkdown("😀", { width: 1 }))
+        .trimEnd()
+        .split("\n")
+    ).toEqual(["😀"]);
+  });
+
   it("renders long fenced code blocks completely", () => {
     const lines = Array.from({ length: 100 }, (_, index) => `line ${index + 1}`);
     const markdown = ["```txt", ...lines, "```"].join("\n");

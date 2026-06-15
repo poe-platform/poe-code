@@ -589,10 +589,9 @@ function buildInlineNodes(
   return normalizeInlineNodes(root);
 }
 
-function createDelimiterNode(kind: DelimiterPair["kind"]): Extract<
-  MdNode,
-  { type: "emphasis" | "strong" | "strikethrough" }
-> {
+function createDelimiterNode(
+  kind: DelimiterPair["kind"]
+): Extract<MdNode, { type: "emphasis" | "strong" | "strikethrough" }> {
   return { type: kind, children: [] };
 }
 
@@ -673,7 +672,11 @@ function normalizeInlineNode(node: MdNode): MdNode | null {
   return node;
 }
 
-function parseInlineCode(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
+function parseInlineCode(
+  input: string,
+  start: number,
+  offsets?: OffsetMap
+): ParsedInlineNode | null {
   const fenceLength = readRunLength(input, start, "`");
   let index = start + fenceLength;
 
@@ -686,17 +689,18 @@ function parseInlineCode(input: string, start: number, offsets?: OffsetMap): Par
     const closingFenceLength = readRunLength(input, index, "`");
 
     if (closingFenceLength === fenceLength) {
+      const value = normalizeInlineCodeValue(input.slice(start + fenceLength, index));
       return {
         node:
           offsets === undefined
             ? {
                 type: "inlineCode",
-                value: input.slice(start + fenceLength, index)
+                value
               }
             : withRange(
                 {
                   type: "inlineCode",
-                  value: input.slice(start + fenceLength, index)
+                  value
                 },
                 createRange(offsets, start, index + fenceLength)
               ),
@@ -708,6 +712,20 @@ function parseInlineCode(input: string, start: number, offsets?: OffsetMap): Par
   }
 
   return null;
+}
+
+function normalizeInlineCodeValue(value: string): string {
+  if (
+    value.length >= 2 &&
+    value.startsWith(" ") &&
+    value.endsWith(" ") &&
+    (value[1] === "`" || value[value.length - 2] === "`") &&
+    value.trim().length > 0
+  ) {
+    return value.slice(1, -1);
+  }
+
+  return value;
 }
 
 function parseLink(
@@ -742,7 +760,9 @@ function parseLink(
             : { offsets: sliceOffsetMap(offsets, label.contentStart, label.end - 1) })
         })
       },
-      offsets === undefined ? { start, end: destination.end } : createRange(offsets, start, destination.end)
+      offsets === undefined
+        ? { start, end: destination.end }
+        : createRange(offsets, start, destination.end)
     ),
     end: destination.end
   };
@@ -769,7 +789,9 @@ function parseImage(input: string, start: number, offsets?: OffsetMap): ParsedIn
         alt: decodeEscapes(label.value),
         ...(destination.title === undefined ? {} : { title: destination.title })
       },
-      offsets === undefined ? { start, end: destination.end } : createRange(offsets, start, destination.end)
+      offsets === undefined
+        ? { start, end: destination.end }
+        : createRange(offsets, start, destination.end)
     ),
     end: destination.end
   };
@@ -832,7 +854,7 @@ function parseLinkDestination(
   openParenIndex: number
 ): { url: string; title?: string; end: number } | null {
   let depth = 1;
-  let quote: "\"" | "'" | null = null;
+  let quote: '"' | "'" | null = null;
   let index = openParenIndex + 1;
 
   while (index < input.length) {
@@ -857,7 +879,7 @@ function parseLinkDestination(
       continue;
     }
 
-    if (char === "\"" || char === "'") {
+    if (char === '"' || char === "'") {
       quote = char;
       index += 1;
       continue;
@@ -898,7 +920,7 @@ function parseLinkDestinationContent(content: string): { url: string; title?: st
 
   const quote = content[trimmedEnd - 1];
 
-  if (quote === "\"" || quote === "'") {
+  if (quote === '"' || quote === "'") {
     const titleStart = findTrailingQuotedSegmentStart(content, trimmedEnd, quote);
 
     if (titleStart !== -1) {
@@ -920,11 +942,7 @@ function parseLinkDestinationContent(content: string): { url: string; title?: st
   return { url: decodeEscapes(trimAsciiWhitespace(content.slice(0, trimmedEnd))) };
 }
 
-function findTrailingQuotedSegmentStart(
-  content: string,
-  end: number,
-  quote: "\"" | "'"
-): number {
+function findTrailingQuotedSegmentStart(content: string, end: number, quote: '"' | "'"): number {
   let index = end - 2;
 
   while (index >= 0) {
@@ -969,7 +987,9 @@ function parseAutolink(input: string, start: number, offsets?: OffsetMap): Parse
         children: [
           createTextNode(
             url,
-            offsets === undefined ? { start: start + 1, end: index } : createRange(offsets, start + 1, index)
+            offsets === undefined
+              ? { start: start + 1, end: index }
+              : createRange(offsets, start + 1, index)
           )
         ]
       },
@@ -1017,13 +1037,19 @@ function parseFootnoteReference(
   return {
     node: withRange(
       { type: "footnoteReference", label },
-      offsets === undefined ? { start, end: labelEnd + 1 } : createRange(offsets, start, labelEnd + 1)
+      offsets === undefined
+        ? { start, end: labelEnd + 1 }
+        : createRange(offsets, start, labelEnd + 1)
     ),
     end: labelEnd + 1
   };
 }
 
-function parseLiteralAutolink(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
+function parseLiteralAutolink(
+  input: string,
+  start: number,
+  offsets?: OffsetMap
+): ParsedInlineNode | null {
   if (!isLiteralAutolinkBoundaryBefore(input, start)) {
     return null;
   }
@@ -1031,7 +1057,13 @@ function parseLiteralAutolink(input: string, start: number, offsets?: OffsetMap)
   const urlLiteral = parseLiteralUrlAutolink(input, start);
 
   if (urlLiteral !== null) {
-    return createLiteralAutolinkNode(urlLiteral.text, urlLiteral.url, start, urlLiteral.end, offsets);
+    return createLiteralAutolinkNode(
+      urlLiteral.text,
+      urlLiteral.url,
+      start,
+      urlLiteral.end,
+      offsets
+    );
   }
 
   const wwwLiteral = parseLiteralWwwAutolink(input, start);
@@ -1073,7 +1105,12 @@ function createLiteralAutolinkNode(
       {
         type: "link",
         url,
-        children: [createTextNode(text, offsets === undefined ? { start, end } : createRange(offsets, start, end))]
+        children: [
+          createTextNode(
+            text,
+            offsets === undefined ? { start, end } : createRange(offsets, start, end)
+          )
+        ]
       },
       offsets === undefined ? { start, end } : createRange(offsets, start, end)
     ),
@@ -1103,7 +1140,10 @@ function parseLiteralUrlAutolink(
   return { text, url: text, end: start + text.length };
 }
 
-function parseLiteralWwwAutolink(input: string, start: number): { text: string; end: number } | null {
+function parseLiteralWwwAutolink(
+  input: string,
+  start: number
+): { text: string; end: number } | null {
   if (!input.startsWith("www.", start)) {
     return null;
   }
@@ -1136,7 +1176,11 @@ function parseLiteralEmailAutolink(
   return { text, end: start + text.length };
 }
 
-function parseInlineHtmlTag(input: string, start: number, offsets?: OffsetMap): ParsedInlineNode | null {
+function parseInlineHtmlTag(
+  input: string,
+  start: number,
+  offsets?: OffsetMap
+): ParsedInlineNode | null {
   if (input[start] !== "<") {
     return null;
   }
@@ -1240,7 +1284,7 @@ function parseInlineHtmlTag(input: string, start: number, offsets?: OffsetMap): 
 
     const quote = input[index];
 
-    if (quote === "\"" || quote === "'") {
+    if (quote === '"' || quote === "'") {
       index += 1;
 
       while (index < input.length && input[index] !== quote) {
@@ -1258,7 +1302,7 @@ function parseInlineHtmlTag(input: string, start: number, offsets?: OffsetMap): 
     while (index < input.length && !isHtmlWhitespace(input[index]) && input[index] !== ">") {
       const char = input[index];
 
-      if (char === "\"" || char === "'" || char === "<" || char === "=" || char === "`") {
+      if (char === '"' || char === "'" || char === "<" || char === "=" || char === "`") {
         return null;
       }
 
@@ -1515,7 +1559,7 @@ function skipHtmlWhitespace(value: string, start: number): number {
 function isEscapable(value: string): boolean {
   return (
     value === "!" ||
-    value === "\"" ||
+    value === '"' ||
     value === "#" ||
     value === "$" ||
     value === "%" ||
@@ -1574,7 +1618,15 @@ function isDigit(value: string): boolean {
 }
 
 function isEmailLocalPartChar(value: string): boolean {
-  return isAsciiLetter(value) || isDigit(value) || value === "." || value === "_" || value === "%" || value === "+" || value === "-";
+  return (
+    isAsciiLetter(value) ||
+    isDigit(value) ||
+    value === "." ||
+    value === "_" ||
+    value === "%" ||
+    value === "+" ||
+    value === "-"
+  );
 }
 
 function isEmailDomainChar(value: string): boolean {
@@ -1594,12 +1646,7 @@ function isHtmlAttributeNameStartChar(value: string): boolean {
 }
 
 function isHtmlAttributeNameChar(value: string): boolean {
-  return (
-    isHtmlAttributeNameStartChar(value) ||
-    isDigit(value) ||
-    value === "-" ||
-    value === "."
-  );
+  return isHtmlAttributeNameStartChar(value) || isDigit(value) || value === "-" || value === ".";
 }
 
 function createRange(offsets: OffsetMap, start: number, end: number): MdRange {
@@ -1622,8 +1669,7 @@ function createOffsetMap(input: string, absoluteStart = 0): number[] {
     offsets[index] = byteOffset;
     const codePoint = input.codePointAt(index) ?? 0;
     const codeUnitLength = codePoint > 0xffff ? 2 : 1;
-    const byteLength =
-      codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
+    const byteLength = codePoint <= 0x7f ? 1 : codePoint <= 0x7ff ? 2 : codePoint <= 0xffff ? 3 : 4;
 
     for (let offsetIndex = 1; offsetIndex < codeUnitLength; offsetIndex += 1) {
       offsets[index + offsetIndex] = byteOffset;

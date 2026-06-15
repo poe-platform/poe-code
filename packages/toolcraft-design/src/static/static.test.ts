@@ -177,6 +177,14 @@ describe("static/spinner", () => {
     expect(stopped).toBe("- Done - **error:** deploy failed\n");
   });
 
+  it("keeps running markdown spinner messages in one item", () => {
+    const frame = withOutputFormat("markdown", () =>
+      renderSpinnerFrame({ message: "Uploading\n- injected item", timer: "1s\n- forged" })
+    );
+
+    expect(frame).toBe("- Uploading - injected item [1s - forged]...\n");
+  });
+
   it("renders json spinner output", () => {
     const frame = withOutputFormat("json", () =>
       renderSpinnerFrame({ message: "Loading", timer: "1s" })

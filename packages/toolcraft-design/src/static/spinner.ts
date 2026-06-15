@@ -14,7 +14,7 @@ export function renderSpinnerFrame(options: SpinnerFrameOptions): string {
   const format = resolveOutputFormat();
 
   if (format === "markdown") {
-    return `- ${options.message}${options.timer ? ` [${options.timer}]` : ""}...\n`;
+    return `- ${renderMarkdownInline(options.message)}${options.timer ? ` [${renderMarkdownInline(options.timer)}]` : ""}...\n`;
   }
 
   if (format === "json") {

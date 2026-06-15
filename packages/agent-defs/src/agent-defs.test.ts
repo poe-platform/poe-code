@@ -118,6 +118,19 @@ describe("agent-defs package", () => {
     expect(agent.configPath.startsWith("~/")).toBe(true);
   });
 
+  it("exposes MCP config paths for agents managed by agent-mcp-config", () => {
+    expect(claudeCodeAgent.configPath).toBe("~/.claude.json");
+    expect(claudeDesktopAgent.configPath).toBe("~/.config/Claude/claude_desktop_config.json");
+    expect(claudeDesktopAgent.configPaths).toEqual({
+      darwin: "~/Library/Application Support/Claude/claude_desktop_config.json",
+      linux: "~/.config/Claude/claude_desktop_config.json",
+      win32: "~/AppData/Roaming/Claude/claude_desktop_config.json"
+    });
+    expect(cursorAgent.configPath).toBe("~/.cursor/mcp.json");
+    expect(openCodeAgent.configPath).toBe("~/.config/opencode/opencode.json");
+    expect(kimiAgent.configPath).toBe("~/.kimi/mcp.json");
+  });
+
   it("declares api shapes for every provider-backed agent", () => {
     const agentsById = new Map(allAgents.map((agent) => [agent.id, agent]));
 
@@ -218,6 +231,11 @@ describe("parseAgentSpecifier", () => {
       model: "claude-opus-4.6"
     });
   });
+
+  it("rejects model-only specifiers without an agent", () => {
+    expect(() => parseAgentSpecifier(":openai/gpt-5")).toThrow("agent must not be empty");
+    expect(() => parseAgentSpecifier(" : openai/gpt-5 ")).toThrow("agent must not be empty");
+  });
 });
 
 describe("normalizeAgentId", () => {
@@ -229,6 +247,10 @@ describe("normalizeAgentId", () => {
     expect(normalizeAgentId("claude:anthropic/claude-opus-4.6")).toBe(
       "claude-code:anthropic/claude-opus-4.6"
     );
+  });
+
+  it("rejects model-only inline specifiers", () => {
+    expect(() => normalizeAgentId(" : openai/gpt-5 ")).toThrow("agent must not be empty");
   });
 
   it("returns unknown agents unchanged apart from trimming", () => {
@@ -255,6 +277,22 @@ describe("formatAgentSpecifier", () => {
 
   it("formats agent when model is undefined", () => {
     expect(formatAgentSpecifier({ agent: "codex", model: undefined })).toBe("codex");
+  });
+
+  it("trims formatted agent and model values and omits blank models", () => {
+    expect(formatAgentSpecifier({ agent: " claude-code ", model: " model " })).toBe(
+      "claude-code:model"
+    );
+    expect(formatAgentSpecifier({ agent: "claude-code", model: "   " })).toBe("claude-code");
+  });
+
+  it("rejects formatted specifiers without an agent", () => {
+    expect(() => formatAgentSpecifier({ agent: "", model: "openai/gpt-5" })).toThrow(
+      "agent must not be empty"
+    );
+    expect(() => formatAgentSpecifier({ agent: "   ", model: undefined })).toThrow(
+      "agent must not be empty"
+    );
   });
 
   it("formats agent-only specifiers without inherited models", async () => {

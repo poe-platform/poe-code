@@ -20,6 +20,11 @@ export interface AgentDefinition {
   readonly apiShapes?: readonly ApiShapeId[];
   readonly otelCapture?: OtelCaptureDefinition;
   configPath: string;
+  readonly configPaths?: {
+    readonly darwin: string;
+    readonly linux: string;
+    readonly win32: string;
+  };
   branding: {
     colors: {
       dark: string;

@@ -20,14 +20,24 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
   return hasOwnEntry(record, key) ? record[key] : undefined;
 }
 
+function invalidAgentError(id: string): Error {
+  return new Error(`Participant "${id}" must define a non-empty agent.`);
+}
+
+function validateAgentSpecifier(id: string, value: string): void {
+  try {
+    parseAgentSpecifier(value);
+  } catch {
+    throw invalidAgentError(id);
+  }
+}
+
 function normalizeParticipantAgent(id: string, value: unknown): string | string[] {
   if (typeof value === "string") {
-    if (parseAgentSpecifier(value).agent.length === 0) {
-      throw new Error(`Participant "${id}" must define a non-empty agent.`);
-    }
+    validateAgentSpecifier(id, value);
     const normalized = normalizeAgentId(value);
     if (normalized.length === 0) {
-      throw new Error(`Participant "${id}" must define a non-empty agent.`);
+      throw invalidAgentError(id);
     }
     return normalized;
   }
@@ -49,12 +59,10 @@ function normalizeParticipantAgent(id: string, value: unknown): string | string[
       );
     }
 
-    if (parseAgentSpecifier(entry).agent.length === 0) {
-      throw new Error(`Participant "${id}" must define a non-empty agent.`);
-    }
+    validateAgentSpecifier(id, entry);
     const normalized = normalizeAgentId(entry);
     if (normalized.length === 0) {
-      throw new Error(`Participant "${id}" must define a non-empty agent.`);
+      throw invalidAgentError(id);
     }
 
     return normalized;

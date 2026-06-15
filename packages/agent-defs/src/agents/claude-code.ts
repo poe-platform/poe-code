@@ -13,7 +13,7 @@ export const claudeCodeAgent: AgentDefinition = {
       CLAUDE_CODE_ENABLE_TELEMETRY: "1"
     }
   },
-  configPath: "~/.claude/settings.json",
+  configPath: "~/.claude.json",
   branding: {
     colors: {
       dark: "#C15F3C",

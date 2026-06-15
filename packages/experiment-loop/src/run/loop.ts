@@ -182,11 +182,11 @@ function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[]
   }
 
   return raw.map((value) => {
-    const specifier = parseAgentSpecifier(value);
-    if (specifier.agent.length === 0) {
+    try {
+      return parseAgentSpecifier(value);
+    } catch {
       throw new Error("Agent specifier must include an agent id.");
     }
-    return specifier;
   });
 }
 

@@ -12,7 +12,7 @@ export const openCodeAgent: AgentDefinition = {
       OPENCODE_CONFIG_CONTENT: '{"experimental":{"openTelemetry":true}}'
     }
   },
-  configPath: "~/.config/opencode/config.json",
+  configPath: "~/.config/opencode/opencode.json",
   branding: {
     colors: {
       dark: "#4A4F55",

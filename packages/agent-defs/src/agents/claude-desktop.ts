@@ -5,7 +5,12 @@ export const claudeDesktopAgent: AgentDefinition = {
   name: "claude-desktop",
   label: "Claude Desktop",
   summary: "Anthropic's official desktop application for Claude",
-  configPath: "~/.claude/settings.json",
+  configPath: "~/.config/Claude/claude_desktop_config.json",
+  configPaths: {
+    darwin: "~/Library/Application Support/Claude/claude_desktop_config.json",
+    linux: "~/.config/Claude/claude_desktop_config.json",
+    win32: "~/AppData/Roaming/Claude/claude_desktop_config.json"
+  },
   branding: {
     colors: {
       dark: "#D97757",

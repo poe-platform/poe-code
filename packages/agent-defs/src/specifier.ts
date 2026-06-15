@@ -9,27 +9,37 @@ function getOwnModel(specifier: AgentSpecifier): string | undefined {
   return Object.prototype.hasOwnProperty.call(specifier, "model") ? specifier.model : undefined;
 }
 
+function requireNonBlank(value: string, field: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new TypeError(`${field} must not be empty`);
+  }
+  return trimmed;
+}
+
 export function parseAgentSpecifier(input: string): AgentSpecifier {
   const colonIndex = input.indexOf(":");
   if (colonIndex === -1) {
-    return { agent: input.trim() };
+    return { agent: requireNonBlank(input, "agent") };
   }
 
-  const agent = input.slice(0, colonIndex).trim();
+  const agent = requireNonBlank(input.slice(0, colonIndex), "agent");
   const model = input.slice(colonIndex + 1).trim();
 
   return {
     agent,
-    ...(model.length > 0 ? { model } : {}),
+    ...(model.length > 0 ? { model } : {})
   };
 }
 
 export function formatAgentSpecifier(specifier: AgentSpecifier): string {
+  const agent = requireNonBlank(specifier.agent, "agent");
   const model = getOwnModel(specifier);
-  if (model) {
-    return `${specifier.agent}:${model}`;
+  const normalizedModel = model?.trim();
+  if (normalizedModel) {
+    return `${agent}:${normalizedModel}`;
   }
-  return specifier.agent;
+  return agent;
 }
 
 export function normalizeAgentId(input: string): string {

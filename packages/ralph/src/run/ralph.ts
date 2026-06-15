@@ -421,11 +421,11 @@ function normalizeAgents(
     if (trimmed.length === 0) {
       throw new Error("agent entries must be non-empty strings.");
     }
-    const specifier = parseAgentSpecifier(trimmed);
-    if (specifier.agent.length === 0) {
+    try {
+      return parseAgentSpecifier(trimmed);
+    } catch {
       throw new Error("agent entries must include a non-empty agent id.");
     }
-    return specifier;
   });
 }
 

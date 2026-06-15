@@ -7,7 +7,7 @@ export const cursorAgent: AgentDefinition = {
   label: "Cursor",
   summary: "Cursor's CLI coding agent.",
   binaryName: "cursor-agent",
-  configPath: "~/.cursor/cli-config.json",
+  configPath: "~/.cursor/mcp.json",
   branding: {
     colors: {
       dark: "#FFFFFF",

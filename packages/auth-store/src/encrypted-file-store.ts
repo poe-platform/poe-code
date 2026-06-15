@@ -66,10 +66,13 @@ export class EncryptedFileStore implements SecretStore {
     if (input.filePath === undefined) {
       const homeDirectory = (input.getHomeDirectory ?? homedir)();
       const defaultDirectory = input.defaultDirectory ?? ".auth-store";
+      const defaultFileName = input.defaultFileName ?? "credentials.enc";
+      assertSafeDefaultDirectory(defaultDirectory);
+      assertSafeDefaultFileName(defaultFileName);
       this.filePath = path.join(
         homeDirectory,
         defaultDirectory,
-        input.defaultFileName ?? "credentials.enc"
+        defaultFileName
       );
       this.symbolicLinkCheckStartPath = resolveDefaultDirectoryCheckStart(
         homeDirectory,
@@ -224,7 +227,7 @@ function getProtectedCredentialPaths(
   symbolicLinkCheckStartPath: string | null
 ): string[] {
   if (symbolicLinkCheckStartPath === null) {
-    return [path.dirname(resolvedPath), resolvedPath];
+    return getExplicitProtectedCredentialPaths(resolvedPath);
   }
 
   const resolvedStartPath = path.resolve(symbolicLinkCheckStartPath);
@@ -236,6 +239,58 @@ function getProtectedCredentialPaths(
   let currentPath = resolvedStartPath;
   for (const segment of path.relative(resolvedStartPath, resolvedPath).split(path.sep).filter(Boolean)) {
     currentPath = path.join(currentPath, segment);
+    protectedPaths.push(currentPath);
+  }
+  return protectedPaths;
+}
+
+function assertSafeDefaultDirectory(defaultDirectory: string): void {
+  if (path.isAbsolute(defaultDirectory) || path.win32.isAbsolute(defaultDirectory)) {
+    throw new Error("defaultDirectory must be a relative path inside the home directory");
+  }
+
+  for (const segment of splitPathSegments(defaultDirectory)) {
+    if (segment === "..") {
+      throw new Error("defaultDirectory must be a relative path inside the home directory");
+    }
+  }
+}
+
+function assertSafeDefaultFileName(defaultFileName: string): void {
+  if (
+    defaultFileName.trim().length === 0 ||
+    defaultFileName === "." ||
+    defaultFileName === ".." ||
+    splitPathSegments(defaultFileName).length !== 1
+  ) {
+    throw new Error("defaultFileName must be a file name without path separators");
+  }
+}
+
+function splitPathSegments(value: string): string[] {
+  return value
+    .split("/")
+    .flatMap((segment) => segment.split("\\"))
+    .filter((segment) => segment.length > 0);
+}
+
+function getExplicitProtectedCredentialPaths(resolvedPath: string): string[] {
+  const parsed = path.parse(resolvedPath);
+  const segments = resolvedPath
+    .slice(parsed.root.length)
+    .split(path.sep)
+    .filter((segment) => segment.length > 0);
+  if (segments.length <= 1) {
+    return [resolvedPath];
+  }
+
+  const protectedPaths: string[] = [];
+  let currentPath = parsed.root;
+  for (const [index, segment] of segments.entries()) {
+    currentPath = path.join(currentPath, segment);
+    if (index === 0) {
+      continue;
+    }
     protectedPaths.push(currentPath);
   }
   return protectedPaths;

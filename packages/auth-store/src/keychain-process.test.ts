@@ -26,7 +26,7 @@ describe("KeychainStore process termination", () => {
     vi.doUnmock("node:child_process");
   });
 
-  it("routes security helper stdin errors through command diagnostics", async () => {
+  it("routes security helper stderr through command diagnostics", async () => {
     const spawn = vi.fn();
     vi.doMock("node:child_process", () => ({ spawn }));
     vi.resetModules();
@@ -44,7 +44,6 @@ describe("KeychainStore process termination", () => {
 
     const result = store.set("secret-value");
     await vi.waitFor(() => expect(spawn).toHaveBeenCalled());
-    child.stdin.emit("error", new Error("write EPIPE"));
     child.stderr.emit("data", "security failed");
     child.emit("close", 1);
 
@@ -52,7 +51,7 @@ describe("KeychainStore process termination", () => {
       "Failed to store secret in macOS Keychain: security exited with code 1"
     );
     await expect(result).rejects.toThrow("security failed");
-    await expect(result).rejects.toThrow("write EPIPE");
+    expect(child.stdin.end).not.toHaveBeenCalled();
     vi.doUnmock("node:child_process");
   });
 });

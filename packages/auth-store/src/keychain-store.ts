@@ -33,8 +33,14 @@ export class KeychainStore implements SecretStore {
 
   constructor(input: KeychainStoreInput) {
     this.runCommand = input.runCommand ?? runSecurityCommand;
-    this.service = input.service;
-    this.account = input.account;
+    this.service = input.service.trim();
+    this.account = input.account.trim();
+    if (this.service.length === 0) {
+      throw new Error("Keychain service must not be empty");
+    }
+    if (this.account.length === 0) {
+      throw new Error("Keychain account must not be empty");
+    }
   }
 
   async get(): Promise<string | null> {
@@ -67,10 +73,10 @@ export class KeychainStore implements SecretStore {
         "-a",
         this.account,
         "-U",
-        "-w"
+        "-w",
+        value
       ],
-      "store secret in macOS Keychain",
-      { stdin: value }
+      "store secret in macOS Keychain"
     );
 
     if (getCommandExitCode(result) !== 0) {

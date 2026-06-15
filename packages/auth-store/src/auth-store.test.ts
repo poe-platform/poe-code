@@ -108,6 +108,37 @@ describe("createSecretStore", () => {
     expect(await result.store.get()).toBe("test-secret");
   });
 
+  it("trims backend environment values before selecting a store", async () => {
+    const fs = createMemFs();
+    const fileResult = createSecretStore({
+      backendEnvVar: "MY_AUTH_BACKEND",
+      env: { MY_AUTH_BACKEND: " file " },
+      platform: "linux",
+      fileStore: {
+        fs,
+        filePath: "/home/test/.app/credentials.enc",
+        salt: "test-app:store:v1",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+      }
+    });
+
+    expect(fileResult.backend).toBe("file");
+
+    const runCommand = createKeychainCommandRunner();
+    const keychainResult = createSecretStore({
+      backendEnvVar: "MY_AUTH_BACKEND",
+      env: { MY_AUTH_BACKEND: " keychain " },
+      platform: "darwin",
+      keychainStore: {
+        runCommand,
+        service: "my-app",
+        account: "secret"
+      }
+    });
+
+    expect(keychainResult.backend).toBe("keychain");
+  });
+
   it("uses keychain backend when env var is set to keychain on macOS", async () => {
     const runCommand = createKeychainCommandRunner();
 
@@ -133,8 +164,9 @@ describe("createSecretStore", () => {
       "-a",
       "secret",
       "-U",
-      "-w"
-    ], { stdin: "keychain-secret" });
+      "-w",
+      "keychain-secret"
+    ]);
   });
 
   it("ignores inherited backend environment values", async () => {
@@ -308,6 +340,28 @@ describe("EncryptedFileStore", () => {
     await expect(store.get()).resolves.toBe("default-path-value");
   });
 
+  it("rejects default directories that escape the home directory", () => {
+    expect(() => new EncryptedFileStore({
+      fs: createStatMemFs(),
+      salt: ENCRYPTED_STORE_SALT,
+      defaultDirectory: "../outside-auth",
+      defaultFileName: "credentials.enc",
+      getHomeDirectory: () => "/home/custom",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    })).toThrow("defaultDirectory must be a relative path inside the home directory");
+  });
+
+  it("rejects default file names that escape the default directory", () => {
+    expect(() => new EncryptedFileStore({
+      fs: createStatMemFs(),
+      salt: ENCRYPTED_STORE_SALT,
+      defaultDirectory: ".my-app",
+      defaultFileName: "../../outside.enc",
+      getHomeDirectory: () => "/home/custom",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    })).toThrow("defaultFileName must be a file name without path separators");
+  });
+
   it("sets 0600 permissions when writing credentials", async () => {
     const fs = createStatMemFs();
     const filePath = "/home/test/.app/credentials.enc";
@@ -405,6 +459,29 @@ describe("EncryptedFileStore", () => {
     await store.set("secret-value");
 
     await expect(store.get()).resolves.toBe("secret-value");
+  });
+
+  it("rejects explicit credential paths beneath a symlinked ancestor", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/home/test", { recursive: true });
+    await fs.mkdir("/outside/subdir", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/home/test/.app"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/subdir/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(store.get()).rejects.toThrow(/symbolic link/i);
+    await expect(store.delete()).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/subdir/credentials.enc", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("removes a new credential when permission hardening fails", async () => {
@@ -629,9 +706,22 @@ describe("KeychainStore", () => {
       "-a",
       "secret",
       "-U",
-      "-w"
-    ], { stdin: "my-secret-value" });
-    expect(runCommand.mock.calls[0]?.[1]).not.toContain("my-secret-value");
+      "-w",
+      "my-secret-value"
+    ]);
+    expect(runCommand.mock.calls[0]?.[2]).toBeUndefined();
+  });
+
+  it("rejects blank keychain service and account names", () => {
+    expect(() => new KeychainStore({ service: "", account: "secret" })).toThrow(
+      "Keychain service must not be empty"
+    );
+    expect(() => new KeychainStore({ service: "my-app", account: "" })).toThrow(
+      "Keychain account must not be empty"
+    );
+    expect(() => new KeychainStore({ service: "   ", account: "   " })).toThrow(
+      "Keychain service must not be empty"
+    );
   });
 
   it("reads secret with security find-generic-password", async () => {

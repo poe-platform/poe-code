@@ -48,16 +48,17 @@ function resolveBackend(input: CreateSecretStoreInput): StoreBackend {
   const envVar = input.backendEnvVar ?? DEFAULT_BACKEND_ENV_VAR;
   const configuredBackend =
     input.backend ?? getOwnEnvValue(input.env, envVar) ?? getOwnEnvValue(process.env, envVar);
+  const backend = configuredBackend?.trim();
 
-  if (configuredBackend === "keychain") {
+  if (backend === "keychain") {
     return "keychain";
   }
 
-  if (configuredBackend === undefined || configuredBackend === "file") {
+  if (backend === undefined || backend === "file") {
     return "file";
   }
 
-  throw new Error(`Unsupported auth store backend: ${configuredBackend}`);
+  throw new Error(`Unsupported auth store backend: ${backend}`);
 }
 
 function getOwnEnvValue(

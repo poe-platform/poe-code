@@ -13,6 +13,7 @@ import {
   parseCodeReviewConfigDocument,
   parseCodeReviewProfileDirectories
 } from "./config-scope.js";
+import { requireSafeDocumentSegment } from "./document-schemas.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveCodeReviewStoreDirectory } from "./review-store.js";
 
@@ -164,7 +165,7 @@ export async function resolveCodeReviewRunOptions(
     ),
     ...(inputProfilePath === undefined ? {} : { profilePath: inputProfilePath as string }),
     ...(inputPromptPath === undefined ? {} : { promptPath: inputPromptPath as string }),
-    ...(inputProfiles === undefined ? {} : { profiles: inputProfiles as string[] }),
+    ...(inputProfiles === undefined ? {} : { profiles: requireProfileFilters(inputProfiles) }),
     ...(inputAdditionalFeedback === undefined
       ? {}
       : { additionalFeedback: inputAdditionalFeedback as string })
@@ -233,6 +234,19 @@ function requireNonEmptyString(value: unknown, field: string): string {
     throw new Error(`${field} must be a non-empty string.`);
   }
   return normalized;
+}
+
+function requireProfileFilters(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    throw new Error("profiles must be an array of safe profile names.");
+  }
+  return value.map((profile) => {
+    try {
+      return requireSafeDocumentSegment(profile, "profiles");
+    } catch {
+      throw new Error("profiles must be an array of safe profile names.");
+    }
+  });
 }
 
 function isMissingFileError(error: unknown): boolean {

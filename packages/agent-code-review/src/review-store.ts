@@ -533,7 +533,6 @@ async function samePublishedState(sourcePath: string, archivePath: string): Prom
   }
 }
 
-
 function hasUnresolvedPublicationClaim(state: CodeReviewState): boolean {
   for (let index = state.orchestratorActions.length - 1; index >= 0; index -= 1) {
     const action = state.orchestratorActions[index]?.action;
@@ -583,8 +582,8 @@ async function withFileLock<T>(
 
 async function isStaleLock(lockPath: string, lockTimeoutMs: number): Promise<boolean> {
   try {
-    const ownerPid = Number.parseInt((await readFile(lockPath, "utf8")).trim(), 10);
-    if (Number.isSafeInteger(ownerPid) && ownerPid > 0) {
+    const ownerPid = parseLockOwnerPid((await readFile(lockPath, "utf8")).trim());
+    if (ownerPid !== undefined) {
       return !isRunningProcess(ownerPid);
     }
     return Date.now() - (await stat(lockPath)).mtimeMs >= lockTimeoutMs;
@@ -594,6 +593,14 @@ async function isStaleLock(lockPath: string, lockTimeoutMs: number): Promise<boo
     }
     throw error;
   }
+}
+
+function parseLockOwnerPid(value: string): number | undefined {
+  const processId = Number(value);
+  if (!Number.isSafeInteger(processId) || processId <= 0) {
+    return undefined;
+  }
+  return String(processId) === value ? processId : undefined;
 }
 
 function isRunningProcess(processId: number): boolean {

@@ -200,6 +200,21 @@ describe("codeReview config", () => {
     });
   });
 
+  it("rejects non-array SDK profile filters", async () => {
+    const fs = createMockFs();
+
+    await expect(
+      resolveCodeReviewRunOptions(
+        {
+          prUrl: "https://github.com/poe-platform/poe-code/pull/42",
+          cwd: "/repo",
+          profiles: "generic" as unknown as string[]
+        },
+        { fs, filePath: homeConfigPath, projectFilePath: projectConfigPath }
+      )
+    ).rejects.toThrow("profiles must be an array of safe profile names.");
+  });
+
   it("rejects relative external profile directories", async () => {
     const fs = createMockFs({
       [projectConfigPath]: JSON.stringify({

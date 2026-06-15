@@ -111,6 +111,29 @@ describe("CodeReviewYamlStore.startRun resume semantics", () => {
     }
   });
 
+  it("falls back to lock age for corrupt PID lock owners", async () => {
+    const store = new CodeReviewYamlStore({ directory, lockTimeoutMs: 0 });
+    memoryFileSystem.volume.mkdirSync(directory, { recursive: true });
+    const lockPath = `${directory}/${codeReviewFileName(PR_URL)}.lock`;
+    memoryFileSystem.volume.writeFileSync(lockPath, "1abc\n");
+    const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+    try {
+      await expect(
+        store.startRun({
+          sessionId: "session-1",
+          prUrl: PR_URL,
+          selectedAgent: "codex",
+          selectedProfiles: [PROFILE]
+        })
+      ).resolves.toMatchObject({ sessionId: "session-1" });
+      expect(killSpy).not.toHaveBeenCalled();
+      expect(memoryFileSystem.volume.existsSync(lockPath)).toBe(false);
+    } finally {
+      killSpy.mockRestore();
+    }
+  });
+
   it("round-trips prototype-named actors through persisted YAML state", async () => {
     const store = new CodeReviewYamlStore({ directory });
     const profile = "__proto__";

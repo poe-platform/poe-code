@@ -11,7 +11,7 @@ type CodeReviewPromptRole = (typeof CODE_REVIEW_PROMPT_ROLES)[number];
 
 const FRONTMATTER_RE = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)([\s\S]*)$/;
 const SAFE_SEGMENT_RE = /^[A-Za-z0-9._-]+$/;
-const SAFE_GITHUB_ACTOR_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+const SAFE_GITHUB_ACTOR_RE = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/;
 
 export interface CodeReviewProfileMetadata {
   version: 1;
@@ -259,9 +259,6 @@ export function serializeCodeReviewIngestSource(
 function parseOptionalFrontmatter(content: string, filePath: string) {
   const match = content.match(FRONTMATTER_RE);
   if (!match) {
-    if (/^---\r?\n/.test(content)) {
-      throw new Error(`${filePath}: frontmatter is missing a closing --- delimiter.`);
-    }
     return { body: content };
   }
   try {

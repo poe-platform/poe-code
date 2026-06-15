@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createCodeReviewState } from "./review-store.js";
 import { spawn } from "@poe-code/agent-spawn";
+import { toJsonSchema } from "toolcraft-schema";
 import { createCodeReviewAgentMcpConfig, createCodeReviewAgentMcpGroup } from "./mcp.js";
 import { parseCodeReviewAgentMcpArgs } from "./mcp.js";
 
@@ -49,7 +50,7 @@ describe("createCodeReviewAgentMcpConfig", () => {
         agent: "codex",
         profileDirectories: ["/catalog-a", "/catalog-b"]
       }).args
-    ).toContain("[\"/catalog-a\",\"/catalog-b\"]");
+    ).toContain('["/catalog-a","/catalog-b"]');
   });
 
   it("parses external profile directories from spawned MCP args", () => {
@@ -130,6 +131,40 @@ describe("createCodeReviewAgentMcpConfig", () => {
 });
 
 describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
+  it("exposes integer schemas for inline comment line numbers and indexes", () => {
+    const group = createCodeReviewAgentMcpGroup({
+      role: "orchestrator",
+      session: "session-1",
+      actor: "orchestrator",
+      cwd: "/repo",
+      agent: "codex"
+    });
+    const schemaFor = (name: string) => {
+      const command = group.children.find((child) => child.name === name);
+      expect(command).toBeDefined();
+      return toJsonSchema(command?.params);
+    };
+
+    expect(schemaFor("code_review_create_draft")).toMatchObject({
+      properties: {
+        comments: {
+          items: { properties: { line: { type: "integer", minimum: 1 } } }
+        }
+      }
+    });
+    expect(schemaFor("code_review_edit_inline_comment")).toMatchObject({
+      properties: {
+        index: { type: "integer", minimum: 0 },
+        line: { type: "integer", minimum: 1 }
+      }
+    });
+    expect(schemaFor("code_review_delete_inline_comment")).toMatchObject({
+      properties: {
+        index: { type: "integer", minimum: 0 }
+      }
+    });
+  });
+
   it.each(["codex", "claude-code", "claude", "CLAUDE"])(
     "spawns %s nested reviewers using stdin-safe prompt transport",
     async (agent) => {
@@ -252,5 +287,39 @@ describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
     });
     expect(store.deleteMergedInlineComment).toHaveBeenCalledWith(state.prUrl, 0);
     expect(store.discardMergedReview).toHaveBeenCalledWith(state.prUrl);
+  });
+});
+
+describe("createCodeReviewAgentMcpGroup subagent tools", () => {
+  it("does not create orphan draft state for subagent raw reviews", async () => {
+    const store = {
+      read: vi.fn(async () => undefined),
+      create: vi.fn(),
+      addRawReview: vi.fn()
+    };
+    const group = createCodeReviewAgentMcpGroup(
+      {
+        role: "subagent",
+        session: "session-1",
+        actor: "generic",
+        cwd: "/repo",
+        agent: "codex",
+        profiles: ["generic"]
+      },
+      { store: store as never }
+    );
+    const command = group.children.find((child) => child.name === "code_review_create_draft");
+
+    await expect(
+      command?.handler({
+        params: {
+          pr: "https://github.com/acme/other/pull/99",
+          body: "Looks good.",
+          comments: []
+        }
+      } as never)
+    ).rejects.toThrow("No draft review exists for pull request");
+    expect(store.create).not.toHaveBeenCalled();
+    expect(store.addRawReview).not.toHaveBeenCalled();
   });
 });

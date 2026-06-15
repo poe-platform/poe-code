@@ -58,11 +58,17 @@ export interface CodeReviewAgentMcpDependencies {
 
 const inlineCommentSchema = S.Object({
   path: S.String({ description: "Repository-relative path in the PR diff." }),
-  line: S.Number({ description: "Right-side line number in the PR diff." }),
+  line: S.Number({
+    description: "Right-side line number in the PR diff.",
+    jsonType: "integer",
+    minimum: 1
+  }),
   body: S.String({ description: "Inline review comment body." })
 });
 const inlineCommentIndexSchema = S.Number({
-  description: "Zero-based merged review inline comment index."
+  description: "Zero-based merged review inline comment index.",
+  jsonType: "integer",
+  minimum: 0
 });
 
 const prParam = S.String({ description: "GitHub pull request URL." });
@@ -199,7 +205,10 @@ export function createCodeReviewAgentMcpGroup(
     handler: async ({ params }) => {
       const pr = canonicalPullRequestUrl(params.pr);
       const draft = validateDraft(params);
-      const currentState = await ensureState(store, context, pr);
+      const currentState =
+        context.role === "orchestrator"
+          ? await ensureState(store, context, pr)
+          : await requireState(store, context, pr);
       if (context.role === "orchestrator") {
         const unfinishedProfiles = Object.values(currentState.subagents)
           .filter(({ status }) => status === "pending" || status === "running")
@@ -407,7 +416,11 @@ export function createCodeReviewAgentMcpGroup(
       pr: prParam,
       index: inlineCommentIndexSchema,
       path: S.String({ description: "Repository-relative path in the PR diff." }),
-      line: S.Number({ description: "Right-side line number in the PR diff." }),
+      line: S.Number({
+        description: "Right-side line number in the PR diff.",
+        jsonType: "integer",
+        minimum: 1
+      }),
       body: S.String({ description: "Inline review comment body." })
     }),
     handler: async ({ params }) => {

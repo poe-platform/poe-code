@@ -3,6 +3,7 @@ import open from "open";
 import { createOAuthClient } from "poe-oauth";
 
 const CLIENT_ID = "client_728290227fc048cc9262091a1ea197ea";
+const MAX_VALID_EPOCH_MS = 8_640_000_000_000_000;
 
 type AuthHook = NonNullable<Hooks["auth"]>;
 type OAuthMethod = Extract<AuthHook["methods"][number], { type: "oauth" }>;
@@ -10,20 +11,34 @@ type AuthOauthResult = Awaited<ReturnType<OAuthMethod["authorize"]>>;
 
 function getExpiry(expiresIn: unknown): number {
   if (expiresIn === null) {
-    return Number.MAX_SAFE_INTEGER;
+    return MAX_VALID_EPOCH_MS;
   }
 
-  if (typeof expiresIn !== "number" || !Number.isFinite(expiresIn) || expiresIn < 0) {
-    throw new Error("Poe API key has invalid expiration metadata. Run `opencode providers login` again.");
+  if (
+    typeof expiresIn !== "number" ||
+    !Number.isFinite(expiresIn) ||
+    !Number.isInteger(expiresIn) ||
+    expiresIn < 0
+  ) {
+    throw new Error(
+      "Poe API key has invalid expiration metadata. Run `opencode providers login` again."
+    );
   }
 
-  return Date.now() + expiresIn * 1000;
+  const expires = Date.now() + expiresIn * 1000;
+  assertValidExpiryTimestamp(expires);
+  return expires;
 }
 
 function requireApiKey(value: unknown): string {
   const apiKey = typeof value === "string" ? value.trim() : "";
   if (apiKey.length === 0) {
     throw new Error("Poe API key is missing. Run `opencode providers login` again.");
+  }
+  if (hasControlCharacter(apiKey)) {
+    throw new Error(
+      "Poe API key contains invalid characters. Run `opencode providers login` again."
+    );
   }
   return apiKey;
 }
@@ -47,7 +62,7 @@ async function authorize(): Promise<AuthOauthResult> {
     instructions: "Complete authorization in your browser. This window will close automatically.",
     method: "auto",
     callback: async () => {
-      const result = await authorization.waitForResult() as unknown;
+      const result = (await authorization.waitForResult()) as unknown;
       const resultRecord = isObjectRecord(result) ? result : {};
       const apiKey = requireApiKey(getOwnEntry(resultRecord, "apiKey"));
 
@@ -81,7 +96,8 @@ export async function PoeAuthPlugin(_input: PluginInput): Promise<Hooks> {
         }
 
         const expires = getOwnEntry(auth, "expires");
-        if (typeof expires !== "number" || !Number.isFinite(expires) || expires <= Date.now()) {
+        assertValidExpiryTimestamp(expires);
+        if (expires <= Date.now()) {
           throw new Error("Poe API key expired. Run `opencode providers login` again.");
         }
 
@@ -117,4 +133,28 @@ function getOwnEntry(record: object, key: string): unknown {
 function getOwnString(record: object, key: string): string | undefined {
   const value = getOwnEntry(record, key);
   return typeof value === "string" ? value : undefined;
+}
+
+function assertValidExpiryTimestamp(value: unknown): asserts value is number {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    !Number.isSafeInteger(value) ||
+    value > MAX_VALID_EPOCH_MS
+  ) {
+    throw new Error(
+      "Poe API key has invalid expiration metadata. Run `opencode providers login` again."
+    );
+  }
+}
+
+function hasControlCharacter(value: string): boolean {
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    if (code <= 31 || code === 127) {
+      return true;
+    }
+  }
+
+  return false;
 }

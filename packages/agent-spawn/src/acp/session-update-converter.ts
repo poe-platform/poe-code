@@ -1,5 +1,15 @@
-import type { SessionUpdate, ToolKind } from "@poe-code/poe-acp-client";
-import type { AcpEvent } from "./types.js";
+import type {
+  SessionUpdate as AcpClientSessionUpdate,
+  ToolKind as AcpClientToolKind
+} from "@poe-code/poe-acp-client";
+import type {
+  AcpEvent,
+  SessionUpdate as LegacySessionUpdate,
+  ToolKind as LegacyToolKind
+} from "./types.js";
+
+type ConvertibleSessionUpdate = AcpClientSessionUpdate | LegacySessionUpdate;
+type ConvertibleToolKind = AcpClientToolKind | LegacyToolKind;
 
 export interface ToolRenderState {
   startedToolCalls: Set<string>;
@@ -11,21 +21,18 @@ export function createToolRenderState(): ToolRenderState {
   return {
     startedToolCalls: new Set(),
     toolCallKinds: new Map(),
-    toolCallTitles: new Map(),
+    toolCallTitles: new Map()
   };
 }
 
-export function toRenderKind(kind: ToolKind | undefined | null): string {
+export function toRenderKind(kind: ConvertibleToolKind | undefined | null): string {
   if (kind === "execute") return "exec";
-  if (kind === "write") return "edit";
+  if (kind === "write" || kind === "edit") return "edit";
   if (kind === "read") return "read";
   return "other";
 }
 
-function toToolTitle(
-  title: string,
-  locations?: Array<{ path: string }> | null
-): string {
+function toToolTitle(title: string, locations?: Array<{ path: string }> | null): string {
   if (locations && locations.length > 0 && locations[0].path) {
     return locations[0].path;
   }
@@ -56,7 +63,7 @@ function extractToolOutputText(update: {
 }
 
 export function sessionUpdateToEvents(
-  update: SessionUpdate,
+  update: ConvertibleSessionUpdate,
   state: ToolRenderState
 ): AcpEvent[] {
   if (update.sessionUpdate === "agent_message_chunk" && update.content.type === "text") {
@@ -83,7 +90,7 @@ export function sessionUpdateToEvents(
     const usage: AcpEvent = {
       event: "usage",
       inputTokens,
-      outputTokens,
+      outputTokens
     };
 
     if (cachedTokens > 0) {
@@ -108,18 +115,21 @@ export function sessionUpdateToEvents(
     }
 
     state.startedToolCalls.add(update.toolCallId);
-    return [{
-      event: "tool_start",
-      kind: renderKind,
-      title,
-      id: update.toolCallId,
-    }];
+    return [
+      {
+        event: "tool_start",
+        kind: renderKind,
+        title,
+        id: update.toolCallId
+      }
+    ];
   }
 
   if (update.sessionUpdate === "tool_call_update") {
-    const renderKind = toRenderKind(update.kind ?? undefined)
-      || state.toolCallKinds.get(update.toolCallId)
-      || "other";
+    const renderKind =
+      (update.kind == null ? undefined : toRenderKind(update.kind)) ||
+      state.toolCallKinds.get(update.toolCallId) ||
+      "other";
     state.toolCallKinds.set(update.toolCallId, renderKind);
 
     const events: AcpEvent[] = [];
@@ -130,15 +140,16 @@ export function sessionUpdateToEvents(
     state.toolCallTitles.set(update.toolCallId, toolTitle);
     const status = update.status;
 
-    const shouldStart = !state.startedToolCalls.has(update.toolCallId)
-      && (status === "pending" || status === "in_progress");
+    const shouldStart =
+      !state.startedToolCalls.has(update.toolCallId) &&
+      (status === "pending" || status === "in_progress");
     if (shouldStart) {
       state.startedToolCalls.add(update.toolCallId);
       events.push({
         event: "tool_start",
         kind: renderKind,
         title: toolTitle,
-        id: update.toolCallId,
+        id: update.toolCallId
       });
     }
 
@@ -149,7 +160,7 @@ export function sessionUpdateToEvents(
           event: "tool_start",
           kind: renderKind,
           title: toolTitle,
-          id: update.toolCallId,
+          id: update.toolCallId
         });
       }
 
@@ -157,7 +168,7 @@ export function sessionUpdateToEvents(
         event: "tool_complete",
         kind: renderKind,
         path: extractToolOutputText(update),
-        id: update.toolCallId,
+        id: update.toolCallId
       });
     }
 

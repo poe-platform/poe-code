@@ -1,5 +1,10 @@
 import type { Command } from "commander";
-import { renderAcpEvent, type AcpEvent, type SessionUpdate } from "@poe-code/agent-spawn";
+import {
+  createToolRenderState,
+  renderAcpEvent,
+  sessionUpdateToEvents,
+  type SessionUpdate
+} from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
@@ -44,10 +49,10 @@ export function registerAgentCommand(program: Command, container: CliContainer):
           cwd: container.env.cwd
         });
 
-        const startedToolCalls = new Set<string>();
+        const toolRenderState = createToolRenderState();
         const response = await session.sendMessage(prompt, {
           onSessionUpdate(update: SessionUpdate) {
-            for (const event of toAcpEvents(update, startedToolCalls)) {
+            for (const event of sessionUpdateToEvents(update, toolRenderState)) {
               renderAcpEvent(event);
             }
           }
@@ -67,34 +72,4 @@ export function registerAgentCommand(program: Command, container: CliContainer):
         resources.context.finalize();
       }
     });
-}
-
-function toAcpEvents(update: SessionUpdate, started: Set<string>): AcpEvent[] {
-  if (update.sessionUpdate === "tool_call") {
-    if (started.has(update.toolCallId)) return [];
-    started.add(update.toolCallId);
-    return [
-      {
-        event: "tool_start",
-        kind: "exec",
-        title: update.title,
-        id: update.toolCallId
-      }
-    ];
-  }
-
-  if (update.sessionUpdate === "tool_call_update") {
-    if (update.status === "completed" || update.status === "failed") {
-      return [
-        {
-          event: "tool_complete",
-          kind: "exec",
-          path: typeof update.rawOutput === "string" ? update.rawOutput : "",
-          id: update.toolCallId
-        }
-      ];
-    }
-  }
-
-  return [];
 }

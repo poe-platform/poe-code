@@ -94,6 +94,37 @@ describe("session-update-converter", () => {
       }]);
     });
 
+    it("reuses the started tool kind when an update omits kind", () => {
+      const state = createToolRenderState();
+      sessionUpdateToEvents(
+        {
+          sessionUpdate: "tool_call",
+          toolCallId: "tc-1",
+          title: "Read",
+          kind: "read"
+        },
+        state
+      );
+
+      const events = sessionUpdateToEvents(
+        {
+          sessionUpdate: "tool_call_update",
+          toolCallId: "tc-1",
+          status: "completed"
+        },
+        state
+      );
+
+      expect(events).toEqual([
+        {
+          event: "tool_complete",
+          kind: "read",
+          path: "",
+          id: "tc-1"
+        }
+      ]);
+    });
+
     it("converts tool_call_update with location path as title", () => {
       const update: SessionUpdate = {
         sessionUpdate: "tool_call",

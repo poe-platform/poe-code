@@ -178,26 +178,36 @@ describe("agent command", () => {
     expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
   });
 
-  it("renders tool events via renderAcpEvent", async () => {
+  it("renders session updates through shared ACP conversion", async () => {
     sendMessageMock.mockImplementation(
       (_prompt: string, opts?: { onSessionUpdate?: (update: unknown) => void }) => {
         opts?.onSessionUpdate?.({
+          sessionUpdate: "agent_thought_chunk",
+          content: { type: "text", text: "Checking workspace." }
+        });
+        opts?.onSessionUpdate?.({
           sessionUpdate: "tool_call",
           toolCallId: "call-1",
-          title: "list_files",
-          kind: "execute",
-          status: "pending"
+          title: "read_file",
+          kind: "read",
+          status: "pending",
+          locations: [{ path: "src/index.ts" }]
         });
         opts?.onSessionUpdate?.({
           sessionUpdate: "tool_call_update",
           toolCallId: "call-1",
-          kind: "execute",
-          status: "completed",
-          rawOutput: "src/\npackage.json"
+          status: "cancelled",
+          rawOutput: { reason: "stopped" }
         });
         opts?.onSessionUpdate?.({
           sessionUpdate: "agent_message_chunk",
           content: { type: "text", text: "Here are the files." }
+        });
+        opts?.onSessionUpdate?.({
+          sessionUpdate: "usage_update",
+          used: 12,
+          size: 18,
+          cost: { amount: 0.02, currency: "USD" }
         });
         return Promise.resolve({ role: "assistant", content: "Here are the files." });
       }
@@ -211,14 +221,30 @@ describe("agent command", () => {
     });
 
     await program.parseAsync([
-      "node", "cli", "agent", "List files",
-      "--model", "Claude-Sonnet-4.5", "--api-key", "key"
+      "node",
+      "cli",
+      "agent",
+      "List files",
+      "--model",
+      "Claude-Sonnet-4.5",
+      "--api-key",
+      "key"
     ]);
 
-    const events = renderAcpEventMock.mock.calls.map(
-      (call: unknown[]) => (call[0] as { event: string }).event
-    );
-    expect(events).toEqual(["tool_start", "tool_complete"]);
+    const events = renderAcpEventMock.mock.calls.map((call: unknown[]) => call[0]);
+    expect(events).toEqual([
+      { event: "reasoning", text: "Checking workspace." },
+      { event: "tool_start", kind: "read", title: "src/index.ts", id: "call-1" },
+      { event: "tool_complete", kind: "read", path: '{"reason":"stopped"}', id: "call-1" },
+      { event: "agent_message", text: "Here are the files." },
+      {
+        event: "usage",
+        inputTokens: 12,
+        outputTokens: 0,
+        cachedTokens: 6,
+        costUsd: 0.02
+      }
+    ]);
   });
 
   it("disposes the session when message send fails", async () => {

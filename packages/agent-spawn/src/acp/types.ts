@@ -29,7 +29,7 @@ export type ToolKind =
   | "other";
 
 /** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
-export type ToolCallStatus = "pending" | "in_progress" | "completed" | "failed";
+export type ToolCallStatus = "pending" | "in_progress" | "completed" | "failed" | "cancelled";
 
 /** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
 export interface ContentChunk {
@@ -54,9 +54,12 @@ export interface ToolCall {
   sessionUpdate: "tool_call";
   toolCallId: string;
   title: string;
+  content?: ToolCallContent[];
   kind?: ToolKind;
+  locations?: ToolCallLocation[];
   status?: ToolCallStatus;
   rawInput?: unknown;
+  rawOutput?: unknown;
   _meta?: Record<string, unknown>;
 }
 
@@ -66,13 +69,23 @@ export type ToolCallContent =
   | { type: "image"; mimeType: string; data: string };
 
 /** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
+export interface ToolCallLocation {
+  path: string;
+  lineNumber?: number | null;
+  _meta?: Record<string, unknown>;
+}
+
+/** ACP-compatible type - @see https://agentclientprotocol.com/ - no package dependency, structural compatibility only */
 export interface ToolCallUpdate {
   sessionUpdate: "tool_call_update";
   toolCallId: string;
   kind?: ToolKind;
-  status?: ToolCallStatus;
+  status?: ToolCallStatus | null;
   rawOutput?: unknown;
-  content?: ToolCallContent[];
+  rawInput?: unknown;
+  content?: ToolCallContent[] | null;
+  locations?: ToolCallLocation[] | null;
+  title?: string | null;
   _meta?: Record<string, unknown>;
 }
 

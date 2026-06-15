@@ -4,11 +4,12 @@ import { createLoopbackAuthorizationSession } from "./loopback-authorization.js"
 import type { OAuthLandingPage } from "./loopback-authorization.js";
 import {
   generateCodeChallenge as generatePkceCodeChallenge,
-  generateCodeVerifier as generatePkceCodeVerifier,
+  generateCodeVerifier as generatePkceCodeVerifier
 } from "./pkce.js";
 
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
 const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";
+const MAX_VALID_EPOCH_MS = 8_640_000_000_000_000;
 
 export interface OAuthClientConfig {
   clientId: string;
@@ -37,9 +38,14 @@ export interface OAuthClient {
 
 export function createOAuthClient(config: OAuthClientConfig): OAuthClient {
   const fetchFn = config.fetch ?? globalThis.fetch;
+  const clientId = validateClientId(config.clientId);
+  const normalizedConfig = {
+    ...config,
+    clientId
+  };
 
   return {
-    authorize: () => startAuthorization(config, fetchFn)
+    authorize: () => startAuthorization(normalizedConfig, fetchFn)
   };
 }
 
@@ -63,8 +69,8 @@ async function startAuthorization(
     createServer: config.createServer,
     landingPage: config.landingPage ?? {
       title: "Connected to Poe",
-      body: "You can close this tab and return to your terminal.",
-    },
+      body: "You can close this tab and return to your terminal."
+    }
   });
   const redirectUri = loopbackSession.redirectUri;
 
@@ -75,8 +81,8 @@ async function startAuthorization(
     codeChallenge,
     state: createAuthorizationState({
       issuer: new URL(authorizationEndpoint).origin,
-      requireIssuer: false,
-    }),
+      requireIssuer: false
+    })
   });
 
   let resultPromise: Promise<OAuthResult> | undefined;
@@ -121,7 +127,6 @@ function buildAuthorizationUrl(params: {
   return url.toString();
 }
 
-
 async function exchangeCodeForApiKey(params: {
   tokenEndpoint: string;
   code: string;
@@ -152,10 +157,10 @@ async function exchangeCodeForApiKey(params: {
 
   let value: unknown;
   try {
-    value = await response.json() as unknown;
+    value = (await response.json()) as unknown;
   } catch (error) {
     throw new Error(`Token exchange failed: invalid JSON response from ${params.tokenEndpoint}`, {
-      cause: error,
+      cause: error
     });
   }
 
@@ -163,30 +168,20 @@ async function exchangeCodeForApiKey(params: {
     throw new Error("Token response must be a JSON object");
   }
   const data = value as Record<string, unknown>;
-  const apiKey = getOwnString(data, "api_key");
+  const apiKey = getOwnString(data, "api_key")?.trim();
   const apiKeyExpiresIn = getOwnEntry(data, "api_key_expires_in");
 
-  if (apiKey === undefined || apiKey.trim().length === 0) {
+  if (apiKey === undefined || apiKey.length === 0) {
     throw new Error("Token response missing api_key field");
   }
 
-  if (
-    apiKeyExpiresIn !== undefined
-    && (
-      typeof apiKeyExpiresIn !== "number"
-      || !Number.isFinite(apiKeyExpiresIn)
-      || apiKeyExpiresIn < 0
-    )
-  ) {
+  if (apiKeyExpiresIn !== undefined && !isValidExpiresIn(apiKeyExpiresIn)) {
     throw new Error("Token response invalid api_key_expires_in field");
   }
 
   return {
     apiKey,
-    expiresIn:
-      typeof apiKeyExpiresIn === "number"
-        ? apiKeyExpiresIn
-        : null
+    expiresIn: typeof apiKeyExpiresIn === "number" ? apiKeyExpiresIn : null
   };
 }
 
@@ -223,4 +218,26 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 function getOwnString(record: Record<string, unknown>, key: string): string | undefined {
   const value = getOwnEntry(record, key);
   return typeof value === "string" ? value : undefined;
+}
+
+function validateClientId(clientId: string): string {
+  const trimmed = clientId.trim();
+  if (trimmed.length === 0 || trimmed !== clientId) {
+    throw new Error("Poe OAuth clientId must not be blank or contain surrounding whitespace.");
+  }
+  return clientId;
+}
+
+function isValidExpiresIn(value: unknown): value is number {
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    !Number.isInteger(value) ||
+    value < 0
+  ) {
+    return false;
+  }
+
+  const expiresAt = Date.now() + value * 1000;
+  return Number.isSafeInteger(expiresAt) && expiresAt <= MAX_VALID_EPOCH_MS;
 }

@@ -1,16 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import http from "node:http";
-import {
-  createAuthorizationState,
-  parseAuthorizationState,
-} from "./authorization-state.js";
+import { createAuthorizationState, parseAuthorizationState } from "./authorization-state.js";
 import { checkAuth } from "./check-auth.js";
 import { createOAuthClient } from "./oauth-client.js";
 import type { OAuthClientConfig } from "./oauth-client.js";
 
-function createTestConfig(
-  overrides: Partial<OAuthClientConfig> = {}
-): OAuthClientConfig {
+function createTestConfig(overrides: Partial<OAuthClientConfig> = {}): OAuthClientConfig {
   return {
     clientId: "test-client-id",
     authorizationEndpoint: "https://poe.com/oauth/authorize",
@@ -75,7 +70,9 @@ function createMockServer(): {
       url,
       method: "GET"
     } as http.IncomingMessage;
-    const endFn = vi.fn((body: string) => { lastResponseBody = body; });
+    const endFn = vi.fn((body: string) => {
+      lastResponseBody = body;
+    });
     const res = {
       writeHead: vi.fn(),
       end: endFn
@@ -202,10 +199,16 @@ describe("checkAuth", () => {
   });
 
   it("preserves a base URL query while targeting the balance endpoint", async () => {
-    const fetchMock = vi.fn(async () => new Response(JSON.stringify({
-      email: "custom@example.com",
-      current_point_balance: 5
-    }), { status: 200 }));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            email: "custom@example.com",
+            current_point_balance: 5
+          }),
+          { status: 200 }
+        )
+    );
 
     await checkAuth({
       apiKey: "provided-key",
@@ -295,10 +298,44 @@ describe("checkAuth", () => {
   });
 
   it("returns null when a successful response contains a non-finite balance", async () => {
-    const fetchMock = vi.fn(async () => new Response(
-      '{"email":"user@example.com","current_point_balance":1e309}',
-      { status: 200 }
-    ));
+    const fetchMock = vi.fn(
+      async () =>
+        new Response('{"email":"user@example.com","current_point_balance":1e309}', { status: 200 })
+    );
+
+    await expect(
+      checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
+    ).resolves.toBeNull();
+  });
+
+  it("returns null when a successful response contains only a blank email", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ email: "   " }), {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
+    );
+
+    await expect(
+      checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
+    ).resolves.toBeNull();
+  });
+
+  it("returns null when a successful response contains a negative balance", async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            email: "user@example.com",
+            current_point_balance: -50
+          }),
+          {
+            status: 200,
+            headers: { "content-type": "application/json" }
+          }
+        )
+    );
 
     await expect(
       checkAuth({ apiKey: "provided-key", fetch: fetchMock as typeof fetch })
@@ -356,8 +393,13 @@ describe("OAuthClient", () => {
     expect(url.searchParams.get("code_challenge_method")).toBe("S256");
     expect(url.searchParams.get("code_challenge")).toBeTruthy();
     expect(url.searchParams.get("state")).toBeTruthy();
-    expect(url.searchParams.get("redirect_uri")).toBe(
-      `http://127.0.0.1:${boundPort}/callback`
+    expect(url.searchParams.get("redirect_uri")).toBe(`http://127.0.0.1:${boundPort}/callback`);
+  });
+
+  it("rejects blank or padded client ids before authorization starts", async () => {
+    expect(() => createOAuthClient(createTestConfig({ clientId: "   " }))).toThrow("clientId");
+    expect(() => createOAuthClient(createTestConfig({ clientId: "  test-client-id  " }))).toThrow(
+      "clientId"
     );
   });
 
@@ -391,6 +433,27 @@ describe("OAuthClient", () => {
     expect(body.get("code_verifier")).toBeTruthy();
     expect(body.get("client_id")).toBe("test-client-id");
     expect(body.get("redirect_uri")).toContain("/callback");
+  });
+
+  it("trims token response api keys before returning them", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("  sk-api-key-123  ", 7200));
+
+    const config = createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback(createCallbackPath(authorizationUrl, "auth-code-abc"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const client = createOAuthClient(config);
+    const authorization = await client.authorize();
+
+    await expect(authorization.waitForResult()).resolves.toEqual({
+      apiKey: "sk-api-key-123",
+      expiresIn: 7200
+    });
   });
 
   it("returns null expiresIn when token response omits it", async () => {
@@ -436,8 +499,11 @@ describe("OAuthClient", () => {
     const { server, simulateCallback } = createMockServer();
 
     const config = createTestConfig({
-      openBrowser: vi.fn(async () => {
-        simulateCallback("/callback?error=access_denied&error_description=User+denied");
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        const state = new URL(authorizationUrl).searchParams.get("state");
+        simulateCallback(
+          `/callback?error=access_denied&error_description=User+denied&state=${encodeURIComponent(state ?? "")}`
+        );
       }),
       createServer: () => server,
       fetch: vi.fn() as any
@@ -448,16 +514,42 @@ describe("OAuthClient", () => {
     await expect(authorization.waitForResult()).rejects.toThrow("access_denied");
   });
 
+  it("ignores error callbacks without the authorization state", async () => {
+    const { server, simulateCallback } = createMockServer();
+    const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
+
+    const config = createTestConfig({
+      openBrowser: vi.fn(async (authorizationUrl) => {
+        simulateCallback("/callback?error=access_denied&error_description=unsolicited");
+        simulateCallback(createCallbackPath(authorizationUrl, "auth-code-abc"));
+      }),
+      createServer: () => server,
+      fetch: fetchMock as any
+    });
+
+    const client = createOAuthClient(config);
+    const authorization = await client.authorize();
+
+    await expect(authorization.waitForResult()).resolves.toEqual({
+      apiKey: "sk-key",
+      expiresIn: null
+    });
+  });
+
   it("throws user-friendly message when token endpoint returns error_description", async () => {
     const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({
-        error: "invalid_grant",
-        error_description: "The provided authorization code is invalid or has expired."
-      }), {
-        status: 400,
-        headers: { "content-type": "application/json" }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            error: "invalid_grant",
+            error_description: "The provided authorization code is invalid or has expired."
+          }),
+          {
+            status: 400,
+            headers: { "content-type": "application/json" }
+          }
+        )
     );
 
     const config = createTestConfig({
@@ -477,11 +569,12 @@ describe("OAuthClient", () => {
 
   it("ignores inherited token endpoint error fields", async () => {
     const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({}), {
-        status: 400,
-        headers: { "content-type": "application/json" }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({}), {
+          status: 400,
+          headers: { "content-type": "application/json" }
+        })
     );
 
     const config = createTestConfig({
@@ -509,11 +602,12 @@ describe("OAuthClient", () => {
 
   it("throws error code when token endpoint returns error without description", async () => {
     const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ error: "invalid_grant" }), {
-        status: 400,
-        headers: { "content-type": "application/json" }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ error: "invalid_grant" }), {
+          status: 400,
+          headers: { "content-type": "application/json" }
+        })
     );
 
     const config = createTestConfig({
@@ -531,11 +625,12 @@ describe("OAuthClient", () => {
 
   it("throws when token response is missing api_key", async () => {
     const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({ access_token: "not-an-api-key" }), {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ access_token: "not-an-api-key" }), {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
     );
 
     const config = createTestConfig({
@@ -553,11 +648,12 @@ describe("OAuthClient", () => {
 
   it("ignores inherited token response fields", async () => {
     const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () =>
-      new Response(JSON.stringify({}), {
-        status: 200,
-        headers: { "content-type": "application/json" }
-      })
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
     );
     const config = createTestConfig({
       openBrowser: vi.fn(async (authorizationUrl) => {
@@ -583,37 +679,52 @@ describe("OAuthClient", () => {
   it("throws when token response api_key contains only whitespace", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("   "));
-    const client = createOAuthClient(createTestConfig({
-      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
-      createServer: () => server,
-      fetch: fetchMock as any
-    }));
+    const client = createOAuthClient(
+      createTestConfig({
+        openBrowser: vi.fn(async (authorizationUrl) =>
+          simulateCallback(createCallbackPath(authorizationUrl, "code"))
+        ),
+        createServer: () => server,
+        fetch: fetchMock as any
+      })
+    );
 
     const authorization = await client.authorize();
     await expect(authorization.waitForResult()).rejects.toThrow("api_key");
   });
 
-  it.each([-60, Infinity])("throws for invalid token expiration duration %s", async (expiresIn) => {
-    const { server, simulateCallback } = createMockServer();
-    const fetchMock = vi.fn(async () => createTokenResponse("sk-key", expiresIn));
-    const client = createOAuthClient(createTestConfig({
-      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
-      createServer: () => server,
-      fetch: fetchMock as any
-    }));
+  it.each([-60, 60.5, Infinity, Number.MAX_VALUE])(
+    "throws for invalid token expiration duration %s",
+    async (expiresIn) => {
+      const { server, simulateCallback } = createMockServer();
+      const fetchMock = vi.fn(async () => createTokenResponse("sk-key", expiresIn));
+      const client = createOAuthClient(
+        createTestConfig({
+          openBrowser: vi.fn(async (authorizationUrl) =>
+            simulateCallback(createCallbackPath(authorizationUrl, "code"))
+          ),
+          createServer: () => server,
+          fetch: fetchMock as any
+        })
+      );
 
-    const authorization = await client.authorize();
-    await expect(authorization.waitForResult()).rejects.toThrow("api_key_expires_in");
-  });
+      const authorization = await client.authorize();
+      await expect(authorization.waitForResult()).rejects.toThrow("api_key_expires_in");
+    }
+  );
 
   it("reports malformed successful token JSON as token exchange failure", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => new Response("{", { status: 200 }));
-    const client = createOAuthClient(createTestConfig({
-      openBrowser: vi.fn(async (authorizationUrl) => simulateCallback(createCallbackPath(authorizationUrl, "code"))),
-      createServer: () => server,
-      fetch: fetchMock as any
-    }));
+    const client = createOAuthClient(
+      createTestConfig({
+        openBrowser: vi.fn(async (authorizationUrl) =>
+          simulateCallback(createCallbackPath(authorizationUrl, "code"))
+        ),
+        createServer: () => server,
+        fetch: fetchMock as any
+      })
+    );
 
     const authorization = await client.authorize();
     await expect(authorization.waitForResult()).rejects.toThrow("Token exchange failed");
@@ -638,9 +749,7 @@ describe("OAuthClient", () => {
 
     const authUrl = new URL(authorization.authorizationUrl);
     const challenge = authUrl.searchParams.get("code_challenge")!;
-    const verifier = new URLSearchParams(fetchMock.mock.calls[0]![1].body).get(
-      "code_verifier"
-    )!;
+    const verifier = new URLSearchParams(fetchMock.mock.calls[0]![1].body).get("code_verifier")!;
 
     expect(challenge).toMatch(/^[A-Za-z0-9_-]+$/);
     expect(verifier).toMatch(/^[A-Za-z0-9_-]+$/);
@@ -701,11 +810,7 @@ describe("OAuthClient", () => {
     const client = createOAuthClient(config);
     await client.authorize();
 
-    expect(server.listen).toHaveBeenCalledWith(
-      0,
-      "127.0.0.1",
-      expect.any(Function)
-    );
+    expect(server.listen).toHaveBeenCalledWith(0, "127.0.0.1", expect.any(Function));
   });
 
   it("rejects authorization when the loopback listener cannot start", async () => {
@@ -715,19 +820,25 @@ describe("OAuthClient", () => {
       return server;
     }) as typeof server.listen;
 
-    await expect(createOAuthClient(createTestConfig({
-      createServer: () => server
-    })).authorize()).rejects.toThrow("bind failed");
+    await expect(
+      createOAuthClient(
+        createTestConfig({
+          createServer: () => server
+        })
+      ).authorize()
+    ).rejects.toThrow("bind failed");
   });
 
   it("rejects callbacks without the authorization state", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
-    const client = createOAuthClient(createTestConfig({
-      openBrowser: vi.fn(async () => simulateCallback("/callback?code=unsolicited")),
-      createServer: () => server,
-      fetch: fetchMock as any
-    }));
+    const client = createOAuthClient(
+      createTestConfig({
+        openBrowser: vi.fn(async () => simulateCallback("/callback?code=unsolicited")),
+        createServer: () => server,
+        fetch: fetchMock as any
+      })
+    );
 
     const authorization = await client.authorize();
     await expect(authorization.waitForResult()).rejects.toThrow("state");
@@ -763,10 +874,14 @@ describe("OAuthClient", () => {
 
   it("rejects when reading the pasted callback fails", async () => {
     const { server } = createMockServer();
-    const client = createOAuthClient(createTestConfig({
-      readLine: vi.fn(async () => { throw new Error("stdin closed"); }),
-      createServer: () => server
-    }));
+    const client = createOAuthClient(
+      createTestConfig({
+        readLine: vi.fn(async () => {
+          throw new Error("stdin closed");
+        }),
+        createServer: () => server
+      })
+    );
 
     const authorization = await client.authorize();
     await expect(authorization.waitForResult()).rejects.toThrow("stdin closed");
@@ -871,17 +986,25 @@ describe("OAuthClient", () => {
   it("returns the settled authorization result for repeated waits", async () => {
     const { server, simulateCallback } = createMockServer();
     const fetchMock = vi.fn(async () => createTokenResponse("sk-key"));
-    const client = createOAuthClient(createTestConfig({
-      openBrowser: vi.fn(async (authorizationUrl) => {
-        simulateCallback(createCallbackPath(authorizationUrl, "code"));
-      }),
-      createServer: () => server,
-      fetch: fetchMock as any
-    }));
+    const client = createOAuthClient(
+      createTestConfig({
+        openBrowser: vi.fn(async (authorizationUrl) => {
+          simulateCallback(createCallbackPath(authorizationUrl, "code"));
+        }),
+        createServer: () => server,
+        fetch: fetchMock as any
+      })
+    );
 
     const authorization = await client.authorize();
-    await expect(authorization.waitForResult()).resolves.toEqual({ apiKey: "sk-key", expiresIn: null });
-    await expect(authorization.waitForResult()).resolves.toEqual({ apiKey: "sk-key", expiresIn: null });
+    await expect(authorization.waitForResult()).resolves.toEqual({
+      apiKey: "sk-key",
+      expiresIn: null
+    });
+    await expect(authorization.waitForResult()).resolves.toEqual({
+      apiKey: "sk-key",
+      expiresIn: null
+    });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   }, 100);
 });
@@ -890,12 +1013,12 @@ describe("authorization state", () => {
   it("round-trips generated authorization state", () => {
     const state = createAuthorizationState({
       issuer: "https://poe.com",
-      requireIssuer: false,
+      requireIssuer: false
     });
 
     expect(parseAuthorizationState(state)).toEqual({
       issuer: "https://poe.com",
-      requireIssuer: false,
+      requireIssuer: false
     });
   });
 
@@ -905,7 +1028,7 @@ describe("authorization state", () => {
         v: 1,
         n: "polluted-nonce",
         i: "https://polluted.example.com",
-        r: true,
+        r: true
       },
       async () => {
         expect(parseAuthorizationState(encodeStatePayload({}))).toBeNull();

@@ -34,7 +34,7 @@ export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity
       return null;
     }
 
-    const data = await response.json() as unknown;
+    const data = (await response.json()) as unknown;
     if (!isCurrentBalanceResponse(data)) {
       return null;
     }
@@ -63,15 +63,17 @@ function isCurrentBalanceResponse(value: unknown): value is CurrentBalanceRespon
   const data = value as Record<string, unknown>;
   const email = getOwnString(data, "email");
   const balance = getOwnEntry(data, "current_point_balance");
-  const hasEmail = email !== undefined && email.length > 0;
+  const hasEmail = email !== undefined;
   const hasBalance = balance !== undefined;
   if (!hasEmail && !hasBalance) {
     return false;
   }
 
-  return balance === undefined
-    || balance === null
-    || (typeof balance === "number" && Number.isFinite(balance));
+  return (
+    balance === undefined ||
+    balance === null ||
+    (typeof balance === "number" && Number.isFinite(balance) && balance >= 0)
+  );
 }
 
 function getOwnEntry(record: object, key: string): unknown {
@@ -82,7 +84,12 @@ function getOwnEntry(record: object, key: string): unknown {
 
 function getOwnString(record: object, key: string): string | undefined {
   const value = getOwnEntry(record, key);
-  return typeof value === "string" && value.length > 0 ? value : undefined;
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function getOwnNumber(record: object, key: string): number | undefined {

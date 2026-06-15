@@ -36,7 +36,7 @@ export async function createLoopbackAuthorizationSession(
     close(): void {
       server.closeAllConnections?.();
       server.close();
-    },
+    }
   };
 }
 
@@ -82,6 +82,22 @@ function waitForAuthorizationCode(
 
       const error = url.searchParams.get("error");
       if (error !== null) {
+        try {
+          validateAuthorizationCallbackBinding(
+            {
+              state: url.searchParams.get("state"),
+              iss: url.searchParams.get("iss")
+            },
+            expectedAuthorization
+          );
+        } catch (validationError) {
+          res.writeHead(400);
+          res.end(
+            validationError instanceof Error ? validationError.message : "Invalid OAuth callback"
+          );
+          return;
+        }
+
         const description = url.searchParams.get("error_description") ?? error;
         res.writeHead(400);
         res.end(`Authorization failed: ${description}`);
@@ -90,11 +106,14 @@ function waitForAuthorizationCode(
       }
 
       try {
-        const code = validateAuthorizationCallbackParameters({
-          code: url.searchParams.get("code"),
-          state: url.searchParams.get("state"),
-          iss: url.searchParams.get("iss"),
-        }, expectedAuthorization);
+        const code = validateAuthorizationCallbackParameters(
+          {
+            code: url.searchParams.get("code"),
+            state: url.searchParams.get("state"),
+            iss: url.searchParams.get("iss")
+          },
+          expectedAuthorization
+        );
 
         res.writeHead(200, { "Content-Type": "text/html" });
         res.end(buildSuccessPage(options.landingPage));
@@ -107,25 +126,28 @@ function waitForAuthorizationCode(
     });
 
     if (options.readLine !== undefined) {
-      options.readLine().then((input) => {
-        const callbackParameters = extractCallbackParametersFromInput(input);
-        if (callbackParameters === null) {
-          settle(() => reject(new Error("OAuth callback missing authorization code")));
-          return;
-        }
+      options
+        .readLine()
+        .then((input) => {
+          const callbackParameters = extractCallbackParametersFromInput(input);
+          if (callbackParameters === null) {
+            settle(() => reject(new Error("OAuth callback missing authorization code")));
+            return;
+          }
 
-        try {
-          const code = validateAuthorizationCallbackParameters(
-            callbackParameters,
-            expectedAuthorization
-          );
-          settle(() => resolve(code));
-        } catch (error) {
+          try {
+            const code = validateAuthorizationCallbackParameters(
+              callbackParameters,
+              expectedAuthorization
+            );
+            settle(() => resolve(code));
+          } catch (error) {
+            settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+          }
+        })
+        .catch((error) => {
           settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-        }
-      }).catch((error) => {
-        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
-      });
+        });
     }
 
     if (options.openBrowser !== undefined) {
@@ -140,9 +162,9 @@ export function extractCodeFromInput(input: string): string | null {
   return extractCallbackParametersFromInput(input)?.code ?? null;
 }
 
-function extractCallbackParametersFromInput(input: string):
-  | { code: string | null; state: string | null; iss: string | null }
-  | null {
+function extractCallbackParametersFromInput(
+  input: string
+): { code: string | null; state: string | null; iss: string | null } | null {
   const trimmed = input.replaceAll("\r", "").replaceAll("\n", "").trim();
   if (trimmed.length === 0) {
     return null;
@@ -153,13 +175,13 @@ function extractCallbackParametersFromInput(input: string):
     return {
       code: url.searchParams.get("code"),
       state: url.searchParams.get("state"),
-      iss: url.searchParams.get("iss"),
+      iss: url.searchParams.get("iss")
     };
   } catch {
     return {
       code: trimmed,
       state: null,
-      iss: null,
+      iss: null
     };
   }
 }
@@ -176,7 +198,7 @@ function readExpectedAuthorizationCallback(authorizationUrl: string): {
   return {
     state,
     issuer: parsedState?.issuer ?? null,
-    requireIssuer: parsedState?.requireIssuer ?? false,
+    requireIssuer: parsedState?.requireIssuer ?? false
   };
 }
 
@@ -196,6 +218,22 @@ function validateAuthorizationCallbackParameters(
     throw new Error("OAuth callback missing authorization code");
   }
 
+  validateAuthorizationCallbackBinding(callback, expected);
+
+  return callback.code;
+}
+
+function validateAuthorizationCallbackBinding(
+  callback: {
+    state: string | null;
+    iss: string | null;
+  },
+  expected: {
+    state: string | null;
+    issuer: string | null;
+    requireIssuer: boolean;
+  }
+): void {
   if (expected.state !== null) {
     if (callback.state === null || callback.state.length === 0) {
       throw new Error("OAuth callback missing state");
@@ -213,15 +251,13 @@ function validateAuthorizationCallbackParameters(
   }
 
   if (
-    callback.iss !== null
-    && callback.iss.length > 0
-    && expected.issuer !== null
-    && callback.iss !== expected.issuer
+    callback.iss !== null &&
+    callback.iss.length > 0 &&
+    expected.issuer !== null &&
+    callback.iss !== expected.issuer
   ) {
     throw new Error("OAuth callback issuer mismatch");
   }
-
-  return callback.code;
 }
 
 function escapeHtml(text: string): string {
@@ -229,7 +265,7 @@ function escapeHtml(text: string): string {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;");
+    .replaceAll('"', "&quot;");
 }
 
 export function buildSuccessPage(landingPage?: OAuthLandingPage): string {
@@ -239,10 +275,10 @@ export function buildSuccessPage(landingPage?: OAuthLandingPage): string {
   return [
     "<!DOCTYPE html>",
     `<html><head><meta charset=utf-8><title>${escapeHtml(title)}</title></head>`,
-    "<body style=\"font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0\">",
-    "<div style=\"text-align:center\">",
+    '<body style="font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0">',
+    '<div style="text-align:center">',
     `<h1>${escapeHtml(title)}</h1>`,
     `<p style="color:#666">${escapeHtml(body)}</p>`,
-    "</div></body></html>",
+    "</div></body></html>"
   ].join("");
 }

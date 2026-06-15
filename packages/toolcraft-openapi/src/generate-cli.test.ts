@@ -370,6 +370,32 @@ describe("runGenerateCli", () => {
     expect(harness.stderr()).not.toContain("OpenAPI output is out of date");
   });
 
+  it("fails normal generation without writing files when toolcraft.yml has error diagnostics", async () => {
+    const specText = createSpec("List bots.");
+    const configText = [
+      "edition: 2025-01-01",
+      "resources:",
+      "  bots:",
+      "    methods:",
+      "      list: get /bots"
+    ].join("\n");
+    const harness = createCliHarness({
+      "/repo/openapi.json": specText,
+      "/repo/toolcraft.yml": configText
+    });
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(exitCode).toBe(1);
+    expect(harness.stderr()).toContain("TOOLCRAFT_OPENAPI_006");
+    expect(harness.stderr()).toContain("OpenAPI diagnostics failed for toolcraft.yml.");
+    expect(harness.stdout()).toBe("");
+    expect(await readRepoFiles(harness.fs, "/repo")).toEqual({
+      "openapi.json": specText,
+      "toolcraft.yml": configText
+    });
+  });
+
   it("uses toolcraft.yml resource method names to shape generated files", async () => {
     const document = JSON.parse(createSpec("List bots.")) as OpenApiDocument;
     document.paths = {

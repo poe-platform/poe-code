@@ -120,6 +120,13 @@ export async function runGenerateCli(
       services.stderr.write(formatDiagnostics(result.diagnostics));
     }
 
+    const diagnosticsFailed = hasErrorDiagnostics(result.diagnostics);
+
+    if (!parsed.check && !parsed.diff && diagnosticsFailed) {
+      services.stderr.write("OpenAPI diagnostics failed for toolcraft.yml.\n");
+      return 1;
+    }
+
     if (parsed.diff) {
       if (!result.drifted) {
         services.stdout.write(`OpenAPI output is up to date (${result.specSha}).\n`);
@@ -138,7 +145,7 @@ export async function runGenerateCli(
         return 1;
       }
 
-      if (hasErrorDiagnostics(result.diagnostics)) {
+      if (diagnosticsFailed) {
         services.stderr.write("OpenAPI diagnostics failed for toolcraft.yml.\n");
         return 1;
       }
@@ -202,7 +209,7 @@ export async function syncGeneratedClient(
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
   const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
 
-  if (!options.check && !options.diff && drifted) {
+  if (!options.check && !options.diff && drifted && !hasErrorDiagnostics(diagnostics)) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
       await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);

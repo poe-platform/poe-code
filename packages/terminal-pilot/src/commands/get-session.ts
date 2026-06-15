@@ -2,7 +2,9 @@ import { defineCommand, S } from "toolcraft";
 import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./runtime.js";
 
 const params = S.Object({
-  session: S.Optional(S.String({ short: "s", description: "Session name" }))
+  session: S.Optional(
+    S.String({ short: "s", description: "Session name", minLength: 1, pattern: "\\S" })
+  )
 });
 
 export const getSession = defineCommand<
@@ -18,7 +20,10 @@ export const getSession = defineCommand<
   scope: ["cli", "mcp", "sdk"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
-    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(params.session, env);
+    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(
+      params.session,
+      env
+    );
     return {
       session: namedSession.name,
       pid: namedSession.session.pid,

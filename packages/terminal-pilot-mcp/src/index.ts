@@ -1,30 +1,39 @@
 import { defineCommand, defineGroup, S, type Command } from "toolcraft";
 import { runMCP } from "toolcraft/mcp";
 import type { ObjectSchema } from "toolcraft-schema";
-import { createTerminalPilotGroup, type TerminalPilotCommandServices } from "terminal-pilot/commands";
+import {
+  createTerminalPilotGroup,
+  type TerminalPilotCommandServices
+} from "terminal-pilot/commands";
 
 type TerminalPilotMCPCommand = Command<TerminalPilotCommandServices, any, any, any>;
 
 const emptyResult = S.Object({});
+const processId = S.Number({ jsonType: "integer", minimum: 1 });
+const exitCode = S.Number({ jsonType: "integer", nullable: true });
+const nonNegativeInteger = S.Number({ jsonType: "integer", minimum: 0 });
+const positiveInteger = S.Number({ jsonType: "integer", minimum: 1 });
 const sessionCreatedResult = S.Object({
   session: S.String(),
-  pid: S.Number()
+  pid: processId
 });
 const exitCodeResult = S.Object({
-  exitCode: S.Number({ nullable: true })
+  exitCode
 });
 const sessionMetadataResult = S.Object({
   session: S.String(),
-  pid: S.Number(),
+  pid: processId,
   command: S.String(),
-  exitCode: S.Number({ nullable: true })
+  exitCode
 });
 const listSessionsResult = S.Object({
-  sessions: S.Array(S.Object({
-    session: S.String(),
-    command: S.String(),
-    pid: S.Number()
-  }))
+  sessions: S.Array(
+    S.Object({
+      session: S.String(),
+      command: S.String(),
+      pid: processId
+    })
+  )
 });
 const waitForResult = S.Object({
   matched: S.Boolean(),
@@ -33,18 +42,18 @@ const waitForResult = S.Object({
 const readScreenResult = S.Object({
   lines: S.Array(S.String()),
   cursor: S.Object({
-    row: S.Number(),
-    col: S.Number()
+    row: nonNegativeInteger,
+    col: nonNegativeInteger
   }),
   size: S.Object({
-    rows: S.Number(),
-    cols: S.Number()
+    rows: positiveInteger,
+    cols: positiveInteger
   }),
-  exitCode: S.Number({ nullable: true })
+  exitCode
 });
 const readHistoryResult = S.Object({
   lines: S.Array(S.String()),
-  exitCode: S.Number({ nullable: true })
+  exitCode
 });
 
 function getResultSchema(commandName: string): ObjectSchema<any> {
@@ -97,11 +106,13 @@ function createMcpCommand(command: TerminalPilotMCPCommand, name: string): Termi
 export function createTerminalPilotMCPGroup() {
   const group = createTerminalPilotGroup();
   const mcpCommands = group.children.filter(
-      (child): child is TerminalPilotMCPCommand =>
-        child.kind === "command" && child.scope.includes("mcp")
-    );
+    (child): child is TerminalPilotMCPCommand =>
+      child.kind === "command" && child.scope.includes("mcp")
+  );
   const typedCommands = mcpCommands.map((command) => createMcpCommand(command, command.name));
-  const legacyCommands = mcpCommands.map((command) => createMcpCommand(command, `terminal-${command.name}`));
+  const legacyCommands = mcpCommands.map((command) =>
+    createMcpCommand(command, `terminal-${command.name}`)
+  );
 
   return defineGroup({
     name: "",

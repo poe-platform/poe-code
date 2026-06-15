@@ -148,9 +148,7 @@ describe("keyToSequence", () => {
       const expected = String.fromCharCode(letter.toUpperCase().charCodeAt(0) - 64);
 
       expect(keyToSequence(key)).toBe(expected);
-      expect(keyToSequence(`Control+${letter.toUpperCase()}` as TerminalKey)).toBe(
-        expected
-      );
+      expect(keyToSequence(`Control+${letter.toUpperCase()}` as TerminalKey)).toBe(expected);
     }
   });
 
@@ -233,6 +231,20 @@ describe("TerminalBuffer", () => {
       const data = buf.displayBuffer.data;
       expect(data[0]?.[0]).toEqual([65, "A"]);
       expect(data[0]?.[1]).toEqual([66, "B"]);
+    });
+
+    it("attaches combining marks without advancing the cursor", () => {
+      const buf = new TerminalBuffer(10, 2);
+      buf.write("e\u0301X");
+
+      expect(buf.renderLine(0)).toBe("e\u0301X");
+      expect(buf.displayBuffer.cursorX).toBe(2);
+      expect(buf.displayBuffer.cursorY).toBe(0);
+
+      const overwrite = new TerminalBuffer(10, 2);
+      overwrite.write("e\u0301\u001b[2GZ");
+
+      expect(overwrite.renderLine(0)).toBe("e\u0301Z");
     });
   });
 
@@ -449,9 +461,9 @@ describe("TerminalBuffer", () => {
 
     it("CSI 0K erases from cursor to end of line", () => {
       const buf = new TerminalBuffer(10, 5);
-      buf.write("ABCDE");      // row 0, cursor at col 5
+      buf.write("ABCDE"); // row 0, cursor at col 5
       buf.write("\x1b[1;3H"); // move to row 0, col 2 (0-based)
-      buf.write("\x1b[0K");   // erase from col 2 to end
+      buf.write("\x1b[0K"); // erase from col 2 to end
       expect(readLine(buf, 0).trim()).toBe("AB");
     });
 
@@ -583,9 +595,7 @@ describe("TerminalBuffer", () => {
       expect(readLine(buf, 0).slice(0, 2)).toBe("AB");
       expect(readLine(buf, 0).slice(0, 4)).toBe("AB C");
       expect(buf.displayBuffer.cursorX).toBe(5);
-      expect(buf.renderLine(0)).toBe(
-        "\x1b[1;31mAB\x1b[0m C\x1b[38;2;162;0;255mD\x1b[0m"
-      );
+      expect(buf.renderLine(0)).toBe("\x1b[1;31mAB\x1b[0m C\x1b[38;2;162;0;255mD\x1b[0m");
     });
 
     it("preserves colon-form truecolor styling", () => {
@@ -727,7 +737,7 @@ describe("TerminalBuffer", () => {
       const buf = new TerminalBuffer(10, 5);
       buf.write("ABCDE");
       buf.write("\x1b[1;4H"); // row 0, col 3 (0-based)
-      buf.write("\x1b[1K");   // erase cols 0-3 inclusive
+      buf.write("\x1b[1K"); // erase cols 0-3 inclusive
       expect(readLine(buf, 0).trimEnd()).toBe("    E");
     });
 
@@ -757,7 +767,7 @@ describe("TerminalBuffer", () => {
       const buf = new TerminalBuffer(10, 4);
       buf.write("row0\r\nrow1\r\nrow2\r\nrow3");
       buf.write("\x1b[2;1H"); // row 1 (0-based)
-      buf.write("\x1b[L");   // insert 1 line
+      buf.write("\x1b[L"); // insert 1 line
       expect(readLine(buf, 0).trim()).toBe("row0");
       expect(readLine(buf, 1).trim()).toBe("");
       expect(readLine(buf, 2).trim()).toBe("row1");
@@ -768,7 +778,7 @@ describe("TerminalBuffer", () => {
       const buf = new TerminalBuffer(10, 4);
       buf.write("row0\r\nrow1\r\nrow2\r\nrow3");
       buf.write("\x1b[2;1H"); // row 1 (0-based)
-      buf.write("\x1b[M");   // delete 1 line
+      buf.write("\x1b[M"); // delete 1 line
       expect(readLine(buf, 0).trim()).toBe("row0");
       expect(readLine(buf, 1).trim()).toBe("row2");
       expect(readLine(buf, 2).trim()).toBe("row3");
@@ -787,7 +797,7 @@ describe("TerminalBuffer", () => {
       const buf = new TerminalBuffer(10, 3);
       buf.write("ABCDE");
       buf.write("\x1b[1;2H"); // row 0, col 1 (0-based)
-      buf.write("\x1b[2P");  // delete 2 chars
+      buf.write("\x1b[2P"); // delete 2 chars
       expect(readLine(buf, 0).trimEnd()).toBe("ADE");
     });
 
@@ -795,7 +805,7 @@ describe("TerminalBuffer", () => {
       const buf = new TerminalBuffer(6, 3); // 6 cols: ABCDE fits with 1 spare
       buf.write("ABCDE");
       buf.write("\x1b[1;2H"); // row 0, col 1 (0-based)
-      buf.write("\x1b[2@");  // insert 2 blanks — E shifts to col 6, gets truncated
+      buf.write("\x1b[2@"); // insert 2 blanks — E shifts to col 6, gets truncated
       expect(readLine(buf, 0).trimEnd()).toBe("A  BCD");
     });
   });
@@ -844,7 +854,7 @@ describe("TerminalBuffer", () => {
     it("ESC E moves cursor to start of next line", () => {
       const buf = new TerminalBuffer(10, 5);
       buf.write("\x1b[3C"); // col 3
-      buf.write("\x1bE");   // next line
+      buf.write("\x1bE"); // next line
       expect(buf.displayBuffer.cursorY).toBe(1);
       expect(buf.displayBuffer.cursorX).toBe(0);
     });

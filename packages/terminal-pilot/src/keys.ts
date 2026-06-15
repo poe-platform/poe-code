@@ -20,6 +20,9 @@ const NAMED_KEY_LOWER = new Map(
 );
 
 const VALID_KEYS_HINT = `Valid keys: ${Object.keys(NAMED_KEY_SEQUENCES).join(", ")}, Control+<letter>, Alt+<key>`;
+const NAMED_KEY_PATTERN = Object.keys(NAMED_KEY_SEQUENCES).map(caseInsensitivePattern).join("|");
+
+export const TERMINAL_KEY_PATTERN = `^(?:${NAMED_KEY_PATTERN}|.|[Cc][Oo][Nn][Tt][Rr][Oo][Ll]\\+[A-Za-z]|[Aa][Ll][Tt]\\+.+)$`;
 
 function unknownKeyError(key: string): Error {
   return new Error(`Unknown terminal key: ${key}. ${VALID_KEYS_HINT}`);
@@ -91,4 +94,20 @@ function controlKeyToSequence(controlKey: string): string {
   }
 
   return String.fromCharCode(charCode - 64);
+}
+
+function caseInsensitivePattern(value: string): string {
+  let pattern = "";
+
+  for (const character of value) {
+    const lower = character.toLowerCase();
+    const upper = character.toUpperCase();
+    pattern += lower === upper ? escapePatternCharacter(character) : `[${upper}${lower}]`;
+  }
+
+  return pattern;
+}
+
+function escapePatternCharacter(character: string): string {
+  return character.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&");
 }

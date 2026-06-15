@@ -1,9 +1,13 @@
-import { defineCommand, S } from "toolcraft";
+import { UserError, defineCommand, S } from "toolcraft";
 import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./runtime.js";
 
 const params = S.Object({
-  session: S.Optional(S.String({ short: "s", description: "Session name" })),
-  timeout: S.Optional(S.Number({ short: "t", description: "Maximum wait time in milliseconds" }))
+  session: S.Optional(
+    S.String({ short: "s", description: "Session name", minLength: 1, pattern: "\\S" })
+  ),
+  timeout: S.Optional(
+    S.Number({ short: "t", description: "Maximum wait time in milliseconds", minimum: 0 })
+  )
 });
 
 export const waitForExit = defineCommand<
@@ -19,7 +23,13 @@ export const waitForExit = defineCommand<
   scope: ["cli", "mcp", "sdk"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
-    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(params.session, env);
+    if (params.timeout !== undefined && (!Number.isFinite(params.timeout) || params.timeout < 0)) {
+      throw new UserError("Timeout must be a finite non-negative number.");
+    }
+    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(
+      params.session,
+      env
+    );
     const exitCode = await namedSession.session.waitForExit(
       params.timeout === undefined ? undefined : { timeout: params.timeout }
     );

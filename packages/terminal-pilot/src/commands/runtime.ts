@@ -39,7 +39,10 @@ type CreateSessionParams = NewSessionOptions & {
 export interface TerminalPilotRuntime {
   createSession(params: CreateSessionParams, env?: HandlerEnv): Promise<NamedSession>;
   resolveSession(name: string | undefined, env?: HandlerEnv): Promise<NamedSession>;
-  closeSession(name: string | undefined, env?: HandlerEnv): Promise<{ exitCode: number; name: string }>;
+  closeSession(
+    name: string | undefined,
+    env?: HandlerEnv
+  ): Promise<{ exitCode: number; name: string }>;
   listSessions(): Promise<NamedSession[]>;
   close(): Promise<void>;
 }
@@ -76,7 +79,13 @@ export function createTerminalPilotRuntime(
   let pilotPromise: Promise<ClosablePilotLike> | undefined;
 
   function getRequestedName(name: string | undefined, env?: HandlerEnv): string | undefined {
-    return name ?? env?.get(SESSION_ENV_VAR);
+    const requestedName = name ?? env?.get(SESSION_ENV_VAR);
+
+    if (requestedName !== undefined && requestedName.trim().length === 0) {
+      throw new UserError("Session name must not be empty.");
+    }
+
+    return requestedName;
   }
 
   async function getPilot(): Promise<ClosablePilotLike> {
@@ -122,7 +131,9 @@ export function createTerminalPilotRuntime(
 
     if (sessionId === undefined) {
       const active = await listSessions();
-      throw new UserError(`Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`);
+      throw new UserError(
+        `Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`
+      );
     }
 
     const pilot = await getPilot();
@@ -132,7 +143,9 @@ export function createTerminalPilotRuntime(
     } catch {
       forgetSession(name, sessionId);
       const active = await listSessions();
-      throw new UserError(`Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`);
+      throw new UserError(
+        `Session "${name}" was not found. ${formatAvailableSessions(active.map((entry) => entry.name))}`
+      );
     }
   }
 
@@ -171,6 +184,10 @@ export function createTerminalPilotRuntime(
 
   return {
     async createSession(params: CreateSessionParams, env?: HandlerEnv): Promise<NamedSession> {
+      if (params.command.trim().length === 0) {
+        throw new UserError("Command must not be empty.");
+      }
+
       const requestedName = getRequestedName(params.session, env) ?? nextSessionName();
 
       await discardExitedSessionName(requestedName);
@@ -219,7 +236,10 @@ export function createTerminalPilotRuntime(
       );
     },
 
-    async closeSession(name: string | undefined, env?: HandlerEnv): Promise<{ exitCode: number; name: string }> {
+    async closeSession(
+      name: string | undefined,
+      env?: HandlerEnv
+    ): Promise<{ exitCode: number; name: string }> {
       const namedSession = await this.resolveSession(name, env);
       const exitCode = await namedSession.session.close();
       const pilot = await getPilot();

@@ -244,6 +244,44 @@ describe("terminal-pilot commands", () => {
     });
   });
 
+  it("rejects blank create-session command and session names before spawning", async () => {
+    const pilot = createPilotMock();
+    const runtime = createTerminalPilotRuntime({
+      launchPilot: async () => pilot as never
+    });
+    const context = createCommandContext(runtime);
+
+    await expect(
+      createSession.handler({
+        ...context,
+        params: {
+          command: "   "
+        }
+      })
+    ).rejects.toThrow("Command must not be empty.");
+
+    await expect(
+      createSession.handler({
+        ...context,
+        params: {
+          command: "bash",
+          session: "\t"
+        }
+      })
+    ).rejects.toThrow("Session name must not be empty.");
+
+    await expect(
+      createSession.handler({
+        ...createCommandContext(runtime, { [SESSION_ENV_VAR]: "  " }),
+        params: {
+          command: "bash"
+        }
+      })
+    ).rejects.toThrow("Session name must not be empty.");
+
+    expect(pilot.newSession).not.toHaveBeenCalled();
+  });
+
   it("auto-names create-session calls and resolves an omitted session when exactly one is active", async () => {
     const pilot = createPilotMock();
     const runtime = createTerminalPilotRuntime({
@@ -440,6 +478,44 @@ describe("terminal-pilot commands", () => {
     expect(session.waitFor).toHaveBeenCalledWith("literal [abc]", { timeout: 250 });
   });
 
+  it("rejects blank wait-for patterns and negative timeouts before resolving sessions", async () => {
+    const pilot = createPilotMock();
+    const runtime = createTerminalPilotRuntime({
+      launchPilot: async () => pilot as never
+    });
+    const context = createCommandContext(runtime);
+
+    await expect(
+      waitFor.handler({
+        ...context,
+        params: {
+          pattern: "  "
+        }
+      })
+    ).rejects.toThrow("Wait pattern must not be empty.");
+
+    await expect(
+      waitFor.handler({
+        ...context,
+        params: {
+          pattern: "ready",
+          timeout: -1
+        }
+      })
+    ).rejects.toThrow("Timeout must be a finite non-negative number.");
+
+    await expect(
+      waitForExit.handler({
+        ...context,
+        params: {
+          timeout: -1
+        }
+      })
+    ).rejects.toThrow("Timeout must be a finite non-negative number.");
+
+    expect(pilot.sessions).not.toHaveBeenCalled();
+  });
+
   it("rejects duplicate session names and reuses auto-generated names after close-session", async () => {
     const pilot = createPilotMock();
     const runtime = createTerminalPilotRuntime({
@@ -510,9 +586,10 @@ describe("terminal-pilot commands", () => {
     let finishCreate: ((session: SessionMock) => void) | undefined;
     const pilot = createPilotMock();
     pilot.newSession.mockImplementationOnce(
-      () => new Promise<SessionMock>((resolve) => {
-        finishCreate = resolve;
-      })
+      () =>
+        new Promise<SessionMock>((resolve) => {
+          finishCreate = resolve;
+        })
     );
     const runtime = createTerminalPilotRuntime({ launchPilot: async () => pilot as never });
 
@@ -784,9 +861,9 @@ describe("terminal-pilot install/uninstall commands", () => {
     expect(skill).toContain("terminal-pilot create-session");
     expect(skill).not.toContain("MCP");
 
-    await expect(
-      fs.readFile(path.join(HOME_DIR, ".claude.json"), "utf8")
-    ).rejects.toThrow("ENOENT");
+    await expect(fs.readFile(path.join(HOME_DIR, ".claude.json"), "utf8")).rejects.toThrow(
+      "ENOENT"
+    );
   });
 
   it("defaults install scope to local when no scope flag is provided", async () => {
@@ -828,10 +905,7 @@ describe("terminal-pilot install/uninstall commands", () => {
     });
 
     await expect(
-      fs.readFile(
-        path.join(HOME_DIR, ".claude/skills/terminal-pilot/SKILL.md"),
-        "utf8"
-      )
+      fs.readFile(path.join(HOME_DIR, ".claude/skills/terminal-pilot/SKILL.md"), "utf8")
     ).resolves.toContain("terminal-pilot create-session");
   });
 
@@ -873,16 +947,12 @@ describe("terminal-pilot install/uninstall commands", () => {
     vol.mkdirSync(path.join(CWD, ".claude/skills/terminal-pilot"), { recursive: true });
     vol.mkdirSync(CWD, { recursive: true });
     vol.mkdirSync(HOME_DIR, { recursive: true });
-    await fs.writeFile(
-      path.join(HOME_DIR, ".claude/skills/terminal-pilot/SKILL.md"),
-      "global",
-      { encoding: "utf8" }
-    );
-    await fs.writeFile(
-      path.join(CWD, ".claude/skills/terminal-pilot/SKILL.md"),
-      "local",
-      { encoding: "utf8" }
-    );
+    await fs.writeFile(path.join(HOME_DIR, ".claude/skills/terminal-pilot/SKILL.md"), "global", {
+      encoding: "utf8"
+    });
+    await fs.writeFile(path.join(CWD, ".claude/skills/terminal-pilot/SKILL.md"), "local", {
+      encoding: "utf8"
+    });
     await expect(
       uninstall.handler({
         ...createCommandContext(fs),
@@ -892,18 +962,15 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "claude-code",
-      removedSkillPaths: [
-        ".claude/skills/terminal-pilot",
-        "~/.claude/skills/terminal-pilot"
-      ]
+      removedSkillPaths: [".claude/skills/terminal-pilot", "~/.claude/skills/terminal-pilot"]
     });
 
-    await expect(
-      fs.stat(path.join(CWD, ".claude/skills/terminal-pilot"))
-    ).rejects.toThrow("ENOENT");
-    await expect(
-      fs.stat(path.join(HOME_DIR, ".claude/skills/terminal-pilot"))
-    ).rejects.toThrow("ENOENT");
+    await expect(fs.stat(path.join(CWD, ".claude/skills/terminal-pilot"))).rejects.toThrow(
+      "ENOENT"
+    );
+    await expect(fs.stat(path.join(HOME_DIR, ".claude/skills/terminal-pilot"))).rejects.toThrow(
+      "ENOENT"
+    );
   });
 
   it("is a no-op when uninstalling an agent without terminal-pilot configured", async () => {
@@ -1000,9 +1067,7 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).rejects.toThrow("simulated global staging failure");
 
-    await expect(rawFs.readFile(path.join(localSkill, "SKILL.md"), "utf8")).resolves.toBe(
-      "local"
-    );
+    await expect(rawFs.readFile(path.join(localSkill, "SKILL.md"), "utf8")).resolves.toBe("local");
     await expect(rawFs.readFile(path.join(globalSkill, "SKILL.md"), "utf8")).resolves.toBe(
       "global"
     );
@@ -1054,10 +1119,7 @@ describe("terminal-pilot install/uninstall commands", () => {
       })
     ).resolves.toEqual({
       agent: "claude-code",
-      removedSkillPaths: [
-        ".claude/skills/terminal-pilot",
-        "~/.claude/skills/terminal-pilot"
-      ]
+      removedSkillPaths: [".claude/skills/terminal-pilot", "~/.claude/skills/terminal-pilot"]
     });
 
     await expect(rawFs.stat(localSkill)).rejects.toThrow("ENOENT");

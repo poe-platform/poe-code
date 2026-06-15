@@ -3,7 +3,9 @@ import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./ru
 
 const params = S.Object({
   text: S.String({ description: "Text to write to the session" }),
-  session: S.Optional(S.String({ short: "s", description: "Session name" }))
+  session: S.Optional(
+    S.String({ short: "s", description: "Session name", minLength: 1, pattern: "\\S" })
+  )
 });
 
 export const fill = defineCommand<
@@ -20,7 +22,10 @@ export const fill = defineCommand<
   positional: ["text"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
-    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(params.session, env);
+    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(
+      params.session,
+      env
+    );
     await namedSession.session.fill(params.text);
     return undefined;
   }

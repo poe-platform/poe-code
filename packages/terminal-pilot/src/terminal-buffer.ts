@@ -53,7 +53,7 @@ const enum State {
   Str,
   StringEscape,
   EscCharset,
-  EscHash,
+  EscHash
 }
 
 export class TerminalBuffer {
@@ -98,11 +98,15 @@ export class TerminalBuffer {
     this._savedCursor = this._createSavedCursorState();
 
     this.displayBuffer = Object.defineProperties(
-      {} as { readonly cursorX: number; readonly cursorY: number; readonly data: Array<Row | undefined> },
+      {} as {
+        readonly cursorX: number;
+        readonly cursorY: number;
+        readonly data: Array<Row | undefined>;
+      },
       {
         cursorX: { get: () => this._cursorX, enumerable: true },
         cursorY: { get: () => this._cursorY, enumerable: true },
-        data: { get: () => this._screen as Array<Row | undefined>, enumerable: true },
+        data: { get: () => this._screen as Array<Row | undefined>, enumerable: true }
       }
     );
   }
@@ -238,6 +242,11 @@ export class TerminalBuffer {
   private _writePrintable(ch: string): void {
     const width = this._cellWidth(ch);
 
+    if (width === 0) {
+      this._appendCombiningMark(ch);
+      return;
+    }
+
     if (this._autoWrap && this._pendingWrap) {
       this._cursorX = 0;
       this._newline();
@@ -249,7 +258,7 @@ export class TerminalBuffer {
     if (this._insertMode) {
       const row = this._screen[this._cursorY];
       if (row) {
-        row.splice(this._cursorX, 0, ...Array(width).fill(null) as Cell[]);
+        row.splice(this._cursorX, 0, ...(Array(width).fill(null) as Cell[]));
         row.splice(this._cols);
       }
     }
@@ -276,26 +285,62 @@ export class TerminalBuffer {
   private _cellWidth(ch: string): number {
     const codePoint = ch.codePointAt(0);
     if (codePoint === undefined) return 0;
+    if (isCombiningCodePoint(codePoint)) {
+      return 0;
+    }
     if (
-      (codePoint >= 0x1100 && codePoint <= 0x115f)
-      || codePoint === 0x2329
-      || codePoint === 0x232a
-      || (codePoint >= 0x2e80 && codePoint <= 0x303e)
-      || (codePoint >= 0x3041 && codePoint <= 0x33bf)
-      || (codePoint >= 0x3400 && codePoint <= 0x4dbf)
-      || (codePoint >= 0x4e00 && codePoint <= 0xa4cf)
-      || (codePoint >= 0xac00 && codePoint <= 0xd7af)
-      || (codePoint >= 0xf900 && codePoint <= 0xfaff)
-      || (codePoint >= 0xfe10 && codePoint <= 0xfe19)
-      || (codePoint >= 0xfe30 && codePoint <= 0xfe6f)
-      || (codePoint >= 0xff00 && codePoint <= 0xff60)
-      || (codePoint >= 0xffe0 && codePoint <= 0xffe6)
-      || (codePoint >= 0x1f200 && codePoint <= 0x1fffd)
-      || (codePoint >= 0x20000 && codePoint <= 0x3fffd)
+      (codePoint >= 0x1100 && codePoint <= 0x115f) ||
+      codePoint === 0x2329 ||
+      codePoint === 0x232a ||
+      (codePoint >= 0x2e80 && codePoint <= 0x303e) ||
+      (codePoint >= 0x3041 && codePoint <= 0x33bf) ||
+      (codePoint >= 0x3400 && codePoint <= 0x4dbf) ||
+      (codePoint >= 0x4e00 && codePoint <= 0xa4cf) ||
+      (codePoint >= 0xac00 && codePoint <= 0xd7af) ||
+      (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
+      (codePoint >= 0xfe10 && codePoint <= 0xfe19) ||
+      (codePoint >= 0xfe30 && codePoint <= 0xfe6f) ||
+      (codePoint >= 0xff00 && codePoint <= 0xff60) ||
+      (codePoint >= 0xffe0 && codePoint <= 0xffe6) ||
+      (codePoint >= 0x1f200 && codePoint <= 0x1fffd) ||
+      (codePoint >= 0x20000 && codePoint <= 0x3fffd)
     ) {
       return Math.min(2, this._cols);
     }
     return 1;
+  }
+
+  private _appendCombiningMark(ch: string): void {
+    const target = this._findCombiningTarget();
+    if (target === null) {
+      return;
+    }
+
+    const cell = this._screen[target.y]?.[target.x];
+    if (cell === null || cell === undefined) {
+      return;
+    }
+
+    cell[1] += ch;
+  }
+
+  private _findCombiningTarget(): { x: number; y: number } | null {
+    const startX = this._pendingWrap ? this._cursorX : this._cursorX - 1;
+
+    for (let y = this._cursorY; y >= 0; y -= 1) {
+      const row = this._screen[y];
+      if (row === undefined) {
+        continue;
+      }
+
+      for (let x = y === this._cursorY ? startX : this._cols - 1; x >= 0; x -= 1) {
+        if (row[x] !== null) {
+          return { x, y };
+        }
+      }
+    }
+
+    return null;
   }
 
   private _setChar(y: number, x: number, ch: string): void {
@@ -453,7 +498,8 @@ export class TerminalBuffer {
       case "J": // erase in display
         if (p0 === 0) {
           this._eraseLine(this._cursorY, this._cursorX, this._cols - 1);
-          for (let y = this._cursorY + 1; y < this._rows; y++) this._eraseLine(y, 0, this._cols - 1);
+          for (let y = this._cursorY + 1; y < this._rows; y++)
+            this._eraseLine(y, 0, this._cols - 1);
         } else if (p0 === 1) {
           for (let y = 0; y < this._cursorY; y++) this._eraseLine(y, 0, this._cols - 1);
           this._eraseLine(this._cursorY, 0, this._cursorX);
@@ -469,7 +515,8 @@ export class TerminalBuffer {
       case "X": // erase characters (ECH)
         this._eraseLine(this._cursorY, this._cursorX, this._cursorX + Math.max(1, p0) - 1);
         break;
-      case "L": { // insert lines
+      case "L": {
+        // insert lines
         if (this._cursorY < this._scrollTop || this._cursorY > this._scrollBottom) {
           break;
         }
@@ -480,7 +527,8 @@ export class TerminalBuffer {
         }
         break;
       }
-      case "M": { // delete lines
+      case "M": {
+        // delete lines
         if (this._cursorY < this._scrollTop || this._cursorY > this._scrollBottom) {
           break;
         }
@@ -491,7 +539,8 @@ export class TerminalBuffer {
         }
         break;
       }
-      case "P": { // delete characters
+      case "P": {
+        // delete characters
         const row = this._screen[this._cursorY];
         if (row) {
           const n = Math.max(1, p0);
@@ -500,7 +549,8 @@ export class TerminalBuffer {
         }
         break;
       }
-      case "@": { // insert blank characters
+      case "@": {
+        // insert blank characters
         const row = this._screen[this._cursorY];
         if (row) {
           const n = Math.max(1, p0);
@@ -515,7 +565,8 @@ export class TerminalBuffer {
       case "T": // scroll down
         if (params.length <= 1) this._scrollDown(Math.max(1, p0));
         break;
-      case "Z": { // cursor backward tabulation
+      case "Z": {
+        // cursor backward tabulation
         const n = Math.max(1, p0);
         for (let i = 0; i < n; i++) {
           this._cursorX = Math.max(0, (Math.ceil(this._cursorX / 8) - 1) * 8);
@@ -535,7 +586,8 @@ export class TerminalBuffer {
       case "e": // vertical position relative
         this._cursorY = this._clamp(this._cursorY + Math.max(1, p0), 0, this._rows - 1);
         break;
-      case "r": { // set scrolling region
+      case "r": {
+        // set scrolling region
         const top = this._clamp(Math.max(1, p0) - 1, 0, this._rows - 1);
         const bottom = this._clamp((p1 === 0 ? this._rows : p1) - 1, 0, this._rows - 1);
         if (top < bottom) {
@@ -677,7 +729,7 @@ export class TerminalBuffer {
     } else if (code >= 0x20 && code !== 0x7f) {
       // Printable character (including multi-byte Unicode via code points)
       const charset = this._shiftOut ? this._g1Charset : this._g0Charset;
-      this._writePrintable(charset === "graphics" ? DEC_SPECIAL_GRAPHICS[ch] ?? ch : ch);
+      this._writePrintable(charset === "graphics" ? (DEC_SPECIAL_GRAPHICS[ch] ?? ch) : ch);
     }
   }
 
@@ -695,7 +747,14 @@ export class TerminalBuffer {
     } else if (code === 0x50 || code === 0x58 || code === 0x5e || code === 0x5f) {
       // DCS, SOS, PM, APC
       this._state = State.Str;
-    } else if (code === 0x28 || code === 0x29 || code === 0x2a || code === 0x2b || code === 0x2d || code === 0x2e) {
+    } else if (
+      code === 0x28 ||
+      code === 0x29 ||
+      code === 0x2a ||
+      code === 0x2b ||
+      code === 0x2d ||
+      code === 0x2e
+    ) {
       // ESC ( ) * + - . = charset designation (consume next char)
       this._charsetTarget = code === 0x28 ? "g0" : code === 0x29 ? "g1" : null;
       this._state = State.EscCharset;
@@ -870,6 +929,16 @@ function createDefaultStyleState(): SgrStyleState {
     conceal: false,
     strikethrough: false
   };
+}
+
+function isCombiningCodePoint(codePoint: number): boolean {
+  return (
+    (codePoint >= 0x0300 && codePoint <= 0x036f) ||
+    (codePoint >= 0x1ab0 && codePoint <= 0x1aff) ||
+    (codePoint >= 0x1dc0 && codePoint <= 0x1dff) ||
+    (codePoint >= 0x20d0 && codePoint <= 0x20ff) ||
+    (codePoint >= 0xfe20 && codePoint <= 0xfe2f)
+  );
 }
 
 function serializeStyleState(state: SgrStyleState): string {

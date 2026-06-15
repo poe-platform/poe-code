@@ -1,9 +1,12 @@
-import { defineCommand, S } from "toolcraft";
+import { UserError, defineCommand, S } from "toolcraft";
+import { TERMINAL_KEY_PATTERN, keyToSequence, type TerminalKey } from "../keys.js";
 import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./runtime.js";
 
 const params = S.Object({
-  key: S.String({ description: "Named key to press" }),
-  session: S.Optional(S.String({ short: "s", description: "Session name" }))
+  key: S.String({ description: "Named key to press", pattern: TERMINAL_KEY_PATTERN }),
+  session: S.Optional(
+    S.String({ short: "s", description: "Session name", minLength: 1, pattern: "\\S" })
+  )
 });
 
 export const pressKey = defineCommand<
@@ -20,8 +23,20 @@ export const pressKey = defineCommand<
   positional: ["key"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
-    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(params.session, env);
-    await namedSession.session.press(params.key as never);
+    assertTerminalKey(params.key);
+    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(
+      params.session,
+      env
+    );
+    await namedSession.session.press(params.key as TerminalKey);
     return undefined;
   }
 });
+
+function assertTerminalKey(key: string): asserts key is TerminalKey {
+  try {
+    keyToSequence(key as TerminalKey);
+  } catch (error) {
+    throw new UserError(error instanceof Error ? error.message : String(error));
+  }
+}

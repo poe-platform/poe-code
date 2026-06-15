@@ -1,10 +1,18 @@
-import { defineCommand, S } from "toolcraft";
+import { UserError, defineCommand, S } from "toolcraft";
 import { getTerminalPilotRuntime, type TerminalPilotCommandServices } from "./runtime.js";
 
 const params = S.Object({
-  pattern: S.String({ description: "Regular expression pattern to wait for" }),
-  session: S.Optional(S.String({ short: "s", description: "Session name" })),
-  timeout: S.Optional(S.Number({ short: "t", description: "Maximum wait time in milliseconds" })),
+  pattern: S.String({
+    description: "Regular expression pattern to wait for",
+    minLength: 1,
+    pattern: "\\S"
+  }),
+  session: S.Optional(
+    S.String({ short: "s", description: "Session name", minLength: 1, pattern: "\\S" })
+  ),
+  timeout: S.Optional(
+    S.Number({ short: "t", description: "Maximum wait time in milliseconds", minimum: 0 })
+  ),
   literal: S.Optional(
     S.Boolean({
       short: "l",
@@ -27,7 +35,14 @@ export const waitFor = defineCommand<
   positional: ["pattern"],
   params,
   handler: async ({ params, env, terminalPilotRuntime }) => {
-    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(params.session, env);
+    if (params.pattern.trim().length === 0) {
+      throw new UserError("Wait pattern must not be empty.");
+    }
+    assertTimeout(params.timeout);
+    const namedSession = await getTerminalPilotRuntime(terminalPilotRuntime).resolveSession(
+      params.session,
+      env
+    );
     const pattern = params.literal === true ? params.pattern : new RegExp(params.pattern);
     const line =
       params.timeout === undefined
@@ -37,3 +52,9 @@ export const waitFor = defineCommand<
     return { matched: true, line };
   }
 });
+
+function assertTimeout(timeout: number | undefined): void {
+  if (timeout !== undefined && (!Number.isFinite(timeout) || timeout < 0)) {
+    throw new UserError("Timeout must be a finite non-negative number.");
+  }
+}

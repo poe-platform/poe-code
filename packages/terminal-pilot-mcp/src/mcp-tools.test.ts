@@ -108,26 +108,39 @@ const runtime: TerminalPilotRuntime = {
   ]
 };
 
-describe("terminal-pilot-mcp tool surface", () => {
-  it("exposes current and documented terminal-prefixed MCP command names", async () => {
-    const server = createMCPServer(createTerminalPilotMCPGroup(), {
-      name: "terminal-pilot",
-      version: "0.0.1",
-      omitRootToolNamePrefix: true,
-      services: {
-        terminalPilotRuntime: runtime
-      }
-    });
-    const { client, cleanup } = await createSdkTestPair(server, () =>
+async function withClient<T>(
+  terminalPilotRuntime: TerminalPilotRuntime,
+  callback: (client: McpClient) => Promise<T>
+): Promise<T> {
+  const server = createMCPServer(createTerminalPilotMCPGroup(), {
+    name: "terminal-pilot",
+    version: "0.0.1",
+    omitRootToolNamePrefix: true,
+    services: {
+      terminalPilotRuntime
+    }
+  });
+  const { client, cleanup } = await createSdkTestPair(
+    server,
+    () =>
       new McpClient({
         clientInfo: {
           name: "test-client",
           version: "1.0.0"
         }
       })
-    );
+  );
 
-    try {
+  try {
+    return await callback(client);
+  } finally {
+    await cleanup();
+  }
+}
+
+describe("terminal-pilot-mcp tool surface", () => {
+  it("exposes current and documented terminal-prefixed MCP command names", async () => {
+    await withClient(runtime, async (client) => {
       expect(client.serverInfo).toEqual({
         name: "terminal-pilot",
         version: "0.0.1"
@@ -142,7 +155,7 @@ describe("terminal-pilot-mcp tool surface", () => {
           type: "object",
           properties: {
             session: { type: "string" },
-            pid: { type: "number" }
+            pid: { type: "integer", minimum: 1 }
           },
           required: ["session", "pid"]
         }
@@ -156,8 +169,218 @@ describe("terminal-pilot-mcp tool surface", () => {
         content: [{ type: "text", text: JSON.stringify({ session: "s1", pid: 1234 }) }],
         structuredContent: { session: "s1", pid: 1234 }
       });
-    } finally {
-      await cleanup();
-    }
+    });
+  });
+
+  it("advertises constrained numeric, timeout, and key schemas", async () => {
+    await withClient(runtime, async (client) => {
+      const result = await client.listTools();
+      const toolByName = new Map(result.tools.map((tool) => [tool.name, tool]));
+
+      expect(toolByName.get("terminal_create_session")).toMatchObject({
+        inputSchema: {
+          properties: {
+            command: { minLength: 1, pattern: "\\S" },
+            session: { minLength: 1, pattern: "\\S" },
+            cols: { type: "integer", minimum: 1 },
+            rows: { type: "integer", minimum: 1 }
+          }
+        },
+        outputSchema: {
+          properties: {
+            pid: { type: "integer", minimum: 1 }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_wait_for")).toMatchObject({
+        inputSchema: {
+          properties: {
+            pattern: { minLength: 1, pattern: "\\S" },
+            timeout: { type: "number", minimum: 0 }
+          }
+        },
+        outputSchema: {
+          properties: {
+            matched: { type: "boolean" },
+            line: { type: "string" }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_wait_for_exit")).toMatchObject({
+        inputSchema: {
+          properties: {
+            timeout: { type: "number", minimum: 0 }
+          }
+        },
+        outputSchema: {
+          properties: {
+            exit_code: { type: "integer", nullable: true }
+          }
+        }
+      });
+      const pressKeySchema = toolByName.get("terminal_press_key")?.inputSchema.properties?.key;
+      expect(pressKeySchema).toMatchObject({
+        type: "string"
+      });
+      const keyPattern = new RegExp(String(pressKeySchema?.pattern));
+      expect(keyPattern.test("Control+c")).toBe(true);
+      expect(keyPattern.test("NotAKey")).toBe(false);
+      expect(toolByName.get("terminal_press_key")).toMatchObject({
+        inputSchema: {
+          properties: {
+            key: { type: "string" }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_read_history")).toMatchObject({
+        inputSchema: {
+          properties: {
+            last: { type: "integer", minimum: 0 }
+          }
+        },
+        outputSchema: {
+          properties: {
+            exit_code: { type: "integer", nullable: true }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_read_screen")).toMatchObject({
+        outputSchema: {
+          properties: {
+            cursor: {
+              properties: {
+                row: { type: "integer", minimum: 0 },
+                col: { type: "integer", minimum: 0 }
+              }
+            },
+            size: {
+              properties: {
+                rows: { type: "integer", minimum: 1 },
+                cols: { type: "integer", minimum: 1 }
+              }
+            },
+            exit_code: { type: "integer", nullable: true }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_resize")).toMatchObject({
+        inputSchema: {
+          properties: {
+            cols: { type: "integer", minimum: 1 },
+            rows: { type: "integer", minimum: 1 }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_get_session")).toMatchObject({
+        outputSchema: {
+          properties: {
+            session: { type: "string" },
+            pid: { type: "integer", minimum: 1 },
+            exit_code: { type: "integer", nullable: true }
+          }
+        }
+      });
+      expect(toolByName.get("terminal_list_sessions")).toMatchObject({
+        outputSchema: {
+          properties: {
+            sessions: {
+              items: {
+                properties: {
+                  session: { type: "string" },
+                  pid: { type: "integer", minimum: 1 }
+                }
+              }
+            }
+          }
+        }
+      });
+    });
+  });
+
+  it("rejects invalid key values before invoking the terminal runtime", async () => {
+    const calls: string[] = [];
+    const keyRuntime: TerminalPilotRuntime = {
+      ...runtime,
+      resolveSession: async () => ({
+        name: "s1",
+        session: {
+          id: "session-1",
+          command: "bash",
+          pid: 1234,
+          exitCode: null,
+          fill: async () => undefined,
+          type: async () => undefined,
+          press: async (key) => {
+            calls.push(key);
+          },
+          signal: async () => undefined,
+          waitFor: async () => "matched output",
+          waitForExit: async () => 0,
+          screen: async () => ({
+            lines: ["ready"],
+            cursor: { row: 0, col: 5 },
+            size: { rows: 24, cols: 80 }
+          }),
+          history: async () => ["ready"],
+          resize: async () => undefined,
+          close: async () => 0
+        }
+      })
+    };
+
+    await withClient(keyRuntime, async (client) => {
+      await expect(
+        client.callTool({
+          name: "terminal_press_key",
+          arguments: { session: "s1", key: "NotAKey" }
+        })
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: expect.stringContaining("Unknown terminal key")
+      });
+    });
+
+    expect(calls).toEqual([]);
+  });
+
+  it("rejects impossible PID output before returning structured content", async () => {
+    const invalidPidRuntime: TerminalPilotRuntime = {
+      ...runtime,
+      createSession: async (params) => ({
+        name: params.session ?? "s1",
+        session: {
+          id: "session-1",
+          command: params.command,
+          pid: -12,
+          exitCode: null,
+          fill: async () => undefined,
+          type: async () => undefined,
+          press: async () => undefined,
+          signal: async () => undefined,
+          waitFor: async () => "matched output",
+          waitForExit: async () => 0,
+          screen: async () => ({
+            lines: ["ready"],
+            cursor: { row: 0, col: 5 },
+            size: { rows: 24, cols: 80 }
+          }),
+          history: async () => ["ready"],
+          resize: async () => undefined,
+          close: async () => 0
+        }
+      })
+    };
+
+    await withClient(invalidPidRuntime, async (client) => {
+      await expect(
+        client.callTool({
+          name: "terminal_create_session",
+          arguments: { command: "bash" }
+        })
+      ).rejects.toMatchObject({
+        code: -32603,
+        message: expect.stringContaining("pid")
+      });
+    });
   });
 });

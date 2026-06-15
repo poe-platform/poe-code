@@ -166,9 +166,7 @@ describe("runGaslight", () => {
     await expect(fs.readFile("/repo/docs/plans/second.md", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
-    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).resolves.toBe(
-      "# First"
-    );
+    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).resolves.toBe("# First");
     await expect(fs.readFile("/repo/docs/plans/archive/second.md", "utf8")).resolves.toBe(
       "# Second"
     );
@@ -289,6 +287,87 @@ describe("runGaslight", () => {
       })
     ).rejects.toThrow(/Plan file not found/);
     expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only agent before spawning", async () => {
+    const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
+    const spawn = vi.fn();
+
+    await expect(
+      runGaslight({
+        cwd: "/repo",
+        planPaths: ["plan.md"],
+        agent: "   ",
+        prompt: "Implement",
+        followups: ["Again"],
+        fs,
+        spawn
+      })
+    ).rejects.toThrow("agent must be a non-empty string.");
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only model before spawning", async () => {
+    const fs = createFsFromVolume(Volume.fromJSON({ "/repo/plan.md": "# Work" })).promises;
+    const spawn = vi.fn();
+
+    await expect(
+      runGaslight({
+        cwd: "/repo",
+        planPaths: ["plan.md"],
+        agent: "codex",
+        model: "   ",
+        prompt: "Implement",
+        followups: ["Again"],
+        fs,
+        spawn
+      })
+    ).rejects.toThrow("model must be a non-empty string when provided.");
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects duplicate plan paths before spawning", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/repo/docs/plans/work.md": "# Work" })
+    ).promises;
+    const spawn = vi.fn();
+
+    await expect(
+      runGaslight({
+        cwd: "/repo",
+        planPaths: ["docs/plans/work.md", " docs/plans/work.md "],
+        agent: "codex",
+        prompt: "Implement",
+        followups: ["Again"],
+        fs,
+        spawn
+      })
+    ).rejects.toThrow("Duplicate plan path: docs/plans/work.md");
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects existing archive destinations before spawning", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({
+        "/repo/docs/plans/work.md": "# Work",
+        "/repo/docs/plans/archive/work.md": "# Old archive"
+      })
+    ).promises;
+    const spawn = vi.fn();
+
+    await expect(
+      runGaslight({
+        cwd: "/repo",
+        planPaths: ["docs/plans/work.md"],
+        agent: "codex",
+        prompt: "Implement",
+        followups: ["Again"],
+        fs,
+        spawn
+      })
+    ).rejects.toThrow("Archive destination already exists: /repo/docs/plans/archive/work.md");
+    expect(spawn).not.toHaveBeenCalled();
+    await expect(fs.readFile("/repo/docs/plans/work.md", "utf8")).resolves.toBe("# Work");
   });
 
   it("uses an explicit config path when provided", async () => {

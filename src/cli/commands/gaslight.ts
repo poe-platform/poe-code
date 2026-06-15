@@ -218,6 +218,17 @@ async function scaffoldConfig(
 ): Promise<{ path: string; changed: boolean }> {
   const root = scope === "global" ? container.env.homeDir : container.env.cwd;
   const configPath = path.join(root, ".poe-code", "gaslight.yaml");
+  const configDirectory = path.dirname(configPath);
+  try {
+    const stats = await container.fs.lstat(configDirectory);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`Gaslight config directory cannot be a symbolic link: ${configDirectory}`);
+    }
+  } catch (error) {
+    if (!hasOwnErrorCode(error, "ENOENT")) {
+      throw error;
+    }
+  }
   try {
     await container.fs.stat(configPath);
     if (!force) {
@@ -229,7 +240,7 @@ async function scaffoldConfig(
     }
   }
   if (!dryRun) {
-    await container.fs.mkdir(path.dirname(configPath), { recursive: true });
+    await container.fs.mkdir(configDirectory, { recursive: true });
     await container.fs.writeFile(configPath, `${GASLIGHT_CONFIG_EXAMPLE}\n`, {
       encoding: "utf8"
     });

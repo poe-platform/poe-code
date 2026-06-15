@@ -117,6 +117,28 @@ async function archivePlan(
   return archivedPath;
 }
 
+function archivePathForPlan(cwd: string, planPath: string): string {
+  const absolutePath = path.resolve(cwd, planPath);
+  return path.join(path.dirname(absolutePath), "archive", path.basename(absolutePath));
+}
+
+async function assertArchiveDestinationAvailable(
+  fs: GaslightArchiveFileSystem,
+  cwd: string,
+  planPath: string
+): Promise<void> {
+  const archivedPath = archivePathForPlan(cwd, planPath);
+  try {
+    await fs.readFile(archivedPath, "utf8");
+    throw new Error(`Archive destination already exists: ${archivedPath}`);
+  } catch (error) {
+    if (!isMissingFile(error)) {
+      throw error;
+    }
+  }
+  await rejectArchiveSymlink(fs, path.dirname(archivedPath));
+}
+
 function validateInlineConfig(prompt: string | undefined, followups: string[] | undefined): void {
   if ((prompt === undefined) !== (followups === undefined)) {
     throw new Error("prompt and followups must be provided together.");
@@ -132,6 +154,25 @@ function validateInlineConfig(prompt: string | undefined, followups: string[] | 
   }
 }
 
+function requireNonEmptyString(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return trimmed;
+}
+
+function resolveModel(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error("model must be a non-empty string when provided.");
+  }
+  return trimmed;
+}
+
 function resolvePlanPaths(options: GaslightOptions): string[] {
   if (options.planPaths.length === 0) {
     throw new Error("Provide at least one plan path.");
@@ -141,7 +182,17 @@ function resolvePlanPaths(options: GaslightOptions): string[] {
       throw new Error("plan paths must be non-empty strings.");
     }
   }
-  return options.planPaths.map((planPath) => planPath.trim());
+  const planPaths = options.planPaths.map((planPath) => planPath.trim());
+  const seen = new Map<string, string>();
+  for (const planPath of planPaths) {
+    const resolvedPath = path.resolve(options.cwd ?? process.cwd(), planPath);
+    const duplicate = seen.get(resolvedPath);
+    if (duplicate !== undefined) {
+      throw new Error(`Duplicate plan path: ${duplicate}`);
+    }
+    seen.set(resolvedPath, planPath);
+  }
+  return planPaths;
 }
 
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
@@ -149,10 +200,13 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const homeDir = options.homeDir ?? os.homedir();
   const fs = (options.fs ?? nodeFs) as GaslightArchiveFileSystem;
   const spawn = options.spawn ?? defaultSpawn;
+  const agent = requireNonEmptyString(options.agent, "agent");
+  const model = resolveModel(options.model);
   validateInlineConfig(options.prompt, options.followups);
   const planPaths = resolvePlanPaths(options);
   for (const planPath of planPaths) {
     await requirePlan(fs, cwd, planPath);
+    await assertArchiveDestinationAvailable(fs, cwd, planPath);
   }
 
   const config =
@@ -180,11 +234,11 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
         planIndex: planIndex + 1,
         totalPlans: planPaths.length
       });
-      const result = await spawn(options.agent, {
+      const result = await spawn(agent, {
         prompt,
         cwd,
         mode: options.mode ?? "edit",
-        ...(options.model ? { model: options.model } : {}),
+        ...(model ? { model } : {}),
         ...(resumeThreadId ? { resumeThreadId } : {}),
         ...(options.signal ? { signal: options.signal } : {})
       });

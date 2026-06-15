@@ -152,7 +152,8 @@ describe("ingestGaslight", () => {
     const fs = createFsFromVolume(new Volume()).promises;
     const spawn = vi.fn().mockResolvedValue({
       exitCode: 0,
-      stdout: "prompt: Implement\nfollowups:\n  - Did you verify and then make one appropriate commit?\n",
+      stdout:
+        "prompt: Implement\nfollowups:\n  - Did you verify and then make one appropriate commit?\n",
       stderr: ""
     });
 
@@ -200,7 +201,9 @@ describe("ingestGaslight", () => {
     expect(content).toContain("- `commit` - 2 occurrences");
     expect(content).toContain("### Trace 1: Build feature");
     expect(content).toContain("### Trace 2: Ship feature");
-    expect(content).toContain("Run tests in <workspace> and inspect logs under <home>/.poe-code/logs/errors.log");
+    expect(content).toContain(
+      "Run tests in <workspace> and inspect logs under <home>/.poe-code/logs/errors.log"
+    );
     expect(content).not.toContain('{"traceId"');
     expect(content).not.toContain("/repo");
     expect(content).not.toContain("/home/me");
@@ -369,6 +372,110 @@ describe("ingestGaslight", () => {
     ).rejects.toThrow("Invalid gaslight config");
 
     await expect(fs.readFile("/repo/.poe-code/codex-gaslight.yaml", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
+  it("rejects invalid Date since values before collecting traces", async () => {
+    const collectHumanPrompts = vi.fn();
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "codex",
+        since: new Date(Number.NaN),
+        collectHumanPrompts
+      })
+    ).rejects.toThrow('Invalid since date "Invalid Date".');
+    expect(collectHumanPrompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid limits before collecting traces", async () => {
+    const collectHumanPrompts = vi.fn();
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "codex",
+        limit: -1,
+        collectHumanPrompts
+      })
+    ).rejects.toThrow("limit must be a positive integer.");
+    expect(collectHumanPrompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only output path before collecting traces", async () => {
+    const collectHumanPrompts = vi.fn();
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "codex",
+        outputPath: "   ",
+        collectHumanPrompts
+      })
+    ).rejects.toThrow("outputPath must be a non-empty string when provided.");
+    expect(collectHumanPrompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only analysis agent before collecting traces", async () => {
+    const collectHumanPrompts = vi.fn();
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "   ",
+        collectHumanPrompts
+      })
+    ).rejects.toThrow("analysisAgent must be a non-empty string.");
+    expect(collectHumanPrompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects a whitespace-only model before collecting traces", async () => {
+    const collectHumanPrompts = vi.fn();
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "codex",
+        model: "   ",
+        collectHumanPrompts
+      })
+    ).rejects.toThrow("model must be a non-empty string when provided.");
+    expect(collectHumanPrompts).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked default output directories before writing generated configs", async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+    await fs.mkdir("/repo", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.symlink("/outside", "/repo/.poe-code");
+
+    await expect(
+      ingestGaslight({
+        cwd: "/repo",
+        homeDir: "/home/me",
+        analysisAgent: "codex",
+        keepDataPath: "/tmp/prompts.md",
+        fs,
+        collectHumanPrompts: vi.fn().mockResolvedValue({
+          traceCount: 1,
+          records: [{ traceId: "one", source: "codex", text: "Check symlinks" }]
+        }),
+        spawn: vi.fn().mockResolvedValue({
+          exitCode: 0,
+          stdout: "prompt: Implement\nfollowups:\n  - Check symlinks\n",
+          stderr: ""
+        })
+      })
+    ).rejects.toThrow("Output directory cannot be a symbolic link: /repo/.poe-code");
+
+    await expect(fs.readFile("/outside/gaslight.yaml", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
   });

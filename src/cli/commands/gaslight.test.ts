@@ -13,14 +13,14 @@ const {
   selectMock,
   spawnPrettyMock
 } = vi.hoisted(() => ({
-    ingestGaslightMock: vi.fn(),
-    introMock: vi.fn(),
-    multiselectMock: vi.fn(),
-    outroMock: vi.fn(),
-    runGaslightMock: vi.fn(),
-    selectMock: vi.fn(),
-    spawnPrettyMock: vi.fn()
-  }));
+  ingestGaslightMock: vi.fn(),
+  introMock: vi.fn(),
+  multiselectMock: vi.fn(),
+  outroMock: vi.fn(),
+  runGaslightMock: vi.fn(),
+  selectMock: vi.fn(),
+  spawnPrettyMock: vi.fn()
+}));
 
 vi.mock("../../sdk/gaslight.js", () => ({
   GASLIGHT_CONFIG_EXAMPLE: "prompt: Implement\nfollowups:\n  - Check it",
@@ -375,6 +375,22 @@ describe("gaslight command", () => {
     await expect(container.fs.readFile("/repo/.poe-code/gaslight.yaml", "utf8")).resolves.toContain(
       "prompt: Implement"
     );
+  });
+
+  it("rejects a symlinked local config directory when installing locally", async () => {
+    const container = createContainer();
+    await container.fs.mkdir("/outside", { recursive: true });
+    await container.fs.symlink("/outside", "/repo/.poe-code");
+    const program = createProgram();
+    registerGaslightCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "gaslight", "install", "--local"])
+    ).rejects.toThrow("Gaslight config directory cannot be a symbolic link: /repo/.poe-code");
+
+    await expect(container.fs.readFile("/outside/gaslight.yaml", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 
   it("runs ingest without prompting when agent is provided", async () => {

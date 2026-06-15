@@ -15,6 +15,7 @@ import type {
 } from "./types.js";
 
 type WritableGaslightFileSystem = GaslightFileSystem & {
+  lstat?(path: string): Promise<{ isSymbolicLink(): boolean }>;
   unlink?(path: string): Promise<void>;
   rename?(oldPath: string, newPath: string): Promise<void>;
 };
@@ -69,15 +70,38 @@ function resolvePath(cwd: string, filePath: string): string {
   return path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
 }
 
+function requireNonEmptyString(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+  return trimmed;
+}
+
+function resolveOptionalNonEmptyString(
+  value: string | undefined,
+  label: string
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`${label} must be a non-empty string when provided.`);
+  }
+  return trimmed;
+}
+
 async function resolveOutputPath(
   fs: GaslightFileSystem,
   cwd: string,
   analysisAgent: string,
   outputPath?: string
 ): Promise<{ absolutePath: string; resultPath: string }> {
-  if (outputPath) {
-    const absolutePath = resolvePath(cwd, outputPath);
-    return { absolutePath, resultPath: outputPath };
+  const normalizedOutputPath = resolveOptionalNonEmptyString(outputPath, "outputPath");
+  if (normalizedOutputPath) {
+    const absolutePath = resolvePath(cwd, normalizedOutputPath);
+    return { absolutePath, resultPath: normalizedOutputPath };
   }
 
   const configDirectory = path.join(cwd, ".poe-code");
@@ -104,6 +128,9 @@ function resolveSince(value: string | Date | undefined): Date | undefined {
     return milliseconds === null ? undefined : new Date(Date.now() - milliseconds);
   }
   if (value instanceof Date) {
+    if (!Number.isFinite(value.getTime())) {
+      throw new Error(`Invalid since date "${String(value)}".`);
+    }
     return value;
   }
   const milliseconds = parseDuration(value);
@@ -129,6 +156,14 @@ async function resolveDataPath(
   return { absolutePath: path.join(cwd, resultPath), resultPath };
 }
 
+function resolveLimit(value: number | undefined): number {
+  const limit = value ?? 200;
+  if (!Number.isInteger(limit) || limit <= 0) {
+    throw new Error("limit must be a positive integer.");
+  }
+  return limit;
+}
+
 function buildAnalysisPrompt(dataPath: string): string {
   return [
     "Read this curated Markdown file of human prompts from coding-agent traces:",
@@ -147,7 +182,7 @@ function buildAnalysisPrompt(dataPath: string): string {
     "- Do not put review questions, validation checks, cleanup checks, commit checks, or release checks in `prompt`; those belong in `followups`.",
     "- Prefer concise followups that generalize across tasks.",
     "- Do not produce two followups for the same workflow step; merge semantic duplicates.",
-    "- Repeated short prompts like \"commit\" are evidence for one well-placed workflow check, not multiple followups.",
+    '- Repeated short prompts like "commit" are evidence for one well-placed workflow check, not multiple followups.',
     "- Order followups as a useful review sequence: quality, verification, cleanup, then commit or release when supported by the evidence.",
     "- Do not include project secrets, file paths, names, tokens, or one-off task details.",
     "- Preserve the user's direct style when it is reusable.",
@@ -187,8 +222,7 @@ function stripIdeSelection(value: string): string {
     if (endIndex === -1) {
       return stripped;
     }
-    stripped =
-      stripped.slice(0, startIndex) + stripped.slice(endIndex + closeTag.length);
+    stripped = stripped.slice(0, startIndex) + stripped.slice(endIndex + closeTag.length);
   }
 }
 
@@ -265,7 +299,11 @@ function groupPromptsByTrace(records: HumanPromptRecord[]): TracePromptGroup[] {
   return [...groups.values()];
 }
 
-function shortPromptKey(record: HumanPromptRecord, cwd: string, homeDir: string): string | undefined {
+function shortPromptKey(
+  record: HumanPromptRecord,
+  cwd: string,
+  homeDir: string
+): string | undefined {
   const text = normalizePromptText(record.text, cwd, homeDir);
   if (text.length === 0 || text.length > 80 || text.includes("\n")) {
     return undefined;
@@ -291,12 +329,7 @@ function buildRepeatedShortPromptSection(
     .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
     .slice(0, 12);
   if (repeated.length === 0) {
-    return [
-      "## Repeated short prompts",
-      "",
-      "No repeated short prompts were found.",
-      ""
-    ];
+    return ["## Repeated short prompts", "", "No repeated short prompts were found.", ""];
   }
   return [
     "## Repeated short prompts",
@@ -511,7 +544,10 @@ async function writeGeneratedConfig(
 ): Promise<void> {
   const yaml = extractYamlCandidate(extractGeneratedConfigContent(content));
   parseGaslightConfig(yaml, "generated gaslight config", { rejectExtraKeys: true });
-  await fs.mkdir(path.dirname(absoluteOutputPath), { recursive: true });
+  const outputDirectory = path.dirname(absoluteOutputPath);
+  await assertNotSymlink(fs, outputDirectory, "Output directory");
+  await fs.mkdir(outputDirectory, { recursive: true });
+  await assertNotSymlink(fs, outputDirectory, "Output directory");
   const temporaryPath = `${absoluteOutputPath}.tmp-${process.pid}-${Date.now()}`;
   await fs.writeFile(temporaryPath, `${yaml}\n`, { encoding: "utf8" });
   if (fs.rename) {
@@ -519,6 +555,27 @@ async function writeGeneratedConfig(
     return;
   }
   await fs.writeFile(absoluteOutputPath, `${yaml}\n`, { encoding: "utf8" });
+}
+
+async function assertNotSymlink(
+  fs: WritableGaslightFileSystem,
+  targetPath: string,
+  label: string
+): Promise<void> {
+  if (!fs.lstat) {
+    return;
+  }
+  try {
+    const stats = await fs.lstat(targetPath);
+    if (stats.isSymbolicLink()) {
+      throw new Error(`${label} cannot be a symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (isMissingFile(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function ingestGaslight(
@@ -530,6 +587,10 @@ export async function ingestGaslight(
   const spawn: GaslightSpawn = options.spawn ?? defaultSpawn;
   const collectHumanPrompts: GaslightCollectHumanPrompts =
     options.collectHumanPrompts ?? collectHumanPromptsWithStats;
+  const analysisAgent = requireNonEmptyString(options.analysisAgent, "analysisAgent");
+  const model = resolveOptionalNonEmptyString(options.model, "model");
+  const limit = resolveLimit(options.limit);
+  const outputPathOption = resolveOptionalNonEmptyString(options.outputPath, "outputPath");
   const since = resolveSince(options.since);
 
   const collection = await collectHumanPrompts({
@@ -537,7 +598,7 @@ export async function ingestGaslight(
     cwd,
     homeDir,
     since,
-    limit: options.limit ?? 200,
+    limit,
     allWorkspaces: options.allWorkspaces,
     fs
   });
@@ -559,14 +620,14 @@ export async function ingestGaslight(
   try {
     options.onEvent?.({
       type: "analysis.started",
-      agent: options.analysisAgent,
+      agent: analysisAgent,
       dataPath: dataPath.absolutePath
     });
-    const result = await spawn(options.analysisAgent, {
+    const result = await spawn(analysisAgent, {
       prompt: buildAnalysisPrompt(dataPath.absolutePath),
       cwd,
       mode: "read",
-      ...(options.model ? { model: options.model } : {})
+      ...(model ? { model } : {})
     });
     if (result.exitCode !== 0) {
       const message =
@@ -574,7 +635,7 @@ export async function ingestGaslight(
       throw new Error(`Gaslight ingest analysis failed: ${message}`);
     }
 
-    const outputPath = await resolveOutputPath(fs, cwd, options.analysisAgent, options.outputPath);
+    const outputPath = await resolveOutputPath(fs, cwd, analysisAgent, outputPathOption);
     await writeGeneratedConfig(fs, result.stdout, outputPath.absolutePath);
     options.onEvent?.({ type: "config.written", path: outputPath.resultPath });
 

@@ -782,6 +782,34 @@ describe("root command", () => {
     expect(planHelp).toContain("markdown-reader-mcp");
   });
 
+  it("shows visible nested command leaves in root help", async () => {
+    const rootHelp = await renderHelp([]);
+
+    for (const command of [
+      "plan list",
+      "plan view",
+      "plan edit",
+      "plan archive",
+      "plan delete",
+      "memory show",
+      "memory search",
+      "memory write",
+      "memory append",
+      "memory ingest",
+      "memory query",
+      "memory clear",
+      "tasks import",
+      "tasks get",
+      "tasks set",
+      "tasks set-state",
+      "tasks next",
+      "tasks comment",
+      "runtime jobs"
+    ]) {
+      expect(rootHelp).toContain(command);
+    }
+  });
+
   it("registers a --verbose flag", () => {
     const fs = createMemFs();
     const prompts = vi.fn().mockResolvedValue({});

@@ -134,10 +134,33 @@ function isAtOrAfter(value: string | null, since: string | undefined): boolean {
   return new Date(value).getTime() >= new Date(since).getTime();
 }
 
-function createdAt(record: Record<string, unknown>, kind: ReviewHistoryKind): string | null {
+function rawCreatedAt(record: Record<string, unknown>, kind: ReviewHistoryKind): string | null {
   return kind === "review_body"
     ? (text(record, "submitted_at") ?? text(record, "created_at"))
     : (text(record, "created_at") ?? text(record, "submitted_at"));
+}
+
+function createdAt(record: Record<string, unknown>, kind: ReviewHistoryKind): string | null {
+  const value = rawCreatedAt(record, kind);
+  if (!value) {
+    return null;
+  }
+  const timestamp = new Date(value);
+  if (Number.isNaN(timestamp.getTime())) {
+    throw new Error(`Invalid GitHub review-history ${kind} timestamp: ${value}`);
+  }
+  return timestamp.toISOString();
+}
+
+function dedupeRepos(repos: readonly string[]): string[] {
+  const deduped = new Map<string, string>();
+  for (const repo of repos) {
+    const key = repo.toLowerCase();
+    if (!deduped.has(key)) {
+      deduped.set(key, repo);
+    }
+  }
+  return [...deduped.values()];
 }
 
 class ReviewHistoryFetcher {
@@ -399,7 +422,7 @@ export async function* fetchReviewHistory(
   ) {
     throw new Error("Review-history maxComments must be a positive integer.");
   }
-  const repos = [...new Set(options.repos)];
+  const repos = dedupeRepos(options.repos);
   for (const repo of repos) {
     if (!validRepo(repo)) {
       throw new Error(`Invalid GitHub repository name: ${repo}`);

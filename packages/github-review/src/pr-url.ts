@@ -1,6 +1,6 @@
 function parseUrl(value: string): URL | null {
   try {
-    return new URL(value);
+    return new URL(value.trim());
   } catch {
     return null;
   }
@@ -30,6 +30,10 @@ export interface GitHubPullRequestRef {
   url: string;
 }
 
+function formatPullRequestUrl(ref: Omit<GitHubPullRequestRef, "url">): string {
+  return `https://${ref.host}/${encodeURIComponent(ref.owner)}/${encodeURIComponent(ref.repo)}/pull/${ref.number}`;
+}
+
 export function parseGitHubPullRequestRef(prUrl: string): GitHubPullRequestRef | null {
   const parsed = parseUrl(prUrl);
   if (
@@ -53,13 +57,13 @@ export function parseGitHubPullRequestRef(prUrl: string): GitHubPullRequestRef |
     return null;
   }
 
-  return {
+  const ref = {
     host: parsed.host.toLowerCase(),
     owner,
     repo,
-    number,
-    url: prUrl
+    number
   };
+  return { ...ref, url: formatPullRequestUrl(ref) };
 }
 
 export function canonicalPullRequestUrl(prUrl: string): string {
@@ -67,5 +71,5 @@ export function canonicalPullRequestUrl(prUrl: string): string {
   if (!ref) {
     return prUrl;
   }
-  return `https://${ref.host}/${encodeURIComponent(ref.owner)}/${encodeURIComponent(ref.repo)}/pull/${ref.number}`;
+  return ref.url;
 }

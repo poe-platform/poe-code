@@ -78,12 +78,13 @@ export function ghPrView(
   fields: readonly string[],
   options: GitHubCliOptions = {}
 ): Record<string, unknown> {
-  requirePullRequestRef(prUrl);
+  const ref = requirePullRequestRef(prUrl);
+  const canonicalPrUrl = ref.url;
   const requestedFields = dedupe([...fields]);
-  const result = runGh(["pr", "view", prUrl, "--json", requestedFields.join(",")], options);
+  const result = runGh(["pr", "view", canonicalPrUrl, "--json", requestedFields.join(",")], options);
   if (result.code === 0) {
     const parsed = parseJsonRecord(result.stdout, "gh pr view");
-    parsed.url ??= prUrl;
+    parsed.url ??= canonicalPrUrl;
     return parsed;
   }
 
@@ -93,18 +94,21 @@ export function ghPrView(
     throw new Error(result.stderr.trim() || result.stdout.trim() || "gh pr view failed");
   }
 
-  const fallback = runGh(["pr", "view", prUrl, "--json", fallbackFields.join(",")], options);
+  const fallback = runGh(
+    ["pr", "view", canonicalPrUrl, "--json", fallbackFields.join(",")],
+    options
+  );
   if (fallback.code !== 0) {
     throw new Error(fallback.stderr.trim() || fallback.stdout.trim() || "gh pr view failed");
   }
   const parsed = parseJsonRecord(fallback.stdout, "gh pr view");
-  parsed.url ??= prUrl;
+  parsed.url ??= canonicalPrUrl;
   return parsed;
 }
 
 export function ghPrDiff(prUrl: string, options: GitHubCliOptions = {}): string {
-  requirePullRequestRef(prUrl);
-  return runGhOrThrow(["pr", "diff", prUrl], options);
+  const ref = requirePullRequestRef(prUrl);
+  return runGhOrThrow(["pr", "diff", ref.url], options);
 }
 
 export function ghApiJson(

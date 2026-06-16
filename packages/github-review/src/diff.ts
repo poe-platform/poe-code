@@ -1,6 +1,7 @@
 export interface ReviewInlineComment {
   path: string;
   line: number;
+  side?: "LEFT" | "RIGHT";
   body: string;
 }
 
@@ -27,6 +28,8 @@ export interface ReviewDiffContext {
   files: ReviewDiffFile[];
   fileOrder: Map<string, number>;
   reviewableLinesByPath: Map<string, Set<number>>;
+  leftLinesByPath: Map<string, Set<number>>;
+  rightContextLinesByPath: Map<string, Set<number>>;
   rendered: string;
 }
 
@@ -137,7 +140,11 @@ function renderReviewFile(file: ReviewDiffFile): string {
 }
 
 export function parseReviewDiff(diffText: string): ReviewDiffContext {
-  type PendingFile = ReviewDiffFile & { reviewableLineSet: Set<number> };
+  type PendingFile = ReviewDiffFile & {
+    leftLineSet: Set<number>;
+    rightContextLineSet: Set<number>;
+    reviewableLineSet: Set<number>;
+  };
   const files: PendingFile[] = [];
   let currentFile: PendingFile | null = null;
   let currentHunk: ReviewDiffHunk | null = null;
@@ -164,6 +171,8 @@ export function parseReviewDiff(diffText: string): ReviewDiffContext {
         status: "modified",
         hunks: [],
         reviewableLines: [],
+        leftLineSet: new Set<number>(),
+        rightContextLineSet: new Set<number>(),
         reviewableLineSet: new Set<number>()
       };
       continue;
@@ -216,11 +225,13 @@ export function parseReviewDiff(diffText: string): ReviewDiffContext {
     }
     if (line.startsWith("-") && !line.startsWith("---")) {
       currentHunk.lines.push({ side: "LEFT", line: oldLine, text: line });
+      currentFile.leftLineSet.add(oldLine);
       oldLine += 1;
       continue;
     }
     if (line.startsWith(" ")) {
       currentHunk.lines.push({ side: "RIGHT", line: newLine, text: line });
+      currentFile.rightContextLineSet.add(newLine);
       currentFile.reviewableLineSet.add(newLine);
       oldLine += 1;
       newLine += 1;
@@ -239,6 +250,8 @@ export function parseReviewDiff(diffText: string): ReviewDiffContext {
     files: publicFiles,
     fileOrder: new Map(publicFiles.map((file, index) => [file.path, index])),
     reviewableLinesByPath: new Map(files.map((file) => [file.path, file.reviewableLineSet])),
+    leftLinesByPath: new Map(files.map((file) => [file.path, file.leftLineSet])),
+    rightContextLinesByPath: new Map(files.map((file) => [file.path, file.rightContextLineSet])),
     rendered: publicFiles.map(renderReviewFile).join("\n\n")
   };
 }
@@ -250,20 +263,39 @@ export function validateInlineComments(
   const accepted: ReviewInlineComment[] = [];
   const seen = new Set<string>();
   for (const comment of comments) {
-    const path = comment.path.trim();
+    const path = comment.path;
     const body = comment.body.trim();
-    if (!path || !body || !Number.isInteger(comment.line) || comment.line < 1) {
+    if (path.length === 0 || !body || !Number.isInteger(comment.line) || comment.line < 1) {
       throw new Error("Inline review comments require path, positive line, and body.");
+    }
+    if (comment.side === "LEFT") {
+      throw new Error(
+        `Inline comment target ${path}:${comment.line} is a left-side diff target; only right-side comments are supported.`
+      );
     }
     if (!context.reviewableLinesByPath.get(path)?.has(comment.line)) {
       throw new Error(
         `Inline comment target ${path}:${comment.line} is not a valid right-side diff target.`
       );
     }
+    if (
+      !comment.side &&
+      context.leftLinesByPath.get(path)?.has(comment.line) &&
+      context.rightContextLinesByPath.get(path)?.has(comment.line)
+    ) {
+      throw new Error(
+        `Inline comment target ${path}:${comment.line} is ambiguous; specify side RIGHT to target the right-side diff line.`
+      );
+    }
     const key = `${path}\0${comment.line}\0${body}`;
     if (!seen.has(key)) {
       seen.add(key);
-      accepted.push({ path, line: comment.line, body });
+      accepted.push({
+        path,
+        line: comment.line,
+        ...(comment.side ? { side: comment.side } : {}),
+        body
+      });
     }
   }
   accepted.sort((left, right) => {

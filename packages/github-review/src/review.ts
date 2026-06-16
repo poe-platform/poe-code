@@ -56,18 +56,23 @@ function requirePositiveId(commentId: string | number): string {
   return normalized;
 }
 
-function validateReviewComments(comments: readonly PullRequestReviewCommentInput[]): void {
-  for (const comment of comments) {
-    if (!comment.path.trim()) {
+function normalizeReviewComments(
+  comments: readonly PullRequestReviewCommentInput[]
+): PullRequestReviewCommentInput[] {
+  return comments.map((comment) => {
+    const path = comment.path.trim();
+    const body = comment.body.trim();
+    if (!path) {
       throw new Error("Review comment path must be non-empty.");
     }
     if (!Number.isSafeInteger(comment.line) || comment.line <= 0) {
       throw new Error("Review comment line must be a positive integer.");
     }
-    if (!comment.body.trim()) {
+    if (!body) {
       throw new Error("Review comment body must be non-empty.");
     }
-  }
+    return { path, line: comment.line, body };
+  });
 }
 
 function submissionFromResponse(response: Record<string, unknown>): PullRequestReviewSubmission {
@@ -89,8 +94,7 @@ export function submitPullRequestReview(
   if (!REVIEW_DECISIONS.has(input.decision)) {
     throw new Error(`Invalid pull request review decision: ${input.decision}`);
   }
-  const comments = input.comments ?? [];
-  validateReviewComments(comments);
+  const comments = normalizeReviewComments(input.comments ?? []);
   const response = ghApiJson(
     prUrl,
     ["--method", "POST", reviewEndpoint(prUrl)],
@@ -117,13 +121,14 @@ export function editPullRequestReviewComment(
     GitHubCliOptions
 ): PullRequestReviewSubmission {
   const prUrl = inputPullRequestUrl(input);
-  if (!input.body.trim()) {
+  const body = input.body.trim();
+  if (!body) {
     throw new Error("Review comment body must be non-empty.");
   }
   const response = ghApiJson(
     prUrl,
     ["--method", "PATCH", commentEndpoint(prUrl, input.commentId)],
-    { body: input.body },
+    { body },
     input
   );
   return submissionFromResponse(response);

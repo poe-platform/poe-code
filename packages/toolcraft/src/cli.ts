@@ -1464,6 +1464,43 @@ function describeHelpValueToken(
   return describeFieldNameValueToken(field.displayPath, field.optionFlag) ?? "value";
 }
 
+function formatCompactEnumSignatureToken(schema: FieldSchema): string | undefined {
+  if (schema.kind !== "enum" || schema.values.length < 2 || schema.values.length > 3) {
+    return undefined;
+  }
+
+  const tokens = schema.values.map((value) => String(value));
+  const compact = tokens.every(
+    (token) =>
+      token.length > 0 &&
+      token.length <= 24 &&
+      token.trim() === token &&
+      !token.includes("|") &&
+      !token.includes("\t") &&
+      !token.includes("\n") &&
+      !token.includes("\r") &&
+      !token.includes(" ")
+  );
+
+  return compact ? tokens.join("|") : undefined;
+}
+
+function formatCommandParameterFieldFlags(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): string {
+  if (field.positionalIndex !== undefined || field.schema.kind === "boolean") {
+    return formatHelpFieldFlags(field, globalLongOptionFlags);
+  }
+
+  const enumToken = formatCompactEnumSignatureToken(field.schema);
+  if (enumToken !== undefined) {
+    return `${formatOptionFlags(field, globalLongOptionFlags)} ${enumToken}`;
+  }
+
+  return formatHelpFieldFlags(field, globalLongOptionFlags);
+}
+
 function describeDynamicFieldType(field: DynamicFieldDefinition): string {
   if (field.schema.kind === "record") {
     const valueSchema = unwrapOptional(field.schema.value);
@@ -1695,7 +1732,7 @@ function formatCommandParameterTokens<TServices extends object>(
     .filter((field) => field.global !== true)
     .map((field) =>
       wrapOptionalCommandParameterToken(
-        formatHelpFieldFlags(field, globalLongOptionFlags),
+        formatCommandParameterFieldFlags(field, globalLongOptionFlags),
         field.positionalIndex === undefined && (field.optional || field.hasDefault)
       )
     )

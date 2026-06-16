@@ -3944,7 +3944,9 @@ describe("runCLI", () => {
       name: "list-tasks",
       description: "List tasks",
       params: S.Object({
-        section: S.Optional(S.String())
+        section: S.Optional(S.String()),
+        backend: S.Optional(S.Enum(["sqlite", "files"] as const)),
+        format: S.Optional(S.Enum(["json", "markdown", "table", "csv"] as const))
       }),
       handler: async () => null
     });
@@ -3972,8 +3974,35 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("list-tasks [--section <value>]");
+    expect(output).toContain(
+      "list-tasks [--section <value>] [--backend sqlite|files] [--format <value>]"
+    );
     expect(output).toContain("details --task-gid <value>");
+  });
+
+  it("keeps enum placeholders in leaf option help", async () => {
+    const init = defineCommand({
+      name: "init",
+      description: "Initialize workspace",
+      params: S.Object({
+        backend: S.Optional(S.Enum(["sqlite", "files"] as const))
+      }),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [init]
+    });
+
+    process.argv = ["node", "toolcraft", "init", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("--backend <value>");
+    expect(output).not.toContain("--backend sqlite|files");
   });
 
   it("renders nested command groups in root help", async () => {

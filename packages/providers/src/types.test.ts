@@ -1,5 +1,6 @@
-import { describe, expectTypeOf, it } from "vitest";
+import { describe, expect, expectTypeOf, it } from "vitest";
 import type { ApiShapeBinding, ApiShapeId, AuthProvider } from "./index.js";
+import { defineProvider } from "./types.js";
 
 describe("provider types", () => {
   it("re-exports the canonical api shape ids", () => {
@@ -24,5 +25,16 @@ describe("provider types", () => {
     expectTypeOf<AuthProvider["apiShapes"]>().toEqualTypeOf<
       readonly ApiShapeBinding[] | undefined
     >();
+  });
+
+  it("freezes provider model input definitions", () => {
+    const provider = defineProvider({
+      id: "custom",
+      label: "Custom",
+      modelInput: { kind: "freeform" },
+      auth: { kind: "oauth" }
+    });
+
+    expect(Object.isFrozen(provider.modelInput)).toBe(true);
   });
 });

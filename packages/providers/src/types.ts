@@ -65,6 +65,9 @@ export function defineProvider(provider: AuthProvider): AuthProvider {
   if (provider.apiShapes !== undefined) {
     Object.freeze(provider.apiShapes);
   }
+  if (provider.modelInput !== undefined) {
+    Object.freeze(provider.modelInput);
+  }
   for (const source of Object.values(provider.env ?? {})) {
     Object.freeze(source);
   }

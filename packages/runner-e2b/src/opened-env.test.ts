@@ -55,6 +55,36 @@ describe("createOpenedE2bEnv", () => {
     });
   });
 
+  it("maps host workspace subdirectory cwd values into the sandbox workspace", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "pwd",
+      cwd: "/repo/packages/api"
+    });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.run).toHaveBeenCalledWith("'pwd'", {
+      background: true,
+      cwd: "/sandbox/workspace/packages/api",
+      envs: undefined,
+      stdin: false,
+      onStdout: expect.any(Function),
+      onStderr: expect.any(Function)
+    });
+  });
+
   it("does not launch a command when the signal is already aborted", async () => {
     const sandbox = createSandboxMock();
     const env = createOpenedE2bEnv({
@@ -92,6 +122,36 @@ describe("createOpenedE2bEnv", () => {
     controller.abort();
 
     expect(commandHandle.kill).toHaveBeenCalledOnce();
+  });
+
+  it("kills a command if kill is requested before the E2B command handle resolves", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn()
+    };
+    let resolveRun!: (handle: typeof commandHandle) => void;
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRun = resolve;
+      })
+    );
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({ command: "node" });
+    handle.kill();
+    expect(commandHandle.kill).not.toHaveBeenCalled();
+
+    resolveRun(commandHandle);
+
+    await vi.waitFor(() => {
+      expect(commandHandle.kill).toHaveBeenCalledOnce();
+    });
   });
 
   it("queues stdin writes until the E2B command handle is ready", async () => {

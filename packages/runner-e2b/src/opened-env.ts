@@ -49,8 +49,16 @@ export function createOpenedE2bEnv(input: {
     if (cwd === undefined) {
       return undefined;
     }
-    if (path.isAbsolute(cwd) && path.resolve(cwd) === hostWorkspaceDir) {
+    if (!path.isAbsolute(cwd)) {
+      return cwd;
+    }
+    const resolvedCwd = path.resolve(cwd);
+    const relativeCwd = path.relative(hostWorkspaceDir, resolvedCwd);
+    if (relativeCwd === "") {
       return sandboxWorkspaceDir;
+    }
+    if (!relativeCwd.startsWith("..") && !path.isAbsolute(relativeCwd)) {
+      return path.posix.join(sandboxWorkspaceDir, ...relativeCwd.split(path.sep));
     }
     return cwd;
   };
@@ -155,6 +163,7 @@ function runE2bCommand(
   const stdout = spec.stdout === "inherit" ? null : new PassThrough();
   const stderr = spec.stderr === "inherit" ? null : new PassThrough();
   let e2bHandle: E2bCommandHandle | null = null;
+  let killRequested = false;
   const command = shellCommand([spec.command, ...(spec.args ?? [])]);
   const started = sandbox.commands.run(command, {
     background: true,
@@ -174,13 +183,13 @@ function runE2bCommand(
       }
     }
   }) as Promise<E2bCommandHandle>;
-  const cleanupAbort = bindAbortSignal(spec.signal, () => {
+  const requestKill = () => {
+    killRequested = true;
     if (e2bHandle !== null) {
       ignoreAsyncFailure(e2bHandle.kill());
-      return;
     }
-    void started.then((handle) => ignoreAsyncFailure(handle.kill()), () => undefined);
-  });
+  };
+  const cleanupAbort = bindAbortSignal(spec.signal, requestKill);
   const stdin =
     spec.stdin === "pipe" || spec.stdin === "inherit"
       ? new Writable({
@@ -223,6 +232,9 @@ function runE2bCommand(
   const result = started
     .then((handle) => {
       e2bHandle = handle;
+      if (killRequested) {
+        ignoreAsyncFailure(handle.kill());
+      }
       return handle.wait();
     })
     .then(
@@ -254,9 +266,7 @@ function runE2bCommand(
     stderr,
     result,
     kill() {
-      if (e2bHandle !== null) {
-        ignoreAsyncFailure(e2bHandle.kill());
-      }
+      requestKill();
     },
     get e2bHandle() {
       return e2bHandle;

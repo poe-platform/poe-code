@@ -707,6 +707,22 @@ describe("ghIssuesBackend", () => {
     expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
   });
 
+  it("rejects issue ids that are not canonical decimal issue numbers", async () => {
+    const fetchMock = createFetchMock([projectResponse()]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").get("1e2")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    await expect(taskList.list("octo-org/7").get("0x10")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    await expect(taskList.list("octo-org/7").get("001")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
   it('get("999") throws TaskNotFoundError when the issue is not in this project', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),

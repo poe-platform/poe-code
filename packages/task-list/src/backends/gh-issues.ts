@@ -1347,12 +1347,30 @@ async function fetchIssueTask(
 }
 
 function parseIssueNumber(id: string, listName: string): number {
-  const issueNumber = Number(id);
-  if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+  if (!isCanonicalDecimalIssueId(id)) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
 
+  const issueNumber = Number(id);
+  if (!Number.isSafeInteger(issueNumber) || issueNumber < 1) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
   return issueNumber;
+}
+
+function isCanonicalDecimalIssueId(id: string): boolean {
+  if (id.length === 0 || id[0] === "0") {
+    return false;
+  }
+
+  for (let index = 0; index < id.length; index += 1) {
+    const charCode = id.charCodeAt(index);
+    if (charCode < 48 || charCode > 57) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function mapProjectItemToTask(

@@ -6,7 +6,7 @@ import type { AcpEvent } from "./types.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { applyMcpFile } from "../configs/mcp-file.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
-import { stripModelNamespace } from "../model-utils.js";
+import { normalizeModelOverride, stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
 import { startNativeOtelCapture, type NativeOtelCapture } from "../native-otel.js";
 import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "../prompt-transport.js";
@@ -232,10 +232,11 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
 
   args.push(spawnConfig.promptFlag);
 
-  if (options.model && spawnConfig.modelFlag) {
+  const modelOverride = normalizeModelOverride(options.model);
+  if (modelOverride && spawnConfig.modelFlag) {
     let model = spawnConfig.modelStripProviderPrefix
-      ? stripModelNamespace(options.model)
-      : options.model;
+      ? stripModelNamespace(modelOverride)
+      : modelOverride;
     if (spawnConfig.modelTransform) model = spawnConfig.modelTransform(model);
     commandOptionArgs.push(spawnConfig.modelFlag, model);
   }
@@ -323,7 +324,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
       outputTokens: 0
     },
     prompt: options.prompt,
-    model: options.model,
+    model: modelOverride,
     mode: options.mode,
     cwd: options.cwd ?? process.cwd(),
     startedAt: new Date()
@@ -411,11 +412,13 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     : undefined;
 
   const done = (async (): Promise<SpawnResult> => {
-    const restoreMcpFile =
-      options.mcpServers && spawnConfig.mcpFile
-        ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
-        : undefined;
+    let restoreMcpFile: (() => Promise<void>) | undefined;
     try {
+      restoreMcpFile =
+        options.mcpServers && spawnConfig.mcpFile
+          ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
+          : undefined;
+
       await applyMiddlewares(
         [
           ...(options.middlewares ?? []),
@@ -507,6 +510,7 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
       };
     } finally {
       resolveMiddlewaresApplied?.();
+      queue.close();
       await restoreMcpFile?.();
       cleanupResourcesForRun(manifest);
     }

@@ -2,7 +2,7 @@ import "./register-factories.js";
 import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
-import { stripModelNamespace } from "./model-utils.js";
+import { normalizeModelOverride, stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { mergeSpawnEnvironment } from "./environment.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
@@ -63,10 +63,11 @@ export async function spawnInteractive(
     args.push(...resumeArgs);
   }
 
-  if (options.model && spawnConfig.modelFlag) {
+  const modelOverride = normalizeModelOverride(options.model);
+  if (modelOverride && spawnConfig.modelFlag) {
     let model = spawnConfig.modelStripProviderPrefix
-      ? stripModelNamespace(options.model)
-      : options.model;
+      ? stripModelNamespace(modelOverride)
+      : modelOverride;
     if (spawnConfig.modelTransform) model = spawnConfig.modelTransform(model);
     args.push(spawnConfig.modelFlag, model);
   }

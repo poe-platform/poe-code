@@ -174,6 +174,41 @@ describe("acp/replay", () => {
     expect(onMalformedRecord).not.toHaveBeenCalled();
   });
 
+  it("readSpawnLog reports parsed records that are not session updates or legacy events", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    const onMalformedRecord = vi.fn<(record: MalformedSpawnLogRecord) => void>();
+    vol.fromJSON({
+      [filePath]: [
+        JSON.stringify({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } }),
+        JSON.stringify({ type: "unexpected", value: true }),
+        JSON.stringify({ sessionUpdate: "usage_update", used: 1, size: 3 })
+      ].join("\n")
+    });
+
+    const observed = await collect(readSpawnLog(filePath, { onMalformedRecord }));
+
+    expect(observed).toEqual([
+      { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "before" } },
+      { sessionUpdate: "usage_update", used: 1, size: 3 }
+    ]);
+    expect(onMalformedRecord).toHaveBeenCalledWith({
+      filePath,
+      lineNumber: 2,
+      message: "Unknown spawn log record shape."
+    });
+  });
+
+  it("readSpawnLog rejects unknown parsed record shapes in strict mode", async () => {
+    const filePath = createLogFile("20260320-123456-789-codex.jsonl");
+    vol.fromJSON({
+      [filePath]: JSON.stringify({ type: "unexpected", value: true })
+    });
+
+    await expect(collect(readSpawnLog(filePath, { strict: true }))).rejects.toThrow(
+      `Malformed spawn log record at ${filePath}:1: Unknown spawn log record shape.`
+    );
+  });
+
   it("readSpawnLog writes contextual warnings for malformed JSONL records by default", async () => {
     const filePath = createLogFile("20260320-123456-789-codex.jsonl");
     const stderrChunks: string[] = [];

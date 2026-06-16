@@ -28,6 +28,10 @@ const skillBridgeMock = vi.hoisted(() => ({
   cleanupBridgedSkills: vi.fn()
 }));
 
+const mcpFileMock = vi.hoisted(() => ({
+  applyMcpFile: vi.fn()
+}));
+
 const acpLaunchOrder = vi.hoisted(() => [] as string[]);
 
 vi.mock("toolcraft-design", () => {
@@ -57,6 +61,10 @@ vi.mock("toolcraft-design", () => {
 vi.mock("@poe-code/agent-skill-config", () => ({
   bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
   cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
+}));
+
+vi.mock("../configs/mcp-file.js", () => ({
+  applyMcpFile: mcpFileMock.applyMcpFile
 }));
 
 let lastMockAcpClient: any;
@@ -1139,6 +1147,7 @@ describe("spawnAcp", () => {
 describe("acp/spawnStreaming", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mcpFileMock.applyMcpFile.mockResolvedValue(async () => undefined);
   });
 
   it("streams OpenCode JSON events via the opencode adapter", async () => {
@@ -1942,6 +1951,33 @@ describe("acp/spawnStreaming", () => {
       })
     ).toThrow('Agent "claude-desktop" has no spawn config.');
     expect(spawnMock).not.toHaveBeenCalled();
+  });
+
+  it("cleans bridged resources when MCP file setup fails", async () => {
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue({
+      runId: "run-id",
+      spawnAgentId: "cursor",
+      targetDir: "/repo/.cursor/skills",
+      entries: [],
+      warnings: []
+    });
+    mcpFileMock.applyMcpFile.mockRejectedValueOnce(new Error("Unable to parse existing MCP config JSON."));
+
+    const { done } = spawnStreaming({
+      agentId: "cursor",
+      prompt: "hello",
+      cwd: "/repo",
+      skills: ["example"],
+      mcpServers: {
+        test: { command: "node" }
+      }
+    });
+
+    await expect(done).rejects.toThrow("Unable to parse existing MCP config JSON.");
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(
+      expect.objectContaining({ runId: "run-id" })
+    );
+    expect(spawnChildProcess).not.toHaveBeenCalled();
   });
 
   it("kills the child and rejects with AbortError when the signal aborts", async () => {

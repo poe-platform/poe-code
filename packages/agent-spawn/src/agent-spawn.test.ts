@@ -28,6 +28,10 @@ const hookBridgeMock = vi.hoisted(() => ({
   cleanupBridgedHooks: vi.fn()
 }));
 
+const mcpFileMock = vi.hoisted(() => ({
+  applyMcpFile: vi.fn()
+}));
+
 const designLoggerMock = vi.hoisted(() => ({
   warn: vi.fn()
 }));
@@ -44,6 +48,10 @@ vi.mock("@poe-code/agent-skill-config", () => ({
 vi.mock("@poe-code/agent-hook-config", () => ({
   bridgeHooks: hookBridgeMock.bridgeHooks,
   cleanupBridgedHooks: hookBridgeMock.cleanupBridgedHooks
+}));
+
+vi.mock("./configs/mcp-file.js", () => ({
+  applyMcpFile: mcpFileMock.applyMcpFile
 }));
 
 vi.mock("toolcraft-design", () => ({
@@ -266,6 +274,12 @@ describe("buildSpawnArgs", () => {
       ...codexSpawnConfig.defaultArgs,
       ...codexSpawnConfig.modes.yolo
     ]);
+  });
+
+  it("rejects a whitespace-only model override", () => {
+    expect(() => buildSpawnArgs("codex", { prompt: "hello", model: "   " })).toThrow(
+      "Model must not be blank."
+    );
   });
 
   it("builds codex resume args from resumeThreadId", () => {
@@ -540,6 +554,17 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain(prompt);
   });
 
+  it("rejects MCP servers with blank commands before provider serialization", () => {
+    expect(() =>
+      buildSpawnArgs("cursor", {
+        prompt: "hello",
+        mcpServers: {
+          blank: { command: "   " }
+        }
+      })
+    ).toThrow('MCP server "blank" command must be a non-empty string.');
+  });
+
   it("uses stdin args for codex when the prompt exceeds the safe argv byte limit", () => {
     const prompt = "x".repeat(64 * 1024 + 1);
     const result = buildSpawnArgs("codex", { prompt });
@@ -716,6 +741,7 @@ describe("buildSpawnArgs", () => {
 describe("spawn", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mcpFileMock.applyMcpFile.mockResolvedValue(async () => undefined);
     skillBridgeMock.bridgeActiveSkills.mockReturnValue({
       runId: "run-id",
       spawnAgentId: "codex",
@@ -744,6 +770,26 @@ describe("spawn", () => {
       /has no spawn config/
     );
     await expect(spawn("claude-desktop", { prompt: "test" })).rejects.not.toThrow(/Unknown agent/);
+    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+  });
+
+  it("cleans bridged resources when MCP file setup fails", async () => {
+    mcpFileMock.applyMcpFile.mockRejectedValueOnce(new Error("Unable to parse existing MCP config JSON."));
+
+    await expect(
+      spawn("cursor", {
+        prompt: "hello",
+        cwd: "/repo",
+        skills: ["example"],
+        mcpServers: {
+          test: { command: "node" }
+        }
+      })
+    ).rejects.toThrow("Unable to parse existing MCP config JSON.");
+
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(
+      expect.objectContaining({ runId: "run-id" })
+    );
     expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
   });
 

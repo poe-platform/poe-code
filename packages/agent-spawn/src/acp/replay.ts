@@ -175,7 +175,18 @@ export async function* readSpawnLog(
         for (const update of mapLegacyEventToSessionUpdates(parsed as { event: string } & Record<string, unknown>)) {
           yield update;
         }
+        continue;
       }
+
+      const record: MalformedSpawnLogRecord = {
+        filePath,
+        lineNumber,
+        message: "Unknown spawn log record shape."
+      };
+      if (options.strict === true) {
+        throw new Error(`Malformed spawn log record at ${formatMalformedRecord(record)}`);
+      }
+      (options.onMalformedRecord ?? warnMalformedRecord)(record);
     }
   } finally {
     reader.close();

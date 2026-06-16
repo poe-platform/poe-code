@@ -37,6 +37,27 @@ describe("MCP file lifecycle", () => {
     await expect(fs.readFile("/work/.cursor/mcp.json", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("rejects target paths that resolve through a symlink", async () => {
+    const volume = new Volume();
+    volume.mkdirSync("/work/.cursor", { recursive: true });
+    volume.writeFileSync("/outside-mcp.json", "{\"outside\":true}\n");
+    volume.symlinkSync("/outside-mcp.json", "/work/.cursor/mcp.json");
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      applyMcpFile(
+        {
+          relativePath: ".cursor/mcp.json",
+          content: () => ({ mcpServers: { test: { command: "npx" } } })
+        },
+        {},
+        "/work",
+        fs
+      )
+    ).rejects.toThrow("MCP config path must not contain symbolic links.");
+    expect(await fs.readFile("/outside-mcp.json", "utf8")).toBe("{\"outside\":true}\n");
+  });
+
   it("rejects malformed existing JSON", () => {
     expect(() => mergeMcpFileContent("{", {})).toThrow("Unable to parse existing MCP config JSON");
   });

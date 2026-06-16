@@ -1,4 +1,5 @@
 import { listMcpSupportedAgents } from "./configs/index.js";
+import { validateMcpSpawnConfig } from "./configs/mcp.js";
 import type { CliSpawnConfig, McpSpawnConfig } from "./types.js";
 
 export function hasMcpServers(servers?: McpSpawnConfig): servers is McpSpawnConfig {
@@ -15,6 +16,7 @@ export function getMcpArgs(
   if (!hasMcpServers(servers)) {
     return [];
   }
+  validateMcpSpawnConfig(servers);
   if (!config.mcpArgs && !config.mcpEnv && !config.mcpFile) {
     throw new Error(formatUnsupportedMcpSpawnMessage(config.agentId));
   }
@@ -28,7 +30,11 @@ export function getMcpEnv(
   config: CliSpawnConfig,
   servers?: McpSpawnConfig
 ): Record<string, string> {
-  if (!hasMcpServers(servers) || !config.mcpEnv) {
+  if (!hasMcpServers(servers)) {
+    return {};
+  }
+  validateMcpSpawnConfig(servers);
+  if (!config.mcpEnv) {
     return {};
   }
   return config.mcpEnv(servers);

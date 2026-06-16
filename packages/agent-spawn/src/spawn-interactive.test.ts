@@ -73,6 +73,13 @@ describe("spawnInteractive", () => {
     expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
   });
 
+  it("rejects a whitespace-only model override before spawning", async () => {
+    await expect(
+      spawnInteractive("claude-code", { prompt: "test", model: "   " })
+    ).rejects.toThrow("Model must not be blank.");
+    expect(vi.mocked(spawnChildProcess)).not.toHaveBeenCalled();
+  });
+
   it("builds positional prompt args for claude-code", async () => {
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(createMockInheritProcess(0));
 

@@ -15,6 +15,8 @@ import { observeAgentSpawn } from "../observability/otel.js";
 import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import type { HookBridgeOptions } from "../types.js";
 import { mergeSpawnEnvironment } from "../environment.js";
+import { validateMcpSpawnConfig } from "../configs/mcp.js";
+import { normalizeModelOverride } from "../model-utils.js";
 
 export interface SpawnAcpOptions {
   agentId: string;
@@ -141,6 +143,10 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
   if (options.mcpServers && supportsMcpServers === false) {
     throw new Error(`Agent "${resolvedId}" does not support MCP servers over ACP spawn.`);
   }
+  if (options.mcpServers) {
+    validateMcpSpawnConfig(options.mcpServers);
+  }
+  const modelOverride = normalizeModelOverride(options.model);
 
   const agentDef = allAgents.find((a) => a.id === resolvedId);
   const binaryName = agentDef?.binaryName;
@@ -170,7 +176,7 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
       args:
         typeof acpArgs === "function"
           ? acpArgs({
-              model: options.model,
+              model: modelOverride,
               mode: options.mode,
               mcpServers: options.mcpServers
             })
@@ -230,7 +236,7 @@ export function spawnAcp(input: SpawnAcpOptions): SpawnAcpResult {
       outputTokens: 0
     },
     prompt: options.prompt,
-    model: options.model,
+    model: modelOverride,
     mode: options.mode,
     cwd: options.cwd ?? process.cwd(),
     startedAt: new Date()

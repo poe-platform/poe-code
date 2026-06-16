@@ -11,3 +11,13 @@ export function stripModelNamespace(model: string): string {
   const slashIndex = model.indexOf("/");
   return slashIndex === -1 ? model : model.slice(slashIndex + 1);
 }
+
+export function normalizeModelOverride(model: string | undefined): string | undefined {
+  if (model === undefined) {
+    return undefined;
+  }
+  if (model.length > 0 && model.trim().length === 0) {
+    throw new Error("Model must not be blank.");
+  }
+  return model;
+}

@@ -5,7 +5,7 @@ import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { applyMcpFile } from "./configs/mcp-file.js";
 import { getMcpArgs, getMcpEnv } from "./mcp-args.js";
-import { stripModelNamespace } from "./model-utils.js";
+import { normalizeModelOverride, stripModelNamespace } from "./model-utils.js";
 import { observeAgentSpawn } from "./observability/otel.js";
 import { createSpawnParallel } from "./parallel.js";
 import { redactPromptArgIndexes, shouldSendPromptViaStdin } from "./prompt-transport.js";
@@ -133,10 +133,11 @@ function buildCliArgs(
 
   args.push(config.promptFlag);
 
-  if (options.model && config.modelFlag) {
+  const modelOverride = normalizeModelOverride(options.model);
+  if (modelOverride && config.modelFlag) {
     let model = config.modelStripProviderPrefix
-      ? stripModelNamespace(options.model)
-      : options.model;
+      ? stripModelNamespace(modelOverride)
+      : modelOverride;
     if (config.modelTransform) model = config.modelTransform(model);
     commandOptionArgs.push(config.modelFlag, model);
   }
@@ -257,13 +258,15 @@ async function runSpawn(
 
   const cwd = options.cwd ?? process.cwd();
   const manifest = bridgeResourcesForRun(agentId, cwd, options.skills, options.hooks);
-  const restoreMcpFile =
-    options.mcpServers && spawnConfig.mcpFile
-      ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
-      : undefined;
+  let restoreMcpFile: (() => Promise<void>) | undefined;
   let logFd: number | undefined;
 
   try {
+    restoreMcpFile =
+      options.mcpServers && spawnConfig.mcpFile
+        ? await applyMcpFile(spawnConfig.mcpFile, options.mcpServers, cwd)
+        : undefined;
+
     const logFilePath = resolveSpawnLogPath(options);
     logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
 

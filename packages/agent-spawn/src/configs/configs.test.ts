@@ -235,6 +235,28 @@ describe("serializeGooseMcpArgs", () => {
       "node"
     ]);
   });
+
+  it("rejects Goose MCP servers with env overrides because the CLI arg cannot preserve them", () => {
+    expect(() =>
+      serializeGooseMcpArgs({
+        alpha: {
+          command: "uvx",
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      })
+    ).toThrow('Goose MCP server "alpha" does not support env through --with-extension.');
+  });
+
+  it("rejects Goose MCP servers with timeouts because the CLI arg cannot preserve them", () => {
+    expect(() =>
+      serializeGooseMcpArgs({
+        alpha: {
+          command: "uvx",
+          timeout: 30
+        }
+      })
+    ).toThrow('Goose MCP server "alpha" does not support timeout through --with-extension.');
+  });
 });
 
 describe("configs/MCP serialization", () => {
@@ -251,6 +273,24 @@ describe("configs/MCP serialization", () => {
     expect(
       serializeCodexMcpArgs({ slack: { command: "slack-mcp", autoApprove: false } })
     ).toEqual(["-c", 'mcp_servers.slack.command="slack-mcp"']);
+  });
+
+  it("quotes Codex MCP server names that are not valid TOML bare keys", () => {
+    expect(
+      serializeCodexMcpArgs({
+        "team.search": { command: "search-mcp" },
+        "local tools": { command: "tools-mcp" }
+      })
+    ).toEqual([
+      "-c",
+      'mcp_servers."team.search".command="search-mcp"',
+      "-c",
+      'mcp_servers."team.search".default_tools_approval_mode="approve"',
+      "-c",
+      'mcp_servers."local tools".command="tools-mcp"',
+      "-c",
+      'mcp_servers."local tools".default_tools_approval_mode="approve"'
+    ]);
   });
 
   it("preserves special MCP server names in Kimi JSON arguments", () => {
@@ -271,5 +311,13 @@ describe("configs/MCP serialization", () => {
     };
 
     expect(Object.hasOwn(serialized.mcp, "__proto__")).toBe(true);
+  });
+
+  it("rejects OpenCode MCP server timeouts because the environment config cannot preserve them", () => {
+    expect(() =>
+      serializeOpenCodeMcpEnv({
+        slow: { command: "node", timeout: 45 }
+      })
+    ).toThrow('OpenCode MCP server "slow" does not support timeout.');
   });
 });

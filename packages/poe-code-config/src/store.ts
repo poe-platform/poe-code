@@ -57,11 +57,13 @@ async function readMergedStoredDocument(
   projectPath: string | undefined,
   recoverInvalid: boolean
 ): Promise<ConfigDocument> {
+  await assertConfigPathSafe(fs, globalPath);
   const globalDocument = await readStoredDocument(fs, globalPath, recoverInvalid);
   if (!projectPath || projectPath === globalPath) {
     return globalDocument.data;
   }
 
+  await assertConfigPathSafe(fs, projectPath);
   const projectDocument = await readStoredDocument(fs, projectPath, recoverInvalid);
   const resolved = await resolve(
     [

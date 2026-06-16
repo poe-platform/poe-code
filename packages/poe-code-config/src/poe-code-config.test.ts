@@ -1366,6 +1366,35 @@ describe("store", () => {
     });
   });
 
+  it("rejects merged reads through a symlinked global config file", async () => {
+    const volume = new Volume();
+    volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.writeFileSync("/outside/config.json", '{"core":{"apiKey":"outside-key"}}\n');
+    volume.symlinkSync("/outside/config.json", configPath);
+    const fs = createFsFromVolume(volume).promises as FileSystem;
+
+    await expect(readMergedDocument(fs, configPath)).rejects.toThrow(
+      `Refusing configuration access through symbolic link: ${configPath}`
+    );
+  });
+
+  it("rejects merged reads through a symlinked project config file", async () => {
+    const projectConfigPath = `${homeDir}/workspace/.poe-code/config.json`;
+    const volume = new Volume();
+    volume.mkdirSync(`${homeDir}/.poe-code`, { recursive: true });
+    volume.mkdirSync(`${homeDir}/workspace/.poe-code`, { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.writeFileSync(configPath, '{"core":{"apiKey":"global-key"}}\n');
+    volume.writeFileSync("/outside/config.json", '{"core":{"apiKey":"outside-key"}}\n');
+    volume.symlinkSync("/outside/config.json", projectConfigPath);
+    const fs = createFsFromVolume(volume).promises as FileSystem;
+
+    await expect(readMergedDocument(fs, configPath, projectConfigPath)).rejects.toThrow(
+      `Refusing configuration access through symbolic link: ${projectConfigPath}`
+    );
+  });
+
   it("backs up invalid JSON and resets the document", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-03-23T12:34:56.789Z"));

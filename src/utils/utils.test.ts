@@ -369,14 +369,13 @@ describe("cli-settings-merge", () => {
       ]);
     });
 
-    it("replaces file path --settings with merged JSON", () => {
+    it("rejects file path --settings instead of dropping file values", () => {
       const args = ["-p", "--settings", "./settings.json", "query"];
       const required = { apiKeyHelper: "echo $KEY" };
-      const result = buildArgsWithMergedSettings(args, required);
 
-      // File path is removed, only our settings applied
-      // (file reading would need to be handled separately)
-      expect(result).toEqual(["-p", "query", "--settings", '{"apiKeyHelper":"echo $KEY"}']);
+      expect(() => buildArgsWithMergedSettings(args, required)).toThrow(
+        "Cannot merge provider-required settings with --settings file path ./settings.json. Pass settings as inline JSON or remove --settings."
+      );
     });
 
     it("preserves other args order", () => {

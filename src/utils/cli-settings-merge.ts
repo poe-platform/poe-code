@@ -76,7 +76,14 @@ export function buildArgsWithMergedSettings(
   args: string[],
   requiredSettings: CliSettings
 ): string[] {
-  const { userSettings, argsWithoutSettings } = extractSettingsFromArgs(args);
+  const { userSettings, settingsFilePath, argsWithoutSettings } =
+    extractSettingsFromArgs(args);
+  if (settingsFilePath) {
+    throw new Error(
+      `Cannot merge provider-required settings with --settings file path ${settingsFilePath}. Pass settings as inline JSON or remove --settings.`
+    );
+  }
+
   const merged = mergeCliSettings(userSettings, requiredSettings);
 
   return [...argsWithoutSettings, "--settings", JSON.stringify(merged)];

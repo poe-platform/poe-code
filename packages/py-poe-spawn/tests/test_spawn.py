@@ -4,7 +4,7 @@ import unittest
 import warnings
 from unittest import mock
 
-from poe_spawn import PoeCodeNotFoundError, SessionStartEvent, UsageEvent, spawn
+from poe_spawn import Agent, PoeCodeNotFoundError, SessionStartEvent, UsageEvent, spawn
 from poe_spawn import AgentMessageEvent
 from poe_spawn._spawn import _resolve_cli_command
 
@@ -381,6 +381,47 @@ class SpawnTest(unittest.TestCase):
                 spawn.pretty("codex", "Invalid args", args="--verbose")
 
         popen.assert_not_called()
+
+    def test_rejects_non_string_spawn_command_fields_before_starting_process(self) -> None:
+        cases = [
+            ("agent", {"agent": 123, "prompt": "Prompt"}),
+            ("prompt", {"agent": "codex", "prompt": 123}),
+            ("cwd", {"agent": "codex", "prompt": "Prompt", "cwd": 123}),
+            ("model", {"agent": "codex", "prompt": "Prompt", "model": 123}),
+            ("mode", {"agent": "codex", "prompt": "Prompt", "mode": 123}),
+            ("log_dir", {"agent": "codex", "prompt": "Prompt", "log_dir": 123}),
+            ("args[1]", {"agent": "codex", "prompt": "Prompt", "args": ["--flag", 123]}),
+        ]
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen"
+        ) as popen:
+            for field, kwargs in cases:
+                with self.subTest(field=field):
+                    with self.assertRaises(TypeError) as context:
+                        spawn.pretty(**kwargs)
+                    self.assertIn(field, str(context.exception))
+
+        popen.assert_not_called()
+
+    def test_agent_enum_matches_spawn_visible_agents(self) -> None:
+        self.assertEqual(
+            [agent.value for agent in Agent],
+            [
+                "claude-code",
+                "claude",
+                "codex",
+                "cursor",
+                "cursor-agent",
+                "gemini-cli",
+                "gemini",
+                "goose",
+                "kimi",
+                "kimi-cli",
+                "opencode",
+                "poe-agent",
+            ],
+        )
 
 
 if __name__ == "__main__":

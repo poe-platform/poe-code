@@ -1,7 +1,7 @@
 import unittest
 
 from poe_spawn._parse import parse_jsonl_line
-from poe_spawn.types import AgentMessageEvent, SpawnResultEvent, UsageEvent
+from poe_spawn.types import AgentMessageEvent, SpawnResultEvent, ToolCompleteEvent, UsageEvent
 
 
 class ParseJsonlLineTest(unittest.TestCase):
@@ -41,6 +41,56 @@ class ParseJsonlLineTest(unittest.TestCase):
         )
 
         self.assertIsNone(event)
+        self.assertIsNone(result)
+
+    def test_rejects_negative_usage_token_counts(self) -> None:
+        for line in [
+            '{"event":"usage","inputTokens":-1,"outputTokens":2,"cachedTokens":3}\n',
+            '{"event":"usage","inputTokens":1,"outputTokens":-2,"cachedTokens":3}\n',
+            '{"event":"usage","inputTokens":1,"outputTokens":2,"cachedTokens":-3}\n',
+            '{"event":"spawn_result","exitCode":0,'
+            '"usage":{"inputTokens":-1,"outputTokens":2,"cachedTokens":3}}\n',
+        ]:
+            with self.subTest(line=line):
+                event, result = parse_jsonl_line(line)
+
+                self.assertIsNone(event)
+                self.assertIsNone(result)
+
+    def test_rejects_non_finite_usage_costs(self) -> None:
+        for line in [
+            '{"event":"usage","inputTokens":1,"outputTokens":2,"costUsd":NaN}\n',
+            '{"event":"usage","inputTokens":1,"outputTokens":2,"costUsd":Infinity}\n',
+            '{"event":"usage","inputTokens":1,"outputTokens":2,"costUsd":-Infinity}\n',
+            '{"event":"spawn_result","exitCode":0,'
+            '"usage":{"inputTokens":1,"outputTokens":2,"costUsd":Infinity}}\n',
+        ]:
+            with self.subTest(line=line):
+                event, result = parse_jsonl_line(line)
+
+                self.assertIsNone(event)
+                self.assertIsNone(result)
+
+    def test_rejects_negative_spawn_result_numeric_fields(self) -> None:
+        for line in [
+            '{"event":"spawn_result","exitCode":-1}\n',
+            '{"event":"spawn_result","exitCode":0,"protocolVersion":-1}\n',
+        ]:
+            with self.subTest(line=line):
+                event, result = parse_jsonl_line(line)
+
+                self.assertIsNone(event)
+                self.assertIsNone(result)
+
+    def test_preserves_tool_completion_without_kind(self) -> None:
+        event, result = parse_jsonl_line(
+            '{"event":"tool_complete","path":"unknown output"}\n'
+        )
+
+        self.assertEqual(
+            event,
+            ToolCompleteEvent(event="tool_complete", kind=None, path="unknown output"),
+        )
         self.assertIsNone(result)
 
         event, result = parse_jsonl_line(

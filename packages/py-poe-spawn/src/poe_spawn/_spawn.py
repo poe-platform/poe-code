@@ -235,38 +235,78 @@ def _build_spawn_command(
     log_dir: Optional[str],
     activity_timeout_ms: Optional[int],
 ) -> list[str]:
+    agent_value = _enum_string_value("agent", agent, (Agent,))
+    prompt_value = _require_string("prompt", prompt)
+    model_value = _require_optional_string("model", model)
+    cwd_value = _require_optional_string("cwd", cwd)
+    mode_value = _enum_string_value("mode", mode, (SpawnMode,)) if mode is not None else None
+    log_dir_value = _require_optional_string("log_dir", log_dir)
+    args_values = _validate_args(args)
     command = [*_resolve_cli_command(), "--yes", "spawn"]
 
-    if model is not None:
-        command.extend(["--model", model])
+    if model_value is not None:
+        command.extend(["--model", model_value])
 
-    if cwd is not None:
-        command.extend(["--cwd", cwd])
+    if cwd_value is not None:
+        command.extend(["--cwd", cwd_value])
 
-    if mode is not None:
-        command.extend(["--mode", _enum_value(mode)])
+    if mode_value is not None:
+        command.extend(["--mode", mode_value])
 
     resolved_mcp_servers = _resolve_mcp_servers(mcp_servers, mcp_config)
     if resolved_mcp_servers is not None:
         command.extend(["--mcp-servers", json.dumps(resolved_mcp_servers, separators=(",", ":"))])
 
-    if log_dir is not None:
-        command.extend(["--log-dir", log_dir])
+    if log_dir_value is not None:
+        command.extend(["--log-dir", log_dir_value])
 
     if activity_timeout_ms is not None:
         if not isinstance(activity_timeout_ms, int) or isinstance(activity_timeout_ms, bool) or activity_timeout_ms <= 0:
             raise ValueError("activity_timeout_ms must be a positive integer.")
         command.extend(["--activity-timeout-ms", str(activity_timeout_ms)])
 
-    command.extend([_enum_value(agent), prompt])
+    command.extend([agent_value, prompt_value])
+
+    if args_values:
+        command.extend(args_values)
+
+    return command
+
+
+def _require_string(field: str, value: Any) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{field} must be a string.")
+    return value
+
+
+def _require_optional_string(field: str, value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    return _require_string(field, value)
+
+
+def _enum_string_value(field: str, value: Any, enum_types: tuple[type[Any], ...]) -> str:
+    if isinstance(value, enum_types):
+        return value.value
+    return _require_string(field, value)
+
+
+def _validate_args(args: Optional[Sequence[str]]) -> Optional[list[str]]:
+    if args is None:
+        return None
 
     if isinstance(args, (str, bytes)):
         raise TypeError("args must be a sequence of strings, not a string.")
 
-    if args:
-        command.extend(args)
+    if not isinstance(args, Sequence):
+        raise TypeError("args must be a sequence of strings.")
 
-    return command
+    values = list(args)
+    for index, value in enumerate(values):
+        if not isinstance(value, str):
+            raise TypeError(f"args[{index}] must be a string.")
+
+    return values
 
 
 def _resolve_mcp_servers(
@@ -345,12 +385,6 @@ def _child_env(output_format: str) -> dict[str, str]:
     env = dict(os.environ)
     env["OUTPUT_FORMAT"] = output_format
     return env
-
-
-def _enum_value(value: Agent | SpawnMode | str) -> str:
-    if isinstance(value, (Agent, SpawnMode)):
-        return value.value
-    return value
 
 
 def _validate_cancel_event(cancel_event: Any) -> None:

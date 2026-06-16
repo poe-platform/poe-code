@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from dataclasses import fields
 from typing import Any, Optional, Tuple, Type, cast
 
@@ -53,6 +54,9 @@ def parse_jsonl_line(line: str) -> Tuple[Optional[AcpEvent], Optional[SpawnResul
     if event_type is None:
         return None, None
 
+    if event_type is ToolCompleteEvent and "kind" not in normalized:
+        normalized["kind"] = None
+
     event = _instantiate_dataclass(event_type, normalized)
     if event is None or not _is_valid_event(event):
         return None, None
@@ -91,6 +95,14 @@ def _is_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
 
 
+def _is_non_negative_int(value: Any) -> bool:
+    return _is_int(value) and value >= 0
+
+
+def _is_finite_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)
+
+
 def _is_optional_str(value: Any) -> bool:
     return value is None or isinstance(value, str)
 
@@ -98,10 +110,10 @@ def _is_optional_str(value: Any) -> bool:
 def _is_valid_usage(event: UsageEvent) -> bool:
     return (
         event.event == "usage"
-        and _is_int(event.input_tokens)
-        and _is_int(event.output_tokens)
-        and (event.cached_tokens is None or _is_int(event.cached_tokens))
-        and (event.cost_usd is None or isinstance(event.cost_usd, (int, float)))
+        and _is_non_negative_int(event.input_tokens)
+        and _is_non_negative_int(event.output_tokens)
+        and (event.cached_tokens is None or _is_non_negative_int(event.cached_tokens))
+        and (event.cost_usd is None or _is_finite_number(event.cost_usd))
     )
 
 
@@ -120,7 +132,7 @@ def _is_valid_event(event: Any) -> bool:
     if isinstance(event, ToolCompleteEvent):
         return (
             event.event == "tool_complete"
-            and isinstance(event.kind, str)
+            and _is_optional_str(event.kind)
             and isinstance(event.path, str)
             and _is_optional_str(event.id)
         )
@@ -136,10 +148,10 @@ def _is_valid_event(event: Any) -> bool:
 def _is_valid_spawn_result(result: SpawnResultEvent) -> bool:
     return (
         result.event == "spawn_result"
-        and _is_int(result.exit_code)
+        and _is_non_negative_int(result.exit_code)
         and _is_optional_str(result.thread_id)
         and (result.usage is None or _is_valid_usage(result.usage))
-        and (result.protocol_version is None or _is_int(result.protocol_version))
+        and (result.protocol_version is None or _is_non_negative_int(result.protocol_version))
     )
 
 

@@ -5,10 +5,17 @@ from typing import Literal, Optional, Union
 
 class Agent(str, Enum):
     CLAUDE_CODE = "claude-code"
+    CLAUDE = "claude"
     CODEX = "codex"
-    OPENCODE = "opencode"
-    KIMI = "kimi"
+    CURSOR = "cursor"
+    CURSOR_AGENT = "cursor-agent"
+    GEMINI_CLI = "gemini-cli"
+    GEMINI = "gemini"
     GOOSE = "goose"
+    KIMI = "kimi"
+    KIMI_CLI = "kimi-cli"
+    OPENCODE = "opencode"
+    POE_AGENT = "poe-agent"
 
 
 class SpawnMode(str, Enum):
@@ -40,8 +47,8 @@ class ToolStartEvent:
 @dataclass
 class ToolCompleteEvent:
     event: Literal["tool_complete"]
-    kind: str
     path: str
+    kind: Optional[str] = None
     id: Optional[str] = None
 
 

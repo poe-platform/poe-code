@@ -13,6 +13,10 @@ function readJson(filePath) {
   return JSON.parse(readFileSync(filePath, "utf8"));
 }
 
+function isObject(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
 function findWorkspacePackageDir(packageName) {
   for (const entry of readdirSync(packagesDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
@@ -45,6 +49,53 @@ function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
 }
 
+export function sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames) {
+  const sanitized = structuredClone(manifest);
+  const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
+
+  for (const field of dependencyFields) {
+    const dependencies = sanitized[field];
+    if (!isObject(dependencies)) {
+      continue;
+    }
+
+    for (const dependencyName of bundledWorkspaceNames) {
+      delete dependencies[dependencyName];
+    }
+
+    if (Object.keys(dependencies).length === 0) {
+      delete sanitized[field];
+    }
+  }
+
+  for (const field of ["bundleDependencies", "bundledDependencies"]) {
+    if (!Array.isArray(sanitized[field])) {
+      continue;
+    }
+
+    const kept = sanitized[field].filter(
+      (dependencyName) =>
+        typeof dependencyName !== "string" || !bundledWorkspaceNames.has(dependencyName)
+    );
+
+    if (kept.length === 0) {
+      delete sanitized[field];
+    } else {
+      sanitized[field] = kept;
+    }
+  }
+
+  return sanitized;
+}
+
+function sanitizeExtractedManifest(packageDir, targetDir, bundledWorkspaceNames) {
+  const packageJsonPath = path.join(targetDir, "package.json");
+  assertSafeBundledPath(packageDir, packageJsonPath);
+  const manifest = readJson(packageJsonPath);
+  const sanitized = sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames);
+  writeFileSync(packageJsonPath, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
+}
+
 export function assertSafeBundledPath(packageDir, targetPath, fileSystem = { existsSync, realpathSync }) {
   let existingPath = targetPath;
   while (!fileSystem.existsSync(existingPath)) {
@@ -73,6 +124,7 @@ function prepare(packageDir, dependencyNames) {
   mkdirSync(tempDir, { recursive: true });
 
   const bundledDirs = [];
+  const bundledWorkspaceNames = new Set(dependencyNames);
 
   for (const dependencyName of dependencyNames) {
     const workspaceDir = findWorkspacePackageDir(dependencyName);
@@ -98,6 +150,7 @@ function prepare(packageDir, dependencyNames) {
     ensureRemoved(extractedDir);
     execFileSync("tar", ["-xzf", tarballPath, "-C", parentDir], { cwd: repoRoot });
     renameSync(extractedDir, targetDir);
+    sanitizeExtractedManifest(packageDir, targetDir, bundledWorkspaceNames);
     bundledDirs.push(targetDir);
   }
 

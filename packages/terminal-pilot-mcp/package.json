@@ -42,7 +42,7 @@
     "headless"
   ],
   "dependencies": {
-    "toolcraft": "^0.0.4",
+    "toolcraft": "^0.0.51",
     "@resvg/resvg-js": "^2.6.2",
     "commander": "^14.0.3",
     "jetbrains-mono": "^1.0.6",

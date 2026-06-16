@@ -27,11 +27,31 @@ describe("published-dep-needs-version-range", () => {
         name: "a",
         dependencies: { b: "^0.0.1", c: "*" }
       }),
-      "/repo/packages/b/package.json": pkgJson({ name: "b" }),
+      "/repo/packages/b/package.json": pkgJson({ name: "b", version: "0.0.1" }),
       "/repo/packages/c/package.json": pkgJson({ name: "c", private: true })
     });
 
     expect(publishedDepNeedsVersionRange.run(model)).toHaveLength(0);
+  });
+
+  it("flags a concrete workspace dependency range that excludes the workspace version", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/a/package.json": pkgJson({
+        name: "a",
+        dependencies: { b: "^0.0.4" }
+      }),
+      "/repo/packages/b/package.json": pkgJson({ name: "b", version: "0.0.51" })
+    });
+
+    const violations = publishedDepNeedsVersionRange.run(model);
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      package: "a",
+      severity: "error",
+      detail: { dependency: "b", range: "^0.0.4", version: "0.0.51" }
+    });
   });
 
   it("allows a loose range for a bundled workspace dependency", async () => {

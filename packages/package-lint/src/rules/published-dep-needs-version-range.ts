@@ -1,3 +1,5 @@
+import semver from "semver";
+
 import {
   allPackages,
   dependencyEdges,
@@ -53,11 +55,28 @@ export const publishedDepNeedsVersionRange: Rule = {
       for (const edge of dependencyEdges(consumer)) {
         const dep = model.byName.get(edge.name);
         if (!dep || !isPublishedNpm(dep)) continue;
-        if (!isLooseRange(edge.spec)) continue;
         if (edge.field !== "peerDependencies" && consumer.bundledDependencies.includes(dep.name)) {
           continue;
         }
         if (isDeclaredLockstepDependency(model, consumer.dir, dep.dir)) continue;
+        if (!isLooseRange(edge.spec) && !semver.satisfies(dep.version, edge.spec)) {
+          violations.push({
+            rule: id,
+            package: consumer.name,
+            severity: "error",
+            via: edge.field,
+            detail: {
+              dependency: dep.name,
+              field: edge.field,
+              range: edge.spec,
+              version: dep.version
+            },
+            message: `published dependency ${dep.name}@${edge.spec} does not include workspace version ${dep.version}`,
+            fix: `Replace "${edge.spec}" with a concrete range that includes ${dep.version}, such as "^${dep.version}".`
+          });
+          continue;
+        }
+        if (!isLooseRange(edge.spec)) continue;
         violations.push({
           rule: id,
           package: consumer.name,

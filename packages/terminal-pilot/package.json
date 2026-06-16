@@ -24,8 +24,8 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --emitDeclarationOnly && node scripts/build.mjs",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/agent-skill-config @poe-code/agent-defs @poe-code/config-mutations toolcraft-design @poe-code/frontmatter",
     "test": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "test:unit": "cd ../.. && vitest run $(rg --files packages/terminal-pilot/src -g '*.test.ts' | sort | tr '\n' ' ')",
     "qa:cli": "cd ../.. && tsx packages/terminal-pilot/src/testing/qa-cli.ts",
@@ -62,12 +62,22 @@
     "jsonc-parser": "^3.3.1",
     "node-pty": "^1.1.0",
     "smol-toml": "^1.6.0",
-    "toolcraft": "^0.0.4",
+    "toolcraft": "^0.0.51",
     "yaml": "^2.8.2"
   },
   "bundleDependencies": [
-    "@poe-code/agent-skill-config"
+    "@poe-code/agent-skill-config",
+    "@poe-code/agent-defs",
+    "@poe-code/config-mutations",
+    "toolcraft-design",
+    "@poe-code/frontmatter"
   ],
+  "optionalDependencies": {
+    "@poe-code/agent-defs": "*",
+    "@poe-code/config-mutations": "*",
+    "toolcraft-design": "*",
+    "@poe-code/frontmatter": "*"
+  },
   "devDependencies": {
     "toolcraft-schema": "*",
     "terminal-png": "*"

@@ -176,7 +176,34 @@ function parseImportPath(line: string): string | undefined {
   }
 
   const importPath = trimmed.slice(1).trim();
-  return importPath.length > 0 ? importPath : undefined;
+  if (importPath.length === 0 || !isImportPath(importPath)) {
+    return undefined;
+  }
+
+  return importPath;
+}
+
+function isImportPath(value: string): boolean {
+  if (containsWhitespace(value)) {
+    return false;
+  }
+
+  return (
+    value.startsWith(".") ||
+    value.startsWith("/") ||
+    value.includes("/") ||
+    value.includes("\\")
+  );
+}
+
+function containsWhitespace(value: string): boolean {
+  for (const char of value) {
+    if (char.trim().length === 0) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function formatMemorySection(title: string, content: string): string {

@@ -516,6 +516,36 @@ describe("poe-agent-plugin-scratchpad", () => {
     expect(await firstRead?.call({ key: "project" }, toolContext)).toBe("alpha");
     expect(await secondRead?.call({ key: "project" }, toolContext)).toBe("(no note)");
   });
+
+  it("declares input schemas and rejects invalid note arguments", async () => {
+    const plugin = scratchpad();
+
+    const writeNote = plugin.tools?.find((tool) => tool.name === "write_note");
+    const readNote = plugin.tools?.find((tool) => tool.name === "read_note");
+
+    expect(writeNote?.inputSchema).toEqual({
+      type: "object",
+      properties: {
+        key: { type: "string" },
+        value: { type: "string" }
+      },
+      required: ["key", "value"],
+      additionalProperties: false
+    });
+    expect(readNote?.inputSchema).toEqual({
+      type: "object",
+      properties: {
+        key: { type: "string" }
+      },
+      required: ["key"],
+      additionalProperties: false
+    });
+
+    expect(() => writeNote?.call({ value: "missing key" }, toolContext)).toThrow(
+      "write_note requires string key and value"
+    );
+    expect(() => readNote?.call({ key: 123 }, toolContext)).toThrow("read_note requires a string key");
+  });
 });
 
 // --- poe-agent built-in plugins ---

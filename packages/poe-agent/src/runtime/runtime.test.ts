@@ -669,6 +669,35 @@ describe("ToolRegistry", () => {
     ]);
   });
 
+  it("matches MCP-style underscore namespace selectors", () => {
+    const registry = new ToolRegistry();
+
+    registry.register({
+      name: "repo_search",
+      visibility: "skill",
+      call: () => "ok"
+    });
+    registry.register({
+      name: "repo_status",
+      visibility: "skill",
+      call: () => "ok"
+    });
+    registry.register({
+      name: "repo2_search",
+      visibility: "skill",
+      call: () => "ok"
+    });
+
+    expect(registry.getActiveTools(["repo"]).map((tool) => tool.name)).toEqual([
+      "repo_search",
+      "repo_status"
+    ]);
+    expect(registry.getActiveTools(["repo.*"]).map((tool) => tool.name)).toEqual([
+      "repo_search",
+      "repo_status"
+    ]);
+  });
+
   it("normalizes active tool selectors before matching", () => {
     const registry = new ToolRegistry();
 

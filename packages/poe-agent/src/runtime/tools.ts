@@ -61,10 +61,14 @@ function skillMatchesToolName(skillName: string, toolName: string): boolean {
 
   if (skillName.endsWith(".*")) {
     const namespace = skillName.slice(0, -2).trim();
-    return namespace.length > 0 && toolName.startsWith(`${namespace}.`);
+    return namespace.length > 0 && toolNameHasNamespace(toolName, namespace);
   }
 
-  return toolName.startsWith(`${skillName}.`);
+  return toolNameHasNamespace(toolName, skillName);
+}
+
+function toolNameHasNamespace(toolName: string, namespace: string): boolean {
+  return toolName.startsWith(`${namespace}.`) || toolName.startsWith(`${namespace}_`);
 }
 
 function isToolVisibleToModel(tool: NormalizedTool, activeSkills: string[]): boolean {

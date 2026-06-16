@@ -75,6 +75,30 @@ describe("poe-agent-plugin-memory", () => {
     );
   });
 
+  it("preserves leading @handle memory lines as text", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/workspace/project/AGENTS.md": "@alice owns releases.\nKeep edits focused.\n",
+      },
+      "/",
+    );
+    const fs = createFsFromVolume(volume).promises;
+    const plugin = memoryPlugin({
+      cwd: "/workspace/project",
+      homeDir: "/home/test",
+      fs,
+    });
+
+    const transformed = await plugin.prompt?.({
+      userPrompt: "Fix the tests",
+      system: "base-system",
+    });
+
+    expect(transformed?.system).toBe(
+      "Project memory:\n@alice owns releases.\nKeep edits focused.\n\nbase-system",
+    );
+  });
+
   it("rejects project imports that escape the containing AGENTS directory", async () => {
     const volume = Volume.fromJSON(
       {

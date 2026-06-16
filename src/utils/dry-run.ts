@@ -181,11 +181,11 @@ function formatOperation(operation: DryRunOperation): string | string[] {
   switch (operation.type) {
     case "mkdir": {
       const recursiveFlag = operation.options?.recursive ? " -p" : "";
-      const command = `mkdir${recursiveFlag} ${operation.path}`;
+      const command = `mkdir${recursiveFlag} ${quoteShellArgument(operation.path)}`;
       return renderOperationCommand(command, chalk.cyan, "# ensure");
     }
     case "unlink":
-      return renderOperationCommand(`rm ${operation.path}`, chalk.red, "# delete");
+      return renderOperationCommand(`rm ${quoteShellArgument(operation.path)}`, chalk.red, "# delete");
     case "rm": {
       const flags: string[] = [];
       if (operation.options?.recursive) {
@@ -195,31 +195,31 @@ function formatOperation(operation: DryRunOperation): string | string[] {
         flags.push("-f");
       }
       const flagSuffix = flags.length > 0 ? ` ${flags.join(" ")}` : "";
-      return renderOperationCommand(`rm${flagSuffix} ${operation.path}`, chalk.red, "# delete");
+      return renderOperationCommand(`rm${flagSuffix} ${quoteShellArgument(operation.path)}`, chalk.red, "# delete");
     }
     case "copyFile":
       return renderOperationCommand(
-        `cp ${operation.from} ${operation.to}`,
+        `cp ${quoteShellArgument(operation.from)} ${quoteShellArgument(operation.to)}`,
         chalk.cyan,
         "# copy"
       );
     case "chmod": {
       const mode = operation.mode.toString(8);
       return renderOperationCommand(
-        `chmod ${mode} ${operation.path}`,
+        `chmod ${mode} ${quoteShellArgument(operation.path)}`,
         chalk.cyan,
         "# permissions"
       );
     }
     case "symlink":
       return renderOperationCommand(
-        `ln -s ${operation.target} ${operation.path}`,
+        `ln -s ${quoteShellArgument(operation.target)} ${quoteShellArgument(operation.path)}`,
         chalk.cyan,
         "# symlink"
       );
     case "rename":
       return renderOperationCommand(
-        `mv ${operation.from} ${operation.to}`,
+        `mv ${quoteShellArgument(operation.from)} ${quoteShellArgument(operation.to)}`,
         chalk.cyan,
         "# rename"
       );
@@ -241,6 +241,41 @@ function renderOperationCommand(
   return `${colorize(command)} ${chalk.dim(detail)}`;
 }
 
+function quoteShellArgument(value: string): string {
+  if (value.length > 0 && isBareShellArgument(value)) {
+    return value;
+  }
+  return `'${value.replaceAll("'", "'\"'\"'")}'`;
+}
+
+function isBareShellArgument(value: string): boolean {
+  for (const char of value) {
+    if (!isBareShellArgumentChar(char)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isBareShellArgumentChar(char: string): boolean {
+  const code = char.charCodeAt(0);
+  return (
+    (code >= 48 && code <= 57) ||
+    (code >= 65 && code <= 90) ||
+    (code >= 97 && code <= 122) ||
+    char === "/" ||
+    char === "." ||
+    char === "_" ||
+    char === "-" ||
+    char === ":" ||
+    char === "@" ||
+    char === "%" ||
+    char === "+" ||
+    char === "=" ||
+    char === ","
+  );
+}
+
 function describeWriteChange(
   previous: string | null,
   next: string
@@ -258,7 +293,7 @@ function renderWriteCommand(
   path: string,
   change: "create" | "update" | "noop"
 ): string {
-  const command = `cat > ${path}`;
+  const command = `cat > ${quoteShellArgument(path)}`;
   if (change === "create") {
     return renderOperationCommand(command, chalk.green, "# create");
   }

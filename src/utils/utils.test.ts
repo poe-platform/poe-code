@@ -741,6 +741,36 @@ describe("dry run diff redaction", () => {
 });
 
 describe("formatDryRunOperations symlink and rename", () => {
+  it("quotes path-like command arguments", () => {
+    const lines = formatDryRunOperations([
+      { type: "mkdir", path: "/tmp/project dir", options: { recursive: true } },
+      {
+        type: "writeFile",
+        path: "/tmp/project dir/config.json",
+        previousContent: null,
+        nextContent: '{"ok":true}\n'
+      },
+      { type: "symlink", target: "source file.md", path: "linked file.md" },
+      {
+        type: "rm",
+        path: "/tmp/project dir/old file",
+        options: { recursive: true, force: true }
+      },
+      { type: "copyFile", from: "source file.md", to: "target file.md" },
+      { type: "chmod", path: "script file.sh", mode: 0o755 },
+      { type: "rename", from: "old name.md", to: "new name.md" }
+    ]);
+    const output = lines.join("\n");
+
+    expect(output).toContain("mkdir -p '/tmp/project dir'");
+    expect(output).toContain("cat > '/tmp/project dir/config.json'");
+    expect(output).toContain("ln -s 'source file.md' 'linked file.md'");
+    expect(output).toContain("rm -r -f '/tmp/project dir/old file'");
+    expect(output).toContain("cp 'source file.md' 'target file.md'");
+    expect(output).toContain("chmod 755 'script file.sh'");
+    expect(output).toContain("mv 'old name.md' 'new name.md'");
+  });
+
   it("formats symlink as ln -s", () => {
     const lines = formatDryRunOperations([
       { type: "symlink", target: "AGENTS.md", path: "CLAUDE.md" }

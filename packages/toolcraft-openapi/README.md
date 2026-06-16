@@ -27,7 +27,8 @@ command files.
 - `--diff` — prints the generated file changes without writing them.
 
 When `toolcraft.yml` is present next to the input file, the generator validates it, prints
-diagnostics, and uses it to shape generated command names for mapped resources.
+diagnostics, and uses it to shape generated command names for mapped resources. Error diagnostics
+stop normal writes as well as `--check` runs; fix the config before regenerating.
 
 The default generated integration point is `src/generated/client.ts`. Application code should
 provide deployment-specific configuration and let the generated client own the full OpenAPI-derived
@@ -60,6 +61,7 @@ toolcraft-openapi-generate --check
 
 - `bearerTokenAuth(opts)`
 - `requestJson(options)`
+- `validateArrayJsonHelperValue(value, definition, label)`
 - `HttpError`
 - `readToolcraftConfig(path)`
 - `validateToolcraftConfig(value)`
@@ -68,6 +70,7 @@ toolcraft-openapi-generate --check
 - `formatDiagnostic(diagnostic)`
 - `formatDiagnostics(diagnostics)`
 - `resolveOpenApiBaseUrl(options)`
+- `mockFetch(options)` from the `toolcraft-openapi/mock` subpath for spec-backed test doubles.
 - `DIAGNOSTIC_CODES`
 - `TokenSource`
 - `CommandContributor`
@@ -125,6 +128,10 @@ Mapped idempotent methods with `client_settings.idempotency_header` get an optio
 `rawResponse` param that returns `{ data, response }`; the CLI accepts both `--raw-response` and
 `--raw`.
 
+Generated JSON helper params for arrays validate `minItems` and `maxItems` before dispatch. For
+OpenAPI compositions where every equivalent `oneOf`/`anyOf` branch has enum values, generation
+preserves the merged enum values in the resulting schema.
+
 Diagnostics use stable codes:
 
 - `TOOLCRAFT_OPENAPI_001` — endpoint is not mapped or listed in `unspecified_endpoints`.
@@ -134,6 +141,12 @@ Diagnostics use stable codes:
 - `TOOLCRAFT_OPENAPI_005` — reserved method name.
 - `TOOLCRAFT_OPENAPI_006` — missing or unsupported edition.
 - `TOOLCRAFT_OPENAPI_007` — invalid config shape.
+
+### Mock fetch
+
+`toolcraft-openapi/mock` exports `mockFetch(options)` for tests. It matches requests against an
+OpenAPI document, records requests, validates path/query/header parameters and request bodies, and
+validates response fixtures against exact or range response schemas such as `2XX`.
 
 ### `bearerTokenAuth(opts)`
 

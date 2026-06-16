@@ -14,7 +14,7 @@ npm install tiny-stdio-mcp-server
 import { createServer, defineSchema } from "tiny-stdio-mcp-server";
 
 const schema = defineSchema({
-  text: { type: "string", description: "Text to reverse" },
+  text: { type: "string", description: "Text to reverse" }
 });
 
 createServer({ name: "my-server", version: "1.0.0" })
@@ -49,7 +49,7 @@ Register a tool. The handler receives typed args matching the schema and returns
 ```ts
 const schema = defineSchema({
   query: { type: "string", description: "Search query" },
-  limit: { type: "number", description: "Max results", optional: true },
+  limit: { type: "number", description: "Max results", optional: true }
 });
 
 server.tool("search", "Search for things", schema, async ({ query, limit }) => {
@@ -62,7 +62,7 @@ For structured-data tools, pass a root-object output schema. The server advertis
 
 ```ts
 const input = defineSchema({
-  query: { type: "string" },
+  query: { type: "string" }
 });
 const output = defineSchema({
   items: {
@@ -71,16 +71,22 @@ const output = defineSchema({
       type: "object",
       properties: {
         title: { type: "string" },
-        score: { type: "number" },
+        score: { type: "number" }
       },
-      required: ["title", "score"],
-    },
-  },
+      required: ["title", "score"]
+    }
+  }
 });
 
-server.tool("search", "Search", input, async ({ query }) => ({
-  items: [{ title: query, score: 1 }],
-}), output);
+server.tool(
+  "search",
+  "Search",
+  input,
+  async ({ query }) => ({
+    items: [{ title: query, score: 1 }]
+  }),
+  output
+);
 ```
 
 Output schemas must have `type: "object"` at the root. Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
@@ -120,12 +126,15 @@ Type-safe schema builder. Returns a JSON Schema object with inferred TypeScript 
 ```ts
 const schema = defineSchema({
   name: { type: "string", description: "User name" },
-  age: { type: "number", description: "User age", optional: true },
+  age: { type: "number", description: "User age", optional: true }
 });
 // Handler receives: { name: string; age?: number }
 ```
 
-Supported types: `string`, `number`, `boolean`, `object`, `array`.
+Supported types: `string`, `number`, `integer`, `boolean`, `object`, and `array`.
+`defineSchema()` copies JSON Schema keywords such as `minimum`, `maxLength`, `pattern`, `items`,
+and nested `properties` into the generated schema while using `optional: true` only to control the
+root `required` list.
 
 ## Content helpers
 
@@ -138,7 +147,7 @@ import { Image } from "tiny-stdio-mcp-server";
 
 server.tool("screenshot", "Take a screenshot", schema, async () => {
   return Image.fromBase64(base64Data, "image/png");
-  // or: await Image.fromUrl("https://example.com/image.png")
+  // or: await Image.fromUrl("https://example.com/image.png", { maxBytes: 2 * 1024 * 1024 })
   // or: Image.fromBytes(uint8Array)
 });
 ```
@@ -152,12 +161,16 @@ import { Audio } from "tiny-stdio-mcp-server";
 
 server.tool("speak", "Text to speech", schema, async () => {
   return Audio.fromBase64(base64Data, "audio/mpeg");
-  // or: await Audio.fromUrl("https://example.com/audio.mp3")
+  // or: await Audio.fromUrl("https://example.com/audio.mp3", { maxBytes: 2 * 1024 * 1024 })
   // or: Audio.fromBytes(uint8Array, "mp3")
 });
 ```
 
 Supported formats: MP3, WAV, OGG, M4A.
+
+Remote helpers (`Image.fromUrl`, `Audio.fromUrl`, and `File.fromUrl`) cap downloads at
+`DEFAULT_FROM_URL_MAX_BYTES` (5 MiB). Pass `{ maxBytes }` to set a positive integer byte limit per
+call; responses that exceed the limit are rejected before being converted to content blocks.
 
 ### Files
 
@@ -167,7 +180,7 @@ import { File } from "tiny-stdio-mcp-server";
 server.tool("export", "Export data", schema, async () => {
   return File.fromText(csvContent, "text/csv");
   // or: File.fromBytes(uint8Array, "application/pdf")
-  // or: await File.fromUrl("https://example.com/report.pdf")
+  // or: await File.fromUrl("https://example.com/report.pdf", { maxBytes: 2 * 1024 * 1024 })
 });
 ```
 
@@ -189,8 +202,12 @@ Use `createTestPair` with the official MCP SDK for in-memory testing:
 ```ts
 import { createTestPair } from "tiny-stdio-mcp-server/testing";
 
-const server = createServer({ name: "test", version: "1.0.0" })
-  .tool("ping", "Ping", defineSchema({}), () => "pong");
+const server = createServer({ name: "test", version: "1.0.0" }).tool(
+  "ping",
+  "Ping",
+  defineSchema({}),
+  () => "pong"
+);
 
 const { client, cleanup } = await createTestPair(server);
 
@@ -201,6 +218,16 @@ await cleanup();
 ```
 
 Requires `@modelcontextprotocol/sdk` as a dev dependency.
+
+## Environment variables
+
+This package exposes no environment variables. Remote content helpers use the runtime `fetch`
+implementation and do not read package-level configuration.
+
+## Configuration
+
+There are no package-level config files. Configure each server in code with `createServer(options)`,
+per-tool schemas, and per-call content helper options such as `maxBytes` for remote files.
 
 ## License
 

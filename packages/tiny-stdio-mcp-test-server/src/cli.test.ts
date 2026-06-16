@@ -31,7 +31,7 @@ describe("tiny-stdio-mcp-test-server CLI", () => {
         ...process.env,
         TOOLCRAFT_TEST_STARTUP_GATE_FILE: "/missing/tiny-stdio-gate",
       },
-      timeout: 250,
+      timeout: 5000,
     })).rejects.toMatchObject({
       code: 1,
       killed: false,

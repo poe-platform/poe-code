@@ -539,8 +539,6 @@ function isReadOnlyCommand(commandName: string, args: string[]): boolean {
     case "cat":
     case "head":
     case "tail":
-    case "sed":
-    case "awk":
     case "grep":
     case "rg":
     case "find":
@@ -569,9 +567,12 @@ function isReadOnlyCommand(commandName: string, args: string[]): boolean {
 }
 
 function isReadOnlyGitCommand(args: string[]): boolean {
-  const subcommand = args.find((arg) => !arg.startsWith("-"));
+  const parsed = parseGitCommand(args);
+  if (!parsed || hasGitWriteOption(parsed.args)) {
+    return false;
+  }
 
-  switch (subcommand) {
+  switch (parsed.subcommand) {
     case "status":
     case "diff":
     case "log":
@@ -587,6 +588,62 @@ function isReadOnlyGitCommand(args: string[]): boolean {
     default:
       return false;
   }
+}
+
+function parseGitCommand(args: string[]): { subcommand: string; args: string[] } | undefined {
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (!arg.startsWith("-")) {
+      return { subcommand: arg, args: args.slice(index + 1) };
+    }
+
+    const consumedValues = getGitGlobalOptionValueCount(arg);
+    if (consumedValues === 0) {
+      continue;
+    }
+
+    if (index + consumedValues >= args.length) {
+      return undefined;
+    }
+
+    index += consumedValues;
+  }
+
+  return undefined;
+}
+
+function getGitGlobalOptionValueCount(arg: string): number {
+  switch (arg) {
+    case "-C":
+    case "-c":
+    case "--git-dir":
+    case "--work-tree":
+    case "--namespace":
+    case "--exec-path":
+    case "--config-env":
+      return 1;
+    default:
+      break;
+  }
+
+  if (
+    arg.startsWith("-C") ||
+    arg.startsWith("-c") ||
+    arg.startsWith("--git-dir=") ||
+    arg.startsWith("--work-tree=") ||
+    arg.startsWith("--namespace=") ||
+    arg.startsWith("--exec-path=") ||
+    arg.startsWith("--config-env=")
+  ) {
+    return 0;
+  }
+
+  return 0;
+}
+
+function hasGitWriteOption(args: string[]): boolean {
+  return args.some((arg) => arg === "--output" || arg.startsWith("--output="));
 }
 
 function getBlockedEditModeReason(commandName: string, args: string[]): string | undefined {

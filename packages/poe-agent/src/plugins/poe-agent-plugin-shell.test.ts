@@ -334,6 +334,36 @@ describe("poe-agent-plugin-shell", () => {
     expect(validate({ command: "bash -lc 'git status --short'" }, "read")).toBeUndefined();
   });
 
+  it("rejects write-capable sed and awk commands in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "awk 'BEGIN { system(\"touch owned\") }'" }, "read")).toBe(
+      'Command "awk" is not allowed in read mode.',
+    );
+    expect(validate({ command: "sed -i.bak 's/a/b/' README.md" }, "read")).toBe(
+      'Command "sed" is not allowed in read mode.',
+    );
+  });
+
+  it("rejects write-capable git diff output options in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "git diff --output=read-mode-diff.txt" }, "read")).toBe(
+      'Command "git" is not allowed in read mode.',
+    );
+    expect(validate({ command: "git diff --output read-mode-diff.txt" }, "read")).toBe(
+      'Command "git" is not allowed in read mode.',
+    );
+  });
+
+  it("allows read-only git commands with directory global options in read mode", () => {
+    const validate = getRunCommandValidate();
+
+    expect(validate({ command: "git -C . status --short" }, "read")).toBeUndefined();
+    expect(validate({ command: "git --git-dir .git status --short" }, "read")).toBeUndefined();
+    expect(validate({ command: "git --work-tree . status --short" }, "read")).toBeUndefined();
+  });
+
   it("rejects shell wrappers with trailing commands in read mode", () => {
     const validate = getRunCommandValidate();
 

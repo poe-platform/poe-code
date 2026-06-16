@@ -7,13 +7,15 @@ Utilities for reading and writing scoped `poe-code` configuration.
 For a resolved field, values are applied in this order:
 
 1. CLI flags such as `--model`
-2. Project config in `<cwd>/.poe-code/config.json`
-3. Global config in `~/.poe-code/config.json`
-4. Environment variables
+2. Environment variables declared by the field schema
+3. Project config in `<cwd>/.poe-code/config.json`
+4. Global config in `~/.poe-code/config.json`
 5. Schema defaults
 6. Constants in callers
 
-This package is responsible for merging global and project config documents. CLI flags and caller-specific constants are applied outside this package.
+This package is responsible for merging global and project config documents, then
+resolving schema-declared environment variables over the merged file value. CLI
+flags and caller-specific constants are applied outside this package.
 
 ## Config locations
 

@@ -51,7 +51,8 @@ registry.forAgent({ id: "claude-code", apiShapes: ["anthropic-messages"] });
 
 ## Auth strategies
 
-Strategies are dispatched on `auth.kind`. The api-key strategy stores the credential in a
+Strategies are dispatched on `auth.kind`. The registry login and credential-resolution APIs
+currently support `auth.kind: "api-key"`. The api-key strategy stores the credential in a
 [`SecretStore`](../auth-store) — keychain on macOS, encrypted file elsewhere — and can prompt
 interactively when an API key is not supplied up front.
 
@@ -77,6 +78,11 @@ const apiKey = await apiKeyAuthStrategy.resolveCredential(anthropic, { secretSto
 `preferredLogin` is optional. It lets a provider prefer a custom login flow, such as OAuth,
 while still storing the resulting API key through the same provider secret store. If no
 `resolvePreferredLogin` callback is supplied, login falls back to the generic API-key flow.
+
+Native `auth.kind: "oauth"` provider manifests are type-level only in this package today.
+`ProviderRegistry.login()` and `ProviderRegistry.resolveCredential()` reject them because no
+OAuth registry strategy is implemented. Providers that need an OAuth login flow should declare
+`auth.kind: "api-key"` with `preferredLogin: "oauth"` and supply `resolvePreferredLogin`.
 
 `ProviderRegistry.isLoggedIn()` also treats a non-empty declared env var as logged in,
 matching what `login()` would use in CI.
@@ -124,7 +130,6 @@ Provider manifest options:
   `modelInput`
 - `auth.kind: "api-key"` with `envVar`, `storageKey`, `prompt`, and optional
   `preferredLogin: "oauth"`
-- `auth.kind: "oauth"` for OAuth-native providers
 - `apiShapes` for provider API compatibility and shape-specific URL suffixes/defaults
 - `env` for provider-specific environment values derived from literals, credentials, base
   URLs, or provider fields

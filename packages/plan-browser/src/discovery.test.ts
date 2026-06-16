@@ -127,13 +127,15 @@ describe("discoverAllPlans", () => {
       projectConfigPath: resolveProjectConfigPath(cwd)
     });
 
-    expect(plans.map((plan) => ({
-      path: plan.path,
-      kind: plan.kind,
-      typeLabel: plan.typeLabel,
-      runner: plan.runner,
-      detail: plan.detail
-    }))).toEqual([
+    expect(
+      plans.map((plan) => ({
+        path: plan.path,
+        kind: plan.kind,
+        typeLabel: plan.typeLabel,
+        runner: plan.runner,
+        detail: plan.detail
+      }))
+    ).toEqual([
       {
         path: "docs/plans/pi-mono.md",
         kind: "superintendent",
@@ -182,12 +184,7 @@ describe("discoverAllPlans", () => {
   it("supports kind filters while scanning the shared plan directory once", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/architecture.md": "# Architecture\n",
-      "/repo/docs/plans/spawn-hooks.md": [
-        "---",
-        "kind: ralph",
-        "---",
-        "# Spawn hooks"
-      ].join("\n")
+      "/repo/docs/plans/spawn-hooks.md": ["---", "kind: ralph", "---", "# Spawn hooks"].join("\n")
     });
 
     const plans = await discoverAllPlans({
@@ -233,9 +230,69 @@ describe("discoverAllPlans", () => {
     };
 
     await expect(
-      discoverAllPlans({ cwd, homeDir, fs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) })
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
     ).resolves.toEqual([expect.objectContaining({ kind: "pipeline", detail: "1/1 done" })]);
     expect(planReads).toBe(1);
+  });
+
+  it("discovers yaml pipeline plans from the shared plan directory", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.yaml": [
+        "tasks:",
+        "  - id: feature",
+        "    title: Feature",
+        "    prompt: Ship it",
+        "    status: done"
+      ].join("\n")
+    });
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "docs/plans/feature.yaml",
+        kind: "pipeline",
+        typeLabel: "Pipeline",
+        runner: "pipeline",
+        format: "yaml",
+        detail: "1/1 done"
+      })
+    ]);
+  });
+
+  it("skips broken symlinks while discovering valid plan files", async () => {
+    const volume = Volume.fromJSON({ "/repo/docs/plans/real.md": "# Real\n" }, "/");
+    volume.mkdirSync(cwd, { recursive: true });
+    volume.mkdirSync(homeDir, { recursive: true });
+    volume.symlinkSync("/repo/docs/plans/missing.md", "/repo/docs/plans/stale.md");
+    const fs = createFsFromVolume(volume).promises as unknown as DiscoveryFs;
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "docs/plans/real.md",
+        kind: "plan"
+      })
+    ]);
   });
 
   it("uses plan.plan_directory config and POE_PLAN_DIRECTORY overrides", async () => {
@@ -361,10 +418,13 @@ describe("discoverAllPlans", () => {
   });
 
   it("does not repair invalid project configuration while discovering plans", async () => {
-    const volume = Volume.fromJSON({
-      "/repo/.poe-code/config.json": "{ invalid json\n",
-      "/repo/docs/plans/one.md": "# One\n"
-    }, "/");
+    const volume = Volume.fromJSON(
+      {
+        "/repo/.poe-code/config.json": "{ invalid json\n",
+        "/repo/docs/plans/one.md": "# One\n"
+      },
+      "/"
+    );
     volume.mkdirSync(homeDir, { recursive: true });
     const fs = createFsFromVolume(volume).promises as unknown as DiscoveryFs;
 
@@ -378,7 +438,9 @@ describe("discoverAllPlans", () => {
       })
     ).rejects.toThrow(SyntaxError);
 
-    await expect(fs.readFile("/repo/.poe-code/config.json", "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readFile("/repo/.poe-code/config.json", "utf8")).resolves.toBe(
+      "{ invalid json\n"
+    );
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
@@ -459,10 +521,18 @@ describe("discoverAllPlans", () => {
     linkedDirectoryVolume.mkdirSync("/repo/docs", { recursive: true });
     linkedDirectoryVolume.mkdirSync(homeDir, { recursive: true });
     linkedDirectoryVolume.symlinkSync("/outside", "/repo/docs/plans");
-    const linkedDirectoryFs = createFsFromVolume(linkedDirectoryVolume).promises as unknown as DiscoveryFs;
+    const linkedDirectoryFs = createFsFromVolume(linkedDirectoryVolume)
+      .promises as unknown as DiscoveryFs;
 
-    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedDirectoryFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
-      .rejects.toThrow("Plan directory must not be a symbolic link");
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs: linkedDirectoryFs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).rejects.toThrow("Plan directory must not be a symbolic link");
 
     const linkedFileVolume = Volume.fromJSON({ "/outside.md": "# External" }, "/");
     linkedFileVolume.mkdirSync("/repo/docs/plans", { recursive: true });
@@ -470,7 +540,14 @@ describe("discoverAllPlans", () => {
     linkedFileVolume.symlinkSync("/outside.md", "/repo/docs/plans/local.md");
     const linkedFileFs = createFsFromVolume(linkedFileVolume).promises as unknown as DiscoveryFs;
 
-    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedFileFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
-      .rejects.toThrow("Plan file must not be a symbolic link");
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs: linkedFileFs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).rejects.toThrow("Plan file must not be a symbolic link");
   });
 });

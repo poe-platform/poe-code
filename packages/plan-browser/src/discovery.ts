@@ -1,6 +1,11 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { planConfigScope, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
+import { parsePlan } from "@poe-code/pipeline";
+import {
+  planConfigScope,
+  readMergedDocumentReadonly,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
@@ -52,8 +57,14 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
 }
 
-function isMarkdownFile(name: string): boolean {
-  return name.toLowerCase().endsWith(".md");
+function isSupportedPlanFile(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  return lowerName.endsWith(".md") || lowerName.endsWith(".yaml") || lowerName.endsWith(".yml");
+}
+
+function isYamlPlanFile(name: string): boolean {
+  const lowerName = name.toLowerCase();
+  return lowerName.endsWith(".yaml") || lowerName.endsWith(".yml");
 }
 
 function getPlanTypeLabel(kind: PlanKind): string {
@@ -120,6 +131,11 @@ function toPlanKind(value: unknown, filePath: string): PlanKind {
 }
 
 function classifyPlanKind(content: string, filePath: string): PlanKind {
+  if (isYamlPlanFile(filePath)) {
+    parsePlan(content);
+    return "pipeline";
+  }
+
   const { data } = splitFrontmatter(content, filePath);
 
   if (data === undefined) {
@@ -171,16 +187,32 @@ async function discoverSharedPlans(options: {
 
   const plans: PlanEntry[] = [];
   for (const name of entries) {
-    if (!isMarkdownFile(name)) {
+    if (!isSupportedPlanFile(name)) {
       continue;
     }
 
     const absolutePath = path.join(absoluteDir, name);
-    const canonicalPath = await options.fs.realpath(absolutePath);
+    const canonicalPath = await options.fs.realpath(absolutePath).catch((error: unknown) => {
+      if (isNotFound(error)) {
+        return undefined;
+      }
+      throw error;
+    });
+    if (canonicalPath === undefined) {
+      continue;
+    }
     if (canonicalPath !== path.resolve(absolutePath)) {
       throw new Error(`Plan file must not be a symbolic link: ${path.join(displayDir, name)}`);
     }
-    const stat = await options.fs.stat(absolutePath);
+    const stat = await options.fs.stat(absolutePath).catch((error: unknown) => {
+      if (isNotFound(error)) {
+        return undefined;
+      }
+      throw error;
+    });
+    if (stat === undefined) {
+      continue;
+    }
     if (!stat.isFile()) {
       continue;
     }

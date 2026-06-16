@@ -3,13 +3,9 @@ import { spawnSync as nodeSpawnSync } from "node:child_process";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { ActionFs } from "./types.js";
 
-export function resolveEditor(
-  env: Record<string, string | undefined> = process.env
-): string {
+export function resolveEditor(env: Record<string, string | undefined> = process.env): string {
   const editor =
-    getOwnEnvValue(env, "EDITOR")?.trim() ||
-    getOwnEnvValue(env, "VISUAL")?.trim() ||
-    "vi";
+    getOwnEnvValue(env, "VISUAL")?.trim() || getOwnEnvValue(env, "EDITOR")?.trim() || "vi";
   return editor.length > 0 ? editor : "vi";
 }
 
@@ -82,10 +78,7 @@ async function rejectSymbolicLink(targetPath: string, fs: Pick<ActionFs, "lstat"
   }
 }
 
-function getOwnEnvValue(
-  env: Record<string, string | undefined>,
-  key: string
-): string | undefined {
+function getOwnEnvValue(env: Record<string, string | undefined>, key: string): string | undefined {
   return Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
 }
 
@@ -93,12 +86,69 @@ function hasErrorCode(error: unknown, code: string): boolean {
   return hasOwnErrorCode(error, code);
 }
 
+function isCommandWhitespace(character: string): boolean {
+  return character === " " || character === "\t" || character === "\n" || character === "\r";
+}
+
 function parseEditorCommand(command: string): string[] {
-  const parts = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
-  return parts.map((part) => {
-    const quote = part[0];
-    return (quote === '"' || quote === "'") && part.at(-1) === quote ? part.slice(1, -1) : part;
-  });
+  const parts: string[] = [];
+  let current = "";
+  let quote: "'" | '"' | undefined;
+  let escaping = false;
+  let hasToken = false;
+
+  for (const character of command) {
+    if (escaping) {
+      current += character;
+      escaping = false;
+      hasToken = true;
+      continue;
+    }
+
+    if (character === "\\") {
+      escaping = true;
+      hasToken = true;
+      continue;
+    }
+
+    if (quote !== undefined) {
+      if (character === quote) {
+        quote = undefined;
+      } else {
+        current += character;
+        hasToken = true;
+      }
+      continue;
+    }
+
+    if (character === "'" || character === '"') {
+      quote = character;
+      hasToken = true;
+      continue;
+    }
+
+    if (isCommandWhitespace(character)) {
+      if (hasToken) {
+        parts.push(current);
+        current = "";
+        hasToken = false;
+      }
+      continue;
+    }
+
+    current += character;
+    hasToken = true;
+  }
+
+  if (escaping) {
+    current += "\\";
+  }
+
+  if (hasToken) {
+    parts.push(current);
+  }
+
+  return parts;
 }
 
 export { archiveSelectedPlan as archivePlan };

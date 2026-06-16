@@ -1,4 +1,5 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import type { Command } from "commander";
 import { Option } from "commander";
 import type { CliContainer } from "../container.js";
@@ -14,6 +15,16 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
+import {
+  bridgeActiveSkills,
+  cleanupBridgedSkills,
+  type BridgeManifest
+} from "@poe-code/agent-skill-config";
+import {
+  bridgeHooks,
+  cleanupBridgedHooks,
+  type BridgeHookManifest
+} from "@poe-code/agent-hook-config";
 import {
   text,
   confirm,
@@ -360,6 +371,7 @@ export function registerSpawnCommand(
           );
 
           if (flags.dryRun) {
+            validateDryRunBridgeResources(canonicalService, container, spawnOptions);
             await spawnCore(container, canonicalService, spawnOptions, {
               dryRun: true,
               verbose: flags.verbose
@@ -859,6 +871,51 @@ function resolveHookOptions(
     strategy: strategy ?? "auto",
     ...(scope ? { scope } : {})
   };
+}
+
+function validateDryRunBridgeResources(
+  service: string,
+  container: CliContainer,
+  options: SpawnCommandOptions
+): void {
+  if ((options.skills === undefined || options.skills.length === 0) && options.hooks === undefined) {
+    return;
+  }
+
+  const runId = randomUUID();
+  let skillsManifest: BridgeManifest | undefined;
+  let hooksManifest: BridgeHookManifest | undefined;
+  try {
+    if (options.skills !== undefined && options.skills.length > 0) {
+      skillsManifest = bridgeActiveSkills(
+        service,
+        options.cwd ?? container.env.cwd,
+        options.skills,
+        container.env.homeDir,
+        runId
+      );
+    }
+    if (options.hooks !== undefined) {
+      hooksManifest = bridgeHooks(
+        options.hooks.from,
+        service,
+        options.cwd ?? container.env.cwd,
+        container.env.homeDir,
+        runId,
+        {
+          strategy: options.hooks.strategy === "auto" ? undefined : options.hooks.strategy,
+          ...(options.hooks.scope !== undefined ? { scope: options.hooks.scope } : {})
+        }
+      );
+    }
+  } finally {
+    if (hooksManifest !== undefined) {
+      cleanupBridgedHooks(hooksManifest);
+    }
+    if (skillsManifest !== undefined) {
+      cleanupBridgedSkills(skillsManifest);
+    }
+  }
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

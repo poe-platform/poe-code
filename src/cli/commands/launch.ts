@@ -98,6 +98,7 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, `launch:stop:${id}`);
       if (flags.dryRun) {
+        await validateManagedProcessExists(container, id);
         resources.logger.dryRun(`Dry run: would stop managed process ${id}.`);
         return;
       }
@@ -119,6 +120,7 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, `launch:restart:${id}`);
       if (flags.dryRun) {
+        await validateManagedProcessExists(container, id);
         resources.logger.dryRun(`Dry run: would restart managed process ${id}.`);
         return;
       }
@@ -496,6 +498,17 @@ function formatReadinessWait(readyCheck: ProcessSpec["readyCheck"] | undefined):
     return "waiting for log readiness";
   }
   return `waiting for TCP port ${readyCheck.port}`;
+}
+
+async function validateManagedProcessExists(container: CliContainer, id: string): Promise<void> {
+  const records = await listLaunches({ homeDir: container.env.homeDir });
+  if (!records.some((record) => getManagedProcessId(record) === id)) {
+    throw new ValidationError(`Managed process not found: ${id}`);
+  }
+}
+
+function getManagedProcessId(record: ManagedProcessRecord & { id?: string }): string | undefined {
+  return record.spec?.id ?? record.state?.id ?? record.id;
 }
 
 function formatManagedProcessStatus(record: ManagedProcessRecord, fallbackId: string): string {

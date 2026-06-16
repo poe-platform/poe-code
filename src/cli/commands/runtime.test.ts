@@ -755,6 +755,37 @@ describe("runtime command", () => {
     expect(logs.join("\n")).toContain("Dry run");
   });
 
+  it("rejects invalid since values before previewing runtime job logs", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "runtime",
+        "jobs",
+        "logs",
+        "job-logs",
+        "--since",
+        "nope"
+      ])
+    ).rejects.toThrow('Invalid duration "nope".');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).not.toContain("Dry run");
+  });
+
   it("errors with candidate jobs when the omitted job id is ambiguous", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-one.json")]: `${JSON.stringify(
@@ -839,6 +870,37 @@ describe("runtime command", () => {
     expect(runtimeEvents.attached).toEqual([]);
     expect(runtimeEvents.downloads).toEqual([]);
     expect(logs.join("\n")).toContain("Dry run");
+  });
+
+  it("rejects invalid since values before previewing runtime job attach", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "runtime",
+        "jobs",
+        "attach",
+        "job-attach",
+        "--since",
+        "nope"
+      ])
+    ).rejects.toThrow('Invalid duration "nope".');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).not.toContain("Dry run");
   });
 
   it("syncs with overwrite policy and closes the sandbox when requested", async () => {
@@ -1106,6 +1168,30 @@ describe("runtime command", () => {
     expect(logs.join("\n")).toContain("Dry run");
   });
 
+  it("rejects unknown runtime backends before previewing a sandbox shell", async () => {
+    const logs: string[] = [];
+    const container = createContainer(createMemFs(), logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "runtime",
+        "jobs",
+        "sandbox",
+        "env-sandbox",
+        "--runtime",
+        "nope"
+      ])
+    ).rejects.toThrow('No execution environment factory registered for runtime type "nope".');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).not.toContain("Dry run");
+  });
+
   it("opens a runtime sandbox shell in its saved job working directory", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-sandbox.json")]: `${JSON.stringify(
@@ -1221,6 +1307,23 @@ describe("runtime command", () => {
       })
     );
     expect(stripAnsi(logs.join("\n"))).toContain("Built Docker image poe-code/local:mock-hash");
+  });
+
+  it("rejects missing dockerfiles before previewing docker runtime builds", async () => {
+    const fs = createMemFs({
+      [projectConfigPath]: `${JSON.stringify({ runtime: { type: "docker" } }, null, 2)}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "runtime", "build"])
+    ).rejects.toThrow("Docker runtime requires a Dockerfile at /repo/.poe-code/Dockerfile.");
+
+    expect(buildDockerRuntimeTemplateMock).not.toHaveBeenCalled();
+    expect(stripAnsi(logs.join("\n"))).not.toContain("would build docker runtime template");
   });
 
   it("rejects docker runtime builds with build contexts outside the project", async () => {

@@ -359,25 +359,56 @@ describe("launch command", () => {
 
   it("previews launch stop without changing running state", async () => {
     const logs: string[] = [];
+    listLaunchesMock.mockResolvedValue([{ id: "api" }]);
     const program = createBaseProgram();
     registerLaunchCommand(program, createContainer((message) => logs.push(message)));
 
     await program.parseAsync(["node", "cli", "--dry-run", "launch", "stop", "api"]);
 
+    expect(listLaunchesMock).toHaveBeenCalledWith({ homeDir: "/home/test" });
     expect(stopLaunchMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would stop managed process api.");
   });
 
+  it("rejects launch stop dry runs for missing managed processes", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "launch", "stop", "missing-process"])
+    ).rejects.toThrow("Managed process not found: missing-process");
+
+    expect(stopLaunchMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run");
+  });
+
   it("previews launch restart without restarting the managed process", async () => {
     const logs: string[] = [];
+    listLaunchesMock.mockResolvedValue([{ id: "api" }]);
     const program = createBaseProgram();
     registerLaunchCommand(program, createContainer((message) => logs.push(message)));
 
     await program.parseAsync(["node", "cli", "--dry-run", "launch", "restart", "api"]);
 
+    expect(listLaunchesMock).toHaveBeenCalledWith({ homeDir: "/home/test" });
     expect(restartLaunchMock).not.toHaveBeenCalled();
     expect(withSpinnerMock).not.toHaveBeenCalled();
     expect(logs).toContain("Dry run: would restart managed process api.");
+  });
+
+  it("rejects launch restart dry runs for missing managed processes", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "launch", "restart", "missing-process"])
+    ).rejects.toThrow("Managed process not found: missing-process");
+
+    expect(restartLaunchMock).not.toHaveBeenCalled();
+    expect(withSpinnerMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run");
   });
 
   it("wraps launch restart in a progress spinner", async () => {

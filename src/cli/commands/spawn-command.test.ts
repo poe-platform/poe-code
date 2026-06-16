@@ -666,6 +666,66 @@ describe("spawn command", () => {
     expect(dryRunLog).not.toContain("sk-dry-run-secret");
   });
 
+  it("validates active skill references before previewing dry run spawn", async () => {
+    const logs: string[] = [];
+    const { runner, calls } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "--yes",
+        "spawn",
+        "codex",
+        "hello",
+        "--skill",
+        "missing-skill"
+      ])
+    ).rejects.toThrow(/missing-skill/);
+
+    expect(calls).toHaveLength(0);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run: would spawn");
+  });
+
+  it("validates hook bridge sources before previewing dry run spawn", async () => {
+    const logs: string[] = [];
+    const { runner, calls } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "--yes",
+        "spawn",
+        "codex",
+        "hello",
+        "--hooks-from",
+        "missing-agent"
+      ])
+    ).rejects.toThrow(/Unsupported source hook agent "missing-agent"/);
+
+    expect(calls).toHaveLength(0);
+    expect(sdkSpawn).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run: would spawn");
+  });
+
   it("does not recover malformed config during dry run spawn", async () => {
     const malformedConfig = "{ invalid json\n";
     const configPath = resolveConfigPath(homeDir);

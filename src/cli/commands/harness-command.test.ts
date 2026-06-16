@@ -211,6 +211,31 @@ describe("harness command", () => {
     );
   });
 
+  it("validates missing harness files before previewing a dry run", async () => {
+    const logs: string[] = [];
+
+    await expect(runHarnessCommand(["--dry-run", "harness", "run", "missing.md"], logs)).rejects.toThrow(
+      "Missing harness md file: /repo/missing.md"
+    );
+
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run");
+  });
+
+  it("validates missing companion ajs files before previewing a dry run", async () => {
+    const logs: string[] = [];
+    vol.fromJSON({
+      "/repo/only-md.md": "---\nkind: test\nversion: 1\n---\n"
+    });
+
+    await expect(runHarnessCommand(["--dry-run", "harness", "run", "only-md.md"], logs)).rejects.toThrow(
+      "Missing harness ajs file: /repo/only-md.ajs"
+    );
+
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("Dry run");
+  });
+
   it("numbers sequential loop spawns so progress remains easy to follow", async () => {
     const logs: string[] = [];
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {

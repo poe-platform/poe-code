@@ -110,11 +110,11 @@ async function executeRuntimeBuild(
       resources.logger.info(`Docker runtime uses pinned image ${runtimeConfig.image}.`);
       return;
     }
+    await requireRuntimeBuildPaths(container, runtimeConfig, "Docker");
     if (flags.dryRun) {
       resources.logger.dryRun("Dry run: would build docker runtime template.");
       return;
     }
-    await requireRuntimeBuildPaths(container, runtimeConfig, "Docker");
     const result = await buildDockerRuntimeTemplate({
       cwd: container.env.cwd,
       runtime: runtimeConfig,

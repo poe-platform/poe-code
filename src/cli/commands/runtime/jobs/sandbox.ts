@@ -17,13 +17,13 @@ export function registerRuntimeJobsSandboxCommand(
     .action(async (envId: string, options: { runtime: string }) => {
       const flags = resolveCommandFlags(root);
       const resources = createExecutionResources(container, flags, "runtime:jobs:sandbox");
+      const factory = selectExecutionEnvFactory(options.runtime as ExecutionEnvType);
       if (flags.dryRun) {
         resources.logger.dryRun(
           `Dry run: would open a shell in ${options.runtime} runtime sandbox ${envId}.`
         );
         return;
       }
-      const factory = selectExecutionEnvFactory(options.runtime as ExecutionEnvType);
       const job = (await createRuntimeState(container).jobs.list())
         .filter((entry) => entry.env_id === envId && entry.env_kind === options.runtime)
         .sort((left, right) => Date.parse(right.started_at) - Date.parse(left.started_at))[0];

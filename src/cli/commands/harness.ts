@@ -4,6 +4,7 @@ import type { Command } from "commander";
 import {
   discoverHarnesses,
   listBuiltinTemplates,
+  resolvePair,
   runHarnessPair,
   type HarnessImportMeta,
   type HarnessPair
@@ -113,6 +114,7 @@ async function executeHarnessRun(
     ? path.resolve(container.env.cwd, mdPath)
     : (await resolveDiscoveredHarness(container, flags.assumeYes)).mdPath;
   if (flags.dryRun) {
+    await resolvePair(selectedPath, container.fs);
     resources.logger.dryRun(
       `Dry run: would run ${formatDisplayPath(container, selectedPath)} without executing its script or applying fixes.`
     );

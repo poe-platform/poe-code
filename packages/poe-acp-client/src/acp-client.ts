@@ -110,6 +110,12 @@ type AcpClientPermissionHandler = (args: {
   options: PermissionOption[];
 }) => RequestPermissionOutcome | Promise<RequestPermissionOutcome>;
 
+const validStopReasons = new Set<PromptResponse["stopReason"]>([
+  "completed",
+  "cancelled",
+  "max_tokens",
+]);
+
 export interface AcpClientHandlers {
   permission?: AcpClientPermissionHandler;
   fs?: AcpClientFsHandler;
@@ -198,8 +204,46 @@ function assertNonNegativeInteger(value: number | null | undefined, fieldName: s
   }
 }
 
+function assertNonNegativeIntegerValue(value: unknown, fieldName: string): asserts value is number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new Error(`${fieldName} must be a non-negative integer.`);
+  }
+}
+
 function invalidResponse(method: string, message: string): Error {
   return new Error(`Invalid response from "${method}": ${message}`);
+}
+
+function assertInitializeResponseAuthMethods(
+  value: unknown
+): asserts value is AuthMethod[] | undefined {
+  if (value === undefined) {
+    return;
+  }
+
+  if (!Array.isArray(value)) {
+    throw new Error("Agent returned invalid authMethods.");
+  }
+
+  for (const authMethod of value) {
+    if (
+      typeof authMethod !== "object" ||
+      authMethod === null ||
+      typeof (authMethod as Partial<AuthMethod>).id !== "string" ||
+      typeof (authMethod as Partial<AuthMethod>).name !== "string"
+    ) {
+      throw new Error("Agent returned invalid authMethods.");
+    }
+  }
+}
+
+function assertPromptResponse(value: PromptResponse): void {
+  if (!validStopReasons.has(value.stopReason)) {
+    throw invalidResponse(
+      "session/prompt",
+      '"stopReason" must be "completed", "cancelled", or "max_tokens".'
+    );
+  }
 }
 
 function assertExtensionMethod(method: string): asserts method is ExtensionMethod {
@@ -414,6 +458,8 @@ export class AcpClient {
       throw new Error("initialize() can only be called once.");
     }
 
+    assertNonNegativeIntegerValue(this.clientProtocolVersion, "Client protocol version");
+
     this.initializing = true;
 
     try {
@@ -435,6 +481,7 @@ export class AcpClient {
       ) {
         throw new Error("Agent returned an invalid protocol version.");
       }
+      assertInitializeResponseAuthMethods(response.authMethods);
 
       const negotiatedProtocolVersion = Math.min(
         this.clientProtocolVersion,
@@ -601,6 +648,7 @@ export class AcpClient {
 
     const response = requestPromise
       .then((promptResponse) => {
+        assertPromptResponse(promptResponse);
         this.activePromptUpdates.delete(sessionId);
         updates.complete();
         return promptResponse;
@@ -748,6 +796,9 @@ export class AcpClient {
         "fs/write_text_file",
         async (params: WriteTextFileRequest): Promise<WriteTextFileResponse> => {
           assertAbsolutePath(params.path);
+          if (typeof params.content !== "string") {
+            throw invalidParams('"content" must be a string');
+          }
 
           await writeTextFile({
             sessionId: params.sessionId,
@@ -779,6 +830,9 @@ export class AcpClient {
             env: params.env,
             outputByteLimit: params.outputByteLimit,
           });
+          if (typeof terminalId !== "string") {
+            throw invalidResponse("terminal/create", '"terminalId" must be a string.');
+          }
           this.trackTerminal(params.sessionId, terminalId);
 
           return { terminalId };

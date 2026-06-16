@@ -116,7 +116,7 @@ function isRequestId(value: unknown): value is RequestId {
   return (
     value === null ||
     typeof value === "string" ||
-    (typeof value === "number" && Number.isFinite(value))
+    (typeof value === "number" && Number.isSafeInteger(value))
   );
 }
 
@@ -388,8 +388,8 @@ export class JsonRpcMessageLayer {
     this.output = options.output;
     this.nextRequestId = options.firstRequestId ?? 1;
 
-    if (!Number.isFinite(this.nextRequestId)) {
-      throw new Error("firstRequestId must be a finite number");
+    if (!Number.isSafeInteger(this.nextRequestId)) {
+      throw new Error("firstRequestId must be a safe integer");
     }
 
     void this.consumeInput();
@@ -432,7 +432,7 @@ export class JsonRpcMessageLayer {
     const id = options.id === undefined ? this.nextRequestId++ : options.id;
 
     if (!isRequestId(id)) {
-      throw new Error("Request id must be null, a string, or a finite number");
+      throw new Error("Request id must be null, a string, or a safe integer");
     }
 
     if (this.pending.has(id)) {

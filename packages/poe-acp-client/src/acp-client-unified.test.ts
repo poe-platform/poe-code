@@ -3,7 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import type { AcpTransport } from "./acp-transport.js";
-import { AcpClient } from "./acp-client.js";
+import { AcpClient, type AcpClientTerminalHandler } from "./acp-client.js";
 import {
   extractMessagesFromSessionUpdateStream,
   extractToolCallSummariesFromSessionUpdateStream,
@@ -631,6 +631,21 @@ describe("AcpClient", () => {
     });
   });
 
+  it.each([-1, 1.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid client protocol version %s before sending initialize",
+    async (protocolVersion) => {
+      const { transport, sendRequestMock } = createTransportMock();
+      const client = new AcpClient({
+        transport,
+        protocolVersion,
+      } as ConstructorParameters<typeof AcpClient>[0]);
+
+      await expect(client.initialize()).rejects.toThrow("Client protocol version");
+      expect(sendRequestMock).not.toHaveBeenCalled();
+      expect(client.state).toBe("uninitialized");
+    }
+  );
+
   it("negotiates protocol version using the minimum of client and agent versions", async () => {
     const lower = createTransportMock();
     lower.sendRequestMock.mockResolvedValueOnce({ protocolVersion: 2 } satisfies InitializeResponse);
@@ -711,6 +726,25 @@ describe("AcpClient", () => {
     });
     expect(client.state).toBe("ready");
     expect(() => client.assertReady("session/new")).not.toThrow();
+  });
+
+  it.each([
+    ["string", "oauth"],
+    ["missing id", [{ name: "OAuth" }]],
+    ["non-string id", [{ id: 123, name: "OAuth" }]],
+    ["missing name", [{ id: "oauth" }]],
+    ["non-string name", [{ id: "oauth", name: 123 }]],
+  ])("rejects invalid authMethods from initialize response: %s", async (_label, authMethods) => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock.mockResolvedValueOnce({
+      protocolVersion: 1,
+      authMethods,
+    } as unknown as InitializeResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+
+    await expect(client.initialize()).rejects.toThrow(/authMethods/i);
+    expect(client.state).toBe("uninitialized");
+    expect(client.authMethods).toEqual([]);
   });
 
   it("rejects concurrent authentication before sending duplicate credentials", async () => {
@@ -1278,6 +1312,29 @@ describe("AcpClient", () => {
     expect(writeTextFile).not.toHaveBeenCalled();
   });
 
+  it("returns invalid_params when fs/write_text_file content is not a string", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    const writeTextFile = vi.fn(async () => {});
+    new AcpClient({
+      transport,
+      protocolVersion: 1,
+      clientCapabilities: { fs: { writeTextFile: true } },
+      fsHandler: { writeTextFile },
+    });
+
+    await expect(
+      emitRequest("fs/write_text_file", {
+        sessionId: "session-1",
+        path: "/workspace/output.txt",
+        content: 123,
+      } as unknown as WriteTextFileRequest)
+    ).rejects.toMatchObject({
+      code: -32602,
+      message: 'Invalid params: "content" must be a string',
+    });
+    expect(writeTextFile).not.toHaveBeenCalled();
+  });
+
   it.each([0, -1])("returns invalid_params when fs/read_text_file line is %d", async (line) => {
     const { transport, emitRequest } = createTransportMock();
     const readTextFile = vi.fn(async () => "unused");
@@ -1419,6 +1476,27 @@ describe("AcpClient", () => {
       outputByteLimit: 1024,
     });
     expect(response).toEqual({ terminalId: "term-1" });
+  });
+
+  it("rejects non-string terminal identifiers returned by terminal/create handlers", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    const create = vi.fn(async () => 42);
+    new AcpClient({
+      transport,
+      protocolVersion: 1,
+      clientCapabilities: { terminal: true },
+      terminalHandler: {
+        create: create as unknown as AcpClientTerminalHandler["create"],
+        output: async () => ({ output: "", truncated: false }),
+        waitForExit: async () => ({ exitCode: 0 }),
+        kill: async () => {},
+        release: async () => {},
+      },
+    });
+
+    await expect(
+      emitRequest("terminal/create", { sessionId: "session-1", command: "npm" })
+    ).rejects.toThrow(/terminalId/i);
   });
 
   it("rejects duplicate terminal identifiers without losing the tracked terminal", async () => {
@@ -1888,6 +1966,19 @@ describe("AcpClient", () => {
       sessionId: "session-1",
       prompt: [...prompt],
     });
+  });
+
+  it("rejects prompt responses with invalid stopReason values", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ stopReason: "totally-not-valid" } as unknown as PromptResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    const turn = client.prompt("session-1", [{ type: "text", text: "Hello agent" }]);
+
+    await expect(turn.response).rejects.toThrow(/stopReason/i);
   });
 
   it("validates prompt content using promptCapabilities", async () => {
@@ -2574,7 +2665,7 @@ describe("parseJsonRpcMessage", () => {
     const { written, layer } = createHarness();
 
     expect(() => layer.sendRequest("ping", undefined, { id: Number.NaN })).toThrow(
-      "Request id must be null, a string, or a finite number"
+      "Request id must be null, a string, or a safe integer"
     );
     expect(layer.pendingRequestCount()).toBe(0);
     expect(written).toEqual([]);
@@ -2612,6 +2703,18 @@ describe("serializeJsonRpcMessage", () => {
 });
 
 describe("JsonRpcMessageLayer", () => {
+  it("rejects fractional generated request ids", () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+
+    expect(() => new JsonRpcMessageLayer({ input, output, firstRequestId: 1.5 })).toThrow(
+      /firstRequestId/i
+    );
+
+    input.destroy();
+    output.destroy();
+  });
+
   it("parses newline-delimited input and dispatches request and notification handlers", async () => {
     const { input, written, layer } = createHarness();
 
@@ -3163,6 +3266,82 @@ describe("generateRunReportFromSessionUpdateStream", () => {
         ]),
       ),
     ).rejects.toThrow("Run id is required");
+  });
+
+  it.each(["", "   ", "\n"])("rejects blank run ids from options: %j", async (runId) => {
+    await expect(
+      generateRunReportFromSessionUpdateStream([], {
+        runId,
+      })
+    ).rejects.toThrow(/Run id/i);
+  });
+
+  it("rejects blank run ids inferred from session update streams", async () => {
+    await expect(
+      generateRunReportFromSessionUpdateStream([
+        {
+          jsonrpc: "2.0",
+          method: "session/update",
+          params: {
+            sessionId: "   ",
+            update: { sessionUpdate: "agent_message_chunk", content: "x" },
+          },
+        } as unknown as SessionUpdateNotification,
+      ])
+    ).rejects.toThrow(/Run id/i);
+  });
+
+  it("rejects malformed explicit report timestamps instead of replacing them with now", async () => {
+    await expect(
+      generateRunReportFromSessionUpdateStream([], {
+        runId: "run-time",
+        startTime: "not-a-date",
+      })
+    ).rejects.toThrow(/startTime/i);
+    await expect(
+      generateRunReportFromSessionUpdateStream([], {
+        runId: "run-time",
+        endTime: "",
+      })
+    ).rejects.toThrow(/endTime/i);
+  });
+
+  it.each(["cancelled", "", 123])("rejects invalid explicit exitStatus %j", async (exitStatus) => {
+    await expect(
+      generateRunReportFromSessionUpdateStream([], {
+        runId: "run-1",
+        exitStatus,
+      } as unknown as Parameters<typeof generateRunReportFromSessionUpdateStream>[1])
+    ).rejects.toThrow(/exitStatus/i);
+  });
+
+  it("rejects usage updates with impossible numeric values", async () => {
+    const invalidUpdates = [
+      { sessionUpdate: "usage_update", used: -1, size: 1 },
+      { sessionUpdate: "usage_update", used: 1.5, size: 2 },
+      { sessionUpdate: "usage_update", used: 1, size: -2 },
+      { sessionUpdate: "usage_update", used: 1, size: 2.5 },
+      {
+        sessionUpdate: "usage_update",
+        used: 1,
+        size: 2,
+        cost: { amount: -0.01, currency: "USD" },
+      },
+      {
+        sessionUpdate: "usage_update",
+        used: 1,
+        size: 2,
+        cost: { amount: Number.POSITIVE_INFINITY, currency: "USD" },
+      },
+    ];
+
+    for (const update of invalidUpdates) {
+      await expect(
+        generateRunReportFromSessionUpdateStream([update as unknown as SessionUpdate], {
+          runId: "run-usage",
+        })
+      ).rejects.toThrow(/usage/i);
+    }
   });
 });
 

@@ -86,27 +86,27 @@ export async function generateRunReportFromSessionUpdateStream(
     }
 
     if (isSessionUpdateNotification(entry)) {
-      const sessionId = toNonEmptyString(entry.params.sessionId);
+      const sessionId = toNonBlankString(entry.params.sessionId);
       if (sessionId) {
         runIdFromStream = sessionId;
       }
     }
   }
 
-  const runId = toNonEmptyString(options.runId) ?? runIdFromStream;
+  const runId = toNonBlankString(options.runId) ?? runIdFromStream;
   if (!runId) {
     throw new Error("Run id is required via options.runId or session/update stream items");
   }
 
-  const startTime = normalizeTime(options.startTime, now);
-  const endTime = normalizeTime(options.endTime, now);
+  const startTime = normalizeTime(options.startTime, now, "startTime");
+  const endTime = normalizeTime(options.endTime, now, "endTime");
 
   const toolCalls = await extractToolCallSummariesFromSessionUpdateStream(bufferedEntries);
   const usageUpdates = await extractUsageFromSessionUpdateStream(bufferedEntries);
 
   const usage = summarizeUsage(usageUpdates);
   const errors = collectErrors(toolCalls, options.errors);
-  const exitStatus = options.exitStatus ?? (errors.length > 0 ? "failed" : "success");
+  const exitStatus = normalizeExitStatus(options.exitStatus, errors.length > 0);
 
   return {
     runId,
@@ -249,19 +249,42 @@ function isSessionUpdateNotification(entry: SessionUpdateStreamItem): entry is S
   );
 }
 
-function normalizeTime(value: string | Date | undefined, now: () => Date): string {
+function normalizeTime(
+  value: string | Date | undefined,
+  now: () => Date,
+  fieldName: string
+): string {
+  if (value === undefined) {
+    return now().toISOString();
+  }
+
   if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) {
+      throw new Error(`${fieldName} must be a valid date.`);
+    }
     return value.toISOString();
   }
 
-  if (typeof value === "string" && value.length > 0) {
+  if (typeof value === "string") {
     const parsed = new Date(value);
     if (!Number.isNaN(parsed.getTime())) {
       return parsed.toISOString();
     }
   }
 
-  return now().toISOString();
+  throw new Error(`${fieldName} must be a valid date.`);
+}
+
+function normalizeExitStatus(value: RunExitStatus | undefined, failed: boolean): RunExitStatus {
+  if (value === undefined) {
+    return failed ? "failed" : "success";
+  }
+
+  if (value !== "success" && value !== "failed") {
+    throw new Error('exitStatus must be "success" or "failed".');
+  }
+
+  return value;
 }
 
 function summarizeUsage(updates: readonly UsageUpdate[]): RunReportUsage {
@@ -270,6 +293,12 @@ function summarizeUsage(updates: readonly UsageUpdate[]): RunReportUsage {
   let cost: Cost | null | undefined;
 
   for (const update of updates) {
+    assertNonNegativeInteger(update.used, "usage.used");
+    assertNonNegativeInteger(update.size, "usage.size");
+    if (update.cost !== undefined && update.cost !== null) {
+      assertNonNegativeFiniteNumber(update.cost.amount, "usage.cost.amount");
+    }
+
     used += update.used;
     size += update.size;
 
@@ -289,6 +318,18 @@ function summarizeUsage(updates: readonly UsageUpdate[]): RunReportUsage {
   }
 
   return usage;
+}
+
+function assertNonNegativeInteger(value: unknown, fieldName: string): asserts value is number {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
+    throw new Error(`${fieldName} must be a non-negative integer.`);
+  }
+}
+
+function assertNonNegativeFiniteNumber(value: unknown, fieldName: string): asserts value is number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new Error(`${fieldName} must be a finite non-negative number.`);
+  }
 }
 
 function collectErrors(
@@ -448,6 +489,14 @@ function pad(value: number, size: number): string {
 
 function toNonEmptyString(value: unknown): string | undefined {
   if (typeof value !== "string" || value.length === 0) {
+    return undefined;
+  }
+
+  return value;
+}
+
+function toNonBlankString(value: unknown): string | undefined {
+  if (typeof value !== "string" || value.trim().length === 0) {
     return undefined;
   }
 

@@ -92,6 +92,26 @@ export async function planAgentsSymlink(
     ];
   }
 
+  if (claudeStats && !claudeStats.isFile()) {
+    return [
+      {
+        kind: "conflict",
+        message:
+          "CLAUDE.md exists but is not a regular file. Resolve manually: move or remove it, then re-run this command."
+      }
+    ];
+  }
+
+  if (agentsStats && !agentsStats.isFile() && !agentsStats.isSymbolicLink()) {
+    return [
+      {
+        kind: "conflict",
+        message:
+          "AGENTS.md exists but is not a regular file or symlink. Resolve manually: move or remove it, then re-run this command."
+      }
+    ];
+  }
+
   if (claudeStats && agentsStats) {
     return [{ kind: "conflict", message: BOTH_FILES_CONFLICT }];
   }
@@ -109,4 +129,3 @@ export async function planAgentsSymlink(
     { kind: "symlink", target: CANONICAL_FILE, path: claudePath }
   ];
 }
-

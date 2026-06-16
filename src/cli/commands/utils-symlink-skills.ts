@@ -161,6 +161,26 @@ export async function planSkillsSymlink(
     ];
   }
 
+  if (claudeStats && !claudeStats.isDirectory()) {
+    return [
+      {
+        kind: "conflict",
+        message:
+          ".claude/skills exists but is not a directory. Resolve manually: move or remove it, then re-run this command."
+      }
+    ];
+  }
+
+  if (agentsStats && !agentsStats.isDirectory() && !agentsStats.isSymbolicLink()) {
+    return [
+      {
+        kind: "conflict",
+        message:
+          ".agents/skills exists but is not a directory or symlink. Resolve manually: move or remove it, then re-run this command."
+      }
+    ];
+  }
+
   if (claudeStats && agentsStats) {
     return [
       {

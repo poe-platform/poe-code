@@ -147,6 +147,19 @@ describe("planAgentsSymlink", () => {
         await fs.symlink("../shared/AGENTS.md", `${cwd}/AGENTS.md`);
       },
       expected: [{ kind: "symlink", target: "AGENTS.md", path: `${cwd}/CLAUDE.md` }]
+    },
+    {
+      name: "returns conflict when CLAUDE.md is a directory",
+      setup: async (fs) => {
+        await fs.mkdir(`${cwd}/CLAUDE.md`, { recursive: true });
+      },
+      expected: [
+        {
+          kind: "conflict",
+          message:
+            "CLAUDE.md exists but is not a regular file. Resolve manually: move or remove it, then re-run this command."
+        }
+      ]
     }
   ];
 
@@ -254,6 +267,22 @@ describe.each([
           kind: "conflict",
           message:
             ".claude/skills is already a symlink to ../shared/skills. Remove it or repoint it manually."
+        }
+      ]
+    },
+    {
+      name: "returns conflict when claude skills path is a regular file",
+      setup: async (fs) => {
+        await fs.mkdir(targets.claudeDir.split("/").slice(0, -1).join("/"), {
+          recursive: true
+        });
+        await fs.writeFile(targets.claudeDir, "not a directory", { encoding: "utf8" });
+      },
+      expected: [
+        {
+          kind: "conflict",
+          message:
+            ".claude/skills exists but is not a directory. Resolve manually: move or remove it, then re-run this command."
         }
       ]
     }

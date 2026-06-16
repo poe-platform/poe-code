@@ -1,6 +1,7 @@
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
 import { resolvePlanDirectory, resolvePlanPath, resolvePlanPaths } from "./plan/discovery.js";
 import { parsePlan, pipelineDocumentSchema, pipelineDocumentSchemaId } from "./plan/parser.js";
@@ -3076,7 +3077,13 @@ describe("createPipelineSimulation", () => {
     });
 
     expect(runs).toHaveLength(1);
-    expect(runs[0]?.logDir).toBe("/home/test/.poe-code/logs/pipeline/plan");
+    expect(runs[0]?.logDir).toBe(
+      resolveRunLogDir({
+        planPath: "/repo/docs/plans/plan.md",
+        runner: "pipeline",
+        homeDir: "/home/test"
+      })
+    );
     expect(runs[0]?.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-quick-fix\.jsonl$/);
   });
 

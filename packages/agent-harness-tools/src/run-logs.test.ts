@@ -37,25 +37,31 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
+function expectPlanSlug(planPath: string, prefix: string): void {
+  const slug = slugifyPlanPath(planPath);
+  expect(slug.startsWith(`${prefix}-`)).toBe(true);
+  expect(slug.length).toBeGreaterThan(prefix.length + 1);
+}
+
 describe("slugifyPlanPath", () => {
   it("lowercases, strips the extension, and dasherizes the basename", () => {
-    expect(slugifyPlanPath("/repo/docs/plans/My Feature.md")).toBe("my-feature");
+    expectPlanSlug("/repo/docs/plans/My Feature.md", "my-feature");
   });
 
   it("preserves dashes and underscores", () => {
-    expect(slugifyPlanPath("docs/plans/fix_auth-bug.md")).toBe("fix_auth-bug");
+    expectPlanSlug("docs/plans/fix_auth-bug.md", "fix_auth-bug");
   });
 
   it("collapses runs of non-alphanumeric characters", () => {
-    expect(slugifyPlanPath("docs/plans/weird  ??  name.md")).toBe("weird-name");
+    expectPlanSlug("docs/plans/weird  ??  name.md", "weird-name");
   });
 
   it("keeps digits", () => {
-    expect(slugifyPlanPath("docs/plans/issue-1234.md")).toBe("issue-1234");
+    expectPlanSlug("docs/plans/issue-1234.md", "issue-1234");
   });
 
   it("handles files without an extension", () => {
-    expect(slugifyPlanPath("docs/plans/Plan")).toBe("plan");
+    expectPlanSlug("docs/plans/Plan", "plan");
   });
 });
 
@@ -67,7 +73,22 @@ describe("resolveRunLogDir", () => {
         runner: "superintendent",
         homeDir: "/home/test"
       })
-    ).toBe("/home/test/.poe-code/logs/superintendent/my-feature");
+    ).toBe("/home/test/.poe-code/logs/superintendent/my-feature-e7bbf2588fe1");
+  });
+
+  it("keeps plans with the same basename in distinct log directories", () => {
+    const apiLogDir = resolveRunLogDir({
+      planPath: "/repo/docs/plans/api/plan.md",
+      runner: "pipeline",
+      homeDir: "/home/test"
+    });
+    const authLogDir = resolveRunLogDir({
+      planPath: "/repo/docs/plans/auth/plan.md",
+      runner: "pipeline",
+      homeDir: "/home/test"
+    });
+
+    expect(apiLogDir).not.toBe(authLogDir);
   });
 
   it("rejects runner names that escape the log root", () => {
@@ -91,7 +112,9 @@ describe("ensureSafeRunLogDir", () => {
         homeDir
       });
 
-      expect(logDir).toBe(path.join(homeDir, ".poe-code/logs/pipeline/my-feature"));
+      expect(logDir).toBe(
+        path.join(homeDir, ".poe-code/logs/pipeline/my-feature-e7bbf2588fe1")
+      );
       await expect(readdir(logDir)).resolves.toEqual([]);
     } finally {
       await rm(homeDir, { recursive: true, force: true });

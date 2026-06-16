@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
+import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { lint, makeAgentModule } from "@poe-code/safejs";
 import type { Snapshot, SnapshotBackend } from "@poe-code/safejs";
 
@@ -1491,8 +1492,13 @@ describe("runHarnessPair", () => {
       "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
       "/outside/sentinel.txt": "untouched"
     });
-    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
-    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+    const runLogDir = resolveRunLogDir({
+      planPath: mdPath,
+      runner: "harness",
+      homeDir: "/home/test"
+    });
+    vol.mkdirSync(dirname(runLogDir), { recursive: true });
+    vol.symlinkSync("/outside", runLogDir);
 
     await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
       "Default harness snapshot path must not contain symbolic links."
@@ -1508,8 +1514,13 @@ describe("runHarnessPair", () => {
       "/repo/harness/probe.ajs": "export default (frontmatter) => 'done';",
       "/outside/snapshot.json": JSON.stringify({ version: 1, sourceHash: "external" })
     });
-    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
-    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+    const runLogDir = resolveRunLogDir({
+      planPath: mdPath,
+      runner: "harness",
+      homeDir: "/home/test"
+    });
+    vol.mkdirSync(dirname(runLogDir), { recursive: true });
+    vol.symlinkSync("/outside", runLogDir);
 
     await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
       "Default harness snapshot path must not contain symbolic links."

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { mkdir, realpath } from "node:fs/promises";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { assertContainedPath } from "./path-boundary.js";
@@ -44,7 +45,12 @@ export function slugifyPlanPath(planPath: string): string {
   const base = path.basename(planPath);
   const dot = base.lastIndexOf(".");
   const stem = dot > 0 ? base.slice(0, dot) : base;
-  return slugifyLabel(stem);
+  const label = slugifyLabel(stem) || "plan";
+  const pathDigest = createHash("sha256")
+    .update(normalizePlanPathForSlug(planPath))
+    .digest("hex")
+    .slice(0, 12);
+  return `${label}-${pathDigest}`;
 }
 
 export function makeRunLogFileName(role: string, date: Date = new Date()): string {
@@ -137,6 +143,11 @@ const defaultRunLogFs: RunLogFileSystem = {
 
 async function resolveLexicalRealpath(target: string): Promise<string> {
   return path.resolve(target);
+}
+
+function normalizePlanPathForSlug(planPath: string): string {
+  const resolvedPath = path.isAbsolute(planPath) ? planPath : path.resolve(planPath);
+  return path.normalize(resolvedPath);
 }
 
 function collapseDashes(value: string): string {

@@ -1,6 +1,7 @@
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { discoverDocs } from "./discovery/discovery.js";
 import {
   parseFrontmatter,
@@ -750,7 +751,11 @@ describe("createRalphSimulation", () => {
         agent: "codex",
         prompt: "Ship the change",
         cwd: "/repo",
-        logDir: "/home/test/.poe-code/logs/ralph/plan"
+        logDir: resolveRunLogDir({
+          planPath: "/repo/.poe-code/ralph/plans/plan.md",
+          runner: "ralph",
+          homeDir: "/home/test"
+        })
       });
       expect(run.logFileName).toMatch(/^\d{8}-\d{6}-\d{3}-codex\.jsonl$/);
     }

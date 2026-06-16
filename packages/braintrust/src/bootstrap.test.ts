@@ -130,6 +130,29 @@ describe("bootstrap", () => {
     });
     expect(mockBraintrust.flush).toHaveBeenCalledWith(logger);
   });
+
+  it("uses trimmed required config strings", async () => {
+    mockBraintrust.initLogger.mockReturnValue({});
+    mockBraintrust.traced.mockImplementation(async (fn: () => Promise<unknown>) => fn());
+    const { bootstrap } = await import("./index.js");
+
+    const integrations = bootstrap(
+      config({
+        enabled: true,
+        apiKey: "  key  ",
+        project: "  project  "
+      })
+    );
+
+    expect(integrations?.status()).toMatchObject({ project: "project" });
+    await integrations?.traceRun("pipeline", "smoke", async () => "ok");
+
+    expect(mockBraintrust.initLogger).toHaveBeenCalledWith({
+      apiKey: "key",
+      apiUrl: undefined,
+      projectName: "project"
+    });
+  });
 });
 
 function config(braintrust?: Partial<BraintrustOptions>): BraintrustOptions | undefined {

@@ -68,6 +68,8 @@ export interface AgentRunResult {
   exitCode: number;
 }
 
+export type ExperimentCallbackResult = void | Promise<void>;
+
 export interface ExperimentRunOptions {
   cwd: string;
   homeDir: string;
@@ -84,12 +86,12 @@ export interface ExperimentRunOptions {
   git?: ExperimentGit;
   exec?: ExecFn;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
-  onExperimentStart?: (index: number, agent: string) => void;
-  onBaselineCollected?: (baseline: Record<string, number>) => void;
-  onCommit?: (commitHash: string) => void;
-  onMetricResult?: (metric: MetricDef, result: EvalResult) => void;
-  onReset?: (targetHash: string) => void;
-  onExperimentComplete?: (index: number, entry: JournalEntry) => void;
+  onExperimentStart?: (index: number, agent: string) => ExperimentCallbackResult;
+  onBaselineCollected?: (baseline: Record<string, number>) => ExperimentCallbackResult;
+  onCommit?: (commitHash: string) => ExperimentCallbackResult;
+  onMetricResult?: (metric: MetricDef, result: EvalResult) => ExperimentCallbackResult;
+  onReset?: (targetHash: string) => ExperimentCallbackResult;
+  onExperimentComplete?: (index: number, entry: JournalEntry) => ExperimentCallbackResult;
   signal?: AbortSignal;
 }
 

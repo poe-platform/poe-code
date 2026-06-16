@@ -1,4 +1,4 @@
-import type { EvalResult, ExecFn, MetricDef } from "../types.js";
+import type { EvalResult, ExecFn, ExperimentCallbackResult, MetricDef } from "../types.js";
 
 interface MetricExecutionResult {
   exitCode: number;
@@ -65,7 +65,7 @@ export async function evaluateChain(
   metrics: MetricDef[],
   cwd: string,
   exec: ExecFn,
-  onMetricResult?: (metric: MetricDef, result: EvalResult) => void,
+  onMetricResult?: (metric: MetricDef, result: EvalResult) => ExperimentCallbackResult,
   timeoutMs?: number
 ): Promise<EvalResult[]> {
   const results: EvalResult[] = [];
@@ -73,7 +73,7 @@ export async function evaluateChain(
   for (const metric of metrics) {
     const { exitCode, result } = await runMetric(metric.script, cwd, exec, timeoutMs);
     results.push(result);
-    onMetricResult?.(metric, result);
+    await onMetricResult?.(metric, result);
 
     if (exitCode !== 0) {
       break;

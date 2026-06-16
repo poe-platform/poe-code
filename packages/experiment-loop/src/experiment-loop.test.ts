@@ -2162,6 +2162,59 @@ describe("runExperimentLoop", () => {
     expect(entry?.agentOutput).toBe("done");
   });
 
+  it("waits for async experiment completion callbacks before returning", async () => {
+    const docPath = "/repo/.poe-code/experiments/async-complete.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 })
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests: score=2, passed=true",
+        agentOutput: "done",
+        durationMs: 100
+      });
+      return { stdout: "done", stderr: "", exitCode: 0 };
+    });
+    const events: string[] = [];
+    let resolveComplete!: () => void;
+    const completeReady = new Promise<void>((resolve) => {
+      resolveComplete = resolve;
+    });
+    let settled = false;
+
+    const runPromise = runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: createLoopGit(),
+      exec: createLoopExec([]),
+      runAgent,
+      async onExperimentComplete() {
+        events.push("complete-start");
+        await completeReady;
+        events.push("complete-end");
+      }
+    }).then((result) => {
+      settled = true;
+      return result;
+    });
+
+    await vi.waitFor(() => expect(events).toEqual(["complete-start"]));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    resolveComplete();
+    const result = await runPromise;
+
+    expect(result.stopReason).toBe("max_experiments");
+    expect(events).toEqual(["complete-start", "complete-end"]);
+  });
+
   it("does not reject an accepted keep when the commit observer fails", async () => {
     const docPath = "/repo/.poe-code/experiments/commit-observer.md";
     const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });

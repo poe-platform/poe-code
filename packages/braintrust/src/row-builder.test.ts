@@ -89,6 +89,67 @@ describe("makePipelineRowState", () => {
     expect(client.recordError).not.toHaveBeenCalled();
   });
 
+  it("omits negative and non-finite pipeline metrics", async () => {
+    const stepSpan = createMockSpan();
+    mockBraintrust.currentSpan.mockReturnValue({
+      startSpan: vi.fn(() => stepSpan),
+    });
+    const state = makePipelineRowState(createMockClient());
+    const started = createPipelineProgress();
+
+    state.start(started);
+    state.complete({
+      ...started,
+      success: true,
+      durationMs: -25,
+      usage: {
+        inputTokens: -10,
+        outputTokens: Number.NaN,
+        cachedTokens: -3,
+      },
+    } satisfies TaskCompletion);
+
+    await vi.waitFor(() => expect(stepSpan.log).toHaveBeenCalledTimes(1));
+    expect(stepSpan.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metrics: {},
+      })
+    );
+  });
+
+  it("omits pipeline token totals when either component is invalid", async () => {
+    const stepSpan = createMockSpan();
+    mockBraintrust.currentSpan.mockReturnValue({
+      startSpan: vi.fn(() => stepSpan),
+    });
+    const state = makePipelineRowState(createMockClient());
+    const started = createPipelineProgress();
+
+    state.start(started);
+    state.complete({
+      ...started,
+      success: true,
+      durationMs: 25,
+      usage: {
+        inputTokens: 10,
+        outputTokens: -5,
+        cachedTokens: 3,
+      },
+    } satisfies TaskCompletion);
+
+    await vi.waitFor(() => expect(stepSpan.log).toHaveBeenCalledTimes(1));
+    expect(stepSpan.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metrics: {
+          prompt_tokens: 10,
+          prompt_cached_tokens: 3,
+          durationMs: 25,
+        },
+      })
+    );
+  });
+
+
   it("does not reopen a span for duplicate pipeline completion", async () => {
     const firstSpan = createMockSpan();
     const parentSpan = { startSpan: vi.fn(() => firstSpan) };
@@ -345,6 +406,37 @@ describe("makeExperimentIterationState", () => {
 
     expect(iterationSpan.log).toHaveBeenCalledWith(
       expect.objectContaining({ scores: { tests: 15, delta: 42, aggregate_delta: 7 } })
+    );
+  });
+
+  it("omits non-finite experiment baseline and score values", async () => {
+    const iterationSpan = createMockSpan();
+    const state = makeExperimentIterationState(
+      createMockClient({ experiment: { startSpan: vi.fn(() => iterationSpan) } }),
+      "benchmarks"
+    );
+
+    state.baseline({ tests: Number.NaN, quality: Infinity, speed: 1 });
+    await state.start(1, "codex");
+    await state.complete(1, {
+      status: "keep",
+      scores: { tests: 0.5, quality: 0.7, speed: 2, bad: Number.NaN, infinite: Infinity },
+      agentOutput: "done",
+      durationMs: 12
+    } as JournalEntry);
+
+    expect(iterationSpan.log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: expect.objectContaining({
+          baseline: { speed: 1 },
+        }),
+        scores: {
+          tests: 0.5,
+          quality: 0.7,
+          speed: 2,
+          aggregate_delta: 1,
+        },
+      })
     );
   });
 

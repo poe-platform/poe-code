@@ -21,7 +21,7 @@ export function createExperimentCallbacks(
 
   return {
     onExperimentStart(index, agent) {
-      void state.start(index, agent);
+      return state.start(index, agent);
     },
     onBaselineCollected(baseline) {
       state.baseline(baseline);
@@ -38,7 +38,7 @@ export function createExperimentCallbacks(
       state.reset(targetHash);
     },
     onExperimentComplete(index, entry) {
-      void state.complete(index, entry);
+      return state.complete(index, entry);
     },
   };
 }

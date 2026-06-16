@@ -48,14 +48,14 @@ export function bootstrap(
     return null;
   }
 
-  validateBraintrustConfig(options);
+  const normalizedOptions = normalizeBraintrustConfig(options);
 
-  const client = createClient(options);
+  const client = createClient(normalizedOptions);
 
   return {
     spawnMiddleware: createSpawnMiddleware(client),
     pipelineCallbacks: createPipelineCallbacks(client),
-    experimentCallbacks: createExperimentCallbacks(client, options.project),
+    experimentCallbacks: createExperimentCallbacks(client, normalizedOptions.project),
     superintendentCallbacks: createSuperintendentCallbacks(client),
     status: () => client.status(),
     traceRun: makeTraceRun(client),
@@ -65,19 +65,25 @@ export function bootstrap(
   };
 }
 
-function validateBraintrustConfig(
+function normalizeBraintrustConfig(
   options: BraintrustOptions,
-): asserts options is BraintrustOptions & {
+): BraintrustOptions & {
   apiKey: string;
   project: string;
 } {
-  requiredString(options.apiKey, "apiKey");
-  requiredString(options.project, "project");
+  return {
+    ...options,
+    apiKey: requiredString(options.apiKey, "apiKey"),
+    project: requiredString(options.project, "project"),
+  };
 }
 
-function requiredString(value: unknown, field: "apiKey" | "project"): void {
-  if (typeof value === "string" && value.trim() !== "") {
-    return;
+function requiredString(value: unknown, field: "apiKey" | "project"): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed !== "") {
+      return trimmed;
+    }
   }
 
   throw new Error(`Braintrust integration is enabled but ${field} is missing`);

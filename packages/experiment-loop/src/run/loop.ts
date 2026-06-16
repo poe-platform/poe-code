@@ -24,6 +24,7 @@ import type {
   ExecFn,
   ExperimentFileSystem,
   ExperimentRunOptions,
+  ExperimentCallbackResult,
   ExperimentRunResult,
   JournalEntry,
   MetricDef,
@@ -342,9 +343,12 @@ function readNonEmptyString(value: unknown): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
 
-function notifyCompletedState(callback: ((value: string) => void) | undefined, value: string): void {
+async function notifyCompletedState(
+  callback: ((value: string) => ExperimentCallbackResult) | undefined,
+  value: string
+): Promise<void> {
   try {
-    callback?.(value);
+    await callback?.(value);
   } catch {
     return;
   }
@@ -450,7 +454,7 @@ export async function runExperimentLoop(
       );
       if (allMetricsPassed(initialMetrics, baselineResults)) {
         baseline = baselineFromResults(initialMetrics, baselineResults);
-        options.onBaselineCollected?.(baseline);
+        await options.onBaselineCollected?.(baseline);
       } else {
         throw new Error("Unable to collect a passing experiment baseline.");
       }
@@ -491,7 +495,7 @@ export async function runExperimentLoop(
             throw new Error("Unable to collect a passing experiment baseline.");
           }
           baseline = baselineFromResults(metrics, baselineResults);
-          options.onBaselineCollected?.(baseline);
+          await options.onBaselineCollected?.(baseline);
         } else {
           baseline = frontmatter.baseline;
         }
@@ -519,7 +523,7 @@ export async function runExperimentLoop(
 
       const currentSpecifier = agents[(experimentIndex - 1) % agents.length]!;
       const model = currentSpecifier.model;
-      options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
+      await options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
       let newEntry: JournalEntry | null;
       let agentResult: AgentRunResult;
@@ -546,7 +550,7 @@ export async function runExperimentLoop(
         newEntry = await journal.retainLatestNewEntry(journalLengthBefore);
       } catch (error) {
         await git.reset(preExperimentHash, options.cwd);
-        notifyCompletedState(options.onReset, preExperimentHash);
+        await notifyCompletedState(options.onReset, preExperimentHash);
 
         if (isAbortError(error)) {
           return finalize("cancelled");
@@ -559,7 +563,7 @@ export async function runExperimentLoop(
 
       if (newEntry === null) {
         await git.reset(preExperimentHash, options.cwd);
-        notifyCompletedState(options.onReset, preExperimentHash);
+        await notifyCompletedState(options.onReset, preExperimentHash);
         continue;
       }
 
@@ -570,14 +574,14 @@ export async function runExperimentLoop(
           await journal.removeNewEntries(journalLengthBefore);
           throw error;
         }
-        notifyCompletedState(options.onReset, preExperimentHash);
+        await notifyCompletedState(options.onReset, preExperimentHash);
         if (newEntry.status === "keep") {
           newEntry = (await journal.updateLast({ status: "discard" })) ?? {
             ...newEntry,
             status: "discard"
           };
         }
-        options.onExperimentComplete?.(experimentIndex, newEntry);
+        await options.onExperimentComplete?.(experimentIndex, newEntry);
         continue;
       }
 
@@ -595,12 +599,12 @@ export async function runExperimentLoop(
           );
           if (!allMetricsPassed(metrics, results)) {
             await git.reset(preExperimentHash, options.cwd);
-            notifyCompletedState(options.onReset, preExperimentHash);
+            await notifyCompletedState(options.onReset, preExperimentHash);
             newEntry = (await journal.updateLast({ status: "discard" })) ?? {
               ...newEntry,
               status: "discard"
             };
-            options.onExperimentComplete?.(experimentIndex, newEntry);
+            await options.onExperimentComplete?.(experimentIndex, newEntry);
             continue;
           }
 
@@ -608,7 +612,7 @@ export async function runExperimentLoop(
           newEntry = (await journal.updateLast({ scores })) ?? newEntry;
         } catch (error) {
           await git.reset(preExperimentHash, options.cwd);
-          notifyCompletedState(options.onReset, preExperimentHash);
+          await notifyCompletedState(options.onReset, preExperimentHash);
           throw error;
         }
       }
@@ -617,8 +621,8 @@ export async function runExperimentLoop(
       baselineHash = newEntry.commit;
       baseline = baselineFromEntry(newEntry) ?? baseline;
       baselineMetrics = metrics;
-      notifyCompletedState(options.onCommit, newEntry.commit);
-      options.onExperimentComplete?.(experimentIndex, newEntry);
+      await notifyCompletedState(options.onCommit, newEntry.commit);
+      await options.onExperimentComplete?.(experimentIndex, newEntry);
     }
   } catch (error) {
     if (isAbortError(error)) {

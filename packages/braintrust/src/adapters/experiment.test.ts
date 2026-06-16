@@ -69,6 +69,37 @@ describe("createExperimentCallbacks", () => {
     expect(state.commit).toHaveBeenCalledWith("abc123");
     expect(state.reset).toHaveBeenCalledWith("base123");
   });
+
+  it("returns pending start and complete promises", async () => {
+    let resolveStart!: () => void;
+    let resolveComplete!: () => void;
+    const startPromise = new Promise<void>((resolve) => {
+      resolveStart = resolve;
+    });
+    const completePromise = new Promise<void>((resolve) => {
+      resolveComplete = resolve;
+    });
+    const state = createIterationState();
+    vi.mocked(state.start).mockReturnValue(startPromise);
+    vi.mocked(state.complete).mockReturnValue(completePromise);
+    mockMakeExperimentIterationState.mockReturnValue(state);
+
+    const callbacks = createExperimentCallbacks(createMockClient(), "adapter-benchmark");
+    const startResult = callbacks.onExperimentStart(1, "codex");
+    const completeResult = callbacks.onExperimentComplete(1, {
+      status: "keep",
+      scores: { tests: 1 },
+      agentOutput: "done",
+      durationMs: 1
+    } as JournalEntry);
+
+    expect(startResult).toBe(startPromise);
+    expect(completeResult).toBe(completePromise);
+
+    resolveStart();
+    resolveComplete();
+    await Promise.all([startResult, completeResult]);
+  });
 });
 
 function createIterationState(): ReturnType<typeof makeExperimentIterationState> {

@@ -188,7 +188,7 @@ export function makeExperimentIterationState(
 
     baseline(b: Record<string, number>): void {
       try {
-        latestBaseline = { ...b };
+        latestBaseline = finiteNumberRecord(b);
         for (const row of rows.values()) {
           row.baseline = latestBaseline;
         }
@@ -356,7 +356,9 @@ function buildPipelineMetrics(progress: TaskCompletion): Record<string, number> 
   if (usage !== undefined) {
     addMetric(metrics, "prompt_tokens", usage.inputTokens);
     addMetric(metrics, "completion_tokens", usage.outputTokens);
-    addMetric(metrics, "tokens", usage.inputTokens + usage.outputTokens);
+    if (isFiniteNonNegative(usage.inputTokens) && isFiniteNonNegative(usage.outputTokens)) {
+      addMetric(metrics, "tokens", usage.inputTokens + usage.outputTokens);
+    }
     addMetric(metrics, "prompt_cached_tokens", usage.cachedTokens);
   }
 
@@ -369,7 +371,7 @@ function buildExperimentScores(
   baseline: Record<string, number> | undefined,
   scores: Record<string, number> | undefined,
 ): Record<string, number> {
-  const result = { ...(scores ?? {}) };
+  const result = finiteNumberRecord(scores) ?? {};
   const delta = sumDelta(baseline, scores);
 
   if (delta !== undefined) {
@@ -501,7 +503,28 @@ function addMetric(
   key: string,
   value: number | undefined,
 ): void {
-  if (value !== undefined && Number.isFinite(value)) {
+  if (value !== undefined && isFiniteNonNegative(value)) {
     metrics[key] = value;
   }
+}
+
+function isFiniteNonNegative(value: number): boolean {
+  return Number.isFinite(value) && value >= 0;
+}
+
+function finiteNumberRecord(
+  values: Record<string, number> | undefined,
+): Record<string, number> | undefined {
+  if (values === undefined) {
+    return undefined;
+  }
+
+  const result: Record<string, number> = {};
+  for (const [key, value] of Object.entries(values)) {
+    if (Number.isFinite(value)) {
+      defineRecordEntry(result, key, value);
+    }
+  }
+
+  return Object.keys(result).length === 0 ? undefined : result;
 }

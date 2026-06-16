@@ -1025,6 +1025,31 @@ describe("configure provider resolution", () => {
     expect(capture.provider()?.baseUrl).toBe("https://explicit.example/anth");
   });
 
+  it("normalizes explicit Poe --base-url through the resolved API shape path", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "configure",
+      "claude-code",
+      "--provider",
+      "poe",
+      "--base-url",
+      "https://proxy.example/v1"
+    ]);
+
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://proxy.example/anthropic"
+    });
+  });
+
   it("uses explicit --shape-base-url before --base-url for the resolved shape", async () => {
     const container = createContainer(fs);
     mockOptions(container);

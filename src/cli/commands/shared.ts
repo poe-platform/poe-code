@@ -77,7 +77,7 @@ export async function buildActiveProvider(input: {
 
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
-    resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
+    resolveProviderShapeBaseUrl(input.provider, shape, input.explicitBaseUrl) ??
     resolveShapeBaseUrl(environmentBaseUrl, shape.envBaseUrlPath ?? shape.baseUrlPath) ??
     (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape, {
       readOnly: input.readOnly
@@ -240,6 +240,22 @@ export function resolveShapeBaseUrl(
   }
   const normalizedBaseUrl = stripTrailingPathSegment(trimTrailingSlash(baseUrl), "compat");
   return `${normalizedBaseUrl}/${trimLeadingSlash(suffix)}`;
+}
+
+export function resolveProviderShapeBaseUrl(
+  provider: AuthProvider,
+  shape: ApiShapeBinding,
+  baseUrl: string | undefined
+): string | undefined {
+  const normalizedBaseUrl = resolveNonEmpty(baseUrl);
+  if (normalizedBaseUrl === undefined) {
+    return undefined;
+  }
+  const providerRoot = resolveBaseUrlRoot(normalizedBaseUrl, provider.baseUrlEnvPath);
+  if (providerRoot !== normalizedBaseUrl) {
+    return resolveShapeBaseUrl(providerRoot, shape.envBaseUrlPath ?? shape.baseUrlPath);
+  }
+  return resolveShapeBaseUrl(normalizedBaseUrl, shape.baseUrlPath) ?? normalizedBaseUrl;
 }
 
 function resolveBaseUrlRoot(

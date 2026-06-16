@@ -100,7 +100,7 @@ async function resolveClient(): Promise<LlmClient> {
     return getGlobalClient();
   } catch {
     const apiKey = await getPoeApiKey();
-    const baseUrl = normalizeBaseUrl(process.env.POE_BASE_URL ?? process.env.POE_API_BASE_URL);
+    const baseUrl = normalizeBaseUrl(process.env.POE_API_BASE_URL ?? process.env.POE_BASE_URL);
     return createPoeClient({
       apiKey,
       baseUrl

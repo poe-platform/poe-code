@@ -586,6 +586,33 @@ describe("provider login", () => {
     );
   });
 
+  it("stores Poe shape URLs from --base-url using Poe API shape paths", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "poe",
+      "--api-key",
+      "sk-test",
+      "--base-url",
+      "https://proxy.example/v1"
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.poe.shapeBaseUrls).toEqual({
+      "anthropic-messages": "https://proxy.example/anthropic",
+      "openai-chat-completions": "https://proxy.example/v1",
+      "openai-responses": "https://proxy.example/v1"
+    });
+  });
+
   it("preserves explicit shape URLs over Cloudflare --base-url defaults", async () => {
     const container = createContainer(fs);
     const program = createBaseProgram();

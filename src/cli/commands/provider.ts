@@ -8,10 +8,10 @@ import {
   applyIsolatedConfiguration,
   buildProviderContext,
   parseProviderShapeBaseUrls,
+  resolveProviderShapeBaseUrl,
   resolveCommandFlags,
   resolveNonEmpty,
   resolveServiceAdapter,
-  resolveShapeBaseUrl
 } from "./shared.js";
 import { getTheme, renderTable } from "toolcraft-design";
 import type { AuthProvider } from "@poe-code/providers";
@@ -302,7 +302,7 @@ function deriveShapeBaseUrls(
 ): Partial<Record<ApiShapeId, string>> {
   const result: Partial<Record<ApiShapeId, string>> = {};
   for (const shape of provider.apiShapes ?? []) {
-    result[shape.id] = resolveShapeBaseUrl(baseUrl, shape.baseUrlPath) ?? baseUrl;
+    result[shape.id] = resolveProviderShapeBaseUrl(provider, shape, baseUrl) ?? baseUrl;
   }
   return result;
 }

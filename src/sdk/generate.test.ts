@@ -71,6 +71,20 @@ describe("SDK generated Poe client", () => {
     });
   });
 
+  it("prefers POE_API_BASE_URL over POE_BASE_URL when both are set", async () => {
+    getPoeApiKeyMock.mockResolvedValue("environment-key");
+    process.env.POE_BASE_URL = "https://provider.example.invalid/v1";
+    process.env.POE_API_BASE_URL = "https://api.example.invalid/v1";
+
+    await expect(generate("hello", { model: "test-model" })).resolves.toEqual({
+      content: "environment-key@https://api.example.invalid/v1"
+    });
+    expect(createPoeClientMock).toHaveBeenCalledWith({
+      apiKey: "environment-key",
+      baseUrl: "https://api.example.invalid/v1"
+    });
+  });
+
   it("refreshes automatically created clients when connection settings change", async () => {
     getPoeApiKeyMock.mockResolvedValueOnce("first-key").mockResolvedValueOnce("second-key");
     process.env.POE_API_BASE_URL = "https://first.example.invalid/v1";

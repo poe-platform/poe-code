@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { collectMarkdownRelPaths } from "./pages.js";
-import { assertNoSymlinkSegments } from "./paths.js";
+import { assertNoSymlinkSegments, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
 import type { MemoryRoot, SearchHit } from "./types.js";
 
 export async function searchMemory(root: MemoryRoot, query: string): Promise<SearchHit[]> {
@@ -10,7 +10,7 @@ export async function searchMemory(root: MemoryRoot, query: string): Promise<Sea
     throw new Error("Search query cannot be empty.");
   }
 
-  const relPaths = await collectMarkdownRelPaths(root);
+  const relPaths = await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH);
   const hits: SearchHit[] = [];
 
   for (const relPath of relPaths) {

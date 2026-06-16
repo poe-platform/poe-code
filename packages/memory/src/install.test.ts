@@ -5,13 +5,25 @@ import type { McpServerEntry } from "@poe-code/agent-mcp-config";
 
 const installSkill = vi.fn();
 const configure = vi.fn();
+const resolveAgentSupport = vi.fn((agent: string) => {
+  const configs: Record<string, { configFile: string }> = {
+    "claude-code": { configFile: "~/.claude.json" },
+    codex: { configFile: "~/.codex/config.toml" },
+    cursor: { configFile: "~/.cursor/mcp.json" }
+  };
+  const config = configs[agent];
+  return config === undefined
+    ? { status: "unsupported", input: agent, id: agent }
+    : { status: "supported", input: agent, id: agent, config };
+});
 
 vi.mock("@poe-code/agent-skill-config", () => ({
   installSkill
 }));
 
 vi.mock("@poe-code/agent-mcp-config", () => ({
-  configure
+  configure,
+  resolveAgentSupport
 }));
 
 const { installMemory } = await import("./install.js");
@@ -79,7 +91,7 @@ describe("installMemory", () => {
       skillInstalled: true,
       mcpConfigured: true,
       skillPath: ".claude/skills/poe-code-memory/SKILL.md",
-      mcpConfigPath: "/home/test/.mcp.json"
+      mcpConfigPath: "/home/test/.claude.json"
     });
   });
 
@@ -109,7 +121,7 @@ describe("installMemory", () => {
   it("supports mcp-only installs and forwards allow-writes", async () => {
     configure.mockResolvedValue({
       existed: true,
-      path: "/home/test/.config/codex/mcp-config.json"
+      path: "/home/test/.codex/config.toml"
     });
 
     const result = await installMemory({
@@ -147,8 +159,27 @@ describe("installMemory", () => {
       skillInstalled: false,
       mcpConfigured: true,
       skillPath: undefined,
-      mcpConfigPath: "/home/test/.config/codex/mcp-config.json"
+      mcpConfigPath: "/home/test/.codex/config.toml"
     });
+  });
+
+  it("returns the MCP config path reported by the agent MCP configurator", async () => {
+    configure.mockResolvedValueOnce({
+      existed: false,
+      path: "/home/test/.cursor/mcp.json"
+    });
+
+    const result = await installMemory({
+      agent: "cursor",
+      skillContent: "# ignored",
+      fs: {} as FileSystem,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      platform: "darwin",
+      mcpOnly: true
+    });
+
+    expect(result.mcpConfigPath).toBe("/home/test/.cursor/mcp.json");
   });
 
   it("removes a newly installed skill when MCP configuration fails", async () => {

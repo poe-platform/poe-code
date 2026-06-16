@@ -3,6 +3,7 @@ import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
+import { parseMemoryAgentResponse } from "./agent-response.js";
 import { listPages } from "./pages.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
@@ -36,7 +37,7 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const context = await selectQueryContext(root, options.question, options.budget);
   const spawned = await spawn(agentId, { prompt: context.prompt });
-  const result = parseQueryResponse(spawned.stdout);
+  const result = parseMemoryAgentResponse(spawned.stdout);
 
   return {
     answer: result.answer,
@@ -44,35 +45,6 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
     tokensUsed: result.tokensUsed,
     budget: options.budget,
     exitCode: spawned.exitCode
-  };
-}
-
-function parseQueryResponse(stdout: string): Pick<QueryResult, "answer" | "citations" | "tokensUsed"> {
-  let value: unknown;
-  try {
-    value = JSON.parse(stdout);
-  } catch {
-    throw new Error("Memory agent returned invalid JSON output.");
-  }
-
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("Memory agent returned an invalid result payload.");
-  }
-
-  const result = value as Record<string, unknown>;
-  if (
-    typeof result.answer !== "string" ||
-    !Array.isArray(result.citations) ||
-    typeof result.tokensUsed !== "number" ||
-    !Number.isFinite(result.tokensUsed)
-  ) {
-    throw new Error("Memory agent returned an invalid result payload.");
-  }
-
-  return {
-    answer: result.answer,
-    citations: result.citations as QueryResult["citations"],
-    tokensUsed: result.tokensUsed
   };
 }
 

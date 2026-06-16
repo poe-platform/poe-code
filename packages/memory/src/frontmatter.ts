@@ -38,7 +38,11 @@ export function serializeFrontmatter(frontmatter: PageFrontmatter, body: string)
 }
 
 export function parseSourceRef(serialized: string): SourceRef {
-  const [rawPath, rawAnchor] = serialized.split("#", 2);
+  const parts = serialized.split("#");
+  if (parts.length > 2) {
+    throw new Error(`Invalid source ref "${serialized}".`);
+  }
+  const [rawPath, rawAnchor] = parts;
   const normalizedPath = rawPath?.trim();
   if (normalizedPath === undefined || normalizedPath.length === 0) {
     throw new Error(`Invalid source ref "${serialized}".`);

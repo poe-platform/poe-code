@@ -1,6 +1,6 @@
 import path from "node:path";
 import { installSkill } from "@poe-code/agent-skill-config";
-import { configure } from "@poe-code/agent-mcp-config";
+import { configure, resolveAgentSupport } from "@poe-code/agent-mcp-config";
 import type { ApplyOptions as McpApplyOptions } from "@poe-code/agent-mcp-config";
 import type { FileSystem, MutationObservers } from "@poe-code/config-mutations";
 import type { MemoryInstallResult } from "./types.js";
@@ -81,9 +81,7 @@ export async function installMemory(
       throw error;
     }
 
-    mcpConfigPath = options.agent === "codex"
-      ? `${options.homeDir}/.config/codex/mcp-config.json`
-      : `${options.homeDir}/.mcp.json`;
+    mcpConfigPath = resolveMcpConfigPath(options.agent, options.homeDir, options.platform);
   }
 
   return {
@@ -92,6 +90,23 @@ export async function installMemory(
     skillPath,
     mcpConfigPath
   };
+}
+
+function resolveMcpConfigPath(
+  agent: string,
+  homeDir: string,
+  platform: McpApplyOptions["platform"]
+): string {
+  const support = resolveAgentSupport(agent);
+  if (support.status !== "supported" || support.config === undefined) {
+    throw new Error(`Unsupported agent: ${agent}`);
+  }
+
+  const configFile =
+    typeof support.config.configFile === "function"
+      ? support.config.configFile(platform)
+      : support.config.configFile;
+  return configFile.startsWith("~/") ? path.join(homeDir, configFile.slice(2)) : configFile;
 }
 
 async function removeInstalledSkill(

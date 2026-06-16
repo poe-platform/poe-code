@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
 import {
   MEMORY_CACHE_DIR_RELPATH,
   MEMORY_INDEX_RELPATH,
@@ -6,9 +7,15 @@ import {
   MEMORY_LOG_RELPATH,
   MEMORY_PAGES_DIR_RELPATH,
   MemoryPathError,
+  assertMemoryRootIsNotSymlink,
   assertSafeRelPath,
   resolveMemoryRoot
 } from "./paths.js";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
 
 describe("resolveMemoryRoot", () => {
   it("places memory under .poe-code/memory in the provided cwd", () => {
@@ -41,5 +48,34 @@ describe("assertSafeRelPath", () => {
     expect(() => assertSafeRelPath("/repo/pages/test.md")).toThrow(/absolute/i);
     expect(() => assertSafeRelPath("../secret.md")).toThrow(/escape/i);
     expect(() => assertSafeRelPath("pages/../../secret.md")).toThrow(/escape/i);
+  });
+});
+
+describe("assertMemoryRootIsNotSymlink", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  it("allows the normal macOS /var to /private/var system alias", async () => {
+    vol.fromJSON({
+      "/private/var/folders/test/memory/.keep": ""
+    });
+    await vol.promises.symlink("/private/var", "/var");
+
+    await expect(
+      assertMemoryRootIsNotSymlink("/var/folders/test/memory")
+    ).resolves.toBeUndefined();
+  });
+
+  it("still rejects user-controlled symlinked root segments", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/.keep": "",
+      "/outside/memory/.keep": ""
+    });
+    await vol.promises.symlink("/outside/memory", "/repo/.poe-code/memory");
+
+    await expect(assertMemoryRootIsNotSymlink("/repo/.poe-code/memory")).rejects.toThrow(
+      /symbolic link/i
+    );
   });
 });

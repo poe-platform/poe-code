@@ -53,8 +53,7 @@ export async function appendToPage(
   await fs.mkdir(path.dirname(pagePath), { recursive: true });
   await assertNoSymlinkSegments(root, pageRelPath);
 
-  const parsed =
-    originalPage === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(originalPage);
+  const parsed = parseAppendTarget(originalPage, pageRelPath);
 
   try {
     await writeFileAtomically(
@@ -65,6 +64,23 @@ export async function appendToPage(
   } catch (error) {
     await restorePage(pagePath, originalPage);
     throw error;
+  }
+}
+
+function parseAppendTarget(
+  originalPage: string | undefined,
+  relPath: string
+): { frontmatter: PageFrontmatter; body: string } {
+  if (originalPage === undefined) {
+    return { frontmatter: {}, body: "" };
+  }
+
+  try {
+    return parseFrontmatter(originalPage);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.warn(`Failed to parse frontmatter for "${relPath}": ${message}`);
+    return { frontmatter: {}, body: originalPage };
   }
 }
 

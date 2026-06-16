@@ -11,7 +11,7 @@
 | `ingest <source>` | spawn an ingest agent to fold a file or URL into memory |
 | `query "<question>"` | answer a question from memory only, with citations |
 | `explain <path>` | summarize a page plus its inbound/outbound links |
-| `lint [--fix]` | find stale citations, untagged claims, contradictions |
+| `lint` | find stale citations, untagged claims, contradictions |
 | `status [--no-tokens]` | show counts, bytes, and token-reduction ratio |
 | `cache status` / `cache clear` | inspect or clear the ingest cache |
 | `clear --yes` | wipe memory; destructive, user-request only |

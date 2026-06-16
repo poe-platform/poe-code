@@ -352,6 +352,41 @@ describe("memory command", () => {
     writeSpy.mockRestore();
   });
 
+  it("does not accept the unimplemented memory lint --fix option", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      auditClaims: vi.fn()
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "memory", "lint", "--fix"])
+    ).rejects.toThrow("unknown option '--fix'");
+    expect(handle.auditClaims).not.toHaveBeenCalled();
+  });
+
+  it("does not spawn query or explain agents during dry-run", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      query: vi.fn(),
+      explainPage: vi.fn()
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer(logs));
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "query", "what?", "--budget", "256"]);
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "explain", "one", "--budget", "256"]);
+
+    expect(handle.query).not.toHaveBeenCalled();
+    expect(handle.explainPage).not.toHaveBeenCalled();
+    expect(logs).toContain("Would query memory with budget 256.");
+    expect(logs).toContain("Would explain pages/one.md with budget 256.");
+  });
+
   it("ingests sources and installs the advertised memory integration", async () => {
     const handle = {
       statusOf: vi.fn().mockResolvedValue({ initialized: true }),
@@ -380,6 +415,38 @@ describe("memory command", () => {
     }));
     expect(writeSpy).toHaveBeenCalledWith("Ingested: 1 created, 0 updated, 0 deleted.\n");
     writeSpy.mockRestore();
+  });
+
+  it("rejects non-decimal ingest timeout values", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: true }),
+      ingest: vi.fn()
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "ingest", "docs/source.md", "--timeout-ms", "0x10"])
+    ).rejects.toThrow("Timeout must be a decimal non-negative integer.");
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "memory", "ingest", "docs/source.md", "--timeout-ms", "1e2"])
+    ).rejects.toThrow("Timeout must be a decimal non-negative integer.");
+    expect(handle.ingest).not.toHaveBeenCalled();
+  });
+
+  it("requires initialized memory before editing a page", async () => {
+    const handle = {
+      statusOf: vi.fn().mockResolvedValue({ initialized: false })
+    };
+    memoryModuleMocks.openMemoryMock.mockReturnValue(handle);
+    const program = createBaseProgram();
+    registerMemoryCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "memory", "edit", "one"])
+    ).rejects.toThrow(/memory init/i);
+    expect(memoryModuleMocks.editPageMock).not.toHaveBeenCalled();
   });
 
   it("shows token output by default and supports --no-tokens", async () => {

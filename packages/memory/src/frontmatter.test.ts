@@ -54,6 +54,17 @@ describe("parseSourceRef", () => {
     expect(() => parseSourceRef("packages/memory/src/frontmatter.ts#L12-L4")).toThrow(/line/i);
     expect(() => parseSourceRef("packages/memory/src/frontmatter.ts#bad")).toThrow(/source/i);
   });
+
+  it("rejects source refs with multiple hash separators", () => {
+    expect(() => parseSourceRef("packages/memory/src/frontmatter.ts#L12#comment")).toThrow(
+      /source ref/i
+    );
+    expect(() =>
+      parseFrontmatter(
+        ["---", "sources:", "  - packages/memory/src/frontmatter.ts#L12#comment", "---", "# Memory"].join("\n")
+      )
+    ).toThrow(/source ref/i);
+  });
 });
 
 describe("serializeSourceRef", () => {

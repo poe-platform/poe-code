@@ -77,6 +77,9 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
     try {
       const stat = await fs.lstat(currentPath);
       if (stat.isSymbolicLink()) {
+        if (await isAllowedMacSystemAlias(currentPath)) {
+          continue;
+        }
         throw new MemoryPathError(`Memory root "${root}" cannot be a symbolic link.`);
       }
     } catch (error) {
@@ -86,6 +89,19 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
 
       throw error;
     }
+  }
+}
+
+async function isAllowedMacSystemAlias(currentPath: string): Promise<boolean> {
+  if (currentPath !== "/var") {
+    return false;
+  }
+
+  try {
+    const target = await fs.readlink(currentPath);
+    return target === "/private/var" || target === "private/var";
+  } catch {
+    return false;
   }
 }
 

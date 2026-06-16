@@ -193,4 +193,28 @@ describe("queryMemory", () => {
       exitCode: 0
     });
   });
+
+  it("rejects malformed agent citations and impossible token counts", async () => {
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        answer: "Looks valid at the top level.",
+        citations: [null, "bad", { relPath: 123, confidence: "made-up" }],
+        tokensUsed: -10
+      }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/note.md": "# Note\n\nbody\n"
+    });
+
+    await expect(
+      queryMemory("/repo/.poe-code/memory", {
+        question: "what?",
+        budget: 4096
+      })
+    ).rejects.toThrow("Memory agent returned an invalid result payload.");
+  });
 });

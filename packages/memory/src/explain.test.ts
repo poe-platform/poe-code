@@ -219,4 +219,28 @@ describe("explainPage", () => {
       })
     ).rejects.toThrow(/budget too small/i);
   });
+
+  it("rejects malformed agent citations and impossible token counts", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/packages/superintendent.md": "# Superintendent\n"
+    });
+
+    mockedAgentSpawn.spawnMock!.spawn.mockResolvedValueOnce({
+      stdout: JSON.stringify({
+        answer: "Looks valid at the top level.",
+        citations: [{ relPath: "pages/packages/superintendent.md", confidence: "invented" }],
+        tokensUsed: -1
+      }),
+      stderr: "",
+      exitCode: 0
+    });
+
+    await expect(
+      explainPage("/repo/.poe-code/memory", {
+        relPath: "pages/packages/superintendent.md",
+        budget: 4096
+      })
+    ).rejects.toThrow("Memory agent returned an invalid result payload.");
+  });
 });

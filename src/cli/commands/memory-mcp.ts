@@ -5,6 +5,7 @@ import {
   resolveConfiguredMemoryRoot,
   startMemoryMcpServer
 } from "@poe-code/memory";
+import { mcpWritesAllowed } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 
 export function registerMemoryMcpCommand(program: Command, container: CliContainer): void {
@@ -27,7 +28,14 @@ export function registerMemoryMcpCommand(program: Command, container: CliContain
         projectConfigPath: container.env.projectConfigPath
       });
       const handle = openMemory({ root });
-      const { server } = await startMemoryMcpServer(handle, { allowWrites: options.allowWrites === true });
+      const allowWrites =
+        options.allowWrites === true ||
+        (await mcpWritesAllowed({
+          fs: container.fs,
+          filePath: container.env.configPath,
+          projectFilePath: container.env.projectConfigPath
+        }));
+      const { server } = await startMemoryMcpServer(handle, { allowWrites });
       await server.listen();
     });
 }

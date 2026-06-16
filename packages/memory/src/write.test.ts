@@ -274,6 +274,38 @@ describe("appendToPage", () => {
   beforeEach(() => {
     vol.reset();
     vi.clearAllMocks();
+    vi.setSystemTime(new Date("2026-04-19T16:12:13.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("appends to pages with malformed frontmatter using the same tolerant body as readPage", async () => {
+    const root = "/repo/.poe-code/memory";
+    const original = ["---", "description: [broken", "---", "# Broken", "", "body", ""].join("\n");
+    vi.spyOn(console, "warn").mockImplementation(() => {});
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/broken.md`]: original
+    });
+
+    await expect(
+      appendToPage(root, "pages/broken.md", "\nappend\n", { reason: "append" })
+    ).resolves.toEqual({ created: [], updated: ["pages/broken.md"], deleted: [] });
+
+    await expect(vol.promises.readFile(`${root}/pages/broken.md`, "utf8")).resolves.toContain(
+      `${original}\nappend\n`
+    );
+  });
+});
+
+describe("appendToPage", () => {
+  beforeEach(() => {
+    vol.reset();
+    vi.clearAllMocks();
     vi.setSystemTime(new Date("2026-04-19T17:18:19.000Z"));
   });
 

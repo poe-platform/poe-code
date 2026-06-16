@@ -17,7 +17,7 @@ describe("searchMemory", () => {
     vi.restoreAllMocks();
   });
 
-  it("returns ripgrep-shaped hits across markdown files in the memory tree", async () => {
+  it("returns ripgrep-shaped hits across markdown files in memory pages", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
 
     vol.fromJSON({
@@ -34,11 +34,6 @@ describe("searchMemory", () => {
     });
 
     await expect(searchMemory("/repo/.poe-code/memory", "superintendent")).resolves.toEqual([
-      {
-        relPath: "INDEX.md",
-        lineNumber: 1,
-        line: "- superintendent"
-      },
       {
         relPath: "pages/architecture.md",
         lineNumber: 3,

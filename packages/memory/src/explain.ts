@@ -3,11 +3,12 @@ import path from "node:path";
 import { countTokens } from "tokenfill";
 import { spawn } from "@poe-code/agent-spawn";
 import { resolveAgent } from "@poe-code/poe-code-config";
+import { parseMemoryAgentResponse } from "./agent-response.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { readPage } from "./pages.js";
 import { selectQueryContext } from "./query.js";
 import type { MemoryConfigOptions } from "@poe-code/poe-code-config";
-import type { ExplainResult, MemoryPage, MemoryRoot, QueryResult, SourceRef } from "./types.js";
+import type { ExplainResult, MemoryPage, MemoryRoot, SourceRef } from "./types.js";
 
 export type ExplainOptions = {
   relPath: string;
@@ -48,7 +49,7 @@ export async function explainPage(
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
   const spawned = await spawn(agentId, { prompt });
-  const response = parseExplainResponse(spawned.stdout);
+  const response = parseMemoryAgentResponse(spawned.stdout);
 
   return {
     answer: response.answer,
@@ -61,35 +62,6 @@ export async function explainPage(
       .filter((page) => (page.frontmatter.sources ?? []).some((source) => source.path === targetPage.relPath))
       .map((page) => page.relPath),
     outboundSources: targetPage.frontmatter.sources ?? []
-  };
-}
-
-function parseExplainResponse(stdout: string): Pick<QueryResult, "answer" | "citations" | "tokensUsed"> {
-  let value: unknown;
-  try {
-    value = JSON.parse(stdout);
-  } catch {
-    throw new Error("Memory agent returned invalid JSON output.");
-  }
-
-  if (typeof value !== "object" || value === null || Array.isArray(value)) {
-    throw new Error("Memory agent returned an invalid result payload.");
-  }
-
-  const response = value as Record<string, unknown>;
-  if (
-    typeof response.answer !== "string" ||
-    !Array.isArray(response.citations) ||
-    typeof response.tokensUsed !== "number" ||
-    !Number.isFinite(response.tokensUsed)
-  ) {
-    throw new Error("Memory agent returned an invalid result payload.");
-  }
-
-  return {
-    answer: response.answer,
-    citations: response.citations as QueryResult["citations"],
-    tokensUsed: response.tokensUsed
   };
 }
 

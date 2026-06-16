@@ -101,6 +101,35 @@ async function queryBudget(container: CliContainer, value: string | undefined): 
   });
 }
 
+function parseDecimalNonNegativeInteger(value: string | undefined, label: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isDecimalNonNegativeIntegerText(value)) {
+    throw new ValidationError(`${label} must be a decimal non-negative integer.`);
+  }
+
+  const parsed = Number(value);
+  if (!Number.isSafeInteger(parsed)) {
+    throw new ValidationError(`${label} must be a decimal non-negative integer.`);
+  }
+
+  return parsed;
+}
+
+function isDecimalNonNegativeIntegerText(value: string): boolean {
+  if (value.length === 0) {
+    return false;
+  }
+
+  if (value.length > 1 && value[0] === "0") {
+    return false;
+  }
+
+  return [...value].every((char) => char >= "0" && char <= "9");
+}
+
 async function readCommandContent(content: string | undefined): Promise<string> {
   if (content !== undefined) {
     return content;
@@ -297,6 +326,8 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .action(async (pagePath: string, options: { reason: string }) => {
       const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
       const relPath = resolvePageRelPath(pagePath);
       const editor = resolveEditor(container);
       if (flags.dryRun) {
@@ -325,10 +356,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       await assertInitialized(mem);
-      const timeoutMs = options.timeoutMs === undefined ? undefined : Number(options.timeoutMs);
-      if (timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
-        throw new ValidationError("Timeout must be a finite non-negative number.");
-      }
+      const timeoutMs = parseDecimalNonNegativeInteger(options.timeoutMs, "Timeout");
       const result = await mem.ingest({
         source: resolveIngestSource(container.env.cwd, source),
         agent: options.agent,
@@ -344,11 +372,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
   memory
     .command("lint")
     .description("Audit memory confidence and provenance claims.")
-    .option("--fix", "Reserved for automated repair")
-    .action(async (options: { fix?: boolean }) => {
-      if (options.fix) {
-        throw new ValidationError("Automated memory lint repair is not available yet.");
-      }
+    .action(async () => {
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       await assertInitialized(mem);
@@ -371,12 +395,20 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .option("--budget <tokens>", "Token budget")
     .option("--agent <agent>", "Agent override")
     .action(async (question: string, options: { budget?: string; agent?: string }) => {
+      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       await assertInitialized(mem);
+      const budget = await queryBudget(container, options.budget);
+      if (flags.dryRun) {
+        createExecutionResources(container, flags, "memory:query").logger.dryRun(
+          `Would query memory with budget ${budget}.`
+        );
+        return;
+      }
       const result = await mem.query({
         question,
-        budget: await queryBudget(container, options.budget),
+        budget,
         agent: options.agent
       });
       process.stdout.write(`${result.answer}\n`);
@@ -389,12 +421,21 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
     .option("--budget <tokens>", "Token budget")
     .option("--agent <agent>", "Agent override")
     .action(async (pagePath: string, options: { budget?: string; agent?: string }) => {
+      const flags = resolveCommandFlags(program);
       const root = await resolveRoot(container);
       const mem = openMemory({ root });
       await assertInitialized(mem);
+      const relPath = resolvePageRelPath(pagePath);
+      const budget = await queryBudget(container, options.budget);
+      if (flags.dryRun) {
+        createExecutionResources(container, flags, "memory:explain").logger.dryRun(
+          `Would explain ${relPath} with budget ${budget}.`
+        );
+        return;
+      }
       const result = await mem.explainPage({
-        relPath: resolvePageRelPath(pagePath),
-        budget: await queryBudget(container, options.budget),
+        relPath,
+        budget,
         agent: options.agent
       });
       process.stdout.write(`${result.answer}\n`);

@@ -139,18 +139,22 @@ async function assertIngestCachePathIsNotSymlink(root: MemoryRoot): Promise<void
   await assertNoSymlinkSegments(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
 }
 
-function parseCacheEntry(value: unknown, _key: string): IngestCacheEntry {
+function parseCacheEntry(value: unknown, requestedKey: string): IngestCacheEntry {
   const object = expectRecord(value);
+  const key = expectString(getOwnEntry(object, "key"), "key");
+  if (key !== requestedKey) {
+    throw new Error(`Cache entry key "${key}" does not match requested key "${requestedKey}".`);
+  }
 
   return {
-    key: expectString(getOwnEntry(object, "key"), "key"),
+    key,
     ingestedAt: expectString(getOwnEntry(object, "ingestedAt"), "ingestedAt"),
     sourceLabel: expectString(getOwnEntry(object, "sourceLabel"), "sourceLabel"),
     diff: parseMemoryDiff(getOwnEntry(object, "diff")),
-    exitCode: expectNumber(getOwnEntry(object, "exitCode"), "exitCode"),
-    durationMs: expectNumber(getOwnEntry(object, "durationMs"), "durationMs"),
-    memoryTokens: expectNumber(getOwnEntry(object, "memoryTokens"), "memoryTokens"),
-    sourceTokens: expectNumber(getOwnEntry(object, "sourceTokens"), "sourceTokens"),
+    exitCode: expectNonNegativeInteger(getOwnEntry(object, "exitCode"), "exitCode"),
+    durationMs: expectNonNegativeInteger(getOwnEntry(object, "durationMs"), "durationMs"),
+    memoryTokens: expectNonNegativeInteger(getOwnEntry(object, "memoryTokens"), "memoryTokens"),
+    sourceTokens: expectNonNegativeInteger(getOwnEntry(object, "sourceTokens"), "sourceTokens"),
     promptTemplateVersion: expectString(
       getOwnEntry(object, "promptTemplateVersion"),
       "promptTemplateVersion"
@@ -185,9 +189,9 @@ function expectString(value: unknown, field: string): string {
   return value;
 }
 
-function expectNumber(value: unknown, field: string): number {
-  if (typeof value !== "number" || Number.isNaN(value)) {
-    throw new Error(`Expected number at "${field}".`);
+function expectNonNegativeInteger(value: unknown, field: string): number {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`Expected non-negative integer at "${field}".`);
   }
 
   return value;

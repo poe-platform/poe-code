@@ -10,6 +10,12 @@ const memoryMocks = vi.hoisted(() => ({
 
 vi.mock("@poe-code/memory", () => memoryMocks);
 
+const mcpWritesAllowed = vi.fn();
+
+vi.mock("@poe-code/poe-code-config", () => ({
+  mcpWritesAllowed
+}));
+
 const { registerMemoryMcpCommand } = await import("./memory-mcp.js");
 
 describe("memory-mcp command", () => {
@@ -19,6 +25,8 @@ describe("memory-mcp command", () => {
     memoryMocks.printMcpConfig.mockReturnValue('{"mcpServers":{}}');
     memoryMocks.openMemory.mockReturnValue({ root: "/repo/.poe-code/memory" });
     memoryMocks.startMemoryMcpServer.mockResolvedValue({ server: { listen: vi.fn() } });
+    mcpWritesAllowed.mockReset();
+    mcpWritesAllowed.mockResolvedValue(false);
   });
 
   it("prints generated MCP configuration", async () => {
@@ -48,5 +56,26 @@ describe("memory-mcp command", () => {
       { allowWrites: true }
     );
     expect(listen).toHaveBeenCalledOnce();
+  });
+
+  it("uses memory.mcp.allowWrites config when the CLI flag is absent", async () => {
+    mcpWritesAllowed.mockResolvedValueOnce(true);
+    const listen = vi.fn().mockResolvedValue(undefined);
+    memoryMocks.startMemoryMcpServer.mockResolvedValue({ server: { listen } });
+    const program = new Command().exitOverride();
+    const container = { env: { cwd: "/repo", variables: {}, configPath: "/home/config", projectConfigPath: "/repo/.poe-code/config.json" }, fs: {} } as never;
+    registerMemoryMcpCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "memory-mcp"]);
+
+    expect(mcpWritesAllowed).toHaveBeenCalledWith({
+      fs: {},
+      filePath: "/home/config",
+      projectFilePath: "/repo/.poe-code/config.json"
+    });
+    expect(memoryMocks.startMemoryMcpServer).toHaveBeenCalledWith(
+      { root: "/repo/.poe-code/memory" },
+      { allowWrites: true }
+    );
   });
 });

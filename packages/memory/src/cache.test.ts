@@ -195,6 +195,39 @@ describe("readCacheEntry and writeCacheEntry", () => {
     );
   });
 
+  it("returns null and warns when the embedded cache key does not match the requested key", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/abc123.json": JSON.stringify({
+        ...baseEntry,
+        key: "other"
+      })
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toBeNull();
+    expect(warn).toHaveBeenCalledWith(
+      'Ignoring ingest cache entry "abc123": Cache entry key "other" does not match requested key "abc123".'
+    );
+  });
+
+  it("returns null and warns when cache entry numeric metadata is impossible", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/abc123.json": JSON.stringify({
+        ...baseEntry,
+        exitCode: 1.5,
+        durationMs: -1,
+        memoryTokens: -2,
+        sourceTokens: -3
+      })
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toBeNull();
+    expect(warn.mock.calls[0]?.[0]).toContain('Ignoring ingest cache entry "abc123":');
+  });
+
   it("returns null and warns when cache entry fields are inherited", async () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
 

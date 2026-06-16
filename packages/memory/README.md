@@ -36,7 +36,7 @@ Default memory root: `<repo>/.poe-code/memory/`. Override it with:
 - `poe-code memory append <path>`: append stdin to a page
 - `poe-code memory search <query>`: search memory text
 - `poe-code memory ingest <source>`: spawn the configured agent to fold a file or URL into memory
-- `poe-code memory lint [--fix]`: audit stale claims and optionally let an agent repair memory
+- `poe-code memory lint`: audit stale claims
 - `poe-code memory status [--no-tokens]`: counts, bytes, last write, token-reduction ratio
 - `poe-code memory cache status`: inspect ingest-cache entries
 - `poe-code memory cache clear [--older-than <duration>] [--yes]`: clear cache entries

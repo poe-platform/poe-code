@@ -9,6 +9,7 @@ describe("memory package docs", () => {
     expect(readme).toContain("# @poe-code/memory");
     expect(readme).toContain("## CLI");
     expect(readme).toContain("poe-code memory install");
+    expect(readme).not.toContain("memory lint [--fix]");
     expect(readme).toContain("memory.ingestAgent");
     expect(readme).toContain(".poe-code/memory/");
     expect(readme).toContain("<!-- memory:extracted");
@@ -26,5 +27,15 @@ describe("memory package docs", () => {
     expect(qa).toContain("poe-code memory install --agent claude-code");
     expect(qa).toContain("poe-code memory query \"<something answerable from memory>\"");
     expect(qa).toContain("poe-code memory clear --yes");
+  });
+
+  it("skill template does not advertise unimplemented lint repair", () => {
+    const template = readFileSync(
+      resolve(import.meta.dirname, "templates", "SKILL_memory.md"),
+      "utf8"
+    );
+
+    expect(template).toContain("`lint`");
+    expect(template).not.toContain("`lint [--fix]`");
   });
 });

@@ -31,9 +31,25 @@ async function expectNoRemote(env: WorkspaceTransferEnv, relativePath: string): 
 }
 
 describe("workspace transfer", () => {
-  it("applies gitignore precedence before uploading", async () => {
+  it("does not re-include files from gitignored directories unless the parent is unignored", async () => {
     const env = createEnv({
       "/repo/.gitignore": "build/\n!build/keep.txt\n",
+      "/repo/build/drop.txt": "drop",
+      "/repo/build/keep.txt": "keep",
+      "/repo/src/app.ts": "app"
+    });
+
+    const result = await uploadWorkspace(env, {});
+
+    expect(result.files).toBe(2);
+    await expectNoRemote(env, "build/drop.txt");
+    await expectNoRemote(env, "build/keep.txt");
+    await expect(readRemote(env, "src/app.ts")).resolves.toBe("app");
+  });
+
+  it("re-includes files from gitignored directories when the parent is unignored", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": "build/\n!build/\n!build/keep.txt\n",
       "/repo/build/drop.txt": "drop",
       "/repo/build/keep.txt": "keep",
       "/repo/src/app.ts": "app"

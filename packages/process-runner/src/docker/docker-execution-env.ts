@@ -793,8 +793,7 @@ function createContainerJob(
       });
       const stdout = await readStream(handle.stdout);
       const result = await handle.result;
-      const exitCode = Number.parseInt(stdout.trim(), 10);
-      return { exitCode: Number.isNaN(exitCode) ? result.exitCode : exitCode };
+      return { exitCode: parseDockerWaitExitCode(stdout, result.exitCode) };
     },
     async kill(signal?: NodeJS.Signals) {
       const args =
@@ -809,6 +808,29 @@ function createContainerJob(
       });
     }
   };
+}
+
+function parseDockerWaitExitCode(stdout: string, fallbackExitCode: number): number {
+  const trimmed = stdout.trim();
+  if (trimmed.length === 0) {
+    return fallbackExitCode;
+  }
+  return parseCompleteDecimalExitCode(trimmed, "docker wait");
+}
+
+function parseCompleteDecimalExitCode(value: string, source: string): number {
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 48 || code > 57) {
+      throw new Error(`${source} returned an invalid exit code: ${JSON.stringify(value)}.`);
+    }
+  }
+
+  const exitCode = Number(value);
+  if (!Number.isSafeInteger(exitCode)) {
+    throw new Error(`${source} returned an invalid exit code: ${JSON.stringify(value)}.`);
+  }
+  return exitCode;
 }
 
 function completeUtf8PrefixLength(contents: Buffer): number {

@@ -129,6 +129,24 @@ describe("buildDockerRunArgs", () => {
     ]);
   });
 
+  it("rejects invalid Docker port mappings before serializing run args", () => {
+    const invalidPorts = [
+      [{ host: -1, container: 3000 }],
+      [{ host: 3000.5, container: 80 }],
+      [{ host: 3000, container: 0 }],
+      [{ host: 3000, container: 80, protocol: "icmp" }]
+    ];
+
+    for (const ports of invalidPorts) {
+      expect(() => {
+        buildDockerRunArgs({
+          ...baseInput,
+          ports: ports as DockerRunArgs["ports"]
+        });
+      }).toThrow(/port/i);
+    }
+  });
+
   it("builds env args for each entry", () => {
     expect(
       buildDockerRunArgs({

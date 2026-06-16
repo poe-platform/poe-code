@@ -52,7 +52,8 @@ export function buildDockerRunArgs(input: DockerRunArgs): string[] {
     args.push("-v", volume);
   }
 
-  for (const port of input.ports) {
+  for (const [index, port] of input.ports.entries()) {
+    assertValidDockerPortMapping(port, index);
     const mapping = `${port.host}:${port.container}${port.protocol === undefined || port.protocol === "tcp" ? "" : `/${port.protocol}`}`;
     args.push("-p", mapping);
   }
@@ -64,4 +65,21 @@ export function buildDockerRunArgs(input: DockerRunArgs): string[] {
   args.push(...input.extraArgs, input.image, input.command, ...input.args);
 
   return args;
+}
+
+function assertValidDockerPortMapping(
+  port: DockerRunArgs["ports"][number],
+  index: number
+): void {
+  assertValidPortNumber(port.host, `ports[${index}].host`);
+  assertValidPortNumber(port.container, `ports[${index}].container`);
+  if (port.protocol !== undefined && port.protocol !== "tcp" && port.protocol !== "udp") {
+    throw new Error(`Invalid Docker port mapping ${index}: protocol must be tcp or udp.`);
+  }
+}
+
+function assertValidPortNumber(value: number, field: string): void {
+  if (!Number.isSafeInteger(value) || value < 1 || value > 65_535) {
+    throw new Error(`Invalid Docker port mapping ${field}: port must be an integer from 1 to 65535.`);
+  }
 }

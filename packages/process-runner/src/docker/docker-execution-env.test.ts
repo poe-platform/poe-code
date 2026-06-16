@@ -800,6 +800,19 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
   });
 
+  it("rejects malformed docker wait exit code output instead of parsing a prefix", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["0x10\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+
+    await expect(job.wait()).rejects.toThrow(/docker wait/i);
+    expect(runner.specs[1]?.args).toEqual(["wait", "container-id"]);
+  });
+
   it("tracks an attached detached command using its completion marker", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["0\n"] },

@@ -90,14 +90,14 @@ export async function uploadWorkspace(
   const localFs = env.fs ?? (nodeFs as unknown as WorkspaceTransferFileSystem);
   const remoteFs = env.remoteFs ?? localFs;
   const workspaceDir = env.workspaceDir ?? "/workspace";
-  const maxBytes = (opts.uploadMaxFileMb ?? opts.runner?.upload_max_file_mb ?? 100) * 1024 * 1024;
+  const maxBytes = resolveUploadMaxBytes(opts);
   const warn = opts.warn ?? console.warn;
   const allFiles = await listFiles(localFs, env.cwd);
   const state = new Map<string, UploadedFileState>();
   const gitignore = await readGitignoreRules(localFs, env.cwd, allFiles);
   const poeCodeIgnore = await readIgnoreFile(localFs, env.cwd, ".poe-code-ignore", false);
   const workspaceExclude = parseIgnoreLines(
-    [...(opts.runner?.workspace?.exclude ?? []), ...(opts.workspaceExclude ?? [])],
+    [".git/", ...(opts.runner?.workspace?.exclude ?? []), ...(opts.workspaceExclude ?? [])],
     false
   );
   const entries: FileEntry[] = [];
@@ -238,6 +238,14 @@ export async function downloadWorkspace(
   return { files, bytes, conflicts };
 }
 
+function resolveUploadMaxBytes(opts: WorkspaceTransferOptions): number {
+  const uploadMaxFileMb = opts.uploadMaxFileMb ?? opts.runner?.upload_max_file_mb ?? 100;
+  if (!Number.isFinite(uploadMaxFileMb) || uploadMaxFileMb <= 0) {
+    throw new Error("runner.upload_max_file_mb must be a finite positive number.");
+  }
+  return uploadMaxFileMb * 1024 * 1024;
+}
+
 async function listFilesIfExists(
   fs: WorkspaceTransferFileSystem,
   root: string,
@@ -358,17 +366,66 @@ function parseIgnoreLines(lines: string[], allowNegation: boolean, basePath = ""
 }
 
 function isIgnoredByGit(relativePath: string, rules: IgnoreRule[]): boolean {
+  if (isPathIgnoredByGitRules(relativePath, rules, "path")) {
+    return true;
+  }
+
+  for (const parent of parentDirectories(relativePath)) {
+    if (isPathIgnoredByGitRules(parent, rules, "directory")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function isPathIgnoredByGitRules(
+  relativePath: string,
+  rules: IgnoreRule[],
+  targetKind: "path" | "directory"
+): boolean {
   let ignored = false;
   for (const rule of rules) {
-    if (matchesRule(relativePath, rule)) {
+    if (matchesGitRule(relativePath, rule, targetKind)) {
       ignored = !rule.negate;
     }
   }
   return ignored;
 }
 
+function parentDirectories(relativePath: string): string[] {
+  const segments = normalizeRelativePath(relativePath).split("/");
+  const parents: string[] = [];
+  for (let index = 1; index < segments.length; index += 1) {
+    parents.push(segments.slice(0, index).join("/"));
+  }
+  return parents;
+}
+
 function isIgnoredAdditively(relativePath: string, rules: IgnoreRule[]): boolean {
   return rules.some((rule) => matchesRule(relativePath, rule));
+}
+
+function matchesGitRule(
+  relativePath: string,
+  rule: IgnoreRule,
+  targetKind: "path" | "directory"
+): boolean {
+  if (!rule.directoryOnly) {
+    return matchesRule(relativePath, rule);
+  }
+
+  const normalizedPath = normalizeRelativePath(relativePath);
+  const scopedPath = pathWithinRuleScope(normalizedPath, rule.basePath);
+  if (scopedPath === null) {
+    return false;
+  }
+
+  if (targetKind === "directory") {
+    return pathMatchesDirectorySelf(scopedPath, normalizeRelativePath(rule.pattern), rule.anchored);
+  }
+
+  return !rule.negate && matchesRule(relativePath, rule);
 }
 
 function matchesRule(relativePath: string, rule: IgnoreRule): boolean {
@@ -411,6 +468,18 @@ function pathMatchesDirectory(relativePath: string, pattern: string, anchored: b
   return segments.some((segment, index) => {
     return matchSegment(segment, pattern) && index < segments.length - 1;
   });
+}
+
+function pathMatchesDirectorySelf(
+  relativePath: string,
+  pattern: string,
+  anchored: boolean
+): boolean {
+  if (anchored || pattern.includes("/")) {
+    return relativePath === pattern;
+  }
+
+  return relativePath.split("/").some((segment) => matchSegment(segment, pattern));
 }
 
 function matchPathSegments(pathSegments: string[], patternSegments: string[]): boolean {

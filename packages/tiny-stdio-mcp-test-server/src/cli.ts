@@ -7,6 +7,12 @@ import {
   createEncryptServer,
   createWordOfTheDayServer,
 } from "./index.js";
+import {
+  getNextSpawnCount,
+  isServeToolName,
+  SERVE_TOOL_NAMES,
+  type ServeToolName,
+} from "./cli-support.js";
 
 const program = new Command();
 
@@ -20,7 +26,18 @@ program
   .description("Start an MCP server on stdin/stdout")
   .argument("<tool>", "Tool to serve (encrypt, word-of-the-day)")
   .action(async (tool: string) => {
-    recordProcessStart();
+    if (!isServeToolName(tool)) {
+      console.error(`Unknown tool: ${tool}. Available: ${SERVE_TOOL_NAMES.join(", ")}`);
+      process.exit(1);
+    }
+
+    try {
+      recordProcessStart();
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exit(1);
+    }
+
     const startupDelayMs = Number(process.env.TOOLCRAFT_TEST_STARTUP_DELAY_MS ?? "0");
     if (startupDelayMs > 0) {
       await new Promise((resolve) => setTimeout(resolve, startupDelayMs));
@@ -29,20 +46,13 @@ program
     if (startupGateFile !== undefined) {
       await waitForFile(startupGateFile);
     }
-    const servers: Record<string, () => Promise<void>> = Object.create(null) as Record<string, () => Promise<void>>;
+    const servers: Record<ServeToolName, () => Promise<void>> = Object.create(null) as Record<ServeToolName, () => Promise<void>>;
     Object.assign(servers, {
       encrypt: () => createEncryptServer().listen(),
       "word-of-the-day": () => createWordOfTheDayServer().listen(),
     });
 
-    const start = servers[tool];
-    if (!start) {
-      const available = Object.keys(servers).join(", ");
-      console.error(`Unknown tool: ${tool}. Available: ${available}`);
-      process.exit(1);
-    }
-
-    await start();
+    await servers[tool]();
   });
 
 program.parse();
@@ -50,10 +60,10 @@ program.parse();
 function recordProcessStart(): void {
   const countFile = process.env.TOOLCRAFT_TEST_SPAWN_COUNT_FILE;
   if (countFile !== undefined) {
-    const previousCount = existsSync(countFile)
-      ? Number.parseInt(readFileSync(countFile, "utf8").trim() || "0", 10)
-      : 0;
-    writeFileSync(countFile, String(previousCount + 1));
+    const currentValue = existsSync(countFile)
+      ? readFileSync(countFile, "utf8")
+      : undefined;
+    writeFileSync(countFile, String(getNextSpawnCount(currentValue)));
   }
 
   const pidFile = process.env.TOOLCRAFT_TEST_WRAPPER_PID_FILE;

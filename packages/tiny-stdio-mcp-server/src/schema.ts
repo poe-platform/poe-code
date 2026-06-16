@@ -1,6 +1,6 @@
 import type { JSONSchema } from "./types.js";
 
-type SchemaPropertyType = "string" | "number" | "boolean" | "object" | "array";
+type SchemaPropertyType = "string" | "number" | "integer" | "boolean" | "object" | "array";
 
 interface SchemaPropertyDef {
   type: SchemaPropertyType;
@@ -13,7 +13,7 @@ type SchemaDefinition = Record<string, SchemaPropertyDef>;
 
 type InferType<T extends SchemaPropertyType> = T extends "string"
   ? string
-  : T extends "number"
+  : T extends "number" | "integer"
     ? number
     : T extends "boolean"
       ? boolean

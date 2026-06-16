@@ -8,7 +8,7 @@ const SERVER_VERSION = packageJson.version;
 const caesarCipherSchema = defineSchema({
   text: { type: "string", description: "The text to encrypt" },
   shift: {
-    type: "number",
+    type: "integer",
     description: "The shift amount (default: 3)",
     optional: true,
   },
@@ -76,6 +76,7 @@ export function createWordOfTheDayServer() {
     "Returns the word of the day",
     wordOfTheDaySchema,
     () => {
+      recordToolCall("word_of_the_day");
       return "Bumfuzzle - to confuse or fluster someone";
     }
   );
@@ -93,6 +94,7 @@ export function createTestServer() {
     "Encrypts text using the Caesar cipher",
     caesarCipherSchema,
     ({ text, shift }) => {
+      recordToolCall("caesar_cipher_encrypt");
       const actualShift = shift ?? 3;
       return caesarEncrypt(text, actualShift);
     }
@@ -104,6 +106,7 @@ export function createTestServer() {
     "Returns the word of the day",
     wordOfTheDaySchema,
     () => {
+      recordToolCall("word_of_the_day");
       return "Bumfuzzle - to confuse or fluster someone";
     }
   );

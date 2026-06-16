@@ -84,7 +84,7 @@ describe("tiny-stdio-mcp-test-server via SDK", () => {
         "Encrypts text using the Caesar cipher"
       );
       expect(caesarTool?.inputSchema.properties?.text?.type).toBe("string");
-      expect(caesarTool?.inputSchema.properties?.shift?.type).toBe("number");
+      expect(caesarTool?.inputSchema.properties?.shift?.type).toBe("integer");
       expect(caesarTool?.inputSchema.required).toContain("text");
       expect(caesarTool?.inputSchema.required).not.toContain("shift");
     });

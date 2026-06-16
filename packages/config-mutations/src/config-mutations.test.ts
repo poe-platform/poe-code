@@ -776,6 +776,24 @@ describe("runMutations", () => {
       expect(content).toEqual({ existing: true, new: "value" });
     });
 
+    it("rejects primitive merge values", async () => {
+      const fs = createMockFs({}, homeDir);
+
+      await expect(
+        runMutations(
+          [
+            {
+              kind: "configMerge",
+              target: "~/.config.json",
+              value: "oops"
+            } as any
+          ],
+          { fs, homeDir }
+        )
+      ).rejects.toThrow("configMerge value must be an object");
+      expect(fs.getContent("~/.config.json")).toBeUndefined();
+    });
+
     it("preserves JSONC comments when merging into an existing JSON file", async () => {
       const fs = createMockFs({
         "~/.config.json": [
@@ -1267,6 +1285,31 @@ describe("runMutations", () => {
       expect(jsonFormat.parse(content)).toEqual({ key: "new" });
     });
 
+    it("does not rewrite when transformed content serializes unchanged", async () => {
+      const fs = createMockFs({
+        "~/.config.json": '{\n  "enabled": true\n}\n'
+      }, homeDir);
+      const writeFile = vi.spyOn(fs, "writeFile");
+      const rename = vi.spyOn(fs, "rename");
+
+      const result = await runMutations(
+        [
+          configMutation.transform({
+            target: "~/.config.json",
+            transform: (content) => ({ content, changed: true })
+          })
+        ],
+        { fs, homeDir }
+      );
+
+      expect(result).toEqual({
+        changed: false,
+        effects: [{ changed: false, effect: "none", detail: "noop" }]
+      });
+      expect(writeFile).not.toHaveBeenCalled();
+      expect(rename).not.toHaveBeenCalled();
+    });
+
     it("creates directory if not exists", async () => {
       const fs = createMockFs({}, homeDir);
 
@@ -1289,6 +1332,21 @@ describe("runMutations", () => {
       );
 
       expect(result.changed).toBe(false);
+    });
+
+    it("refuses to create directories through a symlinked parent", async () => {
+      const volume = Volume.fromJSON({ "/outside/.keep": "" });
+      volume.mkdirSync(homeDir, { recursive: true });
+      volume.symlinkSync("/outside", `${homeDir}/.codex`);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([fileMutation.ensureDirectory({ path: "~/.codex/plugins" })], {
+          fs,
+          homeDir
+        })
+      ).rejects.toThrow("symbolic link");
+      await expect(fs.stat("/outside/plugins")).rejects.toThrow("ENOENT");
     });
   });
 
@@ -1377,6 +1435,23 @@ describe("runMutations", () => {
       expect(backupPath).toBeDefined();
       expect(fs.getContent(backupPath ?? "")).toBeUndefined();
       expect(fs.getContent("~/.settings.json")).toBe("original");
+    });
+
+    it("refuses to back up a symlinked target", async () => {
+      const outsidePath = "/outside/secret.txt";
+      const targetPath = `${homeDir}/.config/secret.txt`;
+      const volume = Volume.fromJSON({ [outsidePath]: "outside secret\n" });
+      volume.mkdirSync(`${homeDir}/.config`, { recursive: true });
+      volume.symlinkSync(outsidePath, targetPath);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([fileMutation.backup({ target: "~/.config/secret.txt" })], {
+          fs,
+          homeDir
+        })
+      ).rejects.toThrow("symbolic link");
+      expect(await fs.readdir(`${homeDir}/.config`)).toEqual(["secret.txt"]);
     });
 
     it("restores and consumes the latest generated backup atomically", async () => {
@@ -1533,6 +1608,22 @@ describe("runMutations", () => {
       expect(onStart).toHaveBeenCalledTimes(2);
     });
 
+    it("includes resolved target details on start", async () => {
+      const fs = createMockFs({}, homeDir);
+      const onStart = vi.fn();
+
+      await runMutations(
+        [fileMutation.ensureDirectory({ path: "~/.config" })],
+        { fs, homeDir, observers: { onStart } }
+      );
+
+      expect(onStart).toHaveBeenCalledWith({
+        kind: "ensureDirectory",
+        label: `Create ${homeDir}/.config`,
+        targetPath: `${homeDir}/.config`
+      });
+    });
+
     it("calls onComplete with outcome", async () => {
       const fs = createMockFs({}, homeDir);
       const onComplete = vi.fn();
@@ -1560,7 +1651,14 @@ describe("runMutations", () => {
         )
       ).rejects.toThrow("home-relative");
 
-      expect(onError).toHaveBeenCalled();
+      expect(onError).toHaveBeenCalledWith(
+        {
+          kind: "configMerge",
+          label: "Update /absolute/path.json",
+          targetPath: undefined
+        },
+        expect.any(Error)
+      );
     });
   });
 
@@ -1833,6 +1931,25 @@ describe("createMockFs", () => {
     it("throws ENOENT for missing file", async () => {
       const fs = createMockFs();
       await expect(fs.chmod("/home/test/.missing", 0o755)).rejects.toThrow("ENOENT");
+    });
+
+    it("refuses to chmod through a symlinked target", async () => {
+      const homeDir = "/home/test";
+      const outsidePath = "/outside/secret.txt";
+      const targetPath = `${homeDir}/.config/secret.txt`;
+      const volume = Volume.fromJSON({ [outsidePath]: "secret\n" });
+      volume.mkdirSync(`${homeDir}/.config`, { recursive: true });
+      volume.symlinkSync(outsidePath, targetPath);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+      const originalMode = (await fs.stat(outsidePath)).mode;
+
+      await expect(
+        runMutations([fileMutation.chmod({ target: "~/.config/secret.txt", mode: 0o600 })], {
+          fs,
+          homeDir
+        })
+      ).rejects.toThrow("symbolic link");
+      expect((await fs.stat(outsidePath)).mode).toBe(originalMode);
     });
   });
 });

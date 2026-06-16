@@ -164,6 +164,66 @@ function describeMutation(kind: string, targetPath?: string): string {
   }
 }
 
+function mutationTargetPath(
+  mutation: Mutation,
+  options: MutationOptions
+): string | undefined {
+  switch (mutation.kind) {
+    case "ensureDirectory":
+    case "removeDirectory":
+      return resolveValue(mutation.path, options);
+    case "removeFile":
+    case "chmod":
+    case "backup":
+    case "restoreBackup":
+    case "configMerge":
+    case "configPrune":
+    case "configTransform":
+    case "templateWrite":
+    case "templateMergeToml":
+    case "templateMergeJson":
+      return resolveValue(mutation.target, options);
+    default:
+      return undefined;
+  }
+}
+
+export function resolveMutationDetails(
+  mutation: Mutation,
+  context: MutationContext,
+  options: MutationOptions
+): MutationDetails {
+  try {
+    const rawTarget = mutationTargetPath(mutation, options);
+    if (rawTarget === undefined) {
+      return {
+        kind: mutation.kind,
+        label: mutation.label ?? mutation.kind
+      };
+    }
+
+    try {
+      const targetPath = resolvePath(rawTarget, context.homeDir, context.pathMapper);
+      return {
+        kind: mutation.kind,
+        label: mutation.label ?? describeMutation(mutation.kind, targetPath),
+        targetPath
+      };
+    } catch {
+      return {
+        kind: mutation.kind,
+        label: mutation.label ?? describeMutation(mutation.kind, rawTarget),
+        targetPath: undefined
+      };
+    }
+  } catch {
+    return {
+      kind: mutation.kind,
+      label: mutation.label ?? mutation.kind
+    };
+  }
+}
+
 function pruneKeysByPrefix(
   table: ConfigObject,
   prefix: string
@@ -296,6 +356,7 @@ async function applyEnsureDirectory(
     targetPath
   };
 
+  await assertRegularWriteTarget(context, targetPath);
   const existed = await pathExists(context.fs, targetPath);
 
   if (!context.dryRun) {
@@ -447,6 +508,7 @@ async function applyChmod(
   }
 
   try {
+    await assertRegularWriteTarget(context, targetPath);
     const stat = await context.fs.stat(targetPath);
     const currentMode = typeof stat.mode === "number" ? stat.mode & 0o777 : null;
 
@@ -490,6 +552,7 @@ async function applyBackup(
     targetPath
   };
 
+  await assertRegularWriteTarget(context, targetPath);
   if (mutation.once && (await findLatestGeneratedBackup(context.fs, targetPath)) !== null) {
     return {
       outcome: { changed: false, effect: "none", detail: "noop" },
@@ -664,6 +727,9 @@ async function applyConfigMerge(
   }
 
   const value = resolveValue(mutation.value, options);
+  if (!isConfigObject(value)) {
+    throw new Error(`configMerge value must be an object for "${rawPath}".`);
+  }
 
   // Keep prefix pruning on the same proto-safe object-write path as normal merges.
   let merged: ConfigObject;
@@ -833,6 +899,14 @@ async function applyConfigTransform(
   }
 
   const serialized = serializeConfigUpdate(format, preserveContent, current, transformed);
+  const serializedChanged = serialized !== rawContent;
+  if (!serializedChanged) {
+    return {
+      outcome: { changed: false, effect: "none", detail: "noop" },
+      details
+    };
+  }
+
   if (!context.dryRun) {
     await writeAtomically(context, targetPath, serialized);
   }

@@ -1,10 +1,11 @@
 import type {
   Mutation,
   MutationContext,
+  MutationDetails,
   MutationResult,
   MutationOptions
 } from "../types.js";
-import { applyMutation } from "./apply-mutation.js";
+import { applyMutation, resolveMutationDetails } from "./apply-mutation.js";
 
 /**
  * Execute an array of mutations in order.
@@ -42,13 +43,11 @@ async function executeMutation(
   mutation: Mutation,
   context: MutationContext,
   options: MutationOptions
-): Promise<{ outcome: MutationResult["effects"][number]; details: { kind: string; label: string; targetPath?: string } }> {
+): Promise<{ outcome: MutationResult["effects"][number]; details: MutationDetails }> {
+  const pendingDetails = resolveMutationDetails(mutation, context, options);
+
   // Call onStart observer
-  context.observers?.onStart?.({
-    kind: mutation.kind,
-    label: mutation.label ?? mutation.kind,
-    targetPath: undefined // Will be resolved during apply
-  });
+  context.observers?.onStart?.(pendingDetails);
 
   try {
     const { outcome, details } = await applyMutation(mutation, context, options);
@@ -59,14 +58,7 @@ async function executeMutation(
     return { outcome, details };
   } catch (error) {
     // Call onError observer
-    context.observers?.onError?.(
-      {
-        kind: mutation.kind,
-        label: mutation.label ?? mutation.kind,
-        targetPath: undefined
-      },
-      error
-    );
+    context.observers?.onError?.(pendingDetails, error);
 
     // Re-throw the error
     throw error;

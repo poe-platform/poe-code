@@ -6,6 +6,7 @@ import {
   experimentDocumentSchema,
   experimentDocumentSchemaId,
   parseExperimentFrontmatter,
+  parseExperimentFrontmatterData,
   writeExperimentFrontmatter
 } from "./frontmatter/frontmatter.js";
 import { createDefaultGit } from "./git/git.js";
@@ -200,7 +201,7 @@ describe("@poe-code/experiment-loop public exports", () => {
         max_experiments: { type: "integer" },
         metric_timeout: { type: "integer" }
       },
-      required: ["kind", "version", "baseline"]
+      required: []
     });
   });
 });
@@ -390,6 +391,18 @@ describe("loadRunConfig", () => {
         })
       })
     ).rejects.toThrow(/prompt.*string/i);
+  });
+
+  it("throws when prompt field is whitespace-only", async () => {
+    await expect(
+      loadRunConfig({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/experiments/run.yaml": 'prompt: "   "\n'
+        })
+      })
+    ).rejects.toThrow(/prompt.*non-empty string/i);
   });
 });
 
@@ -691,7 +704,7 @@ describe("parseExperimentFrontmatter", () => {
     });
   });
 
-  it("omits non-finite stable metric deltas", () => {
+  it("rejects non-finite stable metric deltas", () => {
     const content = [
       "---",
       "metric:",
@@ -703,13 +716,7 @@ describe("parseExperimentFrontmatter", () => {
       "Body"
     ].join("\n");
 
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric).toEqual({
-      name: "test_count",
-      script: "node scripts/metric-test-count.mjs",
-      direction: "stable"
-    });
+    expect(() => parseExperimentFrontmatter(content)).toThrow("metric.delta must be a non-negative number.");
   });
 
   it("does not accept inherited metric fields", async () => {
@@ -722,10 +729,79 @@ describe("parseExperimentFrontmatter", () => {
       () => {
         const content = ["---", "metric: {}", "baseline: null", "---", "Body"].join("\n");
 
-        const result = parseExperimentFrontmatter(content);
-
-        expect(result.frontmatter.metric).toBeUndefined();
+        expect(() => parseExperimentFrontmatter(content)).toThrow(
+          "metric.name must be a non-empty string."
+        );
       }
+    );
+  });
+
+  it("rejects invalid metric direction frontmatter", () => {
+    const content = [
+      "---",
+      "metric:",
+      "  name: tests",
+      "  script: npm test",
+      "  direction: max",
+      "baseline: null",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(() => parseExperimentFrontmatter(content)).toThrow(
+      'metric.direction must be one of "minimize", "maximize", or "stable".'
+    );
+  });
+
+  it("rejects invalid baseline values", () => {
+    const content = [
+      "---",
+      "metric:",
+      "  name: tests",
+      "  script: npm test",
+      "  direction: maximize",
+      "baseline:",
+      "  tests: bad",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(() => parseExperimentFrontmatter(content)).toThrow(
+      "baseline.tests must be a finite number."
+    );
+  });
+
+  it("rejects unsupported document versions when present", () => {
+    expect(() =>
+      parseExperimentFrontmatterData({
+        kind: "experiment",
+        version: 999,
+        agent: "claude-code",
+        metric: { name: "tests", script: "npm test", direction: "maximize" },
+        baseline: null
+      })
+    ).toThrow("Experiment document version must be 1.");
+  });
+
+  it("rejects invalid agent frontmatter values", () => {
+    const content = [
+      "---",
+      "kind: experiment",
+      "version: 1",
+      "agent:",
+      "  - codex",
+      "  - 42",
+      "metric:",
+      "  name: tests",
+      "  script: npm test",
+      "  direction: maximize",
+      "baseline: { tests: 1 }",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(() => parseExperimentFrontmatter(content)).toThrow(
+      "agent[1] must be a non-empty string."
     );
   });
 

@@ -81,7 +81,7 @@ function parseRunConfigData(filePath: string, document: unknown): RunConfig | nu
     throw new Error(`Missing "prompt" field in "${filePath}".`);
   }
 
-  if (typeof prompt !== "string" || prompt.length === 0) {
+  if (typeof prompt !== "string" || prompt.trim().length === 0) {
     throw new Error(`"prompt" must be a non-empty string in "${filePath}".`);
   }
 

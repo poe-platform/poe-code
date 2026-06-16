@@ -35,7 +35,8 @@ vi.mock("../../sdk/experiment.js", () => ({
     experimentsKept: 1,
     totalDurationMs: 1000
   }),
-  readExperimentJournal: vi.fn().mockResolvedValue([])
+  readExperimentJournal: vi.fn().mockResolvedValue([]),
+  appendExperimentJournalEntry: vi.fn().mockResolvedValue(undefined)
 }));
 
 vi.mock("../../sdk/ralph.js", () => ({
@@ -67,7 +68,8 @@ vi.mock("toolcraft-design", async (importOriginal) => {
 
 import {
   runExperiment as sdkRunExperiment,
-  readExperimentJournal as sdkReadExperimentJournal
+  readExperimentJournal as sdkReadExperimentJournal,
+  appendExperimentJournalEntry as sdkAppendExperimentJournalEntry
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
@@ -1514,6 +1516,70 @@ describe("experiment journal command", () => {
 
     await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
+  it("rejects journal scores with non-numeric metric values", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "journal",
+        "log",
+        "docs/loop.md",
+        "--status",
+        "keep",
+        "--commit",
+        "abc123",
+        "--scores",
+        '{"tests":"bad"}'
+      ])
+    ).rejects.toThrow('--scores.tests must be a finite number.');
+
+    expect(vi.mocked(sdkAppendExperimentJournalEntry)).not.toHaveBeenCalled();
+  });
+
+  it("rejects journal duration values with trailing text", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "journal",
+        "log",
+        "docs/loop.md",
+        "--status",
+        "keep",
+        "--commit",
+        "abc123",
+        "--duration-ms",
+        "2abc"
+      ])
+    ).rejects.toThrow('Invalid --duration-ms "2abc". Expected a non-negative finite number.');
+
+    expect(vi.mocked(sdkAppendExperimentJournalEntry)).not.toHaveBeenCalled();
   });
 
   it("discovers the first doc with --yes", async () => {

@@ -503,6 +503,41 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
+function parseNonNegativeFiniteNumber(value: string, fieldName: string): number {
+  const trimmed = value.trim();
+  const parsed = Number(trimmed);
+  if (trimmed.length === 0 || !Number.isFinite(parsed) || parsed < 0) {
+    throw new ValidationError(
+      `Invalid ${fieldName} "${value}". Expected a non-negative finite number.`
+    );
+  }
+
+  return parsed;
+}
+
+function parseExperimentScores(value: string): Record<string, number> {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+  } catch {
+    throw new ValidationError(`Invalid --scores JSON: ${value}`);
+  }
+
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new ValidationError("--scores must be a JSON object.");
+  }
+
+  const scores: Record<string, number> = {};
+  for (const [key, score] of Object.entries(parsed)) {
+    if (typeof score !== "number" || !Number.isFinite(score)) {
+      throw new ValidationError(`--scores.${key} must be a finite number.`);
+    }
+    scores[key] = score;
+  }
+
+  return scores;
+}
+
 async function resolveExperimentCommandConfig(
   container: CliContainer,
   options: { readonly?: boolean } = {}
@@ -935,12 +970,9 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
         let scores: Record<string, number> | undefined;
         if (opts.scores) {
-          try {
-            scores = JSON.parse(opts.scores) as Record<string, number>;
-          } catch {
-            throw new ValidationError(`Invalid --scores JSON: ${opts.scores}`);
-          }
+          scores = parseExperimentScores(opts.scores);
         }
+        const durationMs = parseNonNegativeFiniteNumber(opts.durationMs, "--duration-ms");
 
         const entry = {
           commit: opts.commit,
@@ -948,7 +980,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           ...(scores ? { scores } : {}),
           output: opts.output,
           agentOutput: "",
-          durationMs: Number.parseInt(opts.durationMs, 10) || 0,
+          durationMs,
           timestamp: new Date().toISOString()
         };
 

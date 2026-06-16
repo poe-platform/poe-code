@@ -127,10 +127,6 @@
       "const": 1
     }
   },
-  "required": [
-    "kind",
-    "version",
-    "baseline"
-  ],
+  "required": [],
   "additionalProperties": false
 }

@@ -131,7 +131,7 @@ export const experimentDocumentSchema: JsonSchema = {
       minimum: 0
     }
   },
-  required: ["kind", "version", "baseline"],
+  required: [],
   additionalProperties: false
 };
 
@@ -182,6 +182,7 @@ export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontm
   const parsed = isRecord(value) ? value : undefined;
   validateFrontmatterFields(parsed);
   validateDocumentKind(parsed ? getOwnEntry(parsed, "kind") : undefined);
+  validateDocumentVersion(parsed ? getOwnEntry(parsed, "version") : undefined);
   const agent = parseAgent(parsed ? getOwnEntry(parsed, "agent") : undefined);
   const extendsValue = parseBoolean(parsed ? getOwnEntry(parsed, "extends") : undefined);
   const metric = parseMetric(parsed ? getOwnEntry(parsed, "metric") : undefined);
@@ -225,43 +226,51 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
 }
 
 function parseMetric(value: unknown): MetricDef | MetricDef[] | undefined {
-  if (Array.isArray(value)) {
-    const metrics = value
-      .map((item) => parseMetricDefinition(item))
-      .filter((item): item is MetricDef => item !== undefined);
-
-    return metrics.length === value.length ? metrics : undefined;
-  }
-
-  return parseMetricDefinition(value);
-}
-
-function parseMetricDefinition(value: unknown): MetricDef | undefined {
-  const parsed = isRecord(value) ? value : undefined;
-  const name = parseString(parsed ? getOwnEntry(parsed, "name") : undefined);
-  const script = parseString(parsed ? getOwnEntry(parsed, "script") : undefined);
-  const direction = parseMetricDirection(parsed ? getOwnEntry(parsed, "direction") : undefined);
-
-  if (name === undefined || script === undefined || direction === undefined) {
+  if (value === undefined) {
     return undefined;
   }
 
-  const deltaValue = parsed ? getOwnEntry(parsed, "delta") : undefined;
-  const delta =
-    typeof deltaValue === "number" && Number.isFinite(deltaValue) && deltaValue >= 0
-      ? deltaValue
-      : undefined;
+  if (Array.isArray(value)) {
+    return value.map((item, index) => parseMetricDefinition(item, `metric[${index}]`));
+  }
+
+  return parseMetricDefinition(value, "metric");
+}
+
+function parseMetricDefinition(value: unknown, label: string): MetricDef {
+  if (!isRecord(value)) {
+    throw new Error(`${label} must be an object.`);
+  }
+
+  const name = parseRequiredString(getOwnEntry(value, "name"), `${label}.name`);
+  const script = parseRequiredString(getOwnEntry(value, "script"), `${label}.script`);
+  const direction = parseRequiredMetricDirection(
+    getOwnEntry(value, "direction"),
+    `${label}.direction`
+  );
+
+  const deltaValue = getOwnEntry(value, "delta");
+  if (
+    deltaValue !== undefined &&
+    (typeof deltaValue !== "number" || !Number.isFinite(deltaValue) || deltaValue < 0)
+  ) {
+    throw new Error(`${label}.delta must be a non-negative number.`);
+  }
 
   return {
     name,
     script,
     direction,
-    ...(delta !== undefined ? { delta } : {})
+    ...(deltaValue !== undefined ? { delta: deltaValue } : {})
   };
 }
 
-function parseMetricDirection(value: unknown): MetricDef["direction"] | undefined {
-  return value === "minimize" || value === "maximize" || value === "stable" ? value : undefined;
+function parseRequiredMetricDirection(value: unknown, label: string): MetricDef["direction"] {
+  if (value === "minimize" || value === "maximize" || value === "stable") {
+    return value;
+  }
+
+  throw new Error(`${label} must be one of "minimize", "maximize", or "stable".`);
 }
 
 function parseBaseline(value: unknown): Record<string, number> | null {
@@ -270,43 +279,43 @@ function parseBaseline(value: unknown): Record<string, number> | null {
   }
 
   if (!isRecord(value)) {
-    return null;
+    throw new Error("baseline must be null or an object.");
   }
 
-  const baselineEntries = Object.entries(value)
-    .map(([key, entryValue]) => {
-      if (typeof entryValue !== "number" || !Number.isFinite(entryValue)) {
-        return undefined;
-      }
+  const baselineEntries = Object.entries(value).map(([key, entryValue]) => {
+    if (typeof entryValue !== "number" || !Number.isFinite(entryValue)) {
+      throw new Error(`baseline.${key} must be a finite number.`);
+    }
 
-      return [key, entryValue] as const;
-    })
-    .filter((entry): entry is readonly [string, number] => entry !== undefined);
+    return [key, entryValue] as const;
+  });
 
-  return baselineEntries.length === Object.keys(value).length
-    ? Object.fromEntries(baselineEntries)
-    : null;
+  return Object.fromEntries(baselineEntries);
 }
 
 function parseAgent(value: unknown): string | string[] | undefined {
-  if (typeof value === "string") {
-    return parseString(value);
-  }
-
-  if (!Array.isArray(value)) {
+  if (value === undefined) {
     return undefined;
   }
 
-  const agents: string[] = [];
-  for (const item of value) {
-    const parsed = parseString(item);
-    if (parsed === undefined) {
-      return undefined;
-    }
-    agents.push(parsed);
+  if (typeof value === "string") {
+    return parseRequiredString(value, "agent");
   }
 
-  return agents.length > 0 ? agents : undefined;
+  if (!Array.isArray(value)) {
+    throw new Error("agent must be a non-empty string or an array of non-empty strings.");
+  }
+
+  if (value.length === 0) {
+    throw new Error("agent must contain at least one agent.");
+  }
+
+  const agents: string[] = [];
+  for (const [index, item] of value.entries()) {
+    agents.push(parseRequiredString(item, `agent[${index}]`));
+  }
+
+  return agents;
 }
 
 function parseString(value: unknown): string | undefined {
@@ -316,6 +325,15 @@ function parseString(value: unknown): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function parseRequiredString(value: unknown, label: string): string {
+  const parsed = parseString(value);
+  if (parsed === undefined) {
+    throw new Error(`${label} must be a non-empty string.`);
+  }
+
+  return parsed;
 }
 
 function parseOptionalNonNegativeInteger(value: unknown, label: string): number | undefined {
@@ -345,6 +363,12 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
 function validateDocumentKind(value: unknown): void {
   if (value !== undefined && value !== "experiment") {
     throw new Error("Experiment document kind must be 'experiment'.");
+  }
+}
+
+function validateDocumentVersion(value: unknown): void {
+  if (value !== undefined && value !== 1) {
+    throw new Error("Experiment document version must be 1.");
   }
 }
 

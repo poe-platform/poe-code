@@ -116,6 +116,9 @@ export async function rejectSymbolicLinkComponents(
 
     try {
       if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        if (currentPath === "/tmp") {
+          continue;
+        }
         throw new Error(`Path "${filePath}" contains a symbolic link.`);
       }
     } catch (error) {

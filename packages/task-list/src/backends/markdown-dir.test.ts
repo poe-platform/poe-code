@@ -69,6 +69,24 @@ describe("markdownDirBackend", () => {
     });
   });
 
+  it("opens macOS-style /tmp symlink paths", async () => {
+    const { fs, rawFs, volume } = createFs();
+    await rawFs.mkdir("/private/tmp", { recursive: true });
+    volume.symlinkSync("/private/tmp", "/tmp");
+
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/tmp/poe-tasks",
+      create: true,
+      fs
+    });
+
+    await expect(taskList.lists()).resolves.toEqual([]);
+    await expect(rawFs.stat("/private/tmp/poe-tasks")).resolves.toMatchObject({
+      isDirectory: expect.any(Function)
+    });
+  });
+
   it("keeps list directories lazy until the first create", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/.keep": ""
@@ -209,7 +227,9 @@ Body`
       });
 
       await expect(taskList.list("planning").get("inherited")).rejects.toThrow(
-        new MalformedTaskError('Malformed task "/repo/tasks/planning/inherited.md": invalid "state".')
+        new MalformedTaskError(
+          'Malformed task "/repo/tasks/planning/inherited.md": invalid "state".'
+        )
       );
     } finally {
       delete (Object.prototype as Record<string, unknown>).state;
@@ -717,6 +737,74 @@ state: draft
     ]);
   });
 
+  it("keeps numeric filename prefixes in passthrough documents without task fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/2026-roadmap.md": `---
+title: Roadmap
+---
+
+Roadmap body
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").all({ includeArchived: true })).resolves.toMatchObject([
+      {
+        id: "2026-roadmap",
+        qualifiedId: "plans/2026-roadmap",
+        name: "2026-roadmap"
+      }
+    ]);
+    await expect(taskList.list("plans").get("2026-roadmap")).resolves.toMatchObject({
+      id: "2026-roadmap"
+    });
+    await expect(taskList.list("plans").get("roadmap")).rejects.toThrow(
+      'Task "plans/roadmap" not found.'
+    );
+  });
+
+  it("keeps task-list numeric filename prefixes in passthrough documents with task fields", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/01-roadmap.md": `---
+name: Roadmap
+state: draft
+---
+
+Roadmap body
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").all()).resolves.toMatchObject([
+      {
+        id: "roadmap",
+        qualifiedId: "plans/roadmap",
+        name: "Roadmap"
+      }
+    ]);
+    await expect(taskList.list("plans").get("roadmap")).resolves.toMatchObject({
+      id: "roadmap"
+    });
+  });
+
   it("creates and archives tasks at the root in single-list mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/.keep": ""
@@ -1032,9 +1120,9 @@ version: 1
 
     await expect(tasks.fire("ship", "archive")).rejects.toThrow("archive relocation failed");
     await expect(tasks.get("ship")).resolves.toMatchObject({ state: "draft" });
-    await expect(storage.rawFs.readFile("/repo/tasks/planning/01-ship.md", "utf8")).resolves.toContain(
-      "state: draft"
-    );
+    await expect(
+      storage.rawFs.readFile("/repo/tasks/planning/01-ship.md", "utf8")
+    ).resolves.toContain("state: draft");
   });
 
   it("restores active task files when a reorder final rename fails", async () => {
@@ -1212,14 +1300,17 @@ state: draft
     holdMove = true;
     const moved = taskList.moveBetweenLists("planning/shared", "doing");
     await moveAtRename.promise;
-    const created = taskList.list("doing").create({ id: "shared", name: "Concurrent target" }).then(
-      () => {
-        createOutcome = "resolved";
-      },
-      () => {
-        createOutcome = "rejected";
-      }
-    );
+    const created = taskList
+      .list("doing")
+      .create({ id: "shared", name: "Concurrent target" })
+      .then(
+        () => {
+          createOutcome = "resolved";
+        },
+        () => {
+          createOutcome = "rejected";
+        }
+      );
     await waitForCondition(() => createOutcome !== "pending").catch(() => undefined);
 
     releaseMove.resolve();
@@ -1227,6 +1318,8 @@ state: draft
     await created;
 
     expect(createOutcome).toBe("rejected");
-    await expect(taskList.list("doing").get("shared")).resolves.toMatchObject({ name: "Moved source" });
+    await expect(taskList.list("doing").get("shared")).resolves.toMatchObject({
+      name: "Moved source"
+    });
   });
 });

@@ -380,11 +380,9 @@ async function readTaskFile(
     };
   }
 
-  const parsedFilename = parseActiveFilename(path.basename(filePath));
-  const defaultName = parsedFilename?.id ?? id;
   const effectiveFrontmatter: TaskRecord = {
     ...frontmatter,
-    name: typeof frontmatter.name === "string" ? frontmatter.name : defaultName,
+    name: typeof frontmatter.name === "string" ? frontmatter.name : id,
     state:
       typeof frontmatter.state === "string" && validStates.has(frontmatter.state)
         ? frontmatter.state
@@ -398,16 +396,97 @@ async function readTaskFile(
   };
 }
 
+async function readPassthroughFrontmatter(
+  fs: TaskListFs,
+  filePath: string,
+  mode: BackendDeps["frontmatterMode"]
+): Promise<TaskRecord> {
+  if (mode !== "passthrough") {
+    return {};
+  }
+
+  const content = await fs.readFile(filePath, "utf8");
+  const document = splitTaskDocument(content, filePath, mode);
+  if (document.frontmatter.trim().length === 0) {
+    return {};
+  }
+
+  return readFrontmatter(document.frontmatter, filePath);
+}
+
+async function resolveActiveFilenameEntry(
+  fs: TaskListFs,
+  entryName: string,
+  entryPath: string,
+  parsed: ActiveEntry,
+  mode: BackendDeps["frontmatterMode"]
+): Promise<ActiveEntry> {
+  if (mode !== "passthrough" || parsed.order === null) {
+    return parsed;
+  }
+
+  const frontmatter = await readPassthroughFrontmatter(fs, entryPath, mode);
+  if (
+    Object.keys(frontmatter).length === 0 &&
+    orderedFilenamePrefixLength(entryName) <= MIN_PREFIX_WIDTH
+  ) {
+    return parsed;
+  }
+
+  if (
+    typeof frontmatter.state === "string" ||
+    hasOwnTaskField(frontmatter, "$schema") ||
+    hasOwnTaskField(frontmatter, "kind") ||
+    hasOwnTaskField(frontmatter, "version")
+  ) {
+    return parsed;
+  }
+
+  return {
+    id: entryName.slice(0, -MARKDOWN_EXTENSION.length),
+    order: null,
+    filename: parsed.filename
+  };
+}
+
+function orderedFilenamePrefixLength(entryName: string): number {
+  const stem = entryName.slice(0, -MARKDOWN_EXTENSION.length);
+  const separatorIndex = stem.indexOf("-");
+  if (separatorIndex <= 0) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  for (let index = 0; index < separatorIndex; index += 1) {
+    const code = stem.charCodeAt(index);
+    if (code < 48 || code > 57) {
+      return Number.POSITIVE_INFINITY;
+    }
+  }
+
+  return separatorIndex;
+}
+
 async function findActiveTaskFilename(
   fs: TaskListFs,
   listDirectoryPath: string,
-  id: string
+  id: string,
+  mode: BackendDeps["frontmatterMode"]
 ): Promise<string | undefined> {
   const entries = await readDirectoryNames(fs, listDirectoryPath);
   for (const entryName of entries) {
     if (isHiddenEntry(entryName)) continue;
     const parsed = parseActiveFilename(entryName);
-    if (parsed?.id === id) {
+    if (!parsed) continue;
+
+    const entryPath = path.join(listDirectoryPath, entryName);
+    const resolved = await resolveActiveFilenameEntry(
+      fs,
+      entryName,
+      entryPath,
+      { id: parsed.id, order: parsed.order, filename: entryName },
+      mode
+    );
+    if (resolved.id === id) {
       return entryName;
     }
   }
@@ -419,11 +498,12 @@ async function findTaskLocation(
   rootPath: string,
   layout: ListLayout,
   list: string,
-  id: string
+  id: string,
+  mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskLocation | undefined> {
   const listDirectoryPath = listPath(rootPath, layout, list);
   await rejectSymbolicLinkComponents(fs, listDirectoryPath);
-  const activeName = await findActiveTaskFilename(fs, listDirectoryPath, id);
+  const activeName = await findActiveTaskFilename(fs, listDirectoryPath, id, mode);
   if (activeName) {
     const activePath = path.join(listDirectoryPath, activeName);
     await rejectSymbolicLinkComponents(fs, activePath);
@@ -454,7 +534,7 @@ async function readTaskAtLocation(
   initialState: string,
   mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskFile> {
-  const location = await findTaskLocation(fs, rootPath, layout, list, id);
+  const location = await findTaskLocation(fs, rootPath, layout, list, id, mode);
 
   if (!location) {
     throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
@@ -619,7 +699,15 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       const entryStat = await statIfExists(deps.fs, entryPath);
       if (!entryStat?.isFile()) continue;
 
-      result.push({ id: parsed.id, order: parsed.order, filename: entryName });
+      result.push(
+        await resolveActiveFilenameEntry(
+          deps.fs,
+          entryName,
+          entryPath,
+          { id: parsed.id, order: parsed.order, filename: entryName },
+          deps.frontmatterMode
+        )
+      );
     }
 
     result.sort((left, right) => {
@@ -881,8 +969,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         return true;
       });
 
-      const orderedActiveTasks = applyOrder(orderedActive, filter?.order);
-      return [...orderedActiveTasks, ...filteredArchived.map((entry) => entry.task)];
+      return applyOrder([...orderedActive, ...filteredArchived], filter?.order);
     },
     async get(id: string): Promise<Task> {
       return (await getTaskFile(id)).task;
@@ -894,7 +981,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       validateTaskName(input.name);
       await rejectSymbolicLinkComponents(deps.fs, listDirectoryPath);
       return withFileLock(deps.fs, path.join(listDirectoryPath, ".transition.lock"), async () => {
-        const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
+        const existing = await findTaskLocation(
+          deps.fs,
+          deps.path,
+          layout,
+          list,
+          input.id,
+          deps.frontmatterMode
+        );
         if (existing) {
           throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
         }
@@ -1030,7 +1124,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
       if (stateMachine.events[eventName]?.to === "archived") {
         validateTaskId(id);
-        const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
+        const location = await findTaskLocation(
+          deps.fs,
+          deps.path,
+          layout,
+          list,
+          id,
+          deps.frontmatterMode
+        );
         if (!location) {
           throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
         }
@@ -1063,7 +1164,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     },
     async delete(id: string): Promise<void> {
       validateTaskId(id);
-      const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
+      const location = await findTaskLocation(
+        deps.fs,
+        deps.path,
+        layout,
+        list,
+        id,
+        deps.frontmatterMode
+      );
       if (!location) {
         throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
       }
@@ -1206,12 +1314,26 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     const targetListDir = listPath(deps.path, layout, targetListName);
     await rejectSymbolicLinkComponents(deps.fs, targetListDir);
     return withFileLock(deps.fs, path.join(targetListDir, ".transition.lock"), async () => {
-      const targetExisting = await findTaskLocation(deps.fs, deps.path, layout, targetListName, id);
+      const targetExisting = await findTaskLocation(
+        deps.fs,
+        deps.path,
+        layout,
+        targetListName,
+        id,
+        deps.frontmatterMode
+      );
       if (targetExisting) {
         throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
       }
 
-      const sourceLocation = await findTaskLocation(deps.fs, deps.path, layout, sourceListName, id);
+      const sourceLocation = await findTaskLocation(
+        deps.fs,
+        deps.path,
+        layout,
+        sourceListName,
+        id,
+        deps.frontmatterMode
+      );
       if (!sourceLocation) {
         throw new TaskNotFoundError(`Task "${sourceListName}/${id}" not found.`);
       }

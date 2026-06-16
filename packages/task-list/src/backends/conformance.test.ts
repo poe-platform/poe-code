@@ -658,6 +658,18 @@ function describeBackendConformance(
         ]);
       });
 
+      it("all({ includeArchived, order: 'alphabetical' }) sorts active and archived together", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await tasks.create({ id: "zeta", name: "Zeta" });
+        await tasks.create({ id: "alpha", name: "Alpha" });
+        await tasks.fire("alpha", "archive");
+
+        await expect(
+          tasks.all({ includeArchived: true, order: "alphabetical" }).then(ids)
+        ).resolves.toEqual(["alpha", "zeta"]);
+      });
+
       it("all({ order: 'created' }) sorts by creation time", async () => {
         vi.useFakeTimers();
         vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));

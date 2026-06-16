@@ -1296,6 +1296,27 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
   });
 
+  it("reports already logged out during dry run when no stored state exists", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: undefined } },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "logout"]);
+
+    expect(logs.join("\n")).toContain("Already logged out.");
+    expect(logs.join("\n")).not.toContain("would delete config");
+  });
+
   it("does not recover malformed config while previewing logout", async () => {
     const fs = createMemFs();
     const malformedConfig = "{ invalid json\n";
@@ -1974,6 +1995,26 @@ describe("unconfigure command", () => {
     await program.parseAsync(["node", "cli", "unconfigure", "claude-code"]);
 
     await expect(fs.readFile(settingsPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("reports no configuration during dry run when service metadata is absent", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "unconfigure", "codex"]);
+
+    expect(logs.join("\n")).toContain("No Codex configuration found.");
+    expect(logs.join("\n")).not.toContain("would remove Codex configuration");
   });
 
   it("does not recover malformed config while previewing unconfigure", async () => {

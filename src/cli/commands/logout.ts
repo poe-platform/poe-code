@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { isNotFound } from "@poe-code/config-mutations";
 import type { CliContainer } from "../container.js";
 import { deleteConfig, loadConfiguredServices } from "../../services/config.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
@@ -26,14 +27,15 @@ export async function executeLogout(program: Command, container: CliContainer): 
     readOnly: flags.dryRun
   });
 
-  let authenticatedProviders: Array<{ id: string; authenticated: boolean }> = [];
+  const authenticatedProviders = await Promise.all(
+    container.providerRegistry.list().map(async (provider) => ({
+      id: provider.id,
+      authenticated: await container.providerRegistry.isLoggedIn(provider.id, {
+        readOnly: flags.dryRun
+      })
+    }))
+  );
   if (!flags.dryRun) {
-    authenticatedProviders = await Promise.all(
-      container.providerRegistry.list().map(async (provider) => ({
-        id: provider.id,
-        authenticated: await container.providerRegistry.isLoggedIn(provider.id)
-      }))
-    );
     for (const provider of authenticatedProviders) {
       await container.providerRegistry.logout(provider.id);
     }
@@ -47,10 +49,22 @@ export async function executeLogout(program: Command, container: CliContainer): 
     await executeUnconfigure(program, container, serviceName, {});
   }
 
+  const environmentCredential = container.env.getVariable("POE_API_KEY");
+  const hasEnvironmentCredential =
+    typeof environmentCredential === "string" && environmentCredential.trim().length > 0;
+
   if (flags.dryRun) {
+    const hasStoredState =
+      Object.keys(configuredServices).length > 0 ||
+      authenticatedProviders.some((provider) => provider.authenticated) ||
+      hasEnvironmentCredential ||
+      (await fileExists(container, container.env.configPath)) ||
+      (await fileExists(container, container.env.servicesConfigPath));
     resources.context.complete({
       success: "Logged out.",
-      dry: `Dry run: would delete config at ${container.env.configPath}.`
+      dry: hasStoredState
+        ? `Dry run: would delete config at ${container.env.configPath}.`
+        : "Already logged out."
     });
     resources.context.finalize();
     return;
@@ -65,10 +79,6 @@ export async function executeLogout(program: Command, container: CliContainer): 
     filePath: container.env.servicesConfigPath
   });
 
-  const environmentCredential = container.env.getVariable("POE_API_KEY");
-  const hasEnvironmentCredential = typeof environmentCredential === "string"
-    && environmentCredential.trim().length > 0;
-
   resources.context.complete({
     success: hasEnvironmentCredential
       ? "Stored credentials removed, but POE_API_KEY remains set; unset it to log out fully."
@@ -79,4 +89,16 @@ export async function executeLogout(program: Command, container: CliContainer): 
   });
 
   resources.context.finalize();
+}
+
+async function fileExists(container: CliContainer, filePath: string): Promise<boolean> {
+  try {
+    await container.fs.lstat(filePath);
+    return true;
+  } catch (error) {
+    if (isNotFound(error)) {
+      return false;
+    }
+    throw error;
+  }
 }

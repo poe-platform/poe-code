@@ -401,6 +401,69 @@ describe("agent builder", () => {
     expect(result.output).toBe("done");
   });
 
+  it.each(["", "   "])("rejects blank run prompt %j before starting the model", async (prompt) => {
+    const model = createModel(
+      [
+        {
+          message: {
+            content: "done",
+            toolCalls: []
+          }
+        }
+      ],
+      []
+    );
+
+    await expect(
+      agent().model("custom/provider-model").run(prompt, { acpModel: model })
+    ).rejects.toThrow("Prompt must not be empty.");
+    expect(model.complete).not.toHaveBeenCalled();
+  });
+
+  it.each(["", "   "])("rejects blank ACP prompt %j before starting the model", async (prompt) => {
+    const model = createModel(
+      [
+        {
+          message: {
+            content: "done",
+            toolCalls: []
+          }
+        }
+      ],
+      []
+    );
+
+    await expect(
+      agent().model("custom/provider-model").acp(prompt, { acpModel: model })
+    ).rejects.toThrow("Prompt must not be empty.");
+    expect(model.complete).not.toHaveBeenCalled();
+  });
+
+  it.each([-1, 0, 0.5, Number.POSITIVE_INFINITY, Number.NaN])(
+    "rejects invalid maxIterations %s before starting the model",
+    async (maxIterations) => {
+      const model = createModel(
+        [
+          {
+            message: {
+              content: "done",
+              toolCalls: []
+            }
+          }
+        ],
+        []
+      );
+
+      await expect(
+        agent().model("custom/provider-model").run("hello", {
+          acpModel: model,
+          maxIterations
+        })
+      ).rejects.toThrow("maxIterations must be a positive integer.");
+      expect(model.complete).not.toHaveBeenCalled();
+    }
+  );
+
   it("preserves reasoning fields between model iterations through provider requests", async () => {
     const requests: Array<{ messages: Array<Record<string, unknown>> }> = [];
     const responses: LegacyAcpModelResponse[] = [

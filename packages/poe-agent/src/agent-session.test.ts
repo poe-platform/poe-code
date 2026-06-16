@@ -25,6 +25,17 @@ const agentMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./agent.js", () => ({
   agent: agentMock,
+  assertPositiveIntegerOption: (value: unknown, key: string) => {
+    if (value === undefined) return;
+    if (
+      typeof value !== "number" ||
+      !Number.isFinite(value) ||
+      !Number.isInteger(value) ||
+      value <= 0
+    ) {
+      throw new Error(`${key} must be a positive integer.`);
+    }
+  },
   normalizeNonEmptyString: (value: string | null | undefined) => {
     if (typeof value !== "string") return undefined;
     const trimmed = value.trim();
@@ -563,6 +574,33 @@ describe("createAgentSession", () => {
         __legacyAutoHandleTools: true
       })
     );
+  });
+
+  it.each([-1, 0, 0.5, Number.POSITIVE_INFINITY, Number.NaN])(
+    "rejects invalid maxToolCallIterations %s",
+    async (maxToolCallIterations) => {
+      const { createAgentSession } = await import("./agent-session.js");
+
+      await expect(
+        createAgentSession({
+          model: "Claude-Sonnet-4.5",
+          plugins: [],
+          maxToolCallIterations
+        })
+      ).rejects.toThrow("maxToolCallIterations must be a positive integer.");
+      expect(acpMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["", "   "])("rejects blank sendMessage prompt %j", async (prompt) => {
+    const { createAgentSession } = await import("./agent-session.js");
+    const session = await createAgentSession({
+      model: "Claude-Sonnet-4.5",
+      plugins: []
+    });
+
+    await expect(session.sendMessage(prompt)).rejects.toThrow("Prompt must not be empty.");
+    expect(acpMock).not.toHaveBeenCalled();
   });
 
   it("seeds the first run with resumed messages", async () => {

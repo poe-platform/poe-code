@@ -136,6 +136,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 
   async acp(prompt: string, options: AgentRunOptions = {}): Promise<AcpSession> {
+    const normalizedPrompt = normalizePrompt(prompt);
     const prepared = await this.#prepareRun(options).catch((error) => {
       throw toError(error);
     });
@@ -154,7 +155,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
       autoHandleTools ? delegateHost.handle.bind(delegateHost) : undefined
     );
     const events = runAcpCore({
-      prompt,
+      prompt: normalizedPrompt,
       runContext: prepared.runContext,
       host,
       model: prepared.model,
@@ -338,6 +339,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 
   async #startRun(prompt: string, options: AgentRunOptions): Promise<StartedRun> {
+    const normalizedPrompt = normalizePrompt(prompt);
     const prepared = await this.#prepareRun(options);
     const host = new AgentHost({
       runContext: prepared.runContext,
@@ -350,7 +352,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
     return {
       ...prepared,
       events: runAcpCore({
-        prompt,
+        prompt: normalizedPrompt,
         runContext: prepared.runContext,
         host,
         model: prepared.model,
@@ -362,6 +364,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
   }
 
   async #prepareRun(options: AgentRunOptions): Promise<PreparedRun> {
+    assertPositiveIntegerOption(options.maxIterations, "maxIterations");
     const activeSkills = resolveActiveSkills(options);
     const runContext = createRunContext({
       ...(activeSkills === undefined ? {} : { activeSkills }),
@@ -683,6 +686,29 @@ export function normalizeNonEmptyString(value: string | null | undefined): strin
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function assertPositiveIntegerOption(value: unknown, key: string): void {
+  if (value === undefined) {
+    return;
+  }
+
+  if (
+    typeof value !== "number" ||
+    !Number.isFinite(value) ||
+    !Number.isInteger(value) ||
+    value <= 0
+  ) {
+    throw new Error(`${key} must be a positive integer.`);
+  }
+}
+
+function normalizePrompt(prompt: string): string {
+  if (typeof prompt !== "string" || prompt.trim().length === 0) {
+    throw new Error("Prompt must not be empty.");
+  }
+
+  return prompt;
 }
 
 function toError(value: unknown): Error {

@@ -1049,6 +1049,27 @@ describe("poe-agent built-in plugins", () => {
     expect(fork).not.toHaveBeenCalled();
   });
 
+  it.each([
+    [{}, 'Tool argument "task" must be a string'],
+    [{ task: 123 }, 'Tool argument "task" must be a string'],
+    [{ task: "" }, 'Tool argument "task" must not be empty'],
+    [{ task: "   " }, 'Tool argument "task" must not be empty']
+  ])("spawn plugin rejects invalid task argument %#", async (args, expectedError) => {
+    const spawn = vi.fn(async () => ({ output: "spawned", messages: [] }));
+    const fork = vi.fn(async () => ({ output: "forked", messages: [] }));
+    const plugin = spawnPlugin();
+    const spawnContext: ToolContext = {
+      spawn,
+      fork,
+      signal: new AbortController().signal
+    };
+
+    const tool = plugin.tools?.[0];
+    await expect(tool?.call(args, spawnContext)).rejects.toThrow(expectedError);
+    expect(spawn).not.toHaveBeenCalled();
+    expect(fork).not.toHaveBeenCalled();
+  });
+
   it("skills plugin reads options.skills at prompt time and injects active-skill guidance", async () => {
     let runtimeSkills = ["repo"];
     const getActiveTools = vi.fn((activeSkills?: string[]) => {

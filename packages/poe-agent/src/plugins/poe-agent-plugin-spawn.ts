@@ -1,4 +1,5 @@
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { getRequiredString } from "./plugin-args.js";
 
 const spawn = (): AgentPlugin => ({
   name: "spawn",
@@ -20,7 +21,8 @@ const spawn = (): AgentPlugin => ({
         required: ["task"]
       },
       async call(args, ctx) {
-        const result = await ctx.spawn((args as { task: string }).task);
+        const task = getRequiredString(args, "task");
+        const result = await ctx.spawn(task);
         return result.output;
       }
     }

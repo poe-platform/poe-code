@@ -9,6 +9,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import {
   agent,
+  assertPositiveIntegerOption,
   normalizeNonEmptyString,
   type AgentBuilder,
   type AgentRunOptions
@@ -101,6 +102,8 @@ export async function createAgentSession(
     throw new Error("Cannot provide both plugins and pluginsConfig.");
   }
 
+  assertPositiveIntegerOption(options.maxToolCallIterations, "maxToolCallIterations");
+
   let builder = agent().model(model);
   const plugins = options.plugins ??
     (options.pluginsConfig !== undefined
@@ -182,6 +185,10 @@ async function adaptAcpToLegacySession(
     ): Promise<ChatMessage> {
       if (disposed) {
         throw new Error("Agent session is already disposed.");
+      }
+
+      if (!normalizeNonEmptyString(prompt)) {
+        throw new Error("Prompt must not be empty.");
       }
 
       const onSessionUpdate = sendOptions.onSessionUpdate;

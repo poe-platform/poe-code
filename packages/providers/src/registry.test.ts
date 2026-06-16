@@ -175,6 +175,44 @@ describe("ProviderRegistry", () => {
     ).toThrow(/duplicate provider id/i);
   });
 
+  it("rejects blank provider ids", () => {
+    expect(() => new ProviderRegistry([makeProvider({ id: "   " })])).toThrow(
+      "Provider id must not be blank."
+    );
+  });
+
+  it("rejects provider ids that only differ by surrounding whitespace", () => {
+    expect(() => new ProviderRegistry([poe, makeProvider({ id: " poe " })])).toThrow(
+      "Provider id must not include surrounding whitespace: \" poe \""
+    );
+  });
+
+  it("rejects duplicate api-key storage keys", () => {
+    expect(
+      () =>
+        new ProviderRegistry([
+          makeProvider({
+            id: "alpha",
+            auth: {
+              kind: "api-key",
+              envVar: "ALPHA_API_KEY",
+              storageKey: "provider:shared",
+              prompt: { title: "Alpha API key" }
+            }
+          }),
+          makeProvider({
+            id: "beta",
+            auth: {
+              kind: "api-key",
+              envVar: "BETA_API_KEY",
+              storageKey: "provider:shared",
+              prompt: { title: "Beta API key" }
+            }
+          })
+        ])
+    ).toThrow("Duplicate provider credential storage key: provider:shared");
+  });
+
   it("isLoggedIn throws for unknown provider id", async () => {
     const registry = new ProviderRegistry([poe]);
     await expect(registry.isLoggedIn("nope")).rejects.toThrow(/unknown provider/i);
@@ -206,6 +244,21 @@ describe("ProviderRegistry", () => {
     const registry = new ProviderRegistry([poe], () => emptyStore, {
       envVars: { POE_API_KEY: "   " }
     });
+    await expect(registry.isLoggedIn("poe")).resolves.toBe(false);
+  });
+
+  it("isLoggedIn ignores inherited env var values", async () => {
+    const emptyStore = {
+      get: async () => null,
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const envVars = Object.create({ POE_API_KEY: "inherited-key" }) as Record<
+      string,
+      string | undefined
+    >;
+    const registry = new ProviderRegistry([poe], () => emptyStore, { envVars });
+
     await expect(registry.isLoggedIn("poe")).resolves.toBe(false);
   });
 
@@ -318,6 +371,30 @@ describe("ProviderRegistry", () => {
     expect(stored).toBe("env-key");
   });
 
+  it("login ignores inherited constructor environment credentials", async () => {
+    let stored: string | null = null;
+    const envVars = Object.create({ ANTHROPIC_API_KEY: "inherited-key" }) as Record<
+      string,
+      string | undefined
+    >;
+    const registry = new ProviderRegistry(
+      [anthropicProvider],
+      () => ({
+        get: async () => null,
+        set: async (value: string) => {
+          stored = value;
+        },
+        delete: async () => undefined
+      }),
+      { envVars }
+    );
+
+    await expect(registry.login("anthropic", {})).rejects.toThrow(
+      "No API key available for provider \"anthropic\"."
+    );
+    expect(stored).toBeNull();
+  });
+
   it("stores login credentials in an injected transaction store", async () => {
     let defaultStored: string | null = null;
     let transactionStored: string | null = null;
@@ -356,6 +433,21 @@ describe("ProviderRegistry", () => {
     await expect(
       new ProviderRegistry([poe], () => store).resolveCredential("poe")
     ).resolves.toBe("stored-key");
+  });
+
+  it("resolveCredential ignores inherited env var values", async () => {
+    const envVars = Object.create({ POE_API_KEY: "inherited-key" }) as Record<
+      string,
+      string | undefined
+    >;
+    const store = {
+      get: async () => "stored-key",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => store, { envVars });
+
+    await expect(registry.resolveCredential("poe")).resolves.toBe("stored-key");
   });
 
   it("trims stored credentials when resolving them", async () => {

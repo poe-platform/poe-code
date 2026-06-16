@@ -39,11 +39,29 @@ export class ProviderRegistry {
     options?: ProviderRegistryOptions
   ) {
     const byId = new Map<string, AuthProvider>();
+    const storageKeys = new Map<string, string>();
     for (const provider of providers) {
-      if (byId.has(provider.id)) {
-        throw new Error(`Duplicate provider id: ${provider.id}`);
+      const providerId = provider.id.trim();
+      if (providerId.length === 0) {
+        throw new Error("Provider id must not be blank.");
       }
-      byId.set(provider.id, provider);
+      if (provider.id !== providerId) {
+        throw new Error(
+          `Provider id must not include surrounding whitespace: ${JSON.stringify(provider.id)}`
+        );
+      }
+      if (byId.has(providerId)) {
+        throw new Error(`Duplicate provider id: ${providerId}`);
+      }
+      if (provider.auth.kind === "api-key") {
+        if (storageKeys.has(provider.auth.storageKey)) {
+          throw new Error(
+            `Duplicate provider credential storage key: ${provider.auth.storageKey}`
+          );
+        }
+        storageKeys.set(provider.auth.storageKey, providerId);
+      }
+      byId.set(providerId, provider);
     }
     this.providers = Object.freeze([...providers]);
     this.byId = byId;
@@ -68,7 +86,7 @@ export class ProviderRegistry {
   async isLoggedIn(id: string, options: { readOnly?: boolean } = {}): Promise<boolean> {
     const provider = this.requireProvider(id);
     if (provider.auth.kind === "api-key") {
-      const envValue = this.envVars[provider.auth.envVar];
+      const envValue = readOwnEnvValue(this.envVars, provider.auth.envVar);
       if (typeof envValue === "string" && envValue.trim().length > 0) {
         return true;
       }
@@ -85,7 +103,7 @@ export class ProviderRegistry {
       throw new Error(`Provider "${id}" does not use api-key auth.`);
     }
     const auth = provider.auth;
-    const envApiKey = (context?.envVars ?? this.envVars)[auth.envVar];
+    const envApiKey = readOwnEnvValue(context?.envVars ?? this.envVars, auth.envVar);
     const resolvedApiKey =
       options.apiKey ??
       (typeof envApiKey === "string" && envApiKey.trim() ? envApiKey : undefined);
@@ -120,7 +138,7 @@ export class ProviderRegistry {
     }
 
     const envVars = context?.envVars ?? this.envVars;
-    const envApiKey = envVars[provider.auth.envVar];
+    const envApiKey = readOwnEnvValue(envVars, provider.auth.envVar);
     if (typeof envApiKey === "string" && envApiKey.trim().length > 0) {
       return envApiKey.trim();
     }
@@ -160,4 +178,11 @@ function normalizeRequiredCredential(providerId: string, value: string): string 
     throw new Error(`No API key available for provider "${providerId}".`);
   }
   return trimmed;
+}
+
+function readOwnEnvValue(
+  envVars: Record<string, string | undefined>,
+  name: string
+): string | undefined {
+  return Object.prototype.hasOwnProperty.call(envVars, name) ? envVars[name] : undefined;
 }

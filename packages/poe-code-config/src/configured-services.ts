@@ -85,18 +85,44 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
 }
 
 export async function unconfigureService(options: UnconfigureServiceOptions): Promise<boolean> {
-  const { fs, filePath, service } = options;
+  const { fs, filePath, projectFilePath, service } = options;
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
+  const filePaths = [
+    filePath,
+    ...(projectFilePath && projectFilePath !== filePath ? [projectFilePath] : [])
+  ];
+  await migrateConfiguredServiceLayers(options, filePaths);
 
-  const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(getOwnEntry(document, configuredServicesScope));
+  const removals: ConfiguredServicesRemoval[] = [];
+  for (const configPath of filePaths) {
+    const document = await readDocument(fs, configPath);
+    const original = normalizeConfiguredServices(getOwnEntry(document, configuredServicesScope));
+    if (!Object.hasOwn(original, service)) {
+      continue;
+    }
 
-  if (!Object.hasOwn(services, service)) {
+    const updated = { ...original };
+    delete updated[service];
+    removals.push({ filePath: configPath, original, updated });
+  }
+
+  if (removals.length === 0) {
     return false;
   }
 
-  delete services[service];
-  await writeScope(fs, filePath, configuredServicesScope, services);
+  const committed: ConfiguredServicesRemoval[] = [];
+  try {
+    for (const removal of removals) {
+      await writeScope(fs, removal.filePath, configuredServicesScope, removal.updated);
+      committed.push(removal);
+    }
+  } catch (error) {
+    for (const removal of committed.reverse()) {
+      await writeScope(fs, removal.filePath, configuredServicesScope, removal.original).catch(() => undefined);
+    }
+    throw error;
+  }
+
   return true;
 }
 
@@ -136,6 +162,12 @@ interface ConfiguredServicesMigration {
   filePath: string;
   migrated: Record<string, unknown>;
   original: Record<string, unknown>;
+}
+
+interface ConfiguredServicesRemoval {
+  filePath: string;
+  original: Record<string, ConfiguredServiceMetadata>;
+  updated: Record<string, ConfiguredServiceMetadata>;
 }
 
 async function prepareConfiguredServicesMigration(

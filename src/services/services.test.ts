@@ -185,6 +185,63 @@ describe("config store", () => {
     expect(services).toEqual({});
   });
 
+  it("removes configured service metadata from the project config layer", async () => {
+    await fs.mkdir(path.dirname(projectConfigPath), { recursive: true });
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(
+        {
+          configured_services: {
+            codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+    await fs.writeFile(
+      projectConfigPath,
+      `${JSON.stringify(
+        {
+          configured_services: {
+            "claude-code": {
+              files: ["/home/user/.claude/settings.json"],
+              provider: "anthropic"
+            }
+          }
+        },
+        null,
+        2
+      )}\n`,
+      { encoding: "utf8" }
+    );
+
+    await expect(
+      unconfigureService({
+        fs,
+        filePath: configPath,
+        projectFilePath: projectConfigPath,
+        service: "claude-code"
+      })
+    ).resolves.toBe(true);
+
+    await expect(
+      loadConfiguredServices({
+        fs,
+        filePath: configPath,
+        projectFilePath: projectConfigPath
+      })
+    ).resolves.toEqual({
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: ["/home/user/.codex/config.toml"]
+      }
+    });
+    expect(JSON.parse(await fs.readFile(projectConfigPath, "utf8"))).toEqual({});
+  });
+
   it("migrates legacy credentials.json to config.json on first read", async () => {
     const legacyPath = path.join(path.dirname(configPath), "credentials.json");
     const data = {

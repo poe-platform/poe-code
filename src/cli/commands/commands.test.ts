@@ -1969,6 +1969,46 @@ describe("unconfigure command", () => {
     expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
   });
 
+  it("uses provider metadata for unconfigure messages", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    const adapter = {
+      ...createProviderStub({
+        name: "test-service",
+        label: "Test Service",
+        async unconfigure() {
+          return true;
+        }
+      }),
+      configurationLabel: "Test Service CLI"
+    } as ProviderService & { configurationLabel: string };
+
+    container.registry.register(adapter);
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "unconfigure", "test-service"]);
+
+    expect(logs.join("\n")).toContain("Removed Test Service CLI configuration.");
+    expect(logs.join("\n")).not.toContain("Removed Test Service configuration.");
+  });
+
   it("does not remove untracked Claude Code user settings", async () => {
     const fs = createMemFs();
     const settingsPath = `${homeDir}/.claude/settings.json`;

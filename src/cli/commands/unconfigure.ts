@@ -53,7 +53,7 @@ export async function executeUnconfigure(
   });
   const metadata = configuredServices[canonicalService];
   if (!metadata) {
-    resources.context.complete(formatUnconfigureMessages(canonicalService, adapter.label, false, {}));
+    resources.context.complete(formatUnconfigureMessages(adapter, false, {}));
     resources.context.finalize();
     return;
   }
@@ -131,12 +131,7 @@ export async function executeUnconfigure(
     }
   );
 
-  const messages = formatUnconfigureMessages(
-    canonicalService,
-    adapter.label,
-    unconfigured,
-    payload
-  );
+  const messages = formatUnconfigureMessages(adapter, unconfigured, payload);
 
   resources.context.complete(messages);
 
@@ -160,46 +155,18 @@ async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<u
 }
 
 function formatUnconfigureMessages(
-  service: string,
-  label: string,
+  adapter: { label: string; configurationLabel?: string },
   unconfigured: unknown,
   _payload: unknown
 ): { success: string; dry: string } {
   const didUnconfigure = typeof unconfigured === "boolean" ? unconfigured : Boolean(unconfigured);
-  switch (service) {
-    case "claude-code":
-      return {
-        success: didUnconfigure
-          ? "Removed Claude Code configuration."
-          : "No Claude Code configuration found.",
-        dry: didUnconfigure
-          ? "Dry run: would remove Claude Code configuration."
-          : "No Claude Code configuration found."
-      };
-    case "codex":
-      return {
-        success: didUnconfigure ? "Removed Codex configuration." : "No Codex configuration found.",
-        dry: didUnconfigure
-          ? "Dry run: would remove Codex configuration."
-          : "No Codex configuration found."
-      };
-    case "opencode":
-      return {
-        success: didUnconfigure
-          ? "Removed OpenCode CLI configuration."
-          : "No OpenCode CLI configuration found.",
-        dry: didUnconfigure
-          ? "Dry run: would remove OpenCode CLI configuration."
-          : "No OpenCode CLI configuration found."
-      };
-    default:
-      return {
-        success: didUnconfigure
-          ? `Removed ${label} configuration.`
-          : `No ${label} configuration found.`,
-        dry: didUnconfigure
-          ? `Dry run: would remove ${label} configuration.`
-          : `No ${label} configuration found.`
-      };
-  }
+  const label = adapter.configurationLabel ?? adapter.label;
+  return {
+    success: didUnconfigure
+      ? `Removed ${label} configuration.`
+      : `No ${label} configuration found.`,
+    dry: didUnconfigure
+      ? `Dry run: would remove ${label} configuration.`
+      : `No ${label} configuration found.`
+  };
 }

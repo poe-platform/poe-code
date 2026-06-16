@@ -77,6 +77,7 @@ export interface ProviderService<TConfigure = any, TUnconfigure = TConfigure, TS
   ): Promise<boolean>;
   name: string;
   label: string;
+  configurationLabel?: string;
   branding?: ProviderBranding;
   disabled?: boolean;
   supportsStdinPrompt?: boolean;

@@ -49,6 +49,7 @@ interface CreateProviderOptions<
   name: string;
   aliases?: string[];
   label: string;
+  configurationLabel?: string;
   id: string;
   summary: string;
   branding?: ProviderBranding;
@@ -92,6 +93,7 @@ export function createProvider<
     name: opts.name,
     aliases: opts.aliases,
     label: opts.label,
+    configurationLabel: opts.configurationLabel,
     branding: opts.branding,
     disabled: opts.disabled,
     supportsStdinPrompt: opts.supportsStdinPrompt,

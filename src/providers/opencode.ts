@@ -79,6 +79,7 @@ async function ensureHealthWorkspace(context: ProviderContext): Promise<string> 
 
 export const openCodeService = createProvider({
   ...openCodeAgent,
+  configurationLabel: "OpenCode CLI",
   supportsStdinPrompt: false,
   supportsMcpSpawn: true,
   configurePrompts: {

@@ -1,6 +1,7 @@
 import fsPromises from "node:fs/promises";
 import path from "node:path";
 import { isSessionEntry, type SessionEntry } from "./entry-types.js";
+import { assertSafeSessionId } from "./session-id.js";
 
 type JsonlSessionStoreFs = {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
@@ -16,6 +17,7 @@ export interface SessionStore {
 }
 
 export function createMemorySessionStore(sessionId: string): SessionStore {
+  assertSafeSessionId(sessionId);
   const entries: SessionEntry[] = [];
 
   return {
@@ -40,6 +42,7 @@ export async function createJsonlSessionStore(
   directory: string,
   options: { fs?: JsonlSessionStoreFs } = {}
 ): Promise<SessionStore> {
+  assertSafeSessionId(sessionId);
   const fs = options.fs ?? fsPromises;
   const filePath = path.join(directory, `${sessionId}.jsonl`);
   let writeQueue = Promise.resolve();
@@ -69,7 +72,8 @@ export async function createJsonlSessionStore(
       }
 
       const entries: SessionEntry[] = [];
-      for (const line of serialized.split("\n")) {
+      const lines = serialized.split("\n");
+      for (const [index, line] of lines.entries()) {
         const trimmed = line.trim();
         if (trimmed.length === 0) {
           continue;
@@ -79,7 +83,14 @@ export async function createJsonlSessionStore(
         try {
           parsed = JSON.parse(trimmed);
         } catch {
-          break;
+          const isTrailingPartialLine = index === lines.length - 1 && !serialized.endsWith("\n");
+          if (isTrailingPartialLine) {
+            break;
+          }
+
+          throw new Error(
+            `Unable to parse poe-agent session entry at ${filePath}:${index + 1}.`
+          );
         }
 
         if (!isSessionEntry(parsed)) {

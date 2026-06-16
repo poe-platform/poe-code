@@ -1,6 +1,7 @@
 import fsPromises from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { assertSafeSessionId } from "./runtime/session/session-id.js";
 import type { ChatMessage } from "./runtime/types.js";
 
 interface SessionStoreFs {
@@ -39,6 +40,7 @@ export function createAgentSessionStore(
 
   return {
     async load(threadId: string): Promise<PersistedAgentSession | undefined> {
+      assertSafeSessionId(threadId);
       const filePath = path.join(sessionsDir, `${threadId}.json`);
       let serialized: string;
       try {
@@ -73,6 +75,7 @@ export function createAgentSessionStore(
     },
 
     async save(session: PersistedAgentSession): Promise<void> {
+      assertSafeSessionId(session.threadId);
       await fs.mkdir(sessionsDir, { recursive: true });
       const filePath = path.join(sessionsDir, `${session.threadId}.json`);
       await fs.writeFile(filePath, `${JSON.stringify(session, null, 2)}\n`, "utf8");
@@ -92,8 +95,60 @@ function isPersistedAgentSession(value: unknown): value is PersistedAgentSession
     typeof session.cwd === "string" &&
     typeof session.createdAt === "string" &&
     typeof session.updatedAt === "string" &&
-    Array.isArray(session.messages)
+    Array.isArray(session.messages) &&
+    session.messages.every(isChatMessage)
   );
+}
+
+function isChatMessage(value: unknown): value is ChatMessage {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const message = value as Record<string, unknown>;
+  if (!isChatRole(message.role)) {
+    return false;
+  }
+
+  return typeof message.content === "string" || isToolResultPartArray(message.content);
+}
+
+function isChatRole(value: unknown): value is ChatMessage["role"] {
+  switch (value) {
+    case "system":
+    case "user":
+    case "assistant":
+    case "tool":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function isToolResultPartArray(value: unknown): boolean {
+  return Array.isArray(value) && value.every(isToolResultPart);
+}
+
+function isToolResultPart(value: unknown): boolean {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const part = value as Record<string, unknown>;
+  switch (part.type) {
+    case "text":
+      return typeof part.text === "string";
+    case "image":
+      return typeof part.mimeType === "string" && typeof part.data === "string";
+    case "error":
+      return (
+        typeof part.code === "string" &&
+        typeof part.message === "string" &&
+        typeof part.retriable === "boolean"
+      );
+    default:
+      return false;
+  }
 }
 
 function getVersion(value: unknown): unknown {

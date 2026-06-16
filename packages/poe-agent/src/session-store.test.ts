@@ -60,4 +60,52 @@ describe("createAgentSessionStore", () => {
       /Unsupported poe-agent session version.*future\.json/
     );
   });
+
+  it("rejects sessions with invalid messages", async () => {
+    const { store, volume } = createStore();
+    const filePath = path.join(homeDir, ".poe-code", "sessions", "thread.json");
+    volume.mkdirSync(path.dirname(filePath), { recursive: true });
+    volume.writeFileSync(
+      filePath,
+      JSON.stringify({
+        version: 1,
+        threadId: "thread",
+        model: "gpt-test",
+        cwd: "/repo",
+        createdAt: "2026-01-01T00:00:00.000Z",
+        updatedAt: "2026-01-01T00:00:00.000Z",
+        messages: [123, { role: "admin", content: 42 }]
+      })
+    );
+
+    await expect(store.load("thread")).rejects.toThrow(`Invalid poe-agent session at ${filePath}.`);
+  });
+
+  it.each(["", "   ", ".", "..", "../outside", "nested/session", "nested\\session"])(
+    "rejects unsafe thread id on load %j",
+    async (threadId) => {
+      const { store } = createStore();
+
+      await expect(store.load(threadId)).rejects.toThrow("Invalid poe-agent session id");
+    }
+  );
+
+  it.each(["", "   ", ".", "..", "../outside", "nested/session", "nested\\session"])(
+    "rejects unsafe thread id on save %j",
+    async (threadId) => {
+      const { store } = createStore();
+
+      await expect(
+        store.save({
+          version: 1,
+          threadId,
+          model: "m",
+          cwd: "/repo",
+          createdAt: "t",
+          updatedAt: "t",
+          messages: []
+        })
+      ).rejects.toThrow("Invalid poe-agent session id");
+    }
+  );
 });

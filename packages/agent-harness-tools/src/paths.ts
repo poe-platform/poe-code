@@ -70,13 +70,35 @@ async function discoverFromDirectory(options: {
   glob: string;
 }): Promise<Array<{ fileName: string; absolutePath: string }>> {
   const entries = await readDirectory(options.fs, options.directoryPath);
+  const docs: Array<{ fileName: string; absolutePath: string }> = [];
 
-  return entries
-    .filter((entry) => matchesGlob(entry, options.glob))
-    .map((entry) => ({
-      fileName: entry,
-      absolutePath: path.join(options.directoryPath, entry)
-    }));
+  for (const entry of entries) {
+    if (!matchesGlob(entry, options.glob)) {
+      continue;
+    }
+
+    const absolutePath = path.join(options.directoryPath, entry);
+    if (await isDiscoverableEntry(options.fs, absolutePath)) {
+      docs.push({ fileName: entry, absolutePath });
+    }
+  }
+
+  return docs;
+}
+
+async function isDiscoverableEntry(
+  fs: DiscoverDocsOptions["fs"],
+  filePath: string
+): Promise<boolean> {
+  try {
+    return !(await fs.lstat(filePath)).isSymbolicLink();
+  } catch (error) {
+    if (isMissingDirectory(error)) {
+      return false;
+    }
+
+    throw error;
+  }
 }
 
 export async function discoverWorkflowDocs(options: DiscoverDocsOptions): Promise<string[]> {

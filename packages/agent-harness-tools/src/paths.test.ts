@@ -230,6 +230,24 @@ describe("discoverWorkflowDocs", () => {
     expect(docs).toEqual([]);
   });
 
+  it("does not discover symlinked documents inside workflow directories", async () => {
+    const docs = await discoverWorkflowDocs({
+      cwd,
+      homeDir,
+      subDirectory: "ralph/plans",
+      fs: createFs(
+        {
+          "/outside-docs/external.md": "# external",
+          "/repo/.poe-code/ralph/plans/local.md": "# local"
+        },
+        ["/repo/.poe-code/ralph/plans", "/outside-docs"],
+        { "/repo/.poe-code/ralph/plans/linked.md": "/outside-docs/external.md" }
+      )
+    });
+
+    expect(docs).toEqual(["/repo/.poe-code/ralph/plans/local.md"]);
+  });
+
   it("does not discover documents through a symlinked global directory", async () => {
     const docs = await discoverWorkflowDocs({
       cwd,

@@ -74,7 +74,7 @@ Review and improve the plan in this file.
 
 Docs are auto-discovered from `.poe-code/ralph/plans/` — you almost never need to pass a path manually.
 
-1. Scan `.poe-code/ralph/plans/` and `~/.poe-code/ralph/plans/` for `.md` files
+1. Scan `.poe-code/ralph/plans/` under the current working directory for `.md` files
 2. One doc found — use it
 3. Multiple — prompt for selection
 4. None — fail

@@ -1,6 +1,6 @@
 # @poe-code/pipeline
 
-Step-based task pipeline for running YAML plans through the existing agent spawn infrastructure.
+Step-based task pipeline for running task plans through the existing agent spawn infrastructure.
 
 ## Quickstart
 
@@ -151,24 +151,24 @@ When all tasks complete successfully, the plan moves to `plans/archive/`. Plans 
 
 ## Plan Discovery
 
-Plans are auto-discovered from `.poe-code/pipeline/plans/` — you almost never need to pass `--plan` manually.
+Plans are auto-discovered from markdown files in the shared plan directory,
+`docs/plans` by default. Explicit `--plan` paths can still point at YAML files.
 
-1. Check `config.yaml` for `planPath`
-2. Scan `plans/` directories for `plan*.yaml` / `plan*.yml`
-3. One plan found — use it
-4. Multiple — prompt with completion stats
-5. None — prompt for path (or fail with `--yes`)
+1. Scan the shared plan directory for markdown files with `kind: pipeline`
+2. One plan found — use it with `--yes`, otherwise prompt with completion stats
+3. Multiple — prompt with completion stats, or use the first path alphabetically with `--yes`
+4. None — prompt for path, or fail with `--yes`
 
 ## Custom Plan Directory
 
-By default plans are discovered from `.poe-code/pipeline/plans/`. To use a different directory:
+By default plans are discovered from `docs/plans`. To use a different directory:
 
 ```bash
 # Set plan directory in project config (.poe-code/config.json)
-# { "pipeline": { "plan_directory": "docs/plans" } }
+# { "plan": { "plan_directory": "docs/plans" } }
 
 # Or via env
-POE_PIPELINE_PLAN_DIRECTORY=docs/plans poe-code pipeline run
+POE_PLAN_DIRECTORY=docs/plans poe-code pipeline run
 
 # Or point to a specific file directly
 poe-code pipeline run --plan docs/plans/my-feature.yaml

@@ -41,17 +41,16 @@ poe-code --yes plan browse
 
 This package does not introduce any new config keys.
 
-It respects the existing config options:
+It discovers markdown plans from the shared plan directory. The default is
+`docs/plans`.
 
-- `pipeline.plan_directory`
-- `experiment.plan_directory`
-- `ralph.plan_directory`
+It respects the existing config option:
 
-It also respects the existing environment variables:
+- `plan.plan_directory`
 
-- `POE_PIPELINE_PLAN_DIRECTORY`
-- `POE_EXPERIMENT_PLAN_DIRECTORY`
-- `POE_RALPH_PLAN_DIRECTORY`
+It also respects the existing environment variable:
+
+- `POE_PLAN_DIRECTORY`
 
 ## Public API
 

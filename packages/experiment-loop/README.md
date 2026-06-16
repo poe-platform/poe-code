@@ -104,14 +104,15 @@ The agent learns from past attempts through the journal — it sees what worked 
 
 ## Custom Experiment Directory
 
-By default experiment docs are discovered from `.poe-code/experiments/`. To use a different directory:
+By default experiment docs are discovered from the shared plan directory, `docs/plans`.
+To use a different directory:
 
 ```bash
 # Set plan directory in project config (.poe-code/config.json)
-# { "experiment": { "plan_directory": "docs/experiments" } }
+# { "plan": { "plan_directory": "docs/experiments" } }
 
 # Or via env
-POE_EXPERIMENT_PLAN_DIRECTORY=docs/experiments poe-code experiment run
+POE_PLAN_DIRECTORY=docs/experiments poe-code experiment run
 
 # Or point to a specific doc directly
 poe-code experiment run docs/experiments/optimize-tests.md

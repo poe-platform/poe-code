@@ -2,6 +2,7 @@ import { Command, Option } from "commander";
 import { select, promptText, isCancel, cancel, getTheme, renderTable, withSpinner } from "toolcraft-design";
 import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 import { ValidationError } from "../errors.js";
 import {
   followLaunchLogs,
@@ -652,8 +653,9 @@ function parsePositiveInt(value: string | undefined, fieldName: string): number 
     return undefined;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed < 1) {
+  const normalized = value.trim();
+  const parsed = Number.parseInt(normalized, 10);
+  if (!isDecimalIntegerLiteral(normalized) || !Number.isInteger(parsed) || parsed < 1) {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
   }
   return parsed;
@@ -672,8 +674,9 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
     return undefined;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed < 0) {
+  const normalized = value.trim();
+  const parsed = Number.parseInt(normalized, 10);
+  if (!isDecimalIntegerLiteral(normalized) || !Number.isInteger(parsed) || parsed < 0) {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a non-negative integer.`);
   }
   return parsed;

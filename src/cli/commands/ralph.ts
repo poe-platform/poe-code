@@ -37,6 +37,7 @@ import {
   resolveCommandFlags,
   resolveDefaultAgent
 } from "./shared.js";
+import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
 import {
   runRalph as sdkRunRalph,
@@ -282,8 +283,9 @@ function parsePositiveInt(value: string | undefined, fieldName: string): number 
     return undefined;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
+  const normalized = value.trim();
+  const parsed = Number.parseInt(normalized, 10);
+  if (!isDecimalIntegerLiteral(normalized) || !Number.isFinite(parsed) || parsed < 1) {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
   }
 

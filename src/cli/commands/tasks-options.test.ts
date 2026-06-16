@@ -143,6 +143,26 @@ maestro:
     });
   });
 
+  it("rejects project numbers that are not plain decimal integers", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+
+    for (const project of ["acme/1e2", "acme/0x10", "acme/12.0"]) {
+      await expect(
+        resolveTasksOptions(project, {
+          workflow: "/repo/WORKFLOW.md"
+        })
+      ).rejects.toMatchObject({
+        code: "invalid_project"
+      });
+    }
+  });
+
   it("throws missing_workflow when WORKFLOW.md does not exist", async () => {
     await expect(
       resolveTasksOptions("acme/12", {

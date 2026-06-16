@@ -3,6 +3,7 @@ import path from "node:path";
 import { parseFrontmatter } from "@poe-code/github-workflows";
 import type { OpenTaskListOptions, StateMachineDef } from "@poe-code/task-list";
 import { hasOwnErrorCode } from "../../utils/error-codes.js";
+import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 
 const DEFAULT_WORKFLOW_PATH = "./WORKFLOW.md";
 const MAESTRO_TASK_STATE_MACHINE_STATES = [
@@ -178,14 +179,17 @@ function createAnyToAnyStateMachine(states: string[]): StateMachineDef {
 
 function parseProject(value: string | undefined): { owner: string; number: number } {
   const [owner, rawNumber, extra] = value?.split("/") ?? [];
-  const number = rawNumber === undefined ? NaN : Number(rawNumber);
+  const normalizedNumber = rawNumber?.trim();
+  const hasValidNumber =
+    normalizedNumber !== undefined && isDecimalIntegerLiteral(normalizedNumber);
+  const number = hasValidNumber ? Number.parseInt(normalizedNumber, 10) : NaN;
 
   if (
     value === undefined ||
     owner === undefined ||
     owner.trim().length === 0 ||
     rawNumber === undefined ||
-    rawNumber.trim().length === 0 ||
+    !hasValidNumber ||
     extra !== undefined ||
     !Number.isInteger(number)
   ) {

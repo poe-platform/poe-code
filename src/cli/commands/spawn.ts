@@ -47,6 +47,7 @@ import {
   pickRuntimeOptions,
   type RuntimeCliOptions
 } from "./runtime-options.js";
+import { isDecimalIntegerLiteral } from "./decimal-integer.js";
 
 const SPAWN_MODES = ["yolo", "auto", "edit", "read"] as const;
 
@@ -799,8 +800,9 @@ function assertMcpSpawnSupport(
 }
 
 function parsePositiveInt(value: string, fieldName: string): number {
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isInteger(parsed) || parsed < 1) {
+  const normalized = value.trim();
+  const parsed = Number.parseInt(normalized, 10);
+  if (!isDecimalIntegerLiteral(normalized) || !Number.isInteger(parsed) || parsed < 1) {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
   }
   return parsed;

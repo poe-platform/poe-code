@@ -208,6 +208,28 @@ describe("launch command", () => {
     );
   });
 
+  it("rejects max restarts with trailing suffixes", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "launch",
+        "start",
+        "api",
+        "--max-restarts",
+        "2abc",
+        "--",
+        "node",
+        "server.js"
+      ])
+    ).rejects.toThrow('Invalid max-restarts "2abc". Expected a non-negative integer.');
+
+    expect(startLaunchMock).not.toHaveBeenCalled();
+  });
+
   it("preserves prototype-named launch environment entries", async () => {
     const program = createBaseProgram();
     registerLaunchCommand(program, createContainer());

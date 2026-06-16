@@ -2704,6 +2704,33 @@ describe("ralph run command", () => {
     expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
   });
 
+  it("rejects run iterations with trailing suffixes", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": ["---", "agent: codex", "iterations: 4", "---", "# Loop"].join("\n")
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "ralph",
+        "run",
+        "docs/loop.md",
+        "--iterations",
+        "2abc"
+      ])
+    ).rejects.toThrow('Invalid iterations "2abc". Expected a positive integer.');
+
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
   it("shows frontmatter hints in the doc selection prompt", async () => {
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md");
 

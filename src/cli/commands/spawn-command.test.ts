@@ -1919,6 +1919,31 @@ describe("spawn command", () => {
     });
   });
 
+  it("rejects activity timeout values with trailing suffixes", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--activity-timeout-ms",
+        "2abc",
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow('Invalid --activity-timeout-ms "2abc". Expected a positive integer.');
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("passes native OTel capture options to SDK spawn", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

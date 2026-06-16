@@ -8,7 +8,7 @@ import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "toolcraft";
 import type { Group } from "toolcraft";
 import { cancel, isCancel, renderTemplate, select } from "toolcraft-design";
-import { discoverAutomations, loadAutomation } from "./discover.js";
+import { discoverAutomations, loadAutomation, usesDefaultAgent } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
 import { runTruffleHogPrScanCommand } from "./exec/trufflehog-pr-scan.js";
@@ -121,7 +121,10 @@ const runCommandDef = defineCommand({
         await discoverAutomations(await resolveBuiltInPromptsDir(), ...projectPromptDirs(cwd))
       ));
     const automation = await loadNamedAutomation(name, cwd);
-    const agent = automation.agent ?? params.agent ?? "codex";
+    const agent =
+      params.agent !== undefined && usesDefaultAgent(automation)
+        ? params.agent
+        : automation.agent ?? params.agent ?? "codex";
     const variables = await loadVariables(await resolveBuiltInAssetsDir(), projectGitHubWorkflowsDir(cwd));
     const sharedTemplateContext = { ...variables, ...buildTemplateContext(env) };
 

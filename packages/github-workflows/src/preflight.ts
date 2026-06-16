@@ -15,7 +15,7 @@ function checkRequiredEnvVar(
   key: string
 ): void {
   const value = env.get(key);
-  if (value === undefined || value === "") {
+  if (value === undefined || value.trim() === "") {
     throw new UserError(`Missing required environment variable: ${key}`);
   }
 }

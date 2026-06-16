@@ -113,6 +113,7 @@ export function renderTruffleHogFindingsTable(
   findings: TruffleHogFinding[],
   options: { repository: string; headSha: string; maxFindings: number }
 ): string {
+  assertPositiveInteger(options.maxFindings, "maxFindings");
   const uniqueFindings = uniqueTruffleHogFindings(findings);
   const rows = [
     "| Detector | Location | Verification |",
@@ -211,7 +212,7 @@ async function scanForSecrets(
 async function reportAdvisoryResult(env: EnvReader, runner: CommandRunner, fs: TruffleHogFileSystem): Promise<void> {
   const githubToken = requireEnv(env, "GH_TOKEN");
   const headSha = requireEnv(env, "HEAD_SHA");
-  const maxFindings = numberEnv(env, "MAX_FINDINGS");
+  const maxFindings = positiveDecimalIntegerEnv(env, "MAX_FINDINGS");
   const prNumber = requireEnv(env, "PR_NUMBER");
   const repository = requireEnv(env, "REPOSITORY");
   const resultsFile = env.get("TRUFFLEHOG_RESULTS_FILE") ?? DEFAULT_RESULTS_FILE;
@@ -464,13 +465,36 @@ function requireEnv(env: EnvReader, name: string): string {
   return value;
 }
 
-function numberEnv(env: EnvReader, name: string): number {
-  const value = Number(requireEnv(env, name));
-  if (!Number.isFinite(value)) {
-    throw new UserError(`${name} must be a number.`);
+function positiveDecimalIntegerEnv(env: EnvReader, name: string): number {
+  const parsed = parsePositiveDecimalInteger(requireEnv(env, name));
+  if (parsed === undefined) {
+    throw new UserError(`${name} must be a positive integer.`);
   }
 
-  return value;
+  return parsed;
+}
+
+function parsePositiveDecimalInteger(value: string): number | undefined {
+  let parsed = 0;
+
+  for (const char of value) {
+    const digit = char.charCodeAt(0) - "0".charCodeAt(0);
+    if (digit < 0 || digit > 9) {
+      return undefined;
+    }
+    parsed = parsed * 10 + digit;
+    if (!Number.isSafeInteger(parsed)) {
+      return undefined;
+    }
+  }
+
+  return parsed > 0 ? parsed : undefined;
+}
+
+function assertPositiveInteger(value: number, label: string): void {
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
 }
 
 function parseJsonObject(value: string): Record<string, unknown> {

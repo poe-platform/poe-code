@@ -127,6 +127,15 @@ describe("renderTruffleHogFindingsTable", () => {
       ].join("\n")
     );
   });
+
+  it.each([-1, 0, 1.5])("rejects invalid maxFindings value %s", (maxFindings) => {
+    expect(() =>
+      renderTruffleHogFindingsTable(
+        [{ detector: "OpenAI", filePath: "src/config.ts", lineNumber: 12, status: "unverified" }],
+        { repository: "poe-platform/poe-code", headSha: "abc123", maxFindings }
+      )
+    ).toThrow("maxFindings must be a positive integer.");
+  });
 });
 
 describe("renderTruffleHogComment", () => {
@@ -231,6 +240,24 @@ describe("runTruffleHogPrScanCommand", () => {
 
     await expect(fs.readFile("/outside-output", "utf8")).resolves.toBe("original output");
   });
+
+  it.each(["-1", "0", "1.5", "0x2", "1e2", " 2 "])(
+    "rejects invalid MAX_FINDINGS count %s",
+    async (maxFindings) => {
+      const { fs } = createTestFileSystem({ "/tmp/trufflehog-results.jsonl": `${finding}\n` });
+      const runner = vi.fn();
+
+      await expect(
+        runTruffleHogPrScanCommand(
+          "report-advisory-result",
+          env({ ...advisoryEnv, MAX_FINDINGS: maxFindings }),
+          { fs, runner }
+        )
+      ).rejects.toThrow("MAX_FINDINGS must be a positive integer.");
+
+      expect(runner).not.toHaveBeenCalled();
+    }
+  );
 
   it("runs GitHub API subprocesses with the workflow timeout", async () => {
     const { fs } = createTestFileSystem({ "/tmp/trufflehog-results.jsonl": "" });

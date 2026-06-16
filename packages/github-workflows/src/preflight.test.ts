@@ -24,6 +24,12 @@ describe("runPreflightChecks", () => {
     ).toThrow("Missing required environment variable: POE_API_KEY");
   });
 
+  it("throws when POE_API_KEY contains only whitespace", () => {
+    expect(() =>
+      runPreflightChecks({ env: createEnv({ POE_API_KEY: "   " }), nodeVersion: "v22.0.0" })
+    ).toThrow("Missing required environment variable: POE_API_KEY");
+  });
+
   it("throws when node version is below 18", () => {
     expect(() =>
       runPreflightChecks({ env: createEnv({ POE_API_KEY: "key" }), nodeVersion: "v16.20.2" })

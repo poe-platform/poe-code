@@ -169,6 +169,29 @@ describe("loadAutomation", () => {
     });
   });
 
+  it.each([
+    ["source", ["---", "source: ''", "---", "Prompt"].join("\n")],
+    ["agent", ["---", "agent: '   '", "---", "Prompt"].join("\n")]
+  ])("rejects blank %s frontmatter", async (_field, content) => {
+    writeMarkdown("/built-in", "triage.md", content);
+
+    await expect(loadAutomation("triage", ["/built-in"])).rejects.toThrow(
+      'Automation "triage.md" has invalid'
+    );
+  });
+
+  it("rejects blank MCP commands", async () => {
+    writeMarkdown(
+      "/built-in",
+      "triage.md",
+      ["---", "mcp:", "  local:", "    command: ''", "---", "Prompt"].join("\n")
+    );
+
+    await expect(loadAutomation("triage", ["/built-in"])).rejects.toThrow(
+      'Automation "triage.md" has invalid "mcp.local.command" frontmatter. Expected a non-empty string.'
+    );
+  });
+
   it("ignores inherited automation fields", async () => {
     writeMarkdown("/built-in", "triage.md", ["---", "{}", "---"].join("\n"));
 

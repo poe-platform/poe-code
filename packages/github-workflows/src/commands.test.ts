@@ -788,6 +788,20 @@ describe("ghGroup", () => {
     expect(result).toMatchObject({ dryRun: true, automation: "fix-vulnerabilities" });
   });
 
+  it("uses the run agent override when automation discovery supplied the default agent", async () => {
+    writeBuiltInPrompt("update-documentation", "Update the docs.");
+
+    const result = await getCommand(["run"]).handler(
+      createContext(
+        { name: "update-documentation", agent: "claude-code", cwd: "/repo", dryRun: true },
+        { GITHUB_REPOSITORY: "acme/app" },
+        { poeApiKey: "poe-key" }
+      )
+    );
+
+    expect(result).toMatchObject({ dryRun: true, automation: "update-documentation", agent: "claude-code" });
+  });
+
   it("prepare fails when POE_API_KEY is missing", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
 

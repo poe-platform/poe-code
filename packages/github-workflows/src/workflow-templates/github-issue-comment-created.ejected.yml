@@ -24,9 +24,10 @@ jobs:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
         run: |
           missing=()
-          [ -z "$POE_CODE_AGENT_APP_ID" ] && missing+=("POE_CODE_AGENT_APP_ID")
-          [ -z "$POE_CODE_AGENT_PRIVATE_KEY" ] && missing+=("POE_CODE_AGENT_PRIVATE_KEY")
-          [ -z "$POE_API_KEY" ] && missing+=("POE_API_KEY")
+          is_blank() { [[ -z "${1//[[:space:]]/}" ]]; }
+          is_blank "$POE_CODE_AGENT_APP_ID" && missing+=("POE_CODE_AGENT_APP_ID")
+          is_blank "$POE_CODE_AGENT_PRIVATE_KEY" && missing+=("POE_CODE_AGENT_PRIVATE_KEY")
+          is_blank "$POE_API_KEY" && missing+=("POE_API_KEY")
           if [ ${#missing[@]} -gt 0 ]; then
             for name in "${missing[@]}"; do
               echo "::error::Missing required secret: $name — add it in Settings → Secrets and variables → Actions"
@@ -82,9 +83,10 @@ jobs:
           POE_API_KEY: ${{ secrets.POE_API_KEY }}
         run: |
           missing=()
-          [ -z "$POE_CODE_AGENT_APP_ID" ] && missing+=("POE_CODE_AGENT_APP_ID")
-          [ -z "$POE_CODE_AGENT_PRIVATE_KEY" ] && missing+=("POE_CODE_AGENT_PRIVATE_KEY")
-          [ -z "$POE_API_KEY" ] && missing+=("POE_API_KEY")
+          is_blank() { [[ -z "${1//[[:space:]]/}" ]]; }
+          is_blank "$POE_CODE_AGENT_APP_ID" && missing+=("POE_CODE_AGENT_APP_ID")
+          is_blank "$POE_CODE_AGENT_PRIVATE_KEY" && missing+=("POE_CODE_AGENT_PRIVATE_KEY")
+          is_blank "$POE_API_KEY" && missing+=("POE_API_KEY")
           if [ ${#missing[@]} -gt 0 ]; then
             for name in "${missing[@]}"; do
               echo "::error::Missing required secret: $name — add it in Settings → Secrets and variables → Actions"

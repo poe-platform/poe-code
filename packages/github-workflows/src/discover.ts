@@ -4,6 +4,9 @@ import { resolve } from "@poe-code/config-extends";
 import { hasOwnErrorCode } from "./errors.js";
 import type { AutomationDefinition } from "./types.js";
 
+const DEFAULTS_SOURCE = "defaults";
+const AGENT_SOURCE_PROPERTY = "__poeCodeAgentSource";
+
 const VALID_AUTHOR_ASSOCIATIONS = new Set([
   "COLLABORATOR",
   "CONTRIBUTOR",
@@ -96,7 +99,7 @@ async function readAutomation(
         path: baseDir
       })),
       {
-        source: "defaults",
+        source: DEFAULTS_SOURCE,
         data: {
           agent: "codex"
         }
@@ -108,11 +111,25 @@ async function readAutomation(
   );
   const name = stripPrefix(fileName.slice(0, -3));
 
-  return {
+  const automation: AutomationDefinition = {
     name,
     prompt: readPrompt(getOwnEntry(resolved.data, "prompt"), fileName),
     ...readAutomationFields(resolved.data, fileName)
   };
+  Object.defineProperty(automation, AGENT_SOURCE_PROPERTY, {
+    configurable: true,
+    enumerable: false,
+    value: resolved.sources.agent
+  });
+  return automation;
+}
+
+export function usesDefaultAgent(automation: AutomationDefinition): boolean {
+  return getInternalAgentSource(automation) === DEFAULTS_SOURCE;
+}
+
+function getInternalAgentSource(automation: AutomationDefinition): string | undefined {
+  return (automation as AutomationDefinition & { [AGENT_SOURCE_PROPERTY]?: string })[AGENT_SOURCE_PROPERTY];
 }
 
 function readPrompt(value: unknown, fileName: string): string {
@@ -132,8 +149,8 @@ function readAutomationFields(
   fileName: string
 ): Omit<AutomationDefinition, "name" | "prompt"> {
   const label = readOptionalString(getOwnEntry(frontmatter, "label"), "label", fileName);
-  const source = readOptionalString(getOwnEntry(frontmatter, "source"), "source", fileName);
-  const agent = readOptionalString(getOwnEntry(frontmatter, "agent"), "agent", fileName);
+  const source = readOptionalNonBlankString(getOwnEntry(frontmatter, "source"), "source", fileName);
+  const agent = readOptionalNonBlankString(getOwnEntry(frontmatter, "agent"), "agent", fileName);
   const mcp = readOptionalMcp(getOwnEntry(frontmatter, "mcp"), fileName);
   const allow = readOptionalStringArray(getOwnEntry(frontmatter, "allow"), "allow", fileName);
   const prefix = readOptionalPrefix(getOwnEntry(frontmatter, "prefix"), fileName);
@@ -160,6 +177,28 @@ function readOptionalString(
   if (typeof value !== "string") {
     throw new Error(`Automation "${fileName}" has invalid "${field}" frontmatter. Expected a string.`);
   }
+  return value;
+}
+
+function readOptionalNonBlankString(
+  value: unknown,
+  field: "source" | "agent",
+  fileName: string
+): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`Automation "${fileName}" has invalid "${field}" frontmatter. Expected a string.`);
+  }
+
+  if (value.trim().length === 0) {
+    throw new Error(
+      `Automation "${fileName}" has invalid "${field}" frontmatter. Expected a non-empty string.`
+    );
+  }
+
   return value;
 }
 
@@ -264,6 +303,12 @@ function readOptionalMcp(
     if (typeof command !== "string") {
       throw new Error(
         `Automation "${fileName}" has invalid "mcp.${serverName}.command" frontmatter. Expected a string.`
+      );
+    }
+
+    if (command.trim().length === 0) {
+      throw new Error(
+        `Automation "${fileName}" has invalid "mcp.${serverName}.command" frontmatter. Expected a non-empty string.`
       );
     }
 

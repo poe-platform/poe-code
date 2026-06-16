@@ -165,4 +165,50 @@ describe("renderLandingPage", () => {
     expect(html).toContain(".flow > * { min-width: 0; }");
     expect(html).toContain(".hero-actions { align-items: stretch; flex-direction: column; }");
   });
+
+  it("does not render unsafe css from the accent value", () => {
+    const html = renderLandingPage({
+      ...page,
+      accent: "red; } body { display: none; } :root { --accent: red"
+    });
+
+    expect(html).not.toContain("body { display: none; }");
+    expect(html).toContain("--accent: #2563eb;");
+  });
+
+  it("omits executable repository links and replaces executable docs links", () => {
+    const html = renderLandingPage({
+      ...page,
+      repoUrl: "javascript:alert(1)",
+      docsUrl: "javascript:alert(2)"
+    });
+
+    expect(html).not.toContain("javascript:");
+    expect(html).not.toContain("View on GitHub");
+    expect(html).not.toContain(">GitHub</a>");
+    expect(html).toContain('href="#docs"');
+    expect(html).not.toContain('href="#docs#');
+  });
+
+  it("strips existing docs url fragments before adding card fragments", () => {
+    const html = renderLandingPage({
+      ...page,
+      docsUrl: "https://example.com/readme#overview"
+    });
+
+    expect(html).toContain('href="https:&#x2F;&#x2F;example.com&#x2F;readme"');
+    expect(html).toContain('href="https:&#x2F;&#x2F;example.com&#x2F;readme#hello-world"');
+    expect(html).toContain(
+      'href="https:&#x2F;&#x2F;example.com&#x2F;readme#migrating-from-a-folder-of-scripts"'
+    );
+    expect(html).not.toContain("#overview#hello-world");
+  });
+
+  it("does not render an interactive copy button without javascript", () => {
+    const html = renderLandingPage({ ...page, includeJs: false });
+
+    expect(html).not.toContain('data-copy="npm install toolcraft"');
+    expect(html).not.toContain('<button class="copy"');
+    expect(html).not.toContain("<script>");
+  });
 });

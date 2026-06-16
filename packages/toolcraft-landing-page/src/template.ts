@@ -33,7 +33,9 @@ export const TEMPLATE = String.raw`<!doctype html>
           {{#install}}
           <div class="install">
             <code><span aria-hidden="true">$ </span>{{{installHtml}}}</code>
+            {{#copyInstall}}
             <button class="copy" type="button" data-copy="{{install}}" aria-label="Copy {{install}}">Copy</button>
+            {{/copyInstall}}
           </div>
           {{/install}}
         </div>
@@ -112,10 +114,10 @@ export const TEMPLATE = String.raw`<!doctype html>
             <a class="text-link" href="{{docsUrl}}">Read the Toolcraft README <span aria-hidden="true">→</span></a>
           </div>
           <div class="docs-grid">
-            <a class="doc-card" href="{{docsUrl}}#hello-world"><span>01</span><strong>Start with one command</strong><small>Install, define, and run a typed CLI in five minutes.</small></a>
-            <a class="doc-card" href="{{docsUrl}}#one-binary-three-runtimes"><span>02</span><strong>Choose a runtime</strong><small>CLI, MCP, and SDK from the same command tree.</small></a>
-            <a class="doc-card" href="{{docsUrl}}#secrets"><span>03</span><strong>Add safety controls</strong><small>Secrets, preconditions, services, and human approval.</small></a>
-            <a class="doc-card" href="{{docsUrl}}#migrating-from-a-folder-of-scripts"><span>04</span><strong>Migrate existing scripts</strong><small>Adopt Toolcraft incrementally without rewriting useful logic.</small></a>
+            <a class="doc-card" href="{{docsHelloWorldUrl}}"><span>01</span><strong>Start with one command</strong><small>Install, define, and run a typed CLI in five minutes.</small></a>
+            <a class="doc-card" href="{{docsRuntimeUrl}}"><span>02</span><strong>Choose a runtime</strong><small>CLI, MCP, and SDK from the same command tree.</small></a>
+            <a class="doc-card" href="{{docsSecretsUrl}}"><span>03</span><strong>Add safety controls</strong><small>Secrets, preconditions, services, and human approval.</small></a>
+            <a class="doc-card" href="{{docsMigrationUrl}}"><span>04</span><strong>Migrate existing scripts</strong><small>Adopt Toolcraft incrementally without rewriting useful logic.</small></a>
           </div>
         </div>
       </section>

@@ -22,12 +22,17 @@ export async function createWritableCheckout(
   await assertPathHasNoSymbolicLinks(options.fs, cwd);
   await options.fs.mkdir(path.dirname(cwd), { recursive: true });
   await assertPathHasNoSymbolicLinks(options.fs, cwd);
-  await assertExecSuccess(
-    await options.exec("git", ["worktree", "add", "--detach", cwd, revision], {
-      cwd: sourceCwd
-    }),
-    "git worktree add failed"
-  );
+  try {
+    await assertExecSuccess(
+      await options.exec("git", ["worktree", "add", "--detach", cwd, revision], {
+        cwd: sourceCwd
+      }),
+      "git worktree add failed"
+    );
+  } catch (error) {
+    await removeCheckout(cwd, sourceCwd, options).catch(() => undefined);
+    throw error;
+  }
   try {
     await options.fs.mkdir(cwd, { recursive: true });
   } catch (error) {

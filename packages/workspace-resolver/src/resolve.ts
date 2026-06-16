@@ -1,6 +1,6 @@
 import path from "node:path";
 import { hasOwnErrorCode } from "./error-codes.js";
-import { cloneOrUpdate } from "./github/clone.js";
+import { cloneOrUpdate, fetchRef } from "./github/clone.js";
 import { createWritableCheckout } from "./github/isolation.js";
 import { parseLocator } from "./parse.js";
 import type { ResolvedWorkspace, WorkspaceResolverOptions } from "./types.js";
@@ -11,8 +11,10 @@ export async function resolveWorkspace(
 ): Promise<ResolvedWorkspace> {
   const locator = parseLocator(input);
   if (locator.scheme === "local") {
+    const cwd = path.isAbsolute(locator.path) ? locator.path : path.resolve(options.baseDir, locator.path);
+    await assertPathExists(options.fs, cwd, cwd, locator);
     return {
-      cwd: path.isAbsolute(locator.path) ? locator.path : path.resolve(options.baseDir, locator.path),
+      cwd,
       locator
     };
   }
@@ -26,14 +28,21 @@ export async function resolveWorkspace(
     mode === "edit" || mode === "auto" || (mode === "read" && locator.ref !== undefined);
   const cacheLocator = needsIsolatedCheckout ? { ...locator, ref: undefined } : locator;
   const cacheDir = await cloneOrUpdate(cacheLocator, options);
+  const checkoutLocator =
+    needsIsolatedCheckout && locator.ref !== undefined
+      ? { ...locator, ref: "FETCH_HEAD" }
+      : locator;
   let writable:
     | Awaited<ReturnType<typeof createWritableCheckout>>
     | undefined;
 
   try {
+    if (needsIsolatedCheckout && locator.ref !== undefined) {
+      await fetchRef(cacheDir, locator.ref, options);
+    }
     writable =
       needsIsolatedCheckout
-        ? await createWritableCheckout(locator, cacheDir, options)
+        ? await createWritableCheckout(checkoutLocator, cacheDir, options)
         : undefined;
     const workspaceRoot = writable?.cwd ?? cacheDir;
     const cwd = locator.subdir ? path.join(workspaceRoot, locator.subdir) : workspaceRoot;

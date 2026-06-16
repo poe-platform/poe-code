@@ -229,10 +229,32 @@ describe("assertPathHasNoSymbolicLinks", () => {
 
 describe("resolveWorkspace", () => {
   it("resolves relative local paths against baseDir", async () => {
-    await expect(resolveWorkspace("./apps/api", createOptions())).resolves.toEqual({
+    const fs = createFs();
+    await fs.mkdir("/workspace/apps/api", { recursive: true });
+
+    await expect(resolveWorkspace("./apps/api", createOptions({ fs }))).resolves.toEqual({
       cwd: "/workspace/apps/api",
       locator: { scheme: "local", path: "./apps/api" }
     });
+  });
+
+  it("rejects local paths that do not exist", async () => {
+    const fs = createFs();
+
+    await expect(resolveWorkspace("./missing-dir", createOptions({ fs }))).rejects.toThrow(
+      'Workspace path "/workspace/missing-dir" does not exist.'
+    );
+  });
+
+  it("rejects local paths that are not directories", async () => {
+    const fs = createFs();
+    await fs.mkdir("/workspace", { recursive: true });
+    await (fs as ResolverFileSystem & { writeFile(path: string, content: string): Promise<void> })
+      .writeFile("/workspace/file.txt", "not a directory");
+
+    await expect(resolveWorkspace("./file.txt", createOptions({ fs }))).rejects.toThrow(
+      'Workspace path "/workspace/file.txt" is not a directory.'
+    );
   });
 
   it("resolves github locators to the shared cache in read mode", async () => {
@@ -354,7 +376,8 @@ describe("resolveWorkspace", () => {
 
     expect(result.cwd).not.toBe(cachePath);
     expect(result.cleanup).toBeTypeOf("function");
-    expect(calls).toContainEqual(["worktree", "add", "--detach", expect.any(String), "feature"]);
+    expect(calls).toContainEqual(["fetch", "origin", "--", "feature"]);
+    expect(calls).toContainEqual(["worktree", "add", "--detach", expect.any(String), "FETCH_HEAD"]);
     expect(calls).not.toContainEqual(["checkout", "--", "feature"]);
   });
 
@@ -392,7 +415,12 @@ describe("resolveWorkspace", () => {
       expect.arrayContaining([
         expect.objectContaining({
           command: "git",
-          args: ["worktree", "add", "--detach", expect.any(String), "main"],
+          args: ["fetch", "origin", "--", "main"],
+          cwd: cachePath
+        }),
+        expect.objectContaining({
+          command: "git",
+          args: ["worktree", "add", "--detach", expect.any(String), "FETCH_HEAD"],
           cwd: cachePath
         }),
         expect.objectContaining({
@@ -421,14 +449,20 @@ describe("resolveWorkspace", () => {
   });
 
   it("resolves absolute local paths directly without baseDir", async () => {
-    await expect(resolveWorkspace("/tmp/absolute", createOptions())).resolves.toEqual({
+    const fs = createFs();
+    await fs.mkdir("/tmp/absolute", { recursive: true });
+
+    await expect(resolveWorkspace("/tmp/absolute", createOptions({ fs }))).resolves.toEqual({
       cwd: "/tmp/absolute",
       locator: { scheme: "local", path: "/tmp/absolute" }
     });
   });
 
   it("resolves dot as the baseDir itself", async () => {
-    await expect(resolveWorkspace(".", createOptions({ baseDir: "/workspace" }))).resolves.toEqual({
+    const fs = createFs();
+    await fs.mkdir("/workspace", { recursive: true });
+
+    await expect(resolveWorkspace(".", createOptions({ baseDir: "/workspace", fs }))).resolves.toEqual({
       cwd: "/workspace",
       locator: { scheme: "local", path: "." }
     });
@@ -609,7 +643,11 @@ describe("resolveWorkspace", () => {
       expect.arrayContaining([
         expect.objectContaining({
           command: "git",
-          args: ["worktree", "add", "--detach", expect.any(String), "v2.0.0"]
+          args: ["fetch", "origin", "--", "v2.0.0"]
+        }),
+        expect.objectContaining({
+          command: "git",
+          args: ["worktree", "add", "--detach", expect.any(String), "FETCH_HEAD"]
         })
       ])
     );

@@ -46,17 +46,25 @@ export async function cloneOrUpdate(
   }
 
   if (locator.ref) {
+    await fetchRef(cacheDir, locator.ref, options);
     await assertExecSuccess(
-      await options.exec("git", ["fetch", "origin"], { cwd: cacheDir }),
-      "git fetch failed"
-    );
-    await assertExecSuccess(
-      await options.exec("git", ["checkout", "--", locator.ref], { cwd: cacheDir }),
+      await options.exec("git", ["checkout", "FETCH_HEAD", "--"], { cwd: cacheDir }),
       "git checkout failed"
     );
   }
 
   return cacheDir;
+}
+
+export async function fetchRef(
+  cacheDir: string,
+  ref: string,
+  options: WorkspaceResolverOptions
+): Promise<void> {
+  await assertExecSuccess(
+    await options.exec("git", ["fetch", "origin", "--", ref], { cwd: cacheDir }),
+    "git fetch failed"
+  );
 }
 
 async function pathExists(

@@ -83,7 +83,7 @@ describe("github clone helpers", () => {
     expect(mkdirCalls).toBe(1);
   });
 
-  it("updates a clean cached checkout and checks out the requested ref", async () => {
+  it("updates a clean cached checkout and checks out the requested ref as a revision", async () => {
     const fs = createFs();
     await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
       recursive: true
@@ -112,12 +112,12 @@ describe("github clone helpers", () => {
       },
       {
         command: "git",
-        args: ["fetch", "origin"],
+        args: ["fetch", "origin", "--", "beta"],
         cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       },
       {
         command: "git",
-        args: ["checkout", "--", "beta"],
+        args: ["checkout", "FETCH_HEAD", "--"],
         cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       }
     ]);
@@ -192,7 +192,12 @@ describe("github clone helpers", () => {
 
     expect(exec).toHaveBeenCalledWith(
       "git",
-      ["checkout", "--", "--detach"],
+      ["fetch", "origin", "--", "--detach"],
+      { cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code" }
+    );
+    expect(exec).toHaveBeenCalledWith(
+      "git",
+      ["checkout", "FETCH_HEAD", "--"],
       { cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code" }
     );
   });
@@ -290,6 +295,37 @@ describe("createWritableCheckout", () => {
       ["worktree", "add"],
       ["worktree", "remove"]
     ]);
+  });
+
+  it("cleans up a worktree directory when git worktree add fails after creating it", async () => {
+    const fs = createFs();
+    const calls: string[][] = [];
+    let checkoutPath = "";
+    const options = createOptions({
+      fs,
+      mode: "edit",
+      exec: async (_command, args) => {
+        calls.push(args);
+        if (args[0] === "worktree" && args[1] === "add") {
+          checkoutPath = args[3];
+          await fs.mkdir(checkoutPath, { recursive: true });
+          return { stdout: "", stderr: "fatal: invalid reference: feature", exitCode: 128 };
+        }
+        if (args[0] === "worktree" && args[1] === "remove") {
+          await fs.rm?.(args[3], { recursive: true, force: true });
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    await expect(createWritableCheckout(
+      { ...locator, ref: "feature" },
+      "/cache",
+      options
+    )).rejects.toThrow("fatal: invalid reference: feature");
+
+    expect(calls).toContainEqual(["worktree", "remove", "--force", checkoutPath]);
+    await expect(fs.stat(checkoutPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("rejects a symbolic-link checkout parent", async () => {

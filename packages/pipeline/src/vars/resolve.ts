@@ -25,7 +25,17 @@ async function resolveDocVarFromPath(options: {
   readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>;
 }): Promise<string> {
   const trimmed = options.value.trim();
-  const absolutePath = path.isAbsolute(trimmed) ? trimmed : path.join(options.cwd, trimmed);
+  const absolutePath = path.resolve(options.cwd, trimmed);
+  const relativePath = path.relative(options.cwd, absolutePath);
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error(
+      `Pipeline doc var "${options.key}" resolves outside the project root: ${trimmed}`
+    );
+  }
   try {
     return await options.readFile(absolutePath, "utf8");
   } catch (error) {

@@ -89,7 +89,13 @@ function createPipelineTestFs(rawFs: TestFs): PipelineFileSystem {
   } as PipelineFileSystem;
 }
 
-const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "tasks: []", "---", ""].join("\n");
+const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "version: 1", "tasks: []", "---", ""].join(
+  "\n"
+);
+
+function pipelinePlanYaml(lines: string[]): string {
+  return ["kind: pipeline", "version: 1", ...lines].join("\n");
+}
 
 afterEach(() => {
   vi.useRealTimers();
@@ -184,7 +190,7 @@ describe("@poe-code/pipeline public exports", () => {
 
 describe("loadResolvedSteps", () => {
   it("uses the default named config when a plan omits extends", async () => {
-    const plan = parsePlan("tasks: []\n") as PipelinePlan & {
+    const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""])) as PipelinePlan & {
       extends?: string;
       stepOverrides?: Record<string, unknown>;
     };
@@ -214,7 +220,7 @@ describe("loadResolvedSteps", () => {
   });
 
   it("loads a named step config selected by plan extends", async () => {
-    const plan = parsePlan(["extends: fast", "tasks: []", ""].join("\n")) as PipelinePlan & {
+    const plan = parsePlan(pipelinePlanYaml(["extends: fast", "tasks: []", ""])) as PipelinePlan & {
       extends?: string;
       stepOverrides?: Record<string, unknown>;
     };
@@ -252,6 +258,8 @@ describe("loadResolvedSteps", () => {
   it("deep merges inline plan step overrides with the named base config", async () => {
     const plan = parsePlan(
       [
+        "kind: pipeline",
+        "version: 1",
         "extends: default",
         "steps:",
         "  implement:",
@@ -294,7 +302,7 @@ describe("loadResolvedSteps", () => {
 
   it("resolves an inline step override named __proto__", async () => {
     const plan = parsePlan(
-      ["steps:", "  __proto__:", "    prompt: Override prompt", "tasks: []", ""].join("\n")
+      pipelinePlanYaml(["steps:", "  __proto__:", "    prompt: Override prompt", "tasks: []", ""])
     );
     const config = await loadResolvedSteps({
       cwd: "/repo",
@@ -1154,6 +1162,7 @@ describe("resolvePlanPath", () => {
         "/repo/docs/plans/plan-beta.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -1165,6 +1174,7 @@ describe("resolvePlanPath", () => {
         "/repo/docs/plans/plan-alpha.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: one",
           "    title: One",
@@ -1419,6 +1429,8 @@ describe("parsePlan", () => {
     const plan = parsePlan(
       [
         "---",
+        "kind: pipeline",
+        "version: 1",
         "vars:",
         "  plan_doc: docs/plans/my-feature.md",
         "tasks:",
@@ -1455,6 +1467,8 @@ describe("parsePlan", () => {
       parsePlan(
         [
           "---",
+          "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: task-1",
           "    title: Fix timeout",
@@ -1470,22 +1484,29 @@ describe("parsePlan", () => {
   });
 
   it.each([
-    ["kind", "kind: ralph", /kind.*pipeline/i],
-    ["version", "version: 2", /version.*1/i]
-  ])("rejects an explicit incompatible %s", (_field, declaration, expected) => {
-    expect(() => parsePlan([declaration, "tasks: []", ""].join("\n"))).toThrow(expected);
+    ["kind", ["kind: ralph", "version: 1", "tasks: []", ""], /kind.*pipeline/i],
+    ["version", ["kind: pipeline", "version: 2", "tasks: []", ""], /version.*1/i]
+  ])("rejects an explicit incompatible %s", (_field, lines, expected) => {
+    expect(() => parsePlan(lines.join("\n"))).toThrow(expected);
+  });
+
+  it.each([
+    ["kind", ["version: 1", "tasks: []", ""], /missing required "kind"/i],
+    ["version", ["kind: pipeline", "tasks: []", ""], /missing required "version"/i]
+  ])("rejects plans missing required %s", (_field, lines, expected) => {
+    expect(() => parsePlan(lines.join("\n"))).toThrow(expected);
   });
 
   it("parses a stepless task plan", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: task-1",
         "    title: Fix timeout",
         "    prompt: Fix the timeout regression",
         "    status: open",
         ""
-      ].join("\n")
+      ])
     );
 
     expect(plan).toEqual({
@@ -1503,7 +1524,7 @@ describe("parsePlan", () => {
 
   it("parses a stepped task plan and preserves step order", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: task-1",
         "    title: Harden auth",
@@ -1513,7 +1534,7 @@ describe("parsePlan", () => {
         "      test: open",
         "      commit: open",
         ""
-      ].join("\n"),
+      ]),
       {
         availableSteps: {
           implement: { mode: "edit", prompt: "Implement" },
@@ -1532,7 +1553,7 @@ describe("parsePlan", () => {
 
   it("parses inline step skills and leaves inline steps without skills unchanged", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "steps:",
         "  implement:",
         "    prompt: Implement",
@@ -1541,7 +1562,7 @@ describe("parsePlan", () => {
         "    prompt: Review",
         "tasks: []",
         ""
-      ].join("\n")
+      ])
     );
 
     expect(plan.stepOverrides).toEqual({
@@ -1557,7 +1578,7 @@ describe("parsePlan", () => {
 
   it("parses hooks from inline step definitions", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "steps:",
         "  implement:",
         "    hooks:",
@@ -1566,7 +1587,7 @@ describe("parsePlan", () => {
         "      scope: project",
         "tasks: []",
         ""
-      ].join("\n")
+      ])
     );
 
     expect(plan.stepOverrides).toEqual({
@@ -1579,7 +1600,7 @@ describe("parsePlan", () => {
   it("rejects an invalid inline hooks strategy", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "steps:",
           "  implement:",
           "    hooks:",
@@ -1587,7 +1608,7 @@ describe("parsePlan", () => {
           "      strategy: copy",
           "tasks: []",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(
       'Invalid plan YAML: "steps.implement.hooks.strategy" must be "auto", "symlink", or "transform".'
@@ -1597,27 +1618,27 @@ describe("parsePlan", () => {
   it("rejects malformed inline step skills", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "steps:",
           "  implement:",
           "    prompt: Implement",
           "    skills: [foo/bar/baz]",
           "tasks: []",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(/must contain skill references/i);
 
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "steps:",
           "  implement:",
           "    prompt: Implement",
           "    skills: foo",
           "tasks: []",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(/must be an array of strings/i);
   });
@@ -1649,12 +1670,12 @@ describe("parsePlan", () => {
     ["top-level setup", ["seutp:", "  prompt: Prepare", "tasks: []", ""], "seutp"],
     ["top-level teardown", ["taerdown:", "  prompt: Clean", "tasks: []", ""], "taerdown"]
   ])("rejects unknown %s keys", (_name, lines, field) => {
-    expect(() => parsePlan(lines.join("\n"))).toThrow(new RegExp(String(field)));
+    expect(() => parsePlan(pipelinePlanYaml(lines))).toThrow(new RegExp(String(field)));
   });
 
   it("allows mixed scalar and stepped tasks", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: one",
         "    title: One",
@@ -1666,7 +1687,7 @@ describe("parsePlan", () => {
         "    status:",
         "      implement: open",
         ""
-      ].join("\n"),
+      ]),
       {
         availableSteps: {
           implement: { mode: "edit", prompt: "Implement" }
@@ -1680,7 +1701,7 @@ describe("parsePlan", () => {
   it("rejects duplicate task ids", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "tasks:",
           "  - id: dup",
           "    title: One",
@@ -1691,30 +1712,60 @@ describe("parsePlan", () => {
           "    prompt: B",
           "    status: done",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(/duplicate task id/i);
+  });
+
+  it("rejects unknown task properties", () => {
+    expect(() =>
+      parsePlan(
+        pipelinePlanYaml([
+          "tasks:",
+          "  - id: task-1",
+          "    title: Fix timeout",
+          "    prompt: Fix the timeout regression",
+          "    status: open",
+          "    typo: should-fail",
+          ""
+        ])
+      )
+    ).toThrow(/tasks\[0\]\.typo/);
   });
 
   it("rejects invalid scalar task statuses", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "tasks:",
           "  - id: task-1",
           "    title: Invalid",
           "    prompt: Invalid",
           "    status: maybe",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(/invalid task status/i);
+  });
+
+  it("rejects empty inline step names", () => {
+    expect(() =>
+      parsePlan(
+        pipelinePlanYaml([
+          "steps:",
+          "  \"\":",
+          "    prompt: Implement",
+          "tasks: []",
+          ""
+        ])
+      )
+    ).toThrow(/step names must be non-empty/i);
   });
 
   it("rejects unknown steps referenced by task status maps", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "tasks:",
           "  - id: task-1",
           "    title: Harden auth",
@@ -1722,7 +1773,7 @@ describe("parsePlan", () => {
           "    status:",
           "      unknown_step: open",
           ""
-        ].join("\n"),
+        ]),
         {
           availableSteps: {
             implement: { mode: "edit", prompt: "Implement" }
@@ -1732,17 +1783,33 @@ describe("parsePlan", () => {
     ).toThrow(/unknown step "unknown_step"/i);
   });
 
+  it("rejects empty task status step names", () => {
+    expect(() =>
+      parsePlan(
+        pipelinePlanYaml([
+          "tasks:",
+          "  - id: task-1",
+          "    title: Harden auth",
+          "    prompt: Improve auth validation",
+          "    status:",
+          "      \"\": open",
+          ""
+        ])
+      )
+    ).toThrow(/step names must be non-empty/i);
+  });
+
   it("rejects empty task step status maps", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "tasks:",
           "  - id: task-1",
           "    title: Harden auth",
           "    prompt: Improve auth validation",
           "    status: {}",
           ""
-        ].join("\n")
+        ])
       )
     ).toThrow(/status.*at least one step/i);
   });
@@ -1750,7 +1817,7 @@ describe("parsePlan", () => {
   it("rejects inherited step names absent from available steps", () => {
     expect(() =>
       parsePlan(
-        [
+        pipelinePlanYaml([
           "tasks:",
           "  - id: task-1",
           "    title: Harden auth",
@@ -1758,7 +1825,7 @@ describe("parsePlan", () => {
           "    status:",
           "      constructor: open",
           ""
-        ].join("\n"),
+        ]),
         { availableSteps: {} }
       )
     ).toThrow(/unknown step "constructor"/i);
@@ -1771,9 +1838,11 @@ describe("parsePlan", () => {
         tasks: []
       },
       () => {
-        expect(() => parsePlan("name: Missing tasks\n")).toThrow(/expected "tasks" to be an array/i);
+        expect(() =>
+          parsePlan(pipelinePlanYaml(["name: Missing tasks", ""]))
+        ).toThrow(/expected "tasks" to be an array/i);
 
-        const plan = parsePlan("tasks: []\n");
+        const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""]));
         expect(plan).toEqual({
           extends: "default",
           tasks: []
@@ -1791,19 +1860,21 @@ describe("parsePlan", () => {
         status: "open"
       },
       () => {
-        expect(() => parsePlan(["tasks:", "  - {}", ""].join("\n"))).toThrow(/tasks\[0\]\.id/);
+        expect(() => parsePlan(pipelinePlanYaml(["tasks:", "  - {}", ""]))).toThrow(
+          /tasks\[0\]\.id/
+        );
       }
     );
   });
 
   it("accepts an empty tasks array", () => {
-    const plan = parsePlan("tasks: []\n");
+    const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""]));
     expect(plan.tasks).toEqual([]);
   });
 
   it("parses mcp block with command, args, and env", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "mcp:",
         "  my-server:",
         "    command: npx",
@@ -1813,7 +1884,7 @@ describe("parsePlan", () => {
         "      FOO: bar",
         "tasks: []",
         ""
-      ].join("\n")
+      ])
     );
 
     expect(plan.mcp).toEqual({
@@ -1823,7 +1894,7 @@ describe("parsePlan", () => {
 
   it("parses mcp block with command only", () => {
     const plan = parsePlan(
-      ["mcp:", "  minimal:", "    command: my-tool", "tasks: []", ""].join("\n")
+      pipelinePlanYaml(["mcp:", "  minimal:", "    command: my-tool", "tasks: []", ""])
     );
 
     expect(plan.mcp).toEqual({ minimal: { command: "my-tool" } });
@@ -1831,7 +1902,7 @@ describe("parsePlan", () => {
 
   it("preserves an mcp server named __proto__", () => {
     const plan = parsePlan(
-      ["mcp:", "  __proto__:", "    command: custom-server", "tasks: []", ""].join("\n")
+      pipelinePlanYaml(["mcp:", "  __proto__:", "    command: custom-server", "tasks: []", ""])
     );
 
     expect(Object.hasOwn(plan.mcp ?? {}, "__proto__")).toBe(true);
@@ -1840,25 +1911,25 @@ describe("parsePlan", () => {
   });
 
   it("omits mcp when not present", () => {
-    const plan = parsePlan("tasks: []\n");
+    const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""]));
     expect(plan.mcp).toBeUndefined();
   });
 
   it("rejects mcp that is not an object", () => {
-    expect(() => parsePlan(["mcp: not-an-object", "tasks: []", ""].join("\n"))).toThrow(
+    expect(() => parsePlan(pipelinePlanYaml(["mcp: not-an-object", "tasks: []", ""]))).toThrow(
       /mcp.*must be an object/i
     );
   });
 
   it("rejects mcp server entry missing command", () => {
     expect(() =>
-      parsePlan(["mcp:", "  bad-server:", "    args: [foo]", "tasks: []", ""].join("\n"))
+      parsePlan(pipelinePlanYaml(["mcp:", "  bad-server:", "    args: [foo]", "tasks: []", ""]))
     ).toThrow(/command.*non-empty string/i);
   });
 
   it("parses setup and teardown from plan", () => {
     const plan = parsePlan(
-      [
+      pipelinePlanYaml([
         "setup:",
         "  prompt: Prepare workspace",
         "teardown:",
@@ -1870,7 +1941,7 @@ describe("parsePlan", () => {
         "    prompt: Fix it",
         "    status: open",
         ""
-      ].join("\n")
+      ])
     );
 
     expect(plan.setup).toEqual({ mode: "yolo", prompt: "Prepare workspace" });
@@ -1878,34 +1949,38 @@ describe("parsePlan", () => {
   });
 
   it("omits setup and teardown when not present", () => {
-    const plan = parsePlan("tasks: []\n");
+    const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""]));
     expect(plan.setup).toBeUndefined();
     expect(plan.teardown).toBeUndefined();
   });
 
   it("rejects setup missing instruction", () => {
-    expect(() => parsePlan(["setup:", "  mode: read", "tasks: []", ""].join("\n"))).toThrow(
+    expect(() => parsePlan(pipelinePlanYaml(["setup:", "  mode: read", "tasks: []", ""]))).toThrow(
       /setup.*missing a prompt/i
     );
   });
 
   it("maps setup: false to null (disabled)", () => {
-    const plan = parsePlan(["setup: false", "tasks: []", ""].join("\n"));
+    const plan = parsePlan(pipelinePlanYaml(["setup: false", "tasks: []", ""]));
 
     expect(plan.setup).toBeNull();
   });
 
   it("maps teardown: false to null (disabled)", () => {
-    const plan = parsePlan(["teardown: false", "tasks: []", ""].join("\n"));
+    const plan = parsePlan(pipelinePlanYaml(["teardown: false", "tasks: []", ""]));
 
     expect(plan.teardown).toBeNull();
   });
 
   it("parses vars as a string record", () => {
     const plan = parsePlan(
-      ["vars:", "  plan_doc: docs/plans/my-feature.md", "  env: production", "tasks: []", ""].join(
-        "\n"
-      )
+      pipelinePlanYaml([
+        "vars:",
+        "  plan_doc: docs/plans/my-feature.md",
+        "  env: production",
+        "tasks: []",
+        ""
+      ])
     );
 
     expect(plan.vars).toEqual({
@@ -1915,7 +1990,7 @@ describe("parsePlan", () => {
   });
 
   it("preserves and resolves a variable named __proto__", async () => {
-    const plan = parsePlan(["vars:", "  __proto__: production", "tasks: []", ""].join("\n"));
+    const plan = parsePlan(pipelinePlanYaml(["vars:", "  __proto__: production", "tasks: []", ""]));
     const vars = await resolvePipelineVars(plan.vars ?? {}, "/repo", async () => "");
 
     expect(Object.hasOwn(plan.vars ?? {}, "__proto__")).toBe(true);
@@ -1924,18 +1999,18 @@ describe("parsePlan", () => {
   });
 
   it("omits vars when not defined", () => {
-    const plan = parsePlan("tasks: []\n");
+    const plan = parsePlan(pipelinePlanYaml(["tasks: []", ""]));
     expect(plan.vars).toBeUndefined();
   });
 
   it("throws when vars is not an object", () => {
-    expect(() => parsePlan("vars: just-a-string\ntasks: []\n")).toThrow(
+    expect(() => parsePlan(pipelinePlanYaml(["vars: just-a-string", "tasks: []", ""]))).toThrow(
       /"vars" must be an object/i
     );
   });
 
   it("throws when a var value is not a string", () => {
-    expect(() => parsePlan("vars:\n  bad: 123\ntasks: []\n")).toThrow(
+    expect(() => parsePlan(pipelinePlanYaml(["vars:", "  bad: 123", "tasks: []", ""]))).toThrow(
       /vars\["bad"\] must be a string/i
     );
   });
@@ -2379,6 +2454,34 @@ describe("selectNextExecution", () => {
 
     expect(selection).toEqual({ kind: "completed" });
   });
+
+  it("selects an empty step key as runnable instead of treating the task as complete", () => {
+    const selection = getSelection({
+      tasks: [
+        {
+          id: "one",
+          title: "One",
+          prompt: "One",
+          status: {
+            "": "open"
+          }
+        }
+      ]
+    });
+
+    expect(selection).toEqual({
+      kind: "run",
+      task: {
+        id: "one",
+        title: "One",
+        prompt: "One",
+        status: {
+          "": "open"
+        }
+      },
+      stepName: ""
+    });
+  });
 });
 
 describe("buildExecutionPrompt", () => {
@@ -2622,6 +2725,34 @@ describe("resolveFileIncludes", () => {
       "File not found: /repo/missing.md"
     );
   });
+});
+
+describe("resolvePipelineVars", () => {
+  it("resolves doc vars from paths inside the project root", async () => {
+    const readFile = vi.fn(async (filePath: string): Promise<string> => {
+      if (filePath === "/repo/docs/context.md") {
+        return "Context from file.";
+      }
+      throw new Error(`File not found: ${filePath}`);
+    });
+
+    const result = await resolvePipelineVars({ plan_doc: "docs/context.md" }, "/repo", readFile);
+
+    expect(result).toEqual({ plan_doc: "Context from file." });
+    expect(readFile).toHaveBeenCalledWith("/repo/docs/context.md", "utf8");
+  });
+
+  it.each(["../secret.md", "/outside/secret.md"])(
+    "rejects doc var paths outside the project root: %s",
+    async (value) => {
+      const readFile = vi.fn(async () => "");
+
+      await expect(resolvePipelineVars({ plan_doc: value }, "/repo", readFile)).rejects.toThrow(
+        /outside the project root/i
+      );
+      expect(readFile).not.toHaveBeenCalled();
+    }
+  );
 });
 
 describe("createPipelineSimulation", () => {
@@ -3629,6 +3760,8 @@ describe("createPipelineSimulation", () => {
       ].join("\n"),
       "/repo/docs/plans/plan.md": [
         "---",
+        "kind: pipeline",
+        "version: 1",
         "tasks:",
         "  - id: feat",
         "    title: Feature",

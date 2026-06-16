@@ -101,6 +101,7 @@ describe("plan command", () => {
         "/repo/docs/plans/plan-a.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: first",
           "    title: First",
@@ -162,6 +163,7 @@ describe("plan command", () => {
         "/repo/docs/plans/plan-a.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: first",
           "    title: First",
@@ -287,6 +289,7 @@ describe("plan command", () => {
         "/repo/docs/plans/plan-a.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: first",
           "    title: First task",
@@ -322,6 +325,7 @@ describe("plan command", () => {
         "/repo/docs/plans/plan-a.md": [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: first",
           "    title: Pipeline task",

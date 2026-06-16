@@ -181,6 +181,8 @@ describe("format helpers", () => {
     const markdown = formatPipelinePlanMarkdown({
       title: "plan-feature.yaml",
       content: [
+        "kind: pipeline",
+        "version: 1",
         "tasks:",
         "  - id: first",
         "    title: Add feature",
@@ -224,6 +226,7 @@ describe("format helpers", () => {
         readFile: async () => [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: feature",
           "    title: Add feature",
@@ -287,6 +290,7 @@ describe("format helpers", () => {
         readFile: async () => [
           "---",
           "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: feature",
           "    title: Add feature",
@@ -309,6 +313,8 @@ describe("format helpers", () => {
       () => formatPipelinePlanMarkdown({
         title: "Empty steps",
         content: [
+          "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: feature",
           "    title: Add feature",
@@ -410,6 +416,8 @@ describe("format helpers", () => {
       },
       {
         readFile: async () => [
+          "kind: pipeline",
+          "version: 1",
           "tasks:",
           "  - id: feature",
           "    title: Add feature",

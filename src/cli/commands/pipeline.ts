@@ -206,8 +206,11 @@ function resolveMaxRuns(value: string | undefined): number | undefined {
     return undefined;
   }
 
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) {
+  const trimmed = value.trim();
+  const hasOnlyDigits =
+    trimmed.length > 0 && [...trimmed].every((character) => character >= "0" && character <= "9");
+  const parsed = Number(trimmed);
+  if (!hasOnlyDigits || !Number.isSafeInteger(parsed) || parsed < 1) {
     throw new ValidationError(`Invalid max-runs "${value}". Expected a positive integer.`);
   }
 
@@ -278,16 +281,21 @@ function formatPipelineTasksSummary(summary: PlanSummary): string {
   return parts.join(", ");
 }
 
-function summarizePipelinePlan(plan: ReturnType<typeof parsePlan>): PlanSummary {
+function summarizePipelinePlan(plan: ReturnType<typeof parsePlan>, taskId?: string): PlanSummary {
+  const tasks = taskId ? plan.tasks.filter((task) => task.id === taskId) : plan.tasks;
+  if (taskId && tasks.length === 0) {
+    throw new ValidationError(`Task "${taskId}" was not found in the plan.`);
+  }
+
   const summary: PlanSummary = {
     planPath: "",
     done: 0,
     failed: 0,
     open: 0,
-    total: plan.tasks.length
+    total: tasks.length
   };
 
-  for (const task of plan.tasks) {
+  for (const task of tasks) {
     const statuses = typeof task.status === "string" ? [task.status] : Object.values(task.status);
     if (statuses.length > 0 && statuses.every((status) => status === "done")) {
       summary.done += 1;
@@ -305,6 +313,8 @@ async function dryRunPipelinePlans(options: {
   container: CliContainer;
   resources: ReturnType<typeof createExecutionResources>;
   planPaths: string[];
+  task?: string;
+  maxRuns?: number;
 }): Promise<void> {
   for (const planPath of options.planPaths) {
     const absolutePath = resolveAbsolutePlanPath(
@@ -314,9 +324,15 @@ async function dryRunPipelinePlans(options: {
     );
     const content = (await options.container.fs.readFile(absolutePath, "utf8")) as string;
     const plan = parsePlan(content);
-    const summary = summarizePipelinePlan(plan);
+    const summary = summarizePipelinePlan(plan, options.task);
 
     options.resources.logger.dryRun(`Would run: ${planPath}`);
+    if (options.task) {
+      options.resources.logger.dryRun(`Task: ${options.task}`);
+    }
+    if (options.maxRuns !== undefined) {
+      options.resources.logger.dryRun(`Max runs: ${options.maxRuns}`);
+    }
     options.resources.logger.dryRun(
       `Tasks: ${summary.done} done, ${summary.failed} failed, ${summary.open} open`
     );
@@ -884,6 +900,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         if (options.plan && options.plans && options.plans.length > 0) {
           throw new ValidationError("Use either --plan or --plans, not both.");
         }
+        const maxRuns = resolveMaxRuns(options.maxRuns);
 
         if (flags.dryRun) {
           const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
@@ -902,7 +919,13 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             return;
           }
 
-          await dryRunPipelinePlans({ container, resources, planPaths });
+          await dryRunPipelinePlans({
+            container,
+            resources,
+            planPaths,
+            ...(maxRuns !== undefined ? { maxRuns } : {}),
+            ...(options.task ? { task: options.task } : {})
+          });
           return;
         }
 
@@ -929,8 +952,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const commandConfig = await resolvePipelineCommandConfig(container);
         integrations = await loadIntegrations(commandConfig.configDoc);
-        const maxRuns = resolveMaxRuns(options.maxRuns);
-
         const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,

@@ -48,6 +48,7 @@ describe("discoverAllPlans", () => {
       "/repo/docs/plans/plan-demo.md": [
         "---",
         "kind: pipeline",
+        "version: 1",
         "tasks:",
         "  - id: first",
         "    title: First",
@@ -209,6 +210,7 @@ describe("discoverAllPlans", () => {
       "/repo/docs/plans/feature.md": [
         "---",
         "kind: pipeline",
+        "version: 1",
         "tasks:",
         "  - id: feature",
         "    title: Feature",
@@ -244,6 +246,8 @@ describe("discoverAllPlans", () => {
   it("discovers yaml pipeline plans from the shared plan directory", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/feature.yaml": [
+        "kind: pipeline",
+        "version: 1",
         "tasks:",
         "  - id: feature",
         "    title: Feature",

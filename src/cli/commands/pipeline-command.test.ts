@@ -82,7 +82,13 @@ resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
 const cwd = "/repo";
 const homeDir = "/home/test";
 
-const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "tasks: []", "---", ""].join("\n");
+const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "version: 1", "tasks: []", "---", ""].join(
+  "\n"
+);
+
+function pipelinePlanYaml(lines: string[]): string {
+  return ["kind: pipeline", "version: 1", ...lines].join("\n");
+}
 
 function createMemFs(files: Record<string, string> = {}): FileSystem {
   const volume = new Volume();
@@ -304,6 +310,58 @@ describe("pipeline run command", () => {
     expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toBe(planContent);
     expect(logs.some((message) => message.includes("Would run: docs/plans/plan.md"))).toBe(true);
     expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(true);
+  });
+
+  it("applies run options while dry-running an explicit plan", async () => {
+    const logs: string[] = [];
+    const planContent = [
+      "---",
+      "kind: pipeline",
+      "version: 1",
+      "tasks:",
+      "  - id: task-1",
+      "    title: Task 1",
+      "    prompt: Do task 1",
+      "    status: open",
+      "  - id: task-2",
+      "    title: Task 2",
+      "    prompt: Do task 2",
+      "    status: open",
+      "---",
+      ""
+    ].join("\n");
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": planContent
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "run",
+      "--plan",
+      "docs/plans/plan.md",
+      "--task",
+      "task-2",
+      "--max-runs",
+      "2",
+      "--dry-run"
+    ]);
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Task: task-2"))).toBe(true);
+    expect(logs.some((message) => message.includes("Max runs: 2"))).toBe(true);
+    expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(true);
+    expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toBe(planContent);
   });
 
   it("does not recover malformed config while dry-running a pipeline", async () => {
@@ -659,7 +717,7 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("rejects invalid max-runs values", async () => {
+  it.each(["0", "2abc"])("rejects invalid max-runs value %s", async (maxRuns) => {
     const container = createCliContainer({
       fs: createMemFs(),
       prompts: vi.fn().mockResolvedValue({}),
@@ -678,9 +736,38 @@ describe("pipeline run command", () => {
         "--agent",
         "claude-code",
         "--max-runs",
-        "0"
+        maxRuns
       ])
     ).rejects.toBeInstanceOf(ValidationError);
+  });
+
+  it("rejects malformed max-runs before dry-running a pipeline", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/plans/plan.md": PIPELINE_MD_EMPTY
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "run",
+        "--plan",
+        "docs/plans/plan.md",
+        "--dry-run",
+        "--max-runs",
+        "2abc"
+      ])
+    ).rejects.toBeInstanceOf(ValidationError);
+
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
   });
 
   it("shows usage in task completion and metrics in summary", async () => {
@@ -2015,14 +2102,14 @@ describe("pipeline validate command", () => {
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: one",
         "    title: Task one",
         "    prompt: Do the thing",
         "    status: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 
@@ -2056,7 +2143,7 @@ describe("pipeline validate command", () => {
     );
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-bad.yaml",
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: one",
         "    title: Task one",
@@ -2064,7 +2151,7 @@ describe("pipeline validate command", () => {
         "    status:",
         "      nonexistent: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 
@@ -2093,14 +2180,14 @@ describe("pipeline validate command", () => {
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: deploy",
         "    title: Deploy",
         "    prompt: Deploy to production.",
         "    status: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 
@@ -2131,7 +2218,7 @@ describe("pipeline validate command", () => {
     await fs.mkdir("/repo/.poe-code/pipeline/plans", { recursive: true });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
-      [
+      pipelinePlanYaml([
         "vars:",
         "  env: staging",
         "tasks:",
@@ -2140,7 +2227,7 @@ describe("pipeline validate command", () => {
         "    prompt: Deploy to {{env}}.",
         "    status: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 
@@ -2176,7 +2263,7 @@ describe("pipeline validate command", () => {
     });
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
-      [
+      pipelinePlanYaml([
         "vars:",
         "  plan_doc: \"{{file 'docs/plans/feature.md'}}\"",
         "tasks:",
@@ -2187,7 +2274,7 @@ describe("pipeline validate command", () => {
         "      Do the work.",
         "    status: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 
@@ -2236,7 +2323,7 @@ describe("pipeline validate command", () => {
     );
     await fs.writeFile(
       "/repo/.poe-code/pipeline/plans/plan-demo.yaml",
-      [
+      pipelinePlanYaml([
         "tasks:",
         "  - id: auth",
         "    title: Auth hardening",
@@ -2245,7 +2332,7 @@ describe("pipeline validate command", () => {
         "      implement: open",
         "      test: open",
         ""
-      ].join("\n"),
+      ]),
       { encoding: "utf8" }
     );
 

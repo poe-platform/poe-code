@@ -13,7 +13,7 @@ function selectFromTask(task: PipelineTask): ExecutionSelection {
   }
 
   const stepName = Object.entries(task.status).find(([, value]) => value !== "done")?.[0];
-  return stepName ? { kind: "run", task, stepName } : { kind: "completed" };
+  return stepName !== undefined ? { kind: "run", task, stepName } : { kind: "completed" };
 }
 
 export function selectNextExecution(plan: PipelinePlan, taskId?: string): ExecutionSelection {

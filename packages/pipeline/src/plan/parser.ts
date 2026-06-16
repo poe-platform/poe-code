@@ -316,6 +316,9 @@ function parseTaskStatus(
     throw new Error(`Invalid status for task "${taskId}": expected at least one step status.`);
   }
   for (const [stepName, stepStatus] of stepStatuses) {
+    if (stepName.length === 0) {
+      throw new Error(`Invalid status for task "${taskId}": step names must be non-empty.`);
+    }
     if (availableSteps && !Object.hasOwn(availableSteps, stepName)) {
       throw new Error(`Unknown step "${stepName}" referenced by task "${taskId}".`);
     }
@@ -544,11 +547,17 @@ export function parsePlan(
     "mcp"
   ]);
   const kind = getOwnEntry(document, "kind");
-  if (kind !== undefined && kind !== "pipeline") {
+  if (kind === undefined) {
+    throw new Error('Invalid plan YAML: missing required "kind".');
+  }
+  if (kind !== "pipeline") {
     throw new Error('Invalid plan YAML: "kind" must be "pipeline".');
   }
   const version = getOwnEntry(document, "version");
-  if (version !== undefined && version !== 1) {
+  if (version === undefined) {
+    throw new Error('Invalid plan YAML: missing required "version".');
+  }
+  if (version !== 1) {
     throw new Error('Invalid plan YAML: "version" must be 1.');
   }
 
@@ -570,6 +579,9 @@ export function parsePlan(
 
     stepOverrides = {};
     for (const [stepName, value] of Object.entries(stepsValue)) {
+      if (stepName.length === 0) {
+        throw new Error('Invalid plan YAML: step names must be non-empty.');
+      }
       defineRecordEntry(stepOverrides, stepName, parseStepOverride(value, `steps.${stepName}`));
     }
   }
@@ -584,6 +596,7 @@ export function parsePlan(
     if (!isRecord(value)) {
       throw new Error(`Invalid tasks[${index}]: expected an object.`);
     }
+    rejectUnknownProperties(value, ["id", "title", "prompt", "status"], `tasks[${index}].`);
 
     const id = asRequiredString(getOwnEntry(value, "id"), `tasks[${index}].id`);
     if (ids.has(id)) {

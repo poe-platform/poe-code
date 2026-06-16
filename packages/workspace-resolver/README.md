@@ -44,31 +44,36 @@ Subdir can be specified via path (`owner/repo/sub`) or fragment (`owner/repo#ref
 
 Cached clones live in `~/.poe-code/workspaces/github/owner-repo`. Writable (`edit`) mode creates a git-worktree under `~/.poe-code/workspaces/checkouts/`.
 
-### `modal` — Modal sandbox (planned)
+### `ssh` — SSH workspace (parsed, not resolved)
 
 ```
-modal://app-name/sandbox-name
-```
-
-| Part | Required | Description |
-|------|----------|-------------|
-| `app-name` | yes | Modal app |
-| `sandbox-name` | yes | Sandbox to create or reuse |
-
-Sandbox is provisioned on demand via the Modal API. Workspace files are synced in before spawn and results synced out after.
-
-### `k8s` — Kubernetes pod (planned)
-
-```
-k8s://namespace/pod-template
+ssh://git@example.com/worktree
+ssh://git@example.com:2222/worktree
 ```
 
 | Part | Required | Description |
 |------|----------|-------------|
-| `namespace` | yes | Kubernetes namespace |
-| `pod-template` | yes | Pod spec or template name |
+| `user` | no | SSH username |
+| `host` | yes | SSH host |
+| `port` | no | SSH port |
+| `path` | yes | Remote workspace path |
 
-Runs the agent as a Job. Workspace is mounted via PVC or ephemeral volume. Pod is cleaned up after exit.
+The parser accepts this scheme, but `resolveWorkspace()` currently throws
+`Unsupported workspace locator scheme "ssh"`.
+
+### `docker` — Docker container workspace (parsed, not resolved)
+
+```
+docker://dev-container/workspace
+```
+
+| Part | Required | Description |
+|------|----------|-------------|
+| `container` | yes | Container name or id |
+| `path` | yes | Workspace path inside the container |
+
+The parser accepts this scheme, but `resolveWorkspace()` currently throws
+`Unsupported workspace locator scheme "docker"`.
 
 ## Access modes
 
@@ -76,14 +81,15 @@ Every backend respects the `mode` option:
 
 | Mode | Behaviour |
 |------|-----------|
-| `read` | Shared, read-only checkout. Multiple agents can access the same cache. |
-| `edit` | Isolated writable checkout with cleanup callback. |
-| `yolo` | Direct mutable access (no isolation). |
+| `read` | Shared checkout for GitHub locators without a ref. GitHub locators with a ref use an isolated checkout so the requested ref can be checked out without mutating the shared cache. Local paths resolve directly. |
+| `edit` | Isolated writable GitHub checkout with cleanup callback. Local paths resolve directly. |
+| `auto` | Lets the resolver isolate GitHub workspaces automatically. Today this behaves like `edit` for GitHub locators and direct access for local paths. |
+| `yolo` | Direct mutable access with no isolation. GitHub locators resolve to the shared cache; local paths resolve directly. |
 
 ## Options
 
 - `baseDir`: base path for relative local paths
 - `homeDir`: home directory used for resolver caches
-- `mode`: workspace access mode — `read`, `edit`, or `yolo`
+- `mode`: workspace access mode — `read`, `edit`, `auto`, or `yolo`
 
 No environment variables or config files are read by this package directly.

@@ -1045,7 +1045,7 @@ describe("process launcher manager", () => {
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).rejects.toThrow();
   });
 
-  it("follows appended output after a bounded initial log window", async () => {
+  it("follows the bounded initial log window before appended output", async () => {
     const fs = createMemFs();
     const logPath = "/state/launch/api/logs/stdout.log";
     await fs.mkdir(path.dirname(logPath), { recursive: true });
@@ -1055,16 +1055,17 @@ describe("process launcher manager", () => {
       baseDir: "/state/launch",
       fs,
       id: "api",
-      lines: 2,
+      lines: 1,
       pollIntervalMs: 1,
       signal: controller.signal
     })[Symbol.asyncIterator]();
 
-    const next = iterator.next();
+    const first = iterator.next();
     await new Promise(resolve => setTimeout(resolve, 2));
     await fs.appendFile(logPath, "three\n");
 
-    await expect(next).resolves.toEqual({ done: false, value: "three" });
+    await expect(first).resolves.toEqual({ done: false, value: "two" });
+    await expect(iterator.next()).resolves.toEqual({ done: false, value: "three" });
     controller.abort();
     await iterator.return?.();
   });

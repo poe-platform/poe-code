@@ -316,7 +316,20 @@ export async function* followManagedLogs(
     throw new Error(`Invalid managed log poll interval: ${pollIntervalMs}`);
   }
   const cursor = createFollowLogCursor();
-  await primeFollowCursor(fs, options.baseDir, options.id, stream, cursor);
+  const initialLines = options.lines === undefined
+    ? []
+    : await readInitialFollowLogWindow(fs, options.baseDir, options.id, stream, options.lines, cursor);
+
+  if (options.lines === undefined) {
+    await primeFollowCursor(fs, options.baseDir, options.id, stream, cursor);
+  }
+
+  for (const line of initialLines) {
+    if (options.signal?.aborted) {
+      return;
+    }
+    yield line;
+  }
 
   while (!options.signal?.aborted) {
     await sleep(pollIntervalMs);
@@ -339,6 +352,43 @@ function createFollowLogCursor(): FollowLogCursor {
     offset: 0,
     remainder: ""
   };
+}
+
+async function readInitialFollowLogWindow(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string,
+  stream: "stdout" | "stderr",
+  lines: number,
+  cursor: FollowLogCursor
+): Promise<string[]> {
+  assertValidLogLineCount(lines);
+  const stat = await statFollowedLog(fs, baseDir, id, stream);
+
+  resetFollowCursor(cursor, stat?.fileId ?? null);
+  if (stat === null) {
+    return [];
+  }
+
+  const bytes = await readFollowedLogBytes(
+    fs,
+    resolveCurrentLogPath(baseDir, id, stream),
+    0
+  );
+  cursor.offset = bytes.byteLength;
+
+  const allLines = consumeFollowedLogBytes(cursor, bytes);
+  if (lines === 0) {
+    return [];
+  }
+
+  return allLines.slice(-lines);
+}
+
+function assertValidLogLineCount(lines: number): void {
+  if (!Number.isFinite(lines) || !Number.isInteger(lines) || lines < 0) {
+    throw new Error("lines must be a finite non-negative integer");
+  }
 }
 
 async function primeFollowCursor(

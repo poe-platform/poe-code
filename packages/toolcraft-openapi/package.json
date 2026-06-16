@@ -28,7 +28,7 @@
     "toolcraft-openapi-generate": "dist/bin/generate.js"
   },
   "dependencies": {
-    "toolcraft": "^0.0.4",
+    "toolcraft": "^0.0.51",
     "auth-store": "^0.0.1",
     "yaml": "^2.8.2"
   },

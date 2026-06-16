@@ -58,7 +58,6 @@ export const publishedDepNeedsVersionRange: Rule = {
         if (edge.field !== "peerDependencies" && consumer.bundledDependencies.includes(dep.name)) {
           continue;
         }
-        if (isDeclaredLockstepDependency(model, consumer.dir, dep.dir)) continue;
         if (!isLooseRange(edge.spec) && !semver.satisfies(dep.version, edge.spec)) {
           violations.push({
             rule: id,
@@ -76,6 +75,7 @@ export const publishedDepNeedsVersionRange: Rule = {
           });
           continue;
         }
+        if (isDeclaredLockstepDependency(model, consumer.dir, dep.dir)) continue;
         if (!isLooseRange(edge.spec)) continue;
         violations.push({
           rule: id,

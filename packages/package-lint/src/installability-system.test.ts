@@ -29,6 +29,46 @@ describe("package installability lint system", () => {
     ]);
   });
 
+  it("flags stale concrete workspace ranges even when the packages release in lockstep", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/consumer/package.json": pkgJson({
+        name: "consumer",
+        dependencies: { producer: "^0.0.4" }
+      }),
+      "/repo/packages/producer/package.json": pkgJson({ name: "producer", version: "0.0.51" }),
+      "/repo/.github/workflows/release-consumer.yml": `
+name: Release consumer + producer
+jobs:
+  publish:
+    steps:
+      - uses: ./.github/actions/prepare-lockstep-release
+        with:
+          version: 1.2.3
+          packages: '["packages/consumer", "packages/producer"]'
+      - working-directory: packages/producer
+        run: npm publish
+      - working-directory: packages/consumer
+        run: npm publish
+`
+    });
+
+    const result = runRules(model, undefined, ["published-dep-needs-version-range"]);
+
+    expect(result.summary.ok).toBe(false);
+    expect(result.violations).toEqual([
+      expect.objectContaining({
+        rule: "published-dep-needs-version-range",
+        package: "consumer",
+        detail: expect.objectContaining({
+          dependency: "producer",
+          range: "^0.0.4",
+          version: "0.0.51"
+        })
+      })
+    ]);
+  });
+
   it("flags bundled workspace packages that still require unbundled private packages", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

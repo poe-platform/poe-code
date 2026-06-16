@@ -54,6 +54,40 @@ describe("published-dep-needs-version-range", () => {
     });
   });
 
+  it("flags a concrete workspace dependency range that excludes the workspace version even within a lockstep release group", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/a/package.json": pkgJson({
+        name: "a",
+        dependencies: { b: "^0.0.4" }
+      }),
+      "/repo/packages/b/package.json": pkgJson({ name: "b", version: "0.0.51" }),
+      "/repo/.github/workflows/release-a.yml": `
+name: Release a + b
+jobs:
+  publish:
+    steps:
+      - uses: ./.github/actions/prepare-lockstep-release
+        with:
+          version: 1.2.3
+          packages: '["packages/a", "packages/b"]'
+      - working-directory: packages/b
+        run: npm publish
+      - working-directory: packages/a
+        run: npm publish
+`
+    });
+
+    const violations = publishedDepNeedsVersionRange.run(model);
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      package: "a",
+      severity: "error",
+      detail: { dependency: "b", range: "^0.0.4", version: "0.0.51" }
+    });
+  });
+
   it("allows a loose range for a bundled workspace dependency", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

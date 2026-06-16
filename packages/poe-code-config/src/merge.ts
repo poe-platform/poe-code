@@ -58,15 +58,6 @@ function mergeRuntimeScope(
       continue;
     }
 
-    if (
-      isRuntimeConcatenativeArray([...path, key]) &&
-      Array.isArray(baseValue) &&
-      Array.isArray(overrideValue)
-    ) {
-      setOwnEntry(merged, key, [...baseValue, ...overrideValue]);
-      continue;
-    }
-
     if (isRecord(baseValue) && isRecord(overrideValue)) {
       setOwnEntry(merged, key, mergeRuntimeScope(baseValue, overrideValue, [...path, key]));
       continue;
@@ -76,10 +67,6 @@ function mergeRuntimeScope(
   }
 
   return merged;
-}
-
-function isRuntimeConcatenativeArray(path: string[]): boolean {
-  return path.join(".") === "mounts" || path.join(".") === "runner.workspace.exclude";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

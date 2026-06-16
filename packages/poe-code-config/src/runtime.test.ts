@@ -324,6 +324,14 @@ describe("runtime config", () => {
     );
   });
 
+  it("rejects invalid docker mount targets", () => {
+    for (const target of ["", "   ", "relative/path", "/workspace "]) {
+      expect(() =>
+        parseRuntime({ type: "docker", mounts: [{ source: ".", target }] })
+      ).toThrow("mounts[0].target: expected a non-empty absolute sandbox path.");
+    }
+  });
+
   it("ignores inherited mount fields", () => {
     withObjectPrototypeProperties(
       {
@@ -344,6 +352,23 @@ describe("runtime config", () => {
 
     expect(Object.hasOwn(runtime.build_args, "__proto__")).toBe(true);
     expect(runtime.build_args.__proto__).toBe("value");
+  });
+
+  it("rejects invalid build argument names", () => {
+    for (const key of ["", " BAD", "BAD ARG", "BAD=VALUE", "BAD\nVALUE"]) {
+      expect(() => parseRuntime({ type: "docker", build_args: { [key]: "value" } })).toThrow(
+        `build_args.${key}: expected an environment-style argument name.`
+      );
+    }
+  });
+
+  it("rejects whitespace-only prebuilt runtime identifiers", () => {
+    expect(() => parseRuntime({ type: "docker", image: "   " })).toThrow(
+      "image: expected a non-empty string."
+    );
+    expect(() => parseRuntime({ type: "e2b", template_id: "\t" })).toThrow(
+      "template_id: expected a non-empty string."
+    );
   });
 
   it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", () => {
@@ -473,6 +498,27 @@ describe("runtime config", () => {
     });
   });
 
+  it("reports missing build contexts with a config-specific error", () => {
+    withTempProject(({ cwd }) => {
+      const dockerfilePath = path.join(cwd, "Dockerfile");
+      const buildContext = path.join(cwd, "missing-context");
+      writeFileSync(dockerfilePath, "FROM scratch\n");
+
+      expect(() =>
+        resolveRuntime({
+          cwd,
+          config: {
+            runtime: parseRuntime({
+              type: "docker",
+              dockerfile: "Dockerfile",
+              build_context: "missing-context"
+            })
+          }
+        })
+      ).toThrow(`runtime.build_context does not exist: ${buildContext}.`);
+    });
+  });
+
   it("uses prebuilt docker and e2b artifacts without requiring a Dockerfile", () => {
     expect(
       resolveRuntime({
@@ -537,7 +583,7 @@ describe("runtime config", () => {
     });
   });
 
-  it("deep-merges runtime config with mount and workspace exclude concatenation", () => {
+  it("deep-merges runtime config while project arrays replace global arrays", () => {
     expect(
       deepMergeDocuments(
         {
@@ -570,22 +616,19 @@ describe("runtime config", () => {
       runtime: {
         type: "docker",
         build_args: { NODE_VERSION: "22", PACKAGE_MANAGER: "npm" },
-        mounts: [
-          { source: "~/.ssh", target: "/root/.ssh", readonly: true },
-          { source: ".", target: "/workspace" }
-        ],
+        mounts: [{ source: ".", target: "/workspace" }],
         engine: "docker",
         network: "host",
         runner: {
           workspace: {
-            exclude: ["global-cache", "project-cache"]
+            exclude: ["project-cache"]
           }
         }
       }
     });
   });
 
-  it("keeps one-sided runtime concat arrays when merging", () => {
+  it("keeps one-sided runtime arrays when merging", () => {
     expect(
       deepMergeDocuments(
         {

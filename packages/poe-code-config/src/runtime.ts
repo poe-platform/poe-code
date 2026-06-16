@@ -220,7 +220,7 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
     return omitUndefined({
       ...shared,
       type,
-      image: parseOptionalString(getOwnEntry(record, "image")),
+      image: parseOptionalNonEmptyString(getOwnEntry(record, "image"), "image"),
       dockerfile: parseOptionalString(getOwnEntry(record, "dockerfile")),
       build_context: parseOptionalString(getOwnEntry(record, "build_context")),
       engine: parseEngine(getOwnEntry(record, "engine")),
@@ -251,7 +251,7 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
     return omitUndefined({
       ...shared,
       type,
-      template_id: parseOptionalString(getOwnEntry(record, "template_id")),
+      template_id: parseOptionalNonEmptyString(getOwnEntry(record, "template_id"), "template_id"),
       from_template: parseOptionalString(getOwnEntry(record, "from_template")),
       dockerfile: parseOptionalString(getOwnEntry(record, "dockerfile")),
       build_context: parseOptionalString(getOwnEntry(record, "build_context")),
@@ -308,6 +308,9 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
     if (!existsSync(dockerfilePath)) {
       throw new Error(`Docker runtime requires image or a Dockerfile at ${dockerfilePath}.`);
     }
+    if (!existsSync(buildContext)) {
+      throw new Error(`runtime.build_context does not exist: ${buildContext}.`);
+    }
     assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
     assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
     return {
@@ -331,6 +334,9 @@ const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
     const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, e2bRuntime);
     if (!existsSync(dockerfilePath)) {
       throw new Error(`E2B runtime requires template_id or a Dockerfile at ${dockerfilePath}.`);
+    }
+    if (!existsSync(buildContext)) {
+      throw new Error(`runtime.build_context does not exist: ${buildContext}.`);
     }
     assertRuntimePathInsideCwd(cwd, dockerfilePath, "runtime.dockerfile");
     assertRuntimePathInsideCwd(cwd, buildContext, "runtime.build_context");
@@ -459,6 +465,7 @@ function parseBuildArgs(value: unknown): Record<string, string> {
 
   const parsed: Record<string, string> = {};
   for (const [key, entry] of Object.entries(record)) {
+    assertBuildArgName(key);
     if (typeof entry !== "string") {
       throw new Error(`build_args.${key}: expected a string.`);
     }
@@ -491,6 +498,13 @@ function parseMounts(value: unknown): RuntimeMount[] {
     if (typeof target !== "string") {
       throw new Error(`mounts[${index}].target: expected a string.`);
     }
+    if (
+      target.trim().length === 0 ||
+      target !== target.trim() ||
+      !path.posix.isAbsolute(target)
+    ) {
+      throw new Error(`mounts[${index}].target: expected a non-empty absolute sandbox path.`);
+    }
 
     return omitUndefined({
       source,
@@ -511,6 +525,33 @@ function parseOptionalString(value: unknown): string | undefined {
     return undefined;
   }
   return value;
+}
+
+function parseOptionalNonEmptyString(value: unknown, key: string): string | undefined {
+  const parsed = parseOptionalString(value);
+  if (parsed === undefined) {
+    return undefined;
+  }
+  if (parsed.trim().length === 0) {
+    throw new Error(`${key}: expected a non-empty string.`);
+  }
+  return parsed;
+}
+
+function assertBuildArgName(key: string): void {
+  if (key.length === 0 || key !== key.trim()) {
+    throw new Error(`build_args.${key}: expected an environment-style argument name.`);
+  }
+  for (let index = 0; index < key.length; index += 1) {
+    const charCode = key.charCodeAt(index);
+    const isUppercase = charCode >= 65 && charCode <= 90;
+    const isLowercase = charCode >= 97 && charCode <= 122;
+    const isDigit = charCode >= 48 && charCode <= 57;
+    const isUnderscore = charCode === 95;
+    if (!isUppercase && !isLowercase && !isDigit && !isUnderscore) {
+      throw new Error(`build_args.${key}: expected an environment-style argument name.`);
+    }
+  }
 }
 
 function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {

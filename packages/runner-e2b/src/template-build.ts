@@ -1,7 +1,10 @@
 import { createHash } from "node:crypto";
-import { readdir, readFile } from "node:fs/promises";
-import path from "node:path";
+import { readFile } from "node:fs/promises";
 import type { E2bRuntime, StateManager } from "@poe-code/poe-code-config";
+import {
+  readDockerBuildContextFiles,
+  type DockerBuildContextFile
+} from "@poe-code/process-runner/docker/build-context";
 import { buildTemplate, type BuildLogEntry } from "./sdk.js";
 
 export interface BuildE2bRuntimeTemplateInput {
@@ -27,7 +30,7 @@ export async function buildE2bRuntimeTemplate(
   input: BuildE2bRuntimeTemplateInput
 ): Promise<BuildE2bRuntimeTemplateResult> {
   const dockerfileBytes = await readFile(input.dockerfilePath);
-  const buildContextFiles = await readBuildContextFiles(input.buildContext);
+  const buildContextFiles = await readDockerBuildContextFiles(input.buildContext);
   const hash = hashTemplate(
     dockerfileBytes,
     buildContextFiles,
@@ -89,7 +92,7 @@ function decorateBuildError(error: unknown, tail: string[]): Error {
 
 function hashTemplate(
   dockerfileBytes: Buffer,
-  buildContextFiles: BuildContextFile[],
+  buildContextFiles: DockerBuildContextFile[],
   buildArgs: Record<string, string>,
   fromTemplate: string | undefined
 ): string {
@@ -114,39 +117,4 @@ function hashTemplate(
   hash.update(fromTemplate ?? "");
   hash.update("\0");
   return hash.digest("hex");
-}
-
-interface BuildContextFile {
-  relativePath: string;
-  bytes: Buffer;
-}
-
-async function readBuildContextFiles(buildContext: string): Promise<BuildContextFile[]> {
-  const files: BuildContextFile[] = [];
-  await collectBuildContextFiles(buildContext, "", files);
-  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
-}
-
-async function collectBuildContextFiles(
-  buildContext: string,
-  relativeDir: string,
-  files: BuildContextFile[]
-): Promise<void> {
-  const absoluteDir = path.join(buildContext, relativeDir);
-  const entries = await readdir(absoluteDir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const relativePath = path.join(relativeDir, entry.name);
-    if (entry.isDirectory()) {
-      await collectBuildContextFiles(buildContext, relativePath, files);
-      continue;
-    }
-    if (!entry.isFile()) {
-      continue;
-    }
-    files.push({
-      relativePath: relativePath.split(path.sep).join("/"),
-      bytes: await readFile(path.join(buildContext, relativePath))
-    });
-  }
 }

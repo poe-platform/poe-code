@@ -1,9 +1,10 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
-import { readdir, readFile, realpath, writeFile } from "node:fs/promises";
+import { readFile, realpath, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildDockerEnvArgs, buildDockerRunArgs } from "./args.js";
+import { readDockerBuildContextFiles, type DockerBuildContextFile } from "./build-context.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createDockerEnvFile } from "./env-file.js";
@@ -285,7 +286,7 @@ export async function buildDockerRuntimeTemplate(
   const context = detectContext();
   const { dockerfilePath, buildContext } = await resolveRuntimeBuildPaths(input.cwd, input.runtime);
   const dockerfileBytes = await readFile(dockerfilePath);
-  const buildContextFiles = await readBuildContextFiles(buildContext);
+  const buildContextFiles = await readDockerBuildContextFiles(buildContext);
   const hash = hashDockerTemplate(
     dockerfileBytes,
     buildContextFiles,
@@ -364,7 +365,7 @@ function isPathInsideOrEqual(rootPath: string, targetPath: string): boolean {
 
 function hashDockerTemplate(
   dockerfileBytes: Buffer,
-  buildContextFiles: BuildContextFile[],
+  buildContextFiles: DockerBuildContextFile[],
   buildArgs: Record<string, string>,
   engine: Engine
 ): string {
@@ -386,41 +387,6 @@ function hashDockerTemplate(
     hash.update("\0");
   }
   return hash.digest("hex");
-}
-
-interface BuildContextFile {
-  relativePath: string;
-  bytes: Buffer;
-}
-
-async function readBuildContextFiles(buildContext: string): Promise<BuildContextFile[]> {
-  const files: BuildContextFile[] = [];
-  await collectBuildContextFiles(buildContext, "", files);
-  return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
-}
-
-async function collectBuildContextFiles(
-  buildContext: string,
-  relativeDir: string,
-  files: BuildContextFile[]
-): Promise<void> {
-  const absoluteDir = path.join(buildContext, relativeDir);
-  const entries = await readdir(absoluteDir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    const relativePath = path.join(relativeDir, entry.name);
-    if (entry.isDirectory()) {
-      await collectBuildContextFiles(buildContext, relativePath, files);
-      continue;
-    }
-    if (!entry.isFile()) {
-      continue;
-    }
-    files.push({
-      relativePath: relativePath.split(path.sep).join("/"),
-      bytes: await readFile(path.join(buildContext, relativePath))
-    });
-  }
 }
 
 async function imageExists(

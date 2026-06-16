@@ -1,6 +1,7 @@
 import { PassThrough } from "node:stream";
 import { describe, expect, it } from "vitest";
 import * as api from "./index.js";
+import { readDockerBuildContextFiles } from "./docker/build-context.js";
 import { buildContextArgs, detectContext } from "./docker/context.js";
 import { detectEngine, isEngineAvailable } from "./docker/engine.js";
 import { createDockerRunner } from "./docker/docker-runner.js";
@@ -212,6 +213,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api).not.toHaveProperty("MockRunBehavior");
     expect(api.buildContextArgs).toBe(buildContextArgs);
     expect(api.detectContext).toBe(detectContext);
+    expect(api.readDockerBuildContextFiles).toBe(readDockerBuildContextFiles);
     expect(api.detectEngine).toBe(detectEngine);
     expect(api.isEngineAvailable).toBe(isEngineAvailable);
     expect(api.buildDockerRuntimeTemplate).toBe(buildDockerRuntimeTemplate);
@@ -224,6 +226,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(Object.keys(api)).toEqual([
       "buildContextArgs",
       "detectContext",
+      "readDockerBuildContextFiles",
       "detectEngine",
       "isEngineAvailable",
       "createDockerRunner",

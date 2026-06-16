@@ -252,6 +252,46 @@ describe("dockerExecutionEnvFactory", () => {
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
+  it("keeps the dockerfile template cache hash stable when dockerignore-excluded files change", async () => {
+    const files = new Map([
+      ["/repo/Dockerfile", "FROM scratch\nCOPY app.txt /app.txt\n"],
+      ["/repo/context/.dockerignore", "ignored/\n"],
+      ["/repo/context/app.txt", "one\n"],
+      ["/repo/context/ignored/file.txt", "ignored-one\n"]
+    ]);
+    vi.mocked(readFile).mockImplementation(async (filePath) =>
+      Buffer.from(files.get(String(filePath)) ?? "")
+    );
+    vi.mocked(readdir).mockImplementation(async (dirPath) => {
+      if (String(dirPath) === "/repo/context") {
+        return [
+          dirent(".dockerignore", "file"),
+          dirent("app.txt", "file"),
+          dirent("ignored", "dir")
+        ] as never;
+      }
+      if (String(dirPath) === "/repo/context/ignored") {
+        return [dirent("file.txt", "file")] as never;
+      }
+      return [] as never;
+    });
+    const runner = createCapturingRunner([{ exitCode: 0 }, { exitCode: 0 }]);
+    const state = createState(null);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+    const input = {
+      cwd: "/repo",
+      runtime: { type: "docker" as const, dockerfile: "Dockerfile", build_context: "context", build_args: {} },
+      state,
+      runner
+    };
+
+    await buildDockerRuntimeTemplate(input);
+    files.set("/repo/context/ignored/file.txt", "ignored-two\n");
+    await buildDockerRuntimeTemplate(input);
+
+    expect(state.getCalls[0]?.hash).toBe(state.getCalls[1]?.hash);
+  });
+
   it("rejects dockerfile template build contexts outside the runtime cwd", async () => {
     const runner = createCapturingRunner([{ exitCode: 0 }]);
     const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
@@ -1062,6 +1102,14 @@ function createState(template: unknown) {
         putCalls.push({ backend, entry });
       }
     }
+  };
+}
+
+function dirent(name: string, type: "dir" | "file") {
+  return {
+    name,
+    isDirectory: () => type === "dir",
+    isFile: () => type === "file"
   };
 }
 

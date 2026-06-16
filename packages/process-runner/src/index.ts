@@ -1,4 +1,8 @@
 export { buildContextArgs, detectContext } from "./docker/context.js";
+export {
+  readDockerBuildContextFiles,
+  type DockerBuildContextFile
+} from "./docker/build-context.js";
 export { detectEngine, isEngineAvailable } from "./docker/engine.js";
 export { createDockerRunner } from "./docker/docker-runner.js";
 export {

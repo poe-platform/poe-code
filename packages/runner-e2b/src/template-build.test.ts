@@ -170,6 +170,49 @@ describe("buildE2bRuntimeTemplate", () => {
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
+  it("keeps the template cache hash stable when dockerignore-excluded files change", async () => {
+    files.set("/repo/.dockerignore", "ignored/\n");
+    files.set("/repo/ignored/file.txt", "ignored-one\n");
+    vi.mocked(readdir).mockImplementation(async (dirPath) => {
+      if (String(dirPath) === "/repo") {
+        return [
+          dirent(".dockerignore", "file"),
+          dirent("Dockerfile", "file"),
+          dirent("package.json", "file"),
+          dirent("ignored", "dir"),
+          dirent("src", "dir")
+        ];
+      }
+      if (String(dirPath) === "/repo/ignored") {
+        return [dirent("file.txt", "file")];
+      }
+      if (String(dirPath) === "/repo/src") {
+        return [dirent("index.js", "file")];
+      }
+      return [];
+    });
+    const state = createState(null);
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state
+    });
+    files.set("/repo/ignored/file.txt", "ignored-two\n");
+    await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state
+    });
+
+    expect(state.getCalls[0]?.hash).toBe(state.getCalls[1]?.hash);
+  });
+
   it("changes the template cache hash when the base template changes", async () => {
     const state = createState(null);
     const { buildE2bRuntimeTemplate } = await import("./template-build.js");

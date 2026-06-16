@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./docker/build-context": {
+      "types": "./dist/docker/build-context.d.ts",
+      "import": "./dist/docker/build-context.js"
+    },
     "./testing": {
       "types": "./dist/testing/index.d.ts",
       "import": "./dist/testing/index.js"
@@ -23,5 +27,8 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "ignore": "^5.3.2"
+  }
 }

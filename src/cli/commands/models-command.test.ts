@@ -319,6 +319,24 @@ describe("models command", () => {
     expect(output).not.toContain("b/no-tools");
   });
 
+  it("trims --feature before filtering", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({ id: "with-tools", owned_by: "A", supported_features: ["tools"] }),
+      createModelEntry({ id: "no-tools", owned_by: "B", supported_features: ["web_search"] })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--feature", " tools "] });
+
+    expect(output).toContain("a/with-tools");
+    expect(output).not.toContain("b/no-tools");
+  });
+
   it("filters by --feature reasoning (treats reasoning as a feature)", async () => {
     fs = await createConfigVolume("test-key");
     const models = [
@@ -533,6 +551,40 @@ describe("models command", () => {
     expect(output).not.toContain("b/partial");
   });
 
+  it("trims comma-separated --input modalities", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "full",
+        owned_by: "A",
+        architecture: { input_modalities: ["text", "image", "video"], output_modalities: ["text"] }
+      }),
+      createModelEntry({
+        id: "partial",
+        owned_by: "B",
+        architecture: { input_modalities: ["text", "image"], output_modalities: ["text"] }
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--input", "image, video"] });
+
+    expect(output).toContain("a/full");
+    expect(output).not.toContain("b/partial");
+  });
+
+  it("rejects empty --input modality entries", async () => {
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--input", "text,,image"] })
+    ).rejects.toThrow("Invalid --input value: modalities must be non-empty comma-separated values.");
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
   it("filters by --output modalities", async () => {
     fs = await createConfigVolume("test-key");
     const models = [
@@ -557,6 +609,40 @@ describe("models command", () => {
 
     expect(output).toContain("a/gen-image");
     expect(output).not.toContain("b/gen-text");
+  });
+
+  it("trims comma-separated --output modalities", async () => {
+    fs = await createConfigVolume("test-key");
+    const models = [
+      createModelEntry({
+        id: "gen-image",
+        owned_by: "A",
+        architecture: { input_modalities: ["text"], output_modalities: ["text", "image"] }
+      }),
+      createModelEntry({
+        id: "gen-text",
+        owned_by: "B",
+        architecture: { input_modalities: ["text"], output_modalities: ["text"] }
+      })
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    const output = await runModels({ fs, httpClient, logs, args: ["--output", "text, image"] });
+
+    expect(output).toContain("a/gen-image");
+    expect(output).not.toContain("b/gen-text");
+  });
+
+  it("rejects empty --output modality entries", async () => {
+    await expect(
+      runModels({ fs, httpClient, logs, args: ["--output", "text,"] })
+    ).rejects.toThrow("Invalid --output value: modalities must be non-empty comma-separated values.");
+
+    expect(httpClient).not.toHaveBeenCalled();
   });
 
   it("pricing view shows separate columns for each price type", async () => {
@@ -860,6 +946,27 @@ describe("models command", () => {
     const output = await runModels({ fs, httpClient, logs });
 
     expect(output).toContain("2024-01-15");
+  });
+
+  it("rejects models with invalid created timestamps", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [
+          {
+            ...createModelEntry({ id: "bad-date", owned_by: "A" }),
+            created: "not-a-timestamp"
+          }
+        ]
+      })
+    });
+
+    await expect(runModels({ fs, httpClient, logs })).rejects.toThrow(
+      "Invalid models response: data[0].created must be a finite number."
+    );
   });
 
   it("avoids floating point errors in pricing conversion", async () => {

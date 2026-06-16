@@ -192,6 +192,35 @@ function parseSinceDuration(value: string | undefined): number | undefined {
   return duration;
 }
 
+function normalizeRequiredFilter(name: string, value: string): string {
+  const normalized = value.trim().toLowerCase();
+  if (normalized.length === 0) {
+    throw new ValidationError(`Invalid ${name} value: must be non-empty.`);
+  }
+  return normalized;
+}
+
+function parseModalityFilter(name: string, value: string): string[] {
+  const modalities = value.split(",").map((part) => part.trim().toLowerCase());
+  if (modalities.some((part) => part.length === 0)) {
+    throw new ValidationError(
+      `Invalid ${name} value: modalities must be non-empty comma-separated values.`
+    );
+  }
+  return modalities;
+}
+
+function validateModelsResponse(models: ModelEntry[]): void {
+  for (const [index, model] of models.entries()) {
+    if (typeof model.created !== "number" || !Number.isFinite(model.created)) {
+      throw new ApiError(
+        `Invalid models response: data[${index}].created must be a finite number.`,
+        { endpoint: "/v1/models" }
+      );
+    }
+  }
+}
+
 async function fetchModels(
   container: CliContainer,
   headers: Record<string, string>
@@ -292,6 +321,15 @@ export function registerModelsCommand(
 
       try {
         const sinceDuration = parseSinceDuration(commandOptions.since);
+        const featureFilter = commandOptions.feature !== undefined
+          ? normalizeRequiredFilter("--feature", commandOptions.feature)
+          : undefined;
+        const inputFilter = commandOptions.input !== undefined
+          ? parseModalityFilter("--input", commandOptions.input)
+          : undefined;
+        const outputFilter = commandOptions.output !== undefined
+          ? parseModalityFilter("--output", commandOptions.output)
+          : undefined;
         let apiKey: string | null = null;
         try {
           apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
@@ -322,6 +360,7 @@ export function registerModelsCommand(
             stopMessage: (r) => `${r.data.length} models fetched`
           });
 
+        validateModelsResponse(result.data);
         const { models: allModels, availableEndpoints } = preprocessModels(result.data);
 
         if (!rawView && allModels.length === 0) {
@@ -349,9 +388,8 @@ export function registerModelsCommand(
             m.owned_by.toLowerCase().includes(term)
           );
         }
-        if (commandOptions.feature) {
-          const feature = commandOptions.feature.toLowerCase();
-          filtered = filtered.filter((m) => hasFeature(m, feature));
+        if (featureFilter !== undefined) {
+          filtered = filtered.filter((m) => hasFeature(m, featureFilter));
         }
         if (commandOptions.endpoint) {
           const endpoint = normalizeEndpoint(commandOptions.endpoint);
@@ -370,18 +408,16 @@ export function registerModelsCommand(
         if (commandOptions.tools) {
           filtered = filtered.filter((m) => hasFeature(m, "tools"));
         }
-        if (commandOptions.input) {
-          const required = commandOptions.input.toLowerCase().split(",");
+        if (inputFilter !== undefined) {
           filtered = filtered.filter((m) => {
             const modalities = m.architecture?.input_modalities ?? [];
-            return required.every((r) => modalities.includes(r));
+            return inputFilter.every((r) => modalities.includes(r));
           });
         }
-        if (commandOptions.output) {
-          const required = commandOptions.output.toLowerCase().split(",");
+        if (outputFilter !== undefined) {
           filtered = filtered.filter((m) => {
             const modalities = m.architecture?.output_modalities ?? [];
-            return required.every((r) => modalities.includes(r));
+            return outputFilter.every((r) => modalities.includes(r));
           });
         }
         if (sinceDuration !== undefined) {

@@ -35,9 +35,9 @@ export function createPoeClient(options: PoeClientOptions): LlmClient {
       return { content: extractTextContent(data) };
     },
 
-    async media(_type, request): Promise<LlmResponse> {
+    async media(type, request): Promise<LlmResponse> {
       const data = await requestCompletion(httpClient, options.baseUrl, options.apiKey, request);
-      return extractMediaFromCompletion(data);
+      return extractMediaFromCompletion(type, data);
     }
   };
 }
@@ -117,7 +117,10 @@ function extractTextContent(data: unknown): string | undefined {
   return typeof message.content === "string" ? message.content : undefined;
 }
 
-function extractMediaFromCompletion(data: unknown): LlmResponse {
+function extractMediaFromCompletion(
+  type: "image" | "video" | "audio",
+  data: unknown
+): LlmResponse {
   const content = extractTextContent(data);
   if (!content) return {};
 
@@ -147,8 +150,8 @@ function extractMediaFromCompletion(data: unknown): LlmResponse {
     return { url: content.trim() };
   }
 
-  // Try extracting URL from markdown (e.g., "![image](url)")
-  const markdownUrl = extractMarkdownUrl(content);
+  // Try extracting media-specific markdown (e.g., "![image](url)" or "[video](url)").
+  const markdownUrl = extractMarkdownMediaUrl(content, type);
   if (markdownUrl) {
     return { url: markdownUrl };
   }
@@ -157,14 +160,65 @@ function extractMediaFromCompletion(data: unknown): LlmResponse {
   return { content };
 }
 
-function extractMarkdownUrl(content: string): string | undefined {
-  const start = content.indexOf("](");
-  if (start === -1) return undefined;
-  const urlStart = start + 2;
-  const end = content.indexOf(")", urlStart);
-  if (end === -1) return undefined;
-  const url = content.slice(urlStart, end);
-  return isValidUrl(url) ? url : undefined;
+function extractMarkdownMediaUrl(
+  content: string,
+  type: "image" | "video" | "audio"
+): string | undefined {
+  let searchFrom = 0;
+  while (searchFrom < content.length) {
+    const openLabel = content.indexOf("[", searchFrom);
+    if (openLabel === -1) return undefined;
+    const closeLabel = content.indexOf("](", openLabel);
+    if (closeLabel === -1) return undefined;
+
+    const urlStart = closeLabel + 2;
+    const urlEnd = content.indexOf(")", urlStart);
+    if (urlEnd === -1) return undefined;
+
+    const label = content.slice(openLabel + 1, closeLabel);
+    const url = content.slice(urlStart, urlEnd);
+    const isImageMarkdown = openLabel > 0 && content[openLabel - 1] === "!";
+    if (isValidUrl(url) && isGeneratedMediaLabel(label, type, isImageMarkdown)) {
+      return url;
+    }
+
+    searchFrom = urlEnd + 1;
+  }
+
+  return undefined;
+}
+
+function isGeneratedMediaLabel(
+  label: string,
+  type: "image" | "video" | "audio",
+  isImageMarkdown: boolean
+): boolean {
+  if (type === "image" && isImageMarkdown) {
+    return true;
+  }
+  return labelTokens(label).includes(type);
+}
+
+function labelTokens(label: string): string[] {
+  const tokens: string[] = [];
+  let current = "";
+  for (const char of label.toLowerCase()) {
+    const code = char.charCodeAt(0);
+    const isAsciiLetter = code >= 97 && code <= 122;
+    const isAsciiDigit = code >= 48 && code <= 57;
+    if (isAsciiLetter || isAsciiDigit) {
+      current += char;
+      continue;
+    }
+    if (current.length > 0) {
+      tokens.push(current);
+      current = "";
+    }
+  }
+  if (current.length > 0) {
+    tokens.push(current);
+  }
+  return tokens;
 }
 
 function isValidUrl(value: string): boolean {

@@ -617,6 +617,47 @@ describe("createPoeClient", () => {
     expect(response).toEqual({ url: "https://example.com/out.mp3" });
   });
 
+  it("does not treat ordinary markdown links as generated media", async () => {
+    async function mediaFor(content: string, type: "image" | "video" | "audio" = "image") {
+      const client = createPoeClient({
+        apiKey: "secret",
+        baseUrl,
+        httpClient: createHttpClientMock({
+          choices: [{ message: { content } }]
+        })
+      });
+
+      return client.media(type, {
+        model: "Media-Model",
+        prompt: "Generate media"
+      });
+    }
+
+    await expect(mediaFor("![image](https://cdn.example.test/generated.png)")).resolves.toEqual({
+      url: "https://cdn.example.test/generated.png"
+    });
+    await expect(
+      mediaFor("[video](https://cdn.example.test/generated.mp4)", "video")
+    ).resolves.toEqual({
+      url: "https://cdn.example.test/generated.mp4"
+    });
+    await expect(
+      mediaFor("[audio](https://cdn.example.test/generated.mp3)", "audio")
+    ).resolves.toEqual({
+      url: "https://cdn.example.test/generated.mp3"
+    });
+    await expect(
+      mediaFor("I cannot generate that. See [Poe docs](https://docs.example.test/media-help).")
+    ).resolves.toEqual({
+      content: "I cannot generate that. See [Poe docs](https://docs.example.test/media-help)."
+    });
+    await expect(
+      mediaFor("Here is a citation [not media](https://example.test/page.html).")
+    ).resolves.toEqual({
+      content: "Here is a citation [not media](https://example.test/page.html)."
+    });
+  });
+
   it("returns content when no URL found", async () => {
     const httpClient = createHttpClientMock({
       choices: [

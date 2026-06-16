@@ -194,6 +194,26 @@ describe("provider config", () => {
     );
   });
 
+  it("does not recover invalid services config when loading in read-only mode", async () => {
+    const fs = createMockFs(
+      {
+        "~/.config/poe-code/services.json": "{invalid json"
+      },
+      homeDir
+    );
+
+    await expect(
+      loadProviderShapeBaseUrls({
+        fs,
+        filePath: servicesConfigPath,
+        providerId: "cloudflare",
+        readOnly: true
+      })
+    ).rejects.toThrow(SyntaxError);
+    expect(fs.getContent("~/.config/poe-code/services.json")).toBe("{invalid json");
+    await expect(fs.readdir("/home/test/.config/poe-code")).resolves.toEqual(["services.json"]);
+  });
+
   it("rejects provider metadata reads through a symlinked services directory", async () => {
     const volume = new Volume();
     volume.mkdirSync(`${homeDir}/.config`, { recursive: true });

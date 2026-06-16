@@ -23,7 +23,11 @@ import {
   writeFrontmatter,
   type RalphFrontmatter
 } from "@poe-code/ralph";
-import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import {
+  readMergedDocument,
+  readMergedDocumentReadonly,
+  resolveScope
+} from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ralphConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";
@@ -298,11 +302,15 @@ function resolveAbsoluteDocPath(container: CliContainer, docPath: string): strin
   return path.isAbsolute(docPath) ? docPath : path.resolve(container.env.cwd, docPath);
 }
 
-async function resolveRalphCommandConfig(container: CliContainer): Promise<{
+async function resolveRalphCommandConfig(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<{
   planDirectory: string;
   tui: boolean;
 }> {
-  const configDoc = await readMergedDocument(
+  const readConfig = options.readOnly ? readMergedDocumentReadonly : readMergedDocument;
+  const configDoc = await readConfig(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -480,7 +488,7 @@ async function promptForAgent(container: CliContainer, program: Command): Promis
   }
 
   const selectedAgent = await resolveLoopAgent({
-    configuredDefaultAgent: await resolveDefaultAgent(container),
+    configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
     assumeYes: flags.assumeYes,
     fallbackAgent: DEFAULT_RALPH_AGENT,
     message: "Select agent to run Ralph with:",
@@ -517,7 +525,7 @@ async function resolveRunAgent(options: {
     const selectedAgent = await resolveLoopAgent({
       providedAgent: options.providedAgent,
       frontmatterAgent: configured,
-      configuredDefaultAgent: await resolveDefaultAgent(options.container),
+      configuredDefaultAgent: await resolveDefaultAgent(options.container, { readOnly: flags.dryRun }),
       assumeYes: flags.assumeYes,
       fallbackAgent: DEFAULT_RALPH_AGENT,
       message: "Select agent to run Ralph with:",
@@ -685,7 +693,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
       resources.logger.intro("ralph init");
 
       try {
-        const commandConfig = await resolveRalphCommandConfig(container);
+        const commandConfig = await resolveRalphCommandConfig(container, { readOnly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -773,7 +781,7 @@ export function registerRalphCommand(program: Command, container: CliContainer):
     resources.logger.intro("ralph run");
 
     try {
-      const commandConfig = await resolveRalphCommandConfig(container);
+      const commandConfig = await resolveRalphCommandConfig(container, { readOnly: flags.dryRun });
       const docPath = await resolveDocPath({
         container,
         program,

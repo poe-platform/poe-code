@@ -1,6 +1,6 @@
 import type { FileSystem } from "@poe-code/config-mutations";
 import type { ApiShapeId } from "@poe-code/providers";
-import { readDocument, writeScope } from "./store.js";
+import { readDocument, readDocumentReadonly, writeScope } from "./store.js";
 
 export interface ProviderConfigStoreOptions {
   fs: FileSystem;
@@ -9,6 +9,7 @@ export interface ProviderConfigStoreOptions {
 
 export interface LoadProviderShapeBaseUrlsOptions extends ProviderConfigStoreOptions {
   providerId: string;
+  readOnly?: boolean;
 }
 
 export interface SaveProviderShapeBaseUrlsOptions extends ProviderConfigStoreOptions {
@@ -19,7 +20,8 @@ export interface SaveProviderShapeBaseUrlsOptions extends ProviderConfigStoreOpt
 export async function loadProviderShapeBaseUrls(
   options: LoadProviderShapeBaseUrlsOptions
 ): Promise<Partial<Record<ApiShapeId, string>>> {
-  const document = await readDocument(options.fs, options.filePath);
+  const readConfig = options.readOnly ? readDocumentReadonly : readDocument;
+  const document = await readConfig(options.fs, options.filePath);
   const providers = getOwnRecordEntry(document, providersScope);
   const providerConfig = getOwnRecordEntry(providers, options.providerId);
   if (Object.keys(providerConfig).length === 0) {

@@ -58,6 +58,7 @@ export async function buildActiveProvider(input: {
   credential: string;
   explicitBaseUrl?: string;
   explicitShapeBaseUrls?: Partial<Record<ApiShapeId, string>>;
+  readOnly?: boolean;
 }): Promise<ActiveProvider> {
   const apiShape = resolveApiShape(input.provider, input.agent);
   if (!apiShape) {
@@ -78,7 +79,9 @@ export async function buildActiveProvider(input: {
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
     resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
     resolveShapeBaseUrl(environmentBaseUrl, shape.envBaseUrlPath ?? shape.baseUrlPath) ??
-    (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
+    (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape, {
+      readOnly: input.readOnly
+    }));
 
   if (input.provider.requiresBaseUrl === true && configuredBaseUrl === undefined) {
     throw new Error(
@@ -304,7 +307,8 @@ export async function resolveActiveProviderForService(
     agent,
     credential,
     explicitBaseUrl: metadata?.baseUrl,
-    explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata?.shapeBaseUrl ?? [])
+    explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata?.shapeBaseUrl ?? []),
+    readOnly: options.readOnly
   });
 }
 
@@ -332,12 +336,14 @@ async function resolveSingleProviderCandidate(
 async function resolveStoredShapeBaseUrl(
   container: CliContainer,
   providerId: string,
-  apiShape: ApiShapeId
+  apiShape: ApiShapeId,
+  options: { readOnly?: boolean } = {}
 ): Promise<string | undefined> {
   const shapeBaseUrls = await loadProviderShapeBaseUrls({
     fs: container.fs,
     filePath: container.env.servicesConfigPath,
-    providerId
+    providerId,
+    readOnly: options.readOnly
   });
   const value = shapeBaseUrls[apiShape];
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;

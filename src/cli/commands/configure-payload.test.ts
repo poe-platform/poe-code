@@ -215,6 +215,43 @@ describe("createConfigurePayload — model choices", () => {
     expect(resolveModel).toHaveBeenCalledOnce();
   });
 
+  it("does not recover invalid stored model config during dry-run payload creation", async () => {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/config.json`, "{invalid json", "utf8");
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const adapter = createProviderStub({
+      name: "opencode",
+      label: "Static Model Service",
+      configurePrompts: {
+        model: {
+          label: "Static model",
+          defaultValue: "static-a",
+          choices: [{ title: "Static A", value: "static-a" }]
+        }
+      }
+    });
+    const resources = createExecutionResources(container, { ...defaultFlags, dryRun: true }, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    await expect(
+      createConfigurePayload({
+        container,
+        flags: { ...defaultFlags, dryRun: true },
+        options: {},
+        context,
+        adapter,
+        logger: resources.logger,
+        providerId: "poe"
+      })
+    ).rejects.toThrow(SyntaxError);
+    await expect(fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).resolves.toBe(
+      "{invalid json"
+    );
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("uses async resolver output for model choices", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");

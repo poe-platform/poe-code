@@ -698,6 +698,21 @@ describe("mcp command", () => {
     expect(configureMock).toHaveBeenCalled();
   });
 
+  it("does not recover invalid global config while resolving the dry-run default agent", async () => {
+    const fs = createMcpMemfs();
+    await fs.writeFile("/home/test/.poe-code/config.json", "{invalid json", "utf8");
+    const { program } = await createMcpProgram({ fs, storeApiKey: false });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "mcp", "configure"])
+    ).rejects.toThrow(SyntaxError);
+    await expect(fs.readFile("/home/test/.poe-code/config.json", "utf8")).resolves.toBe(
+      "{invalid json"
+    );
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
+    expect(configureMock).not.toHaveBeenCalled();
+  });
+
   it("parses comma-separated --output-format preferences", async () => {
     const { program } = await createMcpProgram();
     const initSpy = vi

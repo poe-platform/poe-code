@@ -2263,6 +2263,30 @@ describe("ralph run command", () => {
     expect(logs.join("\n")).toContain("Dry run: would run Ralph");
   });
 
+  it("does not recover invalid global config during dry-run previews", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/config.json": "{invalid json",
+      "/repo/docs/loop.md": "---\nagent: claude-code\niterations: 1\n---\n# Loop"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "run", "docs/loop.md"])
+    ).rejects.toThrow(SyntaxError);
+    await expect(fs.readFile("/home/test/.poe-code/config.json", "utf8")).resolves.toBe(
+      "{invalid json"
+    );
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+  });
+
   it("passes runtime flags to the Ralph SDK", async () => {
     const container = createCliContainer({
       fs: createMemFs({

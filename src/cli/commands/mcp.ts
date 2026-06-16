@@ -101,7 +101,7 @@ export function registerMcpCommand(
       let agent = agentArg;
       if (!agent) {
         if (flags.assumeYes || options.yes) {
-          const fromConfig = await resolveDefaultAgent(container);
+          const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
           agent = fromConfig !== null ? parseAgentSpecifier(fromConfig).agent : DEFAULT_MCP_AGENT;
         } else {
           if (process.stdin.isTTY !== true) {

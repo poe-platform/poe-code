@@ -67,7 +67,8 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
       agent,
       credential: apiKey,
       explicitBaseUrl,
-      explicitShapeBaseUrls
+      explicitShapeBaseUrls,
+      readOnly: flags.dryRun
     });
     payload.provider = activeProvider;
   }
@@ -77,7 +78,8 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     const configModel = await resolveConfigModel(
       {
         fs: container.fs,
-        filePath: container.env.configPath
+        filePath: container.env.configPath,
+        readOnly: flags.dryRun
       },
       adapter.name
     );

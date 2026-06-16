@@ -968,6 +968,49 @@ describe("usage list command", () => {
     expect(output).toContain("gpt-5.2");
   });
 
+  it("URL-encodes opaque pagination cursors", async () => {
+    fs = await createConfigVolume("test-key");
+    (httpClient as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          has_more: true,
+          data: [
+            {
+              query_id: "entry&cursor=broken",
+              creation_time: 1705314600000000,
+              bot_name: "Claude-Sonnet-4.5",
+              cost_usd: "0.0015",
+              cost_points: -50
+            }
+          ]
+        })
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ has_more: false, data: [] })
+      });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list", "--pages", "2"]);
+
+    const secondUrl = String((httpClient as ReturnType<typeof vi.fn>).mock.calls[1][0]);
+    expect(secondUrl).toContain("starting_after=entry%26cursor%3Dbroken");
+    expect(secondUrl).not.toContain("starting_after=entry&cursor=broken");
+  });
+
   it("filters results client-side when --filter provided", async () => {
     fs = await createConfigVolume("test-key");
     const entries = [
@@ -999,6 +1042,37 @@ describe("usage list command", () => {
     expect(output).toContain("Claude-Opus");
     expect(output).not.toContain("gpt-5.2");
     expect(logs.some((m) => m.includes('Showing entries matching "claude".'))).toBe(true);
+  });
+
+  it("trims --filter before matching usage history", async () => {
+    fs = await createConfigVolume("test-key");
+    const entries = [
+      { query_id: "entry-1", creation_time: 1705314600000000, bot_name: "Claude-Sonnet-4.5", cost_usd: "0.0015", cost_points: -50 },
+      { query_id: "entry-2", creation_time: 1705310100000000, bot_name: "gpt-5.2", cost_usd: "0.0009", cost_points: -30 }
+    ];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ has_more: false, data: entries })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    const optsSpy = vi.spyOn(program, "optsWithGlobals");
+    optsSpy.mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "usage", "list", "--filter", " Claude "]);
+
+    const output = logs.join("\n");
+    expect(output).toContain("Claude-Sonnet-4.5");
+    expect(output).not.toContain("gpt-5.2");
+    expect(logs.some((m) => m.includes('Showing entries matching "Claude".'))).toBe(true);
   });
 
   it("filters case-insensitively on model name", async () => {

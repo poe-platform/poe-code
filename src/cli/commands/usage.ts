@@ -205,7 +205,7 @@ export function registerUsageCommand(
         });
 
         const theme = getTheme();
-        const filterTerm = commandOptions.filter;
+        const filterTerm = commandOptions.filter?.trim();
         const tzAbbr = Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
           .formatToParts(new Date())
           .find((p) => p.type === "timeZoneName")?.value ?? "local";
@@ -272,7 +272,7 @@ export function registerUsageCommand(
         while (true) {
           let url = `${container.env.poeBaseUrl}/usage/points_history?limit=20`;
           if (startingAfter) {
-            url += `&starting_after=${startingAfter}`;
+            url += `&starting_after=${encodeURIComponent(startingAfter)}`;
           }
 
           const result = await withSpinner<{

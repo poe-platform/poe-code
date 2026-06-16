@@ -256,6 +256,31 @@ describe("resolve", () => {
     });
   });
 
+  it("uses trimmed path-valued extends when reading an explicit base", async () => {
+    const fs = createMemFs({
+      "/workspace/base.yaml": "prompt: Base prompt"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/doc.yaml",
+            content: 'extends: " ./base.yaml "\ntitle: Demo'
+          }
+        ],
+        { fs }
+      )
+    ).resolves.toMatchObject({
+      data: {
+        prompt: "Base prompt",
+        title: "Demo"
+      },
+      chain: ["/workspace/doc.yaml", "/workspace/base.yaml"]
+    });
+  });
+
   it("throws a targeted error when an explicit path-valued base is missing", async () => {
     const fs = createMemFs();
 
@@ -343,6 +368,51 @@ describe("resolve", () => {
         "/workspace/docs/plans/_bases/coding.md",
         "/workspace/docs/plans/_bases/shared.md"
       ]
+    });
+  });
+
+  it("rejects blank markdown partial names before reading hidden dotfiles", async () => {
+    const fs = createMemFs({
+      "/workspace/review.md": "{{> }}",
+      "/workspace/.md": "EMPTY NAME PARTIAL"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: "{{> }}"
+          }
+        ],
+        { fs }
+      )
+    ).rejects.toThrow("Partial name must be non-empty.");
+  });
+
+  it("resolves prototype-named markdown partials as own entries", async () => {
+    const fs = createMemFs({
+      "/workspace/review.md": "Before {{> __proto__}} After",
+      "/workspace/__proto__.md": "PARTIAL"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.md",
+            content: "Before {{> __proto__}} After"
+          }
+        ],
+        { fs }
+      )
+    ).resolves.toMatchObject({
+      data: {
+        prompt: "Before PARTIAL After"
+      },
+      chain: ["/workspace/review.md", "/workspace/__proto__.md"]
     });
   });
 

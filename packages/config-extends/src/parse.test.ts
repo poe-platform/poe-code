@@ -64,6 +64,31 @@ describe("parseDocument", () => {
     });
   });
 
+  it("preserves a frontmatter prompt when markdown body is empty", () => {
+    expect(parseDocument("---\nprompt: From frontmatter\ntitle: Demo\n---\n", "/tmp/config.md")).toEqual({
+      data: {
+        prompt: "From frontmatter",
+        title: "Demo"
+      },
+      format: "markdown",
+      extends: false,
+      hasExtendsField: false
+    });
+  });
+
+  it("treats markdown starting with a horizontal rule as prompt body", () => {
+    const content = "---\n# Prompt\n\nBody\n";
+
+    expect(parseDocument(content, "/tmp/config.md")).toEqual({
+      data: {
+        prompt: content
+      },
+      format: "markdown",
+      extends: false,
+      hasExtendsField: false
+    });
+  });
+
   it.each([
     ["yaml", "title: Hello", "/tmp/config.yaml"],
     ["json", '{"title":"Hello"}', "/tmp/config.json"]
@@ -92,6 +117,17 @@ describe("parseDocument", () => {
       },
       format: "yaml",
       extends: "./_bases/coding.md",
+      hasExtendsField: true
+    });
+  });
+
+  it("trims path-valued extends before returning it", () => {
+    expect(parseDocument('extends: " ./base.yaml "\ntitle: Hello', "/tmp/config.yaml")).toEqual({
+      data: {
+        title: "Hello"
+      },
+      format: "yaml",
+      extends: "./base.yaml",
       hasExtendsField: true
     });
   });
@@ -205,7 +241,7 @@ describe("parseDocument", () => {
   });
 
   it("throws for invalid json", () => {
-    expect(() => parseDocument('{"title":', "/tmp/config.json")).toThrow();
+    expect(() => parseDocument('{"title":', "/tmp/config.json")).toThrow("/tmp/config.json");
   });
 
   it.each([

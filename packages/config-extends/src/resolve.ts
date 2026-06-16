@@ -373,10 +373,14 @@ async function expandPromptPartials(
   options: ResolveOptions
 ): Promise<{ baseLayers: DataLayer[]; documentLayer: DataLayer; partialFiles: string[] }> {
   const directories = unique(promptFiles.map((filePath) => path.dirname(filePath)));
-  const partials: Record<string, string> = {};
+  const partials: Record<string, string> = Object.create(null) as Record<string, string>;
   const partialFiles: string[] = [];
 
   const loadPartial = async (name: string): Promise<void> => {
+    if (name.trim().length === 0) {
+      throw new Error("Partial name must be non-empty.");
+    }
+
     if (Object.hasOwn(partials, name)) {
       return;
     }

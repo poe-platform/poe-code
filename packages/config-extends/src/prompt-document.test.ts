@@ -51,4 +51,34 @@ describe("resolvePromptDocument", () => {
       ).rejects.toThrow("document read denied");
     });
   });
+
+  it("allows files whose real paths stay inside resolved configured roots", async () => {
+    const fs: PromptDocumentFileSystem = {
+      async readFile(filePath) {
+        if (filePath === "/var/tmp/workspace/bases/review.md") {
+          return "Base prompt";
+        }
+
+        const error = new Error(`not found: ${filePath}`) as Error & { code: string };
+        error.code = "ENOENT";
+        throw error;
+      },
+      async realpath(filePath) {
+        return filePath.replace(/^\/var\/tmp\/workspace/, "/private/var/tmp/workspace");
+      }
+    };
+
+    await expect(
+      resolvePromptDocument({
+        cwd: "/var/tmp/workspace",
+        filePath: "review.md",
+        optional: true,
+        basePaths: ["/var/tmp/workspace/bases"],
+        fs
+      })
+    ).resolves.toMatchObject({
+      prompt: "Base prompt",
+      chain: ["/var/tmp/workspace/review.md", "/var/tmp/workspace/bases/review.md"]
+    });
+  });
 });

@@ -138,8 +138,24 @@ async function assertRealPathInsideOriginalRoot(
 ): Promise<void> {
   const resolvedPath = path.resolve(await fs.realpath(filePath));
   const originalRoot = roots.find((root) => isInsideRoot(filePath, root));
-  if (!originalRoot || !isInsideRoot(resolvedPath, originalRoot)) {
+  if (!originalRoot) {
     throw new Error(`Prompt document path escapes configured root: ${filePath}`);
+  }
+
+  const resolvedRoot = await resolveRootPath(fs, originalRoot);
+  if (!isInsideRoot(resolvedPath, resolvedRoot)) {
+    throw new Error(`Prompt document path escapes configured root: ${filePath}`);
+  }
+}
+
+async function resolveRootPath(
+  fs: PromptDocumentFileSystem,
+  root: string
+): Promise<string> {
+  try {
+    return path.resolve(await fs.realpath(root));
+  } catch {
+    return path.resolve(root);
   }
 }
 

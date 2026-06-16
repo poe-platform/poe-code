@@ -18,8 +18,8 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/frontmatter": "*",
     "toolcraft-design": "*",
-    "gray-matter": "^4.0.3",
     "yaml": "^2.8.2"
   }
 }

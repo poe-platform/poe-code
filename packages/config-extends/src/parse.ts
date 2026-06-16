@@ -1,5 +1,5 @@
 import path from "node:path";
-import matter from "gray-matter";
+import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
 import { parse as parseYaml } from "yaml";
 import type { ParsedDocument } from "./types.js";
 
@@ -10,7 +10,9 @@ export function parseDocument(content: string, filePath: string): ParsedDocument
     format === "markdown"
       ? parseMarkdown(normalizedContent, filePath)
       : toData(
-          format === "json" ? JSON.parse(normalizedContent) : (parseYaml(normalizedContent) ?? {}),
+          format === "json"
+            ? parseJson(normalizedContent, filePath)
+            : (parseYaml(normalizedContent) ?? {}),
           filePath
         );
   const hasExtendsField = Object.hasOwn(data, "extends");
@@ -46,15 +48,17 @@ function parseExtendsValue(
     );
   }
 
-  if (value.trim().length === 0) {
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length === 0) {
     throw new Error(`Invalid extends value in ${filePath}: expected a non-empty relative path.`);
   }
 
-  if (path.isAbsolute(value)) {
+  if (path.isAbsolute(trimmedValue)) {
     throw new Error(`Invalid extends value in ${filePath}: expected a relative path.`);
   }
 
-  return value;
+  return trimmedValue;
 }
 
 function detectFormat(
@@ -87,11 +91,39 @@ function detectFormat(
 }
 
 function parseMarkdown(content: string, filePath: string): Record<string, unknown> {
-  const document = matter(normalizeMarkdownLineEndings(content));
-  return {
-    ...toData(document.data, filePath),
-    prompt: document.content
-  };
+  let document;
+
+  try {
+    document = parseFrontmatter(normalizeMarkdownLineEndings(content));
+  } catch (error) {
+    if (
+      error instanceof FrontmatterParseError &&
+      error.message === "Missing YAML frontmatter end delimiter (---)."
+    ) {
+      return { prompt: content };
+    }
+
+    throw error;
+  }
+
+  const data = toData(document.frontmatter, filePath);
+  if (document.body !== "" || !Object.hasOwn(data, "prompt")) {
+    return {
+      ...data,
+      prompt: document.body
+    };
+  }
+
+  return data;
+}
+
+function parseJson(content: string, filePath: string): unknown {
+  try {
+    return JSON.parse(content);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown JSON parse error";
+    throw new Error(`Invalid JSON configuration in ${filePath}: ${message}`);
+  }
 }
 
 function normalizeMarkdownLineEndings(content: string): string {
@@ -116,7 +148,9 @@ function toData(value: unknown, filePath: string): Record<string, unknown> {
     throw new Error(`Invalid configuration in ${filePath}: expected an object root.`);
   }
 
-  return { ...(value as Record<string, unknown>) };
+  return {
+    ...(value as Record<string, unknown>)
+  };
 }
 
 function stripBom(content: string): string {

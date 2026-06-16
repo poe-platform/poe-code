@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import path from "node:path";
+import { Volume, createFsFromVolume } from "memfs";
 import { createPoeAgentProgram, normalizePoeAgentArgv } from "./poe-agent-main.js";
+import type { FileSystem } from "../utils/file-system.js";
 
 const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
   vi.fn(() => ({
@@ -36,8 +39,19 @@ vi.mock("toolcraft-design", async (importOriginal) => {
   };
 });
 
-async function runProgram(args: string[]): Promise<void> {
-  const program = createPoeAgentProgram();
+const cliCwd = "/repo";
+
+function createMemFs(): FileSystem {
+  const vol = new Volume();
+  vol.mkdirSync(cliCwd, { recursive: true });
+  return createFsFromVolume(vol).promises as unknown as FileSystem;
+}
+
+async function runProgram(args: string[], options: { fs?: FileSystem; cwd?: string } = {}): Promise<void> {
+  const program = createPoeAgentProgram({
+    fs: options.fs,
+    cwd: options.cwd
+  });
   program.exitOverride();
   await program.parseAsync(normalizePoeAgentArgv(["node", "poe-agent", ...args]));
 }
@@ -144,6 +158,29 @@ describe("poe-agent CLI", () => {
     expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
     expect(Object.hasOwn(options.mcpServers?.["__proto__"]?.env ?? {}, "__proto__")).toBe(true);
     expect(options.mcpServers?.["__proto__"]?.env?.["__proto__"]).toBe("visible");
+  });
+
+  it("reads --mcp-servers from a standard .mcp.json @file", async () => {
+    const fs = createMemFs();
+    await fs.writeFile(
+      path.join(cliCwd, ".mcp.json"),
+      JSON.stringify({
+        mcpServers: {
+          "test-server": { command: "test-mcp", args: ["serve"], timeout: 15 }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    await runProgram(["--mcp-servers", "@.mcp.json", "Test prompt"], { fs, cwd: cliCwd });
+
+    expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mcpServers: {
+          "test-server": { command: "test-mcp", args: ["serve"], timeout: 15 }
+        }
+      })
+    );
   });
 
   it("throws on invalid --mcp-servers JSON", async () => {

@@ -151,7 +151,8 @@ describe("agent builder MCP spawn handoff", () => {
         repo: {
           command: "repo-mcp",
           args: ["--stdio"],
-          env: { TOKEN: "secret" }
+          env: { TOKEN: "secret" },
+          timeout: 45
         }
       })
       .use(spawnPlugin())
@@ -187,7 +188,8 @@ describe("agent builder MCP spawn handoff", () => {
           transport: "stdio",
           command: "repo-mcp",
           args: ["--stdio"],
-          env: { TOKEN: "secret" }
+          env: { TOKEN: "secret" },
+          timeout: 45
         }
       }
     });

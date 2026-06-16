@@ -580,6 +580,44 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("passes deprecated mcpConfig to native ACP agents", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      agentId: "opencode",
+      supportsMcpServers: true
+    } as any);
+
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { result } = spawn("opencode", "test prompt", {
+      mcpConfig: {
+        test: {
+          command: "tiny-stdio-mcp-test-server",
+          args: ["serve", "word-of-the-day"]
+        }
+      }
+    });
+
+    await result;
+
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mcpServers: {
+          test: {
+            command: "tiny-stdio-mcp-test-server",
+            args: ["serve", "word-of-the-day"]
+          }
+        }
+      })
+    );
+  });
+
   it("prefers mcpServers over the deprecated mcpConfig alias", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

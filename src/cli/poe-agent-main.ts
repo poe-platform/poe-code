@@ -2,7 +2,7 @@ import os from "node:os";
 import path from "node:path";
 import fsPromises from "node:fs/promises";
 import { Command } from "commander";
-import { renderAcpStream, type McpSpawnConfig } from "@poe-code/agent-spawn";
+import { renderAcpStream } from "@poe-code/agent-spawn";
 import { log } from "toolcraft-design";
 import {
   createConfigStore,
@@ -13,83 +13,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import { agentConfigScope } from "../services/config.js";
 import { FEEDBACK_URL } from "./constants.js";
 import { ValidationError } from "./errors.js";
-
-function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
-  if (!input) {
-    return undefined;
-  }
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(input);
-  } catch {
-    throw new ValidationError(
-      "--mcp-servers must be valid JSON in this shape: {name: {command, args?, env?}}"
-    );
-  }
-
-  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    throw new ValidationError(
-      "--mcp-servers must be an object in this shape: {name: {command, args?, env?}}"
-    );
-  }
-
-  const servers: McpSpawnConfig = {};
-  for (const [name, value] of Object.entries(parsed as Record<string, unknown>)) {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) {
-      throw new ValidationError(
-        `--mcp-servers entry "${name}" must be an object: {command, args?, env?}`
-      );
-    }
-
-    const entry = value as Record<string, unknown>;
-    const command = entry.command;
-    if (typeof command !== "string" || command.trim().length === 0) {
-      throw new ValidationError(
-        `--mcp-servers entry "${name}" must include a non-empty string "command"`
-      );
-    }
-
-    let args: string[] | undefined;
-    if ("args" in entry && entry.args !== undefined) {
-      if (!Array.isArray(entry.args) || entry.args.some((a: unknown) => typeof a !== "string")) {
-        throw new ValidationError(`--mcp-servers entry "${name}".args must be an array of strings`);
-      }
-      args = entry.args as string[];
-    }
-
-    let env: Record<string, string> | undefined;
-    if ("env" in entry && entry.env !== undefined) {
-      if (typeof entry.env !== "object" || entry.env === null || Array.isArray(entry.env)) {
-        throw new ValidationError(
-          `--mcp-servers entry "${name}".env must be an object of string values`
-        );
-      }
-      const entries = Object.entries(entry.env as Record<string, unknown>);
-      for (const [, envValue] of entries) {
-        if (typeof envValue !== "string") {
-          throw new ValidationError(
-            `--mcp-servers entry "${name}".env must be an object of string values`
-          );
-        }
-      }
-      env = Object.fromEntries(entries) as Record<string, string>;
-    }
-
-    Object.defineProperty(servers, name, {
-      value: {
-        command,
-        ...(args ? { args } : {}),
-        ...(env ? { env } : {})
-      },
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  }
-
-  return Object.keys(servers).length > 0 ? servers : undefined;
-}
+import { parseMcpSpawnConfig, resolveMcpSpawnInput } from "./mcp-spawn-config.js";
 
 function resolveWorkingDirectory(baseDir: string, candidate?: string): string | undefined {
   if (!candidate || candidate.trim().length === 0) {
@@ -141,9 +65,12 @@ async function runPoeAgentCommand(options: {
   promptText?: string;
   commandOptions: PoeAgentRunCommandOptions;
 }): Promise<void> {
-  const mcpServers = parseMcpSpawnConfig(
-    options.commandOptions.mcpServers ?? options.commandOptions.mcpConfig
+  const mcpInput = await resolveMcpSpawnInput(
+    options.commandOptions.mcpServers ?? options.commandOptions.mcpConfig,
+    options.fs as unknown as Pick<FileSystem, "readFile">,
+    options.baseDir
   );
+  const mcpServers = parseMcpSpawnConfig(mcpInput);
   const cwdOverride = resolveWorkingDirectory(options.baseDir, options.commandOptions.cwd);
   const cwd = cwdOverride ?? options.baseDir;
   const configStore = createConfigStore({

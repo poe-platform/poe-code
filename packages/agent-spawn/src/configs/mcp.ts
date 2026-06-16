@@ -67,6 +67,9 @@ function toTomlKeySegment(value: string): string {
 
 export function validateMcpSpawnConfig(servers: McpSpawnConfig): void {
   for (const [name, server] of Object.entries(servers)) {
+    if (name.trim().length === 0) {
+      throw new Error("MCP server name must be a non-empty string.");
+    }
     if (typeof server.command !== "string" || server.command.trim().length === 0) {
       throw new Error(`MCP server "${name}" command must be a non-empty string.`);
     }

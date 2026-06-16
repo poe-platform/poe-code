@@ -215,7 +215,7 @@ export function spawn(
           cwd,
           model,
           mode: options.mode,
-          mcpServers: options.mcpServers,
+          mcpServers: resolvedMcpServers,
           ...(options.skills && options.skills.length > 0 ? { skills: options.skills } : {}),
           ...(options.hooks ? { hooks: options.hooks } : {}),
           resumeThreadId: options.resumeThreadId,

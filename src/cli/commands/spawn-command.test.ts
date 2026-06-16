@@ -1673,6 +1673,31 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("rejects empty MCP server names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-servers",
+        '{"":{"command":"server"}}',
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow("--mcp-servers entry name must be a non-empty string");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("ignores inherited optional MCP server fields", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

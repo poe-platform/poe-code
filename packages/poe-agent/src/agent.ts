@@ -587,7 +587,8 @@ function toSpawnMcpServers(
         transport: "stdio",
         command: server.command,
         ...(server.args === undefined ? {} : { args: [...server.args] }),
-        ...(server.env === undefined ? {} : { env: { ...server.env } })
+        ...(server.env === undefined ? {} : { env: { ...server.env } }),
+        ...(server.timeout === undefined ? {} : { timeout: server.timeout })
       }
     ])
   );

@@ -565,6 +565,17 @@ describe("buildSpawnArgs", () => {
     ).toThrow('MCP server "blank" command must be a non-empty string.');
   });
 
+  it("rejects MCP servers with blank names before provider serialization", () => {
+    expect(() =>
+      buildSpawnArgs("codex", {
+        prompt: "hello",
+        mcpServers: {
+          "": { command: "node", args: ["server.js"] }
+        }
+      })
+    ).toThrow("MCP server name must be a non-empty string.");
+  });
+
   it("uses stdin args for codex when the prompt exceeds the safe argv byte limit", () => {
     const prompt = "x".repeat(64 * 1024 + 1);
     const result = buildSpawnArgs("codex", { prompt });

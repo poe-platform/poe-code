@@ -214,4 +214,27 @@ describe("getPoeApiKey", () => {
       endpoint: "/v1/whoami"
     });
   });
+
+  it("throws ApiError when auth identity response is malformed", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        user_id: "not-a-number",
+        handle: "   ",
+        name: "",
+        profile_picture: 123
+      })
+    }));
+
+    const { fetchPoeAuthIdentity } = await import("./credentials.js");
+
+    await expect(
+      fetchPoeAuthIdentity({ apiKey: "test-key", httpClient })
+    ).rejects.toMatchObject({
+      name: "ApiError",
+      message: "Malformed identity response from Poe API.",
+      endpoint: "/v1/whoami"
+    });
+  });
 });

@@ -93,7 +93,36 @@ export async function fetchPoeAuthIdentity(
     });
   }
 
-  return await response.json() as PoeAuthIdentity;
+  return parsePoeAuthIdentity(await response.json());
+}
+
+function parsePoeAuthIdentity(value: unknown): PoeAuthIdentity {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value)
+  ) {
+    throw new ApiError("Malformed identity response from Poe API.", {
+      endpoint: "/v1/whoami"
+    });
+  }
+
+  const identity = value as Partial<PoeAuthIdentity>;
+  if (
+    typeof identity.user_id !== "number" ||
+    !Number.isFinite(identity.user_id) ||
+    typeof identity.handle !== "string" ||
+    identity.handle.trim().length === 0 ||
+    typeof identity.name !== "string" ||
+    identity.name.trim().length === 0 ||
+    typeof identity.profile_picture !== "string"
+  ) {
+    throw new ApiError("Malformed identity response from Poe API.", {
+      endpoint: "/v1/whoami"
+    });
+  }
+
+  return value as PoeAuthIdentity;
 }
 
 function createDefaultHttpClient(): HttpClient {

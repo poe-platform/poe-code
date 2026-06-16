@@ -6,16 +6,13 @@ import type { PromptFn } from "./types.js";
  *
  * When pasting in tmux/iTerm2, terminals send bracketed paste escape sequences
  * (\x1b[200~ at start, \x1b[201~ at end). Some prompt inputs leak these into the
- * captured value and produce artifacts like "undefined" or "ndefined". We strip
- * both the raw escape sequences and the mangled string artifacts.
+ * captured value. Only the control sequences are removed so literal key bytes
+ * are not mutated before validation or storage.
  */
 function stripBracketedPaste(value: string): string {
   return value
-    .replace(/\x1b\[200~/g, "")
-    .replace(/\x1b\[201~/g, "")
-    .replace(/undefinedndefined$/, "")
-    .replace(/undefined$/, "")
-    .replace(/ndefined$/, "");
+    .split("\x1b[200~").join("")
+    .split("\x1b[201~").join("");
 }
 
 export interface ApiKeyStore {

@@ -1330,7 +1330,7 @@ describe("option resolvers", () => {
     expect(result).toBe("part1part2");
   });
 
-  it("strips undefinedndefined suffix from prompts library mangled paste", async () => {
+  it("preserves undefinedndefined suffixes in API keys", async () => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();
     const apiKeyStore = {
@@ -1347,16 +1347,17 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
-    // Real world case: key + "undefinedndefined" from mangled bracketed paste
     const result = await resolvers.resolveApiKey({
       value: "vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuoundefinedndefined",
       dryRun: false
     });
 
-    expect(result).toBe("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuo");
+    expect(result).toBe("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuoundefinedndefined");
+    expect(checkAuthFn).toHaveBeenCalledWith("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuoundefinedndefined");
+    expect(apiKeyStore.write).toHaveBeenCalledWith("vnlaoHCddCx7eAGLgdH4iS-g_1MYPsg0JnTRPF1qMuoundefinedndefined");
   });
 
-  it("strips trailing ndefined suffix", async () => {
+  it.each(["undefined", "ndefined"])("preserves trailing %s suffixes in API keys", async (suffix) => {
     const promptLibrary = createPromptLibrary();
     const prompts = vi.fn();
     const apiKeyStore = {
@@ -1373,12 +1374,15 @@ describe("option resolvers", () => {
       checkAuth: checkAuthFn
     });
 
+    const value = `my-api-key${suffix}`;
     const result = await resolvers.resolveApiKey({
-      value: "my-api-keyndefined",
+      value,
       dryRun: false
     });
 
-    expect(result).toBe("my-api-key");
+    expect(result).toBe(value);
+    expect(checkAuthFn).toHaveBeenCalledWith(value);
+    expect(apiKeyStore.write).toHaveBeenCalledWith(value);
   });
 
   it("confirms env var usage when envValue is present", async () => {

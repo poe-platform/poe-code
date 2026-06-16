@@ -411,6 +411,27 @@ describe("auth command", () => {
     stdoutSpy.mockRestore();
   });
 
+  it("sets exit code 1 when dry-run whoami has no API key", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: {} },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    process.exitCode = 0;
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "whoami"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(stdoutSpy).not.toHaveBeenCalled();
+    expect(logs).not.toContain("Dry run: would fetch identity from Poe API.");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+    stdoutSpy.mockRestore();
+  });
+
   it("prefers POE_API_KEY env var over stored key for whoami", async () => {
     await storeApiKey(fs, "stored-key");
 

@@ -129,16 +129,16 @@ async function resolveAuthCredential(
 
 async function executeWhoami(program: Command, container: CliContainer): Promise<void> {
   const flags = resolveCommandFlags(program);
+  const apiKey = await resolveAuthCredential(container, { readOnly: flags.dryRun });
+  if (!apiKey) {
+    process.exitCode = 1;
+    return;
+  }
+
   if (flags.dryRun) {
     const resources = createExecutionResources(container, flags, "auth:whoami");
     resources.logger.dryRun("Dry run: would fetch identity from Poe API.");
     resources.context.finalize();
-    return;
-  }
-
-  const apiKey = await resolveAuthCredential(container);
-  if (!apiKey) {
-    process.exitCode = 1;
     return;
   }
 

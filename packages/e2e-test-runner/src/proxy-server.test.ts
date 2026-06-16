@@ -629,6 +629,31 @@ describe('startProxyServer playback mode with onMiss passthrough', () => {
     expect(upstream.getLastRequest()?.path).toBe('/v1/chat/completions');
   });
 
+  it('does not match sibling paths that share the same route prefix text', async () => {
+    const upstream = await startDummyApi(0);
+    closeHandles.push(upstream.close);
+
+    const proxy = await startProxyServer({
+      port: 0,
+      captureFile,
+      onMiss: 'passthrough',
+      routes: [{ path: '/v1', target: upstream.url, mode: 'playback' }],
+    });
+    closeHandles.push(proxy.close);
+
+    const response = await fetch(`${proxy.url}/v10/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ model: 'dummy-model', messages: [] }),
+    });
+
+    expect(response.status).toBe(502);
+    await expect(response.json()).resolves.toEqual({
+      error: 'No matching proxy route for /v10/chat/completions',
+    });
+    expect(upstream.getLastRequest()).toBeNull();
+  });
+
   it('does not match routes with non-prefix paths', async () => {
     const upstream = await startDummyApi(0);
     closeHandles.push(upstream.close);

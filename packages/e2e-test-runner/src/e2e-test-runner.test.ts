@@ -1133,6 +1133,21 @@ describe('parseProxyConfigFromArgs', () => {
     ).rejects.toThrow('Invalid --miss value: invalid');
   });
 
+  it('rejects non-decimal --port values', async () => {
+    for (const port of ['0x50', '1e3', '080']) {
+      await expect(
+        parseProxyConfigFromArgs([
+          '--port',
+          port,
+          '--capture',
+          '/tmp/proxy-capture.jsonl',
+          '--route',
+          '/v1/chat/completions=playback:/tmp/proxy-snapshots',
+        ]),
+      ).rejects.toThrow('--port must be a decimal integer between 1 and 65535.');
+    }
+  });
+
   it('loads JSON config with --config path', async () => {
     const configFromFile: ProxyConfig = {
       port: 4000,
@@ -1177,6 +1192,27 @@ describe('parseProxyConfigFromArgs', () => {
     });
 
     expect(config.onMiss).toBe('error');
+  });
+
+  it('throws when JSON config onMiss is unsupported', async () => {
+    const readFile = vi.fn().mockResolvedValue(JSON.stringify({
+      port: 4000,
+      captureFile: '/tmp/capture.jsonl',
+      onMiss: 'passthru',
+      routes: [
+        {
+          path: '/v1',
+          target: 'https://api.poe.com',
+          mode: 'playback',
+        },
+      ],
+    }));
+
+    await expect(
+      parseProxyConfigFromArgs(['--config', '/tmp/proxy-config.json'], { readFile }),
+    ).rejects.toThrow(
+      'Invalid proxy config: onMiss must be one of error, warn, passthrough, or record.',
+    );
   });
 
   it('throws when --route has invalid format', async () => {

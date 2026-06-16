@@ -223,7 +223,15 @@ function writeUpstreamResponse(
 }
 
 function matchRoute(routes: ProxyRoute[], path: string): ProxyRoute | undefined {
-  return routes.find((route) => path.startsWith(route.path));
+  return routes.find((route) => routeMatchesPath(route.path, path));
+}
+
+function routeMatchesPath(routePath: string, requestPath: string): boolean {
+  if (requestPath === routePath) {
+    return true;
+  }
+  const segmentPrefix = routePath.endsWith('/') ? routePath : `${routePath}/`;
+  return requestPath.startsWith(segmentPrefix);
 }
 
 function writeJson(response: ServerResponse, status: number, payload: unknown): void {

@@ -56,6 +56,37 @@ function isOnMiss(value: string): value is SnapshotMissBehavior {
   return value === 'error' || value === 'warn' || value === 'passthrough' || value === 'record';
 }
 
+function parsePortFlag(value: string): number {
+  if (!isPlainDecimalInteger(value)) {
+    throw new Error('--port must be a decimal integer between 1 and 65535.');
+  }
+
+  const port = Number(value);
+  if (!Number.isInteger(port) || port < 1 || port > 65535) {
+    throw new Error('--port must be a decimal integer between 1 and 65535.');
+  }
+
+  return port;
+}
+
+function isPlainDecimalInteger(value: string): boolean {
+  if (value.length === 0) {
+    return false;
+  }
+  if (value.length > 1 && value[0] === '0') {
+    return false;
+  }
+
+  for (const char of value) {
+    const code = char.charCodeAt(0);
+    if (code < 48 || code > 57) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function parseRouteFlag(value: string): ProxyRoute {
   const equalsIndex = value.indexOf('=');
   const colonIndex = value.indexOf(':', equalsIndex + 1);
@@ -106,6 +137,19 @@ function ensurePort(value: unknown): number {
   return value;
 }
 
+function ensureOnMiss(value: unknown): SnapshotMissBehavior {
+  if (value === undefined) {
+    return 'error';
+  }
+  if (typeof value !== 'string' || !isOnMiss(value)) {
+    throw new Error(
+      'Invalid proxy config: onMiss must be one of error, warn, passthrough, or record.',
+    );
+  }
+
+  return value;
+}
+
 function parseConfigRoute(routeValue: unknown, index: number): ProxyRoute {
   if (routeValue === null || typeof routeValue !== 'object') {
     throw new Error(`Invalid proxy config: routes[${index}] must be an object.`);
@@ -142,15 +186,10 @@ function parseConfigJson(raw: string): ProxyConfig {
     throw new Error('Invalid proxy config: routes must be an array.');
   }
 
-  const onMissValue = configRecord.onMiss;
-  const onMiss: SnapshotMissBehavior = typeof onMissValue === 'string' && isOnMiss(onMissValue)
-    ? onMissValue
-    : 'error';
-
   return {
     port: ensurePort(configRecord.port),
     captureFile: ensureString(configRecord.captureFile, 'captureFile'),
-    onMiss,
+    onMiss: ensureOnMiss(configRecord.onMiss),
     routes: routesValue.map((route, index) => parseConfigRoute(route, index)),
   };
 }
@@ -215,10 +254,7 @@ export async function parseProxyConfigFromArgs(
     );
   }
 
-  const port = Number(options.port);
-  if (!Number.isInteger(port) || port < 1 || port > 65535) {
-    throw new Error('--port must be an integer between 1 and 65535.');
-  }
+  const port = parsePortFlag(options.port);
 
   let onMiss: SnapshotMissBehavior = 'error';
   if (options.miss) {

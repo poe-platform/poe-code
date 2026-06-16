@@ -89,6 +89,7 @@ export function registerGenerateCommand(
       const model = await resolveModel("text", opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
+        await resolveClient(container);
         resources.logger.dryRun(
           `Dry run: would generate text with model ${model} and prompt (${prompt.length} chars)`
         );
@@ -129,6 +130,7 @@ export function registerGenerateCommand(
       const model = await resolveModel("text", opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
+        await resolveClient(container);
         resources.logger.dryRun(
           `Dry run: would generate text with model ${model} and prompt (${prompt.length} chars)`
         );
@@ -182,6 +184,7 @@ function registerMediaSubcommand(
       const model = await resolveModel(type, opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
+        await resolveClient(container);
         resources.logger.dryRun(
           `Dry run: would generate ${type} with model ${model} and prompt (${prompt.length} chars)`
         );
@@ -247,7 +250,10 @@ export function parseParams(params: string[]): Record<string, string> {
         `Invalid param format: "${param}". Expected key=value`
       );
     }
-    const key = param.slice(0, eqIndex);
+    const key = param.slice(0, eqIndex).trim();
+    if (key.length === 0) {
+      throw new ValidationError(`Invalid param key: "${param}". Expected key=value`);
+    }
     const value = param.slice(eqIndex + 1);
     result[key] = value;
   }
@@ -328,8 +334,12 @@ async function resolveModel(
   container: CliContainer,
   configOptions: { readOnly?: boolean } = {}
 ): Promise<string> {
-  if (options.model) {
-    return options.model;
+  if (options.model !== undefined) {
+    const model = options.model.trim();
+    if (model.length === 0) {
+      throw new ValidationError("--model must be a non-empty string.");
+    }
+    return model;
   }
   const envKey = MODEL_ENV_KEYS[type];
   const envModel = normalizeEnvModel(container.env.variables[envKey]);

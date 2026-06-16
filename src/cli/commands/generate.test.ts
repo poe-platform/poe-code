@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
+import { Volume, createFsFromVolume } from "memfs";
 import type { CliContainer } from "../container.js";
+import type { FileSystem } from "../utils/file-system.js";
 import type { LlmClient } from "../../services/llm-client.js";
 
 const client = vi.hoisted<LlmClient>(() => ({
@@ -23,12 +25,26 @@ vi.mock("toolcraft-design", () => ({
 
 const { parseParams, registerGenerateCommand } = await import("./generate.js");
 
+function createMemFs(): FileSystem {
+  const volume = new Volume();
+  volume.mkdirSync("/repo", { recursive: true });
+  return createFsFromVolume(volume).promises as unknown as FileSystem;
+}
+
 describe("parseParams", () => {
   it("preserves prototype-named parameters as request values", () => {
     const params = parseParams(["__proto__=visible"]);
 
     expect(Object.hasOwn(params, "__proto__")).toBe(true);
     expect(params["__proto__"]).toBe("visible");
+  });
+
+  it("rejects empty parameter keys", () => {
+    expect(() => parseParams(["=foo"])).toThrow('Invalid param key: "=foo". Expected key=value');
+  });
+
+  it("trims parameter keys", () => {
+    expect(parseParams([" temperature =0.7"])).toEqual({ temperature: "0.7" });
   });
 });
 
@@ -47,11 +63,12 @@ describe("generate command authentication", () => {
     const container = {
       env: {
         cwd: "/repo",
+        configPath: "/repo/.poe-code/config.json",
         poeApiBaseUrl: "https://api.poe.com/v1",
         variables: { POE_API_KEY: "environment-key" },
         getVariable: vi.fn((name: string) => name === "POE_API_KEY" ? "environment-key" : undefined)
       },
-      fs: {},
+      fs: createMemFs(),
       loggerFactory: {
         create: vi.fn(() => ({ dryRun: vi.fn() }))
       },
@@ -75,5 +92,63 @@ describe("generate command authentication", () => {
       prompt: "Hello",
       params: {}
     });
+  });
+
+  it("validates credentials during dry-run", async () => {
+    const program = new Command();
+    program.name("poe-code").option("--dry-run").option("--yes");
+    const container = {
+      env: {
+        cwd: "/repo",
+        configPath: "/repo/.poe-code/config.json",
+        poeApiBaseUrl: "https://api.poe.com/v1",
+        variables: {},
+        getVariable: vi.fn(() => undefined)
+      },
+      fs: createMemFs(),
+      loggerFactory: {
+        create: vi.fn(() => ({ dryRun: vi.fn() }))
+      },
+      commandRunner: vi.fn(),
+      contextFactory: {
+        create: vi.fn(() => ({}))
+      },
+      readApiKey: vi.fn(async () => null)
+    } as unknown as CliContainer;
+    registerGenerateCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "text", "Hello"])
+    ).rejects.toThrow("Poe API key not found. Run 'poe-code login' first.");
+  });
+
+  it("rejects whitespace-only model options", async () => {
+    const dryRun = vi.fn();
+    const program = new Command();
+    program.name("poe-code").option("--dry-run").option("--yes");
+    const container = {
+      env: {
+        cwd: "/repo",
+        configPath: "/repo/.poe-code/config.json",
+        poeApiBaseUrl: "https://api.poe.com/v1",
+        variables: { POE_API_KEY: "environment-key" },
+        getVariable: vi.fn((name: string) => name === "POE_API_KEY" ? "environment-key" : undefined)
+      },
+      fs: createMemFs(),
+      loggerFactory: {
+        create: vi.fn(() => ({ dryRun }))
+      },
+      commandRunner: vi.fn(),
+      contextFactory: {
+        create: vi.fn(() => ({}))
+      },
+      readApiKey: vi.fn(async () => null)
+    } as unknown as CliContainer;
+    registerGenerateCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "text", "--model", "   ", "Hello"])
+    ).rejects.toThrow("--model must be a non-empty string.");
+    expect(dryRun).not.toHaveBeenCalled();
   });
 });

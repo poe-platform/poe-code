@@ -146,6 +146,7 @@ export interface CommandConfig<
 > {
   name: string;
   description?: string;
+  hidden?: boolean;
   examples?: CommandExample[];
   aliases?: string[];
   positional?: string[];
@@ -169,6 +170,7 @@ export interface Command<
   kind: "command";
   name: string;
   description?: string;
+  hidden: boolean;
   examples: CommandExample[];
   aliases: string[];
   positional: string[];
@@ -276,6 +278,7 @@ type TypedGroupMetadata<
 
 interface InternalCommandConfig {
   scope?: Scope[];
+  hidden: boolean;
   examples: CommandExample[];
   result?: ObjectSchema<any>;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
@@ -728,6 +731,7 @@ function createBaseCommand<
     kind: "command",
     name: config.name,
     description: config.description,
+    hidden: config.hidden ?? false,
     examples: cloneCommandExamples(config.examples),
     aliases: [...(config.aliases ?? [])],
     positional: [...(config.positional ?? [])],
@@ -745,6 +749,7 @@ function createBaseCommand<
   Object.defineProperty(command, commandConfigSymbol, {
     value: {
       scope: cloneScope(config.scope),
+      hidden: config.hidden ?? false,
       examples: cloneCommandExamples(config.examples),
       result: config.result,
       humanInLoop: config.humanInLoop,
@@ -819,6 +824,7 @@ function materializeCommand<
     kind: "command",
     name: command.name,
     description: command.description,
+    hidden: internal.hidden,
     examples: cloneCommandExamples(internal.examples),
     aliases: [...command.aliases],
     positional: [...command.positional],
@@ -836,6 +842,7 @@ function materializeCommand<
   Object.defineProperty(materialized, commandConfigSymbol, {
     value: {
       scope: cloneScope(internal.scope),
+      hidden: internal.hidden,
       examples: cloneCommandExamples(internal.examples),
       result: internal.result,
       humanInLoop: internal.humanInLoop,

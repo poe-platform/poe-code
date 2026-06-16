@@ -154,6 +154,7 @@ function createProxyCommand(
     kind: "command",
     name: commandName,
     description: tool.description,
+    hidden: false,
     examples: [],
     aliases: [],
     positional: [],

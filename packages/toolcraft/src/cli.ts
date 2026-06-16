@@ -1238,6 +1238,19 @@ function getVisibleChildren<TServices extends object>(
   return group.children.filter((child) => isNodeVisibleInScope(child, scope));
 }
 
+function getHelpChildren<TServices extends object>(
+  group: Group<TServices>,
+  scope: Scope
+): Array<Command<TServices, any, any, any> | Group<TServices>> {
+  return getVisibleChildren(group, scope).filter((child) => {
+    if (child.kind === "command") {
+      return child.hidden !== true;
+    }
+
+    return true;
+  });
+}
+
 function findVisibleChild<TServices extends object>(
   group: Group<TServices>,
   token: string,
@@ -1712,7 +1725,7 @@ function formatCommandRows<TServices extends object>(
   casing: Casing,
   globalLongOptionFlags: ReadonlySet<string>
 ): HelpCommandRow[] {
-  return getVisibleChildren(group, scope).map((child) => ({
+  return getHelpChildren(group, scope).map((child) => ({
     name: formatCommandRowName(child, casing, globalLongOptionFlags),
     description: child.description ?? ""
   }));
@@ -1776,7 +1789,7 @@ function collectSchemaGlobalFieldRows<TServices extends object>(
       return;
     }
 
-    for (const child of getVisibleChildren(node, scope)) {
+    for (const child of getHelpChildren(node, scope)) {
       visit(child);
     }
   };
@@ -1808,6 +1821,28 @@ function buildUsageLine(breadcrumb: string[], rootUsageName: string, suffix: str
   const subPath = usageBreadcrumb.slice(1).join(" ");
   const tokens = [rootUsageName, subPath, suffix].filter((segment) => segment.length > 0);
   return tokens.join(" ");
+}
+
+function formatGroupUsageSuffix<TServices extends object>(
+  group: Group<TServices>,
+  scope: Scope,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>
+): string {
+  if (
+    group.default !== undefined &&
+    group.default.hidden === true &&
+    group.default.scope.includes(scope)
+  ) {
+    const parameterTokens = formatCommandParameterTokens(
+      group.default,
+      casing,
+      globalLongOptionFlags
+    );
+    return ["[command]", "[OPTIONS]", ...parameterTokens].join(" ");
+  }
+
+  return "[command] [OPTIONS]";
 }
 
 function renderGroupHelp<TServices extends object>(
@@ -1856,7 +1891,11 @@ function renderGroupHelp<TServices extends object>(
   return renderHelpDocument({
     breadcrumb,
     rootUsageName,
-    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[command] [OPTIONS]"),
+    usageLine: buildUsageLine(
+      breadcrumb,
+      rootUsageName,
+      formatGroupUsageSuffix(group, scope, casing, globalLongOptionFlags)
+    ),
     description: group.description,
     requiresAuth: group.requires?.auth === true,
     sections
@@ -2021,6 +2060,8 @@ function createNodeCommand<TServices extends object>(
     }
 
     const command = new CommanderCommand(node.name);
+    Reflect.set(command, "_toolcraftHidden", node.hidden);
+    Reflect.set(command, "_toolcraftOriginalName", node.name);
     const collected = collectFields(node.params, casing, globalLongOptionFlags);
     const fields = assignPositionals(collected.fields, node.positional);
     validateUniqueOptionFlags(fields, globalLongOptionFlags);
@@ -2074,6 +2115,9 @@ function createNodeCommand<TServices extends object>(
     return null;
   }
 
+  const reservedChildNames = node.children
+    .filter((child) => !isNodeVisibleInScope(child, "cli"))
+    .flatMap((child) => getNodeCommandNames(child));
   const visibleChildren = node.children
     .map((child) =>
       createNodeCommand(
@@ -2089,6 +2133,7 @@ function createNodeCommand<TServices extends object>(
     .filter((child): child is CommanderCommand => child !== null);
 
   const group = new CommanderCommand(node.name);
+  Reflect.set(group, "_toolcraftReservedChildNames", reservedChildNames);
 
   if (node.description !== undefined) {
     group.description(node.description);
@@ -2116,7 +2161,7 @@ function addCommanderChild(
   isDefault: boolean,
   siblingNames: ReadonlySet<string>
 ): void {
-  if (isDefault && child.name().length === 0) {
+  if (isDefault && (child.name().length === 0 || isToolcraftHiddenCommander(child))) {
     let internalName = "__toolcraft_default__";
     let suffix = 2;
 
@@ -2126,11 +2171,46 @@ function addCommanderChild(
     }
 
     child.name(internalName);
+    Reflect.set(
+      parent,
+      "_toolcraftHiddenDefaultNames",
+      getToolcraftHiddenDefaultNames(parent).concat([
+        ...new Set([Reflect.get(child, "_toolcraftOriginalName"), ...child.aliases()].filter(
+          (name): name is string => typeof name === "string" && name.length > 0
+        ))
+      ])
+    );
     parent.addCommand(child, { hidden: true, isDefault: true });
     return;
   }
 
-  parent.addCommand(child, isDefault ? { isDefault: true } : undefined);
+  const options = {
+    ...(isDefault ? { isDefault: true } : {}),
+    ...(isToolcraftHiddenCommander(child) ? { hidden: true } : {})
+  };
+  parent.addCommand(child, Object.keys(options).length > 0 ? options : undefined);
+}
+
+function isToolcraftHiddenCommander(command: CommanderCommand): boolean {
+  return Reflect.get(command, "_toolcraftHidden") === true;
+}
+
+function getToolcraftHiddenDefaultNames(command: CommanderCommand): string[] {
+  const value = Reflect.get(command, "_toolcraftHiddenDefaultNames");
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function getToolcraftReservedChildNames(command: CommanderCommand): string[] {
+  const value = Reflect.get(command, "_toolcraftReservedChildNames");
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
+}
+
+function getNodeCommandNames<TServices extends object>(
+  node: Command<TServices, any, any, any> | Group<TServices>
+): string[] {
+  return [node.name, ...node.aliases].filter((name) => name.length > 0);
 }
 
 function addGlobalOptions(
@@ -4700,6 +4780,17 @@ function findUnknownCommanderCommand(
       continue;
     }
 
+    if (
+      getToolcraftHiddenDefaultNames(current).includes(token) ||
+      getToolcraftReservedChildNames(current).includes(token)
+    ) {
+      return {
+        input: token,
+        currentCommand: current,
+        commandPath: pathSegments.join(" ")
+      };
+    }
+
     if (current.commands.length === 0 || getDefaultCommanderCommandName(current) !== undefined) {
       return undefined;
     }
@@ -4791,6 +4882,13 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   if (version !== undefined) {
     program.version(version, "--version");
   }
+  Reflect.set(
+    program,
+    "_toolcraftReservedChildNames",
+    root.children
+      .filter((child) => !isNodeVisibleInScope(child, "cli"))
+      .flatMap((child) => getNodeCommandNames(child))
+  );
 
   let lastActionCommand: CommanderCommand | undefined;
   let resolvedCommandPath = "";

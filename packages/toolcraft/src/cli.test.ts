@@ -4566,6 +4566,88 @@ describe("runCLI", () => {
     expect(output).not.toContain("__toolcraft_default");
   });
 
+  it("keeps named root default commands out of the public command surface", async () => {
+    const createHandler = vi.fn(async ({ params }: { params: { url: string } }) => params);
+    const showHandler = vi.fn(async ({ params }: { params: { value: string } }) => params);
+    const switchDbHandler = vi.fn(async () => ({ switched: true }));
+    const initHandler = vi.fn(async () => ({ initialized: true }));
+
+    const create = defineCommand({
+      name: "create",
+      description: "Fetch a source URL.",
+      hidden: true,
+      positional: ["url"],
+      params: S.Object({
+        url: S.String()
+      }),
+      handler: createHandler
+    });
+    const show = defineCommand({
+      name: "show",
+      description: "Show one registered resource.",
+      scope: ["sdk"],
+      positional: ["value"],
+      params: S.Object({
+        value: S.String()
+      }),
+      handler: showHandler
+    });
+    const switchDb = defineCommand({
+      name: "switch-db",
+      description: "Switch the workspace registry backend.",
+      hidden: true,
+      params: S.Object({}),
+      handler: switchDbHandler
+    });
+    const init = defineCommand({
+      name: "init",
+      description: "Initialize the workspace registry.",
+      params: S.Object({}),
+      handler: initHandler
+    });
+    const root = defineGroup({
+      name: "",
+      children: [create, show, switchDb, init],
+      default: create
+    });
+
+    process.argv = ["node", "wire", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("<url>");
+    expect(output).toContain("init");
+    expect(output).not.toContain("create");
+    expect(output).not.toContain("show");
+    expect(output).not.toContain("switch-db");
+
+    process.argv = ["node", "wire", "https://example.com/source.md", "--yes"];
+    await runCLI(root);
+
+    expect(createHandler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { url: "https://example.com/source.md" } })
+    );
+
+    createHandler.mockClear();
+    process.argv = ["node", "wire", "create", "https://example.com/source.md", "--yes"];
+    await runCLI(root);
+
+    expect(process.exitCode).toBe(1);
+    expect(createHandler).not.toHaveBeenCalled();
+    expect(showHandler).not.toHaveBeenCalled();
+
+    process.exitCode = undefined;
+    process.argv = ["node", "wire", "show", "https://example.com/source.md", "--yes"];
+    await runCLI(root);
+
+    expect(process.exitCode).toBe(1);
+    expect(createHandler).not.toHaveBeenCalled();
+    expect(showHandler).not.toHaveBeenCalled();
+
+    expect(switchDbHandler).not.toHaveBeenCalled();
+  });
+
   it("renders leaf help with inherited secrets", async () => {
     const textCommand = defineCommand({
       name: "text",

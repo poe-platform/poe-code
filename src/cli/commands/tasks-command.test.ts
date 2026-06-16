@@ -716,6 +716,46 @@ states:
     });
   });
 
+  it("move accepts prototype-named source states in --state-map", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: markdown-dir
+  path: ./source-tasks
+`,
+      `${cwd}/source.md`
+    );
+    seedWorkflow(
+      `
+tasks:
+  type: yaml-file
+  path: ./target.yml
+states:
+  todo:
+    prompt: Do it
+  done:
+    terminal: true
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "move",
+      "--from",
+      `${cwd}/source.md`,
+      "--to",
+      `${cwd}/target.md`,
+      "--dry-run",
+      "--state-map",
+      "__proto__:done"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledTimes(1);
+    const options = taskListMocks.moveTasks.mock.calls[0]?.[0] as MoveTasksOptions;
+    expect(Object.prototype.hasOwnProperty.call(options.stateMap, "__proto__")).toBe(true);
+    expect(options.stateMap?.["__proto__"]).toBe("done");
+  });
+
   it("move reports planned dry-run creations with task titles", async () => {
     const logs: string[] = [];
     seedWorkflow(

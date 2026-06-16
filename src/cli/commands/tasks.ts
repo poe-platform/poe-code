@@ -807,7 +807,7 @@ function parseStateMap(value: string): Record<string, string> {
     entries.pop();
   }
 
-  const stateMap: Record<string, string> = {};
+  const stateMap: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const entry of entries) {
     const pair = entry.split(":");
     const sourceState = pair[0]?.trim();

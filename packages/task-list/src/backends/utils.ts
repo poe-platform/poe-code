@@ -50,9 +50,24 @@ export function sortTasks(tasks: Task[]): Task[] {
   return [...tasks].sort((left, right) => left.qualifiedId.localeCompare(right.qualifiedId));
 }
 
+export function isTrimmedPrintableIdentifier(value: string): boolean {
+  if (value.length === 0 || value !== value.trim()) {
+    return false;
+  }
+
+  for (let index = 0; index < value.length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 32 || code === 127) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 export function validateTaskId(id: string): string {
   if (
-    id.length === 0 ||
+    !isTrimmedPrintableIdentifier(id) ||
     id.startsWith(".") ||
     id.includes("/") ||
     id.includes("\\") ||
@@ -62,6 +77,14 @@ export function validateTaskId(id: string): string {
   }
 
   return id;
+}
+
+export function validateTaskName(name: string): string {
+  if (name.trim().length === 0) {
+    throw new Error("Task name must not be empty.");
+  }
+
+  return name;
 }
 
 export async function statIfExists(
@@ -105,7 +128,11 @@ export async function rejectSymbolicLinkComponents(
   }
 }
 
-export async function writeAtomically(fs: TaskListFs, filePath: string, content: string): Promise<void> {
+export async function writeAtomically(
+  fs: TaskListFs,
+  filePath: string,
+  content: string
+): Promise<void> {
   const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
   let tempCreated = false;
 

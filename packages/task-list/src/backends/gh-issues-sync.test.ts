@@ -2,6 +2,23 @@ import { describe, expect, it, vi } from "vitest";
 import { GhProjectSyncError, syncGhProject, verifyGhProject } from "./gh-issues-sync.js";
 
 describe("verifyGhProject", () => {
+  it("rejects blank required states before looking up the project", async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error("network should not be called");
+    }) as unknown as typeof fetch;
+
+    await expect(
+      verifyGhProject({
+        owner: "octo-org",
+        number: 7,
+        requiredStates: ["draft", "   ", ""],
+        auth: { token: "secret" },
+        fetch: fetchMock
+      })
+    ).rejects.toThrow("requiredStates must not contain empty state names.");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("returns missingProject when GitHub responds with NOT_FOUND on the project lookup", async () => {
     const fetchMock = createFetchMock([
       notFoundProjectResponse("organization"),
@@ -57,8 +74,8 @@ describe("verifyGhProject", () => {
   });
 
   it("wraps unexpected GraphQL failures as lookup_failed", async () => {
-    const fetchMock = vi.fn(async () =>
-      new Response("boom", { status: 500 })
+    const fetchMock = vi.fn(
+      async () => new Response("boom", { status: 500 })
     ) as unknown as typeof fetch;
 
     await expect(
@@ -74,6 +91,24 @@ describe("verifyGhProject", () => {
 });
 
 describe("syncGhProject", () => {
+  it("rejects blank required states before mutating project options", async () => {
+    const fetchMock = vi.fn(async () => {
+      throw new Error("network should not be called");
+    }) as unknown as typeof fetch;
+
+    await expect(
+      syncGhProject({
+        owner: "octo-org",
+        number: 7,
+        requiredStates: ["draft", "   ", ""],
+        yes: true,
+        auth: { token: "secret" },
+        fetch: fetchMock
+      })
+    ).rejects.toThrow("requiredStates must not contain empty state names.");
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("creates the project, then adopts the auto-created Status field and adds missing options", async () => {
     const fetchMock = createFetchMock([
       notFoundProjectResponse("organization"),
@@ -221,12 +256,10 @@ function organizationProjectResponse(options: {
 
 function projectV2Payload(
   id: string,
-  statusField:
-    | {
-        id: string;
-        options: Array<string | { id: string; name: string; color: string; description: string }>;
-      }
-    | null
+  statusField: {
+    id: string;
+    options: Array<string | { id: string; name: string; color: string; description: string }>;
+  } | null
 ): unknown {
   return {
     id,

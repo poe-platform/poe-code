@@ -270,6 +270,45 @@ function describeBackendConformance(
       ).rejects.toThrow(`id is required for ${name.replace(" backend", "")} backend`);
     });
 
+    it("rejects invisible or unsafe list names", async () => {
+      const { taskList } = await openBackend(factory, { path: rootPath });
+
+      for (const listName of [" ", "  planning  ", "line\nbreak"]) {
+        expect(() => taskList.list(listName)).toThrow(`Invalid task list name "${listName}".`);
+      }
+    });
+
+    it("rejects invisible or unsafe task ids", async () => {
+      const { taskList } = await openBackend(factory, { path: rootPath });
+      const tasks = taskList.list("planning");
+
+      for (const id of [" ", "  padded  ", "line\nbreak"]) {
+        await expect(tasks.create({ id, name: "Task" })).rejects.toThrow(
+          `Invalid task id "${id}".`
+        );
+      }
+    });
+
+    it("rejects empty task names before writing", async () => {
+      const { taskList } = await openBackend(factory, { path: rootPath });
+      const tasks = taskList.list("planning");
+
+      await expect(tasks.create({ id: "blank", name: "" })).rejects.toThrow(
+        "Task name must not be empty."
+      );
+      await expect(tasks.create({ id: "spaces", name: "   " })).rejects.toThrow(
+        "Task name must not be empty."
+      );
+
+      await tasks.create({ id: "ship", name: "Ship" });
+      await expect(tasks.update("ship", { name: "" })).rejects.toThrow(
+        "Task name must not be empty."
+      );
+      await expect(tasks.all().then((tasks) => tasks.map((task) => task.id))).resolves.toEqual([
+        "ship"
+      ]);
+    });
+
     it("rejects state mutations outside fire()", async () => {
       const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
@@ -537,6 +576,19 @@ function describeBackendConformance(
         await expect(tasks.move("alpha", { before: "missing" })).rejects.toBeInstanceOf(
           AnchorNotFoundError
         );
+      });
+
+      it("move() rejects archived anchors", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+        await tasks.create({ id: "old", name: "Old" });
+        await tasks.fire("old", "archive");
+
+        await expect(tasks.move("alpha", { after: "old" })).rejects.toBeInstanceOf(
+          AnchorNotFoundError
+        );
+        await expect(tasks.all().then(ids)).resolves.toEqual(["alpha", "bravo", "charlie"]);
       });
 
       it("reorder replaces the entire order", async () => {

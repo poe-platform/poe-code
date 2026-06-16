@@ -22,7 +22,14 @@ function isStateList(value: unknown): value is readonly string[] {
   return Array.isArray(value) && value.every((entry) => typeof entry === "string");
 }
 
-function canFireFromState<TState extends string>(event: EventDef<TState>, fromState: string): boolean {
+function hasVisibleName(value: string): boolean {
+  return value.trim().length > 0;
+}
+
+function canFireFromState<TState extends string>(
+  event: EventDef<TState>,
+  fromState: string
+): boolean {
   if (event.from === "*") {
     return event.to !== fromState;
   }
@@ -40,6 +47,9 @@ export function validateMachine(machine: StateMachineDef): void {
   }
 
   const states = new Set(machine.states);
+  if (machine.states.some((state) => !hasVisibleName(state))) {
+    throw new Error("State names must not be empty.");
+  }
 
   if (!hasOwnRecordField(machine, "initial") || typeof machine.initial !== "string") {
     throw new TypeError("State machine initial must be a string.");
@@ -54,6 +64,10 @@ export function validateMachine(machine: StateMachineDef): void {
   }
 
   for (const [eventName, event] of Object.entries(machine.events)) {
+    if (!hasVisibleName(eventName)) {
+      throw new Error("Event names must not be empty.");
+    }
+
     if (!isRecord(event)) {
       throw new TypeError(`Event "${eventName}" must be an object.`);
     }
@@ -90,7 +104,9 @@ export function eventsFromState<TState extends string, TEvent extends string>(
 ): readonly TEvent[] {
   const events: TEvent[] = [];
 
-  for (const [eventName, event] of Object.entries(machine.events) as Array<[TEvent, EventDef<TState>]>) {
+  for (const [eventName, event] of Object.entries(machine.events) as Array<
+    [TEvent, EventDef<TState>]
+  >) {
     if (canFireFromState(event, fromState)) {
       events.push(eventName);
     }

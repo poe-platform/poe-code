@@ -24,11 +24,13 @@ import {
 } from "../types.js";
 import {
   applyOrder,
+  isTrimmedPrintableIdentifier,
   isRecord,
   rejectSymbolicLinkComponents,
   sortStrings,
   statIfExists,
   validateTaskId,
+  validateTaskName,
   withFileLock,
   writeAtomically,
   type OrderedEntry
@@ -63,7 +65,7 @@ function malformedTask(list: string, id: string, field: string): MalformedTaskEr
 
 function validateListName(name: string): string {
   if (
-    name.length === 0 ||
+    !isTrimmedPrintableIdentifier(name) ||
     name.startsWith(".") ||
     name.includes("/") ||
     name.includes("\\") ||
@@ -255,11 +257,7 @@ function assertValidStoreRecord(store: unknown, filePath: string): asserts store
   }
 
   const version = getOwnEntry(store, "version");
-  if (
-    typeof version !== "number" ||
-    !Number.isInteger(version) ||
-    version !== STORE_VERSION
-  ) {
+  if (typeof version !== "number" || !Number.isInteger(version) || version !== STORE_VERSION) {
     throw malformedStore(filePath, "version");
   }
 
@@ -278,7 +276,10 @@ function assertValidTaskRecord(
     throw malformedTask(list, id, "task");
   }
 
-  if (hasOwnTaskField(taskRecord, "$schema") && getOwnEntry(taskRecord, "$schema") !== TASK_SCHEMA_ID) {
+  if (
+    hasOwnTaskField(taskRecord, "$schema") &&
+    getOwnEntry(taskRecord, "$schema") !== TASK_SCHEMA_ID
+  ) {
     throw malformedTask(list, id, "$schema");
   }
 
@@ -288,21 +289,13 @@ function assertValidTaskRecord(
 
   if (hasOwnTaskField(taskRecord, "version")) {
     const version = getOwnEntry(taskRecord, "version");
-    if (
-      typeof version !== "number" ||
-      !Number.isInteger(version) ||
-      version !== TASK_VERSION
-    ) {
+    if (typeof version !== "number" || !Number.isInteger(version) || version !== TASK_VERSION) {
       throw malformedTask(list, id, "version");
     }
   }
 
   const name = getOwnEntry(taskRecord, "name");
-  if (
-    !hasOwnTaskField(taskRecord, "name") ||
-    typeof name !== "string" ||
-    name.length === 0
-  ) {
+  if (!hasOwnTaskField(taskRecord, "name") || typeof name !== "string" || name.length === 0) {
     throw malformedTask(list, id, "name");
   }
 
@@ -563,6 +556,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       assertCreateDoesNotSetState(input);
       assertCreateHasId(input);
       validateTaskId(input.id);
+      validateTaskName(input.name);
 
       const { document, store } = await readStore(deps.fs, deps.path, validStates);
       if (getTaskRecord(store, list, input.id)) {
@@ -578,6 +572,9 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       assertUpdateDoesNotSetState(patch);
       validateTaskId(id);
+      if (patch.name !== undefined) {
+        validateTaskName(patch.name);
+      }
 
       const { document, store } = await readStore(deps.fs, deps.path, validStates);
       const existing = getTaskOrThrow(store, list, id);
@@ -692,6 +689,11 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         insertIndex = anchor.position === "top" ? 0 : listNode.items.length;
       } else {
         const anchorId = "before" in anchor ? anchor.before : anchor.after;
+        const activeIds = new Set(activeItemIds(listNode, validStates));
+        if (!activeIds.has(anchorId)) {
+          listNode.items.splice(fromIndex, 0, movedPair);
+          throw new AnchorNotFoundError(anchorId);
+        }
         const anchorIndex = findItemIndex(listNode, anchorId);
         if (anchorIndex < 0) {
           listNode.items.splice(fromIndex, 0, movedPair);

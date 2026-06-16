@@ -36,12 +36,35 @@ describe("validateMachine", () => {
     expect(() => validateMachine(machine)).toThrow('Initial state "unknown" is not declared.');
   });
 
+  it("rejects blank state names", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      initial: "   ",
+      states: ["   ", "done"],
+      events: {
+        complete: { from: ["   "], to: "done" }
+      }
+    } as const satisfies StateMachineDef<"   " | "done", "complete">;
+
+    expect(() => validateMachine(machine)).toThrow("State names must not be empty.");
+  });
+
+  it("rejects blank event names", () => {
+    const machine = {
+      ...defaultShapedMachine,
+      events: {
+        ...defaultShapedMachine.events,
+        "": { from: ["draft"], to: "planned" }
+      }
+    } as const satisfies StateMachineDef<TaskState, TaskEvent | "">;
+
+    expect(() => validateMachine(machine)).toThrow("Event names must not be empty.");
+  });
+
   it("rejects inherited top-level machine fields", () => {
     const machine = Object.create(defaultShapedMachine) as StateMachineDef;
 
-    expect(() => validateMachine(machine)).toThrow(
-      "State machine states must be a string array."
-    );
+    expect(() => validateMachine(machine)).toThrow("State machine states must be a string array.");
   });
 
   it("rejects inherited event transition fields", () => {

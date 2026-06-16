@@ -272,6 +272,30 @@ describe("openTaskList", () => {
     await expect(taskList.list("owner/1").get("1")).resolves.toMatchObject({ state: "Done" });
   });
 
+  it("validates custom gh-issues state machines before network access", async () => {
+    const fetchMock: typeof fetch = vi.fn(async () => {
+      throw new Error("network should not be called");
+    }) as unknown as typeof fetch;
+
+    await expect(
+      openTaskList({
+        type: "gh-issues",
+        repo: "owner/name",
+        state: { labelPrefix: "status:" },
+        stateMachine: {
+          initial: "missing",
+          states: ["todo"],
+          events: {
+            finish: { from: ["todo"], to: "done" }
+          }
+        },
+        auth: { token: "explicit-token" },
+        fetch: fetchMock
+      })
+    ).rejects.toThrow('Initial state "missing" is not declared.');
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("normalizes missing defaults", async () => {
     const taskList = createTaskList();
     const { fs } = createFs();

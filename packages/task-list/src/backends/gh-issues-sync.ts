@@ -94,6 +94,7 @@ export class GhProjectSyncError extends Error {
 export async function verifyGhProject(
   opts: VerifyGhProjectOptions
 ): Promise<VerifyGhProjectReport> {
+  validateRequiredStates(opts.requiredStates);
   const client = resolveGhClient(opts);
   const lookup = await lookupProject(client, opts.owner, opts.number);
   return buildVerifyReport(lookup, opts);
@@ -190,6 +191,7 @@ function buildVerifyReport(
 }
 
 export async function syncGhProject(opts: SyncGhProjectOptions): Promise<SyncGhProjectReport> {
+  validateRequiredStates(opts.requiredStates);
   const client = resolveGhClient(opts);
   let lookup = await lookupProject(client, opts.owner, opts.number);
   const initialReport = buildVerifyReport(lookup, opts);
@@ -257,6 +259,12 @@ export async function syncGhProject(opts: SyncGhProjectOptions): Promise<SyncGhP
     created,
     updated: []
   };
+}
+
+function validateRequiredStates(requiredStates: readonly string[]): void {
+  if (requiredStates.some((state) => state.trim().length === 0)) {
+    throw new Error("requiredStates must not contain empty state names.");
+  }
 }
 
 interface OwnerResponse {

@@ -24,11 +24,13 @@ import {
 import {
   applyOrder,
   hasErrorCode,
+  isTrimmedPrintableIdentifier,
   isRecord,
   rejectSymbolicLinkComponents,
   sortStrings,
   statIfExists,
   validateTaskId,
+  validateTaskName,
   withFileLock,
   writeAtomically,
   type OrderedEntry
@@ -72,7 +74,7 @@ function resolveListLayout(deps: BackendDeps): ListLayout {
 
 function validateListName(name: string): string {
   if (
-    name.length === 0 ||
+    !isTrimmedPrintableIdentifier(name) ||
     name === ARCHIVE_DIRECTORY_NAME ||
     name.startsWith(".") ||
     name.includes("/") ||
@@ -709,7 +711,12 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         const targetPath = path.join(listDirectoryPath, desiredFilename);
         try {
           await deps.fs.rename(fromPath, stagingPath);
-          staged.push({ original: fromPath, staging: stagingPath, target: targetPath, finalized: false });
+          staged.push({
+            original: fromPath,
+            staging: stagingPath,
+            target: targetPath,
+            finalized: false
+          });
         } catch (error) {
           for (const stagedEntry of staged.reverse()) {
             await deps.fs.rename(stagedEntry.staging, stagedEntry.original);
@@ -884,6 +891,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       assertCreateDoesNotSetState(input);
       assertCreateHasId(input);
       validateTaskId(input.id);
+      validateTaskName(input.name);
       await rejectSymbolicLinkComponents(deps.fs, listDirectoryPath);
       return withFileLock(deps.fs, path.join(listDirectoryPath, ".transition.lock"), async () => {
         const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
@@ -911,12 +919,22 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
         await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
 
-        return createTask(list, input.id, frontmatter, description, deps.frontmatterMode, targetPath);
+        return createTask(
+          list,
+          input.id,
+          frontmatter,
+          description,
+          deps.frontmatterMode,
+          targetPath
+        );
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       assertUpdateDoesNotSetState(patch);
       validateTaskId(id);
+      if (patch.name !== undefined) {
+        validateTaskName(patch.name);
+      }
 
       const existing = await getTaskFile(id);
       const nextFrontmatter = updatedFrontmatter(

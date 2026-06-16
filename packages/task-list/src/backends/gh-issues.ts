@@ -1,4 +1,9 @@
-import { eventsFromState, findEvent, type StateMachineDef } from "../state-machine.js";
+import {
+  eventsFromState,
+  findEvent,
+  validateMachine,
+  type StateMachineDef
+} from "../state-machine.js";
 import type {
   ListFilter,
   MoveAnchor,
@@ -474,6 +479,10 @@ export async function ghIssuesBackend(deps: GhIssuesBackendDeps): Promise<TaskLi
     throw new Error("gh-issues state.labelPrefix must be a non-empty string when configured.");
   }
 
+  if (deps.stateMachine !== undefined) {
+    validateMachine(deps.stateMachine);
+  }
+
   const client = createGhClient({
     token: deps.token,
     endpoint: deps.endpoint,
@@ -661,7 +670,9 @@ function createTasksView(
           );
           projectItemId = added.addProjectV2ItemById?.item?.id ?? undefined;
           if (projectItemId === undefined) {
-            throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
+            throw new Error(
+              "GitHub addProjectV2ItemById response did not include project item id."
+            );
           }
         }
 
@@ -712,7 +723,9 @@ function createTasksView(
         listName: name,
         session
       });
-      return session.labelPrefix === undefined ? task : { ...task, state: session.stateMachine.initial };
+      return session.labelPrefix === undefined
+        ? task
+        : { ...task, state: session.stateMachine.initial };
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       const task = await fetchIssueTask(id, name, session, context);
@@ -935,12 +948,15 @@ async function resolveProjectItemId(
   let after: string | null | undefined;
 
   while (true) {
-    const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
-      owner: context.repoOwner,
-      repo: context.repoName,
-      number: issueNumber,
-      after
-    });
+    const result = await context.client.graphql<IssueStateLabelsResponse>(
+      ISSUE_STATE_LABELS_QUERY,
+      {
+        owner: context.repoOwner,
+        repo: context.repoName,
+        number: issueNumber,
+        after
+      }
+    );
     const issue = result.repository?.issue ?? null;
     if (issue === null) {
       throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
@@ -957,7 +973,11 @@ async function resolveProjectItemId(
     }
 
     const pageInfo = issue.projectItems?.pageInfo;
-    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+    if (
+      pageInfo?.hasNextPage !== true ||
+      pageInfo.endCursor === undefined ||
+      pageInfo.endCursor === null
+    ) {
       throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
 
@@ -1047,7 +1067,11 @@ async function updateIssueStateLabel(
       break;
     }
     const pageInfo = currentIssue.projectItems?.pageInfo;
-    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+    if (
+      pageInfo?.hasNextPage !== true ||
+      pageInfo.endCursor === undefined ||
+      pageInfo.endCursor === null
+    ) {
       break;
     }
     after = pageInfo.endCursor;
@@ -1297,12 +1321,17 @@ async function fetchIssueTask(
       break;
     }
     projectItem =
-      currentIssue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+      currentIssue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ??
+      null;
     if (projectItem !== null) {
       break;
     }
     const pageInfo = currentIssue.projectItems?.pageInfo;
-    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+    if (
+      pageInfo?.hasNextPage !== true ||
+      pageInfo.endCursor === undefined ||
+      pageInfo.endCursor === null
+    ) {
       throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
     after = pageInfo.endCursor;

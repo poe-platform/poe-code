@@ -7,6 +7,7 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
+const nodeFs = await import("node:fs");
 const { resolveSkillReference } = await import("./resolve-skill-reference.js");
 
 const cwd = "/repo";
@@ -60,6 +61,26 @@ describe("resolveSkillReference", () => {
       sourcePath: nativeProjectSkill,
       scope: "project"
     });
+  });
+
+  it("throws project skill stat errors instead of falling back to user scope", () => {
+    mkdir(nativeUserSkill);
+    const originalStatSync = nodeFs.statSync.bind(nodeFs);
+    const stat = vi.spyOn(nodeFs, "statSync").mockImplementation((targetPath, options) => {
+      if (String(targetPath) === nativeProjectSkill) {
+        throw new Error("project skill stat denied");
+      }
+
+      return originalStatSync(targetPath, options);
+    });
+
+    try {
+      expect(() => resolveSkillReference("foo", cwd, homeDir)).toThrow(
+        "project skill stat denied"
+      );
+    } finally {
+      stat.mockRestore();
+    }
   });
 
   it("returns not-found for bare refs with searched paths in lookup order", () => {

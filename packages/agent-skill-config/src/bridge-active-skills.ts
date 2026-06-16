@@ -36,6 +36,7 @@ export interface BridgeManifest {
   spawnAgentId: string;
   cwd: string;
   runId: string;
+  excludeBlockId?: string;
   entries: BridgeEntry[];
   warnings: BridgeWarning[];
 }
@@ -43,6 +44,7 @@ export interface BridgeManifest {
 interface ActiveTarget {
   createdParents: string[];
   fingerprint: string;
+  sourceFingerprint: string;
   sourcePath: string;
   references: number;
   token: string;
@@ -78,11 +80,18 @@ function pathExists(targetPath: string): boolean {
   }
 }
 
-function assertNoSymbolicLink(targetPath: string): void {
-  const parsed = path.parse(path.resolve(targetPath));
-  let current = parsed.root;
+function assertNoSymbolicLinkUnder(rootPath: string, targetPath: string): void {
+  const root = path.resolve(rootPath);
+  const target = path.resolve(targetPath);
+  const relative = path.relative(root, target);
+  if (relative.startsWith("..") || path.isAbsolute(relative)) {
+    throw new Error(`Refusing to bridge skills outside root ${root}: ${target}`);
+  }
 
-  for (const segment of path.resolve(targetPath).slice(parsed.root.length).split(path.sep)) {
+  let current = root;
+  const segments = relative.length === 0 ? [] : relative.split(path.sep);
+
+  for (const segment of segments) {
     if (segment.length === 0) {
       continue;
     }
@@ -150,7 +159,6 @@ function formatResolutionFailureError(failures: SkillResolutionFailure[]): Error
 }
 
 function copyDirectory(sourcePath: string, targetPath: string): void {
-  assertNoSymbolicLink(sourcePath);
   fs.mkdirSync(targetPath, { recursive: true });
   for (const dirent of fs.readdirSync(sourcePath, { withFileTypes: true })) {
     const childSource = path.join(sourcePath, dirent.name);
@@ -167,7 +175,10 @@ function copyDirectory(sourcePath: string, targetPath: string): void {
 
     if (dirent.isFile()) {
       fs.copyFileSync(childSource, childTarget);
+      continue;
     }
+
+    throw new Error(`Refusing to bridge unsupported filesystem entry: ${childSource}`);
   }
 }
 
@@ -327,81 +338,97 @@ export function bridgeActiveSkills(
 
   try {
     for (const item of sources) {
-    if (claimedTargets.has(item.targetPath)) {
-      warnings.push(
-        warning("intra-batch-collision", item.ref, item.source.sourcePath, item.targetPath)
-      );
-      continue;
-    }
+      if (claimedTargets.has(item.targetPath)) {
+        warnings.push(
+          warning("intra-batch-collision", item.ref, item.source.sourcePath, item.targetPath)
+        );
+        continue;
+      }
 
-    if (item.source.sourceAgentId === spawnSupport.id) {
-      warnings.push(
-        warning("self-reference", item.ref, item.source.sourcePath, item.source.sourcePath)
-      );
-      continue;
-    }
+      if (item.source.sourceAgentId === spawnSupport.id) {
+        warnings.push(
+          warning("self-reference", item.ref, item.source.sourcePath, item.source.sourcePath)
+        );
+        continue;
+      }
 
-    const activeTarget = activeTargets.get(item.targetPath);
-    if (activeTarget && pathExists(item.targetPath)) {
-      if (
-        activeTarget.sourcePath === item.source.sourcePath &&
-        hasOwnershipToken(item.targetPath, activeTarget.token) &&
-        directoryFingerprint(item.targetPath) === activeTarget.fingerprint
-      ) {
-        activeTarget.references += 1;
+      const activeTarget = activeTargets.get(item.targetPath);
+      if (activeTarget && pathExists(item.targetPath)) {
+        if (activeTarget.sourcePath === item.source.sourcePath) {
+          const sourceRoot = item.source.scope === "project" ? cwd : homeDir;
+          assertNoSymbolicLinkUnder(sourceRoot, item.source.sourcePath);
+          const sourceFingerprint = directoryFingerprint(item.source.sourcePath);
+          if (
+            sourceFingerprint === activeTarget.sourceFingerprint &&
+            hasOwnershipToken(item.targetPath, activeTarget.token) &&
+            directoryFingerprint(item.targetPath) === activeTarget.fingerprint
+          ) {
+            activeTarget.references += 1;
+            claimedTargets.add(item.targetPath);
+            entries.push({
+              ref: item.ref,
+              sourcePath: item.source.sourcePath,
+              targetPath: item.targetPath,
+              createdParents: []
+            });
+            continue;
+          }
+
+          warnings.push(
+            warning("local-collision", item.ref, item.source.sourcePath, item.targetPath)
+          );
+          continue;
+        }
+        activeTargets.delete(item.targetPath);
+      }
+
+      if (pathExists(item.targetPath)) {
+        warnings.push(
+          warning("local-collision", item.ref, item.source.sourcePath, item.targetPath)
+        );
+        continue;
+      }
+
+      if (isDirectory(item.globalTargetPath)) {
+        warnings.push(
+          warning("global-collision", item.ref, item.source.sourcePath, item.globalTargetPath)
+        );
+        continue;
+      }
+
+      const sourceRoot = item.source.scope === "project" ? cwd : homeDir;
+      assertNoSymbolicLinkUnder(sourceRoot, item.source.sourcePath);
+      const sourceFingerprint = directoryFingerprint(item.source.sourcePath);
+      const createdParents = collectMissingParents(item.targetPath);
+      assertNoSymbolicLinkUnder(cwd, path.dirname(item.targetPath));
+      fs.mkdirSync(path.dirname(item.targetPath), { recursive: true });
+      const token = randomUUID();
+      try {
+        copyDirectory(item.source.sourcePath, item.targetPath);
+        fs.writeFileSync(ownershipPath(item.targetPath), token, "utf8");
+        const fingerprint = directoryFingerprint(item.targetPath);
         claimedTargets.add(item.targetPath);
         entries.push({
           ref: item.ref,
           sourcePath: item.source.sourcePath,
           targetPath: item.targetPath,
-          createdParents: []
+          createdParents
         });
-        continue;
+        activeTargets.set(item.targetPath, {
+          createdParents,
+          fingerprint,
+          sourceFingerprint,
+          sourcePath: item.source.sourcePath,
+          references: 1,
+          token
+        });
+      } catch (error) {
+        removeTarget(item.targetPath);
+        for (const parent of [...createdParents].reverse()) {
+          removeDirectoryIfEmpty(parent);
+        }
+        throw error;
       }
-      activeTargets.delete(item.targetPath);
-    }
-
-    if (pathExists(item.targetPath)) {
-      warnings.push(warning("local-collision", item.ref, item.source.sourcePath, item.targetPath));
-      continue;
-    }
-
-    if (isDirectory(item.globalTargetPath)) {
-      warnings.push(
-        warning("global-collision", item.ref, item.source.sourcePath, item.globalTargetPath)
-      );
-      continue;
-    }
-
-    const createdParents = collectMissingParents(item.targetPath);
-    assertNoSymbolicLink(path.dirname(item.targetPath));
-    fs.mkdirSync(path.dirname(item.targetPath), { recursive: true });
-    const token = randomUUID();
-    try {
-      copyDirectory(item.source.sourcePath, item.targetPath);
-      fs.writeFileSync(ownershipPath(item.targetPath), token, "utf8");
-      const fingerprint = directoryFingerprint(item.targetPath);
-      claimedTargets.add(item.targetPath);
-      entries.push({
-        ref: item.ref,
-        sourcePath: item.source.sourcePath,
-        targetPath: item.targetPath,
-        createdParents
-      });
-      activeTargets.set(item.targetPath, {
-        createdParents,
-        fingerprint,
-        sourcePath: item.source.sourcePath,
-        references: 1,
-        token
-      });
-    } catch (error) {
-      removeTarget(item.targetPath);
-      for (const parent of [...createdParents].reverse()) {
-        removeDirectoryIfEmpty(parent);
-      }
-      throw error;
-    }
     }
 
     let excludeBlockId: string | undefined;
@@ -417,6 +444,7 @@ export function bridgeActiveSkills(
       spawnAgentId,
       cwd,
       runId,
+      ...(excludeBlockId !== undefined && excludeBlockId !== runId ? { excludeBlockId } : {}),
       entries,
       warnings
     };
@@ -433,7 +461,10 @@ export function cleanupBridgedSkills(manifest: BridgeManifest): void {
   if (state?.cleaned) {
     return;
   }
-  removeExcludeBlock(manifest.cwd, state?.excludeBlockId ?? manifest.runId);
+  removeExcludeBlock(
+    manifest.cwd,
+    state?.excludeBlockId ?? manifest.excludeBlockId ?? manifest.runId
+  );
   for (const entry of manifest.entries) {
     const activeTarget = activeTargets.get(entry.targetPath);
     if (!activeTarget) {

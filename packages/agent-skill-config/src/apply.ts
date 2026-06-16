@@ -171,6 +171,7 @@ export async function installSkill(
 
   if (
     skill.name.length === 0 ||
+    skill.name !== skill.name.trim() ||
     skill.name === "." ||
     skill.name === ".." ||
     skill.name.includes("/") ||
@@ -219,5 +220,5 @@ export async function installSkill(
     }
   );
 
-  return { skillPath: skillFilePath, displayPath };
+  return { skillPath: absoluteSkillPath, displayPath };
 }

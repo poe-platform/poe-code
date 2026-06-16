@@ -428,7 +428,7 @@ describe("installSkill", () => {
     );
 
     expect(result).toEqual({
-      skillPath: "~/.claude/skills/terminal-pilot/SKILL.md",
+      skillPath: "/project/.claude/skills/terminal-pilot/SKILL.md",
       displayPath: ".claude/skills/terminal-pilot/SKILL.md"
     });
 
@@ -459,7 +459,7 @@ describe("installSkill", () => {
     );
 
     expect(result).toEqual({
-      skillPath: "~/.agents/skills/terminal-pilot/SKILL.md",
+      skillPath: "/project/.agents/skills/terminal-pilot/SKILL.md",
       displayPath: ".agents/skills/terminal-pilot/SKILL.md"
     });
 
@@ -473,6 +473,12 @@ describe("installSkill", () => {
   it("rejects skill names that escape the configured skill directory", async () => {
     await expect(
       installSkill("claude-code", { name: "../escaped", content: "outside" }, { fs: memFs, cwd, homeDir, scope: "local" })
+    ).rejects.toThrow("skill name");
+  });
+
+  it.each(["   ", "foo "])("rejects whitespace-padded skill name %j", async (name) => {
+    await expect(
+      installSkill("claude-code", { name, content: "# invalid\n" }, { fs: memFs, cwd, homeDir, scope: "local" })
     ).rejects.toThrow("skill name");
   });
 

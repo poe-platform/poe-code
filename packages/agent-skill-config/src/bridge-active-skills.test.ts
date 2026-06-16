@@ -376,6 +376,57 @@ describe("bridgeActiveSkills", () => {
     expect(vol.existsSync("/outside/skills/foo")).toBe(false);
   });
 
+  it("allows a macOS-style /var alias before the workspace root", () => {
+    const aliasCwd = "/var/folders/test/repo";
+    const aliasHome = "/var/folders/test/home";
+    mkdir("/private/var/folders/test/repo");
+    mkdir("/private/var/folders/test/home");
+    fs.symlinkSync("/private/var", "/var");
+    createSkill(path.join(aliasCwd, ".poe-code/skills/foo"), { "SKILL.md": "# foo\n" });
+
+    const manifest = bridgeActiveSkills("codex", aliasCwd, ["foo"], aliasHome, runId);
+
+    expect(manifest.entries).toHaveLength(1);
+    expect(readText(path.join(aliasCwd, ".codex/skills/foo/SKILL.md"))).toBe("# foo\n");
+  });
+
+  it("rejects unsupported filesystem entries inside a source skill", () => {
+    const sourcePath = path.join(cwd, ".poe-code/skills/foo");
+    createSkill(sourcePath, { "SKILL.md": "# foo\n" });
+    const originalReadDirSync = fs.readdirSync.bind(fs);
+    const readDir = vi.spyOn(fs, "readdirSync").mockImplementation((targetPath, options) => {
+      const entries = originalReadDirSync(targetPath, options);
+      if (
+        String(targetPath) !== sourcePath ||
+        typeof options !== "object" ||
+        options === null ||
+        !("withFileTypes" in options) ||
+        options.withFileTypes !== true
+      ) {
+        return entries;
+      }
+
+      return [
+        ...(entries as fs.Dirent[]),
+        {
+          name: "events.pipe",
+          isSymbolicLink: () => false,
+          isDirectory: () => false,
+          isFile: () => false
+        } as fs.Dirent
+      ] as fs.Dirent[];
+    });
+
+    try {
+      expect(() => bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, runId)).toThrow(
+        /unsupported filesystem entry/
+      );
+      expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo"))).toBe(false);
+    } finally {
+      readDir.mockRestore();
+    }
+  });
+
   it("rolls back earlier copies when a later copy fails", () => {
     createSkill(path.join(cwd, ".poe-code/skills/foo"));
     createSkill(path.join(cwd, ".poe-code/skills/bar"));
@@ -419,6 +470,24 @@ describe("bridgeActiveSkills", () => {
     expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe(true);
     cleanupBridgedSkills(second);
     expect(vol.existsSync(path.join(cwd, ".opencode/skills/foo/SKILL.md"))).toBe(false);
+  });
+
+  it("does not reuse an active target after the source skill changes", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"), { "SKILL.md": "# foo v1\n" });
+
+    const first = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "first");
+    writeFile(path.join(cwd, ".poe-code/skills/foo/SKILL.md"), "# foo v2\n");
+    const second = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "second");
+
+    expect(second.entries).toEqual([]);
+    expect(second.warnings).toMatchObject([
+      {
+        kind: "local-collision",
+        ref: "foo",
+        conflictingPath: path.join(cwd, ".opencode/skills/foo")
+      }
+    ]);
+    cleanupBridgedSkills(first);
   });
 
   it("uses independent exclude blocks for overlapping identical run ids", () => {
@@ -524,6 +593,20 @@ describe("bridgeActiveSkills", () => {
     cleanupBridgedSkills(second);
     cleanupBridgedSkills(second);
 
+    expect(readText(excludePath)).toContain(".opencode/skills/foo");
+    cleanupBridgedSkills(first);
+  });
+
+  it("cleanup removes duplicate-run exclude blocks after a manifest is cloned", () => {
+    createSkill(path.join(cwd, ".poe-code/skills/foo"));
+    createSkill(path.join(cwd, ".poe-code/skills/bar"));
+    const first = bridgeActiveSkills("opencode", cwd, ["foo"], homeDir, "same");
+    const second = bridgeActiveSkills("opencode", cwd, ["bar"], homeDir, "same");
+    const clonedSecond = JSON.parse(JSON.stringify(second));
+
+    cleanupBridgedSkills(clonedSecond);
+
+    expect(readText(excludePath)).not.toContain(".opencode/skills/bar");
     expect(readText(excludePath)).toContain(".opencode/skills/foo");
     cleanupBridgedSkills(first);
   });

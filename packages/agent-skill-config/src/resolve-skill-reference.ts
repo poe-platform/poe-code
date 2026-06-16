@@ -1,6 +1,7 @@
-import { statSync } from "node:fs";
+import * as fs from "node:fs";
 import path from "node:path";
 import { getAgentConfig, resolveAgentSupport, resolveSkillDir } from "./configs.js";
+import { hasOwnErrorCode } from "./error-codes.js";
 
 export interface SkillSource {
   kind: "resolved";
@@ -36,9 +37,12 @@ function isMalformedSegment(segment: string): boolean {
 
 function isDirectory(targetPath: string): boolean {
   try {
-    return statSync(targetPath).isDirectory();
-  } catch {
-    return false;
+    return fs.statSync(targetPath).isDirectory();
+  } catch (error) {
+    if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
+      return false;
+    }
+    throw error;
   }
 }
 

@@ -98,6 +98,13 @@ describe("parseFrontmatter", () => {
     });
   });
 
+  it("accepts an opening fence with trailing spaces or tabs", () => {
+    expect(parseFrontmatter(["--- \t", "title: Example", "---", "Body"].join("\n"))).toEqual({
+      frontmatter: { title: "Example" },
+      body: "Body"
+    });
+  });
+
   it("keeps __proto__ as an own property without prototype mutation", () => {
     const { frontmatter } = parseFrontmatter(
       ["---", "__proto__:", "  owner: attacker", "---", "Body"].join("\n")
@@ -139,14 +146,23 @@ describe("parseFrontmatterDocument", () => {
     expect(result.body).toBe("");
   });
 
-  it("preserves CRLF positions for line-aware diagnostics", () => {
-    const result = parseFrontmatterDocument(
-      ["---", "title: ok", "items: [broken", "---"].join("\r\n")
-    );
+  it("reports diagnostic positions as original source offsets", () => {
+    const source = ["---", "title: ok", "items: [broken", "---", "Body"].join("\n");
+    const result = parseFrontmatterDocument(source);
     const position = result.errors[0]?.pos?.[0];
 
     expect(position).toBeDefined();
-    expect(result.lineCounter.linePos(position!).line).toBe(3);
+    expect(position).toBe(source.indexOf("items"));
+    expect(result.lineCounter.linePos(position!)).toEqual({ line: 3, col: 1 });
+  });
+
+  it("preserves CRLF positions for line-aware diagnostics", () => {
+    const source = ["---", "title: ok", "items: [broken", "---"].join("\r\n");
+    const result = parseFrontmatterDocument(source);
+    const position = result.errors[0]?.pos?.[0];
+
+    expect(position).toBe(source.indexOf("items"));
+    expect(result.lineCounter.linePos(position!)).toEqual({ line: 3, col: 1 });
   });
 
   it("returns duplicate key diagnostics in strict mode", () => {
@@ -156,6 +172,30 @@ describe("parseFrontmatterDocument", () => {
     );
 
     expect(result.errors[0]?.message).toContain("Map keys must be unique");
+  });
+
+  it("returns delimiter diagnostics without throwing when the closing fence is missing", () => {
+    const source = ["---", "title: Example", "Body"].join("\n");
+    const result = parseFrontmatterDocument(source);
+
+    expect(result).toMatchObject({
+      frontmatter: {},
+      body: "",
+      errors: [{ message: "Missing YAML frontmatter end delimiter (---)." }]
+    });
+    expect(result.errors[0]?.pos).toEqual([source.length, source.length]);
+  });
+
+  it("returns diagnostics without throwing for non-object yaml roots", () => {
+    for (const yaml of ["- alpha", "42"]) {
+      const result = parseFrontmatterDocument(["---", yaml, "---", "Body"].join("\n"));
+
+      expect(result).toMatchObject({
+        frontmatter: {},
+        body: "Body",
+        errors: [{ message: "YAML frontmatter must parse to an object." }]
+      });
+    }
   });
 });
 
@@ -179,5 +219,13 @@ describe("stringifyFrontmatter", () => {
     cyclic.self = cyclic;
 
     expect(() => stringifyFrontmatter(cyclic, "Body")).toThrow(FrontmatterParseError);
+  });
+
+  it("rejects non-object yaml roots before writing frontmatter", () => {
+    for (const value of [["alpha"], "title", new Date("2026-01-01T00:00:00.000Z")]) {
+      expect(() => stringifyFrontmatter(value as Record<string, unknown>, "Body")).toThrow(
+        new FrontmatterParseError("YAML frontmatter must parse to an object.")
+      );
+    }
   });
 });

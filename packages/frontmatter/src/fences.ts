@@ -1,9 +1,26 @@
 export type FrontmatterBlock = {
   raw: string;
   body: string;
+  rawStart: number;
+  rawEnd: number;
 };
 
 export type SplitFrontmatterResult = FrontmatterBlock | { body: string };
+
+export type InspectFrontmatterResult =
+  | (FrontmatterBlock & { kind: "frontmatter" })
+  | {
+      kind: "missing-closing-fence";
+      raw: string;
+      rawStart: number;
+      rawEnd: number;
+      body: "";
+      message: string;
+      position: number;
+    }
+  | { kind: "body"; body: string };
+
+const MISSING_END_DELIMITER_MESSAGE = "Missing YAML frontmatter end delimiter (---).";
 
 type LineEnd = {
   index: number;
@@ -11,21 +28,52 @@ type LineEnd = {
 };
 
 export function splitFrontmatterBlock(source: string): SplitFrontmatterResult {
+  const inspected = inspectFrontmatterBlock(source);
+
+  if (inspected.kind === "body") {
+    return { body: inspected.body };
+  }
+
+  if (inspected.kind === "missing-closing-fence") {
+    throw new Error(inspected.message);
+  }
+
+  return {
+    raw: inspected.raw,
+    rawStart: inspected.rawStart,
+    rawEnd: inspected.rawEnd,
+    body: inspected.body
+  };
+}
+
+export function inspectFrontmatterBlock(source: string): InspectFrontmatterResult {
   const content = source.startsWith("\uFEFF") ? source.slice(1) : source;
+  const sourceOffset = source.length - content.length;
   const opening = readOpeningFence(content);
 
   if (opening === undefined) {
-    return { body: source };
+    return { kind: "body", body: source };
   }
 
   const closing = findClosingFence(content, opening.next);
 
   if (closing === undefined) {
-    throw new Error("Missing YAML frontmatter end delimiter (---).");
+    return {
+      kind: "missing-closing-fence",
+      raw: content.slice(opening.next),
+      rawStart: sourceOffset + opening.next,
+      rawEnd: source.length,
+      body: "",
+      message: MISSING_END_DELIMITER_MESSAGE,
+      position: source.length
+    };
   }
 
   return {
+    kind: "frontmatter",
     raw: content.slice(opening.next, closing.index),
+    rawStart: sourceOffset + opening.next,
+    rawEnd: sourceOffset + closing.index,
     body: content.slice(closing.end + closing.lineBreakLength)
   };
 }
@@ -37,7 +85,7 @@ function readOpeningFence(source: string): { next: number } | undefined {
 
   const lineEnd = findLineEnd(source, 0);
 
-  if (lineEnd.lineBreakLength === 0 || source.slice(0, lineEnd.index) !== "---") {
+  if (lineEnd.lineBreakLength === 0 || !isFenceLine(source.slice(0, lineEnd.index))) {
     return undefined;
   }
 
@@ -53,7 +101,7 @@ function findClosingFence(
   while (lineStart <= source.length) {
     const lineEnd = findLineEnd(source, lineStart);
 
-    if (isClosingFenceLine(source.slice(lineStart, lineEnd.index))) {
+    if (isFenceLine(source.slice(lineStart, lineEnd.index))) {
       return {
         index: lineStart,
         end: lineEnd.index,
@@ -71,7 +119,7 @@ function findClosingFence(
   return undefined;
 }
 
-function isClosingFenceLine(line: string): boolean {
+function isFenceLine(line: string): boolean {
   if (!line.startsWith("---")) {
     return false;
   }

@@ -1,5 +1,5 @@
 import { LineCounter, parse, parseDocument } from "yaml";
-import { splitFrontmatterBlock } from "./fences.js";
+import { inspectFrontmatterBlock, splitFrontmatterBlock } from "./fences.js";
 
 export interface ParsedFrontmatter {
   frontmatter: Record<string, unknown>;
@@ -45,10 +45,10 @@ export function parseFrontmatterDocument(
   source: string,
   options: ParseFrontmatterOptions = {}
 ): ParsedFrontmatterDocument {
-  const split = splitFrontmatter(source);
-  const lineCounter = new LineCounter();
+  const split = inspectFrontmatterBlock(source);
+  const lineCounter = createSourceLineCounter(source);
 
-  if (split.raw === undefined) {
+  if (split.kind === "body") {
     return {
       frontmatter: {},
       body: split.body,
@@ -57,14 +57,27 @@ export function parseFrontmatterDocument(
     };
   }
 
-  const document = parseDocument(normalizeYamlLineEndings(split.raw), {
-    lineCounter,
+  if (split.kind === "missing-closing-fence") {
+    return {
+      frontmatter: {},
+      body: split.body,
+      errors: [{ message: split.message, pos: [split.position, split.position] }],
+      lineCounter
+    };
+  }
+
+  const yamlLineCounter = new LineCounter();
+  const normalizedYaml = normalizeYamlLineEndings(split.raw);
+  const document = parseDocument(normalizedYaml, {
+    lineCounter: yamlLineCounter,
     prettyErrors: false,
     uniqueKeys: options.uniqueKeys ?? false
   });
   const errors = document.errors.map((error) => ({
     message: error.message,
-    ...(error.pos === undefined ? {} : { pos: error.pos as [number, number] })
+    ...(error.pos === undefined
+      ? {}
+      : { pos: translateYamlErrorPosition(error.pos as [number, number], split) })
   }));
 
   if (errors.length > 0) {
@@ -76,12 +89,94 @@ export function parseFrontmatterDocument(
     };
   }
 
-  return {
-    frontmatter: normalizeYamlFrontmatter(document.toJSON()),
-    body: split.body,
-    errors,
-    lineCounter
-  };
+  try {
+    return {
+      frontmatter: normalizeYamlFrontmatter(document.toJSON()),
+      body: split.body,
+      errors,
+      lineCounter
+    };
+  } catch (error) {
+    if (error instanceof FrontmatterParseError) {
+      return {
+        frontmatter: {},
+        body: split.body,
+        errors: [{ message: error.message }],
+        lineCounter
+      };
+    }
+
+    throw error;
+  }
+}
+
+function createSourceLineCounter(source: string): LineCounter {
+  const lineCounter = new LineCounter();
+  lineCounter.addNewLine(0);
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+
+    if (character === "\n") {
+      lineCounter.addNewLine(index + 1);
+      continue;
+    }
+
+    if (character === "\r") {
+      lineCounter.addNewLine(index + (source[index + 1] === "\n" ? 2 : 1));
+      if (source[index + 1] === "\n") {
+        index += 1;
+      }
+    }
+  }
+
+  return lineCounter;
+}
+
+function translateYamlErrorPosition(
+  pos: [number, number],
+  split: { raw: string; rawStart: number }
+): [number, number] {
+  return pos.map((offset) => split.rawStart + normalizeYamlErrorOffset(split.raw, offset)) as [
+    number,
+    number
+  ];
+}
+
+function normalizeYamlErrorOffset(raw: string, offset: number): number {
+  if (offset >= raw.length && endsWithLineBreak(raw)) {
+    return findPreviousLineStart(raw, raw.length);
+  }
+
+  return offset;
+}
+
+function endsWithLineBreak(value: string): boolean {
+  return value.endsWith("\n") || value.endsWith("\r");
+}
+
+function findPreviousLineStart(value: string, end: number): number {
+  let index = end - 1;
+
+  if (value[index] === "\n") {
+    index -= 1;
+  }
+
+  if (value[index] === "\r") {
+    index -= 1;
+  }
+
+  while (index >= 0) {
+    const character = value[index];
+
+    if (character === "\n" || character === "\r") {
+      return index + 1;
+    }
+
+    index -= 1;
+  }
+
+  return 0;
 }
 
 function splitFrontmatter(source: string): { raw?: string; body: string } {
@@ -146,7 +241,7 @@ function normalizeYamlFrontmatter(value: unknown): Record<string, unknown> {
     return {};
   }
 
-  if (!isRecord(value)) {
+  if (!isPlainRecord(value)) {
     throw new FrontmatterParseError("YAML frontmatter must parse to an object.");
   }
 

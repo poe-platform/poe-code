@@ -12,9 +12,9 @@ export function splitFrontmatter(markdown: string): SplitFrontmatterResult {
     if (parsed.errors.length > 0) {
       const firstError = parsed.errors[0];
       const line =
-        firstError?.pos === undefined ? 2 : parsed.lineCounter.linePos(firstError.pos[0]).line + 1;
+        firstError?.pos === undefined ? 2 : parsed.lineCounter.linePos(firstError.pos[0]).line;
       const message = firstError?.message ?? "unknown YAML parse error";
-      throw new Error(`Invalid YAML frontmatter at line ${line}: ${message}`);
+      throw toSafeJSDiagnosticError(line, message);
     }
 
     return {
@@ -28,6 +28,18 @@ export function splitFrontmatter(markdown: string): SplitFrontmatterResult {
 
     throw error;
   }
+}
+
+function toSafeJSDiagnosticError(line: number, message: string): Error {
+  if (message === "Missing YAML frontmatter end delimiter (---).") {
+    return new Error(`Invalid frontmatter at line ${line}: missing closing delimiter (---).`);
+  }
+
+  if (message === "YAML frontmatter must parse to an object.") {
+    return new Error(`Invalid frontmatter at line ${line}: expected a YAML mapping.`);
+  }
+
+  return new Error(`Invalid YAML frontmatter at line ${line}: ${message}`);
 }
 
 function toSafeJSFrontmatterError(markdown: string, error: FrontmatterParseError): Error {

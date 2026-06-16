@@ -221,13 +221,13 @@ describe("splitFrontmatter", () => {
   it("reports malformed yaml with the document line number", () => {
     const markdown = ["---", "title: ok", "items: [broken", "---", "# Heading"].join("\n");
 
-    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 4:");
+    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 3:");
   });
 
   it("reports malformed yaml with the correct line number for CRLF content", () => {
     const markdown = ["---", "title: ok", "items: [broken", "---", "# Heading"].join("\r\n");
 
-    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 4:");
+    expect(() => splitFrontmatter(markdown)).toThrow("Invalid YAML frontmatter at line 3:");
   });
 
   it("reports a missing closing fence with the line where parsing stopped", () => {

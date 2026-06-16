@@ -136,6 +136,38 @@ describe("poe-agent-plugin-web", () => {
     expect(secondPage).not.toContain("More content available");
   });
 
+  it.each([
+    "http://localhost/private",
+    "http://localHost./private",
+    "http://127.0.0.1/private",
+    "http://10.1.2.3/private",
+    "http://172.16.0.1/private",
+    "http://172.31.255.255/private",
+    "http://192.168.1.1/private",
+    "http://169.254.169.254/latest",
+    "http://[::1]/private",
+    "http://[fe80::1]/private",
+    "http://[fc00::1]/private",
+  ])("fetch_url rejects non-public URL host %s", async (url) => {
+    const fetchMock = vi.fn(async () => new Response("secret"));
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    await expect(callTool(plugin.tools, "fetch_url", { url })).rejects.toThrow(
+      "fetch_url cannot access non-public URL host",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fetch_url rejects non-http URLs before fetching", async () => {
+    const fetchMock = vi.fn(async () => new Response("secret"));
+    const plugin = webPlugin({ fetch: fetchMock });
+
+    await expect(callTool(plugin.tools, "fetch_url", { url: "file:///etc/passwd" })).rejects.toThrow(
+      "fetch_url only supports http and https URLs",
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("rejects oversized fetch_url bodies while streaming them", async () => {
     const body = "x".repeat(200_001);
     const text = vi.fn(async () => body);

@@ -1,3 +1,4 @@
+import { isIP } from "node:net";
 import TurndownService from "turndown";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import { rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
@@ -151,7 +152,9 @@ async function defaultFetchUrl(
   fetchFn: FetchFn,
   signal: AbortSignal
 ): Promise<string> {
-  const response = await fetchFn(url, { signal });
+  const parsedUrl = parseFetchUrl(url);
+  const normalizedUrl = parsedUrl.toString();
+  const response = await fetchFn(normalizedUrl, { signal });
   if (!response.ok) {
     throw new Error(`URL fetch failed (${response.status})`);
   }
@@ -163,7 +166,7 @@ async function defaultFetchUrl(
   const end = Math.min(start + fetchUrlPageSize, content.length);
   const page = content.slice(start, end);
   const lines = [
-    `URL: ${url}`,
+    `URL: ${normalizedUrl}`,
     `Content type: ${contentType}`,
     `Showing characters ${start}-${end} of ${content.length}.`
   ];
@@ -174,6 +177,89 @@ async function defaultFetchUrl(
 
   lines.push("", page);
   return lines.join("\n");
+}
+
+function parseFetchUrl(url: string): URL {
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error("Invalid fetch_url URL.");
+  }
+
+  if (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") {
+    throw new Error("fetch_url only supports http and https URLs.");
+  }
+
+  if (isNonPublicHost(parsedUrl.hostname)) {
+    throw new Error(`fetch_url cannot access non-public URL host: ${parsedUrl.hostname}`);
+  }
+
+  return parsedUrl;
+}
+
+function isNonPublicHost(hostname: string): boolean {
+  const host = normalizeUrlHostname(hostname);
+  if (host === "localhost" || host.endsWith(".localhost")) {
+    return true;
+  }
+
+  if (isIP(host) === 4) {
+    return isNonPublicIpv4(host);
+  }
+
+  if (isIP(host) === 6) {
+    return isNonPublicIpv6(host);
+  }
+
+  return false;
+}
+
+function normalizeUrlHostname(hostname: string): string {
+  const lower = hostname.toLowerCase();
+  const withoutTrailingDot = lower.endsWith(".") ? lower.slice(0, -1) : lower;
+  if (withoutTrailingDot.startsWith("[") && withoutTrailingDot.endsWith("]")) {
+    return withoutTrailingDot.slice(1, -1);
+  }
+
+  return withoutTrailingDot;
+}
+
+function isNonPublicIpv4(host: string): boolean {
+  const parts = host.split(".").map((part) => Number(part));
+  if (parts.length !== 4 || parts.some((part) => !Number.isInteger(part))) {
+    return true;
+  }
+
+  const [a, b] = parts;
+  if (a === undefined || b === undefined) {
+    return true;
+  }
+
+  return (
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 168)
+  );
+}
+
+function isNonPublicIpv6(host: string): boolean {
+  if (host === "::" || host === "::1") {
+    return true;
+  }
+
+  const firstHextet = Number.parseInt(host.split(":", 1)[0] ?? "", 16);
+  if (!Number.isInteger(firstHextet)) {
+    return true;
+  }
+
+  return (
+    (firstHextet >= 0xfc00 && firstHextet <= 0xfdff) ||
+    (firstHextet >= 0xfe80 && firstHextet <= 0xfebf)
+  );
 }
 
 async function readFetchedBody(response: Response): Promise<string> {

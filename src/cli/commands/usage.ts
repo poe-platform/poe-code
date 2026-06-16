@@ -96,16 +96,22 @@ async function executeBalance(
     "usage:balance"
   );
 
+  if (flags.dryRun) {
+    await container.options.resolveApiKey({
+      envValue: container.env.getVariable("POE_API_KEY"),
+      assumeYes: true,
+      dryRun: true
+    });
+    resources.logger.intro("usage balance");
+    resources.logger.dryRun(
+      "Dry run: would fetch usage balance from Poe API."
+    );
+    return;
+  }
+
   resources.logger.intro("usage balance");
 
   try {
-    if (flags.dryRun) {
-      resources.logger.dryRun(
-        "Dry run: would fetch usage balance from Poe API."
-      );
-      return;
-    }
-
     const apiKey = await container.options.resolveApiKey({
       envValue: container.env.getVariable("POE_API_KEY"),
       assumeYes: flags.assumeYes,
@@ -188,16 +194,22 @@ export function registerUsageCommand(
       );
       const commandOptions = this.opts<{ filter?: string; pages?: number }>();
 
+      if (flags.dryRun) {
+        await container.options.resolveApiKey({
+          envValue: container.env.getVariable("POE_API_KEY"),
+          assumeYes: true,
+          dryRun: true
+        });
+        resources.logger.intro("usage list");
+        resources.logger.dryRun(
+          "Dry run: would fetch usage history from Poe API."
+        );
+        return;
+      }
+
       resources.logger.intro("usage list");
 
       try {
-        if (flags.dryRun) {
-          resources.logger.dryRun(
-            "Dry run: would fetch usage history from Poe API."
-          );
-          return;
-        }
-
         const apiKey = await container.options.resolveApiKey({
           envValue: container.env.getVariable("POE_API_KEY"),
           assumeYes: flags.assumeYes,

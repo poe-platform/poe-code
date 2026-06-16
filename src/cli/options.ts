@@ -16,7 +16,7 @@ function stripBracketedPaste(value: string): string {
 }
 
 export interface ApiKeyStore {
-  read(): Promise<string | null>;
+  read(options?: { readOnly?: boolean }): Promise<string | null>;
   write(value: string): Promise<void>;
 }
 
@@ -145,7 +145,7 @@ export function createOptionResolvers(
     }
 
     if (allowStored) {
-      const stored = await init.apiKeyStore.read();
+      const stored = await init.apiKeyStore.read({ readOnly: input.dryRun });
       if (stored) {
         return normalizeApiKey(stored);
       }

@@ -325,6 +325,26 @@ describe("usage balance command", () => {
     ).toBe(true);
   });
 
+  it("rejects dry-run balance when no API key is available", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0" } },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: true } as any);
+
+    await expect(program.parseAsync(["node", "cli", "--dry-run", "usage"])).rejects.toThrow(
+      "No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authenticate interactively."
+    );
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(false);
+  });
+
   it("does not migrate legacy credentials while previewing balance", async () => {
     await storeTestApiKey(fs, homeDir, "legacy-key");
     const program = createProgram({
@@ -661,6 +681,28 @@ describe("usage list command", () => {
     await program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"]);
 
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+  });
+
+  it("rejects dry-run usage history when no API key is available", async () => {
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_CODE_OAUTH_LOGIN: "0" } },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: true } as any);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"])
+    ).rejects.toThrow(
+      "No API key found. Pass --api-key, set POE_API_KEY, or run without --yes to authenticate interactively."
+    );
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(false);
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {

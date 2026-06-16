@@ -39,7 +39,7 @@ export async function buildE2bRuntimeTemplate(
   );
   const cached = input.force === true ? null : await input.state?.templates.get("e2b", hash);
 
-  if (cached?.template_id !== undefined) {
+  if (cached?.template_id !== undefined && cached.template_id.trim().length > 0) {
     return { backend: "e2b", hash, templateId: cached.template_id, cached: true };
   }
 

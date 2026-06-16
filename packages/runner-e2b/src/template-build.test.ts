@@ -71,6 +71,41 @@ describe("buildE2bRuntimeTemplate", () => {
     expect(buildTemplate).not.toHaveBeenCalled();
   });
 
+  it("rebuilds instead of reusing a blank cached E2B template id", async () => {
+    const state = createState({
+      hash: "unused",
+      template_id: "   ",
+      runtime_type: "e2b",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    });
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    const result = await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: {
+        type: "e2b",
+        build_args: {},
+        mounts: []
+      },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state
+    });
+
+    expect(result).toEqual({
+      backend: "e2b",
+      hash: expect.any(String),
+      templateId: "tmpl_built",
+      cached: false
+    });
+    expect(buildTemplate).toHaveBeenCalledTimes(1);
+    expect(state.putCalls[0]).toMatchObject({
+      backend: "e2b",
+      entry: { template_id: "tmpl_built" }
+    });
+  });
+
   it("builds and caches an E2B template on cache miss", async () => {
     const state = createState(null);
     const { buildE2bRuntimeTemplate } = await import("./template-build.js");

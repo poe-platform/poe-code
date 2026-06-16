@@ -38,6 +38,19 @@ describe("resolveE2bApiKey", () => {
     ).toBe("env_key");
   });
 
+  it("ignores empty E2B_API_KEY env values so project config can resolve", async () => {
+    const fs = memFs({
+      "/repo/.poe-code/config.json": JSON.stringify({ e2b: { api_key: "p_key" } })
+    });
+
+    await expect(resolveE2bApiKey({ cwd, homeDir, fs, env: { E2B_API_KEY: "" } })).resolves.toBe(
+      "p_key"
+    );
+    await expect(
+      resolveE2bApiKey({ cwd, homeDir, fs, env: { E2B_API_KEY: "   " } })
+    ).resolves.toBe("p_key");
+  });
+
   it("falls back to E2B_API_KEY env var when no config files exist", async () => {
     const fs = memFs({});
     expect(

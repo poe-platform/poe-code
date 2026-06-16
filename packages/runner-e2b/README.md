@@ -35,7 +35,7 @@ Use these options under the `runtime` config scope:
 - `dockerfile`: Dockerfile path used to build a template when `template_id` is not set. Defaults to `.poe-code/Dockerfile`.
 - `build_context`: build context path. Defaults to the project root.
 - `build_args`: build argument object included in the template hash.
-- `mounts`: runtime mounts passed through the shared runtime config.
+- `mounts`: unsupported for E2B; non-empty mounts are rejected before sandbox startup.
 - `workspace_dir`: sandbox-local workspace directory used for upload, execution, and download. Defaults to `/workspace`.
 - `cpu`: CPU count used when building an E2B template.
 - `memory_mb`: memory in megabytes used when building an E2B template.

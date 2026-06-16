@@ -89,6 +89,28 @@ describe("e2bExecutionEnvFactory", () => {
     );
   });
 
+  it("rejects runtime mounts because E2B does not support host mounts", async () => {
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    await expect(
+      e2bExecutionEnvFactory.open({
+        cwd: "/repo",
+        runtime: {
+          type: "e2b",
+          template_id: "tmpl_configured",
+          build_args: {},
+          mounts: [{ source: "/host/data", target: "/data", readonly: true }]
+        },
+        env: {},
+        uploadIgnoreFiles: [],
+        jobLabel: { tool: "node", argv: ["node"] }
+      })
+    ).rejects.toThrow("E2B runtime mounts are not supported");
+
+    expect(resolveE2bApiKey).not.toHaveBeenCalled();
+    expect(createSandbox).not.toHaveBeenCalled();
+  });
+
   it("exposes configured values needed to reattach a detached sandbox", async () => {
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 

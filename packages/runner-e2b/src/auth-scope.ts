@@ -28,17 +28,27 @@ export interface ResolveE2bApiKeyInput {
 export async function resolveE2bApiKey(input: ResolveE2bApiKeyInput): Promise<string> {
   const homeDir = input.homeDir ?? os.homedir();
   const fs = input.fs ?? (nodeFs as unknown as FileSystem);
-  const env = input.env ?? process.env;
+  const env = normalizeE2bAuthEnv(input.env ?? process.env);
   const document = await readMergedDocument(
     fs,
     resolveConfigPath(homeDir),
     resolveProjectConfigPath(input.cwd)
   );
   const resolved = resolveScope(e2bAuthScope.schema, document.e2b, env);
-  if (resolved.api_key.length === 0) {
+  const apiKey = resolved.api_key.trim();
+  if (apiKey.length === 0) {
     throw new Error(
       `No E2B API key. Set E2B_API_KEY or e2b.api_key in ${resolveProjectConfigPath(input.cwd)} or ~/.poe-code/config.json.`
     );
   }
-  return resolved.api_key;
+  return apiKey;
+}
+
+function normalizeE2bAuthEnv(env: Record<string, string | undefined>): Record<string, string | undefined> {
+  if (env.E2B_API_KEY === undefined || env.E2B_API_KEY.trim().length > 0) {
+    return env;
+  }
+
+  const { E2B_API_KEY: ignoredApiKey, ...rest } = env;
+  return rest;
 }

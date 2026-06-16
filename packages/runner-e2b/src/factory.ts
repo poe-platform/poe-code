@@ -17,6 +17,7 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
   supportsDetach: true,
   async open(spec): Promise<OpenedEnv> {
     const runtime = parseE2bRuntime(spec.runtime);
+    rejectRuntimeMounts(runtime);
     const runtimeCwd = spec.runtimeCwd ?? spec.cwd;
     const apiKey = await resolveE2bApiKey({ cwd: runtimeCwd });
     const templateId =
@@ -117,4 +118,12 @@ function parseE2bRuntime(runtime: unknown): E2bRuntime {
     throw new Error('e2b runtime type must be "e2b"');
   }
   return record as unknown as E2bRuntime;
+}
+
+function rejectRuntimeMounts(runtime: E2bRuntime): void {
+  if (runtime.mounts.length > 0) {
+    throw new Error(
+      "E2B runtime mounts are not supported. Use workspace upload/download sync or include required files in the configured build context."
+    );
+  }
 }

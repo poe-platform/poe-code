@@ -41,6 +41,16 @@ Add to your agent's MCP config (e.g. Claude Code's `~/.claude.json`):
 - **Zero-arg tools:** `word_of_the_day({})` always returns `"Bumfuzzle - to confuse or fluster someone"`
 - **Content format:** results are always `[{ type: "text", text: "..." }]`
 
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `TOOLCRAFT_TEST_STARTUP_DELAY_MS` | Milliseconds to wait before starting the stdio server. Values greater than `0` delay startup. |
+| `TOOLCRAFT_TEST_STARTUP_GATE_FILE` | Path to a file that must exist before startup continues. The CLI polls until the file is accessible. |
+| `TOOLCRAFT_TEST_SPAWN_COUNT_FILE` | Path to a counter file incremented every time the `serve` command starts. The file must contain a non-negative integer when present. |
+| `TOOLCRAFT_TEST_WRAPPER_PID_FILE` | Path where the CLI writes the wrapper process PID when `serve` starts. |
+| `TOOLCRAFT_TEST_TOOL_CALL_FILE` | Path where the server appends one tool name per successful tool call. |
+
 ## License
 
 MIT

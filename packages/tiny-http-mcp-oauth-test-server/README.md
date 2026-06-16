@@ -192,6 +192,7 @@ Starts the bundled fixture and resolves to:
 | `ttlSeconds` | `60` | Access-token TTL in seconds. |
 | `autoApprove` | `false` | Auto-approve the embedded authorization flow. |
 | `scopes` | `["mcp.read"]` | Scopes published in PRM and required by the MCP endpoint. |
+| `staticClients` | `[]` | Preloaded OAuth clients. Each item is `{ clientId, redirectUris, scopes? }`. |
 
 ### `listen({ port?, hostname? })`
 

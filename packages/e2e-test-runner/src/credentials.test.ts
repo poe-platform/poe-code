@@ -23,15 +23,38 @@ describe('getApiKey', () => {
     }
   });
 
-  it('caches an env API key for later lookups in the same process', async () => {
+  it('does not reuse an env API key after the environment removes it', async () => {
     process.env.POE_API_KEY = 'sk-env';
     const credentials = await import('./credentials.js');
 
     await expect(credentials.getApiKey()).resolves.toBe('sk-env');
 
     delete process.env.POE_API_KEY;
+    createSecretStoreMock.mockReturnValue({
+      store: {
+        get: vi.fn(async () => null),
+      },
+    });
+
+    await expect(credentials.getApiKey()).resolves.toBeNull();
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores a previously cached env API key when the current env value is blank', async () => {
+    process.env.POE_API_KEY = 'sk-env';
+    const credentials = await import('./credentials.js');
+
     await expect(credentials.getApiKey()).resolves.toBe('sk-env');
-    expect(createSecretStoreMock).not.toHaveBeenCalled();
+
+    process.env.POE_API_KEY = '   ';
+    createSecretStoreMock.mockReturnValue({
+      store: {
+        get: vi.fn(async () => null),
+      },
+    });
+
+    await expect(credentials.getApiKey()).resolves.toBeNull();
+    expect(createSecretStoreMock).toHaveBeenCalledTimes(1);
   });
 
   it('re-reads a stored API key so credential removal takes effect', async () => {

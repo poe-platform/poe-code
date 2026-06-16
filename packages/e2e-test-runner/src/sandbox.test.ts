@@ -65,18 +65,18 @@ describe('buildSandboxCommand', () => {
         '--ro-bind',
         '/',
         '/',
-        '--bind',
-        '/tmp/poe-e2e-home',
-        '/tmp/poe-e2e-home',
-        '--bind',
-        '/tmp/custom-write',
-        '/tmp/custom-write',
         '--dev',
         '/dev',
         '--proc',
         '/proc',
         '--tmpfs',
         '/tmp',
+        '--bind',
+        '/tmp/poe-e2e-home',
+        '/tmp/poe-e2e-home',
+        '--bind',
+        '/tmp/custom-write',
+        '/tmp/custom-write',
         '--setenv',
         'HOME',
         '/tmp/poe-e2e-home',
@@ -120,18 +120,18 @@ describe('buildSandboxCommand', () => {
       '--ro-bind',
       '/',
       '/',
-      '--bind',
-      '/tmp/poe-e2e-home',
-      '/tmp/poe-e2e-home',
-      '--bind',
-      '/tmp/custom-write',
-      '/tmp/custom-write',
       '--dev',
       '/dev',
       '--proc',
       '/proc',
       '--tmpfs',
       '/tmp',
+      '--bind',
+      '/tmp/poe-e2e-home',
+      '/tmp/poe-e2e-home',
+      '--bind',
+      '/tmp/custom-write',
+      '/tmp/custom-write',
       '--setenv',
       'HOME',
       '/tmp/poe-e2e-home',
@@ -144,6 +144,32 @@ describe('buildSandboxCommand', () => {
       '-c',
       'poe-code install goose',
     ]);
+  });
+
+  it('mounts Linux tmpfs before writable paths so /tmp homes stay visible', () => {
+    setPlatform('linux');
+
+    const command = buildSandboxCommand(
+      {
+        home: '/tmp/poe-e2e-home',
+        writablePaths: ['/tmp'],
+        env: {},
+      },
+      'node --version',
+    );
+    const tmpfsIndex = command.args.findIndex(
+      (arg, index, args) => arg === '--tmpfs' && args[index + 1] === '/tmp',
+    );
+    const homeBindIndex = command.args.findIndex(
+      (arg, index, args) => arg === '--bind' && args[index + 1] === '/tmp/poe-e2e-home',
+    );
+    const tmpBindIndex = command.args.findIndex(
+      (arg, index, args) => arg === '--bind' && args[index + 1] === '/tmp',
+    );
+
+    expect(tmpfsIndex).toBeGreaterThan(-1);
+    expect(homeBindIndex).toBeGreaterThan(tmpfsIndex);
+    expect(tmpBindIndex).toBeGreaterThan(tmpfsIndex);
   });
 
   it('escapes macOS writable paths and does not duplicate system writable paths', () => {

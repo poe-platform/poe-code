@@ -110,7 +110,7 @@ describe('createSandboxContainer', () => {
 
     expect(result).toEqual({
       exitCode: 0,
-      stdout: 'hello',
+      stdout: 'hello\n',
       stderr: '',
       command: 'echo hello',
     });

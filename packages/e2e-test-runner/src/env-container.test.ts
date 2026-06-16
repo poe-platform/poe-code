@@ -131,7 +131,7 @@ describe('createEnvContainer', () => {
 
     expect(result).toEqual({
       exitCode: 0,
-      stdout: 'hello',
+      stdout: 'hello\n',
       stderr: '',
       command: 'echo hello',
     });
@@ -152,6 +152,31 @@ describe('createEnvContainer', () => {
         stdio: ['ignore', 'pipe', 'pipe'],
       }),
     ]);
+  });
+
+  it('preserves command stdout and stderr exactly', async () => {
+    const { spawn, spawnSync } = await import('node:child_process');
+    vi.mocked(spawnSync).mockReturnValue({
+      status: 0,
+      stdout: 'ok\n',
+      stderr: '',
+      pid: 1,
+      output: [],
+      signal: null,
+    });
+    vi.mocked(spawn).mockImplementation(
+      () => createMockChildProcess(0, '  leading stdout  \n\n', '  leading stderr  \n\n'),
+    );
+
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+
+    await expect(container.exec('printf whitespace')).resolves.toEqual({
+      exitCode: 0,
+      stdout: '  leading stdout  \n\n',
+      stderr: '  leading stderr  \n\n',
+      command: 'printf whitespace',
+    });
   });
 
   it('rejects package bin names that escape the isolated local bin directory', async () => {
@@ -229,6 +254,23 @@ describe('createEnvContainer', () => {
 
     await expect(container.fileExists(filePath)).resolves.toBe(true);
     await expect(container.readFile(filePath)).resolves.toBe('hello sandbox');
+  });
+
+  it('rejects file helper paths outside the sandbox home and workspace', async () => {
+    const { createEnvContainer } = await import('./env-container.js');
+    const container = await createEnvContainer();
+    const outsideFile = '/tmp/outside.txt';
+
+    await expect(container.writeFile(outsideFile, 'outside')).rejects.toThrow(
+      'outside the e2e container',
+    );
+    await expect(container.readFile(outsideFile)).rejects.toThrow(
+      'outside the e2e container',
+    );
+    await expect(container.fileExists(outsideFile)).rejects.toThrow(
+      'outside the e2e container',
+    );
+    expect(vol.existsSync(outsideFile)).toBe(false);
   });
 
   it('destroys the temp home directory', async () => {

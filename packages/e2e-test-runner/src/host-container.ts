@@ -236,6 +236,22 @@ function isPathWithin(parentPath: string, candidatePath: string): boolean {
   );
 }
 
+function resolveContainerFilePath(filePath: string, home: string, workspace: string): string {
+  const resolvedPath = isAbsolute(filePath)
+    ? resolve(filePath)
+    : resolve(workspace, filePath);
+  const resolvedHome = resolve(home);
+  const resolvedWorkspace = resolve(workspace);
+
+  if (isPathWithin(resolvedHome, resolvedPath) || isPathWithin(resolvedWorkspace, resolvedPath)) {
+    return resolvedPath;
+  }
+
+  throw new Error(
+    `Refusing to access path outside the e2e container: ${filePath}`,
+  );
+}
+
 async function resolveSnapshotDir(repoDir: string, testName: string): Promise<string> {
   if (basename(testName) !== testName || testName === '.' || testName === '..') {
     throw new Error(`Invalid snapshot test name "${testName}".`);
@@ -424,8 +440,8 @@ export async function createHostContainer(
       child.on('close', (code) => {
         resolvePromise({
           exitCode: code ?? 1,
-          stdout: Buffer.concat(stdoutChunks).toString('utf-8').trim(),
-          stderr: Buffer.concat(stderrChunks).toString('utf-8').trim(),
+          stdout: Buffer.concat(stdoutChunks).toString('utf-8'),
+          stderr: Buffer.concat(stderrChunks).toString('utf-8'),
           command,
         });
       });
@@ -469,8 +485,9 @@ export async function createHostContainer(
     },
 
     async fileExists(filePath: string) {
+      const safePath = resolveContainerFilePath(filePath, home, workspace);
       try {
-        await access(filePath);
+        await access(safePath);
         return true;
       } catch {
         return false;
@@ -478,11 +495,17 @@ export async function createHostContainer(
     },
 
     async readFile(filePath: string) {
-      return await readFileFs(filePath, 'utf-8');
+      return await readFileFs(
+        resolveContainerFilePath(filePath, home, workspace),
+        'utf-8',
+      );
     },
 
     async writeFile(filePath: string, content: string) {
-      await writeFileFs(filePath, content);
+      await writeFileFs(
+        resolveContainerFilePath(filePath, home, workspace),
+        content,
+      );
     },
 
     async proxyLog() {

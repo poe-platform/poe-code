@@ -574,6 +574,34 @@ describe("process launcher manager", () => {
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid":654');
   });
 
+  it("rejects invalid stop options before signaling", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+    const signalProcess = vi.fn();
+
+    await expect(
+      stopManagedProcess({
+        baseDir,
+        fs,
+        id: "api",
+        signalProcess,
+        stopTimeoutMs: -1
+      })
+    ).rejects.toThrow(/stop timeout/i);
+    await expect(
+      stopManagedProcess({
+        baseDir,
+        fs,
+        id: "api",
+        pollIntervalMs: Number.POSITIVE_INFINITY,
+        signalProcess
+      })
+    ).rejects.toThrow(/poll interval/i);
+    expect(signalProcess).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed persisted daemon metadata before signaling", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -648,6 +676,24 @@ describe("process launcher manager", () => {
         startupTimeoutMs: Number.NaN
       })
     ).rejects.toThrow(/startup timeout/i);
+
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(fs.readdir("/state/launch")).rejects.toThrow();
+  });
+
+  it("rejects invalid startup poll intervals before spawning a daemon", async () => {
+    const fs = createMemFs();
+    const spawnDaemon = vi.fn(async () => 321);
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        pollIntervalMs: Number.POSITIVE_INFINITY,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon
+      })
+    ).rejects.toThrow(/poll interval/i);
 
     expect(spawnDaemon).not.toHaveBeenCalled();
     await expect(fs.readdir("/state/launch")).rejects.toThrow();
@@ -749,6 +795,51 @@ describe("process launcher manager", () => {
     await fs.writeFile("/state/launch/zulu/spec.json", JSON.stringify({ id: 42, command: "npm", restart: "never" }));
 
     await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(/specification/i);
+  });
+
+  it("rejects malformed persisted specification shapes when listing", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/state/launch/api", { recursive: true });
+    await fs.writeFile(
+      "/state/launch/api/spec.json",
+      JSON.stringify({ id: "api", command: 123, args: "bad", restart: "sometimes" })
+    );
+    await fs.writeFile(
+      "/state/launch/api/state.json",
+      JSON.stringify(createState({ id: "api", command: "npm", restart: "never" }, { status: "stopped" }))
+    );
+
+    await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(
+      /specification/i
+    );
+  });
+
+  it("rejects malformed persisted state when listing", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/state/launch/api", { recursive: true });
+    await fs.writeFile(
+      "/state/launch/api/spec.json",
+      JSON.stringify({ id: "api", command: "npm", restart: "never" })
+    );
+    await fs.writeFile(
+      "/state/launch/api/state.json",
+      JSON.stringify({
+        id: "api",
+        pid: "not-a-number",
+        status: "launching",
+        runtime: "vm",
+        restartCount: "many",
+        lastExitCode: "zero",
+        lastStartedAt: 123,
+        lastStoppedAt: false,
+        command: 42,
+        args: "bad"
+      })
+    );
+
+    await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(
+      /state document/i
+    );
   });
 
   it("rejects restarting a record whose persisted id redirects the launch", async () => {
@@ -931,6 +1022,26 @@ describe("process launcher manager", () => {
     await expect(
       runManagedProcess({ baseDir, fs, id: "api", signal: controller.signal })
     ).resolves.toBeUndefined();
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).rejects.toThrow();
+  });
+
+  it("rejects invalid run poll intervals before writing daemon metadata", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    await fs.mkdir(path.join(baseDir, "api"), { recursive: true });
+    await fs.writeFile(
+      path.join(baseDir, "api", "spec.json"),
+      `${JSON.stringify({ id: "api", command: "node", args: ["-e", ""], restart: "never" })}\n`
+    );
+
+    await expect(
+      runManagedProcess({
+        baseDir,
+        fs,
+        id: "api",
+        pollIntervalMs: Number.POSITIVE_INFINITY
+      })
+    ).rejects.toThrow(/poll interval/i);
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).rejects.toThrow();
   });
 

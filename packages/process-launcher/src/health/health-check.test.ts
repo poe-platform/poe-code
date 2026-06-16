@@ -105,6 +105,15 @@ describe("waitForReady", () => {
     ).rejects.toThrow(/timeout/i);
   });
 
+  it("rejects blank log readiness patterns", async () => {
+    await expect(
+      waitForReady(
+        { kind: "log-pattern", pattern: "   " },
+        { onLog: createOnLog(), timeoutMs: 20 }
+      )
+    ).rejects.toThrow(/log pattern/i);
+  });
+
   it("log-pattern resolves false when signal aborted", async () => {
     const controller = new AbortController();
     const readyCheck: ReadyCheck = { kind: "log-pattern", pattern: "ready" };
@@ -163,6 +172,21 @@ describe("waitForReady", () => {
     await expect(
       waitForReady({ kind: "tcp", port: 42, timeoutMs: Number.NaN }, {})
     ).rejects.toThrow(/timeout/i);
+  });
+
+  it("rejects invalid tcp ports before opening a socket", async () => {
+    const connect = vi.fn();
+
+    await expect(
+      waitForReady({ kind: "tcp", port: 1.5 }, { connect: connect as unknown as typeof net.connect })
+    ).rejects.toThrow(/port/i);
+    await expect(
+      waitForReady({ kind: "tcp", port: 70_000 }, { connect: connect as unknown as typeof net.connect })
+    ).rejects.toThrow(/port/i);
+    await expect(
+      waitForReady({ kind: "tcp", port: -1 }, { connect: connect as unknown as typeof net.connect })
+    ).rejects.toThrow(/port/i);
+    expect(connect).not.toHaveBeenCalled();
   });
 
   it("tcp resolves false when signal aborted", async () => {

@@ -104,10 +104,7 @@ export function createStateStore(
       await assertPathHasNoSymbolicLinks(fs, statePath);
       const content = await fs.readFile(statePath, "utf8");
       const parsed: unknown = JSON.parse(content);
-      if (!isProcessState(parsed, id)) {
-        throw new Error(`Invalid process state document: ${id}`);
-      }
-      return parsed;
+      return assertValidProcessStateDocument(parsed, id);
     } catch (error) {
       if (isNotFoundError(error)) {
         return null;
@@ -210,6 +207,13 @@ export function createStateStore(
   return { read, write, list, remove };
 }
 
+export function assertValidProcessStateDocument(value: unknown, id: string): ProcessState {
+  if (!isProcessState(value, id)) {
+    throw new Error(`Invalid process state document: ${id}`);
+  }
+  return value;
+}
+
 function isProcessState(value: unknown, id: string): value is ProcessState {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
@@ -224,12 +228,25 @@ function isProcessState(value: unknown, id: string): value is ProcessState {
       state.status === "crashed" ||
       state.status === "restarting") &&
     (state.runtime === "host" || state.runtime === "docker") &&
-    typeof state.restartCount === "number" &&
-    (state.lastExitCode === null || typeof state.lastExitCode === "number") &&
+    isPositiveSafeIntegerOrNull(state.pid) &&
+    isNonNegativeSafeInteger(state.restartCount) &&
+    (state.lastExitCode === null || isNonNegativeSafeInteger(state.lastExitCode)) &&
     (state.lastStartedAt === null || typeof state.lastStartedAt === "string") &&
     (state.lastStoppedAt === null || typeof state.lastStoppedAt === "string") &&
     typeof state.command === "string" &&
     Array.isArray(state.args) &&
     state.args.every((argument) => typeof argument === "string")
   );
+}
+
+function isPositiveSafeIntegerOrNull(value: unknown): value is number | null {
+  return value === null || (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value > 0
+  );
+}
+
+function isNonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }

@@ -87,6 +87,26 @@ describe("createStateStore", () => {
     await expect(store.list()).rejects.toThrow("Invalid process state document: alpha");
   });
 
+  it("rejects impossible numeric process state values", async () => {
+    const invalidStates: ProcessState[] = [
+      createProcessState("negative-restart", { restartCount: -1 }),
+      createProcessState("fractional-restart", { restartCount: 1.5 }),
+      createProcessState("fractional-pid", { pid: 12.5 }),
+      createProcessState("invalid-exit-code", { lastExitCode: 1.5, pid: null, status: "crashed" })
+    ];
+    const fs = createMemFs();
+    const store = createStateStore("/state", fs);
+
+    for (const state of invalidStates) {
+      await fs.mkdir(`/state/${state.id}`, { recursive: true });
+      await fs.writeFile(`/state/${state.id}/state.json`, `${JSON.stringify(state)}\n`);
+
+      await expect(store.read(state.id)).rejects.toThrow(
+        `Invalid process state document: ${state.id}`
+      );
+    }
+  });
+
   it("read() returns null for non-existent id", async () => {
     const store = createStateStore("/state", createMemFs());
 
@@ -400,6 +420,20 @@ describe("createStateStore", () => {
     await expect(store.read(escaped.id)).rejects.toThrow(/process id/i);
     await expect(store.remove(escaped.id)).rejects.toThrow(/process id/i);
     await expect(fs.readFile("/outside/state.json", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects control and surrounding whitespace ids for all state operations", async () => {
+    const fs = createMemFs();
+    const store = createStateStore("/state", fs);
+    const unsafeIds = ["alpha\nbeta", " alpha", "alpha ", "\t"];
+
+    for (const id of unsafeIds) {
+      const state = createProcessState(id);
+
+      await expect(store.write(id, state)).rejects.toThrow(/process id/i);
+      await expect(store.read(id)).rejects.toThrow(/process id/i);
+      await expect(store.remove(id)).rejects.toThrow(/process id/i);
+    }
   });
 
   it("preserves existing state if an updated write fails", async () => {

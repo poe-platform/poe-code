@@ -20,9 +20,11 @@ export async function waitForReady(
   assertValidTimeout(options.timeoutMs, "readiness timeout");
 
   if (check.kind === "log-pattern") {
+    assertValidLogPattern(check.pattern);
     return waitForLogPattern(check.pattern, options);
   }
 
+  assertValidTcpPort(check.port);
   return waitForTcp(check, options);
 }
 
@@ -177,5 +179,17 @@ function waitForTcp(
 function assertValidTimeout(value: number | undefined, description: string): void {
   if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
     throw new Error(`Invalid ${description}: ${value}`);
+  }
+}
+
+function assertValidLogPattern(value: string): void {
+  if (value.trim().length === 0) {
+    throw new Error("Invalid log pattern readiness check: pattern must not be blank.");
+  }
+}
+
+function assertValidTcpPort(value: number): void {
+  if (!Number.isSafeInteger(value) || value <= 0 || value > 65_535) {
+    throw new Error(`Invalid TCP readiness port: ${value}`);
   }
 }

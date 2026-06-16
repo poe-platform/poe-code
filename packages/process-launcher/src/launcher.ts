@@ -6,7 +6,7 @@ import { hasOwnErrorCode } from "./errors.js";
 import { createLogWriter } from "./logs/log-writer.js";
 import { assertPathHasNoSymbolicLinks } from "./path-safety.js";
 import { assertValidManagedProcessId } from "./process-id.js";
-import { createStateStore } from "./state/state-store.js";
+import { assertValidProcessStateDocument, createStateStore } from "./state/state-store.js";
 import { createSupervisor } from "./supervisor/supervisor.js";
 import type { LauncherFileSystem, ProcessSpec, ProcessState } from "./types.js";
 
@@ -102,6 +102,7 @@ const TEMP_WRITE_MAX_ATTEMPTS = 3;
 
 export async function startManagedProcess(options: StartManagedProcessOptions): Promise<ManagedProcessRecord> {
   assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
+  assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
   const fs = options.fs ?? defaultFs();
   const spec = normalizeSpec(options.spec);
   const existing = await readManagedProcess({
@@ -151,6 +152,8 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
 }
 
 export async function stopManagedProcess(options: StopManagedProcessOptions): Promise<ManagedProcessRecord | null> {
+  assertOptionalFiniteDuration(options.stopTimeoutMs, "stop timeout");
+  assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
   const fs = options.fs ?? defaultFs();
   const record = await readManagedProcess({
     baseDir: options.baseDir,
@@ -508,6 +511,7 @@ export async function runManagedProcess(options: RunManagedProcessOptions): Prom
   if (options.signal?.aborted) {
     return;
   }
+  assertOptionalFiniteDuration(options.pollIntervalMs, "poll interval");
 
   const fs = options.fs ?? defaultFs();
   await assertProcessDirectorySafe(fs, options.baseDir, options.id);
@@ -788,7 +792,112 @@ async function readSpec(
     throw new Error(`Invalid managed process specification for "${id}".`);
   }
 
-  return spec as unknown as ProcessSpec;
+  return assertValidProcessSpec(spec, id);
+}
+
+function assertValidProcessSpec(value: Record<string, unknown>, id: string): ProcessSpec {
+  if (
+    value.id !== id ||
+    !isNonEmptyString(value.command) ||
+    !isOptionalStringArray(value.args) ||
+    !isOptionalString(value.cwd) ||
+    !isOptionalStringRecord(value.env) ||
+    !isRestartPolicy(value.restart) ||
+    !isOptionalNonNegativeSafeInteger(value.maxRestarts) ||
+    !isOptionalFiniteDurationValue(value.backoffMs) ||
+    !isOptionalFiniteDurationValue(value.maxBackoffMs) ||
+    !isOptionalPositiveSafeInteger(value.logRetainCount) ||
+    !isOptionalReadyCheck(value.readyCheck) ||
+    !isOptionalRecord(value.docker)
+  ) {
+    throw new Error(`Invalid managed process specification for "${id}".`);
+  }
+
+  return value as unknown as ProcessSpec;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isOptionalString(value: unknown): value is string | undefined {
+  return value === undefined || typeof value === "string";
+}
+
+function isOptionalStringArray(value: unknown): value is string[] | undefined {
+  return value === undefined || (
+    Array.isArray(value) &&
+    value.every((entry) => typeof entry === "string")
+  );
+}
+
+function isOptionalStringRecord(value: unknown): value is Record<string, string> | undefined {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isPlainRecord(value)) {
+    return false;
+  }
+  return Object.values(value).every((entry) => typeof entry === "string");
+}
+
+function isRestartPolicy(value: unknown): boolean {
+  return value === "never" || value === "on-failure" || value === "always";
+}
+
+function isOptionalNonNegativeSafeInteger(value: unknown): value is number | undefined {
+  return value === undefined || (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value >= 0
+  );
+}
+
+function isOptionalPositiveSafeInteger(value: unknown): value is number | undefined {
+  return value === undefined || (
+    typeof value === "number" &&
+    Number.isSafeInteger(value) &&
+    value > 0
+  );
+}
+
+function isOptionalFiniteDurationValue(value: unknown): value is number | undefined {
+  return value === undefined || (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    value >= 0
+  );
+}
+
+function isOptionalReadyCheck(value: unknown): value is ProcessSpec["readyCheck"] {
+  if (value === undefined) {
+    return true;
+  }
+  if (!isPlainRecord(value)) {
+    return false;
+  }
+  if (value.kind === "log-pattern") {
+    return isNonEmptyString(value.pattern);
+  }
+  if (value.kind === "tcp") {
+    return (
+      typeof value.port === "number" &&
+      Number.isSafeInteger(value.port) &&
+      value.port > 0 &&
+      value.port <= 65_535 &&
+      isOptionalString(value.host) &&
+      isOptionalFiniteDurationValue(value.timeoutMs)
+    );
+  }
+  return false;
+}
+
+function isOptionalRecord(value: unknown): value is Record<string, unknown> | undefined {
+  return value === undefined || isPlainRecord(value);
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function writeSpec(fs: LauncherFileSystem, baseDir: string, spec: ProcessSpec): Promise<void> {
@@ -800,7 +909,8 @@ async function readState(
   baseDir: string,
   id: string
 ): Promise<ProcessState | null> {
-  return await readJsonFile<ProcessState>(fs, resolveStatePath(baseDir, id));
+  const state = await readJsonFile<unknown>(fs, resolveStatePath(baseDir, id));
+  return state === null ? null : assertValidProcessStateDocument(state, id);
 }
 
 async function writeState(fs: LauncherFileSystem, baseDir: string, state: ProcessState): Promise<void> {

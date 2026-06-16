@@ -510,10 +510,13 @@ function parseInspectorMap(
   const inspectors = expectRecord(value, "inspectors", filePath);
 
   return Object.fromEntries(
-    Object.entries(inspectors).map(([name, config]) => [
-      name,
-      parseRequiredRole(config, `inspectors.${name}`, filePath)
-    ])
+    Object.entries(inspectors).map(([name, config]) => {
+      assertValidInspectorName(name, filePath);
+      return [
+        name,
+        parseRequiredRole(config, `inspectors.${name}`, filePath)
+      ];
+    })
   );
 }
 
@@ -606,7 +609,7 @@ function expectString(value: unknown, fieldName: string, filePath: string): stri
 }
 
 function expectNonEmptyString(value: unknown, fieldName: string, filePath: string): string {
-  if (typeof value !== "string" || value.length === 0) {
+  if (typeof value !== "string" || value.trim().length === 0) {
     throw new Error(`${filePath}: ${fieldName} must be a non-empty string`);
   }
 
@@ -638,11 +641,40 @@ function expectPositiveNumber(value: unknown, fieldName: string, filePath: strin
 }
 
 function expectStringArray(value: unknown, fieldName: string, filePath: string): string[] {
-  if (!Array.isArray(value) || value.some((item) => typeof item !== "string")) {
-    throw new Error(`${filePath}: ${fieldName} must be an array of strings`);
+  if (
+    !Array.isArray(value) ||
+    value.some((item) => typeof item !== "string" || item.trim().length === 0)
+  ) {
+    throw new Error(`${filePath}: ${fieldName} must be an array of non-empty strings`);
   }
 
   return value;
+}
+
+function assertValidInspectorName(name: string, filePath: string): void {
+  if (!isTemplateReferenceName(name)) {
+    throw new Error(
+      `${filePath}: inspectors.${name} name must use only letters, numbers, underscores, or hyphens`
+    );
+  }
+}
+
+function isTemplateReferenceName(value: string): boolean {
+  if (value.length === 0) {
+    return false;
+  }
+
+  for (const character of value) {
+    const code = character.charCodeAt(0);
+    const isNumber = code >= 48 && code <= 57;
+    const isUpper = code >= 65 && code <= 90;
+    const isLower = code >= 97 && code <= 122;
+    if (!isNumber && !isUpper && !isLower && character !== "_" && character !== "-") {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

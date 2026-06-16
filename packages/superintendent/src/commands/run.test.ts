@@ -715,6 +715,114 @@ describe("superintendent run command", () => {
     }
   });
 
+  it("threads runnerSync through createRunMcpCommand", async () => {
+    const volume = Volume.fromJSON(
+      { "/repo/docs/plans/plan.md": createDoc("codex") },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalHome = process.env.HOME;
+    const spawnMock = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    process.env.HOME = "/home/test";
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+    vi.doMock("@poe-code/agent-spawn", async () => {
+      const actual = await vi.importActual<typeof import("@poe-code/agent-spawn")>(
+        "@poe-code/agent-spawn"
+      );
+      return { ...actual, getSpawnConfig: () => undefined, spawn: spawnMock };
+    });
+
+    try {
+      const { createRunMcpCommand } = await import("./run.js");
+      const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+        await options.runAgent?.({
+          agent: "codex",
+          prompt: "Build",
+          cwd: "/repo"
+        });
+        return {
+          state: "completed" as const,
+          round: 0,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5,
+          stopReason: "completed" as const
+        };
+      });
+      const command = createRunMcpCommand({ runLoop: runLoopMock });
+      await command.handler({
+        params: { doc: "/repo/docs/plans/plan.md", runnerSync: "none" },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: rawFs as never,
+        env: { get: vi.fn(() => undefined) },
+        progress: vi.fn()
+      });
+
+      expect(spawnMock).toHaveBeenCalledWith(
+        "codex",
+        expect.objectContaining({
+          runnerSync: "none"
+        })
+      );
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.doUnmock("@poe-code/agent-spawn");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
+    }
+  });
+
+  it("rejects invalid config instead of falling back to defaults", async () => {
+    const volume = Volume.fromJSON(
+      {
+        "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+          "  prompt: |",
+          "    Build {{plan.path}}"
+        ]),
+        "/repo/.poe-code/config.json": "{"
+      },
+      "/"
+    );
+    const rawFs = createFsFromVolume(volume).promises;
+    const cwdSpy = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const originalArgv = process.argv;
+    const originalHome = process.env.HOME;
+
+    process.argv = ["node", "poe-code", "superintendent", "run", "--yes", "--dry-run"];
+    process.env.HOME = "/home/test";
+    vi.resetModules();
+    vi.doMock("node:fs/promises", () => rawFs);
+
+    try {
+      const { runCommand } = await import("./run.js");
+      await expect(runCommand.handler({
+        params: { doc: "/repo/docs/plans/plan.md", dryRun: true },
+        secrets: {},
+        fetch: globalThis.fetch,
+        fs: rawFs as never,
+        env: { get: vi.fn(() => undefined) },
+        progress: vi.fn()
+      })).rejects.toThrow(/config/i);
+    } finally {
+      vi.doUnmock("node:fs/promises");
+      vi.resetModules();
+      cwdSpy.mockRestore();
+      process.argv = originalArgv;
+      if (originalHome === undefined) delete process.env.HOME;
+      else process.env.HOME = originalHome;
+    }
+  });
+
   it("preserves a completed CLI run when integration shutdown fails", async () => {
     const volume = Volume.fromJSON(
       { "/repo/docs/plans/plan.md": createDoc("codex") },

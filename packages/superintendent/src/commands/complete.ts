@@ -20,7 +20,8 @@ export const completeCommand = defineCommand({
   params: completeParams,
   scope: ["cli", "mcp", "sdk"],
   handler: async ({ params, fs }) => {
-    if ((await fs.lstat(params.path)).isSymbolicLink()) {
+    const stat = await lstatDocument(params.path, fs);
+    if (stat.isSymbolicLink()) {
       throw new UserError(`Refusing to complete superintendent document through symbolic link: ${params.path}`);
     }
     const content = await readDocument(params.path, fs);
@@ -62,6 +63,21 @@ export const completeCommand = defineCommand({
     json: (result) => result
   }
 });
+
+async function lstatDocument(
+  filePath: string,
+  fs: { lstat(path: string): Promise<{ isSymbolicLink(): boolean }> }
+): Promise<{ isSymbolicLink(): boolean }> {
+  try {
+    return await fs.lstat(filePath);
+  } catch (error) {
+    if (hasCode(error, "ENOENT")) {
+      throw new UserError(`Superintendent document not found: ${filePath}`);
+    }
+
+    throw error;
+  }
+}
 
 async function readDocument(
   filePath: string,

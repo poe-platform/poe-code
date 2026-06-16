@@ -129,6 +129,70 @@ Body
     expect(result.frontmatter.owner.cwd).toBeUndefined();
   });
 
+  it.each([
+    ["builder.agent", "builder:\n  agent: '   '\n  prompt: build"],
+    ["builder.cwd", "builder:\n  agent: claude-code\n  cwd: '   '\n  prompt: build"],
+    ["builder.prompt", "builder:\n  agent: claude-code\n  prompt: '   '"],
+    [
+      "mcp.helper.command",
+      "mcp:\n  helper:\n    command: '   '\nbuilder:\n  agent: claude-code\n  prompt: build"
+    ],
+    [
+      "mcp.helper.args",
+      "mcp:\n  helper:\n    command: poe-code\n    args:\n      - '   '\nbuilder:\n  agent: claude-code\n  prompt: build"
+    ]
+  ])("rejects whitespace-only execution string %s", (_field, builderSection) => {
+    const content = `---
+kind: superintendent
+version: 1
+${builderSection}
+superintendent:
+  agent: claude-code
+  prompt: review
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/non-empty string/i);
+  });
+
+  it("rejects inspector names that cannot be referenced in templates", () => {
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  agent: claude-code
+  prompt: build
+inspectors:
+  code.quality:
+    agent: claude-code
+    prompt: inspect
+superintendent:
+  agent: claude-code
+  prompt: review {{inspectors.code.quality}}
+owner:
+  agent: claude-code
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
+      /inspectors\.code\.quality name must use only letters, numbers, underscores, or hyphens/i
+    );
+  });
+
   it("defaults agent to claude-code when omitted on each role", () => {
     const content = `---
 kind: superintendent

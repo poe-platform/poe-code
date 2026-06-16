@@ -208,6 +208,36 @@ describe("superintendent complete command", () => {
     expect(writeFile).not.toHaveBeenCalled();
   });
 
+  it("reports a domain not-found error for missing documents", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const writeFile = vi.fn(async () => undefined);
+
+    await expect(completeCommand.handler({
+      params: { path: "docs/plans/missing.md", dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => {
+          const error = new Error("missing") as NodeJS.ErrnoException;
+          error.code = "ENOENT";
+          throw error;
+        }),
+        lstat: vi.fn(async () => {
+          const error = new Error("missing") as NodeJS.ErrnoException;
+          error.code = "ENOENT";
+          throw error;
+        }),
+        writeFile,
+        rename: vi.fn(async () => undefined),
+        unlink: vi.fn(async () => undefined),
+        exists: vi.fn(async () => false)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    })).rejects.toThrow("Superintendent document not found: docs/plans/missing.md");
+    expect(writeFile).not.toHaveBeenCalled();
+  });
+
   it("does not follow a preexisting legacy temp path symlink", async () => {
     const { completeCommand } = await import("./complete.js");
     const targetPath = "/repo/docs/plans/feature.md";

@@ -37,6 +37,7 @@ import {
   planConfigScope,
   mergeLoopCallbacks,
   readMergedDocument,
+  readMergedDocumentReadonly,
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope,
@@ -260,6 +261,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
           ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
           ...(params.detach ? { detach: params.detach } : {}),
           ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
+          ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
           configuredDefaultAgent: commandConfig.configuredDefaultAgent,
           assumeYes: true,
           interactive: false,
@@ -297,27 +299,36 @@ async function resolveSuperintendentCommandConfig(
 }> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
+  const document = await readSuperintendentCommandConfigDocument(
+    createConfigResolutionFs(fs),
+    configPath,
+    projectConfigPath
+  );
+  const planDirectory = resolveScope(planConfigScope.schema, document.plan, env).plan_directory?.trim();
+  const superintendentResolved = resolveScope(
+    superintendentConfigScope.schema,
+    document[superintendentConfigScope.scope],
+    env
+  );
+  const coreResolved = resolveScope(coreDefaultAgentConfigSchema, document.core, env);
+  return {
+    configDoc: document,
+    configuredDefaultAgent: normalizeAgentSelection(coreResolved.defaultAgent) ?? null,
+    ...(planDirectory ? { planDirectory } : {}),
+    tui: superintendentResolved.tui === true
+  };
+}
+
+async function readSuperintendentCommandConfigDocument(
+  fs: ReturnType<typeof createConfigResolutionFs>,
+  configPath: string,
+  projectConfigPath: string
+): Promise<ConfigDocument> {
   try {
-    const document = await readMergedDocument(
-      createConfigResolutionFs(fs),
-      configPath,
-      projectConfigPath
-    );
-    const planDirectory = resolveScope(planConfigScope.schema, document.plan, env).plan_directory?.trim();
-    const superintendentResolved = resolveScope(
-      superintendentConfigScope.schema,
-      document[superintendentConfigScope.scope],
-      env
-    );
-    const coreResolved = resolveScope(coreDefaultAgentConfigSchema, document.core, env);
-    return {
-      configDoc: document,
-      configuredDefaultAgent: normalizeAgentSelection(coreResolved.defaultAgent) ?? null,
-      ...(planDirectory ? { planDirectory } : {}),
-      tui: superintendentResolved.tui === true
-    };
-  } catch {
-    return { configDoc: {}, configuredDefaultAgent: null, tui: false };
+    return await readMergedDocumentReadonly(fs, configPath, projectConfigPath);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new UserError(`Invalid poe-code configuration: ${message}`);
   }
 }
 

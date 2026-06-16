@@ -16,11 +16,17 @@ export function buildOpenSourceAction(options: BuildOpenSourceActionOptions): Ac
     id: "open-source",
     key: "o",
     label: "Open in $EDITOR",
-    predicate: (ctx) => getTask(options.taskByRowId(), ctx.row.id).sourcePath != null,
+    predicate: (ctx) => getSourcePath(getTask(options.taskByRowId(), ctx.row.id)) !== null,
     handler: async (ctx) => {
       const task = getTask(options.taskByRowId(), ctx.row.id);
+      const sourcePath = getSourcePath(task);
+      if (sourcePath === null) {
+        ctx.toast("No source file available.", "info");
+        return;
+      }
+
       await ctx.suspendAnd(async () => {
-        editFile(task.sourcePath!, { env: options.variables });
+        editFile(sourcePath, { env: options.variables });
       });
       await ctx.refresh();
       ctx.toast(`Edited ${task.qualifiedId}`, "info");
@@ -56,12 +62,26 @@ function getIssueUrl(task: Task): string | null {
     return null;
   }
 
+  const trimmedUrl = url.trim();
+  if (trimmedUrl.length === 0) {
+    return null;
+  }
+
   try {
-    const parsedUrl = new URL(url);
-    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:" ? url : null;
+    const parsedUrl = new URL(trimmedUrl);
+    return parsedUrl.protocol === "http:" || parsedUrl.protocol === "https:" ? trimmedUrl : null;
   } catch {
     return null;
   }
+}
+
+function getSourcePath(task: Task): string | null {
+  const sourcePath = task.sourcePath;
+  if (typeof sourcePath !== "string" || sourcePath.trim().length === 0) {
+    return null;
+  }
+
+  return sourcePath;
 }
 
 function getTask(taskByRowId: ReadonlyMap<string, Task>, rowId: string): Task {

@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  type StateMachineDef,
-  type Task,
-  type TaskList,
-  type Tasks
-} from "@poe-code/task-list";
+import { type StateMachineDef, type Task, type TaskList, type Tasks } from "@poe-code/task-list";
 import { type Action, type ActionContext, type Row } from "toolcraft-design";
 import {
   buildMaestroExplorerConfig as buildMaestroExplorerConfigBase,
@@ -62,14 +57,16 @@ function task(overrides: Partial<Task> = {}): Task {
   };
 }
 
-function taskList(options: {
-  events?: Record<string, Promise<readonly string[]> | readonly string[]>;
-  eventErrors?: Record<string, Error>;
-  fireErrors?: Record<string, Error>;
-  reorderErrors?: Record<string, Error>;
-  allTasks?: readonly Task[];
-  stateMachine?: StateMachineDef;
-} = {}): TaskList {
+function taskList(
+  options: {
+    events?: Record<string, Promise<readonly string[]> | readonly string[]>;
+    eventErrors?: Record<string, unknown>;
+    fireErrors?: Record<string, Error>;
+    reorderErrors?: Record<string, Error>;
+    allTasks?: readonly Task[];
+    stateMachine?: StateMachineDef;
+  } = {}
+): TaskList {
   const lists = new Map<string, Tasks>();
 
   return {
@@ -94,7 +91,7 @@ function tasks(
   name: string,
   options: {
     events?: Record<string, Promise<readonly string[]> | readonly string[]>;
-    eventErrors?: Record<string, Error>;
+    eventErrors?: Record<string, unknown>;
     fireErrors?: Record<string, Error>;
     reorderErrors?: Record<string, Error>;
     stateMachine?: StateMachineDef;
@@ -203,14 +200,16 @@ describe("buildMaestroExplorerConfig", () => {
   });
 
   it("rejects duplicate qualified task identities", () => {
-    expect(() => buildMaestroExplorerConfig({
-      tasks: [
-        task({ name: "first", qualifiedId: "tasks/collision" }),
-        task({ name: "second", qualifiedId: "tasks/collision" })
-      ],
-      taskList: taskList(),
-      onRefresh: async () => []
-    })).toThrow('Duplicate task qualifiedId: tasks/collision');
+    expect(() =>
+      buildMaestroExplorerConfig({
+        tasks: [
+          task({ name: "first", qualifiedId: "tasks/collision" }),
+          task({ name: "second", qualifiedId: "tasks/collision" })
+        ],
+        taskList: taskList(),
+        onRefresh: async () => []
+      })
+    ).toThrow("Duplicate task qualifiedId: tasks/collision");
   });
 
   it("maps and orders task rows by state while preserving order within state", async () => {
@@ -386,6 +385,45 @@ describe("buildMaestroExplorerConfig", () => {
     await expect(renderDetail(config)).resolves.toContain("_Could not load events: offline_");
   });
 
+  it("renders non-Error event loading rejections in the detail pane", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ qualifiedId: "tasks/boom", id: "boom" })],
+      taskList: taskList({ eventErrors: { "tasks/boom": "offline" } }),
+      onRefresh: async () => []
+    });
+
+    await expect(renderDetail(config)).resolves.toContain("_Could not load events: offline_");
+  });
+
+  it("uses a metadata fence that cannot be closed by metadata contents", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          metadata: {
+            note: "before\n```\n# injected\n```\nafter"
+          }
+        })
+      ],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
+
+    await expect(renderDetail(config)).resolves.toContain(
+      [
+        "## Metadata",
+        "",
+        "````yaml",
+        "note: |-",
+        "  before",
+        "  ```",
+        "  # injected",
+        "  ```",
+        "  after",
+        "````"
+      ].join("\n")
+    );
+  });
+
   it("returns no detail items when detail loading is aborted", async () => {
     const config = buildMaestroExplorerConfig({
       tasks: [task()],
@@ -450,18 +488,30 @@ describe("buildMaestroExplorerConfig", () => {
           id: "null",
           qualifiedId: "tasks/null",
           sourcePath: null
-        } as unknown as Partial<Task>)
+        } as unknown as Partial<Task>),
+        task({
+          id: "empty",
+          qualifiedId: "tasks/empty",
+          sourcePath: ""
+        }),
+        task({
+          id: "blank",
+          qualifiedId: "tasks/blank",
+          sourcePath: " \n "
+        })
       ],
       taskList: taskList(),
       variables: {},
       onRefresh: async () => []
     });
-    const [fileRow, remoteRow, nullRow] = await config.rows();
+    const rowsById = new Map((await config.rows()).map((row) => [row.id, row]));
     const action = openSourceAction(config);
 
-    expect(action.predicate?.(actionCtx(fileRow!))).toBe(true);
-    expect(action.predicate?.(actionCtx(nullRow!))).toBe(false);
-    expect(action.predicate?.(actionCtx(remoteRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(rowsById.get("tasks/file")!))).toBe(true);
+    expect(action.predicate?.(actionCtx(rowsById.get("tasks/empty")!))).toBe(false);
+    expect(action.predicate?.(actionCtx(rowsById.get("tasks/blank")!))).toBe(false);
+    expect(action.predicate?.(actionCtx(rowsById.get("tasks/remote")!))).toBe(false);
+    expect(action.predicate?.(actionCtx(rowsById.get("tasks/null")!))).toBe(false);
   });
 
   it("opens the refreshed sourcePath from the cached row map", async () => {
@@ -590,4 +640,26 @@ describe("buildMaestroExplorerConfig", () => {
     expect(ctx.toast).toHaveBeenCalledWith("Opened tasks/issue", "info");
   });
 
+  it("opens the trimmed issue url used by the action predicate", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "issue",
+          qualifiedId: "tasks/issue",
+          metadata: { url: " https://github.example.test/octo/repo/issues/1\n" }
+        })
+      ],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const action = openIssueAction(config);
+    const ctx = actionCtx(row!);
+
+    expect(action.predicate?.(ctx)).toBe(true);
+
+    await action.handler(ctx);
+
+    expect(openExternalMock).toHaveBeenCalledWith("https://github.example.test/octo/repo/issues/1");
+  });
 });

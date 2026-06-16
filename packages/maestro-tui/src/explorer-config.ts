@@ -1,10 +1,4 @@
-import type {
-  Action,
-  DetailItem,
-  ExplorerConfig,
-  Row,
-  Tone
-} from "toolcraft-design";
+import type { Action, DetailItem, ExplorerConfig, Row, Tone } from "toolcraft-design";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
 import { buildOpenIssueAction, buildOpenSourceAction } from "./actions.js";
@@ -27,9 +21,7 @@ const STATE_ORDER = KNOWN_STATES.map(({ state }) => state);
 const STATE_ORDER_INDEX = new Map<string, number>(
   STATE_ORDER.map((state, index) => [state, index])
 );
-const STATE_TONES = new Map<string, Tone>(
-  KNOWN_STATES.map(({ state, tone }) => [state, tone])
-);
+const STATE_TONES = new Map<string, Tone>(KNOWN_STATES.map(({ state, tone }) => [state, tone]));
 
 export function buildMaestroExplorerConfig(
   options: BuildMaestroExplorerConfigOptions
@@ -124,6 +116,7 @@ async function renderTaskDetailMarkdown(task: Task, taskList: TaskList): Promise
   const eventsMarkdown = await renderEventsMarkdown(task, taskList);
   const description = task.description.length > 0 ? task.description : "_No description._";
   const metadata = stringify(task.metadata).trimEnd();
+  const metadataFence = buildBacktickFence(metadata);
 
   return [
     `# ${task.name}`,
@@ -134,9 +127,9 @@ async function renderTaskDetailMarkdown(task: Task, taskList: TaskList): Promise
     "",
     "## Metadata",
     "",
-    "```yaml",
+    `${metadataFence}yaml`,
     metadata,
-    "```",
+    metadataFence,
     "",
     "## Next",
     "",
@@ -153,8 +146,50 @@ async function renderEventsMarkdown(task: Task, taskList: TaskList): Promise<str
 
     return events.map((event) => `- ${event}`).join("\n");
   } catch (err) {
-    return `_Could not load events: ${(err as Error).message}_`;
+    return `_Could not load events: ${formatThrownValue(err)}_`;
   }
+}
+
+function buildBacktickFence(content: string): string {
+  return "`".repeat(Math.max(3, longestCharacterRun(content, "`") + 1));
+}
+
+function longestCharacterRun(content: string, expected: string): number {
+  let longest = 0;
+  let current = 0;
+
+  for (const character of content) {
+    if (character === expected) {
+      current += 1;
+      longest = Math.max(longest, current);
+    } else {
+      current = 0;
+    }
+  }
+
+  return longest;
+}
+
+function formatThrownValue(value: unknown): string {
+  if (value instanceof Error && value.message.length > 0) {
+    return value.message;
+  }
+
+  if (typeof value === "string" && value.length > 0) {
+    return value;
+  }
+
+  try {
+    const json = JSON.stringify(value);
+    if (json !== undefined && json.length > 0) {
+      return json;
+    }
+  } catch {
+    // Fall back to String below.
+  }
+
+  const text = String(value);
+  return text.length > 0 ? text : "unknown error";
 }
 
 function toTaskMap(tasks: readonly Task[]): Map<string, Task> {

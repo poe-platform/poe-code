@@ -1,7 +1,9 @@
 import { createMCPServer } from "toolcraft/mcp";
 import { describe, expect, it } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
+import { toJsonSchema } from "toolcraft-schema";
 import { markdownGroup } from "./group.js";
+import { readSectionTool, readTool } from "./tools.js";
 
 const EXPECTED_TOOL_NAMES = ["read", "read_section"];
 const FIXTURE_PATH = "packages/markdown-reader/src/testing/fixtures/with-frontmatter.md";
@@ -24,6 +26,21 @@ async function createClientPair() {
 }
 
 describe("markdown-reader MCP tools", () => {
+  it("advertises schemas that match core validation boundaries", () => {
+    expect(toJsonSchema(readTool.params)).toMatchObject({
+      properties: {
+        file: { type: "string", minLength: 1 },
+        depth: { type: "integer", minimum: 0 }
+      }
+    });
+    expect(toJsonSchema(readSectionTool.params)).toMatchObject({
+      properties: {
+        file: { type: "string", minLength: 1 },
+        section: { type: "string", minLength: 1 }
+      }
+    });
+  });
+
   it("lists exactly the markdown reader tools and reads a markdown file", async () => {
     const { client, cleanup } = await createClientPair();
 

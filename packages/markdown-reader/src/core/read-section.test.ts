@@ -66,16 +66,34 @@ describe("readSection", () => {
     });
   });
 
-  it("selects an unnumbered numeric title before a child path", async () => {
+  it("selects a numbered child path before an unnumbered numeric title", async () => {
     const readSection = createReadSection({
       fs: createMemFs({ "/repo/docs/numeric.md": "# 1\n\nIntro.\n\n## Child\n\nDetails.\n" }),
       cwd: "/repo"
     });
 
     await expect(readSection({ file: "docs/numeric.md", section: "1" })).resolves.toMatchObject({
-      markdown: "# 1\n\nIntro.\n\n## Child\n\nDetails.\n",
-      section: { depth: 1, number: null, title: "1" }
+      markdown: "## Child\n\nDetails.\n",
+      section: { depth: 2, number: "1", title: "Child" }
     });
+  });
+
+  it("rejects empty file paths and section ids before resolving sections", async () => {
+    const readSection = createReadSection({
+      fs: {
+        async readFile(filePath) {
+          throw new Error(`should not read ${filePath}`);
+        }
+      },
+      cwd: "/repo"
+    });
+
+    await expect(readSection({ file: "", section: "1" })).rejects.toThrowError(
+      new UserError("invalid file: expected a non-empty path")
+    );
+    await expect(readSection({ file: "docs/simple.md", section: "   " })).rejects.toThrowError(
+      new UserError("invalid section: expected a non-empty section id")
+    );
   });
 
   it("preserves fenced code blocks and trailing blank lines exactly", async () => {

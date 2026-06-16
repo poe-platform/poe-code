@@ -79,6 +79,34 @@ describe("resolveSection", () => {
     expect(section.title).toBe("Numeric winner");
   });
 
+  it("prefers numbered section paths over unnumbered numeric titles", () => {
+    const section = resolveSection(
+      [
+        {
+          depth: 1,
+          title: "1",
+          number: null,
+          headingStart: 0,
+          bodyStart: 0,
+          bodyEnd: 0,
+          bodyEndNoChildren: 0
+        },
+        {
+          depth: 2,
+          title: "Actual Section",
+          number: "1",
+          headingStart: 0,
+          bodyStart: 0,
+          bodyEnd: 0,
+          bodyEndNoChildren: 0
+        }
+      ],
+      "1"
+    );
+
+    expect(section.title).toBe("Actual Section");
+  });
+
   it("trims numeric paths without doing fuzzy title matching", () => {
     expect(resolveSection(sections, " 1 ")).toBe(sections[1]);
 

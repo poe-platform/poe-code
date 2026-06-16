@@ -156,6 +156,14 @@ describe("scanMarkdown", () => {
     ).toContain("## still not a heading");
   });
 
+  it("ignores heading-like lines inside HTML comments", () => {
+    const source = ["<!--", "# Hidden", "-->", "", "# Visible", ""].join("\n");
+
+    expect(getToc(scanMarkdown(source))).toEqual([
+      { depth: 1, title: "Visible", number: null }
+    ]);
+  });
+
   it("returns an empty array for empty input", () => {
     expect(scanMarkdown("")).toEqual([]);
   });

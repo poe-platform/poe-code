@@ -177,6 +177,46 @@ describe("readMarkdown", () => {
     });
   });
 
+  it("treats a leading thematic break followed by colon prose as markdown", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({
+        "/repo/docs/thematic-note.md": [
+          "---",
+          "",
+          "Note: this document starts with a horizontal rule.",
+          "",
+          "# Real Heading",
+          ""
+        ].join("\n")
+      }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/thematic-note.md" })).resolves.toEqual({
+      file: "docs/thematic-note.md",
+      frontmatter: {},
+      sections: [{ depth: 1, number: null, title: "Real Heading" }]
+    });
+  });
+
+  it("rejects empty file paths before reading from the filesystem", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: {
+        async readFile(filePath) {
+          throw new Error(`should not read ${filePath}`);
+        }
+      },
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "" })).rejects.toThrowError(
+      new UserError("invalid file: expected a non-empty path")
+    );
+    await expect(readMarkdown({ file: "   " })).rejects.toThrowError(
+      new UserError("invalid file: expected a non-empty path")
+    );
+  });
+
   it("rejects invalid table-of-contents depths", async () => {
     const readMarkdown = createReadMarkdown({
       fs: createMemFs({ "/repo/docs/simple.md": simpleFixture }),

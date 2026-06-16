@@ -4,8 +4,14 @@ import { readMarkdown } from "../core/read-markdown.js";
 import { readSection } from "../core/read-section.js";
 
 const readParams = S.Object({
-  file: S.String({ description: "Path to the markdown file" }),
-  depth: S.Optional(S.Number({ description: "Limit TOC to headings at depth <= n" }))
+  file: S.String({ description: "Path to the markdown file", minLength: 1 }),
+  depth: S.Optional(
+    S.Number({
+      description: "Limit TOC to headings at depth <= n",
+      jsonType: "integer",
+      minimum: 0
+    })
+  )
 });
 
 const tocEntryResult = S.Object({
@@ -28,8 +34,11 @@ export const readTool = defineCommand({
 });
 
 const readSectionParams = S.Object({
-  file: S.String({ description: "Path to the markdown file" }),
-  section: S.String({ description: "Numeric path or exact heading text to read" }),
+  file: S.String({ description: "Path to the markdown file", minLength: 1 }),
+  section: S.String({
+    description: "Numeric path or exact heading text to read",
+    minLength: 1
+  }),
   includeChildren: S.Optional(S.Boolean({ description: "Include nested child sections" }))
 });
 

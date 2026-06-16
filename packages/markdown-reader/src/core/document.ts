@@ -42,6 +42,10 @@ export async function loadMarkdownDocument(
 }
 
 export function resolveMarkdownPath(file: string, cwd = process.cwd()): string {
+  if (file.trim().length === 0) {
+    throw new UserError("invalid file: expected a non-empty path");
+  }
+
   return path.isAbsolute(file) ? file : path.resolve(cwd, file);
 }
 
@@ -91,6 +95,10 @@ function hasYamlLikeLeadingFrontmatter(source: string): boolean {
   const lines = normalized.split("\n");
 
   if (lines[0] !== "---") {
+    return false;
+  }
+
+  if (lines[1]?.trim().length === 0) {
     return false;
   }
 

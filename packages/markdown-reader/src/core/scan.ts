@@ -19,7 +19,10 @@ export function scanMarkdown(source: string): Section[] {
     return [];
   }
 
-  const headings = ast.children.filter(isHeadingNode);
+  const htmlCommentRanges = collectHtmlCommentRanges(source);
+  const headings = ast.children
+    .filter(isHeadingNode)
+    .filter((heading) => !isInsideHtmlComment(getRequiredRange(heading).start, htmlCommentRanges));
 
   if (headings.length === 0) {
     return [];
@@ -44,6 +47,40 @@ export function scanMarkdown(source: string): Section[] {
   applyNumbers(sections, baselineDepth);
 
   return sections;
+}
+
+type HtmlCommentRange = { start: number; end: number };
+
+function collectHtmlCommentRanges(source: string): HtmlCommentRange[] {
+  const ranges: HtmlCommentRange[] = [];
+  let searchStart = 0;
+
+  while (searchStart < source.length) {
+    const commentStart = source.indexOf("<!--", searchStart);
+    if (commentStart === -1) {
+      return ranges;
+    }
+
+    const commentEndMarker = source.indexOf("-->", commentStart + "<!--".length);
+    const commentEnd =
+      commentEndMarker === -1 ? source.length : commentEndMarker + "-->".length;
+
+    ranges.push({
+      start: byteOffset(source, commentStart),
+      end: byteOffset(source, commentEnd)
+    });
+    searchStart = commentEnd;
+  }
+
+  return ranges;
+}
+
+function isInsideHtmlComment(offset: number, ranges: HtmlCommentRange[]): boolean {
+  return ranges.some((range) => offset >= range.start && offset < range.end);
+}
+
+function byteOffset(source: string, index: number): number {
+  return Buffer.byteLength(source.slice(0, index), "utf8");
 }
 
 function isHeadingNode(node: MdNode): node is Extract<MdNode, { type: "heading" }> {

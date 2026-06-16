@@ -1217,6 +1217,14 @@ describe("resolveScope", () => {
     expect(resolveScope(schema, undefined, { POE_TIMEOUT: "Infinity" })).toEqual({ timeout: 30 });
   });
 
+  it("ignores whitespace-only number env values", () => {
+    expect(resolveScope(schema, { timeout: 45 }, { POE_TIMEOUT: "   " })).toEqual({
+      apiKey: "",
+      timeout: 45,
+      enabled: false
+    });
+  });
+
   it("falls back to file values when env coercion fails", () => {
     expect(
       resolveScope(

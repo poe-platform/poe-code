@@ -109,7 +109,7 @@ function coerceNumber(value: unknown): number | undefined {
     return value;
   }
 
-  if (typeof value !== "string" || value.length === 0) {
+  if (typeof value !== "string" || value.trim().length === 0) {
     return undefined;
   }
 

@@ -51,17 +51,31 @@ async function resolveMemoryConfig(
 ): Promise<ResolvedMemoryConfig> {
   const document = await readMergedDocument(options.fs, options.filePath, options.projectFilePath);
   const memory = getOwnRecordEntry(document, "memory");
-  const cache = getOwnRecordEntry(memory, "cache");
-  const mcp = getOwnRecordEntry(memory, "mcp");
-  const query = getOwnRecordEntry(memory, "query");
+  const cache = readOptionalRecord(getOwnEntry(memory, "cache"), "memory.cache");
+  const mcp = readOptionalRecord(getOwnEntry(memory, "mcp"), "memory.mcp");
+  const query = readOptionalRecord(getOwnEntry(memory, "query"), "memory.query");
+  const ingestTimeoutMs =
+    readOptionalNumber(getOwnEntry(memory, "ingestTimeoutMs"), "memory.ingestTimeoutMs") ??
+    300_000;
+  const defaultQueryBudget =
+    readOptionalNumber(getOwnEntry(query, "defaultBudgetTokens"), "memory.query.defaultBudgetTokens") ??
+    4_096;
+
+  if (ingestTimeoutMs < 0) {
+    throw new Error("memory.ingestTimeoutMs: expected a non-negative finite number.");
+  }
+  if (!Number.isInteger(defaultQueryBudget) || defaultQueryBudget <= 0) {
+    throw new Error("memory.query.defaultBudgetTokens: expected a positive integer.");
+  }
 
   return {
-    root: readString(getOwnEntry(memory, "root")),
-    ingestAgent: readString(getOwnEntry(memory, "ingestAgent")),
-    ingestTimeoutMs: readNumber(getOwnEntry(memory, "ingestTimeoutMs")) ?? 300_000,
-    cacheEnabled: readBoolean(getOwnEntry(cache, "enabled")) ?? true,
-    mcpWritesAllowed: readBoolean(getOwnEntry(mcp, "allowWrites")) ?? false,
-    defaultQueryBudget: readNumber(getOwnEntry(query, "defaultBudgetTokens")) ?? 4_096
+    root: readOptionalString(getOwnEntry(memory, "root"), "memory.root"),
+    ingestAgent: readOptionalString(getOwnEntry(memory, "ingestAgent"), "memory.ingestAgent"),
+    ingestTimeoutMs,
+    cacheEnabled: readOptionalBoolean(getOwnEntry(cache, "enabled"), "memory.cache.enabled") ?? true,
+    mcpWritesAllowed:
+      readOptionalBoolean(getOwnEntry(mcp, "allowWrites"), "memory.mcp.allowWrites") ?? false,
+    defaultQueryBudget
   };
 }
 
@@ -78,14 +92,42 @@ function getOwnRecordEntry(record: Record<string, unknown>, key: string): Record
   return value as Record<string, unknown>;
 }
 
-function readString(value: unknown): string | undefined {
-  return typeof value === "string" ? value : undefined;
+function readOptionalRecord(value: unknown, field: string): Record<string, unknown> {
+  if (value === undefined) {
+    return {};
+  }
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error(`${field}: expected an object.`);
+  }
+  return value as Record<string, unknown>;
 }
 
-function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+function readOptionalString(value: unknown, field: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    throw new Error(`${field}: expected a string.`);
+  }
+  return value;
 }
 
-function readBoolean(value: unknown): boolean | undefined {
-  return typeof value === "boolean" ? value : undefined;
+function readOptionalNumber(value: unknown, field: string): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${field}: expected a finite number.`);
+  }
+  return value;
+}
+
+function readOptionalBoolean(value: unknown, field: string): boolean | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (typeof value !== "boolean") {
+    throw new Error(`${field}: expected a boolean.`);
+  }
+  return value;
 }

@@ -217,40 +217,61 @@ describe("memory config readers", () => {
     );
   });
 
-  it("ignores invalid nested memory values", async () => {
-    const fs = createMockFs(
-      {
-        "~/.poe-code/config.json": `${JSON.stringify(
-          {
-            memory: {
-              ingestAgent: 123,
-              ingestTimeoutMs: "fast",
-              cache: {
-                enabled: "sometimes"
-              },
-              mcp: {
-                allowWrites: "yes"
-              },
-              query: {
-                defaultBudgetTokens: "plenty"
-              }
-            }
-          },
-          null,
-          2
-        )}\n`
-      },
-      homeDir
+  it("rejects invalid nested memory values", async () => {
+    await expectMemoryConfigError(
+      { memory: { root: 123 } },
+      () => configuredMemoryRoot,
+      "memory.root: expected a string."
     );
-    const options = {
-      fs,
-      filePath: configPath
-    };
-
-    await expect(resolveAgent(options, "claude-code")).resolves.toBe("claude-code");
-    await expect(configuredTimeout(options)).resolves.toBe(300_000);
-    await expect(cacheEnabled(options)).resolves.toBe(true);
-    await expect(mcpWritesAllowed(options)).resolves.toBe(false);
-    await expect(defaultQueryBudget(options)).resolves.toBe(4_096);
+    await expectMemoryConfigError(
+      { memory: { ingestAgent: 123 } },
+      () => (options) => resolveAgent(options, "claude-code"),
+      "memory.ingestAgent: expected a string."
+    );
+    await expectMemoryConfigError(
+      { memory: { ingestTimeoutMs: "120000" } },
+      () => configuredTimeout,
+      "memory.ingestTimeoutMs: expected a finite number."
+    );
+    await expectMemoryConfigError(
+      { memory: { ingestTimeoutMs: -1 } },
+      () => configuredTimeout,
+      "memory.ingestTimeoutMs: expected a non-negative finite number."
+    );
+    await expectMemoryConfigError(
+      { memory: { cache: { enabled: "false" } } },
+      () => cacheEnabled,
+      "memory.cache.enabled: expected a boolean."
+    );
+    await expectMemoryConfigError(
+      { memory: { mcp: { allowWrites: "true" } } },
+      () => mcpWritesAllowed,
+      "memory.mcp.allowWrites: expected a boolean."
+    );
+    await expectMemoryConfigError(
+      { memory: { query: { defaultBudgetTokens: "2048" } } },
+      () => defaultQueryBudget,
+      "memory.query.defaultBudgetTokens: expected a finite number."
+    );
+    await expectMemoryConfigError(
+      { memory: { query: { defaultBudgetTokens: -100 } } },
+      () => defaultQueryBudget,
+      "memory.query.defaultBudgetTokens: expected a positive integer."
+    );
   });
 });
+
+async function expectMemoryConfigError(
+  document: Record<string, unknown>,
+  selectReader: () => (options: { fs: ReturnType<typeof createMockFs>; filePath: string }) => Promise<unknown>,
+  message: string
+): Promise<void> {
+  const fs = createMockFs(
+    {
+      "~/.poe-code/config.json": `${JSON.stringify(document, null, 2)}\n`
+    },
+    homeDir
+  );
+
+  await expect(selectReader()({ fs, filePath: configPath })).rejects.toThrow(message);
+}

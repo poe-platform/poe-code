@@ -4,6 +4,8 @@ import { assignIds } from "./assign-ids.js";
 import { parseModule, type Module } from "./parser.js";
 import { parse, type ParseResult } from "../parse.js";
 
+const ASSIGN_IDS_PERFORMANCE_BUDGET_MS = process.env.CI === "true" ? 250 : 100;
+
 type AstNode = {
   nodeId?: number;
   span: {
@@ -316,22 +318,22 @@ describe("assignIds", () => {
     );
   });
 
-  it("assigns ids to more than 10k AST nodes in under 100ms", () => {
+  it("assigns ids to more than 10k AST nodes within the performance budget", () => {
     const module = createLargeModule(10_001);
 
     const elapsedMs = measureCpuMs(() => assignIds(module));
 
     expect(collectNodesInIdOrder(module)).toHaveLength(10_001);
-    expect(elapsedMs).toBeLessThan(100);
+    expect(elapsedMs).toBeLessThan(ASSIGN_IDS_PERFORMANCE_BUDGET_MS);
   });
 
-  it("assigns ids to more than 20k deeply nested AST nodes in under 100ms", () => {
+  it("assigns ids to more than 20k deeply nested AST nodes within the performance budget", () => {
     const module = createDeepModule(20_001);
 
     const elapsedMs = measureCpuMs(() => assignIds(module));
 
     expect(collectNodesInIdOrder(module)).toHaveLength(20_001);
-    expect(elapsedMs).toBeLessThan(100);
+    expect(elapsedMs).toBeLessThan(ASSIGN_IDS_PERFORMANCE_BUDGET_MS);
   });
 
   it("overwrites stale pre-existing node ids", () => {

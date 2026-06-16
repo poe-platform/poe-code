@@ -16,7 +16,9 @@ import {
   getOptionalNumber,
   getOptionalString,
   getRequiredString,
+  assertAllowedPathEntries,
   assertNoSymbolicLinkPath,
+  normalizeAllowedPaths,
   resolveAllowedPath
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
@@ -90,9 +92,7 @@ type RetainedShellOutput = {
 
 const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
-  const allowedPaths = (options.allowedPaths ?? [cwd]).map((allowedPath) =>
-    path.resolve(cwd, allowedPath)
-  );
+  const allowedPaths = normalizeAllowedPaths(cwd, options.allowedPaths);
   const runCommand = options.runCommand ?? defaultRunCommand;
   const fs = options.fs ?? fsPromises;
   const backgroundCommands = new Map<string, BackgroundCommand>();
@@ -1126,6 +1126,7 @@ export const spec: PluginSpec<ShellPluginConfigOptions> = {
     }
     const allowedPaths = readOptionalStringArray(obj, "allowedPaths");
     if (allowedPaths !== undefined) {
+      assertAllowedPathEntries(allowedPaths);
       options.allowedPaths = allowedPaths;
     }
     return options;

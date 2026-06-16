@@ -76,6 +76,21 @@ describe("poe-agent-plugin-shell", () => {
       allowedPaths: ["src"],
     });
     expect(() => shellPluginSpec.parseOptions({ cwd: 123 })).toThrow();
+    expect(() => shellPluginSpec.parseOptions({ allowedPaths: [""] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+    expect(() => shellPluginSpec.parseOptions({ allowedPaths: ["   "] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+  });
+
+  it("rejects empty allowed path entries during construction", () => {
+    expect(() => shellPlugin({ cwd: "/workspace/project", allowedPaths: [""] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+    expect(() => shellPlugin({ cwd: "/workspace/project", allowedPaths: ["   "] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
   });
 
   it("resolves cwd and timeout before delegating to the injected runner", async () => {

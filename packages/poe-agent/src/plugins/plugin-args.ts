@@ -96,6 +96,23 @@ export function getOptionalNonNegativeInteger(args: unknown, key: string): numbe
   return value;
 }
 
+export function assertAllowedPathEntries(
+  allowedPaths: readonly string[],
+  key = "allowedPaths"
+): void {
+  for (const [index, allowedPath] of allowedPaths.entries()) {
+    if (allowedPath.trim().length === 0) {
+      throw new Error(`${key}[${index}] must not be empty`);
+    }
+  }
+}
+
+export function normalizeAllowedPaths(cwd: string, allowedPaths: string[] | undefined): string[] {
+  const entries = allowedPaths ?? [cwd];
+  assertAllowedPathEntries(entries);
+  return entries.map((allowedPath) => path.resolve(cwd, allowedPath));
+}
+
 export function resolveAllowedPath(cwd: string, allowedPaths: string[], inputPath: string): string {
   const resolvedPath = path.resolve(cwd, inputPath);
   const isAllowed = allowedPaths.some(allowedPath => {

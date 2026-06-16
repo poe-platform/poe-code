@@ -19,6 +19,8 @@ import {
   getRequiredString,
   isObjectRecord,
   assertNoSymbolicLinkPath,
+  assertAllowedPathEntries,
+  normalizeAllowedPaths,
   resolveAllowedPath
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
@@ -63,9 +65,7 @@ const execFile = promisify(execFileCallback);
 
 const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
   const cwd = path.resolve(options.cwd ?? process.cwd());
-  const allowedPaths = (options.allowedPaths ?? [cwd]).map((allowedPath) =>
-    path.resolve(cwd, allowedPath)
-  );
+  const allowedPaths = normalizeAllowedPaths(cwd, options.allowedPaths);
   const fs = options.fs ?? fsPromises;
   const searchContent =
     options.searchContent ?? ((searchOptions) => defaultSearchContent(searchOptions, fs));
@@ -633,6 +633,7 @@ export const spec: PluginSpec<FilesPluginConfigOptions> = {
     }
     const allowedPaths = readOptionalStringArray(obj, "allowedPaths");
     if (allowedPaths !== undefined) {
+      assertAllowedPathEntries(allowedPaths);
       options.allowedPaths = allowedPaths;
     }
     return options;

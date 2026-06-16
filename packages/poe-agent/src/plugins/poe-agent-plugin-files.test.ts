@@ -124,6 +124,23 @@ describe("poe-agent-plugin-files", () => {
       allowedPaths: ["src", "tests"],
     });
     expect(() => filesPluginSpec.parseOptions({ allowedPaths: [1] })).toThrow();
+    expect(() => filesPluginSpec.parseOptions({ allowedPaths: [""] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+    expect(() => filesPluginSpec.parseOptions({ allowedPaths: ["   "] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+  });
+
+  it("rejects empty allowed path entries during construction", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+
+    expect(() => filesPlugin({ cwd: "/workspace/project", allowedPaths: [""] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
+    expect(() => filesPlugin({ cwd: "/workspace/project", allowedPaths: ["   "] })).toThrow(
+      "allowedPaths[0] must not be empty",
+    );
   });
 
   it("supports line-based read_file offset and limit", async () => {

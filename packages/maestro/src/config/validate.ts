@@ -40,11 +40,16 @@ export function validateStateDefinitions(
   }
 
   for (const [name, definition] of entries) {
-    if (!isRecord(definition)) {
-      throw new Error(`State "${String(name)}" must be an object.`);
+    const stateName = String(name);
+    if (stateName.trim().length === 0) {
+      throw new Error("State names must not be empty.");
     }
 
-    validateStateDefinition(String(name), definition);
+    if (!isRecord(definition)) {
+      throw new Error(`State "${stateName}" must be an object.`);
+    }
+
+    validateStateDefinition(stateName, definition);
   }
 }
 
@@ -139,6 +144,10 @@ function validateStateDefinition(name: string, definition: JsonRecord): void {
 
   if (prompt !== undefined && typeof prompt !== "string") {
     throw new Error(`State "${name}" prompt must be a string.`);
+  }
+
+  if (typeof prompt === "string" && prompt.trim().length === 0) {
+    throw new Error(`State "${name}" prompt must not be empty.`);
   }
 
   if (terminal !== undefined && typeof terminal !== "boolean") {

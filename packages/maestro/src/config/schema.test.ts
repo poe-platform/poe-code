@@ -44,10 +44,13 @@ describe("resolveConfig", () => {
     delete process.env.MAESTRO_MISSING_WORKSPACE;
 
     expect(() =>
-      resolveConfig({
-        states: { planned: { prompt: "Plan" } },
-        workspace: { root: "$MAESTRO_MISSING_WORKSPACE" }
-      }, "/repo")
+      resolveConfig(
+        {
+          states: { planned: { prompt: "Plan" } },
+          workspace: { root: "$MAESTRO_MISSING_WORKSPACE" }
+        },
+        "/repo"
+      )
     ).toThrow("workspace.root must not resolve to an empty path");
   });
 
@@ -205,15 +208,73 @@ describe("resolveConfig", () => {
   it.each([
     ["polling.interval_ms", { polling: { interval_ms: -1 } }, "positive integer"],
     ["agent.max_retry_backoff_ms", { agent: { max_retry_backoff_ms: -1 } }, "non-negative integer"],
-    ["agent.max_concurrent_agents", { agent: { max_concurrent_agents: 0 } }, "positive integer"],
+    ["agent.max_concurrent_agents", { agent: { max_concurrent_agents: 0 } }, "positive integer"]
   ])("rejects invalid %s", (_field, override, message) => {
-    expect(() => resolveConfig({
-      states: {
-        planned: { prompt: "Plan" },
-        done: { terminal: true }
-      },
-      ...override
-    }, "/repo")).toThrow(message);
+    expect(() =>
+      resolveConfig(
+        {
+          states: {
+            planned: { prompt: "Plan" },
+            done: { terminal: true }
+          },
+          ...override
+        },
+        "/repo"
+      )
+    ).toThrow(message);
+  });
+
+  it.each([
+    ["polling.interval_ms", { polling: { interval_ms: "1" } }],
+    ["workspace.root", { workspace: { root: 123 } }],
+    ["agent.service", { agent: { service: 99 } }],
+    ["agent.list", { agent: { list: false } }],
+    ["agent.max_concurrent_agents", { agent: { max_concurrent_agents: "2" } }],
+    ["agent.max_retry_backoff_ms", { agent: { max_retry_backoff_ms: "3" } }]
+  ])("rejects wrong-type %s values instead of using defaults", (field, override) => {
+    expect(() =>
+      resolveConfig(
+        {
+          tasks: { type: "markdown-dir", path: "./tasks" },
+          states: {
+            planned: { prompt: "Plan" },
+            done: { terminal: true }
+          },
+          ...override
+        },
+        "/repo"
+      )
+    ).toThrow(field);
+  });
+
+  it("rejects blank state prompts", () => {
+    expect(() =>
+      resolveConfig(
+        {
+          tasks: { type: "markdown-dir", path: "./tasks" },
+          states: {
+            planned: { prompt: "   " },
+            done: { terminal: true }
+          }
+        },
+        "/repo"
+      )
+    ).toThrow('State "planned" prompt must not be empty.');
+  });
+
+  it.each(["", "   "])("rejects blank state names: %s", (stateName) => {
+    expect(() =>
+      resolveConfig(
+        {
+          tasks: { type: "markdown-dir", path: "./tasks" },
+          states: {
+            [stateName]: { prompt: "Plan" },
+            done: { terminal: true }
+          }
+        },
+        "/repo"
+      )
+    ).toThrow("State names must not be empty.");
   });
 
   it("resolves $VAR values and expands ~ paths", () => {

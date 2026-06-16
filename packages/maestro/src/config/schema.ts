@@ -86,13 +86,14 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     },
     workspace: {
       root: resolvePathValue(
-        readString(getOwnEntry(workspace, "root")) ?? path.join(os.tmpdir(), "poe-code-maestro"),
+        readString(getOwnEntry(workspace, "root"), "workspace.root") ??
+          path.join(os.tmpdir(), "poe-code-maestro"),
         cwd
       )
     },
     agent: {
-      service: readString(getOwnEntry(agent, "service")) ?? "codex",
-      list: readString(resolveStringValue(getOwnEntry(agent, "list"))),
+      service: readString(getOwnEntry(agent, "service"), "agent.service") ?? "codex",
+      list: readString(resolveStringValue(getOwnEntry(agent, "list")), "agent.list"),
       maxConcurrentAgents: readPositiveInteger(
         getOwnEntry(agent, "max_concurrent_agents"),
         1,
@@ -245,21 +246,33 @@ function expandHome(value: unknown): unknown {
   return value;
 }
 
-function readString(value: unknown): string | undefined {
-  if (typeof value !== "string") {
+function readString(value: unknown, field: string): string | undefined {
+  if (value === undefined) {
     return undefined;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`Expected "${field}" to be a string.`);
   }
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? value : undefined;
 }
 
-function readNumber(value: unknown, fallback: number): number {
-  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+function readNumber(value: unknown, fallback: number, field: string): number {
+  if (value === undefined) {
+    return fallback;
+  }
+
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`Expected "${field}" to be a number.`);
+  }
+
+  return value;
 }
 
 function readPositiveInteger(value: unknown, fallback: number, field: string): number {
-  const numberValue = readNumber(value, fallback);
+  const numberValue = readNumber(value, fallback, field);
   if (!Number.isInteger(numberValue) || numberValue <= 0) {
     throw new Error(`Expected "${field}" to be a positive integer.`);
   }
@@ -267,7 +280,7 @@ function readPositiveInteger(value: unknown, fallback: number, field: string): n
 }
 
 function readNonNegativeInteger(value: unknown, fallback: number, field: string): number {
-  const numberValue = readNumber(value, fallback);
+  const numberValue = readNumber(value, fallback, field);
   if (!Number.isInteger(numberValue) || numberValue < 0) {
     throw new Error(`Expected "${field}" to be a non-negative integer.`);
   }

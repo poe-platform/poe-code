@@ -13,5 +13,23 @@ export function resolveWorkflowPath(name: string | undefined, cwd: string): stri
 }
 
 function isValidWorkflowName(name: string): boolean {
-  return name.length > 0 && !name.includes("/") && !name.includes("\\");
+  if (name.length === 0 || name.trim() !== name || name === "." || name === "..") {
+    return false;
+  }
+
+  for (const character of name) {
+    if (!isWorkflowNameCharacter(character)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isWorkflowNameCharacter(character: string): boolean {
+  const code = character.charCodeAt(0);
+  const isUppercase = code >= 65 && code <= 90;
+  const isLowercase = code >= 97 && code <= 122;
+  const isDigit = code >= 48 && code <= 57;
+  return isUppercase || isLowercase || isDigit || character === "_" || character === "-";
 }

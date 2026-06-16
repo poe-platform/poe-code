@@ -56,7 +56,7 @@ describe("runMaestro", () => {
     expect(resolveWorkflowPath("bugs", "/repo")).toBe("/repo/BUGS.WORKFLOW.md");
   });
 
-  it.each(["", "../bugs", "nested/bugs", "nested\\bugs"])(
+  it.each(["", "../bugs", "nested/bugs", "nested\\bugs", " bugs ", ".", "..", "two words", "\n"])(
     "rejects a workflow name that is not a root file id: %s",
     (name) => {
       expect(() => resolveWorkflowPath(name, "/repo")).toThrow(

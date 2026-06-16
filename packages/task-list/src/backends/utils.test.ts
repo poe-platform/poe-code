@@ -142,4 +142,35 @@ describe("backend utilities", () => {
       code: "ENOENT"
     });
   });
+
+  it("removes an invalid lock file and acquires the lock", async () => {
+    const { rawFs } = createFs({
+      "/repo/tasks.yaml.lock": "not-a-pid"
+    });
+    const lockPath = "/repo/tasks.yaml.lock";
+    let lockWriteAttempts = 0;
+    const fs = {
+      ...rawFs,
+      async writeFile(
+        filePath: Parameters<typeof rawFs.writeFile>[0],
+        data: Parameters<typeof rawFs.writeFile>[1],
+        options?: Parameters<typeof rawFs.writeFile>[2]
+      ) {
+        if (String(filePath) === lockPath) {
+          lockWriteAttempts += 1;
+          if (lockWriteAttempts > 2) {
+            throw new Error("lock acquisition retried invalid content");
+          }
+        }
+
+        return rawFs.writeFile(filePath, data, options);
+      }
+    } as TaskListFs;
+
+    await expect(withFileLock(fs, lockPath, async () => "acquired")).resolves.toBe("acquired");
+    expect(lockWriteAttempts).toBe(2);
+    await expect(rawFs.readFile(lockPath, "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
 });

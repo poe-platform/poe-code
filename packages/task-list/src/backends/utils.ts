@@ -208,7 +208,7 @@ async function removeAbandonedLock(fs: TaskListFs, lockPath: string): Promise<bo
 
   const owner = Number(content);
 
-  if (!Number.isInteger(owner) || owner <= 0 || isProcessRunning(owner)) {
+  if (Number.isInteger(owner) && owner > 0 && isProcessRunning(owner)) {
     return false;
   }
 

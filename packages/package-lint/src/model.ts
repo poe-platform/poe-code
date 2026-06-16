@@ -34,6 +34,7 @@ export interface PackageInfo {
   bin: Record<string, string>;
   files: string[];
   scripts: Record<string, string>;
+  hasReadme: boolean;
 }
 
 export interface BinTarget {
@@ -170,7 +171,8 @@ async function loadPackage(
     files: Array.isArray(pkg.files)
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
       : [],
-    scripts: toStringRecord(pkg.scripts)
+    scripts: toStringRecord(pkg.scripts),
+    hasReadme: entries.some((e) => e.name === "README.md" && !e.isDirectory())
   };
 }
 

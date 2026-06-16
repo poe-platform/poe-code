@@ -38,6 +38,7 @@ malformed `package.json`).
 | `imported-workspace-dep-unresolvable`   | Import-driven: every workspace package a published package's shipped source actually imports (runtime, non-type-only) is vendored (`bundledDependencies`) or itself reaches npm. Catches undeclared imports of private packages.  |
 | `exports-subpath-resolvable`            | Import-driven: a bare subpath import of a workspace package (e.g. `toolcraft/cli`) is a subpath the target's `exports` map exposes. Node gates `exports` — an unlisted subpath is `ERR_PACKAGE_PATH_NOT_EXPORTED` once published. |
 | `bundle-self-contained` _(build-aware)_ | The bundled entry inlines every referenced workspace package and externalizes nothing absent from root `dependencies`. Consumes `dist/metafile.json`; skipped when absent.                                                        |
+| `package-readme-required`               | Every workspace package under `packages/*` has a package-local `README.md` documenting env vars and config options.                                                                                                                |
 
 Imports are parsed with the TypeScript compiler's own scanner (the engine
 `typescript-eslint` runs on) over each package's `src`, so the import-driven

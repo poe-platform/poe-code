@@ -17,7 +17,8 @@ const rootPackage: PackageInfo = {
   exports: undefined,
   bin: {},
   files: [],
-  scripts: {}
+  scripts: {},
+  hasReadme: true
 };
 
 const model: WorkspaceModel = {

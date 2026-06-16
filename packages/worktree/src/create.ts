@@ -19,6 +19,7 @@ export type CreateWorktreeOptions = {
 export async function createWorktree(
   opts: CreateWorktreeOptions
 ): Promise<Worktree> {
+  assertSafeWorktreeName(opts.name);
   const branch = `poe-code/${opts.name}`;
   const worktreePath = join(opts.worktreeDir, opts.name);
   const registry = await readRegistry(opts.registryFile, opts.deps.fs);
@@ -92,4 +93,33 @@ export async function createWorktree(
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", `'"'"'`)}'`;
+}
+
+function assertSafeWorktreeName(name: string): void {
+  if (
+    name.length === 0 ||
+    name !== name.trim() ||
+    name === "." ||
+    name === ".." ||
+    name.startsWith("/") ||
+    name.startsWith("\\") ||
+    name.startsWith(".") ||
+    name.endsWith(".") ||
+    name.endsWith(".lock") ||
+    name.includes("/") ||
+    name.includes("\\") ||
+    name.includes("..")
+  ) {
+    throw new Error("Worktree name must be a safe single path segment.");
+  }
+
+  for (const character of name) {
+    const code = character.charCodeAt(0);
+    const isDigit = code >= 48 && code <= 57;
+    const isUppercase = code >= 65 && code <= 90;
+    const isLowercase = code >= 97 && code <= 122;
+    if (!isDigit && !isUppercase && !isLowercase && character !== "-" && character !== "_" && character !== ".") {
+      throw new Error("Worktree name must be a safe single path segment.");
+    }
+  }
 }

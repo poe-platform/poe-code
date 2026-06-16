@@ -72,6 +72,9 @@ async function assertPathHasNoSymbolicLinks(
     currentPath = `${currentPath}/${segment}`;
     try {
       if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        if (isAllowedSystemAlias(currentPath)) {
+          continue;
+        }
         throw new Error(`Refusing worktree registry path containing symbolic link: ${currentPath}`);
       }
     } catch (error) {
@@ -81,6 +84,10 @@ async function assertPathHasNoSymbolicLinks(
       throw error;
     }
   }
+}
+
+function isAllowedSystemAlias(path: string): boolean {
+  return path === "/var";
 }
 
 function isWorktreeRegistry(value: unknown): value is WorktreeRegistry {

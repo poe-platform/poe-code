@@ -24,9 +24,14 @@ export async function removeWorktree(
     )
   }, opts.deps.fs);
 
-  await opts.deps.exec(`git worktree remove ${shellQuote(entry.path)}`, {
-    cwd: opts.cwd
-  });
+  try {
+    await opts.deps.exec(`git worktree remove ${shellQuote(entry.path)}`, {
+      cwd: opts.cwd
+    });
+  } catch (error) {
+    await writeRegistry(opts.registryFile, registry, opts.deps.fs).catch(() => undefined);
+    throw error;
+  }
 
   await removeWorktreeEntry(opts.registryFile, opts.name, opts.deps.fs);
 

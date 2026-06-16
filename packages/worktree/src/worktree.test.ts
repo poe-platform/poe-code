@@ -239,13 +239,36 @@ describe("createWorktree", () => {
     expect(result).not.toHaveProperty("prompt");
   });
 
+  it("rejects unsafe worktree names before running git commands", async () => {
+    const invalidNames = ["", ".", "..", "../escape", "nested/name", "/absolute"];
+
+    for (const name of invalidNames) {
+      const fs = createMemFs();
+      const exec = createMockExec();
+
+      await expect(createWorktree({
+        cwd: "/repo",
+        name,
+        baseBranch: "main",
+        source: "test",
+        agent: "codex",
+        registryFile: REGISTRY,
+        worktreeDir: WORKTREE_DIR,
+        deps: { fs, exec }
+      })).rejects.toThrow("Worktree name must be a safe single path segment.");
+
+      expect(exec).not.toHaveBeenCalled();
+      await expect(readRegistry(REGISTRY, fs)).resolves.toEqual({ worktrees: [] });
+    }
+  });
+
   it("quotes untrusted worktree operands in git commands", async () => {
     const fs = createMemFs();
     const exec = createMockExec();
 
     await createWorktree({
       cwd: "/repo",
-      name: "safe; touch /tmp/injected; #",
+      name: "safe-name",
       baseBranch: "main; false",
       source: "test",
       agent: "codex",
@@ -255,10 +278,10 @@ describe("createWorktree", () => {
     });
 
     expect(exec.mock.calls.map(([command]) => command)).toContain(
-      "git branch -D 'poe-code/safe; touch /tmp/injected; #'"
+      "git branch -D 'poe-code/safe-name'"
     );
     expect(exec.mock.calls.map(([command]) => command)).toContain(
-      `git worktree add -b 'poe-code/safe; touch /tmp/injected; #' '${WORKTREE_DIR}/safe; touch /tmp/injected; #' 'main; false'`
+      `git worktree add -b 'poe-code/safe-name' '${WORKTREE_DIR}/safe-name' 'main; false'`
     );
   });
 
@@ -454,6 +477,26 @@ describe("readRegistry", () => {
     await fs.symlink("/outside.yaml", REGISTRY);
 
     await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/symbolic link/);
+  });
+
+  it("allows registry files below the macOS /var system alias", async () => {
+    const base = createMemFs() as ExtendedWorktreeFileSystem;
+    const registryFile = "/var/folders/app/.poe-code/worktrees.yaml";
+    const fs = {
+      ...base,
+      lstat: async (filePath: string) => {
+        if (filePath === "/var") {
+          return { isSymbolicLink: () => true };
+        }
+        return base.lstat(filePath);
+      }
+    } as ExtendedWorktreeFileSystem;
+
+    await writeRegistry(registryFile, { worktrees: [makeEntry()] }, fs);
+
+    await expect(readRegistry(registryFile, fs)).resolves.toEqual({
+      worktrees: [makeEntry()]
+    });
   });
 });
 
@@ -681,6 +724,24 @@ describe("removeWorktree", () => {
     await expect(
       removeWorktree({ cwd: "/repo", name: "missing", registryFile: REGISTRY, deps: { fs, exec } })
     ).rejects.toThrow('Worktree "missing" not found in registry');
+  });
+
+  it("restores registry status when git worktree removal fails", async () => {
+    const fs = createMemFs();
+    const entry = makeEntry({ name: "wt", status: "active" });
+    await addWorktreeEntry(REGISTRY, entry, fs);
+    const exec = vi.fn<ExecFn>().mockRejectedValue(new Error("git refused to remove worktree"));
+
+    await expect(removeWorktree({
+      cwd: "/repo",
+      name: "wt",
+      registryFile: REGISTRY,
+      deps: { fs, exec }
+    })).rejects.toThrow("git refused to remove worktree");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toEqual({
+      worktrees: [entry]
+    });
   });
 
   it("removes registry state even when optional branch deletion fails", async () => {

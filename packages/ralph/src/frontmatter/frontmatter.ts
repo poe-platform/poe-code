@@ -201,19 +201,20 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
       throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');
     }
   }
-  const statusValue = parsed ? getOwnEntry(parsed, "status") : undefined;
-  const parsedStatus = isRecord(statusValue) ? statusValue : undefined;
-  const state =
-    parsePlanStatus(parsedStatus ? getOwnEntry(parsedStatus, "state") : undefined) ??
-    parseLegacyStatus(statusValue) ??
-    defaults.status.state;
-  const iteration =
-    parseNonNegativeInteger(parsedStatus ? getOwnEntry(parsedStatus, "iteration") : undefined) ??
-    parseNonNegativeInteger(parsed ? getOwnEntry(parsed, "iteration") : undefined) ??
-    defaults.status.iteration;
-  const agent = parseAgent(parsed ? getOwnEntry(parsed, "agent") : undefined);
+  const { state, iteration } = parseStatusFields(parsed, defaults.status);
+  const agentValue = parsed ? getOwnEntry(parsed, "agent") : undefined;
+  const agent = parseAgent(agentValue);
+  if (parsed !== undefined && hasOwnEntry(parsed, "agent") && agent === undefined) {
+    throw new Error(
+      'Invalid Ralph frontmatter: "agent" must be a non-empty string or non-empty string array.'
+    );
+  }
   const extendsValue = parseBoolean(parsed ? getOwnEntry(parsed, "extends") : undefined);
-  const iterations = parsePositiveInteger(parsed ? getOwnEntry(parsed, "iterations") : undefined);
+  const iterationsValue = parsed ? getOwnEntry(parsed, "iterations") : undefined;
+  const iterations = parsePositiveInteger(iterationsValue);
+  if (parsed !== undefined && hasOwnEntry(parsed, "iterations") && iterations === undefined) {
+    throw new Error('Invalid Ralph frontmatter: "iterations" must be a positive integer.');
+  }
   const skills = parseSkills(parsed ? getOwnEntry(parsed, "skills") : undefined);
   const hooks = parseHooks(parsed ? getOwnEntry(parsed, "hooks") : undefined);
 
@@ -230,6 +231,63 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   };
 }
 
+function parseStatusFields(
+  parsed: Record<string, unknown> | undefined,
+  defaults: RalphFrontmatter["status"]
+): RalphFrontmatter["status"] {
+  if (parsed === undefined) {
+    return defaults;
+  }
+
+  const statusValue = getOwnEntry(parsed, "status");
+  const legacyIterationValue = getOwnEntry(parsed, "iteration");
+  const hasStatus = hasOwnEntry(parsed, "status");
+  const hasLegacyIteration = hasOwnEntry(parsed, "iteration");
+  const parsedStatus = isRecord(statusValue) ? statusValue : undefined;
+
+  if (hasLegacyIteration && parseNonNegativeInteger(legacyIterationValue) === undefined) {
+    throw new Error('Invalid Ralph frontmatter: "iteration" must be a non-negative integer.');
+  }
+
+  if (parsedStatus !== undefined) {
+    rejectUnknownKeys(parsedStatus, ["state", "iteration"], "status");
+
+    const statusStateValue = getOwnEntry(parsedStatus, "state");
+    const statusIterationValue = getOwnEntry(parsedStatus, "iteration");
+    const state = parsePlanStatus(statusStateValue);
+    const iteration = parseNonNegativeInteger(statusIterationValue);
+
+    if (hasOwnEntry(parsedStatus, "state") && state === undefined) {
+      throw new Error(
+        'Invalid Ralph frontmatter: "status.state" must be "open", "in_progress", "completed", or "failed".'
+      );
+    }
+
+    if (hasOwnEntry(parsedStatus, "iteration") && iteration === undefined) {
+      throw new Error(
+        'Invalid Ralph frontmatter: "status.iteration" must be a non-negative integer.'
+      );
+    }
+
+    return {
+      state: state ?? defaults.state,
+      iteration: iteration ?? parseNonNegativeInteger(legacyIterationValue) ?? defaults.iteration
+    };
+  }
+
+  const legacyState = parseLegacyStatus(statusValue);
+  if (hasStatus && legacyState === undefined) {
+    throw new Error(
+      'Invalid Ralph frontmatter: "status" must be "open", "pending", "cancelled", "overbake_abort", "in_progress", or "completed".'
+    );
+  }
+
+  return {
+    state: legacyState ?? defaults.state,
+    iteration: parseNonNegativeInteger(legacyIterationValue) ?? defaults.iteration
+  };
+}
+
 function parseAgent(value: unknown): RalphFrontmatter["agent"] | undefined {
   if (typeof value === "string") {
     const trimmed = value.trim();
@@ -241,7 +299,7 @@ function parseAgent(value: unknown): RalphFrontmatter["agent"] | undefined {
   }
 
   if (value.length === 0) {
-    return [];
+    return undefined;
   }
 
   const agents: string[] = [];
@@ -384,6 +442,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function hasOwnEntry(record: Record<string, unknown>, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, key);
+}
+
 function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
-  return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
+  return hasOwnEntry(record, key) ? record[key] : undefined;
 }

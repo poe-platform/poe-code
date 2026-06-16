@@ -184,7 +184,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
           return;
         }
 
-        if (iterationNumber === config.maxIterations) {
+        if (iterationNumber === currentConfig.maxIterations) {
           await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
           stopReason = "max_iterations";
           return;

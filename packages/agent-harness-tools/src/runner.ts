@@ -354,7 +354,7 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
 
     let shouldStop = false;
 
-    for (let iteration = 0; iteration < initialWorkflow.maxIterations; iteration += 1) {
+    for (let iteration = 0; ; iteration += 1) {
       throwIfAborted(options.signal);
 
       currentWorkflow = iteration === 0 ? initialWorkflow : await readWorkflow();
@@ -398,6 +398,10 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
       await options.onIterationEnd?.(iteration, iterationResult);
 
       if (shouldStop) {
+        break;
+      }
+
+      if (iteration + 1 >= currentWorkflow.maxIterations) {
         break;
       }
     }

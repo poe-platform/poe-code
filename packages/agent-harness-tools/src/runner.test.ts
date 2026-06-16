@@ -790,6 +790,35 @@ describe("runDocumentWorkflow", () => {
     expect(runAgent).toHaveBeenCalledTimes(1);
   });
 
+  it("honors a higher iteration limit from a reloaded workflow", async () => {
+    let reads = 0;
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      readConfig: async () => {
+        reads += 1;
+        return {
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [{ id: "draft", participant: "default", prompt: "Draft changes" }],
+            max_iterations: reads === 1 ? 2 : 3
+          },
+          body: "Body"
+        };
+      },
+      runAgent
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(reads).toBe(3);
+    expect(runAgent).toHaveBeenCalledTimes(3);
+  });
+
   it("awaits async iteration callbacks before continuing", async () => {
     const events: string[] = [];
     const options = createOptions({

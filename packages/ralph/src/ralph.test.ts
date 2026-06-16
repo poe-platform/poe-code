@@ -532,45 +532,73 @@ describe("parseFrontmatter", () => {
     });
   });
 
-  it("ignores invalid agent and iterations values", () => {
-    const doc = [
-      "---",
-      "agent:",
-      "  - claude-code",
-      "  - 3",
-      "iterations: 0",
-      "status:",
-      "  state: nope",
-      "  iteration: -1",
-      "---",
-      "Body"
-    ].join("\n");
+  it.each([
+    {
+      name: "empty agent array",
+      lines: ["agent: []"],
+      message: '"agent" must be a non-empty string or non-empty string array'
+    },
+    {
+      name: "agent array with a blank entry",
+      lines: ["agent:", "  - claude-code", "  - \"\""],
+      message: '"agent" must be a non-empty string or non-empty string array'
+    },
+    {
+      name: "agent array with a non-string entry",
+      lines: ["agent:", "  - claude-code", "  - 3"],
+      message: '"agent" must be a non-empty string or non-empty string array'
+    },
+    {
+      name: "scalar agent with a blank value",
+      lines: ['agent: "  "'],
+      message: '"agent" must be a non-empty string or non-empty string array'
+    },
+    {
+      name: "zero iterations",
+      lines: ["iterations: 0"],
+      message: '"iterations" must be a positive integer'
+    },
+    {
+      name: "fractional iterations",
+      lines: ["iterations: 1.5"],
+      message: '"iterations" must be a positive integer'
+    },
+    {
+      name: "negative iterations",
+      lines: ["iterations: -1"],
+      message: '"iterations" must be a positive integer'
+    }
+  ])("rejects invalid $name", ({ lines, message }) => {
+    const doc = ["---", ...lines, "---", "Body"].join("\n");
 
-    const result = parseFrontmatter(doc);
-
-    expect(result).toEqual({
-      data: {
-        status: {
-          state: "open",
-          iteration: 0
-        }
-      },
-      body: "Body"
-    });
+    expect(() => parseFrontmatter(doc)).toThrow(message);
   });
 
-  it("preserves an empty agent array for later validation", () => {
-    const doc = ["---", "agent: []", "---", "Body"].join("\n");
+  it.each([
+    {
+      name: "nested status state",
+      lines: ["status:", "  state: nope", "  iteration: 0"],
+      message: '"status.state" must be "open", "in_progress", "completed", or "failed"'
+    },
+    {
+      name: "nested status iteration",
+      lines: ["status:", "  state: open", "  iteration: -1"],
+      message: '"status.iteration" must be a non-negative integer'
+    },
+    {
+      name: "legacy status",
+      lines: ["status: done", "iteration: 0"],
+      message: '"status" must be "open", "pending", "cancelled", "overbake_abort", "in_progress", or "completed"'
+    },
+    {
+      name: "legacy iteration",
+      lines: ["status: pending", "iteration: -2"],
+      message: '"iteration" must be a non-negative integer'
+    }
+  ])("rejects invalid $name", ({ lines, message }) => {
+    const doc = ["---", ...lines, "---", "Body"].join("\n");
 
-    const result = parseFrontmatter(doc);
-
-    expect(result.data).toEqual({
-      agent: [],
-      status: {
-        state: "open",
-        iteration: 0
-      }
-    });
+    expect(() => parseFrontmatter(doc)).toThrow(message);
   });
 
   it("parses extends for config resolution", () => {
@@ -1113,7 +1141,7 @@ describe("createRalphSimulation", () => {
     const { fs } = createRunFs({ [docPath]: documentFor(2) });
     const prompts: string[] = [];
 
-    await runRalph({
+    const result = await runRalph({
       cwd: "/repo",
       homeDir: "/home/test",
       docPath,
@@ -1127,7 +1155,16 @@ describe("createRalphSimulation", () => {
       }
     });
 
-    expect(prompts.slice(0, 2)).toEqual(["Limit=2", "Limit=3"]);
+    expect(prompts).toEqual(["Limit=2", "Limit=3", "Limit=3"]);
+    expect(result).toMatchObject({
+      stopReason: "max_iterations",
+      iterationsCompleted: 3
+    });
+    const archived = await fs.readFile("/repo/.poe-code/ralph/plans/archive/work.md", "utf8");
+    expect(parseFrontmatter(archived).data.status).toEqual({
+      state: "completed",
+      iteration: 3
+    });
   });
 
   it("strips nested frontmatter from the prompt sent to the agent", async () => {

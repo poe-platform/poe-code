@@ -853,6 +853,28 @@ describe("dockerExecutionEnvFactory", () => {
     );
   });
 
+  it("rejects malformed attached detached command completion markers", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["42abc\n"] },
+      { exitCode: 0, stdout: ["0x10\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node", "app.js"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(job.status()).rejects.toThrow("detached exit marker");
+    await expect(job.wait()).rejects.toThrow("detached exit marker");
+  });
+
   it("tracks a newly detached command using its supplied job context", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },

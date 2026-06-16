@@ -72,6 +72,18 @@ describe("createE2bJobHandle", () => {
     );
   });
 
+  it.each(["0x10\n", "1e2\n"])(
+    "rejects non-decimal exit-marker syntax %j",
+    async (contents) => {
+      const sandbox = createSandbox();
+      vi.mocked(sandbox.files.read).mockResolvedValueOnce(contents);
+
+      await expect(createJob(sandbox).status()).rejects.toThrow(
+        "Invalid exit code in /tmp/poe-jobs/job-1.exit"
+      );
+    }
+  );
+
   it("surfaces exit-marker read failures other than missing files", async () => {
     const sandbox = createSandbox();
     vi.mocked(sandbox.files.read).mockRejectedValueOnce(new Error("temporary file API outage"));

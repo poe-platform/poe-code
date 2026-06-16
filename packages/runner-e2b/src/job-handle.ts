@@ -122,8 +122,8 @@ async function readExitCode(sandbox: E2bSandbox, jobId: string): Promise<number 
   try {
     const contents = await sandbox.files.read(`${JOB_DIR}/${jobId}.exit`);
     const text = contents.trim();
-    const exitCode = Number(text);
-    if (text.length === 0 || !Number.isInteger(exitCode)) {
+    const exitCode = isDecimalIntegerLiteral(text) ? Number(text) : NaN;
+    if (!Number.isInteger(exitCode)) {
       throw new Error(`Invalid exit code in ${JOB_DIR}/${jobId}.exit: ${contents}`);
     }
     return exitCode;
@@ -133,6 +133,21 @@ async function readExitCode(sandbox: E2bSandbox, jobId: string): Promise<number 
     }
     throw error;
   }
+}
+
+function isDecimalIntegerLiteral(value: string): boolean {
+  if (value.length === 0) {
+    return false;
+  }
+
+  for (let index = 0; index < value.length; index += 1) {
+    const codePoint = value.charCodeAt(index);
+    if (codePoint < 48 || codePoint > 57) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function hasOwnErrorCode(error: unknown, code: string): error is NodeJS.ErrnoException {

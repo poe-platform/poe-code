@@ -819,6 +819,10 @@ function parseDockerWaitExitCode(stdout: string, fallbackExitCode: number): numb
 }
 
 function parseCompleteDecimalExitCode(value: string, source: string): number {
+  if (value.length === 0) {
+    throw new Error(`${source} returned an invalid exit code: ${JSON.stringify(value)}.`);
+  }
+
   for (let index = 0; index < value.length; index += 1) {
     const code = value.charCodeAt(index);
     if (code < 48 || code > 57) {
@@ -899,8 +903,8 @@ async function readDetachedExitCode(
   if (result.exitCode !== 0) {
     return null;
   }
-  const exitCode = Number.parseInt(stdout.trim(), 10);
-  return Number.isNaN(exitCode) ? null : exitCode;
+  const text = stdout.trim();
+  return text.length === 0 ? null : parseCompleteDecimalExitCode(text, "detached exit marker");
 }
 
 function createAttachedSpec(cwd = "/workspace"): OpenSpec {

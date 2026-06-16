@@ -283,7 +283,7 @@ function isJobEntry(value: unknown): value is JobEntry {
     typeof value.started_at === "string" &&
     isJobStatus(value.status) &&
     (value.exit_code === undefined ||
-      (typeof value.exit_code === "number" && Number.isFinite(value.exit_code))) &&
+      (typeof value.exit_code === "number" && Number.isInteger(value.exit_code))) &&
     (value.exited_at === undefined || typeof value.exited_at === "string") &&
     (value.log_file === undefined || typeof value.log_file === "string") &&
     (value.reattach_context === undefined || isRecord(value.reattach_context))

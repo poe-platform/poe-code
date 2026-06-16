@@ -511,7 +511,11 @@ describe("JobRegistry", () => {
     await expect(
       registry.put(createJob("job-1", { exit_code: Number.POSITIVE_INFINITY }))
     ).rejects.toThrow("Invalid job entry.");
+    await expect(registry.put(createJob("job-2", { exit_code: 1.5 }))).rejects.toThrow(
+      "Invalid job entry."
+    );
     await expect(registry.get("job-1")).resolves.toBeNull();
+    await expect(registry.get("job-2")).resolves.toBeNull();
   });
 
   it("filters listed jobs by status, tool, env kind, and env id", async () => {

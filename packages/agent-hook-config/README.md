@@ -1,6 +1,6 @@
 # @poe-code/agent-hook-config
 
-`@poe-code/agent-hook-config` is a per-run, per-spawn bridge that materializes a source agent's hooks into a target agent's hook file: it uses a symlink when source and target formats match and transforms hooks when they do not; every transformed entry carries a `statusMessage` prefix of `[generated:<runId>] ` so cleanup can identify only what the bridge wrote.
+`@poe-code/agent-hook-config` is a per-run, per-spawn bridge that materializes a source agent's hooks into a target agent's hook file: it uses a symlink when source and target formats match and transforms hooks when they do not; every transformed entry carries a `statusMessage` prefix of `[generated:poe-code:<runId>] ` so cleanup can identify only what the bridge wrote.
 
 ## Supported Pairs
 
@@ -14,7 +14,7 @@
 - Dropped events: `SessionEnd` and `StopFailure` because `codex` does not expose those lifecycle results; `Notification` because `codex` does not expose notification hooks; `PreCompact` and `PostCompact` because `codex` does not expose compaction hooks; `SubagentStart` and `SubagentStop` because `codex` does not expose subagent lifecycle hooks.
 - Dropped handler types: `http`, `mcp_tool`, `prompt`, and `agent`; only `command` handlers are emitted.
 - Placeholder rewrites: `${CLAUDE_PROJECT_DIR}` → `$(git rev-parse --show-toplevel)`, `${CLAUDE_PLUGIN_ROOT}` → `$PLUGIN_ROOT`, `${CLAUDE_PLUGIN_DATA}` → `$PLUGIN_DATA`.
-- Output `statusMessage` prefix: `[generated:<runId>] ` exactly.
+- Output `statusMessage` prefix: `[generated:poe-code:<runId>] ` exactly.
 
 ## Symlink Contract
 
@@ -24,7 +24,7 @@
 
 ## Marker Convention
 
-Callers and external tools identify bridge-generated entries by checking for `statusMessage` starting with the literal `[generated:`. Cleanup keys off the full `[generated:<runId>] ` form so concurrent runs do not interfere.
+Callers and external tools identify bridge-generated entries by checking for `statusMessage` starting with the literal `[generated:`. Cleanup keys off the full `[generated:poe-code:<runId>] ` form so concurrent runs do not interfere.
 
 ## Cleanup Contract
 

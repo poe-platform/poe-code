@@ -232,7 +232,6 @@ describe("toolcraft error UX contract", () => {
 
     expect(stderr).toMatchInlineSnapshot(`
       "Invalid input.
-      Run toolcraft deploy --help for usage.
       "
     `);
   });

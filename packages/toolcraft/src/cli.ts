@@ -3175,6 +3175,74 @@ function renderApprovalDeclined(error: ApprovalDeclinedError): void {
   process.exitCode = 1;
 }
 
+type CliErrorPattern =
+  | {
+      kind: "usage";
+      message: string;
+      rootUsageName: string;
+      commandPath: string;
+    }
+  | {
+      kind: "runtime-user";
+      message: string;
+    }
+  | {
+      kind: "toolcraft-bug";
+      error: Error;
+      debugStackMode: DebugStackMode | undefined;
+    }
+  | {
+      kind: "unexpected";
+      message: string;
+      stack: string | undefined;
+      debugStackMode: DebugStackMode | undefined;
+    };
+
+function renderCliErrorPattern(pattern: CliErrorPattern): void {
+  const logger = createLogger();
+
+  if (pattern.kind === "usage") {
+    logger.error(
+      appendUsagePointer(pattern.message, {
+        rootUsageName: pattern.rootUsageName,
+        commandPath: pattern.commandPath
+      })
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  if (pattern.kind === "runtime-user") {
+    logger.error(pattern.message);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (pattern.kind === "toolcraft-bug") {
+    logger.error(
+      `toolcraft hit an internal invariant: ${pattern.error.message}\n` +
+        `This is a bug in toolcraft or in the command definition; ` +
+        `it cannot be worked around by changing argv. ` +
+        `Re-run with --debug for a stack trace and file an issue.`
+    );
+    if (pattern.debugStackMode !== undefined && pattern.error.stack) {
+      process.stderr.write(`${formatDebugStack(pattern.error.stack, pattern.debugStackMode)}\n`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
+  logger.error(
+    pattern.debugStackMode !== undefined
+      ? pattern.message
+      : `${pattern.message} Use --debug for a stack trace.`
+  );
+  if (pattern.debugStackMode !== undefined && pattern.stack !== undefined) {
+    process.stderr.write(`${formatDebugStack(pattern.stack, pattern.debugStackMode)}\n`);
+  }
+  process.exitCode = 1;
+}
+
 function validateServices(services: Record<string, unknown>): void {
   for (const name of Object.keys(services)) {
     if (RESERVED_SERVICE_NAMES.has(name)) {
@@ -4486,32 +4554,34 @@ function handleRunError(
     argv?: readonly string[];
     rootUsageName: string;
     commandPath: string;
+    userErrorPattern: "runtime-user" | "usage";
   }
 ): void {
   const logger = createLogger();
 
   if (error instanceof UserError) {
-    logger.error(
-      appendUsagePointer(error.message, {
-        rootUsageName: options.rootUsageName,
-        commandPath: options.commandPath
-      })
+    renderCliErrorPattern(
+      options.userErrorPattern === "usage"
+        ? {
+            kind: "usage",
+            message: error.message,
+            rootUsageName: options.rootUsageName,
+            commandPath: options.commandPath
+          }
+        : {
+            kind: "runtime-user",
+            message: error.message
+          }
     );
-    process.exitCode = 1;
     return;
   }
 
   if (error instanceof Error && error.name === "ToolcraftBugError") {
-    logger.error(
-      `toolcraft hit an internal invariant: ${error.message}\n` +
-        `This is a bug in toolcraft or in the command definition; ` +
-        `it cannot be worked around by changing argv. ` +
-        `Re-run with --debug for a stack trace and file an issue.`
-    );
-    if (options.debugStackMode !== undefined && error.stack) {
-      process.stderr.write(`${formatDebugStack(error.stack, options.debugStackMode)}\n`);
-    }
-    process.exitCode = 1;
+    renderCliErrorPattern({
+      kind: "toolcraft-bug",
+      error,
+      debugStackMode: options.debugStackMode
+    });
     return;
   }
 
@@ -4564,15 +4634,12 @@ function handleRunError(
   }
 
   const message = error instanceof Error ? error.message : String(error);
-  logger.error(
-    options.debugStackMode !== undefined ? message : `${message} Use --debug for a stack trace.`
-  );
-
-  if (options.debugStackMode !== undefined && error instanceof Error && error.stack) {
-    process.stderr.write(`${formatDebugStack(error.stack, options.debugStackMode)}\n`);
-  }
-
-  process.exitCode = 1;
+  renderCliErrorPattern({
+    kind: "unexpected",
+    message,
+    stack: error instanceof Error ? error.stack : undefined,
+    debugStackMode: options.debugStackMode
+  });
 }
 
 function formatCommanderErrorMessage(error: CommanderError): string {
@@ -5029,7 +5096,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       program,
       argv: process.argv,
       rootUsageName,
-      commandPath: resolvedCommandPath
+      commandPath: resolvedCommandPath,
+      userErrorPattern: errorReportContext?.params === undefined ? "usage" : "runtime-user"
     });
   }
 }

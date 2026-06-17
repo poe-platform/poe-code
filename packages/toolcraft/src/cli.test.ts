@@ -2115,7 +2115,7 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
-  it("prints UserError messages without the verbose hint", async () => {
+  it("prints handler UserError messages without usage or debug hints", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
@@ -2133,7 +2133,7 @@ describe("runCLI", () => {
 
     await runCLI(root);
 
-    expect(loggerState.error).toEqual([withUsagePointer("Invalid input.", "deploy")]);
+    expect(loggerState.error).toEqual(["Invalid input."]);
     expect(process.exitCode).toBe(1);
   });
 
@@ -2890,7 +2890,7 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "deploy", "--yes"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual([withUsagePointer("Invalid input.", "deploy")]);
+    expect(loggerState.error).toEqual(["Invalid input."]);
     expect(readStderr(stderrWrite)).toBe("");
     expect(process.exitCode).toBe(1);
   });

@@ -39,7 +39,7 @@
     "check:semver": "node -e \"const semver=require('semver'); const pkg=require('./package.json'); if(!semver.valid(pkg.version)){console.error('Invalid semver version in package.json:', pkg.version); process.exit(1);}\"",
     "lint": "npm run lint:eslint && npm run lint:types && npm run lint:workflows",
     "lint:workflows": "(command -v actionlint > /dev/null || bash scripts/setup-actionlint.sh) && (command -v actionlint > /dev/null && actionlint || ./actionlint)",
-    "lint:packages": "poe-package-lint",
+    "lint:packages": "tsx packages/package-lint/src/cli.ts",
     "lint:eslint": "eslint . --ext ts",
     "lint:types": "tsc -p tsconfig.build.json --noEmit",
     "labels:generate": "tsx scripts/generate-labels.ts",

@@ -185,6 +185,32 @@ describe("gaslight command", () => {
     });
   });
 
+  it("prints the last gaslight thread resume command", async () => {
+    runGaslightMock.mockResolvedValue({
+      rounds: [
+        { prompt: "Implement docs/plans/a.md", summary: "done", threadId: "thread_abc123" }
+      ],
+      plans: []
+    });
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5"
+    ]);
+
+    expect(outroMock).toHaveBeenCalledWith(
+      "1 rounds finished\nUsage unavailable\nResume: codex resume -C /repo thread_abc123"
+    );
+  });
+
   it("prints each gaslight round prompt before spawning", async () => {
     const logger = vi.fn();
     const program = createProgram();

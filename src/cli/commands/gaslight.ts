@@ -14,6 +14,7 @@ import {
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { resolvePlanDirectory } from "./plan.js";
 import {
+  buildResumeCommand,
   createExecutionResources,
   requireInteractiveStdin,
   resolveCommandFlags,
@@ -294,7 +295,19 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         planPaths.length > 1
           ? `${planPaths.length} plans, ${result.rounds.length} rounds finished`
           : `${result.rounds.length} rounds finished`;
-      outro(`${finished}\n${formatUsage(result.usage)}`);
+      const lastThreadId = result.rounds.at(-1)?.threadId;
+      const resumeCommand = lastThreadId
+        ? buildResumeCommand(agent, lastThreadId, container.env.cwd)
+        : undefined;
+      outro(
+        [
+          finished,
+          formatUsage(result.usage),
+          resumeCommand ? `Resume: ${resumeCommand}` : undefined
+        ]
+          .filter((line): line is string => line !== undefined)
+          .join("\n")
+      );
     });
 
   gaslight

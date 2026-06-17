@@ -116,6 +116,13 @@ function isSourceFile(name: string): boolean {
 }
 
 async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
+  if (fs.listFiles) {
+    try {
+      return (await fs.listFiles(dir)).filter((file) => isSourceFile(path.basename(file)));
+    } catch {
+      return [];
+    }
+  }
   let entries: { name: string; isDirectory(): boolean }[];
   try {
     entries = await fs.readdir(dir);

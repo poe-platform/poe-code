@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { memLintFs, pkgJson } from "./fixtures.js";
-import { scanRuntimeFileAssets } from "./runtime-files.js";
+import { mayContainRuntimeFileAsset, scanRuntimeFileAssets } from "./runtime-files.js";
 
 const packages = [{ name: "agent", dir: "packages/agent" }];
 
@@ -8,7 +8,52 @@ async function scan(files: Record<string, string>) {
   return scanRuntimeFileAssets(memLintFs(files), "/repo", packages);
 }
 
+describe("mayContainRuntimeFileAsset", () => {
+  it("accepts files that import fs modules", () => {
+    expect(mayContainRuntimeFileAsset('import { readFile } from "node:fs/promises";')).toBe(true);
+    expect(mayContainRuntimeFileAsset('import fs from "fs";')).toBe(true);
+  });
+
+  it("rejects files that cannot perform detectable fs operations", () => {
+    expect(mayContainRuntimeFileAsset('import path from "node:path";')).toBe(false);
+    expect(mayContainRuntimeFileAsset('const fs = "node:fs";')).toBe(false);
+  });
+});
+
 describe("scanRuntimeFileAssets", () => {
+  it("uses the bulk file list hook when available", async () => {
+    const baseFs = memLintFs({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/agent/package.json": pkgJson({ name: "agent" }),
+      "/repo/packages/agent/src/index.ts": `
+        import { readFileSync } from "node:fs";
+        readFileSync(new URL("./templates/x.md", import.meta.url), "utf8");
+      `
+    });
+    let listFilesCalls = 0;
+    const fs = {
+      ...baseFs,
+      async listFiles(dir: string) {
+        listFilesCalls += 1;
+        return baseFs.listFiles!(dir);
+      },
+      async readdir() {
+        throw new Error("scanRuntimeFileAssets should not recursively readdir when listFiles exists");
+      }
+    };
+
+    const view = await scanRuntimeFileAssets(fs, "/repo", packages);
+
+    expect(listFilesCalls).toBe(1);
+    expect(view.get("packages/agent")).toMatchObject([
+      {
+        sourceFile: "packages/agent/src/index.ts",
+        sourceRelPath: "src/templates/x.md",
+        runtimeRelPath: "dist/templates/x.md"
+      }
+    ]);
+  });
+
   it("detects fileURLToPath dirname joins", async () => {
     const view = await scan({
       "/repo/package.json": pkgJson({ name: "root" }),

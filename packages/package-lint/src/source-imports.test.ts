@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { extractRelevantImports, mayContainRelevantImport } from "./source-imports.js";
+import { memLintFs, pkgJson } from "./fixtures.js";
+import {
+  extractRelevantImports,
+  mayContainRelevantImport,
+  scanSourceImports
+} from "./source-imports.js";
 
 const workspaceNames = new Set(["private-package", "@poe-code/shared"]);
 
@@ -96,5 +101,39 @@ describe("extractRelevantImports", () => {
     expect(
       extractRelevantImports('type Client = import("private-package").Client;\n', "index.ts")
     ).toEqual([]);
+  });
+});
+
+describe("scanSourceImports", () => {
+  it("uses the bulk file list hook when available", async () => {
+    const baseFs = memLintFs({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/agent/package.json": pkgJson({ name: "agent" }),
+      "/repo/packages/agent/src/index.ts": 'import { value } from "@poe-code/shared";'
+    });
+    let listFilesCalls = 0;
+    const fs = {
+      ...baseFs,
+      async listFiles(dir: string) {
+        listFilesCalls += 1;
+        return baseFs.listFiles!(dir);
+      },
+      async readdir() {
+        throw new Error("scanSourceImports should not recursively readdir when listFiles exists");
+      }
+    };
+
+    const view = await scanSourceImports(fs, "/repo", [
+      { dir: "packages/agent", workspaceNames: new Set(["@poe-code/shared"]) }
+    ]);
+
+    expect(listFilesCalls).toBe(1);
+    expect(view.get("packages/agent")).toMatchObject([
+      {
+        file: "packages/agent/src/index.ts",
+        specifier: "@poe-code/shared",
+        packageName: "@poe-code/shared"
+      }
+    ]);
   });
 });

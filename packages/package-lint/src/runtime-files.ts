@@ -74,6 +74,13 @@ function isTestFile(relFile: string): boolean {
 }
 
 async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
+  if (fs.listFiles) {
+    try {
+      return (await fs.listFiles(dir)).filter((file) => isSourceFile(path.basename(file)));
+    } catch {
+      return [];
+    }
+  }
   let entries: { name: string; isDirectory(): boolean }[];
   try {
     entries = await fs.readdir(dir);
@@ -94,6 +101,13 @@ async function listSourceFiles(fs: LintFs, dir: string): Promise<string[]> {
 
 function isNodeModule(specifier: string, bare: string): boolean {
   return specifier === bare || specifier === `node:${bare}`;
+}
+
+export function mayContainRuntimeFileAsset(source: string): boolean {
+  const imports = ts.preProcessFile(source, true, true).importedFiles;
+  return imports.some(
+    ({ fileName }) => isNodeModule(fileName, "fs") || isNodeModule(fileName, "fs/promises")
+  );
 }
 
 function collectImportSymbols(sourceFile: ts.SourceFile): Symbols {
@@ -486,6 +500,9 @@ export async function scanRuntimeFileAssets(
         try {
           text = await fs.readFile(absFile);
         } catch {
+          continue;
+        }
+        if (!mayContainRuntimeFileAsset(text)) {
           continue;
         }
         const relFile = toPosix(path.relative(rootDir, absFile));

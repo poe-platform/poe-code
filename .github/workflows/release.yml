@@ -40,6 +40,7 @@ jobs:
       - run: npm clean-install
       - run: npm run build
       - run: npm audit signatures
+      - run: npm run lint:packages
       - run: npx turbo run test:unit --concurrency=4 --force
       - run: npm run smoke
       - name: Generate GitHub App token
@@ -69,6 +70,7 @@ jobs:
       - run: npm clean-install
       - run: npm run build
       - run: npm audit signatures
+      - run: npm run lint:packages
       - run: npx turbo run test:unit --concurrency=4 --force
       - run: npm run smoke
       - name: Generate GitHub App token

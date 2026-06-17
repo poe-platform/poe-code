@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { memLintFs } from "./fixtures.js";
 import type { PackageInfo, WorkspaceModel } from "./model.js";
-import { loadPackageFileView } from "./packlist.js";
+import { createNpmPacklistProvider, loadPackageFileView } from "./packlist.js";
 
 const root: PackageInfo = {
   name: "root",
@@ -49,5 +50,28 @@ describe("loadPackageFileView", () => {
     expect(calls).toEqual(["/repo:.", "/repo:packages/agent"]);
     expect(view.get(".")?.files.has("dist/index.js")).toBe(true);
     expect(view.get("packages/agent")?.files.has("dist/templates/x.md")).toBe(true);
+  });
+});
+
+describe("createNpmPacklistProvider", () => {
+  it("lists package files from package.json files entries through the provided filesystem", async () => {
+    const fs = memLintFs({
+      "/repo/packages/agent/package.json": JSON.stringify({ files: ["dist", "README.md"] }),
+      "/repo/packages/agent/dist/index.js": "export {};\n",
+      "/repo/packages/agent/dist/templates/x.md": "# x\n",
+      "/repo/packages/agent/README.md": "# agent\n",
+      "/repo/packages/agent/src/index.ts": "export {};\n"
+    });
+
+    const files = await createNpmPacklistProvider(fs).listPackageFiles(
+      "/repo",
+      "packages/agent"
+    );
+
+    expect([...files].sort()).toEqual([
+      "README.md",
+      "dist/index.js",
+      "dist/templates/x.md"
+    ]);
   });
 });

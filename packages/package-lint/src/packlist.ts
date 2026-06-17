@@ -93,19 +93,8 @@ async function listFallbackPackFiles(fs: LintFs, packageRoot: string): Promise<S
 export function createNpmPacklistProvider(fs?: LintFs): PacklistProvider {
   return {
     async listPackageFiles(rootDir, packageDir) {
-      const packageRoot = path.join(rootDir, packageDir);
-      try {
-        const imported = (await Function(
-          "specifier",
-          "return import(specifier)"
-        )("npm-packlist")) as { default?: (options: { path: string }) => Promise<string[]> };
-        const packlist = imported.default;
-        if (packlist) return new Set((await packlist({ path: packageRoot })).map(toPosix));
-      } catch {
-        // The declared dependency may not be installed in restricted workspaces.
-      }
       if (!fs) return new Set();
-      return listFallbackPackFiles(fs, packageRoot);
+      return listFallbackPackFiles(fs, path.join(rootDir, packageDir));
     }
   };
 }

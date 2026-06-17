@@ -87,6 +87,12 @@ OAuth registry strategy is implemented. Providers that need an OAuth login flow 
 `ProviderRegistry.isLoggedIn()` also treats a non-empty declared env var as logged in,
 matching what `login()` would use in CI.
 
+Provider registries validate definitions at construction time. Provider ids must be
+non-blank after trimming, ids may not collide after normalization, and API-key
+storage keys must be unique. Environment values are read from own properties on
+the supplied env object, so inherited values are ignored. Model input definitions
+are frozen before export.
+
 ## CLI integration
 
 `poe-code provider login <id>` stores the provider credential and any provider endpoint

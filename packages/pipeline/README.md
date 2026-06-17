@@ -84,6 +84,13 @@ steps:
 
 Each step can override `agent` and `model`. If `mode` is omitted it defaults to `yolo`.
 
+Pipeline plans validate task shapes before execution. Unknown task properties,
+empty inline step names, and empty task-status step names are rejected. A task
+with an empty step key is still considered runnable instead of being treated as
+complete.
+
+`{{file 'path'}}` document variables may read only files inside the project root.
+
 ## MCP Servers
 
 The optional `mcp` key passes MCP servers to every agent execution:
@@ -120,8 +127,7 @@ Hooks can be defined in `steps.yaml` (shared defaults) or in the plan file (per-
 
 ```yaml
 setup: false
-tasks:
-  ...
+tasks: ...
 ```
 
 If setup fails, no tasks run. If teardown fails, the pipeline returns `stopReason: "failed"`.
@@ -221,23 +227,21 @@ Exports: `runPipeline`, `resolvePlanPath`, `parsePlan`, `writeTaskStatus`, `load
 ## Testing Helper
 
 ```ts
-import {
-  createPipelineSimulation,
-  successTurn,
-  failTurn
-} from "@poe-code/pipeline/testing";
+import { createPipelineSimulation, successTurn, failTurn } from "@poe-code/pipeline/testing";
 
 const sim = createPipelineSimulation({
   projectSteps: {
     implement: { mode: "yolo", prompt: "Implement {{id}}" }
   },
   plan: {
-    tasks: [{
-      id: "task-1",
-      title: "Demo task",
-      prompt: "Do the thing",
-      status: { implement: "open" }
-    }]
+    tasks: [
+      {
+        id: "task-1",
+        title: "Demo task",
+        prompt: "Do the thing",
+        status: { implement: "open" }
+      }
+    ]
   },
   turns: [successTurn()]
 });

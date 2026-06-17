@@ -216,7 +216,11 @@ poe-code unconfigure <agent>
 1. Resolves the agent by name or alias
 2. Runs the provider's unconfigure mutations (prune keys from config files)
 3. Removes isolated environment configuration if applicable
-4. Removes the service from `~/.poe-code/credentials.json`
+4. Removes the configured service metadata from the selected config layer
+5. Removes the service from `~/.poe-code/credentials.json`
+
+Dry runs validate the same stored service metadata as real unconfigure runs and
+report a no-op when the selected layer has no matching configuration.
 
 **Examples:**
 

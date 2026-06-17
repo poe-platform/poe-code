@@ -42,10 +42,13 @@ npx tsx packages/superintendent/src/cli.ts inspector run <doc> [name]
 Behavior notes:
 
 - `run` starts the full loop and uses the live dashboard in terminal output. Builder agent resolution is `--agent <id>` first, then an explicit `builder.agent` in the plan frontmatter, then configured default agent. If none is set, `--yes` accepts the `claude-code` fallback; otherwise the CLI prompts.
-- `validate` checks frontmatter, supported prompt variables, and the Task Board shape.
+- `validate` checks frontmatter, supported prompt variables, inspector names, and the Task Board shape.
 - `complete` force-transitions the document status to `completed`.
 - `builder run` executes only the builder role.
 - `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.
+
+Invalid config is reported instead of falling back to defaults, and missing
+documents produce domain not-found errors.
 
 ## MCP tool names
 

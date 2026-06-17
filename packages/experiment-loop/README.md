@@ -81,6 +81,10 @@ Register them as `metric:*` npm scripts:
 - `minimize` — lower is better (duration, bundle size)
 - `stable` — must not change (test count during optimization)
 
+Experiment documents validate prompt text, metric directions, baseline numbers,
+agent frontmatter, supported document versions, and stable-metric deltas before
+the loop runs. Completion callbacks are awaited before the run command returns.
+
 ### Metric chains
 
 All metrics must pass, scores are tracked independently:

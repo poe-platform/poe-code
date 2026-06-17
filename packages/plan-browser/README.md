@@ -44,6 +44,10 @@ This package does not introduce any new config keys.
 It discovers markdown plans from the shared plan directory. The default is
 `docs/plans`.
 
+YAML pipeline plans are discovered from the same directory. Broken symlinks are
+skipped during discovery. Editor commands prefer `VISUAL` over `EDITOR` and keep
+escaped spaces inside command tokens.
+
 It respects the existing config option:
 
 - `plan.plan_directory`

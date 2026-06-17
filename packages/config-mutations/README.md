@@ -38,17 +38,24 @@ await runMutations(
 
 `MutationContext` controls execution:
 
-| Option | Type | Description |
-| ------ | ---- | ----------- |
-| `fs` | `FileSystem` | Required filesystem adapter. |
-| `homeDir` | `string` | Required home directory for `~` expansion. |
-| `dryRun` | `boolean` | Reports changes without writing them. |
-| `observers` | `MutationObservers` | Receives mutation lifecycle events. |
-| `templates` | `TemplateLoader` | Loads templates referenced by template mutations. |
-| `pathMapper` | `PathMapper` | Redirects target directories for isolated config flows. |
+| Option       | Type                | Description                                             |
+| ------------ | ------------------- | ------------------------------------------------------- |
+| `fs`         | `FileSystem`        | Required filesystem adapter.                            |
+| `homeDir`    | `string`            | Required home directory for `~` expansion.              |
+| `dryRun`     | `boolean`           | Reports changes without writing them.                   |
+| `observers`  | `MutationObservers` | Receives mutation lifecycle events.                     |
+| `templates`  | `TemplateLoader`    | Loads templates referenced by template mutations.       |
+| `pathMapper` | `PathMapper`        | Redirects target directories for isolated config flows. |
 
 Mutation builders also expose per-mutation options such as target path, format,
 label, force removal, backup behavior, template id, and transform callbacks.
+
+## Validation and safety
+
+- Config merge mutations require object values; primitive merge payloads are rejected.
+- Transform mutations do not rewrite a file when serialized output is unchanged.
+- Directory creation, backup, and chmod mutations refuse targets that resolve through symlinked parents or symlinked files.
+- Observer start events include the resolved target details that will be used by the mutation.
 
 ## Environment Variables
 

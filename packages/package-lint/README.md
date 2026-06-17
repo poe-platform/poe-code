@@ -42,6 +42,10 @@ malformed `package.json`).
 | `runtime-file-assets-collocated`        | Runtime source does not read package-owned file assets from another package's `src` / `dist` tree or from a repo-root path that will not exist after publish.                                                                     |
 | `runtime-file-assets-packaged`          | Every finite package-local runtime file or directory reference exists in the built runtime tree and is included by each artifact surface that can execute the package.                                                            |
 
+Installability checks also flag stale concrete workspace ranges, including
+lockstep packages, and bundled public/private workspace dependencies that still
+require unbundled private packages at runtime.
+
 Imports are parsed with the TypeScript compiler's own scanner (the engine
 `typescript-eslint` runs on) over each package's `src`, so the import-driven
 rules reflect what the code actually imports, not what `package.json` declares.

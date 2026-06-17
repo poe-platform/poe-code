@@ -72,6 +72,13 @@ Notes:
 - `archivePlan({ cwd, homeDir, planDirectory, id })` fires the task-list `archive` event, moves the document under `archive/`, and repacks active plan prefixes.
 - `openPlanList(...)` returns the underlying `TaskList` for commands that need direct task operations.
 
+## Safety and determinism
+
+- Workflow document discovery skips symlinked documents so a plan directory cannot point the runner at files outside the configured workflow tree.
+- Workspace transfer follows the same gitignore semantics as `@poe-code/process-runner`: gitignored directories stay excluded unless the parent directory is explicitly unignored.
+- Run log directories include enough path context to keep plans with the same basename from colliding.
+- Reloaded workflow config is re-applied between iterations, including higher iteration limits.
+
 ## Configuration
 
 This package does not read config files directly, but Poe Code callers commonly pass `configuredDefaultAgent` from merged `core.defaultAgent`.

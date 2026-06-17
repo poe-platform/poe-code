@@ -89,6 +89,10 @@ E2B-specific options:
 
 The E2B API key is configured under the separate `e2b` scope, owned by `@poe-code/runner-e2b`. See that package's README.
 
+Runtime config validates Docker mount targets, build-argument names, prebuilt
+runtime identifiers, and build-context paths before a runtime starts.
+Whitespace-only numeric environment values are ignored instead of being coerced.
+
 ## Runner Scope
 
 Runner settings are stored as `runtime.runner` in config and parsed with `parseRunner(...)`.
@@ -108,6 +112,9 @@ Project config is read as an override on top of global config.
 - Missing or `undefined` project keys do not remove global values.
 - If the project config path resolves to the global config path, only the global document is read and no self-merge is attempted.
 - Project config reads auto-extend from the global config directory, but self-discovered optional bases are ignored by `@poe-code/config-extends`.
+- Merged reads reject symlinked global or project config paths.
+- Runtime config objects are deep-merged, while project arrays replace global arrays when both layers define the same array.
+- Invalid service metadata is not recovered when a caller requests a read-only config load.
 
 Example:
 

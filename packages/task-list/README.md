@@ -46,6 +46,9 @@ interface EventDef<TState extends string = string> {
 
 Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the package uses `defaultStateMachine`, whose event names are `plan`, `start`, `complete`, and `archive`.
 
+State and event names must be non-blank. Custom `gh-issues` state machines are
+validated before network access.
+
 ## Options
 
 | Option            | Type                                           | Default                    | Behavior                                                                                                          |
@@ -103,6 +106,11 @@ await plans.list("plans").reorder(["api-shape-providers", "memory"]);
 
 `frontmatterMode: "strict"` expects full task frontmatter (`kind`, `version`, `name`, `state`, and related task fields). `frontmatterMode: "passthrough"` keeps unrelated frontmatter keys as task metadata and writes back only the task-owned fields (`name`, `description`, `state`), so existing plan metadata is preserved.
 
+List names, task ids, and task names are validated before writes. The
+`markdown-dir` backend accepts the normal macOS `/tmp` system alias, preserves
+numeric filename prefixes for passthrough documents, and removes invalid stale
+lock files before acquiring a new lock.
+
 ### `yaml-file`
 
 ```ts
@@ -124,6 +132,9 @@ await planning.create({
 await planning.fire("review-release", "plan");
 await planning.fire("review-release", "start");
 ```
+
+Archived tasks cannot be used as move anchors. Alphabetical listing with
+`includeArchived` sorts active and archived tasks together.
 
 ### `gh-issues`
 
@@ -154,6 +165,9 @@ await project.move(created.id, { after: "42" });
 ```
 
 `gh-issues` exposes one list named `${project.owner}/${project.number}`. `create()` ignores `TaskCreate.id` because GitHub assigns issue numbers. `fire(state)` writes the Project v2 `Status` field to the matching single-select option. `move()` reorders project items.
+
+Issue ids must be canonical decimal issue numbers. Required state names are
+checked for blank entries before project lookup or mutation.
 
 If the GitHub Project v2 board has not been set up manually, run `poe-code tasks sync <list>` before opening the backend. `openTaskList({ type: "gh-issues" })` no longer requires manual board setup when the board was provisioned with `tasks sync` first.
 

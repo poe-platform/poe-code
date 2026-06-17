@@ -39,6 +39,8 @@ Mode-specific args and env vars are declared in each agent config. `auto` is opt
 
 Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? }`. The package serializes that declarative config into agent-specific CLI arguments, environment variables, or a temporary workspace config file. `listMcpSupportedAgents()` reports the current agents with spawn-time MCP support.
 
+MCP server names and commands must be non-blank before provider-specific serialization runs. Goose rejects MCP entries with `env` or `timeout` values because its CLI argument format cannot preserve them, and OpenCode rejects MCP timeouts because its environment-config path cannot preserve them. Temporary MCP files are written only through non-symlinked target paths and bridged resources are cleaned up if setup fails.
+
 ## Resuming sessions
 
 Pass `resumeThreadId` to continue a prior provider thread/session. Declarative agent configs decide where the resume arguments are inserted and how user-facing resume hints are rendered. Claude Code, Codex, Cursor, OpenCode, Kimi, Goose, and Poe Agent have resume mappings; Poe Agent persists its local message history under `~/.poe-code/sessions/`.

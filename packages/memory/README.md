@@ -61,18 +61,29 @@ Configure under `.poe-code/config.json`:
 - `memory.mcp.allowWrites`: default `--allow-writes` for `poe-code memory-mcp`
 - `memory.query.defaultBudgetTokens`: default budget for `query` and `explain`
 
+## Validation and safety
+
+- Memory roots must not resolve through user-controlled symlinks; the normal macOS `/var` to `/private/var` system alias is allowed.
+- Cache entries are ignored with a warning when their embedded key or numeric metadata does not match the requested cache entry.
+- Agent citations, source references, confidence values, token counts, and query/explain metadata are validated before use.
+- `memory lint --fix` is intentionally not exposed until repair behavior exists.
+- Dry-run `query` and `explain` commands validate inputs without spawning an agent.
+
 ## Confidence tags
 
 Non-trivial claims use HTML comment tags directly above the paragraph they qualify:
 
 ```md
 <!-- memory:extracted source=packages/superintendent/src/phases.ts#L42-L58 -->
+
 The loop has four phases: build, inspect, review, checkpoint.
 
 <!-- memory:inferred confidence=0.7 -->
+
 Checkpoint frequency scales with phase duration.
 
 <!-- memory:ambiguous reason="conflicting incident notes" -->
+
 The inspect phase may retry up to 3 times on ENOENT.
 ```
 

@@ -13,12 +13,12 @@ Skill refs use one of two forms:
 
 Examples:
 
-| Ref | Source |
-|-----|--------|
-| `"my-helper"` | `~/.poe-code/skills/my-helper` or `<cwd>/.poe-code/skills/my-helper` |
-| `"claude/my-helper"` | `~/.claude/skills/my-helper` alias for `claude-code` |
-| `"claude-code/my-helper"` | `~/.claude/skills/my-helper` canonical id |
-| `"codex/my-helper"` | `~/.codex/skills/my-helper` |
+| Ref                       | Source                                                               |
+| ------------------------- | -------------------------------------------------------------------- |
+| `"my-helper"`             | `~/.poe-code/skills/my-helper` or `<cwd>/.poe-code/skills/my-helper` |
+| `"claude/my-helper"`      | `~/.claude/skills/my-helper` alias for `claude-code`                 |
+| `"claude-code/my-helper"` | `~/.claude/skills/my-helper` canonical id                            |
+| `"codex/my-helper"`       | `~/.codex/skills/my-helper`                                          |
 
 The agent token accepts canonical ids, aliases, and any casing. It is normalized with `resolveAgentId` from `@poe-code/agent-defs`. The token is not the source agent's native directory name; the source path always comes from `agentSkillConfigs[canonicalId]`, so aliases map to the directory owned by that canonical agent.
 
@@ -50,26 +50,35 @@ The source ref's agent prefix never appears in the target path. For a Claude Cod
 
 Resolution failures abort the whole bridge before any copy. Error messages distinguish:
 
-| Kind | Meaning |
-|------|---------|
-| `malformed` | Bad syntax; expected `"<name>"` or `"<agentId>/<name>"`. |
+| Kind            | Meaning                                                                              |
+| --------------- | ------------------------------------------------------------------------------------ |
+| `malformed`     | Bad syntax; expected `"<name>"` or `"<agentId>/<name>"`.                             |
 | `unknown-agent` | Agent token does not resolve to a supported agent; the error lists supported agents. |
-| `not-found` | No skill folder exists at any tier; the error lists searched paths in order. |
+| `not-found`     | No skill folder exists at any tier; the error lists searched paths in order.         |
 
 Collisions never abort. The bridge emits one `BridgeWarning` per skipped ref, leaves no state for that ref, and continues the batch.
 
-| Warning kind | Skip condition |
-|--------------|----------------|
-| `local-collision` | Target folder already exists in the spawning agent's local skill dir. |
-| `global-collision` | Target folder already exists in the spawning agent's global skill dir. |
-| `self-reference` | The spawning agent references its own native skill. |
-| `intra-batch-collision` | Two refs produce the same target basename; first input ref wins. |
+| Warning kind            | Skip condition                                                         |
+| ----------------------- | ---------------------------------------------------------------------- |
+| `local-collision`       | Target folder already exists in the spawning agent's local skill dir.  |
+| `global-collision`      | Target folder already exists in the spawning agent's global skill dir. |
+| `self-reference`        | The spawning agent references its own native skill.                    |
+| `intra-batch-collision` | Two refs produce the same target basename; first input ref wins.       |
 
 Native skills are never overwritten. Callers, including the spawn runner, surface `manifest.warnings` through the design-system warning channel before launching the agent.
 
 `cleanupBridgedSkills(manifest)` removes only bridge-created targets and empty parent directories recorded in the manifest. It is idempotent.
 
 When bridge creates entries inside a git repository, `.git/info/exclude` gets a per-run marked block containing only successfully bridged target entries. Cleanup removes only that run's marked block.
+
+## Validation and safety
+
+- Skill names are canonical path tokens. Blank names and names with surrounding whitespace are rejected.
+- Project skill stat errors are surfaced instead of falling back to a user-scope skill with the same name.
+- Bridged source skill directories must contain only supported filesystem entries.
+- The bridge detects source-skill changes and does not reuse stale active targets after the source changes.
+- Cleanup removes duplicate-run exclude blocks after a manifest is cloned.
+- Workspace-root checks allow the normal macOS `/var` system alias but still reject user-controlled symlink escapes.
 
 ## Public API
 
@@ -84,7 +93,7 @@ import {
   resolveAgentSupport,
   getAgentConfig,
   resolveSkillDir,
-  supportedAgents,
+  supportedAgents
 } from "@poe-code/agent-skill-config";
 ```
 

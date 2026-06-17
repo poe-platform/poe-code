@@ -25,6 +25,7 @@ Example global config:
 ```
 
 Missing key on `open()` or `attach()` raises an error pointing to both locations.
+Blank `E2B_API_KEY` values are ignored so project or global config can still resolve.
 
 ## Runtime Config
 
@@ -41,6 +42,9 @@ Use these options under the `runtime` config scope:
 - `memory_mb`: memory in megabytes used when building an E2B template.
 - `timeout_minutes`: sandbox timeout in minutes.
 - `preserve_after_exit_hours`: hours to keep a detached sandbox alive after job exit. Defaults to `24`; valid range is `0` to `168`.
+
+Non-empty `mounts` are rejected because E2B does not support host mounts.
+Host-workspace subdirectory `cwd` values are mapped into the sandbox workspace.
 
 Runner workspace behavior is controlled by `runtime.runner` in `@poe-code/poe-code-config`:
 
@@ -83,8 +87,9 @@ When `runtime.template_id` is absent:
 6. Otherwise build a new E2B template named `poe-code-<hash-prefix>`.
 7. Persist the built template in `~/.poe-code/state/templates.json`.
 
-The hash is deterministic for the same Dockerfile, build context contents, and build args. That keeps
+The hash is deterministic for the same Dockerfile, build context contents, and build args, ignoring files excluded by `.dockerignore`. That keeps
 template identity stable across runs and across teammates using the same inputs.
+Blank cached template ids are ignored and rebuilt.
 
 ## Sandbox Lifecycle
 
@@ -102,3 +107,8 @@ The opened environment supports:
 
 `e2bExecutionEnvFactory.attach(envId, context)` reconnects to an existing sandbox id. Detached jobs
 are tracked by the caller state manager under `~/.poe-code/state/jobs/<job_id>.json`.
+
+Command completion markers and exit-code output are parsed strictly; malformed
+values are rejected instead of being coerced. If kill is requested before the E2B
+command handle resolves, the command is killed as soon as the handle becomes
+available.

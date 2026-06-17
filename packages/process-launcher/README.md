@@ -57,6 +57,8 @@ Validation rules:
 - Durations and poll intervals must be finite non-negative numbers; retain counts and restart counts must be safe integers in their documented ranges.
 - Persisted state and spec files are rejected if their shape does not match the managed process id.
 
+`followManagedLogs()` emits the bounded initial log window before streaming newly appended output, so callers do not miss recent retained lines when attaching to an active process.
+
 ## API
 
 - `startManagedProcess(options)` — start a managed process and write its spec/state.

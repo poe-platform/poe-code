@@ -39,13 +39,20 @@ import { fetchPullRequestMetadata, type CommandRunner } from "github-review";
 const runner: CommandRunner = (_command, _args) => ({
   code: 0,
   stdout: JSON.stringify({ number: 123, title: "Review me" }),
-  stderr: "",
+  stderr: ""
 });
 
-const pullRequest = fetchPullRequestMetadata(
-  "https://github.com/acme/widgets/pull/123",
-  { runner },
-);
+const pullRequest = fetchPullRequestMetadata("https://github.com/acme/widgets/pull/123", {
+  runner
+});
 ```
 
 Review-history ingest uses `gh api --include` to parse GitHub pagination and rate-limit headers. When remaining API requests fall to ten or fewer, it calls `onRateLimit` when provided and throws `GitHubRateLimitError` with a resumable endpoint and partial-result count so callers can stop and resume cleanly.
+
+## Validation
+
+- PR references are normalized to canonical GitHub PR URLs before `gh` commands run.
+- Inline comments are validated against parsed reviewable lines; ambiguous deleted-line targets require an explicit right-side selection.
+- Valid whitespace in diff paths is preserved when comments are submitted or edited.
+- Review-history ingest deduplicates repositories case-insensitively and rejects malformed GitHub timestamps.
+- Review comment bodies are normalized and validated before submission or edit API calls.

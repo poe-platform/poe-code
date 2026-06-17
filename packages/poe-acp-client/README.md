@@ -27,6 +27,15 @@ const update = parseSessionUpdate({
 - Run-report helpers: `generateRunReportFromSessionUpdateStream`, `formatRunReportSummary`, and `saveRunReport`.
 - ACP protocol types and error-code helpers.
 
+## Validation
+
+ACP helpers validate protocol boundaries before forwarding data to callers:
+
+- JSON-RPC request ids must be finite integer ids.
+- Filesystem and terminal handler responses must match the declared ACP shapes.
+- Prompt responses must use supported stop reasons.
+- Run-report generation rejects blank run ids, malformed timestamps, invalid exit statuses, and impossible usage counters.
+
 ## Config Options
 
 This package does not load a config file. Runtime behavior is controlled by

@@ -23,6 +23,7 @@
     "dist"
   ],
   "dependencies": {
+    "npm-packlist": "^10.0.3",
     "semver": "^7.7.4",
     "toolcraft-design": "*",
     "typescript": "^5.9.3",

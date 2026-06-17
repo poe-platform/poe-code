@@ -18,6 +18,7 @@ const rootPackage: PackageInfo = {
   bin: {},
   files: [],
   scripts: {},
+  runtimeAssets: [],
   hasReadme: true
 };
 
@@ -29,7 +30,9 @@ const model: WorkspaceModel = {
   releaseWorkflows: [],
   shippedDirs: new Set(),
   binTargets: [],
-  sourceImports: new Map()
+  sourceImports: new Map(),
+  runtimeFileAssets: new Map(),
+  packageFiles: new Map()
 };
 
 describe("runRules", () => {

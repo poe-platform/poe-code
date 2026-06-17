@@ -1,14 +1,36 @@
 #!/usr/bin/env node
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { parseArgs } from "node:util";
+import path from "node:path";
 import { loadBuildView, loadWorkspace, type LintFs } from "./model.js";
+import { createNpmPacklistProvider } from "./packlist.js";
 import { formatReport } from "./report.js";
 import { runRules } from "./rules/index.js";
 
 const nodeFs: LintFs = {
   readFile: (p) => readFile(p, "utf8"),
   readdir: (p) =>
-    readdir(p, { withFileTypes: true }) as Promise<{ name: string; isDirectory(): boolean }[]>
+    readdir(p, { withFileTypes: true }) as Promise<{ name: string; isDirectory(): boolean }[]>,
+  async stat(p) {
+    const stats = await stat(p);
+    return { isDirectory: () => stats.isDirectory(), isFile: () => stats.isFile() };
+  },
+  async listFiles(dir) {
+    const entries = (await readdir(dir, { withFileTypes: true })) as {
+      name: string;
+      isDirectory(): boolean;
+    }[];
+    const files: string[] = [];
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        files.push(...(await nodeFs.listFiles!(full)));
+      } else {
+        files.push(full);
+      }
+    }
+    return files;
+  }
 };
 
 const HELP = `poe-package-lint — verify workspace packages are configured for publish
@@ -41,7 +63,9 @@ async function main(): Promise<void> {
 
   const rootDir = process.cwd();
   try {
-    const model = await loadWorkspace(nodeFs, rootDir);
+    const model = await loadWorkspace(nodeFs, rootDir, {
+      packlistProvider: createNpmPacklistProvider(nodeFs)
+    });
     const build = await loadBuildView(nodeFs, rootDir);
     const result = runRules(model, build, values.rule);
     process.stdout.write(

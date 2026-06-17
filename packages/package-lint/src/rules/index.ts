@@ -11,6 +11,8 @@ import { exportsSubpathResolvable } from "./exports-subpath-resolvable.js";
 import { bundleSelfContained } from "./bundle-self-contained.js";
 import { publishedBinMustBeExecutable } from "./published-bin-must-be-executable.js";
 import { packageReadmeRequired } from "./package-readme-required.js";
+import { runtimeFileAssetsCollocated } from "./runtime-file-assets-collocated.js";
+import { runtimeFileAssetsPackaged } from "./runtime-file-assets-packaged.js";
 
 export const rules: Rule[] = [
   shippedDistDepsUnresolvable,
@@ -24,7 +26,9 @@ export const rules: Rule[] = [
   exportsSubpathResolvable,
   bundleSelfContained,
   publishedBinMustBeExecutable,
-  packageReadmeRequired
+  packageReadmeRequired,
+  runtimeFileAssetsCollocated,
+  runtimeFileAssetsPackaged
 ];
 
 export function runRules(model: WorkspaceModel, build?: BuildView, only?: string[]): LintResult {

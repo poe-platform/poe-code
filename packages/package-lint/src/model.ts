@@ -1,5 +1,16 @@
 import path from "node:path";
 import { parse as parseYaml } from "yaml";
+import {
+  createNpmPacklistProvider,
+  loadPackageFileView,
+  type PackageFileView,
+  type PacklistProvider
+} from "./packlist.js";
+import {
+  scanRuntimeFileAssets,
+  type RuntimeAssetDeclaration,
+  type RuntimeFileAssetView
+} from "./runtime-files.js";
 import { scanSourceImports, type SourceImportView } from "./source-imports.js";
 
 /**
@@ -10,6 +21,8 @@ import { scanSourceImports, type SourceImportView } from "./source-imports.js";
 export interface LintFs {
   readFile(p: string): Promise<string>;
   readdir(p: string): Promise<{ name: string; isDirectory(): boolean }[]>;
+  stat?(p: string): Promise<{ isDirectory(): boolean; isFile(): boolean }>;
+  listFiles?(p: string): Promise<string[]>;
 }
 
 export type Ecosystem = "npm" | "pypi";
@@ -34,6 +47,7 @@ export interface PackageInfo {
   bin: Record<string, string>;
   files: string[];
   scripts: Record<string, string>;
+  runtimeAssets: RuntimeAssetDeclaration[];
   hasReadme: boolean;
 }
 
@@ -74,6 +88,10 @@ export interface WorkspaceModel {
   binTargets: BinTarget[];
   /** Real import graph of each package's `src`, keyed by package dir. */
   sourceImports: SourceImportView;
+  /** Runtime file assets discovered from package source, keyed by package dir. */
+  runtimeFileAssets: RuntimeFileAssetView;
+  /** Files included by each package artifact, keyed by package dir. */
+  packageFiles: PackageFileView;
 }
 
 export interface BuildView {
@@ -131,6 +149,57 @@ function toStringArray(value: unknown): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
+function normalizeAssetPath(value: string): string | undefined {
+  const normalized = toPosix(path.posix.normalize(value));
+  if (
+    normalized.length === 0 ||
+    normalized === "." ||
+    normalized === ".." ||
+    normalized.startsWith("../") ||
+    path.posix.isAbsolute(normalized)
+  ) {
+    return undefined;
+  }
+  return normalized;
+}
+
+function inferAssetKind(runtimeRelPath: string): "file" | "directory" {
+  const base = path.posix.basename(runtimeRelPath);
+  return base.includes(".") ? "file" : "directory";
+}
+
+function parseRuntimeAssets(pkg: Record<string, unknown>): RuntimeAssetDeclaration[] {
+  const poeCode = pkg.poeCode && typeof pkg.poeCode === "object" ? pkg.poeCode : undefined;
+  const raw =
+    poeCode && !Array.isArray(poeCode)
+      ? (poeCode as Record<string, unknown>).runtimeAssets
+      : undefined;
+  if (!Array.isArray(raw)) return [];
+  const assets: RuntimeAssetDeclaration[] = [];
+  for (const entry of raw) {
+    if (typeof entry === "string") {
+      const runtimeRelPath = normalizeAssetPath(entry);
+      if (runtimeRelPath) assets.push({ runtimeRelPath, kind: inferAssetKind(runtimeRelPath) });
+      continue;
+    }
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const record = entry as Record<string, unknown>;
+    if (typeof record.runtime !== "string") continue;
+    const runtimeRelPath = normalizeAssetPath(record.runtime);
+    const sourceRelPath =
+      typeof record.source === "string" ? normalizeAssetPath(record.source) : undefined;
+    const kind = record.kind === "file" || record.kind === "directory" ? record.kind : undefined;
+    if (runtimeRelPath) {
+      assets.push({
+        runtimeRelPath,
+        sourceRelPath,
+        kind: kind ?? inferAssetKind(runtimeRelPath)
+      });
+    }
+  }
+  return assets;
+}
+
 const PYTHON_MARKERS = new Set(["pyproject.toml", "setup.py", "setup.cfg"]);
 
 async function loadPackage(
@@ -172,6 +241,7 @@ async function loadPackage(
       ? (pkg.files.filter((f) => typeof f === "string") as string[])
       : [],
     scripts: toStringRecord(pkg.scripts),
+    runtimeAssets: parseRuntimeAssets(pkg),
     hasReadme: entries.some((e) => e.name === "README.md" && !e.isDirectory())
   };
 }
@@ -341,7 +411,11 @@ async function loadReleaseWorkflows(fs: LintFs, rootDir: string): Promise<Releas
   return workflows;
 }
 
-export async function loadWorkspace(fs: LintFs, rootDir: string): Promise<WorkspaceModel> {
+export async function loadWorkspace(
+  fs: LintFs,
+  rootDir: string,
+  options: { packlistProvider?: PacklistProvider } = {}
+): Promise<WorkspaceModel> {
   const root = await loadPackage(fs, rootDir, ".", true);
   if (!root) throw new Error(`No package.json at workspace root: ${rootDir}`);
 
@@ -367,14 +441,24 @@ export async function loadWorkspace(fs: LintFs, rootDir: string): Promise<Worksp
 
   const { shippedDirs, binTargets } = deriveShipped(root);
   const workspaceNames = new Set(packages.map((p) => p.name));
-  const sourceImports = await scanSourceImports(
-    fs,
-    rootDir,
-    packages.map((pkg) => ({
-      dir: pkg.dir,
-      workspaceNames: new Set([...workspaceNames].filter((name) => name !== pkg.name))
-    }))
-  );
+  const sourceImportPackages = packages.map((pkg) => ({
+    dir: pkg.dir,
+    workspaceNames: new Set([...workspaceNames].filter((name) => name !== pkg.name))
+  }));
+  const runtimePackages = packages.map((pkg) => ({ name: pkg.name, dir: pkg.dir }));
+  const partialModel = {
+    root,
+    packages
+  };
+  const [sourceImports, runtimeFileAssets, packageFiles] = await Promise.all([
+    scanSourceImports(fs, rootDir, sourceImportPackages),
+    scanRuntimeFileAssets(fs, rootDir, runtimePackages),
+    loadPackageFileView(options.packlistProvider ?? createNpmPacklistProvider(fs), {
+      rootDir,
+      model: partialModel,
+      fs
+    })
+  ]);
   return {
     root,
     packages,
@@ -383,7 +467,9 @@ export async function loadWorkspace(fs: LintFs, rootDir: string): Promise<Worksp
     releaseWorkflows,
     shippedDirs,
     binTargets,
-    sourceImports
+    sourceImports,
+    runtimeFileAssets,
+    packageFiles
   };
 }
 

@@ -121,7 +121,7 @@ describe("runGaslight", () => {
     expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three", "four"]);
   });
 
-  it("archives each plan after its gaslight rounds succeed", async () => {
+  it("leaves each plan in place after its gaslight rounds succeed", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({
         "/repo/docs/plans/first.md": "# First",
@@ -160,20 +160,15 @@ describe("runGaslight", () => {
       spawn
     });
 
-    await expect(fs.readFile("/repo/docs/plans/first.md", "utf8")).rejects.toMatchObject({
+    await expect(fs.readFile("/repo/docs/plans/first.md", "utf8")).resolves.toBe("# First");
+    await expect(fs.readFile("/repo/docs/plans/second.md", "utf8")).resolves.toBe("# Second");
+    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
-    await expect(fs.readFile("/repo/docs/plans/second.md", "utf8")).rejects.toMatchObject({
+    await expect(fs.readFile("/repo/docs/plans/archive/second.md", "utf8")).rejects.toMatchObject({
       code: "ENOENT"
     });
-    await expect(fs.readFile("/repo/docs/plans/archive/first.md", "utf8")).resolves.toBe("# First");
-    await expect(fs.readFile("/repo/docs/plans/archive/second.md", "utf8")).resolves.toBe(
-      "# Second"
-    );
-    expect(result.plans.map((plan) => plan.archivedPath)).toEqual([
-      "/repo/docs/plans/archive/first.md",
-      "/repo/docs/plans/archive/second.md"
-    ]);
+    expect(result.plans.map((plan) => plan.archivedPath)).toEqual([undefined, undefined]);
   });
 
   it("leaves the active plan in place when a later round fails", async () => {
@@ -346,28 +341,33 @@ describe("runGaslight", () => {
     expect(spawn).not.toHaveBeenCalled();
   });
 
-  it("rejects existing archive destinations before spawning", async () => {
+  it("allows an existing archive destination because gaslight does not write it", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({
         "/repo/docs/plans/work.md": "# Work",
         "/repo/docs/plans/archive/work.md": "# Old archive"
       })
     ).promises;
-    const spawn = vi.fn();
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "second", stderr: "", threadId: "two" });
 
-    await expect(
-      runGaslight({
-        cwd: "/repo",
-        planPaths: ["docs/plans/work.md"],
-        agent: "codex",
-        prompt: "Implement",
-        followups: ["Again"],
-        fs,
-        spawn
-      })
-    ).rejects.toThrow("Archive destination already exists: /repo/docs/plans/archive/work.md");
-    expect(spawn).not.toHaveBeenCalled();
+    await runGaslight({
+      cwd: "/repo",
+      planPaths: ["docs/plans/work.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Again"],
+      fs,
+      spawn
+    });
+
+    expect(spawn).toHaveBeenCalledTimes(2);
     await expect(fs.readFile("/repo/docs/plans/work.md", "utf8")).resolves.toBe("# Work");
+    await expect(fs.readFile("/repo/docs/plans/archive/work.md", "utf8")).resolves.toBe(
+      "# Old archive"
+    );
   });
 
   it("uses an explicit config path when provided", async () => {

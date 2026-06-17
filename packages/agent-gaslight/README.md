@@ -117,7 +117,7 @@ const result = await runGaslight({
 - `fs`: Injectable filesystem for tests and custom hosts.
 - `spawn`: Injectable agent spawn function for tests and custom hosts.
 
-After all rounds for a plan finish successfully, Gaslight moves that plan into a sibling `archive/` directory. The run result contains each round's prompt, summary, and thread id; each plan's `archivedPath`; and summed token and cost usage when the agent reports usage.
+After all rounds for a plan finish successfully, Gaslight leaves the plan file in place. The run result contains each round's prompt, summary, and thread id, plus summed token and cost usage when the agent reports usage.
 
 ## Ingest options
 

@@ -77,32 +77,76 @@ function collectBundledPrivateDependencyViolations(options: {
 
     for (const edge of dependencyEdges(current.pkg)) {
       const dep = options.modelByName.get(edge.name);
-      if (!dep || !dep.private) {
+      if (!dep) {
+        if (
+          isProvidedExternalRuntimeEdge(
+            options.consumer,
+            current.pkg,
+            edge,
+            options.consumerBundled
+          )
+        ) {
+          continue;
+        }
+        violations.push({
+          rule: id,
+          package: options.consumer.name,
+          severity: "error",
+          via: edge.field,
+          detail: {
+            dependency: edge.name,
+            field: edge.field,
+            bundledVia: current.via
+          },
+          message: `published package bundles ${current.via.join(" -> ")}, whose ${edge.field} requires external package ${edge.name}`,
+          fix: `Add ${edge.name} to ${options.consumer.name} "dependencies" or vendor it with bundledDependencies so ${current.pkg.name} can resolve it after install.`
+        });
         continue;
       }
 
-      if (isBundledRuntimeEdge(current.pkg, edge, dep, options.consumerBundled)) {
-        pending.push({ pkg: dep, via: [...current.via, dep.name] });
-        continue;
-      }
+      if (dep.private) {
+        if (isBundledRuntimeEdge(current.pkg, edge, dep, options.consumerBundled)) {
+          pending.push({ pkg: dep, via: [...current.via, dep.name] });
+          continue;
+        }
 
-      violations.push({
-        rule: id,
-        package: options.consumer.name,
-        severity: "error",
-        via: edge.field,
-        detail: {
-          dependency: dep.name,
-          field: edge.field,
-          bundledVia: current.via
-        },
-        message: `published package bundles ${current.via.join(" -> ")}, whose ${edge.field} requires private workspace package ${dep.name}`,
-        fix: `Bundle ${dep.name} into ${current.pkg.name}, publish ${dep.name}, or remove the ${edge.field} edge from the bundled package manifest.`
-      });
+        violations.push({
+          rule: id,
+          package: options.consumer.name,
+          severity: "error",
+          via: edge.field,
+          detail: {
+            dependency: dep.name,
+            field: edge.field,
+            bundledVia: current.via
+          },
+          message: `published package bundles ${current.via.join(" -> ")}, whose ${edge.field} requires private workspace package ${dep.name}`,
+          fix: `Bundle ${dep.name} into ${current.pkg.name}, publish ${dep.name}, or remove the ${edge.field} edge from the bundled package manifest.`
+        });
+      }
     }
   }
 
   return violations;
+}
+
+function hasOwn(record: Record<string, string>, name: string): boolean {
+  return Object.prototype.hasOwnProperty.call(record, name);
+}
+
+function isProvidedExternalRuntimeEdge(
+  consumer: PackageInfo,
+  pkg: PackageInfo,
+  edge: DependencyEdge,
+  consumerBundled: ReadonlySet<string>
+): boolean {
+  return (
+    edge.field === "peerDependencies" ||
+    pkg.bundledDependencies.includes(edge.name) ||
+    consumerBundled.has(edge.name) ||
+    hasOwn(consumer.dependencies, edge.name) ||
+    hasOwn(consumer.optionalDependencies, edge.name)
+  );
 }
 
 function isBundledRuntimeEdge(

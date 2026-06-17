@@ -30,6 +30,9 @@
   "dependencies": {
     "toolcraft": "^0.0.51",
     "auth-store": "^0.0.1",
+    "fast-string-width": "^3.0.2",
+    "fast-wrap-ansi": "^0.2.0",
+    "sisteransi": "^1.0.5",
     "yaml": "^2.8.2"
   },
   "engines": {

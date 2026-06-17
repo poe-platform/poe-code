@@ -135,6 +135,57 @@ describe("no-published-to-private-dep", () => {
     expect(noPublishedToPrivateDep.run(model)).toHaveLength(0);
   });
 
+  it("flags external runtime deps inside a bundled workspace dependency", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/pub/package.json": pkgJson({
+        name: "pub",
+        dependencies: { bundled: "*" },
+        bundledDependencies: ["bundled"]
+      }),
+      "/repo/packages/bundled/package.json": pkgJson({
+        name: "bundled",
+        private: true,
+        dependencies: { "fast-string-width": "^3.0.2" }
+      })
+    });
+
+    const violations = noPublishedToPrivateDep.run(model);
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      package: "pub",
+      via: "dependencies",
+      severity: "error",
+      detail: {
+        dependency: "fast-string-width",
+        field: "dependencies",
+        bundledVia: ["bundled"]
+      }
+    });
+  });
+
+  it("passes when the consumer declares external runtime deps for a bundled workspace dependency", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({ name: "root" }),
+      "/repo/packages/pub/package.json": pkgJson({
+        name: "pub",
+        dependencies: {
+          bundled: "*",
+          "fast-string-width": "^3.0.2"
+        },
+        bundledDependencies: ["bundled"]
+      }),
+      "/repo/packages/bundled/package.json": pkgJson({
+        name: "bundled",
+        private: true,
+        dependencies: { "fast-string-width": "^3.0.2" }
+      })
+    });
+
+    expect(noPublishedToPrivateDep.run(model)).toHaveLength(0);
+  });
+
   it("ignores private consumers depending on private packages", async () => {
     const model = await makeWorkspace({
       "/repo/package.json": pkgJson({ name: "root" }),

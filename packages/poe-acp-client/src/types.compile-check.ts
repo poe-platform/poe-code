@@ -803,5 +803,5 @@ const ignoredLegacyToolCallContent: ToolCallContent = {
   content: { type: "text", text: "legacy" },
 };
 
-// @ts-expect-error stop reason values are restricted to completed/cancelled/max_tokens
-const ignoredInvalidStopReason: StopReason = "end_turn";
+// @ts-expect-error stop reason values are restricted to supported ACP values
+const ignoredInvalidStopReason: StopReason = "totally-not-valid";

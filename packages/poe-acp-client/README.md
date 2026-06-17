@@ -27,6 +27,10 @@ const update = parseSessionUpdate({
 - Run-report helpers: `generateRunReportFromSessionUpdateStream`, `formatRunReportSummary`, and `saveRunReport`.
 - ACP protocol types and error-code helpers.
 
+## Validation
+
+ACP helpers validate protocol boundaries before forwarding data to callers. Prompt responses must use one of the supported stop reasons: `completed`, `cancelled`, `max_tokens`, or `end_turn`.
+
 ## Config Options
 
 This package does not load a config file. Runtime behavior is controlled by

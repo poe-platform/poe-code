@@ -1981,6 +1981,19 @@ describe("AcpClient", () => {
     await expect(turn.response).rejects.toThrow(/stopReason/i);
   });
 
+  it("accepts end_turn prompt responses from ACP agents", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ stopReason: "end_turn" } satisfies PromptResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    const turn = client.prompt("session-1", [{ type: "text", text: "Hello agent" }]);
+
+    await expect(turn.response).resolves.toEqual({ stopReason: "end_turn" });
+  });
+
   it("validates prompt content using promptCapabilities", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock.mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse);

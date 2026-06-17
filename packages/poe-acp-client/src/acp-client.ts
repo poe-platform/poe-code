@@ -114,6 +114,7 @@ const validStopReasons = new Set<PromptResponse["stopReason"]>([
   "completed",
   "cancelled",
   "max_tokens",
+  "end_turn",
 ]);
 
 export interface AcpClientHandlers {
@@ -241,7 +242,7 @@ function assertPromptResponse(value: PromptResponse): void {
   if (!validStopReasons.has(value.stopReason)) {
     throw invalidResponse(
       "session/prompt",
-      '"stopReason" must be "completed", "cancelled", or "max_tokens".'
+      '"stopReason" must be "completed", "cancelled", "max_tokens", or "end_turn".'
     );
   }
 }

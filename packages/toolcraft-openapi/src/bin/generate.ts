@@ -49,8 +49,13 @@ interface GenerateCliOptions {
   diff: boolean;
   input: string;
   inspect: boolean;
+  lockPath: string;
   outputFormat: OutputFormat;
   outputDir: string;
+}
+
+interface OpenApiLock {
+  specSha: string;
 }
 
 interface SyncGeneratedClientResult {
@@ -72,6 +77,7 @@ const DEFAULT_OPTIONS: GenerateCliOptions = {
   diff: false,
   input: "openapi.json",
   inspect: false,
+  lockPath: "openapi.lock",
   outputFormat: "terminal",
   outputDir: "src/generated"
 };
@@ -81,6 +87,7 @@ const HELP_TEXT = `Usage: toolcraft-openapi-generate [options]
 Options:
   --input <path-or-url>  OpenAPI document to read (default: openapi.json)
   --output <dir>         Directory for generated command files (default: src/generated)
+  --lock <path>          Lock file path (default: openapi.lock)
   --check                Exit non-zero if generated output would change
   --diff                 Print a diff of generated changes without writing files
   --inspect              Inspect route compatibility without writing files
@@ -198,6 +205,9 @@ export async function syncGeneratedClient(
   const effectiveConfig = hasErrorDiagnostics(diagnostics) ? undefined : configResult.config;
   const generatedFiles = generate(document, { specSha, config: effectiveConfig });
   const outputDir = path.resolve(services.cwd, options.outputDir);
+  const lockPath = path.resolve(services.cwd, options.lockPath);
+  const currentLockContents = await readOpenApiLockText(services.fs, lockPath);
+  const desiredLockContents = stringifyOpenApiLock({ specSha });
   const currentFiles = await readGeneratedFiles(services.fs, outputDir);
   const desiredFiles = new Map([
     ...generatedFiles.map((file) => [path.resolve(outputDir, file.path), file.contents] as const),
@@ -206,13 +216,21 @@ export async function syncGeneratedClient(
     )
   ]);
   const updatedFiles = collectUpdatedFiles(currentFiles, desiredFiles);
+  const updatedLockFile =
+    currentLockContents === desiredLockContents
+      ? undefined
+      : { path: lockPath, contents: desiredLockContents, previousContents: currentLockContents };
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
-  const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
+  const drifted =
+    updatedFiles.length > 0 || updatedLockFile !== undefined || deletedFiles.length > 0;
 
   if (!options.check && !options.diff && drifted && !hasErrorDiagnostics(diagnostics)) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
       await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);
+      if (updatedLockFile !== undefined) {
+        await writeOpenApiLock(services.fs, lockPath, { specSha });
+      }
     } catch (error) {
       await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
       throw error;
@@ -225,8 +243,8 @@ export async function syncGeneratedClient(
     diagnostics,
     drifted,
     specSha,
-    updatedFiles,
-    updatedFileCount: updatedFiles.length
+    updatedFiles: updatedLockFile === undefined ? updatedFiles : [...updatedFiles, updatedLockFile],
+    updatedFileCount: updatedFiles.length + (updatedLockFile === undefined ? 0 : 1)
   };
 }
 
@@ -279,7 +297,11 @@ function renderGeneratedDiff(result: SyncGeneratedClientResult, outputDir: strin
   return `${sections.join("\n")}\n`;
 }
 
-function renderFileDiff(relativePath: string, previousContents: string, nextContents: string): string {
+function renderFileDiff(
+  relativePath: string,
+  previousContents: string,
+  nextContents: string
+): string {
   const previousLines = previousContents.split("\n");
   const nextLines = nextContents.split("\n");
 
@@ -363,7 +385,12 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
-    if (argument === "--input" || argument === "--output" || argument === "--output-format") {
+    if (
+      argument === "--input" ||
+      argument === "--output" ||
+      argument === "--lock" ||
+      argument === "--output-format"
+    ) {
       const value = argv[index + 1];
 
       if (value === undefined) {
@@ -385,6 +412,11 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
+    if (argument.startsWith("--lock=")) {
+      assignOptionValue(options, "--lock", argument.slice("--lock=".length));
+      continue;
+    }
+
     if (argument.startsWith("--output-format=")) {
       assignOptionValue(options, "--output-format", argument.slice("--output-format=".length));
       continue;
@@ -398,7 +430,7 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
 
 function assignOptionValue(
   options: GenerateCliOptions,
-  argument: "--input" | "--output" | "--output-format",
+  argument: "--input" | "--output" | "--lock" | "--output-format",
   value: string
 ): void {
   if (value.length === 0) {
@@ -420,7 +452,78 @@ function assignOptionValue(
     return;
   }
 
+  if (argument === "--lock") {
+    options.lockPath = value;
+    return;
+  }
+
   options.outputDir = value;
+}
+
+async function readOpenApiLockText(
+  fs: Pick<GenerateCliFileSystem, "readFile">,
+  lockPath: string
+): Promise<string | undefined> {
+  try {
+    const contents = await fs.readFile(lockPath, "utf8");
+    parseOpenApiLock(contents, lockPath);
+    return contents;
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+function parseOpenApiLock(contents: string, lockPath: string): OpenApiLock | null {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(contents);
+  } catch (error) {
+    throw new UserError(
+      `Lock file ${JSON.stringify(lockPath)} is not valid JSON: ${getErrorMessage(error)}.`,
+      { cause: error }
+    );
+  }
+
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !("version" in parsed) ||
+    parsed.version !== 1 ||
+    !("specSha" in parsed) ||
+    typeof parsed.specSha !== "string" ||
+    parsed.specSha.length === 0
+  ) {
+    return null;
+  }
+
+  return { specSha: parsed.specSha };
+}
+
+function stringifyOpenApiLock(lock: OpenApiLock): string {
+  return `${JSON.stringify({ version: 1, specSha: lock.specSha }, null, 2)}\n`;
+}
+
+async function writeOpenApiLock(
+  fs: Pick<GenerateCliFileSystem, "mkdir" | "writeFile">,
+  lockPath: string,
+  lock: OpenApiLock
+): Promise<void> {
+  await fs.mkdir(path.dirname(lockPath), { recursive: true });
+
+  try {
+    await fs.writeFile(lockPath, stringifyOpenApiLock(lock), "utf8");
+  } catch (error) {
+    const code = getErrorCode(error);
+    throw new UserError(
+      `Failed to write lock file ${JSON.stringify(lockPath)}${code === undefined ? "" : ` (${code})`}: ${getErrorMessage(error)}`,
+      { cause: error }
+    );
+  }
 }
 
 function createSpecSha(sourceText: string): string {
@@ -661,6 +764,18 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
 
 function isAlreadyExistsError(error: unknown): error is NodeJS.ErrnoException {
   return hasOwnErrorCode(error, "EEXIST");
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (typeof error !== "object" || error === null || !("code" in error)) {
+    return undefined;
+  }
+
+  return typeof error.code === "string" ? error.code : undefined;
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function isDirectExecution(moduleUrl: string, argv: string[]): boolean {

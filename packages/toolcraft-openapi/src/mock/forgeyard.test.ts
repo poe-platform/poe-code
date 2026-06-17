@@ -23,6 +23,10 @@ function sampleValue(definition: GeneratedParamDefinition): unknown {
       return { nested: { enabled: true }, values: [1, "two"] };
     case "number":
       return definition.jsonType === "integer" ? 1 : 1.5;
+    case "object":
+      return Object.fromEntries(
+        definition.properties.map((property) => [property.name, sampleValue(property.definition)])
+      );
     case "string":
       return "sample";
   }
@@ -130,7 +134,7 @@ describe("createForgeyardSpec", () => {
     expect(
       mock.requests.find((request) => request.operationId === "POST /v1/compatibility/jobs")?.body
     ).toEqual({
-      configuration: { nested: { enabled: true }, values: [1, "two"] }
+      configuration: { retries: 1, matrix: [{}] }
     });
     expect(
       mock.requests.find((request) => request.operationId === "create compatibility token")?.headers

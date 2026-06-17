@@ -231,6 +231,20 @@ const RUNTIME_DEFINITION_BUILDERS = {
   json: (_definition: Extract<GeneratedParamDefinition, { kind: "json" }>) => S.Json(),
   number: (_definition: Extract<GeneratedParamDefinition, { kind: "number" }>, options?: Record<string, unknown>) =>
     options === undefined ? S.Number() : S.Number(options),
+  object: (definition: Extract<GeneratedParamDefinition, { kind: "object" }>, options?: Record<string, unknown>) => {
+    const shape = Object.fromEntries(
+      definition.properties.map((property) => {
+        const propertySchema = createRuntimeDefinition(
+          property.definition,
+          undefined,
+          undefined,
+          undefined
+        );
+        return [property.name, property.optional ? S.Optional(propertySchema) : propertySchema];
+      })
+    ) as Record<string, AnySchema>;
+    return options === undefined ? S.Object(shape) : S.Object(shape, options);
+  },
   string: (_definition: Extract<GeneratedParamDefinition, { kind: "string" }>, options?: Record<string, unknown>) =>
     options === undefined ? S.String() : S.String(options)
 } as const satisfies {

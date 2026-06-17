@@ -3962,7 +3962,7 @@ describe("generate", () => {
     expect(command).toContain('"includeArchived": params.includeArchived,');
   });
 
-  it("uses JSON params for nested request body fields", () => {
+  it("uses typed params for nested request body fields", () => {
     const files = generate(
         createDocument({
           "/bots/{handle}": {
@@ -4008,8 +4008,87 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/update-bot.ts");
 
-    expect(commandFile?.contents).toContain("metadata: S.Optional(S.Json())");
+    expect(commandFile?.contents).toContain(
+      "metadata: S.Optional(S.Object({ theme: S.Optional(S.String()) }, { additionalProperties: true }))"
+    );
     expect(commandFile?.contents).toContain('"metadata": params.metadata');
+  });
+
+  it("generates typed schemas for nested required request object fields", () => {
+    const files = generate(
+      {
+        openapi: "3.0.3",
+        info: {
+          title: "Internal Agent API",
+          version: "1.0.0"
+        },
+        components: {
+          schemas: {
+            CreateApiBotRequest: {
+              type: "object",
+              required: ["plan"],
+              properties: {
+                plan: { $ref: "#/components/schemas/BotCreationPlan-Input" }
+              }
+            },
+            "BotCreationPlan-Input": {
+              type: "object",
+              required: ["api_bot_settings"],
+              properties: {
+                api_bot_settings: { $ref: "#/components/schemas/ApiBotSettingsPlan-Input" }
+              }
+            },
+            "ApiBotSettingsPlan-Input": {
+              type: "object",
+              required: ["model_name", "api_key_reference"],
+              properties: {
+                model_name: { type: "string" },
+                api_key_reference: { $ref: "#/components/schemas/ApiKeyReferencePlan" }
+              }
+            },
+            ApiKeyReferencePlan: {
+              type: "object",
+              required: ["integration_id"],
+              properties: {
+                integration_id: { type: "string" },
+                key: { type: "string" }
+              }
+            }
+          }
+        },
+        paths: {
+          "/bots": {
+            post: {
+              tags: ["bots"],
+              operationId: "createApiBot",
+              requestBody: {
+                required: true,
+                content: {
+                  "application/json": {
+                    schema: { $ref: "#/components/schemas/CreateApiBotRequest" }
+                  }
+                }
+              },
+              responses: {
+                "201": {
+                  description: "Created."
+                }
+              }
+            }
+          }
+        }
+      },
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/create-api-bot.ts");
+
+    expect(commandFile?.contents).toContain("plan: S.Object({");
+    expect(commandFile?.contents).toContain('"api_bot_settings": S.Object({');
+    expect(commandFile?.contents).toContain('"api_key_reference": S.Object({');
+    expect(commandFile?.contents).toContain('"integration_id": S.String()');
+    expect(commandFile?.contents).toContain("key: S.Optional(S.String())");
+    expect(commandFile?.contents).toContain('"plan": params.plan');
   });
 
   it("uses JSON params for structural object body fields without an explicit type", () => {

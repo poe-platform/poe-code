@@ -246,6 +246,7 @@ interface GeneratedCommandExample {
 }
 
 interface GeneratedParamDefinitionMetadata {
+  additionalProperties?: boolean;
   defaultValue?: unknown;
   format?: string;
   jsonType?: "integer";
@@ -278,10 +279,22 @@ interface GeneratedJsonParamDefinition extends GeneratedParamDefinitionMetadata 
   kind: "json";
 }
 
+interface GeneratedObjectParamDefinition extends GeneratedParamDefinitionMetadata {
+  kind: "object";
+  properties: readonly GeneratedObjectPropertyDefinition[];
+}
+
+interface GeneratedObjectPropertyDefinition {
+  name: string;
+  optional: boolean;
+  definition: GeneratedParamDefinition;
+}
+
 export type GeneratedParamDefinition =
   | GeneratedScalarParamDefinition
   | GeneratedEnumParamDefinition
   | GeneratedArrayParamDefinition
+  | GeneratedObjectParamDefinition
   | GeneratedJsonParamDefinition;
 
 type GeneratedParamScope = "cli" | "mcp" | "sdk";
@@ -370,6 +383,10 @@ const SCHEMA_OPTION_SOURCES = [
   {
     key: "description",
     get: (param: RenderSchemaOptionsInput) => param.description
+  },
+  {
+    key: "additionalProperties",
+    get: (param: RenderSchemaOptionsInput) => param.definition.additionalProperties
   },
   {
     key: "default",
@@ -1319,7 +1336,7 @@ function createBodyField(
   optional: boolean,
   operationId: string
 ): GeneratedParameterAssembly {
-  if (isComplexJsonBodySchema(document, schema, operationId, `request body field ${JSON.stringify(name)}`)) {
+  if (shouldUseJsonBodyField(document, schema, operationId, `request body field ${JSON.stringify(name)}`)) {
     return createJsonBodyField({
       document,
       name,
@@ -1342,6 +1359,36 @@ function createBodyField(
     context: `request body field ${JSON.stringify(name)}`,
     location: "body"
   });
+}
+
+function shouldUseJsonBodyField(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject,
+  operationId: string,
+  context: string
+): boolean {
+  if (isUnconstrainedJsonSchema(schema)) {
+    return true;
+  }
+
+  if (getCompositionKeyword(schema) !== undefined || Array.isArray(schema.type)) {
+    return true;
+  }
+
+  if (schema.type === "object") {
+    return typeof schema.additionalProperties === "object";
+  }
+
+  if (schema.properties !== undefined || schema.additionalProperties !== undefined) {
+    return true;
+  }
+
+  if (schema.type !== "array" || schema.items === undefined) {
+    return false;
+  }
+
+  const itemSchema = resolveBodySchema(document, schema.items, operationId, `${context} items`);
+  return shouldUseJsonBodyField(document, itemSchema, operationId, `${context} items`);
 }
 
 function isComplexJsonBodySchema(
@@ -1606,7 +1653,10 @@ const FIELD_ASSEMBLERS = {
         location: "body"
       }),
     object: (options: CreateFieldOptions) =>
-      createJsonBodyField(options),
+      createScalarParam({
+        ...options,
+        location: "body"
+      }),
     scalar: (options: CreateFieldOptions) =>
       createScalarParam({
         ...options,
@@ -1744,6 +1794,16 @@ function createParamDefinition(
     };
   }
 
+  if (schema.type === "object") {
+    return {
+      kind: "object",
+      properties: createObjectPropertyDefinitions(document, schema, operationId, context),
+      additionalProperties: schema.additionalProperties !== false,
+      ...(schema.default === undefined ? {} : { defaultValue: schema.default }),
+      ...(schema.nullable === true ? { nullable: true } : {})
+    };
+  }
+
   const scalarDefinition = isOpenApiScalarType(schema.type)
     ? SCHEMA_TYPE_TO_KIND[schema.type]
     : undefined;
@@ -1783,6 +1843,52 @@ function createParamDefinition(
   throw new UserError(
     `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. Supported shapes in this milestone are string, number, integer, boolean, enum, and arrays of those values.`
   );
+}
+
+function createObjectPropertyDefinitions(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject,
+  operationId: string,
+  context: string
+): GeneratedObjectPropertyDefinition[] {
+  const required = new Set(schema.required ?? []);
+  const properties: GeneratedObjectPropertyDefinition[] = [];
+
+  for (const [name, property] of Object.entries(schema.properties ?? {})) {
+    const propertySchema = resolveBodySchema(
+      document,
+      property,
+      operationId,
+      `${context}.properties.${name}`
+    );
+
+    if (propertySchema.readOnly === true) {
+      continue;
+    }
+
+    properties.push({
+      name,
+      optional: !required.has(name),
+      definition: shouldUseJsonBodyField(
+        document,
+        propertySchema,
+        operationId,
+        `${context}.properties.${name}`
+      )
+        ? {
+            kind: "json",
+            ...(propertySchema.nullable === true ? { nullable: true } : {})
+          }
+        : createParamDefinition(
+            document,
+            propertySchema,
+            operationId,
+            `${context}.properties.${name}`
+          )
+    });
+  }
+
+  return properties;
 }
 
 function assertPathTemplateParameters(
@@ -2792,6 +2898,8 @@ const DEFINITION_RENDERERS = {
   json: (_definition: GeneratedJsonParamDefinition) => renderSchemaCall("S.Json"),
   number: (_definition: GeneratedScalarParamDefinition, options?: string) =>
     renderSchemaCall("S.Number", options),
+  object: (definition: GeneratedObjectParamDefinition, options?: string) =>
+    renderSchemaCall("S.Object", renderObjectDefinitionShape(definition), options),
   string: (_definition: GeneratedScalarParamDefinition, options?: string) =>
     renderSchemaCall("S.String", options)
 } as const satisfies {
@@ -2814,6 +2922,19 @@ function renderSchemaOptions(param: RenderSchemaOptionsInput): string | undefine
 
 function renderConstArray(values: ReadonlyArray<string | number | boolean>): string {
   return `${JSON.stringify(values)} as const`;
+}
+
+function renderObjectDefinitionShape(definition: GeneratedObjectParamDefinition): string {
+  if (definition.properties.length === 0) {
+    return "{}";
+  }
+
+  return `{ ${definition.properties.map(renderObjectDefinitionProperty).join(", ")} }`;
+}
+
+function renderObjectDefinitionProperty(property: GeneratedObjectPropertyDefinition): string {
+  const schema = renderDefinition(property.definition, undefined, undefined, undefined);
+  return `${renderObjectKey(property.name)}: ${property.optional ? `S.Optional(${schema})` : schema}`;
 }
 
 function renderObjectKey(name: string): string {

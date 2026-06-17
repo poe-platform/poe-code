@@ -27,6 +27,14 @@ type GeneratedArrayDefinition = GeneratedParamDefinition & {
   itemDefinition: GeneratedParamDefinition;
 };
 type GeneratedNumberDefinition = GeneratedParamDefinition & { kind: "number" };
+type GeneratedObjectDefinition = GeneratedParamDefinition & {
+  kind: "object";
+  properties: ReadonlyArray<{
+    name: string;
+    optional: boolean;
+    definition: GeneratedParamDefinition;
+  }>;
+};
 type GeneratedStringDefinition = GeneratedParamDefinition & { kind: "string" };
 
 interface RequestSectionOperation {
@@ -387,6 +395,8 @@ function findDefinitionIssue(
       return undefined;
     case "number":
       return findNumberDefinitionIssue(value, definition as GeneratedNumberDefinition, path);
+    case "object":
+      return findObjectDefinitionIssue(value, definition as GeneratedObjectDefinition, path);
     case "string":
       return findStringDefinitionIssue(value, definition as GeneratedStringDefinition, path);
   }
@@ -414,6 +424,47 @@ function findArrayDefinitionIssue(
 
     if (issue !== undefined) {
       return issue;
+    }
+  }
+
+  return undefined;
+}
+
+function findObjectDefinitionIssue(
+  value: unknown,
+  definition: GeneratedObjectDefinition,
+  path: readonly string[]
+): string | undefined {
+  if (!isJsonObject(value)) {
+    return `Expected object at ${formatJsonPath(path)}.`;
+  }
+
+  const knownProperties = new Set(definition.properties.map((property) => property.name));
+
+  for (const property of definition.properties) {
+    if (!Object.prototype.hasOwnProperty.call(value, property.name)) {
+      if (property.optional) {
+        continue;
+      }
+
+      return `Expected required property ${JSON.stringify(property.name)} at ${formatJsonPath(path)}.`;
+    }
+
+    const issue = findDefinitionIssue(value[property.name], property.definition, [
+      ...path,
+      property.name
+    ]);
+
+    if (issue !== undefined) {
+      return issue;
+    }
+  }
+
+  if (definition.additionalProperties === false) {
+    for (const key of Object.keys(value)) {
+      if (!knownProperties.has(key)) {
+        return `Unexpected property ${JSON.stringify(key)} at ${formatJsonPath(path)}.`;
+      }
     }
   }
 
@@ -470,6 +521,10 @@ function findStringDefinitionIssue(
   }
 
   return undefined;
+}
+
+function isJsonObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function compileDefinitionPattern(pattern: string): RegExp | undefined {

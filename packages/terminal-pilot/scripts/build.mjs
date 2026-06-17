@@ -106,7 +106,7 @@ if (!cliContents.startsWith("#!/usr/bin/env node")) {
 await assertSafeOutputDirectory(packageDir, path.join(distDir, "templates"));
 await mkdir(path.join(distDir, "templates"), { recursive: true });
 await cp(
-  path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
+  path.join(packageDir, "src", "templates", "terminal-pilot.md"),
   path.join(distDir, "templates", "terminal-pilot.md")
 );
 

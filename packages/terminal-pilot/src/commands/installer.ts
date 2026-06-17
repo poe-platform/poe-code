@@ -1,7 +1,6 @@
 import os from "node:os";
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
-import { readFile } from "node:fs/promises";
 import { UserError } from "toolcraft";
 import {
   getAgentConfig,
@@ -103,20 +102,15 @@ export async function loadTerminalPilotTemplate(): Promise<string> {
     return terminalPilotTemplateCache;
   }
 
-  const candidates = [
-    new URL("./templates/terminal-pilot.md", import.meta.url),
-    new URL("../templates/terminal-pilot.md", import.meta.url),
-    new URL("../../../agent-skill-config/src/templates/terminal-pilot.md", import.meta.url)
-  ];
-
-  for (const candidate of candidates) {
-    try {
-      terminalPilotTemplateCache = await readFile(candidate, "utf8");
-      return terminalPilotTemplateCache;
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
+  try {
+    terminalPilotTemplateCache = await nodeFs.readFile(
+      new URL("../templates/terminal-pilot.md", import.meta.url),
+      "utf8"
+    );
+    return terminalPilotTemplateCache;
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
     }
   }
 

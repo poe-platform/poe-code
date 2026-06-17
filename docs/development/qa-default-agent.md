@@ -19,15 +19,7 @@ npm run dev -- ralph run <some-plan>
 
 Verify no agent prompt appears and the command continues with `claude-code`.
 
-## 3. With the env var still set, verify `mcp configure`
-
-```bash
-npm run dev -- mcp configure
-```
-
-Verify no agent prompt appears and the command continues with `claude-code`.
-
-## 4. Verify CLI args override the env var
+## 3. Verify CLI args override the env var
 
 ```bash
 npm run dev -- configure --agent codex
@@ -35,7 +27,7 @@ npm run dev -- configure --agent codex
 
 Verify the command uses `codex`, not `claude-code`.
 
-## 5. Verify an invalid env default fails fast
+## 4. Verify an invalid env default fails fast
 
 ```bash
 export POE_DEFAULT_AGENT=not-a-real-agent
@@ -44,7 +36,7 @@ npm run dev -- configure
 
 Verify a `ValidationError` mentioning `core.defaultAgent` is printed, the process exits non-zero, and no prompt appears.
 
-## 6. Clear the env var and verify the prompt returns
+## 5. Clear the env var and verify the prompt returns
 
 ```bash
 unset POE_DEFAULT_AGENT

@@ -106,7 +106,7 @@ describe("command help formatting", () => {
     expect(help).toContain("wrap, w");
     expect(help).toContain("models, m");
     expect(help).toContain("usage, u");
-    expect(help).toContain("generate, g");
+    expect(help).not.toContain("generate, g");
   });
 
   it("adds a design header to subcommand help output", () => {
@@ -122,16 +122,16 @@ describe("command help formatting", () => {
 
   it("includes parent command names in nested help output", () => {
     const program = createHelpProgram();
-    const mcpCommand = program.commands.find((command) => command.name() === "mcp");
-    expect(mcpCommand).toBeDefined();
+    const planCommand = program.commands.find((command) => command.name() === "plan");
+    expect(planCommand).toBeDefined();
 
-    const mcpConfigure = mcpCommand?.commands.find(
-      (command) => command.name() === "configure"
+    const planBrowse = planCommand?.commands.find(
+      (command) => command.name() === "browse"
     );
-    expect(mcpConfigure).toBeDefined();
+    expect(planBrowse).toBeDefined();
 
-    const help = mcpConfigure?.helpInformation() ?? "";
-    expect(stripAnsi(help)).toContain("Poe - mcp configure");
+    const help = planBrowse?.helpInformation() ?? "";
+    expect(stripAnsi(help)).toContain("Poe - plan browse");
   });
 
   it("lists isolated agents in wrap help output", () => {

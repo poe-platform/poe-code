@@ -18,7 +18,6 @@ export {
 export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { ingestGaslight, runGaslight } from "./sdk/gaslight.js";
-export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey, getPoeAuthIdentity } from "./sdk/credentials.js";
 export type { GetPoeAuthIdentityOptions, PoeAuthIdentity } from "./sdk/credentials.js";
 export {
@@ -113,11 +112,7 @@ export type {
   HookBridgeOptions,
   SpawnRetryOptions,
   SpawnUsage,
-  SpawnResult,
-  GenerateOptions,
-  MediaGenerateOptions,
-  GenerateResult,
-  MediaGenerateResult
+  SpawnResult
 } from "./sdk/types.js";
 export type {
   BridgeHookManifest,

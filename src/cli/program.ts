@@ -28,8 +28,6 @@ import { registerUtilsCommand } from "./commands/utils.js";
 import { registerInstallCommand } from "./commands/install.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
-import { registerGenerateCommand } from "./commands/generate.js";
-import { registerMcpCommand } from "./commands/mcp.js";
 import { registerSkillCommand } from "./commands/skill.js";
 import { registerVersionOption } from "./commands/version.js";
 import { registerUsageCommand } from "./commands/usage.js";
@@ -91,7 +89,6 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["gaslight", "install"] },
   { path: ["wrap"] },
   { path: ["test"] },
-  { path: ["generate"] },
   { path: ["models"] },
   { path: ["tasks", "verify"], args: "<list>" },
   { path: ["tasks", "sync"], args: "<list>" },
@@ -102,8 +99,6 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["tasks", "next"] },
   { path: ["tasks", "comment"] },
   { path: ["tasks", "move"] },
-  { path: ["mcp", "configure"] },
-  { path: ["mcp", "unconfigure"] },
   { path: ["skill", "configure"] },
   { path: ["skill", "unconfigure"] },
   { path: ["pipeline", "install"] },
@@ -938,14 +933,12 @@ function bootstrapProgram(container: CliContainer): Command {
   });
   registerGaslightCommand(program, container);
   registerWrapCommand(program, container);
-  registerGenerateCommand(program, container);
   registerTestCommand(program, container);
   registerUnconfigureCommand(program, container);
   registerLoginCommand(program, container);
   registerLogoutCommand(program, container);
   registerUtilsCommand(program, container);
   registerAuthCommand(program, container);
-  registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
   registerMaestroCommand(program, container);

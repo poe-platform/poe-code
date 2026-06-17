@@ -710,12 +710,12 @@ describe("root command", () => {
     expect(plainOutput).toContain("wrap, w");
     expect(plainOutput).toContain("models, m");
     expect(plainOutput).toContain("usage, u");
-    expect(plainOutput).toContain("generate, g");
+    expect(plainOutput).not.toContain("generate, g");
     expect(plainOutput).toContain("test");
     expect(plainOutput).toContain("Configure developer tooling for Poe API");
     expect(plainOutput).toContain("Install agent binary for a configured agent");
-    expect(plainOutput).toContain("mcp configure");
-    expect(plainOutput).toContain("mcp unconfigure");
+    expect(plainOutput).not.toContain("mcp configure");
+    expect(plainOutput).not.toContain("mcp unconfigure");
     expect(plainOutput).toContain("experiment install");
     expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("config");
@@ -753,10 +753,6 @@ describe("root command", () => {
   });
 
   it("omits the raw [command] placeholder from parent command help usage", async () => {
-    const generateHelp = await renderHelp(["generate", "--help"]);
-    expect(generateHelp).toContain("Usage: poe-code generate [options] [prompt]");
-    expect(generateHelp).not.toContain("[command]");
-
     const usageHelp = await renderHelp(["usage", "--help"]);
     expect(usageHelp).toContain("Usage: poe-code usage [options]");
     expect(usageHelp).not.toContain("[command]");
@@ -1105,39 +1101,8 @@ describe("root command", () => {
     expect(plainCommander).not.toContain("Commands:");
   });
 
-  it("suggests the correct help scope for unknown subcommands", async () => {
-    process.argv = ["node", "/usr/local/bin/poe"];
-
-    const fs = createMemFs();
-    const prompts = vi.fn().mockResolvedValue({});
-
-    let loggerOutput = "";
-    const program = createProgram({
-      fs,
-      prompts,
-      env: {
-        cwd: "/repo",
-        homeDir: "/home/test",
-        variables: {}
-      },
-      logger: (message) => {
-        loggerOutput += `${message}\n`;
-      }
-    });
-
-    await expect(program.parseAsync(["node", "cli", "mcp", "nope"])).rejects.toBeInstanceOf(
-      SilentError
-    );
-
-    const plainLogger = stripAnsi(loggerOutput);
-    expect(plainLogger).toContain("Unknown command:");
-    expect(plainLogger).toContain("nope");
-    expect(plainLogger).toContain("poe mcp --help");
-  });
-
   it.each([
     { args: ["nope", "--help"], help: "poe --help" },
-    { args: ["mcp", "nope", "--help"], help: "poe mcp --help" },
     { args: ["skill", "nope", "--help"], help: "poe skill --help" }
   ])("errors for unknown help command paths: $args", async ({ args, help }) => {
     process.argv = ["node", "/usr/local/bin/poe"];

@@ -67,7 +67,6 @@ npx poe-code@latest logout
 - [Utilities](#utilities)
 - [Usage and Billing](#usage--billing)
 - [Models](#models)
-- [MCP Server](#poe-mcp-server)
 - [SDK](#sdk)
 - [Research Preview](#research-preview)
 - [Poe API](https://poe.com/api)
@@ -176,28 +175,6 @@ poe-code models --endpoint /v1/chat/completions
 # Search by provider or model id
 poe-code models --search claude
 ```
-
-## Poe MCP Server
-
-Give any agent access to all Poe models including latest image, video, and audio models.
-
-```bash
-# Show configuration JSON and available tools
-npx poe-code@latest mcp --help
-
-# Configure an MCP client to use poe-code
-npx poe-code@latest mcp configure claude-code
-
-# Remove poe-code from an MCP client
-npx poe-code@latest mcp unconfigure claude-code
-```
-
-### Available tools
-
-- `generate_text` – Query any bot on Poe.
-- `generate_image` – Generate images
-- `generate_video` – Generate videos
-- `generate_audio` – Convert text to audio
 
 ## SDK
 

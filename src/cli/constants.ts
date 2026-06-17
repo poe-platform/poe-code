@@ -9,11 +9,6 @@ export const FRONTIER_MODELS = [
 export const DEFAULT_FRONTIER_MODEL = "anthropic/claude-opus-4.7";
 export const DEFAULT_CURSOR_MODEL = DEFAULT_FRONTIER_MODEL;
 
-export const DEFAULT_TEXT_MODEL = "anthropic/claude-sonnet-4.6";
-export const DEFAULT_IMAGE_BOT = "google/nano-banana-pro";
-export const DEFAULT_AUDIO_BOT = "elevenlabs/elevenlabs-v3";
-export const DEFAULT_VIDEO_BOT = "google/veo-3.1";
-
 export const CLAUDE_CODE_VARIANTS = {
   haiku: "anthropic/claude-haiku-4.5",
   sonnet: "anthropic/claude-sonnet-4.6",

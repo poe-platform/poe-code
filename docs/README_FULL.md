@@ -1,6 +1,6 @@
 # Poe Code - Complete Reference
 
-> **Audience**: AI agents and developers who need to understand and use every feature of the `poe-code` library — CLI, SDK, MCP server, providers, and internals.
+> **Audience**: AI agents and developers who need to understand and use every feature of the `poe-code` library — CLI, SDK, providers, and internals.
 
 `poe-code` is a CLI tool and Node.js SDK that configures coding agents (Claude Code, Codex, OpenCode, Kimi, Goose) to route their API calls through the [Poe API](https://poe.com/api). Instead of managing multiple provider accounts, a single Poe subscription powers all your coding agents.
 
@@ -27,10 +27,8 @@
   - [wrap](#wrap)
   - [test](#test)
   - [install](#install)
-  - [generate](#generate)
   - [usage](#usage)
   - [models](#models)
-  - [mcp](#mcp)
   - [skill](#skill)
   - [pipeline](#pipeline)
   - [memory](#memory)
@@ -38,10 +36,6 @@
   - [spawn()](#spawn-sdk)
   - [spawn.pretty()](#spawnpretty)
   - [Composable agent runtime](#composable-agent-runtime)
-  - [generate()](#generate-sdk)
-  - [generateImage()](#generateimage)
-  - [generateVideo()](#generatevideo)
-  - [generateAudio()](#generateaudio)
   - [getPoeApiKey()](#getpoeapikey)
   - [getPoeAuthIdentity()](#getpoeauthidentity)
   - [Types](#sdk-types)
@@ -52,10 +46,6 @@
   - [Kimi](#kimi-provider)
   - [Goose](#goose-provider)
   - [Provider Architecture](#provider-architecture)
-- [MCP Server](#mcp-server)
-  - [Available Tools](#mcp-tools)
-  - [Output Formats](#mcp-output-formats)
-  - [Agent MCP Configuration](#agent-mcp-configuration)
 - [Spawn System](#spawn-system)
   - [Spawn Modes](#spawn-modes)
   - [Streaming (ACP Events)](#streaming-acp-events)
@@ -636,62 +626,6 @@ poe-code install kimi
 poe-code install goose
 ```
 
----
-
-### generate
-
-Generate content (text, images, video, audio) via the Poe API directly from the command line.
-
-```bash
-poe-code generate [prompt]
-poe-code generate text [prompt]
-poe-code generate image [prompt]
-poe-code generate video [prompt]
-poe-code generate audio [prompt]
-```
-
-**Options (all subcommands):**
-
-| Option | Description |
-|--------|-------------|
-| `--model <model>` | Model identifier. Uses type-specific defaults if omitted. |
-| `--param <key=value>` | Additional parameters (repeatable). Passed as `extra_body` to the API. |
-| `-o, --output <path>` | Output file path (media subcommands only). Auto-generates filename if omitted. |
-
-**Default models:**
-
-| Type | Default Model | Environment Override |
-|------|---------------|---------------------|
-| Text | `anthropic/claude-sonnet-4.6` | `POE_TEXT_MODEL` |
-| Image | `google/nano-banana-pro` | `POE_IMAGE_MODEL` |
-| Video | `google/veo-3.1` | `POE_VIDEO_MODEL` |
-| Audio | `elevenlabs/elevenlabs-v3` | `POE_AUDIO_MODEL` |
-
-**Examples:**
-
-```bash
-# Text generation (default subcommand)
-poe-code generate "Explain monads in simple terms"
-poe-code generate text "Write a haiku about coding" --model anthropic/claude-opus-4.7
-
-# Image generation
-poe-code generate image "A futuristic city at sunset"
-poe-code generate image "Logo for a coffee shop" -o logo.png
-
-# Video generation
-poe-code generate video "A cat playing piano" --model google/veo-3.1
-poe-code generate video "Ocean waves" -o waves.mp4
-
-# Audio generation
-poe-code generate audio "Hello, welcome to our podcast" --model elevenlabs/elevenlabs-v3
-poe-code generate audio "Breaking news" -o news.mp3
-
-# With extra parameters
-poe-code generate "Write a poem" --param temperature=0.9 --param max_tokens=500
-```
-
----
-
 ### usage
 
 Check Poe API compute points balance and review usage history.
@@ -810,97 +744,6 @@ poe-code models --model claude-opus-4.7 --view parameters
 # Raw YAML output for scripting
 poe-code models --provider openai --view raw
 ```
-
----
-
-### mcp
-
-MCP (Model Context Protocol) server commands. Give any agent access to all Poe models via MCP.
-
-#### `mcp serve`
-
-Run the Poe MCP server on stdin/stdout (for agent integration).
-
-```bash
-poe-code mcp serve
-```
-
-**Options:**
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--output-format <format>` | `url` | Preferred media output format(s). Values: `url`, `base64`, `markdown`, `markdown_instructions`. Comma-separated for fallback chain. |
-
-**Output format details:**
-
-| Format | Description |
-|--------|-------------|
-| `url` | Returns media URL directly. |
-| `base64` | Returns base64-encoded content as an MCP Image/Audio content block. Not supported for video. |
-| `markdown` | Returns markdown-formatted link: `![Image](url)` for images, `[filename](url)` for video/audio. |
-| `markdown_instructions` | Returns instructions for the agent to render the media in chat. |
-
-**Examples:**
-
-```bash
-# Standard MCP server
-poe-code mcp serve
-
-# With base64 output (for agents that support inline images)
-poe-code mcp serve --output-format base64
-
-# Fallback chain: try base64, then URL
-poe-code mcp serve --output-format base64,url
-
-# Markdown format
-poe-code mcp serve --output-format markdown
-```
-
-#### `mcp configure`
-
-Configure an agent to use poe-code as an MCP server.
-
-```bash
-poe-code mcp configure [agent]
-```
-
-**Options:**
-
-| Option | Description |
-|--------|-------------|
-| `-y, --yes` | Skip prompt. Uses `core.defaultAgent` / `POE_DEFAULT_AGENT` when set; otherwise defaults to claude-code. |
-
-**Supported agents and their MCP config locations:**
-
-| Agent | Config File | Config Key |
-|-------|------------|------------|
-| Claude Code | `~/.claude.json` | `mcpServers` |
-| Claude Desktop (macOS) | `~/Library/Application Support/Claude/claude_desktop_config.json` | `mcpServers` |
-| Claude Desktop (Windows) | `~/AppData/Roaming/Claude/claude_desktop_config.json` | `mcpServers` |
-| Claude Desktop (Linux) | `~/.config/Claude/claude_desktop_config.json` | `mcpServers` |
-| Codex | `~/.codex/config.toml` | `mcp_servers` |
-| OpenCode | `~/.config/opencode/opencode.json` | `mcp` |
-| Kimi | `~/.kimi/mcp.json` | `mcpServers` |
-| Goose | `~/.config/goose/config.yaml` | `extensions` |
-
-**Examples:**
-
-```bash
-poe-code mcp configure claude-code
-poe-code mcp configure codex
-poe-code mcp configure goose
-poe-code mcp configure --yes  # defaults to claude-code
-```
-
-#### `mcp unconfigure`
-
-Remove poe-code from an agent's MCP configuration.
-
-```bash
-poe-code mcp unconfigure <agent>
-```
-
----
 
 ### skill
 
@@ -1210,82 +1053,6 @@ The builder supports `.model(...)`, `.use(...)`, `.tools(...)`, `.mcp(...)`,
 `openaiChatCompletionsPlugin`, `openaiResponsesPlugin`, and
 `systemPromptPlugin`.
 
-### generate() {#generate-sdk}
-
-Generate text using the Poe API.
-
-```typescript
-import { generate } from "poe-code";
-
-const result = await generate("Explain quantum computing", {
-  model: "anthropic/claude-opus-4.7",
-  params: { temperature: "0.7", max_tokens: "1000" }
-});
-
-console.log(result.content); // Generated text
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | `string` | Yes | The generation prompt. |
-| `options.model` | `string` | No | Model override. Default: `anthropic/claude-sonnet-4.6` or `POE_TEXT_MODEL` env. |
-| `options.params` | `Record<string, string>` | No | Extra parameters passed as `extra_body` to the API. |
-
-**Returns:** `Promise<GenerateResult>` with `{ content: string }`
-
-### generateImage()
-
-Generate an image using the Poe API.
-
-```typescript
-import { generateImage } from "poe-code";
-
-const result = await generateImage("A futuristic city at sunset", {
-  model: "google/nano-banana-pro"
-});
-
-console.log(result.url);      // URL to the generated image
-console.log(result.mimeType); // e.g., "image/png"
-```
-
-**Parameters:**
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | `string` | Yes | Image generation prompt. |
-| `options.model` | `string` | No | Default: `google/nano-banana-pro` or `POE_IMAGE_MODEL` env. |
-| `options.params` | `Record<string, string>` | No | Extra parameters. |
-
-**Returns:** `Promise<MediaGenerateResult>` with `{ url: string, mimeType?: string }`
-
-### generateVideo()
-
-Generate a video using the Poe API.
-
-```typescript
-import { generateVideo } from "poe-code";
-
-const result = await generateVideo("A cat playing piano");
-console.log(result.url);
-```
-
-**Default model:** `google/veo-3.1` or `POE_VIDEO_MODEL` env.
-
-### generateAudio()
-
-Generate audio (text-to-speech) using the Poe API.
-
-```typescript
-import { generateAudio } from "poe-code";
-
-const result = await generateAudio("Hello, welcome to our podcast");
-console.log(result.url);
-```
-
-**Default model:** `elevenlabs/elevenlabs-v3` or `POE_AUDIO_MODEL` env.
-
 ### getPoeApiKey()
 
 Read the stored Poe API key.
@@ -1321,11 +1088,7 @@ Uses `POE_API_KEY` or the stored credential, honors `POE_BASE_URL`, and throws a
 ```typescript
 import type {
   SpawnOptions,
-  SpawnResult,
-  GenerateOptions,
-  GenerateResult,
-  MediaGenerateOptions,
-  MediaGenerateResult
+  SpawnResult
 } from "poe-code";
 ```
 
@@ -1364,32 +1127,6 @@ interface SpawnResult {
   threadId?: string;
   /** Path to the JSONL spawn log file (if logging was active) */
   logFile?: string;
-}
-```
-
-#### GenerateOptions / MediaGenerateOptions
-
-```typescript
-interface GenerateOptions {
-  /** Model identifier override */
-  model?: string;
-  /** Additional parameters passed to the API */
-  params?: Record<string, string>;
-}
-
-type MediaGenerateOptions = GenerateOptions;
-```
-
-#### GenerateResult / MediaGenerateResult
-
-```typescript
-interface GenerateResult {
-  content: string;
-}
-
-interface MediaGenerateResult {
-  url: string;
-  mimeType?: string;
 }
 ```
 
@@ -1887,116 +1624,6 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
 | `poeBaseUrl` | Resolved from environment/defaults |
 | String literal | Used as-is |
 
----
-
-## MCP Server
-
-The `poe-code` MCP server exposes Poe API generation capabilities as MCP tools that any compatible agent can use.
-
-### MCP Tools
-
-#### generate_text
-
-Generate text using any Poe bot.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `bot_name` | `string` | Yes | Name of the Poe bot/model to query. |
-| `message` | `string` | Yes | Message to send to the bot. |
-| `params` | `object` | No | Additional parameters. |
-
-#### generate_image
-
-Generate an image.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | `string` | Yes | Text prompt for image generation. |
-| `bot_name` | `string` | No | Bot to use. Default: `google/nano-banana-pro`. |
-| `params` | `object` | No | Additional parameters. |
-
-#### generate_video
-
-Generate a video.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | `string` | Yes | Text prompt for video generation. |
-| `bot_name` | `string` | No | Bot to use. Default: `google/veo-3.1`. |
-| `params` | `object` | No | Additional parameters. |
-
-#### generate_audio
-
-Convert text to audio.
-
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `prompt` | `string` | Yes | Text to convert to audio. |
-| `bot_name` | `string` | No | Bot to use. Default: `elevenlabs/elevenlabs-v3`. |
-| `params` | `object` | No | Additional parameters. |
-
-### MCP Output Formats
-
-When serving media (images, video, audio), the MCP server supports multiple output formats:
-
-| Format | Description | Supports |
-|--------|-------------|----------|
-| `url` | Returns the media URL as text. | All media types |
-| `base64` | Returns base64-encoded content as an MCP Image/Audio content block. | Images, Audio (not video) |
-| `markdown` | Returns markdown: `![Image](url)` for images, `[filename](url)` for video/audio. | All media types |
-| `markdown_instructions` | Returns instructions for the agent to render the media in chat with specific action text. | All media types |
-
-Formats can be combined as a comma-separated fallback chain: `--output-format base64,url` tries base64 first, falls back to URL.
-
-### Agent MCP Configuration
-
-The MCP configuration format varies by agent:
-
-**Standard shape** (Claude Code, Claude Desktop, Kimi):
-```json
-{
-  "poe-code": {
-    "command": "poe-code",
-    "args": ["mcp", "serve", "--output-format", "url"],
-    "env": { "POE_API_KEY": "..." }
-  }
-}
-```
-
-**OpenCode shape:**
-```json
-{
-  "poe-code": {
-    "type": "local",
-    "command": ["poe-code", "mcp", "serve", "--output-format", "url"],
-    "env": { "POE_API_KEY": "..." },
-    "enabled": true
-  }
-}
-```
-
-**Codex shape** (TOML):
-```toml
-[mcp_servers.poe-code]
-command = "poe-code"
-args = ["mcp", "serve", "--output-format", "url"]
-```
-
-**Goose shape** (YAML):
-```yaml
-extensions:
-  poe-code:
-    type: stdio
-    cmd: poe-code
-    args:
-      - mcp
-      - serve
-      - --output-format
-      - url
-```
-
----
-
 ## Spawn System
 
 ### Spawn Modes
@@ -2367,10 +1994,6 @@ Output shows:
 
 | Constant | Value | Used By |
 |----------|-------|---------|
-| `DEFAULT_TEXT_MODEL` | `anthropic/claude-sonnet-4.6` | `generate text` |
-| `DEFAULT_IMAGE_BOT` | `google/nano-banana-pro` | `generate image` |
-| `DEFAULT_VIDEO_BOT` | `google/veo-3.1` | `generate video` |
-| `DEFAULT_AUDIO_BOT` | `elevenlabs/elevenlabs-v3` | `generate audio` |
 | `DEFAULT_FRONTIER_MODEL` | `anthropic/claude-opus-4.7` | OpenCode and Goose defaults |
 | `DEFAULT_CLAUDE_CODE_MODEL` | `anthropic/claude-sonnet-4.6` | Claude Code default |
 | `DEFAULT_CODEX_MODEL` | `openai/gpt-5.5` | Codex default |
@@ -2446,11 +2069,7 @@ stripModelNamespace("openai/gpt-5.2")              // → "gpt-5.2"
 | `POE_API_KEY` | — | Poe API key. Highest priority credential source. |
 | `POE_DEFAULT_AGENT` | — | Default agent (or `agent:model`) used when commands omit agent selection. |
 | `POE_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. Used for provider configuration. |
-| `POE_API_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. Used by SDK generate functions. |
-| `POE_TEXT_MODEL` | `anthropic/claude-sonnet-4.6` | Override default text generation model. |
-| `POE_IMAGE_MODEL` | `google/nano-banana-pro` | Override default image generation model. |
-| `POE_VIDEO_MODEL` | `google/veo-3.1` | Override default video generation model. |
-| `POE_AUDIO_MODEL` | `elevenlabs/elevenlabs-v3` | Override default audio generation model. |
+| `POE_API_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. |
 | `POE_CODE_STDERR_LOGS` | — | Set to `1` or `true` to enable stderr logging for bootstrap errors. |
 | `POE_SNAPSHOT_MODE` | `playback` | Testing: `record` to record LLM responses, `playback` to replay. |
 | `POE_SNAPSHOT_MISS` | `error` | Testing: behavior on missing snapshot: `error`, `warn`, `passthrough`. |
@@ -2587,8 +2206,6 @@ poe-code/
 │   │   ├── service-registry.ts     # Provider resolution and management
 │   │   ├── context.ts              # Command execution context
 │   │   ├── logger.ts               # Logging infrastructure
-│   │   ├── mcp-server.ts           # MCP server tools implementation
-│   │   ├── mcp-output-format.ts    # MCP output format types
 │   │   ├── isolated-env.ts         # Isolated environment management
 │   │   ├── errors.ts               # Error types (ApiError, etc.)
 │   │   ├── http.ts                 # HTTP client types
@@ -2600,11 +2217,9 @@ poe-code/
 │   │       ├── wrap.ts
 │   │       ├── test.ts
 │   │       ├── install.ts
-│   │       ├── generate.ts
 │   │       ├── login.ts
 │   │       ├── logout.ts
 │   │       ├── auth.ts
-│   │       ├── mcp.ts
 │   │       ├── skill.ts
 │   │       ├── usage.ts
 │   │       ├── models.ts
@@ -2620,7 +2235,6 @@ poe-code/
 │   ├── sdk/
 │   │   ├── spawn.ts                # SDK spawn (streaming + pretty)
 │   │   ├── spawn-core.ts           # Core spawn logic
-│   │   ├── generate.ts             # Text/image/video/audio generation
 │   │   ├── credentials.ts          # API key resolution
 │   │   ├── container.ts            # SDK dependency container
 │   │   └── types.ts                # Public SDK types
@@ -2691,10 +2305,8 @@ poe-code/
 | `wrap <agent>` | — | One-off isolated session |
 | `test [agent]` | — | Health check |
 | `install [agent]` | — | Install agent binary |
-| `generate` | `text`, `image`, `video`, `audio` | Generate content |
 | `usage` | `balance`, `list` | Check usage/billing |
 | `models` | — | List available models |
-| `mcp` | `serve`, `configure`, `unconfigure` | MCP server management |
 | `skill` | `configure`, `unconfigure` | Agent skill management |
 | `pipeline` | `run`, `init`, `validate`, `plan-path`, `install` | Pipeline plan generation, validation, and execution |
 | `memory` | `init`, `ls`, `show`, `search`, `status`, `clear` | Repo-scoped persistent memory operations |
@@ -2705,10 +2317,6 @@ poe-code/
 ```typescript
 // Functions
 export { spawn } from "poe-code";          // spawn() and spawn.pretty()
-export { generate } from "poe-code";        // Text generation
-export { generateImage } from "poe-code";   // Image generation
-export { generateVideo } from "poe-code";   // Video generation
-export { generateAudio } from "poe-code";   // Audio generation
 export { getPoeApiKey } from "poe-code";    // API key resolution
 export { getPoeAuthIdentity } from "poe-code"; // Poe account identity
 export {
@@ -2721,10 +2329,6 @@ export {
 // Types
 export type { SpawnOptions } from "poe-code";
 export type { SpawnResult } from "poe-code";
-export type { GenerateOptions } from "poe-code";
-export type { GenerateResult } from "poe-code";
-export type { MediaGenerateOptions } from "poe-code";
-export type { MediaGenerateResult } from "poe-code";
 export type {
   AgentBuilder,
   AgentPlugin,

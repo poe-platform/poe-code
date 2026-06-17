@@ -2461,6 +2461,40 @@ function resolveOutput(resolvedFlags: ResolvedFlags): OutputMode {
   return "rich";
 }
 
+function resolveOutputFromArgv(argv: readonly string[]): OutputMode {
+  for (let index = 0; index < argv.length; index += 1) {
+    const token = argv[index] ?? "";
+
+    if (token === "--json") {
+      return "json";
+    }
+    if (token === "--md" || token === "--markdown") {
+      return "md";
+    }
+    if (token === "--output") {
+      const value = argv[index + 1];
+      if (value === "rich" || value === "md" || value === "json") {
+        return value;
+      }
+      if (value === "markdown") {
+        return "md";
+      }
+      continue;
+    }
+    if (token.startsWith("--output=")) {
+      const value = token.slice("--output=".length);
+      if (value === "rich" || value === "md" || value === "json") {
+        return value;
+      }
+      if (value === "markdown") {
+        return "md";
+      }
+    }
+  }
+
+  return "rich";
+}
+
 const DESIGN_SYSTEM_OUTPUT_BY_MODE = {
   rich: "terminal",
   md: "markdown",
@@ -4545,10 +4579,11 @@ function renderHttpError(
   }
 }
 
-function handleRunError(
+async function handleRunError(
   error: unknown,
   options: {
     debugStackMode: DebugStackMode | undefined;
+    output: OutputMode;
     verbose: boolean;
     program?: CommanderCommand;
     argv?: readonly string[];
@@ -4556,89 +4591,91 @@ function handleRunError(
     commandPath: string;
     userErrorPattern: "runtime-user" | "usage";
   }
-): void {
+): Promise<void> {
   const logger = createLogger();
 
-  if (error instanceof UserError) {
-    renderCliErrorPattern(
-      options.userErrorPattern === "usage"
-        ? {
-            kind: "usage",
-            message: error.message,
-            rootUsageName: options.rootUsageName,
-            commandPath: options.commandPath
-          }
-        : {
-            kind: "runtime-user",
-            message: error.message
-          }
-    );
-    return;
-  }
-
-  if (error instanceof Error && error.name === "ToolcraftBugError") {
-    renderCliErrorPattern({
-      kind: "toolcraft-bug",
-      error,
-      debugStackMode: options.debugStackMode
-    });
-    return;
-  }
-
-  if (error instanceof CommanderError) {
-    process.exitCode = error.exitCode;
-    if (error.code === "commander.helpDisplayed" || error.code === "commander.version") {
-      return;
-    }
-    if (error.code === "commander.unknownCommand") {
-      logger.error(
-        appendUsagePointer(
-          formatUnknownCommandError(error, options.program, options.argv ?? process.argv),
-          {
-            rootUsageName: options.rootUsageName,
-            commandPath: options.commandPath
-          }
-        )
+  await withOutputFormat(options.output, async () => {
+    if (error instanceof UserError) {
+      renderCliErrorPattern(
+        options.userErrorPattern === "usage"
+          ? {
+              kind: "usage",
+              message: error.message,
+              rootUsageName: options.rootUsageName,
+              commandPath: options.commandPath
+            }
+          : {
+              kind: "runtime-user",
+              message: error.message
+            }
       );
       return;
     }
-    if (error.code === "commander.unknownOption") {
-      const argv = options.argv ?? process.argv;
+
+    if (error instanceof Error && error.name === "ToolcraftBugError") {
+      renderCliErrorPattern({
+        kind: "toolcraft-bug",
+        error,
+        debugStackMode: options.debugStackMode
+      });
+      return;
+    }
+
+    if (error instanceof CommanderError) {
+      process.exitCode = error.exitCode;
+      if (error.code === "commander.helpDisplayed" || error.code === "commander.version") {
+        return;
+      }
+      if (error.code === "commander.unknownCommand") {
+        logger.error(
+          appendUsagePointer(
+            formatUnknownCommandError(error, options.program, options.argv ?? process.argv),
+            {
+              rootUsageName: options.rootUsageName,
+              commandPath: options.commandPath
+            }
+          )
+        );
+        return;
+      }
+      if (error.code === "commander.unknownOption") {
+        const argv = options.argv ?? process.argv;
+        logger.error(
+          appendUsagePointer(formatUnknownOptionError(error, options.program, argv), {
+            rootUsageName: options.rootUsageName,
+            commandPath:
+              options.commandPath.length > 0
+                ? options.commandPath
+                : findCurrentCommanderCommandPath(options.program, argv)
+          })
+        );
+        return;
+      }
       logger.error(
-        appendUsagePointer(formatUnknownOptionError(error, options.program, argv), {
+        appendUsagePointer(formatCommanderErrorMessage(error), {
           rootUsageName: options.rootUsageName,
           commandPath:
             options.commandPath.length > 0
               ? options.commandPath
-              : findCurrentCommanderCommandPath(options.program, argv)
+              : findCurrentCommanderCommandPath(options.program, options.argv ?? process.argv)
         })
       );
       return;
     }
-    logger.error(
-      appendUsagePointer(formatCommanderErrorMessage(error), {
-        rootUsageName: options.rootUsageName,
-        commandPath:
-          options.commandPath.length > 0
-            ? options.commandPath
-            : findCurrentCommanderCommandPath(options.program, options.argv ?? process.argv)
-      })
-    );
-    return;
-  }
 
-  if (isHttpErrorLike(error)) {
-    renderHttpError(error, options);
-    process.exitCode = 1;
-    return;
-  }
+    if (isHttpErrorLike(error)) {
+      renderHttpError(error, options);
+      process.exitCode = 1;
+      return;
+    }
 
-  const message = error instanceof Error ? error.message : String(error);
-  renderCliErrorPattern({
-    kind: "unexpected",
-    message,
-    stack: error instanceof Error ? error.stack : undefined,
-    debugStackMode: options.debugStackMode
+    const message = error instanceof Error ? error.message : String(error);
+    renderCliErrorPattern({
+      kind: "unexpected",
+      message,
+      stack: error instanceof Error ? error.stack : undefined,
+      debugStackMode: options.debugStackMode
+    });
   });
 }
 
@@ -5087,11 +5124,15 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       process.stderr.write(`Saved error report to ${report.displayPath}\n`);
     }
 
-    handleRunError(error, {
+    await handleRunError(error, {
       debugStackMode:
         resolvedFlags !== undefined
           ? resolveDebugStackMode(resolvedFlags.debug)
           : getDebugStackModeFromArgv(process.argv),
+      output:
+        resolvedFlags !== undefined
+          ? resolveOutput(resolvedFlags)
+          : resolveOutputFromArgv(process.argv),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose"),
       program,
       argv: process.argv,

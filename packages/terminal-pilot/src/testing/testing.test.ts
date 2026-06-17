@@ -106,8 +106,11 @@ describe("terminal-pilot CLI REPL runner", () => {
 
     const missing = await repl.run(["get-session", "-s", "S1", "--output", "json"]);
     expect(missing.exitCode).toBe(1);
-    expect(missing.stdout).toBe("");
-    expect(missing.stderr).toContain('Session "S1" was not found.');
+    expect(JSON.parse(missing.stdout)).toEqual({
+      level: "error",
+      message: 'Session "S1" was not found. No active sessions are available.'
+    });
+    expect(missing.stderr).toBe("");
   });
 });
 

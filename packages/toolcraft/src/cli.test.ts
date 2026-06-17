@@ -16,6 +16,7 @@ const loggerState = {
   success: [] as string[],
   warn: [] as string[],
   error: [] as string[],
+  errorOutputFormats: [] as Array<string | undefined>,
   resolved: [] as Array<{ label: string; value: string }>,
   errorResolved: [] as Array<{ label: string; value: string }>,
   message: [] as string[]
@@ -68,7 +69,10 @@ vi.mock("toolcraft-design", () => ({
     info: (message: string) => loggerState.info.push(message),
     success: (message: string) => loggerState.success.push(message),
     warn: (message: string) => loggerState.warn.push(message),
-    error: (message: string) => loggerState.error.push(message),
+    error: (message: string) => {
+      loggerState.errorOutputFormats.push(process.env.OUTPUT_FORMAT);
+      loggerState.error.push(message);
+    },
     resolved: (label: string, value: string) => loggerState.resolved.push({ label, value }),
     errorResolved: (label: string, value: string) =>
       loggerState.errorResolved.push({ label, value }),
@@ -249,6 +253,7 @@ function resetLoggerState(): void {
   loggerState.success.length = 0;
   loggerState.warn.length = 0;
   loggerState.error.length = 0;
+  loggerState.errorOutputFormats.length = 0;
   loggerState.resolved.length = 0;
   loggerState.errorResolved.length = 0;
   loggerState.message.length = 0;
@@ -2134,6 +2139,29 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(loggerState.error).toEqual(["Invalid input."]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("renders handler UserError messages inside the requested output format", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw new UserError("Invalid input.");
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--output", "json", "--yes"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(["Invalid input."]);
+    expect(loggerState.errorOutputFormats).toEqual(["json"]);
     expect(process.exitCode).toBe(1);
   });
 

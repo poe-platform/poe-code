@@ -466,6 +466,24 @@ describe("runCLI", () => {
     }
   });
 
+  it("accepts explicit argv without mutating process argv", async () => {
+    const handler = vi.fn(async (ctx: { params: { name: string } }) => ctx.params.name);
+    const deploy = defineCommand({
+      name: "deploy",
+      positional: ["name"],
+      params: S.Object({ name: S.String() }),
+      handler
+    });
+    const root = defineGroup({ name: "toolcraft", children: [deploy] });
+    process.argv = ["node", "global-toolcraft", "ignored"];
+
+    await runCLI(root, { argv: ["node", "explicit-toolcraft", "deploy", "api"] });
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0].params).toEqual({ name: "api" });
+    expect(process.argv).toEqual(["node", "global-toolcraft", "ignored"]);
+  });
+
   it("parses nested params, arrays, booleans, enums, and positionals with kebab casing", async () => {
     const handler = vi.fn(
       async (ctx: {

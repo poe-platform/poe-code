@@ -227,6 +227,7 @@ export interface CLIControls {
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
   approvals?: boolean;
+  argv?: readonly string[];
   casing?: Casing;
   controls?: CLIControls;
   fetch?: typeof globalThis.fetch;
@@ -4981,15 +4982,16 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   enableSourceMaps();
-  const normalizedRoot = normalizeRoots(roots, process.argv);
+  const argv = [...(options.argv ?? process.argv)];
+  const normalizedRoot = normalizeRoots(roots, argv);
   const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
   const runtimeFetch = options.fetch ?? globalThis.fetch;
-  const version = options.version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
-  const rootUsageName = options.rootUsageName ?? inferProgramName(process.argv);
+  const version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
+  const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
   const controls = resolveCLIControls(options.controls);
   const servicesWithBuiltIns = {
     ...services,
@@ -5002,8 +5004,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   validateServices(services as Record<string, unknown>);
 
-  if (hasHelpFlag(process.argv)) {
-    await renderGeneratedHelp(root, process.argv, { ...options, version });
+  if (hasHelpFlag(argv)) {
+    await renderGeneratedHelp(root, argv, { ...options, version });
     return;
   }
 
@@ -5083,7 +5085,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   }
   configureCommanderSuggestionOutput(program);
 
-  const unknownCommand = findUnknownCommanderCommand(program, process.argv);
+  const unknownCommand = findUnknownCommanderCommand(program, argv);
   if (unknownCommand !== undefined) {
     createLogger().error(
       appendUsagePointer(
@@ -5099,7 +5101,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   }
 
   try {
-    await program.parseAsync(process.argv);
+    await program.parseAsync(argv);
   } catch (error) {
     if (error instanceof ApprovalDeclinedError) {
       renderApprovalDeclined(error);
@@ -5108,7 +5110,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     const report = await writeErrorReport({
-      argv: process.argv,
+      argv,
       command: errorReportContext?.command,
       commandPath: errorReportContext?.commandPath ?? resolvedCommandPath,
       env: process.env,
@@ -5128,14 +5130,14 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       debugStackMode:
         resolvedFlags !== undefined
           ? resolveDebugStackMode(resolvedFlags.debug)
-          : getDebugStackModeFromArgv(process.argv),
+          : getDebugStackModeFromArgv(argv),
       output:
         resolvedFlags !== undefined
           ? resolveOutput(resolvedFlags)
-          : resolveOutputFromArgv(process.argv),
-      verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose"),
+          : resolveOutputFromArgv(argv),
+      verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : argv.includes("--verbose"),
       program,
-      argv: process.argv,
+      argv,
       rootUsageName,
       commandPath: resolvedCommandPath,
       userErrorPattern: errorReportContext?.params === undefined ? "usage" : "runtime-user"

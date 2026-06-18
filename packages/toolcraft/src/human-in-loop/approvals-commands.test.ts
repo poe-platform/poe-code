@@ -452,39 +452,6 @@ describe("approvals built-in commands", () => {
     expect(handler).toHaveBeenCalledTimes(1);
   });
 
-  it("previews approvals.run without prompting or transitioning state during dry run", async () => {
-    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
-    const provider = {
-      id: "provider",
-      requestApproval: vi.fn(async () => ({ outcome: "approved" as const }))
-    };
-    const handler = vi.fn(async () => ({ ok: true }));
-    const root = defineGroup({
-      name: "toolcraft",
-      children: [defineCommand({ name: "deploy", params: S.Object({}), handler })]
-    });
-    const approvalId = await enqueueDemoApproval(taskList, { commandPath: "deploy" });
-    const runCommand = getApprovalCommand("run");
-
-    const result = await runCommand.handler({
-      runtimeOptions: { taskList, provider },
-      root,
-      params: { approvalId, dryRun: true },
-      secrets: {},
-      fetch: globalThis.fetch,
-      fs: { readFile: vi.fn(), writeFile: vi.fn(), exists: vi.fn() },
-      env: { get: vi.fn() },
-      progress: vi.fn()
-    } as unknown as Parameters<typeof runCommand.handler>[0]);
-
-    expect(provider.requestApproval).not.toHaveBeenCalled();
-    expect(handler).not.toHaveBeenCalled();
-    expect(result).toMatchObject({ id: approvalId, state: "pending" });
-    await expect(taskList.list("approvals").get(approvalId)).resolves.toMatchObject({
-      state: "pending"
-    });
-  });
-
   it("throws from approvals.run when the runtime task list is unset", async () => {
     const runCommand = getApprovalCommand("run");
     const root = defineGroup({
@@ -528,8 +495,11 @@ describe("approvals built-in commands", () => {
 
     process.argv = ["node", "toolcraft", "--help"];
 
-    await expect(runCLI(rootFactory(), { approvals: true })).rejects.toThrowError(
-      "'approvals' is reserved for human-in-loop built-ins"
+    await runCLI(rootFactory(), { approvals: true });
+
+    expect(process.exitCode).toBe(1);
+    expect(loggerState.error.join("\n")).toContain(
+      "Command definition error: 'approvals' is reserved for human-in-loop built-ins"
     );
     expect(() =>
       createMCPServer(rootFactory(), {

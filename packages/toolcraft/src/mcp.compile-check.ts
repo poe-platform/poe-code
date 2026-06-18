@@ -13,7 +13,7 @@ const ignoredRoot = defineGroup({
       name: "usage",
       scope: ["mcp"],
       params: S.Object({
-        dryRun: S.Boolean(),
+        preview: S.Boolean(),
       }),
       handler: async ({ params }) => params,
     }),

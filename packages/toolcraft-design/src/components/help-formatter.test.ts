@@ -75,6 +75,19 @@ describe("formatColumns", () => {
     expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
   });
 
+  it("puts max-width left cells on their own line before the description", () => {
+    const result = formatColumns({
+      rows: [{ left: "--plan.strict-value", right: "Enable strict mode." }],
+      totalWidth: 60,
+      minLeftWidth: 1,
+      maxLeftWidth: 19,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe("  --plan.strict-value\n                     Enable strict mode.");
+  });
+
   it("preserves continuation indent", () => {
     const result = formatColumns({
       rows: [{ left: "left", right: "alpha beta gamma delta" }],

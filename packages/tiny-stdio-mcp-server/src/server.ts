@@ -254,6 +254,7 @@ export function createServer(options: ServerOptions): Server {
             error: {
               code: err.code,
               message: err.message,
+              ...(err.data === undefined ? {} : { data: err.data }),
             },
           };
         }

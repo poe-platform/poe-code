@@ -32,7 +32,8 @@ export const JSON_RPC_ERROR_CODES = Object.freeze({
 export class ToolError extends Error {
   constructor(
     public readonly code: number,
-    message: string
+    message: string,
+    public readonly data?: unknown
   ) {
     if (!Number.isFinite(code)) {
       throw new Error("ToolError code must be a finite number");

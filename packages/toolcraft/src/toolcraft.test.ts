@@ -17,6 +17,7 @@ import {
   createSdkTestPair
 } from "tiny-mcp-client";
 import { createMCPServer } from "./mcp.js";
+import { createHttpError } from "./http-errors.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import type { RenderPrimitives } from "./index.js";
@@ -953,7 +954,7 @@ describe("createMCPServer", () => {
       description: "Show usage",
       scope: ["mcp"],
       params: S.Object({
-        dryRun: S.Boolean(),
+        previewMode: S.Boolean(),
         botConfig: S.Object({
           apiKey: S.String()
         })
@@ -1014,7 +1015,7 @@ describe("createMCPServer", () => {
       expect(result.tools[0]?.inputSchema).toEqual({
         type: "object",
         properties: {
-          dry_run: {
+          preview_mode: {
             type: "boolean"
           },
           bot_config: {
@@ -1028,7 +1029,7 @@ describe("createMCPServer", () => {
             additionalProperties: false
           }
         },
-        required: ["dry_run", "bot_config"],
+        required: ["preview_mode", "bot_config"],
         additionalProperties: false
       });
       expect(result.tools[1]?.inputSchema).toEqual({
@@ -1169,7 +1170,7 @@ describe("createMCPServer", () => {
       scope: ["mcp"],
       params: S.Object({
         endpoint: S.String(),
-        dryRun: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
+        preview: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
         verbose: S.Optional(S.Boolean({ scope: ["cli", "sdk"] }))
       }),
       handler: async ({ params }) => params
@@ -1813,7 +1814,7 @@ describe("createMCPServer", () => {
           params: S.Object({
             name: S.String(),
             retries: S.Number(),
-            dryRun: S.Boolean()
+            preview: S.Boolean()
           }),
           handler: async ({ params }) => params
         })
@@ -1834,7 +1835,7 @@ describe("createMCPServer", () => {
         arguments: {
           name: 42,
           retries: "many",
-          dryRun: "yes"
+          preview: "yes"
         }
       });
 
@@ -1848,7 +1849,7 @@ describe("createMCPServer", () => {
             "3 parameter errors:",
             '  - name: Invalid value for "name". Expected a string, got 42.',
             '  - retries: Invalid value for "retries". Expected a number, got "many".',
-            '  - dryRun: Invalid value for "dryRun". Expected a boolean, got "yes".'
+            '  - preview: Invalid value for "preview". Expected a boolean, got "yes".'
           ].join("\n")
         );
         return true;
@@ -1993,6 +1994,79 @@ describe("createMCPServer", () => {
           code: ERROR_INTERNAL
         });
         expect((error as Error).message).toContain("Boom.");
+        return true;
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("maps HttpError handler failures to structured MCP error data", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "write",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: async () => {
+            throw createHttpError({
+              request: {
+                method: "POST",
+                url: "https://api.example.com/rows",
+                headers: {}
+              },
+              response: {
+                status: 422,
+                statusText: "Unprocessable Entity",
+                headers: { "x-request-id": "req_rows" },
+                body: {
+                  error: "invalid_rows",
+                  message: "Rows are invalid.",
+                  field_errors: {
+                    "rows.1.kind": "Expected prompt or completion."
+                  }
+                }
+              }
+            });
+          }
+        })
+      ]
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(
+        client.callTool({
+          name: "write",
+          arguments: {}
+        })
+      ).rejects.toSatisfy((error: unknown) => {
+        expect(error).toBeInstanceOf(McpError);
+        expect(error).toMatchObject({
+          code: ERROR_INVALID_PARAMS,
+          data: {
+            kind: "http",
+            message: "Rows are invalid.",
+            code: "invalid_rows",
+            requestId: "req_rows",
+            http: {
+              method: "POST",
+              url: "https://api.example.com/rows",
+              status: 422,
+              statusText: "Unprocessable Entity"
+            },
+            fieldErrors: [
+              { path: "rows.1.kind", message: "Expected prompt or completion." }
+            ]
+          }
+        });
         return true;
       });
     } finally {
@@ -2497,7 +2571,7 @@ describe("createSDK", () => {
           params: S.Object({
             name: S.String(),
             retries: S.Number(),
-            dryRun: S.Boolean()
+            preview: S.Boolean()
           }),
           handler: async ({ params }) => params
         })
@@ -2510,14 +2584,14 @@ describe("createSDK", () => {
       sdk.deploy({
         name: 42,
         retries: "many",
-        dryRun: "yes"
+        preview: "yes"
       })
     ).rejects.toThrow(
       [
         "3 parameter errors:",
         '  - name: Invalid value for "name". Expected a string, got 42.',
         '  - retries: Invalid value for "retries". Expected a number, got "many".',
-        '  - dryRun: Invalid value for "dryRun". Expected a boolean, got "yes".'
+        '  - preview: Invalid value for "preview". Expected a boolean, got "yes".'
       ].join("\n")
     );
   });

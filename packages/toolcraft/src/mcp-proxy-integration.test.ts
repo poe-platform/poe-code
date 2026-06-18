@@ -699,7 +699,7 @@ describe("mcp proxy integration", () => {
     const exit = await waitForChildExit(runtime.child);
 
     expect(exit.code).toBe(1);
-    expect(runtime.stderr()).toContain("couldn't discover MCP github");
+    expect(`${runtime.stdout()}\n${runtime.stderr()}`).toContain("couldn't discover MCP github");
   });
 
   it("applies rename maps consistently across CLI, SDK, MCP, and upstream wire calls", async () => {

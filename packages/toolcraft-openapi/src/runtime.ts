@@ -143,6 +143,7 @@ function createRuntimeCommand(command: GeneratedCommand) {
     ...(command.description === undefined ? {} : { description: command.description }),
     scope: RUNTIME_COMMAND_SCOPE,
     ...(command.confirm ? { confirm: true } : {}),
+    ...(command.positional.length > 0 ? { positional: command.positional } : {}),
     params: paramsSchema as any,
     handler: createRuntimeHandler(command)
   });
@@ -177,7 +178,6 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       multipartBinaryFields: command.multipartBinaryFields,
       tokenSource,
       fetch,
-      dryRun: params.dryRun as boolean | undefined,
       verbose: params.verbose as boolean | undefined,
       ...preparedRequestShape
     });

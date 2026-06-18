@@ -126,7 +126,7 @@ export function formatColumns(opts: FormatColumnsOptions): string {
       }
 
       const rightLines = wrapWords(row.right, rightWidth);
-      if (row.left.length > leftWidth) {
+      if (row.left.length >= leftWidth) {
         return [
           `${firstIndent}${row.left}`,
           ...rightLines.map((line) => `${continuationIndent}${line}`)

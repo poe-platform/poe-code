@@ -52,16 +52,6 @@ const NULL_HELPER_SUPPORT = {
 
 const TRANSPORT_PARAMS = [
   {
-    paramName: "dryRun",
-    sourceName: "dryRun",
-    location: "transport",
-    description: "Print the HTTP request and exit without sending it.",
-    scope: ["cli", "sdk"],
-    global: true,
-    optional: true,
-    definition: { kind: "boolean" }
-  },
-  {
     paramName: "verbose",
     sourceName: "verbose",
     location: "transport",
@@ -219,6 +209,7 @@ export interface GeneratedCommand {
   idempotencyHeader?: string;
   rawResponse?: boolean;
   confirm: boolean;
+  positional: string[];
   params: GeneratedParam[];
   paramsSchemaOptions?: GeneratedObjectSchemaOptions;
   preflightBlocks: GeneratedPreflightBlock[];
@@ -717,6 +708,7 @@ function createGeneratedCommand(
   const noun = createSafeGeneratedNoun(deriveNoun(operation, entry.path, operationId));
   const verb = deriveVerb(entry.method, entry.path, operation, operationId, noun);
   const collected = collectParams(document, entry, operation, operationId, auth, response.mode);
+  const positional = collectPathPositionals(entry.path, collected.params, operationId);
   const methodDefaults = METHOD_DEFAULTS[entry.method];
   const exportName = `${toCamelCase(noun)}${toPascalCase(verb)}Command`;
   const filePath = `${noun}/${verb}.ts`;
@@ -741,6 +733,7 @@ function createGeneratedCommand(
     contentType: collected.contentType,
     multipartBinaryFields: collected.multipartBinaryFields,
     confirm: methodDefaults?.confirm === true,
+    positional,
     params: collected.params,
     paramsSchemaOptions: collected.paramsSchemaOptions,
     preflightBlocks: collected.preflightBlocks,
@@ -748,6 +741,46 @@ function createGeneratedCommand(
     sectionRenders: collected.sectionRenders,
     optionalSections: collected.optionalSections
   };
+}
+
+function collectPathPositionals(
+  pathTemplate: string,
+  params: readonly GeneratedParam[],
+  operationId: string
+): string[] {
+  const pathParamNames = new Set(
+    params.filter((param) => param.location === "path").map((param) => param.sourceName)
+  );
+  const positionals: string[] = [];
+
+  for (const segment of pathTemplate.split("/")) {
+    if (!segment.startsWith("{") || !segment.endsWith("}")) {
+      continue;
+    }
+
+    const sourceName = segment.slice(1, -1);
+    if (!pathParamNames.has(sourceName)) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(sourceName)} is missing from generated params.`
+      );
+    }
+
+    const param = params.find(
+      (candidate) => candidate.location === "path" && candidate.sourceName === sourceName
+    );
+    if (param === undefined) {
+      continue;
+    }
+    if (param.definition.kind === "array" && positionals.length < pathParamNames.size - 1) {
+      throw new UserError(
+        `Operation ${JSON.stringify(operationId)} path parameter ${JSON.stringify(sourceName)} is an array and can only be the final positional argument.`
+      );
+    }
+
+    positionals.push(param.paramName);
+  }
+
+  return positionals;
 }
 
 function resolveOperationBaseUrl(
@@ -2619,6 +2652,7 @@ function createCommandFile(options: {
   sectionRenders: GeneratedRequestSectionRenders;
   optionalSections: ReadonlySet<Exclude<GeneratedParam["location"], "transport">>;
   confirm: boolean;
+  positional: string[];
 }): string {
   const requiresUserError = options.preflightBlocks.length > 0;
   const usesMultipartFileInputs =
@@ -2659,6 +2693,9 @@ function createCommandFile(options: {
   lines.push('  scope: ["cli", "mcp", "sdk"] as const,');
   if (options.confirm) {
     lines.push("  confirm: true,");
+  }
+  if (options.positional.length > 0) {
+    lines.push(`  positional: ${JSON.stringify(options.positional)},`);
   }
   lines.push("  params: S.Object({");
   lines.push(...renderParamLines(options.params));
@@ -2726,7 +2763,6 @@ function createCommandFile(options: {
   }
   lines.push("      tokenSource,");
   lines.push("      fetch,");
-  lines.push("      dryRun: params.dryRun,");
   lines.push("      verbose: params.verbose,");
   if (options.rawResponse === true) {
     lines.push("      rawResponse: params.rawResponse,");
@@ -3091,7 +3127,7 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   if (groups.length === 0) {
     return {
       path: "index.ts",
-      contents: createGeneratedTypeScriptFile(["export {};", ""])
+      contents: createGeneratedTypeScriptFile(["export const generatedCommands = [] as const;", ""])
     };
   }
 
@@ -3118,6 +3154,11 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
     lines.push("");
   }
 
+  lines.push(
+    `export const generatedCommands = [${groups.map(({ noun }) => toCamelCase(noun)).join(", ")}] as const;`
+  );
+  lines.push("");
+
   return {
     path: "index.ts",
     contents: lines.join("\n")
@@ -3131,11 +3172,11 @@ function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
       "#!/usr/bin/env node",
       ...createGeneratedTypeScriptFileLines(),
       'import { configureTheme, runCLI } from "toolcraft/cli";',
-      'import * as groups from "./index.js";',
+      'import { generatedCommands } from "./index.js";',
       "",
       `configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,
       "",
-      "await runCLI(Object.values(groups));",
+      "await runCLI(generatedCommands);",
       ""
     ].join("\n")
   };

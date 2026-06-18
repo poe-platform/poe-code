@@ -489,7 +489,7 @@ describe("runCLI", () => {
       async (ctx: {
         params: {
           name: string;
-          dryRun?: boolean;
+          preview?: boolean;
           retryCount: number;
           mode: "safe" | "fast";
           tags: string[];
@@ -509,7 +509,7 @@ describe("runCLI", () => {
       positional: ["name"],
       params: S.Object({
         name: S.String(),
-        dryRun: S.Optional(S.Boolean()),
+        preview: S.Optional(S.Boolean()),
         retryCount: S.Number(),
         mode: S.Enum(["safe", "fast"] as const),
         tags: S.Array(S.String()),
@@ -533,7 +533,7 @@ describe("runCLI", () => {
       "toolcraft",
       "deploy",
       "demo-app",
-      "--dry-run",
+      "--preview",
       "--retry-count",
       "3",
       "--mode",
@@ -559,7 +559,7 @@ describe("runCLI", () => {
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
       name: "demo-app",
-      dryRun: true,
+      preview: true,
       retryCount: 3,
       mode: "safe",
       tags: ["alpha", "beta", "gamma"],
@@ -570,7 +570,7 @@ describe("runCLI", () => {
     expect(renderJson).toHaveBeenCalledWith(
       {
         name: "demo-app",
-        dryRun: true,
+        preview: true,
         retryCount: 3,
         mode: "safe",
         tags: ["alpha", "beta", "gamma"],
@@ -591,13 +591,13 @@ describe("runCLI", () => {
 
   it("supports snake casing for generated option names", async () => {
     const handler = vi.fn(
-      async (ctx: { params: { dryRun: boolean; retryCount: number } }) => ctx.params
+      async (ctx: { params: { previewMode: boolean; retryCount: number } }) => ctx.params
     );
 
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        dryRun: S.Boolean(),
+        previewMode: S.Boolean(),
         retryCount: S.Number()
       }),
       handler
@@ -608,7 +608,7 @@ describe("runCLI", () => {
       children: [deploy]
     });
 
-    process.argv = ["node", "toolcraft", "deploy", "--dry_run", "--retry_count", "5", "--yes"];
+    process.argv = ["node", "toolcraft", "deploy", "--preview_mode", "--retry_count", "5", "--yes"];
 
     await runCLI(root, {
       casing: "snake"
@@ -616,7 +616,7 @@ describe("runCLI", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
-      dryRun: true,
+      previewMode: true,
       retryCount: 5
     });
   });
@@ -773,6 +773,58 @@ describe("runCLI", () => {
     expect(loggerState.error).toEqual([
       ['Unknown command "abc".', "Run toolcraft --help for usage."].join("\n")
     ]);
+  });
+
+  it("treats unknown root help targets as usage errors", async () => {
+    const widgets = defineCommand({
+      name: "widgets",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [widgets]
+    });
+
+    process.argv = ["node", "toolcraft", "widgts", "--help"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Unknown command "widgts".',
+        "Did you mean: widgets?",
+        "Run toolcraft --help for usage."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("treats unknown nested help targets as usage errors", async () => {
+    const production = defineCommand({
+      name: "production",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const deploy = defineGroup({
+      name: "deploy",
+      children: [production]
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "prodction", "--help"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Unknown command "prodction".',
+        "Did you mean: production?",
+        "Run toolcraft deploy --help for usage."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("suggests close unknown options from the current command", async () => {
@@ -1316,9 +1368,16 @@ describe("runCLI", () => {
 
     process.argv = ["node", "toolcraft", "submit", "--version", "release", "--yes"];
 
-    await expect(runCLI(root, { version: "1.2.3" })).rejects.toThrow(
-      'Parameter "version" uses reserved CLI flag "--version". Add a short flag or rename the parameter.'
-    );
+    await runCLI(root, { version: "1.2.3" });
+
+    expect(loggerState.error).toEqual([
+      [
+        'Command definition error: Parameter "version" uses reserved CLI flag "--version". Add a short flag or rename the parameter.',
+        "This is a bug in the generated command definition, not in your command arguments.",
+        "Run with --debug for a stack trace."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("never renders commander help in generated global option tables", async () => {
@@ -1984,6 +2043,75 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("renders root help as JSON when requested", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      description: "Deploy an app.",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "--help", "--output", "json"];
+    await runCLI(root);
+
+    const help = JSON.parse(readStdout(stdoutWrite)) as {
+      commands: Array<{ name: string; description: string }>;
+    };
+    expect(help).toMatchObject({
+      schemaVersion: 1,
+      kind: "group",
+      name: "toolcraft",
+      usage: "toolcraft [command] [OPTIONS]"
+    });
+    expect(help.commands).toContainEqual({ name: "deploy", description: "Deploy an app." });
+  });
+
+  it("renders leaf help as JSON with positional and option metadata", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      description: "Deploy an app.",
+      positional: ["name"],
+      params: S.Object({
+        name: S.String({ description: "App name" }),
+        force: S.Optional(S.Boolean({ description: "Force deploy" }))
+      }),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--help", "--output=json"];
+    await runCLI(root);
+
+    expect(JSON.parse(readStdout(stdoutWrite))).toMatchObject({
+      schemaVersion: 1,
+      kind: "command",
+      name: "deploy",
+      usage: "toolcraft deploy [OPTIONS] <name>",
+      options: [
+        {
+          name: "name",
+          type: "string",
+          required: true,
+          positional: true
+        },
+        {
+          name: "force",
+          type: "boolean",
+          required: false
+        }
+      ]
+    });
+  });
+
   it("renders command examples in leaf help", async () => {
     const root = defineGroup({
       name: "toolcraft",
@@ -2045,7 +2173,7 @@ describe("runCLI", () => {
       params: S.Object({
         name: S.String({ pattern: "^[a-z]+$" }),
         retries: S.Number(),
-        dryRun: S.Boolean()
+        preview: S.Boolean()
       }),
       handler: async () => null
     });
@@ -2064,7 +2192,7 @@ describe("runCLI", () => {
       "42",
       "--retries",
       "many",
-      "--dry-run",
+      "--preview",
       "yes"
     ];
 
@@ -2076,7 +2204,7 @@ describe("runCLI", () => {
           "3 parameter errors:",
           '  - name: Invalid value for "name": "42" does not match pattern "^[a-z]+$".',
           '  - retries: Invalid value for "retries". Expected a number, got "many".',
-          '  - dryRun: Invalid value for "dryRun". Expected true or false, got "yes".'
+          '  - preview: Invalid value for "preview". Expected true or false, got "yes".'
         ].join("\n"),
         "deploy"
       )
@@ -2364,7 +2492,8 @@ describe("runCLI", () => {
       "Request:  GET https://api.example.com/v1/widgets/42
       Status:   500 Internal Server Error
 
-      Response body: { "error": "internal_panic", "trace_id": "8f3c-123", "details": "The upstream service returned a very long diagnostic payload with whitespace\\nthat should collapse into a one-line snippet for normal u
+      Code:     internal_panic
+      Request id: 8f3c
       Re-run with --verbose to see headers and full body.
       "
     `);
@@ -2403,10 +2532,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStderr(stderrWrite);
-    expect(output).toContain('"access_token": "<redacted>"');
-    expect(output).toContain('"refreshToken": "<redacted>"');
-    expect(output).toContain('"client_secret": "<redacted>"');
-    expect(output).toContain('"trace_id": "8f3c-123"');
+    expect(output).toContain("Request id: 8f3c");
     expect(output).not.toContain("response-access-token");
     expect(output).not.toContain("response-refresh-token");
     expect(output).not.toContain("response-client-secret");
@@ -3084,15 +3210,16 @@ describe("runCLI", () => {
       children: [deploy]
     });
 
-    await expect(
-      runCLI(root, {
-        services: {
-          params: "bad"
-        }
-      })
-    ).rejects.toThrow(
-      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.'
-    );
+    await runCLI(root, {
+      services: {
+        params: "bad"
+      }
+    });
+
+    expect(loggerState.error).toEqual([
+      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root. Use --debug for a stack trace.'
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("passes options.fetch to command contexts", async () => {
@@ -4300,9 +4427,46 @@ describe("runCLI", () => {
 
     process.argv = ["node", "toolcraft", "submit", "--foo-bar", "value", "--yes"];
 
-    await expect(runCLI(root)).rejects.toThrow(
-      'Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".'
-    );
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Command definition error: Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".',
+        "This is a bug in the generated command definition, not in your command arguments.",
+        "Run with --debug for a stack trace."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints definition error stacks in debug mode", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        fooBar: S.String(),
+        foo_bar: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "submit", "--foo-bar", "value", "--debug", "--yes"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Command definition error: Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".',
+        "This is a bug in the generated command definition, not in your command arguments.",
+        "Run with --debug for a stack trace."
+      ].join("\n")
+    ]);
+    expect(readStderr(stderrWrite)).toContain("UserError");
+    expect(process.exitCode).toBe(1);
   });
 
   it("rejects long option aliases that collide with global flags", async () => {
@@ -4321,9 +4485,16 @@ describe("runCLI", () => {
 
     process.argv = ["node", "toolcraft", "submit", "--yes"];
 
-    await expect(runCLI(root)).rejects.toThrow(
-      'Parameter "destination" uses reserved CLI flag "--yes". Add a short flag or rename the parameter.'
-    );
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Command definition error: Parameter "destination" uses reserved CLI flag "--yes". Add a short flag or rename the parameter.',
+        "This is a bug in the generated command definition, not in your command arguments.",
+        "Run with --debug for a stack trace."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("falls back to a short option when a command param collides with a global flag", async () => {
@@ -5393,9 +5564,9 @@ describe("runCLI", () => {
       params: S.Object({
         botHandle: S.String(),
         displayName: S.Optional(S.String()),
-        dryRun: S.Optional(
+        globalPreview: S.Optional(
           S.Boolean({
-            description: "Print the HTTP request and exit without sending it.",
+            description: "Preview the request.",
             global: true
           })
         ),
@@ -5424,7 +5595,7 @@ describe("runCLI", () => {
     await runCLI(root);
     const leafHelp = readStdout(stdoutWrite);
 
-    expect(leafHelp).not.toContain("--dry-run");
+    expect(leafHelp).not.toContain("--global-preview");
     expect(leafHelp).not.toContain("--verbose");
     expect(leafHelp).not.toMatch(/(^|\s)-v(\s|$)/m);
     expect(leafHelp).toContain("--display-name");
@@ -5434,16 +5605,16 @@ describe("runCLI", () => {
     await runCLI(root);
     const rootHelp = readStdout(stdoutWrite);
 
-    const dryRunCount = rootHelp.match(/--dry-run/g)?.length ?? 0;
+    const globalPreviewCount = rootHelp.match(/--global-preview/g)?.length ?? 0;
     const debugCount = rootHelp.match(/--debug/g)?.length ?? 0;
-    expect(dryRunCount).toBe(1);
+    expect(globalPreviewCount).toBe(1);
     expect(rootHelp).not.toContain("--verbose");
     expect(debugCount).toBe(0);
     expect(rootHelp).toContain("Options");
 
     const commandsLine =
       rootHelp.split("\n").find((line) => line.trimStart().startsWith("bot-actions")) ?? "";
-    expect(commandsLine).not.toContain("--dry-run");
+    expect(commandsLine).not.toContain("--global-preview");
     expect(commandsLine).not.toContain("-v");
     expect(commandsLine).not.toContain("--verbose");
     expect(commandsLine).not.toContain("--debug");

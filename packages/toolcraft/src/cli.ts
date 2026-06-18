@@ -50,6 +50,7 @@ import {
   resolveCommandSecrets
 } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
+import { summarizeHttpError } from "./api-error-summary.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
@@ -215,6 +216,16 @@ interface HelpCommandRow {
 interface HelpOptionRow {
   description: string;
   flags: string;
+}
+
+interface JsonHelpOption {
+  name: string;
+  flags: string[];
+  type: string;
+  description?: string;
+  required: boolean;
+  default?: unknown;
+  positional?: boolean;
 }
 
 export interface CLIControls {
@@ -1266,6 +1277,7 @@ function resolveHelpTarget<TServices extends object>(
   root: Group<TServices>,
   argv: string[],
   scope: Scope,
+  rootUsageName: string,
   rootDisplayName?: string
 ): ResolvedHelpTarget<TServices> {
   const breadcrumb = [rootDisplayName ?? root.name];
@@ -1283,7 +1295,9 @@ function resolveHelpTarget<TServices extends object>(
     const child: Command<TServices, any, any, any> | Group<TServices> | undefined =
       findVisibleChild(current, token, scope);
     if (child === undefined) {
-      break;
+      throw new UserError(
+        formatUnknownHelpCommandMessage(current, token, scope, rootUsageName, breadcrumb)
+      );
     }
 
     breadcrumb.push(child.name);
@@ -1294,6 +1308,24 @@ function resolveHelpTarget<TServices extends object>(
     breadcrumb,
     node: current
   };
+}
+
+function formatUnknownHelpCommandMessage<TServices extends object>(
+  group: Group<TServices>,
+  input: string,
+  scope: Scope,
+  rootUsageName: string,
+  breadcrumb: string[]
+): string {
+  const suggestions = suggest(
+    input,
+    getHelpChildren(group, scope).map((child) => child.name)
+  );
+  const commandPath = breadcrumb.slice(1).join(" ");
+  const helpTarget =
+    commandPath.length === 0 ? rootUsageName : `${rootUsageName} ${commandPath}`;
+
+  return `${formatSuggestionMessage(`Unknown command "${input}".`, suggestions)}\nRun ${helpTarget} --help for usage.`;
 }
 
 function formatHelpFieldFlags(
@@ -2000,6 +2032,118 @@ function renderLeafHelp<TServices extends object>(
   });
 }
 
+function renderJsonHelp<TServices extends object>(
+  target: ResolvedHelpTarget<TServices>,
+  root: Group<TServices>,
+  casing: Casing,
+  globalOptions: {
+    controls: ResolvedCLIControls;
+    showVersion: boolean;
+    presetsEnabled: boolean;
+  },
+  rootUsageName: string
+): string {
+  const globalLongOptionFlags = getGlobalLongOptionFlags(
+    globalOptions.presetsEnabled,
+    globalOptions.showVersion,
+    globalOptions.controls
+  );
+  const node = target.node;
+
+  if (node.kind === "group") {
+    const commandRows = formatCommandRows(node, "cli", casing, globalLongOptionFlags);
+    const isRoot = node === root;
+    return `${JSON.stringify(
+      {
+        schemaVersion: 1,
+        kind: "group",
+        name: target.breadcrumb.at(-1) ?? rootUsageName,
+        path: target.breadcrumb.filter((segment) => segment.length > 0),
+        usage: buildUsageLine(
+          target.breadcrumb,
+          rootUsageName,
+          formatGroupUsageSuffix(node, "cli", casing, globalLongOptionFlags)
+        ),
+        ...(node.description === undefined ? {} : { description: node.description }),
+        commands: commandRows.map((row) => ({ name: row.name, description: row.description })),
+        options: isRoot
+          ? collectSchemaGlobalFieldRows(node, "cli", casing, globalLongOptionFlags).map((row) => ({
+              name: row.flags.split(/[ ,]+/)[0]?.replace(/^--/, "") ?? row.flags,
+              flags: row.flags.split(", "),
+              type: "unknown",
+              description: row.description,
+              required: false
+            }))
+          : []
+      },
+      null,
+      2
+    )}\n`;
+  }
+
+  const collected = collectFields(node.params, casing, globalLongOptionFlags);
+  const fields = assignPositionals(collected.fields, node.positional);
+  const positionalFields = fields.filter((field) => field.positionalIndex !== undefined);
+  const usageSuffix =
+    positionalFields.length > 0
+      ? `[OPTIONS] ${positionalFields.map(formatPositionalToken).join(" ")}`
+      : "[OPTIONS]";
+
+  return `${JSON.stringify(
+    {
+      schemaVersion: 1,
+      kind: "command",
+      name: node.name,
+      path: target.breadcrumb.filter((segment) => segment.length > 0),
+      usage: buildUsageLine(target.breadcrumb, rootUsageName, usageSuffix),
+      ...(node.description === undefined ? {} : { description: node.description }),
+      options: fields
+        .filter((field) => field.global !== true)
+        .map((field) => formatJsonHelpOption(field, globalLongOptionFlags)),
+      secrets: Object.entries(node.secrets).map(([name, secret]) => ({
+        name,
+        env: secret.env,
+        required: secret.optional !== true,
+        ...(secret.description === undefined ? {} : { description: secret.description })
+      })),
+      examples: node.examples
+    },
+    null,
+    2
+  )}\n`;
+}
+
+function formatJsonHelpOption(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): JsonHelpOption {
+  return {
+    name: field.displayPath,
+    flags: formatHelpFieldFlags(field, globalLongOptionFlags).split(", "),
+    type: formatJsonHelpSchemaType(field.schema),
+    ...(field.description === undefined ? {} : { description: field.description }),
+    required: field.requiredWhenActive,
+    ...(field.hasDefault ? { default: field.defaultValue } : {}),
+    ...(field.positionalIndex === undefined ? {} : { positional: true })
+  };
+}
+
+function formatJsonHelpSchemaType(schema: FieldSchema): string {
+  if (schema.kind === "enum") {
+    return "enum";
+  }
+
+  if (schema.kind === "array") {
+    return "array";
+  }
+
+  if (schema.kind === "json") {
+    return "json";
+  }
+
+  return schema.kind;
+}
+
 function renderHelpDocument(input: {
   breadcrumb: string[];
   rootUsageName: string;
@@ -2043,11 +2187,28 @@ async function renderGeneratedHelp<TServices extends object>(
   argv: string[],
   options: RunCLIOptions<TServices>
 ): Promise<void> {
-  const target = resolveHelpTarget(root, argv, "cli", options.rootDisplayName);
   const output = resolveHelpOutput(argv);
   const casing = options.casing ?? "kebab";
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
+  const target = resolveHelpTarget(root, argv, "cli", rootUsageName, options.rootDisplayName);
   const controls = resolveCLIControls(options.controls);
+
+  if (output === "json") {
+    process.stdout.write(
+      renderJsonHelp(
+        target,
+        root,
+        casing,
+        {
+          controls,
+          showVersion: options.version !== undefined,
+          presetsEnabled: options.presets === true
+        },
+        rootUsageName
+      )
+    );
+    return;
+  }
 
   await withOutputFormat(output, async () => {
     const rendered =
@@ -3222,6 +3383,11 @@ type CliErrorPattern =
       message: string;
     }
   | {
+      kind: "definition";
+      error: Error;
+      debugStackMode: DebugStackMode | undefined;
+    }
+  | {
       kind: "toolcraft-bug";
       error: Error;
       debugStackMode: DebugStackMode | undefined;
@@ -3249,6 +3415,19 @@ function renderCliErrorPattern(pattern: CliErrorPattern): void {
 
   if (pattern.kind === "runtime-user") {
     logger.error(pattern.message);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (pattern.kind === "definition") {
+    logger.error(
+      `Command definition error: ${pattern.error.message}\n` +
+        "This is a bug in the generated command definition, not in your command arguments.\n" +
+        "Run with --debug for a stack trace."
+    );
+    if (pattern.debugStackMode !== undefined && pattern.error.stack) {
+      process.stderr.write(`${formatDebugStack(pattern.error.stack, pattern.debugStackMode)}\n`);
+    }
     process.exitCode = 1;
     return;
   }
@@ -4282,7 +4461,7 @@ async function executeCommand<TServices extends object>(
 }
 
 type HttpErrorLike = {
-  name: "HttpError";
+  name: string;
   message: string;
   request: {
     method: string;
@@ -4325,7 +4504,7 @@ function isHttpErrorLike(error: unknown): error is HttpErrorLike {
     return false;
   }
 
-  if (error.name !== "HttpError" || typeof error.message !== "string") {
+  if (typeof error.name !== "string" || typeof error.message !== "string") {
     return false;
   }
 
@@ -4535,6 +4714,7 @@ function renderHttpError(
   options: { debugStackMode: DebugStackMode | undefined; verbose: boolean }
 ): void {
   const detailed = options.verbose || options.debugStackMode !== undefined;
+  const summary = summarizeHttpError(error);
   const lines: string[] = [
     styleHttpErrorLine(`Request:  ${error.request.method} ${error.request.url}`, text.muted)
   ];
@@ -4565,11 +4745,29 @@ function renderHttpError(
       indentHttpErrorBlock(formatHttpErrorBody(error.response.body))
     );
   } else {
-    lines.push(
-      "",
-      `Response body: ${formatHttpErrorSnippet(error.response.body)}`,
-      "Re-run with --verbose to see headers and full body."
-    );
+    const summaryLines = [
+      summary.code === undefined ? undefined : `Code:     ${summary.code}`,
+      summary.message === undefined ? undefined : `Message:  ${summary.message}`,
+      summary.requestId === undefined ? undefined : `Request id: ${summary.requestId}`,
+      summary.retryAfter === undefined ? undefined : `Retry after: ${summary.retryAfter}`,
+      summary.hint === undefined ? undefined : `Hint:     ${summary.hint}`
+    ].filter((line): line is string => line !== undefined);
+
+    if (summary.fieldErrors !== undefined && summary.fieldErrors.length > 0) {
+      summaryLines.push(
+        "",
+        "Field errors:",
+        ...summary.fieldErrors.map((fieldError) => `  ${fieldError.path}: ${fieldError.message}`)
+      );
+    }
+
+    lines.push("");
+    if (summaryLines.length > 0) {
+      lines.push(...summaryLines);
+    } else {
+      lines.push(`Response body: ${formatHttpErrorSnippet(error.response.body)}`);
+    }
+    lines.push("Re-run with --verbose to see headers and full body.");
   }
 
   process.stderr.write(`${lines.join("\n")}\n`);
@@ -4590,7 +4788,7 @@ async function handleRunError(
     argv?: readonly string[];
     rootUsageName: string;
     commandPath: string;
-    userErrorPattern: "runtime-user" | "usage";
+    userErrorPattern: "definition" | "runtime-user" | "usage";
   }
 ): Promise<void> {
   const logger = createLogger();
@@ -4598,7 +4796,13 @@ async function handleRunError(
   await withOutputFormat(options.output, async () => {
     if (error instanceof UserError) {
       renderCliErrorPattern(
-        options.userErrorPattern === "usage"
+        options.userErrorPattern === "definition"
+          ? {
+              kind: "definition",
+              error,
+              debugStackMode: options.debugStackMode
+            }
+          : options.userErrorPattern === "usage"
           ? {
               kind: "usage",
               message: error.message,
@@ -4983,58 +5187,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 ): Promise<void> {
   enableSourceMaps();
   const argv = [...(options.argv ?? process.argv)];
-  const normalizedRoot = normalizeRoots(roots, argv);
-  const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
-  await resolveMcpProxies(root, { projectRoot: options.projectRoot });
-  const casing = options.casing ?? "kebab";
-  const services = (options.services ?? {}) as TServices;
-  const runtimeOptions = options.humanInLoop ?? {};
-  const runtimeFetch = options.fetch ?? globalThis.fetch;
-  const version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
-  const controls = resolveCLIControls(options.controls);
-  const servicesWithBuiltIns = {
-    ...services,
-    runtimeOptions,
-    root
-  } as TServices;
-  const requirementOptions = {
-    apiVersion: options.apiVersion
-  } satisfies CommandRequirementOptions;
-
-  validateServices(services as Record<string, unknown>);
-
-  if (hasHelpFlag(argv)) {
-    await renderGeneratedHelp(root, argv, { ...options, version });
-    return;
-  }
-
-  const program = new CommanderCommand();
-  program.name(root.name);
-  program.exitOverride();
-  program.showHelpAfterError();
-  program.addHelpCommand(false);
-  const presetsEnabled = options.presets === true;
-  const globalLongOptionFlags = getGlobalLongOptionFlags(
-    presetsEnabled,
-    version !== undefined,
-    controls
-  );
-  addGlobalOptions(program, presetsEnabled, controls);
-
-  if (version !== undefined) {
-    program.version(version, "--version");
-  }
-  Reflect.set(
-    program,
-    "_toolcraftReservedChildNames",
-    root.children
-      .filter((child) => !isNodeVisibleInScope(child, "cli"))
-      .flatMap((child) => getNodeCommandNames(child))
-  );
-
   let lastActionCommand: CommanderCommand | undefined;
   let resolvedCommandPath = "";
+  let program: CommanderCommand | undefined;
+  let version: string | undefined;
+  let userErrorPattern: "definition" | "runtime-user" | "usage" = "definition";
   let errorReportContext:
     | {
         command: Command<TServices, any, any, any>;
@@ -5043,64 +5201,116 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         secrets?: Record<string, string | undefined>;
       }
     | undefined;
-  const execute = async (state: ExecutionState<TServices>) => {
-    lastActionCommand = state.actionCommand;
-    resolvedCommandPath = formatCliCommandPath(state.commandPath);
-    await executeCommand(
-      state,
-      servicesWithBuiltIns,
-      requirementOptions,
-      runtimeFetch,
-      runtimeOptions,
-      (context) => {
-        errorReportContext = context;
-      }
-    );
-  };
-
-  const rootChildNames = new Set(
-    root.children
-      .filter((candidate) => isNodeVisibleInScope(candidate, "cli"))
-      .map((candidate) => candidate.name)
-  );
-  for (const child of root.children) {
-    const command = createNodeCommand(
-      child,
-      casing,
-      globalLongOptionFlags,
-      execute,
-      presetsEnabled,
-      controls
-    );
-    if (command === null) {
-      continue;
-    }
-
-    const isDefaultChild =
-      root.default !== undefined &&
-      root.default.scope.includes("cli") &&
-      (command.name() === root.default.name || command.aliases().includes(root.default.name));
-
-    addCommanderChild(program, command, isDefaultChild, rootChildNames);
-  }
-  configureCommanderSuggestionOutput(program);
-
-  const unknownCommand = findUnknownCommanderCommand(program, argv);
-  if (unknownCommand !== undefined) {
-    createLogger().error(
-      appendUsagePointer(
-        formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand),
-        {
-          rootUsageName,
-          commandPath: unknownCommand.commandPath
-        }
-      )
-    );
-    process.exitCode = 1;
-    return;
-  }
 
   try {
+    const normalizedRoot = normalizeRoots(roots, argv);
+    const root = options.approvals === true ? mergeApprovalsGroup(normalizedRoot) : normalizedRoot;
+    await resolveMcpProxies(root, { projectRoot: options.projectRoot });
+    const casing = options.casing ?? "kebab";
+    const services = (options.services ?? {}) as TServices;
+    const runtimeOptions = options.humanInLoop ?? {};
+    const runtimeFetch = options.fetch ?? globalThis.fetch;
+    version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
+    const controls = resolveCLIControls(options.controls);
+    const servicesWithBuiltIns = {
+      ...services,
+      runtimeOptions,
+      root
+    } as TServices;
+    const requirementOptions = {
+      apiVersion: options.apiVersion
+    } satisfies CommandRequirementOptions;
+
+    validateServices(services as Record<string, unknown>);
+
+    if (hasHelpFlag(argv)) {
+      userErrorPattern = "usage";
+      await renderGeneratedHelp(root, argv, { ...options, version });
+      return;
+    }
+
+    program = new CommanderCommand();
+    program.name(root.name);
+    program.exitOverride();
+    program.showHelpAfterError();
+    program.addHelpCommand(false);
+    const presetsEnabled = options.presets === true;
+    const globalLongOptionFlags = getGlobalLongOptionFlags(
+      presetsEnabled,
+      version !== undefined,
+      controls
+    );
+    addGlobalOptions(program, presetsEnabled, controls);
+
+    if (version !== undefined) {
+      program.version(version, "--version");
+    }
+    Reflect.set(
+      program,
+      "_toolcraftReservedChildNames",
+      root.children
+        .filter((child) => !isNodeVisibleInScope(child, "cli"))
+        .flatMap((child) => getNodeCommandNames(child))
+    );
+
+    const execute = async (state: ExecutionState<TServices>) => {
+      lastActionCommand = state.actionCommand;
+      resolvedCommandPath = formatCliCommandPath(state.commandPath);
+      await executeCommand(
+        state,
+        servicesWithBuiltIns,
+        requirementOptions,
+        runtimeFetch,
+        runtimeOptions,
+        (context) => {
+          errorReportContext = context;
+        }
+      );
+    };
+
+    const rootChildNames = new Set(
+      root.children
+        .filter((candidate) => isNodeVisibleInScope(candidate, "cli"))
+        .map((candidate) => candidate.name)
+    );
+    for (const child of root.children) {
+      const command = createNodeCommand(
+        child,
+        casing,
+        globalLongOptionFlags,
+        execute,
+        presetsEnabled,
+        controls
+      );
+      if (command === null) {
+        continue;
+      }
+
+      const isDefaultChild =
+        root.default !== undefined &&
+        root.default.scope.includes("cli") &&
+        (command.name() === root.default.name || command.aliases().includes(root.default.name));
+
+      addCommanderChild(program, command, isDefaultChild, rootChildNames);
+    }
+    configureCommanderSuggestionOutput(program);
+
+    const unknownCommand = findUnknownCommanderCommand(program, argv);
+    if (unknownCommand !== undefined) {
+      createLogger().error(
+        appendUsagePointer(
+          formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand),
+          {
+            rootUsageName,
+            commandPath: unknownCommand.commandPath
+          }
+        )
+      );
+      process.exitCode = 1;
+      return;
+    }
+
+    userErrorPattern = "usage";
     await program.parseAsync(argv);
   } catch (error) {
     if (error instanceof ApprovalDeclinedError) {
@@ -5140,7 +5350,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       argv,
       rootUsageName,
       commandPath: resolvedCommandPath,
-      userErrorPattern: errorReportContext?.params === undefined ? "usage" : "runtime-user"
+      userErrorPattern: errorReportContext?.params === undefined ? userErrorPattern : "runtime-user"
     });
   }
 }

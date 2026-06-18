@@ -213,7 +213,7 @@ export function formatColumns(opts: FormatColumnsOptions): string {
       }
 
       const rightLines = wrapWords(row.right, rightWidth);
-      if (visibleWidth(row.left) > leftWidth) {
+      if (visibleWidth(row.left) >= leftWidth) {
         return [
           `${firstIndent}${row.left}`,
           ...rightLines.map((line) => `${continuationIndent}${line}`)

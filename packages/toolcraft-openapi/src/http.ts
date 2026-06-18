@@ -40,7 +40,6 @@ export interface HttpRequestOptions {
   multipartBinaryFields?: readonly string[];
   responseMode?: "json" | "text" | "binary";
   accept?: string;
-  dryRun?: boolean;
   verbose?: boolean;
   signal?: AbortSignal;
   rawResponse?: boolean;
@@ -57,7 +56,6 @@ export interface HttpRequestOptions {
     key?: string;
     createKey?: () => string;
   };
-  writeStdout?: (chunk: string) => void;
   writeStderr?: (chunk: string) => void;
 }
 
@@ -111,14 +109,7 @@ export async function requestJson<TResult = unknown>(
     options.bodyMode,
     options.contentType
   );
-  const writeStdout = options.writeStdout ?? process.stdout.write.bind(process.stdout);
   const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
-  const requestLine = `${method} ${redactSensitiveQueryValues(url)}`;
-
-  if (options.dryRun) {
-    writeStdout(formatDryRunOutput(requestLine, headers, options.body));
-    return undefined;
-  }
 
   if (options.verbose) {
     writeStderr(
@@ -718,28 +709,6 @@ function createHttpErrorRequest(
 
 function serializeHeaders(headers: Headers): Record<string, string> {
   return Object.fromEntries(headers.entries());
-}
-
-function formatDryRunOutput(
-  requestLine: string,
-  headers: Record<string, string>,
-  body: unknown
-): string {
-  const lines = [
-    requestLine,
-    ...Object.entries(headers).map(([key, value]) => {
-      const headerValue = redactHeaderValue(key, value);
-
-      return `${key}: ${headerValue}`;
-    }),
-    ""
-  ];
-
-  if (body !== undefined) {
-    lines.push(JSON.stringify(body));
-  }
-
-  return `${lines.join("\n")}\n`;
 }
 
 function formatVerboseRequestTranscript(

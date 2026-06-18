@@ -298,7 +298,8 @@ describe("toolcraft error UX contract", () => {
       "Request:  GET https://api.example.com/v1/widgets/42
       Status:   500 Internal Server Error
 
-      Response body: { "error": "internal_panic", "trace_id": "8f3c-123", "details": "The upstream service returned a very long diagnostic payload with whitespace\\nthat should collapse into a one-line snippet for normal u
+      Code:     internal_panic
+      Request id: 8f3c
       Re-run with --verbose to see headers and full body.
       "
     `);

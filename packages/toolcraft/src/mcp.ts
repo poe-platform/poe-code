@@ -10,6 +10,7 @@ import {
 } from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
+import { createHttpErrorEnvelope, isHttpErrorLike } from "./api-error-summary.js";
 import {
   ToolcraftBugError,
   UserError,
@@ -1076,9 +1077,18 @@ function toToolContent(result: unknown): ToolContent[] {
   return [{ type: "text", text: fallbackText }];
 }
 
-function toToolError(error: unknown): ToolError {
+function toToolError(error: unknown, reportPath?: string): ToolError {
   if (error instanceof ToolError) {
     return error;
+  }
+
+  if (isHttpErrorLike(error)) {
+    const code =
+      error.response.status >= 400 && error.response.status < 500
+        ? JSON_RPC_ERROR_CODES.INVALID_PARAMS
+        : JSON_RPC_ERROR_CODES.INTERNAL_ERROR;
+    const envelope = createHttpErrorEnvelope(error, reportPath);
+    return new ToolError(code, envelope.message, envelope);
   }
 
   if (error instanceof UserError) {
@@ -1168,7 +1178,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           return renderDeclinedApproval(error);
         }
 
-        await writeErrorReport({
+        const report = await writeErrorReport({
           command: tool.command,
           commandPath: tool.commandPath,
           env: process.env,
@@ -1178,7 +1188,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           projectRoot: options.projectRoot,
           secrets
         });
-        throw toToolError(error);
+        throw toToolError(error, report?.displayPath);
       }
     };
 

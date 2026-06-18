@@ -1120,67 +1120,6 @@ describe("requestJson", () => {
     expect(JSON.stringify((error as HttpError).response.headers)).not.toContain("raw-cookie");
   });
 
-  it("redacts the bearer token in dry-run output", async () => {
-    const stdout = vi.fn();
-
-    await requestJson({
-      baseUrl: "https://api.example.com",
-      path: "/bots/{handle}",
-      method: "POST",
-      auth: "required",
-      tokenSource: createTokenSource("abc"),
-      fetch: vi.fn(),
-      pathParams: { handle: "my-bot" },
-      body: { official: true },
-      dryRun: true,
-      writeStdout: stdout
-    });
-
-    expect(stdout).toHaveBeenCalledWith(
-      'POST https://api.example.com/bots/my-bot\nAccept: application/json\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{"official":true}\n'
-    );
-  });
-
-  it("redacts sensitive query values in dry-run output", async () => {
-    const stdout = vi.fn();
-
-    await requestJson({
-      baseUrl: "https://api.example.com",
-      path: "/bots",
-      method: "GET",
-      auth: "none",
-      tokenSource: createTokenSource("unused"),
-      fetch: vi.fn(),
-      query: {
-        api_key: "dry-secret-token",
-        page: 2
-      },
-      dryRun: true,
-      writeStdout: stdout
-    });
-
-    expect(stdout).toHaveBeenCalledWith(
-      "GET https://api.example.com/bots?api_key=****&page=2\nAccept: application/json\n\n"
-    );
-  });
-
-  it("does not call fetch during dry runs", async () => {
-    const fetchMock = vi.fn();
-
-    await requestJson({
-      baseUrl: "https://api.example.com",
-      path: "/bots",
-      method: "GET",
-      auth: "required",
-      tokenSource: createTokenSource("abc"),
-      fetch: fetchMock,
-      dryRun: true,
-      writeStdout: vi.fn()
-    });
-
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
   it("writes a verbose request and response transcript for successful JSON bodies", async () => {
     const stderr = vi.fn();
 

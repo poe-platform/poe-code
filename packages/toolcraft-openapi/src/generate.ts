@@ -495,10 +495,7 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
   return [
     ...commands.map((command) => ({
       path: command.filePath,
-      contents: createCommandFile({
-        specSha: options.specSha,
-        ...command
-      })
+      contents: createCommandFile(command)
     })),
     createIndexFile(commands),
     createClientFile(),
@@ -2629,7 +2626,6 @@ function applyDisambiguatedVerbs(
 }
 
 function createCommandFile(options: {
-  specSha: string;
   operationId: string;
   noun: string;
   verb: string;
@@ -2671,10 +2667,7 @@ function createCommandFile(options: {
     ...(usesMultipartFileInputs ? ["prepareMultipartFileInputs"] : []),
     ...(usesBinaryOutput ? ["writeBinaryResponseOutput"] : [])
   ];
-  const lines = createGeneratedTypeScriptFileLines([
-    `spec-sha: ${options.specSha}`,
-    `operation-id: ${options.operationId}`
-  ]);
+  const lines = createGeneratedTypeScriptFileLines([`operation-id: ${options.operationId}`]);
   lines.push(
     requiresUserError
       ? 'import { S, UserError } from "toolcraft";'

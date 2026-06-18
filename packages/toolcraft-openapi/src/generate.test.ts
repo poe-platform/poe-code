@@ -270,6 +270,31 @@ describe("generate", () => {
     }
   });
 
+  it("keeps operation files stable when only the spec SHA changes", () => {
+    const document = createDocument({
+      "/bots": {
+        get: {
+          tags: ["bots"],
+          operationId: "listBots",
+          responses: {
+            "200": {
+              description: "Listed."
+            }
+          }
+        }
+      }
+    });
+
+    const firstFiles = generate(document, { specSha: "spec-sha-123" });
+    const secondFiles = generate(document, { specSha: "spec-sha-456" });
+    const firstCommandFile = firstFiles.find((file) => file.path === "bots/list.ts");
+    const secondCommandFile = secondFiles.find((file) => file.path === "bots/list.ts");
+
+    expect(firstCommandFile?.contents).not.toContain("spec-sha:");
+    expect(secondCommandFile?.contents).not.toContain("spec-sha:");
+    expect(secondCommandFile?.contents).toEqual(firstCommandFile?.contents);
+  });
+
   it("sorts generated index imports and groups by noun and verb", () => {
     const files = generate(
       createDocument({

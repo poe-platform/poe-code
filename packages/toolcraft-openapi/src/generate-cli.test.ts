@@ -6,12 +6,12 @@ import { stripAnsi } from "toolcraft-design";
 import { generate, type OpenApiDocument } from "./generate.js";
 import { runGenerateCli } from "./bin/generate.js";
 
-function createSpec(summary: string): string {
+function createSpec(summary: string, options?: { version?: string }): string {
   const document: OpenApiDocument = {
     openapi: "3.0.3",
     info: {
       title: "Internal Agent API",
-      version: "1.0.0"
+      version: options?.version ?? "1.0.0"
     },
     paths: {
       "/bots": {
@@ -355,6 +355,28 @@ describe("runGenerateCli", () => {
     expect(JSON.parse(await harness.fs.readFile("/repo/openapi.lock", "utf8"))).toEqual({
       version: 1,
       specSha: computeSpecSha(specText)
+    });
+  });
+
+  it("updates only the OpenAPI lock when a spec hash change leaves generated source unchanged", async () => {
+    const originalSpec = createSpec("List bots.", { version: "1.0.0" });
+    const updatedSpec = createSpec("List bots.", { version: "1.0.1" });
+    const harness = createCliHarness({ "/repo/openapi.json": originalSpec });
+
+    expect(await runGenerateCli(["node", "generate"], harness.services)).toBe(0);
+
+    const beforeGeneratedFiles = await readRepoFiles(harness.fs, "/repo/src/generated");
+    const beforeLock = await harness.fs.readFile("/repo/openapi.lock", "utf8");
+
+    await harness.fs.writeFile("/repo/openapi.json", updatedSpec, "utf8");
+
+    expect(await runGenerateCli(["node", "generate"], harness.services)).toBe(0);
+
+    expect(await readRepoFiles(harness.fs, "/repo/src/generated")).toEqual(beforeGeneratedFiles);
+    expect(await harness.fs.readFile("/repo/openapi.lock", "utf8")).not.toEqual(beforeLock);
+    expect(JSON.parse(await harness.fs.readFile("/repo/openapi.lock", "utf8"))).toEqual({
+      version: 1,
+      specSha: computeSpecSha(updatedSpec)
     });
   });
 

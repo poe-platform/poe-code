@@ -11,6 +11,7 @@ import type {
   DefinedClient,
   GenerateOptions,
   GeneratedFile,
+  GeneratedSkill,
   HttpRequestOptions,
   OpenApiDocument,
   OpenApiClientServices,
@@ -35,6 +36,7 @@ describe("toolcraft-openapi", () => {
       "formatDiagnostic",
       "formatDiagnostics",
       "generate",
+      "generateSkill",
       "inspectOpenApiDocument",
       "inspectOpenApiSource",
       "mergeToolcraftConfig",
@@ -154,6 +156,11 @@ describe("toolcraft-openapi", () => {
       contents: string;
     }>();
 
+    expectTypeOf<GeneratedSkill>().toMatchTypeOf<{
+      name: string;
+      contents: string;
+    }>();
+
     expectTypeOf<OpenApiDocument>().toMatchTypeOf<{
       paths?: Record<string, unknown>;
     }>();
@@ -162,6 +169,15 @@ describe("toolcraft-openapi", () => {
   it("exports generate() with the public signature", () => {
     expectTypeOf<typeof entrypoint.generate>().toMatchTypeOf<
       (document: OpenApiDocument, options: GenerateOptions) => GeneratedFile[]
+    >();
+  });
+
+  it("exports generateSkill() with the public signature", () => {
+    expectTypeOf<typeof entrypoint.generateSkill>().toMatchTypeOf<
+      (
+        document: OpenApiDocument,
+        options?: { commandName?: string; config?: ToolcraftConfig }
+      ) => GeneratedSkill
     >();
   });
 

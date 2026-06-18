@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { stripAnsi } from "toolcraft-design";
-import { generate, type OpenApiDocument } from "./generate.js";
+import { generate, generateSkill, type OpenApiDocument } from "./generate.js";
 import { runGenerateCli } from "./bin/generate.js";
 
 function createSpec(summary: string, options?: { version?: string }): string {
@@ -111,10 +111,16 @@ function createExpectedFiles(
     includeDownloadedSpec?: boolean;
     includeInputFile?: boolean;
     includeLockFile?: boolean;
+    includeSkill?: boolean;
+    skillCommandName?: string;
   }
 ) {
   const specSha = computeSpecSha(specText);
-  const generatedFiles = generate(JSON.parse(specText) as OpenApiDocument, { specSha });
+  const document = JSON.parse(specText) as OpenApiDocument;
+  const generatedFiles = generate(document, { specSha });
+  const generatedSkill = generateSkill(document, {
+    commandName: options?.skillCommandName
+  });
   const expectedFiles = Object.fromEntries(
     generatedFiles.map((file) => [path.posix.join("src/generated", file.path), file.contents])
   );
@@ -125,6 +131,9 @@ function createExpectedFiles(
       ? {}
       : { "openapi.lock": `${JSON.stringify({ version: 1, specSha }, null, 2)}\n` }),
     ...(options?.includeDownloadedSpec === true ? { "src/generated/openapi.json": specText } : {}),
+    ...(options?.includeSkill === false
+      ? {}
+      : { [`.claude/skills/${generatedSkill.name}/SKILL.md`]: generatedSkill.contents }),
     ...expectedFiles
   };
 }
@@ -396,6 +405,29 @@ describe("runGenerateCli", () => {
       version: 1,
       specSha: computeSpecSha(specText)
     });
+  });
+
+  it("infers the CLI binary name from package.json for the generated skill", async () => {
+    const specText = createSpec("List bots.");
+    const packageJson = JSON.stringify({
+      name: "internal-agent-tools",
+      bin: {
+        "internal-agent-tools-mcp": "dist/bin/mcp.js",
+        "internal-agent-tools": "dist/bin/cli.js"
+      }
+    });
+    const harness = createCliHarness({
+      "/repo/openapi.json": specText,
+      "/repo/package.json": packageJson
+    });
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect(exitCode).toBe(0);
+    expect(
+      await harness.fs.readFile("/repo/.claude/skills/internal-agent-tools/SKILL.md", "utf8")
+    ).toContain("internal-agent-tools bots list");
+    await expect(harness.fs.stat("/repo/src/generated/SKILL.md")).rejects.toThrow("ENOENT");
   });
 
   it("treats a stale OpenAPI lock as drift in --check mode", async () => {

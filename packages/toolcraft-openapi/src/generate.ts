@@ -8,6 +8,7 @@ import {
   isIdentifierName,
   normalizeNoun,
   normalizeParamName,
+  toCliFlag,
   toCamelCase,
   toPascalCase,
   type HttpMethod
@@ -186,6 +187,11 @@ export interface GenerateOptions {
 
 export interface GeneratedFile {
   path: string;
+  contents: string;
+}
+
+export interface GeneratedSkill {
+  name: string;
   contents: string;
 }
 
@@ -504,6 +510,21 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
   ];
 }
 
+export function generateSkill(
+  document: OpenApiDocument,
+  options: { commandName?: string | undefined; config?: ToolcraftConfig | undefined } = {}
+): GeneratedSkill {
+  const normalizedDocument = normalizeOpenApiDocument(document);
+  const commands = collectGeneratedCommands(normalizedDocument, options.config);
+  const label = normalizedDocument.info?.title ?? "Toolcraft";
+
+  return createSkill({
+    commands,
+    commandName: options.commandName,
+    label
+  });
+}
+
 export function collectGeneratedCommands(
   document: OpenApiDocument,
   config?: ToolcraftConfig
@@ -533,7 +554,10 @@ interface ConfiguredCommandShape {
   method: ToolcraftMethodConfig;
 }
 
-function applyConfiguredCommandShape(commands: GeneratedCommand[], config: ToolcraftConfig | undefined): void {
+function applyConfiguredCommandShape(
+  commands: GeneratedCommand[],
+  config: ToolcraftConfig | undefined
+): void {
   const configured = collectConfiguredCommandShapes(config?.resources);
   if (configured.length === 0) {
     return;
@@ -542,7 +566,8 @@ function applyConfiguredCommandShape(commands: GeneratedCommand[], config: Toolc
   for (const command of commands) {
     const match = configured.find(
       (candidate) =>
-        candidate.method.method.toUpperCase() === command.method && candidate.method.path === command.path
+        candidate.method.method.toUpperCase() === command.method &&
+        candidate.method.path === command.path
     );
 
     if (match === undefined) {
@@ -637,7 +662,9 @@ function createSafeGeneratedVerb(value: string): string {
   const verb = toCamelCase(value);
 
   if (!isIdentifierName(verb)) {
-    throw new UserError(`Configured method ${JSON.stringify(value)} must map to a valid command name.`);
+    throw new UserError(
+      `Configured method ${JSON.stringify(value)} must map to a valid command name.`
+    );
   }
 
   return verb;
@@ -834,7 +861,11 @@ function collectParams(
     requestBodyParams,
     new Set([...operationParams.params, ...transportParams].map((param) => param.paramName))
   );
-  const params = [...operationParams.params, ...qualifiedRequestBodyParams.params, ...transportParams];
+  const params = [
+    ...operationParams.params,
+    ...qualifiedRequestBodyParams.params,
+    ...transportParams
+  ];
   const deduped = new Map<string, GeneratedParam>();
 
   for (const param of params) {
@@ -852,9 +883,15 @@ function collectParams(
   return {
     params: [...deduped.values()],
     paramsSchemaOptions: qualifiedRequestBodyParams.paramsSchemaOptions,
-    preflightBlocks: [...operationParams.preflightBlocks, ...qualifiedRequestBodyParams.preflightBlocks],
+    preflightBlocks: [
+      ...operationParams.preflightBlocks,
+      ...qualifiedRequestBodyParams.preflightBlocks
+    ],
     requestFields: [...operationParams.requestFields, ...qualifiedRequestBodyParams.requestFields],
-    sectionRenders: { ...operationParams.sectionRenders, ...qualifiedRequestBodyParams.sectionRenders },
+    sectionRenders: {
+      ...operationParams.sectionRenders,
+      ...qualifiedRequestBodyParams.sectionRenders
+    },
     optionalSections: new Set([
       ...operationParams.optionalSections,
       ...qualifiedRequestBodyParams.optionalSections
@@ -1051,17 +1088,26 @@ function collectRequestBodyParams(
     "requestBody"
   );
   const contentEntries = Object.entries(requestBody.content ?? {});
-  const contentEntry = contentEntries.find(
-    ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && isJsonMediaType(mediaType)
-  ) ?? contentEntries.find(
-    ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && mediaType.toLowerCase() === "application/x-www-form-urlencoded"
-  ) ?? contentEntries.find(
-    ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && isTextMediaType(mediaType)
-  ) ?? contentEntries.find(
-    ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && isBinaryMediaType(mediaType)
-  ) ?? contentEntries.find(
-    ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && mediaType.toLowerCase() === "multipart/form-data"
-  );
+  const contentEntry =
+    contentEntries.find(
+      ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && isJsonMediaType(mediaType)
+    ) ??
+    contentEntries.find(
+      ([mediaType, mediaTypeObject]) =>
+        mediaTypeObject !== undefined &&
+        mediaType.toLowerCase() === "application/x-www-form-urlencoded"
+    ) ??
+    contentEntries.find(
+      ([mediaType, mediaTypeObject]) => mediaTypeObject !== undefined && isTextMediaType(mediaType)
+    ) ??
+    contentEntries.find(
+      ([mediaType, mediaTypeObject]) =>
+        mediaTypeObject !== undefined && isBinaryMediaType(mediaType)
+    ) ??
+    contentEntries.find(
+      ([mediaType, mediaTypeObject]) =>
+        mediaTypeObject !== undefined && mediaType.toLowerCase() === "multipart/form-data"
+    );
   const content = contentEntry?.[1];
   const requestMediaType = contentEntry?.[0];
   const bodyMode =
@@ -1069,11 +1115,11 @@ function collectRequestBodyParams(
       ? "form"
       : requestMediaType?.toLowerCase() === "multipart/form-data"
         ? "multipart"
-      : requestMediaType !== undefined && !isJsonMediaType(requestMediaType)
-        ? isTextMediaType(requestMediaType)
-          ? "raw"
-          : "base64"
-        : "json";
+        : requestMediaType !== undefined && !isJsonMediaType(requestMediaType)
+          ? isTextMediaType(requestMediaType)
+            ? "raw"
+            : "base64"
+          : "json";
 
   if (content === undefined) {
     throw new UserError(
@@ -1110,7 +1156,12 @@ function collectRequestBodyParams(
     bodyMode === "multipart" && schema.properties !== undefined
       ? Object.entries(schema.properties)
           .filter(([, property]) => {
-            const resolved = resolveBodySchema(document, property, operationId, "requestBody multipart field");
+            const resolved = resolveBodySchema(
+              document,
+              property,
+              operationId,
+              "requestBody multipart field"
+            );
             return resolved.type === "string" && resolved.format === "binary";
           })
           .map(([name]) => name)
@@ -1138,16 +1189,18 @@ function collectRequestBodyParams(
     schema.properties === undefined
   ) {
     return createCollectedRequestBodyParams(
-      [createJsonBodyField({
-        document,
-        name: "body",
-        description: schema.description ?? requestBody.description,
-        schema,
-        optional: bodyOptional,
-        operationId,
-        context: "requestBody",
-        location: "body"
-      })],
+      [
+        createJsonBodyField({
+          document,
+          name: "body",
+          description: schema.description ?? requestBody.description,
+          schema,
+          optional: bodyOptional,
+          operationId,
+          context: "requestBody",
+          location: "body"
+        })
+      ],
       bodyOptional,
       requestBody.description,
       "inline",
@@ -1187,14 +1240,17 @@ function collectRequestBodyParams(
     if (declaredPropertyCount === 0) {
       return {
         params: [],
-        paramsSchemaOptions: schema.additionalProperties === false ? { additionalProperties: false } : undefined,
+        paramsSchemaOptions:
+          schema.additionalProperties === false ? { additionalProperties: false } : undefined,
         preflightBlocks: [],
-        requestFields: [{
-          location: "body",
-          wireName: "body",
-          value: { kind: "emptyObject" },
-          omitWhenUndefinedReference: { kind: "resolved", resolvedName: "emptyBody" }
-        }],
+        requestFields: [
+          {
+            location: "body",
+            wireName: "body",
+            value: { kind: "emptyObject" },
+            omitWhenUndefinedReference: { kind: "resolved", resolvedName: "emptyBody" }
+          }
+        ],
         sectionRenders: { body: "inline" },
         optionalSections: new Set(),
         requestBodyDescription: requestBody.description,
@@ -1305,7 +1361,14 @@ function createGeneratedParameter(
     parameter.in === "query" &&
     parameter.style === "deepObject" &&
     (getCompositionKeyword(schema) !== undefined ||
-      (schema.type === "array" && schema.items !== undefined && isComplexJsonBodySchema(document, schema.items as OpenApiSchemaObject, operationId, `${context} items`)))
+      (schema.type === "array" &&
+        schema.items !== undefined &&
+        isComplexJsonBodySchema(
+          document,
+          schema.items as OpenApiSchemaObject,
+          operationId,
+          `${context} items`
+        )))
   ) {
     return createJsonQueryField({
       document,
@@ -1368,7 +1431,14 @@ function createBodyField(
   optional: boolean,
   operationId: string
 ): GeneratedParameterAssembly {
-  if (shouldUseJsonBodyField(document, schema, operationId, `request body field ${JSON.stringify(name)}`)) {
+  if (
+    shouldUseJsonBodyField(
+      document,
+      schema,
+      operationId,
+      `request body field ${JSON.stringify(name)}`
+    )
+  ) {
     return createJsonBodyField({
       document,
       name,
@@ -1562,7 +1632,9 @@ function createJsonBodyField(options: CreateFieldOptions): GeneratedParameterAss
 
 function createJsonQueryField(options: CreateFieldOptions): GeneratedParameterAssembly {
   if (options.queryObjectSerialization !== "deepObject") {
-    throw new ToolcraftBugError("Missing deep-object serialization for generated JSON query field.");
+    throw new ToolcraftBugError(
+      "Missing deep-object serialization for generated JSON query field."
+    );
   }
 
   return {
@@ -1735,23 +1807,34 @@ const FIELD_ASSEMBLERS = {
 >;
 
 function createPathArrayParam(options: CreateFieldOptions): GeneratedParameterAssembly {
-  const definition = createParamDefinition(options.document, options.schema, options.operationId, options.context);
+  const definition = createParamDefinition(
+    options.document,
+    options.schema,
+    options.operationId,
+    options.context
+  );
   const paramName = options.name;
 
   return {
-    params: [{
-      paramName,
-      sourceName: options.name,
-      location: "path",
-      description: options.description,
-      optional: false,
-      definition
-    }],
+    params: [
+      {
+        paramName,
+        sourceName: options.name,
+        location: "path",
+        description: options.description,
+        optional: false,
+        definition
+      }
+    ],
     preflightBlocks: [],
     requestField: {
       location: "path",
       wireName: options.name,
-      value: { kind: "queryArray", reference: { kind: "param", paramName }, serialization: "comma" },
+      value: {
+        kind: "queryArray",
+        reference: { kind: "param", paramName },
+        serialization: "comma"
+      },
       omitWhenUndefinedReference: { kind: "param", paramName }
     }
   };
@@ -1839,11 +1922,7 @@ function createParamDefinition(
   const scalarDefinition = isOpenApiScalarType(schema.type)
     ? SCHEMA_TYPE_TO_KIND[schema.type]
     : undefined;
-  const enumValues = normalizeEnumValues(
-    schema.enum,
-    operationId,
-    context
-  );
+  const enumValues = normalizeEnumValues(schema.enum, operationId, context);
 
   if (enumValues !== undefined) {
     return {
@@ -1992,12 +2071,21 @@ function isAsciiDigit(character: string): boolean {
 
 function isJsonMediaType(mediaType: string): boolean {
   const normalized = mediaType.toLowerCase();
-  return normalized === "*/*" || normalized === "text/json" || normalized.includes("application/json") || normalized.includes("+json");
+  return (
+    normalized === "*/*" ||
+    normalized === "text/json" ||
+    normalized.includes("application/json") ||
+    normalized.includes("+json")
+  );
 }
 
 function isTextMediaType(mediaType: string): boolean {
   const normalized = mediaType.toLowerCase();
-  return normalized.startsWith("text/") || normalized === "plain/text" || normalized === "application/jwt";
+  return (
+    normalized.startsWith("text/") ||
+    normalized === "plain/text" ||
+    normalized === "application/jwt"
+  );
 }
 
 function isBinaryMediaType(mediaType: string): boolean {
@@ -2280,7 +2368,10 @@ function cloneOwnSchemaObject(schema: OpenApiSchemaObject): OpenApiSchemaObject 
 }
 
 function isSchemaContainer(
-  value: OpenApiSchemaObject | OpenApiReferenceObject | { schema?: OpenApiSchemaObject | OpenApiReferenceObject }
+  value:
+    | OpenApiSchemaObject
+    | OpenApiReferenceObject
+    | { schema?: OpenApiSchemaObject | OpenApiReferenceObject }
 ): value is { schema: OpenApiSchemaObject | OpenApiReferenceObject } {
   return !isReferenceObject(value) && "schema" in value && value.schema !== undefined;
 }
@@ -2414,10 +2505,7 @@ function getCompositionKeyword(
   schema: OpenApiSchemaObject
 ): "allOf" | "anyOf" | "oneOf" | undefined {
   for (const keyword of ["allOf", "anyOf", "oneOf"] as const) {
-    if (
-      Object.prototype.hasOwnProperty.call(schema, keyword) &&
-      schema[keyword] !== undefined
-    ) {
+    if (Object.prototype.hasOwnProperty.call(schema, keyword) && schema[keyword] !== undefined) {
       return keyword;
     }
   }
@@ -2554,14 +2642,14 @@ function disambiguateCommandPaths(commands: GeneratedCommand[]): void {
     }
 
     const pathCandidates = collisions.map((command) => ({
-        command,
-        verb: derivePathDisambiguatedVerb(
-          command.method.toLowerCase() as HttpMethod,
-          command.path,
-          command.noun,
-          command.verb
-        )
-      }));
+      command,
+      verb: derivePathDisambiguatedVerb(
+        command.method.toLowerCase() as HttpMethod,
+        command.path,
+        command.noun,
+        command.verb
+      )
+    }));
 
     if (applyDisambiguatedVerbs(pathCandidates, existingPaths)) {
       continue;
@@ -2569,17 +2657,17 @@ function disambiguateCommandPaths(commands: GeneratedCommand[]): void {
 
     if (
       applyDisambiguatedVerbs(
-      collisions.map((command) => ({
-        command,
-        verb: derivePathDisambiguatedVerb(
-          command.method.toLowerCase() as HttpMethod,
-          command.path,
-          command.noun,
-          command.verb,
-          true
-        )
-      })),
-      existingPaths
+        collisions.map((command) => ({
+          command,
+          verb: derivePathDisambiguatedVerb(
+            command.method.toLowerCase() as HttpMethod,
+            command.path,
+            command.noun,
+            command.verb,
+            true
+          )
+        })),
+        existingPaths
       )
     ) {
       continue;
@@ -2713,7 +2801,9 @@ function createCommandFile(options: {
     lines.push("    };");
 
     if (usesMultipartFileInputs) {
-      lines.push("    const preparedRequestShape = await prepareMultipartFileInputs(requestShape, {");
+      lines.push(
+        "    const preparedRequestShape = await prepareMultipartFileInputs(requestShape, {"
+      );
       lines.push('      bodyMode: "multipart",');
       lines.push(`      multipartBinaryFields: ${JSON.stringify(options.multipartBinaryFields)},`);
       lines.push("      fs,");
@@ -2982,7 +3072,9 @@ function renderObjectKey(name: string): string {
 
 function createSafeGeneratedNoun(noun: string): string {
   const normalized = normalizeNoun(noun);
-  return isTypeScriptIdentifier(toCamelCase(normalized)) ? normalized : `api-${normalized || "operation"}`;
+  return isTypeScriptIdentifier(toCamelCase(normalized))
+    ? normalized
+    : `api-${normalized || "operation"}`;
 }
 
 export function collectSchemaOptionEntries(param: RenderSchemaOptionsInput): SchemaOptionEntry[] {
@@ -3232,6 +3324,242 @@ function createMcpFile(): GeneratedFile {
       ""
     ].join("\n")
   };
+}
+
+function createSkill(options: {
+  commands: GeneratedCommand[];
+  commandName?: string;
+  label: string;
+}): GeneratedSkill {
+  const commandName = options.commandName ?? "<cli>";
+  const groups = groupByNoun(options.commands);
+  const skillName = createSkillName(options.commandName ?? options.label);
+  const description = createSkillDescription(
+    options.label,
+    groups.map((group) => group.noun)
+  );
+  const quickStartCommands = collectQuickStartCommands(commandName, options.commands);
+  const lines = [
+    "---",
+    `name: ${skillName}`,
+    `description: ${JSON.stringify(description)}`,
+    "---",
+    "",
+    `# ${options.label}`,
+    "",
+    `Use \`${commandName}\` for CLI examples. If MCP tools from this package are registered, prefer them for structured calls; their names mirror the command groups and verbs below.`,
+    "",
+    "## Quick Start",
+    "",
+    "```sh",
+    `${commandName} --help`,
+    ...quickStartCommands,
+    "```",
+    "",
+    "## Command Groups",
+    ""
+  ];
+
+  if (groups.length === 0) {
+    lines.push("No OpenAPI operations were generated.", "");
+  } else {
+    for (const group of groups) {
+      lines.push(
+        `- \`${group.noun}\`: ${group.commands.map((command) => `\`${command.verb}\``).join(", ")}`
+      );
+    }
+    lines.push("");
+  }
+
+  const catalogCommands = options.commands.slice(0, 80);
+  if (catalogCommands.length > 0) {
+    lines.push("## Commands", "");
+    for (const command of catalogCommands) {
+      lines.push(renderSkillCommandCatalogLine(commandName, command));
+    }
+
+    const omittedCount = options.commands.length - catalogCommands.length;
+    if (omittedCount > 0) {
+      lines.push(
+        `- ${omittedCount} more commands omitted. Run \`${commandName} --help\` and group help for the full surface.`
+      );
+    }
+    lines.push("");
+  }
+
+  const exampleBlocks = options.commands.flatMap((command) =>
+    (command.examples ?? []).map((example) => ({ command, example }))
+  );
+  if (exampleBlocks.length > 0) {
+    lines.push("## Examples", "");
+    for (const { command, example } of exampleBlocks.slice(0, 5)) {
+      lines.push(`### ${oneLine(example.title)}`, "");
+      lines.push("```sh", renderSkillCommandLine(commandName, command), "```", "");
+      lines.push("Params:");
+      lines.push("```json", `${JSON.stringify(example.params, null, 2)}`, "```", "");
+    }
+  }
+
+  lines.push(
+    "## Output",
+    "",
+    "Commands return structured output. Use command or group `--help` to inspect the full generated option list before calling commands with complex request bodies.",
+    ""
+  );
+
+  return {
+    name: skillName,
+    contents: lines.join("\n")
+  };
+}
+
+function createSkillName(label: string): string {
+  const normalized = normalizeNoun(label);
+  const fallback = normalized.length === 0 ? "openapi-tools" : normalized;
+  if (fallback.length <= 63) {
+    return fallback;
+  }
+
+  return trimTrailingHyphens(fallback.slice(0, 63));
+}
+
+function createSkillDescription(label: string, groupNames: string[]): string {
+  const groupSummary =
+    groupNames.length === 0
+      ? ""
+      : ` Includes command groups: ${groupNames.slice(0, 12).join(", ")}${groupNames.length > 12 ? ", and more" : ""}.`;
+
+  return `Use ${label} generated OpenAPI CLI or MCP tools. Use when Codex needs to call this API, inspect available commands, or run generated operations from the OpenAPI specification.${groupSummary}`;
+}
+
+function collectQuickStartCommands(commandName: string, commands: GeneratedCommand[]): string[] {
+  const lines: string[] = [];
+  const firstGroup = groupByNoun(commands)[0];
+  if (firstGroup !== undefined) {
+    lines.push(`${commandName} ${firstGroup.noun} --help`);
+  }
+
+  for (const command of commands) {
+    if (lines.length >= 4) {
+      break;
+    }
+
+    if (!isReadCommand(command)) {
+      continue;
+    }
+
+    const requiredNamedParams = command.params.filter(
+      (param) =>
+        !param.optional &&
+        param.global !== true &&
+        param.location !== "transport" &&
+        !command.positional.includes(param.paramName)
+    );
+
+    if (requiredNamedParams.length === 0) {
+      lines.push(renderSkillCommandLine(commandName, command));
+    }
+  }
+
+  return lines;
+}
+
+function isReadCommand(command: GeneratedCommand): boolean {
+  return command.method === "GET" || command.method === "HEAD" || command.method === "OPTIONS";
+}
+
+function renderSkillCommandCatalogLine(commandName: string, command: GeneratedCommand): string {
+  const description =
+    command.description === undefined ? "" : ` - ${truncate(oneLine(command.description), 140)}`;
+  return `- \`${renderSkillCommandLine(commandName, command)}\`${description} (\`${command.method} ${command.path}\`)`;
+}
+
+function renderSkillCommandLine(commandName: string, command: GeneratedCommand): string {
+  const parts = [
+    commandName,
+    command.noun,
+    command.verb,
+    ...command.positional.map((paramName) => `<${paramName}>`)
+  ];
+  const requiredFlags = command.params.filter(
+    (param) =>
+      !param.optional &&
+      param.global !== true &&
+      param.location !== "transport" &&
+      !command.positional.includes(param.paramName)
+  );
+  const renderedFlags = requiredFlags
+    .filter((param) => param.definition.kind !== "object")
+    .slice(0, 4)
+    .map(renderRequiredSkillFlag);
+  parts.push(...renderedFlags);
+
+  if (requiredFlags.length > renderedFlags.length) {
+    parts.push("[required options...]");
+  }
+
+  return parts.join(" ");
+}
+
+function renderRequiredSkillFlag(param: GeneratedParam): string {
+  const flag = `--${toCliFlag(param.paramName)}`;
+  if (param.definition.kind === "boolean") {
+    return flag;
+  }
+
+  if (param.definition.kind === "array") {
+    return `${flag} <value...>`;
+  }
+
+  if (param.definition.kind === "enum") {
+    return `${flag} <${param.definition.enumValues.map((value) => String(value)).join("|")}>`;
+  }
+
+  return `${flag} <value>`;
+}
+
+function oneLine(value: string): string {
+  const words: string[] = [];
+  let current = "";
+
+  for (const character of value) {
+    if (isWhitespace(character)) {
+      if (current.length > 0) {
+        words.push(current);
+        current = "";
+      }
+      continue;
+    }
+
+    current += character;
+  }
+
+  if (current.length > 0) {
+    words.push(current);
+  }
+
+  return words.join(" ");
+}
+
+function truncate(value: string, maxLength: number): string {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, Math.max(0, maxLength - 1)).trimEnd()}...`;
+}
+
+function trimTrailingHyphens(value: string): string {
+  let endIndex = value.length;
+  while (endIndex > 0 && value[endIndex - 1] === "-") {
+    endIndex -= 1;
+  }
+
+  return value.slice(0, endIndex);
+}
+
+function isWhitespace(value: string): boolean {
+  return value === " " || value === "\n" || value === "\r" || value === "\t" || value === "\f";
 }
 
 function createGeneratedTypeScriptFile(bodyLines: string[], metadataLines: string[] = []): string {

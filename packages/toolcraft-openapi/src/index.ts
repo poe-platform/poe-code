@@ -1,7 +1,12 @@
 export { defineApiCommand } from "./api-command.js";
 export { defineClient } from "./define-client.js";
-export { generate } from "./generate.js";
-export type { GenerateOptions, GeneratedFile, OpenApiDocument } from "./generate.js";
+export { generate, generateSkill } from "./generate.js";
+export type {
+  GeneratedFile,
+  GeneratedSkill,
+  GenerateOptions,
+  OpenApiDocument
+} from "./generate.js";
 export {
   SUPPORTED_TOOLCRAFT_EDITION,
   mergeToolcraftConfig,

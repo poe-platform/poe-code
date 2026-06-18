@@ -11,7 +11,7 @@ import { readToolcraftConfig } from "../config.js";
 import type { ToolcraftConfig } from "../config.js";
 import { diagnose } from "../diagnose.js";
 import { formatDiagnostics, type Diagnostic } from "../diagnostics.js";
-import { generate, type GeneratedFile } from "../generate.js";
+import { generate, generateSkill, type GeneratedFile, type GeneratedSkill } from "../generate.js";
 import { inspectOpenApiSource } from "../inspect-source.js";
 import { renderOpenApiInspection } from "../render-inspection.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
@@ -203,35 +203,60 @@ export async function syncGeneratedClient(
       ? configResult.diagnostics
       : [...configResult.diagnostics, ...diagnose(configResult.config, document)];
   const effectiveConfig = hasErrorDiagnostics(diagnostics) ? undefined : configResult.config;
-  const generatedFiles = generate(document, { specSha, config: effectiveConfig });
+  const generatedFiles = generate(document, {
+    specSha,
+    config: effectiveConfig
+  });
+  const generatedSkill = generateSkill(document, {
+    config: effectiveConfig,
+    commandName: await inferPackageCommandName(services)
+  });
   const outputDir = path.resolve(services.cwd, options.outputDir);
   const lockPath = path.resolve(services.cwd, options.lockPath);
+  const skillFile = createGeneratedSkillFile(generatedSkill, services.cwd);
   const currentLockContents = await readOpenApiLockText(services.fs, lockPath);
   const desiredLockContents = stringifyOpenApiLock({ specSha });
   const currentFiles = await readGeneratedFiles(services.fs, outputDir);
+  const currentSkillContents = await readOptionalFile(services.fs, skillFile.path);
   const desiredFiles = new Map([
     ...generatedFiles.map((file) => [path.resolve(outputDir, file.path), file.contents] as const),
     ...createDownloadedSpecFiles(options.input, sourceText).map(
       (file) => [path.resolve(outputDir, file.path), file.contents] as const
     )
   ]);
+  const currentSkillFiles =
+    currentSkillContents === undefined
+      ? new Map<string, string>()
+      : new Map([[skillFile.path, currentSkillContents]]);
+  const desiredSkillFiles = new Map([[skillFile.path, skillFile.contents]]);
   const updatedFiles = collectUpdatedFiles(currentFiles, desiredFiles);
+  const updatedSkillFiles = collectUpdatedFiles(currentSkillFiles, desiredSkillFiles);
   const updatedLockFile =
     currentLockContents === desiredLockContents
       ? undefined
       : { path: lockPath, contents: desiredLockContents, previousContents: currentLockContents };
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
   const drifted =
-    updatedFiles.length > 0 || updatedLockFile !== undefined || deletedFiles.length > 0;
+    updatedFiles.length > 0 ||
+    updatedSkillFiles.length > 0 ||
+    updatedLockFile !== undefined ||
+    deletedFiles.length > 0;
 
   if (!options.check && !options.diff && drifted && !hasErrorDiagnostics(diagnostics)) {
     try {
       await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
+      await writeGeneratedSkillFiles(services.fs, services.cwd, updatedSkillFiles);
       await deleteGeneratedFiles(services.fs, outputDir, deletedFiles);
       if (updatedLockFile !== undefined) {
         await writeOpenApiLock(services.fs, lockPath, { specSha });
       }
     } catch (error) {
+      await restoreGeneratedSkillFiles(
+        services.fs,
+        services.cwd,
+        currentSkillFiles,
+        updatedSkillFiles
+      );
       await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
       throw error;
     }
@@ -243,8 +268,12 @@ export async function syncGeneratedClient(
     diagnostics,
     drifted,
     specSha,
-    updatedFiles: updatedLockFile === undefined ? updatedFiles : [...updatedFiles, updatedLockFile],
-    updatedFileCount: updatedFiles.length + (updatedLockFile === undefined ? 0 : 1)
+    updatedFiles:
+      updatedLockFile === undefined
+        ? [...updatedFiles, ...updatedSkillFiles]
+        : [...updatedFiles, ...updatedSkillFiles, updatedLockFile],
+    updatedFileCount:
+      updatedFiles.length + updatedSkillFiles.length + (updatedLockFile === undefined ? 0 : 1)
   };
 }
 
@@ -279,6 +308,67 @@ function resolveAdjacentConfigPath(input: string, cwd: string): string | undefin
 
 function hasErrorDiagnostics(diagnostics: readonly Diagnostic[]): boolean {
   return diagnostics.some((diagnostic) => diagnostic.severity === "error");
+}
+
+async function inferPackageCommandName(
+  services: Pick<GenerateCliServices, "cwd" | "fs">
+): Promise<string | undefined> {
+  const packageJsonPath = path.resolve(services.cwd, "package.json");
+  const source = await readOptionalFile(services.fs, packageJsonPath);
+  if (source === undefined) {
+    return undefined;
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(source);
+  } catch (error) {
+    throw new UserError(
+      `Failed to parse package.json for generated skill command name: ${getErrorMessage(error)}`,
+      { cause: error }
+    );
+  }
+
+  if (!isPlainObject(parsed)) {
+    return undefined;
+  }
+
+  const packageName =
+    typeof parsed.name === "string" ? normalizePackageCommandName(parsed.name) : undefined;
+  const bin = parsed.bin;
+
+  if (typeof bin === "string") {
+    return packageName;
+  }
+
+  if (!isPlainObject(bin)) {
+    return undefined;
+  }
+
+  const binNames = Object.keys(bin);
+  if (packageName !== undefined && binNames.includes(packageName)) {
+    return packageName;
+  }
+
+  return binNames.find((name) => !isMcpBinaryName(name)) ?? binNames[0];
+}
+
+function normalizePackageCommandName(packageName: string): string | undefined {
+  const parts = packageName.split("/");
+  const name = parts[parts.length - 1]?.trim();
+  return name === undefined || name.length === 0 ? undefined : name;
+}
+
+function isMcpBinaryName(name: string): boolean {
+  const words = name.toLowerCase().split("-");
+  return words.includes("mcp");
+}
+
+function createGeneratedSkillFile(skill: GeneratedSkill, cwd: string): GeneratedFile {
+  return {
+    path: path.resolve(cwd, ".claude", "skills", skill.name, "SKILL.md"),
+    contents: skill.contents
+  };
 }
 
 function renderGeneratedDiff(result: SyncGeneratedClientResult, outputDir: string): string {
@@ -477,6 +567,21 @@ async function readOpenApiLockText(
   }
 }
 
+async function readOptionalFile(
+  fs: Pick<GenerateCliFileSystem, "readFile">,
+  filePath: string
+): Promise<string | undefined> {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
 function parseOpenApiLock(contents: string, lockPath: string): OpenApiLock | null {
   let parsed: unknown;
 
@@ -653,6 +758,18 @@ async function writeGeneratedFiles(
   }
 }
 
+async function writeGeneratedSkillFiles(
+  fs: Pick<GenerateCliFileSystem, "lstat" | "mkdir" | "rename" | "unlink" | "writeFile">,
+  cwd: string,
+  filesToWrite: ReadonlyArray<GeneratedFile>
+): Promise<void> {
+  for (const file of filesToWrite) {
+    await fs.mkdir(path.dirname(file.path), { recursive: true });
+    await assertSafeProjectPath(fs, cwd, file.path);
+    await atomicWriteProjectFile(fs, cwd, file.path, file.contents);
+  }
+}
+
 async function assertSafeOutputPath(
   fs: Pick<GenerateCliFileSystem, "lstat" | "realpath">,
   outputDir: string,
@@ -679,6 +796,39 @@ async function assertSafeOutputPath(
     if (!isNotFoundError(error)) {
       throw error;
     }
+  }
+}
+
+async function assertSafeProjectPath(
+  fs: Pick<GenerateCliFileSystem, "lstat">,
+  cwd: string,
+  filePath: string
+): Promise<void> {
+  const rootPath = path.resolve(cwd);
+  const resolvedFilePath = path.resolve(filePath);
+  const relativePath = path.relative(rootPath, resolvedFilePath);
+
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error("Generated skill output must remain inside the project directory.");
+  }
+
+  const parentOfRoot = path.dirname(rootPath);
+  let currentPath = resolvedFilePath;
+  while (currentPath !== parentOfRoot) {
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error("Generated skill output must remain inside the project directory.");
+      }
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+    currentPath = path.dirname(currentPath);
   }
 }
 
@@ -710,6 +860,34 @@ async function atomicWriteGeneratedFile(
   }
 }
 
+async function atomicWriteProjectFile(
+  fs: Pick<GenerateCliFileSystem, "lstat" | "rename" | "unlink" | "writeFile">,
+  cwd: string,
+  filePath: string,
+  contents: string
+): Promise<void> {
+  const tempPath = path.join(
+    path.dirname(filePath),
+    `.${path.basename(filePath)}.${randomUUID()}.tmp`
+  );
+  let tempCreated = false;
+
+  try {
+    await assertSafeProjectPath(fs, cwd, tempPath);
+    await fs.writeFile(tempPath, contents, { encoding: "utf8", flag: "wx" });
+    tempCreated = true;
+    await assertSafeProjectPath(fs, cwd, filePath);
+    await fs.rename(tempPath, filePath);
+    tempCreated = false;
+  } catch (error) {
+    if (tempCreated || !isAlreadyExistsError(error)) {
+      await fs.unlink(tempPath).catch(() => undefined);
+    }
+
+    throw error;
+  }
+}
+
 async function deleteGeneratedFiles(
   fs: Pick<GenerateCliFileSystem, "lstat" | "realpath" | "rm">,
   outputDir: string,
@@ -718,6 +896,27 @@ async function deleteGeneratedFiles(
   for (const filePath of filePaths) {
     await assertSafeOutputPath(fs, outputDir, filePath);
     await fs.rm(filePath, { force: true });
+  }
+}
+
+async function restoreGeneratedSkillFiles(
+  fs: Pick<GenerateCliFileSystem, "lstat" | "mkdir" | "rename" | "rm" | "unlink" | "writeFile">,
+  cwd: string,
+  currentFiles: ReadonlyMap<string, string>,
+  updatedFiles: ReadonlyArray<GeneratedFile>
+): Promise<void> {
+  for (const file of updatedFiles) {
+    const previousContents = currentFiles.get(file.path);
+
+    if (previousContents === undefined) {
+      await assertSafeProjectPath(fs, cwd, file.path);
+      await fs.rm(file.path, { force: true });
+      continue;
+    }
+
+    await fs.mkdir(path.dirname(file.path), { recursive: true });
+    await assertSafeProjectPath(fs, cwd, file.path);
+    await atomicWriteProjectFile(fs, cwd, file.path, previousContents);
   }
 }
 
@@ -776,6 +975,10 @@ function getErrorCode(error: unknown): string | undefined {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isDirectExecution(moduleUrl: string, argv: string[]): boolean {

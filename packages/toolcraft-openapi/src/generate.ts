@@ -501,7 +501,9 @@ export function generate(document: OpenApiDocument, options: GenerateOptions): G
       })
     })),
     createIndexFile(commands),
-    createCliFile({ brand, label })
+    createClientFile(),
+    createCliFile({ brand, label }),
+    createMcpFile()
   ];
 }
 
@@ -3165,18 +3167,75 @@ function createIndexFile(commands: GeneratedCommand[]): GeneratedFile {
   };
 }
 
+function createClientFile(): GeneratedFile {
+  return {
+    path: "client.ts",
+    contents: createGeneratedTypeScriptFile([
+      'import { defineClient, type DefineClientOptions } from "toolcraft-openapi";',
+      'import { generatedCommands } from "./index.js";',
+      "",
+      'export type GeneratedClientOptions = Omit<DefineClientOptions<object>, "commands">;',
+      "",
+      "export function defineGeneratedClient(options: GeneratedClientOptions) {",
+      "  return defineClient<object>({",
+      "    ...options,",
+      "    commands: [...generatedCommands],",
+      "  });",
+      "}",
+      ""
+    ])
+  };
+}
+
 function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
   return {
     path: "cli.ts",
     contents: [
       "#!/usr/bin/env node",
       ...createGeneratedTypeScriptFileLines(),
-      'import { configureTheme, runCLI } from "toolcraft/cli";',
-      'import { generatedCommands } from "./index.js";',
+      'import { configureTheme, runCLI, type RunCLIOptions } from "toolcraft/cli";',
+      'import type { OpenApiClientServices } from "toolcraft-openapi";',
+      'import { defineGeneratedClient, type GeneratedClientOptions } from "./client.js";',
       "",
-      `configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,
+      "export type GeneratedCLIOptions = GeneratedClientOptions &",
+      '  Omit<RunCLIOptions<OpenApiClientServices>, "services">;',
       "",
-      "await runCLI([...generatedCommands]);",
+      "export async function runGeneratedCLI(options: GeneratedCLIOptions) {",
+      "  const client = defineGeneratedClient(options);",
+      `  configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,
+      "",
+      "  await runCLI(client.root, {",
+      "    ...options,",
+      "    services: client.services,",
+      "  });",
+      "}",
+      ""
+    ].join("\n")
+  };
+}
+
+function createMcpFile(): GeneratedFile {
+  return {
+    path: "mcp.ts",
+    contents: [
+      "#!/usr/bin/env node",
+      ...createGeneratedTypeScriptFileLines(),
+      'import { runMCP, type RunMCPOptions } from "toolcraft/mcp";',
+      'import type { OpenApiClientServices } from "toolcraft-openapi";',
+      'import { defineGeneratedClient, type GeneratedClientOptions } from "./client.js";',
+      "",
+      "export type GeneratedMCPOptions = GeneratedClientOptions &",
+      '  Omit<RunMCPOptions<OpenApiClientServices>, "name" | "services">;',
+      "",
+      "export async function runGeneratedMCP(options: GeneratedMCPOptions) {",
+      "  const client = defineGeneratedClient(options);",
+      "",
+      "  await runMCP(client.root, {",
+      "    ...options,",
+      "    name: client.name,",
+      "    services: client.services,",
+      "  });",
+      "}",
       ""
     ].join("\n")
   };

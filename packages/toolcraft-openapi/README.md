@@ -29,6 +29,27 @@ command files.
 When `toolcraft.yml` is present next to the input file, the generator validates it, prints
 diagnostics, and uses it to shape generated command names for mapped resources.
 
+The default generated integration point is `src/generated/client.ts`. Application code should
+provide deployment-specific configuration and let the generated client own the full OpenAPI-derived
+command surface:
+
+```ts
+import { defineGeneratedClient } from "./generated/client.js";
+import { bearerTokenAuth } from "toolcraft-openapi";
+
+export const client = defineGeneratedClient({
+  name: "internal-agent",
+  baseUrl: "https://api.example.com",
+  auth: bearerTokenAuth({
+    serviceName: "internal-agent",
+    envVar: "INTERNAL_AGENT_TOKEN"
+  })
+});
+```
+
+Generated lower-level group and operation exports remain available for consumers that intentionally
+want a curated command surface with `defineClient()`.
+
 ### CI drift check
 
 ```sh

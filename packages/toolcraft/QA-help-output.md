@@ -32,8 +32,8 @@ const daily = defineCommand({
     accountId: S.String({
       description: "Account id to inspect"
     }),
-    dryRun: S.Boolean({
-      description: "Plan the report without writing output",
+    includeArchived: S.Boolean({
+      description: "Include archived records in the report",
       default: false
     }),
     date: S.String({
@@ -51,7 +51,7 @@ const daily = defineCommand({
   handler: async ({ params }) => ({
     accountId: params.accountId,
     date: params.date,
-    dryRun: params.dryRun
+    includeArchived: params.includeArchived
   })
 });
 

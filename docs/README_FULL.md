@@ -130,13 +130,13 @@ npx poe-code@latest logout
 
 Every command supports these flags:
 
-| Flag | Description |
-|------|-------------|
-| `-y, --yes` | Accept all defaults without prompting. Mainly for CI/CD. |
-| `--dry-run` | Simulate the command. Shows every file mutation without writing to disk. Redacts sensitive values (API keys). |
-| `--verbose` | Show detailed log output. |
-| `-h, --help` | Display help for the command. |
-| `-V, --version` | Show current version and check for updates. |
+| Flag            | Description                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------- |
+| `-y, --yes`     | Accept all defaults without prompting. Mainly for CI/CD.                                                      |
+| `--dry-run`     | Simulate the command. Shows every file mutation without writing to disk. Redacts sensitive values (API keys). |
+| `--verbose`     | Show detailed log output.                                                                                     |
+| `-h, --help`    | Display help for the command.                                                                                 |
+| `-V, --version` | Show current version and check for updates.                                                                   |
 
 Boolean flags also accept explicit values (`--flag true` / `--flag false`) in addition to `--flag` / `--no-flag`.
 
@@ -152,18 +152,18 @@ poe-code configure [agent]
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | No | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`, `goose`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
+| Argument | Required | Description                                                                                                                                                     |
+| -------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `agent`  | No       | Agent to configure: `claude`, `claude-code`, `codex`, `opencode`, `kimi`, `goose`. Prompts if omitted, unless `core.defaultAgent` / `POE_DEFAULT_AGENT` is set. |
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--api-key <key>` | API key for the selected provider. Also reads `POE_API_KEY` for Poe provider flows. |
-| `--model <model>` | Model identifier (e.g., `sonnet`, `opus`, `openai/gpt-5.2`). Prompts from agent-specific choices if omitted. |
+| Option                       | Description                                                                                                    |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `--api-key <key>`            | API key for the selected provider. Also reads `POE_API_KEY` for Poe provider flows.                            |
+| `--model <model>`            | Model identifier (e.g., `sonnet`, `opus`, `openai/gpt-5.2`). Prompts from agent-specific choices if omitted.   |
 | `--reasoning-effort <level>` | Reasoning effort level for agents that support it (Codex). Values: `low`, `medium`, `high`. Default: `medium`. |
-| `--provider <id>` | Provider ID to use for this agent (e.g., `poe`, `anthropic`). Overrides `POE_CODE_PROVIDER`. |
+| `--provider <id>`            | Provider ID to use for this agent (e.g., `poe`, `anthropic`). Overrides `POE_CODE_PROVIDER`.                   |
 
 **Behavior:**
 
@@ -207,9 +207,9 @@ poe-code unconfigure <agent>
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | Yes | Agent to unconfigure. |
+| Argument | Required | Description           |
+| -------- | -------- | --------------------- |
+| `agent`  | Yes      | Agent to unconfigure. |
 
 **Behavior:**
 
@@ -242,8 +242,8 @@ poe-code login
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
+| Option            | Description                           |
+| ----------------- | ------------------------------------- |
 | `--api-key <key>` | Poe API key. Prompts if not provided. |
 
 **Behavior:**
@@ -291,13 +291,13 @@ Running `poe-code auth` with no subcommand is the same as `poe-code auth status`
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `status` | Show whether a stored Poe credential is valid and print the account name/handle. Honors `--dry-run` by skipping the `/whoami` request. |
-| `api-key` | Print the stored Poe API key only. Exits with code `1` when no key is stored. |
-| `whoami` | Call Poe `/whoami` and print the raw identity JSON to stdout. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
-| `login` | Store a Poe API key for reuse across commands. Same behavior as top-level `poe-code login`. |
-| `logout` | Remove all configuration and credentials. Same behavior as top-level `poe-code logout`. |
+| Subcommand | Description                                                                                                                                                           |
+| ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`   | Show whether a stored Poe credential is valid and print the account name/handle. Honors `--dry-run` by skipping the `/whoami` request.                                |
+| `api-key`  | Print the stored Poe API key only. Exits with code `1` when no key is stored.                                                                                         |
+| `whoami`   | Call Poe `/whoami` and print the raw identity JSON to stdout. Resolves `POE_API_KEY` first, then the stored credential. Exits with code `1` when no key is available. |
+| `login`    | Store a Poe API key for reuse across commands. Same behavior as top-level `poe-code login`.                                                                           |
+| `logout`   | Remove all configuration and credentials. Same behavior as top-level `poe-code logout`.                                                                               |
 
 **Examples:**
 
@@ -320,11 +320,11 @@ poe-code provider <subcommand>
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `list` | Show available providers, login status, and supported agents. A non-empty provider env var, such as `POE_API_KEY` for the Poe provider, counts as logged in. |
-| `login <id>` | Store provider credentials. Uses `--api-key`, then that provider's env var, then an interactive secret prompt. |
-| `logout <id>` | Remove stored credentials for that provider. An exported provider env var can still make the provider appear logged in. |
+| Subcommand    | Description                                                                                                                                                  |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `list`        | Show available providers, login status, and supported agents. A non-empty provider env var, such as `POE_API_KEY` for the Poe provider, counts as logged in. |
+| `login <id>`  | Store provider credentials. Uses `--api-key`, then that provider's env var, then an interactive secret prompt.                                               |
+| `logout <id>` | Remove stored credentials for that provider. An exported provider env var can still make the provider appear logged in.                                      |
 
 **Examples:**
 
@@ -350,11 +350,11 @@ poe-code approvals <subcommand>
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `list [--state <state>]` | List queued approval tasks, optionally filtered by state. |
-| `show --approval-id <id>` | Show one queued approval task. |
-| `run --approval-id <id>` | Ask the configured approval provider, then execute one pending queued task when approved. |
+| Subcommand                | Description                                                                               |
+| ------------------------- | ----------------------------------------------------------------------------------------- |
+| `list [--state <state>]`  | List queued approval tasks, optionally filtered by state.                                 |
+| `show --approval-id <id>` | Show one queued approval task.                                                            |
+| `run --approval-id <id>`  | Ask the configured approval provider, then execute one pending queued task when approved. |
 
 **Examples:**
 
@@ -376,24 +376,24 @@ poe-code spawn <agent> [prompt] [agentArgs...]
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | Yes | Agent to spawn, such as `claude-code`, `codex`, `cursor`, `opencode`, `kimi`, `goose`, or `poe-agent`. |
-| `prompt` | No | Prompt text. Use `-` to read from stdin, or `@path/to/file` to load prompt text from a file. |
-| `agentArgs` | No | Additional arguments forwarded directly to the agent CLI. |
+| Argument    | Required | Description                                                                                            |
+| ----------- | -------- | ------------------------------------------------------------------------------------------------------ |
+| `agent`     | Yes      | Agent to spawn, such as `claude-code`, `codex`, `cursor`, `opencode`, `kimi`, `goose`, or `poe-agent`. |
+| `prompt`    | No       | Prompt text. Use `-` to read from stdin, or `@path/to/file` to load prompt text from a file.           |
+| `agentArgs` | No       | Additional arguments forwarded directly to the agent CLI.                                              |
 
 **Options:**
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--model <model>` | Agent default | Model identifier override. |
-| `-C, --cwd <path>` | Current dir | Working directory for the agent. |
-| `--stdin` | `false` | Read the prompt from stdin. |
-| `-i, --interactive` | `false` | Launch in interactive TUI mode (inherits stdio). |
-| `--mode <mode>` | Prompted; `--yes` uses `yolo` | Permission mode: `yolo`, `auto`, `edit`, or `read`. Unsupported modes fail before launch with the supported-mode list. |
-| `--resume-thread-id <id>` | None | Resume a prior provider thread/session through the declarative agent resume mapping. |
-| `--mcp-servers <json\|@file>` | None | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
-| `--activity-timeout-ms <ms>` | Agent default | Kill or retry inactive streaming processes after the selected timeout. |
+| Option                        | Default                       | Description                                                                                                                                                                              |
+| ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--model <model>`             | Agent default                 | Model identifier override.                                                                                                                                                               |
+| `-C, --cwd <path>`            | Current dir                   | Working directory for the agent.                                                                                                                                                         |
+| `--stdin`                     | `false`                       | Read the prompt from stdin.                                                                                                                                                              |
+| `-i, --interactive`           | `false`                       | Launch in interactive TUI mode (inherits stdio).                                                                                                                                         |
+| `--mode <mode>`               | Prompted; `--yes` uses `yolo` | Permission mode: `yolo`, `auto`, `edit`, or `read`. Unsupported modes fail before launch with the supported-mode list.                                                                   |
+| `--resume-thread-id <id>`     | None                          | Resume a prior provider thread/session through the declarative agent resume mapping.                                                                                                     |
+| `--mcp-servers <json\|@file>` | None                          | MCP servers to inject at spawn time. Accepts inline JSON or `@path/to/file.json`. Supports `command`, optional `args`, `env`, and `timeout` (seconds). Deprecated alias: `--mcp-config`. |
+| `--activity-timeout-ms <ms>`  | Agent default                 | Kill or retry inactive streaming processes after the selected timeout.                                                                                                                   |
 
 **Behavior:**
 
@@ -453,7 +453,7 @@ poe-code spawn codex "Run lint and fix issues" --mode yolo --yes
 
 ### gaslight
 
-Run Markdown plans through an agent, then resume the same thread with configured follow-up prompts. This is useful for enforcing checks such as simplification, testing, committing, and release monitoring after the initial implementation round. Completed plans are moved into a sibling `archive/` directory.
+Run Markdown plans through an agent, then resume the same thread with configured follow-up prompts. This is useful for enforcing checks such as simplification, testing, committing, and release monitoring after the initial implementation round. Completed plan files stay in place so the same plan can be inspected or rerun.
 
 ```bash
 poe-code gaslight [plan-path]
@@ -468,10 +468,10 @@ poe-code gaslight ingest
 
 **Config keys:**
 
-| Key | Required | Description |
-|-----|----------|-------------|
-| `prompt` | Yes | Non-empty initial instruction prepended to the plan. |
-| `followups` | Yes | Non-empty list of non-empty prompts. Each one resumes the prior round thread. |
+| Key         | Required | Description                                                                   |
+| ----------- | -------- | ----------------------------------------------------------------------------- |
+| `prompt`    | Yes      | Non-empty initial instruction prepended to the plan.                          |
+| `followups` | Yes      | Non-empty list of non-empty prompts. Each one resumes the prior round thread. |
 
 **Options:**
 
@@ -531,15 +531,15 @@ poe-code code-review <subcommand>
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `install` | Install repo-local reviewer profiles and prompts. |
-| `profiles` | List repo-local reviewer profiles. |
-| `ingest <github-username>` | Build a runtime reviewer profile from GitHub review history. |
-| `run <github-pr-url>` | Fetch a PR, run reviewer agents, and create a YAML draft. |
-| `drafts <github-pr-url>` | Read the active YAML draft for a PR. |
-| `commit <github-pr-url>` | Validate and publish the merged draft to GitHub; use `--dry-run` to preview. |
-| `agent-mcp` | Run the stdio MCP server used by spawned review agents. |
+| Subcommand                 | Description                                                                  |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `install`                  | Install repo-local reviewer profiles and prompts.                            |
+| `profiles`                 | List repo-local reviewer profiles.                                           |
+| `ingest <github-username>` | Build a runtime reviewer profile from GitHub review history.                 |
+| `run <github-pr-url>`      | Fetch a PR, run reviewer agents, and create a YAML draft.                    |
+| `drafts <github-pr-url>`   | Read the active YAML draft for a PR.                                         |
+| `commit <github-pr-url>`   | Validate and publish the merged draft to GitHub; use `--dry-run` to preview. |
+| `agent-mcp`                | Run the stdio MCP server used by spawned review agents.                      |
 
 **Examples:**
 
@@ -561,16 +561,16 @@ poe-code research [prompt] [agentArgs...]
 
 **Options:**
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--agent <agent>` | Prompts | Agent to use for research. |
-| `--model <model>` | Agent default | Model override. |
-| `--mode <mode>` | `read` | Permission mode (defaults to `read`, more restrictive than `spawn`). |
-| `-C, --cwd <path>` | Current dir | Working directory. |
-| `--path <path>` | None | Local directory to research. |
-| `--github <repo>` | None | Clone and research a GitHub repo. |
-| `--stdin` | `false` | Read prompt from stdin. |
-| `--keep` | `false` | Keep the cloned repo when using `--github`. |
+| Option             | Default       | Description                                                          |
+| ------------------ | ------------- | -------------------------------------------------------------------- |
+| `--agent <agent>`  | Prompts       | Agent to use for research.                                           |
+| `--model <model>`  | Agent default | Model override.                                                      |
+| `--mode <mode>`    | `read`        | Permission mode (defaults to `read`, more restrictive than `spawn`). |
+| `-C, --cwd <path>` | Current dir   | Working directory.                                                   |
+| `--path <path>`    | None          | Local directory to research.                                         |
+| `--github <repo>`  | None          | Clone and research a GitHub repo.                                    |
+| `--stdin`          | `false`       | Read prompt from stdin.                                              |
+| `--keep`           | `false`       | Keep the cloned repo when using `--github`.                          |
 
 **Examples:**
 
@@ -600,10 +600,10 @@ poe-code wrap <agent> [agentArgs...]
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | Yes | Agent to wrap. |
-| `agentArgs` | No | Arguments forwarded to the agent CLI. |
+| Argument    | Required | Description                           |
+| ----------- | -------- | ------------------------------------- |
+| `agent`     | Yes      | Agent to wrap.                        |
+| `agentArgs` | No       | Arguments forwarded to the agent CLI. |
 
 **Behavior:**
 
@@ -638,28 +638,28 @@ poe-code test [agent]
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | No | Agent to test. Prompts if omitted. |
+| Argument | Required | Description                        |
+| -------- | -------- | ---------------------------------- |
+| `agent`  | No       | Agent to test. Prompts if omitted. |
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--isolated` | Run the health check using isolated configuration instead of global config. |
-| `--model <model>` | Model override for the health check. |
+| Option            | Description                                                                 |
+| ----------------- | --------------------------------------------------------------------------- |
+| `--isolated`      | Run the health check using isolated configuration instead of global config. |
+| `--model <model>` | Model override for the health check.                                        |
 
 **Behavior:**
 
 Each agent has a health check that spawns the agent with a known prompt and validates the expected output:
 
-| Agent | Expected Output |
-|-------|----------------|
+| Agent       | Expected Output  |
+| ----------- | ---------------- |
 | Claude Code | `CLAUDE_CODE_OK` |
-| Codex | `CODEX_OK` |
-| OpenCode | `OPEN_CODE_OK` |
-| Kimi | `KIMI_OK` |
-| Goose | `GOOSE_OK` |
+| Codex       | `CODEX_OK`       |
+| OpenCode    | `OPEN_CODE_OK`   |
+| Kimi        | `KIMI_OK`        |
+| Goose       | `GOOSE_OK`       |
 
 **Examples:**
 
@@ -682,19 +682,19 @@ poe-code install [agent]
 
 **Arguments:**
 
-| Argument | Required | Description |
-|----------|----------|-------------|
-| `agent` | No | Agent to install. Prompts if omitted. |
+| Argument | Required | Description                           |
+| -------- | -------- | ------------------------------------- |
+| `agent`  | No       | Agent to install. Prompts if omitted. |
 
 **Installation methods per agent:**
 
-| Agent | Method |
-|-------|--------|
-| Claude Code | `curl -fsSL https://claude.ai/install.sh \| bash` (Unix) or PowerShell (Windows) |
-| Codex | `npm install -g @openai/codex` |
-| OpenCode | `npm install -g opencode-ai` |
-| Kimi | `uv tool install --python 3.13 kimi-cli` |
-| Goose | `brew install block-goose-cli` (macOS) or `curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh \| CONFIGURE=false bash` |
+| Agent       | Method                                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Claude Code | `curl -fsSL https://claude.ai/install.sh \| bash` (Unix) or PowerShell (Windows)                                                                       |
+| Codex       | `npm install -g @openai/codex`                                                                                                                         |
+| OpenCode    | `npm install -g opencode-ai`                                                                                                                           |
+| Kimi        | `uv tool install --python 3.13 kimi-cli`                                                                                                               |
+| Goose       | `brew install block-goose-cli` (macOS) or `curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh \| CONFIGURE=false bash` |
 
 **Examples:**
 
@@ -731,10 +731,10 @@ Display usage history with filtering and pagination.
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--filter <model>` | Filter results by model name (substring match). |
-| `--pages <count>` | Number of pages to auto-load. Prompts for "Load more?" if not specified. |
+| Option             | Description                                                              |
+| ------------------ | ------------------------------------------------------------------------ |
+| `--filter <model>` | Filter results by model name (substring match).                          |
+| `--pages <count>`  | Number of pages to auto-load. Prompts for "Load more?" if not specified. |
 
 **Output columns:** Date, Model, Cost (USD), Cost (Points), Input Tokens, Output Tokens, Cache Discount Tokens
 
@@ -766,27 +766,27 @@ poe-code models
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--provider <name>` | Filter by provider (substring match). |
-| `--model <name>` | Filter by model ID (exact match, case-insensitive). |
-| `--search <term>` | Search model ID and provider name (substring match). |
-| `--feature <name>` | Filter by feature: `tools`, `web_search`, `reasoning` (exact match). |
-| `--endpoint <path>` | Filter by supported endpoint, for example `/v1/responses` or `/v1/chat/completions`. |
-| `--input <modalities>` | Filter by input modalities: `text`, `image` (comma-separated). |
-| `--output <modalities>` | Filter by output modalities: `text`, `image`, `video`, `audio` (comma-separated). |
-| `--tools` | Shorthand for `--feature tools`. |
-| `--since <duration>` | Show models added within duration: `7d`, `2w`, `3mo`, `1y`. |
-| `--view <name>` | Table view mode. See below. |
+| Option                  | Description                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------ |
+| `--provider <name>`     | Filter by provider (substring match).                                                |
+| `--model <name>`        | Filter by model ID (exact match, case-insensitive).                                  |
+| `--search <term>`       | Search model ID and provider name (substring match).                                 |
+| `--feature <name>`      | Filter by feature: `tools`, `web_search`, `reasoning` (exact match).                 |
+| `--endpoint <path>`     | Filter by supported endpoint, for example `/v1/responses` or `/v1/chat/completions`. |
+| `--input <modalities>`  | Filter by input modalities: `text`, `image` (comma-separated).                       |
+| `--output <modalities>` | Filter by output modalities: `text`, `image`, `video`, `audio` (comma-separated).    |
+| `--tools`               | Shorthand for `--feature tools`.                                                     |
+| `--since <duration>`    | Show models added within duration: `7d`, `2w`, `3mo`, `1y`.                          |
+| `--view <name>`         | Table view mode. See below.                                                          |
 
 **View modes:**
 
-| View | Description |
-|------|-------------|
-| `capabilities` (default) | Model name, date, modalities, context window, reasoning, features. |
-| `pricing` | Per-model pricing: input/output $/MTok, cache read/write, per-request cost. |
-| `parameters` | Model parameters with types, defaults, and value ranges. |
-| `raw` | Full model data in YAML format. |
+| View                     | Description                                                                 |
+| ------------------------ | --------------------------------------------------------------------------- |
+| `capabilities` (default) | Model name, date, modalities, context window, reasoning, features.          |
+| `pricing`                | Per-model pricing: input/output $/MTok, cache read/write, per-request cost. |
+| `parameters`             | Model parameters with types, defaults, and value ranges.                    |
+| `raw`                    | Full model data in YAML format.                                             |
 
 **Examples:**
 
@@ -839,11 +839,11 @@ poe-code skill configure [agent]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
+| Option           | Description                                  |
+| ---------------- | -------------------------------------------- |
 | `--agent <name>` | Agent to configure (alias for the argument). |
-| `--local` | Use local scope (project directory). |
-| `--global` | Use global scope (home directory). |
+| `--local`        | Use local scope (project directory).         |
+| `--global`       | Use global scope (home directory).           |
 
 #### `skill unconfigure`
 
@@ -855,12 +855,12 @@ poe-code skill unconfigure [agent]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--agent <name>` | Agent to unconfigure. |
-| `--local` | Local scope. |
-| `--global` | Global scope. |
-| `--force` | Remove directory even if it contains files. |
+| Option           | Description                                 |
+| ---------------- | ------------------------------------------- |
+| `--agent <name>` | Agent to unconfigure.                       |
+| `--local`        | Local scope.                                |
+| `--global`       | Global scope.                               |
+| `--force`        | Remove directory even if it contains files. |
 
 **Examples:**
 
@@ -892,15 +892,15 @@ poe-code pipeline run [--plan <path> | --plans <paths...>]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--agent <name>` | Agent for pipeline steps. Resolution order: explicit flag → `core.defaultAgent` / `POE_DEFAULT_AGENT` → `--yes` fallback (`claude-code`) → prompt. |
-| `--model <model>` | Model override passed to the selected agent. |
-| `--tui` / `--no-tui` | Enable or disable the live pipeline dashboard for this run. |
-| `--task <id>` | Run only a single task ID from the plan. |
-| `--plan <path>` | Run one pipeline plan file. |
-| `--plans <paths...>` | Run multiple plan files sequentially. |
-| `--max-runs <n>` | Stop after `n` agent executions. |
+| Option               | Description                                                                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--agent <name>`     | Agent for pipeline steps. Resolution order: explicit flag → `core.defaultAgent` / `POE_DEFAULT_AGENT` → `--yes` fallback (`claude-code`) → prompt. |
+| `--model <model>`    | Model override passed to the selected agent.                                                                                                       |
+| `--tui` / `--no-tui` | Enable or disable the live pipeline dashboard for this run.                                                                                        |
+| `--task <id>`        | Run only a single task ID from the plan.                                                                                                           |
+| `--plan <path>`      | Run one pipeline plan file.                                                                                                                        |
+| `--plans <paths...>` | Run multiple plan files sequentially.                                                                                                              |
+| `--max-runs <n>`     | Stop after `n` agent executions.                                                                                                                   |
 
 #### `pipeline init`
 
@@ -912,11 +912,11 @@ poe-code pipeline init [question] [--source <path> | --sources <paths...>]
 
 **Options:**
 
-| Option | Description |
-|--------|-------------|
-| `--agent <name>` | Agent used to generate plans. |
-| `--model <model>` | Model override passed to that agent. |
-| `--source <path>` | Convert one source markdown file. |
+| Option                 | Description                             |
+| ---------------------- | --------------------------------------- |
+| `--agent <name>`       | Agent used to generate plans.           |
+| `--model <model>`      | Model override passed to that agent.    |
+| `--source <path>`      | Convert one source markdown file.       |
 | `--sources <paths...>` | Convert multiple source markdown files. |
 
 **Behavior notes:**
@@ -967,14 +967,14 @@ poe-code memory <subcommand>
 
 **Subcommands:**
 
-| Subcommand | Description |
-|------------|-------------|
-| `init` | Create `.poe-code/memory/` with `INDEX.md`, `LOG.md`, and `pages/`. |
-| `ls` | List memory pages with one-line descriptions. |
-| `show <path>` | Print a memory page (path relative to `pages/`). |
-| `search <query>` | Search memory files for a substring. |
-| `status [--no-tokens]` | Show counts/size and optional token stats. |
-| `clear` | Delete all memory content and reinitialize `INDEX.md`/`LOG.md`. |
+| Subcommand             | Description                                                         |
+| ---------------------- | ------------------------------------------------------------------- |
+| `init`                 | Create `.poe-code/memory/` with `INDEX.md`, `LOG.md`, and `pages/`. |
+| `ls`                   | List memory pages with one-line descriptions.                       |
+| `show <path>`          | Print a memory page (path relative to `pages/`).                    |
+| `search <query>`       | Search memory files for a substring.                                |
+| `status [--no-tokens]` | Show counts/size and optional token stats.                          |
+| `clear`                | Delete all memory content and reinitialize `INDEX.md`/`LOG.md`.     |
 
 **Behavior notes:**
 
@@ -1018,18 +1018,18 @@ function spawn(
 
 **Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `service` | `string` | Agent identifier: `"claude-code"`, `"codex"`, `"opencode"`, `"kimi"` |
-| `prompt` | `string` | The prompt to send to the agent |
-| `options` | `SpawnOptions` | See [SpawnOptions](#spawnoptions) |
+| Parameter | Type           | Description                                                          |
+| --------- | -------------- | -------------------------------------------------------------------- |
+| `service` | `string`       | Agent identifier: `"claude-code"`, `"codex"`, `"opencode"`, `"kimi"` |
+| `prompt`  | `string`       | The prompt to send to the agent                                      |
+| `options` | `SpawnOptions` | See [SpawnOptions](#spawnoptions)                                    |
 
 **Return value:**
 
 ```typescript
 {
-  events: AsyncIterable<AcpEvent>;  // Stream of ACP events (empty for non-streaming agents)
-  result: Promise<SpawnResult>;      // Final result with stdout, stderr, exitCode
+  events: AsyncIterable<AcpEvent>; // Stream of ACP events (empty for non-streaming agents)
+  result: Promise<SpawnResult>; // Final result with stdout, stderr, exitCode
 }
 ```
 
@@ -1067,10 +1067,10 @@ const { result: r2 } = spawn("codex", {
 const { result: r3 } = spawn("claude-code", {
   prompt: "Use the filesystem tool to list files",
   mcpServers: {
-    "filesystem": {
+    filesystem: {
       command: "/usr/local/bin/fs-mcp-server",
       args: ["--root", "/tmp"],
-      env: { "DEBUG": "true" }
+      env: { DEBUG: "true" }
     }
   }
 });
@@ -1166,10 +1166,7 @@ Uses `POE_API_KEY` or the stored credential, honors `POE_BASE_URL`, and throws a
 ### SDK Types
 
 ```typescript
-import type {
-  SpawnOptions,
-  SpawnResult
-} from "poe-code";
+import type { SpawnOptions, SpawnResult } from "poe-code";
 ```
 
 #### SpawnOptions
@@ -1229,22 +1226,22 @@ interface McpSpawnServer {
 
 ### Claude Code Provider
 
-| Property | Value |
-|----------|-------|
-| ID | `claude-code` |
-| Aliases | `claude` |
-| Binary | `claude` |
-| Config File | `~/.claude/settings.json` |
-| Config Format | JSON |
-| Branding | `#C15F3C` |
+| Property      | Value                     |
+| ------------- | ------------------------- |
+| ID            | `claude-code`             |
+| Aliases       | `claude`                  |
+| Binary        | `claude`                  |
+| Config File   | `~/.claude/settings.json` |
+| Config Format | JSON                      |
+| Branding      | `#C15F3C`                 |
 
 **Models:**
 
-| Choice Label | Model ID |
-|-------------|----------|
-| haiku | `anthropic/claude-haiku-4.5` |
+| Choice Label     | Model ID                      |
+| ---------------- | ----------------------------- |
+| haiku            | `anthropic/claude-haiku-4.5`  |
 | sonnet (default) | `anthropic/claude-sonnet-4.6` |
-| opus | `anthropic/claude-opus-4.7` |
+| opus             | `anthropic/claude-opus-4.7`   |
 
 **Configuration mutations (configure):**
 
@@ -1263,6 +1260,7 @@ interface McpSpawnServer {
 **Unconfigure mutations:**
 
 Prune these keys from `~/.claude/settings.json`:
+
 - `apiKeyHelper`
 - `env.ANTHROPIC_BASE_URL`
 - `env.ANTHROPIC_DEFAULT_HAIKU_MODEL`
@@ -1272,38 +1270,39 @@ Prune these keys from `~/.claude/settings.json`:
 
 **Isolated environment:**
 
-| Variable | Type | Description |
-|----------|------|-------------|
-| `POE_API_KEY` | `poeApiKey` | API key from credentials |
-| `ANTHROPIC_BASE_URL` (via cliSettings) | `poeBaseUrl` | Poe API base URL |
+| Variable                               | Type         | Description              |
+| -------------------------------------- | ------------ | ------------------------ |
+| `POE_API_KEY`                          | `poeApiKey`  | API key from credentials |
+| `ANTHROPIC_BASE_URL` (via cliSettings) | `poeBaseUrl` | Poe API base URL         |
 
 CLI settings: `apiKeyHelper: "echo $POE_API_KEY"`
 
 Config not required for isolation (`requiresConfig: false`).
 
 **Post-configure message:**
+
 > If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt
 
 **Spawn configuration:**
 
-| Property | Value |
-|----------|-------|
-| Prompt flag | `-p` |
-| Model flag | `--model` |
-| Strip provider prefix | Yes |
-| Model transform | Replace `.` with `-` (e.g., `claude-sonnet-4.6` → `claude-sonnet-4-6`) |
-| Default args | `--output-format stream-json --verbose` |
-| Stdin mode | Omit prompt, add `--input-format text` |
-| Interactive args | (empty — defaults only) |
-| Resume command | `--resume <threadId>` |
+| Property              | Value                                                                  |
+| --------------------- | ---------------------------------------------------------------------- |
+| Prompt flag           | `-p`                                                                   |
+| Model flag            | `--model`                                                              |
+| Strip provider prefix | Yes                                                                    |
+| Model transform       | Replace `.` with `-` (e.g., `claude-sonnet-4.6` → `claude-sonnet-4-6`) |
+| Default args          | `--output-format stream-json --verbose`                                |
+| Stdin mode            | Omit prompt, add `--input-format text`                                 |
+| Interactive args      | (empty — defaults only)                                                |
+| Resume command        | `--resume <threadId>`                                                  |
 
 **Permission mode args:**
 
-| Mode | Args |
-|------|------|
-| `yolo` | `--dangerously-skip-permissions` |
+| Mode   | Args                                                                                       |
+| ------ | ------------------------------------------------------------------------------------------ |
+| `yolo` | `--dangerously-skip-permissions`                                                           |
 | `edit` | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` |
-| `read` | `--permission-mode plan` |
+| `read` | `--permission-mode plan`                                                                   |
 
 **MCP args:** JSON format via `--mcp-servers` (also accepts `@path/to/file.json`; `--mcp-config` is deprecated alias)
 
@@ -1311,24 +1310,24 @@ Config not required for isolation (`requiresConfig: false`).
 
 ### Codex Provider
 
-| Property | Value |
-|----------|-------|
-| ID | `codex` |
-| Binary | `codex` |
-| Config File | `~/.codex/config.toml` |
-| Config Format | TOML |
-| Branding | Dark: `#D5D9DF`, Light: `#7A7F86` |
+| Property      | Value                             |
+| ------------- | --------------------------------- |
+| ID            | `codex`                           |
+| Binary        | `codex`                           |
+| Config File   | `~/.codex/config.toml`            |
+| Config Format | TOML                              |
+| Branding      | Dark: `#D5D9DF`, Light: `#7A7F86` |
 
 **Models:**
 
-| Model ID | Default |
-|----------|---------|
-| `openai/gpt-5.2-codex` | Yes |
-| `openai/gpt-5.2` | |
-| `openai/gpt-5.2-chat` | |
-| `openai/gpt-5.2-pro` | |
-| `openai/gpt-5.1` | |
-| `openai/gpt-5.1-codex-mini` | |
+| Model ID                    | Default |
+| --------------------------- | ------- |
+| `openai/gpt-5.2-codex`      | Yes     |
+| `openai/gpt-5.2`            |         |
+| `openai/gpt-5.2-chat`       |         |
+| `openai/gpt-5.2-pro`        |         |
+| `openai/gpt-5.1`            |         |
+| `openai/gpt-5.1-codex-mini` |         |
 
 **Additional prompts:** Reasoning effort (`low`, `medium`, `high`). Default: `medium`.
 
@@ -1342,38 +1341,39 @@ Config not required for isolation (`requiresConfig: false`).
 **Unconfigure mutations:**
 
 Transform `~/.codex/config.toml`:
+
 - Remove `model_provider` if it equals `"poe"`
 - Remove `model`, `model_reasoning_effort`, and provider config
 - Delete entire file if empty after pruning
 
 **Isolated environment:**
 
-| Variable | Type |
-|----------|------|
-| `CODEX_HOME` | `isolatedDir` |
+| Variable          | Type          |
+| ----------------- | ------------- |
+| `CODEX_HOME`      | `isolatedDir` |
 | `XDG_CONFIG_HOME` | `isolatedDir` |
 
 Config probe: `config.toml` (isolated file).
 
 **Spawn configuration:**
 
-| Property | Value |
-|----------|-------|
-| Prompt flag | `exec` (positional subcommand) |
-| Model flag | `--model` |
-| Strip provider prefix | Yes |
-| Default args | `--skip-git-repo-check --json` |
-| Stdin mode | Omit prompt, add `-` |
-| Interactive args | `-a never` |
-| Resume command | `resume -C <cwd> <threadId>` |
+| Property              | Value                          |
+| --------------------- | ------------------------------ |
+| Prompt flag           | `exec` (positional subcommand) |
+| Model flag            | `--model`                      |
+| Strip provider prefix | Yes                            |
+| Default args          | `--skip-git-repo-check --json` |
+| Stdin mode            | Omit prompt, add `-`           |
+| Interactive args      | `-a never`                     |
+| Resume command        | `resume -C <cwd> <threadId>`   |
 
 **Permission mode args:**
 
-| Mode | Args |
-|------|------|
+| Mode   | Args                    |
+| ------ | ----------------------- |
 | `yolo` | `-s danger-full-access` |
-| `edit` | `-s workspace-write` |
-| `read` | `-s read-only` |
+| `edit` | `-s workspace-write`    |
+| `read` | `-s read-only`          |
 
 **MCP args:** TOML format via `-c` flags with inline table syntax
 
@@ -1381,22 +1381,22 @@ Config probe: `config.toml` (isolated file).
 
 ### OpenCode Provider
 
-| Property | Value |
-|----------|-------|
-| ID | `opencode` |
-| Binary | `opencode` |
-| Config Files | `~/.config/opencode/config.json`, `~/.local/share/opencode/auth.json` |
-| Config Format | JSON |
-| Branding | Dark: `#4A4F55`, Light: `#2F3338` |
+| Property      | Value                                                                 |
+| ------------- | --------------------------------------------------------------------- |
+| ID            | `opencode`                                                            |
+| Binary        | `opencode`                                                            |
+| Config Files  | `~/.config/opencode/config.json`, `~/.local/share/opencode/auth.json` |
+| Config Format | JSON                                                                  |
+| Branding      | Dark: `#4A4F55`, Light: `#2F3338`                                     |
 
 **Models:**
 
-| Model ID |
-|----------|
-| `anthropic/claude-opus-4.7` |
+| Model ID                      |
+| ----------------------------- |
+| `anthropic/claude-opus-4.7`   |
 | `anthropic/claude-sonnet-4.6` |
-| `openai/gpt-5.2` |
-| `google/gemini-3-pro` |
+| `openai/gpt-5.2`              |
+| `google/gemini-3-pro`         |
 
 Default: `anthropic/claude-sonnet-4.6`
 
@@ -1429,10 +1429,10 @@ Default: `anthropic/claude-sonnet-4.6`
 
 **Isolated environment:**
 
-| Variable | Type | Relative Path |
-|----------|------|---------------|
-| `XDG_CONFIG_HOME` | `isolatedDir` | `.config` |
-| `XDG_DATA_HOME` | `isolatedDir` | `.local/share` |
+| Variable          | Type          | Relative Path  |
+| ----------------- | ------------- | -------------- |
+| `XDG_CONFIG_HOME` | `isolatedDir` | `.config`      |
+| `XDG_DATA_HOME`   | `isolatedDir` | `.local/share` |
 
 Config probe: `.config/opencode/config.json`
 
@@ -1440,43 +1440,43 @@ Config probe: `.config/opencode/config.json`
 
 **Spawn configuration:**
 
-| Property | Value |
-|----------|-------|
-| Prompt flag | `run` (positional subcommand) |
-| Model flag | `--model` |
-| Strip provider prefix | No |
-| Model transform | Adds `poe/` prefix if not present |
-| Default args | `--format json` |
-| Interactive prompt flag | `--prompt` |
-| Resume command | `<cwd> --session <threadId>` |
+| Property                | Value                             |
+| ----------------------- | --------------------------------- |
+| Prompt flag             | `run` (positional subcommand)     |
+| Model flag              | `--model`                         |
+| Strip provider prefix   | No                                |
+| Model transform         | Adds `poe/` prefix if not present |
+| Default args            | `--format json`                   |
+| Interactive prompt flag | `--prompt`                        |
+| Resume command          | `<cwd> --session <threadId>`      |
 
 **Permission mode args:**
 
-| Mode | Args |
-|------|------|
-| `yolo` | (empty) |
-| `edit` | (empty) |
+| Mode   | Args           |
+| ------ | -------------- |
+| `yolo` | (empty)        |
+| `edit` | (empty)        |
 | `read` | `--agent plan` |
 
 ---
 
 ### Kimi Provider
 
-| Property | Value |
-|----------|-------|
-| ID | `kimi` |
-| Aliases | `kimi-cli` |
-| Binary | `kimi` |
-| Config File | `~/.kimi/config.toml` |
-| Config Format | TOML |
-| Branding | Dark: `#7B68EE`, Light: `#6A5ACD` |
+| Property      | Value                             |
+| ------------- | --------------------------------- |
+| ID            | `kimi`                            |
+| Aliases       | `kimi-cli`                        |
+| Binary        | `kimi`                            |
+| Config File   | `~/.kimi/config.toml`             |
+| Config Format | TOML                              |
+| Branding      | Dark: `#7B68EE`, Light: `#6A5ACD` |
 
 **Models:**
 
-| Model ID | Default |
-|----------|---------|
-| `novitaai/kimi-k2.5` | Yes |
-| `novitaai/kimi-k2-thinking` | |
+| Model ID                    | Default |
+| --------------------------- | ------- |
+| `novitaai/kimi-k2.5`        | Yes     |
+| `novitaai/kimi-k2-thinking` |         |
 
 **Configuration mutations (configure):**
 
@@ -1490,14 +1490,15 @@ Config probe: `.config/opencode/config.json`
 **Unconfigure mutations:**
 
 Transform `~/.kimi/config.toml`:
+
 - Remove `providers.poe` entry
 - Delete `providers` object if empty
 
 **Isolated environment:**
 
-| Variable | Type |
-|----------|------|
-| `HOME` | `isolatedDir` |
+| Variable | Type          |
+| -------- | ------------- |
+| `HOME`   | `isolatedDir` |
 
 Agent binary: `kimi-cli` (special name to avoid home directory stripping issues)
 
@@ -1507,22 +1508,22 @@ Config probe: `.kimi/config.toml`
 
 **Spawn configuration:**
 
-| Property | Value |
-|----------|-------|
-| Prompt flag | `-p` |
-| Strip provider prefix | Yes |
-| Default args | `--print --output-format stream-json` |
-| Stdin mode | Omit prompt, add `--input-format stream-json` |
-| Interactive prompt flag | `-p` |
-| Resume command | `--session <threadId> --work-dir <cwd>` |
+| Property                | Value                                         |
+| ----------------------- | --------------------------------------------- |
+| Prompt flag             | `-p`                                          |
+| Strip provider prefix   | Yes                                           |
+| Default args            | `--print --output-format stream-json`         |
+| Stdin mode              | Omit prompt, add `--input-format stream-json` |
+| Interactive prompt flag | `-p`                                          |
+| Resume command          | `--session <threadId> --work-dir <cwd>`       |
 
 **Permission mode args:**
 
-| Mode | Args |
-|------|------|
+| Mode   | Args     |
+| ------ | -------- |
 | `yolo` | `--yolo` |
-| `edit` | (empty) |
-| `read` | (empty) |
+| `edit` | (empty)  |
+| `read` | (empty)  |
 
 **MCP args:** JSON format via `--mcp-servers` (also accepts `@path/to/file.json`; `--mcp-config` is deprecated alias)
 
@@ -1530,13 +1531,13 @@ Config probe: `.kimi/config.toml`
 
 ### Goose Provider
 
-| Property | Value |
-|----------|-------|
-| ID | `goose` |
-| Binary | `goose` |
-| Config File | `~/.config/goose/config.yaml` |
-| Config Format | YAML |
-| Branding | Dark: `#FF6B35`, Light: `#E85D26` |
+| Property      | Value                             |
+| ------------- | --------------------------------- |
+| ID            | `goose`                           |
+| Binary        | `goose`                           |
+| Config File   | `~/.config/goose/config.yaml`     |
+| Config Format | YAML                              |
+| Branding      | Dark: `#FF6B35`, Light: `#E85D26` |
 
 **Models:**
 
@@ -1557,10 +1558,10 @@ Uses `FRONTIER_MODELS` with default `anthropic/claude-opus-4.7`.
 
 **Isolated environment:**
 
-| Variable | Type | Relative Path |
-|----------|------|---------------|
-| `HOME` | `isolatedDir` | `` |
-| `XDG_CONFIG_HOME` | `isolatedDir` | `.config` |
+| Variable          | Type          | Relative Path |
+| ----------------- | ------------- | ------------- |
+| `HOME`            | `isolatedDir` | ``            |
+| `XDG_CONFIG_HOME` | `isolatedDir` | `.config`     |
 
 Config probe: `.config/goose/config.yaml`
 
@@ -1568,23 +1569,23 @@ Config probe: `.config/goose/config.yaml`
 
 **Spawn configuration:**
 
-| Property | Value |
-|----------|-------|
-| Prompt flag | `--text` |
-| Model flag | `--model` |
-| Strip provider prefix | No |
-| Default args | `run --output-format stream-json` |
-| Stdin mode | Omit prompt, add `--instructions -` |
-| Interactive args | `session` |
-| Resume command | `run --resume --text continue` |
+| Property              | Value                               |
+| --------------------- | ----------------------------------- |
+| Prompt flag           | `--text`                            |
+| Model flag            | `--model`                           |
+| Strip provider prefix | No                                  |
+| Default args          | `run --output-format stream-json`   |
+| Stdin mode            | Omit prompt, add `--instructions -` |
+| Interactive args      | `session`                           |
+| Resume command        | `run --resume --text continue`      |
 
 **Permission mode env:**
 
-| Mode | Value |
-|------|-------|
-| `yolo` | `GOOSE_MODE=auto` |
+| Mode   | Value                      |
+| ------ | -------------------------- |
+| `yolo` | `GOOSE_MODE=auto`          |
 | `edit` | `GOOSE_MODE=smart_approve` |
-| `read` | `GOOSE_MODE=chat` |
+| `read` | `GOOSE_MODE=chat`          |
 
 **MCP args:** repeated `--with-extension "<command> <args...>"`
 
@@ -1668,9 +1669,7 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
     id: "my-agent-install",
     summary: "My Agent CLI",
     check: createBinaryExistsCheck("my-cli", "my-agent-binary", "..."),
-    steps: [
-      { id: "install-step", command: "npm", args: ["install", "-g", "my-agent-cli"] }
-    ],
+    steps: [{ id: "install-step", command: "npm", args: ["install", "-g", "my-agent-cli"] }],
     successMessage: "Installed My Agent CLI."
   },
 
@@ -1687,7 +1686,8 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
   // Optional: Custom spawn logic
   spawn(context, options) {
     return context.command.runCommand("my-cli", [
-      "--model", options.model,
+      "--model",
+      options.model,
       options.prompt,
       ...(options.args ?? [])
     ]);
@@ -1697,23 +1697,23 @@ export const provider = createProvider<ConfigureOptions, UnconfigureOptions, Spa
 
 #### Isolated Environment Variable Types
 
-| Kind | Description |
-|------|-------------|
-| `isolatedDir` | Maps to a directory under `~/.poe-code/<provider>/` |
-| `poeApiKey` | Resolved from stored credentials |
-| `poeBaseUrl` | Resolved from environment/defaults |
-| String literal | Used as-is |
+| Kind           | Description                                         |
+| -------------- | --------------------------------------------------- |
+| `isolatedDir`  | Maps to a directory under `~/.poe-code/<provider>/` |
+| `poeApiKey`    | Resolved from stored credentials                    |
+| `poeBaseUrl`   | Resolved from environment/defaults                  |
+| String literal | Used as-is                                          |
 
 ## Spawn System
 
 ### Spawn Modes
 
-| Mode | Description | Claude Code Args | Codex Args | Cursor Args | OpenCode Args | Kimi Args | Goose |
-|------|-------------|-----------------|------------|-------------|---------------|-----------|-------|
-| `yolo` | Full access, no permission prompts | `--dangerously-skip-permissions` | `-s danger-full-access` | `--force --sandbox disabled` | (none) | `--yolo` | `GOOSE_MODE=auto` |
-| `auto` | Native safe-action auto approval when the agent supports it | `--permission-mode auto` | Not supported | Not supported | Not supported | Not supported | Not supported |
-| `edit` | Can edit files, restricted commands | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write` | `--force` | (none) | (none) | `GOOSE_MODE=smart_approve` |
-| `read` | Read-only, no modifications | `--permission-mode plan` | `-s read-only` | `--mode plan` | `--agent plan` | (none) | `GOOSE_MODE=chat` |
+| Mode   | Description                                                 | Claude Code Args                                                                           | Codex Args              | Cursor Args                  | OpenCode Args  | Kimi Args     | Goose                      |
+| ------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------- | ---------------------------- | -------------- | ------------- | -------------------------- |
+| `yolo` | Full access, no permission prompts                          | `--dangerously-skip-permissions`                                                           | `-s danger-full-access` | `--force --sandbox disabled` | (none)         | `--yolo`      | `GOOSE_MODE=auto`          |
+| `auto` | Native safe-action auto approval when the agent supports it | `--permission-mode auto`                                                                   | Not supported           | Not supported                | Not supported  | Not supported | Not supported              |
+| `edit` | Can edit files, restricted commands                         | `--permission-mode acceptEdits --allowedTools Bash,Read,Write,Edit,Glob,Grep,NotebookEdit` | `-s workspace-write`    | `--force`                    | (none)         | (none)        | `GOOSE_MODE=smart_approve` |
+| `read` | Read-only, no modifications                                 | `--permission-mode plan`                                                                   | `-s read-only`          | `--mode plan`                | `--agent plan` | (none)        | `GOOSE_MODE=chat`          |
 
 ### Streaming (ACP Events)
 
@@ -1733,14 +1733,14 @@ const final = await result;
 
 **Streaming support by agent:**
 
-| Agent | Streaming | Output Format |
-|-------|-----------|---------------|
-| Claude Code | Yes | `stream-json` |
-| Codex | Yes | `json` |
-| Cursor | Yes | `stream-json` |
-| OpenCode | Yes | `json` |
-| Kimi | Yes | `stream-json` |
-| Goose | Yes | `stream-json` |
+| Agent       | Streaming | Output Format |
+| ----------- | --------- | ------------- |
+| Claude Code | Yes       | `stream-json` |
+| Codex       | Yes       | `json`        |
+| Cursor      | Yes       | `stream-json` |
+| OpenCode    | Yes       | `json`        |
+| Kimi        | Yes       | `stream-json` |
+| Goose       | Yes       | `stream-json` |
 
 Use `renderAcpStream()` from `@poe-code/agent-spawn` for pretty-printed terminal output, or `spawn.pretty()` from the SDK.
 
@@ -1749,6 +1749,7 @@ Use `renderAcpStream()` from `@poe-code/agent-spawn` for pretty-printed terminal
 Inject MCP servers into an agent session at spawn time. This allows agents to use additional tools during a session.
 
 **CLI:**
+
 ```bash
 poe-code spawn claude-code "Use the database tool" \
   --mcp-servers '{"db": {"command": "/usr/local/bin/db-server", "args": ["--port", "5432"]}}'
@@ -1758,14 +1759,15 @@ poe-code spawn claude-code "Use the database tool" --mcp-servers @./mcp.json
 ```
 
 **SDK:**
+
 ```typescript
 const { result } = spawn("claude-code", {
   prompt: "Query the database for user stats",
   mcpServers: {
-    "db": {
+    db: {
       command: "/usr/local/bin/db-server",
       args: ["--port", "5432"],
-      env: { "DB_HOST": "localhost" }
+      env: { DB_HOST: "localhost" }
     }
   }
 });
@@ -1773,14 +1775,14 @@ const { result } = spawn("claude-code", {
 
 **MCP serialization per agent:**
 
-| Agent | Format | Flag |
-|-------|--------|------|
-| Claude Code | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
-| Codex | TOML inline tables via `-c` flags | `-c mcp_servers.name.command="..."` |
-| Kimi | JSON or `@file` via `--mcp-servers` | `--mcp-servers` |
-| Goose | Repeated extension flags | `--with-extension "<command> <args...>"` |
-| OpenCode | Environment override (`OPENCODE_CONFIG_CONTENT`) | N/A |
-| Cursor | Project `.cursor/mcp.json` merge | `.cursor/mcp.json` |
+| Agent       | Format                                           | Flag                                     |
+| ----------- | ------------------------------------------------ | ---------------------------------------- |
+| Claude Code | JSON or `@file` via `--mcp-servers`              | `--mcp-servers`                          |
+| Codex       | TOML inline tables via `-c` flags                | `-c mcp_servers.name.command="..."`      |
+| Kimi        | JSON or `@file` via `--mcp-servers`              | `--mcp-servers`                          |
+| Goose       | Repeated extension flags                         | `--with-extension "<command> <args...>"` |
+| OpenCode    | Environment override (`OPENCODE_CONFIG_CONTENT`) | N/A                                      |
+| Cursor      | Project `.cursor/mcp.json` merge                 | `.cursor/mcp.json`                       |
 
 ### Interactive Mode
 
@@ -1799,6 +1801,7 @@ const { result } = spawn("claude-code", {
 ```
 
 In interactive mode:
+
 - stdio is inherited (agent gets direct terminal access)
 - No ACP event stream (events iterable is empty)
 - Agent runs its own UI
@@ -1820,13 +1823,13 @@ cat prompt.txt | poe-code spawn claude-code
 
 **Stdin mode differences per agent:**
 
-| Agent | Stdin Behavior |
-|-------|---------------|
-| Claude Code | Omits `-p` flag, adds `--input-format text` |
-| Codex | Omits `exec` subcommand, adds `-` |
-| Cursor | Omits `-p` flag |
-| Kimi | Omits `-p` flag, adds `--input-format stream-json` |
-| Goose | Omits `--text`, adds `--instructions -` |
+| Agent       | Stdin Behavior                                     |
+| ----------- | -------------------------------------------------- |
+| Claude Code | Omits `-p` flag, adds `--input-format text`        |
+| Codex       | Omits `exec` subcommand, adds `-`                  |
+| Cursor      | Omits `-p` flag                                    |
+| Kimi        | Omits `-p` flag, adds `--input-format stream-json` |
+| Goose       | Omits `--text`, adds `--instructions -`            |
 
 ### Resume Sessions
 
@@ -1838,14 +1841,14 @@ Resume: poe-code spawn claude-code "Continue" --resume-thread-id abc123
 
 **Resume command format per agent:**
 
-| Agent | Resume Args |
-|-------|-------------|
-| Claude Code | `--resume <threadId>` |
-| Codex | `resume -C <cwd> <threadId>` |
-| Cursor | `--resume <threadId>` |
-| OpenCode | `<cwd> --session <threadId>` |
-| Kimi | `--session <threadId> --work-dir <cwd>` |
-| Goose | `run --resume --session-id <threadId> --text continue` |
+| Agent       | Resume Args                                            |
+| ----------- | ------------------------------------------------------ |
+| Claude Code | `--resume <threadId>`                                  |
+| Codex       | `resume -C <cwd> <threadId>`                           |
+| Cursor      | `--resume <threadId>`                                  |
+| OpenCode    | `<cwd> --session <threadId>`                           |
+| Kimi        | `--session <threadId> --work-dir <cwd>`                |
+| Goose       | `run --resume --session-id <threadId> --text continue` |
 
 ### Spawn Configurations per Agent
 
@@ -1963,6 +1966,7 @@ Resume: run --resume --session-id <threadId> --text continue
 **Location:** `~/.poe-code/credentials.json`
 
 **Format:**
+
 ```json
 {
   "apiKey": "pb-xxx",
@@ -1978,18 +1982,19 @@ Resume: run --resume --session-id <threadId> --text continue
 ```
 
 **Resolution priority:**
+
 1. `POE_API_KEY` environment variable
 2. `~/.poe-code/credentials.json` file
 
 ### Provider Config Files
 
-| Provider | File(s) | Format |
-|----------|---------|--------|
-| Claude Code | `~/.claude/settings.json` | JSON |
-| Codex | `~/.codex/config.toml` | TOML |
-| OpenCode | `~/.config/opencode/config.json` + `~/.local/share/opencode/auth.json` | JSON |
-| Kimi | `~/.kimi/config.toml` | TOML |
-| Goose | `~/.config/goose/config.yaml` + `~/.config/goose/secrets.yaml` + `~/.config/goose/custom_providers/custom_poe.json` | YAML + JSON |
+| Provider    | File(s)                                                                                                             | Format      |
+| ----------- | ------------------------------------------------------------------------------------------------------------------- | ----------- |
+| Claude Code | `~/.claude/settings.json`                                                                                           | JSON        |
+| Codex       | `~/.codex/config.toml`                                                                                              | TOML        |
+| OpenCode    | `~/.config/opencode/config.json` + `~/.local/share/opencode/auth.json`                                              | JSON        |
+| Kimi        | `~/.kimi/config.toml`                                                                                               | TOML        |
+| Goose       | `~/.config/goose/config.yaml` + `~/.config/goose/secrets.yaml` + `~/.config/goose/custom_providers/custom_poe.json` | YAML + JSON |
 
 ### Isolated Environments
 
@@ -1998,6 +2003,7 @@ Isolated environments sandbox agent configuration to `~/.poe-code/<agent>/` to a
 **Base directory:** `~/.poe-code/<agent-name>/`
 
 **How it works:**
+
 1. Home directory paths are remapped to isolated directories
 2. Environment variables override the agent's config/data paths
 3. The agent binary runs with these overridden environment variables
@@ -2005,11 +2011,11 @@ Isolated environments sandbox agent configuration to `~/.poe-code/<agent>/` to a
 
 **Variable kinds:**
 
-| Kind | Description | Example |
-|------|-------------|---------|
-| `isolatedDir` | Directory under isolated base, optionally with relative path | `CODEX_HOME` → `~/.poe-code/codex/` |
-| `poeApiKey` | API key from credentials | `POE_API_KEY` → `pb-xxx` |
-| `poeBaseUrl` | Poe API base URL | `ANTHROPIC_BASE_URL` → `https://api.poe.com/v1` |
+| Kind          | Description                                                  | Example                                         |
+| ------------- | ------------------------------------------------------------ | ----------------------------------------------- |
+| `isolatedDir` | Directory under isolated base, optionally with relative path | `CODEX_HOME` → `~/.poe-code/codex/`             |
+| `poeApiKey`   | API key from credentials                                     | `POE_API_KEY` → `pb-xxx`                        |
+| `poeBaseUrl`  | Poe API base URL                                             | `ANTHROPIC_BASE_URL` → `https://api.poe.com/v1` |
 
 **CLI settings injection:** Some agents support a `--settings` flag or equivalent for runtime configuration. The isolated env system can inject settings like `apiKeyHelper` and environment variables.
 
@@ -2021,10 +2027,10 @@ Providers use a declarative mutation system from `@poe-code/config-mutations` fo
 
 ```typescript
 // Create a directory
-fileMutation.ensureDirectory({ path: "~/.config/app" })
+fileMutation.ensureDirectory({ path: "~/.config/app" });
 
 // Backup a file before modifying
-fileMutation.backup({ target: "~/.config/app/config.json" })
+fileMutation.backup({ target: "~/.config/app/config.json" });
 ```
 
 #### Config Mutations
@@ -2037,7 +2043,7 @@ configMutation.merge({
     apiKey: ctx.apiKey,
     model: ctx.model
   })
-})
+});
 
 // Custom transformation
 configMutation.transform({
@@ -2046,13 +2052,13 @@ configMutation.transform({
     changed: true,
     content: { ...doc, modified: true }
   })
-})
+});
 
 // Remove specific keys
 configMutation.prune({
   target: "~/.config/app/config.json",
   shape: { apiKey: true, password: true }
-})
+});
 ```
 
 #### Template Mutations
@@ -2067,7 +2073,7 @@ templateMutation.mergeToml({
     baseUrl: ctx.baseUrl,
     model: ctx.model
   })
-})
+});
 ```
 
 ### Dry Run
@@ -2079,11 +2085,13 @@ poe-code configure claude --model opus --dry-run
 ```
 
 Output shows:
+
 - Files that would be created/modified
 - Unified diff of changes
 - Sensitive values are redacted (API keys, tokens)
 
 **Redacted keys:**
+
 - JSON: `apiKey`, `api_key`, `apiKeyHelper`
 - Auth files: `key`
 - TOML: `experimental_bearer_token`
@@ -2094,15 +2102,15 @@ Output shows:
 
 ### Default Models
 
-| Constant | Value | Used By |
-|----------|-------|---------|
-| `DEFAULT_FRONTIER_MODEL` | `anthropic/claude-opus-4.7` | OpenCode and Goose defaults |
-| `DEFAULT_CLAUDE_CODE_MODEL` | `anthropic/claude-sonnet-4.6` | Claude Code default |
-| `DEFAULT_CODEX_MODEL` | `openai/gpt-5.5` | Codex default |
-| `DEFAULT_KIMI_MODEL` | `novitaai/kimi-k2.5` | Kimi default |
-| `DEFAULT_GOOSE_MODEL` | `anthropic/claude-opus-4.7` | Goose default |
-| `DEFAULT_REASONING` | `medium` | Codex reasoning effort |
-| `PROVIDER_NAME` | `poe` | Provider identifier in configs |
+| Constant                    | Value                         | Used By                        |
+| --------------------------- | ----------------------------- | ------------------------------ |
+| `DEFAULT_FRONTIER_MODEL`    | `anthropic/claude-opus-4.7`   | OpenCode and Goose defaults    |
+| `DEFAULT_CLAUDE_CODE_MODEL` | `anthropic/claude-sonnet-4.6` | Claude Code default            |
+| `DEFAULT_CODEX_MODEL`       | `openai/gpt-5.5`              | Codex default                  |
+| `DEFAULT_KIMI_MODEL`        | `novitaai/kimi-k2.5`          | Kimi default                   |
+| `DEFAULT_GOOSE_MODEL`       | `anthropic/claude-opus-4.7`   | Goose default                  |
+| `DEFAULT_REASONING`         | `medium`                      | Codex reasoning effort         |
+| `PROVIDER_NAME`             | `poe`                         | Provider identifier in configs |
 
 ### Frontier Models
 
@@ -2146,11 +2154,7 @@ const CODEX_MODELS = [
 ### Kimi Models
 
 ```typescript
-const KIMI_MODELS = [
-  "novitaai/kimi-k2.5",
-  "novitaai/kimi-k2-thinking",
-  "novitaai/kimi-k2.5-fw"
-];
+const KIMI_MODELS = ["novitaai/kimi-k2.5", "novitaai/kimi-k2-thinking", "novitaai/kimi-k2.5-fw"];
 ```
 
 ### Model Namespace Stripping
@@ -2158,23 +2162,23 @@ const KIMI_MODELS = [
 Model IDs are namespaced (e.g., `anthropic/claude-sonnet-4.6`). The `stripModelNamespace()` function removes the provider prefix:
 
 ```typescript
-stripModelNamespace("anthropic/claude-sonnet-4.6") // → "claude-sonnet-4.6"
-stripModelNamespace("openai/gpt-5.2")              // → "gpt-5.2"
+stripModelNamespace("anthropic/claude-sonnet-4.6"); // → "claude-sonnet-4.6"
+stripModelNamespace("openai/gpt-5.2"); // → "gpt-5.2"
 ```
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `POE_API_KEY` | — | Poe API key. Highest priority credential source. |
-| `POE_DEFAULT_AGENT` | — | Default agent (or `agent:model`) used when commands omit agent selection. |
-| `POE_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. Used for provider configuration. |
-| `POE_API_BASE_URL` | `https://api.poe.com/v1` | Poe API base URL. |
-| `POE_CODE_STDERR_LOGS` | — | Set to `1` or `true` to enable stderr logging for bootstrap errors. |
-| `POE_SNAPSHOT_MODE` | `playback` | Testing: `record` to record LLM responses, `playback` to replay. |
-| `POE_SNAPSHOT_MISS` | `error` | Testing: behavior on missing snapshot: `error`, `warn`, `passthrough`. |
+| Variable               | Default                  | Description                                                               |
+| ---------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| `POE_API_KEY`          | —                        | Poe API key. Highest priority credential source.                          |
+| `POE_DEFAULT_AGENT`    | —                        | Default agent (or `agent:model`) used when commands omit agent selection. |
+| `POE_BASE_URL`         | `https://api.poe.com/v1` | Poe API base URL. Used for provider configuration.                        |
+| `POE_API_BASE_URL`     | `https://api.poe.com/v1` | Poe API base URL.                                                         |
+| `POE_CODE_STDERR_LOGS` | —                        | Set to `1` or `true` to enable stderr logging for bootstrap errors.       |
+| `POE_SNAPSHOT_MODE`    | `playback`               | Testing: `record` to record LLM responses, `playback` to replay.          |
+| `POE_SNAPSHOT_MISS`    | `error`                  | Testing: behavior on missing snapshot: `error`, `warn`, `passthrough`.    |
 
 ---
 
@@ -2189,6 +2193,7 @@ The `research` command is a specialized spawn that defaults to `read` mode. Key 
 5. **Agent is specified via `--agent`** option (not positional argument)
 
 **Workflow for GitHub research:**
+
 1. Clones the repository to a temporary directory
 2. Spawns the agent with the cloned repo as working directory
 3. Unless `--keep` is set, removes the cloned repo after completion
@@ -2201,10 +2206,10 @@ Skills are agent-specific prompt templates/directories that extend agent capabil
 
 ### Scope
 
-| Scope | Location | Flag |
-|-------|----------|------|
+| Scope  | Location                                        | Flag       |
+| ------ | ----------------------------------------------- | ---------- |
 | Global | `~/.poe-code/<agent>/skills/` (varies by agent) | `--global` |
-| Local | `./<agent-skill-dir>/` (project directory) | `--local` |
+| Local  | `./<agent-skill-dir>/` (project directory)      | `--local`  |
 
 ### Workflow
 
@@ -2225,13 +2230,13 @@ poe-code skill unconfigure claude-code --global --force
 
 `poe-code` provides convenience binaries for common agent patterns:
 
-| Binary | Purpose |
-|--------|---------|
-| `poe-code` | Main CLI |
-| `poe-code-configure` | Alias for `poe-code configure` |
-| `poe-claude` | Convenience wrapper for Claude Code |
-| `poe-codex` | Convenience wrapper for Codex |
-| `poe-opencode` | Convenience wrapper for OpenCode |
+| Binary               | Purpose                             |
+| -------------------- | ----------------------------------- |
+| `poe-code`           | Main CLI                            |
+| `poe-code-configure` | Alias for `poe-code configure`      |
+| `poe-claude`         | Convenience wrapper for Claude Code |
+| `poe-codex`          | Convenience wrapper for Codex       |
+| `poe-opencode`       | Convenience wrapper for OpenCode    |
 
 ---
 
@@ -2262,6 +2267,7 @@ Content-Type: application/json
 **Text responses:** Extracts `choices[0].message.content`
 
 **Media responses:** Tries multiple extraction strategies in order:
+
 1. Parse content as JSON with `{ url, mimeType, data }` fields
 2. Treat content as a raw URL
 3. Extract URL from markdown format `![alt](url)`
@@ -2269,6 +2275,7 @@ Content-Type: application/json
 ### Error Handling
 
 API errors throw `ApiError` with:
+
 - `httpStatus`: HTTP status code
 - `endpoint`: The API endpoint that failed
 - `context.responseBody`: Error response body (if available)
@@ -2279,12 +2286,12 @@ API errors throw `ApiError` with:
 
 ### Error Types
 
-| Error | Description |
-|-------|-------------|
-| `ApiError` | HTTP error from the Poe API. Contains `httpStatus`, `endpoint`, and optional `context`. |
+| Error             | Description                                                                                              |
+| ----------------- | -------------------------------------------------------------------------------------------------------- |
+| `ApiError`        | HTTP error from the Poe API. Contains `httpStatus`, `endpoint`, and optional `context`.                  |
 | Credential errors | Thrown when no API key is found. Message: `"No API key found. Set POE_API_KEY or run 'poe-code login'."` |
-| Spawn errors | Non-zero exit codes from agent processes. |
-| Validation errors | Invalid MCP config, missing required arguments, etc. |
+| Spawn errors      | Non-zero exit codes from agent processes.                                                                |
+| Validation errors | Invalid MCP config, missing required arguments, etc.                                                     |
 
 ### Exit Codes
 
@@ -2422,15 +2429,15 @@ poe-code/
 
 ```typescript
 // Functions
-export { spawn } from "poe-code";          // spawn() and spawn.pretty()
-export { getPoeApiKey } from "poe-code";    // API key resolution
+export { spawn } from "poe-code"; // spawn() and spawn.pretty()
+export { getPoeApiKey } from "poe-code"; // API key resolution
 export { getPoeAuthIdentity } from "poe-code"; // Poe account identity
 export {
   agent,
   openaiChatCompletionsPlugin,
   openaiResponsesPlugin,
   systemPromptPlugin
-} from "poe-code/agent";                     // Composable agent runtime
+} from "poe-code/agent"; // Composable agent runtime
 
 // Types
 export type { SpawnOptions } from "poe-code";
@@ -2450,9 +2457,9 @@ export { main, isCliInvocation } from "poe-code";
 
 ### Supported Agents Summary
 
-| Agent | ID | Aliases | Binary | Config Format | Stdin | MCP Spawn | Interactive | Resume |
-|-------|-----|---------|--------|--------------|-------|-----------|-------------|--------|
-| Claude Code | `claude-code` | `claude` | `claude` | JSON | Yes | Yes | Yes | Yes |
-| Codex | `codex` | — | `codex` | TOML | Yes | Yes | Yes | Yes |
-| OpenCode | `opencode` | — | `opencode` | JSON | No | No | Yes | Yes |
-| Kimi | `kimi` | `kimi-cli` | `kimi` | TOML | Yes | Yes | Yes | Yes |
+| Agent       | ID            | Aliases    | Binary     | Config Format | Stdin | MCP Spawn | Interactive | Resume |
+| ----------- | ------------- | ---------- | ---------- | ------------- | ----- | --------- | ----------- | ------ |
+| Claude Code | `claude-code` | `claude`   | `claude`   | JSON          | Yes   | Yes       | Yes         | Yes    |
+| Codex       | `codex`       | —          | `codex`    | TOML          | Yes   | Yes       | Yes         | Yes    |
+| OpenCode    | `opencode`    | —          | `opencode` | JSON          | No    | No        | Yes         | Yes    |
+| Kimi        | `kimi`        | `kimi-cli` | `kimi`     | TOML          | Yes   | Yes       | Yes         | Yes    |

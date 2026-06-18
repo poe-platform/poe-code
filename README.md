@@ -98,7 +98,7 @@ echo "Say hello" | npx poe-code@latest spawn codex
 
 #### Run a plan with follow-up checks
 
-Gaslight runs Markdown plans, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks. Completed plans are moved into `archive/`.
+Gaslight runs Markdown plans, then resumes the same agent thread with configured follow-up prompts such as testing, simplification, and commit checks. Completed plan files stay in place so the same plan can be inspected or rerun.
 
 ```bash
 npx poe-code@latest gaslight install --local

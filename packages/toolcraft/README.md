@@ -490,6 +490,7 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 ### `runCLI(root, options)`
 
 - `casing?: "kebab" | "snake"` — generated CLI flag style.
+- `argv?: readonly string[]` — explicit argv vector for embedded runners and tests. Defaults to `process.argv` and is used for routing, help rendering, version lookup, error reports, and output-mode detection.
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.

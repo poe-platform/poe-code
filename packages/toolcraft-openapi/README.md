@@ -23,6 +23,7 @@ command files.
 
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
 - `--output <dir>` — directory for generated files. Defaults to `src/generated`.
+- `--lock <path>` — spec lock file to read/write. Defaults to `openapi.lock`.
 - `--check` — exits non-zero when generated files would change.
 - `--diff` — prints the generated file changes without writing them.
 
@@ -128,9 +129,11 @@ Mapped idempotent methods with `client_settings.idempotency_header` get an optio
 `rawResponse` param that returns `{ data, response }`; the CLI accepts both `--raw-response` and
 `--raw`.
 
-Generated JSON helper params for arrays validate `minItems` and `maxItems` before dispatch. For
-OpenAPI compositions where every equivalent `oneOf`/`anyOf` branch has enum values, generation
-preserves the merged enum values in the resulting schema.
+Generated JSON helper params for arrays validate `minItems` and `maxItems` before dispatch. Nested
+request-body object fields are exposed as typed `S.Object(...)` params, including required
+properties and `additionalProperties: false` validation when the OpenAPI schema forbids unknown
+keys. For OpenAPI compositions where every equivalent `oneOf`/`anyOf` branch has enum values,
+generation preserves the merged enum values in the resulting schema.
 
 Diagnostics use stable codes:
 

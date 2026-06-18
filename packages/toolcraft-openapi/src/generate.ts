@@ -3176,7 +3176,7 @@ function createCliFile(theme: { brand: string; label: string }): GeneratedFile {
       "",
       `configureTheme({ brand: ${JSON.stringify(theme.brand)}, label: ${JSON.stringify(theme.label)} });`,
       "",
-      "await runCLI(generatedCommands);",
+      "await runCLI([...generatedCommands]);",
       ""
     ].join("\n")
   };

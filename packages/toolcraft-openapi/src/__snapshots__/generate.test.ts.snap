@@ -68,7 +68,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -140,7 +140,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -215,7 +215,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -311,7 +311,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -385,7 +385,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -460,7 +460,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -538,7 +538,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },
@@ -610,7 +610,7 @@ import { generatedCommands } from "./index.js";
 
 configureTheme({ brand: "blue", label: "Internal Agent API" });
 
-await runCLI(generatedCommands);
+await runCLI([...generatedCommands]);
 ",
     "path": "cli.ts",
   },

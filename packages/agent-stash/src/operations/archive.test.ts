@@ -3,10 +3,10 @@ import { Volume, createFsFromVolume } from "memfs";
 import { createArchiveEntryFilter, exportArchive, importArchive, validateArchiveEntry, validateArchiveEntryPath } from "./archive.js";
 import { uploadBundle } from "./upload.js";
 import { hashFiles, sha256 } from "../hash.js";
-import { InMemoryArchiveCodec } from "../test-support/in-memory-archive-codec.js";
-import { InMemoryGistClient } from "../test-support/in-memory-gist-client.js";
+import { InMemoryArchiveCodec } from "../fixtures/in-memory-archive-codec.js";
+import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
 import { parseManifest, serializeManifest } from "../manifest.js";
-import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../test-support/dummy-config.js";
+import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../fixtures/dummy-config.js";
 import type { AgentStashContext, AgentStashFileSystem } from "../types.js";
 
 vi.mock("../gist-client.js", async (importOriginal) => {

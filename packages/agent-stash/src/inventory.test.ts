@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadInventory } from "./inventory.js";
-import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./test-support/dummy-config.js";
+import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./fixtures/dummy-config.js";
 import type { AgentStashContext, AgentStashFileSystem } from "./types.js";
 
 function createContext(files = createDummyAgentConfigFixture()): AgentStashContext {

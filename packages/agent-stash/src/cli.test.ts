@@ -6,8 +6,8 @@ import { createBackup } from "./backup-store.js";
 import { hashFiles, sha256 } from "./hash.js";
 import { parseManifest, serializeManifest } from "./manifest.js";
 import { uploadBundle } from "./operations/upload.js";
-import { InMemoryGistClient } from "./test-support/in-memory-gist-client.js";
-import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./test-support/dummy-config.js";
+import { InMemoryGistClient } from "./fixtures/in-memory-gist-client.js";
+import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./fixtures/dummy-config.js";
 import type { AgentStashContext, AgentStashFileSystem } from "./types.js";
 import type { AgentStashPromptAdapter } from "./cli.js";
 

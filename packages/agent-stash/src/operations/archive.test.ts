@@ -324,6 +324,38 @@ describe("archive operations", () => {
     );
   });
 
+  it("exports explicit Gist archives with scope and agent filters instead of local inventory", async () => {
+    const archiveCodec = new InMemoryArchiveCodec();
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const source = createContext(createDummyAgentConfigFixture(), archiveCodec);
+    source.ctx.gistClient = gistClient;
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const targetFiles = createDummyAgentConfigFixture();
+    targetFiles["/repo/.claude/skills/code-review/SKILL.md"] = "# Local Different\n";
+    const target = createContext(targetFiles, archiveCodec);
+    target.ctx.gistClient = gistClient;
+
+    const result = await exportArchive(target.ctx, {
+      outputPath: "/archives/explicit-gist.tar.gz",
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code"
+    });
+
+    expect(result.exported.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(gistClient.readCalls).toContain("gist-default");
+    expect(archiveCodec.archives.get("/archives/explicit-gist.tar.gz")?.["skills/project/claude-code/code-review/SKILL.md"]).toBe(
+      "# Code Review\n"
+    );
+  });
+
   it("rejects path traversal before importing any item", async () => {
     const archiveCodec = new InMemoryArchiveCodec();
     archiveCodec.archives.set("/archives/bad.tar.gz", {

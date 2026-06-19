@@ -95,7 +95,7 @@ async function loadExportBundle(
   options: ExportOptions
 ): Promise<{ manifest: ReturnType<typeof createEmptyManifest>; files: BundleFile[] }> {
   const agentId = options.agent === undefined ? undefined : normalizeAgent(options.agent);
-  if (options.scope && options.agent) {
+  if (options.scope && options.agent && options.gist === undefined) {
     const items = await loadInventory(ctx, { scope: options.scope, agent: options.agent });
     const manifest = createEmptyManifest(ctx.now?.() ?? new Date(), options.profile);
     manifest.items = items.map(({ bundleFiles: ignoredBundleFiles, targetPath: ignoredTargetPath, ...item }) => {

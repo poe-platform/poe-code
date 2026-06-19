@@ -212,7 +212,9 @@ export function createAgentStashProgram(dependencies: AgentStashCliDependencies 
         ctx,
         await resolveSyncOptions(ctx, opts, { prompts, interactive: isInteractiveTerminal() })
       );
-      output(`Uploaded ${result.uploaded.length}, downloaded ${result.downloaded.length}, conflicts ${result.conflicts.length}.\n`);
+      output(
+        `Uploaded ${result.uploaded.length}, downloaded ${result.downloaded.length}, deleted local ${result.deletedLocal.length}, deleted remote ${result.deletedRemote.length}, unchanged ${result.unchanged.length}, conflicts ${result.conflicts.length}.\n`
+      );
       if (result.conflicts.length > 0) {
         process.exitCode = 1;
       }

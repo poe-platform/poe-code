@@ -560,7 +560,106 @@ describe("agent-stash CLI", () => {
     expect(prompts.confirmCalls[0]?.message).toBe('Sync profile "default" with project claude-code?');
     expect(prompts.selectCalls.map((call) => call.message)).toEqual(["Resolve conflict: code-review"]);
     expect(harness.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe(remoteContent);
-    expect(harness.output.join("")).toBe("Uploaded 4, downloaded 1, conflicts 0.\n");
+    expect(harness.output.join("")).toBe("Uploaded 4, downloaded 1, deleted local 0, deleted remote 0, unchanged 0, conflicts 0.\n");
+  });
+
+  it("prints sync deleted-local and deleted-remote counts", async () => {
+    const files = {
+      "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }],
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      }, null, 2)
+    };
+    const harness = createHarness(files);
+    const upload = await uploadBundle(harness.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    await harness.ctx.fs.mkdir("/home/user/.agent-stash/cache", { recursive: true });
+    await harness.ctx.fs.writeFile(
+      "/home/user/.agent-stash/cache/default.manifest.json",
+      serializeManifest(upload.manifest),
+      { encoding: "utf8" }
+    );
+    const record = await harness.gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    manifest.items = [];
+    record.files["agent-stash.json"] = { filename: "agent-stash.json", content: serializeManifest(manifest) };
+    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json")];
+    harness.gistClient.seed(record);
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "sync",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--hooks",
+      "PreToolUse",
+      "--on-conflict",
+      "remote",
+      "--yes"
+    ]);
+
+    expect(harness.output.join("")).toBe("Uploaded 0, downloaded 0, deleted local 1, deleted remote 0, unchanged 0, conflicts 0.\n");
+  });
+
+  it("prints sync deleted-remote counts", async () => {
+    const files = {
+      "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }]
+        }
+      }, null, 2)
+    };
+    const harness = createHarness(files);
+    const upload = await uploadBundle(harness.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    await harness.ctx.fs.mkdir("/home/user/.agent-stash/cache", { recursive: true });
+    await harness.ctx.fs.writeFile(
+      "/home/user/.agent-stash/cache/default.manifest.json",
+      serializeManifest(upload.manifest),
+      { encoding: "utf8" }
+    );
+    await harness.ctx.fs.unlink("/repo/.claude/settings.json");
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "sync",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--hooks",
+      "PreToolUse",
+      "--on-conflict",
+      "local",
+      "--yes"
+    ]);
+
+    expect(harness.output.join("")).toBe("Uploaded 0, downloaded 0, deleted local 0, deleted remote 1, unchanged 0, conflicts 0.\n");
+    const record = await harness.gistClient.read("gist-default");
+    expect(parseManifest(record.files["agent-stash.json"]!.content).items).toEqual([]);
+    expect(parseManifest(harness.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8")).items).toEqual([]);
   });
 });
 

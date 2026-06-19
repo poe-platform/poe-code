@@ -115,7 +115,12 @@ function parseHookFragment(item: AgentStashItem, files: readonly BundleFile[]): 
   if (fragmentContent === undefined) {
     throw new Error(`Hook item ${item.id} has no fragment file.`);
   }
-  const parsed = JSON.parse(fragmentContent) as unknown;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(fragmentContent) as unknown;
+  } catch {
+    throw new Error(`Malformed hook fragment for ${item.name}.`);
+  }
   if (!isRecord(parsed)) {
     throw new Error(`Malformed hook fragment for ${item.name}.`);
   }

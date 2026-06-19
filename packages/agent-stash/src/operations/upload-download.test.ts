@@ -281,6 +281,33 @@ describe("upload/download", () => {
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
   });
 
+  it("rejects malformed hook fragment JSON before writing", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const record = await gistClient.read("gist-default");
+    updateRemoteHookFragmentContent(record, "hooks/project/claude-code/PreToolUse.json", "{");
+    gistClient.seed(record);
+    const files = createDummyAgentConfigFixture();
+    const before = files["/repo/.claude/settings.json"];
+    const target = createContext(files, gistClient);
+
+    await expect(downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Malformed hook fragment for PreToolUse.");
+    expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects hook fragments whose own event is malformed before writing", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);
@@ -727,6 +754,14 @@ function updateRemoteHookFragment(
   fragmentValue: unknown
 ): void {
   const fragment = `${JSON.stringify(fragmentValue, null, 2)}\n`;
+  updateRemoteHookFragmentContent(record, fragmentPath, fragment);
+}
+
+function updateRemoteHookFragmentContent(
+  record: Awaited<ReturnType<InMemoryGistClient["read"]>>,
+  fragmentPath: string,
+  fragment: string
+): void {
   const manifest = parseManifest(record.files["agent-stash.json"]!.content);
   const item = manifest.items.find((candidate) => candidate.files.some((file) => file.path === fragmentPath))!;
   item.files[0] = {

@@ -233,6 +233,37 @@ describe("browse", () => {
     expect(JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
   });
 
+  it("creates a default profile from the toolcraft browse sync action", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    await ctx.fs.unlink("/home/user/.agent-stash/config.json");
+    const config = buildBrowseExplorerConfig(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    });
+    const rows = await config.rows();
+    const projectRow = rows.find((row) => row.id === "left:project:skill:claude-code:code-review")!;
+    const confirmations: string[] = [];
+
+    await config.actions.find((action) => action.id === "sync")!.handler({
+      row: projectRow,
+      rows: [projectRow],
+      filter: "",
+      refresh: async () => undefined,
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      confirm: async (prompt) => {
+        confirmations.push(prompt);
+        return true;
+      },
+      exit: () => undefined
+    });
+
+    expect(confirmations).toEqual(['Create profile "default" with a new secret Gist?']);
+    expect(gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
+    expect(parseManifest(volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string).items.map((item) => item.name)).toEqual(["code-review"]);
+  });
+
   it("rejects stale selected browse ids before writing", async () => {
     const { ctx, gistClient } = createHarness();
 

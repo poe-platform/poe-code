@@ -713,6 +713,36 @@ describe("agent-stash CLI", () => {
     expect(record.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]?.content).toBe("# Code Review\n");
   });
 
+  it("uses a default profile when --yes move targets a Gist without a configured profile", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const harness = createHarness(files);
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "move",
+      "--from",
+      "project",
+      "--to",
+      "gist",
+      "--agent",
+      "claude-code",
+      "--kind",
+      "skill",
+      "--name",
+      "project-only",
+      "--yes"
+    ]);
+
+    expect(harness.output.join("")).toBe("move project:skill:claude-code:project-only.\n");
+    expect(harness.gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(harness.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
+    expect(() => harness.volume.statSync("/repo/.claude/skills/project-only/SKILL.md")).toThrow();
+    const record = await harness.gistClient.read("gist-1");
+    expect(record.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]?.content).toBe("# Project Only\n");
+  });
+
   it("prints sync deleted-local and deleted-remote counts", async () => {
     const files = {
       "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2),

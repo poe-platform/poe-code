@@ -164,20 +164,22 @@ async function readBackupEntries(
     if (!isDirectory(entryStat)) {
       continue;
     }
-    const metadata = await readFileIfExists(ctx.fs, path.join(entryPath, BACKUP_METADATA));
-    if (metadata !== null) {
-      try {
+    try {
+      const metadataPath = path.join(entryPath, BACKUP_METADATA);
+      await assertNotSymlink(ctx.fs, metadataPath);
+      const metadata = await readFileIfExists(ctx.fs, metadataPath);
+      if (metadata !== null) {
         const record = parseBackupRecord(metadata, directoryName);
         validateBackupRecordShape(record, directoryName);
         validateBackupEntry(directoryName, record);
         backups.push({ directoryName, record });
-      } catch (error) {
-        if (!options.removeInvalidEntries) {
-          throw error;
-        }
-        await removePath(ctx.fs, entryPath);
-        continue;
       }
+    } catch (error) {
+      if (!options.removeInvalidEntries) {
+        throw error;
+      }
+      await removePath(ctx.fs, entryPath);
+      continue;
     }
   }
   return backups.sort(

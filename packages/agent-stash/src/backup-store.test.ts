@@ -191,6 +191,29 @@ describe("backup store", () => {
     await expect(listBackups(ctx)).rejects.toThrow(`Malformed backup metadata for ${backupId}.`);
   });
 
+  it("refuses to list backups with symlinked metadata files", async () => {
+    const backupId = "backup-2026-01-02T03-04-05-000Z";
+    const { ctx, volume } = createContext({
+      "/outside/backup.json": JSON.stringify({
+        id: backupId,
+        createdAt: "2026-01-02T03:04:05.000Z",
+        command: "outside",
+        args: {},
+        cwd: "/repo",
+        homeDir: "/home/user",
+        affectedPaths: [],
+        files: []
+      }, null, 2)
+    });
+    volume.mkdirSync(`/home/user/.agent-stash/backups/${backupId}`, { recursive: true });
+    volume.symlinkSync("/outside/backup.json", `/home/user/.agent-stash/backups/${backupId}/backup.json`);
+
+    await expect(listBackups(ctx)).rejects.toThrow(
+      `Refusing to write through symbolic link: /home/user/.agent-stash/backups/${backupId}/backup.json`
+    );
+    expect(volume.readFileSync("/outside/backup.json", "utf8")).toContain("\"outside\"");
+  });
+
   it("ignores non-directory files in the backup root when listing backups", async () => {
     const { ctx, volume } = createContext({
       "/home/user/.agent-stash/backups/README.txt": "operator note\n",

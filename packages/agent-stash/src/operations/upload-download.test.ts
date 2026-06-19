@@ -518,6 +518,61 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("downloads one later hook command into an empty local group without placeholder hooks", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "remote first" },
+                { type: "command", command: "remote second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-002"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        model: "keep",
+        hooks: {
+          Stop: [{ hooks: [{ type: "command", command: "local stop" }] }]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-002"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      model?: string;
+      hooks?: { PostToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.model).toBe("keep");
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks).toEqual([
+      { type: "command", command: "remote second" }
+    ]);
+  });
+
   it("rejects hook fragments that modify a different hook event before writing", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

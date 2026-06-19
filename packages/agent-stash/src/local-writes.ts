@@ -210,22 +210,23 @@ function mergeIndividualHook(hooks: Record<string, unknown>, fragment: HookFragm
   if (!fragment.position || !isRecord(sourceGroup) || !Array.isArray(sourceGroup.hooks) || !isRecord(sourceGroup.hooks[0])) {
     throw new Error(`Malformed hook fragment for ${fragment.event}.`);
   }
-  while (eventGroups.length <= fragment.position.groupIndex) {
-    eventGroups.push({});
-  }
-  const existingGroupCandidate = eventGroups[fragment.position.groupIndex];
+  const targetGroupIndex = fragment.position.groupIndex < eventGroups.length
+    ? fragment.position.groupIndex
+    : eventGroups.length;
+  const existingGroupCandidate = eventGroups[targetGroupIndex];
   const existingGroup = isRecord(existingGroupCandidate)
     ? cloneRecord(existingGroupCandidate)
     : {};
   const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
   const nextGroup: HookGroup = { ...existingGroup, ...sourceGroupFields };
   const groupHooks = Array.isArray(existingGroup.hooks) ? [...existingGroup.hooks] : [];
-  while (groupHooks.length <= fragment.position.hookIndex) {
-    groupHooks.push({});
+  if (fragment.position.hookIndex < groupHooks.length) {
+    groupHooks[fragment.position.hookIndex] = cloneJson(sourceGroup.hooks[0]);
+  } else {
+    groupHooks.push(cloneJson(sourceGroup.hooks[0]));
   }
-  groupHooks[fragment.position.hookIndex] = cloneJson(sourceGroup.hooks[0]);
   nextGroup.hooks = groupHooks;
-  eventGroups[fragment.position.groupIndex] = nextGroup;
+  eventGroups[targetGroupIndex] = nextGroup;
   return { ...hooks, [fragment.event]: eventGroups };
 }
 

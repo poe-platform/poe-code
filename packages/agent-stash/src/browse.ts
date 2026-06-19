@@ -1,14 +1,11 @@
 import {
   getTheme,
   renderInspectorCard,
-  renderTable,
+  renderResourceBrowser,
   runExplorer,
-  withOutputFormat,
   type ActionContext,
   type ExplorerConfig,
-  type RenderTableOptions,
   type Row,
-  type TableColumn,
   type TwoPaneAction,
   type TwoPaneActionContext,
   type TwoPaneExplorerConfig,
@@ -86,14 +83,6 @@ export interface BrowseExplorerOptions extends BrowseOptions {
 
 type BrowseExplorerResult = void;
 
-const itemColumns: TableColumn[] = [
-  { name: "kind", title: "Kind", alignment: "left", maxLen: 7 },
-  { name: "name", title: "Name", alignment: "left", maxLen: 32 },
-  { name: "preview", title: "Preview", alignment: "left", maxLen: 48 },
-  { name: "scope", title: "Scope", alignment: "left", maxLen: 8 },
-  { name: "files", title: "Files", alignment: "right", maxLen: 5 }
-];
-
 export async function buildBrowseModel(
   ctx: AgentStashContext,
   options: BrowseOptions = {}
@@ -120,15 +109,16 @@ export async function buildBrowseModel(
 }
 
 export function renderBrowse(model: BrowseModel): string {
-  return [
-    "agent-stash browse",
-    "",
-    renderPane(model.left),
-    "",
-    renderPane(model.right),
-    "",
-    "tab switch   / search   space select   c copy   m move   u upload   d download   s sync   q quit"
-  ].join("\n");
+  return renderResourceBrowser({
+    theme: getTheme(),
+    title: "agent-stash browse",
+    subtitle: `${model.left.title} -> ${model.right.title}`,
+    groups: [
+      paneResourceGroup(model.left),
+      paneResourceGroup(model.right)
+    ],
+    footer: "tab switch   / search   space select   c copy   m move   u upload   d download   s sync   q quit"
+  });
 }
 
 export async function browse(ctx: AgentStashContext, options: BrowseOptions = {}): Promise<string> {
@@ -600,30 +590,26 @@ function namesByKind(items: AgentStashItem[]): { skills: string[]; hooks: string
   };
 }
 
-function renderPane(pane: BrowsePane): string {
-  const rows = pane.items.map((item) => ({
-    kind: item.kind,
-    name: item.name,
-    preview: itemPreview(pane, item) ?? "",
-    scope: item.scope,
-    files: String(item.files.length)
-  }));
-  const tableRows = rows.length > 0
-    ? rows
-    : [{ kind: "-", name: "No items", preview: "", scope: "-", files: "0" }];
-  const table = withOutputFormat("terminal", () =>
-    renderTable({
-      theme: getTheme(),
-      columns: itemColumns,
-      rows: tableRows
-    } satisfies RenderTableOptions)
-  );
-
-  return `${pane.title}\n${table}`;
-}
-
 function titleCase(value: string): string {
   return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
+}
+
+function paneResourceGroup(pane: BrowsePane) {
+  return {
+    title: pane.title,
+    description: pane.profile === undefined ? undefined : `Profile ${pane.profile}`,
+    emptyHint: `No ${pane.location} items`,
+    items: pane.items.map((item) => ({
+      label: item.name,
+      badge: pane.location,
+      meta: [item.kind, item.scope, fileCountLabel(item.files.length)],
+      preview: itemPreview(pane, item)
+    }))
+  };
+}
+
+function fileCountLabel(count: number): string {
+  return count === 1 ? "1 file" : `${count} files`;
 }
 
 function itemSubtitle(pane: BrowsePane, item: AgentStashItem): string {

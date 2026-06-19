@@ -241,7 +241,7 @@ export function createAgentStashProgram(dependencies: AgentStashCliDependencies 
       .option("--yes")
       .action(async (opts) => {
         const ctx = getContext(program.opts());
-        const result = await copyOrMoveItem(ctx, { ...opts, operation });
+        const result = await copyOrMoveItem(ctx, defaultCopyMoveProfile({ ...opts, operation }));
         output(`${operation} ${result.item.id}.\n`);
       });
   }
@@ -518,6 +518,13 @@ function applyDefaultProfile(options: { profile?: string; gist?: string }): void
   if (!options.profile && !options.gist) {
     options.profile = "default";
   }
+}
+
+function defaultCopyMoveProfile<T extends { from?: string; to?: string; profile?: string; yes?: boolean }>(options: T): T {
+  if (options.yes && options.to === "gist" && !options.profile) {
+    return { ...options, profile: "default" };
+  }
+  return options;
 }
 
 function assertTargetOptions<T extends { scope?: AgentStashScope; agent?: string }>(

@@ -684,6 +684,35 @@ describe("agent-stash CLI", () => {
     expect(JSON.parse(harness.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
   });
 
+  it("uses a default profile when --yes copy targets a Gist without a configured profile", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const harness = createHarness(files);
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "copy",
+      "--from",
+      "project",
+      "--to",
+      "gist",
+      "--agent",
+      "claude-code",
+      "--kind",
+      "skill",
+      "--name",
+      "code-review",
+      "--yes"
+    ]);
+
+    expect(harness.output.join("")).toBe("copy project:skill:claude-code:code-review.\n");
+    expect(harness.gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(harness.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
+    const record = await harness.gistClient.read("gist-1");
+    expect(record.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]?.content).toBe("# Code Review\n");
+  });
+
   it("prints sync deleted-local and deleted-remote counts", async () => {
     const files = {
       "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2),

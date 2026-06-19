@@ -16,7 +16,7 @@ import {
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { canonicalItemPath, createEmptyManifest, MANIFEST_FILENAME, stableItemId, validateBundlePath, validateManifestItem } from "../manifest.js";
-import { resolveProfileGist } from "../profile-store.js";
+import { recordProfilePush, resolveProfileGist } from "../profile-store.js";
 import { assertAgentStashKind, assertAgentStashLocationKind } from "../validation.js";
 import type { RemoteBundle } from "../bundle.js";
 import type { AgentStashContext, AgentStashItem, BundleFile, CopyMoveOptions, CopyMoveResult, LoadedItem } from "../types.js";
@@ -79,7 +79,7 @@ async function prepareCopyOrMoveItem(
   }
   if (options.to === "gist") {
     const resolved = await resolveProfileGist(ctx, options.profile);
-    if (!resolved.gistId) {
+    if (!resolved.gistId && !options.profile) {
       throw new Error("A profile with a Gist is required.");
     }
   }
@@ -264,13 +264,13 @@ async function writeGistItem(
   files: BundleFile[]
 ): Promise<void> {
   const resolved = await resolveProfileGist(ctx, options.profile);
-  if (!resolved.gistId) {
+  if (!resolved.gistId && !options.profile) {
     throw new Error("A profile with a Gist is required.");
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
-  const gist = await client.read(resolved.gistId);
   const now = ctx.now?.() ?? new Date();
-  const bundle = gist.files[MANIFEST_FILENAME]
+  const gist = resolved.gistId === undefined ? undefined : await client.read(resolved.gistId);
+  const bundle = gist?.files[MANIFEST_FILENAME]
     ? loadBundleFromGist(gist)
     : { manifest: createEmptyManifest(now, options.profile), files: new Map<string, string>() };
   verifyBundleHashes(bundle);
@@ -296,10 +296,14 @@ async function writeGistItem(
     bundle.manifest,
     [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }))
   );
-  await client.update(resolved.gistId, {
+  const input = {
     files: {
       ...writeInput,
       ...Object.fromEntries([...deletedFiles].map((filePath) => [gistFilenameForBundlePath(filePath), null]))
     }
-  });
+  };
+  const record = resolved.gistId === undefined
+    ? await client.createSecret({ description: "agent-stash portable agent config", ...input })
+    : await client.update(resolved.gistId, input);
+  await recordProfilePush(ctx, options.profile, record.id, record.htmlUrl, now.toISOString());
 }

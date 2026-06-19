@@ -245,6 +245,22 @@ describe("browse", () => {
     expect(() => volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
   });
 
+  it("rejects local-pane browse downloads without an active Gist target before remote reads", async () => {
+    const { ctx, gistClient } = createHarness();
+
+    await expect(runBrowseAction(ctx, {
+      action: "download",
+      fromPane: "left",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Download requires a Gist target.");
+
+    expect(gistClient.readCalls).toHaveLength(0);
+    expect(gistClient.updateCalls).toHaveLength(0);
+  });
+
   it("routes move actions from a local pane to a Gist pane", async () => {
     const { ctx, volume, gistClient } = createHarness();
 
@@ -313,6 +329,21 @@ describe("browse", () => {
 
     expect(result.synced?.uploaded.map((syncItem) => syncItem.name)).toEqual(["code-review"]);
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeUndefined();
+  });
+
+  it("rejects browse sync without an active Gist target before remote reads", async () => {
+    const { ctx, gistClient } = createHarness();
+
+    await expect(runBrowseAction(ctx, {
+      action: "sync",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Sync requires a Gist target.");
+
+    expect(gistClient.readCalls).toHaveLength(0);
+    expect(gistClient.updateCalls).toHaveLength(0);
   });
 
   it("builds an explorer config with pane rows and action keybindings", async () => {

@@ -266,9 +266,13 @@ export async function runBrowseAction(
       }
       return { downloaded: results };
     }
+    const profile = options.profile ?? target.profile;
+    if (!profile) {
+      throw new Error("Download requires a Gist target.");
+    }
     return {
       downloaded: await downloadBundle(ctx, {
-        profile: options.profile ?? target.profile,
+        profile,
         scope: source.scope ?? options.scope ?? "project",
         agent: source.agentId,
         skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,
@@ -278,9 +282,13 @@ export async function runBrowseAction(
     };
   }
 
+  const profile = options.profile ?? source.profile ?? target.profile;
+  if (!profile) {
+    throw new Error("Sync requires a Gist target.");
+  }
   return {
     synced: await syncBundle(ctx, {
-      profile: options.profile ?? source.profile ?? target.profile,
+      profile,
       scope: source.scope ?? options.scope ?? "project",
       agent: source.agentId,
       skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,

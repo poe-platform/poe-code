@@ -249,6 +249,32 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toBe("Uploaded 2 item(s) to gist-default.\n");
   });
 
+  it("does not prompt for hooks when interactive upload receives selected skills", async () => {
+    const prompts = createPromptHarness({
+      confirm: [true]
+    });
+    const { program, output, gistClient } = createHarness(createDummyAgentConfigFixture(), prompts);
+
+    await program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review"
+    ]);
+
+    expect(prompts.multiselectCalls).toEqual([]);
+    expect(prompts.confirmCalls[0]?.message).toBe('Upload 1 item(s) to profile "default"?');
+    expect(gistClient.updateCalls[0]?.input.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json")]).toBeUndefined();
+    expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
+  });
+
   it("prompts for download destination and confirmation before enabling writes", async () => {
     const setup = createHarness();
     await setup.program.parseAsync([

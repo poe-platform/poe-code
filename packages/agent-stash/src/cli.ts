@@ -458,20 +458,16 @@ async function resolveUploadSelections(
   prompts: AgentStashPromptAdapter
 ): Promise<void> {
   assertTargetOptions(options);
-  if (options.skills !== undefined && options.hooks !== undefined) {
+  if (options.skills !== undefined || options.hooks !== undefined) {
     return;
   }
   const inventory = await loadInventory(ctx, { scope: options.scope, agent: options.agent });
-  if (options.skills === undefined) {
-    options.skills = await promptItems(prompts, "Skills", inventory
-      .filter((item) => item.kind === "skill")
-      .map((item) => item.name));
-  }
-  if (options.hooks === undefined) {
-    options.hooks = await promptItems(prompts, "Hooks", inventory
-      .filter((item) => item.kind === "hook")
-      .map((item) => item.name));
-  }
+  options.skills = await promptItems(prompts, "Skills", inventory
+    .filter((item) => item.kind === "skill")
+    .map((item) => item.name));
+  options.hooks = await promptItems(prompts, "Hooks", inventory
+    .filter((item) => item.kind === "hook")
+    .map((item) => item.name));
 }
 
 async function promptItems(

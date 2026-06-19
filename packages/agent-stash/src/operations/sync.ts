@@ -17,6 +17,7 @@ import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound }
 import type {
   AgentStashContext,
   AgentStashItem,
+  AgentStashManifest,
   BundleFile,
   ConflictResolution,
   GistWriteInput,
@@ -62,6 +63,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
   const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
+  const selectedBaselineIds = selectedIdsForBaseline(base, localById, remoteById, options, agentId);
   const ids = new Set([...localById.keys(), ...remoteById.keys(), ...baseById.keys()]);
   const result: SyncResult = { uploaded: [], downloaded: [], deletedLocal: [], deletedRemote: [], unchanged: [], conflicts: [] };
   const nextRemoteItems = new Map(remote.manifest.items.map((item) => [item.id, item]));
@@ -170,13 +172,52 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     }
     await client.update(resolved.gistId, writeInput);
     if (usesProfileTarget) {
-      await writeBaselineManifest(ctx, options.profile!, manifest);
+      await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, manifest, selectedBaselineIds));
     }
   } else if (usesProfileTarget) {
-    await writeBaselineManifest(ctx, options.profile!, remote.manifest);
+    await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
   }
 
   return result;
+}
+
+function selectedIdsForBaseline(
+  base: AgentStashManifest | null,
+  localById: Map<string, LoadedItem>,
+  remoteById: Map<string, AgentStashItem>,
+  options: SyncOptions,
+  agentId: string
+): Set<string> {
+  const selectedIds = new Set([...localById.keys(), ...remoteById.keys()]);
+  if (options.skills !== undefined || options.hooks !== undefined) {
+    return selectedIds;
+  }
+  for (const item of base?.items ?? []) {
+    if (item.scope === options.scope && item.agentId === agentId) {
+      selectedIds.add(item.id);
+    }
+  }
+  return selectedIds;
+}
+
+function mergeBaselineManifest(
+  base: AgentStashManifest | null,
+  remoteManifest: AgentStashManifest,
+  selectedIds: Set<string>
+): AgentStashManifest {
+  const nextById = new Map((base?.items ?? []).map((item) => [item.id, item]));
+  for (const id of selectedIds) {
+    nextById.delete(id);
+  }
+  for (const item of remoteManifest.items) {
+    if (selectedIds.has(item.id)) {
+      nextById.set(item.id, item);
+    }
+  }
+  return {
+    ...remoteManifest,
+    items: [...nextById.values()].sort((left, right) => left.id.localeCompare(right.id))
+  };
 }
 
 async function loadSyncInventory(ctx: AgentStashContext, options: SyncOptions): Promise<LoadedItem[]> {

@@ -292,6 +292,55 @@ describe("sync", () => {
     expect(baseline.items.map((item) => item.name)).toEqual(["code-review"]);
   });
 
+  it("does not refresh unselected profile baselines during filtered sync", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    const upload = await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const originalCodeReview = upload.manifest.items.find((item) => item.name === "code-review")!;
+    const record = await gistClient.read("gist-default");
+    const remoteManifest = parseManifest(record.files["agent-stash.json"]!.content);
+    const remoteCodeReview = remoteManifest.items.find((item) => item.name === "code-review")!;
+    const remoteContent = "# Remote Change\n";
+    remoteCodeReview.files[0] = {
+      ...remoteCodeReview.files[0]!,
+      size: Buffer.byteLength(remoteContent, "utf8"),
+      sha256: sha256(remoteContent)
+    };
+    remoteCodeReview.contentHash = hashFiles(remoteCodeReview.files);
+    record.files["agent-stash.json"] = {
+      filename: "agent-stash.json",
+      content: serializeManifest(remoteManifest)
+    };
+    const remotePath = gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md");
+    record.files[remotePath] = {
+      filename: remotePath,
+      content: remoteContent
+    };
+    gistClient.seed(record);
+    const files = createDummyAgentConfigFixture();
+    files["/home/user/.agent-stash/cache/default.manifest.json"] = serializeManifest(upload.manifest);
+    const target = createContext(files, gistClient);
+
+    await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const baseline = parseManifest(target.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string);
+    expect(baseline.items.find((item) => item.name === "code-review")?.contentHash).toBe(originalCodeReview.contentHash);
+    expect(baseline.items.map((item) => item.name)).toEqual(["code-review", "project-only"]);
+  });
+
   it("fails on both-changed conflicts before writing local files", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

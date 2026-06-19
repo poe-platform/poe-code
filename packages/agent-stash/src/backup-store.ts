@@ -411,6 +411,10 @@ export async function removeBackup(ctx: AgentStashContext, backupId: string): Pr
   if (!(await pathExists(ctx.fs, target))) {
     throw new Error(`Backup not found: ${backupId}`);
   }
+  const stat = await ctx.fs.stat(target);
+  if (!isDirectory(stat)) {
+    throw new Error(`Backup not found: ${backupId}`);
+  }
   await removePath(ctx.fs, target);
 }
 

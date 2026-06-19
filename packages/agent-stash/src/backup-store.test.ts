@@ -525,6 +525,15 @@ describe("backup store", () => {
     expect(() => first.volume.statSync(`/home/user/.agent-stash/backups/${backupOne.id}`)).toThrow();
   });
 
+  it("refuses to remove non-directory files in the backup root", async () => {
+    const { ctx, volume } = createContext({
+      "/home/user/.agent-stash/backups/README.txt": "operator note\n"
+    });
+
+    await expect(removeBackup(ctx, "README.txt")).rejects.toThrow("Backup not found: README.txt");
+    expect(volume.readFileSync("/home/user/.agent-stash/backups/README.txt", "utf8")).toBe("operator note\n");
+  });
+
   it("rejects restore backup ids that would escape the backup directory", async () => {
     const { ctx, volume } = createContext({
       "/home/user/.agent-stash/config.json/backup.json": JSON.stringify({

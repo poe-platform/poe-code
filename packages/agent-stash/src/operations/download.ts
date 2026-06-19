@@ -10,7 +10,7 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { recordProfilePull, resolveProfileGist } from "../profile-store.js";
+import { recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, DownloadOptions, DownloadResult } from "../types.js";
@@ -78,6 +78,9 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   }
 
   await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
+  if (profileName) {
+    await writeBaselineManifest(ctx, profileName, bundle.manifest);
+  }
   await traceAgentStash(ctx, "download.finish", {
     gistId: gist.id,
     downloaded: traceItems(selected),

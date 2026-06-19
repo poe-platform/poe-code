@@ -339,15 +339,20 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
     return;
   }
   const existing = parseExistingHookConfig(targetPath, (await ctx.fs.readFile(targetPath, "utf8")) || "{}");
+  const originStore = await readHookOriginStore(ctx);
+  const targetOrigins = originStore.targets[targetPath] ?? {};
   if (existing.hooks) {
-    const position = findIndividualHookPosition(existing.hooks, item.name);
+    const position = findIndividualHookPosition(existing.hooks, item.name, targetOrigins);
     if (position) {
       removeIndividualHook(existing.hooks, position);
+      removeHookOrigin(targetOrigins, position);
     } else {
       delete existing.hooks[item.name];
+      delete targetOrigins[item.name];
     }
   }
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
+  await writeHookOriginStore(ctx, originStore);
 }
 
 function removeIndividualHook(
@@ -373,24 +378,51 @@ function removeIndividualHook(
 
 function findIndividualHookPosition(
   hooks: Record<string, unknown>,
-  name: string
+  name: string,
+  origins: Record<string, HookOriginGroup[]> = {}
 ): { event: string; groupIndex: number; hookIndex: number } | undefined {
   for (const [event, groups] of Object.entries(hooks)) {
     if (!Array.isArray(groups)) {
       continue;
     }
+    const groupOrigins = origins[event]?.length === groups.length ? origins[event] : [];
     for (const [groupIndex, group] of groups.entries()) {
       if (!isRecord(group) || !Array.isArray(group.hooks)) {
         continue;
       }
+      const groupOrigin = groupOrigins[groupIndex];
+      const originalGroupIndex = groupOrigin?.groupIndex ?? groupIndex;
+      const hookOrigins = groupOrigin?.hooks.length === group.hooks.length ? groupOrigin.hooks : [];
       for (const [hookIndex] of group.hooks.entries()) {
-        if (hookItemName(event, group.matcher, groupIndex, hookIndex) === name) {
+        const originalHookIndex = hookOrigins[hookIndex] ?? hookIndex;
+        if (hookItemName(event, group.matcher, originalGroupIndex, originalHookIndex) === name) {
           return { event, groupIndex, hookIndex };
         }
       }
     }
   }
   return undefined;
+}
+
+function removeHookOrigin(
+  origins: Record<string, HookOriginGroup[]>,
+  position: { event: string; groupIndex: number; hookIndex: number }
+): void {
+  const groups = origins[position.event];
+  if (!Array.isArray(groups)) {
+    return;
+  }
+  const group = groups[position.groupIndex];
+  if (!group) {
+    return;
+  }
+  group.hooks.splice(position.hookIndex, 1);
+  if (group.hooks.length === 0) {
+    groups.splice(position.groupIndex, 1);
+  }
+  if (groups.length === 0) {
+    delete origins[position.event];
+  }
 }
 
 function isNonNegativeInteger(value: unknown): value is number {

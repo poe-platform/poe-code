@@ -198,6 +198,21 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("writes a profile baseline after uploading through a profile", async () => {
+    const { ctx, volume } = createContext();
+
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    const baseline = parseManifest(volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string);
+    expect(baseline.items.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+  });
+
   it("uploads each selected hook command as a separate Gist item", async () => {
     const files = {
       ...createDummyAgentConfigFixture(),
@@ -256,6 +271,7 @@ describe("upload/download", () => {
     const manifest = parseManifest(record.files["agent-stash.json"]!.content);
     expect(config).toEqual({ profiles: { default: { gistId: "gist-default" } } });
     expect(manifest.profile).toBeUndefined();
+    expect(() => volume.statSync("/home/user/.agent-stash/cache/default.manifest.json")).toThrow();
   });
 
   it("does not treat empty selected upload lists as all local items", async () => {
@@ -521,6 +537,32 @@ describe("upload/download", () => {
     expect(settings.model).toBe("keep");
     expect(settings.hooks?.PreToolUse).toBeDefined();
     expect(result.backupId).toMatch(/^backup-/);
+  });
+
+  it("writes a profile baseline after downloading through a profile", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(files, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    const baseline = parseManifest(target.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string);
+    expect(baseline.items.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
   });
 
   it("downloads one hook command without replacing the rest of the event", async () => {

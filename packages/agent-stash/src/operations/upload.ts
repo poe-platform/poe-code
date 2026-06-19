@@ -3,7 +3,7 @@ import { createEmptyManifest, parseManifest } from "../manifest.js";
 import { hookEventFromFragmentContent } from "../hook-items.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
-import { recordProfilePush, resolveProfileGist } from "../profile-store.js";
+import { recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
@@ -51,6 +51,9 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
   }
   const uploadedManifest = parseManifest(manifestContent);
+  if (profileName) {
+    await writeBaselineManifest(ctx, profileName, uploadedManifest);
+  }
   await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
   return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
 }

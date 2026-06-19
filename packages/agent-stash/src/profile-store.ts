@@ -189,6 +189,10 @@ export async function renameProfile(ctx: AgentStashContext, oldName: string, new
     throw new Error(`Profile already exists: ${newName}`);
   }
   const oldBaseline = await readBaselineManifest(ctx, oldName);
+  const newBaselinePath = baselineManifestPath(ctx.homeDir, newName);
+  if (oldBaseline) {
+    await assertAgentStashFileSafe(ctx, newBaselinePath);
+  }
   config.profiles[newName] = profile;
   delete config.profiles[oldName];
   await saveConfig(ctx, config);

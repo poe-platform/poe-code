@@ -106,6 +106,27 @@ describe("profile store", () => {
     await expect(readBaselineManifest(context, "work")).resolves.toBeNull();
   });
 
+  it("rejects unsafe renamed baseline targets before renaming profile config", async () => {
+    const config = { profiles: { default: { gistId: "gist-1" } } };
+    const { ctx: context, volume } = createContext({
+      "/home/user/.agent-stash/config.json": JSON.stringify(config, null, 2),
+      "/home/user/.agent-stash/cache/default.manifest.json": JSON.stringify({
+        schemaVersion: 1,
+        createdAt: "2026-01-02T03:04:05.000Z",
+        updatedAt: "2026-01-02T03:04:05.000Z",
+        items: []
+      }, null, 2)
+    });
+    volume.mkdirSync("/home/user/.agent-stash/cache/work.manifest.json", { recursive: true });
+
+    await expect(renameProfile(context, "default", "work")).rejects.toThrow(
+      "Agent stash file path is a directory: /home/user/.agent-stash/cache/work.manifest.json"
+    );
+
+    expect(await loadConfig(context)).toEqual(config);
+    expect(volume.statSync("/home/user/.agent-stash/cache/work.manifest.json").isDirectory()).toBe(true);
+  });
+
   it("rejects stored profile Gist ids that are not safe URL path segments", async () => {
     const context = ctx({
       "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "../user" } } }, null, 2)

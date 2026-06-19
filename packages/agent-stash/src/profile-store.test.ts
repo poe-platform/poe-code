@@ -52,6 +52,20 @@ describe("profile store", () => {
     expect(await loadConfig(context)).toEqual({ profiles: {} });
   });
 
+  it("supports valid profile names that match object prototype properties", async () => {
+    const context = ctx();
+
+    await addProfile(context, "constructor", "gist-1");
+    await renameProfile(context, "constructor", "toString");
+    expect(await resolveProfileGist(context, "toString")).toEqual({
+      profileName: "toString",
+      gistId: "gist-1"
+    });
+    await removeProfile(context, "toString");
+
+    expect(await loadConfig(context)).toEqual({ profiles: {} });
+  });
+
   it("removes profiles when the filesystem has no rm and no baseline cache", async () => {
     const context = ctx();
     context.fs.rm = undefined;

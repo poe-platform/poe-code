@@ -155,7 +155,7 @@ export async function saveConfig(ctx: AgentStashContext, config: AgentStashConfi
 export async function addProfile(ctx: AgentStashContext, name: string, gistRef: string): Promise<AgentStashProfile> {
   assertValidProfileName(name);
   const config = await loadConfig(ctx);
-  if (config.profiles[name]) {
+  if (hasProfile(config, name)) {
     throw new Error(`Profile already exists: ${name}`);
   }
   const profile = parseGistRef(gistRef);
@@ -167,7 +167,7 @@ export async function addProfile(ctx: AgentStashContext, name: string, gistRef: 
 export async function removeProfile(ctx: AgentStashContext, name: string): Promise<void> {
   assertValidProfileName(name);
   const config = await loadConfig(ctx);
-  if (!config.profiles[name]) {
+  if (!hasProfile(config, name)) {
     throw new Error(`Profile not found: ${name}`);
   }
   const baselinePath = baselineManifestPath(ctx.homeDir, name);
@@ -181,11 +181,11 @@ export async function renameProfile(ctx: AgentStashContext, oldName: string, new
   assertValidProfileName(oldName);
   assertValidProfileName(newName);
   const config = await loadConfig(ctx);
-  const profile = config.profiles[oldName];
+  const profile = getProfile(config, oldName);
   if (!profile) {
     throw new Error(`Profile not found: ${oldName}`);
   }
-  if (config.profiles[newName]) {
+  if (hasProfile(config, newName)) {
     throw new Error(`Profile already exists: ${newName}`);
   }
   const oldBaseline = await readBaselineManifest(ctx, oldName);
@@ -217,7 +217,7 @@ export async function resolveProfileGist(ctx: AgentStashContext, profile?: strin
     return {};
   }
   const config = await loadConfig(ctx);
-  const record = config.profiles[profile];
+  const record = getProfile(config, profile);
   if (!record) {
     return { profileName: profile };
   }
@@ -239,7 +239,7 @@ export async function recordProfilePush(
   assertValidGistId(gistId);
   assertExactIsoTimestamp(timestamp, profile, "lastPushedAt");
   const config = await loadConfig(ctx);
-  const existing = config.profiles[profile];
+  const existing = getProfile(config, profile);
   config.profiles[profile] = {
     ...existing,
     gistId,
@@ -263,7 +263,7 @@ export async function recordProfilePull(
   assertValidGistId(gistId);
   assertExactIsoTimestamp(timestamp, profile, "lastPulledAt");
   const config = await loadConfig(ctx);
-  const existing = config.profiles[profile];
+  const existing = getProfile(config, profile);
   config.profiles[profile] = {
     ...existing,
     gistId,
@@ -271,6 +271,14 @@ export async function recordProfilePull(
     lastPulledAt: timestamp
   };
   await saveConfig(ctx, config);
+}
+
+function hasProfile(config: AgentStashConfig, profile: string): boolean {
+  return Object.hasOwn(config.profiles, profile);
+}
+
+function getProfile(config: AgentStashConfig, profile: string): AgentStashProfile | undefined {
+  return hasProfile(config, profile) ? config.profiles[profile] : undefined;
 }
 
 export async function readBaselineManifest(ctx: AgentStashContext, profile: string): Promise<AgentStashManifest | null> {

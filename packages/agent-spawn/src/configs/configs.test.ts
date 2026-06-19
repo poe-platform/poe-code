@@ -96,7 +96,14 @@ describe("configs/mcp support", () => {
 describe("configs/auto mode", () => {
   it("defines auto only for agents with a native ask-style approval mode", () => {
     expect(claudeCodeSpawnConfig.modes.auto).toEqual(["--permission-mode", "auto"]);
-    expect(codexSpawnConfig.modes.auto).toBeUndefined();
+    expect(codexSpawnConfig.modes.auto).toEqual([
+      "--sandbox",
+      "danger-full-access",
+      "-c",
+      'approval_policy="untrusted"',
+      "-c",
+      'approvals_reviewer="auto_review"'
+    ]);
     expect(cursorSpawnConfig.modes.auto).toBeUndefined();
     expect(openCodeSpawnConfig.modes.auto).toBeUndefined();
     expect(kimiSpawnConfig.modes.auto).toBeUndefined();
@@ -106,7 +113,7 @@ describe("configs/auto mode", () => {
   it("reports mode support from the spawn config", () => {
     expect(supportsSpawnMode("claude-code", "auto")).toBe(true);
     expect(supportsSpawnMode("claude", "auto")).toBe(true);
-    expect(supportsSpawnMode("codex", "auto")).toBe(false);
+    expect(supportsSpawnMode("codex", "auto")).toBe(true);
     expect(supportsSpawnMode("codex", "edit")).toBe(true);
     expect(supportsSpawnMode("goose", "auto")).toBe(false);
     // ACP and custom spawn paths accept every mode.

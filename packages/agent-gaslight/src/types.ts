@@ -59,7 +59,7 @@ export interface GaslightOptions {
   planPaths: string[];
   agent: string;
   model?: string;
-  mode?: Exclude<SpawnMode, "auto">;
+  mode?: SpawnMode;
   cwd?: string;
   homeDir?: string;
   configPath?: string;

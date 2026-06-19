@@ -28,7 +28,7 @@ describe("runGaslight", () => {
       "codex",
       expect.objectContaining({
         prompt: "Implement docs/plans/work.md",
-        mode: "edit",
+        mode: "auto",
         cwd: "/repo"
       })
     );

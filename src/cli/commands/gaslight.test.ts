@@ -140,6 +140,33 @@ describe("gaslight command", () => {
     );
   });
 
+  it("forwards an explicit gaslight mode to the runner", async () => {
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "gaslight",
+      "docs/plans/a.md",
+      "--agent",
+      "codex",
+      "--model",
+      "gpt-5",
+      "--mode",
+      "read"
+    ]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPaths: ["docs/plans/a.md"],
+        agent: "codex",
+        model: "gpt-5",
+        mode: "read"
+      })
+    );
+  });
+
   it("forwards multiple gaslight plans to the runner in order", async () => {
     const program = createProgram();
     registerGaslightCommand(program, createContainer());
@@ -345,7 +372,7 @@ describe("gaslight command", () => {
       expect.objectContaining({
         planPaths: ["docs/plans/a.md"],
         agent: "claude-code",
-        mode: "edit"
+        mode: "auto"
       })
     );
   });

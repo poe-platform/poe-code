@@ -13,8 +13,17 @@ export const codexSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeCodexMcpArgs,
   mcpArgsBeforeCommand: true,
   modes: {
-    // No auto: `codex exec` has no approval channel in headless runs.
     yolo: ["--dangerously-bypass-approvals-and-sandbox"],
+    // `codex exec` forces headless approvals to `never` unless auto_review is configured.
+    // danger-full-access is required for operations that write `.git`, such as committing.
+    auto: [
+      "--sandbox",
+      "danger-full-access",
+      "-c",
+      'approval_policy="untrusted"',
+      "-c",
+      'approvals_reviewer="auto_review"'
+    ],
     edit: ["-s", "workspace-write"],
     read: ["-s", "read-only"]
   },

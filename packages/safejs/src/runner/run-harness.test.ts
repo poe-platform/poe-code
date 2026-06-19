@@ -988,7 +988,7 @@ describe("runHarnessPair", () => {
         "---",
         "agents:",
         "  builder:",
-        "    agent: codex",
+        "    agent: cursor",
         "    mode: auto",
         "---",
         "",
@@ -1000,7 +1000,7 @@ describe("runHarnessPair", () => {
     const modulesFor = vi.fn(() => ({}));
 
     await expect(runHarnessPair(mdPath, { modulesFor })).rejects.toThrow(
-      'Harness agent "builder": agent "codex" does not support mode "auto".'
+      'Harness agent "builder": agent "cursor" does not support mode "auto".'
     );
     expect(modulesFor).not.toHaveBeenCalled();
   });

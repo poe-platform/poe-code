@@ -153,7 +153,7 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
       const result = await spawn(agent, {
         prompt,
         cwd,
-        mode: options.mode ?? "edit",
+        mode: options.mode ?? "auto",
         ...(model ? { model } : {}),
         ...(resumeThreadId ? { resumeThreadId } : {}),
         ...(options.signal ? { signal: options.signal } : {})

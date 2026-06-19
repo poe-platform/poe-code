@@ -232,9 +232,25 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("builds codex args for auto mode", () => {
+    const result = buildSpawnArgs("codex", { prompt: "hello", mode: "auto" });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "hello",
+      ...codexSpawnConfig.defaultArgs,
+      "--sandbox",
+      "danger-full-access",
+      "-c",
+      'approval_policy="untrusted"',
+      "-c",
+      'approvals_reviewer="auto_review"'
+    ]);
+  });
+
   it("rejects modes the agent does not support before launching", () => {
-    expect(() => buildSpawnArgs("codex", { prompt: "hello", mode: "auto" })).toThrow(
-      'Agent "codex" does not support mode "auto". Supported modes: yolo, edit, read.'
+    expect(() => buildSpawnArgs("cursor", { prompt: "hello", mode: "auto" })).toThrow(
+      'Agent "cursor" does not support mode "auto". Supported modes: yolo, edit, read.'
     );
   });
 

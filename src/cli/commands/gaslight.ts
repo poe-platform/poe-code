@@ -30,7 +30,7 @@ interface GaslightCommandOptions {
   agent?: string;
   config?: string;
   model?: string;
-  mode?: "read" | "edit" | "yolo";
+  mode?: "read" | "edit" | "yolo" | "auto";
   plans?: string[];
 }
 
@@ -301,7 +301,9 @@ export function registerGaslightCommand(program: Command, container: CliContaine
     .option("--model <model>", "Model to run")
     .option("--plans <paths...>", "Markdown plans to run sequentially")
     .addOption(
-      new Option("--mode <mode>", "Spawn mode").choices(["read", "edit", "yolo"]).default("edit")
+      new Option("--mode <mode>", "Spawn mode")
+        .choices(["read", "edit", "yolo", "auto"])
+        .default("auto")
     )
     .action(async function (this: Command, providedPlanPath: string | undefined) {
       const flags = resolveCommandFlags(program);
@@ -321,7 +323,7 @@ export function registerGaslightCommand(program: Command, container: CliContaine
         agent,
         ...(model ? { model } : {}),
         ...(options.config ? { configPath: options.config } : {}),
-        mode: options.mode ?? "edit",
+        mode: options.mode ?? "auto",
         cwd: container.env.cwd,
         homeDir: container.env.homeDir,
         fs: container.fs,

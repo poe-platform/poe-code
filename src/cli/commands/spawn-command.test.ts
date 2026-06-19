@@ -951,13 +951,14 @@ describe("spawn command", () => {
       options: expect.arrayContaining([
         expect.objectContaining({ value: "edit" }),
         expect.objectContaining({ value: "read" }),
+        expect.objectContaining({ value: "auto" }),
         expect.objectContaining({ value: "yolo" })
       ])
     });
     const offeredModes = (
       selectMock.mock.calls[0]![0] as { options: Array<{ value: string }> }
     ).options.map((option) => option.value);
-    expect(offeredModes).not.toContain("auto");
+    expect(offeredModes).toContain("auto");
     expect(sdkSpawn).toHaveBeenCalledWith("codex", expect.objectContaining({ mode: "read" }));
   });
 
@@ -1044,9 +1045,9 @@ describe("spawn command", () => {
     });
 
     await expect(
-      program.parseAsync(["node", "cli", "spawn", "--mode", "auto", "codex", "hello"])
+      program.parseAsync(["node", "cli", "spawn", "--mode", "auto", "cursor", "hello"])
     ).rejects.toThrow(
-      'Agent "codex" does not support --mode auto. Supported modes: yolo, edit, read.'
+      'Agent "cursor" does not support --mode auto. Supported modes: yolo, edit, read.'
     );
 
     expect(sdkSpawn).not.toHaveBeenCalled();

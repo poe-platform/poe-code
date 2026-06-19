@@ -59,6 +59,25 @@ describe("GitHubGistClient", () => {
     expect(record.files["z-last.txt"]?.content).toBe("last");
   });
 
+  it("preserves Gist files whose names collide with object prototype keys", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          id: "gist-1",
+          files: {
+            ["__proto__"]: { filename: "__proto__", content: "prototype" }
+          }
+        }),
+        { status: 200, headers: { "content-type": "application/json" } }
+      )
+    );
+
+    const record = await new GitHubGistClient("token").read("gist-1");
+
+    expect(Object.hasOwn(record.files, "__proto__")).toBe(true);
+    expect(record.files["__proto__"]?.content).toBe("prototype");
+  });
+
   it("rejects unsafe Gist ids before issuing requests", async () => {
     const client = new GitHubGistClient("token");
 

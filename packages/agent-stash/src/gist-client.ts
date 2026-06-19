@@ -85,7 +85,7 @@ function parseGistResponseFiles(files: unknown): GistRecord["files"] {
   if (!isRecord(files)) {
     throw new Error("Invalid Gist files response.");
   }
-  const result: GistRecord["files"] = {};
+  const result = Object.create(null) as GistRecord["files"];
   for (const [filename, file] of Object.entries(files)) {
     if (file === null) {
       continue;

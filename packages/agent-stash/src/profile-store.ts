@@ -207,13 +207,15 @@ export async function resolveProfileGist(ctx: AgentStashContext, profile?: strin
   gistId?: string;
   gistUrl?: string;
 }> {
+  if (profile) {
+    assertValidProfileName(profile);
+  }
   if (gist) {
     return parseGistRef(gist);
   }
   if (!profile) {
     return {};
   }
-  assertValidProfileName(profile);
   const config = await loadConfig(ctx);
   const record = config.profiles[profile];
   if (!record) {

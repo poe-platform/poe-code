@@ -76,6 +76,50 @@ describe("upload/download", () => {
     expect(gistClient.createCalls).toHaveLength(0);
   });
 
+  it("rejects invalid upload profiles with explicit Gists before writing a Gist", async () => {
+    const { ctx, gistClient } = createContext();
+
+    await expect(uploadBundle(ctx, {
+      profile: "../escape",
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    })).rejects.toThrow("Invalid profile name: ../escape");
+
+    expect(gistClient.readCalls).toHaveLength(0);
+    expect(gistClient.updateCalls).toHaveLength(0);
+    expect(gistClient.createCalls).toHaveLength(0);
+  });
+
+  it("rejects invalid download profiles with explicit Gists before reading a Gist", async () => {
+    const source = createContext();
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(files, source.gistClient);
+    source.gistClient.readCalls = [];
+
+    await expect(downloadBundle(target.ctx, {
+      profile: "../escape",
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Invalid profile name: ../escape");
+
+    expect(source.gistClient.readCalls).toHaveLength(0);
+    expect(() => target.volume.statSync("/repo/.claude/skills/code-review/SKILL.md")).toThrow();
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects missing download Gist targets before creating a default Gist client", async () => {
     const { ctx } = createContext();
     ctx.gistClient = undefined;

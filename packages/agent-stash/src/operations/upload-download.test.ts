@@ -214,6 +214,20 @@ describe("upload/download", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]?.content).not.toContain("code-review");
   });
 
+  it("does not create a new Gist for an empty upload selection", async () => {
+    const { ctx, gistClient } = createContext();
+
+    await expect(uploadBundle(ctx, {
+      scope: "project",
+      agent: "claude-code",
+      skills: [],
+      yes: true
+    })).rejects.toThrow("No upload items selected.");
+
+    expect(gistClient.createCalls).toHaveLength(0);
+    expect(gistClient.updateCalls).toHaveLength(0);
+  });
+
   it("updates selected items without dropping unrelated remote manifest entries", async () => {
     const { ctx, gistClient } = createContext();
     await uploadBundle(ctx, {

@@ -16,8 +16,11 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const items = await loadUploadInventory(ctx, options);
   assertSelectedItemsFound(items, options);
-  const client = ctx.gistClient ?? (await createDefaultGistClient());
   const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
+  if (!resolved.gistId && selectedItems.length === 0) {
+    throw new Error("No upload items selected.");
+  }
+  const client = ctx.gistClient ?? (await createDefaultGistClient());
   const writeInput = resolved.gistId
     ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), options.profile)
     : createCreateWriteInput(now, options.profile, selectedItems, items.flatMap((item) => item.bundleFiles));

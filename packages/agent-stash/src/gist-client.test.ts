@@ -95,6 +95,14 @@ describe("GitHubGistClient", () => {
     await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow("Invalid Gist files response.");
   });
 
+  it("rejects malformed JSON response bodies with a stable error", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response("{", { status: 200, headers: { "content-type": "application/json" } })
+    );
+
+    await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow("Invalid GitHub Gist response JSON.");
+  });
+
   it("rejects malformed Gist response file content", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(

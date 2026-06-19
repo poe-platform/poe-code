@@ -59,11 +59,16 @@ export class GitHubGistClient implements GistClient {
     if (!response.ok) {
       throw new Error(`GitHub Gist request failed with ${response.status}${await responseErrorSuffix(response)}`);
     }
-    const json = (await response.json()) as {
+    let json: {
       id: unknown;
       html_url?: unknown;
       files?: unknown;
     };
+    try {
+      json = (await response.json()) as typeof json;
+    } catch {
+      throw new Error("Invalid GitHub Gist response JSON.");
+    }
     assertValidGistId(json.id);
     return {
       id: json.id,

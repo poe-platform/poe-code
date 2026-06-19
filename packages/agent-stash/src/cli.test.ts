@@ -284,6 +284,33 @@ describe("agent-stash CLI", () => {
     }
   });
 
+  it("does not print an error when stdout closes early", async () => {
+    const { ctx } = createHarness();
+    const errors: string[] = [];
+    const previousExitCode = process.exitCode;
+    process.exitCode = 0;
+    try {
+      await runCli(["node", "agent-stash", "profile", "list"], {
+        createContext() {
+          return ctx;
+        },
+        writeOut() {
+          const error = new Error("write EPIPE") as NodeJS.ErrnoException;
+          error.code = "EPIPE";
+          throw error;
+        },
+        writeErr(message) {
+          errors.push(message);
+        },
+        isInteractive: () => false
+      });
+      expect(process.exitCode).toBe(0);
+      expect(errors).toEqual([]);
+    } finally {
+      process.exitCode = previousExitCode;
+    }
+  });
+
   it("prints backup list rows with target scope and agent", async () => {
     const { program, output, ctx } = createHarness({ "/repo/file.txt": "before" });
     await createBackup(ctx, {

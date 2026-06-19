@@ -49,6 +49,15 @@ export interface AgentStashCliDependencies {
 
 export interface AgentStashRunCliDependencies extends AgentStashCliDependencies {
   writeErr?: (message: string) => void;
+  stdout?: AgentStashCliWritable;
+  stderr?: AgentStashCliWritable;
+  exit?: (code: number) => never;
+}
+
+interface AgentStashCliWritable {
+  write(message: string): unknown;
+  on?(event: "error", listener: (error: unknown) => void): unknown;
+  off?(event: "error", listener: (error: unknown) => void): unknown;
 }
 
 interface PromptOption<Value> {
@@ -308,14 +317,53 @@ export async function runCli(
   argv = process.argv,
   dependencies: AgentStashRunCliDependencies = {}
 ): Promise<void> {
-  const { writeErr, ...programDependencies } = dependencies;
+  const {
+    writeErr,
+    stdout = process.stdout,
+    stderr = process.stderr,
+    exit = (code: number): never => process.exit(code),
+    ...programDependencies
+  } = dependencies;
+  const removeStdoutHandler = installBrokenPipeHandler(stdout, exit);
+  const removeStderrHandler = installBrokenPipeHandler(stderr, exit);
   try {
-    await createAgentStashProgram(programDependencies).parseAsync(argv);
+    await createAgentStashProgram({
+      ...programDependencies,
+      writeOut: programDependencies.writeOut ?? ((message) => {
+        stdout.write(message);
+      })
+    }).parseAsync(argv);
   } catch (error) {
+    if (isBrokenPipeError(error)) {
+      process.exitCode = 0;
+      return;
+    }
     const message = error instanceof Error ? error.message : String(error);
-    (writeErr ?? ((text: string) => process.stderr.write(text)))(`${message}\n`);
+    (writeErr ?? ((text: string) => {
+      stderr.write(text);
+    }))(`${message}\n`);
     process.exitCode = 1;
+  } finally {
+    removeStdoutHandler();
+    removeStderrHandler();
   }
+}
+
+function installBrokenPipeHandler(stream: AgentStashCliWritable, exit: (code: number) => never): () => void {
+  const handler = (error: unknown) => {
+    if (isBrokenPipeError(error)) {
+      exit(0);
+    }
+    throw error;
+  };
+  stream.on?.("error", handler);
+  return () => {
+    stream.off?.("error", handler);
+  };
+}
+
+function isBrokenPipeError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && (error as { code?: unknown }).code === "EPIPE";
 }
 
 function csvOption(value: unknown): string[] | undefined {

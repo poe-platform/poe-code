@@ -49,12 +49,12 @@ async function loadSkillInventory(
   }
 
   const matcher = await loadIgnoreMatcher(ctx, options.scope);
-  const requested = new Set(options.skills ?? []);
+  const requested = options.skills === undefined ? undefined : new Set(options.skills);
   const names = await ctx.fs.readdir(root);
   const items: LoadedItem[] = [];
 
   for (const name of [...names].sort()) {
-    if (requested.size > 0 && !requested.has(name)) {
+    if (requested !== undefined && !requested.has(name)) {
       continue;
     }
     const skillDir = path.join(root, name);
@@ -125,7 +125,7 @@ async function loadHookInventory(
     throw new Error(`Malformed hooks in ${hookPath}`);
   }
   const hooks = hookFile.hooks ?? {};
-  const requested = new Set(options.hooks ?? []);
+  const requested = options.hooks === undefined ? undefined : new Set(options.hooks);
   const matcher = await loadIgnoreMatcher(ctx, options.scope);
   const scopeRoot = options.scope === "project" ? ctx.cwd : ctx.homeDir;
   const relativeHookPath = path.relative(scopeRoot, hookPath).split(path.sep).join("/");
@@ -135,7 +135,7 @@ async function loadHookInventory(
   const items: LoadedItem[] = [];
 
   for (const [event, groups] of Object.entries(hooks).sort(([left], [right]) => left.localeCompare(right))) {
-    if (requested.size > 0 && !requested.has(event)) {
+    if (requested !== undefined && !requested.has(event)) {
       continue;
     }
     const bundlePath = `hooks/${options.scope}/${agentId}/${event}.json`;

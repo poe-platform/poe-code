@@ -198,6 +198,22 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("does not treat empty selected upload lists as all local items", async () => {
+    const { ctx, gistClient } = createContext();
+
+    const result = await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: [],
+      yes: true
+    });
+
+    expect(result.uploaded).toEqual([]);
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toBeUndefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]?.content).not.toContain("code-review");
+  });
+
   it("updates selected items without dropping unrelated remote manifest entries", async () => {
     const { ctx, gistClient } = createContext();
     await uploadBundle(ctx, {

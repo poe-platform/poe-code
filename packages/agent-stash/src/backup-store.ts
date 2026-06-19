@@ -263,8 +263,17 @@ export async function restoreBackup(ctx: AgentStashContext, options: RestoreBack
     throw new Error("Restoring a backup requires --yes.");
   }
   assertValidBackupId(options.backupId);
-  await assertBackupStoragePath(ctx, path.join(backupRoot(ctx.homeDir), options.backupId, BACKUP_METADATA));
-  const metadata = await readFileIfExists(ctx.fs, path.join(backupRoot(ctx.homeDir), options.backupId, BACKUP_METADATA));
+  const backupEntryRoot = path.join(backupRoot(ctx.homeDir), options.backupId);
+  await assertBackupEntryPath(ctx, backupEntryRoot);
+  if (!(await pathExists(ctx.fs, backupEntryRoot))) {
+    throw new Error(`Backup not found: ${options.backupId}`);
+  }
+  const entryStat = await ctx.fs.stat(backupEntryRoot);
+  if (!isDirectory(entryStat)) {
+    throw new Error(`Backup not found: ${options.backupId}`);
+  }
+  await assertBackupStoragePath(ctx, path.join(backupEntryRoot, BACKUP_METADATA));
+  const metadata = await readFileIfExists(ctx.fs, path.join(backupEntryRoot, BACKUP_METADATA));
   if (metadata === null) {
     throw new Error(`Backup not found: ${options.backupId}`);
   }

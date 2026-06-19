@@ -534,6 +534,19 @@ describe("backup store", () => {
     expect(volume.readFileSync("/home/user/.agent-stash/backups/README.txt", "utf8")).toBe("operator note\n");
   });
 
+  it("reports non-directory files in the backup root as missing restores", async () => {
+    const { ctx, volume } = createContext({
+      "/home/user/.agent-stash/backups/README.txt": "operator note\n",
+      "/repo/file.txt": "after\n"
+    });
+
+    await expect(restoreBackup(ctx, { backupId: "README.txt", yes: true })).rejects.toThrow(
+      "Backup not found: README.txt"
+    );
+    expect(volume.readFileSync("/home/user/.agent-stash/backups/README.txt", "utf8")).toBe("operator note\n");
+    expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("after\n");
+  });
+
   it("rejects restore backup ids that would escape the backup directory", async () => {
     const { ctx, volume } = createContext({
       "/home/user/.agent-stash/config.json/backup.json": JSON.stringify({

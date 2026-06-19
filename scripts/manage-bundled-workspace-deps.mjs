@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { cpSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -34,7 +34,7 @@ function findWorkspacePackageDir(packageName) {
     }
   }
 
-  throw new Error(`Unable to find workspace package ${JSON.stringify(packageName)}.`);
+  return undefined;
 }
 
 function dependencyTargetDir(packageDir, dependencyName) {
@@ -49,7 +49,7 @@ function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
 }
 
-export function sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames) {
+export function sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames) {
   const sanitized = structuredClone(manifest);
   const dependencyFields = ["dependencies", "optionalDependencies", "peerDependencies"];
 
@@ -59,7 +59,7 @@ export function sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames
       continue;
     }
 
-    for (const dependencyName of bundledWorkspaceNames) {
+    for (const dependencyName of bundledDependencyNames) {
       delete dependencies[dependencyName];
     }
 
@@ -75,7 +75,7 @@ export function sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames
 
     const kept = sanitized[field].filter(
       (dependencyName) =>
-        typeof dependencyName !== "string" || !bundledWorkspaceNames.has(dependencyName)
+        typeof dependencyName !== "string" || !bundledDependencyNames.has(dependencyName)
     );
 
     if (kept.length === 0) {
@@ -88,11 +88,11 @@ export function sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames
   return sanitized;
 }
 
-function sanitizeExtractedManifest(packageDir, targetDir, bundledWorkspaceNames) {
+function sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames) {
   const packageJsonPath = path.join(targetDir, "package.json");
   assertSafeBundledPath(packageDir, packageJsonPath);
   const manifest = readJson(packageJsonPath);
-  const sanitized = sanitizeBundledWorkspaceManifest(manifest, bundledWorkspaceNames);
+  const sanitized = sanitizeBundledWorkspaceManifest(manifest, bundledDependencyNames);
   writeFileSync(packageJsonPath, `${JSON.stringify(sanitized, null, 2)}\n`, "utf8");
 }
 
@@ -124,10 +124,14 @@ function prepare(packageDir, dependencyNames) {
   mkdirSync(tempDir, { recursive: true });
 
   const bundledDirs = [];
-  const bundledWorkspaceNames = new Set(dependencyNames);
+  const bundledDependencyNames = new Set(dependencyNames);
 
   for (const dependencyName of dependencyNames) {
     const workspaceDir = findWorkspacePackageDir(dependencyName);
+    if (workspaceDir === undefined) {
+      bundledDirs.push(copyInstalledDependency(packageDir, dependencyName));
+      continue;
+    }
     const packOutput = execFileSync(
       "npm",
       ["pack", workspaceDir, "--json", "--pack-destination", tempDir, "--dry-run=false"],
@@ -150,7 +154,7 @@ function prepare(packageDir, dependencyNames) {
     ensureRemoved(extractedDir);
     execFileSync("tar", ["-xzf", tarballPath, "-C", parentDir], { cwd: repoRoot });
     renameSync(extractedDir, targetDir);
-    sanitizeExtractedManifest(packageDir, targetDir, bundledWorkspaceNames);
+    sanitizeExtractedManifest(packageDir, targetDir, bundledDependencyNames);
     bundledDirs.push(targetDir);
   }
 
@@ -162,6 +166,21 @@ function prepare(packageDir, dependencyNames) {
     "utf8"
   );
   ensureRemoved(tempDir);
+}
+
+function copyInstalledDependency(packageDir, dependencyName) {
+  const sourceDir = dependencyTargetDir(repoRoot, dependencyName);
+  if (!existsSync(sourceDir)) {
+    throw new Error(`Bundled dependency is not installed: ${dependencyName}`);
+  }
+  const parentDir = dependencyParentDir(packageDir, dependencyName);
+  const targetDir = dependencyTargetDir(packageDir, dependencyName);
+  assertSafeBundledPath(packageDir, parentDir);
+  assertSafeBundledPath(packageDir, targetDir);
+  mkdirSync(parentDir, { recursive: true });
+  ensureRemoved(targetDir);
+  cpSync(sourceDir, targetDir, { recursive: true, dereference: true });
+  return targetDir;
 }
 
 function cleanup(packageDir) {

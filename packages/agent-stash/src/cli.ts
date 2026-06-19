@@ -323,7 +323,7 @@ async function resolveUploadOptions(
   await resolveTargetPrompts(options, runtime.prompts, "Source");
   await resolveUploadSelections(ctx, options, runtime.prompts);
   const selectedCount = (options.skills?.length ?? 0) + (options.hooks?.length ?? 0);
-  const target = options.profile ? `profile "${options.profile}"` : options.gist ? `Gist ${options.gist}` : "a new secret Gist";
+  const target = profileOrGistLabel(options, "a new secret Gist");
   await confirmOrThrow(runtime.prompts, `Upload ${selectedCount} item(s) to ${target}?`);
   options.yes = true;
   return options as UploadOptions;
@@ -356,7 +356,7 @@ async function resolveDownloadOptions(
 
   await resolveProfilePrompt(ctx, options, runtime.prompts, { allowEmptyUploadProfile: false });
   await resolveTargetPrompts(options, runtime.prompts, "Destination");
-  const source = options.profile ? `profile "${options.profile}"` : `Gist ${options.gist}`;
+  const source = profileOrGistLabel(options);
   await confirmOrThrow(runtime.prompts, `Download from ${source} into ${options.scope} ${options.agent}?`);
   options.yes = true;
   return options as DownloadOptions;
@@ -393,9 +393,19 @@ async function resolveSyncOptions(
   if (options.onConflict === "ask") {
     options.resolveConflict = conflict => promptConflictResolution(runtime.prompts, conflict);
   }
-  await confirmOrThrow(runtime.prompts, `Sync profile "${options.profile ?? options.gist}" with ${options.scope} ${options.agent}?`);
+  await confirmOrThrow(runtime.prompts, `Sync ${profileOrGistLabel(options)} with ${options.scope} ${options.agent}?`);
   options.yes = true;
   return options as SyncOptions;
+}
+
+function profileOrGistLabel(options: { profile?: string; gist?: string }, emptyLabel = "Gist"): string {
+  if (options.gist) {
+    return `Gist ${options.gist}`;
+  }
+  if (options.profile) {
+    return `profile "${options.profile}"`;
+  }
+  return emptyLabel;
 }
 
 async function resolveProfilePrompt(

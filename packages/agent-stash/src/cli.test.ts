@@ -298,6 +298,94 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
   });
 
+  it("describes explicit Gist overrides in interactive confirmations", async () => {
+    const uploadPrompts = createPromptHarness({ confirm: [true] });
+    const uploadHarness = createHarness(createDummyAgentConfigFixture(), uploadPrompts);
+    uploadHarness.gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+
+    await uploadHarness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--profile",
+      "default",
+      "--gist",
+      "gist-other",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review"
+    ]);
+
+    expect(uploadPrompts.confirmCalls[0]?.message).toBe("Upload 1 item(s) to Gist gist-other?");
+
+    const downloadSetup = createHarness();
+    downloadSetup.gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+    await uploadBundle(downloadSetup.ctx, {
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const downloadFiles = createDummyAgentConfigFixture();
+    delete downloadFiles["/repo/.claude/skills/code-review/SKILL.md"];
+    const downloadPrompts = createPromptHarness({ confirm: [true] });
+    const downloadHarness = createHarness(downloadFiles, downloadPrompts);
+    downloadHarness.gistClient.seed(await downloadSetup.gistClient.read("gist-other"));
+
+    await downloadHarness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "download",
+      "--profile",
+      "default",
+      "--gist",
+      "gist-other",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review"
+    ]);
+
+    expect(downloadPrompts.confirmCalls[0]?.message).toBe("Download from Gist gist-other into project claude-code?");
+
+    const syncPrompts = createPromptHarness({ confirm: [true] });
+    const syncHarness = createHarness(createDummyAgentConfigFixture(), syncPrompts);
+    syncHarness.gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+    await uploadBundle(syncHarness.ctx, {
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    await syncHarness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "sync",
+      "--profile",
+      "default",
+      "--gist",
+      "gist-other",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review",
+      "--on-conflict",
+      "fail"
+    ]);
+
+    expect(syncPrompts.confirmCalls[0]?.message).toBe("Sync Gist gist-other with project claude-code?");
+  });
+
   it("prompts for download destination and confirmation before enabling writes", async () => {
     const setup = createHarness();
     await setup.program.parseAsync([

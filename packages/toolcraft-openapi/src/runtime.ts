@@ -1,6 +1,21 @@
 import fs from "node:fs/promises";
-import { UserError, defineCommand, defineGroup, S, type AnySchema, type CommandNode, type HandlerEnv, type HandlerFs } from "toolcraft";
-import { defineClient, type DefineClientOptions, type DefinedClient, type OpenApiClientServices } from "./define-client.js";
+import {
+  UserError,
+  defineCommand,
+  defineGroup,
+  S,
+  type AnySchema,
+  type CommandNode,
+  type HandlerEnv,
+  type HandlerFs,
+  type RuntimeLogger
+} from "toolcraft";
+import {
+  defineClient,
+  type DefineClientOptions,
+  type DefinedClient,
+  type OpenApiClientServices
+} from "./define-client.js";
 import {
   collectSchemaOptionEntries,
   collectGeneratedCommands,
@@ -17,7 +32,11 @@ import {
   type HttpRequestOptions
 } from "./http.js";
 import { buildRequestShape, executePreflightBlocks } from "./interpreter.js";
-import { parseOpenApiDocument, readOpenApiSourceText, type OpenApiSourceFileSystem } from "./spec-source.js";
+import {
+  parseOpenApiDocument,
+  readOpenApiSourceText,
+  type OpenApiSourceFileSystem
+} from "./spec-source.js";
 
 export type OpenApiDocumentSource = OpenApiDocument | string | URL;
 
@@ -27,8 +46,11 @@ export interface CommandsFromSpecOptions {
   fs?: OpenApiSourceFileSystem;
 }
 
-export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> =
-  Omit<DefineClientOptions<TServices>, "commands"> & CommandsFromSpecOptions;
+export type DefineClientFromSpecOptions<TServices extends object = Record<string, never>> = Omit<
+  DefineClientOptions<TServices>,
+  "commands"
+> &
+  CommandsFromSpecOptions;
 
 export interface ResolveOpenApiBaseUrlOptions {
   document: OpenApiDocument;
@@ -44,6 +66,7 @@ type GeneratedCommandHandler = (ctx: {
   fetch?: typeof globalThis.fetch;
   fs?: HandlerFs;
   env?: HandlerEnv;
+  diagnostics: RuntimeLogger;
 }) => Promise<unknown>;
 const RUNTIME_COMMAND_SCOPE = ["cli", "mcp", "sdk"] as ["cli", "mcp", "sdk"];
 
@@ -150,7 +173,7 @@ function createRuntimeCommand(command: GeneratedCommand) {
 }
 
 function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandler {
-  return async ({ params, baseUrl, tokenSource, fetch, fs, env }) => {
+  return async ({ params, baseUrl, tokenSource, fetch, fs, env, diagnostics }) => {
     const resolvedValues = executePreflightBlocks(command.preflightBlocks, params);
     const requestShape = buildRequestShape(
       command.requestFields,
@@ -178,7 +201,7 @@ function createRuntimeHandler(command: GeneratedCommand): GeneratedCommandHandle
       multipartBinaryFields: command.multipartBinaryFields,
       tokenSource,
       fetch,
-      verbose: params.verbose as boolean | undefined,
+      diagnostics,
       ...preparedRequestShape
     });
 
@@ -215,7 +238,10 @@ function createRuntimeDefinition(
 }
 
 const RUNTIME_DEFINITION_BUILDERS = {
-  array: (definition: Extract<GeneratedParamDefinition, { kind: "array" }>, options?: Record<string, unknown>) => {
+  array: (
+    definition: Extract<GeneratedParamDefinition, { kind: "array" }>,
+    options?: Record<string, unknown>
+  ) => {
     const itemDefinition = createRuntimeDefinition(
       definition.itemDefinition,
       undefined,
@@ -224,14 +250,24 @@ const RUNTIME_DEFINITION_BUILDERS = {
     );
     return options === undefined ? S.Array(itemDefinition) : S.Array(itemDefinition, options);
   },
-  boolean: (_definition: Extract<GeneratedParamDefinition, { kind: "boolean" }>, options?: Record<string, unknown>) =>
-    options === undefined ? S.Boolean() : S.Boolean(options),
-  enum: (definition: Extract<GeneratedParamDefinition, { kind: "enum" }>, options?: Record<string, unknown>) =>
+  boolean: (
+    _definition: Extract<GeneratedParamDefinition, { kind: "boolean" }>,
+    options?: Record<string, unknown>
+  ) => (options === undefined ? S.Boolean() : S.Boolean(options)),
+  enum: (
+    definition: Extract<GeneratedParamDefinition, { kind: "enum" }>,
+    options?: Record<string, unknown>
+  ) =>
     options === undefined ? S.Enum(definition.enumValues) : S.Enum(definition.enumValues, options),
   json: (_definition: Extract<GeneratedParamDefinition, { kind: "json" }>) => S.Json(),
-  number: (_definition: Extract<GeneratedParamDefinition, { kind: "number" }>, options?: Record<string, unknown>) =>
-    options === undefined ? S.Number() : S.Number(options),
-  object: (definition: Extract<GeneratedParamDefinition, { kind: "object" }>, options?: Record<string, unknown>) => {
+  number: (
+    _definition: Extract<GeneratedParamDefinition, { kind: "number" }>,
+    options?: Record<string, unknown>
+  ) => (options === undefined ? S.Number() : S.Number(options)),
+  object: (
+    definition: Extract<GeneratedParamDefinition, { kind: "object" }>,
+    options?: Record<string, unknown>
+  ) => {
     const shape = Object.fromEntries(
       definition.properties.map((property) => {
         const propertySchema = createRuntimeDefinition(
@@ -245,8 +281,10 @@ const RUNTIME_DEFINITION_BUILDERS = {
     ) as Record<string, AnySchema>;
     return options === undefined ? S.Object(shape) : S.Object(shape, options);
   },
-  string: (_definition: Extract<GeneratedParamDefinition, { kind: "string" }>, options?: Record<string, unknown>) =>
-    options === undefined ? S.String() : S.String(options)
+  string: (
+    _definition: Extract<GeneratedParamDefinition, { kind: "string" }>,
+    options?: Record<string, unknown>
+  ) => (options === undefined ? S.String() : S.String(options))
 } as const satisfies {
   [K in GeneratedParamDefinition["kind"]]: (
     definition: Extract<GeneratedParamDefinition, { kind: K }>,

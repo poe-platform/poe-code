@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { defineCommand, defineGroup, S, UserError, type AuthProvider, type CommandNode } from "toolcraft";
+import {
+  defineCommand,
+  defineGroup,
+  S,
+  UserError,
+  type AuthProvider,
+  type CommandNode
+} from "toolcraft";
 import { runCLI } from "toolcraft/cli";
 import { createMCPServer } from "toolcraft/mcp";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
@@ -567,10 +574,17 @@ describe("commandsFromSpec", () => {
     ];
     const [group] = await commandsFromSpec(document);
     const command = group?.kind === "group" ? group.children[0] : undefined;
-    const fetch = vi.fn<typeof globalThis.fetch>(async () => new Response("{}", { headers: { "content-type": "application/json" } }));
+    const fetch = vi.fn<typeof globalThis.fetch>(
+      async () => new Response("{}", { headers: { "content-type": "application/json" } })
+    );
 
     if (command?.kind !== "command") throw new Error("Expected runtime command.");
-    await command.handler({ params: {}, baseUrl: "https://default.example.com", tokenSource: createAuthProvider([]), fetch });
+    await command.handler({
+      params: {},
+      baseUrl: "https://default.example.com",
+      tokenSource: createAuthProvider([]),
+      fetch
+    });
 
     expect(fetch).toHaveBeenCalledWith("https://alt.example.com/bots", expect.any(Object));
   });
@@ -1006,7 +1020,9 @@ describe("commandsFromSpec", () => {
       throw new Error("Expected one generated command.");
     }
 
-    const generatedFile = generatedFiles.find((file) => file.path === generatedCommandMeta.filePath);
+    const generatedFile = generatedFiles.find(
+      (file) => file.path === generatedCommandMeta.filePath
+    );
 
     if (generatedFile === undefined) {
       throw new Error("Expected a generated command file.");
@@ -1229,7 +1245,7 @@ describe("commandsFromSpec", () => {
     );
   });
 
-  it("emits the request line to stderr end-to-end when --verbose is passed", async () => {
+  it("accepts -v as a global verbose flag before generated command paths", async () => {
     const commands = await commandsFromSpec(createSetOfficialDocument());
     const fetch = vi.fn<typeof fetch>().mockResolvedValue(
       new Response(JSON.stringify({}), {
@@ -1239,12 +1255,94 @@ describe("commandsFromSpec", () => {
     );
     const stderrChunks: string[] = [];
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    const stderrWrite = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation((chunk: unknown) => {
-        stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
-        return true;
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation((chunk: unknown) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
+      return true;
+    });
+    vi.stubGlobal("fetch", fetch);
+
+    try {
+      const client = defineClient({
+        name: "internal-agent",
+        baseUrl: "https://example.com/api",
+        auth: createAuthProvider([]),
+        commands
       });
+
+      await runCLI(client.root, {
+        argv: [
+          "node",
+          client.name,
+          "-v",
+          "bots",
+          "set-official-bot",
+          "demo",
+          "--official",
+          "--output",
+          "json",
+          "--yes"
+        ],
+        controls: { output: true, verbose: true, yes: true },
+        rootUsageName: client.name,
+        services: client.services
+      });
+    } finally {
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+      vi.unstubAllGlobals();
+    }
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.com/api/bots/demo/actions/set-official",
+      expect.objectContaining({ method: "POST" })
+    );
+    expect(stderrChunks.join("")).toContain(
+      "→ POST https://example.com/api/bots/demo/actions/set-official"
+    );
+  });
+
+  it("parses an OpenAPI verbose query parameter as a business param", async () => {
+    const commands = await commandsFromSpec({
+      openapi: "3.0.3",
+      info: { title: "Internal Agent API", version: "1.0.0" },
+      paths: {
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "verbose",
+                in: "query",
+                schema: { type: "boolean" }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Listed.",
+                content: {
+                  "application/json": {
+                    schema: { type: "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+    const fetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+    const stderrChunks: string[] = [];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation((chunk: unknown) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
+      return true;
+    });
     const originalArgv = [...process.argv];
     const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
     const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
@@ -1265,9 +1363,7 @@ describe("commandsFromSpec", () => {
         "node",
         client.name,
         "bots",
-        "set-official-bot",
-        "demo",
-        "--official",
+        "list",
         "--verbose",
         "--output",
         "json",
@@ -1275,7 +1371,7 @@ describe("commandsFromSpec", () => {
       ];
 
       await runCLI(client.root, {
-        controls: { output: true, verbose: true, yes: true },
+        controls: { output: true, yes: true },
         rootUsageName: client.name,
         services: client.services
       });
@@ -1299,11 +1395,11 @@ describe("commandsFromSpec", () => {
 
     expect(fetch).toHaveBeenCalledTimes(1);
     expect(fetch).toHaveBeenCalledWith(
-      "https://example.com/api/bots/demo/actions/set-official",
-      expect.objectContaining({ method: "POST" })
+      "https://example.com/api/bots?verbose=true",
+      expect.objectContaining({ method: "GET" })
     );
     const stderrText = stderrChunks.join("");
-    expect(stderrText).toContain("POST https://example.com/api/bots/demo/actions/set-official");
+    expect(stderrText).not.toContain("GET https://example.com/api/bots?verbose=true");
   });
 
   it("does not emit a request line to stderr when --verbose is omitted", async () => {
@@ -1316,12 +1412,10 @@ describe("commandsFromSpec", () => {
     );
     const stderrChunks: string[] = [];
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    const stderrWrite = vi
-      .spyOn(process.stderr, "write")
-      .mockImplementation((chunk: unknown) => {
-        stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
-        return true;
-      });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation((chunk: unknown) => {
+      stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
+      return true;
+    });
     const originalArgv = [...process.argv];
     const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
     const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
@@ -1468,9 +1562,11 @@ describe("defineClientFromSpec", () => {
 
   it("builds a client from a URL", async () => {
     const specText = JSON.stringify(createSetOfficialDocument());
-    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
-      new Response(specText, { status: 200, headers: { "content-type": "application/json" } })
-    );
+    const fetch = vi
+      .fn<typeof globalThis.fetch>()
+      .mockResolvedValue(
+        new Response(specText, { status: 200, headers: { "content-type": "application/json" } })
+      );
 
     const client = await defineClientFromSpec("https://example.com/openapi.json", {
       name: "internal-agent",

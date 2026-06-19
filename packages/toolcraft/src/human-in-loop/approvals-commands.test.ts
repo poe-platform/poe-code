@@ -195,6 +195,7 @@ describe("approvals built-in commands", () => {
       env: {
         get: vi.fn()
       },
+      diagnostics: { level: "silent", emit: vi.fn() },
       progress: vi.fn()
     };
 
@@ -257,6 +258,7 @@ describe("approvals built-in commands", () => {
       env: {
         get: vi.fn()
       },
+      diagnostics: { level: "silent", emit: vi.fn() },
       progress: vi.fn()
     };
 
@@ -476,6 +478,7 @@ describe("approvals built-in commands", () => {
         env: {
           get: vi.fn()
         },
+        diagnostics: { level: "silent", emit: vi.fn() },
         progress: vi.fn()
       } as Parameters<typeof runCommand.handler>[0])
     ).rejects.toThrowError("humanInLoop.taskList required for async-mode commands");

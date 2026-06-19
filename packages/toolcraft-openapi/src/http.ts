@@ -8,7 +8,8 @@ import {
   type HandlerEnv,
   type HandlerFs,
   type HttpErrorRequest,
-  type HttpErrorResponse
+  type HttpErrorResponse,
+  type RuntimeLogger
 } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";
@@ -40,7 +41,7 @@ export interface HttpRequestOptions {
   multipartBinaryFields?: readonly string[];
   responseMode?: "json" | "text" | "binary";
   accept?: string;
-  verbose?: boolean;
+  diagnostics?: RuntimeLogger;
   signal?: AbortSignal;
   rawResponse?: boolean;
   retries?: {
@@ -56,7 +57,6 @@ export interface HttpRequestOptions {
     key?: string;
     createKey?: () => string;
   };
-  writeStderr?: (chunk: string) => void;
 }
 
 export interface BinaryHttpResponse {
@@ -109,13 +109,12 @@ export async function requestJson<TResult = unknown>(
     options.bodyMode,
     options.contentType
   );
-  const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
-
-  if (options.verbose) {
-    writeStderr(
-      formatTranscriptLines(formatVerboseRequestTranscript(method, url, headers, options.body))
-    );
-  }
+  emitHttpDebug(options, `${method} ${url}`, { method, url });
+  emitHttpTrace(
+    options,
+    "HTTP request transcript",
+    formatVerboseRequestTranscript(method, url, headers, options.body)
+  );
 
   const response = await fetchWithRetries(options, url, {
     method,
@@ -132,11 +131,11 @@ export async function requestJson<TResult = unknown>(
     const bytes = new Uint8Array(await response.arrayBuffer());
 
     if (bytes.byteLength === 0) {
-      if (options.verbose) {
-        writeStderr(
-          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders))
-        );
-      }
+      emitHttpTrace(
+        options,
+        "HTTP response transcript",
+        formatVerboseResponseTranscript(response, responseHeaders)
+      );
 
       return formatRawResponseResult(undefined, response, options.rawResponse) as TResult;
     }
@@ -148,11 +147,11 @@ export async function requestJson<TResult = unknown>(
       data: Buffer.from(bytes).toString("base64")
     };
 
-    if (options.verbose) {
-      writeStderr(
-        formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
-      );
-    }
+    emitHttpTrace(
+      options,
+      "HTTP response transcript",
+      formatVerboseResponseTranscript(response, responseHeaders, body)
+    );
 
     return formatRawResponseResult(body, response, options.rawResponse) as TResult;
   }
@@ -161,32 +160,26 @@ export async function requestJson<TResult = unknown>(
 
   if (response.ok) {
     if (text.length === 0) {
-      if (options.verbose) {
-        writeStderr(
-          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders))
-        );
-      }
+      emitHttpTrace(
+        options,
+        "HTTP response transcript",
+        formatVerboseResponseTranscript(response, responseHeaders)
+      );
 
       return formatRawResponseResult(undefined, response, options.rawResponse) as TResult;
     }
 
     if (options.responseMode === "text") {
-      if (options.verbose) {
-        writeStderr(
-          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
-        );
-      }
+      emitHttpTrace(
+        options,
+        "HTTP response transcript",
+        formatVerboseResponseTranscript(response, responseHeaders, text)
+      );
 
       return formatRawResponseResult(text, response, options.rawResponse) as TResult;
     }
 
     if (!isJsonContentType(contentType)) {
-      if (options.verbose) {
-        writeStderr(
-          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
-        );
-      }
-
       throw createHttpError({
         request,
         response: {
@@ -206,12 +199,6 @@ export async function requestJson<TResult = unknown>(
     try {
       body = JSON.parse(text) as TResult;
     } catch {
-      if (options.verbose) {
-        writeStderr(
-          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
-        );
-      }
-
       throw createHttpError({
         request,
         response: {
@@ -224,11 +211,11 @@ export async function requestJson<TResult = unknown>(
       });
     }
 
-    if (options.verbose) {
-      writeStderr(
-        formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
-      );
-    }
+    emitHttpTrace(
+      options,
+      "HTTP response transcript",
+      formatVerboseResponseTranscript(response, responseHeaders, body)
+    );
 
     return formatRawResponseResult(body, response, options.rawResponse) as TResult;
   }
@@ -238,12 +225,6 @@ export async function requestJson<TResult = unknown>(
   }
 
   const body = parseResponseBody(text, contentType);
-
-  if (options.verbose) {
-    writeStderr(
-      formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
-    );
-  }
 
   throw createHttpError({
     request,
@@ -281,6 +262,10 @@ async function fetchWithRetries(
         return response;
       }
 
+      emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${url}`, {
+        attempt: attempt + 1,
+        status: response.status
+      });
       await sleepBeforeRetry(response, retries, attempt);
       attempt += 1;
     } catch (error) {
@@ -289,10 +274,38 @@ async function fetchWithRetries(
         throw classified;
       }
 
+      emitHttpDebug(options, `Retrying ${String(init.method ?? "GET")} ${url}`, {
+        attempt: attempt + 1,
+        error: classified instanceof Error ? classified.message : String(classified)
+      });
       await sleepBeforeRetry(undefined, retries, attempt);
       attempt += 1;
     }
   }
+}
+
+function emitHttpDebug(
+  options: HttpRequestOptions,
+  message: string,
+  data?: Record<string, unknown>
+): void {
+  options.diagnostics?.emit({
+    level: "debug",
+    message,
+    category: "http",
+    data
+  });
+}
+
+function emitHttpTrace(options: HttpRequestOptions, message: string, lines: string[]): void {
+  options.diagnostics?.emit({
+    level: "trace",
+    message,
+    category: "http",
+    data: {
+      transcript: formatTranscriptLines(lines)
+    }
+  });
 }
 
 function shouldRetryStatus(status: number, retryOn: readonly number[] | undefined): boolean {

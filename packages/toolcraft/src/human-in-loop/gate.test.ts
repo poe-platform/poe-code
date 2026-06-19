@@ -42,6 +42,7 @@ function createContext(params: { name: string } = { name: "production" }): Handl
     env: {
       get: vi.fn()
     },
+    diagnostics: { level: "silent", emit: vi.fn() },
     progress: vi.fn()
   };
 }

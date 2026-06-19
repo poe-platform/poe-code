@@ -6,6 +6,7 @@ import { ensureApprovalList } from "./approval-tasks.js";
 import { resolveProvider } from "./gate.js";
 import type { ApprovalPayload } from "./approval-tasks.js";
 import type { HumanInLoopRuntimeOptions } from "./types.js";
+import { createRuntimeLogger } from "../runtime-logging.js";
 
 interface SerializedJsonResult {
   ok: true;
@@ -21,7 +22,7 @@ const MAX_AVAILABLE_COMMAND_PATHS = 20;
 export async function runApproval(
   approvalId: string,
   runtimeOptions: HumanInLoopRuntimeOptions,
-  root: CommandNode<any>,
+  root: CommandNode<any>
 ): Promise<void> {
   const { tasks } = await ensureApprovalList(runtimeOptions);
   const task = await tasks.get(approvalId);
@@ -36,8 +37,8 @@ export async function runApproval(
   try {
     await tasks.fire(approvalId, "claim", {
       metadataPatch: {
-        pid: process.pid,
-      },
+        pid: process.pid
+      }
     });
   } catch (error) {
     if (error instanceof InvalidTransitionError) {
@@ -50,24 +51,24 @@ export async function runApproval(
   try {
     const approvalResult = await provider.requestApproval({
       message: approval.message,
-      declineInputPrompt: approval.declineInputPrompt ?? undefined,
+      declineInputPrompt: approval.declineInputPrompt ?? undefined
     });
 
     if (approvalResult.outcome === "declined") {
       await tasks.fire(approvalId, "decline", {
         metadataPatch: {
           error: {
-            reason: approvalResult.reason,
-          },
-        },
+            reason: approvalResult.reason
+          }
+        }
       });
       return;
     }
   } catch (error) {
     await tasks.fire(approvalId, "fail", {
       metadataPatch: {
-        error: errorMetadataFromUnknown(error),
-      },
+        error: errorMetadataFromUnknown(error)
+      }
     });
     return;
   }
@@ -84,23 +85,23 @@ export async function runApproval(
       await tasks.fire(approvalId, "fail", {
         metadataPatch: {
           error: {
-            message: "result not JSON-serializable",
-          },
-        },
+            message: "result not JSON-serializable"
+          }
+        }
       });
       return;
     }
 
     await tasks.fire(approvalId, "succeed", {
       metadataPatch: {
-        result: serializedResult.value,
-      },
+        result: serializedResult.value
+      }
     });
   } catch (error) {
     await tasks.fire(approvalId, "fail", {
       metadataPatch: {
-        error: errorMetadataFromUnknown(error),
-      },
+        error: errorMetadataFromUnknown(error)
+      }
     });
   }
 }
@@ -139,7 +140,7 @@ function readApprovalPayload(task: Task): ApprovalPayload {
     enqueuedAt: typeof metadata.enqueuedAt === "string" ? metadata.enqueuedAt : undefined,
     pid: typeof metadata.pid === "number" || metadata.pid === null ? metadata.pid : undefined,
     result: metadata.result,
-    error: metadata.error,
+    error: metadata.error
   };
 }
 
@@ -233,15 +234,17 @@ function createHandlerContext(
   command: Command<any, any, any, any>,
   params: Record<string, unknown>
 ): HandlerContext<any, any, any> {
+  const diagnostics = createRuntimeLogger();
   return {
     params,
     secrets: resolveCommandSecrets(command),
     fetch: globalThis.fetch,
     fs: createFs(),
     env: createEnv(),
-    progress(): void {
-      return undefined;
-    },
+    diagnostics,
+    progress(message: string): void {
+      diagnostics.emit({ level: "info", message, category: "progress" });
+    }
   };
 }
 
@@ -265,7 +268,7 @@ function createFs(): HandlerFs {
     },
     lstat: async (path: string) => lstat(path),
     rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
-    unlink: async (path: string) => unlink(path),
+    unlink: async (path: string) => unlink(path)
   };
 }
 
@@ -273,7 +276,7 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
   return {
     get(key: string): string | undefined {
       return values[key];
-    },
+    }
   };
 }
 
@@ -283,17 +286,17 @@ function serializeJsonResult(value: unknown): SerializedJsonResult | Unserializa
 
     if (serialized === undefined) {
       return {
-        ok: false,
+        ok: false
       };
     }
 
     return {
       ok: true,
-      value: JSON.parse(serialized) as unknown,
+      value: JSON.parse(serialized) as unknown
     };
   } catch {
     return {
-      ok: false,
+      ok: false
     };
   }
 }
@@ -307,12 +310,12 @@ function errorMetadataFromUnknown(error: unknown): {
     return {
       name: error.name,
       message: error.message,
-      stack: error.stack,
+      stack: error.stack
     };
   }
 
   return {
     name: "Error",
-    message: String(error),
+    message: String(error)
   };
 }

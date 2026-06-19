@@ -18,9 +18,8 @@ export const botsSetOfficialCommand = defineApiCommand({
   params: S.Object({
     botHandle: S.String(),
     official: S.Boolean(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{botHandle}/actions/set-official",
@@ -28,7 +27,7 @@ export const botsSetOfficialCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -143,9 +142,8 @@ export const botsListCommand = defineApiCommand({
   params: S.Object({
     owner: S.Optional(S.String()),
     limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots",
@@ -153,7 +151,7 @@ export const botsListCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       query: {
         "owner": params.owner,
         "limit": params.limit,
@@ -267,9 +265,8 @@ export const botsSetImageComprehensionCommand = defineApiCommand({
   params: S.Object({
     botHandle: S.String(),
     mode: S.Enum(["off","auto","forced"] as const),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{botHandle}/actions/set-image-comprehension",
@@ -277,7 +274,7 @@ export const botsSetImageComprehensionCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -394,9 +391,8 @@ export const botsSetConversationStartersCommand = defineApiCommand({
     botHandle: S.String(),
     starters: S.Optional(S.Array(S.String(), { maxItems: 4, requiredScopes: ["mcp", "sdk"] })),
     startersJson: S.Optional(S.String({ description: "JSON-encoded value for starters.", scope: ["cli"] })),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     if (params.starters !== undefined && params.startersJson !== undefined) {
       throw new UserError("Options \\"--starters\\" and \\"--starters-json\\" are mutually exclusive.");
     }
@@ -424,7 +420,7 @@ export const botsSetConversationStartersCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -539,9 +535,8 @@ export const botsSetProfileCommand = defineApiCommand({
   params: S.Object({
     botHandle: S.String(),
     displayName: S.String(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{botHandle}/actions/set-profile",
@@ -549,7 +544,7 @@ export const botsSetProfileCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -665,9 +660,8 @@ export const botsSetStatusCodeCommand = defineApiCommand({
   params: S.Object({
     botHandle: S.String(),
     statusCode: S.Enum([1,2] as const, { jsonType: "integer" }),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{botHandle}/actions/set-status-code",
@@ -675,7 +669,7 @@ export const botsSetStatusCodeCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -790,9 +784,8 @@ export const botsSetDescriptionCommand = defineApiCommand({
   params: S.Object({
     botHandle: S.String(),
     description: S.Optional(S.String()),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{botHandle}/actions/set-description",
@@ -800,7 +793,7 @@ export const botsSetDescriptionCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "botHandle": params.botHandle,
       },
@@ -920,9 +913,8 @@ export const botsDeleteCommand = defineApiCommand({
   positional: ["handle"],
   params: S.Object({
     handle: S.String(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),
-  handler: async ({ params, baseUrl, tokenSource, fetch }) => {
+  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {
     return requestJson({
       baseUrl,
       path: "/bots/{handle}",
@@ -930,7 +922,7 @@ export const botsDeleteCommand = defineApiCommand({
       auth: "none",
       tokenSource,
       fetch,
-      verbose: params.verbose,
+      diagnostics,
       pathParams: {
         "handle": params.handle,
       },

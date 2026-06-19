@@ -38,6 +38,9 @@ import type {
   HandlerContext,
   HandlerEnv,
   HandlerFs,
+  DiagnosticLogEvent,
+  LogLevel,
+  RuntimeLoggerInput,
   SecretDeclarations,
   SecretDefinition,
   Scope
@@ -50,7 +53,6 @@ import {
   resolveCommandSecrets
 } from "./index.js";
 import { hasOwnErrorCode } from "./error-codes.js";
-import { summarizeHttpError } from "./api-error-summary.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
@@ -59,6 +61,8 @@ import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { redactHttpBody, redactHttpHeaderValue } from "./redaction.js";
+import { createRuntimeLogger, isLogLevel, LOG_LEVELS } from "./runtime-logging.js";
+import { summarizeHttpError } from "./api-error-summary.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { renderSourceSnippet } from "./source-snippet.js";
@@ -76,12 +80,13 @@ const RESERVED_SERVICE_NAMES = new Set([
   "fetch",
   "fs",
   "env",
+  "diagnostics",
   "progress",
   "runtimeOptions",
   "root"
 ]);
 const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
+  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
 const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
 
 type Casing = "kebab" | "snake";
@@ -94,6 +99,7 @@ interface ResolvedFlags {
   yes?: boolean;
   output?: OutputMode;
   debug?: DebugStackMode | boolean;
+  logLevel?: LogLevel;
   verbose?: boolean;
 }
 
@@ -230,6 +236,7 @@ interface JsonHelpOption {
 
 export interface CLIControls {
   debug?: boolean;
+  logLevel?: boolean;
   output?: boolean;
   verbose?: boolean;
   yes?: boolean;
@@ -243,6 +250,8 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   controls?: CLIControls;
   fetch?: typeof globalThis.fetch;
   humanInLoop?: HumanInLoopRuntimeOptions;
+  logLevel?: LogLevel;
+  logger?: RuntimeLoggerInput;
   projectRoot?: string;
   rootDisplayName?: string;
   rootUsageName?: string;
@@ -1102,6 +1111,7 @@ function createOption(
 
 interface ResolvedCLIControls {
   debug: boolean;
+  logLevel: boolean;
   output: boolean;
   verbose: boolean;
   yes: boolean;
@@ -1110,6 +1120,7 @@ interface ResolvedCLIControls {
 function resolveCLIControls(controls: CLIControls | undefined): ResolvedCLIControls {
   return {
     debug: controls?.debug === true,
+    logLevel: controls?.logLevel === true,
     output: controls?.output === true,
     verbose: controls?.verbose === true,
     yes: controls?.yes === true
@@ -1134,6 +1145,9 @@ function getGlobalLongOptionFlags(
   }
   if (controls.debug) {
     flags.push("--debug");
+  }
+  if (controls.logLevel) {
+    flags.push("--log-level");
   }
   if (controls.verbose) {
     flags.push("--verbose");
@@ -1196,6 +1210,10 @@ function createCommanderOption(
 
 function hasHelpFlag(argv: string[]): boolean {
   return argv.some((token) => HELP_FLAGS.has(token));
+}
+
+function normalizeVerboseAlias(argv: string[]): string[] {
+  return argv.map((token) => (token === "-v" ? "--verbose" : token));
 }
 
 function resolveHelpOutput(argv: string[]): OutputMode {
@@ -1322,8 +1340,7 @@ function formatUnknownHelpCommandMessage<TServices extends object>(
     getHelpChildren(group, scope).map((child) => child.name)
   );
   const commandPath = breadcrumb.slice(1).join(" ");
-  const helpTarget =
-    commandPath.length === 0 ? rootUsageName : `${rootUsageName} ${commandPath}`;
+  const helpTarget = commandPath.length === 0 ? rootUsageName : `${rootUsageName} ${commandPath}`;
 
   return `${formatSuggestionMessage(`Unknown command "${input}".`, suggestions)}\nRun ${helpTarget} --help for usage.`;
 }
@@ -1818,12 +1835,19 @@ function formatGlobalOptionsLine(ctx: {
   if (ctx.controls.output) {
     flags.push("--output <format>");
   }
+  if (ctx.controls.verbose) {
+    flags.push("-v, --verbose");
+  }
 
   if (ctx.showVersion) {
     flags.push("--version");
   }
 
   return flags.length > 0 ? `${text.section("Options:")} ${flags.join("  ")}` : "";
+}
+
+function formatLeafGlobalOptionsLine(ctx: { controls: ResolvedCLIControls }): string {
+  return ctx.controls.verbose ? `${text.section("Options:")} -v, --verbose` : "";
 }
 
 function collectSchemaGlobalFieldRows<TServices extends object>(
@@ -2001,6 +2025,11 @@ function renderLeafHelp<TServices extends object>(
 
   if (optionRows.length > 0) {
     sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(optionRows)}`);
+  }
+
+  const builtInLine = formatLeafGlobalOptionsLine(globalOptions);
+  if (builtInLine.length > 0) {
+    sections.push(builtInLine);
   }
 
   const secretRows = formatSecretRows(command.secrets);
@@ -2374,9 +2403,11 @@ function addCommanderChild(
       parent,
       "_toolcraftHiddenDefaultNames",
       getToolcraftHiddenDefaultNames(parent).concat([
-        ...new Set([Reflect.get(child, "_toolcraftOriginalName"), ...child.aliases()].filter(
-          (name): name is string => typeof name === "string" && name.length > 0
-        ))
+        ...new Set(
+          [Reflect.get(child, "_toolcraftOriginalName"), ...child.aliases()].filter(
+            (name): name is string => typeof name === "string" && name.length > 0
+          )
+        )
       ])
     );
     parent.addCommand(child, { hidden: true, isDefault: true });
@@ -2396,7 +2427,9 @@ function isToolcraftHiddenCommander(command: CommanderCommand): boolean {
 
 function getToolcraftHiddenDefaultNames(command: CommanderCommand): string[] {
   const value = Reflect.get(command, "_toolcraftHiddenDefaultNames");
-  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function getToolcraftReservedChildNames(command: CommanderCommand): string[] {
@@ -2453,6 +2486,13 @@ function addGlobalOptions(
         .argParser(parseDebugStackMode)
     );
   }
+  if (controls.logLevel) {
+    options.push(
+      new Option("--log-level <level>", "Set runtime diagnostic log level.").argParser(
+        parseLogLevel
+      )
+    );
+  }
   if (controls.verbose) {
     options.push(new Option("--verbose", "Print detailed runtime diagnostics."));
   }
@@ -2475,6 +2515,33 @@ function parseDebugStackMode(value: string | boolean): DebugStackMode {
   throw new InvalidArgumentError(
     formatInvalidEnumMessage("--debug", String(value), ["raw"], { candidates: ["raw"] })
   );
+}
+
+function parseLogLevel(value: string): LogLevel {
+  if (isLogLevel(value)) {
+    return value;
+  }
+
+  throw new InvalidArgumentError(
+    formatInvalidEnumMessage("--log-level", value, [...LOG_LEVELS], {
+      candidates: ["warn", "debug", "trace"],
+      threshold: 3
+    })
+  );
+}
+
+function writeCLIDiagnosticEvent(event: DiagnosticLogEvent): void {
+  const transcript = event.data?.transcript;
+  if (typeof transcript === "string") {
+    process.stderr.write(transcript);
+    return;
+  }
+
+  if (event.category === "progress" || event.level === "trace") {
+    return;
+  }
+
+  process.stderr.write(`${event.message}\n`);
 }
 
 function setNestedValue(target: Record<string, unknown>, path: string[], value: unknown): void {
@@ -4332,6 +4399,11 @@ async function executeCommand<TServices extends object>(
   requirementOptions: CommandRequirementOptions,
   runtimeFetch: typeof globalThis.fetch,
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
+  diagnosticsOptions: {
+    logLevel?: LogLevel;
+    logger?: RuntimeLoggerInput;
+    verboseControlEnabled: boolean;
+  },
   onErrorReportContext?: (context: {
     command: Command<TServices, any, any, any>;
     commandPath: string;
@@ -4349,6 +4421,14 @@ async function executeCommand<TServices extends object>(
   const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
   const resolvedFlags = optionValues as ResolvedFlags;
   const output = resolveOutput(resolvedFlags);
+  const diagnostics = createRuntimeLogger({
+    level:
+      resolvedFlags.logLevel ??
+      (diagnosticsOptions.verboseControlEnabled && resolvedFlags.verbose
+        ? "trace"
+        : diagnosticsOptions.logLevel),
+    logger: diagnosticsOptions.logger ?? writeCLIDiagnosticEvent
+  });
   const shouldPrompt = !resolvedFlags.yes && Boolean(process.stdin.isTTY);
   const runtime = await resolveFixtureRuntime(
     state.command,
@@ -4362,7 +4442,9 @@ async function executeCommand<TServices extends object>(
     fetch: runtime.fetch,
     fs: runtime.fs,
     env: runtime.env,
+    diagnostics,
     progress(message: string): void {
+      diagnostics.emit({ level: "info", message, category: "progress" });
       logger.info(message);
     }
   };
@@ -4803,16 +4885,16 @@ async function handleRunError(
               debugStackMode: options.debugStackMode
             }
           : options.userErrorPattern === "usage"
-          ? {
-              kind: "usage",
-              message: error.message,
-              rootUsageName: options.rootUsageName,
-              commandPath: options.commandPath
-            }
-          : {
-              kind: "runtime-user",
-              message: error.message
-            }
+            ? {
+                kind: "usage",
+                message: error.message,
+                rootUsageName: options.rootUsageName,
+                commandPath: options.commandPath
+              }
+            : {
+                kind: "runtime-user",
+                message: error.message
+              }
       );
       return;
     }
@@ -5186,7 +5268,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   enableSourceMaps();
-  const argv = [...(options.argv ?? process.argv)];
+  const controls = resolveCLIControls(options.controls);
+  const argv = controls.verbose
+    ? normalizeVerboseAlias([...(options.argv ?? process.argv)])
+    : [...(options.argv ?? process.argv)];
   const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
   let lastActionCommand: CommanderCommand | undefined;
   let resolvedCommandPath = "";
@@ -5211,7 +5296,6 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const runtimeOptions = options.humanInLoop ?? {};
     const runtimeFetch = options.fetch ?? globalThis.fetch;
     version = options.version ?? findEntrypointPackageMetadata(argv[1])?.version;
-    const controls = resolveCLIControls(options.controls);
     const servicesWithBuiltIns = {
       ...services,
       runtimeOptions,
@@ -5224,6 +5308,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     validateServices(services as Record<string, unknown>);
 
     if (hasHelpFlag(argv)) {
+      userErrorPattern = "usage";
+      await renderGeneratedHelp(root, argv, { ...options, version });
+      return;
+    }
+
+    if (argv.length <= 2 && root.default?.scope.includes("cli") !== true) {
       userErrorPattern = "usage";
       await renderGeneratedHelp(root, argv, { ...options, version });
       return;
@@ -5262,6 +5352,11 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
         requirementOptions,
         runtimeFetch,
         runtimeOptions,
+        {
+          logLevel: options.logLevel,
+          logger: options.logger,
+          verboseControlEnabled: controls.verbose
+        },
         (context) => {
           errorReportContext = context;
         }
@@ -5342,9 +5437,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
           ? resolveDebugStackMode(resolvedFlags.debug)
           : getDebugStackModeFromArgv(argv),
       output:
-        resolvedFlags !== undefined
-          ? resolveOutput(resolvedFlags)
-          : resolveOutputFromArgv(argv),
+        resolvedFlags !== undefined ? resolveOutput(resolvedFlags) : resolveOutputFromArgv(argv),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : argv.includes("--verbose"),
       program,
       argv,

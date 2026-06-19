@@ -9,7 +9,7 @@ vi.mock("./human-in-loop/index.js", async (importOriginal) => {
 
   return {
     ...actual,
-    invokeWithHumanInLoop: invokeWithHumanInLoopMock,
+    invokeWithHumanInLoop: invokeWithHumanInLoopMock
   };
 });
 
@@ -17,13 +17,15 @@ const { createMCPServer } = await import("./mcp.js");
 const { McpClient, createSdkTestPair } = await import("tiny-mcp-client");
 
 async function createClient(server: ReturnType<typeof createMCPServer>) {
-  return createSdkTestPair(server, () =>
-    new McpClient({
-      clientInfo: {
-        name: "test-client",
-        version: "1.0.0",
-      },
-    })
+  return createSdkTestPair(
+    server,
+    () =>
+      new McpClient({
+        clientInfo: {
+          name: "test-client",
+          version: "1.0.0"
+        }
+      })
   );
 }
 
@@ -42,7 +44,7 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
       expect(runtimeOptions).toEqual({});
 
       return {
-        deployed: context.params.target,
+        deployed: context.params.target
       };
     });
 
@@ -54,16 +56,16 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
             name: "deploy",
             scope: ["mcp"],
             params: S.Object({
-              target: S.String(),
+              target: S.String()
             }),
-            handler: async () => "should not run",
-          }),
-        ],
+            handler: async () => "should not run"
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
-        omitRootToolNamePrefix: true,
+        omitRootToolNamePrefix: true
       }
     );
     const { client, cleanup } = await createClient(server);
@@ -73,18 +75,18 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
         client.callTool({
           name: "deploy",
           arguments: {
-            target: "prod",
-          },
+            target: "prod"
+          }
         })
       ).resolves.toEqual({
         content: [
           {
             type: "text",
             text: JSON.stringify({
-              deployed: "prod",
-            }),
-          },
-        ],
+              deployed: "prod"
+            })
+          }
+        ]
       });
     } finally {
       await cleanup();
@@ -102,13 +104,16 @@ describe("createMCPServer fetch runtime options plumbing", () => {
   });
 
   it("passes options.fetch to command contexts", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
-    const injectedFetch = vi.fn<typeof globalThis.fetch>(async () =>
-      new Response(JSON.stringify({ ok: true }), {
-        headers: {
-          "content-type": "application/json",
-        },
-      })
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
+    const injectedFetch = vi.fn<typeof globalThis.fetch>(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          headers: {
+            "content-type": "application/json"
+          }
+        })
     );
 
     const server = createMCPServer(
@@ -123,15 +128,15 @@ describe("createMCPServer fetch runtime options plumbing", () => {
               expect(fetch).toBe(injectedFetch);
               const response = await fetch("https://api.example.com/items");
               return response.json();
-            },
-          }),
-        ],
+            }
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
-        fetch: injectedFetch,
+        fetch: injectedFetch
       }
     );
     const { client, cleanup } = await createClient(server);
@@ -140,22 +145,98 @@ describe("createMCPServer fetch runtime options plumbing", () => {
       await expect(
         client.callTool({
           name: "load",
-          arguments: {},
+          arguments: {}
         })
       ).resolves.toEqual({
         content: [
           {
             type: "text",
             text: JSON.stringify({
-              ok: true,
-            }),
-          },
-        ],
+              ok: true
+            })
+          }
+        ]
       });
       expect(injectedFetch).toHaveBeenCalledWith("https://api.example.com/items");
     } finally {
       await cleanup();
     }
+  });
+});
+
+describe("createMCPServer diagnostic runtime options plumbing", () => {
+  beforeEach(() => {
+    invokeWithHumanInLoopMock.mockReset();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("passes log level and logger through command contexts without adding MCP arguments", async () => {
+    const events: Array<{ level: string; message: string }> = [];
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
+
+    const server = createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "deploy",
+            scope: ["mcp"],
+            params: S.Object({}),
+            handler: async ({ diagnostics }) => {
+              expect(diagnostics.level).toBe("info");
+              diagnostics.emit({ level: "debug", message: "debug suppressed" });
+              diagnostics.emit({ level: "info", message: "deploying", category: "progress" });
+              return "deployed";
+            }
+          })
+        ]
+      }),
+      {
+        name: "toolcraft-test",
+        version: "1.0.0",
+        omitRootToolNamePrefix: true,
+        logLevel: "info",
+        logger: (event) => {
+          events.push({ level: event.level, message: event.message });
+        }
+      }
+    );
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      await expect(client.listTools()).resolves.toMatchObject({
+        tools: [
+          {
+            name: "deploy",
+            inputSchema: {
+              properties: {}
+            }
+          }
+        ]
+      });
+      await expect(
+        client.callTool({
+          name: "deploy",
+          arguments: {}
+        })
+      ).resolves.toEqual({
+        content: [
+          {
+            type: "text",
+            text: "deployed"
+          }
+        ]
+      });
+    } finally {
+      await cleanup();
+    }
+
+    expect(events).toEqual([{ level: "info", message: "deploying" }]);
   });
 });
 
@@ -169,7 +250,9 @@ describe("createMCPServer typed result schemas", () => {
   });
 
   it("advertises result schemas and returns structured content with matching fallback text", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
 
     const server = createMCPServer(
       defineGroup({
@@ -179,29 +262,31 @@ describe("createMCPServer typed result schemas", () => {
             name: "inspect",
             scope: ["mcp"],
             params: S.Object({
-              resourceId: S.String(),
+              resourceId: S.String()
             }),
             result: S.Object({
               resourceId: S.String(),
               displayName: S.String(),
-              checks: S.Array(S.Object({
-                checkName: S.String(),
-                passed: S.Boolean(),
-              })),
+              checks: S.Array(
+                S.Object({
+                  checkName: S.String(),
+                  passed: S.Boolean()
+                })
+              )
             }),
             handler: async ({ params }) => ({
               resourceId: params.resourceId,
               displayName: "Fixture",
-              checks: [{ checkName: "exists", passed: true }],
-            }),
-          }),
-        ],
+              checks: [{ checkName: "exists", passed: true }]
+            })
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
-        casing: "snake",
+        casing: "snake"
       }
     );
     const { client, cleanup } = await createClient(server);
@@ -222,22 +307,22 @@ describe("createMCPServer typed result schemas", () => {
                     type: "object",
                     properties: {
                       check_name: { type: "string" },
-                      passed: { type: "boolean" },
+                      passed: { type: "boolean" }
                     },
-                    required: ["check_name", "passed"],
-                  },
-                },
+                    required: ["check_name", "passed"]
+                  }
+                }
               },
-              required: ["resource_id", "display_name", "checks"],
-            },
-          },
-        ],
+              required: ["resource_id", "display_name", "checks"]
+            }
+          }
+        ]
       });
 
-      const result = await client.callTool({
+      const result = (await client.callTool({
         name: "inspect",
-        arguments: { resource_id: "res-1" },
-      }) as {
+        arguments: { resource_id: "res-1" }
+      })) as {
         content: Array<{ type: string; text: string }>;
         structuredContent?: Record<string, unknown>;
       };
@@ -245,7 +330,7 @@ describe("createMCPServer typed result schemas", () => {
       expect(result.structuredContent).toEqual({
         resource_id: "res-1",
         display_name: "Fixture",
-        checks: [{ check_name: "exists", passed: true }],
+        checks: [{ check_name: "exists", passed: true }]
       });
       expect(JSON.parse(result.content[0]!.text)).toEqual(result.structuredContent);
     } finally {
@@ -254,7 +339,9 @@ describe("createMCPServer typed result schemas", () => {
   });
 
   it("appends command examples to MCP tool descriptions", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
 
     const server = createMCPServer(
       defineGroup({
@@ -265,22 +352,22 @@ describe("createMCPServer typed result schemas", () => {
             description: "Send a message.",
             scope: ["mcp"],
             params: S.Object({
-              body: S.String(),
+              body: S.String()
             }),
             examples: [
               {
                 title: "Send a greeting",
-                params: { body: "hello" },
-              },
+                params: { body: "hello" }
+              }
             ],
-            handler: async () => ({ ok: true }),
-          }),
-        ],
+            handler: async () => ({ ok: true })
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
-        omitRootToolNamePrefix: true,
+        omitRootToolNamePrefix: true
       }
     );
     const { client, cleanup } = await createClient(server);
@@ -290,9 +377,9 @@ describe("createMCPServer typed result schemas", () => {
         tools: [
           {
             name: "send",
-            description: expect.stringContaining("Examples:\n- Send a greeting: send body=hello"),
-          },
-        ],
+            description: expect.stringContaining("Examples:\n- Send a greeting: send body=hello")
+          }
+        ]
       });
     } finally {
       await cleanup();
@@ -300,7 +387,9 @@ describe("createMCPServer typed result schemas", () => {
   });
 
   it("applies MCP casing to result oneOf branches and record value schemas", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
 
     const server = createMCPServer(
       defineGroup({
@@ -315,37 +404,39 @@ describe("createMCPServer typed result schemas", () => {
                 discriminator: "deliveryKind",
                 branches: {
                   pickup: S.Object({ pickupAt: S.String() }),
-                  ship: S.Object({ streetAddress: S.String() }),
-                },
+                  ship: S.Object({ streetAddress: S.String() })
+                }
               }),
-              labels: S.Record(S.Object({
-                displayName: S.String(),
-              })),
+              labels: S.Record(
+                S.Object({
+                  displayName: S.String()
+                })
+              ),
               contact: S.Union([
                 S.Object({ emailAddress: S.String() }),
-                S.Object({ phoneNumber: S.String() }),
-              ]),
+                S.Object({ phoneNumber: S.String() })
+              ])
             }),
             handler: async () => ({
               delivery: {
                 deliveryKind: "ship",
-                streetAddress: "1 Main St",
+                streetAddress: "1 Main St"
               },
               labels: {
-                primary: { displayName: "Primary" },
+                primary: { displayName: "Primary" }
               },
               contact: {
-                emailAddress: "ops@example.com",
-              },
-            }),
-          }),
-        ],
+                emailAddress: "ops@example.com"
+              }
+            })
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
-        casing: "snake",
+        casing: "snake"
       }
     );
     const { client, cleanup } = await createClient(server);
@@ -362,52 +453,52 @@ describe("createMCPServer typed result schemas", () => {
                     expect.objectContaining({
                       properties: expect.objectContaining({
                         delivery_kind: { enum: ["ship"], type: "string" },
-                        street_address: { type: "string" },
+                        street_address: { type: "string" }
                       }),
-                      required: expect.arrayContaining(["delivery_kind", "street_address"]),
-                    }),
-                  ]),
+                      required: expect.arrayContaining(["delivery_kind", "street_address"])
+                    })
+                  ])
                 },
                 labels: {
                   additionalProperties: {
                     properties: {
-                      display_name: { type: "string" },
+                      display_name: { type: "string" }
                     },
                     required: ["display_name"],
-                    type: "object",
+                    type: "object"
                   },
-                  type: "object",
+                  type: "object"
                 },
                 contact: {
                   oneOf: expect.arrayContaining([
                     expect.objectContaining({
                       properties: {
-                        email_address: { type: "string" },
-                      },
-                    }),
-                  ]),
-                },
-              },
-            },
-          },
-        ],
+                        email_address: { type: "string" }
+                      }
+                    })
+                  ])
+                }
+              }
+            }
+          }
+        ]
       });
 
-      const result = await client.callTool({ name: "route", arguments: {} }) as {
+      const result = (await client.callTool({ name: "route", arguments: {} })) as {
         content: Array<{ type: string; text: string }>;
         structuredContent?: Record<string, unknown>;
       };
       const expected = {
         delivery: {
           delivery_kind: "ship",
-          street_address: "1 Main St",
+          street_address: "1 Main St"
         },
         labels: {
-          primary: { display_name: "Primary" },
+          primary: { display_name: "Primary" }
         },
         contact: {
-          email_address: "ops@example.com",
-        },
+          email_address: "ops@example.com"
+        }
       };
 
       expect(result.structuredContent).toEqual(expected);
@@ -418,7 +509,9 @@ describe("createMCPServer typed result schemas", () => {
   });
 
   it("keeps commands without result schemas text-only", async () => {
-    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) =>
+      command.handler(context)
+    );
 
     const server = createMCPServer(
       defineGroup({
@@ -428,20 +521,20 @@ describe("createMCPServer typed result schemas", () => {
             name: "load",
             scope: ["mcp"],
             params: S.Object({}),
-            handler: async () => ({ ok: true }),
-          }),
-        ],
+            handler: async () => ({ ok: true })
+          })
+        ]
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
-        omitRootToolNamePrefix: true,
+        omitRootToolNamePrefix: true
       }
     );
     const { client, cleanup } = await createClient(server);
 
     try {
-      const result = await client.callTool({ name: "load", arguments: {} }) as {
+      const result = (await client.callTool({ name: "load", arguments: {} })) as {
         content: Array<{ type: string; text: string }>;
         structuredContent?: Record<string, unknown>;
       };

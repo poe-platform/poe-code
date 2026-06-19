@@ -22,9 +22,14 @@ const ignoredOptions: RunCLIOptions<Record<string, never>> = {
   fetch: globalThis.fetch,
   controls: {
     debug: true,
+    logLevel: true,
     output: true,
     verbose: true,
     yes: true,
+  },
+  logLevel: "warn",
+  logger: (event) => {
+    event.level satisfies "error" | "warn" | "info" | "debug" | "trace";
   },
   humanInLoop: {},
   version: "1.0.0",

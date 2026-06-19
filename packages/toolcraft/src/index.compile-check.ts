@@ -134,6 +134,13 @@ type ignoredHandlerContextExport = AssertAssignable<
       exists(path: string): Promise<boolean>;
     };
     env: { get(key: string): string | undefined };
+    diagnostics: {
+      level: "silent" | "error" | "warn" | "info" | "debug" | "trace";
+      emit(event: {
+        level: "error" | "warn" | "info" | "debug" | "trace";
+        message: string;
+      }): void;
+    };
     progress(message: string): void;
   },
   Parameters<typeof ignoredCommand.handler>[0]

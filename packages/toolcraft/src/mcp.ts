@@ -9,7 +9,14 @@ import {
   type TypedSchema
 } from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
-import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
+import type {
+  Command,
+  Group,
+  HandlerEnv,
+  HandlerFs,
+  LogLevel,
+  RuntimeLoggerInput
+} from "./index.js";
 import { createHttpErrorEnvelope, isHttpErrorLike } from "./api-error-summary.js";
 import {
   ToolcraftBugError,
@@ -32,6 +39,7 @@ import { filterSchemaForScope } from "./schema-scope.js";
 import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+import { createRuntimeLogger } from "./runtime-logging.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -39,12 +47,13 @@ const RESERVED_SERVICE_NAMES = new Set([
   "fetch",
   "fs",
   "env",
+  "diagnostics",
   "progress",
   "runtimeOptions",
   "root"
 ]);
 const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
+  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
 
 type Casing = "snake" | "camel";
 type CmdkitServer = Omit<TinyServer, "connect"> & {
@@ -78,6 +87,8 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
   version?: string;
   humanInLoop?: HumanInLoopRuntimeOptions;
   projectRoot?: string;
+  logLevel?: LogLevel;
+  logger?: RuntimeLoggerInput;
   /**
    * Optional allowlist of MCP tool names or group prefixes.
    *
@@ -1110,6 +1121,10 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
   const runtimeFetch = options.fetch ?? globalThis.fetch;
+  const diagnostics = createRuntimeLogger({
+    level: options.logLevel,
+    logger: options.logger
+  });
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
@@ -1142,8 +1157,9 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           fetch: runtimeFetch,
           fs: createFs(),
           env: createEnv(),
-          progress(): void {
-            return undefined;
+          diagnostics,
+          progress(message: string): void {
+            diagnostics.emit({ level: "info", message, category: "progress" });
           }
         };
 

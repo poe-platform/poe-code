@@ -51,20 +51,6 @@ const NULL_HELPER_SUPPORT = {
   query: { array: false, scalar: false }
 } as const satisfies Record<GeneratedRequestLocation, Record<NullHelperShape, boolean>>;
 
-const TRANSPORT_PARAMS = [
-  {
-    paramName: "verbose",
-    sourceName: "verbose",
-    location: "transport",
-    description: "Log the request line to stderr.",
-    shortFlag: "v",
-    scope: ["cli", "sdk"],
-    global: true,
-    optional: true,
-    definition: { kind: "boolean" }
-  }
-] as const satisfies ReadonlyArray<GeneratedParam>;
-
 const BINARY_OUTPUT_PARAM = {
   paramName: "output",
   sourceName: "output",
@@ -841,8 +827,7 @@ function collectParams(
   auth: "required" | "none",
   responseMode: "json" | "text" | "binary"
 ): CollectedCommandParams {
-  const transportParams =
-    responseMode === "binary" ? [...TRANSPORT_PARAMS, BINARY_OUTPUT_PARAM] : TRANSPORT_PARAMS;
+  const transportParams = responseMode === "binary" ? [BINARY_OUTPUT_PARAM] : [];
   const operationParams = collectOperationParameters(
     document,
     entry.path,
@@ -2789,8 +2774,8 @@ function createCommandFile(options: {
   );
   lines.push(
     usesRequestShapeVariable
-      ? "  handler: async ({ params, baseUrl, tokenSource, fetch, fs, env }) => {"
-      : "  handler: async ({ params, baseUrl, tokenSource, fetch }) => {"
+      ? "  handler: async ({ params, baseUrl, tokenSource, fetch, fs, env, diagnostics }) => {"
+      : "  handler: async ({ params, baseUrl, tokenSource, fetch, diagnostics }) => {"
   );
   lines.push(...options.preflightBlocks.flatMap((block) => renderPreflightBlock(block)));
   if (usesRequestShapeVariable) {
@@ -2848,7 +2833,7 @@ function createCommandFile(options: {
   }
   lines.push("      tokenSource,");
   lines.push("      fetch,");
-  lines.push("      verbose: params.verbose,");
+  lines.push("      diagnostics,");
   if (options.rawResponse === true) {
     lines.push("      rawResponse: params.rawResponse,");
   }

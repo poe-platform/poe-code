@@ -1,6 +1,14 @@
 import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
-import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
+import type {
+  Command,
+  Group,
+  HandlerEnv,
+  HandlerFs,
+  LogLevel,
+  RuntimeLoggerInput,
+  Scope
+} from "./index.js";
 import {
   ToolcraftBugError,
   UserError,
@@ -17,6 +25,7 @@ import { filterSchemaForScope } from "./schema-scope.js";
 import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
+import { createRuntimeLogger } from "./runtime-logging.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -24,12 +33,13 @@ const RESERVED_SERVICE_NAMES = new Set([
   "fetch",
   "fs",
   "env",
+  "diagnostics",
   "progress",
   "runtimeOptions",
   "root"
 ]);
 const RESERVED_SERVICE_NAMES_MESSAGE =
-  "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
+  "Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.";
 
 type ScopeInput = readonly Scope[] | undefined;
 type HumanInLoopMode = "sync" | "async";
@@ -229,6 +239,8 @@ export interface CreateSDKOptions<TServices extends object = Record<string, unkn
   apiVersion?: string;
   projectRoot?: string;
   errorReports?: ErrorReportsOption;
+  logLevel?: LogLevel;
+  logger?: RuntimeLoggerInput;
 }
 
 function splitWords(value: string): string[] {
@@ -698,6 +710,10 @@ function createResolvedSDK(
   const services = options.services ?? {};
   const runtimeOptions = options.humanInLoop ?? {};
   const runtimeFetch = options.fetch ?? globalThis.fetch;
+  const diagnostics = createRuntimeLogger({
+    level: options.logLevel,
+    logger: options.logger
+  });
   void options.casing;
   validateServices(services as Record<string, unknown>);
 
@@ -723,8 +739,9 @@ function createResolvedSDK(
             fetch: runtimeFetch,
             fs: createFs(),
             env: createEnv(),
-            progress(): void {
-              return undefined;
+            diagnostics,
+            progress(message: string): void {
+              diagnostics.emit({ level: "info", message, category: "progress" });
             }
           };
 

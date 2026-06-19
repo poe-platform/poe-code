@@ -207,6 +207,7 @@ function createContext(params: Record<string, unknown>) {
     env: {
       get: vi.fn(),
     },
+    diagnostics: { level: "silent" as const, emit: vi.fn() },
     progress: vi.fn(),
   } as const;
 }

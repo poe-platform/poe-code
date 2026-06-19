@@ -1271,7 +1271,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>
+      Options: --yes  --output <format>  -v, --verbose
       "
     `);
     expect(output).toContain("Options");
@@ -1342,7 +1342,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options: --preset <path>  --yes  --output <format>  --version
+      Options: --preset <path>  --yes  --output <format>  -v, --verbose  --version
       "
     `);
     expect(output).toContain("Options");
@@ -2460,7 +2460,7 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
-  it("prints truncated HttpError-like details by default without a stack trace", async () => {
+  it("prints summarized HttpError-like details by default without a stack trace", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
@@ -3217,7 +3217,7 @@ describe("runCLI", () => {
     });
 
     expect(loggerState.error).toEqual([
-      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root. Use --debug for a stack trace.'
+      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root. Use --debug for a stack trace.'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -4765,6 +4765,33 @@ describe("runCLI", () => {
     expect(runHandler).not.toHaveBeenCalled();
   });
 
+  it("renders root help for empty invocation when no default command overrides it", async () => {
+    const deployHandler = vi.fn(async () => ({ deployed: true }));
+    const deploy = defineCommand({
+      name: "deploy",
+      description: "Deploy an app.",
+      params: S.Object({}),
+      handler: deployHandler
+    });
+    const root = defineGroup({
+      name: "my-cli-tool",
+      description: "Example CLI.",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "my-cli-tool"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(process.exitCode).toBeUndefined();
+    expect(output).toContain("my-cli-tool");
+    expect(output).toContain("Commands");
+    expect(output).toContain("deploy");
+    expect(deployHandler).not.toHaveBeenCalled();
+  });
+
   it("supports an unnamed root default command alongside named sibling commands", async () => {
     const ingestHandler = vi.fn(async ({ params }: { params: { url: string } }) => params);
     const initHandler = vi.fn(async () => ({ initialized: true }));
@@ -5248,7 +5275,7 @@ describe("runCLI", () => {
         deploy
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>
+      Options: --yes  --output <format>  -v, --verbose
       "
     `);
   });
@@ -5413,7 +5440,7 @@ describe("runCLI", () => {
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>
+      Options: --yes  --output <format>  -v, --verbose
       "
     `);
   });
@@ -5443,6 +5470,8 @@ describe("runCLI", () => {
       Second sentence explains more.
 
       Usage: toolcraft inspect [OPTIONS]
+
+      Options: -v, --verbose
       "
     `);
   });
@@ -5483,7 +5512,7 @@ describe("runCLI", () => {
         approvals                       Inspect and execute queued
                                         approvals.
 
-      Options: --yes  --output <format>
+      Options: --yes  --output <format>  -v, --verbose
       "
     `);
   });
@@ -5519,7 +5548,7 @@ describe("runCLI", () => {
         deploy      Deploy a service
         approvals   Inspect and execute queued approvals.
 
-      Options: --yes  --output <format>
+      Options: --yes  --output <format>  -v, --verbose
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
@@ -5555,7 +5584,7 @@ describe("runCLI", () => {
     expect(output).not.toContain("\u001b[");
   });
 
-  it("suppresses fields tagged global from leaf help and surfaces them only on root", async () => {
+  it("suppresses schema fields tagged global from leaf help while listing built-in verbose", async () => {
     setStdoutColumns(100);
     const patchBot = defineCommand({
       name: "patch-bot",
@@ -5596,8 +5625,7 @@ describe("runCLI", () => {
     const leafHelp = readStdout(stdoutWrite);
 
     expect(leafHelp).not.toContain("--global-preview");
-    expect(leafHelp).not.toContain("--verbose");
-    expect(leafHelp).not.toMatch(/(^|\s)-v(\s|$)/m);
+    expect(leafHelp).toContain("-v, --verbose");
     expect(leafHelp).toContain("--display-name");
 
     stdoutWrite.mockClear();
@@ -5608,7 +5636,7 @@ describe("runCLI", () => {
     const globalPreviewCount = rootHelp.match(/--global-preview/g)?.length ?? 0;
     const debugCount = rootHelp.match(/--debug/g)?.length ?? 0;
     expect(globalPreviewCount).toBe(1);
-    expect(rootHelp).not.toContain("--verbose");
+    expect(rootHelp).toContain("-v, --verbose");
     expect(debugCount).toBe(0);
     expect(rootHelp).toContain("Options");
 

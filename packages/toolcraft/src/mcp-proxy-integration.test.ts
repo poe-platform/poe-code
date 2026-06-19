@@ -65,6 +65,7 @@ function createContext(params: Record<string, unknown>) {
     env: {
       get: () => undefined,
     },
+    diagnostics: { level: "silent" as const, emit: () => undefined },
     progress: () => undefined,
   } as const;
 }

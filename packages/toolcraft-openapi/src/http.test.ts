@@ -1,4 +1,11 @@
-import { RateLimitError, ServiceUnavailableError, UserError } from "toolcraft";
+import {
+  RateLimitError,
+  ServiceUnavailableError,
+  UserError,
+  createRuntimeLogger,
+  type DiagnosticLogEvent,
+  type LogLevel
+} from "toolcraft";
 import { describe, expect, it, vi } from "vitest";
 import { HttpError, requestJson } from "./http.js";
 
@@ -41,6 +48,27 @@ function createTextResponse(body: string, status = 200, statusText = ""): Respon
     statusText,
     headers: { "content-type": "text/plain" }
   });
+}
+
+function createDiagnostics(level: LogLevel = "trace") {
+  const events: DiagnosticLogEvent[] = [];
+
+  return {
+    events,
+    diagnostics: createRuntimeLogger({
+      level,
+      logger: (event) => {
+        events.push(event);
+      }
+    })
+  };
+}
+
+function transcriptText(events: DiagnosticLogEvent[]): string {
+  return events
+    .map((event) => event.data?.transcript)
+    .filter((value): value is string => typeof value === "string")
+    .join("");
 }
 
 describe("requestJson", () => {
@@ -1120,8 +1148,8 @@ describe("requestJson", () => {
     expect(JSON.stringify((error as HttpError).response.headers)).not.toContain("raw-cookie");
   });
 
-  it("writes a verbose request and response transcript for successful JSON bodies", async () => {
-    const stderr = vi.fn();
+  it("emits debug request lines and trace transcripts for successful JSON bodies", async () => {
+    const { diagnostics, events } = createDiagnostics();
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1141,12 +1169,16 @@ describe("requestJson", () => {
           })
       ),
       body: { name: "Helper", enabled: true },
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     });
 
-    expect(stderr).toHaveBeenCalledTimes(2);
-    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toBe(
+    expect(events).toContainEqual(
+      expect.objectContaining({
+        level: "debug",
+        message: "POST https://api.example.com/bots"
+      })
+    );
+    expect(transcriptText(events)).toBe(
       [
         "→ POST https://api.example.com/bots",
         "    Accept: application/json",
@@ -1168,8 +1200,8 @@ describe("requestJson", () => {
     );
   });
 
-  it("redacts query credentials and response cookies in verbose transcripts", async () => {
-    const stderr = vi.fn();
+  it("redacts query credentials and response cookies in trace transcripts", async () => {
+    const { diagnostics, events } = createDiagnostics();
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1188,19 +1220,18 @@ describe("requestJson", () => {
             }
           })
       ),
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     });
 
-    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    const written = transcriptText(events);
     expect(written).toContain("?api_key=****");
     expect(written).toContain("    set-cookie: ****");
     expect(written).not.toContain("raw-query-token");
     expect(written).not.toContain("raw-cookie");
   });
 
-  it("writes a verbose response transcript for successful empty 204 responses without a body section", async () => {
-    const stderr = vi.fn();
+  it("emits a trace response transcript for successful empty 204 responses without a body section", async () => {
+    const { diagnostics, events } = createDiagnostics();
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1218,19 +1249,18 @@ describe("requestJson", () => {
             }
           })
       ),
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     });
 
-    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    const written = transcriptText(events);
     expect(written).toContain("→ GET https://api.example.com/bots\n");
     expect(written).toContain("← 204 No Content\n");
     expect(written).toContain("    x-request-id: req-empty\n");
     expect(written).not.toContain("{");
   });
 
-  it("writes the verbose transcript before throwing for failed JSON responses", async () => {
-    const stderr = vi.fn();
+  it("throws structured failed JSON responses without relying on trace diagnostics", async () => {
+    const { diagnostics, events } = createDiagnostics();
     let error: unknown;
 
     await requestJson({
@@ -1250,11 +1280,9 @@ describe("requestJson", () => {
             }
           })
       ),
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     }).catch((caught: unknown) => {
       error = caught;
-      expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain('    "error": "boom"');
     });
 
     expect(error).toMatchObject<HttpError>({
@@ -1279,13 +1307,11 @@ describe("requestJson", () => {
       body: { error: "boom" },
       message: "GET https://api.example.com/bots → 500 Internal Server Error"
     });
-    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain(
-      "← 500 Internal Server Error\n"
-    );
+    expect(transcriptText(events)).not.toContain("← 500 Internal Server Error\n");
   });
 
-  it("writes raw text response bodies in verbose transcripts", async () => {
-    const stderr = vi.fn();
+  it("emits raw text response bodies in trace transcripts for successful text responses", async () => {
+    const { diagnostics, events } = createDiagnostics();
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1294,17 +1320,17 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createTextResponse("plain\nbody", 200, "OK")),
-      verbose: true,
-      writeStderr: stderr
+      responseMode: "text",
+      diagnostics
     }).catch(() => undefined);
 
-    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain(
+    expect(transcriptText(events)).toContain(
       ["← 200 OK", "    content-type: text/plain", "    plain", "    body"].join("\n")
     );
   });
 
-  it("truncates verbose transcript bodies over four kilobytes", async () => {
-    const stderr = vi.fn();
+  it("truncates trace transcript bodies over four kilobytes", async () => {
+    const { diagnostics, events } = createDiagnostics();
     const body = { value: "x".repeat(5 * 1024) };
 
     await requestJson({
@@ -1315,19 +1341,18 @@ describe("requestJson", () => {
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
       body,
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     });
 
-    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    const written = transcriptText(events);
     expect(written).toContain("… (");
     expect(written).toContain(" bytes truncated)");
     expect(written).not.toContain("rerun without --verbose");
     expect(written).not.toContain("set --debug");
   });
 
-  it("redacts authorization values in verbose request transcripts", async () => {
-    const stderr = vi.fn();
+  it("redacts authorization values in trace request transcripts", async () => {
+    const { diagnostics, events } = createDiagnostics();
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1336,17 +1361,16 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("raw-token"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
-      verbose: true,
-      writeStderr: stderr
+      diagnostics
     });
 
-    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    const written = transcriptText(events);
     expect(written).toContain("Authorization: Bearer ****");
     expect(written).not.toContain("raw-token");
   });
 
-  it("does not write to stderr when verbose is omitted", async () => {
-    const stderr = vi.fn();
+  it("does not emit success diagnostics by default", async () => {
+    const { diagnostics, events } = createDiagnostics("warn");
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -1355,9 +1379,9 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
-      writeStderr: stderr
+      diagnostics
     });
 
-    expect(stderr).not.toHaveBeenCalled();
+    expect(events).toEqual([]);
   });
 });

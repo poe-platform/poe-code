@@ -127,5 +127,7 @@ OPTIONS
   --mount-poe-code             Mount the local poe-code checkout into the runtime
   --runner-sync <value>        Override runner workspace sync: both, upload, or none
   --tui                        Show a live dashboard while Superintendent is running
+
+Options: -v, --verbose
 "
 `;

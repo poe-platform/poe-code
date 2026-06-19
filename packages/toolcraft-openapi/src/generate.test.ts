@@ -1015,7 +1015,7 @@ describe("generate", () => {
     expect(commandFile?.contents).not.toContain("handle: S.String()");
   });
 
-  it("marks generated transport params as non-MCP without a per-command json flag", () => {
+  it("does not add generated verbose transport params", () => {
     const files = generate(
       createDocument({
         "/bots/{botHandle}/actions/set-official": {
@@ -1064,9 +1064,8 @@ describe("generate", () => {
 
     const commandFile = files.find((file) => file.path === "bots/set-official.ts");
 
-    expect(commandFile?.contents).toContain(
-      'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true }))'
-    );
+    expect(commandFile?.contents).not.toContain("verbose: S.Optional");
+    expect(commandFile?.contents).not.toContain("verbose: params.verbose");
     expect(commandFile?.contents).not.toContain("dryRun: S.Optional");
     expect(commandFile?.contents).not.toContain(
       'json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] }))'
@@ -1136,6 +1135,49 @@ describe("generate", () => {
       "Print the HTTP request and exit without sending it."
     );
     expect(commandFile?.contents).not.toContain("dryRun: params.dryRun");
+  });
+
+  it("keeps OpenAPI verbose fields as business params", () => {
+    const files = generate(
+      createDocument({
+        "/bots": {
+          get: {
+            tags: ["bots"],
+            operationId: "listBots",
+            parameters: [
+              {
+                name: "verbose",
+                in: "query",
+                description: "Ask the API for verbose records.",
+                schema: { type: "boolean" }
+              }
+            ],
+            responses: {
+              "200": {
+                description: "Listed.",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "bots/list.ts");
+
+    expect(commandFile?.contents).toContain(
+      'verbose: S.Optional(S.Boolean({ description: "Ask the API for verbose records." }))'
+    );
+    expect(commandFile?.contents).toContain('"verbose": params.verbose');
+    expect(commandFile?.contents).not.toContain("global: true");
+    expect(commandFile?.contents).not.toContain("verbose: params.verbose,");
   });
 
   it("omits the generated json transport param when the success response has no body schema", () => {
@@ -1680,7 +1722,6 @@ describe("generate", () => {
     owner: S.Optional(S.String()),
     limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
     official: S.Boolean(),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),`);
   });
 

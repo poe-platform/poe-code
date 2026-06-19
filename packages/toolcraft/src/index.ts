@@ -11,6 +11,7 @@ import type {
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
 import { ToolcraftBugError, UserError } from "./user-error.js";
 import { suggest } from "./suggest.js";
+import type { RuntimeLogger } from "./runtime-logging.js";
 
 const commandConfigSymbol = Symbol("toolcraft.command.config");
 const groupConfigSymbol = Symbol("toolcraft.group.config");
@@ -97,6 +98,7 @@ export type GroupCheckContext<TServices extends object = EmptyServices> = TServi
   fetch: typeof globalThis.fetch;
   fs: HandlerFs;
   env: HandlerEnv;
+  diagnostics: RuntimeLogger;
   progress(message: string): void;
 };
 
@@ -110,6 +112,7 @@ export type CommandCheckContext<
   fetch: typeof globalThis.fetch;
   fs: HandlerFs;
   env: HandlerEnv;
+  diagnostics: RuntimeLogger;
   progress(message: string): void;
 };
 
@@ -135,6 +138,7 @@ export type HandlerContext<
   fetch: typeof globalThis.fetch;
   fs: HandlerFs;
   env: HandlerEnv;
+  diagnostics: RuntimeLogger;
   progress(message: string): void;
 };
 
@@ -634,8 +638,7 @@ function suggestSecretEnv(input: string, candidates: readonly string[]): string[
   const relatedCandidates = candidates.filter((candidate) => {
     const candidateParts = candidate.split("_");
     return (
-      candidateParts[0] === firstPart &&
-      candidateParts[candidateParts.length - 1] === lastPart
+      candidateParts[0] === firstPart && candidateParts[candidateParts.length - 1] === lastPart
     );
   });
   const expandedSuggestions = suggest(input, relatedCandidates, {
@@ -1049,8 +1052,15 @@ export {
 } from "./http-errors.js";
 export type { HttpErrorRequest, HttpErrorResponse } from "./http-errors.js";
 export { ApprovalDeclinedError, ToolcraftBugError, UserError };
+export { createRuntimeLogger, isLogLevel, shouldEmitDiagnostic } from "./runtime-logging.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";
+export type {
+  DiagnosticLogEvent,
+  LogLevel,
+  RuntimeLogger,
+  RuntimeLoggerInput
+} from "./runtime-logging.js";
 export type {
   AnySchema,
   ArraySchema,

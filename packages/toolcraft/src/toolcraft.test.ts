@@ -2683,7 +2683,7 @@ describe("createSDK", () => {
       ]
     });
     const message =
-      'Service name "root" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.';
+      'Service name "root" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, diagnostics, progress, runtimeOptions, root.';
 
     expect(() =>
       createSDK(root, {

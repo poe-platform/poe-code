@@ -20,8 +20,8 @@ const mocks = vi.hoisted(() => {
     store: {
       get,
       set,
-      delete: remove,
-    },
+      delete: remove
+    }
   }));
   const password = vi.fn();
   const isCancel = vi.fn((value: unknown) => typeof value === "symbol");
@@ -43,17 +43,17 @@ const mocks = vi.hoisted(() => {
       password.mockReset();
       isCancel.mockClear();
       isCancel.mockImplementation((value: unknown) => typeof value === "symbol");
-    },
+    }
   };
 });
 
 vi.mock("auth-store", () => ({
-  createSecretStore: mocks.createSecretStore,
+  createSecretStore: mocks.createSecretStore
 }));
 
 vi.mock("toolcraft-design", () => ({
   password: mocks.password,
-  isCancel: mocks.isCancel,
+  isCancel: mocks.isCancel
 }));
 
 function getAuthGroup(provider: AuthProvider) {
@@ -90,21 +90,22 @@ function createHandlerContext<TParams>(
     fs: {
       readFile: async () => "",
       writeFile: async () => undefined,
-      exists: async () => true,
+      exists: async () => true
     },
     env: {
-      get: () => undefined,
+      get: () => undefined
     },
+    diagnostics: { level: "silent" as const, emit: () => undefined },
     progress: () => undefined,
     baseUrl: options?.baseUrl,
-    readStdin: options?.readStdin,
+    readStdin: options?.readStdin
   };
 }
 
 function createWhoamiResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json" }
   });
 }
 
@@ -117,14 +118,14 @@ function createRenderPrimitives(): RenderPrimitives {
       error: vi.fn(),
       resolved: vi.fn(),
       errorResolved: vi.fn(),
-      message: vi.fn(),
+      message: vi.fn()
     },
     renderTable: vi.fn(() => ""),
     getTheme: vi.fn(() => ({
       header: (value: string) => value,
-      muted: (value: string) => value,
+      muted: (value: string) => value
     })),
-    note: vi.fn(),
+    note: vi.fn()
   };
 }
 
@@ -140,7 +141,7 @@ describe("bearerTokenAuth", () => {
   it("contributes auth commands under the default auth group", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     expect(getAuthGroup(provider).name).toBe("auth");
@@ -149,7 +150,7 @@ describe("bearerTokenAuth", () => {
   it("marks contributed auth commands as cli-only", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     expect(getAuthGroup(provider).scope).toEqual(["cli"]);
@@ -158,7 +159,7 @@ describe("bearerTokenAuth", () => {
   it("declares auth command params with toolcraft schema objects", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     expect(getAuthCommand(provider, "login").params.kind).toBe("object");
@@ -171,7 +172,7 @@ describe("bearerTokenAuth", () => {
     vi.stubEnv("INTERNAL_AGENT_TOKEN", "env-token");
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await expect(provider.getToken()).resolves.toBe("env-token");
@@ -181,7 +182,7 @@ describe("bearerTokenAuth", () => {
     mocks.reset({ storedToken: "stored-token" });
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await expect(provider.getToken()).resolves.toBe("stored-token");
@@ -190,7 +191,7 @@ describe("bearerTokenAuth", () => {
   it("points users at the default login command when no token resolves", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await expect(provider.getToken()).rejects.toThrow("auth login");
@@ -200,7 +201,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      commandPrefix: "credentials",
+      commandPrefix: "credentials"
     });
 
     await expect(provider.getToken()).rejects.toThrow("credentials login");
@@ -209,7 +210,7 @@ describe("bearerTokenAuth", () => {
   it("invalidates stored credentials by deleting the store entry", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await provider.invalidate?.();
@@ -222,7 +223,7 @@ describe("bearerTokenAuth", () => {
     vi.stubEnv("INTERNAL_AGENT_TOKEN", "env-token");
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await provider.invalidate?.();
@@ -235,7 +236,7 @@ describe("bearerTokenAuth", () => {
     vi.stubEnv("INTERNAL_AGENT_TOKEN", "env-token");
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await expect(provider.getToken()).resolves.toBe("env-token");
@@ -248,7 +249,7 @@ describe("bearerTokenAuth", () => {
     mocks.reset({ storedToken: "stored-token" });
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await provider.invalidate?.();
@@ -259,7 +260,7 @@ describe("bearerTokenAuth", () => {
   it("stores the provided token when login uses --token", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await getAuthCommand(provider, "login").handler(
@@ -272,7 +273,7 @@ describe("bearerTokenAuth", () => {
   it("stores trimmed stdin input when login uses --token-stdin", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await getAuthCommand(provider, "login").handler(
@@ -289,7 +290,7 @@ describe("bearerTokenAuth", () => {
     mocks.password.mockResolvedValueOnce("prompted-token");
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await getAuthCommand(provider, "login").handler(
@@ -303,7 +304,7 @@ describe("bearerTokenAuth", () => {
     const fetchMock = vi.fn(async () => createWhoamiResponse({ email: "unused@example.com" }));
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await getAuthCommand(provider, "login").handler(
@@ -318,7 +319,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
 
     const result = await getAuthCommand(provider, "login").handler(
@@ -328,7 +329,7 @@ describe("bearerTokenAuth", () => {
           baseUrl: "https://api.example.com",
           fetch: vi.fn(async () =>
             createWhoamiResponse({ email: "kjopek@quora.com", is_employee: true })
-          ),
+          )
         }
       ) as never
     );
@@ -341,7 +342,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
     const primitives = createRenderPrimitives();
 
@@ -349,7 +350,7 @@ describe("bearerTokenAuth", () => {
       {
         email: "kjopek@quora.com",
         isEmployee: true,
-        storageBackend: "keychain",
+        storageBackend: "keychain"
       },
       primitives
     );
@@ -363,7 +364,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
 
     await expect(
@@ -372,7 +373,9 @@ describe("bearerTokenAuth", () => {
           { token: "foo", tokenStdin: undefined },
           {
             baseUrl: "https://api.example.com",
-            fetch: vi.fn(async () => createWhoamiResponse({ email: "guest@example.com", is_employee: false })),
+            fetch: vi.fn(async () =>
+              createWhoamiResponse({ email: "guest@example.com", is_employee: false })
+            )
           }
         ) as never
       )
@@ -385,7 +388,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
 
     await expect(
@@ -394,7 +397,7 @@ describe("bearerTokenAuth", () => {
           { token: "foo", tokenStdin: undefined },
           {
             baseUrl: "https://api.example.com",
-            fetch: vi.fn(async () => createWhoamiResponse({ error: "unauthorized" }, 401)),
+            fetch: vi.fn(async () => createWhoamiResponse({ error: "unauthorized" }, 401))
           }
         ) as never
       )
@@ -407,7 +410,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
 
     await expect(
@@ -418,7 +421,7 @@ describe("bearerTokenAuth", () => {
             baseUrl: "https://api.example.com",
             fetch: vi.fn(async () => {
               throw new Error("boom");
-            }),
+            })
           }
         ) as never
       )
@@ -430,7 +433,7 @@ describe("bearerTokenAuth", () => {
   it("rejects login when both --token and --token-stdin are provided", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await expect(
@@ -446,7 +449,7 @@ describe("bearerTokenAuth", () => {
     mocks.reset({ storedToken: "stored-token" });
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     await getAuthCommand(provider, "logout").handler(createHandlerContext({}) as never);
@@ -457,7 +460,7 @@ describe("bearerTokenAuth", () => {
   it("exits cleanly when logout runs with an empty store", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
     const result = await getAuthCommand(provider, "logout").handler(
@@ -466,10 +469,10 @@ describe("bearerTokenAuth", () => {
 
     expect({
       result,
-      deleteCalls: mocks.remove.mock.calls.length,
+      deleteCalls: mocks.remove.mock.calls.length
     }).toEqual({
       result: { storageBackend: "file" },
-      deleteCalls: 1,
+      deleteCalls: 1
     });
   });
 
@@ -477,10 +480,12 @@ describe("bearerTokenAuth", () => {
     vi.stubEnv("INTERNAL_AGENT_TOKEN", "env-token");
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
-    const result = await getAuthCommand(provider, "status").handler(createHandlerContext({}) as never);
+    const result = await getAuthCommand(provider, "status").handler(
+      createHandlerContext({}) as never
+    );
 
     expect(result).toMatchObject({ tokenSource: "env (INTERNAL_AGENT_TOKEN)" });
   });
@@ -489,10 +494,12 @@ describe("bearerTokenAuth", () => {
     mocks.reset({ storedToken: "stored-token", backend: "keychain" });
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
-    const result = await getAuthCommand(provider, "status").handler(createHandlerContext({}) as never);
+    const result = await getAuthCommand(provider, "status").handler(
+      createHandlerContext({}) as never
+    );
 
     expect(result).toMatchObject({ tokenSource: "keychain" });
   });
@@ -500,10 +507,12 @@ describe("bearerTokenAuth", () => {
   it("reports the logged-out state when neither env nor store has a token", async () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
-      envVar: "INTERNAL_AGENT_TOKEN",
+      envVar: "INTERNAL_AGENT_TOKEN"
     });
 
-    const result = await getAuthCommand(provider, "status").handler(createHandlerContext({}) as never);
+    const result = await getAuthCommand(provider, "status").handler(
+      createHandlerContext({}) as never
+    );
 
     expect(result).toMatchObject({ loggedIn: false });
   });
@@ -513,7 +522,7 @@ describe("bearerTokenAuth", () => {
     const provider = bearerTokenAuth({
       serviceName: "internal-agent",
       envVar: "INTERNAL_AGENT_TOKEN",
-      whoamiPath: "/whoami",
+      whoamiPath: "/whoami"
     });
 
     const result = await getAuthCommand(provider, "status").handler(
@@ -523,7 +532,7 @@ describe("bearerTokenAuth", () => {
           baseUrl: "https://api.example.com",
           fetch: vi.fn(async () =>
             createWhoamiResponse({ email: "kjopek@quora.com", is_employee: true })
-          ),
+          )
         }
       ) as never
     );

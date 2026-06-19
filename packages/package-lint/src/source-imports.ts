@@ -38,9 +38,18 @@ function isTestFile(relFile: string): boolean {
   return segments.some((s) => s === "test" || s === "tests" || s === "__tests__");
 }
 
-interface RawImport {
+export interface RawImport {
   specifier: string;
   typeOnly: boolean;
+}
+
+function scriptKind(fileName: string): ts.ScriptKind {
+  if (fileName.endsWith(".tsx")) return ts.ScriptKind.TSX;
+  if (fileName.endsWith(".jsx")) return ts.ScriptKind.JSX;
+  if (fileName.endsWith(".js") || fileName.endsWith(".mjs") || fileName.endsWith(".cjs")) {
+    return ts.ScriptKind.JS;
+  }
+  return ts.ScriptKind.TS;
 }
 
 function extractImportsFromAst(text: string, fileName: string): RawImport[] {
@@ -49,7 +58,7 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
     text,
     ts.ScriptTarget.Latest,
     false,
-    fileName.endsWith(".tsx") ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    scriptKind(fileName)
   );
   const out: RawImport[] = [];
 
@@ -232,6 +241,31 @@ export async function scanSourceImports(
         }
       }
       view.set(packageDir, refs);
+    })
+  );
+  return view;
+}
+
+export async function scanImportFiles(
+  fs: LintFs,
+  rootDir: string,
+  files: string[]
+): Promise<SourceImportView> {
+  const view: SourceImportView = new Map();
+  await Promise.all(
+    files.map(async (relFile) => {
+      const normalized = path.posix.normalize(toPosix(relFile));
+      const absFile = path.join(rootDir, normalized);
+      let text: string;
+      try {
+        text = await fs.readFile(absFile);
+      } catch {
+        return;
+      }
+      const refs = extractRelevantImports(text, absFile).map((raw) =>
+        classify(raw, rootDir, ".", absFile, normalized)
+      );
+      view.set(normalized, refs);
     })
   );
   return view;

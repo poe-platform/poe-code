@@ -11,7 +11,7 @@ import {
   type RuntimeAssetDeclaration,
   type RuntimeFileAssetView
 } from "./runtime-files.js";
-import { scanSourceImports, type SourceImportView } from "./source-imports.js";
+import { scanImportFiles, scanSourceImports, type SourceImportView } from "./source-imports.js";
 
 /**
  * Minimal filesystem surface the analyzer needs. Injected so the CLI can pass
@@ -43,6 +43,7 @@ export interface PackageInfo {
   bundledDependencies: string[];
   repositoryDirectory: string | undefined;
   ecosystem: Ecosystem;
+  main: string | undefined;
   exports: unknown;
   bin: Record<string, string>;
   files: string[];
@@ -58,6 +59,12 @@ export interface BinTarget {
   target: string;
   /** Owning package dir, e.g. "packages/superintendent". */
   dir: string;
+}
+
+export interface RootEntryPoint {
+  kind: "main" | "export" | "bin";
+  name: string;
+  target: string;
 }
 
 export interface ReleaseWorkflow {
@@ -88,6 +95,9 @@ export interface WorkspaceModel {
   binTargets: BinTarget[];
   /** Real import graph of each package's `src`, keyed by package dir. */
   sourceImports: SourceImportView;
+  /** Runtime imports of root package entrypoints that ship in the root tarball. */
+  shippedDistImports: SourceImportView;
+  rootEntryPoints: RootEntryPoint[];
   /** Runtime file assets discovered from package source, keyed by package dir. */
   runtimeFileAssets: RuntimeFileAssetView;
   /** Files included by each package artifact, keyed by package dir. */
@@ -235,6 +245,7 @@ async function loadPackage(
     repositoryDirectory:
       typeof repository?.directory === "string" ? repository.directory : undefined,
     ecosystem,
+    main: typeof pkg.main === "string" ? pkg.main : undefined,
     exports: pkg.exports,
     bin: toBinRecord(pkg.bin, typeof pkg.name === "string" ? pkg.name : relDir),
     files: Array.isArray(pkg.files)
@@ -269,6 +280,85 @@ function deriveShipped(root: PackageInfo): {
     binTargets.push({ bin, target: toPosix(target), dir });
   }
   return { shippedDirs, binTargets };
+}
+
+function normalizeRootTarget(target: string): string | undefined {
+  const withoutDot = target.startsWith("./") ? target.slice(2) : target;
+  const normalized = toPosix(path.posix.normalize(toPosix(withoutDot)));
+  if (
+    normalized.length === 0 ||
+    normalized === "." ||
+    normalized === ".." ||
+    normalized.startsWith("../") ||
+    path.posix.isAbsolute(normalized)
+  ) {
+    return undefined;
+  }
+  return normalized;
+}
+
+function exportImportTarget(value: unknown): string | undefined {
+  if (typeof value === "string") return normalizeRootTarget(value);
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const target = exportImportTarget(item);
+      if (target) return target;
+    }
+    return undefined;
+  }
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  for (const [key, raw] of Object.entries(record)) {
+    if (key === "types") continue;
+    const target = exportImportTarget(raw);
+    if (target) return target;
+  }
+  return undefined;
+}
+
+function isSubpathExportsMap(exportsField: unknown): exportsField is Record<string, unknown> {
+  if (!exportsField || typeof exportsField !== "object" || Array.isArray(exportsField)) {
+    return false;
+  }
+  return Object.keys(exportsField as Record<string, unknown>).some((key) => key.startsWith("."));
+}
+
+function deriveRootEntryPoints(root: PackageInfo): RootEntryPoint[] {
+  const entryPoints: RootEntryPoint[] = [];
+  const seen = new Set<string>();
+  const add = (entry: RootEntryPoint): void => {
+    const key = `${entry.kind}:${entry.name}:${entry.target}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    entryPoints.push(entry);
+  };
+
+  if (root.main) {
+    const target = normalizeRootTarget(root.main);
+    if (target) add({ kind: "main", name: ".", target });
+  }
+
+  if (isSubpathExportsMap(root.exports)) {
+    for (const [name, value] of Object.entries(root.exports)) {
+      const target = exportImportTarget(value);
+      if (target) add({ kind: "export", name, target });
+    }
+  } else {
+    const target = exportImportTarget(root.exports);
+    if (target) add({ kind: "export", name: ".", target });
+  }
+
+  for (const [name, value] of Object.entries(root.bin)) {
+    const target = normalizeRootTarget(value);
+    if (target) add({ kind: "bin", name, target });
+  }
+
+  return entryPoints.sort((a, b) => {
+    const byTarget = a.target.localeCompare(b.target);
+    if (byTarget !== 0) return byTarget;
+    const byKind = a.kind.localeCompare(b.kind);
+    return byKind !== 0 ? byKind : a.name.localeCompare(b.name);
+  });
 }
 
 function dirFromArtifactPath(p: string): string {
@@ -440,6 +530,7 @@ export async function loadWorkspace(
   for (const p of packages) byDir.set(p.dir, p);
 
   const { shippedDirs, binTargets } = deriveShipped(root);
+  const rootEntryPoints = deriveRootEntryPoints(root);
   const workspaceNames = new Set(packages.map((p) => p.name));
   const sourceImportPackages = packages.map((pkg) => ({
     dir: pkg.dir,
@@ -450,8 +541,10 @@ export async function loadWorkspace(
     root,
     packages
   };
-  const [sourceImports, runtimeFileAssets, packageFiles] = await Promise.all([
+  const shippedDistEntryFiles = [...new Set(rootEntryPoints.map((entry) => entry.target))];
+  const [sourceImports, shippedDistImports, runtimeFileAssets, packageFiles] = await Promise.all([
     scanSourceImports(fs, rootDir, sourceImportPackages),
+    scanImportFiles(fs, rootDir, shippedDistEntryFiles),
     scanRuntimeFileAssets(fs, rootDir, runtimePackages),
     loadPackageFileView(options.packlistProvider ?? createNpmPacklistProvider(fs), {
       rootDir,
@@ -468,6 +561,8 @@ export async function loadWorkspace(
     shippedDirs,
     binTargets,
     sourceImports,
+    shippedDistImports,
+    rootEntryPoints,
     runtimeFileAssets,
     packageFiles
   };

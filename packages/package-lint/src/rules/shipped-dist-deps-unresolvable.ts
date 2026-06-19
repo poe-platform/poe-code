@@ -12,6 +12,17 @@ function shippedPackageNames(model: WorkspaceModel): Set<string> {
   return names;
 }
 
+function rootRuntimeDependencies(model: WorkspaceModel): Set<string> {
+  return new Set([
+    ...Object.keys(model.root.dependencies),
+    ...Object.keys(model.root.optionalDependencies)
+  ]);
+}
+
+function entryPointLabel(entry: WorkspaceModel["rootEntryPoints"][number]): string {
+  return `${entry.kind}:${entry.name}`;
+}
+
 /**
  * Every runtime dependency of a shipped, tsc-emitted bin entry must resolve
  * from the published `poe-code` tarball: it is in root `dependencies`, a Node
@@ -23,7 +34,30 @@ export const shippedDistDepsUnresolvable: Rule = {
   run(model) {
     const violations: Violation[] = [];
     const shipped = shippedPackageNames(model);
-    const rootDeps = new Set(Object.keys(model.root.dependencies));
+    const rootDeps = rootRuntimeDependencies(model);
+
+    for (const entry of model.rootEntryPoints) {
+      const unresolved = new Set<string>();
+      for (const ref of model.shippedDistImports.get(entry.target) ?? []) {
+        if (ref.kind !== "bare" || ref.typeOnly || !ref.packageName) continue;
+        if (ref.packageName === model.root.name) continue;
+        if (rootDeps.has(ref.packageName) || isBuiltin(ref.packageName)) continue;
+        unresolved.add(ref.packageName);
+      }
+      if (unresolved.size === 0) continue;
+      const names = [...unresolved].sort();
+      violations.push({
+        rule: id,
+        package: model.root.name,
+        severity: "error",
+        via: entryPointLabel(entry),
+        detail: { target: entry.target, unresolved: names },
+        message:
+          "root package entrypoint imports bare names not in root dependencies (ERR_MODULE_NOT_FOUND on install)",
+        fix: `Bundle or rewrite ${entry.target}, or add each package to root "dependencies": ${names.join(", ")}.`
+      });
+    }
+
     for (const bin of model.binTargets) {
       const owner = model.byDir.get(bin.dir);
       if (!owner) continue;

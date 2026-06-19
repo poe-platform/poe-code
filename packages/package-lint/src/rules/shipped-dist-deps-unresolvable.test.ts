@@ -46,4 +46,37 @@ describe("shipped-dist-deps-unresolvable", () => {
 
     expect(shippedDistDepsUnresolvable.run(model)).toHaveLength(0);
   });
+
+  it("flags a root export dist file that imports a private workspace package by bare name", async () => {
+    const model = await makeWorkspace({
+      "/repo/package.json": pkgJson({
+        name: "root",
+        exports: {
+          "./skills": {
+            import: "./dist/skills.js"
+          }
+        },
+        files: ["dist", "packages/agent-skill-config/dist"]
+      }),
+      "/repo/dist/skills.js":
+        'import { installSkill } from "@poe-code/agent-skill-config";\nexport { installSkill };\n',
+      "/repo/packages/agent-skill-config/package.json": pkgJson({
+        name: "@poe-code/agent-skill-config",
+        private: true
+      }),
+      "/repo/packages/agent-skill-config/dist/index.js": "export const installSkill = () => {};\n"
+    });
+
+    const violations = shippedDistDepsUnresolvable.run(model);
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toMatchObject({
+      package: "root",
+      via: "export:./skills",
+      severity: "error",
+      detail: {
+        target: "dist/skills.js",
+        unresolved: ["@poe-code/agent-skill-config"]
+      }
+    });
+  });
 });

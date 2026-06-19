@@ -110,6 +110,20 @@ await esbuild.build({
   loader: { ".md": "text", ".mustache": "text", ".log": "text" }
 });
 
+await esbuild.build({
+  entryPoints: [path.join(rootDir, "src/skills.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "dist/skills.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin],
+  loader: { ".md": "text", ".mustache": "text", ".log": "text" }
+});
+
 const providerEntryPoints = await getProviderEntryPoints(rootDir);
 if (providerEntryPoints.length > 0) {
   await esbuild.build({

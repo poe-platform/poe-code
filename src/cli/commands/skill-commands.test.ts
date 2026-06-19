@@ -605,3 +605,63 @@ describe("skill configure command", () => {
     await expect(fs.stat(`${cwd}/.claude/skills/poe-generate.md`)).resolves.toBeDefined();
   });
 });
+
+// ---------------------------------------------------------------------------
+// skill-install-command.test.ts
+// ---------------------------------------------------------------------------
+
+describe("skill install command", () => {
+  beforeEach(() => {
+    setProcessStdinIsTTY(true);
+  });
+
+  afterEach(() => {
+    restoreProcessStdinIsTTY();
+    vi.restoreAllMocks();
+    selectMock.mockReset();
+    cancelMock.mockReset();
+  });
+
+  it("installs arbitrary skill content from a source file", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    await fs.mkdir(`${cwd}/.agents/skills/poe-agent-tools`, { recursive: true });
+    await fs.writeFile(
+      `${cwd}/.agents/skills/poe-agent-tools/SKILL.md`,
+      "# Poe Agent Tools\n",
+      "utf8"
+    );
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      },
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "skill",
+      "install",
+      "codex",
+      "--local",
+      "--name",
+      "poe-agent-tools",
+      "--file",
+      ".agents/skills/poe-agent-tools/SKILL.md",
+      "--yes"
+    ]);
+
+    expect(logs).toContain(
+      "Installed skill poe-agent-tools for codex at .codex/skills/poe-agent-tools/SKILL.md"
+    );
+    await expect(
+      fs.readFile(`${cwd}/.codex/skills/poe-agent-tools/SKILL.md`, "utf8")
+    ).resolves.toBe("# Poe Agent Tools\n");
+  });
+});

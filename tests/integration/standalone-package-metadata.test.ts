@@ -98,7 +98,7 @@ describe("standalone package publish metadata", () => {
   it("keeps root poe-code exports focused on supported SDK surfaces", () => {
     const exportsField = readPackageJson("package.json").exports ?? {};
 
-    expect(Object.keys(exportsField).sort()).toEqual([".", "./agent", "./memory"]);
+    expect(Object.keys(exportsField).sort()).toEqual([".", "./agent", "./memory", "./skills"]);
   });
 
   it("publishes the superintendent MCP server bin with the root package", () => {

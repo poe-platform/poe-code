@@ -14,6 +14,7 @@ import {
   getPoeApiKey,
   getPoeAuthIdentity,
   ingestCodeReviewProfile,
+  installSkill,
   installCodeReviewAssets,
   isCliInvocation,
   loadCodeReviewProfile,
@@ -114,6 +115,10 @@ describe("entrypoint module", () => {
 
   it("re-exports runExperiment", () => {
     expect(typeof runExperiment).toBe("function");
+  });
+
+  it("re-exports the generic skill installer", () => {
+    expect(typeof installSkill).toBe("function");
   });
 
   it("re-exports the prompt document resolver", () => {

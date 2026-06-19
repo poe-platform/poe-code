@@ -17,6 +17,13 @@ export {
 } from "./sdk/process-launcher.js";
 export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
+export { installSkill } from "./skills.js";
+export type {
+  InstallSkillOptions,
+  InstallSkillResult,
+  InstallSkillSource,
+  SkillScope
+} from "./skills.js";
 export { ingestGaslight, runGaslight } from "./sdk/gaslight.js";
 export { getPoeApiKey, getPoeAuthIdentity } from "./sdk/credentials.js";
 export type { GetPoeAuthIdentityOptions, PoeAuthIdentity } from "./sdk/credentials.js";

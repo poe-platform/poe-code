@@ -72,4 +72,15 @@ describe("public composable agent API", () => {
       import: "./dist/agent.js"
     });
   });
+
+  it("publishes a focused skills subpath", () => {
+    const packageJson = JSON.parse(readFileSync("package.json", "utf8")) as {
+      exports: Record<string, unknown>;
+    };
+
+    expect(packageJson.exports["./skills"]).toEqual({
+      types: "./dist/skills.d.ts",
+      import: "./dist/skills.js"
+    });
+  });
 });

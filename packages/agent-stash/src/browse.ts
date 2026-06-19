@@ -526,30 +526,39 @@ function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionR
   let next = model;
 
   if (input.result.uploaded !== undefined) {
-    return replaceGistPaneFromManifest(next, input.result.uploaded.manifest.items);
+    return updateGistPaneContents(
+      replaceGistPaneFromManifest(next, input.result.uploaded.manifest.items),
+      browseContentsForItems(sourcePane, input.result.uploaded.uploaded)
+    );
   }
 
   if (input.result.synced !== undefined) {
+    const uploaded = input.result.synced.uploaded;
     next = updateGistPaneItems(next, (items) => {
       const removed = new Set(input.result.synced?.deletedRemote.map((item) => item.id) ?? []);
       return upsertBrowseItems(
         items.filter((item) => !removed.has(item.id)),
-        input.result.synced?.uploaded ?? []
+        uploaded
       );
     });
+    next = updateGistPaneContents(next, browseContentsForItems(sourcePane, uploaded));
   }
 
   if (input.result.copied !== undefined && targetPane.location === "gist") {
-    next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, input.result.copied?.map((copy) => copy.item) ?? []));
+    const copied = input.result.copied.map((copy) => copy.item);
+    next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, copied));
+    next = updateGistPaneContents(next, browseContentsForItems(sourcePane, copied));
   }
 
   if (input.result.moved !== undefined) {
+    const moved = input.result.moved.map((move) => move.item);
     if (sourcePane.location === "gist") {
       const selected = new Set(input.selectedIds);
       next = updatePaneItems(next, input.fromPane, (items) => items.filter((item) => !selected.has(item.id)));
     }
     if (targetPane.location === "gist") {
-      next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, input.result.moved?.map((move) => move.item) ?? []));
+      next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, moved));
+      next = updateGistPaneContents(next, browseContentsForItems(sourcePane, moved));
     }
   }
 
@@ -579,13 +588,37 @@ function updatePaneItems(
   paneId: BrowsePaneId,
   update: (items: AgentStashItem[], pane: BrowsePane) => AgentStashItem[]
 ): BrowseModel {
-  const pane = model[paneId];
-  return {
-    ...model,
-    [paneId]: {
+  return updatePane(model, paneId, (pane) => ({
       ...pane,
       items: sortBrowseItems(update(pane.items, pane))
-    }
+  }));
+}
+
+function updateGistPaneContents(model: BrowseModel, contents: Map<string, string>): BrowseModel {
+  if (contents.size === 0) {
+    return model;
+  }
+  return updateGistPane(model, (pane) => ({
+    ...pane,
+    contents: new Map([...(pane.contents ?? new Map()), ...contents])
+  }));
+}
+
+function updateGistPane(model: BrowseModel, update: (pane: BrowsePane) => BrowsePane): BrowseModel {
+  let next = model;
+  if (model.left.location === "gist") {
+    next = updatePane(next, "left", update);
+  }
+  if (model.right.location === "gist") {
+    next = updatePane(next, "right", update);
+  }
+  return next;
+}
+
+function updatePane(model: BrowseModel, paneId: BrowsePaneId, update: (pane: BrowsePane) => BrowsePane): BrowseModel {
+  return {
+    ...model,
+    [paneId]: update(model[paneId])
   };
 }
 
@@ -603,6 +636,21 @@ function browsePaneItemsForManifest(pane: BrowsePane, items: AgentStashItem[]): 
 
 function sortBrowseItems(items: AgentStashItem[]): AgentStashItem[] {
   return [...items].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function browseContentsForItems(pane: BrowsePane, items: AgentStashItem[]): Map<string, string> {
+  const sourceById = new Map(pane.items.map((item) => [item.id, item]));
+  const contents = new Map<string, string>();
+  for (const item of items) {
+    const sourceItem = sourceById.get(item.id) ?? item;
+    for (const file of item.files) {
+      const content = contentForItem(pane, sourceItem, file.path);
+      if (content !== undefined) {
+        contents.set(file.path, content);
+      }
+    }
+  }
+  return contents;
 }
 
 function browseExplorerActions(

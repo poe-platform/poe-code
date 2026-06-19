@@ -808,6 +808,7 @@ describe("browse", () => {
     });
 
     expect(refreshedRightRows.map((row) => row.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(refreshedRightRows[0]?.subtitle).toContain("# Code Review");
   });
 
   it("removes moved Gist rows when the immediate two-pane refresh reads stale Gist data", async () => {

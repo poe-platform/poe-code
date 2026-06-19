@@ -5,10 +5,17 @@ import * as tar from "tar";
 import { createBackup } from "../backup-store.js";
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createDefaultGistClient } from "../gist-client.js";
+import { loadIgnoreMatcher } from "../ignore.js";
 import { loadInventory } from "../inventory.js";
 import { normalizeAgent } from "../locations.js";
 import { createEmptyManifest, MANIFEST_FILENAME, parseManifest, serializeManifest, validateBundlePath } from "../manifest.js";
-import { targetPathForItem, validateItemForLocalWrite, validateTargetForLocalWrite, writeItemToLocal } from "../local-writes.js";
+import {
+  isLocalTargetIgnored,
+  targetPathForItem,
+  validateItemForLocalWrite,
+  validateTargetForLocalWrite,
+  writeItemToLocal
+} from "../local-writes.js";
 import { assertValidProfileName, resolveProfileGist } from "../profile-store.js";
 import { sha256 } from "../hash.js";
 import { assertAgentStashScope } from "../validation.js";
@@ -60,8 +67,9 @@ export async function importArchive(ctx: AgentStashContext, options: ImportOptio
   const manifest = parseManifest(manifestContent);
   const bundleFiles = new Map(Object.entries(archiveFiles).filter(([filePath]) => filePath !== MANIFEST_FILENAME));
   verifyArchiveHashes(manifest.items, bundleFiles);
+  const matcher = await loadIgnoreMatcher(ctx, options.scope);
   const selected = manifest.items.filter(
-    (item) => item.scope === options.scope && item.agentId === agentId
+    (item) => item.scope === options.scope && item.agentId === agentId && !isLocalTargetIgnored(ctx, matcher, item)
   );
   const selectedFiles = selected.map((item) => {
     const files = item.files.map((file) => {

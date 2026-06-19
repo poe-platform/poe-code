@@ -181,6 +181,39 @@ describe("archive operations", () => {
     ).toBe("# Existing\n");
   });
 
+  it("skips imported archive skills that are ignored locally before creating a backup", async () => {
+    const archiveCodec = new InMemoryArchiveCodec();
+    const source = createContext(createDummyAgentConfigFixture(), archiveCodec);
+    await exportArchive(source.ctx, {
+      outputPath: "/archives/project.tar.gz",
+      scope: "project",
+      agent: "claude-code"
+    });
+    const archive = archiveCodec.archives.get("/archives/project.tar.gz")!;
+    const manifest = parseManifest(archive["agent-stash.json"]!);
+    manifest.items = manifest.items.filter((item) => item.id === "project:skill:claude-code:code-review");
+    archiveCodec.archives.set("/archives/project.tar.gz", {
+      "agent-stash.json": serializeManifest(manifest),
+      "skills/project/claude-code/code-review/SKILL.md": archive["skills/project/claude-code/code-review/SKILL.md"]!
+    });
+    const targetFiles = createDummyAgentConfigFixture();
+    targetFiles["/repo/.agent-stashignore"] = ".claude/skills/code-review/**\n";
+    delete targetFiles["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(targetFiles, archiveCodec);
+
+    const result = await importArchive(target.ctx, {
+      inputPath: "/archives/project.tar.gz",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    expect(result.imported).toEqual([]);
+    expect(result.backupId).toBeUndefined();
+    expect(() => target.volume.statSync("/repo/.claude/skills/code-review/SKILL.md")).toThrow();
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("imports archive items using an agent alias", async () => {
     const archiveCodec = new InMemoryArchiveCodec();
     const source = createContext(createDummyAgentConfigFixture(), archiveCodec);

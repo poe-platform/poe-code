@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { exportArchive, importArchive, validateArchiveEntry, validateArchiveEntryPath } from "./archive.js";
+import { createArchiveEntryFilter, exportArchive, importArchive, validateArchiveEntry, validateArchiveEntryPath } from "./archive.js";
 import { uploadBundle } from "./upload.js";
 import { hashFiles, sha256 } from "../hash.js";
 import { InMemoryArchiveCodec } from "../test-support/in-memory-archive-codec.js";
@@ -53,6 +53,15 @@ describe("archive operations", () => {
     );
     expect(() => validateArchiveEntry("skills/link", { type: "Link" })).toThrow(
       "Archive contains unsupported entry type Link: skills/link"
+    );
+  });
+
+  it("captures tar filter validation errors without throwing from the filter callback", () => {
+    const entryFilter = createArchiveEntryFilter();
+
+    expect(entryFilter.filter("skills/link", { type: "SymbolicLink" })).toBe(false);
+    expect(() => entryFilter.assertValid()).toThrow(
+      "Archive contains unsupported entry type SymbolicLink: skills/link"
     );
   });
 

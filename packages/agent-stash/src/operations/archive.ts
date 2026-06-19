@@ -179,15 +179,16 @@ class TarArchiveCodec implements ArchiveCodec {
   async read(inputPath: string): Promise<Record<string, string>> {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "agent-stash-import-"));
     try {
+      const entryFilter = createArchiveEntryFilter();
       await tar.extract({
         cwd: tempDir,
         file: inputPath,
         strict: true,
         filter(entryPath, entry) {
-          validateArchiveEntry(entryPath, entry);
-          return true;
+          return entryFilter.filter(entryPath, entry);
         }
       });
+      entryFilter.assertValid();
       return await filesFromDirectory(tempDir);
     } finally {
       await fs.rm(tempDir, { recursive: true, force: true });
@@ -209,6 +210,32 @@ export function validateArchiveEntry(entryPath: string, entry?: unknown): void {
   if (entryType !== undefined && entryType !== "File" && entryType !== "Directory") {
     throw new Error(`Archive contains unsupported entry type ${entryType}: ${entryPath}`);
   }
+}
+
+export function createArchiveEntryFilter(): {
+  filter(entryPath: string, entry?: unknown): boolean;
+  assertValid(): void;
+} {
+  let validationError: Error | undefined;
+  return {
+    filter(entryPath, entry) {
+      if (validationError) {
+        return false;
+      }
+      try {
+        validateArchiveEntry(entryPath, entry);
+        return true;
+      } catch (error) {
+        validationError = error instanceof Error ? error : new Error(String(error));
+        return false;
+      }
+    },
+    assertValid() {
+      if (validationError) {
+        throw validationError;
+      }
+    }
+  };
 }
 
 function archiveEntryType(entry: unknown): string | undefined {

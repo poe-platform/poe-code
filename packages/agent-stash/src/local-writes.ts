@@ -2,7 +2,7 @@ import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hookItemName } from "./hook-items.js";
 import { isIgnoredSubtree, type IgnoreMatcher } from "./ignore.js";
-import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
+import { agentStashDir, normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { localPathForBundleFile } from "./bundle.js";
 import { selectedHookMatchesName } from "./validation.js";
 import { assertNoSymlinkAncestors, assertNotSymlink, isDirectory, pathExists, readFileIfExists, removePath, writeTextFile } from "./fs-utils.js";
@@ -14,6 +14,13 @@ type HookFragment = HookFile & {
   event: string;
   groups: unknown[];
   position?: { groupIndex: number; hookIndex: number };
+};
+type HookOriginStore = {
+  targets: Record<string, Record<string, HookOriginGroup[]>>;
+};
+type HookOriginGroup = {
+  groupIndex: number;
+  hooks: number[];
 };
 
 export function targetPathForItem(ctx: AgentStashContext, item: AgentStashItem, scope = item.scope): string {
@@ -73,10 +80,18 @@ export async function writeItemToLocal(
   const fragment = parseHookFragment(item, files);
   const existingContent = await readFileIfExists(ctx.fs, targetPath);
   const existing = existingContent === null ? {} : parseExistingHookConfig(targetPath, existingContent);
-  existing.hooks = fragment.position
-    ? mergeIndividualHook(existing.hooks ?? {}, fragment)
-    : { ...(existing.hooks ?? {}), ...(fragment.hooks ?? {}) };
+  const originStore = await readHookOriginStore(ctx);
+  if (fragment.position) {
+    const merged = mergeIndividualHook(existing.hooks ?? {}, fragment, originStore.targets[targetPath]?.[fragment.event] ?? []);
+    existing.hooks = merged.hooks;
+    originStore.targets[targetPath] ??= {};
+    originStore.targets[targetPath][fragment.event] = merged.origins;
+  } else {
+    existing.hooks = { ...(existing.hooks ?? {}), ...(fragment.hooks ?? {}) };
+    clearHookOrigins(originStore, targetPath, Object.keys(fragment.hooks ?? {}));
+  }
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
+  await writeHookOriginStore(ctx, originStore);
   return [targetPath];
 }
 
@@ -204,30 +219,100 @@ function parseHookFragmentPosition(metadata: unknown, itemName: string, eventNam
   return { groupIndex: metadata.groupIndex, hookIndex: metadata.hookIndex };
 }
 
-function mergeIndividualHook(hooks: Record<string, unknown>, fragment: HookFragment): Record<string, unknown> {
+function mergeIndividualHook(
+  hooks: Record<string, unknown>,
+  fragment: HookFragment,
+  origins: readonly HookOriginGroup[]
+): { hooks: Record<string, unknown>; origins: HookOriginGroup[] } {
   const eventGroups = cloneUnknownArray(hooks[fragment.event]);
   const sourceGroup = fragment.groups[0];
   if (!fragment.position || !isRecord(sourceGroup) || !Array.isArray(sourceGroup.hooks) || !isRecord(sourceGroup.hooks[0])) {
     throw new Error(`Malformed hook fragment for ${fragment.event}.`);
   }
-  const targetGroupIndex = fragment.position.groupIndex < eventGroups.length
-    ? fragment.position.groupIndex
-    : eventGroups.length;
-  const existingGroupCandidate = eventGroups[targetGroupIndex];
+  const originGroups = origins.length === eventGroups.length
+    ? origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }))
+    : [];
+  const targetGroup = targetGroupForMerge(eventGroups, originGroups, fragment.position.groupIndex);
+  const existingGroupCandidate = targetGroup.insert ? undefined : eventGroups[targetGroup.index];
   const existingGroup = isRecord(existingGroupCandidate)
     ? cloneRecord(existingGroupCandidate)
     : {};
   const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
   const nextGroup: HookGroup = { ...existingGroup, ...sourceGroupFields };
   const groupHooks = Array.isArray(existingGroup.hooks) ? [...existingGroup.hooks] : [];
-  if (fragment.position.hookIndex < groupHooks.length) {
-    groupHooks[fragment.position.hookIndex] = cloneJson(sourceGroup.hooks[0]);
+  const existingHookOrigins = targetGroup.insert ? [] : originGroups[targetGroup.index]?.hooks ?? [];
+  const targetHook = targetHookForMerge(groupHooks, existingHookOrigins, fragment.position.hookIndex);
+  if (targetHook.insert) {
+    groupHooks.splice(targetHook.index, 0, cloneJson(sourceGroup.hooks[0]));
   } else {
-    groupHooks.push(cloneJson(sourceGroup.hooks[0]));
+    groupHooks[targetHook.index] = cloneJson(sourceGroup.hooks[0]);
   }
   nextGroup.hooks = groupHooks;
-  eventGroups[targetGroupIndex] = nextGroup;
-  return { ...hooks, [fragment.event]: eventGroups };
+  const nextGroupOrigin: HookOriginGroup = {
+    groupIndex: fragment.position.groupIndex,
+    hooks: mergeHookOrigins(existingHookOrigins, targetHook, fragment.position.hookIndex)
+  };
+  if (targetGroup.insert) {
+    eventGroups.splice(targetGroup.index, 0, nextGroup);
+    originGroups.splice(targetGroup.index, 0, nextGroupOrigin);
+  } else {
+    eventGroups[targetGroup.index] = nextGroup;
+    originGroups[targetGroup.index] = nextGroupOrigin;
+  }
+  return { hooks: { ...hooks, [fragment.event]: eventGroups }, origins: originGroups };
+}
+
+function targetGroupForMerge(
+  eventGroups: readonly unknown[],
+  origins: readonly HookOriginGroup[],
+  groupIndex: number
+): { index: number; insert: boolean } {
+  const existingOriginIndex = origins.findIndex((origin) => origin.groupIndex === groupIndex);
+  if (existingOriginIndex !== -1) {
+    return { index: existingOriginIndex, insert: false };
+  }
+  if (origins.length > 0) {
+    const insertIndex = origins.findIndex((origin) => origin.groupIndex > groupIndex);
+    return { index: insertIndex === -1 ? eventGroups.length : insertIndex, insert: true };
+  }
+  if (groupIndex < eventGroups.length) {
+    return { index: groupIndex, insert: false };
+  }
+  return { index: eventGroups.length, insert: true };
+}
+
+function targetHookForMerge(
+  groupHooks: readonly unknown[],
+  origins: readonly number[],
+  hookIndex: number
+): { index: number; insert: boolean } {
+  const normalizedOrigins = origins.length === groupHooks.length ? origins : [];
+  const existingOriginIndex = normalizedOrigins.indexOf(hookIndex);
+  if (existingOriginIndex !== -1) {
+    return { index: existingOriginIndex, insert: false };
+  }
+  if (normalizedOrigins.length > 0) {
+    const insertIndex = normalizedOrigins.findIndex((origin) => origin > hookIndex);
+    return { index: insertIndex === -1 ? groupHooks.length : insertIndex, insert: true };
+  }
+  if (hookIndex < groupHooks.length) {
+    return { index: hookIndex, insert: false };
+  }
+  return { index: groupHooks.length, insert: true };
+}
+
+function mergeHookOrigins(
+  origins: readonly number[],
+  target: { index: number; insert: boolean },
+  hookIndex: number
+): number[] {
+  const next = [...origins];
+  if (target.insert) {
+    next.splice(target.index, 0, hookIndex);
+    return next;
+  }
+  next[target.index] = hookIndex;
+  return next;
 }
 
 function parseExistingHookConfig(targetPath: string, content: string): HookFile {
@@ -338,6 +423,87 @@ function cloneRecordWithoutHooks(value: Record<string, unknown>): Record<string,
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+async function readHookOriginStore(ctx: AgentStashContext): Promise<HookOriginStore> {
+  const content = await readFileIfExists(ctx.fs, hookOriginsPath(ctx));
+  if (content === null) {
+    return { targets: {} };
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content) as unknown;
+  } catch {
+    throw new Error("Malformed hook origin cache.");
+  }
+  if (!isRecord(parsed) || !isRecord(parsed.targets)) {
+    throw new Error("Malformed hook origin cache.");
+  }
+  const targets: HookOriginStore["targets"] = {};
+  for (const [targetPath, target] of Object.entries(parsed.targets)) {
+    if (!isRecord(target)) {
+      throw new Error("Malformed hook origin cache.");
+    }
+    const events: Record<string, HookOriginGroup[]> = {};
+    for (const [event, groups] of Object.entries(target)) {
+      if (!Array.isArray(groups)) {
+        throw new Error("Malformed hook origin cache.");
+      }
+      events[event] = groups.map((group) => {
+        if (!isRecord(group) || !isNonNegativeInteger(group.groupIndex) || !Array.isArray(group.hooks)) {
+          throw new Error("Malformed hook origin cache.");
+        }
+        return {
+          groupIndex: group.groupIndex,
+          hooks: group.hooks.map((hookIndex) => {
+            if (!isNonNegativeInteger(hookIndex)) {
+              throw new Error("Malformed hook origin cache.");
+            }
+            return hookIndex;
+          })
+        };
+      });
+    }
+    targets[targetPath] = events;
+  }
+  return { targets };
+}
+
+async function writeHookOriginStore(ctx: AgentStashContext, store: HookOriginStore): Promise<void> {
+  pruneHookOriginStore(store);
+  const root = agentStashDir(ctx.homeDir);
+  const targetPath = hookOriginsPath(ctx);
+  await assertNotSymlink(ctx.fs, root);
+  await assertNoSymlinkAncestors(ctx.fs, targetPath, root);
+  await assertNotSymlink(ctx.fs, targetPath);
+  await writeTextFile(ctx.fs, targetPath, `${JSON.stringify({ version: 1, targets: store.targets }, null, 2)}\n`);
+}
+
+function clearHookOrigins(store: HookOriginStore, targetPath: string, events: readonly string[]): void {
+  const target = store.targets[targetPath];
+  if (!target) {
+    return;
+  }
+  for (const event of events) {
+    delete target[event];
+  }
+}
+
+function pruneHookOriginStore(store: HookOriginStore): void {
+  for (const [targetPath, target] of Object.entries(store.targets)) {
+    for (const [event, groups] of Object.entries(target)) {
+      if (groups.length === 0) {
+        delete target[event];
+      }
+    }
+    if (Object.keys(target).length === 0) {
+      delete store.targets[targetPath];
+    }
+  }
+}
+
+function hookOriginsPath(ctx: AgentStashContext): string {
+  return path.join(agentStashDir(ctx.homeDir), "hook-origins.json");
 }
 
 function localWriteRoot(ctx: AgentStashContext, scope: AgentStashScope): string {

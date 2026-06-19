@@ -644,6 +644,116 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("preserves a later same-matcher hook group when an earlier group is downloaded afterward", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote first stop" }] },
+            { hooks: [{ type: "command", command: "remote second stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {}
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-002-001"],
+      yes: true
+    });
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-001-001"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { Stop?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.hooks?.Stop?.map((group) => group.hooks?.map((hook) => hook.command))).toEqual([
+      ["remote first stop"],
+      ["remote second stop"]
+    ]);
+  });
+
+  it("preserves a later hook command in the same group when an earlier command is downloaded afterward", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          SessionStart: [
+            {
+              hooks: [
+                { type: "command", command: "remote first session" },
+                { type: "command", command: "remote second session" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["SessionStart"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {}
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["SessionStart-all-tools-001-002"],
+      yes: true
+    });
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["SessionStart-all-tools-001-001"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { SessionStart?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.hooks?.SessionStart?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
+      "remote first session",
+      "remote second session"
+    ]);
+  });
+
   it("rejects hook fragments that modify a different hook event before writing", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

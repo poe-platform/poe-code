@@ -24,6 +24,7 @@
   },
   "files": [
     "dist",
+    "!dist/test-support",
     "README.md"
   ],
   "dependencies": {

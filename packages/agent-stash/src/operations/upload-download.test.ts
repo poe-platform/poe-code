@@ -724,6 +724,34 @@ describe("upload/download", () => {
     expect(() => target.volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
   });
 
+  it("rejects missing selected download skills before local writes or profile updates", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.claude/skills/code-review/SKILL.md"] = "# Existing Local\n";
+    files["/home/user/.agent-stash/config.json"] = JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2);
+    const target = createContext(files, gistClient);
+
+    await expect(downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["missing"],
+      yes: true
+    })).rejects.toThrow("Selected skill not found: missing");
+
+    expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Existing Local\n");
+    expect(target.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8")).toBe(files["/home/user/.agent-stash/config.json"]);
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("downloads by Gist URL without a stored profile", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

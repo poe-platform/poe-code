@@ -4792,11 +4792,11 @@ describe("runCLI", () => {
     expect(deployHandler).not.toHaveBeenCalled();
   });
 
-  it("supports an unnamed root default command alongside named sibling commands", async () => {
+  it("supports a hidden root default command alongside named sibling commands", async () => {
     const ingestHandler = vi.fn(async ({ params }: { params: { url: string } }) => params);
     const initHandler = vi.fn(async () => ({ initialized: true }));
     const ingest = defineCommand({
-      name: "",
+      name: "open",
       positional: ["url"],
       params: S.Object({
         url: S.String()
@@ -4837,6 +4837,56 @@ describe("runCLI", () => {
     expect(output).toContain("<url>");
     expect(output).toContain("init");
     expect(output).not.toContain("__toolcraft_default");
+  });
+
+  it("reports unknown bare root commands before falling through to a root default command", async () => {
+    const ingestHandler = vi.fn(async () => undefined);
+    const switchHandler = vi.fn(async () => undefined);
+    const ingest = defineCommand({
+      name: "",
+      positional: ["url"],
+      params: S.Object({
+        url: S.String()
+      }),
+      handler: ingestHandler
+    });
+    const switchWorkspace = defineCommand({
+      name: "switch-workspace",
+      params: S.Object({}),
+      handler: switchHandler
+    });
+    const root = defineGroup({
+      name: "",
+      children: [ingest, switchWorkspace],
+      default: ingest
+    });
+
+    process.argv = ["node", "wire", "switch"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      ['Unknown command "switch".', "Run wire --help for usage."].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
+    expect(ingestHandler).not.toHaveBeenCalled();
+    expect(switchHandler).not.toHaveBeenCalled();
+
+    resetLoggerState();
+    process.exitCode = undefined;
+    process.argv = ["node", "wire", "switch-workspace"];
+    await runCLI(root);
+
+    expect(switchHandler).toHaveBeenCalledTimes(1);
+    expect(ingestHandler).not.toHaveBeenCalled();
+
+    switchHandler.mockClear();
+    process.argv = ["node", "wire", "https://example.com/source.md", "--yes"];
+    await runCLI(root);
+
+    expect(ingestHandler).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { url: "https://example.com/source.md" } })
+    );
+    expect(switchHandler).not.toHaveBeenCalled();
   });
 
   it("keeps named root default commands out of the public command surface", async () => {

@@ -5219,7 +5219,7 @@ function findUnknownCommanderCommand(
       };
     }
 
-    if (current.commands.length === 0 || getDefaultCommanderCommandName(current) !== undefined) {
+    if (current.commands.length === 0) {
       return undefined;
     }
 
@@ -5227,6 +5227,18 @@ function findUnknownCommanderCommand(
       (command) => command.name() === token || command.aliases().includes(token)
     );
     if (child === undefined) {
+      if (getDefaultCommanderCommandName(current) !== undefined) {
+        if (shouldRejectDefaultCommandToken(current, token, pathSegments)) {
+          return {
+            input: token,
+            currentCommand: current,
+            commandPath: pathSegments.join(" ")
+          };
+        }
+
+        return undefined;
+      }
+
       return {
         input: token,
         currentCommand: current,
@@ -5239,6 +5251,54 @@ function findUnknownCommanderCommand(
   }
 
   return undefined;
+}
+
+function shouldRejectDefaultCommandToken(
+  command: CommanderCommand,
+  token: string,
+  pathSegments: readonly string[]
+): boolean {
+  return (
+    pathSegments.length === 0 &&
+    isBareCommandLikeToken(token) &&
+    hasNonDefaultPublicChildCommand(command)
+  );
+}
+
+function hasNonDefaultPublicChildCommand(command: CommanderCommand): boolean {
+  const defaultName = getDefaultCommanderCommandName(command);
+  return command.commands.some(
+    (child) =>
+      child.name() !== defaultName &&
+      !isToolcraftHiddenCommander(child) &&
+      !getToolcraftReservedChildNames(command).includes(child.name())
+  );
+}
+
+function isBareCommandLikeToken(token: string): boolean {
+  if (token.length === 0) {
+    return false;
+  }
+
+  for (const character of token) {
+    if (!isCommandNameCharacter(character)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isCommandNameCharacter(character: string): boolean {
+  const code = character.codePointAt(0);
+  if (code === undefined) {
+    return false;
+  }
+
+  const isLowercaseLetter = code >= 97 && code <= 122;
+  const isUppercaseLetter = code >= 65 && code <= 90;
+  const isDigit = code >= 48 && code <= 57;
+  return isLowercaseLetter || isUppercaseLetter || isDigit || character === "-" || character === "_";
 }
 
 function getDefaultCommanderCommandName(command: CommanderCommand): string | undefined {

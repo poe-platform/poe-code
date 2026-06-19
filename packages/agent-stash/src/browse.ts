@@ -1,7 +1,8 @@
 import {
   getTheme,
+  renderInspectorCard,
   renderTable,
-  runTwoPaneExplorer,
+  runExplorer,
   withOutputFormat,
   type ActionContext,
   type ExplorerConfig,
@@ -50,6 +51,7 @@ export interface BrowsePane {
   scope?: AgentStashScope;
   profile?: string;
   items: AgentStashItem[];
+  contents?: Map<string, string>;
 }
 
 export interface BrowseModel {
@@ -67,6 +69,7 @@ export interface BrowseActionOptions extends BrowseOptions {
   yes?: boolean;
   onConflict?: ConflictPolicy;
   resolveConflict?: SyncOptions["resolveConflict"];
+  createProfileIfMissing?: boolean;
 }
 
 export interface BrowseActionResult {
@@ -86,6 +89,7 @@ type BrowseExplorerResult = void;
 const itemColumns: TableColumn[] = [
   { name: "kind", title: "Kind", alignment: "left", maxLen: 7 },
   { name: "name", title: "Name", alignment: "left", maxLen: 32 },
+  { name: "preview", title: "Preview", alignment: "left", maxLen: 48 },
   { name: "scope", title: "Scope", alignment: "left", maxLen: 8 },
   { name: "files", title: "Files", alignment: "right", maxLen: 5 }
 ];
@@ -140,10 +144,19 @@ export function buildBrowseExplorerConfig(
     title: "agent-stash browse",
     rows: async () => browseRows(await buildBrowseModel(ctx, options)),
     detail: {
-      items: async (row) => [{
-        id: row.id,
-        render: () => renderBrowseRowDetail(row)
-      }]
+      items: async (row) => {
+        const model = await buildBrowseModel(ctx, options);
+        const parsed = parseBrowseRowId(row.id);
+        const pane = model[parsed.fromPane];
+        const item = pane.items.find((candidate) => candidate.id === parsed.itemId);
+        if (!item) {
+          throw new Error(`Browse detail item not found: ${parsed.itemId}`);
+        }
+        return [{
+          id: row.id,
+          render: (detailCtx) => renderBrowseItemDetail(pane, item, detailCtx.width)
+        }];
+      }
     },
     actions: browseExplorerActions(ctx, options, runAction),
     multiSelect: true,
@@ -194,7 +207,7 @@ export async function runBrowseTui(
   ctx: AgentStashContext,
   options: BrowseOptions = {}
 ): Promise<void> {
-  await runTwoPaneExplorer(buildBrowseTwoPaneConfig(ctx, options));
+  await runExplorer(buildBrowseExplorerConfig(ctx, options));
 }
 
 export async function runBrowseAction(
@@ -202,7 +215,7 @@ export async function runBrowseAction(
   options: BrowseActionOptions
 ): Promise<BrowseActionResult> {
   assertBrowseAction(options.action);
-  const model = await buildBrowseModel(ctx, options);
+  const model = await buildBrowseModel(ctx, await browseModelOptionsForAction(ctx, options));
   const source = model[options.fromPane ?? model.activePane];
   const target = model[(options.fromPane ?? model.activePane) === "left" ? "right" : "left"];
   const selected = selectItems(source.items, options.selectedIds);
@@ -350,7 +363,8 @@ async function loadGistPane(
     scope: options.scope,
     profile: options.profile,
     agentId: options.agentId,
-    items
+    items,
+    contents: bundle?.files
   };
 }
 
@@ -376,7 +390,7 @@ function paneRows(paneId: "left" | "right", pane: BrowsePane): Row[] {
   return pane.items.map((item) => ({
     id: `${paneId}:${item.id}`,
     title: item.name,
-    subtitle: `${item.kind} ${item.scope}`,
+    subtitle: itemSubtitle(pane, item),
     badge: { text: pane.location, tone: pane.location === "gist" ? "info" : "muted" },
     group: pane.title
   }));
@@ -386,20 +400,37 @@ function paneTwoPaneRows(pane: BrowsePane): TwoPaneRow[] {
   return pane.items.map((item) => ({
     id: item.id,
     title: item.name,
-    subtitle: `${item.kind} ${item.scope ?? pane.location}`,
+    subtitle: itemSubtitle(pane, item),
     badge: { text: pane.location, tone: pane.location === "gist" ? "info" : "muted" }
   }));
 }
 
-function renderBrowseRowDetail(row: Row): string {
-  const parsed = parseBrowseRowId(row.id);
-  return [
-    `# ${row.title}`,
-    "",
-    `Pane: ${parsed.fromPane}`,
-    `Item: ${parsed.itemId}`,
-    row.subtitle ? `Type: ${row.subtitle}` : undefined
-  ].filter((line): line is string => line !== undefined).join("\n");
+function renderBrowseItemDetail(pane: BrowsePane, item: AgentStashItem, width: number): string {
+  return renderInspectorCard({
+    theme: getTheme(),
+    title: item.name,
+    subtitle: `${item.kind} ${item.scope}`,
+    badges: [pane.location, item.agentId],
+    preview: itemPreviewContent(pane, item),
+    sections: [{
+      title: "Details",
+      fields: [
+        { label: "ID", value: item.id },
+        { label: "Path", value: item.path },
+        { label: "Files", value: String(item.files.length) },
+        { label: "Updated", value: item.updatedAt },
+        { label: "Hash", value: item.contentHash }
+      ]
+    }, {
+      title: "Bundle files",
+      fields: item.files.map((file) => ({
+        label: file.path,
+        value: `${file.size} bytes ${file.sha256}`
+      }))
+    }],
+    width,
+    maxPreviewLines: 32
+  });
 }
 
 function browseTwoPaneActions(
@@ -486,9 +517,12 @@ function browseExplorerAction(
         actionCtx.toast("Select items from one pane", "warning");
         return;
       }
+      const profile = await profileForBrowseAction(options, action, actionCtx.confirm);
       await actionCtx.suspendAnd(async () => {
         await runAction(ctx, {
           ...options,
+          profile,
+          createProfileIfMissing: profile !== options.profile,
           action,
           fromPane: firstPane,
           selectedIds: parsedRows.map((row) => row.itemId),
@@ -499,6 +533,37 @@ function browseExplorerAction(
       actionCtx.toast(`${label} complete`, "success");
     }
   };
+}
+
+async function browseModelOptionsForAction(
+  ctx: AgentStashContext,
+  options: BrowseActionOptions
+): Promise<BrowseOptions> {
+  if (
+    options.createProfileIfMissing &&
+    options.profile &&
+    (options.action === "upload" || options.action === "sync")
+  ) {
+    const resolved = await resolveProfileGist(ctx, options.profile);
+    if (!resolved.gistId) {
+      return { ...options, profile: undefined };
+    }
+  }
+  return options;
+}
+
+async function profileForBrowseAction(
+  options: BrowseExplorerOptions,
+  action: BrowseActionName,
+  confirm: (prompt: string) => Promise<boolean>
+): Promise<string | undefined> {
+  if (options.profile || action === "copy" || action === "move" || action === "download") {
+    return options.profile;
+  }
+  if (!await confirm('Create profile "default" with a new secret Gist?')) {
+    throw new Error("Operation cancelled.");
+  }
+  return "default";
 }
 
 function rowsForAction(ctx: ActionContext<BrowseExplorerResult>): Row[] {
@@ -539,12 +604,13 @@ function renderPane(pane: BrowsePane): string {
   const rows = pane.items.map((item) => ({
     kind: item.kind,
     name: item.name,
+    preview: itemPreview(pane, item) ?? "",
     scope: item.scope,
     files: String(item.files.length)
   }));
   const tableRows = rows.length > 0
     ? rows
-    : [{ kind: "-", name: "No items", scope: "-", files: "0" }];
+    : [{ kind: "-", name: "No items", preview: "", scope: "-", files: "0" }];
   const table = withOutputFormat("terminal", () =>
     renderTable({
       theme: getTheme(),
@@ -558,4 +624,109 @@ function renderPane(pane: BrowsePane): string {
 
 function titleCase(value: string): string {
   return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
+}
+
+function itemSubtitle(pane: BrowsePane, item: AgentStashItem): string {
+  const preview = itemPreview(pane, item);
+  const prefix = `${item.kind} ${item.scope ?? pane.location}`;
+  return preview ? `${prefix} - ${preview}` : prefix;
+}
+
+function itemPreview(pane: BrowsePane, item: AgentStashItem): string | undefined {
+  const firstFile = item.files[0];
+  if (!firstFile) {
+    return undefined;
+  }
+  const content = contentForItem(pane, item, firstFile.path);
+  if (!content) {
+    return undefined;
+  }
+  if (item.kind === "hook") {
+    return hookPreview(content);
+  }
+  return firstNonEmptyLine(content);
+}
+
+function itemPreviewContent(pane: BrowsePane, item: AgentStashItem): string | undefined {
+  const firstFile = item.files[0];
+  if (!firstFile) {
+    return undefined;
+  }
+  return contentForItem(pane, item, firstFile.path);
+}
+
+function contentForItem(pane: BrowsePane, item: AgentStashItem, filePath: string): string | undefined {
+  const loaded = item as AgentStashItem & { bundleFiles?: Array<{ path: string; content: string }> };
+  return loaded.bundleFiles?.find((file) => file.path === filePath)?.content ?? pane.contents?.get(filePath);
+}
+
+function hookPreview(content: string): string | undefined {
+  try {
+    const parsed = JSON.parse(content) as unknown;
+    if (!isRecord(parsed) || !isRecord(parsed.hooks)) {
+      return firstNonEmptyLine(content);
+    }
+    const fragments: string[] = [];
+    for (const [event, groups] of Object.entries(parsed.hooks)) {
+      if (!Array.isArray(groups)) {
+        continue;
+      }
+      const commands = groups
+        .flatMap((group) => isRecord(group) && Array.isArray(group.hooks) ? group.hooks : [])
+        .map((hook) => isRecord(hook) && typeof hook.command === "string" ? hook.command : undefined)
+        .filter((command): command is string => command !== undefined);
+      const matchers = groups
+        .map((group) => isRecord(group) && typeof group.matcher === "string" ? group.matcher : undefined)
+        .filter((matcher): matcher is string => matcher !== undefined);
+      const details = [...matchers, ...commands].join(" -> ");
+      fragments.push(details ? `${event}: ${details}` : event);
+    }
+    return compactPreview(fragments.join("; "));
+  } catch {
+    return firstNonEmptyLine(content);
+  }
+}
+
+function firstNonEmptyLine(content: string): string | undefined {
+  return compactPreview(splitLines(content).find((line) => line.trim().length > 0)?.trim() ?? "");
+}
+
+function compactPreview(value: string): string | undefined {
+  const normalized = collapseWhitespace(value);
+  if (normalized.length === 0) {
+    return undefined;
+  }
+  return normalized.length > 96 ? `${normalized.slice(0, 93)}...` : normalized;
+}
+
+function splitLines(content: string): string[] {
+  return content.split("\n").map((line) => line.endsWith("\r") ? line.slice(0, -1) : line);
+}
+
+function collapseWhitespace(value: string): string {
+  const parts: string[] = [];
+  let previousWasWhitespace = true;
+  for (const character of value) {
+    if (isWhitespace(character)) {
+      if (!previousWasWhitespace) {
+        parts.push(" ");
+      }
+      previousWasWhitespace = true;
+    } else {
+      parts.push(character);
+      previousWasWhitespace = false;
+    }
+  }
+  if (parts.at(-1) === " ") {
+    parts.pop();
+  }
+  return parts.join("");
+}
+
+function isWhitespace(character: string): boolean {
+  return character === " " || character === "\t" || character === "\n" || character === "\r" || character === "\v" || character === "\f";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

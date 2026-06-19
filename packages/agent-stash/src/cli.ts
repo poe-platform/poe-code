@@ -117,6 +117,15 @@ export function createAgentStashProgram(dependencies: AgentStashCliDependencies 
   const program = new Command();
   program.name("agent-stash").description("Portable agent skills and hooks sync.").version("0.0.1");
   program.option("--cwd <path>", "Project working directory").option("--home <path>", "Home directory");
+  program.action(async () => {
+    const ctx = getContext(program.opts());
+    const options = { scope: "project" as const, agent: "claude-code" };
+    if (isInteractiveTerminal()) {
+      await runBrowseTui(ctx, options);
+      return;
+    }
+    output(`${await browse(ctx, options)}\n`);
+  });
 
   const profile = program.command("profile").description("Manage named Gist profiles.");
   profile.command("list").action(async () => {
@@ -313,6 +322,7 @@ async function resolveUploadOptions(
 
   if (options.yes) {
     applyDefaultTarget(options);
+    applyDefaultProfile(options);
     assertTargetOptions(options);
     return options as UploadOptions;
   }
@@ -321,7 +331,7 @@ async function resolveUploadOptions(
     return options as UploadOptions;
   }
 
-  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowEmptyUploadProfile: true });
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: true });
   await resolveTargetPrompts(options, runtime.prompts, "Source");
   await resolveUploadSelections(ctx, options, runtime.prompts);
   const selectedCount = (options.skills?.length ?? 0) + (options.hooks?.length ?? 0);
@@ -356,7 +366,7 @@ async function resolveDownloadOptions(
     return options as DownloadOptions;
   }
 
-  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowEmptyUploadProfile: false });
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: false });
   await resolveTargetPrompts(options, runtime.prompts, "Destination");
   const source = profileOrGistLabel(options);
   await confirmOrThrow(runtime.prompts, `Download from ${source} into ${options.scope} ${options.agent}?`);
@@ -382,6 +392,7 @@ async function resolveSyncOptions(
 
   if (options.yes) {
     applyDefaultTarget(options);
+    applyDefaultProfile(options);
     assertTargetOptions(options);
     return options as SyncOptions;
   }
@@ -390,7 +401,7 @@ async function resolveSyncOptions(
     return options as SyncOptions;
   }
 
-  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowEmptyUploadProfile: false });
+  await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: true });
   await resolveTargetPrompts(options, runtime.prompts, "Target");
   if (options.onConflict === "ask") {
     options.resolveConflict = conflict => promptConflictResolution(runtime.prompts, conflict);
@@ -414,7 +425,7 @@ async function resolveProfilePrompt(
   ctx: AgentStashContext,
   options: { profile?: string; gist?: string },
   prompts: AgentStashPromptAdapter,
-  settings: { allowEmptyUploadProfile: boolean }
+  settings: { allowCreateProfile: boolean }
 ): Promise<void> {
   if (options.profile || options.gist) {
     return;
@@ -433,14 +444,12 @@ async function resolveProfilePrompt(
     });
     return;
   }
-  if (settings.allowEmptyUploadProfile) {
+  if (settings.allowCreateProfile) {
+    await confirmOrThrow(prompts, 'Create profile "default" with a new secret Gist?');
+    options.profile = "default";
     return;
   }
-  const gist = await promptTextValue(prompts, "Gist ID or URL");
-  if (gist.trim().length === 0) {
-    throw new Error("A profile with a Gist or --gist is required.");
-  }
-  options.gist = gist.trim();
+  throw new Error("No profiles configured. Upload first to create a default profile automatically.");
 }
 
 async function resolveTargetPrompts(
@@ -505,6 +514,12 @@ function applyDefaultTarget(options: { scope?: AgentStashScope; agent?: string }
   options.agent ??= "claude-code";
 }
 
+function applyDefaultProfile(options: { profile?: string; gist?: string }): void {
+  if (!options.profile && !options.gist) {
+    options.profile = "default";
+  }
+}
+
 function assertTargetOptions<T extends { scope?: AgentStashScope; agent?: string }>(
   options: T
 ): asserts options is T & { scope: AgentStashScope; agent: string } {
@@ -547,14 +562,6 @@ async function promptMultiselect<Value>(
     throw new PromptCancelledError();
   }
   return result as Value[];
-}
-
-async function promptTextValue(prompts: AgentStashPromptAdapter, message: string): Promise<string> {
-  const result = await prompts.text({ message });
-  if (prompts.isCancel(result)) {
-    throw new PromptCancelledError();
-  }
-  return String(result);
 }
 
 async function confirmOrThrow(prompts: AgentStashPromptAdapter, message: string): Promise<void> {

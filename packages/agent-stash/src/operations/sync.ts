@@ -15,6 +15,7 @@ import {
 import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
+import { uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound } from "../validation.js";
 import type {
   AgentStashContext,
@@ -41,7 +42,29 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
   if (!resolved.gistId) {
-    throw new Error("A profile with a Gist or --gist is required.");
+    if (!usesProfileTarget) {
+      throw new Error("A profile with a Gist or --gist is required.");
+    }
+    const initialUpload = await uploadBundle(ctx, {
+      profile: options.profile,
+      gist: options.gist,
+      scope: options.scope,
+      agent: options.agent,
+      skills: options.skills,
+      hooks: options.hooks,
+      yes: options.yes
+    });
+    if (usesProfileTarget) {
+      await writeBaselineManifest(ctx, options.profile!, initialUpload.manifest);
+    }
+    return {
+      uploaded: initialUpload.uploaded,
+      downloaded: [],
+      deletedLocal: [],
+      deletedRemote: [],
+      unchanged: [],
+      conflicts: []
+    };
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const local = await loadSyncInventory(ctx, options);

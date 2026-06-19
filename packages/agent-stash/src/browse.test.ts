@@ -203,6 +203,36 @@ describe("browse", () => {
     expect(gistClient.updateCalls).toHaveLength(0);
   });
 
+  it("creates a default profile from the toolcraft browse upload action", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    await ctx.fs.unlink("/home/user/.agent-stash/config.json");
+    const config = buildBrowseExplorerConfig(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    });
+    const rows = await config.rows();
+    const projectRow = rows.find((row) => row.id === "left:project:skill:claude-code:code-review")!;
+    const confirmations: string[] = [];
+
+    await config.actions.find((action) => action.id === "upload")!.handler({
+      row: projectRow,
+      rows: [projectRow],
+      filter: "",
+      refresh: async () => undefined,
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      confirm: async (prompt) => {
+        confirmations.push(prompt);
+        return true;
+      },
+      exit: () => undefined
+    });
+
+    expect(confirmations).toEqual(['Create profile "default" with a new secret Gist?']);
+    expect(gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
+  });
+
   it("rejects stale selected browse ids before writing", async () => {
     const { ctx, gistClient } = createHarness();
 
@@ -514,6 +544,36 @@ describe("browse", () => {
       selectedIds: ["project:skill:claude-code:code-review"],
       fromPane: "left"
     }]);
+  });
+
+  it("renders useful detail previews for hooks in the toolcraft explorer", async () => {
+    const { ctx } = createHarness();
+    const config = buildBrowseExplorerConfig(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    });
+    const rows = await config.rows();
+    const hookRow = rows.find((row) => row.id === "left:project:hook:claude-code:PreToolUse")!;
+
+    const detailItems = await config.detail.items(hookRow, {
+      width: 80,
+      height: 20,
+      signal: new AbortController().signal,
+      row: hookRow
+    });
+    const rendered = await detailItems[0]!.render({
+      width: 80,
+      height: 20,
+      signal: new AbortController().signal,
+      row: hookRow
+    });
+
+    expect(hookRow.subtitle).toContain("Bash");
+    expect(hookRow.subtitle).toContain("npm test");
+    expect(rendered).toContain("PreToolUse");
+    expect(rendered).toContain("hook");
+    expect(rendered).toContain("hooks/project/claude-code/PreToolUse.json");
+    expect(rendered).toContain("npm test");
   });
 
   it("builds a two-pane TUI config whose actions route active pane rows", async () => {

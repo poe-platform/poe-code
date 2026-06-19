@@ -95,6 +95,25 @@ describe("agent-stash CLI", () => {
     });
   });
 
+  it("uses a default profile when --yes upload has no profile or Gist", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const { program, gistClient, output, volume } = createHarness(files);
+
+    await program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--skills",
+      "code-review",
+      "--yes"
+    ]);
+
+    expect(output.join("")).toBe("Uploaded 1 item(s) to gist-1.\n");
+    expect(gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
+  });
+
   it("treats empty selected upload flags as an empty selection", async () => {
     const { program, gistClient, output } = createHarness();
 
@@ -247,7 +266,18 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toContain("Project: claude-code");
     expect(output.join("")).toContain("Global: claude-code");
     expect(output.join("")).toContain("code-review");
+    expect(output.join("")).toContain("PreToolUse: Bash -> npm test");
     expect(output.join("")).toContain("q quit");
+  });
+
+  it("uses browse as the default command when no subcommand is provided", async () => {
+    const { program, output } = createHarness();
+
+    await program.parseAsync(["node", "agent-stash"]);
+
+    expect(output.join("")).toContain("agent-stash browse");
+    expect(output.join("")).toContain("Project: claude-code");
+    expect(output.join("")).toContain("Global: claude-code");
   });
 
   it("prompts for upload profile, scope, agent, item selections, and confirmation when flags are missing", async () => {
@@ -270,6 +300,37 @@ describe("agent-stash CLI", () => {
       gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")
     ]);
     expect(output.join("")).toBe("Uploaded 2 item(s) to gist-default.\n");
+  });
+
+  it("creates a default profile during first interactive upload without asking for a Gist id", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const prompts = createPromptHarness({
+      select: ["project", "claude-code"],
+      multiselect: [["code-review"], []],
+      confirm: [true, true]
+    });
+    const { program, output, gistClient, volume } = createHarness(files, prompts);
+
+    await program.parseAsync(["node", "agent-stash", "upload"]);
+
+    expect(prompts.textCalls).toEqual([]);
+    expect(prompts.selectCalls.map((call) => call.message)).toEqual(["Source", "Agent"]);
+    expect(prompts.confirmCalls.map((call) => call.message)).toEqual([
+      'Create profile "default" with a new secret Gist?',
+      'Upload 1 item(s) to profile "default"?'
+    ]);
+    expect(gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string)).toEqual({
+      profiles: {
+        default: {
+          gistId: "gist-1",
+          gistUrl: "https://gist.github.com/gist-1",
+          lastPushedAt: "2026-01-02T03:04:05.000Z"
+        }
+      }
+    });
+    expect(output.join("")).toBe("Uploaded 1 item(s) to gist-1.\n");
   });
 
   it("does not prompt for hooks when interactive upload receives selected skills", async () => {
@@ -561,6 +622,66 @@ describe("agent-stash CLI", () => {
     expect(prompts.selectCalls.map((call) => call.message)).toEqual(["Resolve conflict: code-review"]);
     expect(harness.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe(remoteContent);
     expect(harness.output.join("")).toBe("Uploaded 4, downloaded 1, deleted local 0, deleted remote 0, unchanged 0, conflicts 0.\n");
+  });
+
+  it("creates a default profile during first interactive sync without asking for a Gist id", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const prompts = createPromptHarness({
+      select: ["project", "claude-code"],
+      confirm: [true, true]
+    });
+    const harness = createHarness(files, prompts);
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "sync",
+      "--skills",
+      "code-review",
+      "--on-conflict",
+      "fail"
+    ]);
+
+    expect(prompts.textCalls).toEqual([]);
+    expect(prompts.selectCalls.map((call) => call.message)).toEqual(["Target", "Agent"]);
+    expect(prompts.confirmCalls.map((call) => call.message)).toEqual([
+      'Create profile "default" with a new secret Gist?',
+      'Sync profile "default" with project claude-code?'
+    ]);
+    expect(harness.gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(harness.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string)).toEqual({
+      profiles: {
+        default: {
+          gistId: "gist-1",
+          gistUrl: "https://gist.github.com/gist-1",
+          lastPushedAt: "2026-01-02T03:04:05.000Z"
+        }
+      }
+    });
+    expect(parseManifest(harness.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string).items.map((item) => item.name)).toEqual(["code-review"]);
+    expect(harness.output.join("")).toBe("Uploaded 1, downloaded 0, deleted local 0, deleted remote 0, unchanged 0, conflicts 0.\n");
+  });
+
+  it("uses a default profile when --yes sync has no profile or Gist", async () => {
+    const files = createDummyAgentConfigFixture();
+    delete files["/home/user/.agent-stash/config.json"];
+    const harness = createHarness(files);
+
+    await harness.program.parseAsync([
+      "node",
+      "agent-stash",
+      "sync",
+      "--skills",
+      "code-review",
+      "--on-conflict",
+      "fail",
+      "--yes"
+    ]);
+
+    expect(harness.output.join("")).toBe("Uploaded 1, downloaded 0, deleted local 0, deleted remote 0, unchanged 0, conflicts 0.\n");
+    expect(harness.gistClient.createCalls).toHaveLength(1);
+    expect(JSON.parse(harness.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string).profiles.default.gistId).toBe("gist-1");
   });
 
   it("prints sync deleted-local and deleted-remote counts", async () => {

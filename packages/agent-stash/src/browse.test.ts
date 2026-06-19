@@ -574,6 +574,7 @@ describe("browse", () => {
     expect(rendered).toContain("hook");
     expect(rendered).toContain("hooks/project/claude-code/PreToolUse.json");
     expect(rendered).toContain("npm test");
+    expect(rendered).not.toContain("\u001b[");
   });
 
   it("builds a two-pane TUI config whose actions route active pane rows", async () => {

@@ -3,6 +3,7 @@ import {
   renderInspectorCard,
   renderResourceBrowser,
   runExplorer,
+  stripAnsi,
   type ActionContext,
   type ExplorerConfig,
   type Row,
@@ -396,7 +397,7 @@ function paneTwoPaneRows(pane: BrowsePane): TwoPaneRow[] {
 }
 
 function renderBrowseItemDetail(pane: BrowsePane, item: AgentStashItem, width: number): string {
-  return renderInspectorCard({
+  return stripAnsi(renderInspectorCard({
     theme: getTheme(),
     title: item.name,
     subtitle: `${item.kind} ${item.scope}`,
@@ -420,7 +421,7 @@ function renderBrowseItemDetail(pane: BrowsePane, item: AgentStashItem, width: n
     }],
     width,
     maxPreviewLines: 32
-  });
+  }));
 }
 
 function browseTwoPaneActions(

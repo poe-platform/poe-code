@@ -90,6 +90,25 @@ describe("copy/move", () => {
     expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("rejects local copy targets ignored by the target scope before creating a backup", async () => {
+    const files = createDummyAgentConfigFixture();
+    files["/home/user/.agent-stash/ignore"] = ".claude/skills/code-review/**\n";
+    const { ctx, volume } = createContext(files);
+
+    await expect(copyOrMoveItem(ctx, {
+      operation: "copy",
+      from: "project",
+      to: "global",
+      agent: "claude-code",
+      kind: "skill",
+      name: "code-review",
+      yes: true
+    })).rejects.toThrow("Target skill is ignored: code-review");
+
+    expect(volume.readFileSync("/home/user/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Global Review\n");
+    expect(() => volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("moves one global skill to project after writing the target", async () => {
     const { ctx, volume } = createContext();
     const result = await copyOrMoveItem(ctx, {

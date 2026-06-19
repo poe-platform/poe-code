@@ -3,8 +3,10 @@ import { createBackup } from "../backup-store.js";
 import { filesForItem, gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createDefaultGistClient } from "../gist-client.js";
 import { hashFiles } from "../hash.js";
+import { loadIgnoreMatcher } from "../ignore.js";
 import { loadInventory } from "../inventory.js";
 import {
+  isLocalTargetIgnored,
   removeLocalItem,
   targetPathForItem,
   validateItemForLocalWrite,
@@ -50,6 +52,7 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
   const target = retargetSourceItem(source, options);
   const itemForTarget = target.item;
   if (options.to === "project" || options.to === "global") {
+    await assertLocalTargetNotIgnored(ctx, itemForTarget);
     validateItemForLocalWrite(itemForTarget, target.files);
     await validateTargetForLocalWrite(ctx, itemForTarget, itemForTarget.scope);
   }
@@ -85,6 +88,13 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
   }
 
   return { item: itemForTarget, backupId: backup?.id };
+}
+
+async function assertLocalTargetNotIgnored(ctx: AgentStashContext, item: AgentStashItem): Promise<void> {
+  const matcher = await loadIgnoreMatcher(ctx, item.scope);
+  if (isLocalTargetIgnored(ctx, matcher, item)) {
+    throw new Error(`Target ${item.kind} is ignored: ${item.name}`);
+  }
 }
 
 function retargetSourceItem(

@@ -30,6 +30,16 @@ describe("Gist bundle filenames", () => {
     expect(files["agent-stash.json"]?.content).toContain("\"items\": []");
   });
 
+  it("writes Gist filename maps with prototype-safe own keys", () => {
+    const manifest = createEmptyManifest(new Date("2026-01-01T00:00:00.000Z"), "default");
+    const files = gistFilesFromBundle(manifest, [
+      { path: "__proto__", content: "prototype" }
+    ]);
+
+    expect(Object.hasOwn(files, "__proto__")).toBe(true);
+    expect(files["__proto__"]?.content).toBe("prototype");
+  });
+
   it("loads both encoded and legacy slash-key Gist files as bundle paths", () => {
     const encoded = gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md");
     const bundle = loadBundleFromGist({

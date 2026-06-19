@@ -9,9 +9,8 @@ export interface RemoteBundle {
 }
 
 export function gistFilesFromBundle(manifest: AgentStashManifest, files: readonly BundleFile[]): Record<string, { content: string }> {
-  const result: Record<string, { content: string }> = {
-    [MANIFEST_FILENAME]: { content: serializeManifest(manifest) }
-  };
+  const result = Object.create(null) as Record<string, { content: string }>;
+  result[MANIFEST_FILENAME] = { content: serializeManifest(manifest) };
   for (const file of files) {
     result[gistFilenameForBundlePath(file.path)] = { content: file.content };
   }

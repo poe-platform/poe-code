@@ -78,6 +78,26 @@ describe("GitHubGistClient", () => {
     expect(record.files["__proto__"]?.content).toBe("prototype");
   });
 
+  it("creates write inputs with prototype-safe Gist file keys", async () => {
+    const input = Object.create(null) as Parameters<GitHubGistClient["createSecret"]>[0]["files"];
+    input["__proto__"] = { content: "prototype" };
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          id: "gist-1",
+          files: {}
+        }),
+        { status: 201, headers: { "content-type": "application/json" } }
+      )
+    );
+
+    await new GitHubGistClient("token").createSecret({ files: input });
+
+    const [, init] = vi.mocked(fetch).mock.calls[0]!;
+    const body = JSON.parse(String(init?.body)) as { files?: Record<string, unknown> };
+    expect(Object.hasOwn(body.files ?? {}, "__proto__")).toBe(true);
+  });
+
   it("rejects unsafe Gist ids before issuing requests", async () => {
     const client = new GitHubGistClient("token");
 

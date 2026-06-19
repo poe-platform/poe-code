@@ -73,6 +73,22 @@ describe("inventory", () => {
     );
   });
 
+  it("does not inspect skill roots for an explicitly empty skill selection", async () => {
+    const { ctx, volume } = createVolumeContext({
+      ...createDummyAgentConfigFixture(),
+      "/outside/skills/outside-skill/SKILL.md": "# Outside\n"
+    });
+    volume.rmSync("/repo/.claude/skills", { recursive: true, force: true });
+    volume.symlinkSync("/outside/skills", "/repo/.claude/skills");
+
+    await expect(loadInventory(ctx, {
+      scope: "project",
+      agent: "claude-code",
+      kind: "skill",
+      skills: []
+    })).resolves.toEqual([]);
+  });
+
   it("discovers project Codex skills through the skill registry", async () => {
     const items = await loadInventory(createContext(), { scope: "project", agent: "codex", kind: "skill" });
     expect(items.map((item) => item.id)).toEqual(["project:skill:codex:codex-project"]);
@@ -124,6 +140,20 @@ describe("inventory", () => {
     await expect(loadInventory(createContext(files), { scope: "project", agent: "claude-code", kind: "hook" })).rejects.toThrow(
       "Malformed hooks in /repo/.claude/settings.json"
     );
+  });
+
+  it("does not inspect hook config for an explicitly empty hook selection", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": "{"
+    };
+
+    await expect(loadInventory(createContext(files), {
+      scope: "project",
+      agent: "claude-code",
+      kind: "hook",
+      hooks: []
+    })).resolves.toEqual([]);
   });
 
   it("refuses to read project hook config through symbolic links", async () => {

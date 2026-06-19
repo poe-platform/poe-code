@@ -26,11 +26,17 @@ export interface InventoryOptions {
 
 export async function loadInventory(ctx: AgentStashContext, options: InventoryOptions): Promise<LoadedItem[]> {
   const agentId = normalizeAgent(options.agent);
+  const includeSkills = options.kind !== "hook" && !isEmptySelection(options.skills);
+  const includeHooks = options.kind !== "skill" && !isEmptySelection(options.hooks);
   const [skills, hooks] = await Promise.all([
-    options.kind === "hook" ? Promise.resolve([]) : loadSkillInventory(ctx, agentId, options),
-    options.kind === "skill" ? Promise.resolve([]) : loadHookInventory(ctx, agentId, options)
+    includeSkills ? loadSkillInventory(ctx, agentId, options) : Promise.resolve([]),
+    includeHooks ? loadHookInventory(ctx, agentId, options) : Promise.resolve([])
   ]);
   return [...skills, ...hooks].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+function isEmptySelection(value: string[] | undefined): boolean {
+  return value !== undefined && value.length === 0;
 }
 
 async function loadSkillInventory(

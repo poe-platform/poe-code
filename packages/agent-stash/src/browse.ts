@@ -84,6 +84,14 @@ export interface BrowseExplorerOptions extends BrowseOptions {
 }
 
 type BrowseExplorerResult = void;
+type BrowsePaneId = "left" | "right";
+
+interface BrowseActionRefresh {
+  action: BrowseActionName;
+  fromPane: BrowsePaneId;
+  selectedIds: string[];
+  result: BrowseActionResult;
+}
 
 export async function buildBrowseModel(
   ctx: AgentStashContext,
@@ -165,9 +173,21 @@ export function buildBrowseTwoPaneConfig(
   const rightScope = counterpartScope(scope);
   const agentId = normalizeAgent(options.agent ?? "claude-code");
   let modelPromise: Promise<BrowseModel> | undefined;
+  let nextModel: BrowseModel | undefined;
   const loadModel = () => {
-    modelPromise ??= buildBrowseModel(ctx, options);
+    if (modelPromise === undefined) {
+      if (nextModel !== undefined) {
+        const model = nextModel;
+        nextModel = undefined;
+        modelPromise = Promise.resolve(model);
+      } else {
+        modelPromise = buildBrowseModel(ctx, options);
+      }
+    }
     return modelPromise;
+  };
+  const prepareRefresh = async (input: BrowseActionRefresh) => {
+    nextModel = applyBrowseActionResultToModel(await buildBrowseModel(ctx, options), input);
   };
 
   return {
@@ -188,7 +208,7 @@ export function buildBrowseTwoPaneConfig(
         emptyHint: "No items in right pane"
       }
     ],
-    actions: browseTwoPaneActions(ctx, options, runAction),
+    actions: browseTwoPaneActions(ctx, options, runAction, prepareRefresh),
     refresh: () => {
       modelPromise = undefined;
     }
@@ -453,14 +473,15 @@ function renderBrowseItemDetail(pane: BrowsePane, item: AgentStashItem, width: n
 function browseTwoPaneActions(
   ctx: AgentStashContext,
   options: BrowseExplorerOptions,
-  runAction: typeof runBrowseAction
+  runAction: typeof runBrowseAction,
+  prepareRefresh: (input: BrowseActionRefresh) => Promise<void>
 ): Array<TwoPaneAction<BrowseExplorerResult>> {
   return [
-    browseTwoPaneAction(ctx, options, runAction, "copy", "copy", "c"),
-    browseTwoPaneAction(ctx, options, runAction, "move", "move", "m"),
-    browseTwoPaneAction(ctx, options, runAction, "upload", "upload", "u"),
-    browseTwoPaneAction(ctx, options, runAction, "download", "download", "d"),
-    browseTwoPaneAction(ctx, options, runAction, "sync", "sync", "s")
+    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "copy", "copy", "c"),
+    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "move", "move", "m"),
+    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "upload", "upload", "u"),
+    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "download", "download", "d"),
+    browseTwoPaneAction(ctx, options, runAction, prepareRefresh, "sync", "sync", "s")
   ];
 }
 
@@ -468,6 +489,7 @@ function browseTwoPaneAction(
   ctx: AgentStashContext,
   options: BrowseExplorerOptions,
   runAction: typeof runBrowseAction,
+  prepareRefresh: (input: BrowseActionRefresh) => Promise<void>,
   action: BrowseActionName,
   label: string,
   key: string
@@ -478,20 +500,109 @@ function browseTwoPaneAction(
     key,
     handler: async (actionCtx) => {
       const fromPane = parseTwoPaneId(actionCtx.activePane.id);
+      const selectedIds = rowsForTwoPaneAction(actionCtx).map((row) => row.id);
       let result: BrowseActionResult | undefined;
       await actionCtx.suspendAnd(async () => {
         result = await runAction(ctx, {
           ...options,
           action,
           fromPane,
-          selectedIds: rowsForTwoPaneAction(actionCtx).map((row) => row.id),
+          selectedIds,
           yes: true
         });
       });
+      const completed = requireBrowseActionResult(result);
+      await prepareRefresh({ action, fromPane, selectedIds, result: completed });
       await actionCtx.refresh();
-      toastBrowseActionResult(actionCtx.toast, label, requireBrowseActionResult(result));
+      toastBrowseActionResult(actionCtx.toast, label, completed);
     }
   };
+}
+
+function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionRefresh): BrowseModel {
+  const sourcePane = model[input.fromPane];
+  const targetPaneId = input.fromPane === "left" ? "right" : "left";
+  const targetPane = model[targetPaneId];
+  let next = model;
+
+  if (input.result.uploaded !== undefined) {
+    return replaceGistPaneFromManifest(next, input.result.uploaded.manifest.items);
+  }
+
+  if (input.result.synced !== undefined) {
+    next = updateGistPaneItems(next, (items) => {
+      const removed = new Set(input.result.synced?.deletedRemote.map((item) => item.id) ?? []);
+      return upsertBrowseItems(
+        items.filter((item) => !removed.has(item.id)),
+        input.result.synced?.uploaded ?? []
+      );
+    });
+  }
+
+  if (input.result.copied !== undefined && targetPane.location === "gist") {
+    next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, input.result.copied?.map((copy) => copy.item) ?? []));
+  }
+
+  if (input.result.moved !== undefined) {
+    if (sourcePane.location === "gist") {
+      const selected = new Set(input.selectedIds);
+      next = updatePaneItems(next, input.fromPane, (items) => items.filter((item) => !selected.has(item.id)));
+    }
+    if (targetPane.location === "gist") {
+      next = updatePaneItems(next, targetPaneId, (items) => upsertBrowseItems(items, input.result.moved?.map((move) => move.item) ?? []));
+    }
+  }
+
+  return next;
+}
+
+function replaceGistPaneFromManifest(model: BrowseModel, items: AgentStashItem[]): BrowseModel {
+  return updateGistPaneItems(model, (_items, pane) => browsePaneItemsForManifest(pane, items));
+}
+
+function updateGistPaneItems(
+  model: BrowseModel,
+  update: (items: AgentStashItem[], pane: BrowsePane) => AgentStashItem[]
+): BrowseModel {
+  let next = model;
+  if (model.left.location === "gist") {
+    next = updatePaneItems(next, "left", (items, pane) => update(items, pane));
+  }
+  if (model.right.location === "gist") {
+    next = updatePaneItems(next, "right", (items, pane) => update(items, pane));
+  }
+  return next;
+}
+
+function updatePaneItems(
+  model: BrowseModel,
+  paneId: BrowsePaneId,
+  update: (items: AgentStashItem[], pane: BrowsePane) => AgentStashItem[]
+): BrowseModel {
+  const pane = model[paneId];
+  return {
+    ...model,
+    [paneId]: {
+      ...pane,
+      items: sortBrowseItems(update(pane.items, pane))
+    }
+  };
+}
+
+function upsertBrowseItems(items: AgentStashItem[], replacements: AgentStashItem[]): AgentStashItem[] {
+  const byId = new Map(items.map((item) => [item.id, item]));
+  for (const item of replacements) {
+    byId.set(item.id, item);
+  }
+  return [...byId.values()];
+}
+
+function browsePaneItemsForManifest(pane: BrowsePane, items: AgentStashItem[]): AgentStashItem[] {
+  return items.filter((item) => item.scope === pane.scope && item.agentId === pane.agentId);
+}
+
+function sortBrowseItems(items: AgentStashItem[]): AgentStashItem[] {
+  return [...items].sort((left, right) => left.id.localeCompare(right.id));
 }
 
 function browseExplorerActions(

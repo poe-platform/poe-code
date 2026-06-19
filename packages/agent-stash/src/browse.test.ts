@@ -13,7 +13,7 @@ import { parseManifest, serializeManifest } from "./manifest.js";
 import { uploadBundle } from "./operations/upload.js";
 import { InMemoryGistClient } from "./fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./fixtures/dummy-config.js";
-import type { AgentStashContext, AgentStashFileSystem } from "./types.js";
+import type { AgentStashContext, AgentStashFileSystem, GistRecord } from "./types.js";
 
 vi.mock("./gist-client.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./gist-client.js")>();
@@ -39,6 +39,32 @@ function createHarness(): { ctx: AgentStashContext; volume: Volume; gistClient: 
       gistClient,
       now: () => fixedDate
     }
+  };
+}
+
+class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
+  private staleRecord: GistRecord | undefined;
+
+  async update(gistId: string, input: Parameters<InMemoryGistClient["update"]>[1]): Promise<GistRecord> {
+    this.staleRecord = await super.read(gistId);
+    return super.update(gistId, input);
+  }
+
+  async read(gistId: string): Promise<GistRecord> {
+    if (this.staleRecord !== undefined) {
+      this.readCalls.push(gistId);
+      const stale = cloneGistRecord(this.staleRecord);
+      this.staleRecord = undefined;
+      return stale;
+    }
+    return super.read(gistId);
+  }
+}
+
+function cloneGistRecord(record: GistRecord): GistRecord {
+  return {
+    ...record,
+    files: Object.fromEntries(Object.entries(record.files).map(([name, file]) => [name, { ...file }]))
   };
 }
 
@@ -735,6 +761,109 @@ describe("browse", () => {
     });
 
     expect(toasts).toEqual([{ message: "sync conflicts: 1", tone: "warning" }]);
+  });
+
+  it("keeps uploaded Gist rows visible when the immediate two-pane refresh reads stale Gist data", async () => {
+    const { ctx } = createHarness();
+    const staleClient = new StaleReadAfterUpdateGistClient();
+    staleClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    ctx.gistClient = staleClient;
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+    const leftRows = await config.panes[0].rows();
+    const projectRow = leftRows.find((row) => row.id === "project:skill:claude-code:code-review")!;
+    let refreshedRightRows: Array<{ id: string }> = [];
+
+    await config.actions.find((action) => action.id === "upload")!.handler({
+      activePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: leftRows,
+        cursor: 0,
+        selected: new Set([projectRow.id]),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "right",
+        title: "Gist default: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: projectRow,
+      rows: [projectRow],
+      refresh: async () => {
+        await config.refresh?.();
+        refreshedRightRows = await config.panes[1].rows();
+      },
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      exit: () => undefined
+    });
+
+    expect(refreshedRightRows.map((row) => row.id)).toEqual(["project:skill:claude-code:code-review"]);
+  });
+
+  it("removes moved Gist rows when the immediate two-pane refresh reads stale Gist data", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+    const staleClient = new StaleReadAfterUpdateGistClient();
+    staleClient.seed(await gistClient.read("gist-default"));
+    ctx.gistClient = staleClient;
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+    const rightRows = await config.panes[1].rows();
+    const gistRow = rightRows.find((row) => row.id === "project:skill:claude-code:code-review")!;
+    let refreshedRightRows: Array<{ id: string }> = rightRows;
+
+    await config.actions.find((action) => action.id === "move")!.handler({
+      activePane: {
+        id: "right",
+        title: "Gist default: claude-code",
+        rows: rightRows,
+        cursor: 0,
+        selected: new Set([gistRow.id]),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: gistRow,
+      rows: [gistRow],
+      refresh: async () => {
+        await config.refresh?.();
+        refreshedRightRows = await config.panes[1].rows();
+      },
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      exit: () => undefined
+    });
+
+    expect(refreshedRightRows.map((row) => row.id)).toEqual([]);
+    expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
   it("titles the two-pane source pane from the selected scope", () => {

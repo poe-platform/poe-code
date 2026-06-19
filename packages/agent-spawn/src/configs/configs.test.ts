@@ -94,16 +94,9 @@ describe("configs/mcp support", () => {
 });
 
 describe("configs/auto mode", () => {
-  it("defines auto only for agents with a native ask-style approval mode", () => {
+  it("defines auto only for agents with a usable noninteractive approval mode", () => {
     expect(claudeCodeSpawnConfig.modes.auto).toEqual(["--permission-mode", "auto"]);
-    expect(codexSpawnConfig.modes.auto).toEqual([
-      "--sandbox",
-      "danger-full-access",
-      "-c",
-      'approval_policy="untrusted"',
-      "-c",
-      'approvals_reviewer="auto_review"'
-    ]);
+    expect(codexSpawnConfig.modes.auto).toEqual(["--dangerously-bypass-approvals-and-sandbox"]);
     expect(cursorSpawnConfig.modes.auto).toBeUndefined();
     expect(openCodeSpawnConfig.modes.auto).toBeUndefined();
     expect(kimiSpawnConfig.modes.auto).toBeUndefined();

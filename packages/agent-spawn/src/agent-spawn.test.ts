@@ -239,12 +239,7 @@ describe("buildSpawnArgs", () => {
       codexSpawnConfig.promptFlag,
       "hello",
       ...codexSpawnConfig.defaultArgs,
-      "--sandbox",
-      "danger-full-access",
-      "-c",
-      'approval_policy="untrusted"',
-      "-c",
-      'approvals_reviewer="auto_review"'
+      "--dangerously-bypass-approvals-and-sandbox"
     ]);
   });
 

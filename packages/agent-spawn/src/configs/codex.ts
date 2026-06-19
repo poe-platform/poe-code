@@ -14,16 +14,9 @@ export const codexSpawnConfig: CliSpawnConfig = {
   mcpArgsBeforeCommand: true,
   modes: {
     yolo: ["--dangerously-bypass-approvals-and-sandbox"],
-    // `codex exec` forces headless approvals to `never` unless auto_review is configured.
-    // danger-full-access is required for operations that write `.git`, such as committing.
-    auto: [
-      "--sandbox",
-      "danger-full-access",
-      "-c",
-      'approval_policy="untrusted"',
-      "-c",
-      'approvals_reviewer="auto_review"'
-    ],
+    // `codex exec` cannot service command/file-change approval requests, so a
+    // gaslight-style unattended edit mode must use the native bypass flag.
+    auto: ["--dangerously-bypass-approvals-and-sandbox"],
     edit: ["-s", "workspace-write"],
     read: ["-s", "read-only"]
   },

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hashFiles, readDirectoryBundle, sha256 } from "./hash.js";
-import { loadIgnoreMatcher } from "./ignore.js";
+import { isIgnoredSubtree, loadIgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { stableItemId, validateManifestItem } from "./manifest.js";
 import type {
@@ -94,11 +94,6 @@ async function loadSkillInventory(
   }
 
   return items;
-}
-
-function isIgnoredSubtree(matcher: { ignores(relativePath: string): boolean }, relativePath: string): boolean {
-  const normalized = relativePath.endsWith("/") ? relativePath : `${relativePath}/`;
-  return matcher.ignores(relativePath) || matcher.ignores(normalized) || matcher.ignores(`${normalized}SKILL.md`);
 }
 
 async function loadHookInventory(

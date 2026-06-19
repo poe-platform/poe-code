@@ -8,6 +8,11 @@ export interface IgnoreMatcher {
   ignores(relativePath: string): boolean;
 }
 
+export function isIgnoredSubtree(matcher: IgnoreMatcher, relativePath: string): boolean {
+  const normalized = relativePath.endsWith("/") ? relativePath : `${relativePath}/`;
+  return matcher.ignores(relativePath) || matcher.ignores(normalized) || matcher.ignores(`${normalized}SKILL.md`);
+}
+
 export async function loadIgnoreMatcher(ctx: AgentStashContext, scope: AgentStashScope): Promise<IgnoreMatcher> {
   const matcher: Ignore = (ignoreModule as unknown as () => Ignore)();
   const ignorePath =

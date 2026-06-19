@@ -1,6 +1,8 @@
+import path from "node:path";
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createBackup } from "../backup-store.js";
 import { createDefaultGistClient } from "../gist-client.js";
+import { isIgnoredSubtree, loadIgnoreMatcher } from "../ignore.js";
 import { loadInventory } from "../inventory.js";
 import {
   removeLocalItem,
@@ -47,7 +49,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const gist = await client.read(resolved.gistId);
   const remote = loadBundleFromGist(gist);
   verifyBundleHashes(remote);
-  const remoteItems = remote.manifest.items.filter((item) => {
+  const remoteItems = await filterRemoteItemsForLocalIgnores(ctx, options.scope, remote.manifest.items.filter((item) => {
     if (item.scope !== options.scope || item.agentId !== agentId) {
       return false;
     }
@@ -58,7 +60,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       return options.hooks.includes(item.name);
     }
     return options.skills === undefined && options.hooks === undefined;
-  });
+  }));
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
   const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
@@ -233,6 +235,21 @@ async function loadSyncInventory(ctx: AgentStashContext, options: SyncOptions): 
       : loadInventory(ctx, { ...options, kind: "hook", hooks: options.hooks })
   ]);
   return [...skills, ...hooks].sort((left, right) => left.id.localeCompare(right.id));
+}
+
+async function filterRemoteItemsForLocalIgnores(
+  ctx: AgentStashContext,
+  scope: SyncOptions["scope"],
+  items: AgentStashItem[]
+): Promise<AgentStashItem[]> {
+  const matcher = await loadIgnoreMatcher(ctx, scope);
+  const scopeRoot = scope === "project" ? ctx.cwd : ctx.homeDir;
+  return items.filter((item) => {
+    const relativeTarget = path.relative(scopeRoot, targetPathForItem(ctx, item)).split(path.sep).join("/");
+    return item.kind === "skill"
+      ? !isIgnoredSubtree(matcher, relativeTarget)
+      : !matcher.ignores(relativeTarget);
+  });
 }
 
 type Action = "unchanged" | "upload" | "download" | "delete-local" | "delete-remote" | "conflict";

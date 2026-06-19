@@ -136,6 +136,33 @@ describe("sync", () => {
     expect(gistClient.updateCalls).toHaveLength(1);
   });
 
+  it("rejects selected remote sync items that are ignored locally before writing", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.agent-stashignore"] = ".claude/skills/code-review/**\n";
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(files, gistClient);
+
+    await expect(syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      onConflict: "remote",
+      yes: true
+    })).rejects.toThrow("Selected skill not found: code-review");
+
+    expect(() => target.volume.statSync("/repo/.claude/skills/code-review/SKILL.md")).toThrow();
+  });
+
   it("rejects malformed baseline manifests before sync writes", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

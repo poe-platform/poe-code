@@ -456,6 +456,30 @@ describe("backup store", () => {
     expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("after");
   });
 
+  it("rejects symlinked backup metadata before deleting current files", async () => {
+    const backupId = "backup-2026-01-02T03-04-05-000Z";
+    const { ctx, volume } = createContext({
+      "/repo/file.txt": "after",
+      "/outside/backup.json": JSON.stringify({
+        id: backupId,
+        createdAt: "2026-01-02T03:04:05.000Z",
+        command: "tampered",
+        args: {},
+        cwd: "/repo",
+        homeDir: "/home/user",
+        affectedPaths: ["/repo/file.txt"],
+        files: [{ sourcePath: "/repo/file.txt", backupPath: "", existed: false }]
+      }, null, 2)
+    });
+    volume.mkdirSync(`/home/user/.agent-stash/backups/${backupId}`, { recursive: true });
+    volume.symlinkSync("/outside/backup.json", `/home/user/.agent-stash/backups/${backupId}/backup.json`);
+
+    await expect(restoreBackup(ctx, { backupId, yes: true })).rejects.toThrow(
+      `Refusing to write through symbolic link: /home/user/.agent-stash/backups/${backupId}/backup.json`
+    );
+    expect(volume.readFileSync("/repo/file.txt", "utf8")).toBe("after");
+  });
+
   it("removes files added under an affected directory after backup creation", async () => {
     const { ctx, volume } = createContext({ "/repo/skill/SKILL.md": "# Before\n" });
     const backup = await createBackup(ctx, { command: "import", args: { scope: "project" }, paths: ["/repo/skill"] });

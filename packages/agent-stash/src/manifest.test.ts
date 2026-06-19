@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hashFiles } from "./hash.js";
-import { parseManifest, serializeManifest, stableItemId, validateBundlePath } from "./manifest.js";
+import { createEmptyManifest, parseManifest, serializeManifest, stableItemId, validateBundlePath } from "./manifest.js";
 import type { AgentStashManifest } from "./types.js";
 
 const manifestFile = {
@@ -46,6 +46,12 @@ describe("manifest", () => {
       "Invalid manifest profile: 42"
     );
     expect(() => parseManifest(serializeManifest({ ...manifest, profile: "../escape" }))).toThrow(
+      "Invalid manifest profile: ../escape"
+    );
+  });
+
+  it("rejects invalid manifest profiles at creation time", () => {
+    expect(() => createEmptyManifest(new Date("2026-01-02T03:04:05.000Z"), "../escape")).toThrow(
       "Invalid manifest profile: ../escape"
     );
   });

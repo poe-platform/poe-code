@@ -211,6 +211,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 export function createEmptyManifest(now: Date, profile?: string): AgentStashManifest {
+  validateManifestProfile(profile);
   const timestamp = now.toISOString();
   return {
     schemaVersion: 1,

@@ -158,10 +158,10 @@ describe("GitHubGistClient", () => {
     await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow("Invalid Gist file content: agent-stash.json");
   });
 
-  it("surfaces missing gist scope on 403", async () => {
-    vi.mocked(fetch).mockResolvedValueOnce(new Response("forbidden", { status: 403 }));
+  it("includes 403 response bodies in request errors", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("secondary rate limit", { status: 403 }));
 
-    await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow(/gist scope/);
+    await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow(/403: secondary rate limit/);
   });
 
   it("includes non-403 response bodies in request errors", async () => {

@@ -54,7 +54,7 @@ export class GitHubGistClient implements GistClient {
       }
     });
     if (response.status === 403) {
-      throw new Error("GitHub Gist request failed with 403. Ensure the token has the gist scope.");
+      throw new Error(`GitHub Gist request failed with 403${await responseErrorSuffix(response)}. Ensure the token has the gist scope.`);
     }
     if (!response.ok) {
       throw new Error(`GitHub Gist request failed with ${response.status}${await responseErrorSuffix(response)}`);

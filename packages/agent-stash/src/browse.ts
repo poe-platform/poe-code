@@ -231,10 +231,14 @@ export async function runBrowseAction(
     if (source.location === "gist" || !source.scope) {
       throw new Error("Upload requires a project or global source pane.");
     }
+    const profile = options.profile ?? target.profile;
+    if (!profile) {
+      throw new Error("Upload requires a Gist target.");
+    }
     const selectedNames = namesByKind(selected);
     return {
       uploaded: await uploadBundle(ctx, {
-        profile: options.profile ?? target.profile,
+        profile,
         scope: source.scope,
         agent: source.agentId,
         skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,

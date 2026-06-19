@@ -160,6 +160,21 @@ describe("browse", () => {
     });
   });
 
+  it("rejects browse uploads without an active Gist target before creating a secret Gist", async () => {
+    const { ctx, gistClient } = createHarness();
+
+    await expect(runBrowseAction(ctx, {
+      action: "upload",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Upload requires a Gist target.");
+
+    expect(gistClient.createCalls).toHaveLength(0);
+    expect(gistClient.updateCalls).toHaveLength(0);
+  });
+
   it("rejects stale selected browse ids before writing", async () => {
     const { ctx, gistClient } = createHarness();
 

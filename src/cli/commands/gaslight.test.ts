@@ -350,6 +350,47 @@ describe("gaslight command", () => {
     );
   });
 
+  it("reports configured and resolved plan directories when the default directory is missing", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(program, createContainer(prompts, vi.fn(), {}));
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "gaslight"])).rejects.toThrow(
+      [
+        "Plan directory not found: docs/plans",
+        "Configured plan directory: docs/plans",
+        "Resolved plan directory: /repo/docs/plans",
+        "Config files checked:",
+        "- /home/test/.poe-code/config.json",
+        "- /repo/.poe-code/config.json"
+      ].join("\n")
+    );
+    expect(runGaslightMock).not.toHaveBeenCalled();
+  });
+
+  it("reports configured and resolved plan directories when no markdown plans are found", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(prompts, vi.fn(), {
+        "/repo/docs/plans/readme.txt": "not a plan"
+      })
+    );
+
+    await expect(program.parseAsync(["node", "cli", "--yes", "gaslight"])).rejects.toThrow(
+      [
+        "No markdown plans found in docs/plans.",
+        "Configured plan directory: docs/plans",
+        "Resolved plan directory: /repo/docs/plans",
+        "Config files checked:",
+        "- /home/test/.poe-code/config.json",
+        "- /repo/.poe-code/config.json"
+      ].join("\n")
+    );
+    expect(runGaslightMock).not.toHaveBeenCalled();
+  });
+
   it("selects plans from a configured home-relative plan directory", async () => {
     const prompts = vi.fn();
     const program = createProgram();

@@ -62,6 +62,20 @@ function resolveConfiguredPath(cwd: string, homeDir: string, value: string): str
   return path.isAbsolute(value) ? value : path.resolve(cwd, value);
 }
 
+function formatPlanDirectoryDetails(
+  container: CliContainer,
+  planDirectory: string,
+  absoluteDirectory: string
+): string {
+  return [
+    `Configured plan directory: ${planDirectory}`,
+    `Resolved plan directory: ${absoluteDirectory}`,
+    "Config files checked:",
+    `- ${container.env.configPath}`,
+    `- ${container.env.projectConfigPath}`
+  ].join("\n");
+}
+
 async function selectPlans(container: CliContainer, assumeYes: boolean): Promise<string[]> {
   const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
   const absoluteDirectory = resolveConfiguredPath(
@@ -73,14 +87,26 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
   try {
     names = await container.fs.readdir(absoluteDirectory);
   } catch {
-    throw new Error(`Plan directory not found: ${planDirectory}`);
+    throw new Error(
+      `Plan directory not found: ${planDirectory}\n${formatPlanDirectoryDetails(
+        container,
+        planDirectory,
+        absoluteDirectory
+      )}`
+    );
   }
   const plans = names
     .filter((name) => name.endsWith(".md"))
     .sort()
     .map((name) => path.join(planDirectory, name));
   if (plans.length === 0) {
-    throw new Error(`No markdown plans found in ${planDirectory}.`);
+    throw new Error(
+      `No markdown plans found in ${planDirectory}.\n${formatPlanDirectoryDetails(
+        container,
+        planDirectory,
+        absoluteDirectory
+      )}`
+    );
   }
   if (assumeYes) {
     return [plans[0]!];

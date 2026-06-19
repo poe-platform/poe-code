@@ -2,7 +2,7 @@ import {
   getTheme,
   renderInspectorCard,
   renderResourceBrowser,
-  runExplorer,
+  runTwoPaneExplorer,
   stripAnsi,
   type ActionContext,
   type ExplorerConfig,
@@ -198,7 +198,7 @@ export async function runBrowseTui(
   ctx: AgentStashContext,
   options: BrowseOptions = {}
 ): Promise<void> {
-  await runExplorer(buildBrowseExplorerConfig(ctx, options));
+  await runTwoPaneExplorer(buildBrowseTwoPaneConfig(ctx, options));
 }
 
 export async function runBrowseAction(
@@ -639,7 +639,11 @@ function itemPreviewContent(pane: BrowsePane, item: AgentStashItem): string | un
   if (!firstFile) {
     return undefined;
   }
-  return contentForItem(pane, item, firstFile.path);
+  const content = contentForItem(pane, item, firstFile.path);
+  if (content === undefined) {
+    return undefined;
+  }
+  return item.kind === "hook" ? hookDetailPreview(content) : content;
 }
 
 function contentForItem(pane: BrowsePane, item: AgentStashItem, filePath: string): string | undefined {
@@ -648,30 +652,90 @@ function contentForItem(pane: BrowsePane, item: AgentStashItem, filePath: string
 }
 
 function hookPreview(content: string): string | undefined {
+  const summary = parseHookSummary(content);
+  if (summary !== undefined) {
+    return summary.row;
+  }
+  return firstNonEmptyLine(content);
+}
+
+function hookDetailPreview(content: string): string | undefined {
+  const summary = parseHookSummary(content);
+  if (summary !== undefined) {
+    return summary.detail;
+  }
+  return firstNonEmptyLine(content);
+}
+
+interface HookSummary {
+  row: string;
+  detail: string;
+}
+
+function parseHookSummary(content: string): HookSummary | undefined {
   try {
     const parsed = JSON.parse(content) as unknown;
     if (!isRecord(parsed) || !isRecord(parsed.hooks)) {
-      return firstNonEmptyLine(content);
+      return undefined;
     }
-    const fragments: string[] = [];
+    const eventSummaries: string[] = [];
+    const detailLines: string[] = [];
+    let groupCount = 0;
+    let commandCount = 0;
+
     for (const [event, groups] of Object.entries(parsed.hooks)) {
       if (!Array.isArray(groups)) {
         continue;
       }
-      const commands = groups
-        .flatMap((group) => isRecord(group) && Array.isArray(group.hooks) ? group.hooks : [])
-        .map((hook) => isRecord(hook) && typeof hook.command === "string" ? hook.command : undefined)
-        .filter((command): command is string => command !== undefined);
-      const matchers = groups
-        .map((group) => isRecord(group) && typeof group.matcher === "string" ? group.matcher : undefined)
-        .filter((matcher): matcher is string => matcher !== undefined);
-      const details = [...matchers, ...commands].join(" -> ");
-      fragments.push(details ? `${event}: ${details}` : event);
+      let eventCommandCount = 0;
+      detailLines.push(event);
+
+      for (const group of groups) {
+        if (!isRecord(group)) {
+          continue;
+        }
+        const matcher = typeof group.matcher === "string" && group.matcher.trim().length > 0
+          ? group.matcher.trim()
+          : "all tools";
+        const commands = Array.isArray(group.hooks)
+          ? group.hooks
+            .map((hook) => isRecord(hook) && typeof hook.command === "string" ? hook.command.trim() : undefined)
+            .filter((command): command is string => command !== undefined && command.length > 0)
+          : [];
+        groupCount += 1;
+        commandCount += commands.length;
+        eventCommandCount += commands.length;
+        detailLines.push(`- ${matcher}${commands.length > 0 ? ` -> ${commands.join(" | ")}` : ""}`);
+      }
+
+      eventSummaries.push(`${event} ${groupLabel(groups.length)}, ${commandLabel(eventCommandCount)}`);
     }
-    return compactPreview(fragments.join("; "));
+
+    if (eventSummaries.length === 0) {
+      return undefined;
+    }
+    const row = eventSummaries.length === 1
+      ? eventSummaries[0]
+      : `${eventSummaries.join("; ")} (${groupLabel(groupCount)}, ${commandLabel(commandCount)})`;
+    return {
+      row: compactPreview(row) ?? "",
+      detail: compactPreviewLines(detailLines)
+    };
   } catch {
-    return firstNonEmptyLine(content);
+    return undefined;
   }
+}
+
+function groupLabel(count: number): string {
+  return count === 1 ? "1 matcher group" : `${count} matcher groups`;
+}
+
+function commandLabel(count: number): string {
+  return count === 1 ? "1 command" : `${count} commands`;
+}
+
+function compactPreviewLines(lines: string[]): string {
+  return lines.map((line) => compactPreview(line) ?? "").filter((line) => line.length > 0).join("\n");
 }
 
 function firstNonEmptyLine(content: string): string | undefined {

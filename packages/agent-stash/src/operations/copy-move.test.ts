@@ -136,7 +136,7 @@ describe("copy/move", () => {
       to: "global",
       agent: "claude-code",
       kind: "hook",
-      name: "PreToolUse",
+      name: "PreToolUse-Bash-001-001",
       yes: true
     });
 
@@ -150,9 +150,9 @@ describe("copy/move", () => {
     };
 
     expect(result.item).toMatchObject({
-      id: "global:hook:claude-code:PreToolUse",
+      id: "global:hook:claude-code:PreToolUse-Bash-001-001",
       scope: "global",
-      path: "hooks/global/claude-code/PreToolUse.json"
+      path: "hooks/global/claude-code/PreToolUse-Bash-001-001.json"
     });
     expect(projectSettings.permissions).toEqual({ allow: ["Bash(npm test)"] });
     expect(projectSettings.hooks?.PreToolUse).toBeUndefined();
@@ -180,7 +180,7 @@ describe("copy/move", () => {
       to: "global",
       agent: "claude-code",
       kind: "hook",
-      name: "PreToolUse",
+      name: "PreToolUse-Bash-001-001",
       yes: true
     })).rejects.toThrow("Malformed hooks in /home/user/.claude/settings.json");
 
@@ -321,7 +321,7 @@ describe("copy/move", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse.json", { hooks: {} });
+    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse-Bash-001-001.json", { hooks: {} });
     gistClient.seed(record);
     const targetFiles = createDummyAgentConfigFixture();
     const originalSettings = targetFiles["/repo/.claude/settings.json"];
@@ -334,9 +334,9 @@ describe("copy/move", () => {
       profile: "default",
       agent: "claude-code",
       kind: "hook",
-      name: "PreToolUse",
+      name: "PreToolUse-Bash-001-001",
       yes: true
-    })).rejects.toThrow("Hook fragment PreToolUse must contain hook event PreToolUse.");
+    })).rejects.toThrow("Hook fragment PreToolUse-Bash-001-001 must contain hook event PreToolUse-Bash-001-001.");
 
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(originalSettings);
     expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();

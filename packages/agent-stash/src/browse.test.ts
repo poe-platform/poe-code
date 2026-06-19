@@ -51,7 +51,7 @@ describe("browse", () => {
 
     expect(model.left.title).toBe("Project: claude-code");
     expect(model.left.items.map((item) => item.name)).toContain("code-review");
-    expect(model.left.items.map((item) => item.name)).toContain("PreToolUse");
+    expect(model.left.items.map((item) => item.name)).toContain("PreToolUse-Bash-001-001");
     expect(model.right.title).toBe("Global: claude-code");
     expect(model.right.items.map((item) => item.name)).toContain("global-only");
   });
@@ -577,14 +577,14 @@ describe("browse", () => {
     }]);
   });
 
-  it("renders useful detail previews for hooks in the toolcraft explorer", async () => {
+  it("renders compact hook rows with readable hook detail previews", async () => {
     const { ctx } = createHarness();
     const config = buildBrowseExplorerConfig(ctx, {
       scope: "project",
       agent: "claude-code"
     });
     const rows = await config.rows();
-    const hookRow = rows.find((row) => row.id === "left:project:hook:claude-code:PreToolUse")!;
+    const hookRow = rows.find((row) => row.id === "left:project:hook:claude-code:PreToolUse-Bash-001-001")!;
 
     const detailItems = await config.detail.items(hookRow, {
       width: 80,
@@ -599,12 +599,16 @@ describe("browse", () => {
       row: hookRow
     });
 
-    expect(hookRow.subtitle).toContain("Bash");
-    expect(hookRow.subtitle).toContain("npm test");
+    expect(hookRow.subtitle).toContain("1 matcher group");
+    expect(hookRow.subtitle).toContain("1 command");
+    expect(hookRow.subtitle).not.toContain("Bash -> npm test");
     expect(rendered).toContain("PreToolUse");
     expect(rendered).toContain("hook");
-    expect(rendered).toContain("hooks/project/claude-code/PreToolUse.json");
+    expect(rendered).toContain("hooks/project/claude-code/PreToolUse-Bash-001-001.json");
+    expect(rendered).toContain("Bash -> npm test");
     expect(rendered).toContain("npm test");
+    expect(rendered).not.toContain('"hooks"');
+    expect(rendered).not.toContain('"command"');
     expect(rendered).not.toContain("\u001b[");
   });
 

@@ -1,9 +1,11 @@
 import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hashFiles, readDirectoryBundle, sha256 } from "./hash.js";
+import { hookItemName } from "./hook-items.js";
 import { isIgnoredSubtree, loadIgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { stableItemId, validateManifestItem } from "./manifest.js";
+import { selectedHookMatchesName } from "./validation.js";
 import type {
   AgentStashContext,
   AgentStashFile,
@@ -136,33 +138,51 @@ async function loadHookInventory(
   const items: LoadedItem[] = [];
 
   for (const [event, groups] of Object.entries(hooks).sort(([left], [right]) => left.localeCompare(right))) {
-    if (requested !== undefined && !requested.has(event)) {
-      continue;
-    }
-    const bundlePath = `hooks/${options.scope}/${agentId}/${event}.json`;
-    if (matcher.ignores(bundlePath)) {
-      continue;
-    }
     if (!Array.isArray(groups)) {
       throw new Error(`Malformed hooks in ${hookPath}`);
     }
-    const fragment = { hooks: { [event]: groups } };
-    const fragmentContent = `${JSON.stringify(fragment, null, 2)}\n`;
-    const file: AgentStashFile = {
-      path: bundlePath,
-      size: Buffer.byteLength(fragmentContent, "utf8"),
-      sha256: sha256(fragmentContent)
-    };
-    items.push(createLoadedItem(ctx, {
-      kind: "hook",
-      scope: options.scope,
-      agentId,
-      name: event,
-      path: bundlePath,
-      files: [file],
-      bundleFiles: [{ path: bundlePath, content: fragmentContent }],
-      targetPath: hookPath
-    }));
+    for (const [groupIndex, group] of groups.entries()) {
+      if (!isRecord(group)) {
+        throw new Error(`Malformed hooks in ${hookPath}`);
+      }
+      const groupHooks = group.hooks;
+      if (!Array.isArray(groupHooks)) {
+        throw new Error(`Malformed hooks in ${hookPath}`);
+      }
+      for (const [hookIndex, hook] of groupHooks.entries()) {
+        if (!isRecord(hook)) {
+          throw new Error(`Malformed hooks in ${hookPath}`);
+        }
+        const name = hookItemName(event, group.matcher, groupIndex, hookIndex);
+        if (requested !== undefined && ![...requested].some((selected) => selectedHookMatchesName(name, selected))) {
+          continue;
+        }
+        const bundlePath = `hooks/${options.scope}/${agentId}/${name}.json`;
+        if (matcher.ignores(bundlePath)) {
+          continue;
+        }
+        const fragment = {
+          agentStash: { hookEvent: event, groupIndex, hookIndex },
+          hooks: { [event]: [{ ...group, hooks: [hook] }] }
+        };
+        const fragmentContent = `${JSON.stringify(fragment, null, 2)}\n`;
+        const file: AgentStashFile = {
+          path: bundlePath,
+          size: Buffer.byteLength(fragmentContent, "utf8"),
+          sha256: sha256(fragmentContent)
+        };
+        items.push(createLoadedItem(ctx, {
+          kind: "hook",
+          scope: options.scope,
+          agentId,
+          name,
+          path: bundlePath,
+          files: [file],
+          bundleFiles: [{ path: bundlePath, content: fragmentContent }],
+          targetPath: hookPath
+        }));
+      }
+    }
   }
 
   return items;

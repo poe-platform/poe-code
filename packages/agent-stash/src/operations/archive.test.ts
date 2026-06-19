@@ -153,8 +153,8 @@ describe("archive operations", () => {
 
     const archive = archiveCodec.archives.get("/archives/project.tar.gz");
     expect(result.exported.map((item) => item.id)).toEqual([
-      "project:hook:claude-code:PreToolUse",
-      "project:hook:claude-code:Stop",
+      "project:hook:claude-code:PreToolUse-Bash-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-001",
       "project:skill:claude-code:code-review",
       "project:skill:claude-code:commit-helper",
       "project:skill:claude-code:project-only"
@@ -257,7 +257,7 @@ describe("archive operations", () => {
     const archive = archiveCodec.archives.get("/archives/project.tar.gz")!;
     const manifest = parseManifest(archive["agent-stash.json"]!);
     const skill = manifest.items.find((item) => item.name === "code-review")!;
-    const hook = manifest.items.find((item) => item.name === "PreToolUse")!;
+    const hook = manifest.items.find((item) => item.name === "PreToolUse-Bash-001-001")!;
     const skillContent = "# Imported Review\n";
     const hookContent = `${JSON.stringify({ hooks: {} }, null, 2)}\n`;
     skill.files[0] = {
@@ -281,7 +281,7 @@ describe("archive operations", () => {
     }
     archive["agent-stash.json"] = serializeManifest(manifest);
     archive["skills/project/claude-code/code-review/SKILL.md"] = skillContent;
-    archive["hooks/project/claude-code/PreToolUse.json"] = hookContent;
+    archive["hooks/project/claude-code/PreToolUse-Bash-001-001.json"] = hookContent;
     const targetFiles = createDummyAgentConfigFixture();
     targetFiles["/repo/.claude/skills/code-review/SKILL.md"] = "# Existing Review\n";
     const target = createContext(targetFiles, archiveCodec);
@@ -291,7 +291,7 @@ describe("archive operations", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Hook fragment PreToolUse must contain hook event PreToolUse.");
+    })).rejects.toThrow("Hook fragment PreToolUse-Bash-001-001 must contain hook event PreToolUse-Bash-001-001.");
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Existing Review\n");
   });
 

@@ -99,25 +99,74 @@ describe("inventory", () => {
     expect(items.map((item) => item.id)).toEqual(["global:skill:codex:codex-global"]);
   });
 
-  it("reads global Claude hooks as event fragments", async () => {
+  it("reads global Claude hooks as individual hook fragments", async () => {
     const items = await loadInventory(createContext(), { scope: "global", agent: "claude-code", kind: "hook" });
-    expect(items.map((item) => item.id)).toEqual(["global:hook:claude-code:Stop"]);
+    expect(items.map((item) => item.id)).toEqual(["global:hook:claude-code:Stop-all-tools-001-001"]);
   });
 
-  it("reads project Claude hooks as event fragments without non-hook settings", async () => {
+  it("reads project Claude hooks as individual hook fragments without non-hook settings", async () => {
     const items = await loadInventory(createContext(), { scope: "project", agent: "claude-code", kind: "hook" });
-    const preToolUse = items.find((item) => item.name === "PreToolUse");
+    const preToolUse = items.find((item) => item.name === "PreToolUse-Bash-001-001");
     expect(items.map((item) => item.id)).toEqual([
-      "project:hook:claude-code:PreToolUse",
-      "project:hook:claude-code:Stop"
+      "project:hook:claude-code:PreToolUse-Bash-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-001"
     ]);
+    expect(preToolUse?.bundleFiles[0]?.path).toBe("hooks/project/claude-code/PreToolUse-Bash-001-001.json");
     expect(preToolUse?.bundleFiles[0]?.content).toContain('"hooks"');
+    expect(preToolUse?.bundleFiles[0]?.content).toContain('"hookEvent": "PreToolUse"');
+    expect(preToolUse?.bundleFiles[0]?.content).toContain('"groupIndex": 0');
+    expect(preToolUse?.bundleFiles[0]?.content).toContain('"hookIndex": 0');
     expect(preToolUse?.bundleFiles[0]?.content).not.toContain("permissions");
   });
 
-  it("reads project Codex hooks as event fragments", async () => {
+  it("splits multiple hooks under one Claude hook event into separate selected items", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "jq -r '.tool_input.file_path'" },
+                { type: "command", command: "node format.js" }
+              ]
+            },
+            {
+              matcher: "Bash",
+              hooks: [{ type: "command", command: "npm test" }]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+
+    const items = await loadInventory(createContext(files), {
+      scope: "project",
+      agent: "claude-code",
+      kind: "hook",
+      hooks: ["PostToolUse"]
+    });
+
+    expect(items.map((item) => item.id)).toEqual([
+      "project:hook:claude-code:PostToolUse-Bash-002-001",
+      "project:hook:claude-code:PostToolUse-Write-Edit-001-001",
+      "project:hook:claude-code:PostToolUse-Write-Edit-001-002"
+    ]);
+    expect(items.map((item) => item.bundleFiles[0]?.content)).toEqual([
+      expect.stringContaining("npm test"),
+      expect.stringContaining("jq -r '.tool_input.file_path'"),
+      expect.stringContaining("node format.js")
+    ]);
+    for (const content of items.map((item) => item.bundleFiles[0]?.content ?? "")) {
+      expect(content).toContain('"PostToolUse"');
+      expect(content).not.toContain("permissions");
+    }
+  });
+
+  it("reads project Codex hooks as individual hook fragments", async () => {
     const items = await loadInventory(createContext(), { scope: "project", agent: "codex", kind: "hook" });
-    expect(items.map((item) => item.id)).toEqual(["project:hook:codex:PreToolUse"]);
+    expect(items.map((item) => item.id)).toEqual(["project:hook:codex:PreToolUse-Shell-001-001"]);
   });
 
   it("rejects hook config files that are not objects", async () => {
@@ -184,9 +233,9 @@ describe("inventory", () => {
     );
   });
 
-  it("reads global Codex hooks as event fragments", async () => {
+  it("reads global Codex hooks as individual hook fragments", async () => {
     const items = await loadInventory(createContext(), { scope: "global", agent: "codex", kind: "hook" });
-    expect(items.map((item) => item.id)).toEqual(["global:hook:codex:Stop"]);
+    expect(items.map((item) => item.id)).toEqual(["global:hook:codex:Stop-all-tools-001-001"]);
   });
 
   it("refuses to read global hook config through symbolic links", async () => {

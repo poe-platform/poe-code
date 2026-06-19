@@ -34,8 +34,12 @@ export function assertSelectedItemsFound(
     }
   }
   for (const hook of selected.hooks ?? []) {
-    if (!items.some((item) => item.kind === "hook" && item.name === hook)) {
+    if (!items.some((item) => item.kind === "hook" && selectedHookMatchesName(item.name, hook))) {
       throw new Error(`Selected hook not found: ${hook}`);
     }
   }
+}
+
+export function selectedHookMatchesName(itemName: string, selectedHook: string): boolean {
+  return itemName === selectedHook || itemName.startsWith(`${selectedHook}-`);
 }

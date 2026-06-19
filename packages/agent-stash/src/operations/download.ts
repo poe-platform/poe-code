@@ -11,7 +11,7 @@ import {
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { recordProfilePull, resolveProfileGist } from "../profile-store.js";
-import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
+import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, DownloadOptions, DownloadResult } from "../types.js";
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
@@ -39,7 +39,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       return options.skills.includes(item.name);
     }
     if (item.kind === "hook" && options.hooks !== undefined) {
-      return options.hooks.includes(item.name);
+      return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
     }
     return options.skills === undefined && options.hooks === undefined;
   }));

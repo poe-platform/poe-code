@@ -16,7 +16,7 @@ import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { uploadBundle } from "./upload.js";
-import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound } from "../validation.js";
+import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type {
   AgentStashContext,
   AgentStashItem,
@@ -80,7 +80,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       return options.skills.includes(item.name);
     }
     if (item.kind === "hook" && options.hooks !== undefined) {
-      return options.hooks.includes(item.name);
+      return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
     }
     return options.skills === undefined && options.hooks === undefined;
   }));

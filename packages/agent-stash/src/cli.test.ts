@@ -266,7 +266,8 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toContain("Project: claude-code");
     expect(output.join("")).toContain("Global: claude-code");
     expect(output.join("")).toContain("code-review");
-    expect(output.join("")).toContain("PreToolUse: Bash -> npm test");
+    expect(output.join("")).toContain("PreToolUse-Bash-001-001");
+    expect(output.join("")).toContain("PreToolUse 1 matcher group, 1 command");
     expect(output.join("")).toContain("q quit");
   });
 
@@ -296,7 +297,7 @@ describe("agent-stash CLI", () => {
     expect(gistClient.updateCalls).toHaveLength(1);
     expect(Object.keys(gistClient.updateCalls[0]?.input.files ?? {}).toSorted()).toEqual([
       "agent-stash.json",
-      gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json"),
+      gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json"),
       gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")
     ]);
     expect(output.join("")).toBe("Uploaded 2 item(s) to gist-default.\n");
@@ -355,7 +356,7 @@ describe("agent-stash CLI", () => {
 
     expect(prompts.multiselectCalls).toEqual([]);
     expect(prompts.confirmCalls[0]?.message).toBe('Upload 1 item(s) to profile "default"?');
-    expect(gistClient.updateCalls[0]?.input.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json")]).toBeUndefined();
+    expect(gistClient.updateCalls[0]?.input.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]).toBeUndefined();
     expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
   });
 
@@ -771,7 +772,7 @@ describe("agent-stash CLI", () => {
     const manifest = parseManifest(record.files["agent-stash.json"]!.content);
     manifest.items = [];
     record.files["agent-stash.json"] = { filename: "agent-stash.json", content: serializeManifest(manifest) };
-    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json")];
+    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")];
     harness.gistClient.seed(record);
 
     await harness.program.parseAsync([

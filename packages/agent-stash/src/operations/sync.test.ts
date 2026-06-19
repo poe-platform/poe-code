@@ -111,7 +111,7 @@ describe("sync", () => {
       yes: true
     });
 
-    expect(result.uploaded.map((item) => item.name)).toEqual(["PreToolUse", "Stop", "commit-helper", "project-only"]);
+    expect(result.uploaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001", "Stop-all-tools-001-001", "commit-helper", "project-only"]);
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeDefined();
   });
 
@@ -638,7 +638,7 @@ describe("sync", () => {
       filename: "agent-stash.json",
       content: serializeManifest(remoteManifest)
     };
-    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json")];
+    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")];
     gistClient.seed(record);
 
     const result = await syncBundle(target.ctx, {
@@ -654,7 +654,7 @@ describe("sync", () => {
       permissions?: unknown;
       hooks?: Record<string, unknown>;
     };
-    expect(result.deletedLocal.map((item) => item.name)).toEqual(["PreToolUse"]);
+    expect(result.deletedLocal.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
     expect(result.backupId).toMatch(/^backup-/);
     expect(settings.permissions).toEqual({ allow: ["Bash(npm test)"] });
     expect(settings.hooks?.PreToolUse).toBeUndefined();

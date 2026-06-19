@@ -1,12 +1,20 @@
 import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
+import { hookItemName } from "./hook-items.js";
 import { isIgnoredSubtree, type IgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { localPathForBundleFile } from "./bundle.js";
+import { selectedHookMatchesName } from "./validation.js";
 import { assertNoSymlinkAncestors, assertNotSymlink, isDirectory, pathExists, readFileIfExists, removePath, writeTextFile } from "./fs-utils.js";
 import type { AgentStashContext, AgentStashItem, AgentStashScope, BundleFile } from "./types.js";
 
-type HookFile = { hooks?: Record<string, unknown> };
+type HookFile = { agentStash?: unknown; hooks?: Record<string, unknown> };
+type HookGroup = Record<string, unknown> & { hooks?: unknown };
+type HookFragment = HookFile & {
+  event: string;
+  groups: unknown[];
+  position?: { groupIndex: number; hookIndex: number };
+};
 
 export function targetPathForItem(ctx: AgentStashContext, item: AgentStashItem, scope = item.scope): string {
   const agentId = normalizeAgent(item.agentId);
@@ -65,7 +73,9 @@ export async function writeItemToLocal(
   const fragment = parseHookFragment(item, files);
   const existingContent = await readFileIfExists(ctx.fs, targetPath);
   const existing = existingContent === null ? {} : parseExistingHookConfig(targetPath, existingContent);
-  existing.hooks = { ...(existing.hooks ?? {}), ...(fragment.hooks ?? {}) };
+  existing.hooks = fragment.position
+    ? mergeIndividualHook(existing.hooks ?? {}, fragment)
+    : { ...(existing.hooks ?? {}), ...(fragment.hooks ?? {}) };
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
   return [targetPath];
 }
@@ -124,7 +134,7 @@ async function validateRemovableSkillTarget(
   }
 }
 
-function parseHookFragment(item: AgentStashItem, files: readonly BundleFile[]): HookFile {
+function parseHookFragment(item: AgentStashItem, files: readonly BundleFile[]): HookFragment {
   const fragmentContent = files[0]?.content;
   if (fragmentContent === undefined) {
     throw new Error(`Hook item ${item.id} has no fragment file.`);
@@ -142,19 +152,81 @@ function parseHookFragment(item: AgentStashItem, files: readonly BundleFile[]): 
   if (fragment.hooks !== undefined && !isRecord(fragment.hooks)) {
     throw new Error(`Malformed hook fragment for ${item.name}.`);
   }
-  for (const eventName of Object.keys(fragment.hooks ?? {})) {
-    if (eventName !== item.name) {
-      throw new Error(`Hook fragment ${item.name} cannot modify hook event ${eventName}.`);
+  const eventNames = Object.keys(fragment.hooks ?? {});
+  if (eventNames.length === 0) {
+    const expectedEvent = isRecord(fragment.agentStash) && typeof fragment.agentStash.hookEvent === "string"
+      ? fragment.agentStash.hookEvent
+      : item.name;
+    throw new Error(`Hook fragment ${item.name} must contain hook event ${expectedEvent}.`);
+  }
+  const eventName = eventNames[0]!;
+  for (const candidate of eventNames) {
+    if (candidate !== eventName) {
+      throw new Error(`Hook fragment ${item.name} cannot modify hook event ${candidate}.`);
     }
   }
-  const ownEvent = fragment.hooks?.[item.name];
+  const position = parseHookFragmentPosition(fragment.agentStash, item.name, eventName);
+  if (position === undefined && !selectedHookMatchesName(item.name, eventName)) {
+    throw new Error(`Hook fragment ${item.name} cannot modify hook event ${eventName}.`);
+  }
+  const ownEvent = fragment.hooks?.[eventName];
   if (ownEvent === undefined) {
-    throw new Error(`Hook fragment ${item.name} must contain hook event ${item.name}.`);
+    throw new Error(`Hook fragment ${item.name} must contain hook event ${eventName}.`);
   }
   if (!Array.isArray(ownEvent)) {
     throw new Error(`Malformed hook fragment for ${item.name}.`);
   }
-  return fragment;
+  if (position !== undefined) {
+    if (ownEvent.length !== 1) {
+      throw new Error(`Malformed hook fragment for ${item.name}.`);
+    }
+    const group = ownEvent[0];
+    if (!isRecord(group) || !Array.isArray(group.hooks) || group.hooks.length !== 1 || !isRecord(group.hooks[0])) {
+      throw new Error(`Malformed hook fragment for ${item.name}.`);
+    }
+  }
+  return { ...fragment, event: eventName, groups: ownEvent, position };
+}
+
+function parseHookFragmentPosition(metadata: unknown, itemName: string, eventName: string): HookFragment["position"] | undefined {
+  if (metadata === undefined) {
+    return undefined;
+  }
+  if (!isRecord(metadata)) {
+    throw new Error(`Malformed hook fragment for ${itemName}.`);
+  }
+  if (metadata.hookEvent !== eventName) {
+    throw new Error(`Hook fragment ${itemName} cannot modify hook event ${String(metadata.hookEvent)}.`);
+  }
+  if (!isNonNegativeInteger(metadata.groupIndex) || !isNonNegativeInteger(metadata.hookIndex)) {
+    throw new Error(`Malformed hook fragment for ${itemName}.`);
+  }
+  return { groupIndex: metadata.groupIndex, hookIndex: metadata.hookIndex };
+}
+
+function mergeIndividualHook(hooks: Record<string, unknown>, fragment: HookFragment): Record<string, unknown> {
+  const eventGroups = cloneUnknownArray(hooks[fragment.event]);
+  const sourceGroup = fragment.groups[0];
+  if (!fragment.position || !isRecord(sourceGroup) || !Array.isArray(sourceGroup.hooks) || !isRecord(sourceGroup.hooks[0])) {
+    throw new Error(`Malformed hook fragment for ${fragment.event}.`);
+  }
+  while (eventGroups.length <= fragment.position.groupIndex) {
+    eventGroups.push({});
+  }
+  const existingGroupCandidate = eventGroups[fragment.position.groupIndex];
+  const existingGroup = isRecord(existingGroupCandidate)
+    ? cloneRecord(existingGroupCandidate)
+    : {};
+  const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
+  const nextGroup: HookGroup = { ...existingGroup, ...sourceGroupFields };
+  const groupHooks = Array.isArray(existingGroup.hooks) ? [...existingGroup.hooks] : [];
+  while (groupHooks.length <= fragment.position.hookIndex) {
+    groupHooks.push({});
+  }
+  groupHooks[fragment.position.hookIndex] = cloneJson(sourceGroup.hooks[0]);
+  nextGroup.hooks = groupHooks;
+  eventGroups[fragment.position.groupIndex] = nextGroup;
+  return { ...hooks, [fragment.event]: eventGroups };
 }
 
 function parseExistingHookConfig(targetPath: string, content: string): HookFile {
@@ -188,9 +260,83 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
   }
   const existing = parseExistingHookConfig(targetPath, (await ctx.fs.readFile(targetPath, "utf8")) || "{}");
   if (existing.hooks) {
-    delete existing.hooks[item.name];
+    const position = findIndividualHookPosition(existing.hooks, item.name);
+    if (position) {
+      removeIndividualHook(existing.hooks, position);
+    } else {
+      delete existing.hooks[item.name];
+    }
   }
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
+}
+
+function removeIndividualHook(
+  hooks: Record<string, unknown>,
+  position: { event: string; groupIndex: number; hookIndex: number }
+): void {
+  const groups = hooks[position.event];
+  if (!Array.isArray(groups)) {
+    return;
+  }
+  const group = groups[position.groupIndex];
+  if (!isRecord(group) || !Array.isArray(group.hooks)) {
+    return;
+  }
+  group.hooks.splice(position.hookIndex, 1);
+  if (group.hooks.length === 0) {
+    groups.splice(position.groupIndex, 1);
+  }
+  if (groups.length === 0) {
+    delete hooks[position.event];
+  }
+}
+
+function findIndividualHookPosition(
+  hooks: Record<string, unknown>,
+  name: string
+): { event: string; groupIndex: number; hookIndex: number } | undefined {
+  for (const [event, groups] of Object.entries(hooks)) {
+    if (!Array.isArray(groups)) {
+      continue;
+    }
+    for (const [groupIndex, group] of groups.entries()) {
+      if (!isRecord(group) || !Array.isArray(group.hooks)) {
+        continue;
+      }
+      for (const [hookIndex] of group.hooks.entries()) {
+        if (hookItemName(event, group.matcher, groupIndex, hookIndex) === name) {
+          return { event, groupIndex, hookIndex };
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function cloneUnknownArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? [...value] : [];
+}
+
+function cloneRecord(value: Record<string, unknown>): Record<string, unknown> {
+  return { ...value };
+}
+
+function cloneRecordWithoutHooks(value: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const [key, fieldValue] of Object.entries(value)) {
+    if (key !== "hooks") {
+      result[key] = cloneJson(fieldValue);
+    }
+  }
+  return result;
+}
+
+function cloneJson<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function localWriteRoot(ctx: AgentStashContext, scope: AgentStashScope): string {

@@ -193,8 +193,46 @@ describe("upload/download", () => {
     expect(gistClient.createCalls[0]?.files["agent-stash.json"]).toBeDefined();
     expect(Object.keys(gistClient.createCalls[0]?.files ?? {}).toSorted()).toEqual([
       "agent-stash.json",
-      gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse.json"),
+      gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json"),
       gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")
+    ]);
+  });
+
+  it("uploads each selected hook command as a separate Gist item", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "jq -r '.tool_input.file_path'" },
+                { type: "command", command: "node format.js" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx, gistClient } = createContext(files);
+
+    const result = await uploadBundle(ctx, {
+      profile: "new",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    expect(result.uploaded.map((item) => item.id)).toEqual([
+      "project:hook:claude-code:PostToolUse-Write-Edit-001-001",
+      "project:hook:claude-code:PostToolUse-Write-Edit-001-002"
+    ]);
+    expect(Object.keys(gistClient.createCalls[0]?.files ?? {}).toSorted()).toEqual([
+      "agent-stash.json",
+      gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json"),
+      gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-002.json")
     ]);
   });
 
@@ -331,7 +369,7 @@ describe("upload/download", () => {
     });
 
     expect(result.downloaded.map((item) => item.id)).toEqual([
-      "project:hook:claude-code:PreToolUse",
+      "project:hook:claude-code:PreToolUse-Bash-001-001",
       "project:skill:claude-code:code-review"
     ]);
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
@@ -342,6 +380,72 @@ describe("upload/download", () => {
     expect(settings.model).toBe("keep");
     expect(settings.hooks?.PreToolUse).toBeDefined();
     expect(result.backupId).toMatch(/^backup-/);
+  });
+
+  it("downloads one hook command without replacing the rest of the event", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "remote first" },
+                { type: "command", command: "remote second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-002"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        model: "keep",
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "local first" },
+                { type: "command", command: "local second" },
+                { type: "command", command: "local third" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-002"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      model?: string;
+      hooks?: { PostToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.model).toBe("keep");
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
+      "local first",
+      "remote second",
+      "local third"
+    ]);
   });
 
   it("rejects hook fragments that modify a different hook event before writing", async () => {
@@ -355,7 +459,7 @@ describe("upload/download", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    const fragmentPath = "hooks/project/claude-code/PreToolUse.json";
+    const fragmentPath = "hooks/project/claude-code/PreToolUse-Bash-001-001.json";
     updateRemoteHookFragment(record, fragmentPath, {
       hooks: {
         PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }],
@@ -372,7 +476,7 @@ describe("upload/download", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Hook fragment PreToolUse cannot modify hook event Stop.");
+    })).rejects.toThrow("Hook fragment PreToolUse-Bash-001-001 cannot modify hook event Stop.");
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
   });
 
@@ -387,7 +491,7 @@ describe("upload/download", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse.json", { hooks: {} });
+    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse-Bash-001-001.json", { hooks: {} });
     gistClient.seed(record);
     const files = createDummyAgentConfigFixture();
     const before = files["/repo/.claude/settings.json"];
@@ -398,7 +502,7 @@ describe("upload/download", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Hook fragment PreToolUse must contain hook event PreToolUse.");
+    })).rejects.toThrow("Hook fragment PreToolUse-Bash-001-001 must contain hook event PreToolUse-Bash-001-001.");
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
   });
 
@@ -413,7 +517,7 @@ describe("upload/download", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    updateRemoteHookFragmentContent(record, "hooks/project/claude-code/PreToolUse.json", "{");
+    updateRemoteHookFragmentContent(record, "hooks/project/claude-code/PreToolUse-Bash-001-001.json", "{");
     gistClient.seed(record);
     const files = createDummyAgentConfigFixture();
     const before = files["/repo/.claude/settings.json"];
@@ -424,7 +528,7 @@ describe("upload/download", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Malformed hook fragment for PreToolUse.");
+    })).rejects.toThrow("Malformed hook fragment for PreToolUse-Bash-001-001.");
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
     expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
   });
@@ -440,7 +544,7 @@ describe("upload/download", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse.json", {
+    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse-Bash-001-001.json", {
       hooks: { PreToolUse: { matcher: "Bash" } }
     });
     gistClient.seed(record);
@@ -453,7 +557,7 @@ describe("upload/download", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Malformed hook fragment for PreToolUse.");
+    })).rejects.toThrow("Malformed hook fragment for PreToolUse-Bash-001-001.");
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
   });
 
@@ -468,7 +572,7 @@ describe("upload/download", () => {
       yes: true
     });
     const record = await gistClient.read("gist-default");
-    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse.json", null);
+    updateRemoteHookFragment(record, "hooks/project/claude-code/PreToolUse-Bash-001-001.json", null);
     gistClient.seed(record);
     const files = createDummyAgentConfigFixture();
     const before = files["/repo/.claude/settings.json"];
@@ -479,7 +583,7 @@ describe("upload/download", () => {
       scope: "project",
       agent: "claude-code",
       yes: true
-    })).rejects.toThrow("Malformed hook fragment for PreToolUse.");
+    })).rejects.toThrow("Malformed hook fragment for PreToolUse-Bash-001-001.");
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toBe(before);
     expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
   });

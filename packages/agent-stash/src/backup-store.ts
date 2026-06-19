@@ -160,6 +160,10 @@ async function readBackupEntries(
   for (const directoryName of directoryNames) {
     const entryPath = path.join(root, directoryName);
     await assertBackupEntryPath(ctx, entryPath);
+    const entryStat = await ctx.fs.stat(entryPath);
+    if (!isDirectory(entryStat)) {
+      continue;
+    }
     const metadata = await readFileIfExists(ctx.fs, path.join(entryPath, BACKUP_METADATA));
     if (metadata !== null) {
       try {

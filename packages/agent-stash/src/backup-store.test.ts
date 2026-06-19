@@ -191,6 +191,17 @@ describe("backup store", () => {
     await expect(listBackups(ctx)).rejects.toThrow(`Malformed backup metadata for ${backupId}.`);
   });
 
+  it("ignores non-directory files in the backup root when listing backups", async () => {
+    const { ctx, volume } = createContext({
+      "/home/user/.agent-stash/backups/README.txt": "operator note\n",
+      "/repo/file.txt": "before"
+    });
+    const backup = await createBackup(ctx, { command: "test", args: { scope: "project" }, paths: ["/repo/file.txt"] });
+
+    expect((await listBackups(ctx)).map((record) => record.id)).toEqual([backup.id]);
+    expect(volume.readFileSync("/home/user/.agent-stash/backups/README.txt", "utf8")).toBe("operator note\n");
+  });
+
   it("refuses to restore when cwd and homeDir do not match the backup record", async () => {
     const { ctx } = createContext({ "/repo/file.txt": "before" });
     const backup = await createBackup(ctx, { command: "test", args: { scope: "project" }, paths: ["/repo/file.txt"] });

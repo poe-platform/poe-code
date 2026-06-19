@@ -2,6 +2,7 @@ import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hashFiles, readDirectoryBundle, sha256 } from "./hash.js";
 import { hookItemName } from "./hook-items.js";
+import { readHookOriginStore } from "./hook-origins.js";
 import { isIgnoredSubtree, loadIgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { stableItemId, validateManifestItem } from "./manifest.js";
@@ -135,12 +136,15 @@ async function loadHookInventory(
   if (matcher.ignores(relativeHookPath)) {
     return [];
   }
+  const originStore = await readHookOriginStore(ctx);
+  const targetOrigins = originStore.targets[hookPath] ?? {};
   const items: LoadedItem[] = [];
 
   for (const [event, groups] of Object.entries(hooks).sort(([left], [right]) => left.localeCompare(right))) {
     if (!Array.isArray(groups)) {
       throw new Error(`Malformed hooks in ${hookPath}`);
     }
+    const groupOrigins = targetOrigins[event]?.length === groups.length ? targetOrigins[event] : [];
     for (const [groupIndex, group] of groups.entries()) {
       if (!isRecord(group)) {
         throw new Error(`Malformed hooks in ${hookPath}`);
@@ -149,11 +153,15 @@ async function loadHookInventory(
       if (!Array.isArray(groupHooks)) {
         throw new Error(`Malformed hooks in ${hookPath}`);
       }
+      const groupOrigin = groupOrigins[groupIndex];
+      const originalGroupIndex = groupOrigin?.groupIndex ?? groupIndex;
+      const hookOrigins = groupOrigin?.hooks.length === groupHooks.length ? groupOrigin.hooks : [];
       for (const [hookIndex, hook] of groupHooks.entries()) {
         if (!isRecord(hook)) {
           throw new Error(`Malformed hooks in ${hookPath}`);
         }
-        const name = hookItemName(event, group.matcher, groupIndex, hookIndex);
+        const originalHookIndex = hookOrigins[hookIndex] ?? hookIndex;
+        const name = hookItemName(event, group.matcher, originalGroupIndex, originalHookIndex);
         if (requested !== undefined && ![...requested].some((selected) => selectedHookMatchesName(name, selected))) {
           continue;
         }
@@ -162,7 +170,7 @@ async function loadHookInventory(
           continue;
         }
         const fragment = {
-          agentStash: { hookEvent: event, groupIndex, hookIndex },
+          agentStash: { hookEvent: event, groupIndex: originalGroupIndex, hookIndex: originalHookIndex },
           hooks: { [event]: [{ ...group, hooks: [hook] }] }
         };
         const fragmentContent = `${JSON.stringify(fragment, null, 2)}\n`;

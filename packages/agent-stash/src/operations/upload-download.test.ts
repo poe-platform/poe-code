@@ -754,6 +754,63 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("keeps the original split hook identity when uploading a later hook downloaded by itself", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote first stop" }] },
+            { hooks: [{ type: "command", command: "remote second stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {}
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-002-001"],
+      yes: true
+    });
+    const localSettings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks: { Stop: Array<{ hooks: Array<{ command: string }> }> };
+    };
+    localSettings.hooks.Stop[0]!.hooks[0]!.command = "local changed second stop";
+    target.volume.writeFileSync("/repo/.claude/settings.json", `${JSON.stringify(localSettings, null, 2)}\n`);
+
+    const result = await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-002-001"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const first = record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content;
+    const second = record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]?.content;
+    expect(result.uploaded.map((item) => item.name)).toEqual(["Stop-all-tools-002-001"]);
+    expect(first).toContain("remote first stop");
+    expect(second).toContain("local changed second stop");
+  });
+
   it("rejects hook fragments that modify a different hook event before writing", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

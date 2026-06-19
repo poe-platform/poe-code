@@ -239,10 +239,11 @@ export async function recordProfilePush(
   assertValidGistId(gistId);
   assertExactIsoTimestamp(timestamp, profile, "lastPushedAt");
   const config = await loadConfig(ctx);
+  const existing = config.profiles[profile];
   config.profiles[profile] = {
-    ...config.profiles[profile],
+    ...existing,
     gistId,
-    gistUrl: gistUrl ?? config.profiles[profile]?.gistUrl,
+    gistUrl: gistUrl ?? (existing?.gistId === gistId ? existing.gistUrl : undefined),
     lastPushedAt: timestamp
   };
   await saveConfig(ctx, config);
@@ -262,10 +263,11 @@ export async function recordProfilePull(
   assertValidGistId(gistId);
   assertExactIsoTimestamp(timestamp, profile, "lastPulledAt");
   const config = await loadConfig(ctx);
+  const existing = config.profiles[profile];
   config.profiles[profile] = {
-    ...config.profiles[profile],
+    ...existing,
     gistId,
-    gistUrl: gistUrl ?? config.profiles[profile]?.gistUrl,
+    gistUrl: gistUrl ?? (existing?.gistId === gistId ? existing.gistUrl : undefined),
     lastPulledAt: timestamp
   };
   await saveConfig(ctx, config);

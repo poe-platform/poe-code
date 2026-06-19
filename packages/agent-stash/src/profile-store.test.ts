@@ -168,6 +168,30 @@ describe("profile store", () => {
     expect(await loadConfig(context)).toEqual({ profiles: { default: { gistId: "gist-1" } } });
   });
 
+  it("drops stale profile Gist URLs when recording a new Gist id without a URL", async () => {
+    const context = ctx({
+      "/home/user/.agent-stash/config.json": JSON.stringify({
+        profiles: {
+          default: {
+            gistId: "gist-1",
+            gistUrl: "https://gist.github.com/gist-1"
+          }
+        }
+      }, null, 2)
+    });
+
+    await recordProfilePush(context, "default", "gist-2", undefined, "2026-01-02T03:04:05.000Z");
+
+    expect(await loadConfig(context)).toEqual({
+      profiles: {
+        default: {
+          gistId: "gist-2",
+          lastPushedAt: "2026-01-02T03:04:05.000Z"
+        }
+      }
+    });
+  });
+
   it("rejects stored profile timestamps that are not exact ISO timestamps", async () => {
     const context = ctx({
       "/home/user/.agent-stash/config.json": JSON.stringify({

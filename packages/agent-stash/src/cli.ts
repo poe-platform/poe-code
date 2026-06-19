@@ -184,6 +184,8 @@ export function createAgentStashProgram(dependencies: AgentStashCliDependencies 
     .option("--gist <gist>")
     .option("--scope <scope>")
     .option("--agent <agent>")
+    .option("--skills <names>")
+    .option("--hooks <names>")
     .option("--yes")
     .action(async (gist: string | undefined, opts) => {
       const ctx = getContext(program.opts());
@@ -334,6 +336,8 @@ async function resolveDownloadOptions(
     gist: stringOption(raw.gist),
     scope: scopeOption(raw.scope),
     agent: stringOption(raw.agent),
+    skills: splitCsv(stringOption(raw.skills)),
+    hooks: splitCsv(stringOption(raw.hooks)),
     yes: booleanOption(raw.yes)
   };
 

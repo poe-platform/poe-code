@@ -203,6 +203,33 @@ describe("browse", () => {
     expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("routes local-pane download actions for only the selected items", async () => {
+    const { ctx, volume } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review", "commit-helper"],
+      yes: true
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/commit-helper", { recursive: true, force: true });
+    await ctx.fs.writeFile("/repo/.claude/skills/code-review/SKILL.md", "# Local Review\n", { encoding: "utf8" });
+
+    const result = await runBrowseAction(ctx, {
+      action: "download",
+      profile: "default",
+      fromPane: "left",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    expect(Array.isArray(result.downloaded)).toBe(false);
+    expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+    expect(() => volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
+  });
+
   it("routes move actions from a local pane to a Gist pane", async () => {
     const { ctx, volume, gistClient } = createHarness();
 

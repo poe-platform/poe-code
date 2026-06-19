@@ -671,6 +671,34 @@ describe("upload/download", () => {
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("downloads only explicitly selected skills", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review", "commit-helper"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    delete files["/repo/.claude/skills/commit-helper/SKILL.md"];
+    const target = createContext(files, gistClient);
+
+    const result = await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+    expect(() => target.volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
+  });
+
   it("downloads by Gist URL without a stored profile", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

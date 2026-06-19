@@ -4,7 +4,7 @@ import { createDefaultGistClient } from "../gist-client.js";
 import { targetPathForItem, validateItemForLocalWrite, validateTargetForLocalWrite, writeItemToLocal } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { recordProfilePull, resolveProfileGist } from "../profile-store.js";
-import { assertAgentStashScope } from "../validation.js";
+import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
 import type { AgentStashContext, DownloadOptions, DownloadResult } from "../types.js";
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
@@ -22,9 +22,19 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   const gist = await client.read(resolved.gistId);
   const bundle = loadBundleFromGist(gist);
   verifyBundleHashes(bundle);
-  const selected = bundle.manifest.items.filter(
-    (item) => item.scope === options.scope && item.agentId === agentId
-  );
+  const selected = bundle.manifest.items.filter((item) => {
+    if (item.scope !== options.scope || item.agentId !== agentId) {
+      return false;
+    }
+    if (item.kind === "skill" && options.skills !== undefined) {
+      return options.skills.includes(item.name);
+    }
+    if (item.kind === "hook" && options.hooks !== undefined) {
+      return options.hooks.includes(item.name);
+    }
+    return options.skills === undefined && options.hooks === undefined;
+  });
+  assertSelectedItemsFound(selected, options);
   const selectedFiles = selected.map((item) => {
     const files = item.files.map((file) => {
       const content = bundle.files.get(file.path);

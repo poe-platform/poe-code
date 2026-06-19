@@ -244,6 +244,7 @@ export async function runBrowseAction(
     };
   }
 
+  const selectedNames = namesByKind(selected);
   if (options.action === "download") {
     if (source.location === "gist") {
       const results: CopyMoveResult[] = [];
@@ -266,12 +267,13 @@ export async function runBrowseAction(
         profile: options.profile ?? target.profile,
         scope: source.scope ?? options.scope ?? "project",
         agent: source.agentId,
+        skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,
+        hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
         yes: options.yes
       })
     };
   }
 
-  const selectedNames = namesByKind(selected);
   return {
     synced: await syncBundle(ctx, {
       profile: options.profile ?? source.profile ?? target.profile,

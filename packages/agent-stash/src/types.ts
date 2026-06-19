@@ -130,6 +130,8 @@ export interface DownloadOptions {
   gist?: string;
   scope: AgentStashScope;
   agent: string;
+  skills?: string[];
+  hooks?: string[];
   yes?: boolean;
 }
 

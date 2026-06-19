@@ -321,6 +321,48 @@ describe("agent-stash CLI", () => {
     expect(target.output.join("")).toBe("Downloaded 1 item(s).\n");
   });
 
+  it("passes selected download skills through CLI flags", async () => {
+    const setup = createHarness();
+    await setup.program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review,commit-helper",
+      "--yes"
+    ]);
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    delete files["/repo/.claude/skills/commit-helper/SKILL.md"];
+    const target = createHarness(files);
+    target.gistClient.seed(await setup.gistClient.read("gist-default"));
+
+    await target.program.parseAsync([
+      "node",
+      "agent-stash",
+      "download",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "code-review",
+      "--yes"
+    ]);
+
+    expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+    expect(() => target.volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
+    expect(target.output.join("")).toBe("Downloaded 1 item(s).\n");
+  });
+
   it("prompts per sync conflict when interactive conflict policy defaults to ask", async () => {
     const prompts = createPromptHarness({
       select: ["remote"],

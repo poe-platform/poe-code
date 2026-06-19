@@ -274,6 +274,48 @@ describe("upload/download", () => {
     expect(() => volume.statSync("/home/user/.agent-stash/cache/default.manifest.json")).toThrow();
   });
 
+  it("removes pre-existing files when initializing an explicit Gist without a manifest", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    gistClient.seed({
+      id: "gist-other",
+      htmlUrl: "https://gist.github.com/gist-other",
+      files: {
+        "placeholder.txt": {
+          filename: "placeholder.txt",
+          content: "temporary\n"
+        }
+      }
+    });
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "format changed file" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx } = createContext(files, gistClient);
+
+    await uploadBundle(ctx, {
+      profile: "default",
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-other");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(gistClient.updateCalls.at(-1)?.input.files["placeholder.txt"]).toBeNull();
+    expect(record.files["placeholder.txt"]).toBeUndefined();
+    expect(manifest.items.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]).toBeDefined();
+  });
+
   it("does not treat empty selected upload lists as all local items", async () => {
     const { ctx, gistClient } = createContext();
 

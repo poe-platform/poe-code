@@ -83,7 +83,8 @@ async function createUpdateWriteInput(
 ): Promise<GistWriteInput> {
   const now = ctx.now?.() ?? new Date();
   const record = await client.read(gistId);
-  const existing = record.files[MANIFEST_FILENAME]
+  const hasExistingManifest = record.files[MANIFEST_FILENAME] !== undefined;
+  const existing = hasExistingManifest
     ? loadBundleFromGist(record)
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
   verifyBundleHashes(existing);
@@ -141,6 +142,13 @@ async function createUpdateWriteInput(
       [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }))
     )
   };
+  if (!hasExistingManifest) {
+    for (const filename of Object.keys(record.files)) {
+      if (!Object.hasOwn(writeInput.files, filename)) {
+        writeInput.files[filename] = null;
+      }
+    }
+  }
   for (const filePath of deletedFiles) {
     writeInput.files[gistFilenameForBundlePath(filePath)] = null;
   }

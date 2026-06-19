@@ -158,6 +158,7 @@ function cloneCommand<TServices extends object>(
 ): Command<TServices, any, any, any> {
   return defineCommand({
     name: command.name,
+    hidden: command.hidden,
     description: command.description,
     examples: command.examples.map((example) => ({
       title: example.title,

@@ -85,6 +85,29 @@ describe("defineClient", () => {
     );
   });
 
+  it("preserves hidden handwritten commands", () => {
+    const client = defineClient({
+      name: "internal-agent",
+      baseUrl: "https://example.com/api",
+      auth: createAuthProvider([]),
+      commands: [],
+      handwrittenCommands: [
+        defineCommand({
+          name: "install-skill",
+          hidden: true,
+          params: S.Object({}),
+          handler: async () => ({ ok: true }),
+        }),
+      ],
+    });
+
+    expect(client.root.children[0]).toMatchObject({
+      kind: "command",
+      name: "install-skill",
+      hidden: true,
+    });
+  });
+
   it("forces contributed auth groups into CLI scope", () => {
     const client = defineClient({
       name: "internal-agent",

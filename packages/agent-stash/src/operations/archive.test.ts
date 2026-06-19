@@ -146,7 +146,7 @@ describe("archive operations", () => {
 
     const result = await exportArchive(ctx, {
       outputPath: "/archives/project.tar.gz",
-      profile: "default",
+      profile: "snapshot",
       scope: "project",
       agent: "claude-code"
     });
@@ -159,7 +159,7 @@ describe("archive operations", () => {
       "project:skill:claude-code:commit-helper",
       "project:skill:claude-code:project-only"
     ]);
-    expect(archive?.["agent-stash.json"]).toContain('"profile": "default"');
+    expect(archive?.["agent-stash.json"]).toContain('"profile": "snapshot"');
     expect(archive?.["skills/project/claude-code/code-review/SKILL.md"]).toBe("# Code Review\n");
   });
 
@@ -362,6 +362,40 @@ describe("archive operations", () => {
 
     expect(result.exported.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
     expect(archiveCodec.archives.get("/archives/remote.tar.gz")?.["skills/project/claude-code/code-review/SKILL.md"]).toBe(
+      "# Code Review\n"
+    );
+  });
+
+  it("exports profile Gist archives with scope and agent filters instead of local inventory", async () => {
+    const archiveCodec = new InMemoryArchiveCodec();
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const source = createContext(createDummyAgentConfigFixture(), archiveCodec);
+    source.ctx.gistClient = gistClient;
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const target = createContext({}, archiveCodec);
+    target.ctx.gistClient = gistClient;
+    target.volume.mkdirSync("/home/user/.agent-stash", { recursive: true });
+    target.volume.writeFileSync(
+      "/home/user/.agent-stash/config.json",
+      JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2)
+    );
+
+    const result = await exportArchive(target.ctx, {
+      outputPath: "/archives/profile-gist.tar.gz",
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+
+    expect(result.exported.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(archiveCodec.archives.get("/archives/profile-gist.tar.gz")?.["skills/project/claude-code/code-review/SKILL.md"]).toBe(
       "# Code Review\n"
     );
   });

@@ -103,7 +103,10 @@ async function loadExportBundle(
   options: ExportOptions
 ): Promise<{ manifest: ReturnType<typeof createEmptyManifest>; files: BundleFile[] }> {
   const agentId = options.agent === undefined ? undefined : normalizeAgent(options.agent);
-  if (options.scope && options.agent && options.gist === undefined) {
+  const resolved = options.profile !== undefined || options.gist !== undefined
+    ? await resolveProfileGist(ctx, options.profile, options.gist)
+    : {};
+  if (options.scope && options.agent && options.gist === undefined && resolved.gistId === undefined) {
     const items = await loadInventory(ctx, { scope: options.scope, agent: options.agent });
     const manifest = createEmptyManifest(ctx.now?.() ?? new Date(), options.profile);
     manifest.items = items.map(({ bundleFiles: ignoredBundleFiles, targetPath: ignoredTargetPath, ...item }) => {
@@ -114,7 +117,6 @@ async function loadExportBundle(
     return { manifest, files: items.flatMap((item) => item.bundleFiles) };
   }
 
-  const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   if (!resolved.gistId) {
     throw new Error("Export requires --scope and --agent for local archives, or a profile/--gist for remote archives.");
   }

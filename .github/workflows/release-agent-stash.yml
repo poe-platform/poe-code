@@ -1,0 +1,41 @@
+name: Release agent-stash
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/agent-stash/**"
+      - ".github/workflows/release-agent-stash.yml"
+concurrency:
+  group: release-agent-stash
+  cancel-in-progress: false
+permissions:
+  contents: read
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+      - name: Upgrade npm for trusted publishing
+        run: npm install --global npm@^11.5.1
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Compute next version
+        id: version
+        run: |
+          REMOTE=$(npm view agent-stash version 2>/dev/null || echo "0.0.0")
+          NEXT=$(node -e "const semver = require('semver'); const next = semver.inc(process.argv[1], 'patch'); if (!next) process.exit(1); console.log(next);" "${REMOTE}")
+          echo "next=${NEXT}" >> "$GITHUB_OUTPUT"
+      - name: Prepare package version
+        working-directory: packages/agent-stash
+        run: npm version --no-git-tag-version --allow-same-version "${{ steps.version.outputs.next }}"
+      - name: Build agent-stash and dependencies
+        run: npx turbo build --filter=agent-stash...
+      - name: Publish agent-stash
+        working-directory: packages/agent-stash
+        run: npm publish --provenance --access public

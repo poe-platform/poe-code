@@ -1,0 +1,79 @@
+{
+  "name": "agent-stash",
+  "version": "0.0.1",
+  "description": "Portable agent skill and hook sync for local, global, and Gist-backed agent configuration",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "agent-stash": "dist/bin.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-defs @poe-code/agent-hook-config @poe-code/agent-skill-config @poe-code/config-mutations toolcraft-design @poe-code/frontmatter",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup .",
+    "install:global": "npm run build && TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && npm install -g $TMPD/agent-stash-*.tgz && rm -rf $TMPD",
+    "test": "cd ../.. && vitest run packages/agent-stash/src",
+    "test:unit": "cd ../.. && vitest run packages/agent-stash/src"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "@poe-code/agent-defs": "*",
+    "@poe-code/agent-hook-config": "*",
+    "@poe-code/agent-skill-config": "*",
+    "commander": "^14.0.3",
+    "fast-string-width": "^3.0.2",
+    "fast-wrap-ansi": "^0.2.0",
+    "ignore": "^5.3.2",
+    "jsonc-parser": "^3.3.1",
+    "sisteransi": "^1.0.5",
+    "smol-toml": "^1.6.0",
+    "tar": "^7.5.16",
+    "toolcraft-design": "*",
+    "yaml": "^2.8.2"
+  },
+  "bundleDependencies": [
+    "@poe-code/agent-defs",
+    "@poe-code/agent-hook-config",
+    "@poe-code/agent-skill-config",
+    "@poe-code/config-mutations",
+    "toolcraft-design",
+    "@poe-code/frontmatter"
+  ],
+  "optionalDependencies": {
+    "@poe-code/config-mutations": "*",
+    "@poe-code/frontmatter": "*"
+  },
+  "devDependencies": {
+    "memfs": "^4.17.0",
+    "vitest": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/agent-stash"
+  },
+  "license": "MIT",
+  "keywords": [
+    "agent",
+    "claude",
+    "codex",
+    "gist",
+    "sync"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

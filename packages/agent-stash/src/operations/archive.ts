@@ -9,7 +9,7 @@ import { loadInventory } from "../inventory.js";
 import { normalizeAgent } from "../locations.js";
 import { createEmptyManifest, MANIFEST_FILENAME, parseManifest, serializeManifest, validateBundlePath } from "../manifest.js";
 import { targetPathForItem, validateItemForLocalWrite, validateTargetForLocalWrite, writeItemToLocal } from "../local-writes.js";
-import { resolveProfileGist } from "../profile-store.js";
+import { assertValidProfileName, resolveProfileGist } from "../profile-store.js";
 import { sha256 } from "../hash.js";
 import { assertAgentStashScope } from "../validation.js";
 import type {
@@ -25,6 +25,9 @@ import type {
 export async function exportArchive(ctx: AgentStashContext, options: ExportOptions): Promise<ExportResult> {
   if (options.scope !== undefined) {
     assertAgentStashScope(options.scope);
+  }
+  if (options.profile !== undefined) {
+    assertValidProfileName(options.profile);
   }
   const archiveCodec = ctx.archiveCodec ?? new TarArchiveCodec();
   const bundle = await loadExportBundle(ctx, options);

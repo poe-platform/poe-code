@@ -119,6 +119,19 @@ describe("archive operations", () => {
     expect(archiveCodec.archives.has("/archives/remote.tar.gz")).toBe(false);
   });
 
+  it("rejects invalid local export profiles before writing an archive", async () => {
+    const { ctx, archiveCodec } = createContext();
+
+    await expect(exportArchive(ctx, {
+      outputPath: "/archives/project.tar.gz",
+      profile: "../escape",
+      scope: "project",
+      agent: "claude-code"
+    })).rejects.toThrow("Invalid profile name: ../escape");
+
+    expect(archiveCodec.archives.has("/archives/project.tar.gz")).toBe(false);
+  });
+
   it("exports local project items without GitHub access", async () => {
     const { ctx, archiveCodec } = createContext();
 

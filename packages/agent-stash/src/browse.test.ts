@@ -282,6 +282,41 @@ describe("browse", () => {
     expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("moves the selected scoped Gist pane item without deleting same-name items in other scopes", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+
+    const result = await runBrowseAction(ctx, {
+      action: "move",
+      profile: "default",
+      fromPane: "right",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(result.moved?.map((move) => move.item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+    expect(manifest.items.map((item) => item.id)).toEqual(["global:skill:claude-code:code-review"]);
+  });
+
   it("routes local-pane download actions for only the selected items", async () => {
     const { ctx, volume } = createHarness();
     await uploadBundle(ctx, {

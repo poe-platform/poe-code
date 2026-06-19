@@ -227,6 +227,34 @@ describe("sync", () => {
     expect((await gistClient.read("gist-default")).files[stalePath]).toBeUndefined();
   });
 
+  it("preserves remote manifest metadata when syncing local-only items through an explicit Gist", async () => {
+    const { ctx, gistClient } = createContext();
+    const upload = await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    ctx.now = () => new Date("2026-01-02T03:05:00.000Z");
+
+    await syncBundle(ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      onConflict: "local",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.profile).toBe("default");
+    expect(manifest.createdAt).toBe(upload.manifest.createdAt);
+    expect(manifest.updatedAt).toBe("2026-01-02T03:05:00.000Z");
+    expect(manifest.items.map((item) => item.name)).toEqual(["code-review", "project-only"]);
+  });
+
   it("fails on both-changed conflicts before writing local files", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

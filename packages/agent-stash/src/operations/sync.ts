@@ -11,7 +11,6 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { createEmptyManifest } from "../manifest.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound } from "../validation.js";
@@ -157,8 +156,12 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
 
   if (result.uploaded.length > 0 || result.deletedRemote.length > 0) {
     const now = ctx.now?.() ?? new Date();
-    const manifest = createEmptyManifest(now, options.profile);
-    manifest.items = [...nextRemoteItems.values()].sort((left, right) => left.id.localeCompare(right.id));
+    const manifest = {
+      ...remote.manifest,
+      profile: options.profile ?? remote.manifest.profile,
+      updatedAt: now.toISOString(),
+      items: [...nextRemoteItems.values()].sort((left, right) => left.id.localeCompare(right.id))
+    };
     const files: BundleFile[] = [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }));
     const writeInput: GistWriteInput = { files: gistFilesFromBundle(manifest, files) };
     for (const filePath of remoteDeletes) {

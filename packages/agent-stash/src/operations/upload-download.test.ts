@@ -850,6 +850,33 @@ describe("upload/download", () => {
     expect(() => target.volume.statSync("/repo/.claude/skills/commit-helper/SKILL.md")).toThrow();
   });
 
+  it("rejects selected remote download skills that are ignored locally before writing", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.agent-stashignore"] = ".claude/skills/code-review/**\n";
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(files, gistClient);
+
+    await expect(downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    })).rejects.toThrow("Selected skill not found: code-review");
+
+    expect(() => target.volume.statSync("/repo/.claude/skills/code-review/SKILL.md")).toThrow();
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects missing selected download skills before local writes or profile updates", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

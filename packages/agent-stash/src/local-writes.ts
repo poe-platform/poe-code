@@ -1,5 +1,6 @@
 import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
+import { isIgnoredSubtree, type IgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { localPathForBundleFile } from "./bundle.js";
 import { assertNoSymlinkAncestors, assertNotSymlink, isDirectory, pathExists, readFileIfExists, removePath, writeTextFile } from "./fs-utils.js";
@@ -21,6 +22,19 @@ export function targetPathForItem(ctx: AgentStashContext, item: AgentStashItem, 
     throw new Error(`Agent does not support hooks: ${agentId}`);
   }
   return target;
+}
+
+export function isLocalTargetIgnored(
+  ctx: AgentStashContext,
+  matcher: IgnoreMatcher,
+  item: AgentStashItem,
+  scope: AgentStashScope = item.scope
+): boolean {
+  const scopeRoot = scope === "project" ? ctx.cwd : ctx.homeDir;
+  const relativeTarget = path.relative(scopeRoot, targetPathForItem(ctx, item, scope)).split(path.sep).join("/");
+  return item.kind === "skill"
+    ? isIgnoredSubtree(matcher, relativeTarget)
+    : matcher.ignores(relativeTarget);
 }
 
 export async function writeItemToLocal(

@@ -1,7 +1,14 @@
 import { createBackup } from "../backup-store.js";
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createDefaultGistClient } from "../gist-client.js";
-import { targetPathForItem, validateItemForLocalWrite, validateTargetForLocalWrite, writeItemToLocal } from "../local-writes.js";
+import { loadIgnoreMatcher, type IgnoreMatcher } from "../ignore.js";
+import {
+  isLocalTargetIgnored,
+  targetPathForItem,
+  validateItemForLocalWrite,
+  validateTargetForLocalWrite,
+  writeItemToLocal
+} from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { recordProfilePull, resolveProfileGist } from "../profile-store.js";
 import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
@@ -24,7 +31,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   const gist = await client.read(resolved.gistId);
   const bundle = loadBundleFromGist(gist);
   verifyBundleHashes(bundle);
-  const selected = bundle.manifest.items.filter((item) => {
+  const selected = filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, bundle.manifest.items.filter((item) => {
     if (item.scope !== options.scope || item.agentId !== agentId) {
       return false;
     }
@@ -35,7 +42,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       return options.hooks.includes(item.name);
     }
     return options.skills === undefined && options.hooks === undefined;
-  });
+  }));
   assertSelectedItemsFound(selected, options);
   const selectedFiles = selected.map((item) => {
     const files = item.files.map((file) => {
@@ -62,4 +69,13 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
 
   await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
   return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };
+}
+
+function filterIgnoredRemoteItems(
+  ctx: AgentStashContext,
+  matcher: IgnoreMatcher,
+  scope: DownloadOptions["scope"],
+  items: DownloadResult["downloaded"]
+): DownloadResult["downloaded"] {
+  return items.filter((item) => !isLocalTargetIgnored(ctx, matcher, item, scope));
 }

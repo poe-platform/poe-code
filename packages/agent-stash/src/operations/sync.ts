@@ -1,10 +1,10 @@
-import path from "node:path";
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createBackup } from "../backup-store.js";
 import { createDefaultGistClient } from "../gist-client.js";
-import { isIgnoredSubtree, loadIgnoreMatcher } from "../ignore.js";
+import { loadIgnoreMatcher } from "../ignore.js";
 import { loadInventory } from "../inventory.js";
 import {
+  isLocalTargetIgnored,
   removeLocalItem,
   targetPathForItem,
   validateItemForLocalWrite,
@@ -243,13 +243,7 @@ async function filterRemoteItemsForLocalIgnores(
   items: AgentStashItem[]
 ): Promise<AgentStashItem[]> {
   const matcher = await loadIgnoreMatcher(ctx, scope);
-  const scopeRoot = scope === "project" ? ctx.cwd : ctx.homeDir;
-  return items.filter((item) => {
-    const relativeTarget = path.relative(scopeRoot, targetPathForItem(ctx, item)).split(path.sep).join("/");
-    return item.kind === "skill"
-      ? !isIgnoredSubtree(matcher, relativeTarget)
-      : !matcher.ignores(relativeTarget);
-  });
+  return items.filter((item) => !isLocalTargetIgnored(ctx, matcher, item, scope));
 }
 
 type Action = "unchanged" | "upload" | "download" | "delete-local" | "delete-remote" | "conflict";

@@ -1,6 +1,7 @@
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createBackup } from "../backup-store.js";
 import { createDefaultGistClient } from "../gist-client.js";
+import { hookEventFromFragmentContent } from "../hook-items.js";
 import { loadIgnoreMatcher } from "../ignore.js";
 import { loadInventory } from "../inventory.js";
 import {
@@ -15,6 +16,7 @@ import {
 import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
+import { traceAgentStash, traceItems } from "../trace.js";
 import { uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type {
@@ -38,6 +40,15 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   if (options.onConflict === "ask" && !options.resolveConflict) {
     throw new Error("--on-conflict ask requires an interactive conflict resolver.");
   }
+  await traceAgentStash(ctx, "sync.start", {
+    profile: options.profile,
+    gist: options.gist,
+    scope: options.scope,
+    agent: options.agent,
+    skills: options.skills,
+    hooks: options.hooks,
+    onConflict: options.onConflict
+  });
   const agentId = normalizeAgent(options.agent);
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
@@ -57,6 +68,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     if (usesProfileTarget) {
       await writeBaselineManifest(ctx, options.profile!, initialUpload.manifest);
     }
+    await traceAgentStash(ctx, "sync.initialUpload", { uploaded: traceItems(initialUpload.uploaded) });
     return {
       uploaded: initialUpload.uploaded,
       downloaded: [],
@@ -68,6 +80,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const local = await loadSyncInventory(ctx, options);
+  await traceAgentStash(ctx, "sync.local.inventory", { items: traceItems(local) });
+  const localHookEvents = hookEventsForLoadedItems(local);
   const localById = new Map(local.map((item) => [item.id, item]));
   const gist = await client.read(resolved.gistId);
   const remote = loadBundleFromGist(gist);
@@ -83,7 +97,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
     }
     return options.skills === undefined && options.hooks === undefined;
-  }));
+  }).filter((item) => !(item.kind === "hook" && localHookEvents.has(item.name))));
+  await traceAgentStash(ctx, "sync.remote.selected", { gistId: resolved.gistId, items: traceItems(remoteItems) });
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
   const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
@@ -93,6 +108,16 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const result: SyncResult = { uploaded: [], downloaded: [], deletedLocal: [], deletedRemote: [], unchanged: [], conflicts: [] };
   const nextRemoteItems = new Map(remote.manifest.items.map((item) => [item.id, item]));
   const nextFiles = new Map<string, string>(remote.files);
+  const legacyRemoteDeletes = remote.manifest.items.filter((item) => item.kind === "hook" && localHookEvents.has(item.name));
+  if (legacyRemoteDeletes.length > 0) {
+    await traceAgentStash(ctx, "sync.legacyHookChunksRemoved", { items: traceItems(legacyRemoteDeletes) });
+  }
+  for (const item of legacyRemoteDeletes) {
+    nextRemoteItems.delete(item.id);
+    for (const file of item.files) {
+      nextFiles.delete(file.path);
+    }
+  }
   const actions: Array<{
     action: Action;
     localItem?: LoadedItem;
@@ -117,8 +142,17 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       result.conflicts.push(baseItem);
     }
   }
+  await traceAgentStash(ctx, "sync.actions", {
+    actions: actions.map(({ action, localItem, remoteItem, baseItem }) => ({
+      action,
+      localId: localItem?.id,
+      remoteId: remoteItem?.id,
+      baseId: baseItem?.id
+    }))
+  });
 
   if (result.conflicts.length > 0 && (options.onConflict === "fail" || options.onConflict === "ask")) {
+    await traceAgentStash(ctx, "sync.finish", { conflicts: traceItems(result.conflicts) });
     return result;
   }
 
@@ -149,7 +183,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     result.backupId = backup.id;
   }
 
-  const remoteDeletes = new Set<string>();
+  const remoteDeletes = new Set<string>(legacyRemoteDeletes.flatMap((item) => item.files.map((file) => file.path)));
 
   for (const { action, localItem, remoteItem } of actions) {
     if (action === "upload" && localItem) {
@@ -182,7 +216,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     }
   }
 
-  if (result.uploaded.length > 0 || result.deletedRemote.length > 0) {
+  if (result.uploaded.length > 0 || result.deletedRemote.length > 0 || legacyRemoteDeletes.length > 0) {
     const now = ctx.now?.() ?? new Date();
     const manifest = {
       ...remote.manifest,
@@ -203,6 +237,15 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
   }
 
+  await traceAgentStash(ctx, "sync.finish", {
+    uploaded: traceItems(result.uploaded),
+    downloaded: traceItems(result.downloaded),
+    deletedLocal: traceItems(result.deletedLocal),
+    deletedRemote: traceItems(result.deletedRemote),
+    unchanged: traceItems(result.unchanged),
+    conflicts: traceItems(result.conflicts),
+    backupId: result.backupId
+  });
   return result;
 }
 
@@ -223,6 +266,20 @@ function selectedIdsForBaseline(
     }
   }
   return selectedIds;
+}
+
+function hookEventsForLoadedItems(items: LoadedItem[]): Set<string> {
+  const events = new Set<string>();
+  for (const item of items) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const event = hookEventFromFragmentContent(item.bundleFiles[0]?.content ?? "");
+    if (event !== undefined && event !== item.name) {
+      events.add(event);
+    }
+  }
+  return events;
 }
 
 function mergeBaselineManifest(

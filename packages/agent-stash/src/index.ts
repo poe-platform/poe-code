@@ -28,11 +28,13 @@ export type {
   RestoreResult,
   SyncOptions,
   SyncResult,
+  AgentStashTraceRecord,
   UploadOptions,
   UploadResult
 } from "./types.js";
 
 export { parseManifest, serializeManifest, stableItemId, validateBundlePath } from "./manifest.js";
+export { traceAgentStash, traceItems } from "./trace.js";
 export { loadInventory } from "./inventory.js";
 export {
   addProfile,

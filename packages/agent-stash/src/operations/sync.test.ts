@@ -115,6 +115,91 @@ describe("sync", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeDefined();
   });
 
+  it("replaces legacy event-level remote hooks with split hook items during sync", async () => {
+    const gistClient = new InMemoryGistClient();
+    const legacyContent = `${JSON.stringify({
+      hooks: {
+        PostToolUse: [{ matcher: "Write|Edit", hooks: [{ type: "command", command: "legacy chunk" }] }]
+      }
+    }, null, 2)}\n`;
+    const legacyFile = {
+      path: "hooks/project/claude-code/PostToolUse.json",
+      size: Buffer.byteLength(legacyContent, "utf8"),
+      sha256: sha256(legacyContent)
+    };
+    const legacyItem = {
+      id: "project:hook:claude-code:PostToolUse",
+      kind: "hook" as const,
+      agentId: "claude-code",
+      name: "PostToolUse",
+      scope: "project" as const,
+      path: legacyFile.path,
+      files: [legacyFile],
+      updatedAt: fixedDate.toISOString(),
+      contentHash: hashFiles([legacyFile])
+    };
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "agent-stash.json": {
+          filename: "agent-stash.json",
+          content: serializeManifest({
+            schemaVersion: 1,
+            profile: "default",
+            createdAt: fixedDate.toISOString(),
+            updatedAt: fixedDate.toISOString(),
+            items: [legacyItem]
+          })
+        },
+        [gistFilenameForBundlePath(legacyFile.path)]: {
+          filename: gistFilenameForBundlePath(legacyFile.path),
+          content: legacyContent
+        }
+      }
+    });
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "split replacement" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx } = createContext(files, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      onConflict: "local",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(result.uploaded.map((item) => item.id)).toEqual(["project:hook:claude-code:PostToolUse-Write-Edit-001-001"]);
+    expect(result.downloaded).toEqual([]);
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:PostToolUse-Write-Edit-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse.json")]).toBeUndefined();
+    expect(traces.find((record) => record.event === "sync.legacyHookChunksRemoved")?.items).toEqual([
+      {
+        id: "project:hook:claude-code:PostToolUse",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "PostToolUse"
+      }
+    ]);
+  });
+
   it("rejects selected sync items that are absent locally and remotely", async () => {
     const { ctx, gistClient } = createContext();
     await uploadBundle(ctx, {

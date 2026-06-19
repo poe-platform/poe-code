@@ -8,12 +8,13 @@ import { parseManifest, serializeManifest } from "./manifest.js";
 import { uploadBundle } from "./operations/upload.js";
 import { InMemoryGistClient } from "./fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "./fixtures/dummy-config.js";
-import type { AgentStashContext, AgentStashFileSystem } from "./types.js";
+import type { AgentStashContext, AgentStashFileSystem, AgentStashTraceRecord } from "./types.js";
 import type { AgentStashPromptAdapter } from "./cli.js";
 
 function createHarness(
   files: Record<string, string> = createDummyAgentConfigFixture(),
-  prompts?: AgentStashPromptAdapter
+  prompts?: AgentStashPromptAdapter,
+  traceRecords?: AgentStashTraceRecord[]
 ) {
   const volume = Volume.fromJSON(files, "/");
   const gistClient = new InMemoryGistClient();
@@ -27,7 +28,14 @@ function createHarness(
     now: () => fixedDate
   };
   const program = createAgentStashProgram({
-    createContext() {
+    createContext(options) {
+      if (traceRecords && options.log) {
+        ctx.trace = async (record) => {
+          traceRecords.push(record);
+        };
+      } else {
+        delete ctx.trace;
+      }
       return ctx;
     },
     writeOut(message) {
@@ -72,6 +80,45 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
     expect(gistClient.updateCalls).toHaveLength(1);
     expect(gistClient.updateCalls[0]?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toBeDefined();
+  });
+
+  it("passes --log into the context and records upload trace events", async () => {
+    const traces: AgentStashTraceRecord[] = [];
+    const { program, output } = createHarness(undefined, undefined, traces);
+
+    await program.parseAsync([
+      "node",
+      "agent-stash",
+      "--log",
+      "/tmp/agent-stash.jsonl",
+      "upload",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--hooks",
+      "PreToolUse",
+      "--yes"
+    ]);
+
+    expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
+    expect(traces.map((record) => record.event)).toEqual([
+      "upload.start",
+      "upload.inventory",
+      "upload.remote.update",
+      "upload.finish"
+    ]);
+    expect(traces.find((record) => record.event === "upload.inventory")?.items).toEqual([
+      {
+        id: "project:hook:claude-code:PreToolUse-Bash-001-001",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "PreToolUse-Bash-001-001"
+      }
+    ]);
   });
 
   it("uses project Claude defaults when --yes upload omits scope and agent", async () => {

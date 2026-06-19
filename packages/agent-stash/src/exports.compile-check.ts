@@ -7,6 +7,7 @@ import type {
   GistClient,
   ImportOptions,
   SyncOptions,
+  AgentStashTraceRecord,
   UploadOptions
 } from "./index.js";
 import {
@@ -29,6 +30,7 @@ const _manifest = undefined as unknown as AgentStashManifest;
 const _upload = undefined as unknown as UploadOptions;
 const _download = undefined as unknown as DownloadOptions;
 const _sync = undefined as unknown as SyncOptions;
+const _trace = undefined as unknown as AgentStashTraceRecord;
 const _copyMove = undefined as unknown as CopyMoveOptions;
 const _export = undefined as unknown as ExportOptions;
 const _import = undefined as unknown as ImportOptions;
@@ -50,6 +52,7 @@ void addProfile;
 void _upload;
 void _download;
 void _sync;
+void _trace;
 void _copyMove;
 void _export;
 void _import;

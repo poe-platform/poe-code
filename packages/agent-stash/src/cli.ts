@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import os from "node:os";
+import path from "node:path";
 import process from "node:process";
 import { allAgents } from "@poe-code/agent-defs";
 import { supportedAgents } from "@poe-code/agent-skill-config";
@@ -33,8 +34,14 @@ import { loadInventory } from "./inventory.js";
 import type { AgentStashContext, AgentStashScope, ConflictPolicy, DownloadOptions, SyncOptions, UploadOptions } from "./types.js";
 import type { SyncConflict } from "./types.js";
 
+export interface AgentStashCliContextOptions {
+  cwd?: string;
+  home?: string;
+  log?: string;
+}
+
 export interface AgentStashCliDependencies {
-  createContext?: (options: { cwd?: string; home?: string }) => AgentStashContext;
+  createContext?: (options: AgentStashCliContextOptions) => AgentStashContext;
   writeOut?: (message: string) => void;
   isInteractive?: () => boolean;
   prompts?: AgentStashPromptAdapter;
@@ -89,12 +96,22 @@ type DraftSyncOptions = Omit<SyncOptions, "scope" | "agent"> & {
   agent?: string;
 };
 
-function createContext(options: { cwd?: string; home?: string }): AgentStashContext {
-  return {
+function createContext(options: AgentStashCliContextOptions): AgentStashContext {
+  const ctx: AgentStashContext = {
     cwd: options.cwd ?? process.cwd(),
     homeDir: options.home ?? os.homedir(),
     fs: fs as unknown as AgentStashContext["fs"]
   };
+  if (options.log) {
+    ctx.trace = async (record) => {
+      const logDir = path.dirname(options.log!);
+      if (logDir !== ".") {
+        await fs.mkdir(logDir, { recursive: true });
+      }
+      await fs.appendFile(options.log!, `${JSON.stringify(record)}\n`, "utf8");
+    };
+  }
+  return ctx;
 }
 
 function writeOut(message: string): void {
@@ -116,7 +133,10 @@ export function createAgentStashProgram(dependencies: AgentStashCliDependencies 
   const isInteractiveTerminal = dependencies.isInteractive ?? (() => Boolean(process.stdin.isTTY && process.stdout.isTTY));
   const program = new Command();
   program.name("agent-stash").description("Portable agent skills and hooks sync.").version("0.0.1");
-  program.option("--cwd <path>", "Project working directory").option("--home <path>", "Home directory");
+  program
+    .option("--cwd <path>", "Project working directory")
+    .option("--home <path>", "Home directory")
+    .option("--log <path>", "Append JSONL diagnostic trace to a file");
   program.action(async () => {
     const ctx = getContext(program.opts());
     const options = { scope: "project" as const, agent: "claude-code" };

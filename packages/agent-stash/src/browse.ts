@@ -22,6 +22,7 @@ import { downloadBundle } from "./operations/download.js";
 import { syncBundle } from "./operations/sync.js";
 import { uploadBundle } from "./operations/upload.js";
 import { resolveProfileGist } from "./profile-store.js";
+import { traceAgentStash, traceItems } from "./trace.js";
 import { assertAgentStashScope } from "./validation.js";
 import type {
   AgentStashContext,
@@ -213,6 +214,13 @@ export async function runBrowseAction(
   if (selected.length === 0) {
     throw new Error("Select at least one item.");
   }
+  await traceAgentStash(ctx, "browse.action.start", {
+    action: options.action,
+    fromPane: options.fromPane ?? model.activePane,
+    source: source.location,
+    target: target.location,
+    selected: traceItems(selected)
+  });
 
   if (options.action === "copy" || options.action === "move") {
     const operation = options.action;
@@ -234,7 +242,7 @@ export async function runBrowseAction(
     for (const option of copyMoveOptions) {
       results.push(await copyOrMoveItem(ctx, option));
     }
-    return options.action === "copy" ? { copied: results } : { moved: results };
+    return finishBrowseAction(ctx, options.action, options.action === "copy" ? { copied: results } : { moved: results });
   }
 
   if (options.action === "upload") {
@@ -246,7 +254,7 @@ export async function runBrowseAction(
       throw new Error("Upload requires a Gist target.");
     }
     const selectedNames = namesByKind(selected);
-    return {
+    return finishBrowseAction(ctx, options.action, {
       uploaded: await uploadBundle(ctx, {
         profile,
         scope: source.scope,
@@ -255,7 +263,7 @@ export async function runBrowseAction(
         hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
         yes: options.yes
       })
-    };
+    });
   }
 
   const selectedNames = namesByKind(selected);
@@ -265,7 +273,7 @@ export async function runBrowseAction(
       if (!profile || !source.scope) {
         throw new Error("Download requires a Gist source.");
       }
-      return {
+      return finishBrowseAction(ctx, options.action, {
         downloaded: await downloadBundle(ctx, {
           profile,
           scope: source.scope,
@@ -274,13 +282,13 @@ export async function runBrowseAction(
           hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
           yes: options.yes
         })
-      };
+      });
     }
     const profile = options.profile ?? target.profile;
     if (!profile) {
       throw new Error("Download requires a Gist target.");
     }
-    return {
+    return finishBrowseAction(ctx, options.action, {
       downloaded: await downloadBundle(ctx, {
         profile,
         scope: source.scope ?? options.scope ?? "project",
@@ -289,14 +297,14 @@ export async function runBrowseAction(
         hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
         yes: options.yes
       })
-    };
+    });
   }
 
   const profile = options.profile ?? source.profile ?? target.profile;
   if (!profile) {
     throw new Error("Sync requires a Gist target.");
   }
-  return {
+  return finishBrowseAction(ctx, options.action, {
     synced: await syncBundle(ctx, {
       profile,
       scope: source.scope ?? options.scope ?? "project",
@@ -307,7 +315,25 @@ export async function runBrowseAction(
       resolveConflict: options.resolveConflict,
       yes: options.yes
     })
-  };
+  });
+}
+
+async function finishBrowseAction(
+  ctx: AgentStashContext,
+  action: BrowseActionName,
+  result: BrowseActionResult
+): Promise<BrowseActionResult> {
+  await traceAgentStash(ctx, "browse.action.finish", {
+    action,
+    copied: result.copied?.length,
+    moved: result.moved?.length,
+    uploaded: result.uploaded?.uploaded.length,
+    downloaded: Array.isArray(result.downloaded) ? result.downloaded.length : result.downloaded?.downloaded.length,
+    syncedUploaded: result.synced?.uploaded.length,
+    syncedDownloaded: result.synced?.downloaded.length,
+    syncedConflicts: result.synced?.conflicts.length
+  });
+  return result;
 }
 
 function assertBrowseAction(action: BrowseActionName): void {

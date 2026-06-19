@@ -33,6 +33,13 @@ export interface AgentStashContext {
   gistClient?: GistClient;
   archiveCodec?: ArchiveCodec;
   now?: () => Date;
+  trace?: (record: AgentStashTraceRecord) => void | Promise<void>;
+}
+
+export interface AgentStashTraceRecord {
+  event: string;
+  timestamp: string;
+  [key: string]: unknown;
 }
 
 export interface AgentStashManifest {

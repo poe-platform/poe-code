@@ -11,6 +11,7 @@ import {
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { recordProfilePull, resolveProfileGist } from "../profile-store.js";
+import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, DownloadOptions, DownloadResult } from "../types.js";
 
@@ -19,6 +20,14 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   if (!options.yes) {
     throw new Error("Download writes require --yes in non-interactive mode.");
   }
+  await traceAgentStash(ctx, "download.start", {
+    profile: options.profile,
+    gist: options.gist,
+    scope: options.scope,
+    agent: options.agent,
+    skills: options.skills,
+    hooks: options.hooks
+  });
   const agentId = normalizeAgent(options.agent);
   const now = ctx.now?.() ?? new Date();
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
@@ -44,6 +53,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     return options.skills === undefined && options.hooks === undefined;
   }));
   assertSelectedItemsFound(selected, options);
+  await traceAgentStash(ctx, "download.remote.selected", { gistId: resolved.gistId, items: traceItems(selected) });
   const selectedFiles = selected.map((item) => {
     const files = item.files.map((file) => {
       const content = bundle.files.get(file.path);
@@ -68,6 +78,11 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   }
 
   await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
+  await traceAgentStash(ctx, "download.finish", {
+    gistId: gist.id,
+    downloaded: traceItems(selected),
+    backupId: backup?.id
+  });
   return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };
 }
 

@@ -1,9 +1,11 @@
 import { createDefaultGistClient } from "../gist-client.js";
 import { createEmptyManifest, parseManifest } from "../manifest.js";
+import { hookEventFromFragmentContent } from "../hook-items.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { recordProfilePush, resolveProfileGist } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
+import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, UploadOptions, UploadResult } from "../types.js";
 
@@ -12,6 +14,14 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   if (!options.yes) {
     throw new Error("Upload writes require --yes in non-interactive mode.");
   }
+  await traceAgentStash(ctx, "upload.start", {
+    profile: options.profile,
+    gist: options.gist,
+    scope: options.scope,
+    agent: options.agent,
+    skills: options.skills,
+    hooks: options.hooks
+  });
   const now = ctx.now?.() ?? new Date();
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
@@ -22,10 +32,16 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   if (!resolved.gistId && selectedItems.length === 0) {
     throw new Error("No upload items selected.");
   }
+  await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const writeInput = resolved.gistId
     ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName)
     : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
+  await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
+    gistId: resolved.gistId,
+    fileWrites: Object.values(writeInput.files).filter((file) => file !== null).length,
+    fileDeletes: Object.values(writeInput.files).filter((file) => file === null).length
+  });
   const record = resolved.gistId
     ? await client.update(resolved.gistId, writeInput)
     : await client.createSecret(writeInput);
@@ -35,6 +51,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
   }
   const uploadedManifest = parseManifest(manifestContent);
+  await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
   return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
 }
 
@@ -67,11 +84,16 @@ async function createUpdateWriteInput(
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
   verifyBundleHashes(existing);
   const itemIds = new Set(items.map((item) => item.id));
+  const uploadedHookEvents = hookEventsForItems(items, files);
+  const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
+  if (legacyHookItems.length > 0) {
+    await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
+  }
   const nextFiles = new Map(existing.files);
   const deletedFiles = new Set<string>();
 
   for (const item of existing.manifest.items) {
-    if (!itemIds.has(item.id)) {
+    if (!itemIds.has(item.id) && !(item.kind === "hook" && uploadedHookEvents.has(item.name))) {
       continue;
     }
     for (const file of item.files) {
@@ -89,7 +111,9 @@ async function createUpdateWriteInput(
   existing.manifest.items = [
     ...existing.manifest.items.filter((item) => !itemIds.has(item.id)),
     ...items
-  ].sort((left, right) => left.id.localeCompare(right.id));
+  ]
+    .filter((item) => !(item.kind === "hook" && uploadedHookEvents.has(item.name) && !itemIds.has(item.id)))
+    .sort((left, right) => left.id.localeCompare(right.id));
 
   const writeInput: GistWriteInput = {
     description: "agent-stash portable agent config",
@@ -102,6 +126,22 @@ async function createUpdateWriteInput(
     writeInput.files[gistFilenameForBundlePath(filePath)] = null;
   }
   return writeInput;
+}
+
+function hookEventsForItems(items: AgentStashManifest["items"], files: BundleFile[]): Set<string> {
+  const filesByPath = new Map(files.map((file) => [file.path, file.content]));
+  const events = new Set<string>();
+  for (const item of items) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const content = filesByPath.get(item.files[0]?.path ?? "");
+    const event = content === undefined ? undefined : hookEventFromFragmentContent(content);
+    if (event !== undefined && event !== item.name) {
+      events.add(event);
+    }
+  }
+  return events;
 }
 
 async function loadUploadInventory(ctx: AgentStashContext, options: UploadOptions) {

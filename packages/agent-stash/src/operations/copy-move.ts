@@ -31,6 +31,42 @@ interface SourceItem {
 }
 
 export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOptions): Promise<CopyMoveResult> {
+  const plan = await prepareCopyOrMoveItem(ctx, options);
+  const { source, target } = plan;
+  const itemForTarget = target.item;
+  const backup = plan.backupPaths.length > 0
+    ? await createBackup(ctx, {
+        command: options.operation,
+        args: options as unknown as Record<string, unknown>,
+        paths: plan.backupPaths
+      })
+    : undefined;
+
+  if (options.to === "project" || options.to === "global") {
+    await writeItemToLocal(ctx, itemForTarget, target.files, itemForTarget.scope);
+  } else {
+    await writeGistItem(ctx, options, itemForTarget, target.files);
+  }
+
+  if (options.operation === "move") {
+    if (options.from === "project" || options.from === "global") {
+      await removeLocalItem(ctx, source.item);
+    } else {
+      await removeGistItem(ctx, options, source.item, source.remote);
+    }
+  }
+
+  return { item: itemForTarget, backupId: backup?.id };
+}
+
+export async function validateCopyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOptions): Promise<void> {
+  await prepareCopyOrMoveItem(ctx, options);
+}
+
+async function prepareCopyOrMoveItem(
+  ctx: AgentStashContext,
+  options: CopyMoveOptions
+): Promise<{ source: SourceItem; target: { item: AgentStashItem; files: BundleFile[] }; backupPaths: string[] }> {
   assertCopyMoveOptions(options);
   if (!options.yes) {
     throw new Error(`${options.operation} writes require --yes in non-interactive mode.`);
@@ -65,29 +101,7 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
   if (options.operation === "move" && (options.from === "project" || options.from === "global")) {
     backupPaths.push(targetPathForItem(ctx, source.item));
   }
-  const backup = backupPaths.length > 0
-    ? await createBackup(ctx, {
-        command: options.operation,
-        args: options as unknown as Record<string, unknown>,
-        paths: backupPaths
-      })
-    : undefined;
-
-  if (options.to === "project" || options.to === "global") {
-    await writeItemToLocal(ctx, itemForTarget, target.files, itemForTarget.scope);
-  } else {
-    await writeGistItem(ctx, options, itemForTarget, target.files);
-  }
-
-  if (options.operation === "move") {
-    if (options.from === "project" || options.from === "global") {
-      await removeLocalItem(ctx, source.item);
-    } else {
-      await removeGistItem(ctx, options, source.item, source.remote);
-    }
-  }
-
-  return { item: itemForTarget, backupId: backup?.id };
+  return { source, target, backupPaths };
 }
 
 async function assertLocalTargetNotIgnored(ctx: AgentStashContext, item: AgentStashItem): Promise<void> {

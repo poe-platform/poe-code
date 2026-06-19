@@ -128,6 +128,33 @@ describe("browse", () => {
     expect(volume.readFileSync("/home/user/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("preflights every selected copy before writing any target", async () => {
+    const files = createDummyAgentConfigFixture();
+    files["/home/user/.agent-stash/ignore"] = ".claude/skills/code-review/**\n";
+    const volume = Volume.fromJSON(files, "/");
+    const ctx: AgentStashContext = {
+      cwd: dummyCwd,
+      homeDir: dummyHome,
+      fs: createFsFromVolume(volume).promises as unknown as AgentStashFileSystem,
+      now: () => fixedDate
+    };
+
+    await expect(runBrowseAction(ctx, {
+      action: "copy",
+      selectedIds: [
+        "project:skill:claude-code:project-only",
+        "project:skill:claude-code:code-review"
+      ],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("Target skill is ignored: code-review");
+
+    expect(() => volume.statSync("/home/user/.claude/skills/project-only/SKILL.md")).toThrow();
+    expect(volume.readFileSync("/home/user/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Global Review\n");
+    expect(() => volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects invalid browse actions before loading panes", async () => {
     const { ctx, gistClient } = createHarness();
 

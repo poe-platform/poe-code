@@ -18,7 +18,7 @@ import { createDefaultGistClient } from "./gist-client.js";
 import { loadInventory } from "./inventory.js";
 import { MANIFEST_FILENAME } from "./manifest.js";
 import { normalizeAgent } from "./locations.js";
-import { copyOrMoveItem } from "./operations/copy-move.js";
+import { copyOrMoveItem, validateCopyOrMoveItem } from "./operations/copy-move.js";
 import { downloadBundle } from "./operations/download.js";
 import { syncBundle } from "./operations/sync.js";
 import { uploadBundle } from "./operations/upload.js";
@@ -211,19 +211,24 @@ export async function runBrowseAction(
   }
 
   if (options.action === "copy" || options.action === "move") {
+    const operation = options.action;
+    const copyMoveOptions = selected.map((item) => ({
+      operation,
+      from: source.location,
+      to: target.location,
+      profile: source.profile ?? target.profile ?? options.profile,
+      agent: item.agentId,
+      kind: item.kind,
+      name: item.name,
+      sourceId: source.location === "gist" ? item.id : undefined,
+      yes: options.yes
+    }));
+    for (const option of copyMoveOptions) {
+      await validateCopyOrMoveItem(ctx, option);
+    }
     const results: CopyMoveResult[] = [];
-    for (const item of selected) {
-      results.push(await copyOrMoveItem(ctx, {
-        operation: options.action,
-        from: source.location,
-        to: target.location,
-        profile: source.profile ?? target.profile ?? options.profile,
-        agent: item.agentId,
-        kind: item.kind,
-        name: item.name,
-        sourceId: source.location === "gist" ? item.id : undefined,
-        yes: options.yes
-      }));
+    for (const option of copyMoveOptions) {
+      results.push(await copyOrMoveItem(ctx, option));
     }
     return options.action === "copy" ? { copied: results } : { moved: results };
   }

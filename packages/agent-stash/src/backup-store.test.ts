@@ -690,4 +690,27 @@ describe("backup store", () => {
     expect(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8")).toBe("keep\n");
     expect(volume.existsSync("/home/user/.agent-stash/backups/tampered")).toBe(false);
   });
+
+  it("prunes backup entries with symlinked metadata without deleting the symlink target", async () => {
+    const { ctx, volume } = createContext({
+      "/repo/file.txt": "content",
+      "/outside/backup.json": JSON.stringify({
+        id: "backup-2026-01-02T03-04-05-000Z",
+        createdAt: "2026-01-02T03:04:05.000Z",
+        command: "outside",
+        args: {},
+        cwd: "/repo",
+        homeDir: "/home/user",
+        affectedPaths: [],
+        files: []
+      }, null, 2)
+    });
+    volume.mkdirSync("/home/user/.agent-stash/backups/tampered", { recursive: true });
+    volume.symlinkSync("/outside/backup.json", "/home/user/.agent-stash/backups/tampered/backup.json");
+
+    await createBackup(ctx, { command: "trigger-prune-cleanup", args: {}, paths: ["/repo/file.txt"] });
+
+    expect(volume.existsSync("/home/user/.agent-stash/backups/tampered")).toBe(false);
+    expect(volume.readFileSync("/outside/backup.json", "utf8")).toContain("\"outside\"");
+  });
 });

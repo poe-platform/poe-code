@@ -357,12 +357,18 @@ describe("gaslight command", () => {
 
     await expect(program.parseAsync(["node", "cli", "--yes", "gaslight"])).rejects.toThrow(
       [
-        "Plan directory not found: docs/plans",
-        "Configured plan directory: docs/plans",
-        "Resolved plan directory: /repo/docs/plans",
-        "Config files checked:",
-        "- /home/test/.poe-code/config.json",
-        "- /repo/.poe-code/config.json"
+        "Gaslight couldn't find the plan directory.",
+        "",
+        "Configured directory: docs/plans",
+        "Resolved path: /repo/docs/plans",
+        "",
+        "To use a different plan directory:",
+        "- Project config: poe-code utils config edit --project",
+        "  /repo/.poe-code/config.json",
+        "- Global config: poe-code utils config edit --global",
+        "  /home/test/.poe-code/config.json",
+        '- Set JSON: { "plan": { "plan_directory": "~/.poe-code/docs/plans" } }',
+        "- One-off: POE_PLAN_DIRECTORY=~/.poe-code/docs/plans poe-code gaslight"
       ].join("\n")
     );
     expect(runGaslightMock).not.toHaveBeenCalled();
@@ -380,12 +386,18 @@ describe("gaslight command", () => {
 
     await expect(program.parseAsync(["node", "cli", "--yes", "gaslight"])).rejects.toThrow(
       [
-        "No markdown plans found in docs/plans.",
-        "Configured plan directory: docs/plans",
-        "Resolved plan directory: /repo/docs/plans",
-        "Config files checked:",
-        "- /home/test/.poe-code/config.json",
-        "- /repo/.poe-code/config.json"
+        "Gaslight found the plan directory, but it has no .md plans.",
+        "",
+        "Configured directory: docs/plans",
+        "Resolved path: /repo/docs/plans",
+        "",
+        "To use a different plan directory:",
+        "- Project config: poe-code utils config edit --project",
+        "  /repo/.poe-code/config.json",
+        "- Global config: poe-code utils config edit --global",
+        "  /home/test/.poe-code/config.json",
+        '- Set JSON: { "plan": { "plan_directory": "~/.poe-code/docs/plans" } }',
+        "- One-off: POE_PLAN_DIRECTORY=~/.poe-code/docs/plans poe-code gaslight"
       ].join("\n")
     );
     expect(runGaslightMock).not.toHaveBeenCalled();

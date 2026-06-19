@@ -91,10 +91,18 @@ function formatTerminalError(value: string): string {
   let sanitized = "";
   for (const character of value) {
     const code = character.charCodeAt(0);
+    if (character === "\n") {
+      sanitized += "\n";
+      continue;
+    }
     sanitized += code >= 32 && code !== 127 ? character : " ";
   }
-  const compact = sanitized.split(" ").filter((part) => part.length > 0).join(" ");
-  return compact.length > 400 ? `${compact.slice(0, 399)}…` : compact;
+  const compact = sanitized
+    .split("\n")
+    .map((line) => line.split(" ").filter((part) => part.length > 0).join(" "))
+    .join("\n")
+    .trim();
+  return compact.length > 1200 ? `${compact.slice(0, 1199)}…` : compact;
 }
 
 function normalizeThrownError(value: unknown): Error | undefined {

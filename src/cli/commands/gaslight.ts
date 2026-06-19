@@ -68,11 +68,16 @@ function formatPlanDirectoryDetails(
   absoluteDirectory: string
 ): string {
   return [
-    `Configured plan directory: ${planDirectory}`,
-    `Resolved plan directory: ${absoluteDirectory}`,
-    "Config files checked:",
-    `- ${container.env.configPath}`,
-    `- ${container.env.projectConfigPath}`
+    `Configured directory: ${planDirectory}`,
+    `Resolved path: ${absoluteDirectory}`,
+    "",
+    "To use a different plan directory:",
+    `- Project config: poe-code utils config edit --project`,
+    `  ${container.env.projectConfigPath}`,
+    `- Global config: poe-code utils config edit --global`,
+    `  ${container.env.configPath}`,
+    `- Set JSON: { "plan": { "plan_directory": "~/.poe-code/docs/plans" } }`,
+    `- One-off: POE_PLAN_DIRECTORY=~/.poe-code/docs/plans poe-code gaslight`
   ].join("\n");
 }
 
@@ -87,8 +92,8 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
   try {
     names = await container.fs.readdir(absoluteDirectory);
   } catch {
-    throw new Error(
-      `Plan directory not found: ${planDirectory}\n${formatPlanDirectoryDetails(
+    throw new ValidationError(
+      `Gaslight couldn't find the plan directory.\n\n${formatPlanDirectoryDetails(
         container,
         planDirectory,
         absoluteDirectory
@@ -100,8 +105,8 @@ async function selectPlans(container: CliContainer, assumeYes: boolean): Promise
     .sort()
     .map((name) => path.join(planDirectory, name));
   if (plans.length === 0) {
-    throw new Error(
-      `No markdown plans found in ${planDirectory}.\n${formatPlanDirectoryDetails(
+    throw new ValidationError(
+      `Gaslight found the plan directory, but it has no .md plans.\n\n${formatPlanDirectoryDetails(
         container,
         planDirectory,
         absoluteDirectory

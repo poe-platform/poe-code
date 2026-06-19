@@ -133,10 +133,10 @@ describe("createCliMain", () => {
       expect.objectContaining({ component: "main" })
     );
     const rendered = vi.mocked(log.error).mock.calls[0][0];
-    expect(rendered).toContain("Error: sandbox failure [31m");
-    expect(rendered).not.toContain("\n");
+    expect(rendered).toContain("Error: sandbox failure\n[31m");
+    expect(rendered).toContain("\n");
     expect(rendered).not.toContain("\u001b");
-    expect(rendered.length).toBeLessThanOrEqual(407);
+    expect(rendered.length).toBeLessThanOrEqual(1207);
   });
 
   it("redacts sensitive argv values before logging bootstrap errors", async () => {

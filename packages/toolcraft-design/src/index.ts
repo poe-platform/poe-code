@@ -62,7 +62,7 @@ export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 
 // Explorer
 export * as explorer from "./explorer/index.js";
-export { runExplorer, singleDetail } from "./explorer/index.js";
+export { runExplorer, runTwoPaneExplorer, singleDetail } from "./explorer/index.js";
 export type {
   Row,
   DetailItem,
@@ -70,6 +70,12 @@ export type {
   DetailCtx,
   Action,
   ActionContext,
+  TwoPaneAction,
+  TwoPaneActionContext,
+  TwoPaneDefinition,
+  TwoPaneExplorerConfig,
+  TwoPanePaneState,
+  TwoPaneRow,
   ExplorerConfig,
   ReorderContext,
   Tone

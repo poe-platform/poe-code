@@ -254,6 +254,7 @@
     "@types/semver": "^7.7.1",
     "@vitest/coverage-v8": "^4.1.4",
     "agent-code-review": "*",
+    "agent-stash": "*",
     "auth-store": "*",
     "bats": "^1.13.0",
     "eslint": "^9.0.0",

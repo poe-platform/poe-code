@@ -85,6 +85,10 @@ function isArrayOfObjects(value: unknown): value is Array<Record<string, unknown
   return Array.isArray(value) && value.every((entry) => isObject(entry));
 }
 
+function isNonEmptyArrayOfObjects(value: unknown): value is Array<Record<string, unknown>> {
+  return Array.isArray(value) && value.length > 0 && value.every((entry) => isObject(entry));
+}
+
 function stringifyValue(value: unknown): string {
   if (value === undefined) {
     return "";
@@ -156,10 +160,32 @@ function detailRows(
       continue;
     }
 
+    if (isNonEmptyArrayOfObjects(value)) {
+      rows.push({ label, value: "" });
+      rows.push(...arrayObjectDetailRows(value, depth + 1));
+      continue;
+    }
+
     rows.push({ label, value: displayScalar(value) });
   }
 
   return rows;
+}
+
+function arrayObjectDetailRows(
+  value: Array<Record<string, unknown>>,
+  depth: number
+): Array<{ label: string; value: string }> {
+  return value.flatMap((entry, index) => {
+    if (value.length === 1) {
+      return detailRows(entry, depth);
+    }
+
+    return [
+      { label: `${"  ".repeat(depth)}${index + 1}`, value: "" },
+      ...detailRows(entry, depth + 1)
+    ];
+  });
 }
 
 function displayScalar(value: unknown): string {
@@ -203,6 +229,24 @@ function directObjectSections(result: Record<string, unknown>): Array<{ title: s
     .filter((section) => section.rows.length > 0);
 }
 
+function directArrayObjectSections(
+  result: Record<string, unknown>
+): Array<{ title: string; rows: Array<{ label: string; value: string }> }> {
+  return Object.entries(result).flatMap(([key, value]) => {
+    if (!isNonEmptyArrayOfObjects(value)) {
+      return [];
+    }
+
+    const title = humanizeKey(key);
+    return value
+      .map((entry, index) => ({
+        title: value.length === 1 ? title : `${title} ${index + 1}`,
+        rows: detailRows(entry)
+      }))
+      .filter((section) => section.rows.length > 0);
+  });
+}
+
 function renderObjectCard(
   result: Record<string, unknown>,
   primitives: RenderPrimitives,
@@ -210,8 +254,9 @@ function renderObjectCard(
 ): string {
   const scalarRows = directScalarRows(result);
   const nestedSections = directObjectSections(result);
+  const arrayObjectSections = directArrayObjectSections(result);
   const listRows = Object.entries(result)
-    .filter(([, value]) => Array.isArray(value))
+    .filter(([, value]) => Array.isArray(value) && !isNonEmptyArrayOfObjects(value))
     .map(([key, value]) => ({ label: humanizeKey(key), value: displayScalar(value) }));
 
   return renderDetailCard({
@@ -220,7 +265,8 @@ function renderObjectCard(
     sections: [
       { rows: scalarRows },
       ...nestedSections,
-      { title: "Lists", rows: listRows }
+      { title: "Lists", rows: listRows },
+      ...arrayObjectSections
     ]
   });
 }

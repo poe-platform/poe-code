@@ -129,6 +129,97 @@ describe("renderResult auto renderer", () => {
     ].join("\n"));
   });
 
+  it("renders nested object arrays as repeated detail sections", () => {
+    expect(render({
+      message_id: 488587457099,
+      text: "Smoke test. Reply with exactly: smoke-ok",
+      responses: [
+        {
+          message_id: 488587459147,
+          author_handle: "GLM-5.2-Vercel",
+          text: "smoke-ok",
+          state: "complete",
+          attachments: []
+        }
+      ]
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Message id  488587457099",
+      "Text        Smoke test. Reply with exactly: smoke-ok",
+      "",
+      "Responses",
+      "Message id     488587459147",
+      "Author handle  GLM-5.2-Vercel",
+      "Text           smoke-ok",
+      "State          complete",
+      "Attachments    —",
+      ""
+    ].join("\n"));
+  });
+
+  it("renders deeply nested object arrays as indented detail groups", () => {
+    expect(render({
+      responses: [
+        {
+          message_id: 488587459147,
+          text: "smoke-ok",
+          attachments: [
+            { name: "trace.txt", content_type: "text/plain" },
+            { name: "result.json", content_type: "application/json" }
+          ],
+          metadata: {
+            tool_calls: [
+              {
+                name: "search",
+                arguments: { query: "smoke" }
+              }
+            ]
+          }
+        }
+      ]
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Responses",
+      "Message id        488587459147",
+      "Text              smoke-ok",
+      "Attachments       ",
+      "  1               ",
+      "    Name          trace.txt",
+      "    Content type  text/plain",
+      "  2               ",
+      "    Name          result.json",
+      "    Content type  application/json",
+      "Metadata          ",
+      "  Tool calls      ",
+      "    Name          search",
+      "    Arguments     ",
+      "      Query       smoke",
+      ""
+    ].join("\n"));
+  });
+
+  it("labels repeated top-level object-array sections", () => {
+    expect(render({
+      responses: [
+        { message_id: 1, text: "first" },
+        { message_id: 2, text: "second" }
+      ]
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Responses 1",
+      "Message id  1",
+      "Text        first",
+      "",
+      "Responses 2",
+      "Message id  2",
+      "Text        second",
+      ""
+    ].join("\n"));
+  });
+
   it("uses the command name when a description is too long for a title", () => {
     const command = defineCommand({
       name: "set-policy",

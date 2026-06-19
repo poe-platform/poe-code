@@ -255,6 +255,43 @@ describe("sync", () => {
     expect(manifest.items.map((item) => item.name)).toEqual(["code-review", "project-only"]);
   });
 
+  it("does not write profile baselines when syncing through an explicit Gist override", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    const upload = await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await uploadBundle(source.ctx, {
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/home/user/.agent-stash/cache/default.manifest.json"] = serializeManifest(upload.manifest);
+    const target = createContext(files, gistClient);
+
+    await syncBundle(target.ctx, {
+      profile: "default",
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      onConflict: "remote",
+      yes: true
+    });
+
+    const baseline = parseManifest(target.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string);
+    expect(baseline.items.map((item) => item.name)).toEqual(["code-review"]);
+  });
+
   it("fails on both-changed conflicts before writing local files", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

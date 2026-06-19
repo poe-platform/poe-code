@@ -36,6 +36,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   }
   const agentId = normalizeAgent(options.agent);
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
+  const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
   if (!resolved.gistId) {
     throw new Error("A profile with a Gist or --gist is required.");
   }
@@ -59,7 +60,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   });
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
-  const base = options.profile ? await readBaselineManifest(ctx, options.profile) : null;
+  const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
   const ids = new Set([...localById.keys(), ...remoteById.keys(), ...baseById.keys()]);
   const result: SyncResult = { uploaded: [], downloaded: [], deletedLocal: [], deletedRemote: [], unchanged: [], conflicts: [] };
@@ -158,7 +159,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     const now = ctx.now?.() ?? new Date();
     const manifest = {
       ...remote.manifest,
-      profile: options.profile ?? remote.manifest.profile,
+      profile: usesProfileTarget ? options.profile! : remote.manifest.profile,
       updatedAt: now.toISOString(),
       items: [...nextRemoteItems.values()].sort((left, right) => left.id.localeCompare(right.id))
     };
@@ -168,11 +169,11 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       writeInput.files[gistFilenameForBundlePath(filePath)] = null;
     }
     await client.update(resolved.gistId, writeInput);
-    if (options.profile) {
-      await writeBaselineManifest(ctx, options.profile, manifest);
+    if (usesProfileTarget) {
+      await writeBaselineManifest(ctx, options.profile!, manifest);
     }
-  } else if (options.profile) {
-    await writeBaselineManifest(ctx, options.profile, remote.manifest);
+  } else if (usesProfileTarget) {
+    await writeBaselineManifest(ctx, options.profile!, remote.manifest);
   }
 
   return result;

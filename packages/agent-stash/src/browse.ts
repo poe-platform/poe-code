@@ -478,8 +478,9 @@ function browseTwoPaneAction(
     key,
     handler: async (actionCtx) => {
       const fromPane = parseTwoPaneId(actionCtx.activePane.id);
+      let result: BrowseActionResult | undefined;
       await actionCtx.suspendAnd(async () => {
-        await runAction(ctx, {
+        result = await runAction(ctx, {
           ...options,
           action,
           fromPane,
@@ -488,7 +489,7 @@ function browseTwoPaneAction(
         });
       });
       await actionCtx.refresh();
-      actionCtx.toast(`${label} complete`, "success");
+      toastBrowseActionResult(actionCtx.toast, label, requireBrowseActionResult(result));
     }
   };
 }
@@ -535,8 +536,9 @@ function browseExplorerAction(
         return;
       }
       const profile = await profileForBrowseAction(options, action, actionCtx.confirm);
+      let result: BrowseActionResult | undefined;
       await actionCtx.suspendAnd(async () => {
-        await runAction(ctx, {
+        result = await runAction(ctx, {
           ...options,
           profile,
           createProfileIfMissing: profile !== options.profile,
@@ -547,9 +549,29 @@ function browseExplorerAction(
         });
       });
       await actionCtx.refresh();
-      actionCtx.toast(`${label} complete`, "success");
+      toastBrowseActionResult(actionCtx.toast, label, requireBrowseActionResult(result));
     }
   };
+}
+
+function requireBrowseActionResult(result: BrowseActionResult | undefined): BrowseActionResult {
+  if (result === undefined) {
+    throw new Error("Browse action did not return a result.");
+  }
+  return result;
+}
+
+function toastBrowseActionResult(
+  toast: (message: string, tone: "success" | "warning") => void,
+  label: string,
+  result: BrowseActionResult
+): void {
+  const conflicts = result.synced?.conflicts.length ?? 0;
+  if (conflicts > 0) {
+    toast(`${label} conflicts: ${conflicts}`, "warning");
+    return;
+  }
+  toast(`${label} complete`, "success");
 }
 
 async function browseModelOptionsForAction(

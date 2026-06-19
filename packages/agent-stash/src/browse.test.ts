@@ -669,6 +669,74 @@ describe("browse", () => {
     }]);
   });
 
+  it("warns instead of completing when a two-pane sync action returns conflicts", async () => {
+    const { ctx } = createHarness();
+    const toasts: Array<{ message: string; tone: string }> = [];
+    const conflictFile = {
+      path: "skills/project/claude-code/code-review/SKILL.md",
+      size: 14,
+      sha256: sha256("# Code Review\n")
+    };
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      scope: "project",
+      agent: "claude-code",
+      runAction: async () => ({
+        synced: {
+          uploaded: [],
+          downloaded: [],
+          deletedLocal: [],
+          deletedRemote: [],
+          unchanged: [],
+          conflicts: [{
+            id: "project:skill:claude-code:code-review",
+            kind: "skill",
+            agentId: "claude-code",
+            name: "code-review",
+            scope: "project",
+            path: "skills/project/claude-code/code-review",
+            files: [conflictFile],
+            updatedAt: fixedDate.toISOString(),
+            contentHash: hashFiles([conflictFile])
+          }]
+        }
+      })
+    });
+
+    const leftRows = await config.panes[0].rows();
+    const projectRow = leftRows.find((row) => row.id === "project:skill:claude-code:code-review")!;
+
+    await config.actions.find((action) => action.id === "sync")!.handler({
+      activePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: leftRows,
+        cursor: 0,
+        selected: new Set([projectRow.id]),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "right",
+        title: "Global: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: projectRow,
+      rows: [projectRow],
+      refresh: async () => undefined,
+      suspendAnd: async (fn) => fn(),
+      toast: (message, tone) => {
+        toasts.push({ message, tone });
+      },
+      exit: () => undefined
+    });
+
+    expect(toasts).toEqual([{ message: "sync conflicts: 1", tone: "warning" }]);
+  });
+
   it("titles the two-pane source pane from the selected scope", () => {
     const { ctx } = createHarness();
     const config = buildBrowseTwoPaneConfig(ctx, {

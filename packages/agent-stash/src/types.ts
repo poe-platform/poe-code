@@ -178,6 +178,7 @@ export interface CopyMoveOptions {
   agent: string;
   kind: AgentStashKind;
   name: string;
+  sourceId?: string;
   yes?: boolean;
 }
 

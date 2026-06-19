@@ -250,6 +250,38 @@ describe("browse", () => {
     expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 
+  it("copies the selected scoped Gist pane item when another scope has the same name", async () => {
+    const { ctx, volume } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+
+    const result = await runBrowseAction(ctx, {
+      action: "copy",
+      profile: "default",
+      fromPane: "right",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    expect(result.copied?.map((copy) => copy.item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+  });
+
   it("routes local-pane download actions for only the selected items", async () => {
     const { ctx, volume } = createHarness();
     await uploadBundle(ctx, {

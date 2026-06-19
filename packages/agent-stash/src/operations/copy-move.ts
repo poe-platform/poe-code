@@ -184,7 +184,11 @@ async function loadSourceItem(
   const bundle = loadBundleFromGist(await client.read(resolved.gistId));
   verifyBundleHashes(bundle);
   const matches = bundle.manifest.items.filter(
-    (candidate) => candidate.kind === options.kind && candidate.agentId === agentId && candidate.name === options.name
+    (candidate) =>
+      candidate.kind === options.kind &&
+      candidate.agentId === agentId &&
+      candidate.name === options.name &&
+      (options.sourceId === undefined || candidate.id === options.sourceId)
   );
   if (matches.length > 1) {
     throw new Error(`Remote item name is ambiguous: ${options.name}`);

@@ -221,6 +221,7 @@ export async function runBrowseAction(
         agent: item.agentId,
         kind: item.kind,
         name: item.name,
+        sourceId: source.location === "gist" ? item.id : undefined,
         yes: options.yes
       }));
     }

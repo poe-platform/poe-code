@@ -99,6 +99,7 @@ describe("browse", () => {
     expect(rendered).toContain("code-review");
     expect(rendered).toContain("c copy");
     expect(rendered).toContain("s sync");
+    expect(rendered).not.toContain("b backup");
   });
 
   it("rejects missing browse Gist profiles before creating a default Gist client", async () => {

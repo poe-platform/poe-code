@@ -123,7 +123,7 @@ export function renderBrowse(model: BrowseModel): string {
     "",
     renderPane(model.right),
     "",
-    "tab switch   / search   space select   c copy   m move   u upload   d download   s sync   b backup   q quit"
+    "tab switch   / search   space select   c copy   m move   u upload   d download   s sync   q quit"
   ].join("\n");
 }
 

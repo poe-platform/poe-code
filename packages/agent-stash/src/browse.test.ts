@@ -562,7 +562,13 @@ describe("browse", () => {
 
   it("builds an explorer config with pane rows and action keybindings", async () => {
     const { ctx } = createHarness();
-    const calls: Array<{ action: string; selectedIds: string[]; fromPane?: string }> = [];
+    const calls: Array<{
+      action: string;
+      selectedIds: string[];
+      fromPane?: string;
+      onConflict?: string;
+      hasResolveConflict: boolean;
+    }> = [];
     const config = buildBrowseExplorerConfig(ctx, {
       scope: "project",
       agent: "claude-code",
@@ -570,7 +576,9 @@ describe("browse", () => {
         calls.push({
           action: options.action,
           selectedIds: options.selectedIds,
-          fromPane: options.fromPane
+          fromPane: options.fromPane,
+          onConflict: options.onConflict,
+          hasResolveConflict: typeof options.resolveConflict === "function"
         });
         return {};
       }
@@ -599,7 +607,9 @@ describe("browse", () => {
     expect(calls).toEqual([{
       action: "copy",
       selectedIds: ["project:skill:claude-code:code-review"],
-      fromPane: "left"
+      fromPane: "left",
+      onConflict: undefined,
+      hasResolveConflict: false
     }]);
   });
 
@@ -640,7 +650,13 @@ describe("browse", () => {
 
   it("builds a two-pane TUI config whose actions route active pane rows", async () => {
     const { ctx } = createHarness();
-    const calls: Array<{ action: string; selectedIds: string[]; fromPane?: string }> = [];
+    const calls: Array<{
+      action: string;
+      selectedIds: string[];
+      fromPane?: string;
+      onConflict?: string;
+      hasResolveConflict: boolean;
+    }> = [];
     const config = buildBrowseTwoPaneConfig(ctx, {
       scope: "project",
       agent: "claude-code",
@@ -648,7 +664,9 @@ describe("browse", () => {
         calls.push({
           action: options.action,
           selectedIds: options.selectedIds,
-          fromPane: options.fromPane
+          fromPane: options.fromPane,
+          onConflict: options.onConflict,
+          hasResolveConflict: typeof options.resolveConflict === "function"
         });
         return {};
       }
@@ -691,7 +709,9 @@ describe("browse", () => {
     expect(calls).toEqual([{
       action: "sync",
       selectedIds: ["project:skill:claude-code:code-review"],
-      fromPane: "left"
+      fromPane: "left",
+      onConflict: "ask",
+      hasResolveConflict: true
     }]);
   });
 

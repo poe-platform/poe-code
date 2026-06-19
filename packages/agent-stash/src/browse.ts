@@ -3,6 +3,9 @@ import {
   renderInspectorCard,
   renderResourceBrowser,
   runTwoPaneExplorer,
+  select,
+  isCancel,
+  PromptCancelledError,
   stripAnsi,
   type ActionContext,
   type ExplorerConfig,
@@ -30,8 +33,10 @@ import type {
   AgentStashLocationKind,
   AgentStashScope,
   ConflictPolicy,
+  ConflictResolution,
   CopyMoveResult,
   DownloadResult,
+  SyncConflict,
   SyncOptions,
   SyncResult,
   UploadResult
@@ -508,6 +513,7 @@ function browseTwoPaneAction(
           action,
           fromPane,
           selectedIds,
+          ...browseConflictOptions(action),
           yes: true
         });
       });
@@ -517,6 +523,41 @@ function browseTwoPaneAction(
       toastBrowseActionResult(actionCtx.toast, label, completed);
     }
   };
+}
+
+function browseConflictOptions(action: BrowseActionName): Pick<BrowseActionOptions, "onConflict" | "resolveConflict"> {
+  if (action !== "sync") {
+    return {};
+  }
+  return {
+    onConflict: "ask",
+    resolveConflict: promptBrowseConflictResolution
+  };
+}
+
+function promptBrowseConflictResolution(conflict: SyncConflict): Promise<ConflictResolution> {
+  return promptSelectConflict({
+    message: `Resolve conflict: ${conflict.item.name}`,
+    options: [
+      { label: "Local (upload local item)", value: "local" },
+      { label: "Remote (download remote item)", value: "remote" },
+      { label: "Newer (use newest timestamp)", value: "newer" },
+      { label: "Fail (leave unresolved)", value: "fail" }
+    ],
+    initialValue: "fail"
+  });
+}
+
+async function promptSelectConflict(options: {
+  message: string;
+  options: Array<{ label: string; value: ConflictResolution }>;
+  initialValue: ConflictResolution;
+}): Promise<ConflictResolution> {
+  const result = await select(options);
+  if (isCancel(result)) {
+    throw new PromptCancelledError();
+  }
+  return result as ConflictResolution;
 }
 
 function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionRefresh): BrowseModel {

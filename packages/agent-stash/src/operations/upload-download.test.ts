@@ -390,6 +390,77 @@ describe("upload/download", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]?.content).toContain("split replacement");
   });
 
+  it("removes stale split hook items for the same event during event-level upload", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "remote first" },
+                { type: "command", command: "remote second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "remote second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:PostToolUse-Write-Edit-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]?.content).toContain("remote second");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-002.json")]).toBeUndefined();
+    expect(traces.find((record) => record.event === "upload.staleHookSplitsRemoved")?.items).toEqual([
+      {
+        id: "project:hook:claude-code:PostToolUse-Write-Edit-001-002",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "PostToolUse-Write-Edit-001-002"
+      }
+    ]);
+  });
+
   it("does not fail successful uploads when GitHub returns a sparse write response", async () => {
     class SparseWriteResponseGistClient extends InMemoryGistClient {
       override async update(gistId: string, input: Parameters<InMemoryGistClient["update"]>[1]) {

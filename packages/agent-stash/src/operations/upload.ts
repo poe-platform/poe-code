@@ -35,7 +35,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const writeInput = resolved.gistId
-    ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName)
+    ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks)
     : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
   await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
     gistId: resolved.gistId,
@@ -75,7 +75,8 @@ async function createUpdateWriteInput(
   gistId: string,
   items: AgentStashManifest["items"],
   files: BundleFile[],
-  profile: string | undefined
+  profile: string | undefined,
+  selectedHooks: string[] | undefined
 ): Promise<GistWriteInput> {
   const now = ctx.now?.() ?? new Date();
   const record = await client.read(gistId);
@@ -85,15 +86,24 @@ async function createUpdateWriteInput(
   verifyBundleHashes(existing);
   const itemIds = new Set(items.map((item) => item.id));
   const uploadedHookEvents = hookEventsForItems(items, files);
+  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks);
   const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
+  }
+  const staleSplitHookItems = existing.manifest.items.filter((item) => !itemIds.has(item.id) && isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files));
+  if (staleSplitHookItems.length > 0) {
+    await traceAgentStash(ctx, "upload.staleHookSplitsRemoved", { items: traceItems(staleSplitHookItems) });
   }
   const nextFiles = new Map(existing.files);
   const deletedFiles = new Set<string>();
 
   for (const item of existing.manifest.items) {
-    if (!itemIds.has(item.id) && !(item.kind === "hook" && uploadedHookEvents.has(item.name))) {
+    if (
+      !itemIds.has(item.id)
+      && !(item.kind === "hook" && uploadedHookEvents.has(item.name))
+      && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files)
+    ) {
       continue;
     }
     for (const file of item.files) {
@@ -112,7 +122,13 @@ async function createUpdateWriteInput(
     ...existing.manifest.items.filter((item) => !itemIds.has(item.id)),
     ...items
   ]
-    .filter((item) => !(item.kind === "hook" && uploadedHookEvents.has(item.name) && !itemIds.has(item.id)))
+    .filter((item) => {
+      if (itemIds.has(item.id)) {
+        return true;
+      }
+      return !(item.kind === "hook" && uploadedHookEvents.has(item.name))
+        && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files);
+    })
     .sort((left, right) => left.id.localeCompare(right.id));
 
   const writeInput: GistWriteInput = {
@@ -142,6 +158,32 @@ function hookEventsForItems(items: AgentStashManifest["items"], files: BundleFil
     }
   }
   return events;
+}
+
+function hookEventsForEventLevelUpload(
+  items: AgentStashManifest["items"],
+  files: BundleFile[],
+  selectedHooks: string[] | undefined
+): Set<string> {
+  const uploadedHookEvents = hookEventsForItems(items, files);
+  if (selectedHooks === undefined) {
+    return uploadedHookEvents;
+  }
+  const selected = new Set(selectedHooks);
+  return new Set([...uploadedHookEvents].filter((event) => selected.has(event)));
+}
+
+function isStaleSplitHookItem(
+  item: AgentStashManifest["items"][number],
+  replacedSplitHookEvents: Set<string>,
+  files: Map<string, string>
+): boolean {
+  if (item.kind !== "hook") {
+    return false;
+  }
+  const content = files.get(item.files[0]?.path ?? "");
+  const event = content === undefined ? undefined : hookEventFromFragmentContent(content);
+  return event !== undefined && event !== item.name && replacedSplitHookEvents.has(event);
 }
 
 async function loadUploadInventory(ctx: AgentStashContext, options: UploadOptions) {

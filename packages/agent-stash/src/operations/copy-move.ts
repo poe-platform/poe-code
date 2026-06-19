@@ -16,7 +16,17 @@ import { normalizeAgent } from "../locations.js";
 import { canonicalItemPath, createEmptyManifest, MANIFEST_FILENAME, stableItemId, validateBundlePath, validateManifestItem } from "../manifest.js";
 import { resolveProfileGist } from "../profile-store.js";
 import { assertAgentStashKind, assertAgentStashLocationKind } from "../validation.js";
+import type { RemoteBundle } from "../bundle.js";
 import type { AgentStashContext, AgentStashItem, BundleFile, CopyMoveOptions, CopyMoveResult, LoadedItem } from "../types.js";
+
+interface SourceItem {
+  item: AgentStashItem;
+  files: Array<{ path: string; content: string }>;
+  remote?: {
+    gistId: string;
+    bundle: RemoteBundle;
+  };
+}
 
 export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOptions): Promise<CopyMoveResult> {
   assertCopyMoveOptions(options);
@@ -64,7 +74,7 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
     if (options.from === "project" || options.from === "global") {
       await removeLocalItem(ctx, source.item);
     } else {
-      await removeGistItem(ctx, options, source.item);
+      await removeGistItem(ctx, options, source.item, source.remote);
     }
   }
 
@@ -133,7 +143,7 @@ function assertCopyMoveOptions(options: CopyMoveOptions): void {
 async function loadSourceItem(
   ctx: AgentStashContext,
   options: CopyMoveOptions
-): Promise<{ item: AgentStashItem; files: Array<{ path: string; content: string }> }> {
+): Promise<SourceItem> {
   if (options.from === "project" || options.from === "global") {
     const items = await loadInventory(ctx, {
       scope: options.from,
@@ -167,7 +177,7 @@ async function loadSourceItem(
   if (!item) {
     throw new Error(`Remote item not found: ${options.name}`);
   }
-  return { item, files: filesForItem(bundle, item.id) };
+  return { item, files: filesForItem(bundle, item.id), remote: { gistId: resolved.gistId, bundle } };
 }
 
 function stripLoaded(item: LoadedItem): AgentStashItem {
@@ -177,14 +187,22 @@ function stripLoaded(item: LoadedItem): AgentStashItem {
   return manifestItem;
 }
 
-async function removeGistItem(ctx: AgentStashContext, options: CopyMoveOptions, item: AgentStashItem): Promise<void> {
+async function removeGistItem(
+  ctx: AgentStashContext,
+  options: CopyMoveOptions,
+  item: AgentStashItem,
+  source?: SourceItem["remote"]
+): Promise<void> {
   const resolved = await resolveProfileGist(ctx, options.profile);
-  if (!resolved.gistId) {
+  const gistId = source?.gistId ?? resolved.gistId;
+  if (!gistId) {
     throw new Error("A profile with a Gist is required.");
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
-  const bundle = loadBundleFromGist(await client.read(resolved.gistId));
-  verifyBundleHashes(bundle);
+  const bundle = source?.bundle ?? loadBundleFromGist(await client.read(gistId));
+  if (!source) {
+    verifyBundleHashes(bundle);
+  }
   const nextFiles = new Map(bundle.files);
   const deletedFiles = new Set<string>();
   for (const file of item.files) {
@@ -197,7 +215,7 @@ async function removeGistItem(ctx: AgentStashContext, options: CopyMoveOptions, 
     bundle.manifest,
     [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }))
   );
-  await client.update(resolved.gistId, {
+  await client.update(gistId, {
     files: {
       ...writeInput,
       ...Object.fromEntries([...deletedFiles].map((filePath) => [gistFilenameForBundlePath(filePath), null]))

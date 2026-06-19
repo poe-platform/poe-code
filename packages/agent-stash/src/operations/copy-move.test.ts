@@ -407,6 +407,50 @@ describe("copy/move", () => {
     expect(manifest.items.map((item) => item.id)).not.toContain("global:skill:claude-code:global-only");
   });
 
+  it("moves one Gist skill to project without rereading the Gist after local writes", async () => {
+    class CorruptSecondReadGistClient extends InMemoryGistClient {
+      corruptAfterReadCount = 0;
+
+      override async read(gistId: string) {
+        if (this.readCalls.length >= this.corruptAfterReadCount) {
+          this.readCalls.push(gistId);
+          return { id: gistId, htmlUrl: `https://gist.github.com/${gistId}`, files: {} };
+        }
+        return super.read(gistId);
+      }
+    }
+    const gistClient = new CorruptSecondReadGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      skills: ["global-only"],
+      yes: true
+    });
+    gistClient.readCalls.length = 0;
+    gistClient.corruptAfterReadCount = 1;
+    const targetFiles = createDummyAgentConfigFixture();
+    delete targetFiles["/repo/.claude/skills/global-only/SKILL.md"];
+    const target = createContext(targetFiles, gistClient);
+
+    await copyOrMoveItem(target.ctx, {
+      operation: "move",
+      from: "gist",
+      to: "project",
+      profile: "default",
+      agent: "claude-code",
+      kind: "skill",
+      name: "global-only",
+      yes: true
+    });
+
+    expect(gistClient.readCalls).toEqual(["gist-default"]);
+    expect(target.volume.readFileSync("/repo/.claude/skills/global-only/SKILL.md", "utf8")).toBe("# Global Only\n");
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/global/claude-code/global-only/SKILL.md")]).toBeNull();
+  });
+
   it("copies one project skill to an existing profile Gist", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });

@@ -15,6 +15,8 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   const agentId = normalizeAgent(options.agent);
   const now = ctx.now?.() ?? new Date();
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
+  const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
+  const profileName = usesProfileTarget ? options.profile : undefined;
   if (!resolved.gistId) {
     throw new Error("A profile with a Gist or --gist is required.");
   }
@@ -58,6 +60,6 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     await writeItemToLocal(ctx, item, files);
   }
 
-  await recordProfilePull(ctx, options.profile, gist.id, gist.htmlUrl, now.toISOString());
+  await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
   return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };
 }

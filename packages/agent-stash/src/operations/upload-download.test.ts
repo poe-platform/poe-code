@@ -198,6 +198,28 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("does not rewrite profile config when uploading through an explicit Gist override", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+    const { ctx, volume } = createContext(createDummyAgentConfigFixture(), gistClient);
+
+    await uploadBundle(ctx, {
+      profile: "default",
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      yes: true
+    });
+
+    const config = JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string) as unknown;
+    const record = await gistClient.read("gist-other");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(config).toEqual({ profiles: { default: { gistId: "gist-default" } } });
+    expect(manifest.profile).toBeUndefined();
+  });
+
   it("does not treat empty selected upload lists as all local items", async () => {
     const { ctx, gistClient } = createContext();
 
@@ -768,6 +790,36 @@ describe("upload/download", () => {
 
     expect(result.downloaded.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+  });
+
+  it("does not rewrite profile config when downloading through an explicit Gist override", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    gistClient.seed({ id: "gist-other", htmlUrl: "https://gist.github.com/gist-other", files: {} });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/project-only/SKILL.md"];
+    const target = createContext(files, gistClient);
+
+    const result = await downloadBundle(target.ctx, {
+      profile: "default",
+      gist: "gist-other",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      yes: true
+    });
+
+    const config = JSON.parse(target.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string) as unknown;
+    expect(result.downloaded.map((item) => item.id)).toEqual(["project:skill:claude-code:project-only"]);
+    expect(config).toEqual({ profiles: { default: { gistId: "gist-default" } } });
   });
 
   it("downloads only explicitly selected skills", async () => {

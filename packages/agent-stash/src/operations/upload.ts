@@ -14,6 +14,8 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   }
   const now = ctx.now?.() ?? new Date();
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
+  const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
+  const profileName = usesProfileTarget ? options.profile : undefined;
   const items = await loadUploadInventory(ctx, options);
   assertSelectedItemsFound(items, options);
   const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
@@ -22,12 +24,12 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const writeInput = resolved.gistId
-    ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), options.profile)
-    : createCreateWriteInput(now, options.profile, selectedItems, items.flatMap((item) => item.bundleFiles));
+    ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName)
+    : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
   const record = resolved.gistId
     ? await client.update(resolved.gistId, writeInput)
     : await client.createSecret(writeInput);
-  await recordProfilePush(ctx, options.profile, record.id, record.htmlUrl, now.toISOString());
+  await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
   const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
   if (manifestContent === undefined) {
     throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);

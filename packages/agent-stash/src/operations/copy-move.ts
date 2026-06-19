@@ -39,6 +39,12 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
   if (options.from === "archive" || options.to === "archive") {
     throw new Error("Archive copy/move is not implemented.");
   }
+  if (options.to === "gist") {
+    const resolved = await resolveProfileGist(ctx, options.profile);
+    if (!resolved.gistId) {
+      throw new Error("A profile with a Gist is required.");
+    }
+  }
 
   const source = await loadSourceItem(ctx, options);
   const target = retargetSourceItem(source, options);

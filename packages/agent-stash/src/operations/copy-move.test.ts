@@ -219,6 +219,24 @@ describe("copy/move", () => {
     })).rejects.toThrow("A profile with a Gist is required.");
   });
 
+  it("rejects missing target Gist profiles before reading local sources or creating backups", async () => {
+    const { ctx, volume } = createContext();
+    ctx.gistClient = undefined;
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+
+    await expect(copyOrMoveItem(ctx, {
+      operation: "move",
+      from: "project",
+      to: "gist",
+      agent: "claude-code",
+      kind: "skill",
+      name: "code-review",
+      yes: true
+    })).rejects.toThrow("A profile with a Gist is required.");
+
+    expect(() => volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects invalid remote source agents before reading a Gist", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });

@@ -94,6 +94,41 @@ describe("runTwoPaneExplorer", () => {
     expect(handled).toEqual([{ active: "right", inactive: "left", rows: ["right-two"] }]);
   });
 
+  it.each([
+    ["raw tab input", key("\t")],
+    ["ctrl-i tab input", namedKey("i", { ctrl: true })]
+  ])("switches panes when receiving %s", async (_label, tabKey) => {
+    const driver = currentDriver();
+    const handled: Array<{ active: string; inactive: string; rows: string[] }> = [];
+    const result = runTwoPaneExplorer(config({
+      panes: [
+        { id: "left", title: "Project", rows: async () => [], emptyHint: "No items in left pane" },
+        { id: "right", title: "Gist", rows: async () => rightRows }
+      ],
+      actions: [{
+        id: "download",
+        label: "Download",
+        key: "d",
+        handler: (ctx) => {
+          handled.push({
+            active: ctx.activePane.id,
+            inactive: ctx.inactivePane.id,
+            rows: ctx.rows.map((row) => row.id)
+          });
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Right One"));
+    driver.press(tabKey);
+    driver.press(key(" "));
+    driver.press(key("d"));
+
+    await expect(result).resolves.toBeNull();
+    expect(handled).toEqual([{ active: "right", inactive: "left", rows: ["right-one"] }]);
+  });
+
   it("filters only the active pane", async () => {
     const driver = currentDriver();
     const result = runTwoPaneExplorer(config());
@@ -182,8 +217,8 @@ function key(ch: string) {
   return { ch, ctrl: false, meta: false, shift: false };
 }
 
-function namedKey(name: string) {
-  return { name, ctrl: false, meta: false, shift: false };
+function namedKey(name: string, opts: { ctrl?: boolean; meta?: boolean; shift?: boolean } = {}) {
+  return { name, ctrl: opts.ctrl ?? false, meta: opts.meta ?? false, shift: opts.shift ?? false };
 }
 
 function currentScreen(driver: FakeTerminalDriver): string[] {

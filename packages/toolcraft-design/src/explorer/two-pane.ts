@@ -166,7 +166,7 @@ export class TwoPaneExplorerRuntime<R> {
       this.exit(null);
       return;
     }
-    if (key.name === "tab") {
+    if (isTabKey(key)) {
       this.state = {
         ...this.state,
         activePaneIndex: this.state.activePaneIndex === 0 ? 1 : 0
@@ -524,6 +524,10 @@ function updateActivePane(
 function actionMatchesKey<R>(action: TwoPaneAction<R>, key: KeypressEvent): boolean {
   const keys = Array.isArray(action.key) ? action.key : [action.key];
   return keys.some((candidate) => key.ch === candidate || key.name === candidate);
+}
+
+function isTabKey(key: KeypressEvent): boolean {
+  return key.name === "tab" || key.ch === "\t" || (key.name === "i" && key.ctrl);
 }
 
 function firstKey(key: string | string[]): string {

@@ -477,6 +477,67 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("removes stale split hook groups with the same matcher during event-level upload", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote first stop" }] },
+            { hooks: [{ type: "command", command: "remote second stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote first stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:Stop-all-tools-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("remote first stop");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeUndefined();
+    expect(traces.find((record) => record.event === "upload.staleHookSplitsRemoved")?.items).toEqual([
+      {
+        id: "project:hook:claude-code:Stop-all-tools-002-001",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "Stop-all-tools-002-001"
+      }
+    ]);
+  });
+
   it("does not fail successful uploads when GitHub returns a sparse write response", async () => {
     class SparseWriteResponseGistClient extends InMemoryGistClient {
       override async update(gistId: string, input: Parameters<InMemoryGistClient["update"]>[1]) {

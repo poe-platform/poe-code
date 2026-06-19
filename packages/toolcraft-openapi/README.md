@@ -24,8 +24,8 @@ command files.
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
 - `--output <dir>` — directory for generated files. Defaults to `src/generated`.
 - `--lock <path>` — spec lock file to read/write. Defaults to `openapi.lock`.
-- `--check` — exits non-zero when generated files would change.
-- `--diff` — prints the generated file changes without writing them.
+- `--check` — exits non-zero when generated files, the lock file, or the generated local skill would change.
+- `--diff` — prints the generated changes without writing them.
 
 When `toolcraft.yml` is present next to the input file, the generator validates it, prints
 diagnostics, and uses it to shape generated command names for mapped resources. Error diagnostics
@@ -52,6 +52,14 @@ export const client = defineGeneratedClient({
 Generated lower-level group and operation exports remain available for consumers that intentionally
 want a curated command surface with `defineClient()`.
 
+Generation also writes a local skill to `.claude/skills/<skill-name>/SKILL.md`. The skill summarizes
+the generated CLI and MCP command surface, includes quick-start command examples, and caps the
+command catalog for very large specs. The generator infers the CLI command name from `package.json`
+`bin` entries, preferring the package binary over MCP-specific binaries; if no binary can be inferred,
+the skill uses `<cli>` as a placeholder. The generated TypeScript files intentionally do not include
+the spec hash, so metadata-only spec changes update only `openapi.lock` when the emitted code is
+unchanged.
+
 ### CI drift check
 
 ```sh
@@ -62,6 +70,8 @@ toolcraft-openapi-generate --check
 
 - `bearerTokenAuth(opts)`
 - `requestJson(options)`
+- `generate(document, options)`
+- `generateSkill(document, options)`
 - `validateArrayJsonHelperValue(value, definition, label)`
 - `HttpError`
 - `readToolcraftConfig(path)`

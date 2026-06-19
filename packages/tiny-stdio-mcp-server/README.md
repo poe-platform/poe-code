@@ -91,6 +91,8 @@ server.tool(
 
 Output schemas must have `type: "object"` at the root. Tools whose natural result is prose, images, audio, files, or other content blocks should omit `outputSchema` and keep returning content.
 
+Handlers can throw `ToolError` to return a JSON-RPC tool error with a specific code, message, and optional structured `data` payload. The server forwards that `data` field in the JSON-RPC error response so clients can inspect machine-readable failure details.
+
 ### `.listen()`
 
 Start listening on stdin/stdout (standard MCP stdio transport).

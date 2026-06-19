@@ -183,7 +183,7 @@ The same `root` flows into all three. No duplication.
 
 **Validation**: CLI, MCP, SDK, and preset-file inputs all enforce the same `toolcraft-schema` constraints, including string lengths and patterns, numeric ranges and integer schemas, and array `minItems`/`maxItems`. CLI array options also accept negative numeric array values when the item schema allows them instead of treating those values as new flags.
 
-**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table.
+**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table. When `controls.output` is enabled, `--help --output json` returns a stable JSON help document for groups and commands, including usage, visible commands, options, positional markers, secrets, and examples. Unknown help targets fail with suggestions and a pointer to the nearest valid help command.
 
 **Examples**: commands may declare `examples: Array<{ title, params }>` alongside their params.
 CLI help renders an `Examples` section for the command, and MCP tool descriptions include the
@@ -430,7 +430,7 @@ export function slackApprovalProvider(opts: {
 
 Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Usage mistakes include a pointer to the relevant command help. Any other thrown error is treated as unexpected and shows a trimmed stack with `--debug`; use `--debug=raw` to include framework and runtime frames.
 
-HTTP-style errors with request/response context print the request, status, and a response-body snippet by default. `--verbose` or `--debug` prints headers and the full request/response bodies, with authorization headers redacted.
+HTTP-style errors with request/response context print the request, status, and a concise summary by default. The summary extracts common fields such as error code, message, request id, retry-after, hints, and field errors when they are present, then falls back to a response-body snippet. `--verbose` or `--debug` prints headers and the full request/response bodies, with authorization headers redacted.
 
 Enable structured error reports with `errorReports: true`, `errorReports: { dir }`, or `TOOLCRAFT_ERROR_REPORTS=1`. Reports are written under `.toolcraft/errors` by default, include argv, parsed params, resolved secret presence, structured error fields, stack/cause chains, and HTTP transcripts, and redact declared secrets plus parameter names that look sensitive.
 
@@ -491,6 +491,7 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 
 - `casing?: "kebab" | "snake"` — generated CLI flag style.
 - `argv?: readonly string[]` — explicit argv vector for embedded runners and tests. Defaults to `process.argv` and is used for routing, help rendering, version lookup, error reports, and output-mode detection.
+- `controls?: { debug?: boolean; output?: boolean; verbose?: boolean; yes?: boolean }` — opts into global CLI controls such as `--debug`, `--output`, `--verbose`, and `--yes`.
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.

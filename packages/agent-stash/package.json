@@ -1,6 +1,7 @@
 {
   "name": "agent-stash",
   "version": "0.0.1",
+  "private": true,
   "description": "Portable agent skill and hook sync for local, global, and Gist-backed agent configuration",
   "type": "module",
   "main": "dist/index.js",
@@ -80,8 +81,5 @@
     "codex",
     "gist",
     "sync"
-  ],
-  "publishConfig": {
-    "access": "public"
-  }
+  ]
 }

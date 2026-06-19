@@ -45,6 +45,33 @@ describe("runGaslight", () => {
     expect(result.rounds.map((round) => round.threadId)).toEqual(["one", "two", "three"]);
   });
 
+  it("accepts home-relative plan paths", async () => {
+    const fs = createFsFromVolume(
+      Volume.fromJSON({ "/home/test/.poe-code/docs/plans/work.md": "# Work" })
+    ).promises;
+    const spawn = vi
+      .fn()
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "first", stderr: "", threadId: "one" })
+      .mockResolvedValueOnce({ exitCode: 0, stdout: "second", stderr: "", threadId: "two" });
+
+    await runGaslight({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planPaths: ["~/.poe-code/docs/plans/work.md"],
+      agent: "codex",
+      prompt: "Implement",
+      followups: ["Test it"],
+      fs,
+      spawn
+    });
+
+    expect(spawn).toHaveBeenNthCalledWith(
+      1,
+      "codex",
+      expect.objectContaining({ prompt: "Implement ~/.poe-code/docs/plans/work.md" })
+    );
+  });
+
   it("runs multiple plans sequentially with a fresh thread per plan", async () => {
     const fs = createFsFromVolume(
       Volume.fromJSON({

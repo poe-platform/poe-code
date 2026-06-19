@@ -56,11 +56,15 @@ function createProgram(): Command {
     .option("--verbose");
 }
 
-function createContainer(prompts = vi.fn().mockResolvedValue({}), logger = vi.fn()) {
-  const volume = Volume.fromJSON({
+function createContainer(
+  prompts = vi.fn().mockResolvedValue({}),
+  logger = vi.fn(),
+  files: Record<string, string> = {
     "/repo/docs/plans/a.md": "# A",
     "/repo/docs/plans/b.md": "# B"
-  });
+  }
+) {
+  const volume = Volume.fromJSON(files);
   return createCliContainer({
     fs: createFsFromVolume(volume).promises as unknown as FileSystem,
     prompts,
@@ -342,6 +346,68 @@ describe("gaslight command", () => {
         planPaths: ["docs/plans/a.md"],
         agent: "claude-code",
         mode: "edit"
+      })
+    );
+  });
+
+  it("selects plans from a configured home-relative plan directory", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(prompts, vi.fn(), {
+        "/repo/.poe-code/config.json": `${JSON.stringify(
+          {
+            plan: { plan_directory: "~/.poe-code/docs/plans" }
+          },
+          null,
+          2
+        )}\n`,
+        "/home/test/.poe-code/docs/plans/global.md": "# Global"
+      })
+    );
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPaths: ["~/.poe-code/docs/plans/global.md"],
+        agent: "claude-code"
+      })
+    );
+  });
+
+  it("uses project plan directory over global plan directory", async () => {
+    const prompts = vi.fn();
+    const program = createProgram();
+    registerGaslightCommand(
+      program,
+      createContainer(prompts, vi.fn(), {
+        "/home/test/.poe-code/config.json": `${JSON.stringify(
+          {
+            plan: { plan_directory: "~/.poe-code/docs/plans" }
+          },
+          null,
+          2
+        )}\n`,
+        "/repo/.poe-code/config.json": `${JSON.stringify(
+          {
+            plan: { plan_directory: "project/plans" }
+          },
+          null,
+          2
+        )}\n`,
+        "/home/test/.poe-code/docs/plans/global.md": "# Global",
+        "/repo/project/plans/project.md": "# Project"
+      })
+    );
+
+    await program.parseAsync(["node", "cli", "--yes", "gaslight"]);
+
+    expect(runGaslightMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPaths: ["project/plans/project.md"],
+        agent: "claude-code"
       })
     );
   });

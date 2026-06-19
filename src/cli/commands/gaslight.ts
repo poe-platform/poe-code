@@ -55,9 +55,20 @@ type GaslightConfigScope = "global" | "local";
 
 const DEFAULT_SCOPE: GaslightConfigScope = "local";
 
+function resolveConfiguredPath(cwd: string, homeDir: string, value: string): string {
+  if (value.startsWith("~/")) {
+    return path.join(homeDir, value.slice(2));
+  }
+  return path.isAbsolute(value) ? value : path.resolve(cwd, value);
+}
+
 async function selectPlans(container: CliContainer, assumeYes: boolean): Promise<string[]> {
   const planDirectory = await resolvePlanDirectory(container, { readOnly: true });
-  const absoluteDirectory = path.resolve(container.env.cwd, planDirectory);
+  const absoluteDirectory = resolveConfiguredPath(
+    container.env.cwd,
+    container.env.homeDir,
+    planDirectory
+  );
   let names: string[];
   try {
     names = await container.fs.readdir(absoluteDirectory);

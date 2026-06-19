@@ -34,8 +34,11 @@ function addUsage(
   };
 }
 
-async function requirePlan(fs: GaslightFileSystem, cwd: string, planPath: string): Promise<void> {
-  const absolutePath = path.resolve(cwd, planPath);
+async function requirePlan(
+  fs: GaslightFileSystem,
+  absolutePath: string,
+  planPath: string
+): Promise<void> {
   try {
     const stats = await fs.stat(absolutePath);
     if (!stats.isFile()) {
@@ -44,6 +47,13 @@ async function requirePlan(fs: GaslightFileSystem, cwd: string, planPath: string
   } catch (error) {
     throw new Error(`Plan file not found: ${planPath}`, { cause: error });
   }
+}
+
+function resolvePlanPath(cwd: string, homeDir: string, planPath: string): string {
+  if (planPath.startsWith("~/")) {
+    return path.join(homeDir, planPath.slice(2));
+  }
+  return path.resolve(cwd, planPath);
 }
 
 function validateInlineConfig(prompt: string | undefined, followups: string[] | undefined): void {
@@ -80,7 +90,7 @@ function resolveModel(value: string | undefined): string | undefined {
   return trimmed;
 }
 
-function resolvePlanPaths(options: GaslightOptions): string[] {
+function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string): string[] {
   if (options.planPaths.length === 0) {
     throw new Error("Provide at least one plan path.");
   }
@@ -92,7 +102,7 @@ function resolvePlanPaths(options: GaslightOptions): string[] {
   const planPaths = options.planPaths.map((planPath) => planPath.trim());
   const seen = new Map<string, string>();
   for (const planPath of planPaths) {
-    const resolvedPath = path.resolve(options.cwd ?? process.cwd(), planPath);
+    const resolvedPath = resolvePlanPath(cwd, homeDir, planPath);
     const duplicate = seen.get(resolvedPath);
     if (duplicate !== undefined) {
       throw new Error(`Duplicate plan path: ${duplicate}`);
@@ -110,9 +120,9 @@ export async function runGaslight(options: GaslightOptions): Promise<GaslightRes
   const agent = requireNonEmptyString(options.agent, "agent");
   const model = resolveModel(options.model);
   validateInlineConfig(options.prompt, options.followups);
-  const planPaths = resolvePlanPaths(options);
+  const planPaths = resolvePlanPaths(options, cwd, homeDir);
   for (const planPath of planPaths) {
-    await requirePlan(fs, cwd, planPath);
+    await requirePlan(fs, resolvePlanPath(cwd, homeDir, planPath), planPath);
   }
 
   const config =

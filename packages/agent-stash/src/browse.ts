@@ -251,20 +251,20 @@ export async function runBrowseAction(
   const selectedNames = namesByKind(selected);
   if (options.action === "download") {
     if (source.location === "gist") {
-      const results: CopyMoveResult[] = [];
-      for (const item of selected) {
-        results.push(await copyOrMoveItem(ctx, {
-          operation: "copy",
-          from: "gist",
-          to: target.location,
-          profile: source.profile ?? options.profile,
-          agent: item.agentId,
-          kind: item.kind,
-          name: item.name,
-          yes: options.yes
-        }));
+      const profile = source.profile ?? options.profile;
+      if (!profile || !source.scope) {
+        throw new Error("Download requires a Gist source.");
       }
-      return { downloaded: results };
+      return {
+        downloaded: await downloadBundle(ctx, {
+          profile,
+          scope: source.scope,
+          agent: source.agentId,
+          skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,
+          hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
+          yes: options.yes
+        })
+      };
     }
     const profile = options.profile ?? target.profile;
     if (!profile) {
@@ -341,6 +341,7 @@ async function loadGistPane(
   return {
     title: `Gist ${options.profile}: ${options.agentId}`,
     location: "gist",
+    scope: options.scope,
     profile: options.profile,
     agentId: options.agentId,
     items

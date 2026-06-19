@@ -214,7 +214,39 @@ describe("browse", () => {
       yes: true
     });
 
-    expect(Array.isArray(result.downloaded)).toBe(true);
+    expect(Array.isArray(result.downloaded)).toBe(false);
+    expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
+  });
+
+  it("downloads the selected scoped Gist pane item when another scope has the same name", async () => {
+    const { ctx, volume } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+
+    const result = await runBrowseAction(ctx, {
+      action: "download",
+      profile: "default",
+      fromPane: "right",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    expect(Array.isArray(result.downloaded)).toBe(false);
     expect(volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Code Review\n");
   });
 

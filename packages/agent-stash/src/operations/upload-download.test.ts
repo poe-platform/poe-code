@@ -186,6 +186,31 @@ describe("upload/download", () => {
     );
   });
 
+  it("does not fail successful uploads when GitHub returns a sparse write response", async () => {
+    class SparseWriteResponseGistClient extends InMemoryGistClient {
+      override async update(gistId: string, input: Parameters<InMemoryGistClient["update"]>[1]) {
+        const updated = await super.update(gistId, input);
+        return { ...updated, files: {} };
+      }
+    }
+    const gistClient = new SparseWriteResponseGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const { ctx } = createContext(createDummyAgentConfigFixture(), gistClient);
+
+    const result = await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    const stored = await gistClient.read("gist-default");
+    expect(result.uploaded.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(result.manifest.items.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
+    expect(stored.files["agent-stash.json"]?.content).toContain("code-review");
+  });
+
   it("downloads remote skills and deep-merges hook fragments without dropping unrelated settings", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

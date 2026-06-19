@@ -1,5 +1,5 @@
 import { createDefaultGistClient } from "../gist-client.js";
-import { createEmptyManifest } from "../manifest.js";
+import { createEmptyManifest, parseManifest } from "../manifest.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { recordProfilePush, resolveProfileGist } from "../profile-store.js";
@@ -25,7 +25,11 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     ? await client.update(resolved.gistId, writeInput)
     : await client.createSecret(writeInput);
   await recordProfilePush(ctx, options.profile, record.id, record.htmlUrl, now.toISOString());
-  const uploadedManifest = loadBundleFromGist(record).manifest;
+  const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
+  if (manifestContent === undefined) {
+    throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
+  }
+  const uploadedManifest = parseManifest(manifestContent);
   return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
 }
 

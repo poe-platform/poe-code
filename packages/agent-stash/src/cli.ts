@@ -287,8 +287,11 @@ export async function runCli(
   }
 }
 
-function splitCsv(value: string | undefined): string[] | undefined {
-  return value ? value.split(",").map((part) => part.trim()).filter(Boolean) : undefined;
+function csvOption(value: unknown): string[] | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  return value.split(",").map((part) => part.trim()).filter(Boolean);
 }
 
 async function resolveUploadOptions(
@@ -301,8 +304,8 @@ async function resolveUploadOptions(
     gist: stringOption(raw.gist),
     scope: scopeOption(raw.scope),
     agent: stringOption(raw.agent),
-    skills: splitCsv(stringOption(raw.skills)),
-    hooks: splitCsv(stringOption(raw.hooks)),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
     yes: booleanOption(raw.yes)
   };
 
@@ -336,8 +339,8 @@ async function resolveDownloadOptions(
     gist: stringOption(raw.gist),
     scope: scopeOption(raw.scope),
     agent: stringOption(raw.agent),
-    skills: splitCsv(stringOption(raw.skills)),
-    hooks: splitCsv(stringOption(raw.hooks)),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
     yes: booleanOption(raw.yes)
   };
 
@@ -369,8 +372,8 @@ async function resolveSyncOptions(
     gist: stringOption(raw.gist),
     scope: scopeOption(raw.scope),
     agent: stringOption(raw.agent),
-    skills: splitCsv(stringOption(raw.skills)),
-    hooks: splitCsv(stringOption(raw.hooks)),
+    skills: csvOption(raw.skills),
+    hooks: csvOption(raw.hooks),
     onConflict: conflictPolicyOption(raw.onConflict) ?? (runtime.interactive && !booleanOption(raw.yes) ? "ask" : "fail"),
     yes: booleanOption(raw.yes)
   };

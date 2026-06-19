@@ -95,6 +95,29 @@ describe("agent-stash CLI", () => {
     });
   });
 
+  it("treats empty selected upload flags as an empty selection", async () => {
+    const { program, gistClient, output } = createHarness();
+
+    await program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--skills",
+      "",
+      "--yes"
+    ]);
+
+    expect(output.join("")).toBe("Uploaded 0 item(s) to gist-default.\n");
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toBeUndefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]?.content).not.toContain("code-review");
+  });
+
   it("rejects non-interactive upload without yes before writing a Gist", async () => {
     const { program, gistClient } = createHarness();
 

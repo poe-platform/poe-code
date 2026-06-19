@@ -21,8 +21,16 @@ export async function readHookOriginStore(ctx: AgentStashContext): Promise<HookO
   try {
     parsed = JSON.parse(content) as unknown;
   } catch {
-    throw new Error("Malformed hook origin cache.");
+    return { targets: {} };
   }
+  try {
+    return parseHookOriginStore(parsed);
+  } catch {
+    return { targets: {} };
+  }
+}
+
+function parseHookOriginStore(parsed: unknown): HookOriginStore {
   if (!isRecord(parsed) || !isRecord(parsed.targets)) {
     throw new Error("Malformed hook origin cache.");
   }

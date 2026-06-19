@@ -119,6 +119,20 @@ describe("inventory", () => {
     expect(preToolUse?.bundleFiles[0]?.content).not.toContain("permissions");
   });
 
+  it("ignores a malformed hook origin cache when reading otherwise valid hooks", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/home/user/.agent-stash/hook-origins.json": "{"
+    };
+
+    const items = await loadInventory(createContext(files), { scope: "project", agent: "claude-code", kind: "hook" });
+
+    expect(items.map((item) => item.id)).toEqual([
+      "project:hook:claude-code:PreToolUse-Bash-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-001"
+    ]);
+  });
+
   it("splits multiple hooks under one Claude hook event into separate selected items", async () => {
     const files = {
       ...createDummyAgentConfigFixture(),

@@ -1103,6 +1103,43 @@ describe("sync", () => {
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Remote Change\n");
   });
 
+  it("traces sync action hashes for conflict diagnosis without file contents", async () => {
+    const { target } = await createDivergedSkillScenario({ includeBase: true });
+    const traceRecords: Array<Record<string, unknown>> = [];
+    target.ctx.trace = async (record) => {
+      traceRecords.push(record);
+    };
+
+    await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict() {
+        return "remote";
+      }
+    });
+
+    const actions = traceRecords.find((record) => record.event === "sync.actions") as
+      | { actions?: Array<Record<string, unknown>> }
+      | undefined;
+    expect(actions?.actions).toContainEqual(expect.objectContaining({
+      action: "download",
+      localId: "project:skill:claude-code:code-review",
+      remoteId: "project:skill:claude-code:code-review",
+      baseId: "project:skill:claude-code:code-review",
+      localHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      remoteHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      baseHash: expect.stringMatching(/^[a-f0-9]{64}$/),
+      localUpdatedAt: fixedDate.toISOString(),
+      remoteUpdatedAt: "2026-01-02T03:04:06.000Z",
+      baseUpdatedAt: fixedDate.toISOString()
+    }));
+    expect(JSON.stringify(actions)).not.toContain("# Local Change");
+    expect(JSON.stringify(actions)).not.toContain("# Remote Change");
+  });
+
   it("rejects invalid interactive conflict resolver decisions", async () => {
     const { target } = await createDivergedSkillScenario({ includeBase: true });
 

@@ -151,7 +151,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       action,
       localId: localItem?.id,
       remoteId: remoteItem?.id,
-      baseId: baseItem?.id
+      baseId: baseItem?.id,
+      ...traceActionItem("local", localItem),
+      ...traceActionItem("remote", remoteItem),
+      ...traceActionItem("base", baseItem)
     }))
   });
 
@@ -435,6 +438,23 @@ function stripLoaded(item: LoadedItem): AgentStashItem {
   void ignoredBundleFiles;
   void ignoredTargetPath;
   return manifestItem;
+}
+
+function traceActionItem(
+  prefix: "local" | "remote" | "base",
+  item: AgentStashItem | undefined
+): Record<string, string | number> {
+  if (!item) {
+    return {};
+  }
+  return {
+    [`${prefix}Hash`]: item.contentHash,
+    [`${prefix}UpdatedAt`]: item.updatedAt,
+    [`${prefix}Name`]: item.name,
+    [`${prefix}Kind`]: item.kind,
+    [`${prefix}FileCount`]: item.files.length,
+    [`${prefix}Size`]: item.files.reduce((total, file) => total + file.size, 0)
+  };
 }
 
 function requiredFile(files: Map<string, string>, filePath: string): string {

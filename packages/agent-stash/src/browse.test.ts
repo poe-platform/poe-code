@@ -68,6 +68,37 @@ function cloneGistRecord(record: GistRecord): GistRecord {
   };
 }
 
+function legacyHookItem(eventName: string, matcher: string | undefined, command: string) {
+  const content = `${JSON.stringify({
+    hooks: {
+      [eventName]: [{
+        ...(matcher === undefined ? {} : { matcher }),
+        hooks: [{ type: "command", command }]
+      }]
+    }
+  }, null, 2)}\n`;
+  const file = {
+    path: `hooks/project/claude-code/${eventName}.json`,
+    size: Buffer.byteLength(content, "utf8"),
+    sha256: sha256(content)
+  };
+  return {
+    content,
+    file,
+    item: {
+      id: `project:hook:claude-code:${eventName}`,
+      kind: "hook" as const,
+      agentId: "claude-code",
+      name: eventName,
+      scope: "project" as const,
+      path: file.path,
+      files: [file],
+      updatedAt: fixedDate.toISOString(),
+      contentHash: hashFiles([file])
+    }
+  };
+}
+
 describe("browse", () => {
   it("builds a project to global browse model from local inventory", async () => {
     const model = await buildBrowseModel(createHarness().ctx, {
@@ -899,6 +930,81 @@ describe("browse", () => {
 
     expect(refreshedRightRows.map((row) => row.id)).toEqual(["project:skill:claude-code:code-review"]);
     expect(refreshedRightRows[0]?.subtitle).toContain("# Code Review");
+  });
+
+  it("removes legacy Gist hook chunks after split hook sync when the immediate refresh reads stale Gist data", async () => {
+    const { ctx } = createHarness();
+    const staleClient = new StaleReadAfterUpdateGistClient();
+    const legacyPreToolUse = legacyHookItem("PreToolUse", "Bash", "npm test");
+    const legacyStop = legacyHookItem("Stop", undefined, "echo done");
+    staleClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "agent-stash.json": {
+          filename: "agent-stash.json",
+          content: serializeManifest({
+            schemaVersion: 1,
+            profile: "default",
+            createdAt: fixedDate.toISOString(),
+            updatedAt: fixedDate.toISOString(),
+            items: [legacyPreToolUse.item, legacyStop.item]
+          })
+        },
+        [gistFilenameForBundlePath(legacyPreToolUse.file.path)]: {
+          filename: gistFilenameForBundlePath(legacyPreToolUse.file.path),
+          content: legacyPreToolUse.content
+        },
+        [gistFilenameForBundlePath(legacyStop.file.path)]: {
+          filename: gistFilenameForBundlePath(legacyStop.file.path),
+          content: legacyStop.content
+        }
+      }
+    });
+    ctx.gistClient = staleClient;
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+    const leftRows = await config.panes[0].rows();
+    const selectedRows = leftRows.filter((row) => row.id.startsWith("project:hook:claude-code:"));
+    let refreshedRightRows: Array<{ id: string }> = [];
+
+    await config.actions.find((action) => action.id === "sync")!.handler({
+      activePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: leftRows,
+        cursor: 0,
+        selected: new Set(selectedRows.map((row) => row.id)),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "right",
+        title: "Gist default: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: selectedRows[0]!,
+      rows: selectedRows,
+      refresh: async () => {
+        await config.refresh?.();
+        refreshedRightRows = await config.panes[1].rows();
+      },
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      exit: () => undefined
+    });
+
+    expect(refreshedRightRows.map((row) => row.id)).toEqual([
+      "project:hook:claude-code:PreToolUse-Bash-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-001"
+    ]);
   });
 
   it("removes moved Gist rows when the immediate two-pane refresh reads stale Gist data", async () => {

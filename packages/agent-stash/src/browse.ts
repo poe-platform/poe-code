@@ -17,6 +17,7 @@ import {
 } from "toolcraft-design";
 import { loadBundleFromGist, verifyBundleHashes } from "./bundle.js";
 import { createDefaultGistClient } from "./gist-client.js";
+import { hookEventFromFragmentContent } from "./hook-items.js";
 import { loadInventory } from "./inventory.js";
 import { MANIFEST_FILENAME } from "./manifest.js";
 import { normalizeAgent } from "./locations.js";
@@ -589,10 +590,11 @@ function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionR
 
   if (input.result.synced !== undefined) {
     const uploaded = input.result.synced.uploaded;
+    const uploadedHookEvents = hookEventsForUploadedItems(sourcePane, uploaded);
     next = updateGistPaneItems(next, (items) => {
       const removed = new Set(input.result.synced?.deletedRemote.map((item) => item.id) ?? []);
       return upsertBrowseItems(
-        items.filter((item) => !removed.has(item.id)),
+        items.filter((item) => !removed.has(item.id) && !isLegacyHookChunkForEvents(item, uploadedHookEvents)),
         uploaded
       );
     });
@@ -683,6 +685,26 @@ function upsertBrowseItems(items: AgentStashItem[], replacements: AgentStashItem
     byId.set(item.id, item);
   }
   return [...byId.values()];
+}
+
+function hookEventsForUploadedItems(pane: BrowsePane, items: AgentStashItem[]): Set<string> {
+  const events = new Set<string>();
+  for (const item of items) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    for (const file of item.files) {
+      const event = hookEventFromFragmentContent(contentForItem(pane, item, file.path) ?? "");
+      if (event !== undefined && event !== item.name) {
+        events.add(event);
+      }
+    }
+  }
+  return events;
+}
+
+function isLegacyHookChunkForEvents(item: AgentStashItem, events: Set<string>): boolean {
+  return item.kind === "hook" && events.has(item.name);
 }
 
 function browsePaneItemsForManifest(pane: BrowsePane, items: AgentStashItem[]): AgentStashItem[] {

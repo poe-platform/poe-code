@@ -559,6 +559,7 @@ function browseTwoPaneAction(
       toastBrowseActionResult(actionCtx.toast, label, completed);
       await prepareRefresh({ action, fromPane, selectedIds, result: completed });
       await actionCtx.refresh();
+      await traceAgentStash(ctx, "browse.refresh.rendered", { action, fromPane });
     }
   };
 }
@@ -612,15 +613,21 @@ function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionR
   }
 
   if (input.result.synced !== undefined) {
-    const uploaded = input.result.synced.uploaded;
+    const synced = input.result.synced;
+    const uploaded = synced.uploaded;
     const uploadedHookEvents = hookEventsForUploadedItems(sourcePane, uploaded);
+    const deletedLocal = new Set(synced.deletedLocal.map((item) => item.id));
     next = updateGistPaneItems(next, (items) => {
-      const removed = new Set(input.result.synced?.deletedRemote.map((item) => item.id) ?? []);
+      const removed = new Set([
+        ...synced.deletedRemote.map((item) => item.id),
+        ...deletedLocal
+      ]);
       return upsertBrowseItems(
         items.filter((item) => !removed.has(item.id) && !isLegacyHookChunkForEvents(item, uploadedHookEvents)),
         uploaded
       );
     });
+    next = updateLocalPaneItems(next, (items) => items.filter((item) => !deletedLocal.has(item.id)));
     next = updateGistPaneContents(next, browseContentsForItems(sourcePane, uploaded));
   }
 
@@ -650,6 +657,19 @@ async function traceBrowseGistRefresh(
   model: BrowseModel,
   input: BrowseActionRefresh
 ): Promise<void> {
+  await traceAgentStash(ctx, "browse.refresh.model", {
+    action: input.action,
+    left: {
+      location: model.left.location,
+      itemCount: model.left.items.length,
+      items: traceItems(model.left.items)
+    },
+    right: {
+      location: model.right.location,
+      itemCount: model.right.items.length,
+      items: traceItems(model.right.items)
+    }
+  });
   await traceBrowseGistRefreshPane(ctx, model.left, "left", input.action);
   await traceBrowseGistRefreshPane(ctx, model.right, "right", input.action);
 }
@@ -687,6 +707,20 @@ function updateGistPaneItems(
     next = updatePaneItems(next, "left", (items, pane) => update(items, pane));
   }
   if (model.right.location === "gist") {
+    next = updatePaneItems(next, "right", (items, pane) => update(items, pane));
+  }
+  return next;
+}
+
+function updateLocalPaneItems(
+  model: BrowseModel,
+  update: (items: AgentStashItem[], pane: BrowsePane) => AgentStashItem[]
+): BrowseModel {
+  let next = model;
+  if (model.left.location !== "gist") {
+    next = updatePaneItems(next, "left", (items, pane) => update(items, pane));
+  }
+  if (model.right.location !== "gist") {
     next = updatePaneItems(next, "right", (items, pane) => update(items, pane));
   }
   return next;

@@ -1169,7 +1169,7 @@ describe("browse", () => {
       "project:hook:claude-code:PreToolUse-Bash-001-001",
       "project:hook:claude-code:Stop-all-tools-001-001"
     ]);
-    expect(traces.at(-1)).toMatchObject({
+    expect(traces.findLast((trace) => trace.event === "browse.gist.refresh.finish")).toMatchObject({
       event: "browse.gist.refresh.finish",
       action: "sync",
       pane: "right",
@@ -1180,6 +1180,75 @@ describe("browse", () => {
         { id: "project:hook:claude-code:Stop-all-tools-001-001", name: "Stop-all-tools-001-001" }
       ]
     });
+  });
+
+  it("removes sync-deleted local rows before the local inventory refresh catches up", async () => {
+    const { ctx } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      yes: true
+    });
+    const model = await buildBrowseModel(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    });
+    const deletedItem = model.left.items.find((item) => item.id === "project:hook:claude-code:PreToolUse-Bash-001-001")!;
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      runAction: async () => ({
+        synced: {
+          uploaded: [],
+          downloaded: [],
+          deletedLocal: [deletedItem],
+          deletedRemote: [],
+          unchanged: [],
+          conflicts: []
+        }
+      })
+    });
+    const leftRows = await config.panes[0].rows();
+    const deletedRow = leftRows.find((row) => row.id === deletedItem.id)!;
+    let refreshedLeftRows: Array<{ id: string }> = leftRows;
+    let refreshedRightRows: Array<{ id: string }> = await config.panes[1].rows();
+
+    await config.actions.find((action) => action.id === "sync")!.handler({
+      activePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: leftRows,
+        cursor: 0,
+        selected: new Set([deletedRow.id]),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "right",
+        title: "Gist default: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: deletedRow,
+      rows: [deletedRow],
+      refresh: async () => {
+        await config.refresh?.();
+        refreshedLeftRows = await config.panes[0].rows();
+        refreshedRightRows = await config.panes[1].rows();
+      },
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      exit: () => undefined
+    });
+
+    expect(refreshedLeftRows.map((row) => row.id)).not.toContain(deletedItem.id);
+    expect(refreshedRightRows.map((row) => row.id)).not.toContain(deletedItem.id);
   });
 
   it("removes moved Gist rows when the immediate two-pane refresh reads stale Gist data", async () => {

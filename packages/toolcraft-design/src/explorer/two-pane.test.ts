@@ -238,6 +238,40 @@ describe("runTwoPaneExplorer", () => {
     await expect(result).resolves.toBeNull();
   });
 
+  it("clears stale row text after refresh loads no rows", async () => {
+    const driver = currentDriver();
+    let rows = leftRows;
+    const result = runTwoPaneExplorer(config({
+      panes: [
+        {
+          id: "left",
+          title: "Project",
+          emptyHint: "No items in left pane",
+          rows: async () => rows
+        },
+        { id: "right", title: "Gist", rows: async () => rightRows }
+      ],
+      actions: [{
+        id: "sync",
+        label: "Sync",
+        key: "s",
+        handler: async (ctx) => {
+          rows = [];
+          await ctx.refresh();
+        }
+      }]
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Left One"));
+    driver.press(key("s"));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("No items in left pane"));
+    expect(currentScreen(driver).join("\n")).not.toContain("Left One");
+
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
+  });
+
   it("rejects when stdout is not a TTY", async () => {
     Object.defineProperty(process.stdout, "isTTY", {
       configurable: true,

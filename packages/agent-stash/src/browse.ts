@@ -37,11 +37,16 @@ import type {
   ConflictResolution,
   CopyMoveResult,
   DownloadResult,
+  GistClient,
+  GistRecord,
   SyncConflict,
   SyncOptions,
   SyncResult,
   UploadResult
 } from "./types.js";
+
+const GIST_PANE_MANIFEST_READ_ATTEMPTS = 6;
+const GIST_PANE_MANIFEST_RETRY_DELAY_MS = 500;
 
 export interface BrowseOptions {
   profile?: string;
@@ -397,7 +402,7 @@ async function loadGistPane(
     scope: options.scope,
     agent: options.agentId
   });
-  const gist = await client.read(resolved.gistId);
+  const gist = await readGistPaneRecord(client, resolved.gistId);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
     verifyBundleHashes(bundle);
@@ -423,6 +428,23 @@ async function loadGistPane(
     items,
     contents: bundle?.files
   };
+}
+
+async function readGistPaneRecord(client: GistClient, gistId: string): Promise<GistRecord> {
+  let latest = await client.read(gistId);
+  for (let attempt = 1; attempt < GIST_PANE_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+    await sleep(GIST_PANE_MANIFEST_RETRY_DELAY_MS);
+    latest = await client.read(gistId);
+  }
+  return latest;
+}
+
+function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
+  return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function selectItems(items: AgentStashItem[], ids: string[]): AgentStashItem[] {

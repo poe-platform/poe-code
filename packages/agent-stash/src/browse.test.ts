@@ -61,6 +61,25 @@ class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
   }
 }
 
+class StaleSeedReadGistClient extends InMemoryGistClient {
+  private staleRecord: GistRecord | undefined;
+
+  seedStaleThenFresh(staleRecord: GistRecord, freshRecord: GistRecord): void {
+    this.staleRecord = cloneGistRecord(staleRecord);
+    this.seed(freshRecord);
+  }
+
+  async read(gistId: string): Promise<GistRecord> {
+    if (this.staleRecord !== undefined) {
+      this.readCalls.push(gistId);
+      const stale = cloneGistRecord(this.staleRecord);
+      this.staleRecord = undefined;
+      return stale;
+    }
+    return super.read(gistId);
+  }
+}
+
 function cloneGistRecord(record: GistRecord): GistRecord {
   return {
     ...record,
@@ -92,6 +111,30 @@ function legacyHookItem(eventName: string, matcher: string | undefined, command:
       name: eventName,
       scope: "project" as const,
       path: file.path,
+      files: [file],
+      updatedAt: fixedDate.toISOString(),
+      contentHash: hashFiles([file])
+    }
+  };
+}
+
+function projectCodeReviewSkillItem() {
+  const content = "# Code Review\n";
+  const file = {
+    path: "skills/project/claude-code/code-review/SKILL.md",
+    size: Buffer.byteLength(content, "utf8"),
+    sha256: sha256(content)
+  };
+  return {
+    content,
+    file,
+    item: {
+      id: "project:skill:claude-code:code-review",
+      kind: "skill" as const,
+      agentId: "claude-code",
+      name: "code-review",
+      scope: "project" as const,
+      path: "skills/project/claude-code/code-review",
       files: [file],
       updatedAt: fixedDate.toISOString(),
       contentHash: hashFiles([file])
@@ -227,6 +270,58 @@ describe("browse", () => {
         matchedItemCount: 0
       })
     ]);
+  });
+
+  it("retries a non-empty profile-backed Gist pane read when the first response has no manifest", async () => {
+    vi.useFakeTimers();
+    const { ctx } = createHarness();
+    const staleClient = new StaleSeedReadGistClient();
+    const codeReview = projectCodeReviewSkillItem();
+    staleClient.seedStaleThenFresh(
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {
+          "seed.txt": { filename: "seed.txt", content: "stale seed" }
+        }
+      },
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {
+          "agent-stash.json": {
+            filename: "agent-stash.json",
+            content: serializeManifest({
+              schemaVersion: 1,
+              profile: "default",
+              createdAt: fixedDate.toISOString(),
+              updatedAt: fixedDate.toISOString(),
+              items: [codeReview.item]
+            })
+          },
+          [gistFilenameForBundlePath(codeReview.file.path)]: {
+            filename: gistFilenameForBundlePath(codeReview.file.path),
+            content: codeReview.content
+          }
+        }
+      }
+    );
+    ctx.gistClient = staleClient;
+
+    try {
+      const modelPromise = buildBrowseModel(ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code"
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      const model = await modelPromise;
+
+      expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+      expect(model.right.items.map((item) => item.name)).toEqual(["code-review"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("rejects missing browse Gist profiles before creating a default Gist client", async () => {

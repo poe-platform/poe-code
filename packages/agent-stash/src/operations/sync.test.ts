@@ -1015,6 +1015,73 @@ describe("sync", () => {
     expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Remote Change\n");
   });
 
+  it("resolves hook conflicts with remote policy by replacing the conflicting local hook", async () => {
+    const gistClient = new InMemoryGistClient();
+    const baseFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "base hook" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const source = createContext(baseFiles, gistClient);
+    const upload = await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-001"],
+      yes: true
+    });
+    const remoteFiles = {
+      ...baseFiles,
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "remote hook" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const remote = createContext(remoteFiles, gistClient);
+    await uploadBundle(remote.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-001"],
+      yes: true
+    });
+    const targetFiles = {
+      ...baseFiles,
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "local hook" }] }
+          ]
+        }
+      }, null, 2),
+      "/home/user/.agent-stash/cache/default.manifest.json": serializeManifest(upload.manifest)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-001"],
+      onConflict: "remote",
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PostToolUse?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-001"]);
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual(["remote hook"]);
+  });
+
   it("resolves ask conflicts through the injected conflict resolver", async () => {
     const { target } = await createDivergedSkillScenario({ includeBase: true });
     const prompted: string[] = [];

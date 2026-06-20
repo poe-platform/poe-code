@@ -160,12 +160,15 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     return result;
   }
 
-  for (const { action, remoteItem } of actions) {
+  for (const { action, localItem, remoteItem } of actions) {
     if (action === "download" && remoteItem) {
       validateItemForLocalWrite(
         remoteItem,
         remoteItem.files.map((file) => ({ path: file.path, content: requiredFile(nextFiles, file.path) }))
       );
+      if (localItem) {
+        await validateTargetForLocalRemove(ctx, localItem);
+      }
       await validateTargetForLocalWrite(ctx, remoteItem);
     }
   }
@@ -205,6 +208,9 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       }
     } else if (action === "download" && remoteItem) {
       const files = remoteItem.files.map((file) => ({ path: file.path, content: requiredFile(nextFiles, file.path) }));
+      if (localItem) {
+        await removeLocalItem(ctx, localItem);
+      }
       await writeItemToLocal(ctx, remoteItem, files);
       result.downloaded.push(remoteItem);
     } else if (action === "delete-local" && localItem) {

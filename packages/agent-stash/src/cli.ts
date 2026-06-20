@@ -402,7 +402,7 @@ async function resolveUploadOptions(
   await resolveProfilePrompt(ctx, options, runtime.prompts, { allowCreateProfile: true });
   await resolveTargetPrompts(options, runtime.prompts, "Source");
   await resolveUploadSelections(ctx, options, runtime.prompts);
-  const selectedCount = (options.skills?.length ?? 0) + (options.hooks?.length ?? 0);
+  const selectedCount = await countUploadSelectionItems(ctx, options);
   const target = profileOrGistLabel(options, "a new secret Gist");
   await confirmOrThrow(runtime.prompts, `Upload ${selectedCount} item(s) to ${target}?`);
   options.yes = true;
@@ -560,6 +560,22 @@ async function resolveUploadSelections(
   options.hooks = await promptItems(prompts, "Hooks", inventory
     .filter((item) => item.kind === "hook")
     .map((item) => item.name));
+}
+
+async function countUploadSelectionItems(ctx: AgentStashContext, options: DraftUploadOptions): Promise<number> {
+  assertTargetOptions(options);
+  if (options.skills === undefined && options.hooks === undefined) {
+    return (await loadInventory(ctx, { scope: options.scope, agent: options.agent })).length;
+  }
+  const [skills, hooks] = await Promise.all([
+    options.skills === undefined
+      ? Promise.resolve([])
+      : loadInventory(ctx, { scope: options.scope, agent: options.agent, kind: "skill", skills: options.skills }),
+    options.hooks === undefined
+      ? Promise.resolve([])
+      : loadInventory(ctx, { scope: options.scope, agent: options.agent, kind: "hook", hooks: options.hooks })
+  ]);
+  return skills.length + hooks.length;
 }
 
 async function promptItems(

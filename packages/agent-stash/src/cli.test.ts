@@ -434,6 +434,46 @@ describe("agent-stash CLI", () => {
     expect(output.join("")).toBe("Uploaded 1 item(s) to gist-default.\n");
   });
 
+  it("counts expanded split hooks in interactive upload confirmations", async () => {
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.claude/settings.json"] = JSON.stringify(
+      {
+        hooks: {
+          PreToolUse: [{
+            matcher: "Bash",
+            hooks: [
+              { type: "command", command: "npm test" },
+              { type: "command", command: "npm lint" }
+            ]
+          }]
+        }
+      },
+      null,
+      2
+    );
+    const prompts = createPromptHarness({
+      confirm: [true]
+    });
+    const { program, output } = createHarness(files, prompts);
+
+    await program.parseAsync([
+      "node",
+      "agent-stash",
+      "upload",
+      "--profile",
+      "default",
+      "--scope",
+      "project",
+      "--agent",
+      "claude-code",
+      "--hooks",
+      "PreToolUse"
+    ]);
+
+    expect(prompts.confirmCalls[0]?.message).toBe('Upload 2 item(s) to profile "default"?');
+    expect(output.join("")).toBe("Uploaded 2 item(s) to gist-default.\n");
+  });
+
   it("describes explicit Gist overrides in interactive confirmations", async () => {
     const uploadPrompts = createPromptHarness({ confirm: [true] });
     const uploadHarness = createHarness(createDummyAgentConfigFixture(), uploadPrompts);

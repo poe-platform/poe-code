@@ -351,6 +351,56 @@ describe("browse", () => {
     }
   });
 
+  it("finds a profile-backed Gist manifest when the short no-baseline retry follows an empty stale read", async () => {
+    vi.useFakeTimers();
+    const { ctx } = createHarness();
+    const staleClient = new StaleSeedReadGistClient();
+    const codeReview = projectCodeReviewSkillItem();
+    staleClient.seedStaleThenFresh(
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {}
+      },
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {
+          "agent-stash.json": {
+            filename: "agent-stash.json",
+            content: serializeManifest({
+              schemaVersion: 1,
+              profile: "default",
+              createdAt: fixedDate.toISOString(),
+              updatedAt: fixedDate.toISOString(),
+              items: [codeReview.item]
+            })
+          },
+          [gistFilenameForBundlePath(codeReview.file.path)]: {
+            filename: gistFilenameForBundlePath(codeReview.file.path),
+            content: codeReview.content
+          }
+        }
+      }
+    );
+    ctx.gistClient = staleClient;
+
+    try {
+      const modelPromise = buildBrowseModel(ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code"
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      const model = await modelPromise;
+
+      expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+      expect(model.right.items.map((item) => item.name)).toEqual(["code-review"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("retries a non-empty profile-backed Gist pane read when the first response has no manifest", async () => {
     vi.useFakeTimers();
     const { ctx } = createHarness();

@@ -441,15 +441,15 @@ async function loadGistPane(
 
 async function readGistPaneRecord(client: GistClient, gistId: string, manifestReadAttempts: number): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; attempt < manifestReadAttempts && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; attempt < manifestReadAttempts && isGistWithoutManifest(latest); attempt += 1) {
     await sleep(GIST_PANE_MANIFEST_RETRY_DELAY_MS);
     latest = await client.read(gistId);
   }
   return latest;
 }
 
-function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
-  return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+function isGistWithoutManifest(gist: GistRecord): boolean {
+  return gist.files[MANIFEST_FILENAME] === undefined;
 }
 
 async function sleep(ms: number): Promise<void> {

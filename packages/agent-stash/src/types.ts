@@ -159,6 +159,7 @@ export interface SyncOptions {
   skills?: string[];
   hooks?: string[];
   onConflict: ConflictPolicy;
+  selectedSource?: "local" | "remote";
   yes?: boolean;
   resolveConflict?: (conflict: SyncConflict) => Promise<ConflictResolution>;
 }

@@ -53,7 +53,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     agent: options.agent,
     skills: options.skills,
     hooks: options.hooks,
-    onConflict: options.onConflict
+    onConflict: options.onConflict,
+    selectedSource: options.selectedSource
   });
   try {
   const agentId = normalizeAgent(options.agent);
@@ -148,13 +149,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     const localItem = localById.get(id);
     const remoteItem = remoteById.get(id);
     const baseItem = baseById.get(id);
-    const initialAction = classify(localItem, remoteItem, baseItem, options.onConflict);
+    const initialAction = classify(localItem, remoteItem, baseItem, options.onConflict, options.selectedSource);
     const conflictResolution = initialAction === "conflict" && options.onConflict === "ask"
       ? await resolveAskedConflict(options, localItem, remoteItem, baseItem)
       : undefined;
     const action = conflictResolution === undefined
       ? initialAction
-      : classify(localItem, remoteItem, baseItem, conflictResolution);
+      : classify(localItem, remoteItem, baseItem, conflictResolution, options.selectedSource);
     actions.push({ action, initialAction, conflictResolution, localItem, remoteItem, baseItem });
     if (action === "unchanged" && (localItem ?? remoteItem)) {
       result.unchanged.push(localItem ?? remoteItem!);
@@ -454,7 +455,8 @@ function classify(
   local: AgentStashItem | undefined,
   remote: AgentStashItem | undefined,
   base: AgentStashItem | undefined,
-  policy: SyncOptions["onConflict"]
+  policy: SyncOptions["onConflict"],
+  selectedSource?: SyncOptions["selectedSource"]
 ): Action {
   if (local && remote && local.contentHash === remote.contentHash) {
     return "unchanged";
@@ -481,6 +483,9 @@ function classify(
     return "conflict";
   }
   if (!local && remote && base) {
+    if (selectedSource === "remote" && remote.kind === "hook" && remote.contentHash === base.contentHash) {
+      return "download";
+    }
     if (policy === "ask" && remote.contentHash === base.contentHash) {
       return "delete-remote";
     }

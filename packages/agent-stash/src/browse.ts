@@ -385,6 +385,7 @@ export async function runBrowseAction(
       skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,
       hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
       onConflict: options.onConflict ?? "fail",
+      selectedSource: source.location === "gist" ? "remote" : undefined,
       resolveConflict: options.resolveConflict,
       yes: options.yes
     })

@@ -1814,6 +1814,42 @@ describe("browse", () => {
     expect(manifest.items.map((item) => item.id)).toEqual(movedIds);
   });
 
+  it("syncs selected Gist hook rows into an empty project even when the profile baseline contains them", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    const upload = await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      yes: true
+    });
+    volume.unlinkSync("/repo/.claude/settings.json");
+    const selectedId = "project:hook:claude-code:PreToolUse-Bash-001-001";
+
+    const result = await runBrowseAction(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      action: "sync",
+      fromPane: "right",
+      selectedIds: [selectedId],
+      onConflict: "ask",
+      resolveConflict: async () => "fail",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    const settings = JSON.parse(volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PreToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
+    };
+    expect(result.synced?.downloaded.map((item) => item.id)).toEqual([selectedId]);
+    expect(result.synced?.deletedRemote).toEqual([]);
+    expect(manifest.items.map((item) => item.id)).toEqual(upload.manifest.items.map((item) => item.id));
+    expect(settings.hooks?.PreToolUse?.[0]?.matcher).toBe("Bash");
+    expect(settings.hooks?.PreToolUse?.[0]?.hooks?.[0]?.command).toBe("npm test");
+  });
+
   it("titles the two-pane source pane from the selected scope", () => {
     const { ctx } = createHarness();
     const config = buildBrowseTwoPaneConfig(ctx, {

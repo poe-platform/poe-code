@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { gistFilenameForBundlePath } from "./bundle.js";
-import { createAgentStashProgram, runCli } from "./cli.js";
+import { createAgentStashProgram, resolveAgentStashLogPath, runCli } from "./cli.js";
 import { createBackup } from "./backup-store.js";
 import { hashFiles, sha256 } from "./hash.js";
 import { parseManifest, serializeManifest } from "./manifest.js";
@@ -119,6 +119,33 @@ describe("agent-stash CLI", () => {
         name: "PreToolUse-Bash-001-001"
       }
     ]);
+  });
+
+  it("uses --log ahead of AGENT_STASH_LOG", () => {
+    expect(resolveAgentStashLogPath(
+      { home: "/home/user", log: "/tmp/explicit.jsonl" },
+      { AGENT_STASH_LOG: "/tmp/env.jsonl" }
+    )).toBe("/tmp/explicit.jsonl");
+  });
+
+  it("uses AGENT_STASH_LOG as a trace file path", () => {
+    expect(resolveAgentStashLogPath(
+      { home: "/home/user" },
+      { AGENT_STASH_LOG: "/tmp/agent-stash-live.jsonl" }
+    )).toBe("/tmp/agent-stash-live.jsonl");
+  });
+
+  it("uses a default trace file when AGENT_STASH_LOG is enabled without a path", () => {
+    expect(resolveAgentStashLogPath(
+      { home: "/home/user" },
+      { AGENT_STASH_LOG: "1" }
+    )).toBe("/home/user/.agent-stash/logs/trace.jsonl");
+  });
+
+  it("leaves tracing off when AGENT_STASH_LOG is unset or disabled", () => {
+    expect(resolveAgentStashLogPath({ home: "/home/user" }, {})).toBeUndefined();
+    expect(resolveAgentStashLogPath({ home: "/home/user" }, { AGENT_STASH_LOG: "0" })).toBeUndefined();
+    expect(resolveAgentStashLogPath({ home: "/home/user" }, { AGENT_STASH_LOG: "false" })).toBeUndefined();
   });
 
   it("uses project Claude defaults when --yes upload omits scope and agent", async () => {

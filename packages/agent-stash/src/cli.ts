@@ -111,16 +111,34 @@ function createContext(options: AgentStashCliContextOptions): AgentStashContext 
     homeDir: options.home ?? os.homedir(),
     fs: fs as unknown as AgentStashContext["fs"]
   };
-  if (options.log) {
+  const logPath = resolveAgentStashLogPath(options);
+  if (logPath) {
     ctx.trace = async (record) => {
-      const logDir = path.dirname(options.log!);
+      const logDir = path.dirname(logPath);
       if (logDir !== ".") {
         await fs.mkdir(logDir, { recursive: true });
       }
-      await fs.appendFile(options.log!, `${JSON.stringify(record)}\n`, "utf8");
+      await fs.appendFile(logPath, `${JSON.stringify(record)}\n`, "utf8");
     };
   }
   return ctx;
+}
+
+export function resolveAgentStashLogPath(
+  options: AgentStashCliContextOptions,
+  env: { AGENT_STASH_LOG?: string } = process.env
+): string | undefined {
+  if (options.log) {
+    return options.log;
+  }
+  const value = env.AGENT_STASH_LOG?.trim();
+  if (!value || value === "0" || value.toLowerCase() === "false") {
+    return undefined;
+  }
+  if (value === "1" || value.toLowerCase() === "true") {
+    return path.join(options.home ?? os.homedir(), ".agent-stash", "logs", "trace.jsonl");
+  }
+  return value;
 }
 
 function writeOut(message: string): void {

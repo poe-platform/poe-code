@@ -129,7 +129,9 @@ export class GitHubGistClient implements GistClient {
       clearTimeout(timeout);
     }
     if (response.status === 403) {
-      throw new Error(`GitHub Gist request failed with 403${await responseErrorSuffix(response)}. Ensure the token has the gist scope.`);
+      const suffix = await responseErrorSuffix(response);
+      const scopeHint = isRateLimitErrorSuffix(suffix) ? "" : ". Ensure the token has the gist scope.";
+      throw new Error(`GitHub Gist request failed with 403${suffix}${scopeHint}`);
     }
     if (!response.ok) {
       throw new Error(`GitHub Gist request failed with ${response.status}${await responseErrorSuffix(response)}`);
@@ -234,6 +236,11 @@ async function responseErrorSuffix(response: Response): Promise<string> {
     return "";
   }
   return `: ${body.slice(0, 500)}`;
+}
+
+function isRateLimitErrorSuffix(suffix: string): boolean {
+  const normalized = suffix.toLowerCase();
+  return normalized.includes("rate limit") || normalized.includes("abuse detection");
 }
 
 function assertValidGistId(gistId: unknown): asserts gistId is string {

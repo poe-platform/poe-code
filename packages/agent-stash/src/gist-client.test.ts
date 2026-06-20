@@ -364,6 +364,24 @@ describe("GitHubGistClient", () => {
     await expect(new GitHubGistClient("token").read("gist-1")).rejects.toThrow(/403: secondary rate limit/);
   });
 
+  it("does not suggest missing gist scope for rate-limited 403 responses", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ message: "API rate limit exceeded for user ID 123." }), {
+        status: 403,
+        headers: { "content-type": "application/json" }
+      })
+    );
+
+    let message = "";
+    try {
+      await new GitHubGistClient("token").read("gist-1");
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    expect(message).toMatch(/API rate limit exceeded/);
+    expect(message).not.toMatch(/gist scope/);
+  });
+
   it("includes non-403 response bodies in request errors", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response("filename contains a slash", { status: 422 }));
 

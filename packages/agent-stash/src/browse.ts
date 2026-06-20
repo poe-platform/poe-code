@@ -28,6 +28,8 @@ import { uploadBundle } from "./operations/upload.js";
 import { readBaselineManifest, resolveProfileGist } from "./profile-store.js";
 import { traceAgentStash, traceItems } from "./trace.js";
 import { assertAgentStashScope } from "./validation.js";
+import { createBackup } from "./backup-store.js";
+import { removeLocalItem, targetPathForItem } from "./local-writes.js";
 import type {
   AgentStashContext,
   AgentStashItem,
@@ -282,6 +284,32 @@ export async function runBrowseAction(
       }
       await removeGistItems(ctx, { profile: source.profile ?? target.profile ?? options.profile }, selected);
       return finishBrowseAction(ctx, options.action, { moved: results });
+    }
+    if (operation === "move" && (source.location === "project" || source.location === "global") && target.location === "gist") {
+      const profile = target.profile ?? options.profile;
+      if (!profile || !source.scope) {
+        throw new Error("Move to Gist requires a Gist target.");
+      }
+      const selectedNames = namesByKind(selected);
+      const backup = await createBackup(ctx, {
+        command: options.action,
+        args: options as unknown as Record<string, unknown>,
+        paths: selected.map((item) => targetPathForItem(ctx, item))
+      });
+      const uploaded = await uploadBundle(ctx, {
+        profile,
+        scope: source.scope,
+        agent: source.agentId,
+        skills: selectedNames.skills.length > 0 ? selectedNames.skills : undefined,
+        hooks: selectedNames.hooks.length > 0 ? selectedNames.hooks : undefined,
+        yes: options.yes
+      });
+      for (const item of selected) {
+        await removeLocalItem(ctx, item);
+      }
+      return finishBrowseAction(ctx, options.action, {
+        moved: uploaded.uploaded.map((item) => ({ item, backupId: backup.id }))
+      });
     }
     const results: CopyMoveResult[] = [];
     for (const option of copyMoveOptions) {

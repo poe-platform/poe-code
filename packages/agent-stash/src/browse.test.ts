@@ -1664,6 +1664,89 @@ describe("browse", () => {
     expect(manifest.items.map((item) => item.id)).not.toContain(movedIds[1]);
   });
 
+  it("moves multiple local hook rows to a Gist with one remote update", async () => {
+    const { ctx, volume, gistClient } = createHarness();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "agent-stash.json": {
+          content: serializeManifest({
+            schemaVersion: 1,
+            profile: "default",
+            createdAt: fixedDate.toISOString(),
+            updatedAt: fixedDate.toISOString(),
+            items: []
+          })
+        }
+      }
+    });
+    volume.writeFileSync("/repo/.claude/settings.json", JSON.stringify({
+      hooks: {
+        Stop: [
+          {
+            hooks: [
+              { type: "command", command: "first local stop" },
+              { type: "command", command: "second local stop" }
+            ]
+          }
+        ]
+      }
+    }, null, 2));
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+    const leftRows = await config.panes[0].rows();
+    const movedIds = [
+      "project:hook:claude-code:Stop-all-tools-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-002"
+    ];
+    const movedRows = leftRows.filter((row) => movedIds.includes(row.id));
+    let refreshedLeftRows: Array<{ id: string }> = leftRows;
+    let refreshedRightRows: Array<{ id: string }> = [];
+
+    await config.actions.find((action) => action.id === "move")!.handler({
+      activePane: {
+        id: "left",
+        title: "Project: claude-code",
+        rows: leftRows,
+        cursor: 0,
+        selected: new Set(movedIds),
+        filter: "",
+        emptyHint: "No items"
+      },
+      inactivePane: {
+        id: "right",
+        title: "Gist default: claude-code",
+        rows: [],
+        cursor: 0,
+        selected: new Set(),
+        filter: "",
+        emptyHint: "No items"
+      },
+      row: movedRows[0]!,
+      rows: movedRows,
+      refresh: async () => {
+        await config.refresh?.();
+        refreshedLeftRows = await config.panes[0].rows();
+        refreshedRightRows = await config.panes[1].rows();
+      },
+      suspendAnd: async (fn) => fn(),
+      toast: () => undefined,
+      exit: () => undefined
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(gistClient.updateCalls).toHaveLength(1);
+    expect(refreshedLeftRows.map((row) => row.id)).not.toContain(movedIds[0]);
+    expect(refreshedLeftRows.map((row) => row.id)).not.toContain(movedIds[1]);
+    expect(refreshedRightRows.map((row) => row.id)).toEqual(movedIds);
+    expect(manifest.items.map((item) => item.id)).toEqual(movedIds);
+  });
+
   it("titles the two-pane source pane from the selected scope", () => {
     const { ctx } = createHarness();
     const config = buildBrowseTwoPaneConfig(ctx, {

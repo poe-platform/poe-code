@@ -272,9 +272,43 @@ describe("browse", () => {
     ]);
   });
 
+  it("does not retry a non-empty profile-backed Gist pane read when the profile has no baseline", async () => {
+    vi.useFakeTimers();
+    const { ctx, gistClient } = createHarness();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "seed.txt": { filename: "seed.txt", content: "placeholder" }
+      }
+    });
+
+    try {
+      const modelPromise = buildBrowseModel(ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code"
+      });
+      await vi.runAllTimersAsync();
+      const model = await modelPromise;
+
+      expect(gistClient.readCalls).toEqual(["gist-default"]);
+      expect(model.right.items).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("retries a non-empty profile-backed Gist pane read when the first response has no manifest", async () => {
     vi.useFakeTimers();
     const { ctx } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
     const staleClient = new StaleSeedReadGistClient();
     const codeReview = projectCodeReviewSkillItem();
     staleClient.seedStaleThenFresh(

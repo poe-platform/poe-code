@@ -25,7 +25,7 @@ import { copyOrMoveItem, validateCopyOrMoveItem } from "./operations/copy-move.j
 import { downloadBundle } from "./operations/download.js";
 import { syncBundle } from "./operations/sync.js";
 import { uploadBundle } from "./operations/upload.js";
-import { resolveProfileGist } from "./profile-store.js";
+import { readBaselineManifest, resolveProfileGist } from "./profile-store.js";
 import { traceAgentStash, traceItems } from "./trace.js";
 import { assertAgentStashScope } from "./validation.js";
 import type {
@@ -403,7 +403,8 @@ async function loadGistPane(
     scope: options.scope,
     agent: options.agentId
   });
-  const gist = await readGistPaneRecord(client, resolved.gistId);
+  const retryNonManifest = (await readBaselineManifest(ctx, options.profile)) !== null;
+  const gist = await readGistPaneRecord(client, resolved.gistId, retryNonManifest);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
     verifyBundleHashes(bundle);
@@ -431,9 +432,9 @@ async function loadGistPane(
   };
 }
 
-async function readGistPaneRecord(client: GistClient, gistId: string): Promise<GistRecord> {
+async function readGistPaneRecord(client: GistClient, gistId: string, retryNonManifest: boolean): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; attempt < GIST_PANE_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; retryNonManifest && attempt < GIST_PANE_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
     await sleep(GIST_PANE_MANIFEST_RETRY_DELAY_MS);
     latest = await client.read(gistId);
   }

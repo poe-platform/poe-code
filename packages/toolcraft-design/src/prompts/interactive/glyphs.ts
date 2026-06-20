@@ -35,9 +35,9 @@ export const GLYPHS = {
   barEnd: glyph("└", "-"),
   radioActive: glyph("●", ">"),
   radioInactive: glyph("○", " "),
-  checkboxActive: glyph("◻", "[ ]"),
-  checkboxSelected: glyph("◼", "[+]"),
-  checkboxInactive: glyph("◻", "[ ]"),
+  checkboxActive: "[ ]",
+  checkboxSelected: "[x]",
+  checkboxInactive: "[ ]",
   passwordMask: glyph("•", "*"),
   ellipsis: "..."
 } as const;

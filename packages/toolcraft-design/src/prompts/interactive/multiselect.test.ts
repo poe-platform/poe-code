@@ -10,11 +10,14 @@ const options = [
 
 describe("multiselectPrompt", () => {
   it("toggles values with space and submits selected values", async () => {
-    const { input, output } = createPromptHarness();
+    const { input, output, getOutput } = createPromptHarness();
     const result = multiselectPrompt({ message: "Pick", options, input, output });
 
     await tick();
     input.write(" ");
+    await tick();
+    expect(getOutput()).toContain("[x]");
+    expect(getOutput()).toContain("[ ]");
     input.write("\x1b[B");
     input.write(" ");
     input.write("\r");

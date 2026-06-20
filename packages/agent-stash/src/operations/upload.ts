@@ -6,7 +6,7 @@ import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, ver
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceItems } from "../trace.js";
-import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
+import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, UploadOptions, UploadResult } from "../types.js";
 
 export async function uploadBundle(ctx: AgentStashContext, options: UploadOptions): Promise<UploadResult> {
@@ -27,13 +27,13 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
   const profileName = usesProfileTarget ? options.profile : undefined;
   const items = await loadUploadInventory(ctx, options);
-  assertSelectedItemsFound(items, options);
+  const client = ctx.gistClient ?? (await createDefaultGistClient());
+  await assertSelectedUploadItemsFound(ctx, client, resolved.gistId, items, options);
   const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
   if (!resolved.gistId && selectedItems.length === 0) {
     throw new Error("No upload items selected.");
   }
   await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
-  const client = ctx.gistClient ?? (await createDefaultGistClient());
   const writeInput = resolved.gistId
     ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks)
     : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
@@ -66,6 +66,35 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
 
 function isFilteredUpload(options: UploadOptions): boolean {
   return options.skills !== undefined || options.hooks !== undefined;
+}
+
+async function assertSelectedUploadItemsFound(
+  ctx: AgentStashContext,
+  client: GistClient,
+  gistId: string | undefined,
+  items: Array<Pick<AgentStashManifest["items"][number], "kind" | "name">>,
+  options: UploadOptions
+): Promise<void> {
+  for (const skill of options.skills ?? []) {
+    if (!items.some((item) => item.kind === "skill" && item.name === skill)) {
+      throw new Error(`Selected skill not found: ${skill}`);
+    }
+  }
+  const missingHooks = (options.hooks ?? []).filter(
+    (hook) => !items.some((item) => item.kind === "hook" && selectedHookMatchesName(item.name, hook))
+  );
+  if (missingHooks.length === 0) {
+    return;
+  }
+  if (!gistId) {
+    throw new Error(`Selected hook not found: ${missingHooks[0]}`);
+  }
+  const remote = await loadExistingBundleForUpload(ctx, client, gistId, options.profile);
+  for (const hook of missingHooks) {
+    if (!remoteHasSelectedHookEvent(remote, hook)) {
+      throw new Error(`Selected hook not found: ${hook}`);
+    }
+  }
 }
 
 function mergeSelectedUploadBaseline(
@@ -121,7 +150,7 @@ async function createUpdateWriteInput(
   verifyBundleHashes(existing);
   const itemIds = new Set(items.map((item) => item.id));
   const uploadedHookEvents = hookEventsForItems(items, files);
-  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks);
+  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks, existing);
   const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
@@ -205,14 +234,47 @@ function hookEventsForItems(items: AgentStashManifest["items"], files: BundleFil
 function hookEventsForEventLevelUpload(
   items: AgentStashManifest["items"],
   files: BundleFile[],
-  selectedHooks: string[] | undefined
+  selectedHooks: string[] | undefined,
+  existing: { manifest: AgentStashManifest; files: Map<string, string> }
 ): Set<string> {
   const uploadedHookEvents = hookEventsForItems(items, files);
   if (selectedHooks === undefined) {
     return uploadedHookEvents;
   }
   const selected = new Set(selectedHooks);
-  return new Set([...uploadedHookEvents].filter((event) => selected.has(event)));
+  return new Set([
+    ...[...uploadedHookEvents].filter((event) => selected.has(event)),
+    ...selectedHooks.filter((hook) => remoteHasSelectedHookEvent(existing, hook))
+  ]);
+}
+
+async function loadExistingBundleForUpload(
+  ctx: AgentStashContext,
+  client: GistClient,
+  gistId: string,
+  profile: string | undefined
+): Promise<{ manifest: AgentStashManifest; files: Map<string, string> }> {
+  const now = ctx.now?.() ?? new Date();
+  const record = await client.read(gistId);
+  const existing = record.files[MANIFEST_FILENAME] !== undefined
+    ? loadBundleFromGist(record)
+    : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
+  verifyBundleHashes(existing);
+  return existing;
+}
+
+function remoteHasSelectedHookEvent(
+  existing: { manifest: AgentStashManifest; files: Map<string, string> },
+  selectedHook: string
+): boolean {
+  return existing.manifest.items.some((item) => {
+    if (item.kind !== "hook") {
+      return false;
+    }
+    const content = existing.files.get(item.files[0]?.path ?? "");
+    const event = content === undefined ? undefined : hookEventFromFragmentContent(content);
+    return event === selectedHook;
+  });
 }
 
 function isStaleSplitHookItem(

@@ -91,6 +91,7 @@ export interface GistWriteInput {
 export interface GistRecord {
   id: string;
   htmlUrl?: string;
+  updatedAt?: string;
   files: Record<string, GistFile>;
 }
 

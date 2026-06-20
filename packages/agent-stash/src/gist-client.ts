@@ -32,7 +32,12 @@ export class GitHubGistClient implements GistClient {
 
   async read(gistId: string): Promise<GistRecord> {
     assertValidGistId(gistId);
-    return this.request(`https://api.github.com/gists/${gistId}`, { method: "GET" });
+    const first = await this.request(readGistUrl(gistId, 1), { method: "GET" });
+    if (!first.updatedAt) {
+      return first;
+    }
+    const second = await this.request(readGistUrl(gistId, 2), { method: "GET" });
+    return newestGistRecord(first, second);
   }
 
   async update(gistId: string, input: GistWriteInput): Promise<GistRecord> {
@@ -65,6 +70,7 @@ export class GitHubGistClient implements GistClient {
     let json: {
       id: unknown;
       html_url?: unknown;
+      updated_at?: unknown;
       files?: unknown;
     };
     try {
@@ -76,9 +82,32 @@ export class GitHubGistClient implements GistClient {
     return {
       id: json.id,
       htmlUrl: typeof json.html_url === "string" ? json.html_url : undefined,
+      updatedAt: typeof json.updated_at === "string" ? json.updated_at : undefined,
       files: parseGistResponseFiles(json.files)
     };
   }
+}
+
+function readGistUrl(gistId: string, attempt: number): string {
+  const fresh = `${Date.now()}-${attempt}-${Math.random().toString(16).slice(2)}`;
+  return `https://api.github.com/gists/${gistId}?agent_stash_fresh=${encodeURIComponent(fresh)}`;
+}
+
+function newestGistRecord(first: GistRecord, second: GistRecord): GistRecord {
+  const firstTime = parseTimestamp(first.updatedAt);
+  const secondTime = parseTimestamp(second.updatedAt);
+  if (firstTime === undefined || secondTime === undefined) {
+    return second;
+  }
+  return secondTime >= firstTime ? second : first;
+}
+
+function parseTimestamp(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 function parseGistResponseFiles(files: unknown): GistRecord["files"] {

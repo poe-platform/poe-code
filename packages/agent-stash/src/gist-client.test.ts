@@ -80,6 +80,80 @@ describe("GitHubGistClient", () => {
     });
   });
 
+  it("uses the newest Gist read when GitHub returns a stale first response", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            updated_at: "2026-06-20T08:00:00Z",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{\"items\":[]}" }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            updated_at: "2026-06-20T08:01:00Z",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{\"items\":[1]}" },
+              "hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json": {
+                filename: "hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json",
+                content: "{}"
+              }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const record = await new GitHubGistClient("token").read("gist-1");
+
+    expect(record.files["agent-stash.json"]?.content).toBe("{\"items\":[1]}");
+    expect(record.files["hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json"]?.content).toBe("{}");
+  });
+
+  it("keeps the newest first Gist read when a follow-up read is stale", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            updated_at: "2026-06-20T08:01:00Z",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{\"items\":[]}" }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            updated_at: "2026-06-20T08:00:00Z",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{\"items\":[1]}" },
+              "hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json": {
+                filename: "hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json",
+                content: "{}"
+              }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const record = await new GitHubGistClient("token").read("gist-1");
+
+    expect(record.files["agent-stash.json"]?.content).toBe("{\"items\":[]}");
+    expect(record.files["hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json"]).toBeUndefined();
+  });
+
   it("preserves Gist files whose names collide with object prototype keys", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(
       new Response(

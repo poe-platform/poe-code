@@ -5,6 +5,7 @@ import { hashFiles, sha256 } from "../hash.js";
 import { parseManifest, serializeManifest } from "../manifest.js";
 import { copyOrMoveItem } from "./copy-move.js";
 import { uploadBundle } from "./upload.js";
+import { loadInventory } from "../inventory.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../fixtures/dummy-config.js";
 import type { AgentStashContext, AgentStashFileSystem } from "../types.js";
@@ -509,6 +510,82 @@ describe("copy/move", () => {
       content: "# Code Review\n"
     });
     expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]?.content).toContain("code-review");
+  });
+
+  it("removes pre-existing files when copying to a Gist without a manifest", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "seed.txt": { filename: "seed.txt", content: "not an agent-stash bundle\n" }
+      }
+    });
+    const { ctx } = createContext(createDummyAgentConfigFixture(), gistClient);
+
+    await copyOrMoveItem(ctx, {
+      operation: "copy",
+      from: "project",
+      to: "gist",
+      profile: "default",
+      agent: "claude-code",
+      kind: "skill",
+      name: "code-review",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(gistClient.updateCalls.at(-1)?.input.files["seed.txt"]).toBeNull();
+    expect(record.files["seed.txt"]).toBeUndefined();
+    expect(manifest.items.map((item) => item.name)).toEqual(["code-review"]);
+  });
+
+  it("moves one split hook to a Gist without renaming remaining local hooks", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "first local command" },
+                { type: "command", command: "second local command" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx, volume } = createContext(files, gistClient);
+
+    await copyOrMoveItem(ctx, {
+      operation: "move",
+      from: "project",
+      to: "gist",
+      profile: "default",
+      agent: "claude-code",
+      kind: "hook",
+      name: "PostToolUse-Write-Edit-001-001",
+      yes: true
+    });
+
+    const localHooks = await loadInventory(ctx, {
+      scope: "project",
+      agent: "claude-code",
+      kind: "hook"
+    });
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    const settings = JSON.parse(volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PostToolUse?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(localHooks.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-002"]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-001"]);
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual(["second local command"]);
   });
 });
 

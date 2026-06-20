@@ -390,6 +390,11 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
   if (existing.hooks) {
     const position = findIndividualHookPosition(existing.hooks, item.name, targetOrigins);
     if (position) {
+      originStore.targets[targetPath] = targetOrigins;
+      targetOrigins[position.event] = normalizeHookOriginsForRemoval(
+        existing.hooks[position.event],
+        targetOrigins[position.event] ?? []
+      );
       removeIndividualHook(existing.hooks, position);
       removeHookOrigin(targetOrigins, position);
     } else {
@@ -469,6 +474,24 @@ function removeHookOrigin(
   if (groups.length === 0) {
     delete origins[position.event];
   }
+}
+
+function normalizeHookOriginsForRemoval(eventGroups: unknown, origins: readonly HookOriginGroup[]): HookOriginGroup[] {
+  if (!Array.isArray(eventGroups)) {
+    return [];
+  }
+  if (origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
+    const group = eventGroups[groupIndex];
+    return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
+  })) {
+    return origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }));
+  }
+  return eventGroups.map((group, groupIndex) => ({
+    groupIndex,
+    hooks: isRecord(group) && Array.isArray(group.hooks)
+      ? group.hooks.map((_, hookIndex) => hookIndex)
+      : []
+  }));
 }
 
 function isNonNegativeInteger(value: unknown): value is number {

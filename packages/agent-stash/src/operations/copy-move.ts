@@ -270,7 +270,8 @@ async function writeGistItem(
   const client = ctx.gistClient ?? (await createDefaultGistClient());
   const now = ctx.now?.() ?? new Date();
   const gist = resolved.gistId === undefined ? undefined : await client.read(resolved.gistId);
-  const bundle = gist?.files[MANIFEST_FILENAME]
+  const hasExistingManifest = gist?.files[MANIFEST_FILENAME] !== undefined;
+  const bundle = hasExistingManifest
     ? loadBundleFromGist(gist)
     : { manifest: createEmptyManifest(now, options.profile), files: new Map<string, string>() };
   verifyBundleHashes(bundle);
@@ -302,6 +303,13 @@ async function writeGistItem(
       ...Object.fromEntries([...deletedFiles].map((filePath) => [gistFilenameForBundlePath(filePath), null]))
     }
   };
+  if (gist && !hasExistingManifest) {
+    for (const filename of Object.keys(gist.files)) {
+      if (!Object.hasOwn(input.files, filename)) {
+        input.files[filename] = null;
+      }
+    }
+  }
   const record = resolved.gistId === undefined
     ? await client.createSecret({ description: "agent-stash portable agent config", ...input })
     : await client.update(resolved.gistId, input);

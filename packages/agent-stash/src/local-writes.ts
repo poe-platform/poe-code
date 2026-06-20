@@ -223,15 +223,13 @@ function mergeIndividualHook(
   if (!fragment.position || !isRecord(sourceGroup) || !Array.isArray(sourceGroup.hooks) || !isRecord(sourceGroup.hooks[0])) {
     throw new Error(`Malformed hook fragment for ${fragment.event}.`);
   }
-  const originGroups = origins.length === eventGroups.length
-    ? origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }))
-    : [];
-  const targetGroup = targetGroupForMerge(eventGroups, originGroups, fragment.position.groupIndex);
+  const originGroups = normalizeHookOrigins(eventGroups, origins);
+  const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
+  const targetGroup = targetGroupForMerge(eventGroups, originGroups, fragment.position.groupIndex, sourceGroupFields);
   const existingGroupCandidate = targetGroup.insert ? undefined : eventGroups[targetGroup.index];
   const existingGroup = isRecord(existingGroupCandidate)
     ? cloneRecord(existingGroupCandidate)
     : {};
-  const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
   const nextGroup: HookGroup = { ...existingGroup, ...sourceGroupFields };
   const groupHooks = Array.isArray(existingGroup.hooks) ? [...existingGroup.hooks] : [];
   const existingHookOrigins = targetGroup.insert ? [] : originGroups[targetGroup.index]?.hooks ?? [];
@@ -259,20 +257,39 @@ function mergeIndividualHook(
 function targetGroupForMerge(
   eventGroups: readonly unknown[],
   origins: readonly HookOriginGroup[],
-  groupIndex: number
+  groupIndex: number,
+  sourceGroupFields: Record<string, unknown>
 ): { index: number; insert: boolean } {
   const existingOriginIndex = origins.findIndex((origin) => origin.groupIndex === groupIndex);
   if (existingOriginIndex !== -1) {
-    return { index: existingOriginIndex, insert: false };
+    return hookGroupFieldsMatch(eventGroups[existingOriginIndex], sourceGroupFields)
+      ? { index: existingOriginIndex, insert: false }
+      : { index: existingOriginIndex, insert: true };
   }
   if (origins.length > 0) {
     const insertIndex = origins.findIndex((origin) => origin.groupIndex > groupIndex);
     return { index: insertIndex === -1 ? eventGroups.length : insertIndex, insert: true };
   }
-  if (groupIndex < eventGroups.length) {
+  if (groupIndex < eventGroups.length && hookGroupFieldsMatch(eventGroups[groupIndex], sourceGroupFields)) {
     return { index: groupIndex, insert: false };
   }
-  return { index: eventGroups.length, insert: true };
+  return { index: Math.min(groupIndex, eventGroups.length), insert: true };
+}
+
+function hookGroupFieldsMatch(candidate: unknown, sourceGroupFields: Record<string, unknown>): boolean {
+  return isRecord(candidate) && JSON.stringify(cloneRecordWithoutHooks(candidate)) === JSON.stringify(sourceGroupFields);
+}
+
+function normalizeHookOrigins(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): HookOriginGroup[] {
+  if (origins.length === eventGroups.length) {
+    return origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }));
+  }
+  return eventGroups.map((group, groupIndex) => ({
+    groupIndex,
+    hooks: isRecord(group) && Array.isArray(group.hooks)
+      ? group.hooks.map((_, hookIndex) => hookIndex)
+      : []
+  }));
 }
 
 function targetHookForMerge(

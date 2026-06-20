@@ -642,6 +642,60 @@ describe("upload/download", () => {
     expect(result.backupId).toMatch(/^backup-/);
   });
 
+  it("downloads hook fragments without overwriting unrelated same-event local groups", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [{
+            matcher: "Bash",
+            hooks: [{ type: "command", command: "remote pretooluse" }]
+          }]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [{
+            matcher: "Bash(agent-stash-preserve-existing)",
+            hooks: [{ type: "command", command: "local pretooluse" }]
+          }]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PreToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.hooks?.PreToolUse?.map((group) => ({
+      matcher: group.matcher,
+      commands: group.hooks?.map((hook) => hook.command)
+    }))).toEqual([
+      { matcher: "Bash", commands: ["remote pretooluse"] },
+      { matcher: "Bash(agent-stash-preserve-existing)", commands: ["local pretooluse"] }
+    ]);
+  });
+
   it("writes a profile baseline after downloading through a profile", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

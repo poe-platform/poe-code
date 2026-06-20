@@ -63,6 +63,48 @@ export async function validateCopyOrMoveItem(ctx: AgentStashContext, options: Co
   await prepareCopyOrMoveItem(ctx, options);
 }
 
+export async function removeGistItems(
+  ctx: AgentStashContext,
+  options: Pick<CopyMoveOptions, "profile">,
+  items: readonly AgentStashItem[]
+): Promise<void> {
+  if (items.length === 0) {
+    return;
+  }
+  const resolved = await resolveProfileGist(ctx, options.profile);
+  if (!resolved.gistId) {
+    throw new Error("A profile with a Gist is required.");
+  }
+  const client = ctx.gistClient ?? (await createDefaultGistClient());
+  const bundle = loadBundleFromGist(await client.read(resolved.gistId));
+  verifyBundleHashes(bundle);
+  const nextFiles = new Map(bundle.files);
+  const deletedFiles = new Set<string>();
+  const idsToRemove = new Set(items.map((item) => item.id));
+  for (const itemId of idsToRemove) {
+    const item = bundle.manifest.items.find((candidate) => candidate.id === itemId);
+    if (!item) {
+      throw new Error(`Remote item not found: ${itemId}`);
+    }
+    for (const file of item.files) {
+      nextFiles.delete(file.path);
+      deletedFiles.add(file.path);
+    }
+  }
+  bundle.manifest.updatedAt = (ctx.now?.() ?? new Date()).toISOString();
+  bundle.manifest.items = bundle.manifest.items.filter((candidate) => !idsToRemove.has(candidate.id));
+  const writeInput = gistFilesFromBundle(
+    bundle.manifest,
+    [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }))
+  );
+  await client.update(resolved.gistId, {
+    files: {
+      ...writeInput,
+      ...Object.fromEntries([...deletedFiles].map((filePath) => [gistFilenameForBundlePath(filePath), null]))
+    }
+  });
+}
+
 async function prepareCopyOrMoveItem(
   ctx: AgentStashContext,
   options: CopyMoveOptions

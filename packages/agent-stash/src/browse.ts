@@ -21,7 +21,7 @@ import { hookEventFromFragmentContent } from "./hook-items.js";
 import { loadInventory } from "./inventory.js";
 import { MANIFEST_FILENAME } from "./manifest.js";
 import { normalizeAgent } from "./locations.js";
-import { copyOrMoveItem, validateCopyOrMoveItem } from "./operations/copy-move.js";
+import { copyOrMoveItem, removeGistItems, validateCopyOrMoveItem } from "./operations/copy-move.js";
 import { downloadBundle } from "./operations/download.js";
 import { syncBundle } from "./operations/sync.js";
 import { uploadBundle } from "./operations/upload.js";
@@ -274,6 +274,14 @@ export async function runBrowseAction(
     }));
     for (const option of copyMoveOptions) {
       await validateCopyOrMoveItem(ctx, option);
+    }
+    if (operation === "move" && source.location === "gist" && (target.location === "project" || target.location === "global")) {
+      const results: CopyMoveResult[] = [];
+      for (const option of copyMoveOptions) {
+        results.push(await copyOrMoveItem(ctx, { ...option, operation: "copy" }));
+      }
+      await removeGistItems(ctx, { profile: source.profile ?? target.profile ?? options.profile }, selected);
+      return finishBrowseAction(ctx, options.action, { moved: results });
     }
     const results: CopyMoveResult[] = [];
     for (const option of copyMoveOptions) {

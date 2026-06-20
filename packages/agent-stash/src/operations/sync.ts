@@ -244,7 +244,9 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       updatedAt: now.toISOString(),
       items: [...nextRemoteItems.values()].sort((left, right) => left.id.localeCompare(right.id))
     };
-    const files: BundleFile[] = [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }));
+    const files: BundleFile[] = hasExistingManifest
+      ? actions.flatMap(({ action, localItem }) => action === "upload" && localItem ? localItem.bundleFiles : [])
+      : [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }));
     const writeInput: GistWriteInput = { files: gistFilesFromBundle(manifest, files) };
     if (!hasExistingManifest) {
       for (const filename of Object.keys(gist.files)) {

@@ -1200,11 +1200,20 @@ describe("sync", () => {
 
   it("resolves both-changed conflicts with local policy by uploading local content", async () => {
     const { target, gistClient } = await createDivergedSkillScenario({ includeBase: true });
+    const unrelated = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(unrelated.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      yes: true
+    });
 
     const result = await syncBundle(target.ctx, {
       profile: "default",
       scope: "project",
       agent: "claude-code",
+      skills: ["code-review"],
       onConflict: "local",
       yes: true
     });
@@ -1213,6 +1222,8 @@ describe("sync", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toEqual({
       content: "# Local Change\n"
     });
+    expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]).toBeDefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeUndefined();
   });
 
   it("resolves both-changed conflicts with remote policy by downloading remote content", async () => {

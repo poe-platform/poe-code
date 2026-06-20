@@ -59,7 +59,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     const record = resolved.gistId
       ? await client.update(resolved.gistId, writeInput)
       : await client.createSecret(writeInput);
-    await recordUploadedHookOrigins(ctx, items);
+    await recordHookOriginsForItems(ctx, items);
     await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
     const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
     if (manifestContent === undefined) {
@@ -83,9 +83,9 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   }
 }
 
-async function recordUploadedHookOrigins(
+export async function recordHookOriginsForItems(
   ctx: AgentStashContext,
-  items: Awaited<ReturnType<typeof loadUploadInventory>>
+  items: readonly LoadedItem[]
 ): Promise<void> {
   const hookItems = items.filter((item) => item.kind === "hook");
   if (hookItems.length === 0) {

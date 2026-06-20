@@ -1066,6 +1066,68 @@ describe("sync", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeDefined();
   });
 
+  it("refreshes hook origins after syncing local deletion within a matcher group", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "first local bash" },
+                { type: "command", command: "second local bash" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx, volume, gistClient } = createContext(files);
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    volume.writeFileSync("/repo/.claude/settings.json", JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: "Bash",
+            hooks: [{ type: "command", command: "second local bash" }]
+          }
+        ]
+      }
+    }, null, 2));
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict() {
+        return "fail";
+      }
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    const origins = JSON.parse(volume.readFileSync("/home/user/.agent-stash/hook-origins.json", "utf8") as string) as {
+      targets: Record<string, Record<string, Array<{ groupIndex: number; hooks: number[] }>>>;
+    };
+    expect(result.deletedRemote.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-002"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-002.json")]).toBeDefined();
+    expect(origins.targets["/repo/.claude/settings.json"]?.PreToolUse).toEqual([
+      expect.objectContaining({ groupIndex: 0, hooks: [1] })
+    ]);
+  });
+
   it("applies remote deletion after upload and partial download establish the baseline", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

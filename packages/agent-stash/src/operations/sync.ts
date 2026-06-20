@@ -18,7 +18,7 @@ import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from 
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
-import { uploadBundle } from "./upload.js";
+import { recordHookOriginsForItems, uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type {
   AgentStashContext,
@@ -275,6 +275,11 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   } else if (usesProfileTarget) {
     await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
   }
+  await recordHookOriginsForItems(ctx, await loadInventory(ctx, {
+    scope: options.scope,
+    agent: options.agent,
+    kind: "hook"
+  }));
 
   await traceAgentStash(ctx, "sync.finish", {
     uploaded: traceItems(result.uploaded),

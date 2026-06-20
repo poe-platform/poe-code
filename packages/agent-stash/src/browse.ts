@@ -951,8 +951,7 @@ function fileCountLabel(count: number): string {
 
 function itemSubtitle(pane: BrowsePane, item: AgentStashItem): string {
   const preview = itemPreview(pane, item);
-  const prefix = `${item.kind} ${item.scope ?? pane.location}`;
-  return preview ? `${prefix} - ${preview}` : prefix;
+  return preview ?? `${item.kind} ${item.scope ?? pane.location}`;
 }
 
 function itemPreview(pane: BrowsePane, item: AgentStashItem): string | undefined {

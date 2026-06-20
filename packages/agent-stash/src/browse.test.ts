@@ -817,6 +817,11 @@ describe("browse", () => {
     });
     const rows = await config.rows();
     const hookRow = rows.find((row) => row.id === "left:project:hook:claude-code:PreToolUse-Bash-001-001")!;
+    const twoPaneRows = await buildBrowseTwoPaneConfig(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    }).panes[0]!.rows();
+    const twoPaneHookRow = twoPaneRows.find((row) => row.id === "project:hook:claude-code:PreToolUse-Bash-001-001")!;
 
     const detailItems = await config.detail.items(hookRow, {
       width: 80,
@@ -831,8 +836,11 @@ describe("browse", () => {
       row: hookRow
     });
 
+    expect(hookRow.subtitle).toBe("PreToolUse 1 matcher group, 1 command");
     expect(hookRow.subtitle).toContain("1 matcher group");
     expect(hookRow.subtitle).toContain("1 command");
+    expect(hookRow.subtitle).not.toContain("hook project -");
+    expect(twoPaneHookRow.subtitle).toBe("PreToolUse 1 matcher group, 1 command");
     expect(hookRow.subtitle).not.toContain("Bash -> npm test");
     expect(rendered).toContain("PreToolUse");
     expect(rendered).toContain("hook");

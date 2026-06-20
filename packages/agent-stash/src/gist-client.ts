@@ -3,6 +3,17 @@ import { promisify } from "node:util";
 import type { GistClient, GistRecord, GistWriteInput } from "./types.js";
 
 const execFileAsync = promisify(execFile);
+const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
+const DEFAULT_READ_REQUEST_TIMEOUT_MS = 5000;
+const DEFAULT_READ_ATTEMPTS = 2;
+const DEFAULT_READ_RETRY_DELAY_MS = 250;
+
+export interface GitHubGistClientOptions {
+  requestTimeoutMs?: number;
+  readRequestTimeoutMs?: number;
+  readAttempts?: number;
+  readRetryDelayMs?: number;
+}
 
 export async function resolveGitHubToken(env: NodeJS.ProcessEnv = process.env): Promise<string | undefined> {
   if (env.GITHUB_TOKEN) {
@@ -21,7 +32,10 @@ export async function resolveGitHubToken(env: NodeJS.ProcessEnv = process.env): 
 }
 
 export class GitHubGistClient implements GistClient {
-  constructor(private readonly token: string) {}
+  constructor(
+    private readonly token: string,
+    private readonly options: GitHubGistClientOptions = {}
+  ) {}
 
   async createSecret(input: GistWriteInput): Promise<GistRecord> {
     return this.request("https://api.github.com/gists", {
@@ -32,11 +46,11 @@ export class GitHubGistClient implements GistClient {
 
   async read(gistId: string): Promise<GistRecord> {
     assertValidGistId(gistId);
-    const first = await this.request(readGistUrl(gistId, 1), { method: "GET" });
+    const first = await this.readRequest(readGistUrl(gistId, 1));
     if (!first.updatedAt) {
       return first;
     }
-    const second = await this.request(readGistUrl(gistId, 2), { method: "GET" });
+    const second = await this.readRequest(readGistUrl(gistId, 2));
     return newestGistRecord(first, second);
   }
 
@@ -48,19 +62,51 @@ export class GitHubGistClient implements GistClient {
     });
   }
 
-  private async request(url: string, init: RequestInit): Promise<GistRecord> {
-    const response = await fetch(url, {
-      ...init,
-      cache: "no-store",
-      headers: {
-        Accept: "application/vnd.github+json",
-        Authorization: `Bearer ${this.token}`,
-        "Cache-Control": "no-cache",
-        "Content-Type": "application/json",
-        Pragma: "no-cache",
-        "X-GitHub-Api-Version": "2022-11-28"
+  private async readRequest(url: string): Promise<GistRecord> {
+    const attempts = this.options.readAttempts ?? DEFAULT_READ_ATTEMPTS;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await this.request(url, { method: "GET" }, this.options.readRequestTimeoutMs ?? DEFAULT_READ_REQUEST_TIMEOUT_MS);
+      } catch (error) {
+        lastError = error;
+        if (attempt >= attempts || !isRetryableReadError(error)) {
+          throw error;
+        }
+        await sleep(this.options.readRetryDelayMs ?? DEFAULT_READ_RETRY_DELAY_MS);
       }
-    });
+    }
+    throw lastError;
+  }
+
+  private async request(url: string, init: RequestInit, timeoutMs = this.options.requestTimeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS): Promise<GistRecord> {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort(new Error(`GitHub Gist request timed out after ${timeoutMs}ms.`));
+    }, timeoutMs);
+    let response: Response;
+    try {
+      response = await fetch(url, {
+        ...init,
+        cache: "no-store",
+        signal: controller.signal,
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: `Bearer ${this.token}`,
+          "Cache-Control": "no-cache",
+          "Content-Type": "application/json",
+          Pragma: "no-cache",
+          "X-GitHub-Api-Version": "2022-11-28"
+        }
+      });
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw new Error(`GitHub Gist request timed out after ${timeoutMs}ms.`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
     if (response.status === 403) {
       throw new Error(`GitHub Gist request failed with 403${await responseErrorSuffix(response)}. Ensure the token has the gist scope.`);
     }
@@ -86,6 +132,21 @@ export class GitHubGistClient implements GistClient {
       files: parseGistResponseFiles(json.files)
     };
   }
+}
+
+function isRetryableReadError(error: unknown): boolean {
+  return error instanceof TypeError || (error instanceof Error && error.message.startsWith("GitHub Gist request timed out after "));
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && (error.name === "AbortError" || error.message.startsWith("GitHub Gist request timed out after "));
+}
+
+async function sleep(ms: number): Promise<void> {
+  if (ms <= 0) {
+    return;
+  }
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function readGistUrl(gistId: string, attempt: number): string {

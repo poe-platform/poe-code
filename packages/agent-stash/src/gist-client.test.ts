@@ -117,6 +117,39 @@ describe("GitHubGistClient", () => {
     expect(record.files["hooks%2Fglobal%2Fclaude-code%2FPostToolUse.json"]?.content).toBe("{}");
   });
 
+  it("retries timed out Gist reads with an abort signal", async () => {
+    vi.mocked(fetch)
+      .mockImplementationOnce((_url, init) => {
+        const signal = init?.signal;
+        if (!signal) {
+          return Promise.reject(new Error("missing abort signal"));
+        }
+        return new Promise<Response>((_resolve, reject) => {
+          signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+        });
+      })
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{\"items\":[1]}" }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const record = await new GitHubGistClient("token", {
+      readAttempts: 2,
+      readRequestTimeoutMs: 1,
+      readRetryDelayMs: 0
+    }).read("gist-1");
+
+    expect(record.files["agent-stash.json"]?.content).toBe("{\"items\":[1]}");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("keeps the newest first Gist read when a follow-up read is stale", async () => {
     vi.mocked(fetch)
       .mockResolvedValueOnce(

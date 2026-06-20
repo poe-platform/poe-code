@@ -94,6 +94,30 @@ describe("runTwoPaneExplorer", () => {
     expect(handled).toEqual([{ active: "right", inactive: "left", rows: ["right-two"] }]);
   });
 
+  it("toggles selection when receiving a named space key", async () => {
+    const driver = currentDriver();
+    const handled: Array<{ rows: string[] }> = [];
+    const result = runTwoPaneExplorer(config({
+      actions: [{
+        id: "copy",
+        label: "Copy",
+        key: "c",
+        handler: (ctx) => {
+          handled.push({ rows: ctx.rows.map((row) => row.id) });
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Left One"));
+    driver.press(namedKey("space"));
+    driver.press(namedKey("down"));
+    driver.press(key("c"));
+
+    await expect(result).resolves.toBeNull();
+    expect(handled).toEqual([{ rows: ["left-one"] }]);
+  });
+
   it.each([
     ["raw tab input", key("\t")],
     ["ctrl-i tab input", namedKey("i", { ctrl: true })]

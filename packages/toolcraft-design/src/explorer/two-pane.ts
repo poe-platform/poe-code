@@ -186,7 +186,7 @@ export class TwoPaneExplorerRuntime<R> {
       this.setCursor(filteredRows(this.activePane()).length - 1);
       return;
     }
-    if (key.ch === " ") {
+    if (key.ch === " " || key.name === "space") {
       this.toggleSelection();
       return;
     }

@@ -120,13 +120,22 @@ export class TwoPaneExplorerRuntime<R> {
     this.driver.enterAltScreen();
     this.driver.disableLineWrap();
     this.driver.hideCursor();
-    this.unsubscribeKeypress = this.driver.onKeypress((key) => {
-      this.dispatchKey(key);
-    });
+    this.subscribeKeypress();
     this.unsubscribeResize = this.driver.onResize(() => {
       this.state = { ...this.state, size: normalizeSize(this.driver.getSize()) };
       this.render();
     });
+  }
+
+  private subscribeKeypress(): void {
+    this.unsubscribeKeypress = this.driver.onKeypress((key) => {
+      this.dispatchKey(key);
+    });
+  }
+
+  private pauseKeypress(): void {
+    this.unsubscribeKeypress?.();
+    this.unsubscribeKeypress = undefined;
   }
 
   private async loadRows(requestToken = ++this.rowsRequestToken): Promise<void> {
@@ -303,6 +312,7 @@ export class TwoPaneExplorerRuntime<R> {
   }
 
   private async suspendAnd<T>(fn: () => Promise<T>): Promise<T> {
+    this.pauseKeypress();
     this.driver.exitAltScreen();
     this.driver.enableLineWrap();
     this.driver.showCursor();
@@ -315,6 +325,7 @@ export class TwoPaneExplorerRuntime<R> {
         this.driver.enterAltScreen();
         this.driver.disableLineWrap();
         this.driver.hideCursor();
+        this.subscribeKeypress();
         this.state = { ...this.state, size: normalizeSize(this.driver.getSize()) };
         this.render();
       }

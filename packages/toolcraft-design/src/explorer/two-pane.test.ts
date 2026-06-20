@@ -118,6 +118,38 @@ describe("runTwoPaneExplorer", () => {
     expect(handled).toEqual([{ rows: ["left-one"] }]);
   });
 
+  it("does not handle explorer keypresses while suspended", async () => {
+    const driver = currentDriver();
+    let releaseSuspended: (() => void) | undefined;
+    let screenAfterSuspend = "";
+    const result = runTwoPaneExplorer(config({
+      actions: [{
+        id: "nested",
+        label: "Nested",
+        key: "c",
+        handler: async (ctx) => {
+          await ctx.suspendAnd(async () => {
+            await new Promise<void>((resolve) => {
+              releaseSuspended = resolve;
+            });
+          });
+          screenAfterSuspend = currentScreen(driver).join("\n");
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Left One"));
+    driver.press(key("c"));
+    await waitFor(() => releaseSuspended !== undefined);
+    driver.press(namedKey("down"));
+    releaseSuspended?.();
+
+    await expect(result).resolves.toBeNull();
+    expect(screenAfterSuspend).toContain("|>  Left One");
+    expect(screenAfterSuspend).not.toContain("|>  Left Two");
+  });
+
   it.each([
     ["raw tab input", key("\t")],
     ["ctrl-i tab input", namedKey("i", { ctrl: true })]

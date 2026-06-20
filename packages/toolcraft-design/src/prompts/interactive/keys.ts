@@ -25,6 +25,9 @@ export function mapKey(name: string | undefined, char: string | undefined): Acti
   if (char === " ") {
     return "space";
   }
+  if (char !== undefined && aliases[char] !== undefined) {
+    return aliases[char];
+  }
 
   if (!name) {
     return undefined;

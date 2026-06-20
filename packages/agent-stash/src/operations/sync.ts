@@ -124,6 +124,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   }
   const actions: Array<{
     action: Action;
+    initialAction: Action;
+    conflictResolution?: ConflictResolution;
     localItem?: LoadedItem;
     remoteItem?: AgentStashItem;
     baseItem?: AgentStashItem;
@@ -134,10 +136,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     const remoteItem = remoteById.get(id);
     const baseItem = baseById.get(id);
     const initialAction = classify(localItem, remoteItem, baseItem, options.onConflict);
-    const action = initialAction === "conflict" && options.onConflict === "ask"
-      ? classify(localItem, remoteItem, baseItem, await resolveAskedConflict(options, localItem, remoteItem, baseItem))
-      : initialAction;
-    actions.push({ action, localItem, remoteItem, baseItem });
+    const conflictResolution = initialAction === "conflict" && options.onConflict === "ask"
+      ? await resolveAskedConflict(options, localItem, remoteItem, baseItem)
+      : undefined;
+    const action = conflictResolution === undefined
+      ? initialAction
+      : classify(localItem, remoteItem, baseItem, conflictResolution);
+    actions.push({ action, initialAction, conflictResolution, localItem, remoteItem, baseItem });
     if (action === "unchanged" && (localItem ?? remoteItem)) {
       result.unchanged.push(localItem ?? remoteItem!);
     } else if (action === "conflict" && (localItem ?? remoteItem)) {
@@ -147,8 +152,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     }
   }
   await traceAgentStash(ctx, "sync.actions", {
-    actions: actions.map(({ action, localItem, remoteItem, baseItem }) => ({
+    actions: actions.map(({ action, initialAction, conflictResolution, localItem, remoteItem, baseItem }) => ({
       action,
+      initialAction,
+      conflictResolution,
       localId: localItem?.id,
       remoteId: remoteItem?.id,
       baseId: baseItem?.id,

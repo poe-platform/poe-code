@@ -1332,6 +1332,8 @@ describe("sync", () => {
       | undefined;
     expect(actions?.actions).toContainEqual(expect.objectContaining({
       action: "download",
+      initialAction: "conflict",
+      conflictResolution: "remote",
       localId: "project:skill:claude-code:code-review",
       remoteId: "project:skill:claude-code:code-review",
       baseId: "project:skill:claude-code:code-review",

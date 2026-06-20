@@ -468,6 +468,73 @@ describe("browse", () => {
     }
   });
 
+  it("retries a profile-backed Gist pane read when Gist metadata is newer than the baseline but manifest content is stale", async () => {
+    vi.useFakeTimers();
+    const { ctx } = createHarness();
+    const staleClient = new StaleSeedReadGistClient();
+    const codeReview = projectCodeReviewSkillItem();
+    const staleManifest = {
+      schemaVersion: 1 as const,
+      profile: "default",
+      createdAt: fixedDate.toISOString(),
+      updatedAt: fixedDate.toISOString(),
+      items: [codeReview.item]
+    };
+    const freshManifest = {
+      ...staleManifest,
+      updatedAt: "2026-01-02T03:05:00.000Z",
+      items: []
+    };
+    await ctx.fs.mkdir("/home/user/.agent-stash/cache", { recursive: true });
+    await ctx.fs.writeFile("/home/user/.agent-stash/cache/default.manifest.json", serializeManifest(staleManifest), {
+      encoding: "utf8"
+    });
+    staleClient.seedStaleThenFresh(
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        updatedAt: freshManifest.updatedAt,
+        files: {
+          "agent-stash.json": {
+            filename: "agent-stash.json",
+            content: serializeManifest(staleManifest)
+          },
+          [gistFilenameForBundlePath(codeReview.file.path)]: {
+            filename: gistFilenameForBundlePath(codeReview.file.path),
+            content: codeReview.content
+          }
+        }
+      },
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        updatedAt: freshManifest.updatedAt,
+        files: {
+          "agent-stash.json": {
+            filename: "agent-stash.json",
+            content: serializeManifest(freshManifest)
+          }
+        }
+      }
+    );
+    ctx.gistClient = staleClient;
+
+    try {
+      const modelPromise = buildBrowseModel(ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code"
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      const model = await modelPromise;
+
+      expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+      expect(model.right.items.map((item) => item.name)).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("retries a non-empty profile-backed Gist pane read when the first response has no manifest", async () => {
     vi.useFakeTimers();
     const { ctx } = createHarness();

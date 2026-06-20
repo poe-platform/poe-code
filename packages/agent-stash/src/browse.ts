@@ -19,7 +19,7 @@ import { loadBundleFromGist, verifyBundleHashes } from "./bundle.js";
 import { createDefaultGistClient } from "./gist-client.js";
 import { hookEventFromFragmentContent } from "./hook-items.js";
 import { loadInventory } from "./inventory.js";
-import { MANIFEST_FILENAME } from "./manifest.js";
+import { MANIFEST_FILENAME, parseManifest } from "./manifest.js";
 import { normalizeAgent } from "./locations.js";
 import { copyOrMoveItem, removeGistItems, validateCopyOrMoveItem } from "./operations/copy-move.js";
 import { downloadBundle } from "./operations/download.js";
@@ -447,10 +447,11 @@ async function loadGistPane(
     scope: options.scope,
     agent: options.agentId
   });
-  const manifestReadAttempts = (await readBaselineManifest(ctx, options.profile)) === null
+  const baseline = await readBaselineManifest(ctx, options.profile);
+  const manifestReadAttempts = baseline === null
     ? GIST_PANE_FRESH_MANIFEST_READ_ATTEMPTS
     : GIST_PANE_BASELINE_MANIFEST_READ_ATTEMPTS;
-  const gist = await readGistPaneRecord(client, resolved.gistId, manifestReadAttempts);
+  const gist = await readGistPaneRecord(client, resolved.gistId, manifestReadAttempts, baseline);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
     verifyBundleHashes(bundle);
@@ -478,17 +479,50 @@ async function loadGistPane(
   };
 }
 
-async function readGistPaneRecord(client: GistClient, gistId: string, manifestReadAttempts: number): Promise<GistRecord> {
+async function readGistPaneRecord(
+  client: GistClient,
+  gistId: string,
+  manifestReadAttempts: number,
+  baseline: Awaited<ReturnType<typeof readBaselineManifest>>
+): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; attempt < manifestReadAttempts && isGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; attempt < manifestReadAttempts && shouldRetryGistPaneRead(latest, baseline); attempt += 1) {
     await sleep(GIST_PANE_MANIFEST_RETRY_DELAY_MS);
     latest = await client.read(gistId);
   }
   return latest;
 }
 
-function isGistWithoutManifest(gist: GistRecord): boolean {
-  return gist.files[MANIFEST_FILENAME] === undefined;
+function shouldRetryGistPaneRead(gist: GistRecord, baseline: Awaited<ReturnType<typeof readBaselineManifest>>): boolean {
+  if (gist.files[MANIFEST_FILENAME] === undefined) {
+    return true;
+  }
+  if (baseline === null) {
+    return false;
+  }
+  return isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt);
+}
+
+function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt: string): boolean {
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  const baselineTime = parseTimestamp(baselineUpdatedAt);
+  if (gistUpdatedAt === undefined || baselineTime === undefined || gistUpdatedAt <= baselineTime) {
+    return false;
+  }
+  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
+  if (manifestContent === undefined) {
+    return false;
+  }
+  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
+  return manifestTime !== undefined && manifestTime <= baselineTime;
+}
+
+function parseTimestamp(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 async function sleep(ms: number): Promise<void> {

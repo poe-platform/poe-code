@@ -336,6 +336,59 @@ describe("upload/download", () => {
     });
   });
 
+  it("traces local writes during downloads without file contents", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    const target = createContext(files, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    expect(traces.find((record) => record.event === "local.write.start")).toMatchObject({
+      event: "local.write.start",
+      item: {
+        id: "project:skill:claude-code:code-review",
+        kind: "skill",
+        scope: "project",
+        agentId: "claude-code",
+        name: "code-review"
+      },
+      targetPath: "/repo/.claude/skills/code-review",
+      bundleFiles: ["skills/project/claude-code/code-review/SKILL.md"]
+    });
+    expect(traces.find((record) => record.event === "local.write.finish")).toMatchObject({
+      event: "local.write.finish",
+      item: {
+        id: "project:skill:claude-code:code-review",
+        kind: "skill",
+        scope: "project",
+        agentId: "claude-code",
+        name: "code-review"
+      },
+      targetPath: "/repo/.claude/skills/code-review",
+      writtenPaths: ["/repo/.claude/skills/code-review/SKILL.md"]
+    });
+    expect(JSON.stringify(traces)).not.toContain("# Code Review");
+  });
+
   it("retries stale non-manifest Gist reads before downloading", async () => {
     const gistClient = new StaleReadAfterUpdateGistClient();
     gistClient.seed({

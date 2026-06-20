@@ -5,6 +5,7 @@ import { clearHookOrigins, readHookOriginStore, writeHookOriginStore, type HookO
 import { isIgnoredSubtree, type IgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { localPathForBundleFile } from "./bundle.js";
+import { traceAgentStash, traceItems } from "./trace.js";
 import { selectedHookMatchesName } from "./validation.js";
 import { assertNoSymlinkAncestors, assertNotSymlink, isDirectory, pathExists, readFileIfExists, removePath, writeTextFile } from "./fs-utils.js";
 import type { AgentStashContext, AgentStashItem, AgentStashScope, BundleFile } from "./types.js";
@@ -54,6 +55,11 @@ export async function writeItemToLocal(
   options: { hookCollision?: "replace" | "insert" } = {}
 ): Promise<string[]> {
   const targetPath = targetPathForItem(ctx, item, scope);
+  await traceAgentStash(ctx, "local.write.start", {
+    item: traceItems([item])[0],
+    targetPath,
+    bundleFiles: files.map((file) => file.path).sort()
+  });
   await assertNoSymlinkAncestors(ctx.fs, targetPath, localWriteRoot(ctx, scope));
   await assertNotSymlink(ctx.fs, targetPath);
   if (item.kind === "skill") {
@@ -65,6 +71,11 @@ export async function writeItemToLocal(
       await writeTextFile(ctx.fs, localPath, file.content);
       written.push(localPath);
     }
+    await traceAgentStash(ctx, "local.write.finish", {
+      item: traceItems([item])[0],
+      targetPath,
+      writtenPaths: [...written].sort()
+    });
     return written;
   }
 
@@ -92,6 +103,11 @@ export async function writeItemToLocal(
   }
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
   await writeHookOriginStore(ctx, originStore);
+  await traceAgentStash(ctx, "local.write.finish", {
+    item: traceItems([item])[0],
+    targetPath,
+    writtenPaths: [targetPath]
+  });
   return [targetPath];
 }
 

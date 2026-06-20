@@ -3,7 +3,7 @@ import { createEmptyManifest, parseManifest } from "../manifest.js";
 import { hookEventFromFragmentContent } from "../hook-items.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
-import { recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound } from "../validation.js";
@@ -52,10 +52,41 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   }
   const uploadedManifest = parseManifest(manifestContent);
   if (profileName) {
-    await writeBaselineManifest(ctx, profileName, uploadedManifest);
+    await writeBaselineManifest(
+      ctx,
+      profileName,
+      isFilteredUpload(options)
+        ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, profileName), uploadedManifest, selectedItems)
+        : uploadedManifest
+    );
   }
   await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
   return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
+}
+
+function isFilteredUpload(options: UploadOptions): boolean {
+  return options.skills !== undefined || options.hooks !== undefined;
+}
+
+function mergeSelectedUploadBaseline(
+  base: AgentStashManifest | null,
+  uploadedManifest: AgentStashManifest,
+  selected: readonly AgentStashManifest["items"][number][]
+): AgentStashManifest {
+  const selectedIds = new Set(selected.map((item) => item.id));
+  const nextById = new Map((base?.items ?? []).map((item) => [item.id, item]));
+  for (const id of selectedIds) {
+    nextById.delete(id);
+  }
+  for (const item of uploadedManifest.items) {
+    if (selectedIds.has(item.id)) {
+      nextById.set(item.id, item);
+    }
+  }
+  return {
+    ...uploadedManifest,
+    items: [...nextById.values()].sort((left, right) => left.id.localeCompare(right.id))
+  };
 }
 
 function createCreateWriteInput(

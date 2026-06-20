@@ -127,10 +127,14 @@ function renderOption<Value>(
 
 function renderMultiselectPrompt<Value>(prompt: MultiselectPrompt<Value>, opts: MultiselectOptions<Value>): string {
   if (prompt.state === "submit" || prompt.state === "cancel") {
-    const labels = prompt.visibleOptions
-      .filter((option) => hasValue(prompt.value, option.value))
-      .map((option) => prompt.state === "submit" ? color.dim(option.label) : color.dim.strikethrough(option.label))
-      .join(", ");
+    const selectedOptions = prompt.visibleOptions.filter((option) => hasValue(prompt.value, option.value));
+    const labels = selectedOptions.length > 3
+      ? prompt.state === "submit"
+        ? color.dim(`${selectedOptions.length} selected`)
+        : color.dim.strikethrough(`${selectedOptions.length} selected`)
+      : selectedOptions
+        .map((option) => prompt.state === "submit" ? color.dim(option.label) : color.dim.strikethrough(option.label))
+        .join(", ");
     const end = prompt.state === "submit" ? color.green(GLYPHS.barEnd) : color.red(GLYPHS.barEnd);
     return `${color.gray(GLYPHS.barStart)} ${symbol(prompt.state)} ${opts.message}\n${color.gray(GLYPHS.bar)}  ${labels}\n${end}`;
   }

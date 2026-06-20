@@ -47,6 +47,29 @@ describe("multiselectPrompt", () => {
     await expect(invertResult).resolves.toEqual(["b"]);
   });
 
+  it("summarizes large submitted selections by count", async () => {
+    const manyOptions = Array.from({ length: 13 }, (_, index) => ({
+      value: `value-${index + 1}`,
+      label: `VeryLongSelectedOption-${index + 1}`
+    }));
+    const { input, output } = createPromptHarness();
+    const result = multiselectPrompt({
+      message: "Pick",
+      options: manyOptions,
+      initialValues: manyOptions.map((option) => option.value),
+      input,
+      output
+    });
+
+    await tick();
+    input.write("\r");
+
+    await expect(result).resolves.toEqual(manyOptions.map((option) => option.value));
+    const submittedFrame = [...output.frames].reverse().find((frame) => frame.includes("Pick")) ?? "";
+    expect(submittedFrame).toContain("13 selected");
+    expect(submittedFrame).not.toContain("VeryLongSelectedOption-13");
+  });
+
   it("blocks empty submit when required", async () => {
     const { input, output, getOutput } = createPromptHarness();
     const result = multiselectPrompt({ message: "Pick", options, required: true, input, output });

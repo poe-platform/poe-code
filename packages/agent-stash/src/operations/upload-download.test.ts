@@ -961,7 +961,7 @@ describe("upload/download", () => {
     expect(baseline.items.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
   });
 
-  it("downloads one hook command into an untracked event without replacing local commands", async () => {
+  it("downloads one hook command into an untracked event by updating the matching local split position", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),
       "/repo/.claude/settings.json": JSON.stringify({
@@ -1023,7 +1023,6 @@ describe("upload/download", () => {
     expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
       "local first",
       "remote second",
-      "local second",
       "local third"
     ]);
   });
@@ -1157,7 +1156,64 @@ describe("upload/download", () => {
     ]);
   });
 
-  it("downloads one hook command without replacing an unrelated same-index local command", async () => {
+  it("updates an existing same-identity split hook without duplicating it when downloading into current hooks", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote changed first stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-001-001"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "local original first stop" }] },
+            { hooks: [{ type: "command", command: "local second stop" }] }
+          ],
+          UserPromptSubmit: [
+            { hooks: [{ type: "command", command: "local prompt" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-001-001"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: {
+        Stop?: Array<{ hooks?: Array<{ command?: string }> }>;
+        UserPromptSubmit?: Array<{ hooks?: Array<{ command?: string }> }>;
+      };
+    };
+    expect(settings.hooks?.Stop?.map((group) => group.hooks?.map((hook) => hook.command))).toEqual([
+      ["remote changed first stop"],
+      ["local second stop"]
+    ]);
+    expect(settings.hooks?.UserPromptSubmit?.[0]?.hooks?.map((hook) => hook.command)).toEqual(["local prompt"]);
+  });
+
+  it("downloads one hook command by replacing the matching same-index local split hook", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),
       "/repo/.claude/settings.json": JSON.stringify({
@@ -1210,10 +1266,7 @@ describe("upload/download", () => {
     const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
       hooks?: { PostToolUse?: Array<{ matcher?: string; hooks?: Array<{ command?: string }> }> };
     };
-    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
-      "remote first",
-      "local sentinel"
-    ]);
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual(["remote first"]);
   });
 
   it("downloads one later hook command into an empty local group without placeholder hooks", async () => {

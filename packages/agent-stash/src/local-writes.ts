@@ -338,7 +338,9 @@ function targetHookForMerge(
     const insertIndex = normalizedOrigins.findIndex((origin) => origin > hookIndex);
     return { index: insertIndex === -1 ? groupHooks.length : insertIndex, insert: true };
   }
-  return { index: Math.min(hookIndex, groupHooks.length), insert: true };
+  return hookIndex < groupHooks.length
+    ? { index: hookIndex, insert: false }
+    : { index: groupHooks.length, insert: true };
 }
 
 function mergeHookOrigins(

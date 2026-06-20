@@ -2243,6 +2243,33 @@ describe("upload/download", () => {
     expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
   });
 
+  it("rejects selected remote download split hooks that are ignored locally before writing", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.agent-stashignore"] = "hooks/project/claude-code/PreToolUse-Bash-001-001.json\n";
+    delete files["/repo/.claude/settings.json"];
+    const target = createContext(files, gistClient);
+
+    await expect(downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      yes: true
+    })).rejects.toThrow("Selected hook not found: PreToolUse-Bash-001-001");
+
+    expect(() => target.volume.statSync("/repo/.claude/settings.json")).toThrow();
+    expect(() => target.volume.statSync("/home/user/.agent-stash/backups")).toThrow();
+  });
+
   it("rejects missing selected download skills before local writes or profile updates", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

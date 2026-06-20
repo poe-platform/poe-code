@@ -43,7 +43,7 @@ export function isLocalTargetIgnored(
   const relativeTarget = path.relative(scopeRoot, targetPathForItem(ctx, item, scope)).split(path.sep).join("/");
   return item.kind === "skill"
     ? isIgnoredSubtree(matcher, relativeTarget)
-    : matcher.ignores(relativeTarget);
+    : matcher.ignores(relativeTarget) || matcher.ignores(item.path);
 }
 
 export async function writeItemToLocal(

@@ -459,6 +459,33 @@ describe("sync", () => {
     expect(() => target.volume.statSync("/repo/.claude/skills/code-review/SKILL.md")).toThrow();
   });
 
+  it("rejects selected remote sync split hooks that are ignored locally before writing", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/repo/.agent-stashignore"] = "hooks/project/claude-code/PreToolUse-Bash-001-001.json\n";
+    delete files["/repo/.claude/settings.json"];
+    const target = createContext(files, gistClient);
+
+    await expect(syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      onConflict: "remote",
+      yes: true
+    })).rejects.toThrow("Selected hook not found: PreToolUse-Bash-001-001");
+
+    expect(() => target.volume.statSync("/repo/.claude/settings.json")).toThrow();
+  });
+
   it("rejects malformed baseline manifests before sync writes", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

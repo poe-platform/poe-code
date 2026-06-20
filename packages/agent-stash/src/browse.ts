@@ -46,7 +46,7 @@ import type {
 } from "./types.js";
 
 const GIST_PANE_BASELINE_MANIFEST_READ_ATTEMPTS = 6;
-const GIST_PANE_FRESH_MANIFEST_READ_ATTEMPTS = 2;
+const GIST_PANE_FRESH_MANIFEST_READ_ATTEMPTS = 6;
 const GIST_PANE_MANIFEST_RETRY_DELAY_MS = 500;
 
 export interface BrowseOptions {

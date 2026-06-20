@@ -62,19 +62,22 @@ class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
 }
 
 class StaleSeedReadGistClient extends InMemoryGistClient {
-  private staleRecord: GistRecord | undefined;
+  private staleRecords: GistRecord[] = [];
 
   seedStaleThenFresh(staleRecord: GistRecord, freshRecord: GistRecord): void {
-    this.staleRecord = cloneGistRecord(staleRecord);
+    this.seedStaleRecordsThenFresh([staleRecord], freshRecord);
+  }
+
+  seedStaleRecordsThenFresh(staleRecords: GistRecord[], freshRecord: GistRecord): void {
+    this.staleRecords = staleRecords.map((record) => cloneGistRecord(record));
     this.seed(freshRecord);
   }
 
   async read(gistId: string): Promise<GistRecord> {
-    if (this.staleRecord !== undefined) {
+    const staleRecord = this.staleRecords.shift();
+    if (staleRecord !== undefined) {
       this.readCalls.push(gistId);
-      const stale = cloneGistRecord(this.staleRecord);
-      this.staleRecord = undefined;
-      return stale;
+      return cloneGistRecord(staleRecord);
     }
     return super.read(gistId);
   }
@@ -272,7 +275,7 @@ describe("browse", () => {
     ]);
   });
 
-  it("uses one short retry for a non-empty profile-backed Gist pane read when the profile has no baseline", async () => {
+  it("retries a non-empty profile-backed Gist pane read when the profile has no baseline", async () => {
     vi.useFakeTimers();
     const { ctx, gistClient } = createHarness();
     gistClient.seed({
@@ -292,7 +295,14 @@ describe("browse", () => {
       await vi.runAllTimersAsync();
       const model = await modelPromise;
 
-      expect(gistClient.readCalls).toEqual(["gist-default", "gist-default"]);
+      expect(gistClient.readCalls).toEqual([
+        "gist-default",
+        "gist-default",
+        "gist-default",
+        "gist-default",
+        "gist-default",
+        "gist-default"
+      ]);
       expect(model.right.items).toEqual([]);
     } finally {
       vi.useRealTimers();
@@ -345,6 +355,63 @@ describe("browse", () => {
       const model = await modelPromise;
 
       expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+      expect(model.right.items.map((item) => item.name)).toEqual(["code-review"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("finds a profile-backed Gist manifest after several no-baseline stale reads", async () => {
+    vi.useFakeTimers();
+    const { ctx } = createHarness();
+    const staleClient = new StaleSeedReadGistClient();
+    const codeReview = projectCodeReviewSkillItem();
+    staleClient.seedStaleRecordsThenFresh(
+      Array.from({ length: 3 }, () => ({
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {
+          "seed.txt": { filename: "seed.txt", content: "stale seed" }
+        }
+      })),
+      {
+        id: "gist-default",
+        htmlUrl: "https://gist.github.com/gist-default",
+        files: {
+          "agent-stash.json": {
+            filename: "agent-stash.json",
+            content: serializeManifest({
+              schemaVersion: 1,
+              profile: "default",
+              createdAt: fixedDate.toISOString(),
+              updatedAt: fixedDate.toISOString(),
+              items: [codeReview.item]
+            })
+          },
+          [gistFilenameForBundlePath(codeReview.file.path)]: {
+            filename: gistFilenameForBundlePath(codeReview.file.path),
+            content: codeReview.content
+          }
+        }
+      }
+    );
+    ctx.gistClient = staleClient;
+
+    try {
+      const modelPromise = buildBrowseModel(ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code"
+      });
+      await vi.advanceTimersByTimeAsync(1500);
+      const model = await modelPromise;
+
+      expect(staleClient.readCalls).toEqual([
+        "gist-default",
+        "gist-default",
+        "gist-default",
+        "gist-default"
+      ]);
       expect(model.right.items.map((item) => item.name)).toEqual(["code-review"]);
     } finally {
       vi.useRealTimers();
@@ -1303,7 +1370,7 @@ describe("browse", () => {
 
     expect(refreshedRightRows.map((row) => row.id)).toEqual(["project:skill:claude-code:code-review"]);
     expect(refreshedRightRows[0]?.subtitle).toContain("# Code Review");
-  });
+  }, 10_000);
 
   it("removes legacy Gist hook chunks after split hook sync when the immediate refresh reads stale Gist data", async () => {
     const { ctx } = createHarness();

@@ -376,6 +376,10 @@ describe("upload/download", () => {
     expect(updated.files[gistFilenameForBundlePath("skills/project/claude-code/commit-helper/SKILL.md")]?.content).toBe(
       "# Commit Helper\n"
     );
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toEqual({
+      content: "# Updated Review\n"
+    });
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/commit-helper/SKILL.md")]).toBeUndefined();
   });
 
   it("replaces legacy event-level remote hooks with split hook items during upload", async () => {

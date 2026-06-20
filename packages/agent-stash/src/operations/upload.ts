@@ -135,12 +135,12 @@ async function createUpdateWriteInput(
     })
     .sort((left, right) => left.id.localeCompare(right.id));
 
+  const writeFiles = hasExistingManifest
+    ? files
+    : [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }));
   const writeInput: GistWriteInput = {
     description: "agent-stash portable agent config",
-    files: gistFilesFromBundle(
-      existing.manifest,
-      [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }))
-    )
+    files: gistFilesFromBundle(existing.manifest, writeFiles)
   };
   if (!hasExistingManifest) {
     for (const filename of Object.keys(record.files)) {

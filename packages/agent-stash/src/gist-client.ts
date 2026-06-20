@@ -7,12 +7,16 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 15000;
 const DEFAULT_READ_REQUEST_TIMEOUT_MS = 5000;
 const DEFAULT_READ_ATTEMPTS = 2;
 const DEFAULT_READ_RETRY_DELAY_MS = 250;
+const DEFAULT_UPDATE_ATTEMPTS = 3;
+const DEFAULT_UPDATE_RETRY_DELAY_MS = 750;
 
 export interface GitHubGistClientOptions {
   requestTimeoutMs?: number;
   readRequestTimeoutMs?: number;
   readAttempts?: number;
   readRetryDelayMs?: number;
+  updateAttempts?: number;
+  updateRetryDelayMs?: number;
 }
 
 export async function resolveGitHubToken(env: NodeJS.ProcessEnv = process.env): Promise<string | undefined> {
@@ -56,7 +60,7 @@ export class GitHubGistClient implements GistClient {
 
   async update(gistId: string, input: GistWriteInput): Promise<GistRecord> {
     assertValidGistId(gistId);
-    return this.request(`https://api.github.com/gists/${gistId}`, {
+    return this.updateRequest(`https://api.github.com/gists/${gistId}`, {
       method: "PATCH",
       body: JSON.stringify({ description: input.description, files: input.files })
     });
@@ -74,6 +78,23 @@ export class GitHubGistClient implements GistClient {
           throw error;
         }
         await sleep(this.options.readRetryDelayMs ?? DEFAULT_READ_RETRY_DELAY_MS);
+      }
+    }
+    throw lastError;
+  }
+
+  private async updateRequest(url: string, init: RequestInit): Promise<GistRecord> {
+    const attempts = this.options.updateAttempts ?? DEFAULT_UPDATE_ATTEMPTS;
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= attempts; attempt += 1) {
+      try {
+        return await this.request(url, init);
+      } catch (error) {
+        lastError = error;
+        if (attempt >= attempts || !isRetryableUpdateError(error)) {
+          throw error;
+        }
+        await sleep((this.options.updateRetryDelayMs ?? DEFAULT_UPDATE_RETRY_DELAY_MS) * attempt);
       }
     }
     throw lastError;
@@ -136,6 +157,10 @@ export class GitHubGistClient implements GistClient {
 
 function isRetryableReadError(error: unknown): boolean {
   return error instanceof TypeError || (error instanceof Error && error.message.startsWith("GitHub Gist request timed out after "));
+}
+
+function isRetryableUpdateError(error: unknown): boolean {
+  return error instanceof Error && error.message.startsWith("GitHub Gist request failed with 409") && error.message.includes("Gist cannot be updated");
 }
 
 function isAbortError(error: unknown): boolean {

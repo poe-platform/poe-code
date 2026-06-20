@@ -40,6 +40,12 @@ export interface TwoPaneExplorerConfig<R> {
   panes: [TwoPaneDefinition, TwoPaneDefinition];
   actions: TwoPaneAction<R>[];
   refresh?: () => void | Promise<void>;
+  trace?: (record: TwoPaneTraceRecord) => void | Promise<void>;
+}
+
+export interface TwoPaneTraceRecord {
+  event: string;
+  [key: string]: unknown;
 }
 
 export interface TwoPanePaneState {
@@ -166,6 +172,15 @@ export class TwoPaneExplorerRuntime<R> {
       return;
     }
 
+    this.trace("key", {
+      key: traceKey(key),
+      filterFocused: this.state.filterFocused,
+      pane: this.activePane().id,
+      cursor: this.activePane().cursor,
+      selected: this.activePane().selected.size,
+      filter: this.activePane().filter
+    });
+
     if (this.state.filterFocused) {
       this.dispatchFilterKey(key);
       return;
@@ -216,8 +231,14 @@ export class TwoPaneExplorerRuntime<R> {
   }
 
   private dispatchFilterKey(key: KeypressEvent): void {
-    if (key.name === "escape" || key.name === "return") {
+    if (key.name === "escape" || key.name === "return" || key.name === "enter") {
       this.state = { ...this.state, filterFocused: false };
+      this.trace("filter.submit", {
+        key: traceKey(key),
+        pane: this.activePane().id,
+        filter: this.activePane().filter,
+        rows: filteredRows(this.activePane()).length
+      });
       this.render();
       return;
     }
@@ -230,6 +251,12 @@ export class TwoPaneExplorerRuntime<R> {
           cursor: 0
         }))
       };
+      this.trace("filter.update", {
+        key: traceKey(key),
+        pane: this.activePane().id,
+        filter: this.activePane().filter,
+        rows: filteredRows(this.activePane()).length
+      });
       this.render();
       return;
     }
@@ -242,6 +269,12 @@ export class TwoPaneExplorerRuntime<R> {
           cursor: 0
         }))
       };
+      this.trace("filter.update", {
+        key: traceKey(key),
+        pane: this.activePane().id,
+        filter: this.activePane().filter,
+        rows: filteredRows(this.activePane()).length
+      });
       this.render();
     }
   }
@@ -282,6 +315,14 @@ export class TwoPaneExplorerRuntime<R> {
       ...this.state,
       panes: updateActivePane(this.state, (candidate) => ({ ...candidate, selected }))
     };
+    this.trace("selection.toggle", {
+      pane: pane.id,
+      row: row.id,
+      selected: selected.size,
+      checked: selected.has(row.id),
+      filter: pane.filter,
+      cursor: pane.cursor
+    });
     this.render();
   }
 
@@ -385,6 +426,16 @@ export class TwoPaneExplorerRuntime<R> {
       this.driver.destroy();
     }
     this.settle?.reject(error);
+  }
+
+  private trace(event: string, fields: Omit<TwoPaneTraceRecord, "event"> = {}): void {
+    const trace = this.config.trace;
+    if (trace === undefined) {
+      return;
+    }
+    void Promise.resolve(trace({ event, ...fields })).catch(() => {
+      // Diagnostic tracing must not interfere with TUI input handling.
+    });
   }
 }
 
@@ -543,6 +594,16 @@ function isTabKey(key: KeypressEvent): boolean {
 
 function firstKey(key: string | string[]): string {
   return Array.isArray(key) ? key[0] ?? "" : key;
+}
+
+function traceKey(key: KeypressEvent): Record<string, unknown> {
+  return {
+    name: key.name,
+    ch: key.ch,
+    ctrl: key.ctrl,
+    meta: key.meta,
+    shift: key.shift
+  };
 }
 
 function isQuitKey(key: KeypressEvent): boolean {

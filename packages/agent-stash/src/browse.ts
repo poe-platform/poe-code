@@ -224,6 +224,10 @@ export function buildBrowseTwoPaneConfig(
     actions: browseTwoPaneActions(ctx, options, runAction, prepareRefresh),
     refresh: () => {
       modelPromise = undefined;
+    },
+    trace: (record) => {
+      const { event, ...fields } = record;
+      void traceAgentStash(ctx, `browse.ui.${event}`, fields);
     }
   };
 }

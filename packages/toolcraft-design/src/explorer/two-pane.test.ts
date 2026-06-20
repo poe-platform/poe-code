@@ -205,6 +205,69 @@ describe("runTwoPaneExplorer", () => {
     await expect(result).resolves.toBeNull();
   });
 
+  it("submits filter mode on named enter before handling row selection", async () => {
+    const driver = currentDriver();
+    const handled: Array<{ rows: string[] }> = [];
+    const result = runTwoPaneExplorer(config({
+      actions: [{
+        id: "copy",
+        label: "Copy",
+        key: "c",
+        handler: (ctx) => {
+          handled.push({ rows: ctx.rows.map((row) => row.id) });
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Left One"));
+    driver.press(key("/"));
+    driver.press(key("t"));
+    driver.press(key("w"));
+    driver.press(key("o"));
+    driver.press(namedKey("enter"));
+    driver.press(key(" "));
+    driver.press(key("c"));
+
+    await expect(result).resolves.toBeNull();
+    expect(handled).toEqual([{ rows: ["left-two"] }]);
+  });
+
+  it("traces filter and selection state for diagnostic logs", async () => {
+    const driver = currentDriver();
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    const result = runTwoPaneExplorer(config({
+      trace: (record) => {
+        traces.push(record);
+      }
+    }));
+
+    await waitFor(() => currentScreen(driver).join("\n").includes("Left One"));
+    driver.press(key("/"));
+    driver.press(key("t"));
+    driver.press(key("w"));
+    driver.press(key("o"));
+    driver.press(namedKey("enter"));
+    driver.press(key(" "));
+    driver.press(key("q"));
+
+    await expect(result).resolves.toBeNull();
+    expect(traces.findLast((record) => record.event === "filter.submit")).toMatchObject({
+      event: "filter.submit",
+      pane: "left",
+      filter: "two",
+      rows: 1
+    });
+    expect(traces.findLast((record) => record.event === "selection.toggle")).toMatchObject({
+      event: "selection.toggle",
+      pane: "left",
+      row: "left-two",
+      selected: 1,
+      checked: true,
+      filter: "two"
+    });
+  });
+
   it("clears empty hints after pane rows load", async () => {
     const driver = currentDriver();
     let resolveRightRows: ((rows: TwoPaneRow[]) => void) | undefined;

@@ -1005,6 +1005,33 @@ describe("browse", () => {
     }]);
   });
 
+  it("forwards two-pane UI trace records through agent-stash diagnostics", async () => {
+    const { ctx } = createHarness();
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    ctx.trace = (record) => {
+      traces.push(record as { event: string; [key: string]: unknown });
+    };
+    const config = buildBrowseTwoPaneConfig(ctx, {
+      scope: "project",
+      agent: "claude-code"
+    });
+
+    config.trace?.({
+      event: "selection.toggle",
+      pane: "left",
+      row: "project:skill:claude-code:code-review",
+      selected: 1
+    });
+
+    expect(traces.at(-1)).toMatchObject({
+      event: "browse.ui.selection.toggle",
+      timestamp: fixedDate.toISOString(),
+      pane: "left",
+      row: "project:skill:claude-code:code-review",
+      selected: 1
+    });
+  });
+
   it("warns instead of completing when a two-pane sync action returns conflicts", async () => {
     const { ctx } = createHarness();
     const toasts: Array<{ message: string; tone: string }> = [];

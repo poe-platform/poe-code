@@ -368,6 +368,9 @@ async function finishBrowseAction(
     downloaded: Array.isArray(result.downloaded) ? result.downloaded.length : result.downloaded?.downloaded.length,
     syncedUploaded: result.synced?.uploaded.length,
     syncedDownloaded: result.synced?.downloaded.length,
+    syncedDeletedLocal: result.synced?.deletedLocal.length,
+    syncedDeletedRemote: result.synced?.deletedRemote.length,
+    syncedUnchanged: result.synced?.unchanged.length,
     syncedConflicts: result.synced?.conflicts.length
   });
   return result;

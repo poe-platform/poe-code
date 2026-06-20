@@ -877,6 +877,50 @@ describe("browse", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeUndefined();
   });
 
+  it("traces sync deletion counts in browse action summaries", async () => {
+    const { ctx } = createHarness();
+    const traces: Array<Record<string, unknown>> = [];
+    ctx.trace = (record) => {
+      traces.push(record);
+    };
+    const upload = await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    await ctx.fs.mkdir("/home/user/.agent-stash/cache", { recursive: true });
+    await ctx.fs.writeFile("/home/user/.agent-stash/cache/default.manifest.json", serializeManifest(upload.manifest), {
+      encoding: "utf8"
+    });
+    await ctx.fs.rm?.("/repo/.claude/skills/code-review", { recursive: true, force: true });
+
+    const result = await runBrowseAction(ctx, {
+      action: "sync",
+      profile: "default",
+      fromPane: "right",
+      selectedIds: ["project:skill:claude-code:code-review"],
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "ask",
+      resolveConflict: async () => "fail",
+      yes: true
+    });
+
+    expect(result.synced?.deletedRemote.map((item) => item.name)).toEqual(["code-review"]);
+    expect(traces.findLast((trace) => trace.event === "browse.action.finish")).toMatchObject({
+      event: "browse.action.finish",
+      action: "sync",
+      syncedUploaded: 0,
+      syncedDownloaded: 0,
+      syncedDeletedLocal: 0,
+      syncedDeletedRemote: 1,
+      syncedUnchanged: 0,
+      syncedConflicts: 0
+    });
+  });
+
   it("rejects browse sync without an active Gist target before remote reads", async () => {
     const { ctx, gistClient } = createHarness();
 

@@ -65,7 +65,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     validateItemForLocalWrite(item, files);
     return { item, files };
   });
-  const backupPaths = selected.map((item) => targetPathForItem(ctx, item));
+  const backupPaths = [...new Set(selected.map((item) => targetPathForItem(ctx, item)))];
   for (const item of selected) {
     await validateTargetForLocalWrite(ctx, item);
   }

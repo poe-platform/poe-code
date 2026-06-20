@@ -696,6 +696,62 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("backs up a hook settings file once when downloading multiple hook fragments", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "remote first" },
+                { type: "command", command: "remote second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "local hook" }] }]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    const result = await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const backup = JSON.parse(target.volume.readFileSync(`/home/user/.agent-stash/backups/${result.backupId}/backup.json`, "utf8") as string) as {
+      affectedPaths?: string[];
+      files?: Array<{ sourcePath?: string }>;
+    };
+    expect(result.downloaded.map((item) => item.name)).toEqual([
+      "PostToolUse-Write-Edit-001-001",
+      "PostToolUse-Write-Edit-001-002"
+    ]);
+    expect(backup.affectedPaths).toEqual(["/repo/.claude/settings.json"]);
+    expect(backup.files?.map((file) => file.sourcePath)).toEqual(["/repo/.claude/settings.json"]);
+  });
+
   it("writes a profile baseline after downloading through a profile", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

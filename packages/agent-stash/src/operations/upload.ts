@@ -9,7 +9,7 @@ import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBasel
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
-import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, UploadOptions, UploadResult } from "../types.js";
+import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, LoadedItem, UploadOptions, UploadResult } from "../types.js";
 
 export async function uploadBundle(ctx: AgentStashContext, options: UploadOptions): Promise<UploadResult> {
   assertAgentStashScope(options.scope);
@@ -33,12 +33,15 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     const client = ctx.gistClient ?? (await createDefaultGistClient());
     await assertSelectedUploadItemsFound(ctx, client, resolved.gistId, items, options);
     const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
+    const localHookItems = resolved.gistId && options.hooks !== undefined
+      ? await loadInventory(ctx, { scope: options.scope, agent: options.agent, kind: "hook" })
+      : undefined;
     if (!resolved.gistId && selectedItems.length === 0) {
       throw new Error("No upload items selected.");
     }
     await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
     const writeInput = resolved.gistId
-      ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks)
+      ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks, localHookItems)
       : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
     await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
       gistId: resolved.gistId,
@@ -224,7 +227,8 @@ async function createUpdateWriteInput(
   items: AgentStashManifest["items"],
   files: BundleFile[],
   profile: string | undefined,
-  selectedHooks: string[] | undefined
+  selectedHooks: string[] | undefined,
+  localHookItems: readonly LoadedItem[] | undefined
 ): Promise<GistWriteInput> {
   const now = ctx.now?.() ?? new Date();
   const record = await client.read(gistId);
@@ -235,7 +239,7 @@ async function createUpdateWriteInput(
   verifyBundleHashes(existing);
   const itemIds = new Set(items.map((item) => item.id));
   const uploadedHookEvents = hookEventsForItems(items, files);
-  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks, existing);
+  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks, existing, localHookItems);
   const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
@@ -320,7 +324,8 @@ function hookEventsForEventLevelUpload(
   items: AgentStashManifest["items"],
   files: BundleFile[],
   selectedHooks: string[] | undefined,
-  existing: { manifest: AgentStashManifest; files: Map<string, string> }
+  existing: { manifest: AgentStashManifest; files: Map<string, string> },
+  localHookItems: readonly LoadedItem[] | undefined
 ): Set<string> {
   const uploadedHookEvents = hookEventsForItems(items, files);
   if (selectedHooks === undefined) {
@@ -329,8 +334,105 @@ function hookEventsForEventLevelUpload(
   const selected = new Set(selectedHooks);
   return new Set([
     ...[...uploadedHookEvents].filter((event) => selected.has(event)),
-    ...selectedHooks.filter((hook) => remoteHasSelectedHookEvent(existing, hook))
+    ...selectedHooks.filter((hook) => remoteHasSelectedHookEvent(existing, hook)),
+    ...hookEventsForFullySelectedLocalSplitUpload(items, uploadedHookEvents, localHookItems)
   ]);
+}
+
+function hookEventsForFullySelectedLocalSplitUpload(
+  selectedItems: AgentStashManifest["items"],
+  selectedEvents: Set<string>,
+  localHookItems: readonly LoadedItem[] | undefined
+): Set<string> {
+  if (localHookItems === undefined || selectedEvents.size === 0) {
+    return new Set();
+  }
+  const selectedIdsByEvent = new Map<string, Set<string>>();
+  for (const item of selectedItems) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const event = [...selectedEvents].find((candidate) => item.name !== candidate && item.name.startsWith(`${candidate}-`));
+    if (event === undefined) {
+      continue;
+    }
+    const selectedIds = selectedIdsByEvent.get(event) ?? new Set<string>();
+    selectedIds.add(item.id);
+    selectedIdsByEvent.set(event, selectedIds);
+  }
+
+  const localIdsByEvent = new Map<string, Set<string>>();
+  const localPositionsByEvent = new Map<string, Map<number, Set<number>>>();
+  for (const item of localHookItems) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const content = item.bundleFiles[0]?.content ?? "";
+    const event = hookEventFromFragmentContent(content);
+    if (event === undefined || !selectedEvents.has(event) || event === item.name) {
+      continue;
+    }
+    const position = hookFragmentPosition(content);
+    if (position === undefined) {
+      continue;
+    }
+    const localIds = localIdsByEvent.get(event) ?? new Set<string>();
+    localIds.add(item.id);
+    localIdsByEvent.set(event, localIds);
+    const groups = localPositionsByEvent.get(event) ?? new Map<number, Set<number>>();
+    const hooks = groups.get(position.groupIndex) ?? new Set<number>();
+    hooks.add(position.hookIndex);
+    groups.set(position.groupIndex, hooks);
+    localPositionsByEvent.set(event, groups);
+  }
+
+  const fullySelected = new Set<string>();
+  for (const [event, localIds] of localIdsByEvent) {
+    const selectedIds = selectedIdsByEvent.get(event);
+    if (
+      selectedIds !== undefined
+      && splitHookPositionsAreComplete(localPositionsByEvent.get(event))
+      && localIds.size === selectedIds.size
+      && [...localIds].every((id) => selectedIds.has(id))
+    ) {
+      fullySelected.add(event);
+    }
+  }
+  return fullySelected;
+}
+
+function hookFragmentPosition(content: string): { groupIndex: number; hookIndex: number } | undefined {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content) as unknown;
+  } catch {
+    return undefined;
+  }
+  if (!isRecord(parsed) || !isRecord(parsed.agentStash)) {
+    return undefined;
+  }
+  const { groupIndex, hookIndex } = parsed.agentStash;
+  return isNonNegativeInteger(groupIndex) && isNonNegativeInteger(hookIndex)
+    ? { groupIndex, hookIndex }
+    : undefined;
+}
+
+function splitHookPositionsAreComplete(groups: Map<number, Set<number>> | undefined): boolean {
+  if (groups === undefined || groups.size === 0) {
+    return false;
+  }
+  const groupIndexes = [...groups.keys()].sort((left, right) => left - right);
+  return groupIndexes.every((groupIndex, expectedGroupIndex) => {
+    if (groupIndex !== expectedGroupIndex) {
+      return false;
+    }
+    const hookIndexes = [...(groups.get(groupIndex) ?? [])].sort((left, right) => left - right);
+    return hookIndexes.length > 0 && hookIndexes.every((hookIndex, expectedHookIndex) => hookIndex === expectedHookIndex);
+  });
+}
+
+function isNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
 
 async function loadExistingBundleForUpload(

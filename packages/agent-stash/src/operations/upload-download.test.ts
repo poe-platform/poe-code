@@ -639,6 +639,77 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("removes stale split hook items for the same event during split-row upload", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "remote first bash" },
+                { type: "command", command: "remote second bash" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "remote first bash" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:PreToolUse-Bash-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]?.content).toContain("remote first bash");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-002.json")]).toBeUndefined();
+    expect(traces.find((record) => record.event === "upload.staleHookSplitsRemoved")?.items).toEqual([
+      {
+        id: "project:hook:claude-code:PreToolUse-Bash-001-002",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "PreToolUse-Bash-001-002"
+      }
+    ]);
+  });
+
   it("removes stale split hook groups with the same matcher during event-level upload", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

@@ -199,6 +199,7 @@ export function buildBrowseTwoPaneConfig(
   };
   const prepareRefresh = async (input: BrowseActionRefresh) => {
     nextModel = applyBrowseActionResultToModel(await buildBrowseModel(ctx, options), input);
+    await traceBrowseGistRefresh(ctx, nextModel, input);
   };
 
   return {
@@ -642,6 +643,35 @@ function applyBrowseActionResultToModel(model: BrowseModel, input: BrowseActionR
   }
 
   return next;
+}
+
+async function traceBrowseGistRefresh(
+  ctx: AgentStashContext,
+  model: BrowseModel,
+  input: BrowseActionRefresh
+): Promise<void> {
+  await traceBrowseGistRefreshPane(ctx, model.left, "left", input.action);
+  await traceBrowseGistRefreshPane(ctx, model.right, "right", input.action);
+}
+
+async function traceBrowseGistRefreshPane(
+  ctx: AgentStashContext,
+  pane: BrowsePane,
+  paneId: BrowsePaneId,
+  action: BrowseActionName
+): Promise<void> {
+  if (pane.location !== "gist") {
+    return;
+  }
+  await traceAgentStash(ctx, "browse.gist.refresh.finish", {
+    action,
+    pane: paneId,
+    profile: pane.profile,
+    scope: pane.scope,
+    agent: pane.agentId,
+    itemCount: pane.items.length,
+    items: traceItems(pane.items)
+  });
 }
 
 function replaceGistPaneFromManifest(model: BrowseModel, items: AgentStashItem[]): BrowseModel {

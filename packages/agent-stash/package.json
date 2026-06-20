@@ -19,7 +19,7 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/agent-defs @poe-code/agent-hook-config @poe-code/agent-skill-config @poe-code/config-mutations toolcraft-design @poe-code/frontmatter fast-string-width fast-string-truncated-width fast-wrap-ansi sisteransi jsonc-parser smol-toml yaml",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup .",
-    "install:global": "npm run build && TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && (cd $TMPD && npm install -g ./agent-stash-*.tgz) && rm -rf $TMPD",
+    "install:global": "npm run build && TMPD=$(mktemp -d) && npm pack --pack-destination $TMPD && (cd $TMPD && npm install -g --force ./agent-stash-*.tgz) && rm -rf $TMPD",
     "test": "cd ../.. && vitest run packages/agent-stash/src",
     "test:unit": "cd ../.. && vitest run packages/agent-stash/src"
   },

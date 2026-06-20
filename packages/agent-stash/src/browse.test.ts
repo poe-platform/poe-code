@@ -1030,6 +1030,7 @@ describe("browse", () => {
   it("removes legacy Gist hook chunks after split hook sync when the immediate refresh reads stale Gist data", async () => {
     const { ctx } = createHarness();
     const staleClient = new StaleReadAfterUpdateGistClient();
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
     const legacyPreToolUse = legacyHookItem("PreToolUse", "Bash", "npm test");
     const legacyStop = legacyHookItem("Stop", undefined, "echo done");
     staleClient.seed({
@@ -1057,6 +1058,9 @@ describe("browse", () => {
       }
     });
     ctx.gistClient = staleClient;
+    ctx.trace = async (record) => {
+      traces.push(record as { event: string; [key: string]: unknown });
+    };
     const config = buildBrowseTwoPaneConfig(ctx, {
       profile: "default",
       scope: "project",
@@ -1100,6 +1104,17 @@ describe("browse", () => {
       "project:hook:claude-code:PreToolUse-Bash-001-001",
       "project:hook:claude-code:Stop-all-tools-001-001"
     ]);
+    expect(traces.at(-1)).toMatchObject({
+      event: "browse.gist.refresh.finish",
+      action: "sync",
+      pane: "right",
+      profile: "default",
+      itemCount: 2,
+      items: [
+        { id: "project:hook:claude-code:PreToolUse-Bash-001-001", name: "PreToolUse-Bash-001-001" },
+        { id: "project:hook:claude-code:Stop-all-tools-001-001", name: "Stop-all-tools-001-001" }
+      ]
+    });
   });
 
   it("removes moved Gist rows when the immediate two-pane refresh reads stale Gist data", async () => {

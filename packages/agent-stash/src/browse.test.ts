@@ -1150,30 +1150,34 @@ describe("browse", () => {
     expect(toasts).toEqual([{ message: "sync conflicts: 1", tone: "warning" }]);
   });
 
-  it("shows two-pane completion before the post-action refresh settles", async () => {
+  it("shows two-pane completion after the post-action refresh settles", async () => {
     const { ctx } = createHarness();
+    const order: string[] = [];
     const toasts: Array<{ message: string; tone: string | undefined }> = [];
     const config = buildBrowseTwoPaneConfig(ctx, {
       scope: "project",
       agent: "claude-code",
-      runAction: async () => ({
-        uploaded: {
-          uploaded: [],
-          skipped: [],
-          manifest: parseManifest(serializeManifest({
-            schemaVersion: 1,
-            profile: "default",
-            createdAt: fixedDate.toISOString(),
-            updatedAt: fixedDate.toISOString(),
-            items: []
-          }))
-        }
-      })
+      runAction: async () => {
+        order.push("action");
+        return {
+          uploaded: {
+            uploaded: [],
+            skipped: [],
+            manifest: parseManifest(serializeManifest({
+              schemaVersion: 1,
+              profile: "default",
+              createdAt: fixedDate.toISOString(),
+              updatedAt: fixedDate.toISOString(),
+              items: []
+            }))
+          }
+        };
+      }
     });
     const leftRows = await config.panes[0].rows();
     const projectRow = leftRows.find((row) => row.id === "project:skill:claude-code:code-review")!;
 
-    void config.actions.find((action) => action.id === "upload")!.handler({
+    await config.actions.find((action) => action.id === "upload")!.handler({
       activePane: {
         id: "left",
         title: "Project: claude-code",
@@ -1194,17 +1198,19 @@ describe("browse", () => {
       },
       row: projectRow,
       rows: [projectRow],
-      refresh: async () => new Promise<never>(() => undefined),
+      refresh: async () => {
+        order.push("refresh");
+      },
       suspendAnd: async (fn) => fn(),
       toast: (message, tone) => {
+        order.push("toast");
         toasts.push({ message, tone });
       },
       exit: () => undefined
     });
 
-    await vi.waitFor(() => {
-      expect(toasts).toEqual([{ message: "upload complete", tone: "success" }]);
-    });
+    expect(order).toEqual(["action", "refresh", "toast"]);
+    expect(toasts).toEqual([{ message: "upload complete", tone: "success" }]);
   });
 
   it("keeps uploaded Gist rows visible when the immediate two-pane refresh reads stale Gist data", async () => {

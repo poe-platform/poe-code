@@ -564,10 +564,14 @@ function browseTwoPaneAction(
         });
       });
       const completed = requireBrowseActionResult(result);
-      toastBrowseActionResult(actionCtx.toast, label, completed);
+      await traceAgentStash(ctx, "browse.refresh.prepare.start", { action, fromPane });
       await prepareRefresh({ action, fromPane, selectedIds, result: completed });
+      await traceAgentStash(ctx, "browse.refresh.prepare.finish", { action, fromPane });
+      await traceAgentStash(ctx, "browse.refresh.render.start", { action, fromPane });
       await actionCtx.refresh();
       await traceAgentStash(ctx, "browse.refresh.rendered", { action, fromPane });
+      toastBrowseActionResult(actionCtx.toast, label, completed);
+      await traceAgentStash(ctx, "browse.action.toast", { action, fromPane });
     }
   };
 }

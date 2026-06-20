@@ -6,6 +6,8 @@ export type ConflictResolution = Exclude<ConflictPolicy, "ask">;
 
 export interface AgentStashStat {
   mode?: number;
+  mtime?: Date;
+  mtimeMs?: number;
   isFile?: () => boolean;
   isDirectory?: () => boolean;
 }

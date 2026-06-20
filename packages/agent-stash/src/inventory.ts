@@ -11,6 +11,7 @@ import type {
   AgentStashContext,
   AgentStashFile,
   AgentStashKind,
+  AgentStashStat,
   AgentStashScope,
   BundleFile,
   LoadedItem
@@ -77,7 +78,7 @@ async function loadSkillInventory(
     }
     const bundleRoot = `skills/${options.scope}/${agentId}/${name}`;
     const scopeRoot = options.scope === "project" ? ctx.cwd : ctx.homeDir;
-    const { bundleFiles, manifestFiles } = await readDirectoryBundle(ctx.fs, skillDir, bundleRoot, (sourcePath) => {
+    const { bundleFiles, manifestFiles, latestModifiedAt } = await readDirectoryBundle(ctx.fs, skillDir, bundleRoot, (sourcePath) => {
       const relativeSourcePath = path.relative(scopeRoot, sourcePath).split(path.sep).join("/");
       return !matcher.ignores(relativeSourcePath);
     });
@@ -92,7 +93,8 @@ async function loadSkillInventory(
       path: bundleRoot,
       files: manifestFiles,
       bundleFiles,
-      targetPath: skillDir
+      targetPath: skillDir,
+      updatedAt: (latestModifiedAt ?? statModifiedAt(stat))?.toISOString()
     }));
   }
 
@@ -136,6 +138,8 @@ async function loadHookInventory(
   if (matcher.ignores(relativeHookPath)) {
     return [];
   }
+  const hookStat = await ctx.fs.stat(hookPath);
+  const hookUpdatedAt = statModifiedAt(hookStat)?.toISOString();
   const originStore = await readHookOriginStore(ctx);
   const targetOrigins = originStore.targets[hookPath] ?? {};
   const items: LoadedItem[] = [];
@@ -187,7 +191,8 @@ async function loadHookInventory(
           path: bundlePath,
           files: [file],
           bundleFiles: [{ path: bundlePath, content: fragmentContent }],
-          targetPath: hookPath
+          targetPath: hookPath,
+          updatedAt: hookUpdatedAt
         }));
       }
     }
@@ -211,9 +216,10 @@ function createLoadedItem(
     files: AgentStashFile[];
     bundleFiles: BundleFile[];
     targetPath: string;
+    updatedAt?: string;
   }
 ): LoadedItem {
-  const updatedAt = (ctx.now?.() ?? new Date()).toISOString();
+  const updatedAt = input.updatedAt ?? (ctx.now?.() ?? new Date()).toISOString();
   const item: LoadedItem = {
     id: stableItemId(input),
     kind: input.kind,
@@ -229,4 +235,14 @@ function createLoadedItem(
   };
   validateManifestItem(item);
   return item;
+}
+
+function statModifiedAt(stat: AgentStashStat): Date | undefined {
+  if (stat.mtime instanceof Date && !Number.isNaN(stat.mtime.getTime())) {
+    return stat.mtime;
+  }
+  if (typeof stat.mtimeMs === "number" && Number.isFinite(stat.mtimeMs)) {
+    return new Date(stat.mtimeMs);
+  }
+  return undefined;
 }

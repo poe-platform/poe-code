@@ -1653,9 +1653,9 @@ describe("sync", () => {
       localHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       remoteHash: expect.stringMatching(/^[a-f0-9]{64}$/),
       baseHash: expect.stringMatching(/^[a-f0-9]{64}$/),
-      localUpdatedAt: fixedDate.toISOString(),
+      localUpdatedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       remoteUpdatedAt: "2026-01-02T03:04:06.000Z",
-      baseUpdatedAt: fixedDate.toISOString()
+      baseUpdatedAt: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/)
     }));
     expect(JSON.stringify(actions)).not.toContain("# Local Change");
     expect(JSON.stringify(actions)).not.toContain("# Remote Change");
@@ -1704,6 +1704,27 @@ describe("sync", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toEqual({
       content: "# Local Change\n"
     });
+  });
+
+  it("uses local file mtimes for newer-policy conflict resolution", async () => {
+    const { target } = await createDivergedSkillScenario({ includeBase: true });
+    target.ctx.now = () => new Date("2026-01-02T03:05:00.000Z");
+    target.volume.utimesSync(
+      "/repo/.claude/skills/code-review/SKILL.md",
+      new Date("2026-01-02T03:04:04.000Z"),
+      new Date("2026-01-02T03:04:04.000Z")
+    );
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "newer",
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toContain("code-review");
+    expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Remote Change\n");
   });
 
   it("rejects invalid remote timestamps before newer-policy writes", async () => {

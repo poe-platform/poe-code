@@ -262,6 +262,42 @@ describe("GitHubGistClient", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
+  it("retries transient Gist update server failures", async () => {
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            message: "There is a problem with this repository on disk. Please contact support for additional information or help.",
+            status: "500"
+          }),
+          { status: 500, headers: { "content-type": "application/json" } }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            id: "gist-1",
+            files: {
+              "agent-stash.json": { filename: "agent-stash.json", content: "{}" }
+            }
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const record = await new GitHubGistClient("token", {
+      updateAttempts: 2,
+      updateRetryDelayMs: 0
+    }).update("gist-1", {
+      files: {
+        "agent-stash.json": { content: "{}" }
+      }
+    });
+
+    expect(record.files["agent-stash.json"]?.content).toBe("{}");
+    expect(fetch).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects unsafe Gist ids before issuing requests", async () => {
     const client = new GitHubGistClient("token");
 

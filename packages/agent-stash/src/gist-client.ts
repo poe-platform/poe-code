@@ -160,7 +160,13 @@ function isRetryableReadError(error: unknown): boolean {
 }
 
 function isRetryableUpdateError(error: unknown): boolean {
-  return error instanceof Error && error.message.startsWith("GitHub Gist request failed with 409") && error.message.includes("Gist cannot be updated");
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  if (error.message.startsWith("GitHub Gist request failed with 409")) {
+    return error.message.includes("Gist cannot be updated");
+  }
+  return ["500", "502", "503", "504"].some((status) => error.message.startsWith(`GitHub Gist request failed with ${status}`));
 }
 
 function isAbortError(error: unknown): boolean {

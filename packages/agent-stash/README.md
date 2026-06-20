@@ -6,6 +6,10 @@ Portable agent skill and hook sync for project, global, and secret GitHub Gist-b
 
 - `GITHUB_TOKEN`: GitHub token used for Gist operations. This is checked first.
 - `GH_TOKEN`: GitHub token used when `GITHUB_TOKEN` is not set.
+- `AGENT_STASH_LOG`: optional JSONL diagnostic trace for upload, download, sync, and browse operations.
+  - Unset, `0`, or `false`: tracing is disabled.
+  - `1` or `true`: append to `~/.agent-stash/logs/trace.jsonl`.
+  - Any other value: append to that path.
 
 When neither variable is set, the CLI attempts `gh auth token` for Gist-backed commands.
 
@@ -36,6 +40,7 @@ agent-stash download --profile default --scope project --agent claude-code --yes
 agent-stash sync --profile default --scope project --agent claude-code --on-conflict fail --yes
 agent-stash copy --from project --to global --agent claude-code --kind skill --name code-review --yes
 agent-stash move --from global --to project --agent claude-code --kind skill --name global-only --yes
+agent-stash --log ./agent-stash.trace.jsonl sync --profile default --scope project --agent claude-code --on-conflict fail --yes
 ```
 
 All SDK operations accept injected `cwd`, `homeDir`, filesystem, clock, and Gist client dependencies.

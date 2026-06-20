@@ -778,6 +778,52 @@ describe("sync", () => {
     ).toBe(originalSettings);
   });
 
+  it("applies unchanged local hook deletion without prompting when remote deleted it", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    const upload = await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    files["/home/user/.agent-stash/cache/default.manifest.json"] = JSON.stringify(upload.manifest, null, 2);
+    const target = createContext(files, gistClient);
+    const record = await gistClient.read("gist-default");
+    const remoteManifest = parseManifest(record.files["agent-stash.json"]!.content);
+    remoteManifest.items = [];
+    record.files["agent-stash.json"] = {
+      filename: "agent-stash.json",
+      content: serializeManifest(remoteManifest)
+    };
+    delete record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")];
+    gistClient.seed(record);
+    const prompted: string[] = [];
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict(conflict) {
+        prompted.push(conflict.item.name);
+        return "fail";
+      }
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: Record<string, unknown>;
+    };
+    expect(prompted).toEqual([]);
+    expect(result.deletedLocal.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(result.conflicts).toEqual([]);
+    expect(settings.hooks?.PreToolUse).toBeUndefined();
+  });
+
   it("applies remote deletion for a later hook downloaded by itself", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),
@@ -1091,6 +1137,41 @@ describe("sync", () => {
     const update = gistClient.updateCalls.at(-1);
     expect(update?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toBeNull();
     expect(update?.input.files["agent-stash.json"]?.content).not.toContain("code-review");
+  });
+
+  it("applies unchanged remote skill deletion without prompting when local deleted it", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    const upload = await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const files = createDummyAgentConfigFixture();
+    delete files["/repo/.claude/skills/code-review/SKILL.md"];
+    files["/home/user/.agent-stash/cache/default.manifest.json"] = JSON.stringify(upload.manifest, null, 2);
+    const target = createContext(files, gistClient);
+    const prompted: string[] = [];
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict(conflict) {
+        prompted.push(conflict.item.name);
+        return "fail";
+      }
+    });
+
+    const update = gistClient.updateCalls.at(-1);
+    expect(prompted).toEqual([]);
+    expect(result.deletedRemote.map((item) => item.name)).toEqual(["code-review"]);
+    expect(result.conflicts).toEqual([]);
+    expect(update?.input.files[gistFilenameForBundlePath("skills/project/claude-code/code-review/SKILL.md")]).toBeNull();
   });
 
   it("flags first-sync differing local and remote items as a conflict with fail", async () => {

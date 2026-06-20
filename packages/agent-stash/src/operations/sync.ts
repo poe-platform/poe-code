@@ -389,6 +389,9 @@ function classify(
     return "download";
   }
   if (local && !remote && base) {
+    if (policy === "ask" && local.contentHash === base.contentHash) {
+      return "delete-local";
+    }
     if (policy === "local") {
       return "upload";
     }
@@ -401,6 +404,9 @@ function classify(
     return "conflict";
   }
   if (!local && remote && base) {
+    if (policy === "ask" && remote.contentHash === base.contentHash) {
+      return "delete-remote";
+    }
     if (policy === "local") {
       return "delete-remote";
     }

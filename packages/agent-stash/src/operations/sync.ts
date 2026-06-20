@@ -17,7 +17,7 @@ import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
-import { traceAgentStash, traceItems } from "../trace.js";
+import { traceAgentStash, traceGistWriteInput, traceItems } from "../trace.js";
 import { uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type {
@@ -256,6 +256,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     for (const filePath of remoteDeletes) {
       writeInput.files[gistFilenameForBundlePath(filePath)] = null;
     }
+    await traceAgentStash(ctx, "sync.remote.update", {
+      gistId: resolved.gistId,
+      ...traceGistWriteInput(writeInput)
+    });
     await client.update(resolved.gistId, writeInput);
     if (usesProfileTarget) {
       await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, manifest, selectedBaselineIds));

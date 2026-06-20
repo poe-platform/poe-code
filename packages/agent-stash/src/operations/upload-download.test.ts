@@ -231,6 +231,10 @@ describe("upload/download", () => {
       }, null, 2)
     };
     const { ctx, gistClient } = createContext(files);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record);
+    };
 
     const result = await uploadBundle(ctx, {
       profile: "new",
@@ -249,6 +253,14 @@ describe("upload/download", () => {
       gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json"),
       gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-002.json")
     ]);
+    expect(traces.find((record) => record.event === "upload.remote.create")).toMatchObject({
+      writeFiles: [
+        "agent-stash.json",
+        gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json"),
+        gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-002.json")
+      ],
+      deleteFiles: []
+    });
   });
 
   it("does not rewrite profile config when uploading through an explicit Gist override", async () => {

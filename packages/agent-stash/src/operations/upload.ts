@@ -7,7 +7,7 @@ import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, ver
 import { readFileIfExists } from "../fs-utils.js";
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
-import { traceAgentStash, traceItems } from "../trace.js";
+import { traceAgentStash, traceGistWriteInput, traceItems } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, UploadOptions, UploadResult } from "../types.js";
 
@@ -41,8 +41,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
   await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
     gistId: resolved.gistId,
-    fileWrites: Object.values(writeInput.files).filter((file) => file !== null).length,
-    fileDeletes: Object.values(writeInput.files).filter((file) => file === null).length
+    ...traceGistWriteInput(writeInput)
   });
   const record = resolved.gistId
     ? await client.update(resolved.gistId, writeInput)

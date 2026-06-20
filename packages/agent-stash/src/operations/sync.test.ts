@@ -227,6 +227,15 @@ describe("sync", () => {
         name: "PostToolUse"
       }
     ]);
+    expect(traces.find((record) => record.event === "sync.remote.update")).toMatchObject({
+      writeFiles: [
+        "agent-stash.json",
+        gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")
+      ],
+      deleteFiles: [
+        gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse.json")
+      ]
+    });
   });
 
   it("rejects selected sync items that are absent locally and remotely", async () => {

@@ -1,4 +1,4 @@
-import type { AgentStashContext, AgentStashItem } from "./types.js";
+import type { AgentStashContext, AgentStashItem, GistWriteInput } from "./types.js";
 
 export async function traceAgentStash(
   ctx: AgentStashContext,
@@ -29,4 +29,26 @@ export function traceItems(items: AgentStashItem[]): Array<{
     agentId: item.agentId,
     name: item.name
   }));
+}
+
+export function traceGistWriteInput(writeInput: GistWriteInput): {
+  fileWrites: number;
+  fileDeletes: number;
+  writeFiles: string[];
+  deleteFiles: string[];
+} {
+  const writeFiles = Object.entries(writeInput.files)
+    .filter(([, file]) => file !== null)
+    .map(([filename]) => filename)
+    .sort();
+  const deleteFiles = Object.entries(writeInput.files)
+    .filter(([, file]) => file === null)
+    .map(([filename]) => filename)
+    .sort();
+  return {
+    fileWrites: writeFiles.length,
+    fileDeletes: deleteFiles.length,
+    writeFiles,
+    deleteFiles
+  };
 }

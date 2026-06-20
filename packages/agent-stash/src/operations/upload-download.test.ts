@@ -263,6 +263,53 @@ describe("upload/download", () => {
     });
   });
 
+  it("traces upload errors when a Gist update fails", async () => {
+    const { ctx, gistClient } = createContext();
+    const traces: Array<{ event: string; error?: string }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record as { event: string; error?: string });
+    };
+    gistClient.update = vi.fn(async () => {
+      throw new Error("secondary rate limit");
+    });
+
+    await expect(uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    })).rejects.toThrow("secondary rate limit");
+
+    expect(traces.at(-1)).toMatchObject({
+      event: "upload.error",
+      error: "secondary rate limit"
+    });
+  });
+
+  it("traces download errors when a Gist read fails", async () => {
+    const { ctx, gistClient } = createContext();
+    const traces: Array<{ event: string; error?: string }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record as { event: string; error?: string });
+    };
+    gistClient.read = vi.fn(async () => {
+      throw new Error("read refused");
+    });
+
+    await expect(downloadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    })).rejects.toThrow("read refused");
+
+    expect(traces.at(-1)).toMatchObject({
+      event: "download.error",
+      error: "read refused"
+    });
+  });
+
   it("does not rewrite profile config when uploading through an explicit Gist override", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });

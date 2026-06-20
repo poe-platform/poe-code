@@ -230,6 +230,30 @@ describe("sync", () => {
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
+  it("traces sync errors when a Gist read fails", async () => {
+    const { ctx, gistClient } = createContext();
+    const traces: Array<{ event: string; error?: string }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record as { event: string; error?: string });
+    };
+    gistClient.read = vi.fn(async () => {
+      throw new Error("read refused");
+    });
+
+    await expect(syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "fail",
+      yes: true
+    })).rejects.toThrow("read refused");
+
+    expect(traces.at(-1)).toMatchObject({
+      event: "sync.error",
+      error: "read refused"
+    });
+  });
+
   it("replaces legacy event-level remote hooks with split hook items during sync", async () => {
     const gistClient = new InMemoryGistClient();
     const legacyContent = `${JSON.stringify({

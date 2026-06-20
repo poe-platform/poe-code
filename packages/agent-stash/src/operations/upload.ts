@@ -7,7 +7,7 @@ import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, ver
 import { readFileIfExists } from "../fs-utils.js";
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
-import { traceAgentStash, traceGistWriteInput, traceItems } from "../trace.js";
+import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, UploadOptions, UploadResult } from "../types.js";
 
@@ -24,46 +24,51 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     skills: options.skills,
     hooks: options.hooks
   });
-  const now = ctx.now?.() ?? new Date();
-  const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
-  const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
-  const profileName = usesProfileTarget ? options.profile : undefined;
-  const items = await loadUploadInventory(ctx, options);
-  const client = ctx.gistClient ?? (await createDefaultGistClient());
-  await assertSelectedUploadItemsFound(ctx, client, resolved.gistId, items, options);
-  const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
-  if (!resolved.gistId && selectedItems.length === 0) {
-    throw new Error("No upload items selected.");
+  try {
+    const now = ctx.now?.() ?? new Date();
+    const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
+    const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
+    const profileName = usesProfileTarget ? options.profile : undefined;
+    const items = await loadUploadInventory(ctx, options);
+    const client = ctx.gistClient ?? (await createDefaultGistClient());
+    await assertSelectedUploadItemsFound(ctx, client, resolved.gistId, items, options);
+    const selectedItems = items.map(({ bundleFiles: _bundleFiles, targetPath: _targetPath, ...item }) => item);
+    if (!resolved.gistId && selectedItems.length === 0) {
+      throw new Error("No upload items selected.");
+    }
+    await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
+    const writeInput = resolved.gistId
+      ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks)
+      : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
+    await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
+      gistId: resolved.gistId,
+      ...traceGistWriteInput(writeInput)
+    });
+    const record = resolved.gistId
+      ? await client.update(resolved.gistId, writeInput)
+      : await client.createSecret(writeInput);
+    await recordUploadedHookOrigins(ctx, items);
+    await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
+    const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
+    if (manifestContent === undefined) {
+      throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
+    }
+    const uploadedManifest = parseManifest(manifestContent);
+    if (profileName) {
+      await writeBaselineManifest(
+        ctx,
+        profileName,
+        isFilteredUpload(options)
+          ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, profileName), uploadedManifest, selectedItems)
+          : uploadedManifest
+      );
+    }
+    await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
+    return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
+  } catch (error) {
+    await traceAgentStashError(ctx, "upload.error", error);
+    throw error;
   }
-  await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
-  const writeInput = resolved.gistId
-    ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks)
-    : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
-  await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
-    gistId: resolved.gistId,
-    ...traceGistWriteInput(writeInput)
-  });
-  const record = resolved.gistId
-    ? await client.update(resolved.gistId, writeInput)
-    : await client.createSecret(writeInput);
-  await recordUploadedHookOrigins(ctx, items);
-  await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
-  const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
-  if (manifestContent === undefined) {
-    throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
-  }
-  const uploadedManifest = parseManifest(manifestContent);
-  if (profileName) {
-    await writeBaselineManifest(
-      ctx,
-      profileName,
-      isFilteredUpload(options)
-        ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, profileName), uploadedManifest, selectedItems)
-        : uploadedManifest
-    );
-  }
-  await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
-  return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
 }
 
 async function recordUploadedHookOrigins(

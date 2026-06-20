@@ -17,7 +17,7 @@ import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
-import { traceAgentStash, traceGistWriteInput, traceItems } from "../trace.js";
+import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
 import { uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type {
@@ -55,6 +55,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     hooks: options.hooks,
     onConflict: options.onConflict
   });
+  try {
   const agentId = normalizeAgent(options.agent);
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
@@ -285,6 +286,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     backupId: result.backupId
   });
   return result;
+  } catch (error) {
+    await traceAgentStashError(ctx, "sync.error", error);
+    throw error;
+  }
 }
 
 function shouldRetryRemoteManifestRead(local: LoadedItem[], options: SyncOptions): boolean {

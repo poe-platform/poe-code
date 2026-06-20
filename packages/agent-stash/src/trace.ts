@@ -15,6 +15,16 @@ export async function traceAgentStash(
   });
 }
 
+export async function traceAgentStashError(
+  ctx: AgentStashContext,
+  event: string,
+  error: unknown
+): Promise<void> {
+  await traceAgentStash(ctx, event, {
+    error: error instanceof Error ? error.message : String(error)
+  });
+}
+
 export function traceItems(items: AgentStashItem[]): Array<{
   id: string;
   kind: AgentStashItem["kind"];

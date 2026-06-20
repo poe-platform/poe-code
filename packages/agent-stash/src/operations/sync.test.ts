@@ -116,6 +116,34 @@ describe("sync", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeDefined();
   });
 
+  it("replaces existing non-agent-stash Gist files during sync", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "seed.txt": { filename: "seed.txt", content: "not an agent-stash bundle\n" }
+      }
+    });
+    const { ctx } = createContext(createDummyAgentConfigFixture(), gistClient);
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(result.uploaded.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
+    expect(record.files["seed.txt"]).toBeUndefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files["seed.txt"]).toBeNull();
+  });
+
   it("replaces legacy event-level remote hooks with split hook items during sync", async () => {
     const gistClient = new InMemoryGistClient();
     const legacyContent = `${JSON.stringify({

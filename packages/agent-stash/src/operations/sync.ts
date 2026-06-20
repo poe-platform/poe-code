@@ -16,6 +16,7 @@ import {
 import { normalizeAgent } from "../locations.js";
 import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
+import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceItems } from "../trace.js";
 import { uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
@@ -84,7 +85,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const localHookEvents = hookEventsForLoadedItems(local);
   const localById = new Map(local.map((item) => [item.id, item]));
   const gist = await client.read(resolved.gistId);
-  const remote = loadBundleFromGist(gist);
+  const hasExistingManifest = gist.files[MANIFEST_FILENAME] !== undefined;
+  const remote = hasExistingManifest
+    ? loadBundleFromGist(gist)
+    : { manifest: createEmptyManifest(ctx.now?.() ?? new Date(), usesProfileTarget ? options.profile : undefined), files: new Map<string, string>() };
   verifyBundleHashes(remote);
   const remoteItems = await filterRemoteItemsForLocalIgnores(ctx, options.scope, remote.manifest.items.filter((item) => {
     if (item.scope !== options.scope || item.agentId !== agentId) {
@@ -226,6 +230,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     };
     const files: BundleFile[] = [...nextFiles.entries()].map(([filePath, content]) => ({ path: filePath, content }));
     const writeInput: GistWriteInput = { files: gistFilesFromBundle(manifest, files) };
+    if (!hasExistingManifest) {
+      for (const filename of Object.keys(gist.files)) {
+        if (!Object.hasOwn(writeInput.files, filename)) {
+          writeInput.files[filename] = null;
+        }
+      }
+    }
     for (const filePath of remoteDeletes) {
       writeInput.files[gistFilenameForBundlePath(filePath)] = null;
     }

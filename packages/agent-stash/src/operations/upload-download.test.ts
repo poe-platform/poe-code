@@ -367,6 +367,57 @@ describe("upload/download", () => {
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
+  it("retries stale non-manifest Gist reads before a follow-up upload", async () => {
+    const gistClient = new StaleReadAfterUpdateGistClient();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "seed.txt": { filename: "seed.txt", content: "placeholder\n" }
+      }
+    });
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          SessionStart: [
+            { hooks: [{ type: "command", command: "first session command" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const source = createContext(files, gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["SessionStart-all-tools-001-001"],
+      yes: true
+    });
+    await source.ctx.fs.writeFile("/repo/.claude/settings.json", JSON.stringify({
+      hooks: {
+        SessionStart: [
+          { hooks: [{ type: "command", command: "updated session command" }] }
+        ]
+      }
+    }, null, 2), { encoding: "utf8" });
+
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["SessionStart-all-tools-001-001"],
+      yes: true
+    });
+
+    await gistClient.read("gist-default");
+    const record = await gistClient.read("gist-default");
+    expect(record.files["seed.txt"]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/SessionStart-all-tools-001-001.json")]?.content).toContain("updated session command");
+    expect(gistClient.updateCalls.at(-1)?.input.files["seed.txt"]).toBeUndefined();
+    expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
+  });
+
   it("does not rewrite profile config when uploading through an explicit Gist override", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });

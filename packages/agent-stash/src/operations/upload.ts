@@ -11,6 +11,9 @@ import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems 
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, LoadedItem, UploadOptions, UploadResult } from "../types.js";
 
+const UPLOAD_MANIFEST_READ_ATTEMPTS = 6;
+const UPLOAD_MANIFEST_RETRY_DELAY_MS = 500;
+
 export async function uploadBundle(ctx: AgentStashContext, options: UploadOptions): Promise<UploadResult> {
   assertAgentStashScope(options.scope);
   if (!options.yes) {
@@ -231,7 +234,7 @@ async function createUpdateWriteInput(
   localHookItems: readonly LoadedItem[] | undefined
 ): Promise<GistWriteInput> {
   const now = ctx.now?.() ?? new Date();
-  const record = await client.read(gistId);
+  const record = await readUploadGistRecord(client, gistId);
   const hasExistingManifest = record.files[MANIFEST_FILENAME] !== undefined;
   const existing = hasExistingManifest
     ? loadBundleFromGist(record)
@@ -442,12 +445,29 @@ async function loadExistingBundleForUpload(
   profile: string | undefined
 ): Promise<{ manifest: AgentStashManifest; files: Map<string, string> }> {
   const now = ctx.now?.() ?? new Date();
-  const record = await client.read(gistId);
+  const record = await readUploadGistRecord(client, gistId);
   const existing = record.files[MANIFEST_FILENAME] !== undefined
     ? loadBundleFromGist(record)
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
   verifyBundleHashes(existing);
   return existing;
+}
+
+async function readUploadGistRecord(client: GistClient, gistId: string): Promise<Awaited<ReturnType<GistClient["read"]>>> {
+  let latest = await client.read(gistId);
+  for (let attempt = 1; attempt < UPLOAD_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+    await sleep(UPLOAD_MANIFEST_RETRY_DELAY_MS);
+    latest = await client.read(gistId);
+  }
+  return latest;
+}
+
+function isNonEmptyGistWithoutManifest(record: Awaited<ReturnType<GistClient["read"]>>): boolean {
+  return record.files[MANIFEST_FILENAME] === undefined && Object.keys(record.files).length > 0;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function remoteHasSelectedHookEvent(

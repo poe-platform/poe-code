@@ -903,6 +903,65 @@ describe("sync", () => {
     expect(settings.hooks?.Stop).toBeUndefined();
   });
 
+  it("downloads unselected remote hooks during full sync after a selected hook download", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "remote first stop" }] },
+            { hooks: [{ type: "command", command: "remote second stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({ hooks: {} }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-002-001"],
+      yes: true
+    });
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      onConflict: "fail",
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { Stop?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    const baseline = parseManifest(target.volume.readFileSync("/home/user/.agent-stash/cache/default.manifest.json", "utf8") as string);
+    expect(result.conflicts).toEqual([]);
+    expect(result.downloaded.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
+    expect(result.unchanged.map((item) => item.name)).toEqual(["Stop-all-tools-002-001"]);
+    expect(settings.hooks?.Stop?.map((group) => group.hooks?.[0]?.command)).toEqual([
+      "remote first stop",
+      "remote second stop"
+    ]);
+    expect(baseline.items.filter((item) => item.name.startsWith("Stop-")).map((item) => item.name)).toEqual([
+      "Stop-all-tools-001-001",
+      "Stop-all-tools-002-001"
+    ]);
+  });
+
   it("rejects local skill deletion before backup when fs.rm is unavailable", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

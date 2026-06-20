@@ -10,10 +10,10 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { traceAgentStash, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
-import type { AgentStashContext, DownloadOptions, DownloadResult } from "../types.js";
+import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult } from "../types.js";
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
   assertAgentStashScope(options.scope);
@@ -79,7 +79,13 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
 
   await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
   if (profileName) {
-    await writeBaselineManifest(ctx, profileName, bundle.manifest);
+    await writeBaselineManifest(
+      ctx,
+      profileName,
+      isFilteredDownload(options)
+        ? mergeSelectedDownloadBaseline(await readBaselineManifest(ctx, profileName), bundle.manifest, selected)
+        : bundle.manifest
+    );
   }
   await traceAgentStash(ctx, "download.finish", {
     gistId: gist.id,
@@ -87,6 +93,31 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     backupId: backup?.id
   });
   return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };
+}
+
+function isFilteredDownload(options: DownloadOptions): boolean {
+  return options.skills !== undefined || options.hooks !== undefined;
+}
+
+function mergeSelectedDownloadBaseline(
+  base: AgentStashManifest | null,
+  remoteManifest: AgentStashManifest,
+  selected: readonly AgentStashItem[]
+): AgentStashManifest {
+  const selectedIds = new Set(selected.map((item) => item.id));
+  const nextById = new Map((base?.items ?? []).map((item) => [item.id, item]));
+  for (const id of selectedIds) {
+    nextById.delete(id);
+  }
+  for (const item of remoteManifest.items) {
+    if (selectedIds.has(item.id)) {
+      nextById.set(item.id, item);
+    }
+  }
+  return {
+    ...remoteManifest,
+    items: [...nextById.values()].sort((left, right) => left.id.localeCompare(right.id))
+  };
 }
 
 function filterIgnoredRemoteItems(

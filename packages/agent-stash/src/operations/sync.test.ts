@@ -8,7 +8,7 @@ import { parseManifest, serializeManifest } from "../manifest.js";
 import { hashFiles, sha256 } from "../hash.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../fixtures/dummy-config.js";
-import type { AgentStashContext, AgentStashFileSystem } from "../types.js";
+import type { AgentStashContext, AgentStashFileSystem, GistRecord, GistWriteInput } from "../types.js";
 
 vi.mock("../gist-client.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../gist-client.js")>();
@@ -39,6 +39,32 @@ function createContext(files = createDummyAgentConfigFixture(), gistClient = new
       gistClient,
       now: () => fixedDate
     }
+  };
+}
+
+class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
+  private staleRecord: GistRecord | undefined;
+
+  async update(gistId: string, input: GistWriteInput): Promise<GistRecord> {
+    this.staleRecord = await super.read(gistId);
+    return super.update(gistId, input);
+  }
+
+  async read(gistId: string): Promise<GistRecord> {
+    if (this.staleRecord !== undefined) {
+      this.readCalls.push(gistId);
+      const stale = cloneGistRecord(this.staleRecord);
+      this.staleRecord = undefined;
+      return stale;
+    }
+    return super.read(gistId);
+  }
+}
+
+function cloneGistRecord(record: GistRecord): GistRecord {
+  return {
+    ...record,
+    files: Object.fromEntries(Object.entries(record.files).map(([name, file]) => [name, { ...file }]))
   };
 }
 
@@ -142,6 +168,66 @@ describe("sync", () => {
     expect(manifest.items.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
     expect(record.files["seed.txt"]).toBeUndefined();
     expect(gistClient.updateCalls.at(-1)?.input.files["seed.txt"]).toBeNull();
+  });
+
+  it("downloads remote-only split hooks selected by event name from an explicit Gist", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const target = createContext({}, gistClient);
+
+    const result = await syncBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: Record<string, unknown>;
+    };
+    expect(settings.hooks?.PreToolUse).toEqual([{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }]);
+  });
+
+  it("retries a stale explicit Gist read before failing selected remote-only split hooks", async () => {
+    const gistClient = new StaleReadAfterUpdateGistClient();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "README.md": { filename: "README.md", content: "placeholder\n" }
+      }
+    });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const target = createContext({}, gistClient);
+
+    const result = await syncBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
   it("replaces legacy event-level remote hooks with split hook items during sync", async () => {

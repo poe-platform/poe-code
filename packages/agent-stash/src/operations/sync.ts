@@ -25,12 +25,17 @@ import type {
   AgentStashItem,
   AgentStashManifest,
   BundleFile,
+  GistClient,
+  GistRecord,
   ConflictResolution,
   GistWriteInput,
   LoadedItem,
   SyncOptions,
   SyncResult
 } from "../types.js";
+
+const SYNC_MANIFEST_READ_ATTEMPTS = 6;
+const SYNC_MANIFEST_RETRY_DELAY_MS = 500;
 
 export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): Promise<SyncResult> {
   assertAgentStashScope(options.scope);
@@ -84,7 +89,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   await traceAgentStash(ctx, "sync.local.inventory", { items: traceItems(local) });
   const localHookEvents = hookEventsForLoadedItems(local);
   const localById = new Map(local.map((item) => [item.id, item]));
-  const gist = await client.read(resolved.gistId);
+  const gist = await readSyncGistRecord(client, resolved.gistId, shouldRetryRemoteManifestRead(local, options));
   const hasExistingManifest = gist.files[MANIFEST_FILENAME] !== undefined;
   const remote = hasExistingManifest
     ? loadBundleFromGist(gist)
@@ -280,6 +285,42 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     backupId: result.backupId
   });
   return result;
+}
+
+function shouldRetryRemoteManifestRead(local: LoadedItem[], options: SyncOptions): boolean {
+  if (options.skills === undefined && options.hooks === undefined) {
+    return local.length === 0;
+  }
+  for (const skill of options.skills ?? []) {
+    if (!local.some((item) => item.kind === "skill" && item.name === skill)) {
+      return true;
+    }
+  }
+  for (const hook of options.hooks ?? []) {
+    if (!local.some((item) => item.kind === "hook" && selectedHookMatchesName(item.name, hook))) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function readSyncGistRecord(client: GistClient, gistId: string, retryNonManifest: boolean): Promise<GistRecord> {
+  let latest = await client.read(gistId);
+  for (let attempt = 1; retryNonManifest && attempt < SYNC_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+    if (attempt > 1) {
+      await sleep(SYNC_MANIFEST_RETRY_DELAY_MS);
+    }
+    latest = await client.read(gistId);
+  }
+  return latest;
+}
+
+function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
+  return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function selectedIdsForBaseline(

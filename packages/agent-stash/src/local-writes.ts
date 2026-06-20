@@ -50,7 +50,8 @@ export async function writeItemToLocal(
   ctx: AgentStashContext,
   item: AgentStashItem,
   files: readonly BundleFile[],
-  scope: AgentStashScope = item.scope
+  scope: AgentStashScope = item.scope,
+  options: { hookCollision?: "replace" | "insert" } = {}
 ): Promise<string[]> {
   const targetPath = targetPathForItem(ctx, item, scope);
   await assertNoSymlinkAncestors(ctx.fs, targetPath, localWriteRoot(ctx, scope));
@@ -76,7 +77,12 @@ export async function writeItemToLocal(
   const existing = existingContent === null ? {} : parseExistingHookConfig(targetPath, existingContent);
   const originStore = await readHookOriginStore(ctx);
   if (fragment.position) {
-    const merged = mergeIndividualHook(existing.hooks ?? {}, fragment, originStore.targets[targetPath]?.[fragment.event] ?? []);
+    const merged = mergeIndividualHook(
+      existing.hooks ?? {},
+      fragment,
+      originStore.targets[targetPath]?.[fragment.event] ?? [],
+      options.hookCollision ?? "replace"
+    );
     existing.hooks = merged.hooks;
     originStore.targets[targetPath] ??= {};
     originStore.targets[targetPath][fragment.event] = merged.origins;
@@ -216,7 +222,8 @@ function parseHookFragmentPosition(metadata: unknown, itemName: string, eventNam
 function mergeIndividualHook(
   hooks: Record<string, unknown>,
   fragment: HookFragment,
-  origins: readonly HookOriginGroup[]
+  origins: readonly HookOriginGroup[],
+  hookCollision: "replace" | "insert"
 ): { hooks: Record<string, unknown>; origins: HookOriginGroup[] } {
   const eventGroups = cloneUnknownArray(hooks[fragment.event]);
   const sourceGroup = fragment.groups[0];
@@ -243,7 +250,11 @@ function mergeIndividualHook(
     : hasStoredOrigins
       ? originGroups[targetGroup.index]?.hooks ?? []
       : defaultHookOriginsForInsert(groupHooks.length, fragment.position.hookIndex);
-  const targetHook = targetHookForMerge(groupHooks, hasStoredOrigins ? existingHookOrigins : [], fragment.position.hookIndex);
+  const targetHook = targetHookForMerge(
+    groupHooks,
+    hasStoredOrigins || hookCollision === "insert" ? existingHookOrigins : [],
+    fragment.position.hookIndex
+  );
   if (targetHook.insert) {
     groupHooks.splice(targetHook.index, 0, cloneJson(sourceGroup.hooks[0]));
   } else {

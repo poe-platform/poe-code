@@ -489,6 +489,78 @@ describe("copy/move", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/global/claude-code/global-only/SKILL.md")]).toBeNull();
   });
 
+  it("moves one Gist hook to project without overwriting an existing matching local hook", async () => {
+    const gistClient = new InMemoryGistClient();
+    gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [{ type: "command", command: "remote hook" }]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [{ type: "command", command: "local sentinel" }]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await copyOrMoveItem(target.ctx, {
+      operation: "move",
+      from: "gist",
+      to: "project",
+      profile: "default",
+      agent: "claude-code",
+      kind: "hook",
+      name: "PostToolUse-Write-Edit-001-001",
+      yes: true
+    });
+
+    const localHooks = await loadInventory(target.ctx, {
+      scope: "project",
+      agent: "claude-code",
+      kind: "hook"
+    });
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PostToolUse?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+
+    expect(localHooks.map((item) => item.name)).toEqual([
+      "PostToolUse-Write-Edit-001-001",
+      "PostToolUse-Write-Edit-001-002"
+    ]);
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
+      "remote hook",
+      "local sentinel"
+    ]);
+    expect(manifest.items.map((item) => item.name)).not.toContain("PostToolUse-Write-Edit-001-001");
+  });
+
   it("copies one project skill to an existing profile Gist", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });

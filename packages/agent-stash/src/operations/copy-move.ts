@@ -43,7 +43,7 @@ export async function copyOrMoveItem(ctx: AgentStashContext, options: CopyMoveOp
     : undefined;
 
   if (options.to === "project" || options.to === "global") {
-    await writeItemToLocal(ctx, itemForTarget, target.files, itemForTarget.scope);
+    await writeItemToLocal(ctx, itemForTarget, target.files, itemForTarget.scope, { hookCollision: "insert" });
   } else {
     await writeGistItem(ctx, options, itemForTarget, target.files);
   }

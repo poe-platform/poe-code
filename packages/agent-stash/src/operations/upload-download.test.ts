@@ -649,6 +649,98 @@ describe("upload/download", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("echo done");
   });
 
+  it("preserves same-event hook splits from another scope during filtered upload", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual([
+      "global:hook:claude-code:Stop-all-tools-001-001",
+      "project:hook:claude-code:Stop-all-tools-001-001"
+    ]);
+    expect(record.files[gistFilenameForBundlePath("hooks/global/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("global stop");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("echo done");
+  });
+
+  it("preserves legacy same-event hook chunks from another scope during filtered upload", async () => {
+    const gistClient = new InMemoryGistClient();
+    const legacyContent = `${JSON.stringify({
+      hooks: {
+        Stop: [{ hooks: [{ type: "command", command: "project legacy stop" }] }]
+      }
+    }, null, 2)}\n`;
+    const legacyFile = {
+      path: "hooks/project/claude-code/Stop.json",
+      size: Buffer.byteLength(legacyContent, "utf8"),
+      sha256: sha256(legacyContent)
+    };
+    const legacyItem = {
+      id: "project:hook:claude-code:Stop",
+      kind: "hook" as const,
+      agentId: "claude-code",
+      name: "Stop",
+      scope: "project" as const,
+      path: legacyFile.path,
+      files: [legacyFile],
+      updatedAt: fixedDate.toISOString(),
+      contentHash: hashFiles([legacyFile])
+    };
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "agent-stash.json": {
+          filename: "agent-stash.json",
+          content: serializeManifest({
+            schemaVersion: 1,
+            profile: "default",
+            createdAt: fixedDate.toISOString(),
+            updatedAt: fixedDate.toISOString(),
+            items: [legacyItem]
+          })
+        },
+        [gistFilenameForBundlePath(legacyFile.path)]: {
+          filename: gistFilenameForBundlePath(legacyFile.path),
+          content: legacyContent
+        }
+      }
+    });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual([
+      "global:hook:claude-code:Stop-all-tools-001-001",
+      "project:hook:claude-code:Stop"
+    ]);
+    expect(record.files[gistFilenameForBundlePath("hooks/global/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("global stop");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop.json")]?.content).toContain("project legacy stop");
+  });
+
   it("replaces legacy event-level remote hooks with split hook items during upload", async () => {
     const gistClient = new InMemoryGistClient();
     const legacyContent = `${JSON.stringify({

@@ -231,21 +231,22 @@ async function createUpdateWriteInput(
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
   verifyBundleHashes(existing, { allowUntrackedLegacyHookChunks: true });
   const itemIds = new Set(items.map((item) => item.id));
+  const uploadTarget = { scope: options.scope, agentId: normalizeAgent(options.agent) };
   const fullUploadTarget = fullUploadReplacementTarget(options);
   const uploadedHookEvents = hookEventsForItems(items, files);
   const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, options.hooks, existing, localHookItems);
   const replacedLegacyHookEvents = new Set([...uploadedHookEvents, ...replacedSplitHookEvents]);
-  const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
+  const legacyHookItems = existing.manifest.items.filter((item) => isReplacedLegacyHookItem(item, uploadedHookEvents, uploadTarget));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
   }
   const untrackedLegacyHookChunks = [...existing.files.keys()].filter((filePath) =>
-    isReplacedLegacyHookChunkPath(filePath, replacedLegacyHookEvents, fullUploadTarget)
+    isReplacedLegacyHookChunkPath(filePath, replacedLegacyHookEvents, uploadTarget, fullUploadTarget)
   );
   if (untrackedLegacyHookChunks.length > 0) {
     await traceAgentStash(ctx, "upload.untrackedLegacyHookChunksRemoved", { files: untrackedLegacyHookChunks });
   }
-  const staleSplitHookItems = existing.manifest.items.filter((item) => !itemIds.has(item.id) && isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files));
+  const staleSplitHookItems = existing.manifest.items.filter((item) => !itemIds.has(item.id) && isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files, uploadTarget));
   if (staleSplitHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.staleHookSplitsRemoved", { items: traceItems(staleSplitHookItems) });
   }
@@ -255,8 +256,8 @@ async function createUpdateWriteInput(
   for (const item of existing.manifest.items) {
     if (
       !itemIds.has(item.id)
-      && !(item.kind === "hook" && uploadedHookEvents.has(item.name))
-      && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files)
+      && !isReplacedLegacyHookItem(item, uploadedHookEvents, uploadTarget)
+      && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files, uploadTarget)
       && !isReplacedByFullUpload(item, fullUploadTarget)
     ) {
       continue;
@@ -285,8 +286,8 @@ async function createUpdateWriteInput(
       if (itemIds.has(item.id)) {
         return true;
       }
-      return !(item.kind === "hook" && uploadedHookEvents.has(item.name))
-        && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files)
+      return !isReplacedLegacyHookItem(item, uploadedHookEvents, uploadTarget)
+        && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files, uploadTarget)
         && !isReplacedByFullUpload(item, fullUploadTarget);
     })
     .sort((left, right) => left.id.localeCompare(right.id));
@@ -323,6 +324,17 @@ function isReplacedByFullUpload(
   target: { scope: string; agentId: string } | undefined
 ): boolean {
   return target !== undefined && item.scope === target.scope && item.agentId === target.agentId;
+}
+
+function isReplacedLegacyHookItem(
+  item: AgentStashManifest["items"][number],
+  uploadedHookEvents: Set<string>,
+  uploadTarget: { scope: string; agentId: string }
+): boolean {
+  return item.kind === "hook"
+    && item.scope === uploadTarget.scope
+    && item.agentId === uploadTarget.agentId
+    && uploadedHookEvents.has(item.name);
 }
 
 function hookEventsForItems(items: AgentStashManifest["items"], files: BundleFile[]): Set<string> {
@@ -474,10 +486,14 @@ async function loadExistingBundleForUpload(
 function isReplacedLegacyHookChunkPath(
   filePath: string,
   replacedHookEvents: Set<string>,
+  uploadTarget: { scope: string; agentId: string },
   fullUploadTarget: { scope: string; agentId: string } | undefined
 ): boolean {
   const chunk = parseLegacyHookChunkPath(filePath);
   if (chunk === undefined) {
+    return false;
+  }
+  if (chunk.scope !== uploadTarget.scope || chunk.agentId !== uploadTarget.agentId) {
     return false;
   }
   if (fullUploadTarget !== undefined && chunk.scope === fullUploadTarget.scope && chunk.agentId === fullUploadTarget.agentId) {
@@ -520,9 +536,13 @@ function remoteHasSelectedHookEvent(
 function isStaleSplitHookItem(
   item: AgentStashManifest["items"][number],
   replacedSplitHookEvents: Set<string>,
-  files: Map<string, string>
+  files: Map<string, string>,
+  uploadTarget: { scope: string; agentId: string }
 ): boolean {
   if (item.kind !== "hook") {
+    return false;
+  }
+  if (item.scope !== uploadTarget.scope || item.agentId !== uploadTarget.agentId) {
     return false;
   }
   const content = files.get(item.files[0]?.path ?? "");

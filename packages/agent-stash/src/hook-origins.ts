@@ -1,4 +1,5 @@
 import path from "node:path";
+import crypto from "node:crypto";
 import { assertNoSymlinkAncestors, assertNotSymlink, readFileIfExists, writeTextFile } from "./fs-utils.js";
 import { agentStashDir } from "./locations.js";
 import type { AgentStashContext } from "./types.js";
@@ -10,6 +11,8 @@ export type HookOriginStore = {
 export type HookOriginGroup = {
   groupIndex: number;
   hooks: number[];
+  groupFieldsHash?: string;
+  hookHashes?: string[];
 };
 
 export async function readHookOriginStore(ctx: AgentStashContext): Promise<HookOriginStore> {
@@ -55,13 +58,62 @@ function parseHookOriginStore(parsed: unknown): HookOriginStore {
               throw new Error("Malformed hook origin cache.");
             }
             return hookIndex;
-          })
+          }),
+          ...(typeof group.groupFieldsHash === "string" ? { groupFieldsHash: group.groupFieldsHash } : {}),
+          ...(Array.isArray(group.hookHashes) && group.hookHashes.every((hash) => typeof hash === "string")
+            ? { hookHashes: [...group.hookHashes] }
+            : {})
         };
       });
     }
     targets[targetPath] = events;
   }
   return { targets };
+}
+
+export function hookOriginsMatchEventGroups(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
+  return origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
+    const group = eventGroups[groupIndex];
+    const fingerprints = hookGroupFingerprints(group);
+    return origin.hooks.length === fingerprints.hookHashes.length
+      && origin.groupFieldsHash === fingerprints.groupFieldsHash
+      && arraysEqual(origin.hookHashes, fingerprints.hookHashes);
+  });
+}
+
+export function alignHookOrigins(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): HookOriginGroup[] {
+  if (originsMatchEventGroupsByPosition(eventGroups, origins)) {
+    return origins.map((origin, groupIndex) => {
+      const fingerprints = hookGroupFingerprints(eventGroups[groupIndex]);
+      return {
+        groupIndex: origin.groupIndex,
+        hooks: [...origin.hooks],
+        groupFieldsHash: origin.groupFieldsHash ?? fingerprints.groupFieldsHash,
+        hookHashes: origin.hookHashes ?? fingerprints.hookHashes
+      };
+    });
+  }
+  const usedOrigins = new Set<number>();
+  return eventGroups.map((group, groupIndex) => {
+    const fingerprints = hookGroupFingerprints(group);
+    const originIndex = findMatchingOrigin(fingerprints, origins, usedOrigins);
+    if (originIndex === -1) {
+      return {
+        groupIndex,
+        hooks: fingerprints.hookHashes.map((_, hookIndex) => hookIndex),
+        groupFieldsHash: fingerprints.groupFieldsHash,
+        hookHashes: fingerprints.hookHashes
+      };
+    }
+    usedOrigins.add(originIndex);
+    const origin = origins[originIndex]!;
+    return {
+      groupIndex: origin.groupIndex,
+      hooks: alignHookIndexes(fingerprints.hookHashes, origin),
+      groupFieldsHash: fingerprints.groupFieldsHash,
+      hookHashes: fingerprints.hookHashes
+    };
+  });
 }
 
 export async function writeHookOriginStore(ctx: AgentStashContext, store: HookOriginStore): Promise<void> {
@@ -99,6 +151,76 @@ function pruneHookOriginStore(store: HookOriginStore): void {
 
 function hookOriginsPath(ctx: AgentStashContext): string {
   return path.join(agentStashDir(ctx.homeDir), "hook-origins.json");
+}
+
+function originsMatchEventGroupsByPosition(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
+  return origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
+    const group = eventGroups[groupIndex];
+    return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
+  });
+}
+
+function findMatchingOrigin(
+  fingerprints: { groupFieldsHash: string; hookHashes: string[] },
+  origins: readonly HookOriginGroup[],
+  usedOrigins: ReadonlySet<number>
+): number {
+  let partialMatch = -1;
+  for (const [index, origin] of origins.entries()) {
+    if (usedOrigins.has(index) || origin.groupFieldsHash !== fingerprints.groupFieldsHash || !Array.isArray(origin.hookHashes)) {
+      continue;
+    }
+    if (arraysEqual(origin.hookHashes, fingerprints.hookHashes)) {
+      return index;
+    }
+    if (fingerprints.hookHashes.every((hash) => origin.hookHashes?.includes(hash))) {
+      partialMatch = index;
+    }
+  }
+  return partialMatch;
+}
+
+function alignHookIndexes(hookHashes: readonly string[], origin: HookOriginGroup): number[] {
+  const originHashes = origin.hookHashes ?? [];
+  const usedHooks = new Set<number>();
+  return hookHashes.map((hash, fallbackIndex) => {
+    const originHashIndex = originHashes.findIndex((candidate, index) => candidate === hash && !usedHooks.has(index));
+    if (originHashIndex === -1) {
+      return fallbackIndex;
+    }
+    usedHooks.add(originHashIndex);
+    return origin.hooks[originHashIndex] ?? fallbackIndex;
+  });
+}
+
+function hookGroupFingerprints(group: unknown): { groupFieldsHash: string; hookHashes: string[] } {
+  if (!isRecord(group) || !Array.isArray(group.hooks)) {
+    return { groupFieldsHash: stableHash({}), hookHashes: [] };
+  }
+  const { hooks: ignoredHooks, ...fields } = group;
+  void ignoredHooks;
+  return {
+    groupFieldsHash: stableHash(fields),
+    hookHashes: group.hooks.map((hook) => stableHash(hook))
+  };
+}
+
+function stableHash(value: unknown): string {
+  return crypto.createHash("sha256").update(stableStringify(value)).digest("hex");
+}
+
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+  if (isRecord(value)) {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function arraysEqual(left: readonly string[] | undefined, right: readonly string[]): boolean {
+  return left !== undefined && left.length === right.length && left.every((value, index) => value === right[index]);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

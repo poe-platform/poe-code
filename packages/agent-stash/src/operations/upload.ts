@@ -1,7 +1,12 @@
 import { createDefaultGistClient } from "../gist-client.js";
 import { createEmptyManifest, parseManifest } from "../manifest.js";
 import { hookEventFromFragmentContent } from "../hook-items.js";
-import { readHookOriginStore, writeHookOriginStore, type HookOriginGroup } from "../hook-origins.js";
+import {
+  alignHookOrigins,
+  hookOriginsMatchEventGroups,
+  readHookOriginStore,
+  writeHookOriginStore
+} from "../hook-origins.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { readFileIfExists } from "../fs-utils.js";
@@ -123,33 +128,17 @@ async function recordUploadedHookOrigins(
         continue;
       }
       const targetOrigins = originStore.targets[targetPath]?.[event] ?? [];
-      if (originsMatchEventGroups(eventGroups, targetOrigins)) {
+      if (hookOriginsMatchEventGroups(eventGroups, targetOrigins)) {
         continue;
       }
       originStore.targets[targetPath] ??= {};
-      originStore.targets[targetPath][event] = defaultHookOrigins(eventGroups);
+      originStore.targets[targetPath][event] = alignHookOrigins(eventGroups, targetOrigins);
       changed = true;
     }
   }
   if (changed) {
     await writeHookOriginStore(ctx, originStore);
   }
-}
-
-function defaultHookOrigins(eventGroups: readonly unknown[]): HookOriginGroup[] {
-  return eventGroups.map((group, groupIndex) => ({
-    groupIndex,
-    hooks: isRecord(group) && Array.isArray(group.hooks)
-      ? group.hooks.map((_, hookIndex) => hookIndex)
-      : []
-  }));
-}
-
-function originsMatchEventGroups(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
-  return origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
-    const group = eventGroups[groupIndex];
-    return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
-  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

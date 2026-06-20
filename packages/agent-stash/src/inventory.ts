@@ -2,7 +2,7 @@ import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hashFiles, readDirectoryBundle, sha256 } from "./hash.js";
 import { hookItemName } from "./hook-items.js";
-import { readHookOriginStore } from "./hook-origins.js";
+import { alignHookOrigins, readHookOriginStore } from "./hook-origins.js";
 import { isIgnoredSubtree, loadIgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { stableItemId, validateManifestItem } from "./manifest.js";
@@ -144,7 +144,7 @@ async function loadHookInventory(
     if (!Array.isArray(groups)) {
       throw new Error(`Malformed hooks in ${hookPath}`);
     }
-    const groupOrigins = targetOrigins[event]?.length === groups.length ? targetOrigins[event] : [];
+    const groupOrigins = alignHookOrigins(groups, targetOrigins[event] ?? []);
     for (const [groupIndex, group] of groups.entries()) {
       if (!isRecord(group)) {
         throw new Error(`Malformed hooks in ${hookPath}`);

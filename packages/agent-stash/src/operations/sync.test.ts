@@ -1008,6 +1008,64 @@ describe("sync", () => {
     expect(settings.hooks?.Stop).toBeUndefined();
   });
 
+  it("applies local deletion for an earlier hook without renumbering surviving hooks", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "first local stop" }] },
+            { hooks: [{ type: "command", command: "second local stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx, volume, gistClient } = createContext(files);
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    volume.writeFileSync("/repo/.claude/settings.json", JSON.stringify({
+      hooks: {
+        Stop: [
+          { hooks: [{ type: "command", command: "second local stop" }] }
+        ]
+      }
+    }, null, 2));
+    const prompted: string[] = [];
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-001-001"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict(conflict) {
+        prompted.push(conflict.item.name);
+        return "fail";
+      }
+    });
+
+    const settings = JSON.parse(volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { Stop?: Array<{ hooks: Array<{ command: string }> }> };
+    };
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(prompted).toEqual([]);
+    expect(result.deletedRemote.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
+    expect(result.uploaded).toEqual([]);
+    expect(settings.hooks?.Stop?.flatMap((group) => group.hooks.map((hook) => hook.command))).toEqual([
+      "second local stop"
+    ]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["Stop-all-tools-002-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeDefined();
+  });
+
   it("applies remote deletion after upload and partial download establish the baseline", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

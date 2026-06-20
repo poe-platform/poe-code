@@ -984,6 +984,63 @@ describe("upload/download", () => {
     expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual(["remote changed"]);
   });
 
+  it("replaces a same-position local split hook when downloading one fragment without origin metadata", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            {
+              matcher: "Write|Edit",
+              hooks: [
+                { type: "command", command: "local first" },
+                { type: "command", command: "local second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(files, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const record = await gistClient.read("gist-default");
+    updateRemoteHookFragment(record, "hooks/project/claude-code/PostToolUse-Write-Edit-001-002.json", {
+      agentStash: { hookEvent: "PostToolUse", groupIndex: 0, hookIndex: 1 },
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: "Write|Edit",
+            hooks: [{ type: "command", command: "remote changed second" }]
+          }
+        ]
+      }
+    });
+    gistClient.seed(record);
+
+    await downloadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse-Write-Edit-001-002"],
+      yes: true
+    });
+
+    const settings = JSON.parse(source.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PostToolUse?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.hooks?.PostToolUse?.[0]?.hooks?.map((hook) => hook.command)).toEqual([
+      "local first",
+      "remote changed second"
+    ]);
+  });
+
   it("downloads one hook command without replacing an unrelated same-index local command", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

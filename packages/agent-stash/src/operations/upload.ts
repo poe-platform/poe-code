@@ -1,8 +1,10 @@
 import { createDefaultGistClient } from "../gist-client.js";
 import { createEmptyManifest, parseManifest } from "../manifest.js";
 import { hookEventFromFragmentContent } from "../hook-items.js";
+import { readHookOriginStore, writeHookOriginStore, type HookOriginGroup } from "../hook-origins.js";
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
+import { readFileIfExists } from "../fs-utils.js";
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceItems } from "../trace.js";
@@ -45,6 +47,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   const record = resolved.gistId
     ? await client.update(resolved.gistId, writeInput)
     : await client.createSecret(writeInput);
+  await recordUploadedHookOrigins(ctx, items);
   await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
   const manifestContent = writeInput.files[MANIFEST_FILENAME]?.content;
   if (manifestContent === undefined) {
@@ -62,6 +65,84 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
   }
   await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
   return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
+}
+
+async function recordUploadedHookOrigins(
+  ctx: AgentStashContext,
+  items: Awaited<ReturnType<typeof loadUploadInventory>>
+): Promise<void> {
+  const hookItems = items.filter((item) => item.kind === "hook");
+  if (hookItems.length === 0) {
+    return;
+  }
+  const selectedEventsByTarget = new Map<string, Set<string>>();
+  for (const item of hookItems) {
+    for (const file of item.bundleFiles) {
+      const event = hookEventFromFragmentContent(file.content);
+      if (!event) {
+        continue;
+      }
+      const selectedEvents = selectedEventsByTarget.get(item.targetPath) ?? new Set<string>();
+      selectedEvents.add(event);
+      selectedEventsByTarget.set(item.targetPath, selectedEvents);
+    }
+  }
+  if (selectedEventsByTarget.size === 0) {
+    return;
+  }
+  const originStore = await readHookOriginStore(ctx);
+  let changed = false;
+  for (const [targetPath, events] of selectedEventsByTarget) {
+    const content = await readFileIfExists(ctx.fs, targetPath);
+    if (content === null) {
+      continue;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(content) as unknown;
+    } catch {
+      continue;
+    }
+    if (!isRecord(parsed) || !isRecord(parsed.hooks)) {
+      continue;
+    }
+    for (const event of events) {
+      const eventGroups = parsed.hooks[event];
+      if (!Array.isArray(eventGroups)) {
+        continue;
+      }
+      const targetOrigins = originStore.targets[targetPath]?.[event] ?? [];
+      if (originsMatchEventGroups(eventGroups, targetOrigins)) {
+        continue;
+      }
+      originStore.targets[targetPath] ??= {};
+      originStore.targets[targetPath][event] = defaultHookOrigins(eventGroups);
+      changed = true;
+    }
+  }
+  if (changed) {
+    await writeHookOriginStore(ctx, originStore);
+  }
+}
+
+function defaultHookOrigins(eventGroups: readonly unknown[]): HookOriginGroup[] {
+  return eventGroups.map((group, groupIndex) => ({
+    groupIndex,
+    hooks: isRecord(group) && Array.isArray(group.hooks)
+      ? group.hooks.map((_, hookIndex) => hookIndex)
+      : []
+  }));
+}
+
+function originsMatchEventGroups(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
+  return origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
+    const group = eventGroups[groupIndex];
+    return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
+  });
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isFilteredUpload(options: UploadOptions): boolean {

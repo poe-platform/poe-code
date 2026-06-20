@@ -549,6 +549,53 @@ describe("upload/download", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/commit-helper/SKILL.md")]).toBeUndefined();
   });
 
+  it("removes stale same-scope items during a full upload", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          SessionStart: [
+            { hooks: [{ type: "command", command: "remote first session" }] },
+            { hooks: [{ type: "command", command: "remote second session" }] }
+          ],
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).not.toContain("project:hook:claude-code:SessionStart-all-tools-001-001");
+    expect(manifest.items.map((item) => item.id)).not.toContain("project:hook:claude-code:SessionStart-all-tools-002-001");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/SessionStart-all-tools-001-001.json")]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/SessionStart-all-tools-002-001.json")]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("echo done");
+  });
+
   it("replaces legacy event-level remote hooks with split hook items during upload", async () => {
     const gistClient = new InMemoryGistClient();
     const legacyContent = `${JSON.stringify({

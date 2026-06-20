@@ -9,6 +9,7 @@ import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBasel
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
+import { normalizeAgent } from "../locations.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, LoadedItem, UploadOptions, UploadResult } from "../types.js";
 
 const UPLOAD_MANIFEST_READ_ATTEMPTS = 6;
@@ -44,7 +45,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     }
     await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
     const writeInput = resolved.gistId
-      ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options.hooks, localHookItems)
+      ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options, localHookItems)
       : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
     await traceAgentStash(ctx, resolved.gistId ? "upload.remote.update" : "upload.remote.create", {
       gistId: resolved.gistId,
@@ -230,7 +231,7 @@ async function createUpdateWriteInput(
   items: AgentStashManifest["items"],
   files: BundleFile[],
   profile: string | undefined,
-  selectedHooks: string[] | undefined,
+  options: UploadOptions,
   localHookItems: readonly LoadedItem[] | undefined
 ): Promise<GistWriteInput> {
   const now = ctx.now?.() ?? new Date();
@@ -241,8 +242,9 @@ async function createUpdateWriteInput(
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
   verifyBundleHashes(existing);
   const itemIds = new Set(items.map((item) => item.id));
+  const fullUploadTarget = fullUploadReplacementTarget(options);
   const uploadedHookEvents = hookEventsForItems(items, files);
-  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, selectedHooks, existing, localHookItems);
+  const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, options.hooks, existing, localHookItems);
   const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
@@ -259,6 +261,7 @@ async function createUpdateWriteInput(
       !itemIds.has(item.id)
       && !(item.kind === "hook" && uploadedHookEvents.has(item.name))
       && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files)
+      && !isReplacedByFullUpload(item, fullUploadTarget)
     ) {
       continue;
     }
@@ -283,7 +286,8 @@ async function createUpdateWriteInput(
         return true;
       }
       return !(item.kind === "hook" && uploadedHookEvents.has(item.name))
-        && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files);
+        && !isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files)
+        && !isReplacedByFullUpload(item, fullUploadTarget);
     })
     .sort((left, right) => left.id.localeCompare(right.id));
 
@@ -305,6 +309,20 @@ async function createUpdateWriteInput(
     writeInput.files[gistFilenameForBundlePath(filePath)] = null;
   }
   return writeInput;
+}
+
+function fullUploadReplacementTarget(options: UploadOptions): { scope: string; agentId: string } | undefined {
+  if (isFilteredUpload(options)) {
+    return undefined;
+  }
+  return { scope: options.scope, agentId: normalizeAgent(options.agent) };
+}
+
+function isReplacedByFullUpload(
+  item: AgentStashManifest["items"][number],
+  target: { scope: string; agentId: string } | undefined
+): boolean {
+  return target !== undefined && item.scope === target.scope && item.agentId === target.agentId;
 }
 
 function hookEventsForItems(items: AgentStashManifest["items"], files: BundleFile[]): Set<string> {

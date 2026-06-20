@@ -475,16 +475,16 @@ poe-code gaslight ingest
 
 **Options:**
 
-| Option             | Default                                                    | Description                                |
-| ------------------ | ---------------------------------------------------------- | ------------------------------------------ |
-| `--agent <agent>`  | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run.                           |
-| `--config <path>`  | Default config lookup                                      | Use a specific gaslight config file.       |
-| `--model <model>`  | Agent/configured default                                   | Model override.                            |
-| `--mode <mode>`    | `edit`                                                     | Spawn mode: `read`, `edit`, or `yolo`.     |
-| `--plans <paths>`  | None                                                       | Markdown plans to run sequentially.        |
-| `install --local`  | Local when `--yes`                                         | Write `<cwd>/.poe-code/gaslight.yaml`.     |
-| `install --global` | None                                                       | Write `<homeDir>/.poe-code/gaslight.yaml`. |
-| `install --force`  | `false`                                                    | Replace an existing gaslight config.       |
+| Option             | Default                                                    | Description                                    |
+| ------------------ | ---------------------------------------------------------- | ---------------------------------------------- |
+| `--agent <agent>`  | Prompted; `--yes` uses configured default or `claude-code` | Agent id to run.                               |
+| `--config <path>`  | Default config lookup                                      | Use a specific gaslight config file.           |
+| `--model <model>`  | Agent/configured default                                   | Model override.                                |
+| `--mode <mode>`    | `auto`                                                     | Spawn mode: `read`, `edit`, `yolo`, or `auto`. |
+| `--plans <paths>`  | None                                                       | Markdown plans to run sequentially.            |
+| `install --local`  | Local when `--yes`                                         | Write `<cwd>/.poe-code/gaslight.yaml`.         |
+| `install --global` | None                                                       | Write `<homeDir>/.poe-code/gaslight.yaml`.     |
+| `install --force`  | `false`                                                    | Replace an existing gaslight config.           |
 
 **Ingest options:**
 
@@ -845,6 +845,24 @@ poe-code skill configure [agent]
 | `--local`        | Use local scope (project directory).         |
 | `--global`       | Use global scope (home directory).           |
 
+#### `skill install`
+
+Install an arbitrary `SKILL.md` file into an agent's native skill directory.
+
+```bash
+poe-code skill install [agent] --name <folder-name> --file <path-to-SKILL.md>
+```
+
+**Options:**
+
+| Option          | Description                                                                                 |
+| --------------- | ------------------------------------------------------------------------------------------- |
+| `--name <name>` | Skill folder name to install.                                                               |
+| `--file <path>` | Path to a `SKILL.md` file. Relative paths resolve from the current working directory.       |
+| `--local`       | Install into the project skill directory.                                                   |
+| `--global`      | Install into the user skill directory.                                                      |
+| `-y, --yes`     | Skip prompts. Defaults the agent from config or `claude-code`, and defaults scope to local. |
+
 #### `skill unconfigure`
 
 Remove skill directories from an agent.
@@ -870,6 +888,9 @@ poe-code skill configure claude-code --global
 
 # Install skills locally (project scope)
 poe-code skill configure claude-code --local
+
+# Install one custom skill file locally
+poe-code skill install claude-code --name review-helper --file ./SKILL.md --local
 
 # Remove skills
 poe-code skill unconfigure claude-code --global
@@ -2219,6 +2240,9 @@ poe-code skill configure claude-code --global
 
 # Install skills locally for the current project
 poe-code skill configure claude-code --local
+
+# Install an arbitrary SKILL.md file locally
+poe-code skill install claude-code --name review-helper --file ./SKILL.md --local
 
 # Remove skills
 poe-code skill unconfigure claude-code --global --force

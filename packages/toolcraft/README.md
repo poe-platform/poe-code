@@ -434,6 +434,12 @@ HTTP-style errors with request/response context print the request, status, and a
 
 Enable structured error reports with `errorReports: true`, `errorReports: { dir }`, or `TOOLCRAFT_ERROR_REPORTS=1`. Reports are written under `.toolcraft/errors` by default, include argv, parsed params, resolved secret presence, structured error fields, stack/cause chains, and HTTP transcripts, and redact declared secrets plus parameter names that look sensitive.
 
+## Runtime diagnostics
+
+Handlers receive `diagnostics` and `progress` in the shared runtime context. `progress(message)` emits an info-level progress diagnostic. `diagnostics.emit({ level, message, category, data })` supports `error`, `warn`, `info`, `debug`, and `trace` events for categories such as `runtime`, `http`, `auth`, `retry`, and `progress`.
+
+CLI, SDK, and MCP runtimes share the same logger and log-level gates. The default diagnostic level is `warn`; `silent` suppresses diagnostic events. CLI apps can enable `controls.logLevel` to expose `--log-level <silent|error|warn|info|debug|trace>`, and `controls.verbose` maps `--verbose` to trace-level diagnostics when no explicit log level is passed.
+
 ## Migrating from a folder of scripts
 
 Pattern for adopting toolcraft incrementally:
@@ -491,7 +497,9 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 
 - `casing?: "kebab" | "snake"` — generated CLI flag style.
 - `argv?: readonly string[]` — explicit argv vector for embedded runners and tests. Defaults to `process.argv` and is used for routing, help rendering, version lookup, error reports, and output-mode detection.
-- `controls?: { debug?: boolean; output?: boolean; verbose?: boolean; yes?: boolean }` — opts into global CLI controls such as `--debug`, `--output`, `--verbose`, and `--yes`.
+- `controls?: { debug?: boolean; logLevel?: boolean; output?: boolean; verbose?: boolean; yes?: boolean }` — opts into global CLI controls such as `--debug`, `--log-level`, `--output`, `--verbose`, and `--yes`.
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
@@ -505,6 +513,8 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `casing?: "camel"` — generated SDK member style.
 - `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 
 ### `createMCPServer(root, options)` / `runMCP(root, options)`
 
@@ -512,6 +522,8 @@ additional long CLI flags. For example, `rawResponse` normally maps to `--raw-re
 - `version: string`
 - `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
+- `logLevel?: "silent" | "error" | "warn" | "info" | "debug" | "trace"` — default runtime diagnostic level.
+- `logger?: RuntimeLogger | ((event) => void)` — receives diagnostic events that pass the configured log level.
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).
 - `casing?: "snake" | "camel"` — affects MCP input-schema property names, output-schema property names, and structured result keys. Tool names always stay `__`-joined snake_case.
@@ -534,6 +546,7 @@ type HumanInLoopRuntimeOptions = {
 - `fetch: typeof globalThis.fetch`
 - `fs: { readFile, writeFile, exists }`
 - `env: { get(key: string): string | undefined }`
+- `diagnostics: RuntimeLogger`
 - `progress(message: string): void`
 - All `services` keys merged in.
 
@@ -542,7 +555,7 @@ type HumanInLoopRuntimeOptions = {
 - `defineCommand`, `defineGroup`
 - `S`, `toJsonSchema`, type helpers — re-exported from `toolcraft-schema`
 - `UserError`, `ApprovalDeclinedError`, `HttpError` and the HTTP error subclasses.
-- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, schema types from `toolcraft-schema`.
+- Type exports: `Command`, `Group`, `Scope`, `HandlerContext`, `HumanInLoopConfig`, `HumanInLoopPending`, `HumanInLoopRuntimeOptions`, `LogLevel`, `RuntimeLogger`, `RuntimeLoggerInput`, `DiagnosticLogEvent`, schema types from `toolcraft-schema`.
 
 Subpath imports:
 

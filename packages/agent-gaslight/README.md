@@ -104,7 +104,7 @@ CLI options:
 - `--agent <agent>`: Agent id to run. Without `--yes`, omitted values are prompted.
 - `--config <path>`: Use a specific `gaslight.yaml` variant instead of the default lookup order.
 - `--model <model>`: Optional model override.
-- `--mode <read|edit|yolo>`: Spawn mode. Defaults to `edit`.
+- `--mode <read|edit|yolo|auto>`: Spawn mode. Defaults to `auto`.
 - `--plans <paths...>`: Run multiple Markdown plans sequentially. Use either the positional plan path or `--plans`, not both.
 - `install --local`: Write `<cwd>/.poe-code/gaslight.yaml`.
 - `install --global`: Write `<homeDir>/.poe-code/gaslight.yaml`.
@@ -138,7 +138,7 @@ const result = await runGaslight({
 - `planPaths`: Required plan paths, resolved from `cwd`.
 - `agent`: Required agent identifier.
 - `model`: Optional model override.
-- `mode`: Spawn mode: `read`, `edit`, or `yolo`. Defaults to `edit`.
+- `mode`: Spawn mode: `read`, `edit`, `yolo`, or `auto`. Defaults to `auto`.
 - `cwd`: Working directory. Defaults to `process.cwd()`.
 - `homeDir`: Home directory used for global config lookup. Defaults to `os.homedir()`.
 - `prompt`: Initial prompt. Must be provided together with `followups`.

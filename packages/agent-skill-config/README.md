@@ -80,6 +80,10 @@ When bridge creates entries inside a git repository, `.git/info/exclude` gets a 
 - Cleanup removes duplicate-run exclude blocks after a manifest is cloned.
 - Workspace-root checks allow the normal macOS `/var` system alias but still reject user-controlled symlink escapes.
 
+## Installing arbitrary skills
+
+`installSkill(agentId, { name, content }, options)` writes one `SKILL.md` file into the selected native skill directory for the agent. `options.scope` is `local` or `global`; callers may also pass `cwd`, `homeDir`, `dryRun`, `fs`, and mutation observers. The higher-level `poe-code skill install` CLI and `poe-code` SDK export use this same path, so validation and dry-run behavior match declarative skill configuration.
+
 ## Public API
 
 ```ts

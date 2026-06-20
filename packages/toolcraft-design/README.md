@@ -34,7 +34,7 @@ The package does not expose public subpath imports.
 - `helpFormatter`, `helpFormatterPlain`: styled and plain help formatting APIs.
 - `formatColumns`, `formatCommand`, `formatUsage`, `formatOption`, `formatCommandList`, `formatOptionList`: individual help-formatting functions.
 - `formatCommandNotFound`, `formatCommandNotFoundPanel`: command error rendering.
-- `renderTable`, `renderDetailCard`: tabular and detail-card rendering.
+- `renderTable`, `renderDetailCard`, `renderInspectorCard`, `renderResourceBrowser`: tabular, detail-card, inspector-panel, and grouped resource-browser rendering.
 - `getTemplatePartialNames`, `renderTemplate`, `resolveTemplatePartials`: template rendering utilities.
 - `openExternal`: opens a URL or file with the platform browser command.
 - Types: `Color`, `LoggerOutput`, `CommandInfo`, `OptionInfo`, `FormatColumnsOptions`, `TableColumn`, `RenderTableOptions`, `DetailCardRow`, `DetailCardSection`, `RenderDetailCardOptions`, `RenderTemplateOptions`, `TemplateEscape`.
@@ -59,9 +59,11 @@ The package does not expose public subpath imports.
 ### Explorer
 
 - `explorer`: namespace containing the complete explorer API.
-- `runExplorer`, `singleDetail`: root-level explorer exports.
-- Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`.
+- `runExplorer`, `runTwoPaneExplorer`, `singleDetail`: root-level explorer exports.
+- Root-level types: `Row`, `DetailItem`, `Detail`, `DetailCtx`, `Action`, `ActionContext`, `ExplorerConfig`, `ReorderContext`, `Tone`, `TwoPaneExplorerConfig`, `TwoPaneRow`, `TwoPaneAction`, `TwoPaneActionContext`.
 - The namespace also exports `createInitialState`, `resolveBindings`, and the remaining explorer event, binding, layout, size, state, and effect types.
+
+`runTwoPaneExplorer` renders two independently selectable panes with action shortcuts, refresh support, and active-pane switching. Use `renderResourceBrowser` and `renderInspectorCard` for deterministic non-interactive snapshots that match the interactive browser language.
 
 ### Terminal Markdown
 

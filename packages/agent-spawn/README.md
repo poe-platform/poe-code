@@ -33,7 +33,7 @@ console.log(listMcpSupportedAgents());
 | `edit` | File-editing mode when the agent supports scoped permissions.                    |
 | `read` | Read-only/research mode when the agent supports it.                              |
 
-Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without a native auto/approval mode omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
+Mode-specific args and env vars are declared in each agent config. `auto` is optional per config: agents without an auto/approval mapping omit it, and requesting it fails before launch with the supported-mode list (`supportsSpawnMode(agentId, mode)` exposes the same check for static validation). Over ACP, auto mode answers `session/request_permission` with an explicit rejection so the agent adapts instead of ending the turn. Codex maps `auto` to its unattended bypass flag for gaslight-style edit runs, and Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set those flags manually.
 
 ## MCP at spawn time
 

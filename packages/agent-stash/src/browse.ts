@@ -556,9 +556,9 @@ function browseTwoPaneAction(
         });
       });
       const completed = requireBrowseActionResult(result);
+      toastBrowseActionResult(actionCtx.toast, label, completed);
       await prepareRefresh({ action, fromPane, selectedIds, result: completed });
       await actionCtx.refresh();
-      toastBrowseActionResult(actionCtx.toast, label, completed);
     }
   };
 }

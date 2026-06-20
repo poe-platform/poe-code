@@ -454,7 +454,7 @@ async function loadGistPane(
   const gist = await readGistPaneRecord(client, resolved.gistId, manifestReadAttempts, baseline);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
-    verifyBundleHashes(bundle);
+    verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
   }
   const items = (bundle?.manifest.items ?? [])
     .filter((item) => item.scope === options.scope && item.agentId === options.agentId)

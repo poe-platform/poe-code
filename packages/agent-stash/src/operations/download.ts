@@ -44,7 +44,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     const client = ctx.gistClient ?? (await createDefaultGistClient());
     const gist = await readDownloadGistRecord(client, resolved.gistId);
     const bundle = loadBundleFromGist(gist);
-    verifyBundleHashes(bundle);
+    verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
     const selected = filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, bundle.manifest.items.filter((item) => {
       if (item.scope !== options.scope || item.agentId !== agentId) {
         return false;

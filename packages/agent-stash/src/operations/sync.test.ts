@@ -348,6 +348,69 @@ describe("sync", () => {
     });
   });
 
+  it("removes untracked legacy event-level hook chunks during split hook sync", async () => {
+    const gistClient = new InMemoryGistClient();
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "split replacement" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx } = createContext(files, gistClient);
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const seeded = await gistClient.read("gist-default");
+    const legacyPath = "hooks/project/claude-code/PostToolUse.json";
+    seeded.files[gistFilenameForBundlePath(legacyPath)] = {
+      filename: gistFilenameForBundlePath(legacyPath),
+      content: `${JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "legacy chunk" }] }
+          ]
+        }
+      }, null, 2)}\n`
+    };
+    gistClient.seed(seeded);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      onConflict: "local",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(result.conflicts).toEqual([]);
+    expect(record.files[gistFilenameForBundlePath(legacyPath)]).toBeUndefined();
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:PostToolUse-Write-Edit-001-001"]);
+    expect(traces.find((record) => record.event === "sync.untrackedLegacyHookChunksRemoved")).toMatchObject({
+      event: "sync.untrackedLegacyHookChunksRemoved",
+      files: [legacyPath]
+    });
+    expect(traces.find((record) => record.event === "sync.remote.update")).toMatchObject({
+      deleteFiles: [
+        gistFilenameForBundlePath(legacyPath)
+      ]
+    });
+  });
+
   it("rejects selected sync items that are absent locally and remotely", async () => {
     const { ctx, gistClient } = createContext();
     await uploadBundle(ctx, {

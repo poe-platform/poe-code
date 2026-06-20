@@ -8,7 +8,7 @@ import {
   writeHookOriginStore
 } from "../hook-origins.js";
 import { loadInventory } from "../inventory.js";
-import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
+import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, parseLegacyHookChunkPath, verifyBundleHashes } from "../bundle.js";
 import { readFileIfExists } from "../fs-utils.js";
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
@@ -229,14 +229,21 @@ async function createUpdateWriteInput(
   const existing = hasExistingManifest
     ? loadBundleFromGist(record)
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
-  verifyBundleHashes(existing);
+  verifyBundleHashes(existing, { allowUntrackedLegacyHookChunks: true });
   const itemIds = new Set(items.map((item) => item.id));
   const fullUploadTarget = fullUploadReplacementTarget(options);
   const uploadedHookEvents = hookEventsForItems(items, files);
   const replacedSplitHookEvents = hookEventsForEventLevelUpload(items, files, options.hooks, existing, localHookItems);
+  const replacedLegacyHookEvents = new Set([...uploadedHookEvents, ...replacedSplitHookEvents]);
   const legacyHookItems = existing.manifest.items.filter((item) => item.kind === "hook" && uploadedHookEvents.has(item.name));
   if (legacyHookItems.length > 0) {
     await traceAgentStash(ctx, "upload.legacyHookChunksRemoved", { items: traceItems(legacyHookItems) });
+  }
+  const untrackedLegacyHookChunks = [...existing.files.keys()].filter((filePath) =>
+    isReplacedLegacyHookChunkPath(filePath, replacedLegacyHookEvents, fullUploadTarget)
+  );
+  if (untrackedLegacyHookChunks.length > 0) {
+    await traceAgentStash(ctx, "upload.untrackedLegacyHookChunksRemoved", { files: untrackedLegacyHookChunks });
   }
   const staleSplitHookItems = existing.manifest.items.filter((item) => !itemIds.has(item.id) && isStaleSplitHookItem(item, replacedSplitHookEvents, existing.files));
   if (staleSplitHookItems.length > 0) {
@@ -258,6 +265,10 @@ async function createUpdateWriteInput(
       nextFiles.delete(file.path);
       deletedFiles.add(file.path);
     }
+  }
+  for (const filePath of untrackedLegacyHookChunks) {
+    nextFiles.delete(filePath);
+    deletedFiles.add(filePath);
   }
   for (const file of files) {
     nextFiles.set(file.path, file.content);
@@ -456,8 +467,23 @@ async function loadExistingBundleForUpload(
   const existing = record.files[MANIFEST_FILENAME] !== undefined
     ? loadBundleFromGist(record)
     : { manifest: createEmptyManifest(now, profile), files: new Map<string, string>() };
-  verifyBundleHashes(existing);
+  verifyBundleHashes(existing, { allowUntrackedLegacyHookChunks: true });
   return existing;
+}
+
+function isReplacedLegacyHookChunkPath(
+  filePath: string,
+  replacedHookEvents: Set<string>,
+  fullUploadTarget: { scope: string; agentId: string } | undefined
+): boolean {
+  const chunk = parseLegacyHookChunkPath(filePath);
+  if (chunk === undefined) {
+    return false;
+  }
+  if (fullUploadTarget !== undefined && chunk.scope === fullUploadTarget.scope && chunk.agentId === fullUploadTarget.agentId) {
+    return true;
+  }
+  return replacedHookEvents.has(chunk.eventName);
 }
 
 async function readUploadGistRecord(client: GistClient, gistId: string): Promise<Awaited<ReturnType<GistClient["read"]>>> {

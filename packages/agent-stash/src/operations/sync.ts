@@ -1,4 +1,4 @@
-import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
+import { loadBundleFromGist, parseLegacyHookChunkPath, verifyBundleHashes } from "../bundle.js";
 import { createBackup } from "../backup-store.js";
 import { createDefaultGistClient } from "../gist-client.js";
 import { hookEventFromFragmentContent } from "../hook-items.js";
@@ -95,7 +95,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const remote = hasExistingManifest
     ? loadBundleFromGist(gist)
     : { manifest: createEmptyManifest(ctx.now?.() ?? new Date(), usesProfileTarget ? options.profile : undefined), files: new Map<string, string>() };
-  verifyBundleHashes(remote);
+  verifyBundleHashes(remote, { allowUntrackedLegacyHookChunks: true });
   const remoteItems = await filterRemoteItemsForLocalIgnores(ctx, options.scope, remote.manifest.items.filter((item) => {
     if (item.scope !== options.scope || item.agentId !== agentId) {
       return false;
@@ -121,6 +121,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const legacyRemoteDeletes = remote.manifest.items.filter((item) => item.kind === "hook" && localHookEvents.has(item.name));
   if (legacyRemoteDeletes.length > 0) {
     await traceAgentStash(ctx, "sync.legacyHookChunksRemoved", { items: traceItems(legacyRemoteDeletes) });
+  }
+  const untrackedLegacyRemoteDeletes = [...remote.files.keys()].filter((filePath) => {
+    const chunk = parseLegacyHookChunkPath(filePath);
+    return chunk !== undefined && chunk.scope === options.scope && chunk.agentId === agentId && localHookEvents.has(chunk.eventName);
+  });
+  if (untrackedLegacyRemoteDeletes.length > 0) {
+    await traceAgentStash(ctx, "sync.untrackedLegacyHookChunksRemoved", { files: untrackedLegacyRemoteDeletes });
   }
   for (const item of legacyRemoteDeletes) {
     nextRemoteItems.delete(item.id);
@@ -206,7 +213,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     result.backupId = backup.id;
   }
 
-  const remoteDeletes = new Set<string>(legacyRemoteDeletes.flatMap((item) => item.files.map((file) => file.path)));
+  const remoteDeletes = new Set<string>([
+    ...legacyRemoteDeletes.flatMap((item) => item.files.map((file) => file.path)),
+    ...untrackedLegacyRemoteDeletes
+  ]);
+  for (const filePath of untrackedLegacyRemoteDeletes) {
+    nextFiles.delete(filePath);
+  }
 
   for (const { action, localItem, remoteItem } of actions) {
     if (action === "upload" && localItem) {
@@ -242,7 +255,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     }
   }
 
-  if (result.uploaded.length > 0 || result.deletedRemote.length > 0 || legacyRemoteDeletes.length > 0) {
+  if (result.uploaded.length > 0 || result.deletedRemote.length > 0 || legacyRemoteDeletes.length > 0 || untrackedLegacyRemoteDeletes.length > 0) {
     const now = ctx.now?.() ?? new Date();
     const manifest = {
       ...remote.manifest,

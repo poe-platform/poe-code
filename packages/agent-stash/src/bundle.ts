@@ -8,6 +8,16 @@ export interface RemoteBundle {
   files: Map<string, string>;
 }
 
+export interface LegacyHookChunkPath {
+  scope: "project" | "global";
+  agentId: string;
+  eventName: string;
+}
+
+interface VerifyBundleHashesOptions {
+  allowUntrackedLegacyHookChunks?: boolean;
+}
+
 export function gistFilesFromBundle(manifest: AgentStashManifest, files: readonly BundleFile[]): Record<string, { content: string }> {
   const result = Object.create(null) as Record<string, { content: string }>;
   result[MANIFEST_FILENAME] = { content: serializeManifest(manifest) };
@@ -31,6 +41,27 @@ export function bundlePathFromGistFilename(filename: string): string {
   }
   validateBundlePath(decoded);
   return decoded;
+}
+
+export function parseLegacyHookChunkPath(filePath: string): LegacyHookChunkPath | undefined {
+  const parts = filePath.split("/");
+  if (parts.length !== 4 || parts[0] !== "hooks") {
+    return undefined;
+  }
+  const scope = parts[1];
+  const agentId = parts[2];
+  const filename = parts[3];
+  if ((scope !== "project" && scope !== "global") || agentId === undefined || agentId.length === 0 || filename === undefined) {
+    return undefined;
+  }
+  if (!filename.endsWith(".json")) {
+    return undefined;
+  }
+  const eventName = filename.slice(0, -".json".length);
+  if (eventName.length === 0 || eventName.includes("-")) {
+    return undefined;
+  }
+  return { scope, agentId, eventName };
 }
 
 export function loadBundleFromGist(gist: GistRecord): RemoteBundle {
@@ -64,7 +95,7 @@ function validateGistFile(filename: string, file: unknown): asserts file is { co
   }
 }
 
-export function verifyBundleHashes(bundle: RemoteBundle): void {
+export function verifyBundleHashes(bundle: RemoteBundle, options: VerifyBundleHashesOptions = {}): void {
   const expectedPaths = new Set<string>();
   for (const item of bundle.manifest.items) {
     for (const file of item.files) {
@@ -80,6 +111,9 @@ export function verifyBundleHashes(bundle: RemoteBundle): void {
   }
   for (const filePath of bundle.files.keys()) {
     if (!expectedPaths.has(filePath)) {
+      if (options.allowUntrackedLegacyHookChunks && parseLegacyHookChunkPath(filePath) !== undefined) {
+        continue;
+      }
       throw new Error(`Remote bundle contains untracked file ${filePath}`);
     }
   }

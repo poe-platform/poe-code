@@ -666,6 +666,56 @@ describe("upload/download", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]?.content).toContain("split replacement");
   });
 
+  it("removes untracked legacy event-level hook chunks when uploading split hook replacements", async () => {
+    const gistClient = new InMemoryGistClient();
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "split replacement" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx } = createContext(files, gistClient);
+
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const seeded = await gistClient.read("gist-default");
+    const legacyPath = "hooks/project/claude-code/PostToolUse.json";
+    seeded.files[gistFilenameForBundlePath(legacyPath)] = {
+      filename: gistFilenameForBundlePath(legacyPath),
+      content: `${JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "Write|Edit", hooks: [{ type: "command", command: "legacy chunk" }] }
+          ]
+        }
+      }, null, 2)}\n`
+    };
+    gistClient.seed(seeded);
+
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    expect(record.files[gistFilenameForBundlePath(legacyPath)]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]?.content).toContain("split replacement");
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath(legacyPath)]).toBeNull();
+  });
+
   it("removes stale split hook items for the same event during event-level upload", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

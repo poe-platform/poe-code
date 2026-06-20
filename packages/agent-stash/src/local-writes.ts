@@ -223,17 +223,27 @@ function mergeIndividualHook(
   if (!fragment.position || !isRecord(sourceGroup) || !Array.isArray(sourceGroup.hooks) || !isRecord(sourceGroup.hooks[0])) {
     throw new Error(`Malformed hook fragment for ${fragment.event}.`);
   }
+  const hasStoredOrigins = originsMatchEventGroups(eventGroups, origins);
   const originGroups = normalizeHookOrigins(eventGroups, origins);
   const sourceGroupFields = cloneRecordWithoutHooks(sourceGroup);
-  const targetGroup = targetGroupForMerge(eventGroups, originGroups, fragment.position.groupIndex, sourceGroupFields);
+  const targetGroup = targetGroupForMerge(
+    eventGroups,
+    hasStoredOrigins ? originGroups : [],
+    fragment.position.groupIndex,
+    sourceGroupFields
+  );
   const existingGroupCandidate = targetGroup.insert ? undefined : eventGroups[targetGroup.index];
   const existingGroup = isRecord(existingGroupCandidate)
     ? cloneRecord(existingGroupCandidate)
     : {};
   const nextGroup: HookGroup = { ...existingGroup, ...sourceGroupFields };
   const groupHooks = Array.isArray(existingGroup.hooks) ? [...existingGroup.hooks] : [];
-  const existingHookOrigins = targetGroup.insert ? [] : originGroups[targetGroup.index]?.hooks ?? [];
-  const targetHook = targetHookForMerge(groupHooks, existingHookOrigins, fragment.position.hookIndex);
+  const existingHookOrigins = targetGroup.insert
+    ? []
+    : hasStoredOrigins
+      ? originGroups[targetGroup.index]?.hooks ?? []
+      : defaultHookOriginsForInsert(groupHooks.length, fragment.position.hookIndex);
+  const targetHook = targetHookForMerge(groupHooks, hasStoredOrigins ? existingHookOrigins : [], fragment.position.hookIndex);
   if (targetHook.insert) {
     groupHooks.splice(targetHook.index, 0, cloneJson(sourceGroup.hooks[0]));
   } else {
@@ -245,6 +255,9 @@ function mergeIndividualHook(
     hooks: mergeHookOrigins(existingHookOrigins, targetHook, fragment.position.hookIndex)
   };
   if (targetGroup.insert) {
+    if (!hasStoredOrigins) {
+      shiftGroupOriginsForInsert(originGroups, fragment.position.groupIndex);
+    }
     eventGroups.splice(targetGroup.index, 0, nextGroup);
     originGroups.splice(targetGroup.index, 0, nextGroupOrigin);
   } else {
@@ -292,6 +305,25 @@ function normalizeHookOrigins(eventGroups: readonly unknown[], origins: readonly
   }));
 }
 
+function originsMatchEventGroups(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
+  return origins.length === eventGroups.length && origins.every((origin, groupIndex) => {
+    const group = eventGroups[groupIndex];
+    return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
+  });
+}
+
+function defaultHookOriginsForInsert(hookCount: number, insertedHookIndex: number): number[] {
+  return Array.from({ length: hookCount }, (_, index) => index >= insertedHookIndex ? index + 1 : index);
+}
+
+function shiftGroupOriginsForInsert(origins: HookOriginGroup[], insertedGroupIndex: number): void {
+  for (const origin of origins) {
+    if (origin.groupIndex >= insertedGroupIndex) {
+      origin.groupIndex += 1;
+    }
+  }
+}
+
 function targetHookForMerge(
   groupHooks: readonly unknown[],
   origins: readonly number[],
@@ -306,10 +338,7 @@ function targetHookForMerge(
     const insertIndex = normalizedOrigins.findIndex((origin) => origin > hookIndex);
     return { index: insertIndex === -1 ? groupHooks.length : insertIndex, insert: true };
   }
-  if (hookIndex < groupHooks.length) {
-    return { index: hookIndex, insert: false };
-  }
-  return { index: groupHooks.length, insert: true };
+  return { index: Math.min(hookIndex, groupHooks.length), insert: true };
 }
 
 function mergeHookOrigins(

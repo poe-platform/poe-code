@@ -1072,6 +1072,10 @@ describe("sync", () => {
       }, null, 2)
     };
     const target = createContext(targetFiles, gistClient);
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
     const record = await gistClient.read("gist-default");
     const remoteManifest = parseManifest(record.files["agent-stash.json"]!.content);
     remoteManifest.items = remoteManifest.items.filter((item) => item.name !== "Stop-all-tools-002-001");
@@ -1096,6 +1100,30 @@ describe("sync", () => {
     };
     expect(result.deletedLocal.map((item) => item.name)).toEqual(["Stop-all-tools-002-001"]);
     expect(settings.hooks?.Stop).toBeUndefined();
+    expect(traces.find((record) => record.event === "local.remove.start")).toMatchObject({
+      event: "local.remove.start",
+      item: {
+        id: "project:hook:claude-code:Stop-all-tools-002-001",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "Stop-all-tools-002-001"
+      },
+      targetPath: "/repo/.claude/settings.json"
+    });
+    expect(traces.find((record) => record.event === "local.remove.finish")).toMatchObject({
+      event: "local.remove.finish",
+      item: {
+        id: "project:hook:claude-code:Stop-all-tools-002-001",
+        kind: "hook",
+        scope: "project",
+        agentId: "claude-code",
+        name: "Stop-all-tools-002-001"
+      },
+      targetPath: "/repo/.claude/settings.json",
+      removedPaths: ["/repo/.claude/settings.json"]
+    });
+    expect(JSON.stringify(traces)).not.toContain("remote second stop");
   });
 
   it("applies local deletion for an earlier hook without renumbering surviving hooks", async () => {

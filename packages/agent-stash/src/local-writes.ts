@@ -403,14 +403,29 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashItem): Promise<void> {
   const targetPath = targetPathForItem(ctx, item);
+  await traceAgentStash(ctx, "local.remove.start", {
+    item: traceItems([item])[0],
+    targetPath
+  });
   await assertNoSymlinkAncestors(ctx.fs, targetPath, localWriteRoot(ctx, item.scope));
   await assertNotSymlink(ctx.fs, targetPath);
   if (item.kind === "skill") {
+    const exists = await pathExists(ctx.fs, targetPath);
     await removePath(ctx.fs, targetPath);
+    await traceAgentStash(ctx, "local.remove.finish", {
+      item: traceItems([item])[0],
+      targetPath,
+      removedPaths: exists ? [targetPath] : []
+    });
     return;
   }
   const config = getHookAgentConfig(item.agentId);
   if (!config || !(await pathExists(ctx.fs, targetPath))) {
+    await traceAgentStash(ctx, "local.remove.finish", {
+      item: traceItems([item])[0],
+      targetPath,
+      removedPaths: []
+    });
     return;
   }
   const existing = parseExistingHookConfig(targetPath, (await ctx.fs.readFile(targetPath, "utf8")) || "{}");
@@ -433,6 +448,11 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
   }
   await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
   await writeHookOriginStore(ctx, originStore);
+  await traceAgentStash(ctx, "local.remove.finish", {
+    item: traceItems([item])[0],
+    targetPath,
+    removedPaths: [targetPath]
+  });
 }
 
 function removeIndividualHook(

@@ -45,7 +45,8 @@ import type {
   UploadResult
 } from "./types.js";
 
-const GIST_PANE_MANIFEST_READ_ATTEMPTS = 6;
+const GIST_PANE_BASELINE_MANIFEST_READ_ATTEMPTS = 6;
+const GIST_PANE_FRESH_MANIFEST_READ_ATTEMPTS = 2;
 const GIST_PANE_MANIFEST_RETRY_DELAY_MS = 500;
 
 export interface BrowseOptions {
@@ -403,8 +404,10 @@ async function loadGistPane(
     scope: options.scope,
     agent: options.agentId
   });
-  const retryNonManifest = (await readBaselineManifest(ctx, options.profile)) !== null;
-  const gist = await readGistPaneRecord(client, resolved.gistId, retryNonManifest);
+  const manifestReadAttempts = (await readBaselineManifest(ctx, options.profile)) === null
+    ? GIST_PANE_FRESH_MANIFEST_READ_ATTEMPTS
+    : GIST_PANE_BASELINE_MANIFEST_READ_ATTEMPTS;
+  const gist = await readGistPaneRecord(client, resolved.gistId, manifestReadAttempts);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
     verifyBundleHashes(bundle);
@@ -432,9 +435,9 @@ async function loadGistPane(
   };
 }
 
-async function readGistPaneRecord(client: GistClient, gistId: string, retryNonManifest: boolean): Promise<GistRecord> {
+async function readGistPaneRecord(client: GistClient, gistId: string, manifestReadAttempts: number): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; retryNonManifest && attempt < GIST_PANE_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; attempt < manifestReadAttempts && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
     await sleep(GIST_PANE_MANIFEST_RETRY_DELAY_MS);
     latest = await client.read(gistId);
   }

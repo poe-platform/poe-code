@@ -10,10 +10,14 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
+import { MANIFEST_FILENAME } from "../manifest.js";
 import { readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { traceAgentStash, traceAgentStashError, traceItems } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
-import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult } from "../types.js";
+import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult, GistClient, GistRecord } from "../types.js";
+
+const DOWNLOAD_MANIFEST_READ_ATTEMPTS = 6;
+const DOWNLOAD_MANIFEST_RETRY_DELAY_MS = 500;
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
   assertAgentStashScope(options.scope);
@@ -38,7 +42,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       throw new Error("A profile with a Gist or --gist is required.");
     }
     const client = ctx.gistClient ?? (await createDefaultGistClient());
-    const gist = await client.read(resolved.gistId);
+    const gist = await readDownloadGistRecord(client, resolved.gistId);
     const bundle = loadBundleFromGist(gist);
     verifyBundleHashes(bundle);
     const selected = filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, bundle.manifest.items.filter((item) => {
@@ -98,6 +102,25 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     await traceAgentStashError(ctx, "download.error", error);
     throw error;
   }
+}
+
+async function readDownloadGistRecord(client: GistClient, gistId: string): Promise<GistRecord> {
+  let latest = await client.read(gistId);
+  for (let attempt = 1; attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+    if (attempt > 1) {
+      await sleep(DOWNLOAD_MANIFEST_RETRY_DELAY_MS);
+    }
+    latest = await client.read(gistId);
+  }
+  return latest;
+}
+
+function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
+  return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+async function sleep(ms: number): Promise<void> {
+  await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function isFilteredDownload(options: DownloadOptions): boolean {

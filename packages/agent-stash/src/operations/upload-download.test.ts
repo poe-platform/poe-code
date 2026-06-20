@@ -7,7 +7,7 @@ import { uploadBundle } from "./upload.js";
 import { downloadBundle } from "./download.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
 import { createDummyAgentConfigFixture, dummyCwd, dummyHome, fixedDate } from "../fixtures/dummy-config.js";
-import type { AgentStashContext, AgentStashFileSystem } from "../types.js";
+import type { AgentStashContext, AgentStashFileSystem, GistRecord, GistWriteInput } from "../types.js";
 
 vi.mock("../gist-client.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../gist-client.js")>();
@@ -38,6 +38,32 @@ function createContext(files = createDummyAgentConfigFixture(), gistClient = new
       gistClient,
       now: () => fixedDate
     }
+  };
+}
+
+class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
+  private staleRecord: GistRecord | undefined;
+
+  async update(gistId: string, input: GistWriteInput): Promise<GistRecord> {
+    this.staleRecord = await super.read(gistId);
+    return super.update(gistId, input);
+  }
+
+  async read(gistId: string): Promise<GistRecord> {
+    if (this.staleRecord !== undefined) {
+      this.readCalls.push(gistId);
+      const stale = cloneGistRecord(this.staleRecord);
+      this.staleRecord = undefined;
+      return stale;
+    }
+    return super.read(gistId);
+  }
+}
+
+function cloneGistRecord(record: GistRecord): GistRecord {
+  return {
+    ...record,
+    files: Object.fromEntries(Object.entries(record.files).map(([name, file]) => [name, { ...file }]))
   };
 }
 
@@ -308,6 +334,37 @@ describe("upload/download", () => {
       event: "download.error",
       error: "read refused"
     });
+  });
+
+  it("retries stale non-manifest Gist reads before downloading", async () => {
+    const gistClient = new StaleReadAfterUpdateGistClient();
+    gistClient.seed({
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "seed.txt": { filename: "seed.txt", content: "placeholder\n" }
+      }
+    });
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const target = createContext({}, gistClient);
+
+    const result = await downloadBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
   it("does not rewrite profile config when uploading through an explicit Gist override", async () => {

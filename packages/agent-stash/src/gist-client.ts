@@ -46,10 +46,13 @@ export class GitHubGistClient implements GistClient {
   private async request(url: string, init: RequestInit): Promise<GistRecord> {
     const response = await fetch(url, {
       ...init,
+      cache: "no-store",
       headers: {
         Accept: "application/vnd.github+json",
         Authorization: `Bearer ${this.token}`,
+        "Cache-Control": "no-cache",
         "Content-Type": "application/json",
+        Pragma: "no-cache",
         "X-GitHub-Api-Version": "2022-11-28"
       }
     });

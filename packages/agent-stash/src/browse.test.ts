@@ -128,6 +128,76 @@ describe("browse", () => {
     expect(rendered).not.toContain("b backup");
   });
 
+  it("traces profile-backed Gist pane loading", async () => {
+    const { ctx } = createHarness();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const records: Array<Record<string, unknown>> = [];
+    ctx.trace = (record) => {
+      records.push(record);
+    };
+
+    await buildBrowseModel(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+
+    expect(records).toEqual([
+      expect.objectContaining({
+        event: "browse.gist.load.start",
+        profile: "default",
+        gistId: "gist-default",
+        scope: "project",
+        agent: "claude-code"
+      }),
+      expect.objectContaining({
+        event: "browse.gist.load.finish",
+        profile: "default",
+        gistId: "gist-default",
+        hasManifest: true,
+        remoteItemCount: 1,
+        matchedItemCount: 1
+      })
+    ]);
+  });
+
+  it("traces profile-backed Gist pane loading when the remote has no manifest", async () => {
+    const { ctx } = createHarness();
+    const records: Array<Record<string, unknown>> = [];
+    ctx.trace = (record) => {
+      records.push(record);
+    };
+
+    const model = await buildBrowseModel(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code"
+    });
+
+    expect(model.right.items).toEqual([]);
+    expect(records).toEqual([
+      expect.objectContaining({
+        event: "browse.gist.load.start",
+        profile: "default",
+        gistId: "gist-default"
+      }),
+      expect.objectContaining({
+        event: "browse.gist.load.finish",
+        profile: "default",
+        gistId: "gist-default",
+        hasManifest: false,
+        remoteItemCount: 0,
+        matchedItemCount: 0
+      })
+    ]);
+  });
+
   it("rejects missing browse Gist profiles before creating a default Gist client", async () => {
     const { ctx } = createHarness();
     ctx.gistClient = undefined;

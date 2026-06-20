@@ -390,6 +390,12 @@ async function loadGistPane(
     throw new Error(`Profile does not have a Gist: ${options.profile}`);
   }
   const client = ctx.gistClient ?? (await createDefaultGistClient());
+  await traceAgentStash(ctx, "browse.gist.load.start", {
+    profile: options.profile,
+    gistId: resolved.gistId,
+    scope: options.scope,
+    agent: options.agentId
+  });
   const gist = await client.read(resolved.gistId);
   const bundle = gist.files[MANIFEST_FILENAME] ? loadBundleFromGist(gist) : undefined;
   if (bundle) {
@@ -398,6 +404,14 @@ async function loadGistPane(
   const items = (bundle?.manifest.items ?? [])
     .filter((item) => item.scope === options.scope && item.agentId === options.agentId)
     .sort((left, right) => left.id.localeCompare(right.id));
+  await traceAgentStash(ctx, "browse.gist.load.finish", {
+    profile: options.profile,
+    gistId: resolved.gistId,
+    hasManifest: bundle !== undefined,
+    remoteItemCount: bundle?.manifest.items.length ?? 0,
+    matchedItemCount: items.length,
+    items: traceItems(items)
+  });
 
   return {
     title: `Gist ${options.profile}: ${options.agentId}`,

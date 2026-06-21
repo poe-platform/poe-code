@@ -298,13 +298,6 @@ async function createUpdateWriteInput(
     description: "agent-stash portable agent config",
     files: gistFilesFromBundle(existing.manifest, writeFiles)
   };
-  if (!hasExistingManifest) {
-    for (const filename of Object.keys(record.files)) {
-      if (!Object.hasOwn(writeInput.files, filename)) {
-        writeInput.files[filename] = null;
-      }
-    }
-  }
   for (const filePath of deletedFiles) {
     writeInput.files[gistFilenameForBundlePath(filePath)] = null;
   }

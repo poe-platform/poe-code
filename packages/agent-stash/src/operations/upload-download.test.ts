@@ -420,7 +420,7 @@ describe("upload/download", () => {
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
-  it("retries stale non-manifest Gist reads before a follow-up upload", async () => {
+  it("preserves unmanaged Gist files while retrying stale non-manifest reads before a follow-up upload", async () => {
     const gistClient = new StaleReadAfterUpdateGistClient();
     gistClient.seed({
       id: "gist-default",
@@ -465,7 +465,7 @@ describe("upload/download", () => {
 
     await gistClient.read("gist-default");
     const record = await gistClient.read("gist-default");
-    expect(record.files["seed.txt"]).toBeUndefined();
+    expect(record.files["seed.txt"]?.content).toBe("placeholder\n");
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/SessionStart-all-tools-001-001.json")]?.content).toContain("updated session command");
     expect(gistClient.updateCalls.at(-1)?.input.files["seed.txt"]).toBeUndefined();
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
@@ -494,7 +494,7 @@ describe("upload/download", () => {
     expect(() => volume.statSync("/home/user/.agent-stash/cache/default.manifest.json")).toThrow();
   });
 
-  it("removes pre-existing files when initializing an explicit Gist without a manifest", async () => {
+  it("preserves unmanaged files when initializing an explicit Gist without a manifest", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({ id: "gist-default", htmlUrl: "https://gist.github.com/gist-default", files: {} });
     gistClient.seed({
@@ -530,8 +530,8 @@ describe("upload/download", () => {
 
     const record = await gistClient.read("gist-other");
     const manifest = parseManifest(record.files["agent-stash.json"]!.content);
-    expect(gistClient.updateCalls.at(-1)?.input.files["placeholder.txt"]).toBeNull();
-    expect(record.files["placeholder.txt"]).toBeUndefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files["placeholder.txt"]).toBeUndefined();
+    expect(record.files["placeholder.txt"]?.content).toBe("temporary\n");
     expect(manifest.items.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-001"]);
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PostToolUse-Write-Edit-001-001.json")]).toBeDefined();
   });

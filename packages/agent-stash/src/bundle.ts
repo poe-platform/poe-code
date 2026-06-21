@@ -78,12 +78,19 @@ export function loadBundleFromGist(gist: GistRecord): RemoteBundle {
     }
     validateGistFile(filename, file);
     const bundlePath = bundlePathFromGistFilename(filename);
+    if (!isManagedBundlePath(bundlePath)) {
+      continue;
+    }
     if (files.has(bundlePath)) {
       throw new Error(`Duplicate Gist bundle path: ${bundlePath}`);
     }
     files.set(bundlePath, file.content);
   }
   return { manifest, files };
+}
+
+function isManagedBundlePath(bundlePath: string): boolean {
+  return bundlePath.startsWith("hooks/") || bundlePath.startsWith("skills/");
 }
 
 function validateGistFile(filename: string, file: unknown): asserts file is { content: string } {

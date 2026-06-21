@@ -66,6 +66,27 @@ describe("Gist bundle filenames", () => {
     expect(bundle.files.get("hooks/project/claude-code/PreToolUse.json")).toBe("legacy");
   });
 
+  it("ignores unmanaged root Gist files when loading a bundle", () => {
+    const bundle = loadBundleFromGist({
+      id: "gist-1",
+      files: {
+        "agent-stash.json": {
+          filename: "agent-stash.json",
+          content: JSON.stringify({
+            schemaVersion: 1,
+            createdAt: "2026-01-01T00:00:00.000Z",
+            updatedAt: "2026-01-01T00:00:00.000Z",
+            items: []
+          })
+        },
+        "notes.txt": { filename: "notes.txt", content: "operator note\n" }
+      }
+    });
+
+    expect(bundle.files.has("notes.txt")).toBe(false);
+    expect(() => verifyBundleHashes(bundle)).not.toThrow();
+  });
+
   it("rejects Gist files that decode to the same bundle path", () => {
     const bundlePath = "skills/project/claude-code/code-review/SKILL.md";
     const encoded = gistFilenameForBundlePath(bundlePath);

@@ -72,7 +72,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       validateItemForLocalWrite(item, files);
       return { item, files };
     });
-    const eventReplacements = hookEventReplacementsForEventLevelDownload(ctx, options, selectedFiles);
+    const eventReplacements = hookEventReplacementsForDownload(ctx, options, selectedFiles);
     const backupPaths = [
       ...new Set([
         ...selected.map((item) => targetPathForItem(ctx, item)),
@@ -139,22 +139,19 @@ function isFilteredDownload(options: DownloadOptions): boolean {
   return options.skills !== undefined || options.hooks !== undefined;
 }
 
-function hookEventReplacementsForEventLevelDownload(
+function hookEventReplacementsForDownload(
   ctx: AgentStashContext,
   options: DownloadOptions,
   selectedFiles: readonly { item: AgentStashItem; files: readonly { path: string; content: string }[] }[]
 ): Array<{ referenceItem: AgentStashItem; events: Set<string> }> {
-  if (options.hooks === undefined) {
-    return [];
-  }
-  const selectedHookEvents = new Set(options.hooks);
+  const selectedHookEvents = options.hooks === undefined ? undefined : new Set(options.hooks);
   const replacementsByTarget = new Map<string, { referenceItem: AgentStashItem; events: Set<string> }>();
   for (const { item, files } of selectedFiles) {
     if (item.kind !== "hook") {
       continue;
     }
     const event = hookEventFromFragmentContent(files[0]?.content ?? "");
-    if (event === undefined || !selectedHookEvents.has(event)) {
+    if (event === undefined || (selectedHookEvents !== undefined && !selectedHookEvents.has(event))) {
       continue;
     }
     const targetPath = targetPathForItem(ctx, item);

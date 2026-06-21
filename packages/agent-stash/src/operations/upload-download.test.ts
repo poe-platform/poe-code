@@ -626,6 +626,57 @@ describe("upload/download", () => {
     expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
   });
 
+  it("retries one profile download read without a baseline when Gist metadata is also stale", async () => {
+    const staleClient = new StaleSeedReadGistClient();
+    const oldSource = createContext(createDummyAgentConfigFixture(), new InMemoryGistClient());
+    await uploadBundle(oldSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const oldRecord = await oldSource.gistClient.read("gist-default");
+    const freshFiles = createDummyAgentConfigFixture();
+    freshFiles["/repo/.claude/settings.json"] = JSON.stringify(
+      {
+        permissions: { allow: ["Bash(npm test)"] },
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test --fresh-stale-metadata-no-baseline" }] }],
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      },
+      null,
+      2
+    );
+    const freshSource = createContext(freshFiles, new InMemoryGistClient());
+    freshSource.ctx.now = () => new Date("2026-01-02T03:05:00.000Z");
+    await uploadBundle(freshSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const freshRecord = await freshSource.gistClient.read("gist-default");
+    staleClient.seedStaleRecordsThenFresh([oldRecord], freshRecord);
+    const target = createContext({
+      "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2)
+    }, staleClient);
+
+    const result = await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toContain("npm test --fresh-stale-metadata-no-baseline");
+    expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+  });
+
   it("preserves unmanaged Gist files while retrying stale non-manifest reads before a follow-up upload", async () => {
     const gistClient = new StaleReadAfterUpdateGistClient();
     gistClient.seed({

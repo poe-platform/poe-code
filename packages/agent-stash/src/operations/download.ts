@@ -20,7 +20,6 @@ import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOpt
 
 const DOWNLOAD_MANIFEST_READ_ATTEMPTS = 6;
 const DOWNLOAD_MANIFEST_RETRY_DELAY_MS = 500;
-const DOWNLOAD_MANIFEST_METADATA_SKEW_MS = 1000;
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
   assertAgentStashScope(options.scope);
@@ -138,7 +137,7 @@ function shouldRetryDownloadGistRead(gist: GistRecord, baseline: AgentStashManif
     return true;
   }
   if (baseline === null) {
-    return attempt === 1 && isGistManifestBehindMetadata(gist);
+    return attempt === 1 && gist.files[MANIFEST_FILENAME] !== undefined;
   }
   return isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt);
 }
@@ -165,16 +164,6 @@ function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt:
   }
   const gistUpdatedAt = parseTimestamp(gist.updatedAt);
   return gistUpdatedAt !== undefined && gistUpdatedAt > baselineTime && manifestTime <= baselineTime;
-}
-
-function isGistManifestBehindMetadata(gist: GistRecord): boolean {
-  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
-  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
-  if (gistUpdatedAt === undefined || manifestContent === undefined) {
-    return false;
-  }
-  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
-  return manifestTime !== undefined && gistUpdatedAt - manifestTime > DOWNLOAD_MANIFEST_METADATA_SKEW_MS;
 }
 
 function parseTimestamp(value: string | undefined): number | undefined {

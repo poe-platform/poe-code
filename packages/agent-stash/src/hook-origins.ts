@@ -173,7 +173,10 @@ function findMatchingOrigin(
     if (arraysEqual(origin.hookHashes, fingerprints.hookHashes)) {
       return index;
     }
-    if (fingerprints.hookHashes.every((hash) => origin.hookHashes?.includes(hash))) {
+    if (
+      fingerprints.hookHashes.every((hash) => origin.hookHashes?.includes(hash))
+      || origin.hookHashes.every((hash) => fingerprints.hookHashes.includes(hash))
+    ) {
       partialMatch = index;
     }
   }
@@ -182,14 +185,24 @@ function findMatchingOrigin(
 
 function alignHookIndexes(hookHashes: readonly string[], origin: HookOriginGroup): number[] {
   const originHashes = origin.hookHashes ?? [];
-  const usedHooks = new Set<number>();
+  const usedOriginHashIndexes = new Set<number>();
+  const usedHookIndexes = new Set<number>();
+  let nextHookIndex = origin.hooks.reduce((next, hookIndex) => Math.max(next, hookIndex + 1), 0);
   return hookHashes.map((hash, fallbackIndex) => {
-    const originHashIndex = originHashes.findIndex((candidate, index) => candidate === hash && !usedHooks.has(index));
+    const originHashIndex = originHashes.findIndex((candidate, index) => candidate === hash && !usedOriginHashIndexes.has(index));
     if (originHashIndex === -1) {
-      return fallbackIndex;
+      while (usedHookIndexes.has(nextHookIndex)) {
+        nextHookIndex += 1;
+      }
+      const next = Math.max(nextHookIndex, fallbackIndex);
+      usedHookIndexes.add(next);
+      nextHookIndex = next + 1;
+      return next;
     }
-    usedHooks.add(originHashIndex);
-    return origin.hooks[originHashIndex] ?? fallbackIndex;
+    const originalHookIndex = origin.hooks[originHashIndex] ?? fallbackIndex;
+    usedOriginHashIndexes.add(originHashIndex);
+    usedHookIndexes.add(originalHookIndex);
+    return originalHookIndex;
   });
 }
 

@@ -1072,6 +1072,56 @@ describe("upload/download", () => {
     ]);
   });
 
+  it("updates the manifest when event-level upload only deletes a stale split hook", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "keep stop" }] },
+            { hooks: [{ type: "command", command: "remove stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "keep stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(manifest.items.map((item) => item.id)).toEqual(["project:hook:claude-code:Stop-all-tools-001-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]?.content).toContain("keep stop");
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeUndefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files["agent-stash.json"]).toBeDefined();
+    expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeNull();
+  });
+
   it("removes stale split hook items for the same event during split-row upload", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

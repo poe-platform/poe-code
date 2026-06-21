@@ -46,21 +46,25 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     const client = ctx.gistClient ?? (await createDefaultGistClient());
     const baselineName = baselineNameForTarget(profileName, resolved.gistId);
     const baseline = await readBaselineManifest(ctx, baselineName);
-    const gist = await readDownloadGistRecord(client, resolved.gistId, baseline);
-    const bundle = loadBundleFromGist(gist);
-    verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
-    const selected = filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, bundle.manifest.items.filter((item) => {
-      if (item.scope !== options.scope || item.agentId !== agentId) {
-        return false;
-      }
-      if (item.kind === "skill" && options.skills !== undefined) {
-        return options.skills.includes(item.name);
-      }
-      if (item.kind === "hook" && options.hooks !== undefined) {
-        return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
-      }
-      return options.skills === undefined && options.hooks === undefined;
-    }));
+    let gist = await readDownloadGistRecord(client, resolved.gistId, baseline);
+    let bundle = loadDownloadBundle(gist);
+    let selected = await selectDownloadItems(ctx, options, agentId, bundle.manifest.items);
+    for (
+      let attempt = 1;
+      attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && isMissingSelectedDownloadItem(selected, options);
+      attempt += 1
+    ) {
+      await traceAgentStash(ctx, "download.remote.retry", {
+        gistId: resolved.gistId,
+        attempt,
+        reason: "selected-items-missing",
+        gistUpdatedAt: gist.updatedAt
+      });
+      await sleep(DOWNLOAD_MANIFEST_RETRY_DELAY_MS);
+      gist = await client.read(resolved.gistId);
+      bundle = loadDownloadBundle(gist);
+      selected = await selectDownloadItems(ctx, options, agentId, bundle.manifest.items);
+    }
     assertSelectedItemsFound(selected, options);
     await traceAgentStash(ctx, "download.remote.selected", { gistId: resolved.gistId, ...traceItemSet(selected) });
     const selectedFiles = selected.map((item) => {
@@ -115,6 +119,49 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     await traceAgentStashError(ctx, "download.error", error);
     throw error;
   }
+}
+
+function loadDownloadBundle(gist: GistRecord): ReturnType<typeof loadBundleFromGist> {
+  const bundle = loadBundleFromGist(gist);
+  verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
+  return bundle;
+}
+
+async function selectDownloadItems(
+  ctx: AgentStashContext,
+  options: DownloadOptions,
+  agentId: string,
+  items: readonly AgentStashItem[]
+): Promise<AgentStashItem[]> {
+  return filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, items.filter((item) => {
+    if (item.scope !== options.scope || item.agentId !== agentId) {
+      return false;
+    }
+    if (item.kind === "skill" && options.skills !== undefined) {
+      return options.skills.includes(item.name);
+    }
+    if (item.kind === "hook" && options.hooks !== undefined) {
+      return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
+    }
+    return options.skills === undefined && options.hooks === undefined;
+  }));
+}
+
+function isMissingSelectedDownloadItem(
+  items: Array<Pick<AgentStashItem, "kind" | "name">>,
+  selected: { skills?: string[]; hooks?: string[] }
+): boolean {
+  for (const skill of selected.skills ?? []) {
+    if (!items.some((item) => item.kind === "skill" && item.name === skill)) {
+      return true;
+    }
+  }
+  for (const hook of selected.hooks ?? []) {
+    if (!items.some((item) => item.kind === "hook" && selectedHookMatchesName(item.name, hook))) {
+      return true;
+    }
+  }
+  return false;
 }
 
 async function readDownloadGistRecord(

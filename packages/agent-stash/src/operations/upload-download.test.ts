@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { gistFilenameForBundlePath } from "../bundle.js";
 import { hashFiles, sha256 } from "../hash.js";
-import { parseManifest, serializeManifest } from "../manifest.js";
+import { createEmptyManifest, parseManifest, serializeManifest } from "../manifest.js";
 import { uploadBundle } from "./upload.js";
 import { downloadBundle } from "./download.js";
 import { InMemoryGistClient } from "../fixtures/in-memory-gist-client.js";
@@ -676,6 +676,61 @@ describe("upload/download", () => {
     expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
     expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toContain("npm test --fresh-stale-metadata-no-baseline");
     expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+  });
+
+  it("retries explicit Gist downloads when stale reads are missing the selected hook", async () => {
+    vi.useFakeTimers();
+    const staleClient = new StaleSeedReadGistClient();
+    const staleRecord: GistRecord = {
+      id: "gist-default",
+      htmlUrl: "https://gist.github.com/gist-default",
+      files: {
+        "agent-stash.json": {
+          filename: "agent-stash.json",
+          content: serializeManifest(createEmptyManifest(fixedDate))
+        },
+        "seed.txt": { filename: "seed.txt", content: "stale seed\n" }
+      }
+    };
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/home/user/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [
+            { matcher: "*", hooks: [{ type: "command", command: "notify after tool use" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const freshSource = createContext(sourceFiles, new InMemoryGistClient());
+    await uploadBundle(freshSource.ctx, {
+      gist: "gist-default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const freshRecord = await freshSource.gistClient.read("gist-default");
+    staleClient.seedStaleRecordsThenFresh([staleRecord, staleRecord], freshRecord);
+    const target = createContext({}, staleClient);
+
+    try {
+      const downloadPromise = downloadBundle(target.ctx, {
+        gist: "gist-default",
+        scope: "global",
+        agent: "claude-code",
+        hooks: ["PostToolUse"],
+        yes: true
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await downloadPromise;
+
+      expect(result.downloaded.map((item) => item.name)).toEqual(["PostToolUse-all-tools-001-001"]);
+      expect(target.volume.readFileSync("/home/user/.claude/settings.json", "utf8")).toContain("notify after tool use");
+      expect(staleClient.readCalls).toEqual(["gist-default", "gist-default", "gist-default"]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("preserves unmanaged Gist files while retrying stale non-manifest reads before a follow-up upload", async () => {

@@ -14,7 +14,7 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { baselineNameForTarget, readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
@@ -73,9 +73,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       hooks: options.hooks,
       yes: options.yes
     });
-    if (usesProfileTarget) {
-      await writeBaselineManifest(ctx, options.profile!, initialUpload.manifest);
-    }
+    await writeBaselineManifest(ctx, baselineNameForTarget(usesProfileTarget ? options.profile : undefined, initialUpload.gistId), initialUpload.manifest);
     await traceAgentStash(ctx, "sync.initialUpload", {
       uploaded: traceItems(initialUpload.uploaded),
       uploadedIds: initialUpload.uploaded.map((item) => item.id)
@@ -115,7 +113,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   await traceAgentStash(ctx, "sync.remote.selected", { gistId: resolved.gistId, ...traceItemSet(remoteItems) });
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
-  const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
+  const baselineName = baselineNameForTarget(usesProfileTarget ? options.profile : undefined, resolved.gistId);
+  const base = await readBaselineManifest(ctx, baselineName);
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
   const selectedBaselineIds = selectedIdsForBaseline(base, localById, remoteById, options, agentId);
   const ids = new Set([...localById.keys(), ...remoteById.keys(), ...selectedBaselineIds]);
@@ -289,11 +288,9 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       ...traceGistWriteInput(writeInput)
     });
     await client.update(resolved.gistId, writeInput);
-    if (usesProfileTarget) {
-      await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, manifest, selectedBaselineIds));
-    }
-  } else if (usesProfileTarget) {
-    await writeBaselineManifest(ctx, options.profile!, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
+    await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, manifest, selectedBaselineIds));
+  } else {
+    await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
   }
   await recordHookOriginsForItems(ctx, await loadInventory(ctx, {
     scope: options.scope,

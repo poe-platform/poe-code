@@ -11,7 +11,7 @@ import {
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
-import { readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { baselineNameForTarget, readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { traceAgentStash, traceAgentStashError, traceItems, traceItemSet } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult, GistClient, GistRecord } from "../types.js";
@@ -83,15 +83,14 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     }
 
     await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
-    if (profileName) {
-      await writeBaselineManifest(
-        ctx,
-        profileName,
-        isFilteredDownload(options)
-          ? mergeSelectedDownloadBaseline(await readBaselineManifest(ctx, profileName), bundle.manifest, selected)
-          : bundle.manifest
-      );
-    }
+    const baselineName = baselineNameForTarget(profileName, gist.id);
+    await writeBaselineManifest(
+      ctx,
+      baselineName,
+      isFilteredDownload(options)
+        ? mergeSelectedDownloadBaseline(await readBaselineManifest(ctx, baselineName), bundle.manifest, selected)
+        : bundle.manifest
+    );
     await traceAgentStash(ctx, "download.finish", {
       gistId: gist.id,
       downloaded: traceItems(selected),

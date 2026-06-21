@@ -225,6 +225,15 @@ export async function resolveProfileGist(ctx: AgentStashContext, profile?: strin
   return { profileName: profile, gistId: record.gistId, gistUrl: record.gistUrl };
 }
 
+export function baselineNameForTarget(profile: string | undefined, gistId: string): string {
+  if (profile !== undefined) {
+    assertValidProfileName(profile);
+    return profile;
+  }
+  assertValidGistId(gistId);
+  return `gist-${gistId}`;
+}
+
 export async function recordProfilePush(
   ctx: AgentStashContext,
   profile: string | undefined,
@@ -281,26 +290,26 @@ function getProfile(config: AgentStashConfig, profile: string): AgentStashProfil
   return hasProfile(config, profile) ? config.profiles[profile] : undefined;
 }
 
-export async function readBaselineManifest(ctx: AgentStashContext, profile: string): Promise<AgentStashManifest | null> {
-  assertValidProfileName(profile);
-  const content = await readAgentStashFile(ctx, baselineManifestPath(ctx.homeDir, profile));
+export async function readBaselineManifest(ctx: AgentStashContext, baselineName: string): Promise<AgentStashManifest | null> {
+  assertValidProfileName(baselineName);
+  const content = await readAgentStashFile(ctx, baselineManifestPath(ctx.homeDir, baselineName));
   if (content === null) {
     return null;
   }
   try {
     return parseManifest(content);
   } catch {
-    throw new Error(`Malformed baseline manifest for profile ${profile}.`);
+    throw new Error(`Malformed baseline manifest for profile ${baselineName}.`);
   }
 }
 
 export async function writeBaselineManifest(
   ctx: AgentStashContext,
-  profile: string,
+  baselineName: string,
   manifest: AgentStashManifest
 ): Promise<void> {
-  assertValidProfileName(profile);
-  await writeAgentStashFile(ctx, baselineManifestPath(ctx.homeDir, profile), serializeManifest(manifest));
+  assertValidProfileName(baselineName);
+  await writeAgentStashFile(ctx, baselineManifestPath(ctx.homeDir, baselineName), serializeManifest(manifest));
 }
 
 async function writeAgentStashFile(ctx: AgentStashContext, targetPath: string, content: string): Promise<void> {

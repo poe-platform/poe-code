@@ -10,7 +10,7 @@ import {
 import { loadInventory } from "../inventory.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, parseLegacyHookChunkPath, verifyBundleHashes } from "../bundle.js";
 import { readFileIfExists } from "../fs-utils.js";
-import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { baselineNameForTarget, readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
@@ -66,15 +66,14 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
       throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
     }
     const uploadedManifest = parseManifest(manifestContent);
-    if (profileName) {
-      await writeBaselineManifest(
-        ctx,
-        profileName,
-        isFilteredUpload(options)
-          ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, profileName), uploadedManifest, selectedItems)
-          : uploadedManifest
-      );
-    }
+    const baselineName = baselineNameForTarget(profileName, record.id);
+    await writeBaselineManifest(
+      ctx,
+      baselineName,
+      isFilteredUpload(options)
+        ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, baselineName), uploadedManifest, selectedItems)
+        : uploadedManifest
+    );
     await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems), uploadedIds: selectedItems.map((item) => item.id) });
     return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
   } catch (error) {

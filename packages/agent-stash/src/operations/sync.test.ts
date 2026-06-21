@@ -198,6 +198,50 @@ describe("sync", () => {
     expect(settings.hooks?.PreToolUse).toEqual([{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }]);
   });
 
+  it("uses an explicit Gist baseline after filtered download to sync local split hook edits", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const target = createContext({}, gistClient);
+    await downloadBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      yes: true
+    });
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks: { PreToolUse: Array<{ matcher: string; hooks: Array<{ type: string; command: string }> }> };
+    };
+    settings.hooks.PreToolUse[0]!.hooks[0]!.command += "\n# explicit gist baseline sync marker";
+    await target.ctx.fs.writeFile("/repo/.claude/settings.json", `${JSON.stringify(settings, null, 2)}\n`, { encoding: "utf8" });
+
+    const result = await syncBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    expect(result.uploaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(result.conflicts).toEqual([]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]?.content).toContain(
+      "explicit gist baseline sync marker"
+    );
+    expect(target.volume.readFileSync("/home/user/.agent-stash/cache/gist-gist-default.manifest.json", "utf8")).toContain(
+      "PreToolUse-Bash-001-001"
+    );
+  });
+
   it("retries a stale explicit Gist read before failing selected remote-only split hooks", async () => {
     const gistClient = new StaleReadAfterUpdateGistClient();
     gistClient.seed({

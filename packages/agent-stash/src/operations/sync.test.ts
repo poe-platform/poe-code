@@ -270,6 +270,79 @@ describe("sync", () => {
     );
   });
 
+  it("uses an explicit Gist upload baseline to apply later remote split hook deletions", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] },
+            { matcher: "AskUserQuestion", hooks: [{ type: "command", command: "node ask-user-question.js" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(files, gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const baseline = parseManifest(source.volume.readFileSync("/home/user/.agent-stash/cache/gist-gist-default.manifest.json", "utf8") as string);
+    expect(baseline.items.map((item) => item.name)).toEqual([
+      "PreToolUse-AskUserQuestion-002-001",
+      "PreToolUse-Bash-001-001"
+    ]);
+
+    const remoteDeleter = createContext(files, gistClient);
+    await downloadBundle(remoteDeleter.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    await remoteDeleter.ctx.fs.writeFile("/repo/.claude/settings.json", `${JSON.stringify({
+      hooks: {
+        PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test" }] }]
+      }
+    }, null, 2)}\n`, { encoding: "utf8" });
+    const remoteDelete = await syncBundle(remoteDeleter.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "local",
+      yes: true
+    });
+    expect(remoteDelete.deletedRemote.map((item) => item.name)).toEqual(["PreToolUse-AskUserQuestion-002-001"]);
+
+    const prompted: string[] = [];
+    const result = await syncBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict(conflict) {
+        prompted.push(conflict.item.name);
+        return "fail";
+      }
+    });
+
+    const sourceSettings = JSON.parse(source.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PreToolUse?: Array<{ matcher?: string }> };
+    };
+    expect(prompted).toEqual([]);
+    expect(result.deletedLocal.map((item) => item.name)).toEqual(["PreToolUse-AskUserQuestion-002-001"]);
+    expect(result.conflicts).toEqual([]);
+    expect(sourceSettings.hooks?.PreToolUse?.map((group) => group.matcher)).toEqual(["Bash"]);
+  });
+
   it("retries a stale explicit Gist read before failing selected remote-only split hooks", async () => {
     const gistClient = new StaleReadAfterUpdateGistClient();
     gistClient.seed({

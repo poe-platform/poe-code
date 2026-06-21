@@ -1189,7 +1189,7 @@ describe("upload/download", () => {
     expect(result.backupId).toMatch(/^backup-/);
   });
 
-  it("downloads hook fragments without overwriting unrelated same-event local groups", async () => {
+  it("downloads exact hook fragments without overwriting unrelated same-event local groups", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),
       "/repo/.claude/settings.json": JSON.stringify({
@@ -1227,7 +1227,7 @@ describe("upload/download", () => {
       profile: "default",
       scope: "project",
       agent: "claude-code",
-      hooks: ["PreToolUse"],
+      hooks: ["PreToolUse-Bash-001-001"],
       yes: true
     });
 
@@ -1240,6 +1240,93 @@ describe("upload/download", () => {
     }))).toEqual([
       { matcher: "Bash", commands: ["remote pretooluse"] },
       { matcher: "Bash(agent-stash-preserve-existing)", commands: ["local pretooluse"] }
+    ]);
+  });
+
+  it("replaces local hook event groups during event-level filtered download", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "EnterPlanMode",
+              hooks: [{ type: "command", command: "remote enter plan" }]
+            },
+            {
+              matcher: "AskUserQuestion",
+              hooks: [{ type: "command", command: "remote ask user" }]
+            },
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "remote bash first" },
+                { type: "command", command: "remote bash second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        env: {
+          KEEP: "yes"
+        },
+        statusLine: {
+          type: "command",
+          command: "echo local-status"
+        },
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [{ type: "command", command: "local pretooluse sentinel" }]
+            }
+          ],
+          Stop: [
+            {
+              hooks: [{ type: "command", command: "local stop sentinel" }]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      env?: { KEEP?: string };
+      statusLine?: { command?: string };
+      hooks?: Record<string, Array<{ matcher?: string; hooks?: Array<{ command?: string }> }>>;
+    };
+    expect(settings.env?.KEEP).toBe("yes");
+    expect(settings.statusLine?.command).toBe("echo local-status");
+    expect(settings.hooks?.Stop?.[0]?.hooks?.[0]?.command).toBe("local stop sentinel");
+    expect(settings.hooks?.PreToolUse?.map((group) => ({
+      matcher: group.matcher,
+      commands: group.hooks?.map((hook) => hook.command)
+    }))).toEqual([
+      { matcher: "EnterPlanMode", commands: ["remote enter plan"] },
+      { matcher: "AskUserQuestion", commands: ["remote ask user"] },
+      { matcher: "Bash", commands: ["remote bash first", "remote bash second"] }
     ]);
   });
 

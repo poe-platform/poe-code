@@ -467,6 +467,56 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
   });
 }
 
+export async function removeLocalHookEvents(
+  ctx: AgentStashContext,
+  referenceItem: AgentStashItem,
+  events: readonly string[]
+): Promise<void> {
+  const targetPath = targetPathForItem(ctx, referenceItem);
+  await traceAgentStash(ctx, "local.removeHookEvents.start", {
+    item: traceItems([referenceItem])[0],
+    targetPath,
+    events: [...events].sort()
+  });
+  await assertNoSymlinkAncestors(ctx.fs, targetPath, localWriteRoot(ctx, referenceItem.scope));
+  await assertNotSymlink(ctx.fs, targetPath);
+  const config = getHookAgentConfig(referenceItem.agentId);
+  if (!config || !(await pathExists(ctx.fs, targetPath))) {
+    await traceAgentStash(ctx, "local.removeHookEvents.finish", {
+      item: traceItems([referenceItem])[0],
+      targetPath,
+      removedPaths: []
+    });
+    return;
+  }
+  const existing = parseExistingHookConfig(targetPath, (await ctx.fs.readFile(targetPath, "utf8")) || "{}");
+  const originStore = await readHookOriginStore(ctx);
+  const targetOrigins = originStore.targets[targetPath] ?? {};
+  let changed = false;
+  for (const event of events) {
+    if (existing.hooks && event in existing.hooks) {
+      delete existing.hooks[event];
+      changed = true;
+    }
+    if (event in targetOrigins) {
+      delete targetOrigins[event];
+      changed = true;
+    }
+  }
+  if (changed) {
+    if (originStore.targets[targetPath]) {
+      originStore.targets[targetPath] = targetOrigins;
+    }
+    await writeTextFile(ctx.fs, targetPath, `${JSON.stringify(existing, null, 2)}\n`);
+    await writeHookOriginStore(ctx, originStore);
+  }
+  await traceAgentStash(ctx, "local.removeHookEvents.finish", {
+    item: traceItems([referenceItem])[0],
+    targetPath,
+    removedPaths: changed ? [targetPath] : []
+  });
+}
+
 function removeIndividualHook(
   hooks: Record<string, unknown>,
   position: { event: string; groupIndex: number; hookIndex: number }

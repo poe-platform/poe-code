@@ -1,9 +1,11 @@
 import { createBackup } from "../backup-store.js";
 import { loadBundleFromGist, verifyBundleHashes } from "../bundle.js";
 import { createDefaultGistClient } from "../gist-client.js";
+import { hookEventFromFragmentContent } from "../hook-items.js";
 import { loadIgnoreMatcher, type IgnoreMatcher } from "../ignore.js";
 import {
   isLocalTargetIgnored,
+  removeLocalHookEvents,
   targetPathForItem,
   validateItemForLocalWrite,
   validateTargetForLocalWrite,
@@ -70,13 +72,23 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       validateItemForLocalWrite(item, files);
       return { item, files };
     });
-    const backupPaths = [...new Set(selected.map((item) => targetPathForItem(ctx, item)))];
+    const eventReplacements = hookEventReplacementsForEventLevelDownload(ctx, options, selectedFiles);
+    const backupPaths = [
+      ...new Set([
+        ...selected.map((item) => targetPathForItem(ctx, item)),
+        ...eventReplacements.map((replacement) => targetPathForItem(ctx, replacement.referenceItem))
+      ])
+    ];
     for (const item of selected) {
       await validateTargetForLocalWrite(ctx, item);
     }
     const backup = backupPaths.length > 0
       ? await createBackup(ctx, { command: "download", args: options as unknown as Record<string, unknown>, paths: backupPaths })
       : undefined;
+
+    for (const replacement of eventReplacements) {
+      await removeLocalHookEvents(ctx, replacement.referenceItem, [...replacement.events]);
+    }
 
     for (const { item, files } of selectedFiles) {
       await writeItemToLocal(ctx, item, files);
@@ -125,6 +137,32 @@ async function sleep(ms: number): Promise<void> {
 
 function isFilteredDownload(options: DownloadOptions): boolean {
   return options.skills !== undefined || options.hooks !== undefined;
+}
+
+function hookEventReplacementsForEventLevelDownload(
+  ctx: AgentStashContext,
+  options: DownloadOptions,
+  selectedFiles: readonly { item: AgentStashItem; files: readonly { path: string; content: string }[] }[]
+): Array<{ referenceItem: AgentStashItem; events: Set<string> }> {
+  if (options.hooks === undefined) {
+    return [];
+  }
+  const selectedHookEvents = new Set(options.hooks);
+  const replacementsByTarget = new Map<string, { referenceItem: AgentStashItem; events: Set<string> }>();
+  for (const { item, files } of selectedFiles) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const event = hookEventFromFragmentContent(files[0]?.content ?? "");
+    if (event === undefined || !selectedHookEvents.has(event)) {
+      continue;
+    }
+    const targetPath = targetPathForItem(ctx, item);
+    const replacement = replacementsByTarget.get(targetPath) ?? { referenceItem: item, events: new Set<string>() };
+    replacement.events.add(event);
+    replacementsByTarget.set(targetPath, replacement);
+  }
+  return [...replacementsByTarget.values()];
 }
 
 function mergeSelectedDownloadBaseline(

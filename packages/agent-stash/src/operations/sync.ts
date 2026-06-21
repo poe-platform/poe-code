@@ -14,7 +14,7 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { baselineNameForTarget, readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { baselineNameForTarget, readBaselineManifest, recordProfilePull, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME, parseManifest } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
@@ -320,6 +320,10 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, manifest, selectedBaselineIds));
   } else {
     await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));
+  }
+  if (result.downloaded.length > 0 || result.deletedLocal.length > 0) {
+    const now = ctx.now?.() ?? new Date();
+    await recordProfilePull(ctx, profileName, resolved.gistId, gist.htmlUrl, now.toISOString());
   }
   await recordHookOriginsForItems(ctx, await loadInventory(ctx, {
     scope: options.scope,

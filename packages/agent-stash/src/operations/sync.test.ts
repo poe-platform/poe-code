@@ -170,6 +170,54 @@ describe("sync", () => {
     });
   });
 
+  it("updates profile lastPulledAt when sync downloads remote changes", async () => {
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(createDummyAgentConfigFixture(), gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    const target = createContext(createDummyAgentConfigFixture(), gistClient);
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    source.volume.writeFileSync("/repo/.claude/skills/code-review/SKILL.md", "# Remote Review\n");
+    source.ctx.now = () => new Date("2026-01-02T03:05:00.000Z");
+    await syncBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      onConflict: "local",
+      yes: true
+    });
+    target.ctx.now = () => new Date("2026-01-02T03:06:00.000Z");
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const config = JSON.parse(target.volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string);
+    expect(result.downloaded.map((item) => item.name)).toEqual(["code-review"]);
+    expect(target.volume.readFileSync("/repo/.claude/skills/code-review/SKILL.md", "utf8")).toBe("# Remote Review\n");
+    expect(config.profiles.default).toMatchObject({
+      gistId: "gist-default",
+      lastPulledAt: "2026-01-02T03:06:00.000Z"
+    });
+  });
+
   it("replaces existing non-agent-stash Gist files during sync", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({

@@ -274,6 +274,141 @@ describe("sync", () => {
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
+  it("flags local-only hook splits in the same selected remote event as conflicts", async () => {
+    const gistClient = new InMemoryGistClient();
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: "EnterPlanMode", hooks: [{ type: "command", command: "remote enter plan" }] },
+            { matcher: "AskUserQuestion", hooks: [{ type: "command", command: "remote ask user" }] },
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "remote bash first" },
+                { type: "command", command: "remote bash second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: "Bash", hooks: [{ type: "command", command: "local pretooluse sentinel" }] }
+          ],
+          Stop: [
+            { hooks: [{ type: "command", command: "local stop sentinel" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    expect(result.conflicts.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(result.uploaded).toEqual([]);
+    expect(result.downloaded).toEqual([]);
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: { PreToolUse?: Array<{ hooks?: Array<{ command?: string }> }> };
+    };
+    expect(settings.hooks?.PreToolUse?.[0]?.hooks?.[0]?.command).toBe("local pretooluse sentinel");
+  });
+
+  it("deletes local-only same-event hook splits with remote conflict policy", async () => {
+    const gistClient = new InMemoryGistClient();
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: "EnterPlanMode", hooks: [{ type: "command", command: "remote enter plan" }] },
+            { matcher: "AskUserQuestion", hooks: [{ type: "command", command: "remote ask user" }] },
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "remote bash first" },
+                { type: "command", command: "remote bash second" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            { matcher: "Bash", hooks: [{ type: "command", command: "local pretooluse sentinel" }] }
+          ],
+          Stop: [
+            { hooks: [{ type: "command", command: "local stop sentinel" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "remote",
+      yes: true
+    });
+
+    expect(result.deletedLocal.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(result.uploaded).toEqual([]);
+    expect(result.downloaded.map((item) => item.name)).toEqual([
+      "PreToolUse-AskUserQuestion-002-001",
+      "PreToolUse-Bash-003-001",
+      "PreToolUse-Bash-003-002",
+      "PreToolUse-EnterPlanMode-001-001"
+    ]);
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks?: Record<string, Array<{ matcher?: string; hooks?: Array<{ command?: string }> }>>;
+    };
+    expect(settings.hooks?.Stop?.[0]?.hooks?.[0]?.command).toBe("local stop sentinel");
+    expect(settings.hooks?.PreToolUse?.map((group) => ({
+      matcher: group.matcher,
+      commands: group.hooks?.map((hook) => hook.command)
+    }))).toEqual([
+      { matcher: "EnterPlanMode", commands: ["remote enter plan"] },
+      { matcher: "AskUserQuestion", commands: ["remote ask user"] },
+      { matcher: "Bash", commands: ["remote bash first", "remote bash second"] }
+    ]);
+  });
+
   it("traces sync errors when a Gist read fails", async () => {
     const { ctx, gistClient } = createContext();
     const traces: Array<{ event: string; error?: string }> = [];

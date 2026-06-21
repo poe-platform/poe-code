@@ -113,6 +113,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   await traceAgentStash(ctx, "sync.remote.selected", { gistId: resolved.gistId, ...traceItemSet(remoteItems) });
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
+  const overlappingRemoteHookEvents = remoteHookEventsForEventLevelSelections(options, remoteItems, remote.files);
   const baselineName = baselineNameForTarget(usesProfileTarget ? options.profile : undefined, resolved.gistId);
   const base = await readBaselineManifest(ctx, baselineName);
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
@@ -151,13 +152,13 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
     const localItem = localById.get(id);
     const remoteItem = remoteById.get(id);
     const baseItem = baseById.get(id);
-    const initialAction = classify(localItem, remoteItem, baseItem, options.onConflict, options.selectedSource);
+    const initialAction = classifySyncItem(localItem, remoteItem, baseItem, options, overlappingRemoteHookEvents);
     const conflictResolution = initialAction === "conflict" && options.onConflict === "ask"
       ? await resolveAskedConflict(options, localItem, remoteItem, baseItem)
       : undefined;
     const action = conflictResolution === undefined
       ? initialAction
-      : classify(localItem, remoteItem, baseItem, conflictResolution, options.selectedSource);
+      : classifySyncItem(localItem, remoteItem, baseItem, { ...options, onConflict: conflictResolution }, overlappingRemoteHookEvents);
     actions.push({ action, initialAction, conflictResolution, localItem, remoteItem, baseItem });
     if (action === "unchanged" && (localItem ?? remoteItem)) {
       result.unchanged.push(localItem ?? remoteItem!);
@@ -387,6 +388,65 @@ function hookEventsForLoadedItems(items: LoadedItem[]): Set<string> {
     }
   }
   return events;
+}
+
+function remoteHookEventsForEventLevelSelections(
+  options: SyncOptions,
+  items: readonly AgentStashItem[],
+  files: Map<string, string>
+): Set<string> {
+  if (options.hooks === undefined) {
+    return new Set();
+  }
+  const selectedEvents = new Set(options.hooks);
+  const events = new Set<string>();
+  for (const item of items) {
+    if (item.kind !== "hook") {
+      continue;
+    }
+    const content = files.get(item.files[0]?.path ?? "");
+    const event = content === undefined ? undefined : hookEventFromFragmentContent(content);
+    if (event !== undefined && selectedEvents.has(event)) {
+      events.add(event);
+    }
+  }
+  return events;
+}
+
+function classifySyncItem(
+  local: LoadedItem | undefined,
+  remote: AgentStashItem | undefined,
+  base: AgentStashItem | undefined,
+  options: SyncOptions,
+  overlappingRemoteHookEvents: Set<string>
+): Action {
+  if (isLocalOnlyHookInOverlappingRemoteEvent(local, remote, base, overlappingRemoteHookEvents)) {
+    return classifySameEventLocalOnlyHook(options.onConflict);
+  }
+  return classify(local, remote, base, options.onConflict, options.selectedSource);
+}
+
+function isLocalOnlyHookInOverlappingRemoteEvent(
+  local: LoadedItem | undefined,
+  remote: AgentStashItem | undefined,
+  base: AgentStashItem | undefined,
+  overlappingRemoteHookEvents: Set<string>
+): local is LoadedItem {
+  if (!local || remote || base || local.kind !== "hook") {
+    return false;
+  }
+  const event = hookEventFromFragmentContent(local.bundleFiles[0]?.content ?? "");
+  return event !== undefined && overlappingRemoteHookEvents.has(event);
+}
+
+function classifySameEventLocalOnlyHook(policy: SyncOptions["onConflict"]): Action {
+  if (policy === "local") {
+    return "upload";
+  }
+  if (policy === "remote") {
+    return "delete-local";
+  }
+  return "conflict";
 }
 
 function mergeBaselineManifest(

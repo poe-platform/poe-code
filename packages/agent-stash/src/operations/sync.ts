@@ -14,7 +14,7 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { baselineNameForTarget, readBaselineManifest, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
+import { baselineNameForTarget, readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
 import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
@@ -60,6 +60,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const agentId = normalizeAgent(options.agent);
   const resolved = await resolveProfileGist(ctx, options.profile, options.gist);
   const usesProfileTarget = options.profile !== undefined && options.gist === undefined;
+  const profileName = usesProfileTarget ? options.profile : undefined;
   if (!resolved.gistId) {
     if (!usesProfileTarget) {
       throw new Error("A profile with a Gist or --gist is required.");
@@ -288,7 +289,8 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
       gistId: resolved.gistId,
       ...traceGistWriteInput(writeInput)
     });
-    await client.update(resolved.gistId, writeInput);
+    const record = await client.update(resolved.gistId, writeInput);
+    await recordProfilePush(ctx, profileName, record.id, record.htmlUrl, now.toISOString());
     await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, manifest, selectedBaselineIds));
   } else {
     await writeBaselineManifest(ctx, baselineName, mergeBaselineManifest(base, remote.manifest, selectedBaselineIds));

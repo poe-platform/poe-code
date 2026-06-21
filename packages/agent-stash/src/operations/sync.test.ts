@@ -142,6 +142,34 @@ describe("sync", () => {
     expect(gistClient.updateCalls.at(-1)?.input.files[gistFilenameForBundlePath("skills/project/claude-code/project-only/SKILL.md")]).toBeDefined();
   });
 
+  it("updates profile lastPushedAt when sync uploads remote changes", async () => {
+    const { ctx, volume } = createContext();
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+    ctx.now = () => new Date("2026-01-02T03:05:00.000Z");
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["project-only"],
+      onConflict: "local",
+      yes: true
+    });
+
+    const config = JSON.parse(volume.readFileSync("/home/user/.agent-stash/config.json", "utf8") as string);
+    expect(result.uploaded.map((item) => item.name)).toEqual(["project-only"]);
+    expect(config.profiles.default).toMatchObject({
+      gistId: "gist-default",
+      lastPushedAt: "2026-01-02T03:05:00.000Z"
+    });
+  });
+
   it("replaces existing non-agent-stash Gist files during sync", async () => {
     const gistClient = new InMemoryGistClient();
     gistClient.seed({

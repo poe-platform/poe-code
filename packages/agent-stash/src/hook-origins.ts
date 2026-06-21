@@ -87,7 +87,7 @@ export function alignHookOrigins(eventGroups: readonly unknown[], origins: reado
       const fingerprints = hookGroupFingerprints(eventGroups[groupIndex]);
       return {
         groupIndex: origin.groupIndex,
-        hooks: [...origin.hooks],
+        hooks: origin.hookHashes ? alignHookIndexes(fingerprints.hookHashes, origin) : [...origin.hooks],
         groupFieldsHash: origin.groupFieldsHash ?? fingerprints.groupFieldsHash,
         hookHashes: origin.hookHashes ?? fingerprints.hookHashes
       };
@@ -191,6 +191,11 @@ function alignHookIndexes(hookHashes: readonly string[], origin: HookOriginGroup
   return hookHashes.map((hash, fallbackIndex) => {
     const originHashIndex = originHashes.findIndex((candidate, index) => candidate === hash && !usedOriginHashIndexes.has(index));
     if (originHashIndex === -1) {
+      const positionalHookIndex = origin.hooks[fallbackIndex];
+      if (positionalHookIndex !== undefined && !usedHookIndexes.has(positionalHookIndex)) {
+        usedHookIndexes.add(positionalHookIndex);
+        return positionalHookIndex;
+      }
       while (usedHookIndexes.has(nextHookIndex)) {
         nextHookIndex += 1;
       }

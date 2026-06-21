@@ -1798,6 +1798,78 @@ describe("sync", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-003-003.json")]).toBeDefined();
   });
 
+  it("preserves hook identities when hooks are reordered inside one matcher group", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "first local bash" },
+                { type: "command", command: "second local bash" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({ hooks: {} }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks: { PreToolUse: Array<{ matcher?: string; hooks: Array<{ command: string }> }> };
+    };
+    const bashHooks = settings.hooks.PreToolUse[0]!.hooks;
+    settings.hooks.PreToolUse[0]!.hooks = [bashHooks[1]!, bashHooks[0]!];
+    target.volume.writeFileSync("/repo/.claude/settings.json", `${JSON.stringify(settings, null, 2)}\n`);
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    const first = record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]?.content;
+    const second = record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-002.json")]?.content;
+    expect(result.uploaded).toEqual([]);
+    expect(result.deletedRemote).toEqual([]);
+    expect(result.unchanged.map((item) => item.name).sort()).toEqual([
+      "PreToolUse-Bash-001-001",
+      "PreToolUse-Bash-001-002"
+    ]);
+    expect(manifest.items.map((item) => item.name).sort()).toEqual([
+      "PreToolUse-Bash-001-001",
+      "PreToolUse-Bash-001-002"
+    ]);
+    expect(first).toContain("first local bash");
+    expect(second).toContain("second local bash");
+  });
+
   it("refreshes hook origins after syncing local deletion within a matcher group", async () => {
     const files = {
       ...createDummyAgentConfigFixture(),

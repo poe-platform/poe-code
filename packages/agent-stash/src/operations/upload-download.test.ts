@@ -60,6 +60,24 @@ class StaleReadAfterUpdateGistClient extends InMemoryGistClient {
   }
 }
 
+class StaleSeedReadGistClient extends InMemoryGistClient {
+  private staleRecords: GistRecord[] = [];
+
+  seedStaleRecordsThenFresh(staleRecords: GistRecord[], freshRecord: GistRecord): void {
+    this.staleRecords = staleRecords.map((record) => cloneGistRecord(record));
+    this.seed(freshRecord);
+  }
+
+  async read(gistId: string): Promise<GistRecord> {
+    const staleRecord = this.staleRecords.shift();
+    if (staleRecord !== undefined) {
+      this.readCalls.push(gistId);
+      return cloneGistRecord(staleRecord);
+    }
+    return super.read(gistId);
+  }
+}
+
 function cloneGistRecord(record: GistRecord): GistRecord {
   return {
     ...record,
@@ -418,6 +436,128 @@ describe("upload/download", () => {
 
     expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("retries profile-backed downloads when Gist metadata is fresh but manifest content is stale", async () => {
+    vi.useFakeTimers();
+    const staleClient = new StaleSeedReadGistClient();
+    const freshUpdatedAt = "2026-01-02T03:05:00.000Z";
+    const oldSource = createContext(createDummyAgentConfigFixture(), new InMemoryGistClient());
+    await uploadBundle(oldSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const oldRecord = await oldSource.gistClient.read("gist-default");
+    const freshFiles = createDummyAgentConfigFixture();
+    freshFiles["/repo/.claude/settings.json"] = JSON.stringify(
+      {
+        permissions: { allow: ["Bash(npm test)"] },
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test --fresh" }] }],
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      },
+      null,
+      2
+    );
+    const freshSource = createContext(freshFiles, new InMemoryGistClient());
+    freshSource.ctx.now = () => new Date(freshUpdatedAt);
+    await uploadBundle(freshSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const freshRecord = await freshSource.gistClient.read("gist-default");
+    staleClient.seedStaleRecordsThenFresh([
+      { ...oldRecord, updatedAt: freshUpdatedAt }
+    ], {
+      ...freshRecord,
+      updatedAt: freshUpdatedAt
+    });
+    const target = createContext({
+      "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2),
+      "/home/user/.agent-stash/cache/default.manifest.json": oldRecord.files["agent-stash.json"]!.content
+    }, staleClient);
+
+    try {
+      const downloadPromise = downloadBundle(target.ctx, {
+        profile: "default",
+        scope: "project",
+        agent: "claude-code",
+        hooks: ["PreToolUse"],
+        yes: true
+      });
+      await vi.advanceTimersByTimeAsync(500);
+      const result = await downloadPromise;
+
+      expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+      expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toContain("npm test --fresh");
+      expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("retries one fresh profile download read when Gist metadata is ahead of manifest content without a baseline", async () => {
+    const staleClient = new StaleSeedReadGistClient();
+    const oldSource = createContext(createDummyAgentConfigFixture(), new InMemoryGistClient());
+    await uploadBundle(oldSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const oldRecord = await oldSource.gistClient.read("gist-default");
+    const freshUpdatedAt = "2026-01-02T03:05:00.000Z";
+    const freshFiles = createDummyAgentConfigFixture();
+    freshFiles["/repo/.claude/settings.json"] = JSON.stringify(
+      {
+        permissions: { allow: ["Bash(npm test)"] },
+        hooks: {
+          PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: "npm test --fresh-no-baseline" }] }],
+          Stop: [{ hooks: [{ type: "command", command: "echo done" }] }]
+        }
+      },
+      null,
+      2
+    );
+    const freshSource = createContext(freshFiles, new InMemoryGistClient());
+    freshSource.ctx.now = () => new Date(freshUpdatedAt);
+    await uploadBundle(freshSource.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    const freshRecord = await freshSource.gistClient.read("gist-default");
+    staleClient.seedStaleRecordsThenFresh([
+      { ...oldRecord, updatedAt: freshUpdatedAt }
+    ], {
+      ...freshRecord,
+      updatedAt: freshUpdatedAt
+    });
+    const target = createContext({
+      "/home/user/.agent-stash/config.json": JSON.stringify({ profiles: { default: { gistId: "gist-default" } } }, null, 2)
+    }, staleClient);
+
+    const result = await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(target.volume.readFileSync("/repo/.claude/settings.json", "utf8")).toContain("npm test --fresh-no-baseline");
+    expect(staleClient.readCalls).toEqual(["gist-default", "gist-default"]);
   });
 
   it("preserves unmanaged Gist files while retrying stale non-manifest reads before a follow-up upload", async () => {

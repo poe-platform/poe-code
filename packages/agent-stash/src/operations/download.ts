@@ -12,7 +12,7 @@ import {
   writeItemToLocal
 } from "../local-writes.js";
 import { normalizeAgent } from "../locations.js";
-import { MANIFEST_FILENAME } from "../manifest.js";
+import { MANIFEST_FILENAME, parseManifest } from "../manifest.js";
 import { baselineNameForTarget, readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { traceAgentStash, traceAgentStashError, traceItems, traceItemSet } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
@@ -20,6 +20,7 @@ import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOpt
 
 const DOWNLOAD_MANIFEST_READ_ATTEMPTS = 6;
 const DOWNLOAD_MANIFEST_RETRY_DELAY_MS = 500;
+const DOWNLOAD_MANIFEST_METADATA_SKEW_MS = 1000;
 
 export async function downloadBundle(ctx: AgentStashContext, options: DownloadOptions): Promise<DownloadResult> {
   assertAgentStashScope(options.scope);
@@ -44,7 +45,9 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       throw new Error("A profile with a Gist or --gist is required.");
     }
     const client = ctx.gistClient ?? (await createDefaultGistClient());
-    const gist = await readDownloadGistRecord(client, resolved.gistId);
+    const baselineName = baselineNameForTarget(profileName, resolved.gistId);
+    const baseline = await readBaselineManifest(ctx, baselineName);
+    const gist = await readDownloadGistRecord(client, resolved.gistId, baseline);
     const bundle = loadBundleFromGist(gist);
     verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
     const selected = filterIgnoredRemoteItems(ctx, await loadIgnoreMatcher(ctx, options.scope), options.scope, bundle.manifest.items.filter((item) => {
@@ -95,12 +98,11 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     }
 
     await recordProfilePull(ctx, profileName, gist.id, gist.htmlUrl, now.toISOString());
-    const baselineName = baselineNameForTarget(profileName, gist.id);
     await writeBaselineManifest(
       ctx,
       baselineName,
       isFilteredDownload(options)
-        ? mergeSelectedDownloadBaseline(await readBaselineManifest(ctx, baselineName), bundle.manifest, selected)
+        ? mergeSelectedDownloadBaseline(baseline, bundle.manifest, selected)
         : bundle.manifest
     );
     await traceAgentStash(ctx, "download.finish", {
@@ -116,9 +118,13 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
   }
 }
 
-async function readDownloadGistRecord(client: GistClient, gistId: string): Promise<GistRecord> {
+async function readDownloadGistRecord(
+  client: GistClient,
+  gistId: string,
+  baseline: AgentStashManifest | null
+): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; attempt < DOWNLOAD_MANIFEST_READ_ATTEMPTS && shouldRetryDownloadGistRead(latest, baseline, attempt); attempt += 1) {
     if (attempt > 1) {
       await sleep(DOWNLOAD_MANIFEST_RETRY_DELAY_MS);
     }
@@ -127,8 +133,50 @@ async function readDownloadGistRecord(client: GistClient, gistId: string): Promi
   return latest;
 }
 
+function shouldRetryDownloadGistRead(gist: GistRecord, baseline: AgentStashManifest | null, attempt: number): boolean {
+  if (isNonEmptyGistWithoutManifest(gist)) {
+    return true;
+  }
+  if (baseline === null) {
+    return attempt === 1 && isGistManifestBehindMetadata(gist);
+  }
+  return isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt);
+}
+
 function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
   return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt: string): boolean {
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  const baselineTime = parseTimestamp(baselineUpdatedAt);
+  if (gistUpdatedAt === undefined || baselineTime === undefined || gistUpdatedAt <= baselineTime) {
+    return false;
+  }
+  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
+  if (manifestContent === undefined) {
+    return false;
+  }
+  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
+  return manifestTime !== undefined && manifestTime <= baselineTime;
+}
+
+function isGistManifestBehindMetadata(gist: GistRecord): boolean {
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
+  if (gistUpdatedAt === undefined || manifestContent === undefined) {
+    return false;
+  }
+  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
+  return manifestTime !== undefined && gistUpdatedAt - manifestTime > DOWNLOAD_MANIFEST_METADATA_SKEW_MS;
+}
+
+function parseTimestamp(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 async function sleep(ms: number): Promise<void> {

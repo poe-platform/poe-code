@@ -12,7 +12,7 @@ import { gistFilenameForBundlePath, gistFilesFromBundle, loadBundleFromGist, par
 import { readFileIfExists } from "../fs-utils.js";
 import { readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
-import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems } from "../trace.js";
+import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
 import { assertAgentStashScope, selectedHookMatchesName } from "../validation.js";
 import { normalizeAgent } from "../locations.js";
 import type { AgentStashContext, AgentStashManifest, BundleFile, GistClient, GistWriteInput, LoadedItem, UploadOptions, UploadResult } from "../types.js";
@@ -48,7 +48,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
     if (!resolved.gistId && selectedItems.length === 0) {
       throw new Error("No upload items selected.");
     }
-    await traceAgentStash(ctx, "upload.inventory", { items: traceItems(selectedItems) });
+    await traceAgentStash(ctx, "upload.inventory", traceItemSet(selectedItems));
     const writeInput = resolved.gistId
       ? await createUpdateWriteInput(ctx, client, resolved.gistId, selectedItems, items.flatMap((item) => item.bundleFiles), profileName, options, localHookItems)
       : createCreateWriteInput(now, profileName, selectedItems, items.flatMap((item) => item.bundleFiles));
@@ -75,7 +75,7 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
           : uploadedManifest
       );
     }
-    await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems) });
+    await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems), uploadedIds: selectedItems.map((item) => item.id) });
     return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
   } catch (error) {
     await traceAgentStashError(ctx, "upload.error", error);

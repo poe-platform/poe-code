@@ -41,9 +41,21 @@ export function traceItems(items: AgentStashItem[]): Array<{
   }));
 }
 
+export function traceItemSet(items: AgentStashItem[]): {
+  itemIds: string[];
+  items: ReturnType<typeof traceItems>;
+} {
+  const tracedItems = traceItems(items);
+  return {
+    itemIds: tracedItems.map((item) => item.id),
+    items: tracedItems
+  };
+}
+
 export function traceGistWriteInput(writeInput: GistWriteInput): {
   fileWrites: number;
   fileDeletes: number;
+  filenames: string[];
   writeFiles: string[];
   deleteFiles: string[];
 } {
@@ -58,6 +70,7 @@ export function traceGistWriteInput(writeInput: GistWriteInput): {
   return {
     fileWrites: writeFiles.length,
     fileDeletes: deleteFiles.length,
+    filenames: [...new Set([...writeFiles, ...deleteFiles])].sort(),
     writeFiles,
     deleteFiles
   };

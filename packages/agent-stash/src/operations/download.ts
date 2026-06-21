@@ -12,7 +12,7 @@ import {
 import { normalizeAgent } from "../locations.js";
 import { MANIFEST_FILENAME } from "../manifest.js";
 import { readBaselineManifest, recordProfilePull, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
-import { traceAgentStash, traceAgentStashError, traceItems } from "../trace.js";
+import { traceAgentStash, traceAgentStashError, traceItems, traceItemSet } from "../trace.js";
 import { assertAgentStashScope, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
 import type { AgentStashContext, AgentStashManifest, AgentStashItem, DownloadOptions, DownloadResult, GistClient, GistRecord } from "../types.js";
 
@@ -58,7 +58,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
       return options.skills === undefined && options.hooks === undefined;
     }));
     assertSelectedItemsFound(selected, options);
-    await traceAgentStash(ctx, "download.remote.selected", { gistId: resolved.gistId, items: traceItems(selected) });
+    await traceAgentStash(ctx, "download.remote.selected", { gistId: resolved.gistId, ...traceItemSet(selected) });
     const selectedFiles = selected.map((item) => {
       const files = item.files.map((file) => {
         const content = bundle.files.get(file.path);
@@ -95,6 +95,7 @@ export async function downloadBundle(ctx: AgentStashContext, options: DownloadOp
     await traceAgentStash(ctx, "download.finish", {
       gistId: gist.id,
       downloaded: traceItems(selected),
+      downloadedIds: selected.map((item) => item.id),
       backupId: backup?.id
     });
     return { manifest: bundle.manifest, downloaded: selected, backupId: backup?.id };

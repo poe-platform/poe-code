@@ -119,6 +119,13 @@ describe("agent-stash CLI", () => {
         name: "PreToolUse-Bash-001-001"
       }
     ]);
+    expect(traces.find((record) => record.event === "upload.inventory")?.itemIds).toEqual([
+      "project:hook:claude-code:PreToolUse-Bash-001-001"
+    ]);
+    expect(traces.find((record) => record.event === "upload.remote.update")?.filenames).toEqual([
+      "agent-stash.json",
+      "hooks%2Fproject%2Fclaude-code%2FPreToolUse-Bash-001-001.json"
+    ]);
   });
 
   it("uses --log ahead of AGENT_STASH_LOG", () => {

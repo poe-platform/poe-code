@@ -1567,6 +1567,59 @@ describe("sync", () => {
     ]);
   });
 
+  it("applies unchanged local split hook deletion with fail policy", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PreToolUse: [
+            {
+              matcher: "Bash",
+              hooks: [
+                { type: "command", command: "first local bash" },
+                { type: "command", command: "second local bash" }
+              ]
+            }
+          ]
+        }
+      }, null, 2)
+    };
+    const { ctx, volume, gistClient } = createContext(files);
+    await uploadBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse"],
+      yes: true
+    });
+    volume.writeFileSync("/repo/.claude/settings.json", JSON.stringify({
+      hooks: {
+        PreToolUse: [
+          {
+            matcher: "Bash",
+            hooks: [{ type: "command", command: "second local bash" }]
+          }
+        ]
+      }
+    }, null, 2));
+
+    const result = await syncBundle(ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PreToolUse-Bash-001-001"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(result.deletedRemote.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-001"]);
+    expect(result.conflicts).toEqual([]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["PreToolUse-Bash-001-002"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/PreToolUse-Bash-001-001.json")]).toBeUndefined();
+  });
+
   it("applies remote deletion after upload and partial download establish the baseline", async () => {
     const sourceFiles = {
       ...createDummyAgentConfigFixture(),

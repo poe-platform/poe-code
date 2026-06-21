@@ -557,7 +557,7 @@ function classify(
     if (selectedSource === "remote" && remote.kind === "hook" && remote.contentHash === base.contentHash) {
       return "download";
     }
-    if (policy === "ask" && remote.contentHash === base.contentHash) {
+    if ((policy === "ask" || policy === "fail") && remote.contentHash === base.contentHash) {
       return "delete-remote";
     }
     if (policy === "local") {

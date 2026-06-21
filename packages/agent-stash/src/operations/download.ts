@@ -148,9 +148,8 @@ function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
 }
 
 function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt: string): boolean {
-  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
   const baselineTime = parseTimestamp(baselineUpdatedAt);
-  if (gistUpdatedAt === undefined || baselineTime === undefined || gistUpdatedAt <= baselineTime) {
+  if (baselineTime === undefined) {
     return false;
   }
   const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
@@ -158,7 +157,14 @@ function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt:
     return false;
   }
   const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
-  return manifestTime !== undefined && manifestTime <= baselineTime;
+  if (manifestTime === undefined) {
+    return false;
+  }
+  if (manifestTime < baselineTime) {
+    return true;
+  }
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  return gistUpdatedAt !== undefined && gistUpdatedAt > baselineTime && manifestTime <= baselineTime;
 }
 
 function isGistManifestBehindMetadata(gist: GistRecord): boolean {

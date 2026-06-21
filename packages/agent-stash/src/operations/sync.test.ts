@@ -691,6 +691,55 @@ describe("sync", () => {
     expect(baseline.items.map((item) => item.name)).toEqual(["code-review", "project-only"]);
   });
 
+  it("does not trace unselected baseline hooks during filtered sync", async () => {
+    const files = {
+      ...createDummyAgentConfigFixture(),
+      "/home/user/.claude/settings.json": JSON.stringify({
+        hooks: {
+          PostToolUse: [{ hooks: [{ type: "command", command: "remote posttooluse" }] }],
+          PostToolUseFailure: [{ hooks: [{ type: "command", command: "remote posttooluse failure" }] }]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const target = createContext(files, gistClient);
+    await uploadBundle(target.ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["PostToolUse", "PostToolUseFailure"],
+      yes: true
+    });
+    const record = await gistClient.read("gist-default");
+    const failureFilename = gistFilenameForBundlePath("hooks/global/claude-code/PostToolUseFailure-all-tools-001-001.json");
+    const failureBefore = record.files[failureFilename]?.content;
+    target.volume.writeFileSync("/home/user/.claude/settings.json", JSON.stringify({
+      hooks: {
+        PostToolUse: [{ hooks: [{ type: "command", command: "local posttooluse" }] }],
+        PostToolUseFailure: [{ hooks: [{ type: "command", command: "remote posttooluse failure" }] }]
+      }
+    }, null, 2));
+    const traces: Array<{ event: string; [key: string]: unknown }> = [];
+    target.ctx.trace = async (record) => {
+      traces.push(record);
+    };
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "global",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      onConflict: "fail",
+      yes: true
+    });
+
+    const updatedRecord = await gistClient.read("gist-default");
+    const traceJson = JSON.stringify(traces);
+    expect(result.uploaded.map((item) => item.name)).toEqual(["PostToolUse-all-tools-001-001"]);
+    expect(traceJson).not.toContain("PostToolUseFailure");
+    expect(updatedRecord.files[failureFilename]?.content).toBe(failureBefore);
+  });
+
   it("fails on both-changed conflicts before writing local files", async () => {
     const gistClient = new InMemoryGistClient();
     const source = createContext(createDummyAgentConfigFixture(), gistClient);

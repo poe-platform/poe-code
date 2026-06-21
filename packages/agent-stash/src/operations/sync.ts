@@ -118,7 +118,7 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   const base = usesProfileTarget ? await readBaselineManifest(ctx, options.profile!) : null;
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
   const selectedBaselineIds = selectedIdsForBaseline(base, localById, remoteById, options, agentId);
-  const ids = new Set([...localById.keys(), ...remoteById.keys(), ...baseById.keys()]);
+  const ids = new Set([...localById.keys(), ...remoteById.keys(), ...selectedBaselineIds]);
   const result: SyncResult = { uploaded: [], downloaded: [], deletedLocal: [], deletedRemote: [], unchanged: [], conflicts: [] };
   const nextRemoteItems = new Map(remote.manifest.items.map((item) => [item.id, item]));
   const nextFiles = new Map<string, string>(remote.files);

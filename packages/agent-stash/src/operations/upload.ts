@@ -66,14 +66,16 @@ export async function uploadBundle(ctx: AgentStashContext, options: UploadOption
       throw new Error(`Upload write input missing ${MANIFEST_FILENAME}.`);
     }
     const uploadedManifest = parseManifest(manifestContent);
-    const baselineName = baselineNameForTarget(profileName, record.id);
-    await writeBaselineManifest(
-      ctx,
-      baselineName,
-      isFilteredUpload(options)
-        ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, baselineName), uploadedManifest, selectedItems)
-        : uploadedManifest
-    );
+    if (usesProfileTarget) {
+      const baselineName = baselineNameForTarget(profileName, record.id);
+      await writeBaselineManifest(
+        ctx,
+        baselineName,
+        isFilteredUpload(options)
+          ? mergeSelectedUploadBaseline(await readBaselineManifest(ctx, baselineName), uploadedManifest, selectedItems)
+          : uploadedManifest
+      );
+    }
     await traceAgentStash(ctx, "upload.finish", { gistId: record.id, uploaded: traceItems(selectedItems), uploadedIds: selectedItems.map((item) => item.id) });
     return { gistId: record.id, manifest: uploadedManifest, uploaded: selectedItems };
   } catch (error) {

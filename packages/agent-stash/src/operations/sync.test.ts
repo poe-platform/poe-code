@@ -302,6 +302,93 @@ describe("sync", () => {
     expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(3);
   });
 
+  it("retries stale Gist reads before applying an asked remote conflict winner", async () => {
+    const gistClient = new StaleReadAfterUpdateGistClient();
+    const postToolUseSettings = {
+      hooks: {
+        PostToolUse: [
+          {
+            matcher: "Write|Edit",
+            hooks: [
+              {
+                type: "command",
+                command: "npm run sync-skills --silent",
+                statusMessage: "Syncing skills..."
+              }
+            ]
+          }
+        ]
+      }
+    };
+    const source = createContext({
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify(postToolUseSettings, null, 2)
+    }, gistClient);
+    await uploadBundle(source.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    await gistClient.read("gist-default");
+    const target = createContext({
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({ hooks: {} }, null, 2)
+    }, gistClient);
+    await downloadBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+
+    const remoteSettings = structuredClone(postToolUseSettings);
+    remoteSettings.hooks.PostToolUse[0]!.hooks[0]!.command += " # remote-winner";
+    remoteSettings.hooks.PostToolUse[0]!.hooks[0]!.statusMessage = "Remote wins";
+    const remote = createContext({
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify(remoteSettings, null, 2)
+    }, gistClient);
+    remote.ctx.now = () => new Date("2026-01-02T03:04:06.000Z");
+    await uploadBundle(remote.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      yes: true
+    });
+    const localSettings = structuredClone(postToolUseSettings);
+    localSettings.hooks.PostToolUse[0]!.hooks[0]!.command += " # local-loser";
+    localSettings.hooks.PostToolUse[0]!.hooks[0]!.statusMessage = "Local loses";
+    localSettings.env = { KEEP: "1" };
+    localSettings.hooks.PreToolUse = [{ matcher: "Bash", hooks: [{ type: "command", command: "echo preserved" }] }];
+    target.volume.writeFileSync("/repo/.claude/settings.json", JSON.stringify(localSettings, null, 2));
+
+    const result = await syncBundle(target.ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["PostToolUse"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict() {
+        return "remote";
+      }
+    });
+
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as typeof postToolUseSettings;
+    expect(result.downloaded.map((item) => item.name)).toEqual(["PostToolUse-Write-Edit-001-001"]);
+    expect(settings.hooks.PostToolUse[0]!.hooks[0]).toMatchObject({
+      command: "npm run sync-skills --silent # remote-winner",
+      statusMessage: "Remote wins"
+    });
+    expect(settings.env).toEqual({ KEEP: "1" });
+    expect(settings.hooks.PreToolUse).toEqual([{ matcher: "Bash", hooks: [{ type: "command", command: "echo preserved" }] }]);
+    expect(gistClient.readCalls.filter((id) => id === "gist-default").length).toBeGreaterThanOrEqual(6);
+  });
+
   it("flags local-only hook splits in the same selected remote event as conflicts", async () => {
     const gistClient = new InMemoryGistClient();
     const sourceFiles = {

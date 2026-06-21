@@ -257,6 +257,20 @@ describe("upload/download", () => {
     expect(baseline.items.map((item) => item.id)).toEqual(["project:skill:claude-code:code-review"]);
   });
 
+  it("does not write an explicit Gist baseline after uploading without a profile", async () => {
+    const { ctx, volume } = createContext();
+
+    await uploadBundle(ctx, {
+      gist: "gist-default",
+      scope: "project",
+      agent: "claude-code",
+      skills: ["code-review"],
+      yes: true
+    });
+
+    expect(() => volume.statSync("/home/user/.agent-stash/cache/gist-gist-default.manifest.json")).toThrow();
+  });
+
   it("uploads each selected hook command as a separate Gist item", async () => {
     const files = {
       ...createDummyAgentConfigFixture(),

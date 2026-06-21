@@ -16,7 +16,7 @@ import {
 import { normalizeAgent } from "../locations.js";
 import { baselineNameForTarget, readBaselineManifest, recordProfilePush, resolveProfileGist, writeBaselineManifest } from "../profile-store.js";
 import { gistFilenameForBundlePath, gistFilesFromBundle } from "../bundle.js";
-import { createEmptyManifest, MANIFEST_FILENAME } from "../manifest.js";
+import { createEmptyManifest, MANIFEST_FILENAME, parseManifest } from "../manifest.js";
 import { traceAgentStash, traceAgentStashError, traceGistWriteInput, traceItems, traceItemSet } from "../trace.js";
 import { recordHookOriginsForItems, uploadBundle } from "./upload.js";
 import { assertAgentStashScope, assertConflictPolicy, assertSelectedItemsFound, selectedHookMatchesName } from "../validation.js";
@@ -93,30 +93,56 @@ export async function syncBundle(ctx: AgentStashContext, options: SyncOptions): 
   await traceAgentStash(ctx, "sync.local.inventory", traceItemSet(local));
   const localHookEvents = hookEventsForLoadedItems(local);
   const localById = new Map(local.map((item) => [item.id, item]));
-  const gist = await readSyncGistRecord(client, resolved.gistId, shouldRetryRemoteManifestRead(local, options));
-  const hasExistingManifest = gist.files[MANIFEST_FILENAME] !== undefined;
-  const remote = hasExistingManifest
-    ? loadBundleFromGist(gist)
-    : { manifest: createEmptyManifest(ctx.now?.() ?? new Date(), usesProfileTarget ? options.profile : undefined), files: new Map<string, string>() };
-  verifyBundleHashes(remote, { allowUntrackedLegacyHookChunks: true });
-  const remoteItems = await filterRemoteItemsForLocalIgnores(ctx, options.scope, remote.manifest.items.filter((item) => {
-    if (item.scope !== options.scope || item.agentId !== agentId) {
-      return false;
+  const baselineName = baselineNameForTarget(usesProfileTarget ? options.profile : undefined, resolved.gistId);
+  const base = await readBaselineManifest(ctx, baselineName);
+  let gist = await readSyncGistRecord(ctx, client, resolved.gistId, shouldRetryRemoteManifestRead(local, options), base);
+  const loadRemoteSelection = async (record: GistRecord): Promise<{
+    hasExistingManifest: boolean;
+    remote: { manifest: AgentStashManifest; files: Map<string, string> };
+    remoteItems: AgentStashItem[];
+  }> => {
+    const hasManifest = record.files[MANIFEST_FILENAME] !== undefined;
+    const bundle = hasManifest
+      ? loadBundleFromGist(record)
+      : { manifest: createEmptyManifest(ctx.now?.() ?? new Date(), usesProfileTarget ? options.profile : undefined), files: new Map<string, string>() };
+    verifyBundleHashes(bundle, { allowUntrackedLegacyHookChunks: true });
+    const items = await filterRemoteItemsForLocalIgnores(ctx, options.scope, bundle.manifest.items.filter((item) => {
+      if (item.scope !== options.scope || item.agentId !== agentId) {
+        return false;
+      }
+      if (item.kind === "skill" && options.skills !== undefined) {
+        return options.skills.includes(item.name);
+      }
+      if (item.kind === "hook" && options.hooks !== undefined) {
+        return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
+      }
+      return options.skills === undefined && options.hooks === undefined;
+    }).filter((item) => !(item.kind === "hook" && localHookEvents.has(item.name))));
+    return { hasExistingManifest: hasManifest, remote: bundle, remoteItems: items };
+  };
+  let remoteSelection = await loadRemoteSelection(gist);
+  for (
+    let attempt = 1;
+    attempt < SYNC_MANIFEST_READ_ATTEMPTS && shouldRetryRemoteMatchingBaselineRead(localById, remoteSelection.remoteItems, base);
+    attempt += 1
+  ) {
+    await traceAgentStash(ctx, "sync.remote.retry", {
+      gistId: resolved.gistId,
+      attempt,
+      reason: "remote-matches-baseline-local-changed",
+      gistUpdatedAt: gist.updatedAt
+    });
+    if (attempt > 1) {
+      await sleep(SYNC_MANIFEST_RETRY_DELAY_MS);
     }
-    if (item.kind === "skill" && options.skills !== undefined) {
-      return options.skills.includes(item.name);
-    }
-    if (item.kind === "hook" && options.hooks !== undefined) {
-      return options.hooks.some((hook) => selectedHookMatchesName(item.name, hook));
-    }
-    return options.skills === undefined && options.hooks === undefined;
-  }).filter((item) => !(item.kind === "hook" && localHookEvents.has(item.name))));
+    gist = await client.read(resolved.gistId);
+    remoteSelection = await loadRemoteSelection(gist);
+  }
+  const { hasExistingManifest, remote, remoteItems } = remoteSelection;
   await traceAgentStash(ctx, "sync.remote.selected", { gistId: resolved.gistId, ...traceItemSet(remoteItems) });
   assertSelectedItemsFound([...local, ...remoteItems], options);
   const remoteById = new Map(remoteItems.map((item) => [item.id, item]));
   const overlappingRemoteHookEvents = remoteHookEventsForEventLevelSelections(options, remoteItems, remote.files);
-  const baselineName = baselineNameForTarget(usesProfileTarget ? options.profile : undefined, resolved.gistId);
-  const base = await readBaselineManifest(ctx, baselineName);
   const baseById = new Map((base?.items ?? []).map((item) => [item.id, item]));
   const selectedBaselineIds = selectedIdsForBaseline(base, localById, remoteById, options, agentId);
   const ids = new Set([...localById.keys(), ...remoteById.keys(), ...selectedBaselineIds]);
@@ -340,9 +366,45 @@ function shouldRetryRemoteManifestRead(local: LoadedItem[], options: SyncOptions
   return false;
 }
 
-async function readSyncGistRecord(client: GistClient, gistId: string, retryNonManifest: boolean): Promise<GistRecord> {
+function shouldRetryRemoteMatchingBaselineRead(
+  localById: Map<string, LoadedItem>,
+  remoteItems: readonly AgentStashItem[],
+  base: AgentStashManifest | null
+): boolean {
+  if (base === null) {
+    return false;
+  }
+  const baseById = new Map(base.items.map((item) => [item.id, item]));
+  for (const remoteItem of remoteItems) {
+    const localItem = localById.get(remoteItem.id);
+    const baseItem = baseById.get(remoteItem.id);
+    if (
+      localItem !== undefined
+      && baseItem !== undefined
+      && localItem.contentHash !== baseItem.contentHash
+      && remoteItem.contentHash === baseItem.contentHash
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+async function readSyncGistRecord(
+  ctx: AgentStashContext,
+  client: GistClient,
+  gistId: string,
+  retryNonManifest: boolean,
+  baseline: AgentStashManifest | null
+): Promise<GistRecord> {
   let latest = await client.read(gistId);
-  for (let attempt = 1; retryNonManifest && attempt < SYNC_MANIFEST_READ_ATTEMPTS && isNonEmptyGistWithoutManifest(latest); attempt += 1) {
+  for (let attempt = 1; attempt < SYNC_MANIFEST_READ_ATTEMPTS && shouldRetrySyncGistRead(latest, baseline, retryNonManifest); attempt += 1) {
+    await traceAgentStash(ctx, "sync.remote.retry", {
+      gistId,
+      attempt,
+      reason: syncGistRetryReason(latest, baseline, retryNonManifest),
+      gistUpdatedAt: latest.updatedAt
+    });
     if (attempt > 1) {
       await sleep(SYNC_MANIFEST_RETRY_DELAY_MS);
     }
@@ -351,8 +413,64 @@ async function readSyncGistRecord(client: GistClient, gistId: string, retryNonMa
   return latest;
 }
 
+function shouldRetrySyncGistRead(
+  gist: GistRecord,
+  baseline: AgentStashManifest | null,
+  retryNonManifest: boolean
+): boolean {
+  if (retryNonManifest && isNonEmptyGistWithoutManifest(gist)) {
+    return true;
+  }
+  if (baseline === null) {
+    return false;
+  }
+  return isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt);
+}
+
+function syncGistRetryReason(
+  gist: GistRecord,
+  baseline: AgentStashManifest | null,
+  retryNonManifest: boolean
+): string {
+  if (retryNonManifest && isNonEmptyGistWithoutManifest(gist)) {
+    return "missing-manifest";
+  }
+  if (baseline !== null && isGistManifestStaleAgainstBaseline(gist, baseline.updatedAt)) {
+    return "stale-manifest";
+  }
+  return "unknown";
+}
+
 function isNonEmptyGistWithoutManifest(gist: GistRecord): boolean {
   return gist.files[MANIFEST_FILENAME] === undefined && Object.keys(gist.files).length > 0;
+}
+
+function isGistManifestStaleAgainstBaseline(gist: GistRecord, baselineUpdatedAt: string): boolean {
+  const baselineTime = parseTimestamp(baselineUpdatedAt);
+  if (baselineTime === undefined) {
+    return false;
+  }
+  const manifestContent = gist.files[MANIFEST_FILENAME]?.content;
+  if (manifestContent === undefined) {
+    return false;
+  }
+  const manifestTime = parseTimestamp(parseManifest(manifestContent).updatedAt);
+  if (manifestTime === undefined) {
+    return false;
+  }
+  if (manifestTime < baselineTime) {
+    return true;
+  }
+  const gistUpdatedAt = parseTimestamp(gist.updatedAt);
+  return gistUpdatedAt !== undefined && gistUpdatedAt > baselineTime && manifestTime <= baselineTime;
+}
+
+function parseTimestamp(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) ? timestamp : undefined;
 }
 
 async function sleep(ms: number): Promise<void> {

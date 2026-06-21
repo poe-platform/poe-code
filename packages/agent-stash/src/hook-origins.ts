@@ -193,7 +193,7 @@ function alignHookIndexes(hookHashes: readonly string[], origin: HookOriginGroup
   });
 }
 
-function hookGroupFingerprints(group: unknown): { groupFieldsHash: string; hookHashes: string[] } {
+export function hookGroupFingerprints(group: unknown): { groupFieldsHash: string; hookHashes: string[] } {
   if (!isRecord(group) || !Array.isArray(group.hooks)) {
     return { groupFieldsHash: stableHash({}), hookHashes: [] };
   }

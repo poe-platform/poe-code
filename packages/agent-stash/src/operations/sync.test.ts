@@ -1184,6 +1184,71 @@ describe("sync", () => {
     expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeDefined();
   });
 
+  it("applies local deletion for an earlier hook after a full download establishes hook origins", async () => {
+    const sourceFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({
+        hooks: {
+          Stop: [
+            { hooks: [{ type: "command", command: "first remote stop" }] },
+            { hooks: [{ type: "command", command: "second remote stop" }] }
+          ]
+        }
+      }, null, 2)
+    };
+    const gistClient = new InMemoryGistClient();
+    const source = createContext(sourceFiles, gistClient);
+    await uploadBundle(source.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop"],
+      yes: true
+    });
+    const targetFiles = {
+      ...createDummyAgentConfigFixture(),
+      "/repo/.claude/settings.json": JSON.stringify({ hooks: {} }, null, 2)
+    };
+    const target = createContext(targetFiles, gistClient);
+    await downloadBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      yes: true
+    });
+    const settings = JSON.parse(target.volume.readFileSync("/repo/.claude/settings.json", "utf8") as string) as {
+      hooks: { Stop: Array<{ hooks: Array<{ command: string }> }> };
+    };
+    settings.hooks.Stop.splice(0, 1);
+    target.volume.writeFileSync("/repo/.claude/settings.json", `${JSON.stringify(settings, null, 2)}\n`);
+    const prompted: string[] = [];
+
+    const result = await syncBundle(target.ctx, {
+      profile: "default",
+      scope: "project",
+      agent: "claude-code",
+      hooks: ["Stop-all-tools-001-001"],
+      onConflict: "ask",
+      yes: true,
+      async resolveConflict(conflict) {
+        prompted.push(conflict.item.name);
+        return "fail";
+      }
+    });
+
+    const record = await gistClient.read("gist-default");
+    const manifest = parseManifest(record.files["agent-stash.json"]!.content);
+    expect(prompted).toEqual([]);
+    expect(result.deletedRemote.map((item) => item.name)).toEqual(["Stop-all-tools-001-001"]);
+    expect(result.uploaded).toEqual([]);
+    expect(settings.hooks.Stop.flatMap((group) => group.hooks.map((hook) => hook.command))).toEqual([
+      "second remote stop"
+    ]);
+    expect(manifest.items.map((item) => item.name)).toEqual(["Stop-all-tools-002-001"]);
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-001-001.json")]).toBeUndefined();
+    expect(record.files[gistFilenameForBundlePath("hooks/project/claude-code/Stop-all-tools-002-001.json")]).toBeDefined();
+  });
+
   it("refreshes hook origins after syncing local deletion within a matcher group", async () => {
     const files = {
       ...createDummyAgentConfigFixture(),

@@ -1,7 +1,7 @@
 import path from "node:path";
 import { getAgentConfig as getHookAgentConfig } from "@poe-code/agent-hook-config";
 import { hookItemName } from "./hook-items.js";
-import { clearHookOrigins, readHookOriginStore, writeHookOriginStore, type HookOriginGroup } from "./hook-origins.js";
+import { clearHookOrigins, hookGroupFingerprints, readHookOriginStore, writeHookOriginStore, type HookOriginGroup } from "./hook-origins.js";
 import { isIgnoredSubtree, type IgnoreMatcher } from "./ignore.js";
 import { normalizeAgent, resolveHookRoot, resolveSkillRoot } from "./locations.js";
 import { localPathForBundleFile } from "./bundle.js";
@@ -291,7 +291,7 @@ function mergeIndividualHook(
     eventGroups[targetGroup.index] = nextGroup;
     originGroups[targetGroup.index] = nextGroupOrigin;
   }
-  return { hooks: { ...hooks, [fragment.event]: eventGroups }, origins: originGroups };
+  return { hooks: { ...hooks, [fragment.event]: eventGroups }, origins: withHookOriginFingerprints(eventGroups, originGroups) };
 }
 
 function targetGroupForMerge(
@@ -322,14 +322,20 @@ function hookGroupFieldsMatch(candidate: unknown, sourceGroupFields: Record<stri
 
 function normalizeHookOrigins(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): HookOriginGroup[] {
   if (origins.length === eventGroups.length) {
-    return origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }));
+    return withHookOriginFingerprints(
+      eventGroups,
+      origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }))
+    );
   }
-  return eventGroups.map((group, groupIndex) => ({
-    groupIndex,
-    hooks: isRecord(group) && Array.isArray(group.hooks)
-      ? group.hooks.map((_, hookIndex) => hookIndex)
-      : []
-  }));
+  return withHookOriginFingerprints(
+    eventGroups,
+    eventGroups.map((group, groupIndex) => ({
+      groupIndex,
+      hooks: isRecord(group) && Array.isArray(group.hooks)
+        ? group.hooks.map((_, hookIndex) => hookIndex)
+        : []
+    }))
+  );
 }
 
 function originsMatchEventGroups(eventGroups: readonly unknown[], origins: readonly HookOriginGroup[]): boolean {
@@ -441,6 +447,12 @@ export async function removeLocalItem(ctx: AgentStashContext, item: AgentStashIt
       );
       removeIndividualHook(existing.hooks, position);
       removeHookOrigin(targetOrigins, position);
+      if (existing.hooks[position.event]) {
+        targetOrigins[position.event] = withHookOriginFingerprints(
+          cloneUnknownArray(existing.hooks[position.event]),
+          targetOrigins[position.event] ?? []
+        );
+      }
     } else {
       delete existing.hooks[item.name];
       delete targetOrigins[item.name];
@@ -533,14 +545,35 @@ function normalizeHookOriginsForRemoval(eventGroups: unknown, origins: readonly 
     const group = eventGroups[groupIndex];
     return isRecord(group) && Array.isArray(group.hooks) && origin.hooks.length === group.hooks.length;
   })) {
-    return origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }));
+    return withHookOriginFingerprints(
+      eventGroups,
+      origins.map((origin) => ({ groupIndex: origin.groupIndex, hooks: [...origin.hooks] }))
+    );
   }
-  return eventGroups.map((group, groupIndex) => ({
-    groupIndex,
-    hooks: isRecord(group) && Array.isArray(group.hooks)
-      ? group.hooks.map((_, hookIndex) => hookIndex)
-      : []
-  }));
+  return withHookOriginFingerprints(
+    eventGroups,
+    eventGroups.map((group, groupIndex) => ({
+      groupIndex,
+      hooks: isRecord(group) && Array.isArray(group.hooks)
+        ? group.hooks.map((_, hookIndex) => hookIndex)
+        : []
+    }))
+  );
+}
+
+function withHookOriginFingerprints(
+  eventGroups: readonly unknown[],
+  origins: readonly HookOriginGroup[]
+): HookOriginGroup[] {
+  return origins.map((origin, groupIndex) => {
+    const fingerprints = hookGroupFingerprints(eventGroups[groupIndex]);
+    return {
+      groupIndex: origin.groupIndex,
+      hooks: [...origin.hooks],
+      groupFieldsHash: fingerprints.groupFieldsHash,
+      hookHashes: fingerprints.hookHashes
+    };
+  });
 }
 
 function isNonNegativeInteger(value: unknown): value is number {

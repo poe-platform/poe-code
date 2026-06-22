@@ -198,11 +198,13 @@ describe("step", () => {
       layout: "wide" as const,
       detail: {
         rowId: "one",
-        items: [{
-          id: "body",
-          renderedContent: ["one", "two", "three", "four", "five", "six"].join("\n"),
-          render: () => ""
-        }],
+        items: [
+          {
+            id: "body",
+            renderedContent: ["one", "two", "three", "four", "five", "six"].join("\n"),
+            render: () => ""
+          }
+        ],
         cursor: 0,
         scroll: 0,
         token: 1,
@@ -217,14 +219,14 @@ describe("step", () => {
       }).state;
     }
 
-    expect(current.detail.scroll).toBe(2);
+    expect(current.detail.scroll).toBe(4);
 
     const up = step(current, {
       type: "key",
       key: { ch: "b", ctrl: true, meta: false, shift: false }
     });
 
-    expect(up.state.detail.scroll).toBe(1);
+    expect(up.state.detail.scroll).toBe(3);
   });
 
   it("clamps detail list scrolling to the final item", () => {
@@ -314,7 +316,9 @@ describe("step", () => {
     if (next.effects[0]?.type === "suspend") {
       await next.effects[0].fn();
     }
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ row: rows[0], rows: [rows[0]] }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ row: rows[0], rows: [rows[0]] })
+    );
   });
 
   it("lets the command palette own text keys and run the matching action on Enter", async () => {
@@ -397,7 +401,9 @@ describe("step", () => {
     if (next.effects[0]?.type === "suspend") {
       await next.effects[0].fn();
     }
-    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ row: rows[0], rows: [rows[0]] }));
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({ row: rows[0], rows: [rows[0]] })
+    );
   });
 
   it("gates reorder to an unfiltered list focus with no modal", () => {
@@ -406,18 +412,27 @@ describe("step", () => {
       type: "key",
       key: { name: "down", ctrl: false, meta: false, shift: true }
     });
-    const filtered = step({ ...state, filter: "one" }, {
-      type: "key",
-      key: { name: "down", ctrl: false, meta: false, shift: true }
-    });
-    const detailFocused = step({ ...state, focused: "detail" }, {
-      type: "key",
-      key: { name: "down", ctrl: false, meta: false, shift: true }
-    });
-    const modalOpen = step({ ...state, modal: { kind: "help" } }, {
-      type: "key",
-      key: { name: "down", ctrl: false, meta: false, shift: true }
-    });
+    const filtered = step(
+      { ...state, filter: "one" },
+      {
+        type: "key",
+        key: { name: "down", ctrl: false, meta: false, shift: true }
+      }
+    );
+    const detailFocused = step(
+      { ...state, focused: "detail" },
+      {
+        type: "key",
+        key: { name: "down", ctrl: false, meta: false, shift: true }
+      }
+    );
+    const modalOpen = step(
+      { ...state, modal: { kind: "help" } },
+      {
+        type: "key",
+        key: { name: "down", ctrl: false, meta: false, shift: true }
+      }
+    );
 
     expect(moved.state.rows.map((row) => row.id)).toEqual(["two", "one", "three"]);
     expect(moved.effects).toEqual([{ type: "persistOrder", orderedIds: ["two", "one", "three"] }]);
@@ -486,20 +501,39 @@ describe("step", () => {
   });
 
   it("does not dispatch detail action keys while list-focused", () => {
-    const action: Action<unknown> = { id: "comment", label: "Comment", key: "c", handler: () => undefined };
+    const action: Action<unknown> = {
+      id: "comment",
+      label: "Comment",
+      key: "c",
+      handler: () => undefined
+    };
     const state = loadedState({ detail: { items: async () => [], actions: [action] } });
 
     expect(step(state, { type: "key", key: key("c") }).effects).toEqual([]);
-    expect(step({ ...state, focused: "detail" }, { type: "key", key: key("c") }).effects).toHaveLength(1);
+    expect(
+      step({ ...state, focused: "detail" }, { type: "key", key: key("c") }).effects
+    ).toHaveLength(1);
   });
 
   it("dispatches the first available primary action", () => {
     const blocked: Action<unknown> = {
-      id: "blocked", label: "Blocked", primary: true, predicate: () => false, handler: () => undefined
+      id: "blocked",
+      label: "Blocked",
+      primary: true,
+      predicate: () => false,
+      handler: () => undefined
     };
-    const available: Action<unknown> = { id: "available", label: "Available", primary: true, handler: () => undefined };
+    const available: Action<unknown> = {
+      id: "available",
+      label: "Available",
+      primary: true,
+      handler: () => undefined
+    };
 
-    const next = step(loadedState({ actions: [blocked, available] }), { type: "key", key: key("\r") });
+    const next = step(loadedState({ actions: [blocked, available] }), {
+      type: "key",
+      key: key("\r")
+    });
 
     expect(next.state.actionState.get("available")?.running).toBe(true);
   });
@@ -516,19 +550,27 @@ describe("step", () => {
       rows: [{ id: "removed", title: "Removed" }]
     }).state;
 
-    const next = step({ ...state, selected: new Set(["removed"]) }, {
-      type: "rowsLoaded",
-      rows: [{ id: "replacement", title: "Replacement" }]
-    });
+    const next = step(
+      { ...state, selected: new Set(["removed"]) },
+      {
+        type: "rowsLoaded",
+        rows: [{ id: "replacement", title: "Replacement" }]
+      }
+    );
 
     expect(next.state.selected.size).toBe(0);
     expect(next.state.actionState.get("open")?.available).toBe(true);
   });
 
   it("rejects duplicate row identifiers from refresh data", () => {
-    expect(() => step(loadedState(), {
-      type: "rowsLoaded",
-      rows: [{ id: "same", title: "First" }, { id: "same", title: "Second" }]
-    })).toThrow("Duplicate explorer row id: same");
+    expect(() =>
+      step(loadedState(), {
+        type: "rowsLoaded",
+        rows: [
+          { id: "same", title: "First" },
+          { id: "same", title: "Second" }
+        ]
+      })
+    ).toThrow("Duplicate explorer row id: same");
   });
 });

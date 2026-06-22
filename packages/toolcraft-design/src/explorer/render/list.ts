@@ -2,6 +2,7 @@ import { ScreenBuffer } from "../../dashboard/buffer.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
+import { drawPaneFrame, paneBodyRect } from "./pane.js";
 import { cellWidth, centerCells, fitToWidth, splitGraphemeCells, stripAnsi } from "./text.js";
 
 const listLineCache = new WeakMap<ScreenBuffer, { rectKey: string; lines: Map<number, string> }>();
@@ -24,14 +25,31 @@ export function renderList(
     return;
   }
 
-  const rectKey = `${rect.x}:${rect.y}:${rect.width}:${rect.height}`;
+  drawPaneFrame(
+    screen,
+    rect,
+    "Plans",
+    state.focused === "list" ? styles.borderFocused : styles.border
+  );
+  const bodyRect = paneBodyRect(rect);
+  if (bodyRect.width <= 0 || bodyRect.height <= 0) {
+    return;
+  }
+
+  const rectKey = `${bodyRect.x}:${bodyRect.y}:${bodyRect.width}:${bodyRect.height}`;
   const cached = listLineCache.get(screen);
   const cache = cached?.rectKey === rectKey ? cached.lines : new Map<number, string>();
   listLineCache.set(screen, { rectKey, lines: cache });
 
   if (state.filtered.length === 0) {
     const hint = state.emptyHint;
-    writeLine(screen, rect, Math.floor(rect.height / 2), centerCells(hint, rect.width, rect.x), styles.muted);
+    writeLine(
+      screen,
+      bodyRect,
+      Math.floor(bodyRect.height / 2),
+      centerCells(hint, bodyRect.width, bodyRect.x),
+      styles.muted
+    );
     cache.clear();
     return;
   }
@@ -40,7 +58,7 @@ export function renderList(
   let y = 0;
 
   for (const rowIndex of state.filtered) {
-    if (y >= rect.height) {
+    if (y >= bodyRect.height) {
       break;
     }
 
@@ -49,17 +67,17 @@ export function renderList(
       continue;
     }
 
-    if (row.group && row.group !== lastGroup && y < rect.height) {
+    if (row.group && row.group !== lastGroup && y < bodyRect.height) {
       const hash = `group:${row.group}`;
       if (cache.get(y) !== hash) {
-        writeLine(screen, rect, y, row.group, styles.muted);
+        writeLine(screen, bodyRect, y, row.group, styles.muted);
         cache.set(y, hash);
       }
       y += 1;
       lastGroup = row.group;
     }
 
-    if (y >= rect.height) {
+    if (y >= bodyRect.height) {
       break;
     }
 
@@ -69,15 +87,20 @@ export function renderList(
     const hash = lineHash(row, selected, cursor, positions);
 
     if (cache.get(y) !== hash) {
-      renderRow(screen, rect, y, row, { selected, cursor, focused: state.focused === "list", positions });
+      renderRow(screen, bodyRect, y, row, {
+        selected,
+        cursor,
+        focused: state.focused === "list",
+        positions
+      });
       cache.set(y, hash);
     }
     y += 1;
 
-    if (row.subtitle && y < rect.height) {
+    if (row.subtitle && y < bodyRect.height) {
       const subtitleHash = `${hash}:subtitle:${row.subtitle}`;
       if (cache.get(y) !== subtitleHash) {
-        writeLine(screen, rect, y, `  ${row.subtitle}`, styles.muted);
+        writeLine(screen, bodyRect, y, `  ${row.subtitle}`, styles.muted);
         cache.set(y, subtitleHash);
       }
       y += 1;
@@ -101,10 +124,10 @@ function renderRow(
   const focusWidth = cellWidth(focus);
   const badge = row.badge
     ? fitToWidth(
-      ` ${row.badge.text}`,
-      Math.max(0, rect.width - prefixWidth - focusWidth),
-      rect.x + prefixWidth
-    )
+        ` ${row.badge.text}`,
+        Math.max(0, rect.width - prefixWidth - focusWidth),
+        rect.x + prefixWidth
+      )
     : "";
   const badgeWidth = cellWidth(badge);
   const available = Math.max(0, rect.width - prefixWidth - focusWidth - badgeWidth);
@@ -120,16 +143,23 @@ function renderRow(
   x += prefixWidth;
 
   for (const segment of splitGraphemeCells(title, x)) {
-    const isTruncationMarker = titleWasTruncated && segment.end === title.length && segment.value === "…";
-    const style = !isTruncationMarker && hasMatchPosition(segment.start, segment.end, positions)
-      ? styles.matchHighlight
-      : {};
+    const isTruncationMarker =
+      titleWasTruncated && segment.end === title.length && segment.value === "…";
+    const style =
+      !isTruncationMarker && hasMatchPosition(segment.start, segment.end, positions)
+        ? styles.matchHighlight
+        : {};
     screen.put(x, y, segment.value, style);
     x += segment.width;
   }
 
   if (row.badge) {
-    screen.put(rect.x + rect.width - badgeWidth - focusWidth, y, badge, styles.tones[row.badge.tone ?? "muted"]);
+    screen.put(
+      rect.x + rect.width - badgeWidth - focusWidth,
+      y,
+      badge,
+      styles.tones[row.badge.tone ?? "muted"]
+    );
   }
 
   if (focus) {
@@ -137,13 +167,7 @@ function renderRow(
   }
 }
 
-function writeLine(
-  screen: ScreenBuffer,
-  rect: Rect,
-  row: number,
-  text: string,
-  style = {}
-): void {
+function writeLine(screen: ScreenBuffer, rect: Rect, row: number, text: string, style = {}): void {
   screen.put(rect.x, rect.y + row, fitToWidth(text, rect.width, rect.x), style);
 }
 

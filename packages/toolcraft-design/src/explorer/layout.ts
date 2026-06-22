@@ -74,14 +74,17 @@ export function computeExplorerLayout(opts: ExplorerLayoutOptions): ExplorerLayo
     };
   }
 
-  const listWidth = mode === "wide" ? Math.floor((cols * 5) / 12) : Math.floor((cols * 2) / 5);
-  const detailWidth = cols - listWidth;
+  const gutterWidth = 1;
+  const availableWidth = Math.max(0, cols - gutterWidth);
+  const listWidth =
+    mode === "wide" ? Math.floor((availableWidth * 5) / 12) : Math.floor((availableWidth * 2) / 5);
+  const detailWidth = availableWidth - listWidth;
 
   return {
     mode,
     header,
     list: { x: 0, y: contentY, width: listWidth, height: contentHeight },
-    detail: { x: listWidth, y: contentY, width: detailWidth, height: contentHeight },
+    detail: { x: listWidth + gutterWidth, y: contentY, width: detailWidth, height: contentHeight },
     footer
   };
 }

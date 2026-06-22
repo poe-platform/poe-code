@@ -9,14 +9,19 @@ function expectFullWidthBands(layout: ExplorerLayout, cols: number, rows: number
   ).toBe(rows);
 }
 
-function expectAreaCoversViewport(layout: ExplorerLayout, cols: number, rows: number): void {
+function expectAreaCoversViewport(
+  layout: ExplorerLayout,
+  cols: number,
+  rows: number,
+  gutterArea = 0
+): void {
   const area =
     layout.header.width * layout.header.height +
     layout.list.width * layout.list.height +
     layout.detail.width * layout.detail.height +
     layout.footer.width * layout.footer.height;
 
-  expect(area).toBe(cols * rows);
+  expect(area + gutterArea).toBe(cols * rows);
 }
 
 describe("computeExplorerLayout", () => {
@@ -55,22 +60,22 @@ describe("computeExplorerLayout", () => {
     const layout = computeExplorerLayout({ cols: 100, rows: 20 });
 
     expect(layout.mode).toBe("medium");
-    expect(layout.list).toEqual({ x: 0, y: 3, width: 40, height: 16 });
+    expect(layout.list).toEqual({ x: 0, y: 3, width: 39, height: 16 });
     expect(layout.detail).toEqual({ x: 40, y: 3, width: 60, height: 16 });
     expect(layout.footer).toEqual({ x: 0, y: 19, width: 100, height: 1 });
-    expect(layout.list.width + layout.detail.width).toBe(100);
-    expectAreaCoversViewport(layout, 100, 20);
+    expect(layout.list.width + layout.detail.width).toBe(99);
+    expectAreaCoversViewport(layout, 100, 20, 16);
   });
 
   it("uses wide mode at 120 columns and above", () => {
     const layout = computeExplorerLayout({ cols: 120, rows: 20 });
 
     expect(layout.mode).toBe("wide");
-    expect(layout.list).toEqual({ x: 0, y: 3, width: 50, height: 16 });
+    expect(layout.list).toEqual({ x: 0, y: 3, width: 49, height: 16 });
     expect(layout.detail).toEqual({ x: 50, y: 3, width: 70, height: 16 });
     expect(layout.footer).toEqual({ x: 0, y: 19, width: 120, height: 1 });
-    expect(layout.list.width + layout.detail.width).toBe(120);
-    expectAreaCoversViewport(layout, 120, 20);
+    expect(layout.list.width + layout.detail.width).toBe(119);
+    expectAreaCoversViewport(layout, 120, 20, 16);
   });
 
   it("hides detail when detailHidden is true without changing the breakpoint mode", () => {
@@ -86,7 +91,7 @@ describe("computeExplorerLayout", () => {
     const layout = computeExplorerLayout({ cols: 120, rows: 2 });
 
     expect(layout.header).toEqual({ x: 0, y: 0, width: 120, height: 1 });
-    expect(layout.list).toEqual({ x: 0, y: 1, width: 50, height: 0 });
+    expect(layout.list).toEqual({ x: 0, y: 1, width: 49, height: 0 });
     expect(layout.detail).toEqual({ x: 50, y: 1, width: 70, height: 0 });
     expect(layout.footer).toEqual({ x: 0, y: 1, width: 120, height: 1 });
     expect(layout.header.height + layout.list.height + layout.footer.height).toBe(2);

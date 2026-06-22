@@ -1,7 +1,10 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
+import { stripAnsi } from "../../internal/strip-ansi.js";
+import { renderMarkdown } from "../../terminal-markdown/index.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { DetailItem, ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
+import { drawPaneFrame, paneBodyRect } from "./pane.js";
 import { fitToWidth } from "./text.js";
 
 export function renderDetail(
@@ -20,13 +23,23 @@ export function renderDetail(
   const row = state.rows.find((r) => r.id === state.detail.rowId) ?? null;
 
   if (layout.mode === "narrow-vertical") {
-    screen.put(rect.x, rect.y, `├─ Detail ${"─".repeat(Math.max(0, rect.width - 11))}┤`, styles.border);
-    renderDetailBody(state, screen, { ...rect, y: rect.y + 1, height: rect.height - 1 }, row);
+    drawPaneFrame(
+      screen,
+      rect,
+      "Preview",
+      state.focused === "detail" ? styles.borderFocused : styles.border
+    );
+    renderDetailBody(state, screen, paneBodyRect(rect), row);
     return;
   }
 
-  screen.put(rect.x, rect.y, "│", styles.border);
-  renderDetailBody(state, screen, { ...rect, x: rect.x + 1, width: rect.width - 1 }, row);
+  drawPaneFrame(
+    screen,
+    rect,
+    "Preview",
+    state.focused === "detail" ? styles.borderFocused : styles.border
+  );
+  renderDetailBody(state, screen, paneBodyRect(rect), row);
 }
 
 function renderDetailBody(
@@ -38,8 +51,18 @@ function renderDetailBody(
   const styles = getExplorerStyles();
   const items = state.detail.items;
 
+  if (rect.width <= 0 || rect.height <= 0) {
+    return;
+  }
+
   if (items === null) {
-    writeLine(screen, rect, 0, state.detail.loading ? "Loading detail..." : state.emptyHint, styles.muted);
+    writeLine(
+      screen,
+      rect,
+      0,
+      state.detail.loading ? "Loading detail..." : state.emptyHint,
+      styles.muted
+    );
     return;
   }
 
@@ -49,7 +72,7 @@ function renderDetailBody(
   }
 
   if (items.length === 1 && items[0]?.title === undefined) {
-    renderBlob(screen, rect, renderItem(items[0]!, rect, row), state.detail.scroll);
+    renderBlob(screen, rect, renderItemMarkdown(items[0]!, rect, row), state.detail.scroll);
     return;
   }
 
@@ -73,7 +96,13 @@ function renderListMode(
     const title = item.title ?? item.id;
     const prefix = cursor ? "▌ " : "  ";
     const badge = item.badge ? ` ${item.badge.text}` : "";
-    writeLine(screen, rect, y, `${prefix}${title}${badge}`, cursor ? styles.borderFocused : styles.accent);
+    writeLine(
+      screen,
+      rect,
+      y,
+      `${prefix}${title}${badge}`,
+      cursor ? styles.borderFocused : styles.accent
+    );
     y += 1;
 
     if (item.subtitle && y < rect.height) {
@@ -81,7 +110,7 @@ function renderListMode(
       y += 1;
     }
 
-    for (const line of renderItem(item, rect, row).split("\n")) {
+    for (const line of renderItemMarkdown(item, rect, row).split("\n")) {
       if (y >= rect.height) {
         break;
       }
@@ -102,6 +131,15 @@ function renderBlob(screen: ScreenBuffer, rect: Rect, text: string, scroll: numb
   for (let row = 0; row < rect.height; row += 1) {
     writeLine(screen, rect, row, lines[row] ?? "");
   }
+}
+
+function renderItemMarkdown(item: DetailItem, rect: Rect, row: Row | null): string {
+  const content = renderItem(item, rect, row);
+  if (content.trim().length === 0) {
+    return "";
+  }
+
+  return stripAnsi(renderMarkdown(content, { width: Math.max(1, rect.width) }).trimEnd());
 }
 
 function renderItem(item: DetailItem, rect: Rect, row: Row | null): string {

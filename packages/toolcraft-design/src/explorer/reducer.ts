@@ -1,4 +1,9 @@
-import { buildActionContext, resolveAction, type ActionRuntimeHandles, type ActionSource } from "./actions.js";
+import {
+  buildActionContext,
+  resolveAction,
+  type ActionRuntimeHandles,
+  type ActionSource
+} from "./actions.js";
 import type { Effect, ExplorerEvent } from "./events.js";
 import { type FilterMatch, filterRows } from "./filter.js";
 import {
@@ -324,7 +329,11 @@ function detailItemRendered(
   itemIndex: number,
   content: string
 ): StepResult {
-  if (state.detail.rowId !== rowId || state.detail.token !== token || state.detail.items?.[itemIndex] === undefined) {
+  if (
+    state.detail.rowId !== rowId ||
+    state.detail.token !== token ||
+    state.detail.items?.[itemIndex] === undefined
+  ) {
     return mark(state, 0);
   }
 
@@ -472,7 +481,14 @@ function updateFilter(state: ExplorerState, filter: string): StepResult {
     matchPositions,
     cursor,
     detail,
-    actionState: recomputeActionState({ ...state, filter, filtered, matchPositions, cursor, detail }),
+    actionState: recomputeActionState({
+      ...state,
+      filter,
+      filtered,
+      matchPositions,
+      cursor,
+      detail
+    }),
     dirty: REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER
   };
   const effect = detailEffect(next);
@@ -508,7 +524,11 @@ function escape(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): Ste
   if (state.filterFocused || state.filter.length > 0) {
     const cleared = updateFilter({ ...state, filterFocused: false }, "");
     return {
-      state: { ...cleared.state, filterFocused: false, dirty: cleared.state.dirty | REGION_HEADER | REGION_FOOTER },
+      state: {
+        ...cleared.state,
+        filterFocused: false,
+        dirty: cleared.state.dirty | REGION_HEADER | REGION_FOOTER
+      },
       effects: cleared.effects
     };
   }
@@ -650,10 +670,10 @@ function detailBodyHeight(state: ExplorerState): number {
   if (state.layout === "narrow-vertical") {
     const listHeight = Math.ceil(contentHeight / 2);
     const detailHeight = contentHeight - listHeight;
-    return Math.max(0, detailHeight - 1);
+    return Math.max(0, detailHeight - 2);
   }
 
-  return contentHeight;
+  return Math.max(0, contentHeight - 2);
 }
 
 function extendSelection(state: ExplorerState, delta: number): StepResult {
@@ -717,7 +737,10 @@ function reorder(state: ExplorerState, delta: number): StepResult {
     dirty: REGION_LIST | REGION_FOOTER
   };
 
-  return { state: next, effects: [{ type: "persistOrder", orderedIds: rows.map((row) => row.id) }] };
+  return {
+    state: next,
+    effects: [{ type: "persistOrder", orderedIds: rows.map((row) => row.id) }]
+  };
 }
 
 function paletteInput(state: ExplorerState, key: ExplorerKeypressEvent): StepResult {
@@ -776,7 +799,12 @@ function dispatchPaletteAction(
     return mark(state, 0);
   }
 
-  return dispatchActionById({ ...state, modal: null, dirty: REGION_MODAL | REGION_FOOTER }, entry.id, false, runtimeHandles);
+  return dispatchActionById(
+    { ...state, modal: null, dirty: REGION_MODAL | REGION_FOOTER },
+    entry.id,
+    false,
+    runtimeHandles
+  );
 }
 
 function dispatchPrimary(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
@@ -839,13 +867,16 @@ function dispatchAction(
     effects: [
       {
         type: "suspend",
-        fn: async () => action.handler(buildActionContext(
-          next,
-          action,
-          current?.source ?? actionSource(next, action),
-          runtimeHandles,
-          rows
-        )),
+        fn: async () =>
+          action.handler(
+            buildActionContext(
+              next,
+              action,
+              current?.source ?? actionSource(next, action),
+              runtimeHandles,
+              rows
+            )
+          ),
         resumeWith: () => ({ type: "actionResolved", actionId: action.id })
       }
     ]
@@ -970,10 +1001,7 @@ function pruneSelection(selected: Set<string>, rows: Row[]): Set<string> {
   return new Set([...selected].filter((id) => ids.has(id)));
 }
 
-function modalStillValid(
-  modal: ExplorerState["modal"],
-  rows: Row[]
-): ExplorerState["modal"] {
+function modalStillValid(modal: ExplorerState["modal"], rows: Row[]): ExplorerState["modal"] {
   if (modal?.kind !== "confirm") {
     return modal;
   }

@@ -21,7 +21,10 @@ const renderAllowed = new Set([
   "theme.ts",
   "dashboard/ansi.ts",
   "dashboard/buffer.ts",
-  "dashboard/terminal-width.ts"
+  "dashboard/terminal-width.ts",
+  "dashboard/types.ts",
+  "internal/strip-ansi.ts",
+  "terminal-markdown/index.ts"
 ]);
 const leafAllowed = new Set(["events.ts", "state.ts"]);
 

@@ -302,7 +302,7 @@ export type ProtocolVersion = number;
 
 export type RequestId = null | number | string;
 
-export type StopReason = "completed" | "cancelled" | "max_tokens";
+export type StopReason = "completed" | "end_turn" | "cancelled" | "max_tokens";
 
 export interface Implementation extends AcpExtensible {
   name: string;

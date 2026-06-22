@@ -7,7 +7,7 @@ export interface E2bSandbox {
   readonly files: E2bFiles;
   readonly pty: E2bPty;
   setTimeout(timeoutMs: number): Promise<void>;
-  kill(): Promise<void>;
+  kill(): Promise<boolean>;
 }
 
 export interface E2bCommands {

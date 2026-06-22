@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -77,6 +77,24 @@ import { acp, createDashboard, withOutputFormat } from "toolcraft-design";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
+
+beforeEach(() => {
+  vi.mocked(sdkRunExperiment).mockResolvedValue({
+    stopReason: "max_experiments",
+    docPath: ".poe-code/experiments/plan-a.md",
+    experimentsCompleted: 2,
+    experimentsKept: 1,
+    totalDurationMs: 1000
+  });
+  vi.mocked(sdkReadExperimentJournal).mockResolvedValue([]);
+  vi.mocked(sdkAppendExperimentJournalEntry).mockResolvedValue(undefined);
+  vi.mocked(sdkRunRalph).mockResolvedValue({
+    stopReason: "max_iterations",
+    docPath: ".poe-code/ralph/plans/plan-a.md",
+    iterationsCompleted: 3,
+    totalDurationMs: 1000
+  });
+});
 
 function createMemFs(files: Record<string, string> = {}): FileSystem {
   const volume = Volume.fromJSON(files, "/");

@@ -1,5 +1,5 @@
 import path from "node:path";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -77,10 +77,30 @@ import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { createDashboard, withOutputFormat } from "toolcraft-design";
 
-resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
-
 const cwd = "/repo";
 const homeDir = "/home/test";
+
+beforeEach(() => {
+  resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
+  vi.mocked(sdkRunPipelineInit).mockResolvedValue({
+    stopReason: "done",
+    sourcesProcessed: 0
+  });
+  vi.mocked(sdkRunPipeline).mockResolvedValue({
+    stopReason: "completed",
+    planPath: ".poe-code/pipeline/plans/plan.yaml",
+    runsCompleted: 1,
+    totalDurationMs: 1_000,
+    metrics: {
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalCachedTokens: 0,
+      tasksCompleted: 1,
+      tasksFailed: 0,
+      stepsCompleted: 1
+    }
+  });
+});
 
 const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "version: 1", "tasks: []", "---", ""].join(
   "\n"

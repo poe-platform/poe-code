@@ -51,11 +51,11 @@ describe("defaultProviderForPlatform", () => {
       defaultProviderForPlatform().requestApproval({
         message: "Approve deploy?"
       })
-    ).rejects.toThrowError(
-      new UserError(
+    ).rejects.toMatchObject({
+      name: UserError.name,
+      message:
         "No human-in-loop provider is configured. Pass {humanInLoop: {provider: ...}} to runCLI / createMCPServer / createSDK, or run on macOS to use the default osascript provider."
-      )
-    );
+    });
     expect(osascriptProviderMock).not.toHaveBeenCalled();
   });
 

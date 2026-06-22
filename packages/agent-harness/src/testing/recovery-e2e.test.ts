@@ -15,12 +15,9 @@ describe("harness recovery e2e", () => {
   beforeEach(() => {
     vol.reset();
     vol.mkdirSync("/snapshots", { recursive: true });
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-18T00:00:00.000Z"));
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -529,10 +526,10 @@ async function waitForCall(calls: readonly string[], name: string): Promise<void
 }
 
 async function flushMicrotasks(): Promise<void> {
-  await vi.advanceTimersByTimeAsync(0);
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let index = 0; index < 3; index += 1) {
+    await Promise.resolve();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  }
 }
 
 function snapshotPath(): string {

@@ -97,26 +97,20 @@ vi.mock("node:fs", async () => {
 
 vi.mock("tiny-mcp-client", () => ({
   McpClient: MockMcpClient,
-  StdioTransport: vi.fn(
-    class MockStdioTransport {
-      readonly options: Record<string, unknown>;
-
-      constructor(options: Record<string, unknown>) {
-        this.options = options;
-        transportState.stdio.push(options);
-      }
-    }
-  ),
-  HttpTransport: vi.fn(
-    class MockHttpTransport {
-      readonly options: Record<string, unknown>;
-
-      constructor(options: Record<string, unknown>) {
-        this.options = options;
-        transportState.http.push(options);
-      }
-    }
-  ),
+  StdioTransport: vi.fn(function MockStdioTransport(
+    this: { options: Record<string, unknown> },
+    options: Record<string, unknown>
+  ) {
+    this.options = options;
+    transportState.stdio.push(options);
+  }),
+  HttpTransport: vi.fn(function MockHttpTransport(
+    this: { options: Record<string, unknown> },
+    options: Record<string, unknown>
+  ) {
+    this.options = options;
+    transportState.http.push(options);
+  }),
 }));
 
 const { parseRefreshEnv, resolveCachePath, resolveMcpProxies } = await import("./mcp-proxy.js");

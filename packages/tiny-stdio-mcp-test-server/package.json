@@ -23,7 +23,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=18.18"
   },
   "repository": {
     "type": "git",
@@ -39,7 +39,7 @@
   ],
   "dependencies": {
     "tiny-stdio-mcp-server": "^0.1.0",
-    "commander": "^14.0.3"
+    "commander": "^13.1.0"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.25.3"

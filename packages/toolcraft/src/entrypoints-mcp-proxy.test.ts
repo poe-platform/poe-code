@@ -126,16 +126,18 @@ vi.mock("node:fs", async () => {
 
 vi.mock("tiny-mcp-client", () => ({
   McpClient: MockMcpClient,
-  StdioTransport: vi.fn(
-    class MockStdioTransport {
-      constructor(_options: Record<string, unknown>) {}
-    }
-  ),
-  HttpTransport: vi.fn(
-    class MockHttpTransport {
-      constructor(_options: Record<string, unknown>) {}
-    }
-  )
+  StdioTransport: vi.fn(function MockStdioTransport(
+    this: Record<string, unknown>,
+    _options: Record<string, unknown>
+  ) {
+    void this;
+  }),
+  HttpTransport: vi.fn(function MockHttpTransport(
+    this: Record<string, unknown>,
+    _options: Record<string, unknown>
+  ) {
+    void this;
+  })
 }));
 
 vi.mock("tiny-stdio-mcp-server", () => ({

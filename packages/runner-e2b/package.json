@@ -21,7 +21,7 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/process-runner": "*",
-    "e2b": "^2.19.4"
+    "e2b": "2.2.1"
   },
   "files": [
     "dist"

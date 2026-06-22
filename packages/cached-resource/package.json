@@ -22,6 +22,6 @@
     "dist"
   ],
   "dependencies": {
-    "lru-cache": "^11.2.5"
+    "lru-cache": "^10.4.3"
   }
 }

@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { readFile, unlink } from "node:fs/promises";
+import { readFile, realpath, unlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { createRequire } from "node:module";
@@ -58,7 +58,8 @@ async function runVitestWithRunner(
   const outputFile = path.join(tmpdir(), `poe-code-vitest-${process.pid}-${randomUUID()}.json`);
   const timeoutMs = input.timeoutMs ?? defaultTimeoutMs;
   assertValidTimeout(timeoutMs);
-  const handle = runner.exec(createVitestRunSpec(input, outputFile));
+  const resolvedInput = await resolveVitestInputPaths(input);
+  const handle = runner.exec(createVitestRunSpec(resolvedInput, outputFile));
   const stdout = drainStream(handle.stdout).catch(() => undefined);
   const stderr = drainStream(handle.stderr).catch(() => undefined);
 
@@ -66,7 +67,7 @@ async function runVitestWithRunner(
     const runResult = await waitForVitest(handle, timeoutMs, input.signal);
     await Promise.all([stdout, stderr]);
     const raw = await readFile(outputFile, "utf8");
-    const cases = mapVitestCases(JSON.parse(raw), path.resolve(input.testsDir));
+    const cases = mapVitestCases(JSON.parse(raw), resolvedInput.testsDir);
     if (runResult.exitCode !== 0 && cases.every((result) => result.passed)) {
       throw new VitestError(`Vitest exited with code ${runResult.exitCode}.`);
     }
@@ -83,6 +84,34 @@ async function runVitestWithRunner(
     throw error;
   } finally {
     await unlink(outputFile).catch(() => undefined);
+  }
+}
+
+async function resolveVitestInputPaths(input: {
+  testsDir: string;
+  cloneDir: string;
+  oracleDir: string;
+  signal?: AbortSignal;
+}): Promise<{
+  testsDir: string;
+  cloneDir: string;
+  oracleDir: string;
+  signal?: AbortSignal;
+}> {
+  return {
+    testsDir: await resolveRealPath(input.testsDir),
+    cloneDir: await resolveRealPath(input.cloneDir),
+    oracleDir: await resolveRealPath(input.oracleDir),
+    ...(input.signal === undefined ? {} : { signal: input.signal })
+  };
+}
+
+async function resolveRealPath(targetPath: string): Promise<string> {
+  const resolvedPath = path.resolve(targetPath);
+  try {
+    return await realpath(resolvedPath);
+  } catch {
+    return resolvedPath;
   }
 }
 

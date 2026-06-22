@@ -140,13 +140,42 @@ export async function buildTemplate(opts: BuildTemplateOptions): Promise<BuildTe
   if (opts.fromTemplate !== undefined && opts.fromTemplate.length > 0) {
     (template as TemplateBase).fromTemplate(opts.fromTemplate);
   }
-  const result = await Template.build(template, opts.name, {
+  let templateId: string | undefined;
+  const result: unknown = await Template.build(template, {
     apiKey: opts.apiKey,
+    alias: opts.name,
     ...(opts.cpu === undefined ? {} : { cpuCount: opts.cpu }),
     ...(opts.memoryMb === undefined ? {} : { memoryMB: opts.memoryMb }),
-    ...(opts.onLog ? { onBuildLogs: opts.onLog } : {})
+    onBuildLogs: (entry) => {
+      templateId = readTemplateIdFromBuildLog(entry.message) ?? templateId;
+      opts.onLog?.(entry);
+    }
   });
-  return { templateId: result.templateId };
+  return { templateId: readTemplateIdFromBuildResult(result) ?? templateId ?? failMissingTemplateId() };
+}
+
+function readTemplateIdFromBuildResult(result: unknown): string | undefined {
+  if (typeof result !== "object" || result === null || !("templateId" in result)) {
+    return undefined;
+  }
+  const templateId = (result as { templateId: unknown }).templateId;
+  return typeof templateId === "string" && templateId.trim().length > 0 ? templateId : undefined;
+}
+
+function readTemplateIdFromBuildLog(message: string): string | undefined {
+  const prefix = "Template created with ID: ";
+  if (!message.startsWith(prefix)) {
+    return undefined;
+  }
+  const value = message.slice(prefix.length);
+  const delimiter = ", Build ID:";
+  const delimiterIndex = value.indexOf(delimiter);
+  const templateId = (delimiterIndex === -1 ? value : value.slice(0, delimiterIndex)).trim();
+  return templateId.length > 0 ? templateId : undefined;
+}
+
+function failMissingTemplateId(): never {
+  throw new Error("E2B template build completed without reporting a template id.");
 }
 
 export async function listSandboxes(apiKey?: string): Promise<SandboxInfo[]> {

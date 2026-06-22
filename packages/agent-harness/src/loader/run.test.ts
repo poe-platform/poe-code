@@ -128,7 +128,6 @@ describe("runHarnessPair", () => {
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -215,8 +214,6 @@ describe("runHarnessPair", () => {
   });
 
   it("keeps default snapshots isolated for documents sharing a basename", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-25T00:00:00.000Z"));
     const firstPath = "/repo/a/shared.md";
     const secondPath = "/repo/b/shared.md";
     const source = [
@@ -245,14 +242,13 @@ describe("runHarnessPair", () => {
           }
         }
       }),
-      signal: controller.signal
+      signal: controller.signal,
+      snapshotIntervalMs: -1
     });
 
-    await vi.advanceTimersByTimeAsync(0);
-    await vi.advanceTimersByTimeAsync(30_000);
+    await flushMicrotasks();
     firstCall.resolve("first-document-secret");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
     controller.abort();
     secondCall.reject(new Error("aborted"));
     await expect(firstRun).rejects.toMatchObject({ name: "AbortError" });
@@ -962,9 +958,6 @@ describe("runHarnessPair", () => {
   });
 
   it("resumes from an existing snapshotPath at the next host call", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-04T00:00:00.000Z"));
-
     const mdPath = "/repo/harness/resume.md";
     const snapshotPath = "/snapshots/resume.json";
     vol.fromJSON({
@@ -993,16 +986,15 @@ describe("runHarnessPair", () => {
         }
       }),
       signal: firstController.signal,
+      snapshotIntervalMs: -1,
       snapshotPath
     });
 
-    await vi.advanceTimersByTimeAsync(0);
+    await flushMicrotasks();
     expect(firstCalls).toEqual(["first"]);
 
-    await vi.advanceTimersByTimeAsync(30_000);
     first.resolve("alpha");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
 
     expect(firstCalls).toEqual(["first", "second"]);
     expect(vol.existsSync(snapshotPath)).toBe(true);
@@ -1034,9 +1026,6 @@ describe("runHarnessPair", () => {
   });
 
   it("restores snapshotted clock state so replay keeps the same time.now sequence", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(1_000);
-
     const mdPath = "/repo/harness/clock.md";
     const snapshotPath = "/snapshots/clock.json";
     vol.fromJSON({
@@ -1059,7 +1048,11 @@ describe("runHarnessPair", () => {
     const second = createDeferred<string>();
     const controller = new AbortController();
     const firstCalls: string[] = [];
+    let now = 1_000;
     const firstRun = runHarnessPair(mdPath, {
+      clock: {
+        now: () => now
+      },
       modulesFor: () => ({
         host: {
           async wait(name: string) {
@@ -1069,16 +1062,16 @@ describe("runHarnessPair", () => {
         }
       }),
       signal: controller.signal,
+      snapshotIntervalMs: -1,
       snapshotPath
     });
 
-    await vi.advanceTimersByTimeAsync(0);
+    await flushMicrotasks();
     expect(firstCalls).toEqual(["first"]);
 
-    await vi.advanceTimersByTimeAsync(30_000);
+    now = 31_000;
     first.resolve("alpha");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
 
     expect(firstCalls).toEqual(["first", "second"]);
     expect(JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string)).toMatchObject({
@@ -1093,9 +1086,11 @@ describe("runHarnessPair", () => {
       name: "AbortError"
     });
 
-    vi.setSystemTime(9_999);
     const secondCalls: string[] = [];
     const resumed = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => 9_999
+      },
       modulesFor: () => ({
         host: {
           async wait(name: string) {
@@ -1115,9 +1110,6 @@ describe("runHarnessPair", () => {
   });
 
   it("does not restore clock state whose next value is only inherited", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(1_000);
-
     const mdPath = "/repo/harness/inherited-clock.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: inherited-clock\nversion: 1\n---\n",
@@ -1148,14 +1140,13 @@ describe("runHarnessPair", () => {
         }
       }),
       signal: controller.signal,
-      snapshotBackend
+      snapshotBackend,
+      snapshotIntervalMs: -1
     });
 
-    await vi.advanceTimersByTimeAsync(0);
-    await vi.advanceTimersByTimeAsync(30_000);
+    await flushMicrotasks();
     first.resolve("done");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
 
     expect(snapshotBackend.snapshot).toMatchObject({
       sourceHash: expect.any(String)
@@ -1220,8 +1211,6 @@ describe("runHarnessPair", () => {
   });
 
   it("keeps seeded time.uuid and time.now stable across snapshot replay", async () => {
-    vi.useFakeTimers();
-
     const mdPath = "/repo/harness/stable-id.md";
     const snapshotPath = "/snapshots/stable-id.json";
     const script = [
@@ -1257,14 +1246,13 @@ describe("runHarnessPair", () => {
       }),
       randomSeed: 123,
       signal: controller.signal,
+      snapshotIntervalMs: -1,
       snapshotPath
     });
 
-    await vi.advanceTimersByTimeAsync(0);
-    await vi.advanceTimersByTimeAsync(30_000);
+    await flushMicrotasks();
     first.resolve("alpha");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
 
     controller.abort();
     second.reject(new Error("aborted"));
@@ -1353,9 +1341,6 @@ describe("runHarnessPair", () => {
   });
 
   it("drives a custom snapshot backend during checkpoint, resume, and cleanup", async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-05-04T00:00:00.000Z"));
-
     const mdPath = "/repo/harness/backend.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: backend\nversion: 1\n---\n",
@@ -1384,19 +1369,18 @@ describe("runHarnessPair", () => {
         }
       }),
       signal: controller.signal,
-      snapshotBackend
+      snapshotBackend,
+      snapshotIntervalMs: -1
     });
 
-    await vi.advanceTimersByTimeAsync(0);
+    await flushMicrotasks();
     expect(firstCalls).toEqual(["first"]);
 
-    await vi.advanceTimersByTimeAsync(30_000);
     first.resolve("alpha");
     await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(0);
 
     expect(firstCalls).toEqual(["first", "second"]);
-    expect(snapshotBackend.writes).toHaveLength(1);
+    expect(snapshotBackend.writes).toHaveLength(2);
     expect(snapshotBackend.snapshot).toMatchObject({
       sourceHash: expect.any(String)
     });
@@ -1727,9 +1711,10 @@ function createDeferred<TValue>() {
 }
 
 async function flushMicrotasks(): Promise<void> {
-  await Promise.resolve();
-  await Promise.resolve();
-  await Promise.resolve();
+  for (let index = 0; index < 3; index += 1) {
+    await Promise.resolve();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+  }
 }
 
 function readCoverageDemoTemplate(fileName: "coverage-demo.ajs" | "coverage-demo.md"): string {

@@ -13,12 +13,12 @@ export default defineConfig({
     }
   },
   test: {
-    root: __dirname,
+    root: path.resolve(__dirname, ".."),
     testTimeout: 300000,
     hookTimeout: 300000,
-    include: ["*.test.ts"],
+    include: ["e2e/*.test.ts"],
     maxWorkers: 1,
-    globalSetup: "./setup.ts",
+    globalSetup: path.join(__dirname, "setup.ts"),
     setupFiles: [path.join(e2ePackageSrc, "matchers.ts")]
   }
 });

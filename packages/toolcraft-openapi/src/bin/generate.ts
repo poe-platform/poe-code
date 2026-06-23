@@ -759,7 +759,10 @@ async function writeGeneratedFiles(
 }
 
 async function writeGeneratedSkillFiles(
-  fs: Pick<GenerateCliFileSystem, "lstat" | "mkdir" | "rename" | "unlink" | "writeFile">,
+  fs: Pick<
+    GenerateCliFileSystem,
+    "lstat" | "mkdir" | "realpath" | "rename" | "unlink" | "writeFile"
+  >,
   cwd: string,
   filesToWrite: ReadonlyArray<GeneratedFile>
 ): Promise<void> {
@@ -800,7 +803,7 @@ async function assertSafeOutputPath(
 }
 
 async function assertSafeProjectPath(
-  fs: Pick<GenerateCliFileSystem, "lstat">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "realpath">,
   cwd: string,
   filePath: string
 ): Promise<void> {
@@ -816,19 +819,58 @@ async function assertSafeProjectPath(
     throw new Error("Generated skill output must remain inside the project directory.");
   }
 
-  const parentOfRoot = path.dirname(rootPath);
-  let currentPath = resolvedFilePath;
-  while (currentPath !== parentOfRoot) {
-    try {
-      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+  const canonicalRoot = await fs.realpath(cwd);
+  const canonicalFileParent = await realpathExistingAncestor(fs, path.dirname(filePath));
+  const relativeParentPath = path.relative(canonicalRoot, canonicalFileParent);
+
+  if (
+    relativeParentPath === ".." ||
+    relativeParentPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeParentPath)
+  ) {
+    throw new Error("Generated skill output must remain inside the project directory.");
+  }
+
+  try {
+    if ((await fs.lstat(filePath)).isSymbolicLink()) {
+      const canonicalFilePath = await fs.realpath(filePath);
+      const relativeFilePath = path.relative(canonicalRoot, canonicalFilePath);
+
+      if (
+        relativeFilePath === ".." ||
+        relativeFilePath.startsWith(`..${path.sep}`) ||
+        path.isAbsolute(relativeFilePath)
+      ) {
         throw new Error("Generated skill output must remain inside the project directory.");
       }
+    }
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
+}
+
+async function realpathExistingAncestor(
+  fs: Pick<GenerateCliFileSystem, "realpath">,
+  targetPath: string
+): Promise<string> {
+  let currentPath = targetPath;
+
+  while (true) {
+    try {
+      return await fs.realpath(currentPath);
     } catch (error) {
       if (!isNotFoundError(error)) {
         throw error;
       }
+
+      const parentPath = path.dirname(currentPath);
+      if (parentPath === currentPath) {
+        throw error;
+      }
+      currentPath = parentPath;
     }
-    currentPath = path.dirname(currentPath);
   }
 }
 
@@ -861,7 +903,7 @@ async function atomicWriteGeneratedFile(
 }
 
 async function atomicWriteProjectFile(
-  fs: Pick<GenerateCliFileSystem, "lstat" | "rename" | "unlink" | "writeFile">,
+  fs: Pick<GenerateCliFileSystem, "lstat" | "realpath" | "rename" | "unlink" | "writeFile">,
   cwd: string,
   filePath: string,
   contents: string
@@ -900,7 +942,10 @@ async function deleteGeneratedFiles(
 }
 
 async function restoreGeneratedSkillFiles(
-  fs: Pick<GenerateCliFileSystem, "lstat" | "mkdir" | "rename" | "rm" | "unlink" | "writeFile">,
+  fs: Pick<
+    GenerateCliFileSystem,
+    "lstat" | "mkdir" | "realpath" | "rename" | "rm" | "unlink" | "writeFile"
+  >,
   cwd: string,
   currentFiles: ReadonlyMap<string, string>,
   updatedFiles: ReadonlyArray<GeneratedFile>

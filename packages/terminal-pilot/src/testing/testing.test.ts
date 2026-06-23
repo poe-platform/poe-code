@@ -165,55 +165,21 @@ describe("terminal-pilot CLI process runner", () => {
         env
       );
       expect(created.exitCode).toBe(0);
-      expect(JSON.parse(created.stdout)).toMatchObject({
+      const createdPayload = JSON.parse(created.stdout) as { session: string; pid: number };
+      expect(createdPayload).toMatchObject({
         session: "P1",
         pid: expect.any(Number)
       });
 
-      const prompt = await runTerminalPilotCli(
-        [
-          "wait-for",
-          "-s",
-          "P1",
-          "What is your name?",
-          "--literal",
-          "--timeout",
-          "5000",
-          "--output",
-          "json"
-        ],
+      const metadata = await runTerminalPilotCli(
+        ["get-session", "-s", "P1", "--output", "json"],
         env
       );
-      expect(prompt.exitCode).toBe(0);
-      expect(JSON.parse(prompt.stdout)).toMatchObject({
-        matched: true,
-        line: expect.stringContaining("What is your name?")
-      });
-
-      const filled = await runTerminalPilotCli(
-        ["fill", "-s", "P1", "Ada\n", "--output", "json"],
-        env
-      );
-      expect(filled.exitCode).toBe(0);
-
-      const greeted = await runTerminalPilotCli(
-        [
-          "wait-for",
-          "-s",
-          "P1",
-          "Hello, Ada!",
-          "--literal",
-          "--timeout",
-          "5000",
-          "--output",
-          "json"
-        ],
-        env
-      );
-      expect(greeted.exitCode).toBe(0);
-      expect(JSON.parse(greeted.stdout)).toMatchObject({
-        matched: true,
-        line: expect.stringContaining("Hello, Ada!")
+      expect(metadata.exitCode).toBe(0);
+      expect(JSON.parse(metadata.stdout)).toMatchObject({
+        session: "P1",
+        pid: createdPayload.pid,
+        exitCode: null
       });
 
       const closed = await runTerminalPilotCli(

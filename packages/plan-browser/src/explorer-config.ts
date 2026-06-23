@@ -5,7 +5,14 @@ import type {
   ExplorerConfig,
   Row
 } from "toolcraft-design";
-import { archivePlan, deletePlan, editFile } from "./actions.js";
+import { isCancel, promptText } from "toolcraft-design";
+import {
+  archivePlan,
+  deletePlan,
+  editFile,
+  restorePlanFromLater,
+  savePlanForLater
+} from "./actions.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
@@ -15,6 +22,7 @@ export interface BuildPlanExplorerConfigOptions {
   variables: Record<string, string | undefined>;
   onRefresh: () => Promise<PlanEntry[]>;
   onCreatePlan?: () => Promise<void>;
+  promptSaveReason?: (entry: PlanEntry) => Promise<string | null>;
   loadDetailMarkdown?: (entry: PlanEntry, fs: ActionFs & DiscoveryFs) => Promise<string>;
 }
 
@@ -22,6 +30,7 @@ export function buildPlanExplorerConfig(
   options: BuildPlanExplorerConfigOptions
 ): ExplorerConfig<void> {
   const loadDetailMarkdown = options.loadDetailMarkdown ?? loadPlanPreviewMarkdown;
+  const promptSaveReason = options.promptSaveReason ?? promptDefaultSaveReason;
   let plans = options.plans;
   let rows = toRows(plans);
   let entryByRowId = toEntryMap(plans);
@@ -44,6 +53,43 @@ export function buildPlanExplorerConfig(
         });
         await ctx.refresh();
         ctx.toast(`Edited ${path.basename(entry.path)}`, "info");
+      }
+    },
+    {
+      id: "save-for-later",
+      key: "s",
+      label: "Save/restore",
+      handler: async (ctx) => {
+        const entry = getEntry(entryByRowId, ctx.row.id);
+        if (isSavedForLaterEntry(entry)) {
+          await restorePlanFromLater(entry, options.fs as ActionFs);
+          try {
+            await ctx.refresh();
+            ctx.toast(`Restored ${path.basename(entry.path)}`, "info");
+          } catch {
+            ctx.toast(`Restored ${path.basename(entry.path)}; refresh failed`, "info");
+          }
+          return;
+        }
+
+        let reason = entry.savedForLater?.reason?.trim();
+        if (!reason) {
+          const promptedReason = await ctx.suspendAnd(() => promptSaveReason(entry));
+          reason = promptedReason?.trim();
+        }
+
+        if (!reason) {
+          ctx.toast(`Save canceled for ${path.basename(entry.path)}`, "warning");
+          return;
+        }
+
+        await savePlanForLater(entry, options.fs as ActionFs, { reason });
+        try {
+          await ctx.refresh();
+          ctx.toast(`Saved ${path.basename(entry.path)} for later`, "info");
+        } catch {
+          ctx.toast(`Saved ${path.basename(entry.path)} for later; refresh failed`, "info");
+        }
       }
     },
     {
@@ -128,10 +174,36 @@ function toRows(plans: PlanEntry[]): Row[] {
   return plans.map((entry, index) => ({
     id: rowIds[index]!,
     title: path.basename(entry.path),
-    subtitle: entry.detail,
+    subtitle: formatSubtitle(entry),
     badge: { text: entry.typeLabel },
-    group: entry.kind
+    group: isSavedForLaterEntry(entry) ? "Saved for later" : "Active"
   }));
+}
+
+function formatSubtitle(entry: PlanEntry): string {
+  const reason = entry.savedForLater?.reason?.trim();
+  if (isSavedForLaterEntry(entry) && reason) {
+    return `${entry.detail} · Later: ${reason}`;
+  }
+
+  return entry.detail;
+}
+
+function isSavedForLaterEntry(entry: Pick<PlanEntry, "absolutePath">): boolean {
+  return path.basename(path.dirname(entry.absolutePath)) === "later";
+}
+
+async function promptDefaultSaveReason(entry: PlanEntry): Promise<string | null> {
+  const result = await promptText({
+    message: `Why save ${path.basename(entry.path)} for later?`
+  });
+
+  if (isCancel(result)) {
+    return null;
+  }
+
+  const reason = result.trim();
+  return reason.length > 0 ? reason : null;
 }
 
 function toEntryMap(plans: PlanEntry[]): Map<string, PlanEntry> {

@@ -8,6 +8,10 @@ export type PlanKind =
 
 export type PlanFormat = "markdown" | "yaml";
 
+export interface SavedForLaterMetadata {
+  reason?: string;
+}
+
 export interface PlanEntry {
   path: string;
   absolutePath: string;
@@ -19,6 +23,7 @@ export interface PlanEntry {
   title: string;
   updatedAt: number;
   schemaUrl?: string;
+  savedForLater?: SavedForLaterMetadata;
 }
 
 export interface DiscoveryFs {
@@ -44,4 +49,5 @@ export interface ActionFs {
   rename(fromPath: string, toPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  writeFile(path: string, data: string, encoding: BufferEncoding): Promise<void>;
 }

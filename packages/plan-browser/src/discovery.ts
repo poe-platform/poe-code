@@ -7,7 +7,7 @@ import {
   resolveScope
 } from "@poe-code/poe-code-config";
 import { hasOwnErrorCode } from "./error-codes.js";
-import { readPlanMetadata, splitFrontmatter } from "./format.js";
+import { readPlanMetadata, readSavedForLaterMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
 function createDefaultFs(): DiscoveryFs {
@@ -96,6 +96,10 @@ function getPlanRunner(kind: PlanKind): PlanEntry["runner"] {
   }
 }
 
+function isSavedForLaterPath(absolutePath: string): boolean {
+  return path.basename(path.dirname(absolutePath)) === "later";
+}
+
 async function resolveSharedPlanDirectory(options: {
   fs: DiscoveryFs;
   configPath: string;
@@ -142,11 +146,7 @@ function classifyPlanKind(content: string, filePath: string): PlanKind {
     return "plan";
   }
 
-  if (data.kind === undefined) {
-    throw new Error(`${filePath}: missing required frontmatter kind`);
-  }
-
-  return toPlanKind(data.kind, filePath);
+  return data.kind === undefined ? "plan" : toPlanKind(data.kind, filePath);
 }
 
 async function discoverSharedPlans(options: {
@@ -175,9 +175,37 @@ async function discoverSharedPlans(options: {
     throw new Error(`Plan directory must not be a symbolic link: ${displayDir}`);
   }
 
+  const activePlans = await discoverPlanDirectoryEntries({
+    ...options,
+    absoluteDir,
+    displayDir,
+    savedForLaterDirectory: false
+  });
+  const laterPlans = await discoverPlanDirectoryEntries({
+    ...options,
+    absoluteDir: path.join(absoluteDir, "later"),
+    displayDir: path.join(displayDir, "later"),
+    savedForLaterDirectory: true
+  });
+
+  return [...activePlans, ...laterPlans];
+}
+
+async function discoverPlanDirectoryEntries(options: {
+  cwd: string;
+  homeDir: string;
+  fs: DiscoveryFs;
+  configPath: string;
+  projectConfigPath: string;
+  kind?: PlanKind;
+  variables?: Record<string, string | undefined>;
+  absoluteDir: string;
+  displayDir: string;
+  savedForLaterDirectory: boolean;
+}): Promise<PlanEntry[]> {
   let entries: string[];
   try {
-    entries = await options.fs.readdir(absoluteDir);
+    entries = await options.fs.readdir(options.absoluteDir);
   } catch (error) {
     if (isNotFound(error)) {
       return [];
@@ -191,7 +219,7 @@ async function discoverSharedPlans(options: {
       continue;
     }
 
-    const absolutePath = path.join(absoluteDir, name);
+    const absolutePath = path.join(options.absoluteDir, name);
     const canonicalPath = await options.fs.realpath(absolutePath).catch((error: unknown) => {
       if (isNotFound(error)) {
         return undefined;
@@ -202,7 +230,7 @@ async function discoverSharedPlans(options: {
       continue;
     }
     if (canonicalPath !== path.resolve(absolutePath)) {
-      throw new Error(`Plan file must not be a symbolic link: ${path.join(displayDir, name)}`);
+      throw new Error(`Plan file must not be a symbolic link: ${path.join(options.displayDir, name)}`);
     }
     const stat = await options.fs.stat(absolutePath).catch((error: unknown) => {
       if (isNotFound(error)) {
@@ -217,13 +245,16 @@ async function discoverSharedPlans(options: {
       continue;
     }
 
-    const displayPath = path.join(displayDir, name);
+    const displayPath = path.join(options.displayDir, name);
     const content = await options.fs.readFile(absolutePath, "utf8");
     const kind = classifyPlanKind(content, displayPath);
 
     if (options.kind && kind !== options.kind) {
       continue;
     }
+    const savedForLater = options.savedForLaterDirectory
+      ? readSavedForLaterMetadata(content, displayPath) ?? {}
+      : readSavedForLaterMetadata(content, displayPath);
 
     const metadata = await readPlanMetadata({
       kind,
@@ -242,7 +273,8 @@ async function discoverSharedPlans(options: {
       format: metadata.format,
       title: metadata.title,
       detail: metadata.detail,
-      updatedAt: stat.mtimeMs
+      updatedAt: stat.mtimeMs,
+      ...(savedForLater === undefined ? {} : { savedForLater })
     });
   }
 
@@ -262,6 +294,11 @@ export async function discoverAllPlans(options: {
   const results = await discoverSharedPlans({ ...options, fs });
 
   return results.sort((left, right) => {
+    const leftSaved = isSavedForLaterPath(left.absolutePath) ? 1 : 0;
+    const rightSaved = isSavedForLaterPath(right.absolutePath) ? 1 : 0;
+    if (leftSaved !== rightSaved) {
+      return leftSaved - rightSaved;
+    }
     if (right.updatedAt !== left.updatedAt) {
       return right.updatedAt - left.updatedAt;
     }

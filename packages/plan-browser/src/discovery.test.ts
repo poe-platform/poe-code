@@ -276,6 +276,44 @@ describe("discoverAllPlans", () => {
     ]);
   });
 
+  it("discovers saved-for-later plans from the later subdirectory with their reason", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/active.md": "# Active\n",
+      "/repo/docs/plans/later/deferred.md": [
+        "---",
+        "saved_for_later:",
+        "  reason: Blocked on API contract",
+        "---",
+        "# Deferred"
+      ].join("\n")
+    });
+
+    const now = Date.UTC(2026, 3, 7, 12, 0, 0);
+    await fs.utimes?.("/repo/docs/plans/active.md", now / 1000, now / 1000);
+    await fs.utimes?.("/repo/docs/plans/later/deferred.md", now / 1000 + 10, now / 1000 + 10);
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "docs/plans/active.md"
+      }),
+      expect.objectContaining({
+        path: "docs/plans/later/deferred.md",
+        savedForLater: {
+          reason: "Blocked on API contract"
+        }
+      })
+    ]);
+  });
+
+
   it("skips broken symlinks while discovering valid plan files", async () => {
     const volume = Volume.fromJSON({ "/repo/docs/plans/real.md": "# Real\n" }, "/");
     volume.mkdirSync(cwd, { recursive: true });
@@ -494,7 +532,7 @@ describe("discoverAllPlans", () => {
     ).resolves.toEqual([]);
   });
 
-  it("errors loudly when a frontmatter document omits kind", async () => {
+  it("classifies frontmatter documents without kind as generic plans", async () => {
     const fs = createMemFs({
       "/repo/docs/plans/plan-markdown-reader.md": [
         "---",
@@ -517,7 +555,12 @@ describe("discoverAllPlans", () => {
         configPath: resolveConfigPath(homeDir),
         projectConfigPath: resolveProjectConfigPath(cwd)
       })
-    ).rejects.toThrow("docs/plans/plan-markdown-reader.md: missing required frontmatter kind");
+    ).resolves.toEqual([
+      expect.objectContaining({
+        path: "docs/plans/plan-markdown-reader.md",
+        kind: "plan"
+      })
+    ]);
   });
 
   it("rejects symlinked plan directories and plan files", async () => {

@@ -76,7 +76,7 @@ describe("buildPlanExplorerConfig", () => {
         title: "feature.md",
         subtitle: "0/1 done",
         badge: { text: "Pipeline" },
-        group: "pipeline"
+        group: "Active"
       }
     ]);
     expect(onRefresh).not.toHaveBeenCalled();
@@ -88,7 +88,7 @@ describe("buildPlanExplorerConfig", () => {
         title: "fresh.md",
         subtitle: "minimize / open",
         badge: { text: "Experiment" },
-        group: "experiment"
+        group: "Active"
       }
     ]);
     expect(onRefresh).toHaveBeenCalledOnce();
@@ -233,6 +233,94 @@ describe("buildPlanExplorerConfig", () => {
     expect(config.actions.find((action) => action.id === "delete")?.destructive).toBe(true);
     expect(archiveCtx.toast).toHaveBeenCalledWith("Archived archive-me.md", "warning");
     expect(deleteCtx.toast).toHaveBeenCalledWith("Deleted delete-me.md", "error");
+  });
+
+  it("saves and restores plans for later while prompting only for the first reason", async () => {
+    const activeEntry = plan({
+      path: "docs/plans/active.md",
+      absolutePath: "/repo/docs/plans/active.md"
+    });
+    const rememberedEntry = plan({
+      path: "docs/plans/remembered.md",
+      absolutePath: "/repo/docs/plans/remembered.md",
+      savedForLater: { reason: "Existing reason" }
+    });
+    const laterEntry = plan({
+      path: "docs/plans/later/deferred.md",
+      absolutePath: "/repo/docs/plans/later/deferred.md",
+      savedForLater: { reason: "Existing reason" }
+    });
+    const fs = createMemFs({
+      "/repo/docs/plans/active.md": "# Active\n",
+      "/repo/docs/plans/remembered.md": [
+        "---",
+        "saved_for_later:",
+        "  reason: Existing reason",
+        "---",
+        "# Remembered"
+      ].join("\n"),
+      "/repo/docs/plans/later/deferred.md": [
+        "---",
+        "saved_for_later:",
+        "  reason: Existing reason",
+        "---",
+        "# Deferred"
+      ].join("\n")
+    });
+    const promptSaveReason = vi.fn(async () => "Blocked on API contract");
+    const config = buildPlanExplorerConfig({
+      plans: [activeEntry, rememberedEntry, laterEntry],
+      fs,
+      variables: {},
+      onRefresh: async () => [],
+      promptSaveReason
+    });
+    const rows = await config.rows();
+    const saveAction = config.actions.find((action) => action.id === "save-for-later")!;
+
+    await saveAction.handler(actionContext(rows[0]!));
+    await saveAction.handler(actionContext(rows[1]!));
+    await saveAction.handler(actionContext(rows[2]!));
+
+    expect(promptSaveReason).toHaveBeenCalledOnce();
+    await expect(fs.readFile("/repo/docs/plans/later/active.md", "utf8")).resolves.toContain(
+      "reason: Blocked on API contract"
+    );
+    await expect(fs.readFile("/repo/docs/plans/later/remembered.md", "utf8")).resolves.toContain(
+      "reason: Existing reason"
+    );
+    await expect(fs.readFile("/repo/docs/plans/deferred.md", "utf8")).resolves.toContain(
+      "reason: Existing reason"
+    );
+  });
+
+  it("labels saved-for-later rows with their own group and reason", async () => {
+    const activeEntry = plan({ path: "docs/plans/active.md", absolutePath: "/repo/docs/plans/active.md", detail: "design doc" });
+    const laterEntry = plan({
+      path: "docs/plans/later/deferred.md",
+      absolutePath: "/repo/docs/plans/later/deferred.md",
+      detail: "Deferred",
+      savedForLater: { reason: "Blocked on API contract" }
+    });
+    const config = buildPlanExplorerConfig({
+      plans: [activeEntry, laterEntry],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [activeEntry, laterEntry]
+    });
+
+    await expect(config.rows()).resolves.toEqual([
+      expect.objectContaining({
+        title: "active.md",
+        subtitle: "design doc",
+        group: "Active"
+      }),
+      expect.objectContaining({
+        title: "deferred.md",
+        subtitle: "Deferred · Later: Blocked on API contract",
+        group: "Saved for later"
+      })
+    ]);
   });
 
   it("reports completed destructive actions even when refreshing fails", async () => {

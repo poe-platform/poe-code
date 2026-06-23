@@ -1463,6 +1463,23 @@ describe("parsePlan", () => {
     });
   });
 
+  it("allows arbitrary top-level metadata keys", () => {
+    const plan = parsePlan(
+      pipelinePlanYaml([
+        "saved_for_later:",
+        "  reason: Revisit when auth lands",
+        "custom_owner: platform",
+        "tasks: []",
+        ""
+      ])
+    );
+
+    expect(plan).toEqual({
+      extends: "default",
+      tasks: []
+    });
+  });
+
   it("rejects markdown frontmatter without a closing delimiter", () => {
     expect(() =>
       parsePlan(
@@ -1667,9 +1684,7 @@ describe("parsePlan", () => {
       "setup.hooks.stratgey"
     ],
     ["teardown field", ["teardown:", "  prompt: Clean", "  agnet: codex", "tasks: []", ""], "teardown.agnet"],
-    ["mcp field", ["mcp:", "  server:", "    command: node", "    argz: [server.mjs]", "tasks: []", ""], "mcp.server.argz"],
-    ["top-level setup", ["seutp:", "  prompt: Prepare", "tasks: []", ""], "seutp"],
-    ["top-level teardown", ["taerdown:", "  prompt: Clean", "tasks: []", ""], "taerdown"]
+    ["mcp field", ["mcp:", "  server:", "    command: node", "    argz: [server.mjs]", "tasks: []", ""], "mcp.server.argz"]
   ])("rejects unknown %s keys", (_name, lines, field) => {
     expect(() => parsePlan(pipelinePlanYaml(lines))).toThrow(new RegExp(String(field)));
   });

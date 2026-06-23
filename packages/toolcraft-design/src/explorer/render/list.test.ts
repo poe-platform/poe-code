@@ -49,6 +49,24 @@ describe("explorer list renderer", () => {
     expect(screen.get(15, 1).ch).toBe("▌");
     expect(screen.get(17, 1).ch).toBe("│");
   });
+
+  it("renders group headers as horizontal separators", () => {
+    const state = fixtureState({
+      rows: [
+        { id: "active", title: "Active plan", group: "Active" },
+        { id: "saved", title: "Saved plan", group: "Saved for later" }
+      ],
+      filtered: [0, 1],
+      selected: new Set()
+    });
+    const screen = new ScreenBuffer(36, 8);
+
+    renderList(state, screen, listLayout(36, 8));
+
+    const output = stripAnsi(dumpScreen(screen));
+    expect(output).toContain(" Active ─");
+    expect(output).toContain(" Saved for later ─");
+  });
 });
 
 function listLayout(width: number, height = 1): ExplorerLayout {

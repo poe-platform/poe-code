@@ -104,5 +104,5 @@
     "version",
     "status"
   ],
-  "additionalProperties": false
+  "additionalProperties": true
 }

@@ -684,6 +684,33 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.body).toBe("# Experiment\n\nBody");
   });
 
+  it("allows arbitrary top-level metadata keys", () => {
+    const content = [
+      "---",
+      "agent: claude-code",
+      "saved_for_later:",
+      "  reason: Wait for baseline data",
+      "custom_owner: evals",
+      "metric:",
+      "  name: test_duration",
+      "  script: npm run metric:test_duration",
+      "  direction: minimize",
+      "baseline: null",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.agent).toBe("claude-code");
+    expect(result.frontmatter.metric).toEqual({
+      name: "test_duration",
+      script: "npm run metric:test_duration",
+      direction: "minimize"
+    });
+  });
+
+
   it("parses a metric with stable direction", () => {
     const content = [
       "---",
@@ -1791,12 +1818,13 @@ describe("runExperimentLoop", () => {
     expect(runAgent).not.toHaveBeenCalled();
   });
 
-  it("rejects unknown frontmatter keys instead of applying default agents", async () => {
+  it("allows unknown top-level frontmatter keys and still applies default agents", async () => {
     const docPath = "/repo/.poe-code/experiments/unknown-key.md";
     const fs = createFs({
       [docPath]: [
         "---",
-        "agnet: codex",
+        "saved_for_later:",
+        "  reason: Needs better metrics",
         "metric:",
         "  name: tests",
         "  script: npm test",
@@ -1819,8 +1847,8 @@ describe("runExperimentLoop", () => {
         exec: createLoopExec([]),
         runAgent
       })
-    ).rejects.toThrow('Unknown experiment frontmatter field: "agnet".');
-    expect(runAgent).not.toHaveBeenCalled();
+    ).resolves.toEqual(expect.objectContaining({ experimentsCompleted: 1 }));
+    expect(runAgent).toHaveBeenCalledOnce();
   });
 
   it("rejects empty metric chains before running an agent", async () => {

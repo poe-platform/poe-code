@@ -909,7 +909,6 @@ Body
   });
 
   it.each([
-    ["max_round: 1\n", "frontmatter.max_round"],
     ["", "builder.agnet", "  agnet: codex\n"],
     ["", "builder.cwwd", "  cwwd: packages/core\n"],
     ["", "builder.mcp.helper.argz", "  mcp:\n    helper:\n      command: node\n      argz: [server.mjs]\n"]
@@ -934,6 +933,32 @@ Body
     expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
       `plan.md: unknown field ${fieldName}`
     );
+  });
+
+  it("allows arbitrary top-level metadata keys", () => {
+    const content = `---
+kind: superintendent
+version: 1
+saved_for_later:
+  reason: Wait for review window
+custom_owner: platform
+builder:
+  prompt: build
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const result = parseSuperintendentDoc("plan.md", content);
+
+    expect(result.frontmatter.builder.prompt).toBe("build");
   });
 
   it.each([

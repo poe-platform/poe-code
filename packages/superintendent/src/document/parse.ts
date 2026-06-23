@@ -224,7 +224,7 @@ export const superintendentDocumentSchema: JsonSchema = {
     status: statusSchema
   },
   required: ["kind", "version", "builder", "superintendent", "owner", "status"],
-  additionalProperties: false
+  additionalProperties: true
 };
 
 export const superintendentBaseDocumentSchema: JsonSchema = {
@@ -266,7 +266,7 @@ export const superintendentBaseDocumentSchema: JsonSchema = {
     }
   },
   required: ["kind", "version"],
-  additionalProperties: false
+  additionalProperties: true
 };
 
 const validStatusStates = new Set<StatusBlock["state"]>(["in_progress", "review", "completed"]);
@@ -427,24 +427,6 @@ function parseSuperintendentFrontmatterDocument(
 
 function parseFrontmatter(filePath: string, value: unknown): SuperintendentFrontmatter {
   const frontmatter = expectRecord(value, "frontmatter", filePath);
-  assertOnlyKeys(
-    frontmatter,
-    "frontmatter",
-    [
-      "$schema",
-      "kind",
-      "version",
-      "extends",
-      "mcp",
-      "builder",
-      "inspectors",
-      "superintendent",
-      "owner",
-      "max_rounds",
-      "status"
-    ],
-    filePath
-  );
   const kind = frontmatter.kind;
 
   if (kind === undefined) {

@@ -6,16 +6,20 @@ import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { runPlanBrowser } from "./browser.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
-const { archivePlanMock, deletePlanMock, editFileMock } = vi.hoisted(() => ({
+const { archivePlanMock, deletePlanMock, editFileMock, restorePlanFromLaterMock, savePlanForLaterMock } = vi.hoisted(() => ({
   archivePlanMock: vi.fn(async () => "/repo/docs/plans/archive/feature.md"),
   deletePlanMock: vi.fn(async () => undefined),
-  editFileMock: vi.fn()
+  editFileMock: vi.fn(),
+  restorePlanFromLaterMock: vi.fn(async () => "/repo/docs/plans/feature.md"),
+  savePlanForLaterMock: vi.fn(async () => "/repo/docs/plans/later/feature.md")
 }));
 
 vi.mock("./actions.js", () => ({
   archivePlan: archivePlanMock,
   deletePlan: deletePlanMock,
-  editFile: editFileMock
+  editFile: editFileMock,
+  restorePlanFromLater: restorePlanFromLaterMock,
+  savePlanForLater: savePlanForLaterMock
 }));
 
 const cwd = "/repo";
@@ -115,14 +119,14 @@ describe("plan browser", () => {
         title: "feature.md",
         subtitle: "0/1 done",
         badge: { text: "Pipeline" },
-        group: "pipeline"
+        group: "Active"
       },
       {
         id: "/repo/docs/plans/metric.md",
         title: "metric.md",
         subtitle: "minimize / open",
         badge: { text: "Experiment" },
-        group: "experiment"
+        group: "Active"
       }
     ]);
 

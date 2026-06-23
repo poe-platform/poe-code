@@ -126,7 +126,7 @@ export const ralphDocumentSchema: JsonSchema = {
     }
   },
   required: ["kind", "version", "status"],
-  additionalProperties: false
+  additionalProperties: true
 };
 
 const DEFAULT_STATUS: RalphFrontmatter["status"] = {
@@ -177,25 +177,6 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const defaults = createDefaultFrontmatter();
   const parsed = isRecord(value) ? value : undefined;
   if (parsed !== undefined) {
-    rejectUnknownKeys(
-      parsed,
-      [
-        "$schema",
-        "kind",
-        "version",
-        "name",
-        "state",
-        "agent",
-        "extends",
-        "iterations",
-        "skills",
-        "hooks",
-        "status",
-        "iteration",
-        "prompt"
-      ],
-      "frontmatter"
-    );
     const kind = getOwnEntry(parsed, "kind");
     if (kind !== undefined && kind !== "ralph") {
       throw new Error('Invalid Ralph frontmatter: "kind" must be "ralph".');

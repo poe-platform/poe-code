@@ -95,13 +95,26 @@ class ExplorerRuntime<R> {
     this.driver.disableLineWrap();
     this.driver.hideCursor();
 
-    this.unsubscribeKeypress = this.driver.onKeypress((key) => {
-      this.dispatch({ type: "key", key });
-    });
+    this.subscribeKeypress();
     this.unsubscribeResize = this.driver.onResize(() => {
       const size = this.driver.getSize();
       this.dispatch({ type: "resize", cols: size.cols, rows: size.rows });
     });
+  }
+
+  private subscribeKeypress(): void {
+    if (this.unsubscribeKeypress !== undefined) {
+      return;
+    }
+
+    this.unsubscribeKeypress = this.driver.onKeypress((key) => {
+      this.dispatch({ type: "key", key });
+    });
+  }
+
+  private pauseKeypress(): void {
+    this.unsubscribeKeypress?.();
+    this.unsubscribeKeypress = undefined;
   }
 
   private async loadRows(requestToken = ++this.rowsRequestToken): Promise<void> {
@@ -172,7 +185,11 @@ class ExplorerRuntime<R> {
     });
   }
 
-  private loadDetailContent(rowId: string, token: number, items: import("./state.js").DetailItem[]): void {
+  private loadDetailContent(
+    rowId: string,
+    token: number,
+    items: import("./state.js").DetailItem[]
+  ): void {
     const row = this.state.rows.find((candidate) => candidate.id === rowId);
     if (row === undefined) {
       return;
@@ -196,28 +213,43 @@ class ExplorerRuntime<R> {
         if (typeof content === "string") {
           return { ...item, renderedContent: content };
         }
-        this.track(content.then(
-          (resolved) => this.dispatch({ type: "detailItemRendered", rowId, token, itemIndex, content: resolved }),
-          (error) => this.dispatch({
-            type: "detailItemRendered",
-            rowId,
-            token,
-            itemIndex,
-            content: error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
-          })
-        ));
+        this.track(
+          content.then(
+            (resolved) =>
+              this.dispatch({
+                type: "detailItemRendered",
+                rowId,
+                token,
+                itemIndex,
+                content: resolved
+              }),
+            (error) =>
+              this.dispatch({
+                type: "detailItemRendered",
+                rowId,
+                token,
+                itemIndex,
+                content: error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
+              })
+          )
+        );
         return { ...item, renderedContent: "Loading detail..." };
       } catch (error) {
         return {
           ...item,
-          renderedContent: error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
+          renderedContent:
+            error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
         };
       }
     });
     this.dispatch({ type: "detailLoaded", rowId, token, items: preparedItems });
   }
 
-  private async persistOrder(orderedIds: string[], previousRows: Row[], token: number): Promise<void> {
+  private async persistOrder(
+    orderedIds: string[],
+    previousRows: Row[],
+    token: number
+  ): Promise<void> {
     try {
       await this.config.reorder?.onReorder(orderedIds, {
         refresh: this.runtimeHandles.refresh,
@@ -242,6 +274,7 @@ class ExplorerRuntime<R> {
   }
 
   private async suspendAnd<T>(fn: () => Promise<T>): Promise<T> {
+    this.pauseKeypress();
     this.driver.exitAltScreen();
     this.driver.enableLineWrap();
     this.driver.showCursor();
@@ -255,6 +288,7 @@ class ExplorerRuntime<R> {
         this.driver.enterAltScreen();
         this.driver.disableLineWrap();
         this.driver.hideCursor();
+        this.subscribeKeypress();
         const size = this.driver.getSize();
         this.dispatch({
           type: "suspendResumed",
@@ -325,9 +359,10 @@ class ExplorerRuntime<R> {
       ).state;
     }
 
-    const nextBuffer = this.state.dirty === REGION_ALL
-      ? new ScreenBuffer(this.state.size.cols, this.state.size.rows)
-      : cloneBuffer(this.previousBuffer);
+    const nextBuffer =
+      this.state.dirty === REGION_ALL
+        ? new ScreenBuffer(this.state.size.cols, this.state.size.rows)
+        : cloneBuffer(this.previousBuffer);
     renderExplorer(this.state, nextBuffer);
     this.driver.write(changesToAnsi(diff(this.previousBuffer, nextBuffer)));
     this.previousBuffer = nextBuffer;
@@ -385,7 +420,9 @@ function cloneBuffer(buffer: ScreenBuffer): ScreenBuffer {
   return next;
 }
 
-function changesToAnsi(changes: Array<{ x: number; y: number; cell: ReturnType<ScreenBuffer["get"]> }>): string {
+function changesToAnsi(
+  changes: Array<{ x: number; y: number; cell: ReturnType<ScreenBuffer["get"]> }>
+): string {
   let output = "";
   for (const change of changes) {
     output += `${cursorPositionAnsi(change.x, change.y)}${cellToAnsi(change.cell)}`;

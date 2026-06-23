@@ -1,13 +1,23 @@
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGroupMock } =
-  vi.hoisted(() => ({
-    createTerminalPilotGroupMock: vi.fn(),
-    realpathMock: vi.fn<(path: string) => Promise<string>>(),
-    runCLIMock: vi.fn<() => Promise<void>>(),
-    terminalPilotGroupMock: { name: "terminal-pilot" }
-  }));
+const {
+  createDaemonTerminalPilotRuntimeMock,
+  createTerminalPilotGroupMock,
+  daemonRuntimeMock,
+  realpathMock,
+  runCLIMock,
+  runTerminalPilotDaemonMock,
+  terminalPilotGroupMock
+} = vi.hoisted(() => ({
+  createDaemonTerminalPilotRuntimeMock: vi.fn(),
+  createTerminalPilotGroupMock: vi.fn(),
+  daemonRuntimeMock: { kind: "daemon-runtime" },
+  realpathMock: vi.fn<(path: string) => Promise<string>>(),
+  runCLIMock: vi.fn<() => Promise<void>>(),
+  runTerminalPilotDaemonMock: vi.fn<() => Promise<void>>(),
+  terminalPilotGroupMock: { name: "terminal-pilot" }
+}));
 
 const originalArgv = [...process.argv];
 const cliPath = fileURLToPath(new URL("./cli.ts", import.meta.url));
@@ -17,6 +27,9 @@ const cliOptions = {
     output: true,
     verbose: true,
     yes: true
+  },
+  services: {
+    terminalPilotRuntime: daemonRuntimeMock
   }
 };
 
@@ -32,6 +45,12 @@ vi.mock("./commands/index.js", () => ({
   createTerminalPilotGroup: createTerminalPilotGroupMock
 }));
 
+vi.mock("./commands/daemon-runtime.js", () => ({
+  createDaemonTerminalPilotRuntime: createDaemonTerminalPilotRuntimeMock,
+  isTerminalPilotDaemonArgv: (argv: string[]) => argv[2] === "__daemon",
+  runTerminalPilotDaemon: runTerminalPilotDaemonMock
+}));
+
 describe("terminal-pilot CLI entry point", () => {
   beforeEach(async () => {
     const { resetTheme } = await import("toolcraft/design");
@@ -40,6 +59,8 @@ describe("terminal-pilot CLI entry point", () => {
     realpathMock.mockReset();
     realpathMock.mockImplementation(async (target) => target);
     createTerminalPilotGroupMock.mockReset().mockReturnValue(terminalPilotGroupMock);
+    createDaemonTerminalPilotRuntimeMock.mockReset().mockReturnValue(daemonRuntimeMock);
+    runTerminalPilotDaemonMock.mockReset().mockResolvedValue(undefined);
     runCLIMock.mockReset();
     runCLIMock.mockResolvedValue(undefined);
     vi.resetModules();
@@ -115,5 +136,14 @@ describe("terminal-pilot CLI entry point", () => {
       "--json"
     ]);
     expect(process.argv).toEqual(originalArgv);
+  });
+
+  it("runs the hidden daemon entry point without invoking toolcraft", async () => {
+    const { main } = await import("./cli.js");
+
+    await main(["node", "terminal-pilot", "__daemon"]);
+
+    expect(runTerminalPilotDaemonMock).toHaveBeenCalledOnce();
+    expect(runCLIMock).not.toHaveBeenCalled();
   });
 });

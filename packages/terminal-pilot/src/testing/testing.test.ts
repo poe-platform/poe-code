@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { once } from "node:events";
+import { mkdtemp, rm } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
@@ -8,6 +10,8 @@ import { stripAnsi } from "../ansi.js";
 
 const testingDirectory = path.dirname(fileURLToPath(import.meta.url));
 const testCliPath = path.join(testingDirectory, "test-cli.js");
+const terminalPilotCliPath = path.join(testingDirectory, "..", "cli.ts");
+const tsxPath = path.join(process.cwd(), "node_modules", ".bin", "tsx");
 
 function normalizeOutput(output: string): string {
   return stripAnsi(output).replaceAll("\r", "").replaceAll("\b", "");
@@ -41,6 +45,33 @@ async function runFixture(scriptName: string, input: string) {
   };
 }
 
+async function runTerminalPilotCli(args: string[], env: NodeJS.ProcessEnv) {
+  const child = spawn(tsxPath, [terminalPilotCliPath, ...args], {
+    cwd: process.cwd(),
+    env,
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  let stdout = "";
+  let stderr = "";
+  child.stdout.setEncoding("utf8");
+  child.stderr.setEncoding("utf8");
+  child.stdout.on("data", (chunk) => {
+    stdout += chunk;
+  });
+  child.stderr.on("data", (chunk) => {
+    stderr += chunk;
+  });
+
+  const [exitCode] = (await once(child, "exit")) as [number | null, NodeJS.Signals | null];
+
+  return {
+    exitCode,
+    stdout: normalizeOutput(stdout).trim(),
+    stderr: normalizeOutput(stderr).trim()
+  };
+}
+
 describe("terminal-pilot CLI REPL runner", () => {
   const repls: Array<ReturnType<typeof createTerminalPilotCliRepl>> = [];
 
@@ -61,7 +92,13 @@ describe("terminal-pilot CLI REPL runner", () => {
       }
     });
 
-    const created = await repl.runJson(["create-session", "-s", "S1", process.execPath, testCliPath]);
+    const created = await repl.runJson([
+      "create-session",
+      "-s",
+      "S1",
+      process.execPath,
+      testCliPath
+    ]);
     expect(created.exitCode).toBe(0);
     expect(created.stderr).toBe("");
     expect(created.stdout).toMatchObject({
@@ -111,6 +148,86 @@ describe("terminal-pilot CLI REPL runner", () => {
       message: 'Session "S1" was not found. No active sessions are available.'
     });
     expect(missing.stderr).toBe("");
+  });
+});
+
+describe("terminal-pilot CLI process runner", () => {
+  it("preserves terminal sessions across separate CLI processes", async () => {
+    const runtimeDir = await mkdtemp(path.join(os.tmpdir(), "terminal-pilot-cli-"));
+    const env = {
+      ...process.env,
+      TERMINAL_PILOT_RUNTIME_DIR: runtimeDir
+    };
+
+    try {
+      const created = await runTerminalPilotCli(
+        ["create-session", "-s", "P1", process.execPath, testCliPath, "--output", "json"],
+        env
+      );
+      expect(created.exitCode).toBe(0);
+      expect(JSON.parse(created.stdout)).toMatchObject({
+        session: "P1",
+        pid: expect.any(Number)
+      });
+
+      const prompt = await runTerminalPilotCli(
+        [
+          "wait-for",
+          "-s",
+          "P1",
+          "What is your name?",
+          "--literal",
+          "--timeout",
+          "5000",
+          "--output",
+          "json"
+        ],
+        env
+      );
+      expect(prompt.exitCode).toBe(0);
+      expect(JSON.parse(prompt.stdout)).toMatchObject({
+        matched: true,
+        line: expect.stringContaining("What is your name?")
+      });
+
+      const filled = await runTerminalPilotCli(
+        ["fill", "-s", "P1", "Ada\n", "--output", "json"],
+        env
+      );
+      expect(filled.exitCode).toBe(0);
+
+      const greeted = await runTerminalPilotCli(
+        [
+          "wait-for",
+          "-s",
+          "P1",
+          "Hello, Ada!",
+          "--literal",
+          "--timeout",
+          "5000",
+          "--output",
+          "json"
+        ],
+        env
+      );
+      expect(greeted.exitCode).toBe(0);
+      expect(JSON.parse(greeted.stdout)).toMatchObject({
+        matched: true,
+        line: expect.stringContaining("Hello, Ada!")
+      });
+
+      const closed = await runTerminalPilotCli(
+        ["close-session", "-s", "P1", "--output", "json"],
+        env
+      );
+      expect(closed.exitCode).toBe(0);
+      expect(JSON.parse(closed.stdout)).toMatchObject({ exitCode: 0 });
+    } finally {
+      await runTerminalPilotCli(["close-session", "-s", "P1", "--output", "json"], env).catch(
+        () => undefined
+      );
+      await rm(runtimeDir, { recursive: true, force: true });
+    }
   });
 });
 

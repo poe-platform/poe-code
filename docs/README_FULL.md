@@ -82,7 +82,7 @@ npm install -g poe-code
 npx poe-code@latest <command>
 ```
 
-**Requirements**: Node.js >= 20, npm >= 10
+**Requirements**: Node.js >= 18.18, npm >= 10
 
 ---
 

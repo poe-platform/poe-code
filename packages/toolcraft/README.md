@@ -46,7 +46,7 @@ Once the tool map exists, the rest is mechanical: add commands to `root`, expose
 npm install toolcraft
 ```
 
-`toolcraft-schema` is a dependency and its `S` builders are re-exported from `toolcraft`. Requires Node 20+.
+`toolcraft-schema` is a dependency and its `S` builders are re-exported from `toolcraft`. Requires Node.js >= 18.18.
 
 ## Hello world
 

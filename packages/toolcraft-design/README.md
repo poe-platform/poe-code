@@ -8,7 +8,7 @@ Shared terminal design system for Toolcraft applications. It provides design tok
 npm install toolcraft
 ```
 
-`toolcraft-design` is currently distributed through `toolcraft`. Import the design system from the bundled `toolcraft/design` entrypoint:
+`toolcraft-design` is currently distributed through `toolcraft`, not installed directly from npm as a standalone package. Import the design system from the bundled `toolcraft/design` entrypoint:
 
 ```ts
 import {

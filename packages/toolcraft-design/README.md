@@ -225,18 +225,27 @@ Available token classes:
 - `.tc-token-type`
 - `.tc-token-variable`
 
-The initial no-dependency highlighters cover these fence labels:
+The no-dependency highlighters cover these fence labels:
 
 - ECMAScript and TypeScript: `js`, `javascript`, `mjs`, `cjs`, `es6`, `jsx`, `ts`, `typescript`, `mts`, `cts`, `tsx`
 - Data: `json`, `jsonc`, `jsonl`, `yaml`, `yml`
-- CSS: `css`
+- CSS and style dialects: `css`, `scss`, `sass`, `less`, `postcss`
+- Shell: `sh`, `bash`, `shell`, `shellscript`, `zsh`, `fish`
+- Python: `py`, `python`
+- SQL: `sql`, `ddl`, `dml`
+- Markup and Markdown: `html`, `xml`, `svg`, `md`, `markdown`
+- Line-oriented formats: `diff`, `patch`, `dockerfile`, `docker`
+- Config formats: `ini`, `properties`, `toml`
+- Ruby: `rb`, `ruby`
+- Go: `go`, `golang`
+- Java: `java`
+- C-family: `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`
+- Rust: `rs`, `rust`
+- PHP: `php`
 
-These language labels are recognized but intentionally render as plain escaped code until a tokenizer exists:
+These language labels intentionally render as plain escaped code:
 
-- Styles and markup: `scss`, `sass`, `less`, `postcss`, `html`, `xml`, `svg`, `md`, `markdown`
-- Shell, Python, SQL, and line-oriented formats: `sh`, `bash`, `shell`, `shellscript`, `zsh`, `fish`, `py`, `python`, `sql`, `ddl`, `dml`, `diff`, `patch`, `dockerfile`, `docker`, `ini`, `properties`, `toml`
-- Explicit plain text: `text`, `txt`, `plain`, `plaintext`
-- Other known languages: `rb`, `ruby`, `go`, `golang`, `java`, `c`, `cpp`, `c++`, `cc`, `cxx`, `cs`, `csharp`, `c#`, `rs`, `rust`, `php`
+- Plain text: `text`, `txt`, `plain`, `plaintext`
 
 Unknown fence labels also render as plain escaped code. Code text is always escaped in HTML output, even when `allowRawHtml: true` is enabled.
 

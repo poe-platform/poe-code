@@ -716,7 +716,7 @@ describe("root command", () => {
     expect(plainOutput).toContain("Install agent binary for a configured agent");
     expect(plainOutput).not.toContain("mcp configure");
     expect(plainOutput).not.toContain("mcp unconfigure");
-    expect(plainOutput).toContain("experiment install");
+    expect(plainOutput).toContain("experiment");
     expect(plainOutput).toContain("login");
     expect(plainOutput).toContain("config");
     expect(plainOutput).toContain("Authentication and account commands");
@@ -724,24 +724,23 @@ describe("root command", () => {
     expect(plainOutput).toContain("Run a one-shot Poe agent prompt");
     expect(plainOutput).toContain("pipeline");
     expect(plainOutput).toContain("plan");
-    expect(plainOutput).toContain("plan markdown-read");
-    expect(plainOutput).toContain("plan markdown-read-section");
-    expect(plainOutput).toContain("plan markdown-reader-mcp");
+    expect(plainOutput).not.toContain("plan markdown-read");
+    expect(plainOutput).not.toContain("plan markdown-read-section");
+    expect(plainOutput).not.toContain("plan markdown-reader-mcp");
     expect(plainOutput).toContain("ralph");
     expect(plainOutput).toContain("experiment");
-    expect(plainOutput).toContain("github-workflows, gh");
-    expect(plainOutput).toContain("GitHub workflow automations");
-    expect(plainOutput).toContain("approvals");
-    expect(plainOutput).toContain("Inspect and execute queued approvals");
+    expect(plainOutput).not.toContain("github-workflows, gh");
+    expect(plainOutput).not.toContain("GitHub workflow automations");
+    expect(plainOutput).not.toContain("approvals");
+    expect(plainOutput).not.toContain("Inspect and execute queued approvals");
     expect(plainOutput).not.toContain("auth api_key");
     expect(plainOutput).not.toContain("auth login");
     expect(plainOutput).not.toContain("auth logout");
     expect(plainOutput).not.toContain("research");
     expect(plainOutput).toContain("[agent]");
     expect(plainOutput).toContain("<agent>");
-    expect(plainOutput).toContain("skill configure");
-    expect(plainOutput).toContain("skill unconfigure");
-    expect(plainOutput).toContain("Install skill directories for an agent");
+    expect(plainOutput).not.toContain("skill");
+    expect(plainOutput).not.toContain("Skill directory commands");
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
@@ -778,31 +777,39 @@ describe("root command", () => {
     expect(planHelp).toContain("markdown-reader-mcp");
   });
 
-  it("shows visible nested command leaves in root help", async () => {
+  it("keeps root help focused on primary command groups", async () => {
     const rootHelp = await renderHelp([]);
 
     for (const command of [
-      "plan list",
-      "plan view",
-      "plan edit",
-      "plan archive",
-      "plan delete",
-      "memory show",
-      "memory search",
-      "memory write",
-      "memory append",
-      "memory ingest",
-      "memory query",
-      "memory clear",
-      "tasks import",
-      "tasks get",
-      "tasks set",
-      "tasks set-state",
-      "tasks next",
-      "tasks comment",
-      "runtime jobs"
+      "plan",
+      "pipeline",
+      "experiment",
+      "harness",
+      "ralph",
+      "usage"
     ]) {
       expect(rootHelp).toContain(command);
+    }
+
+    for (const command of [
+      "tasks",
+      "skill",
+      "eval",
+      "maestro",
+      "memory",
+      "runtime",
+      "worktree",
+      "launch",
+      "approvals",
+      "github-workflows",
+      "code-review",
+      "plan list",
+      "plan markdown-read",
+      "tasks import",
+      "tasks set-state",
+      "runtime jobs"
+    ]) {
+      expect(rootHelp).not.toContain(command);
     }
   });
 

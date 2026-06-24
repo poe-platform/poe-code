@@ -11,10 +11,30 @@ npm install toolcraft-design
 Import from the package root:
 
 ```ts
-import { configureTheme, promptText, renderMarkdown, renderTable, text } from "toolcraft-design";
+import {
+  configureTheme,
+  promptText,
+  renderMarkdown,
+  renderMarkdownHtml,
+  renderTable,
+  text
+} from "toolcraft-design";
 ```
 
-The package does not expose public subpath imports.
+Flat subpath imports are also public package exports. Use the kebab-case file name that matches the root export name:
+
+```ts
+import { renderMarkdownHtml } from "toolcraft-design/render-markdown-html";
+import { renderTable } from "toolcraft-design/render-table";
+import { renderDetailCard } from "toolcraft-design/render-detail-card";
+```
+
+Consumers using the bundled Toolcraft design entrypoint can use the same exports through `toolcraft`:
+
+```ts
+import { renderMarkdownHtml } from "toolcraft/design";
+import { renderTable } from "toolcraft/design/render-table";
+```
 
 ## Public API
 
@@ -68,7 +88,31 @@ The package does not expose public subpath imports.
 - `parse`: parses Markdown into `MdNode` values.
 - `render`: renders parsed Markdown nodes for the terminal.
 - `renderMarkdown`: parses and renders a Markdown string.
-- Types: `MdNode`, `RenderOptions`.
+- `renderHtml`: renders parsed Markdown nodes as safe HTML fragments.
+- `renderMarkdownHtml`: parses and renders a Markdown string as a safe HTML fragment.
+- Types: `MdNode`, `RenderOptions`, `HtmlRenderOptions`.
+
+Terminal rendering and HTML rendering share the same parser and AST:
+
+```ts
+import { parse, render, renderHtml, renderMarkdownHtml } from "toolcraft-design";
+
+const markdown = "# Status\n\nUse `poe-code configure`.";
+const { ast } = parse(markdown);
+
+console.log(render(ast));
+console.log(renderHtml(ast));
+console.log(renderMarkdownHtml(markdown));
+```
+
+HTML output is a fragment, not a full HTML document:
+
+```html
+<h1>Status</h1>
+<p>Use <code>poe-code configure</code>.</p>
+```
+
+Raw HTML in Markdown is escaped by default. Pass `{ allowRawHtml: true }` only when the input is trusted.
 
 ### Static Rendering
 

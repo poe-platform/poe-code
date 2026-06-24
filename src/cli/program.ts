@@ -26,6 +26,7 @@ import { registerLogoutCommand } from "./commands/logout.js";
 import { registerAuthCommand } from "./commands/auth.js";
 import { registerUtilsCommand } from "./commands/utils.js";
 import { registerInstallCommand } from "./commands/install.js";
+import { registerUpdateCommand } from "./commands/update.js";
 import { registerUnconfigureCommand } from "./commands/unconfigure.js";
 import { registerTestCommand } from "./commands/test.js";
 import { registerSkillCommand } from "./commands/skill.js";
@@ -77,6 +78,7 @@ interface RootHelpCommandSpec {
 
 const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["install"] },
+  { path: ["update"] },
   { path: ["configure"] },
   { path: ["unconfigure"] },
   { path: ["login"] },
@@ -925,6 +927,7 @@ function bootstrapProgram(container: CliContainer): Command {
 
   registerVersionOption(program, container, packageJson.version);
   registerInstallCommand(program, container);
+  registerUpdateCommand(program, container, packageJson.version);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
   registerSpawnCommand(program, container, {

@@ -2,7 +2,7 @@ import { parse } from "./parser.js";
 import { renderHtml, type HtmlRenderOptions } from "./html-renderer.js";
 import { render, type RenderOptions } from "./renderer.js";
 
-export type { MdNode } from "./ast.js";
+export type { CodeToken, CodeTokenKind, MdNode } from "./ast.js";
 export { renderHtml } from "./html-renderer.js";
 export type { HtmlRenderOptions } from "./html-renderer.js";
 export { parse } from "./parser.js";

@@ -193,10 +193,53 @@ describe("terminal markdown html renderer", () => {
     ).toContain('{&quot;self&quot;:&quot;[Circular]&quot;}');
   });
 
+  it("adds opt-in neutral syntax token spans inside escaped code blocks", () => {
+    const markdown = ["```ts", 'const value = "<safe>"; // visible', "```"].join("\n");
+
+    expect(renderMarkdownHtml(markdown)).toBe(
+      '<pre><code class="language-ts">const value = &quot;&lt;safe&gt;&quot;; // visible</code></pre>'
+    );
+    expect(renderMarkdownHtml(markdown, { syntaxHighlight: true })).toBe(
+      [
+        '<pre><code class="language-ts"><span class="tc-token-keyword">const</span> value = <span class="tc-token-string">&quot;&lt;safe&gt;&quot;</span>; <span class="tc-token-comment">// visible</span></code></pre>'
+      ].join("\n")
+    );
+    expect(renderMarkdownHtml(markdown, { syntaxHighlight: true })).not.toContain("style=");
+  });
+
+  it("keeps code text escaped when raw html and syntax highlighting are both enabled", () => {
+    const markdown = ["```js", 'const html = "<script>alert(1)</script>";', "```"].join("\n");
+
+    expect(renderMarkdownHtml(markdown, { allowRawHtml: true, syntaxHighlight: true })).toContain(
+      '<span class="tc-token-string">&quot;&lt;script&gt;alert(1)&lt;/script&gt;&quot;</span>'
+    );
+  });
+
+  it("falls back to plain code for unknown, plain-text, and known unhighlighted languages", () => {
+    expect(renderMarkdownHtml("```unknown-language\n<x>\n```", { syntaxHighlight: true })).toBe(
+      '<pre><code class="language-unknown-language">&lt;x&gt;</code></pre>'
+    );
+    expect(renderMarkdownHtml("```ruby\nputs '<x>'\n```", { syntaxHighlight: true })).toBe(
+      '<pre><code class="language-ruby">puts \'&lt;x&gt;\'</code></pre>'
+    );
+    expect(renderMarkdownHtml("```text\nconst x = '<x>';\n```", { syntaxHighlight: true })).toBe(
+      '<pre><code class="language-text">const x = \'&lt;x&gt;\';</code></pre>'
+    );
+  });
+
+  it("supports syntax highlighting for AST-first html callers", () => {
+    const { ast } = parse(["```json", '{"ok": true}', "```"].join("\n"));
+
+    expect(renderHtml(ast, { syntaxHighlight: true })).toBe(
+      '<pre><code class="language-json">{<span class="tc-token-key">&quot;ok&quot;</span>: <span class="tc-token-boolean">true</span>}</code></pre>'
+    );
+  });
+
   it("exports html render options", () => {
     expectTypeOf<HtmlRenderOptions>().toEqualTypeOf<{
       showFrontmatter?: boolean;
       allowRawHtml?: boolean;
+      syntaxHighlight?: boolean;
     }>();
   });
 });

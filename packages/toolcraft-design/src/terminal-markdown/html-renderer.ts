@@ -1,8 +1,10 @@
 import type { MdNode } from "./ast.js";
+import { highlightCodeBlock } from "./parser/code-highlight.js";
 
 export interface HtmlRenderOptions {
   showFrontmatter?: boolean;
   allowRawHtml?: boolean;
+  syntaxHighlight?: boolean;
 }
 
 interface FootnoteState {
@@ -14,6 +16,7 @@ interface FootnoteState {
 interface RenderContext {
   showFrontmatter: boolean;
   allowRawHtml: boolean;
+  syntaxHighlight: boolean;
   footnotes?: FootnoteState;
 }
 
@@ -23,6 +26,7 @@ export function renderHtml(ast: MdNode, options: HtmlRenderOptions = {}): string
   const context: RenderContext = {
     showFrontmatter: options.showFrontmatter ?? false,
     allowRawHtml: options.allowRawHtml ?? false,
+    syntaxHighlight: options.syntaxHighlight ?? false,
     footnotes: ast.type === "root" ? createFootnoteState(ast.children) : undefined
   };
 
@@ -42,7 +46,7 @@ function renderNode(node: MdNode, context: RenderContext): string {
     case "alert":
       return renderAlert(node, context);
     case "code":
-      return renderCodeBlock(node);
+      return renderCodeBlock(node, context);
     case "list":
       return renderList(node, context);
     case "table":
@@ -117,13 +121,27 @@ function renderAlert(node: Extract<MdNode, { type: "alert" }>, context: RenderCo
   return `<blockquote data-alert="${escapeAttribute(node.kind)}">${content}</blockquote>`;
 }
 
-function renderCodeBlock(node: Extract<MdNode, { type: "code" }>): string {
+function renderCodeBlock(
+  node: Extract<MdNode, { type: "code" }>,
+  context: RenderContext
+): string {
   const classAttribute =
     node.lang === undefined || node.lang.length === 0
       ? ""
       : ` class="language-${escapeAttribute(node.lang)}"`;
+  const tokens = context.syntaxHighlight ? highlightCodeBlock(node) : undefined;
+  const content =
+    tokens === undefined
+      ? escapeHtml(node.value)
+      : tokens
+          .map((token) =>
+            token.kind === "plain"
+              ? escapeHtml(token.value)
+              : `<span class="tc-token-${escapeAttribute(token.kind)}">${escapeHtml(token.value)}</span>`
+          )
+          .join("");
 
-  return `<pre><code${classAttribute}>${escapeHtml(node.value)}</code></pre>`;
+  return `<pre><code${classAttribute}>${content}</code></pre>`;
 }
 
 function renderList(node: Extract<MdNode, { type: "list" }>, context: RenderContext): string {
